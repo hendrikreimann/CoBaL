@@ -1,6 +1,6 @@
 % find step events from force plate
 
-trials_to_process = 6 : 14;
+trials_to_process = 1 : 11;
 
 
 for i_trial = trials_to_process
