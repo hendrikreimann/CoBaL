@@ -8,12 +8,12 @@ calculate_response_extrema      = 1;
 visualize_steps                 = 0;
 do_cop_plots_absolute           = 1;
 do_heel_plots_absolute          = 1;
-do_cop_plots_response           = 1;
-do_heel_plots_response          = 1;
-do_side_comparison_plots        = 1;
-do_response_extrema_plots       = 1;
-do_step_response_plot           = 1;
-do_stim_response_plot           = 1;
+do_cop_plots_response           = 0;
+do_heel_plots_response          = 0;
+do_side_comparison_plots        = 0;
+do_response_extrema_plots       = 0;
+do_step_response_plot           = 0;
+do_stim_response_plot           = 0;
 
 %% prepare
 wait_times = [0 0.150 0.450];
@@ -21,8 +21,8 @@ wait_time_labels = {'0ms', '150ms', '450ms'};
 load subjectInfo.mat;
 
 trials_to_process_control = 1;
-trials_to_process_stim = 6 : 14;
-trials_to_process_stim = 6;
+trials_to_process_stim = 3 : 5;
+trials_to_process_stim = 3;
 
 
 % trials_to_process = [trials_to_process_control trials_to_process_stim];
@@ -108,8 +108,18 @@ if extract_data
             disp(['Trial ' num2str(i_trial) ': something went wrong, this trial is neither stim nor control']);
         end
         
+%         % visualize trigger
+%         figure; axes; hold on
+%         plot(stimulus_foot_state);
+%         plot(left_touchdown_indices_force_plate, zeros(size(left_touchdown_indices_force_plate)), 'o')
+%         plot(right_touchdown_indices_force_plate, zeros(size(right_touchdown_indices_force_plate)), 'o')
+%         plot(trigger_indices_forceplate_trial, zeros(size(trigger_indices_forceplate_trial)), 'x')
+%         plot(stim_start_indices_forceplate_trial, zeros(size(stim_start_indices_forceplate_trial)), 'x')
+%         legend('stimulus state', 'left touchdown', 'right touchdown', 'trigger', 'stim start')
+        
         % for each trigger, extract conditions and relevant step events
         number_of_triggers = length(trigger_indices_forceplate_trial);
+        removal_flags = zeros(number_of_triggers, 1);
         stretch_start_indices_forceplate_trial = zeros(number_of_triggers, 2);
         stretch_end_indices_forceplate_trial = zeros(number_of_triggers, 2);
         condition_stance_foot_list_trial = cell(number_of_triggers, 2);
@@ -139,12 +149,27 @@ if extract_data
             
             % stance foot for time period of interest
             [last_left_foot_heelstrike, index_left] = max(left_touchdown_indices_force_plate(left_touchdown_indices_force_plate <= trigger_indices_forceplate_trial(i_trigger)));
+            if isempty(index_left)
+                removal_flags(i_trigger) = 1;
+            else
+                if length(left_touchdown_indices_force_plate) < index_left + 2
+                    removal_flags(i_trigger) = 1;
+                else
+                    this_left_foot_heelstrike = left_touchdown_indices_force_plate(index_left+1);
+                    next_left_foot_heelstrike = left_touchdown_indices_force_plate(index_left+2);
+                end
+            end
             [last_right_foot_heelstrike, index_right] = max(right_touchdown_indices_force_plate(right_touchdown_indices_force_plate <= trigger_indices_forceplate_trial(i_trigger)));
-            this_left_foot_heelstrike = left_touchdown_indices_force_plate(index_left+1);
-            this_right_foot_heelstrike = right_touchdown_indices_force_plate(index_right+1);
-            next_left_foot_heelstrike = left_touchdown_indices_force_plate(index_left+2);
-            next_right_foot_heelstrike = right_touchdown_indices_force_plate(index_right+2);
-            
+            if isempty(index_left)
+                removal_flags(i_trigger) = 1;
+            else
+                if length(left_touchdown_indices_force_plate) < index_left + 2
+                    removal_flags(i_trigger) = 1;
+                else
+                    this_right_foot_heelstrike = right_touchdown_indices_force_plate(index_right+1);
+                    next_right_foot_heelstrike = right_touchdown_indices_force_plate(index_right+2);
+                end
+            end
             if left_contact_indicators_force_plate(trigger_indices_forceplate_trial(i_trigger)) == 1 && right_contact_indicators_force_plate(trigger_indices_forceplate_trial(i_trigger)) == 0
                 % triggered by right foot heelstrike
                 if strcmp(condition_delay_list_trial{i_trigger, 1}, '0ms') || strcmp(condition_delay_list_trial{i_trigger, 1}, '150ms')
@@ -192,66 +217,10 @@ if extract_data
                 disp(['Trial ' num2str(i_trial) ': something went wrong at time ' num2str(time_force_plate(trigger_indices_forceplate_trial(i_trigger))) ' - stance foot unclear']);
             end
             
-
-            
-            
-            
-            
-            
-            
-            
-            
-
-%             % stance foot condition and events
-%             if left_contact_indicators_force_plate(trigger_indices_forceplate_trial(i_trigger)) == 1 && right_contact_indicators_force_plate(trigger_indices_forceplate_trial(i_trigger)) == 0
-%                 % right foot was in swing, so right heelstrike triggered the stim
-%                 condition_stance_foot_list_trial{i_trigger, 1} = 'RIGHT';
-%                 condition_stance_foot_list_trial{i_trigger, 2} = 'RIGHT';
-%                 next_right_foot_heelstrike = min(right_touchdown_indices_force_plate(right_touchdown_indices_force_plate > trigger_indices_forceplate_trial(i_trigger)));
-%                 next_left_foot_heelstrike = min(left_touchdown_indices_force_plate(left_touchdown_indices_force_plate > trigger_indices_forceplate_trial(i_trigger)));
-%                 last_right_foot_heelstrike = max(right_touchdown_indices_force_plate(right_touchdown_indices_force_plate <= trigger_indices_forceplate_trial(i_trigger)));
-%                 last_left_foot_heelstrike = max(left_touchdown_indices_force_plate(left_touchdown_indices_force_plate <= trigger_indices_forceplate_trial(i_trigger)));
-%                 if ~(isempty(next_right_foot_heelstrike) || isempty(next_left_foot_heelstrike))
-%                     stretch_start_indices_forceplate_trial(i_trigger, 1) = next_right_foot_heelstrike;
-%                     stretch_end_indices_forceplate_trial(i_trigger, 1) = next_left_foot_heelstrike;
-%                     stretch_start_indices_forceplate_trial(i_trigger, 2) = last_right_foot_heelstrike;
-%                     stretch_end_indices_forceplate_trial(i_trigger, 2) = last_left_foot_heelstrike;
-%                 else
-%                     % data not complete, flag for removal
-%                     stretch_start_indices_forceplate_trial(i_trigger, :) = NaN;
-%                     stretch_end_indices_forceplate_trial(i_trigger, :) = NaN;
-%                 end
-%             elseif left_contact_indicators_force_plate(trigger_indices_forceplate_trial(i_trigger)) == 0 && right_contact_indicators_force_plate(trigger_indices_forceplate_trial(i_trigger)) == 1
-%                 condition_stance_foot_list_trial{i_trigger, 1} = 'LEFT';
-%                 condition_stance_foot_list_trial{i_trigger, 2} = 'LEFT';
-%                 next_left_foot_heelstrike = min(left_touchdown_indices_force_plate(left_touchdown_indices_force_plate > trigger_indices_forceplate_trial(i_trigger)));
-%                 next_right_foot_heelstrike = min(right_touchdown_indices_force_plate(right_touchdown_indices_force_plate > trigger_indices_forceplate_trial(i_trigger)));
-%                 last_left_foot_heelstrike = max(left_touchdown_indices_force_plate(left_touchdown_indices_force_plate <= trigger_indices_forceplate_trial(i_trigger)));
-%                 last_right_foot_heelstrike = max(right_touchdown_indices_force_plate(right_touchdown_indices_force_plate <= trigger_indices_forceplate_trial(i_trigger)));
-%                 if ~(isempty(next_right_foot_heelstrike) || isempty(next_left_foot_heelstrike))
-%                     stretch_start_indices_forceplate_trial(i_trigger, 1) = next_left_foot_heelstrike;
-%                     stretch_end_indices_forceplate_trial(i_trigger, 1) = next_right_foot_heelstrike;
-%                     stretch_start_indices_forceplate_trial(i_trigger, 2) = last_left_foot_heelstrike;
-%                     stretch_end_indices_forceplate_trial(i_trigger, 2) = last_right_foot_heelstrike;
-%                 else
-%                     % data not complete, flag for removal
-%                     stretch_start_indices_forceplate_trial(i_trigger, :) = NaN;
-%                     stretch_end_indices_forceplate_trial(i_trigger, :) = NaN;
-%                 end
-%             else
-%                 condition_stance_foot_list_trial{i_trigger, 1} = 'UNCLEAR';
-%                 condition_stance_foot_list_trial{i_trigger, 2} = 'UNCLEAR';
-%                 disp(['Trial ' num2str(i_trial) ': something went wrong at time ' num2str(time_force_plate(trigger_indices_forceplate_trial(i_trigger))) ' - stance foot unclear']);
-%             end
         end
 
         % remove flagged stims
-        unflagged_indices = ...
-          ~( ...
-             isnan(stretch_start_indices_forceplate_trial(:, 1)) ...
-             | isnan(stretch_end_indices_forceplate_trial(:, 1)) ...
-             | strcmp(condition_stance_foot_list_trial(:, 1), 'UNCLEAR') ...
-           );
+        unflagged_indices = ~removal_flags;
         stretch_start_indices_forceplate_trial = stretch_start_indices_forceplate_trial(unflagged_indices, :);
         stretch_end_indices_forceplate_trial = stretch_end_indices_forceplate_trial(unflagged_indices, :);
         condition_stance_foot_list_trial = condition_stance_foot_list_trial(unflagged_indices, :);
@@ -725,54 +694,97 @@ if do_cop_plots_absolute
     % plot(time_normalized, right_cop_x_normalized(:, conditions_right_control))
 
     % return
-    %
-    figure; axes; hold on; title('left foot medial-lateral CoP')
-    shadedErrorBar(time_normalized, left_cop_x_mean_left_control, left_cop_x_civ_left_control, {'color', color_left_control, 'linewidth', 5}, 1);
-    shadedErrorBar(time_normalized, left_cop_x_mean_left_positive_0ms, left_cop_x_civ_left_positive_0ms, {'color', color_left_positive, 'linewidth', 5}, 1);
-    shadedErrorBar(time_normalized, left_cop_x_mean_left_negative_0ms, left_cop_x_civ_left_negative_0ms, {'color', color_left_negative, 'linewidth', 5}, 1);
+
+%     figure; axes; hold on; title('left foot medial-lateral CoP, 450ms')
+%     shadedErrorBar(time_normalized, left_cop_x_mean_left_control, left_cop_x_civ_left_control, {'color', color_left_control, 'linewidth', 5}, 1);
+%     shadedErrorBar(time_normalized, left_cop_x_mean_left_positive_450ms, left_cop_x_civ_left_positive_450ms, {'color', color_left_positive, 'linewidth', 5}, 1);
+%     shadedErrorBar(time_normalized, left_cop_x_mean_left_negative_450ms, left_cop_x_civ_left_negative_450ms, {'color', color_left_negative, 'linewidth', 5}, 1);
+%     xlabel('time')
+% 
+%     figure; axes; hold on; title('right foot medial-lateral CoP, 0ms')
+%     shadedErrorBar(time_normalized, right_cop_x_mean_right_control, right_cop_x_civ_right_control, {'color', color_right_control, 'linewidth', 5}, 1);
+%     shadedErrorBar(time_normalized, right_cop_x_mean_right_positive_0ms, right_cop_x_civ_right_positive_0ms, {'color', color_right_positive, 'linewidth', 5}, 1);
+%     shadedErrorBar(time_normalized, right_cop_x_mean_right_negative_0ms, right_cop_x_civ_right_negative_0ms, {'color', color_right_negative, 'linewidth', 5}, 1);
+%     
+%     figure; axes; hold on; title('right foot medial-lateral CoP, 150ms')
+%     shadedErrorBar(time_normalized, right_cop_x_mean_right_control, right_cop_x_civ_right_control, {'color', color_right_control, 'linewidth', 5}, 1);
+%     shadedErrorBar(time_normalized, right_cop_x_mean_right_positive_150ms, right_cop_x_civ_right_positive_150ms, {'color', color_right_positive, 'linewidth', 5}, 1);
+%     shadedErrorBar(time_normalized, right_cop_x_mean_right_negative_150ms, right_cop_x_civ_right_negative_150ms, {'color', color_right_negative, 'linewidth', 5}, 1);
+%     xlabel('time')
+    
+    % single ones
+    figure; axes; hold on; title('left foot medial-lateral CoP, 450ms')
+    plot(time_normalized, left_cop_x_normalized(:, conditions_left_control), 'color', color_left_control, 'linewidth', 1);
+    plot(time_normalized, left_cop_x_normalized(:, conditions_left_positive_450ms), 'color', color_left_positive, 'linewidth', 1);
+    plot(time_normalized, left_cop_x_normalized(:, conditions_left_negative_450ms), 'color', color_left_negative, 'linewidth', 1);
     xlabel('time')
 
-    figure; axes; hold on; title('right foot medial-lateral CoP')
-    shadedErrorBar(time_normalized, right_cop_x_mean_right_control, right_cop_x_civ_right_control, {'color', color_right_control, 'linewidth', 5}, 1);
-    shadedErrorBar(time_normalized, right_cop_x_mean_right_positive_0ms, right_cop_x_civ_right_positive_0ms, {'color', color_right_positive, 'linewidth', 5}, 1);
-    shadedErrorBar(time_normalized, right_cop_x_mean_right_negative_0ms, right_cop_x_civ_right_negative_0ms, {'color', color_right_negative, 'linewidth', 5}, 1);
+    figure; axes; hold on; title('right foot medial-lateral CoP, 0ms')
+    plot(time_normalized, right_cop_x_normalized(:, conditions_right_control), 'color', color_right_control, 'linewidth', 1);
+    plot(time_normalized, right_cop_x_normalized(:, conditions_right_positive_0ms), 'color', color_left_positive, 'linewidth', 1);
+    plot(time_normalized, right_cop_x_normalized(:, conditions_right_negative_0ms), 'color', color_left_negative, 'linewidth', 1);
+    
+    figure; axes; hold on; title('right foot medial-lateral CoP, 150ms')
+    plot(time_normalized, right_cop_x_normalized(:, conditions_right_control), 'color', color_right_control, 'linewidth', 1);
+    plot(time_normalized, right_cop_x_normalized(:, conditions_right_positive_150ms), 'color', color_left_positive, 'linewidth', 1);
+    plot(time_normalized, right_cop_x_normalized(:, conditions_right_negative_150ms), 'color', color_left_negative, 'linewidth', 1);
     xlabel('time')
+    
 end
 
 %% do_heel_plots_absolute
 if do_heel_plots_absolute
     
-    
-    % shaded error bars
-    figure; axes; hold on; title('left foot medial-lateral heel marker')
-    shadedErrorBar(time_normalized, left_heel_x_mean_right_control, left_heel_x_civ_right_control, {'color', color_right_control, 'linewidth', 5}, 1);
-    shadedErrorBar(time_normalized, left_heel_x_mean_right_positive, left_heel_x_civ_right_positive, {'color', color_right_positive, 'linewidth', 5}, 1);
-    shadedErrorBar(time_normalized, left_heel_x_mean_right_negative, left_heel_x_civ_right_negative, {'color', color_right_negative, 'linewidth', 5}, 1);
+    figure; axes; hold on; title('right foot medial-lateral CoP, 450ms')
+    shadedErrorBar(time_normalized, right_heel_x_pos_mean_left_control, right_heel_x_pos_civ_left_control, {'color', color_left_control, 'linewidth', 5}, 1);
+    shadedErrorBar(time_normalized, right_heel_x_pos_mean_left_positive_450ms, right_heel_x_pos_civ_left_positive_450ms, {'color', color_left_positive, 'linewidth', 5}, 1);
+    shadedErrorBar(time_normalized, right_heel_x_pos_mean_left_negative_450ms, right_heel_x_pos_civ_left_negative_450ms, {'color', color_left_negative, 'linewidth', 5}, 1);
     xlabel('time')
 
-    figure; axes; hold on; title('right foot medial-lateral heel marker')
-    shadedErrorBar(time_normalized, right_heel_x_mean_left_control, right_heel_x_civ_left_control, {'color', color_left_control, 'linewidth', 5}, 1);
-    shadedErrorBar(time_normalized, right_heel_x_mean_left_positive, right_heel_x_civ_left_positive, {'color', color_left_positive, 'linewidth', 5}, 1);
-    shadedErrorBar(time_normalized, right_heel_x_mean_left_negative, right_heel_x_civ_left_negative, {'color', color_left_negative, 'linewidth', 5}, 1);
+    figure; axes; hold on; title('left foot medial-lateral CoP, 0ms')
+    shadedErrorBar(time_normalized, left_heel_x_pos_mean_right_control, left_heel_x_pos_civ_right_control, {'color', color_right_control, 'linewidth', 5}, 1);
+    shadedErrorBar(time_normalized, left_heel_x_pos_mean_right_positive_0ms, left_heel_x_pos_civ_right_positive_0ms, {'color', color_right_positive, 'linewidth', 5}, 1);
+    shadedErrorBar(time_normalized, left_heel_x_pos_mean_right_negative_0ms, left_heel_x_pos_civ_right_negative_0ms, {'color', color_right_negative, 'linewidth', 5}, 1);
+    
+    figure; axes; hold on; title('left foot medial-lateral CoP, 150ms')
+    shadedErrorBar(time_normalized, left_heel_x_pos_mean_right_control, left_heel_x_pos_civ_right_control, {'color', color_right_control, 'linewidth', 5}, 1);
+    shadedErrorBar(time_normalized, left_heel_x_pos_mean_right_positive_150ms, left_heel_x_pos_civ_right_positive_150ms, {'color', color_right_positive, 'linewidth', 5}, 1);
+    shadedErrorBar(time_normalized, left_heel_x_pos_mean_right_negative_150ms, left_heel_x_pos_civ_right_negative_150ms, {'color', color_right_negative, 'linewidth', 5}, 1);
     xlabel('time')
     
-    % x
-    figure; axes; hold on; title('left stance foot - x')
-    plot(time_normalized, left_heel_x_mean_right_control, 'linewidth', 5);
-    plot(time_normalized, left_heel_x_mean_left_control, 'linewidth', 5);
     
-    figure; axes; hold on; title('right stance foot - x')
-    plot(time_normalized, right_heel_x_mean_right_control, 'linewidth', 5);
-    plot(time_normalized, right_heel_x_mean_left_control, 'linewidth', 5);
     
-    % y
-    figure; axes; hold on; title('left stance foot - y')
-    plot(time_normalized, left_heel_y_pos_mean_right_control, 'linewidth', 5);
-    plot(time_normalized, left_heel_y_pos_mean_left_control, 'linewidth', 5);
     
-    figure; axes; hold on; title('right stance foot - y')
-    plot(time_normalized, right_heel_y_pos_mean_right_control, 'linewidth', 5);
-    plot(time_normalized, right_heel_y_pos_mean_left_control, 'linewidth', 5);
+%     % shaded error bars
+%     figure; axes; hold on; title('left foot medial-lateral heel marker')
+%     shadedErrorBar(time_normalized, left_heel_x_mean_right_control, left_heel_x_civ_right_control, {'color', color_right_control, 'linewidth', 5}, 1);
+%     shadedErrorBar(time_normalized, left_heel_x_mean_right_positive, left_heel_x_civ_right_positive, {'color', color_right_positive, 'linewidth', 5}, 1);
+%     shadedErrorBar(time_normalized, left_heel_x_mean_right_negative, left_heel_x_civ_right_negative, {'color', color_right_negative, 'linewidth', 5}, 1);
+%     xlabel('time')
+% 
+%     figure; axes; hold on; title('right foot medial-lateral heel marker')
+%     shadedErrorBar(time_normalized, right_heel_x_mean_left_control, right_heel_x_civ_left_control, {'color', color_left_control, 'linewidth', 5}, 1);
+%     shadedErrorBar(time_normalized, right_heel_x_mean_left_positive, right_heel_x_civ_left_positive, {'color', color_left_positive, 'linewidth', 5}, 1);
+%     shadedErrorBar(time_normalized, right_heel_x_mean_left_negative, right_heel_x_civ_left_negative, {'color', color_left_negative, 'linewidth', 5}, 1);
+%     xlabel('time')
+%     
+%     % x
+%     figure; axes; hold on; title('left stance foot - x')
+%     plot(time_normalized, left_heel_x_mean_right_control, 'linewidth', 5);
+%     plot(time_normalized, left_heel_x_mean_left_control, 'linewidth', 5);
+%     
+%     figure; axes; hold on; title('right stance foot - x')
+%     plot(time_normalized, right_heel_x_mean_right_control, 'linewidth', 5);
+%     plot(time_normalized, right_heel_x_mean_left_control, 'linewidth', 5);
+    
+%     % y
+%     figure; axes; hold on; title('left stance foot - y')
+%     plot(time_normalized, left_heel_y_pos_mean_right_control, 'linewidth', 5);
+%     plot(time_normalized, left_heel_y_pos_mean_left_control, 'linewidth', 5);
+%     
+%     figure; axes; hold on; title('right stance foot - y')
+%     plot(time_normalized, right_heel_y_pos_mean_right_control, 'linewidth', 5);
+%     plot(time_normalized, right_heel_y_pos_mean_left_control, 'linewidth', 5);
     
 end
 
