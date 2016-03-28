@@ -324,36 +324,41 @@ else
     right_calcaneous_marker_index = 42;
     right_toetip_marker_index = 43;
 
-    % determine anterior direction
+    % determine anatomic directions
     MPSIS = mean([markerReference((right_PSIS_marker_index-1)*3+1 : (right_PSIS_marker_index-1)*3+3)' markerReference((left_PSIS_marker_index-1)*3+1 : (left_PSIS_marker_index-1)*3+3)'], 2);
-    pelvis_acs_origin = mean([markerReference((right_ASIS_marker_index-1)*3+1 : (right_ASIS_marker_index-1)*3+3)' markerReference((left_ASIS_marker_index-1)*3+1 : (left_ASIS_marker_index-1)*3+3)'], 2);
-    MPSIS_to_MASIS = pelvis_acs_origin - MPSIS;
+    MASIS = mean([markerReference((right_ASIS_marker_index-1)*3+1 : (right_ASIS_marker_index-1)*3+3)' markerReference((left_ASIS_marker_index-1)*3+1 : (left_ASIS_marker_index-1)*3+3)'], 2);
+    MPSIS_to_MASIS = MASIS - MPSIS;
+    RASIS = markerReference((right_ASIS_marker_index-1)*3+1 : (right_ASIS_marker_index-1)*3+3)';
+    LASIS = markerReference((left_ASIS_marker_index-1)*3+1 : (left_ASIS_marker_index-1)*3+3)';
     
-    if MPSIS_to_MASIS(2) > 0
-        anterior_direction = 1;
-        left_direction = -1;
-    else
-        anterior_direction = -1;
-        left_direction = 1;
-    end
+    anterior_direction = normVector(MASIS - MPSIS);
+    posterior_direction = - anterior_direction;
+    left_direction = normVector(LASIS - RASIS);
+    right_direction = - left_direction;
+    up_direction = cross(right_direction, anterior_direction);
+    down_direction = - up_direction;
     
-    sellion_marker_offset           = - [0.011*anterior_direction; 0; 0];
-    head_vertex_marker_offset       = - [0; 0; 0.011];
-    right_temple_marker_offset      = + [0; 0.011*left_direction; 0];
-    left_temple_marker_offset       = - [0; 0.011*left_direction; 0];
-    suprasternale_marker_offset     = - [0.011*anterior_direction; 0; 0];
-    c7_marker_offset                = + [0.011*anterior_direction; 0; 0];
-    MPSIS_marker_offset             = + [0.011; 0; 0];
-    right_ASIS_marker_offset        = - [0.011*anterior_direction; 0; 0] - [0.010*anterior_direction; 0; 0];
-    left_ASIS_marker_offset         = - [0.011*anterior_direction; 0; 0] - [0.010*anterior_direction; 0; 0];
-    right_calcaneous_marker_offset  = + [0.011*anterior_direction; 0; 0];
-    right_met_one_marker_offset     = + [0; 0.011*left_direction; 0];
-    right_met_five_marker_offset    = + [0; 0.011*left_direction; 0];
-    right_toetip_marker_offset      = - [0; 0; 0.006] - [0; 0; 0.022];
-    left_calcaneous_marker_offset   = + [0.011*anterior_direction; 0; 0];
-    left_met_one_marker_offset      = - [0; 0.011*left_direction; 0];
-    left_met_five_marker_offset     = - [0; 0.011*left_direction; 0];
-    left_toetip_marker_offset       = - [0; 0; 0.006] - [0; 0; 0.022];
+    centroid_to_skin_correction = 0.0152; % in meters
+    skin_to_bone_correction = 0.01; % in meters
+    centroid_to_bone_correction = centroid_to_skin_correction + skin_to_bone_correction;
+    
+    sellion_marker_offset           = centroid_to_skin_correction * posterior_direction;
+    head_vertex_marker_offset       = centroid_to_skin_correction * down_direction;
+    right_temple_marker_offset      = centroid_to_skin_correction * left_direction;
+    left_temple_marker_offset       = centroid_to_skin_correction * right_direction;
+    suprasternale_marker_offset     = centroid_to_skin_correction * posterior_direction;
+    c7_marker_offset                = centroid_to_skin_correction * anterior_direction;
+    MPSIS_marker_offset             = centroid_to_skin_correction * anterior_direction;
+    right_ASIS_marker_offset        = centroid_to_skin_correction * posterior_direction;
+    left_ASIS_marker_offset         = centroid_to_skin_correction * posterior_direction;
+    right_calcaneous_marker_offset  = centroid_to_skin_correction * anterior_direction;
+    right_met_one_marker_offset     = centroid_to_skin_correction * down_direction;
+    right_met_five_marker_offset    = centroid_to_skin_correction * down_direction;
+    right_toetip_marker_offset      = centroid_to_skin_correction * down_direction;
+    left_calcaneous_marker_offset   = centroid_to_skin_correction * anterior_direction;
+    left_met_one_marker_offset      = centroid_to_skin_correction * down_direction;
+    left_met_five_marker_offset     = centroid_to_skin_correction * down_direction;
+    left_toetip_marker_offset       = centroid_to_skin_correction * down_direction;
     
 %     sellion_position            = markerReference((sellion_marker_index-1)*3+1 : (sellion_marker_index-1)*3+3)'                     + sellion_marker_offset;
 %     head_vertex_position        = markerReference((head_vertex_marker_index-1)*3+1 : (head_vertex_marker_index-1)*3+3)'             + head_vertex_marker_offset;
@@ -389,10 +394,10 @@ else
     left_calcaneous_position    = markerReference((left_calcaneous_marker_index-1)*3+1 : (left_calcaneous_marker_index-1)*3+3)'     + left_calcaneous_marker_offset;
     left_toetip_position        = markerReference((left_toetip_marker_index-1)*3+1 : (left_toetip_marker_index-1)*3+3)'             + left_toetip_marker_offset;
     
-    right_met_one_position      = right_toetip_position + [0.05*left_direction; 0; 0];
-    right_met_five_position     = right_toetip_position - [0.05*left_direction; 0; 0];
-    left_met_one_position      = left_toetip_position - [0.05*left_direction; 0; 0];
-    left_met_five_position     = left_toetip_position + [0.05*left_direction; 0; 0];
+    right_met_one_position      = right_toetip_position + 0.05*left_direction;
+    right_met_five_position     = right_toetip_position + 0.05*right_direction;
+    left_met_one_position      = left_toetip_position + 0.05*right_direction;
+    left_met_five_position     = left_toetip_position + 0.05*left_direction;
     
     
     % define segment masses and correct for mean rounding errors
@@ -407,11 +412,11 @@ else
     pelvis_width = norm(left_ASIS_position - right_ASIS_position);
     pelvis_acs_origin = mean([right_ASIS_position left_ASIS_position], 2);
     
-    lumbar_cor = pelvis_acs_origin + [0.000; -0.264 * anterior_direction; 0.126]*pelvis_width;
+    lumbar_cor = pelvis_acs_origin + 0.264*posterior_direction*pelvis_width + 0.126*up_direction*pelvis_width;
  
     % find the cervical joint center
     c7_to_sup_direction = normVector(suprasternale_position - c7_position);
-    c7_to_cervix_cor = expAxis([0; -1*anterior_direction; 0], 8*pi/180) * c7_to_sup_direction;
+    c7_to_cervix_cor = expAxis(posterior_direction, 8*pi/180) * c7_to_sup_direction;
     thorax_width = norm(suprasternale_position - c7_position);
     cervix_cor = c7_position + 0.55*thorax_width*c7_to_cervix_cor;
  
@@ -589,14 +594,14 @@ else
     e_1 = [1; 0; 0];
     e_2 = [0; 1; 0];
     e_3 = [0; 0; 1];
-    left_direction_vector = left_direction * e_1;
-    right_direction_vector = - left_direction_vector;
-    anterior_direction_vector = anterior_direction * e_2;
-    posterior_direction_vector = - anterior_direction_vector;
-    if dot(right_knee_aor, left_direction_vector) < 0
+%     left_direction_vector = left_direction * e_1;
+%     right_direction_vector = - left_direction_vector;
+%     anterior_direction_vector = anterior_direction * e_2;
+%     posterior_direction_vector = - anterior_direction_vector;
+    if dot(right_knee_aor, left_direction) < 0
         right_knee_aor = -right_knee_aor;
     end
-    if dot(left_knee_aor, left_direction_vector) < 0
+    if dot(left_knee_aor, left_direction) < 0
         left_knee_aor = -left_knee_aor;
     end
     
@@ -618,10 +623,10 @@ joint_positions = ...
 
 joint_axes = ...
 { ...
-    right_direction_vector, anterior_direction_vector, e_3, left_direction_vector, anterior_direction_vector, e_3, ...       % pelvis free body DoFs
-    right_direction_vector, anterior_direction_vector, e_3, left_knee_aor, left_direction_vector, posterior_direction_vector, ...   % left leg
-    right_direction_vector, posterior_direction_vector, -e_3, right_knee_aor, left_direction_vector, anterior_direction_vector,...   % right leg
-    left_direction_vector, posterior_direction_vector, e_3, left_direction_vector, posterior_direction_vector, e_3, ...       % trunk and neck
+    e_1, e_2, e_3, e_1, e_2, e_3, ...       % pelvis free body DoFs
+    right_direction, anterior_direction, up_direction, left_knee_aor, left_direction, posterior_direction, ...   % left leg
+    right_direction, posterior_direction, down_direction, right_knee_aor, left_direction, anterior_direction,...   % right leg
+    left_direction, posterior_direction, up_direction, left_direction, posterior_direction, up_direction, ...       % trunk and neck
 };
 
 joint_types = ...
