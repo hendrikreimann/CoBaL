@@ -1,7 +1,8 @@
 
-estimate_joint_cors = 1;
-create_plant        = 1;
-show_visualization  = 1;
+estimate_joint_cors_with_score          = 0;
+estimate_hip_centers_from_landmarks     = 1;
+create_plant                            = 1;
+show_visualization                      = 1;
 
 static_calibration_file_index   = 1;
 left_hip_calibration_file_index = 2;
@@ -24,40 +25,52 @@ while any(isnan(marker_trajectories(i_time, :)))
 end
 marker_reference = marker_trajectories(i_time, :);
 
-%% define markers and references
-if estimate_joint_cors
-    head_markers = [1 2 3 4];
-    trunk_markers = [5 6 7 8 9];
-    pelvis_markers = [24 25 26 27];
-    left_thigh_markers = [28 29 30];
-    left_shank_markers = [31 32 33];
-    left_foot_markers = [34 35];
-    right_thigh_markers = [36 37 38];
-    right_shank_markers = [39 40 41];
-    right_foot_markers = [42 43];
+head_markers = [1 2 3 4];
+trunk_markers = [5 6 7 8 9];
+pelvis_markers = [24 25 26 27];
+left_thigh_markers = [28 29 30];
+left_shank_markers = [31 32 33];
+left_foot_markers = [34 35];
+right_thigh_markers = [36 37 38];
+right_shank_markers = [39 40 41];
+right_foot_markers = [42 43];
+LASIS_marker = 24;
+RASIS_marker = 25;
+LPSIS_marker = 26;
+RPSIS_marker = 27;
 
-    % marker indices
-    head_markers_indices = reshape([(head_markers - 1) * 3 + 1; (head_markers - 1) * 3 + 2; (head_markers - 1) * 3 + 3], 1, length(head_markers)*3);
-    trunk_markers_indices = reshape([(trunk_markers - 1) * 3 + 1; (trunk_markers - 1) * 3 + 2; (trunk_markers - 1) * 3 + 3], 1, length(trunk_markers)*3);
-    pelvis_markers_indices = reshape([(pelvis_markers - 1) * 3 + 1; (pelvis_markers - 1) * 3 + 2; (pelvis_markers - 1) * 3 + 3], 1, length(pelvis_markers)*3);
-    left_thigh_markers_indices = reshape([(left_thigh_markers - 1) * 3 + 1; (left_thigh_markers - 1) * 3 + 2; (left_thigh_markers - 1) * 3 + 3], 1, length(left_thigh_markers)*3);
-    left_shank_markers_indices = reshape([(left_shank_markers - 1) * 3 + 1; (left_shank_markers - 1) * 3 + 2; (left_shank_markers - 1) * 3 + 3], 1, length(left_shank_markers)*3);
-    left_foot_markers_indices = reshape([(left_foot_markers - 1) * 3 + 1; (left_foot_markers - 1) * 3 + 2; (left_foot_markers - 1) * 3 + 3], 1, length(left_foot_markers)*3);
-    right_thigh_markers_indices = reshape([(right_thigh_markers - 1) * 3 + 1; (right_thigh_markers - 1) * 3 + 2; (right_thigh_markers - 1) * 3 + 3], 1, length(right_thigh_markers)*3);
-    right_shank_markers_indices = reshape([(right_shank_markers - 1) * 3 + 1; (right_shank_markers - 1) * 3 + 2; (right_shank_markers - 1) * 3 + 3], 1, length(right_shank_markers)*3);
-    right_foot_markers_indices = reshape([(right_foot_markers - 1) * 3 + 1; (right_foot_markers - 1) * 3 + 2; (right_foot_markers - 1) * 3 + 3], 1, length(right_foot_markers)*3);
+% marker indices
+head_markers_indices = reshape([(head_markers - 1) * 3 + 1; (head_markers - 1) * 3 + 2; (head_markers - 1) * 3 + 3], 1, length(head_markers)*3);
+trunk_markers_indices = reshape([(trunk_markers - 1) * 3 + 1; (trunk_markers - 1) * 3 + 2; (trunk_markers - 1) * 3 + 3], 1, length(trunk_markers)*3);
+pelvis_markers_indices = reshape([(pelvis_markers - 1) * 3 + 1; (pelvis_markers - 1) * 3 + 2; (pelvis_markers - 1) * 3 + 3], 1, length(pelvis_markers)*3);
+left_thigh_markers_indices = reshape([(left_thigh_markers - 1) * 3 + 1; (left_thigh_markers - 1) * 3 + 2; (left_thigh_markers - 1) * 3 + 3], 1, length(left_thigh_markers)*3);
+left_shank_markers_indices = reshape([(left_shank_markers - 1) * 3 + 1; (left_shank_markers - 1) * 3 + 2; (left_shank_markers - 1) * 3 + 3], 1, length(left_shank_markers)*3);
+left_foot_markers_indices = reshape([(left_foot_markers - 1) * 3 + 1; (left_foot_markers - 1) * 3 + 2; (left_foot_markers - 1) * 3 + 3], 1, length(left_foot_markers)*3);
+right_thigh_markers_indices = reshape([(right_thigh_markers - 1) * 3 + 1; (right_thigh_markers - 1) * 3 + 2; (right_thigh_markers - 1) * 3 + 3], 1, length(right_thigh_markers)*3);
+right_shank_markers_indices = reshape([(right_shank_markers - 1) * 3 + 1; (right_shank_markers - 1) * 3 + 2; (right_shank_markers - 1) * 3 + 3], 1, length(right_shank_markers)*3);
+right_foot_markers_indices = reshape([(right_foot_markers - 1) * 3 + 1; (right_foot_markers - 1) * 3 + 2; (right_foot_markers - 1) * 3 + 3], 1, length(right_foot_markers)*3);
+LASIS_markers_indices = reshape([(LASIS_marker - 1) * 3 + 1; (LASIS_marker - 1) * 3 + 2; (LASIS_marker - 1) * 3 + 3], 1, length(LASIS_marker)*3);
+RASIS_markers_indices = reshape([(RASIS_marker - 1) * 3 + 1; (RASIS_marker - 1) * 3 + 2; (RASIS_marker - 1) * 3 + 3], 1, length(RASIS_marker)*3);
+LPSIS_markers_indices = reshape([(LPSIS_marker - 1) * 3 + 1; (LPSIS_marker - 1) * 3 + 2; (LPSIS_marker - 1) * 3 + 3], 1, length(LPSIS_marker)*3);
+RPSIS_markers_indices = reshape([(RPSIS_marker - 1) * 3 + 1; (RPSIS_marker - 1) * 3 + 2; (RPSIS_marker - 1) * 3 + 3], 1, length(RPSIS_marker)*3);
 
-    % marker references
-    head_markers_reference = marker_reference(head_markers_indices);
-    trunk_markers_reference = marker_reference(trunk_markers_indices);
-    pelvis_markers_reference = marker_reference(pelvis_markers_indices);
-    left_thigh_markers_reference = marker_reference(left_thigh_markers_indices);
-    left_shank_markers_reference = marker_reference(left_shank_markers_indices);
-    left_foot_markers_reference = marker_reference(left_foot_markers_indices);
-    right_thigh_markers_reference = marker_reference(right_thigh_markers_indices);
-    right_shank_markers_reference = marker_reference(right_shank_markers_indices);
-    right_foot_markers_reference = marker_reference(right_foot_markers_indices);
+% marker references
+head_markers_reference = marker_reference(head_markers_indices);
+trunk_markers_reference = marker_reference(trunk_markers_indices);
+pelvis_markers_reference = marker_reference(pelvis_markers_indices);
+left_thigh_markers_reference = marker_reference(left_thigh_markers_indices);
+left_shank_markers_reference = marker_reference(left_shank_markers_indices);
+left_foot_markers_reference = marker_reference(left_foot_markers_indices);
+right_thigh_markers_reference = marker_reference(right_thigh_markers_indices);
+right_shank_markers_reference = marker_reference(right_shank_markers_indices);
+right_foot_markers_reference = marker_reference(right_foot_markers_indices);
+LASIS_marker_reference = marker_reference(LASIS_markers_indices);
+RASIS_marker_reference = marker_reference(RASIS_markers_indices);
+LPSIS_marker_reference = marker_reference(LPSIS_markers_indices);
+RPSIS_marker_reference = marker_reference(RPSIS_markers_indices);
 
+%% estimate_joint_cors
+if estimate_joint_cors_with_score
     % find CoRs
     pelvis_center_reference = mean(reshape(pelvis_markers_reference, 3, size(pelvis_markers_reference, 2)/3), 2);
 
@@ -134,6 +147,35 @@ if estimate_joint_cors
     right_knee_cor = right_knee_point;
 end
 
+if estimate_hip_centers_from_landmarks
+    
+end
+
+%% estimate_hip_centers_from_landmarks
+if estimate_hip_centers_from_landmarks
+    anterior = [0; 1; 0];
+    posterior = - anterior;
+    leftward = [-1; 0; 0];
+    rightward = - leftward;
+    proximal = [0; 0; 1];
+    distal = - proximal;
+    centroid_to_skin_correction = 0.0152; % in meters
+    skin_to_bone_correction = 0.01; % in meters
+    centroid_to_bone_correction = centroid_to_skin_correction + skin_to_bone_correction;
+    LASIS_position_bone = LASIS_marker_reference' + skin_to_bone_correction * posterior;
+    RASIS_position_bone = RASIS_marker_reference' + skin_to_bone_correction * posterior;
+    inter_ASIS_distance = norm(LASIS_position_bone - RASIS_position_bone);
+    left_hip_cor = LASIS_position_bone ...
+                    + 0.11 * inter_ASIS_distance * rightward ...
+                    + 0.12 * inter_ASIS_distance * distal ...
+                    + 0.21 * inter_ASIS_distance * posterior;
+    right_hip_cor = RASIS_position_bone ...
+                    + 0.11 * inter_ASIS_distance * leftward ...
+                    + 0.12 * inter_ASIS_distance * distal ...
+                    + 0.21 * inter_ASIS_distance * posterior;
+                
+end
+
 %% create geometric model
 if create_plant
     plant = walkingModel ...
@@ -194,7 +236,7 @@ if show_visualization
 
     
     stick_figure = KinematicTreeController(plant, scene_bound);
-%     stick_figure.showLinkMassEllipsoids = false;
+    stick_figure.showLinkMassEllipsoids = false;
     stick_figure.update;
 end
 
