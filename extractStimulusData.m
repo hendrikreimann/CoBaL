@@ -1,20 +1,21 @@
 
 
 extract_data                    = 0;
-calculate_responses             = 0;
-calculate_stats                 = 0;
-calculate_response_extrema      = 0;
+calculate_responses             = 1;
+calculate_stats                 = 1;
+calculate_response_extrema      = 1;
 
 visualize_triggers              = 0;
 visualize_steps                 = 0;
-do_cop_plots_absolute           = 1;
-do_heel_plots_absolute          = 1;
-do_cop_plots_response           = 1;
-do_heel_plots_response          = 1;
+do_cop_plots_absolute           = 0;
+do_heel_plots_absolute          = 0;
+do_cop_plots_response           = 0;
+do_heel_plots_response          = 0;
 do_side_comparison_plots        = 0;
 do_response_extrema_plots       = 0;
 do_step_response_plot           = 0;
 do_stim_response_plot           = 0;
+do_stim_start_time_histograms   = 1;
 
 %% prepare
 wait_times = [0 0.150 0.450];
@@ -22,12 +23,15 @@ wait_time_labels = {'0ms', '150ms', '450ms'};
 load subjectInfo.mat;
 
 trials_to_process = 3 : 43;
+% trials_to_process = [24 25 29];
 % trials_to_process = 3;
+% trials_to_process = 29;
 
 
 number_of_time_steps_normalized = 64;
 swing_foot_fz_zero_threshold = 20; % threshold for counting a vertical force reading as zero, in Nm
 swing_foot_zero_stretch_length_threshold = 30; % the number of zero indices in the vertical swing foot force has to be larger than this number
+duration_until_nearest_future_heelstrike_threshold = 0.1; % a heelstrike should happen less than this long after a trigger
 
 lasi_marker = 24;
 rasi_marker = 25;
@@ -77,6 +81,7 @@ if extract_data
     left_heel_y_pos_normalized = [];
     right_heel_y_pos_normalized = [];
     step_times = [];
+    stim_start_time_relative_to_stretch = [];
     for i_trial = trials_to_process
         % load data
         load(makeFileName(date, subject_id, 'walking', i_trial, 'forcePlateData'));
@@ -105,7 +110,7 @@ if extract_data
         stim_start_indices_forceplate_trial = find(diff(abs(stim_sent_trajectory)) > 0) + 1;
         trigger_indices_forceplate_trial = trigger_indices_forceplate_trial(1 : length(stim_start_indices_forceplate_trial)); % in case a stim is triggered, but not recorded
         
-        % visualize trigger
+        % visualize triggers
         if visualize_triggers
             left_cop_x_trajectory_relevant = left_copx_trajectory; left_cop_x_trajectory_relevant(left_cop_x_trajectory_relevant==0) = NaN;
             right_cop_x_trajectory_relevant = right_copx_trajectory; right_cop_x_trajectory_relevant(right_cop_x_trajectory_relevant==0) = NaN;
@@ -123,8 +128,10 @@ if extract_data
         % for each trigger, extract conditions and relevant step events
         number_of_triggers = length(trigger_indices_forceplate_trial);
         removal_flags = zeros(number_of_triggers, 1);
+        stim_start_indices_forceplate_trial = [stim_start_indices_forceplate_trial zeros(number_of_triggers, 1)]; %#ok<AGROW>
         stretch_start_indices_forceplate_trial = zeros(number_of_triggers, 2);
         stretch_end_indices_forceplate_trial = zeros(number_of_triggers, 2);
+        duration_until_nearest_future_heelstrike_trial = zeros(number_of_triggers, 2);
         condition_stance_foot_list_trial = cell(number_of_triggers, 2);
         condition_polarity_list_trial = cell(number_of_triggers, 2);
         condition_delay_list_trial = cell(number_of_triggers, 2);
@@ -168,6 +175,15 @@ if extract_data
                     this_right_foot_heelstrike = right_touchdown_indices_force_plate(index_right+1);
                     next_right_foot_heelstrike = right_touchdown_indices_force_plate(index_right+2);
                 end
+            end
+            
+            % confirm that the trigger happened less than 100ms before the actual heelstrike
+            nearest_future_heelstrike_index = min([this_left_foot_heelstrike this_right_foot_heelstrike]);
+            nearest_future_heelstrike_time = time_force_plate(nearest_future_heelstrike_index);
+            duration_until_nearest_future_heelstrike_trial(i_trigger, 1) = nearest_future_heelstrike_time - time_force_plate(trigger_indices_forceplate_trial(i_trigger));
+            if duration_until_nearest_future_heelstrike_trial(i_trigger, 1) > duration_until_nearest_future_heelstrike_threshold
+                removal_flags(i_trigger) = 1;
+                disp(['XXXXXXX Trial ' num2str(i_trial) ': something went wrong at time ' num2str(time_force_plate(trigger_indices_forceplate_trial(i_trigger))) ' - trigger not in sync with heelstrike']);
             end
             
             % mark relevant event delimiters depending on wait time and triggering foot
@@ -224,13 +240,16 @@ if extract_data
 
         % remove flagged stims
         unflagged_indices = ~removal_flags;
+        stim_start_indices_forceplate_trial = stim_start_indices_forceplate_trial(unflagged_indices, :);
         stretch_start_indices_forceplate_trial = stretch_start_indices_forceplate_trial(unflagged_indices, :);
         stretch_end_indices_forceplate_trial = stretch_end_indices_forceplate_trial(unflagged_indices, :);
         condition_stance_foot_list_trial = condition_stance_foot_list_trial(unflagged_indices, :);
         condition_polarity_list_trial = condition_polarity_list_trial(unflagged_indices, :);
         condition_delay_list_trial = condition_delay_list_trial(unflagged_indices, :);
+        duration_until_nearest_future_heelstrike_trial = duration_until_nearest_future_heelstrike_trial(unflagged_indices, :);
 
         % form stretches
+        stim_start_indices_forceplate_trial = [stim_start_indices_forceplate_trial(:, 1); stim_start_indices_forceplate_trial(:, 2)];
         stretch_start_indices_forceplate_trial = [stretch_start_indices_forceplate_trial(:, 1); stretch_start_indices_forceplate_trial(:, 2)];
         stretch_end_indices_forceplate_trial = [stretch_end_indices_forceplate_trial(:, 1); stretch_end_indices_forceplate_trial(:, 2)];
         condition_stance_foot_list_trial = [condition_stance_foot_list_trial(:, 1); condition_stance_foot_list_trial(:, 2)];
@@ -259,6 +278,7 @@ if extract_data
         right_heel_x_pos_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
         left_heel_y_pos_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
         right_heel_y_pos_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
+        stim_start_time_relative_to_stretch_trial = zeros(1, number_of_stretches_trial);
         number_of_indices_per_step_trial = zeros(1, number_of_stretches_trial);
         removal_flags = zeros(number_of_stretches_trial, 1);
         for i_stretch = 1 : number_of_stretches_trial
@@ -316,6 +336,15 @@ if extract_data
             [~, start_index_mocap] = min(abs(time_mocap - time_force_plate(start_index_force_plate)));
             [~, end_index_mocap] = min(abs(time_mocap - time_force_plate(end_index_force_plate)));
             step_times_trial(i_stretch) = time_force_plate(end_index_force_plate) - time_force_plate(start_index_force_plate);
+            
+            if stim_start_indices_forceplate_trial(i_stretch) == 0
+                stim_start_time_relative_to_stretch_trial(i_stretch) = NaN;
+            else
+                stim_start_time = time_force_plate(stim_start_indices_forceplate_trial(i_stretch));
+                stim_start_time_relative_to_stretch_trial(i_stretch) = stim_start_time - touchdown_time_forceplate;
+            end
+            
+
 
             % extract force plate data and normalize time
             left_cop_x_extracted_stretch = left_copx_trajectory(start_index_force_plate : end_index_force_plate);
@@ -423,7 +452,8 @@ if extract_data
         left_heel_y_pos_normalized_trial = left_heel_y_pos_normalized_trial(:, unflagged_indices);
         right_heel_y_pos_normalized_trial = right_heel_y_pos_normalized_trial(:, unflagged_indices);
         step_times_trial = step_times_trial(unflagged_indices);
-
+        stim_start_time_relative_to_stretch_trial = stim_start_time_relative_to_stretch_trial(unflagged_indices);
+        
         % add data to lists
 %         stretch_length_indices_forceplate = [stretch_length_indices_forceplate; stretch_length_indices_forceplate_trial];
         condition_stance_foot_list = [condition_stance_foot_list; condition_stance_foot_list_trial];
@@ -446,11 +476,7 @@ if extract_data
         left_heel_y_pos_normalized = [left_heel_y_pos_normalized left_heel_y_pos_normalized_trial];
         right_heel_y_pos_normalized = [right_heel_y_pos_normalized right_heel_y_pos_normalized_trial];
         step_times = [step_times step_times_trial];
-
-
-
-
-
+        stim_start_time_relative_to_stretch = [stim_start_time_relative_to_stretch stim_start_time_relative_to_stretch_trial];
 
         % visualize steps
         if visualize_steps
@@ -506,6 +532,13 @@ if calculate_responses
     conditions_left_negative_450ms = strcmp(condition_stance_foot_list, 'LEFT') & strcmp(condition_polarity_list, 'NEGATIVE') & strcmp(condition_delay_list, '450ms');
     conditions_right_positive_450ms = strcmp(condition_stance_foot_list, 'RIGHT') & strcmp(condition_polarity_list, 'POSITIVE') & strcmp(condition_delay_list, '450ms');
     conditions_right_negative_450ms = strcmp(condition_stance_foot_list, 'RIGHT') & strcmp(condition_polarity_list, 'NEGATIVE') & strcmp(condition_delay_list, '450ms');
+    
+    conditions_left_0ms = conditions_left_positive_0ms | conditions_left_negative_0ms;
+    conditions_right_0ms = conditions_right_positive_0ms | conditions_right_negative_0ms;
+    conditions_left_150ms = conditions_left_positive_150ms | conditions_left_negative_150ms;
+    conditions_right_150ms = conditions_right_positive_150ms | conditions_right_negative_150ms;
+    conditions_left_450ms = conditions_left_positive_450ms | conditions_left_negative_450ms;
+    conditions_right_450ms = conditions_right_positive_450ms | conditions_right_negative_450ms;
     
     % calculate control means
     left_cop_x_mean_left_control = mean(left_cop_x_normalized(:, conditions_left_control), 2);
@@ -617,7 +650,7 @@ if calculate_responses
     
 end
 
-%% calculate means and confidence intervals
+%% calculate stats
 if calculate_stats
     % absolute data
     left_cop_x_civ_left_control = tinv(0.975, sum(conditions_left_control)-1) * std(left_cop_x_normalized(:, conditions_left_control), 1, 2)/sqrt(sum(conditions_left_control));
@@ -773,6 +806,13 @@ if calculate_stats
     stim_response_mean_right_negative = mean(stim_response_right_negative);
     stim_response_civ_right_negative = tinv(0.975, length(stim_response_right_negative)-1) * std(stim_response_right_negative)/sqrt(length(stim_response_right_negative));
     
+    % stim start times
+    stim_start_times_mean_left_0ms = mean(stim_start_time_relative_to_stretch(conditions_left_0ms));
+    stim_start_times_mean_right_0ms = mean(stim_start_time_relative_to_stretch(conditions_right_0ms));
+    stim_start_times_mean_left_150ms = mean(stim_start_time_relative_to_stretch(conditions_left_150ms));
+    stim_start_times_mean_right_150ms = mean(stim_start_time_relative_to_stretch(conditions_right_150ms));
+    stim_start_times_mean_left_450ms = mean(stim_start_time_relative_to_stretch(conditions_left_450ms));
+    stim_start_times_mean_right_450ms = mean(stim_start_time_relative_to_stretch(conditions_right_450ms));
     
 end
 
@@ -1077,6 +1117,37 @@ if do_stim_response_plot
     set(gca, 'ytick', 1:4, 'yticklabels', {'left, positive', 'left, negative', 'right, positive', 'right, negative'});
     set(gca, 'ylim', [0.5 4.5], 'xlim', [-0.015 0.015]);
 end
+
+%% do_stim_start_time_histograms
+if do_stim_start_time_histograms
+    stim_start_times_right_0ms = stim_start_time_relative_to_stretch(conditions_right_0ms);
+    stim_start_times_right_150ms = stim_start_time_relative_to_stretch(conditions_right_150ms);
+    stim_start_times_left_450ms = stim_start_time_relative_to_stretch(conditions_left_450ms);
+    
+    figure; axes; hold on; title('stim start times');
+    plot(find(conditions_right_0ms), stim_start_times_right_0ms, 'x')
+    plot(find(conditions_right_150ms), stim_start_times_right_150ms, 'x')
+    plot(find(conditions_left_450ms), stim_start_times_left_450ms, 'x')
+    legend('0ms', '150ms', '450ms')
+    
+    
+    figure; axes; hold on; title('stim start times');
+    histogram(stim_start_time_relative_to_stretch(conditions_right_0ms))
+    histogram(stim_start_time_relative_to_stretch(conditions_right_150ms))
+    histogram(stim_start_time_relative_to_stretch(conditions_left_450ms))
+    legend('0ms', '150ms', '450ms')
+    
+end
+
+
+
+
+
+
+
+
+
+
 
 
 
