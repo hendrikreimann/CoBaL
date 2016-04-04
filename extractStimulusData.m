@@ -9,13 +9,14 @@ visualize_triggers              = 0;
 visualize_steps                 = 0;
 do_cop_plots_absolute           = 0;
 do_heel_plots_absolute          = 0;
+do_emg_plots_absolute           = 1;
 do_cop_plots_response           = 0;
 do_heel_plots_response          = 0;
 do_side_comparison_plots        = 0;
 do_response_extrema_plots       = 0;
 do_step_response_plot           = 0;
 do_stim_response_plot           = 0;
-do_stim_start_time_histograms   = 1;
+do_stim_start_time_histograms   = 0;
 
 %% prepare
 wait_times = [0 0.150 0.450];
@@ -24,11 +25,11 @@ load subjectInfo.mat;
 
 trials_to_process = 3 : 43;
 % trials_to_process = [24 25 29];
-% trials_to_process = 3;
+trials_to_process = 3 : 36;
 % trials_to_process = 29;
 
 
-number_of_time_steps_normalized = 64;
+number_of_time_steps_normalized = 256;
 swing_foot_fz_zero_threshold = 20; % threshold for counting a vertical force reading as zero, in Nm
 swing_foot_zero_stretch_length_threshold = 30; % the number of zero indices in the vertical swing foot force has to be larger than this number
 duration_until_nearest_future_heelstrike_threshold = 0.1; % a heelstrike should happen less than this long after a trigger
@@ -50,6 +51,13 @@ left_heel_marker_indices = reshape([(left_heel_marker - 1) * 3 + 1; (left_heel_m
 left_toes_marker_indices = reshape([(left_toes_marker - 1) * 3 + 1; (left_toes_marker - 1) * 3 + 2; (left_toes_marker - 1) * 3 + 3], 1, length(left_toes_marker)*3);
 right_heel_marker_indices = reshape([(right_heel_marker - 1) * 3 + 1; (right_heel_marker - 1) * 3 + 2; (right_heel_marker - 1) * 3 + 3], 1, length(right_heel_marker)*3);
 right_toes_marker_indices = reshape([(right_toes_marker - 1) * 3 + 1; (right_toes_marker - 1) * 3 + 2; (right_toes_marker - 1) * 3 + 3], 1, length(right_toes_marker)*3);
+
+left_glutmed_sensor_index = 7;
+left_tibiant_sensor_index = 8;
+left_perolng_sensor_index = 9;
+right_glutmed_sensor_index = 1;
+right_tibiant_sensor_index = 2;
+right_perolng_sensor_index = 3;
 
 color_left_control = [0.3 0.1 1];
 color_left_positive = [1 0.3 .1] * 0.7;
@@ -80,12 +88,19 @@ if extract_data
     right_heel_x_pos_normalized = [];
     left_heel_y_pos_normalized = [];
     right_heel_y_pos_normalized = [];
+    left_glutmed_emg_normalized = [];
+    left_tibiant_emg_normalized = [];
+    left_perolng_emg_normalized = [];
+    right_glutmed_emg_normalized = [];
+    right_tibiant_emg_normalized = [];
+    right_perolng_emg_normalized = [];
     step_times = [];
     stim_start_time_relative_to_stretch = [];
     for i_trial = trials_to_process
         % load data
         load(makeFileName(date, subject_id, 'walking', i_trial, 'forcePlateData'));
         load(makeFileName(date, subject_id, 'walking', i_trial, 'markerTrajectories'));
+        load(makeFileName(date, subject_id, 'walking', i_trial, 'emgTrajectories'));
         load(makeFileName(date, subject_id, 'walking', i_trial, 'stepEvents'));
 
         left_copx_trajectory = left_force_plate_cop_Acw(:, 1);
@@ -96,14 +111,21 @@ if extract_data
         rasi_x_pos_trajectory = marker_trajectories(:, rasi_marker_indices(1));
         lpsi_x_pos_trajectory = marker_trajectories(:, lpsi_marker_indices(1));
         rpsi_x_pos_trajectory = marker_trajectories(:, rpsi_marker_indices(1));
-        lasi_x_vel_trajectory = deriveByTime(lasi_x_pos_trajectory, sampling_rate^(-1));
-        rasi_x_vel_trajectory = deriveByTime(rasi_x_pos_trajectory, sampling_rate^(-1));
-        lpsi_x_vel_trajectory = deriveByTime(lpsi_x_pos_trajectory, sampling_rate^(-1));
-        rpsi_x_vel_trajectory = deriveByTime(rpsi_x_pos_trajectory, sampling_rate^(-1));
+        lasi_x_vel_trajectory = deriveByTime(lasi_x_pos_trajectory, sampling_rate_mocap^(-1));
+        rasi_x_vel_trajectory = deriveByTime(rasi_x_pos_trajectory, sampling_rate_mocap^(-1));
+        lpsi_x_vel_trajectory = deriveByTime(lpsi_x_pos_trajectory, sampling_rate_mocap^(-1));
+        rpsi_x_vel_trajectory = deriveByTime(rpsi_x_pos_trajectory, sampling_rate_mocap^(-1));
         left_heel_x_pos_trajectory = marker_trajectories(:, left_heel_marker_indices(1));
         right_heel_x_pos_trajectory = marker_trajectories(:, right_heel_marker_indices(1));
         left_heel_y_pos_trajectory = marker_trajectories(:, left_heel_marker_indices(2));
         right_heel_y_pos_trajectory = marker_trajectories(:, right_heel_marker_indices(2));
+        
+        left_glutmed_emg = emg_trajectories(:, left_glutmed_sensor_index);
+        left_tibiant_emg = emg_trajectories(:, left_tibiant_sensor_index);
+        left_perolng_emg = emg_trajectories(:, left_perolng_sensor_index);
+        right_glutmed_emg = emg_trajectories(:, right_glutmed_sensor_index);
+        right_tibiant_emg = emg_trajectories(:, right_tibiant_sensor_index);
+        right_perolng_emg = emg_trajectories(:, right_perolng_sensor_index);
 
         % find trigger
         trigger_indices_forceplate_trial = find(diff(sign(stimulus_foot_state - 0.5)) > 0) + 1;
@@ -278,6 +300,12 @@ if extract_data
         right_heel_x_pos_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
         left_heel_y_pos_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
         right_heel_y_pos_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
+        left_glutmed_emg_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
+        left_tibiant_emg_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
+        left_perolng_emg_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
+        right_glutmed_emg_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
+        right_tibiant_emg_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
+        right_perolng_emg_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
         stim_start_time_relative_to_stretch_trial = zeros(1, number_of_stretches_trial);
         number_of_indices_per_step_trial = zeros(1, number_of_stretches_trial);
         removal_flags = zeros(number_of_stretches_trial, 1);
@@ -335,6 +363,8 @@ if extract_data
             end_index_force_plate = stretch_end_indices_forceplate_trial(i_stretch);
             [~, start_index_mocap] = min(abs(time_mocap - time_force_plate(start_index_force_plate)));
             [~, end_index_mocap] = min(abs(time_mocap - time_force_plate(end_index_force_plate)));
+            [~, start_index_emg] = min(abs(time_emg - time_force_plate(start_index_force_plate)));
+            [~, end_index_emg] = min(abs(time_emg - time_force_plate(end_index_force_plate)));
             step_times_trial(i_stretch) = time_force_plate(end_index_force_plate) - time_force_plate(start_index_force_plate);
             
             if stim_start_indices_forceplate_trial(i_stretch) == 0
@@ -379,18 +409,18 @@ if extract_data
 %             if any(any(isnan([lasi_x_pos_extracted_stretch; rasi_x_pos_extracted_stretch; lpsi_x_pos_extracted_stretch; rpsi_x_pos_extracted_stretch])))
 %                 removal_flags(i_stretch) = 1;
 %             else
-                lasi_x_pos_normalized_stretch = spline(time_extracted_mocap, lasi_x_pos_extracted_stretch, time_normalized_mocap);
-                rasi_x_pos_normalized_stretch = spline(time_extracted_mocap, rasi_x_pos_extracted_stretch, time_normalized_mocap);
-                lpsi_x_pos_normalized_stretch = spline(time_extracted_mocap, lpsi_x_pos_extracted_stretch, time_normalized_mocap);
-                rpsi_x_pos_normalized_stretch = spline(time_extracted_mocap, rpsi_x_pos_extracted_stretch, time_normalized_mocap);
-                lasi_x_vel_normalized_stretch = spline(time_extracted_mocap, lasi_x_vel_extracted_stretch, time_normalized_mocap);
-                rasi_x_vel_normalized_stretch = spline(time_extracted_mocap, rasi_x_vel_extracted_stretch, time_normalized_mocap);
-                lpsi_x_vel_normalized_stretch = spline(time_extracted_mocap, lpsi_x_vel_extracted_stretch, time_normalized_mocap);
-                rpsi_x_vel_normalized_stretch = spline(time_extracted_mocap, rpsi_x_vel_extracted_stretch, time_normalized_mocap);
-                left_heel_x_pos_normalized_stretch = spline(time_extracted_mocap, left_heel_x_pos_extracted_stretch, time_normalized_mocap);
-                right_heel_x_pos_normalized_stretch = spline(time_extracted_mocap, right_heel_x_pos_extracted_stretch, time_normalized_mocap);
-                left_heel_y_pos_normalized_stretch = spline(time_extracted_mocap, left_heel_y_pos_extracted_stretch, time_normalized_mocap);
-                right_heel_y_pos_normalized_stretch = spline(time_extracted_mocap, right_heel_y_pos_extracted_stretch, time_normalized_mocap);
+            lasi_x_pos_normalized_stretch = spline(time_extracted_mocap, lasi_x_pos_extracted_stretch, time_normalized_mocap);
+            rasi_x_pos_normalized_stretch = spline(time_extracted_mocap, rasi_x_pos_extracted_stretch, time_normalized_mocap);
+            lpsi_x_pos_normalized_stretch = spline(time_extracted_mocap, lpsi_x_pos_extracted_stretch, time_normalized_mocap);
+            rpsi_x_pos_normalized_stretch = spline(time_extracted_mocap, rpsi_x_pos_extracted_stretch, time_normalized_mocap);
+            lasi_x_vel_normalized_stretch = spline(time_extracted_mocap, lasi_x_vel_extracted_stretch, time_normalized_mocap);
+            rasi_x_vel_normalized_stretch = spline(time_extracted_mocap, rasi_x_vel_extracted_stretch, time_normalized_mocap);
+            lpsi_x_vel_normalized_stretch = spline(time_extracted_mocap, lpsi_x_vel_extracted_stretch, time_normalized_mocap);
+            rpsi_x_vel_normalized_stretch = spline(time_extracted_mocap, rpsi_x_vel_extracted_stretch, time_normalized_mocap);
+            left_heel_x_pos_normalized_stretch = spline(time_extracted_mocap, left_heel_x_pos_extracted_stretch, time_normalized_mocap);
+            right_heel_x_pos_normalized_stretch = spline(time_extracted_mocap, right_heel_x_pos_extracted_stretch, time_normalized_mocap);
+            left_heel_y_pos_normalized_stretch = spline(time_extracted_mocap, left_heel_y_pos_extracted_stretch, time_normalized_mocap);
+            right_heel_y_pos_normalized_stretch = spline(time_extracted_mocap, right_heel_y_pos_extracted_stretch, time_normalized_mocap);
 %             end
             % normalize in space to stance foot heel at start
             if strcmp(condition_stance_foot_list_trial{i_stretch}, 'RIGHT')
@@ -400,8 +430,27 @@ if extract_data
                 stance_foot_heel_x_initial = left_heel_x_pos_extracted_stretch(1);
                 stance_foot_heel_y_initial = left_heel_y_pos_extracted_stretch(1);
             end
+            
+            % extract emg data
+            time_extracted_emg = time_emg(start_index_emg : end_index_emg);
+            left_glutmed_emg_extracted_stretch = left_glutmed_emg(start_index_emg : end_index_emg);
+            left_tibiant_emg_extracted_stretch = left_tibiant_emg(start_index_emg : end_index_emg);
+            left_perolng_emg_extracted_stretch = left_perolng_emg(start_index_emg : end_index_emg);
+            right_glutmed_emg_extracted_stretch = right_glutmed_emg(start_index_emg : end_index_emg);
+            right_tibiant_emg_extracted_stretch = right_tibiant_emg(start_index_emg : end_index_emg);
+            right_perolng_emg_extracted_stretch = right_perolng_emg(start_index_emg : end_index_emg);
+            
+            % normalize emg data in time
+            time_normalized_emg = linspace(time_extracted_emg(1), time_extracted_emg(end), number_of_time_steps_normalized);
+            left_glutmed_emg_normalized_stretch = spline(time_extracted_emg, left_glutmed_emg_extracted_stretch, time_normalized_emg);
+            left_tibiant_emg_normalized_stretch = spline(time_extracted_emg, left_tibiant_emg_extracted_stretch, time_normalized_emg);
+            left_perolng_emg_normalized_stretch = spline(time_extracted_emg, left_perolng_emg_extracted_stretch, time_normalized_emg);
+            right_glutmed_emg_normalized_stretch = spline(time_extracted_emg, right_glutmed_emg_extracted_stretch, time_normalized_emg);
+            right_tibiant_emg_normalized_stretch = spline(time_extracted_emg, right_tibiant_emg_extracted_stretch, time_normalized_emg);
+            right_perolng_emg_normalized_stretch = spline(time_extracted_emg, right_perolng_emg_extracted_stretch, time_normalized_emg);
 
             % store
+            % XXX ACHTUNG! this mingles normalization with storing. Separate that
             left_cop_x_normalized_trial(:, i_stretch) = left_cop_x_normalized_stretch - stance_foot_heel_x_initial;
             right_cop_x_normalized_trial(:, i_stretch) = right_cop_x_normalized_stretch - stance_foot_heel_x_initial;
             lasi_x_pos_normalized_trial(:, i_stretch) = lasi_x_pos_normalized_stretch - stance_foot_heel_x_initial;
@@ -418,6 +467,12 @@ if extract_data
             right_heel_x_pos_normalized_trial(:, i_stretch) = right_heel_x_pos_normalized_stretch - stance_foot_heel_x_initial;
             left_heel_y_pos_normalized_trial(:, i_stretch) = left_heel_y_pos_normalized_stretch - stance_foot_heel_y_initial;
             right_heel_y_pos_normalized_trial(:, i_stretch) = right_heel_y_pos_normalized_stretch - stance_foot_heel_y_initial;
+            left_glutmed_emg_normalized_trial(:, i_stretch) = left_glutmed_emg_normalized_stretch;
+            left_tibiant_emg_normalized_trial(:, i_stretch) = left_tibiant_emg_normalized_stretch;
+            left_perolng_emg_normalized_trial(:, i_stretch) = left_perolng_emg_normalized_stretch;
+            right_glutmed_emg_normalized_trial(:, i_stretch) = right_glutmed_emg_normalized_stretch;
+            right_tibiant_emg_normalized_trial(:, i_stretch) = right_tibiant_emg_normalized_stretch;
+            right_perolng_emg_normalized_trial(:, i_stretch) = right_perolng_emg_normalized_stretch;
             
 %             % visualize
 %             figure; axes; hold on; title('left')
@@ -425,7 +480,9 @@ if extract_data
 %             plot(time_extracted_forceplate, right_cop_x_extracted_stretch)
 %             plot(time_normalized_forceplate, left_cop_x_normalized_stretch)
 %             plot(time_normalized_forceplate, right_cop_x_normalized_stretch)
-%             legend('left cop', 'right cop')
+%             plot(time_extracted_emg, left_glutmed_emg_extracted_stretch)
+%             plot(time_normalized_emg, left_glutmed_emg_normalized_stretch)
+%             legend('left cop extracted', 'right cop extracted', 'left cop normalized', 'right cop normalized', 'left glut med emg extracted', 'left glut med emg normalized')
         end
 
         % remove flagged stretches
@@ -451,6 +508,13 @@ if extract_data
         right_heel_x_pos_normalized_trial = right_heel_x_pos_normalized_trial(:, unflagged_indices);
         left_heel_y_pos_normalized_trial = left_heel_y_pos_normalized_trial(:, unflagged_indices);
         right_heel_y_pos_normalized_trial = right_heel_y_pos_normalized_trial(:, unflagged_indices);
+        left_glutmed_emg_normalized_trial = left_glutmed_emg_normalized_trial(:, unflagged_indices);
+        left_tibiant_emg_normalized_trial = left_tibiant_emg_normalized_trial(:, unflagged_indices);
+        left_perolng_emg_normalized_trial = left_perolng_emg_normalized_trial(:, unflagged_indices);
+        right_glutmed_emg_normalized_trial = right_glutmed_emg_normalized_trial(:, unflagged_indices);
+        right_tibiant_emg_normalized_trial = right_tibiant_emg_normalized_trial(:, unflagged_indices);
+        right_perolng_emg_normalized_trial = right_perolng_emg_normalized_trial(:, unflagged_indices);
+        
         step_times_trial = step_times_trial(unflagged_indices);
         stim_start_time_relative_to_stretch_trial = stim_start_time_relative_to_stretch_trial(unflagged_indices);
         
@@ -475,6 +539,12 @@ if extract_data
         right_heel_x_pos_normalized = [right_heel_x_pos_normalized right_heel_x_pos_normalized_trial];
         left_heel_y_pos_normalized = [left_heel_y_pos_normalized left_heel_y_pos_normalized_trial];
         right_heel_y_pos_normalized = [right_heel_y_pos_normalized right_heel_y_pos_normalized_trial];
+        left_glutmed_emg_normalized = [left_glutmed_emg_normalized left_glutmed_emg_normalized_trial];
+        left_tibiant_emg_normalized = [left_tibiant_emg_normalized left_tibiant_emg_normalized_trial];
+        left_perolng_emg_normalized = [left_perolng_emg_normalized left_perolng_emg_normalized_trial];
+        right_glutmed_emg_normalized = [right_glutmed_emg_normalized right_glutmed_emg_normalized_trial];
+        right_tibiant_emg_normalized = [right_tibiant_emg_normalized right_tibiant_emg_normalized_trial];
+        right_perolng_emg_normalized = [right_perolng_emg_normalized right_perolng_emg_normalized_trial];
         step_times = [step_times step_times_trial];
         stim_start_time_relative_to_stretch = [stim_start_time_relative_to_stretch stim_start_time_relative_to_stretch_trial];
 
@@ -551,6 +621,18 @@ if calculate_responses
     left_heel_y_pos_mean_right_control = mean(left_heel_y_pos_normalized(:, conditions_right_control), 2);
     right_heel_y_pos_mean_left_control = mean(right_heel_y_pos_normalized(:, conditions_left_control), 2);
     right_heel_y_pos_mean_right_control = mean(right_heel_y_pos_normalized(:, conditions_right_control), 2);
+    left_glutmed_emg_mean_left_control = mean(left_glutmed_emg_normalized(:, conditions_left_control), 2);
+    left_tibiant_emg_mean_left_control = mean(left_tibiant_emg_normalized(:, conditions_left_control), 2);
+    left_perolng_emg_mean_left_control = mean(left_perolng_emg_normalized(:, conditions_left_control), 2);
+    right_glutmed_emg_mean_left_control = mean(right_glutmed_emg_normalized(:, conditions_left_control), 2);
+    right_tibiant_emg_mean_left_control = mean(right_tibiant_emg_normalized(:, conditions_left_control), 2);
+    right_perolng_emg_mean_left_control = mean(right_perolng_emg_normalized(:, conditions_left_control), 2);
+    left_glutmed_emg_mean_right_control = mean(left_glutmed_emg_normalized(:, conditions_right_control), 2);
+    left_tibiant_emg_mean_right_control = mean(left_tibiant_emg_normalized(:, conditions_right_control), 2);
+    left_perolng_emg_mean_right_control = mean(left_perolng_emg_normalized(:, conditions_right_control), 2);
+    right_glutmed_emg_mean_right_control = mean(right_glutmed_emg_normalized(:, conditions_right_control), 2);
+    right_tibiant_emg_mean_right_control = mean(right_tibiant_emg_normalized(:, conditions_right_control), 2);
+    right_perolng_emg_mean_right_control = mean(right_perolng_emg_normalized(:, conditions_right_control), 2);
     
     % CoP response
     number_of_stretches = length(step_times);
@@ -708,6 +790,179 @@ if calculate_stats
     right_heel_x_pos_civ_left_positive_450ms = tinv(0.975, sum(conditions_left_positive_450ms)-1) * std(right_heel_x_pos_normalized(:, conditions_left_positive_450ms), 1, 2)/sqrt(sum(conditions_left_positive_450ms));
     right_heel_x_pos_mean_left_negative_450ms = mean(right_heel_x_pos_normalized(:, conditions_left_negative_450ms), 2);
     right_heel_x_pos_civ_left_negative_450ms = tinv(0.975, sum(conditions_left_negative_450ms)-1) * std(right_heel_x_pos_normalized(:, conditions_left_negative_450ms), 1, 2)/sqrt(sum(conditions_left_negative_450ms));
+    
+    left_glutmed_emg_civ_left_control = tinv(0.975, sum(conditions_left_control)-1) * std(left_glutmed_emg_normalized(:, conditions_left_control), 1, 2)/sqrt(sum(conditions_left_control));
+    left_glutmed_emg_mean_left_positive_0ms = mean(left_glutmed_emg_normalized(:, conditions_left_positive_0ms), 2);
+    left_glutmed_emg_civ_left_positive_0ms = tinv(0.975, sum(conditions_left_positive_0ms)-1) * std(left_glutmed_emg_normalized(:, conditions_left_positive_0ms), 1, 2)/sqrt(sum(conditions_left_positive_0ms));
+    left_glutmed_emg_mean_left_negative_0ms = mean(left_glutmed_emg_normalized(:, conditions_left_negative_0ms), 2);
+    left_glutmed_emg_civ_left_negative_0ms = tinv(0.975, sum(conditions_left_negative_0ms)-1) * std(left_glutmed_emg_normalized(:, conditions_left_negative_0ms), 1, 2)/sqrt(sum(conditions_left_negative_0ms));
+    left_glutmed_emg_mean_left_positive_150ms = mean(left_glutmed_emg_normalized(:, conditions_left_positive_150ms), 2);
+    left_glutmed_emg_civ_left_positive_150ms = tinv(0.975, sum(conditions_left_positive_150ms)-1) * std(left_glutmed_emg_normalized(:, conditions_left_positive_150ms), 1, 2)/sqrt(sum(conditions_left_positive_150ms));
+    left_glutmed_emg_mean_left_negative_150ms = mean(left_glutmed_emg_normalized(:, conditions_left_negative_150ms), 2);
+    left_glutmed_emg_civ_left_negative_150ms = tinv(0.975, sum(conditions_left_negative_150ms)-1) * std(left_glutmed_emg_normalized(:, conditions_left_negative_150ms), 1, 2)/sqrt(sum(conditions_left_negative_150ms));
+    left_glutmed_emg_mean_left_positive_450ms = mean(left_glutmed_emg_normalized(:, conditions_left_positive_450ms), 2);
+    left_glutmed_emg_civ_left_positive_450ms = tinv(0.975, sum(conditions_left_positive_450ms)-1) * std(left_glutmed_emg_normalized(:, conditions_left_positive_450ms), 1, 2)/sqrt(sum(conditions_left_positive_450ms));
+    left_glutmed_emg_mean_left_negative_450ms = mean(left_glutmed_emg_normalized(:, conditions_left_negative_450ms), 2);
+    left_glutmed_emg_civ_left_negative_450ms = tinv(0.975, sum(conditions_left_negative_450ms)-1) * std(left_glutmed_emg_normalized(:, conditions_left_negative_450ms), 1, 2)/sqrt(sum(conditions_left_negative_450ms));
+    
+    left_glutmed_emg_civ_right_control = tinv(0.975, sum(conditions_right_control)-1) * std(left_glutmed_emg_normalized(:, conditions_right_control), 1, 2)/sqrt(sum(conditions_right_control));
+    left_glutmed_emg_mean_right_positive_0ms = mean(left_glutmed_emg_normalized(:, conditions_right_positive_0ms), 2);
+    left_glutmed_emg_civ_right_positive_0ms = tinv(0.975, sum(conditions_right_positive_0ms)-1) * std(left_glutmed_emg_normalized(:, conditions_right_positive_0ms), 1, 2)/sqrt(sum(conditions_right_positive_0ms));
+    left_glutmed_emg_mean_right_negative_0ms = mean(left_glutmed_emg_normalized(:, conditions_right_negative_0ms), 2);
+    left_glutmed_emg_civ_right_negative_0ms = tinv(0.975, sum(conditions_right_negative_0ms)-1) * std(left_glutmed_emg_normalized(:, conditions_right_negative_0ms), 1, 2)/sqrt(sum(conditions_right_negative_0ms));
+    left_glutmed_emg_mean_right_positive_150ms = mean(left_glutmed_emg_normalized(:, conditions_right_positive_150ms), 2);
+    left_glutmed_emg_civ_right_positive_150ms = tinv(0.975, sum(conditions_right_positive_150ms)-1) * std(left_glutmed_emg_normalized(:, conditions_right_positive_150ms), 1, 2)/sqrt(sum(conditions_right_positive_150ms));
+    left_glutmed_emg_mean_right_negative_150ms = mean(left_glutmed_emg_normalized(:, conditions_right_negative_150ms), 2);
+    left_glutmed_emg_civ_right_negative_150ms = tinv(0.975, sum(conditions_right_negative_150ms)-1) * std(left_glutmed_emg_normalized(:, conditions_right_negative_150ms), 1, 2)/sqrt(sum(conditions_right_negative_150ms));
+    left_glutmed_emg_mean_right_positive_450ms = mean(left_glutmed_emg_normalized(:, conditions_right_positive_450ms), 2);
+    left_glutmed_emg_civ_right_positive_450ms = tinv(0.975, sum(conditions_right_positive_450ms)-1) * std(left_glutmed_emg_normalized(:, conditions_right_positive_450ms), 1, 2)/sqrt(sum(conditions_right_positive_450ms));
+    left_glutmed_emg_mean_right_negative_450ms = mean(left_glutmed_emg_normalized(:, conditions_right_negative_450ms), 2);
+    left_glutmed_emg_civ_right_negative_450ms = tinv(0.975, sum(conditions_right_negative_450ms)-1) * std(left_glutmed_emg_normalized(:, conditions_right_negative_450ms), 1, 2)/sqrt(sum(conditions_right_negative_450ms));
+    
+    left_tibiant_emg_civ_left_control = tinv(0.975, sum(conditions_left_control)-1) * std(left_tibiant_emg_normalized(:, conditions_left_control), 1, 2)/sqrt(sum(conditions_left_control));
+    left_tibiant_emg_mean_left_positive_0ms = mean(left_tibiant_emg_normalized(:, conditions_left_positive_0ms), 2);
+    left_tibiant_emg_civ_left_positive_0ms = tinv(0.975, sum(conditions_left_positive_0ms)-1) * std(left_tibiant_emg_normalized(:, conditions_left_positive_0ms), 1, 2)/sqrt(sum(conditions_left_positive_0ms));
+    left_tibiant_emg_mean_left_negative_0ms = mean(left_tibiant_emg_normalized(:, conditions_left_negative_0ms), 2);
+    left_tibiant_emg_civ_left_negative_0ms = tinv(0.975, sum(conditions_left_negative_0ms)-1) * std(left_tibiant_emg_normalized(:, conditions_left_negative_0ms), 1, 2)/sqrt(sum(conditions_left_negative_0ms));
+    left_tibiant_emg_mean_left_positive_150ms = mean(left_tibiant_emg_normalized(:, conditions_left_positive_150ms), 2);
+    left_tibiant_emg_civ_left_positive_150ms = tinv(0.975, sum(conditions_left_positive_150ms)-1) * std(left_tibiant_emg_normalized(:, conditions_left_positive_150ms), 1, 2)/sqrt(sum(conditions_left_positive_150ms));
+    left_tibiant_emg_mean_left_negative_150ms = mean(left_tibiant_emg_normalized(:, conditions_left_negative_150ms), 2);
+    left_tibiant_emg_civ_left_negative_150ms = tinv(0.975, sum(conditions_left_negative_150ms)-1) * std(left_tibiant_emg_normalized(:, conditions_left_negative_150ms), 1, 2)/sqrt(sum(conditions_left_negative_150ms));
+    left_tibiant_emg_mean_left_positive_450ms = mean(left_tibiant_emg_normalized(:, conditions_left_positive_450ms), 2);
+    left_tibiant_emg_civ_left_positive_450ms = tinv(0.975, sum(conditions_left_positive_450ms)-1) * std(left_tibiant_emg_normalized(:, conditions_left_positive_450ms), 1, 2)/sqrt(sum(conditions_left_positive_450ms));
+    left_tibiant_emg_mean_left_negative_450ms = mean(left_tibiant_emg_normalized(:, conditions_left_negative_450ms), 2);
+    left_tibiant_emg_civ_left_negative_450ms = tinv(0.975, sum(conditions_left_negative_450ms)-1) * std(left_tibiant_emg_normalized(:, conditions_left_negative_450ms), 1, 2)/sqrt(sum(conditions_left_negative_450ms));
+    
+    left_tibiant_emg_civ_right_control = tinv(0.975, sum(conditions_right_control)-1) * std(left_tibiant_emg_normalized(:, conditions_right_control), 1, 2)/sqrt(sum(conditions_right_control));
+    left_tibiant_emg_mean_right_positive_0ms = mean(left_tibiant_emg_normalized(:, conditions_right_positive_0ms), 2);
+    left_tibiant_emg_civ_right_positive_0ms = tinv(0.975, sum(conditions_right_positive_0ms)-1) * std(left_tibiant_emg_normalized(:, conditions_right_positive_0ms), 1, 2)/sqrt(sum(conditions_right_positive_0ms));
+    left_tibiant_emg_mean_right_negative_0ms = mean(left_tibiant_emg_normalized(:, conditions_right_negative_0ms), 2);
+    left_tibiant_emg_civ_right_negative_0ms = tinv(0.975, sum(conditions_right_negative_0ms)-1) * std(left_tibiant_emg_normalized(:, conditions_right_negative_0ms), 1, 2)/sqrt(sum(conditions_right_negative_0ms));
+    left_tibiant_emg_mean_right_positive_150ms = mean(left_tibiant_emg_normalized(:, conditions_right_positive_150ms), 2);
+    left_tibiant_emg_civ_right_positive_150ms = tinv(0.975, sum(conditions_right_positive_150ms)-1) * std(left_tibiant_emg_normalized(:, conditions_right_positive_150ms), 1, 2)/sqrt(sum(conditions_right_positive_150ms));
+    left_tibiant_emg_mean_right_negative_150ms = mean(left_tibiant_emg_normalized(:, conditions_right_negative_150ms), 2);
+    left_tibiant_emg_civ_right_negative_150ms = tinv(0.975, sum(conditions_right_negative_150ms)-1) * std(left_tibiant_emg_normalized(:, conditions_right_negative_150ms), 1, 2)/sqrt(sum(conditions_right_negative_150ms));
+    left_tibiant_emg_mean_right_positive_450ms = mean(left_tibiant_emg_normalized(:, conditions_right_positive_450ms), 2);
+    left_tibiant_emg_civ_right_positive_450ms = tinv(0.975, sum(conditions_right_positive_450ms)-1) * std(left_tibiant_emg_normalized(:, conditions_right_positive_450ms), 1, 2)/sqrt(sum(conditions_right_positive_450ms));
+    left_tibiant_emg_mean_right_negative_450ms = mean(left_tibiant_emg_normalized(:, conditions_right_negative_450ms), 2);
+    left_tibiant_emg_civ_right_negative_450ms = tinv(0.975, sum(conditions_right_negative_450ms)-1) * std(left_tibiant_emg_normalized(:, conditions_right_negative_450ms), 1, 2)/sqrt(sum(conditions_right_negative_450ms));
+    
+    left_perolng_emg_civ_left_control = tinv(0.975, sum(conditions_left_control)-1) * std(left_perolng_emg_normalized(:, conditions_left_control), 1, 2)/sqrt(sum(conditions_left_control));
+    left_perolng_emg_mean_left_positive_0ms = mean(left_perolng_emg_normalized(:, conditions_left_positive_0ms), 2);
+    left_perolng_emg_civ_left_positive_0ms = tinv(0.975, sum(conditions_left_positive_0ms)-1) * std(left_perolng_emg_normalized(:, conditions_left_positive_0ms), 1, 2)/sqrt(sum(conditions_left_positive_0ms));
+    left_perolng_emg_mean_left_negative_0ms = mean(left_perolng_emg_normalized(:, conditions_left_negative_0ms), 2);
+    left_perolng_emg_civ_left_negative_0ms = tinv(0.975, sum(conditions_left_negative_0ms)-1) * std(left_perolng_emg_normalized(:, conditions_left_negative_0ms), 1, 2)/sqrt(sum(conditions_left_negative_0ms));
+    left_perolng_emg_mean_left_positive_150ms = mean(left_perolng_emg_normalized(:, conditions_left_positive_150ms), 2);
+    left_perolng_emg_civ_left_positive_150ms = tinv(0.975, sum(conditions_left_positive_150ms)-1) * std(left_perolng_emg_normalized(:, conditions_left_positive_150ms), 1, 2)/sqrt(sum(conditions_left_positive_150ms));
+    left_perolng_emg_mean_left_negative_150ms = mean(left_perolng_emg_normalized(:, conditions_left_negative_150ms), 2);
+    left_perolng_emg_civ_left_negative_150ms = tinv(0.975, sum(conditions_left_negative_150ms)-1) * std(left_perolng_emg_normalized(:, conditions_left_negative_150ms), 1, 2)/sqrt(sum(conditions_left_negative_150ms));
+    left_perolng_emg_mean_left_positive_450ms = mean(left_perolng_emg_normalized(:, conditions_left_positive_450ms), 2);
+    left_perolng_emg_civ_left_positive_450ms = tinv(0.975, sum(conditions_left_positive_450ms)-1) * std(left_perolng_emg_normalized(:, conditions_left_positive_450ms), 1, 2)/sqrt(sum(conditions_left_positive_450ms));
+    left_perolng_emg_mean_left_negative_450ms = mean(left_perolng_emg_normalized(:, conditions_left_negative_450ms), 2);
+    left_perolng_emg_civ_left_negative_450ms = tinv(0.975, sum(conditions_left_negative_450ms)-1) * std(left_perolng_emg_normalized(:, conditions_left_negative_450ms), 1, 2)/sqrt(sum(conditions_left_negative_450ms));
+    
+    left_perolng_emg_civ_right_control = tinv(0.975, sum(conditions_right_control)-1) * std(left_perolng_emg_normalized(:, conditions_right_control), 1, 2)/sqrt(sum(conditions_right_control));
+    left_perolng_emg_mean_right_positive_0ms = mean(left_perolng_emg_normalized(:, conditions_right_positive_0ms), 2);
+    left_perolng_emg_civ_right_positive_0ms = tinv(0.975, sum(conditions_right_positive_0ms)-1) * std(left_perolng_emg_normalized(:, conditions_right_positive_0ms), 1, 2)/sqrt(sum(conditions_right_positive_0ms));
+    left_perolng_emg_mean_right_negative_0ms = mean(left_perolng_emg_normalized(:, conditions_right_negative_0ms), 2);
+    left_perolng_emg_civ_right_negative_0ms = tinv(0.975, sum(conditions_right_negative_0ms)-1) * std(left_perolng_emg_normalized(:, conditions_right_negative_0ms), 1, 2)/sqrt(sum(conditions_right_negative_0ms));
+    left_perolng_emg_mean_right_positive_150ms = mean(left_perolng_emg_normalized(:, conditions_right_positive_150ms), 2);
+    left_perolng_emg_civ_right_positive_150ms = tinv(0.975, sum(conditions_right_positive_150ms)-1) * std(left_perolng_emg_normalized(:, conditions_right_positive_150ms), 1, 2)/sqrt(sum(conditions_right_positive_150ms));
+    left_perolng_emg_mean_right_negative_150ms = mean(left_perolng_emg_normalized(:, conditions_right_negative_150ms), 2);
+    left_perolng_emg_civ_right_negative_150ms = tinv(0.975, sum(conditions_right_negative_150ms)-1) * std(left_perolng_emg_normalized(:, conditions_right_negative_150ms), 1, 2)/sqrt(sum(conditions_right_negative_150ms));
+    left_perolng_emg_mean_right_positive_450ms = mean(left_perolng_emg_normalized(:, conditions_right_positive_450ms), 2);
+    left_perolng_emg_civ_right_positive_450ms = tinv(0.975, sum(conditions_right_positive_450ms)-1) * std(left_perolng_emg_normalized(:, conditions_right_positive_450ms), 1, 2)/sqrt(sum(conditions_right_positive_450ms));
+    left_perolng_emg_mean_right_negative_450ms = mean(left_perolng_emg_normalized(:, conditions_right_negative_450ms), 2);
+    left_perolng_emg_civ_right_negative_450ms = tinv(0.975, sum(conditions_right_negative_450ms)-1) * std(left_perolng_emg_normalized(:, conditions_right_negative_450ms), 1, 2)/sqrt(sum(conditions_right_negative_450ms));
+    
+    right_glutmed_emg_civ_left_control = tinv(0.975, sum(conditions_left_control)-1) * std(right_glutmed_emg_normalized(:, conditions_left_control), 1, 2)/sqrt(sum(conditions_left_control));
+    right_glutmed_emg_mean_left_positive_0ms = mean(right_glutmed_emg_normalized(:, conditions_left_positive_0ms), 2);
+    right_glutmed_emg_civ_left_positive_0ms = tinv(0.975, sum(conditions_left_positive_0ms)-1) * std(right_glutmed_emg_normalized(:, conditions_left_positive_0ms), 1, 2)/sqrt(sum(conditions_left_positive_0ms));
+    right_glutmed_emg_mean_left_negative_0ms = mean(right_glutmed_emg_normalized(:, conditions_left_negative_0ms), 2);
+    right_glutmed_emg_civ_left_negative_0ms = tinv(0.975, sum(conditions_left_negative_0ms)-1) * std(right_glutmed_emg_normalized(:, conditions_left_negative_0ms), 1, 2)/sqrt(sum(conditions_left_negative_0ms));
+    right_glutmed_emg_mean_left_positive_150ms = mean(right_glutmed_emg_normalized(:, conditions_left_positive_150ms), 2);
+    right_glutmed_emg_civ_left_positive_150ms = tinv(0.975, sum(conditions_left_positive_150ms)-1) * std(right_glutmed_emg_normalized(:, conditions_left_positive_150ms), 1, 2)/sqrt(sum(conditions_left_positive_150ms));
+    right_glutmed_emg_mean_left_negative_150ms = mean(right_glutmed_emg_normalized(:, conditions_left_negative_150ms), 2);
+    right_glutmed_emg_civ_left_negative_150ms = tinv(0.975, sum(conditions_left_negative_150ms)-1) * std(right_glutmed_emg_normalized(:, conditions_left_negative_150ms), 1, 2)/sqrt(sum(conditions_left_negative_150ms));
+    right_glutmed_emg_mean_left_positive_450ms = mean(right_glutmed_emg_normalized(:, conditions_left_positive_450ms), 2);
+    right_glutmed_emg_civ_left_positive_450ms = tinv(0.975, sum(conditions_left_positive_450ms)-1) * std(right_glutmed_emg_normalized(:, conditions_left_positive_450ms), 1, 2)/sqrt(sum(conditions_left_positive_450ms));
+    right_glutmed_emg_mean_left_negative_450ms = mean(right_glutmed_emg_normalized(:, conditions_left_negative_450ms), 2);
+    right_glutmed_emg_civ_left_negative_450ms = tinv(0.975, sum(conditions_left_negative_450ms)-1) * std(right_glutmed_emg_normalized(:, conditions_left_negative_450ms), 1, 2)/sqrt(sum(conditions_left_negative_450ms));
+    
+    right_glutmed_emg_civ_right_control = tinv(0.975, sum(conditions_right_control)-1) * std(right_glutmed_emg_normalized(:, conditions_right_control), 1, 2)/sqrt(sum(conditions_right_control));
+    right_glutmed_emg_mean_right_positive_0ms = mean(right_glutmed_emg_normalized(:, conditions_right_positive_0ms), 2);
+    right_glutmed_emg_civ_right_positive_0ms = tinv(0.975, sum(conditions_right_positive_0ms)-1) * std(right_glutmed_emg_normalized(:, conditions_right_positive_0ms), 1, 2)/sqrt(sum(conditions_right_positive_0ms));
+    right_glutmed_emg_mean_right_negative_0ms = mean(right_glutmed_emg_normalized(:, conditions_right_negative_0ms), 2);
+    right_glutmed_emg_civ_right_negative_0ms = tinv(0.975, sum(conditions_right_negative_0ms)-1) * std(right_glutmed_emg_normalized(:, conditions_right_negative_0ms), 1, 2)/sqrt(sum(conditions_right_negative_0ms));
+    right_glutmed_emg_mean_right_positive_150ms = mean(right_glutmed_emg_normalized(:, conditions_right_positive_150ms), 2);
+    right_glutmed_emg_civ_right_positive_150ms = tinv(0.975, sum(conditions_right_positive_150ms)-1) * std(right_glutmed_emg_normalized(:, conditions_right_positive_150ms), 1, 2)/sqrt(sum(conditions_right_positive_150ms));
+    right_glutmed_emg_mean_right_negative_150ms = mean(right_glutmed_emg_normalized(:, conditions_right_negative_150ms), 2);
+    right_glutmed_emg_civ_right_negative_150ms = tinv(0.975, sum(conditions_right_negative_150ms)-1) * std(right_glutmed_emg_normalized(:, conditions_right_negative_150ms), 1, 2)/sqrt(sum(conditions_right_negative_150ms));
+    right_glutmed_emg_mean_right_positive_450ms = mean(right_glutmed_emg_normalized(:, conditions_right_positive_450ms), 2);
+    right_glutmed_emg_civ_right_positive_450ms = tinv(0.975, sum(conditions_right_positive_450ms)-1) * std(right_glutmed_emg_normalized(:, conditions_right_positive_450ms), 1, 2)/sqrt(sum(conditions_right_positive_450ms));
+    right_glutmed_emg_mean_right_negative_450ms = mean(right_glutmed_emg_normalized(:, conditions_right_negative_450ms), 2);
+    right_glutmed_emg_civ_right_negative_450ms = tinv(0.975, sum(conditions_right_negative_450ms)-1) * std(right_glutmed_emg_normalized(:, conditions_right_negative_450ms), 1, 2)/sqrt(sum(conditions_right_negative_450ms));
+    
+    right_tibiant_emg_civ_left_control = tinv(0.975, sum(conditions_left_control)-1) * std(right_tibiant_emg_normalized(:, conditions_left_control), 1, 2)/sqrt(sum(conditions_left_control));
+    right_tibiant_emg_mean_left_positive_0ms = mean(right_tibiant_emg_normalized(:, conditions_left_positive_0ms), 2);
+    right_tibiant_emg_civ_left_positive_0ms = tinv(0.975, sum(conditions_left_positive_0ms)-1) * std(right_tibiant_emg_normalized(:, conditions_left_positive_0ms), 1, 2)/sqrt(sum(conditions_left_positive_0ms));
+    right_tibiant_emg_mean_left_negative_0ms = mean(right_tibiant_emg_normalized(:, conditions_left_negative_0ms), 2);
+    right_tibiant_emg_civ_left_negative_0ms = tinv(0.975, sum(conditions_left_negative_0ms)-1) * std(right_tibiant_emg_normalized(:, conditions_left_negative_0ms), 1, 2)/sqrt(sum(conditions_left_negative_0ms));
+    right_tibiant_emg_mean_left_positive_150ms = mean(right_tibiant_emg_normalized(:, conditions_left_positive_150ms), 2);
+    right_tibiant_emg_civ_left_positive_150ms = tinv(0.975, sum(conditions_left_positive_150ms)-1) * std(right_tibiant_emg_normalized(:, conditions_left_positive_150ms), 1, 2)/sqrt(sum(conditions_left_positive_150ms));
+    right_tibiant_emg_mean_left_negative_150ms = mean(right_tibiant_emg_normalized(:, conditions_left_negative_150ms), 2);
+    right_tibiant_emg_civ_left_negative_150ms = tinv(0.975, sum(conditions_left_negative_150ms)-1) * std(right_tibiant_emg_normalized(:, conditions_left_negative_150ms), 1, 2)/sqrt(sum(conditions_left_negative_150ms));
+    right_tibiant_emg_mean_left_positive_450ms = mean(right_tibiant_emg_normalized(:, conditions_left_positive_450ms), 2);
+    right_tibiant_emg_civ_left_positive_450ms = tinv(0.975, sum(conditions_left_positive_450ms)-1) * std(right_tibiant_emg_normalized(:, conditions_left_positive_450ms), 1, 2)/sqrt(sum(conditions_left_positive_450ms));
+    right_tibiant_emg_mean_left_negative_450ms = mean(right_tibiant_emg_normalized(:, conditions_left_negative_450ms), 2);
+    right_tibiant_emg_civ_left_negative_450ms = tinv(0.975, sum(conditions_left_negative_450ms)-1) * std(right_tibiant_emg_normalized(:, conditions_left_negative_450ms), 1, 2)/sqrt(sum(conditions_left_negative_450ms));
+    
+    right_tibiant_emg_civ_right_control = tinv(0.975, sum(conditions_right_control)-1) * std(right_tibiant_emg_normalized(:, conditions_right_control), 1, 2)/sqrt(sum(conditions_right_control));
+    right_tibiant_emg_mean_right_positive_0ms = mean(right_tibiant_emg_normalized(:, conditions_right_positive_0ms), 2);
+    right_tibiant_emg_civ_right_positive_0ms = tinv(0.975, sum(conditions_right_positive_0ms)-1) * std(right_tibiant_emg_normalized(:, conditions_right_positive_0ms), 1, 2)/sqrt(sum(conditions_right_positive_0ms));
+    right_tibiant_emg_mean_right_negative_0ms = mean(right_tibiant_emg_normalized(:, conditions_right_negative_0ms), 2);
+    right_tibiant_emg_civ_right_negative_0ms = tinv(0.975, sum(conditions_right_negative_0ms)-1) * std(right_tibiant_emg_normalized(:, conditions_right_negative_0ms), 1, 2)/sqrt(sum(conditions_right_negative_0ms));
+    right_tibiant_emg_mean_right_positive_150ms = mean(right_tibiant_emg_normalized(:, conditions_right_positive_150ms), 2);
+    right_tibiant_emg_civ_right_positive_150ms = tinv(0.975, sum(conditions_right_positive_150ms)-1) * std(right_tibiant_emg_normalized(:, conditions_right_positive_150ms), 1, 2)/sqrt(sum(conditions_right_positive_150ms));
+    right_tibiant_emg_mean_right_negative_150ms = mean(right_tibiant_emg_normalized(:, conditions_right_negative_150ms), 2);
+    right_tibiant_emg_civ_right_negative_150ms = tinv(0.975, sum(conditions_right_negative_150ms)-1) * std(right_tibiant_emg_normalized(:, conditions_right_negative_150ms), 1, 2)/sqrt(sum(conditions_right_negative_150ms));
+    right_tibiant_emg_mean_right_positive_450ms = mean(right_tibiant_emg_normalized(:, conditions_right_positive_450ms), 2);
+    right_tibiant_emg_civ_right_positive_450ms = tinv(0.975, sum(conditions_right_positive_450ms)-1) * std(right_tibiant_emg_normalized(:, conditions_right_positive_450ms), 1, 2)/sqrt(sum(conditions_right_positive_450ms));
+    right_tibiant_emg_mean_right_negative_450ms = mean(right_tibiant_emg_normalized(:, conditions_right_negative_450ms), 2);
+    right_tibiant_emg_civ_right_negative_450ms = tinv(0.975, sum(conditions_right_negative_450ms)-1) * std(right_tibiant_emg_normalized(:, conditions_right_negative_450ms), 1, 2)/sqrt(sum(conditions_right_negative_450ms));
+    
+    right_perolng_emg_civ_left_control = tinv(0.975, sum(conditions_left_control)-1) * std(right_perolng_emg_normalized(:, conditions_left_control), 1, 2)/sqrt(sum(conditions_left_control));
+    right_perolng_emg_mean_left_positive_0ms = mean(right_perolng_emg_normalized(:, conditions_left_positive_0ms), 2);
+    right_perolng_emg_civ_left_positive_0ms = tinv(0.975, sum(conditions_left_positive_0ms)-1) * std(right_perolng_emg_normalized(:, conditions_left_positive_0ms), 1, 2)/sqrt(sum(conditions_left_positive_0ms));
+    right_perolng_emg_mean_left_negative_0ms = mean(right_perolng_emg_normalized(:, conditions_left_negative_0ms), 2);
+    right_perolng_emg_civ_left_negative_0ms = tinv(0.975, sum(conditions_left_negative_0ms)-1) * std(right_perolng_emg_normalized(:, conditions_left_negative_0ms), 1, 2)/sqrt(sum(conditions_left_negative_0ms));
+    right_perolng_emg_mean_left_positive_150ms = mean(right_perolng_emg_normalized(:, conditions_left_positive_150ms), 2);
+    right_perolng_emg_civ_left_positive_150ms = tinv(0.975, sum(conditions_left_positive_150ms)-1) * std(right_perolng_emg_normalized(:, conditions_left_positive_150ms), 1, 2)/sqrt(sum(conditions_left_positive_150ms));
+    right_perolng_emg_mean_left_negative_150ms = mean(right_perolng_emg_normalized(:, conditions_left_negative_150ms), 2);
+    right_perolng_emg_civ_left_negative_150ms = tinv(0.975, sum(conditions_left_negative_150ms)-1) * std(right_perolng_emg_normalized(:, conditions_left_negative_150ms), 1, 2)/sqrt(sum(conditions_left_negative_150ms));
+    right_perolng_emg_mean_left_positive_450ms = mean(right_perolng_emg_normalized(:, conditions_left_positive_450ms), 2);
+    right_perolng_emg_civ_left_positive_450ms = tinv(0.975, sum(conditions_left_positive_450ms)-1) * std(right_perolng_emg_normalized(:, conditions_left_positive_450ms), 1, 2)/sqrt(sum(conditions_left_positive_450ms));
+    right_perolng_emg_mean_left_negative_450ms = mean(right_perolng_emg_normalized(:, conditions_left_negative_450ms), 2);
+    right_perolng_emg_civ_left_negative_450ms = tinv(0.975, sum(conditions_left_negative_450ms)-1) * std(right_perolng_emg_normalized(:, conditions_left_negative_450ms), 1, 2)/sqrt(sum(conditions_left_negative_450ms));
+    
+    right_perolng_emg_civ_right_control = tinv(0.975, sum(conditions_right_control)-1) * std(right_perolng_emg_normalized(:, conditions_right_control), 1, 2)/sqrt(sum(conditions_right_control));
+    right_perolng_emg_mean_right_positive_0ms = mean(right_perolng_emg_normalized(:, conditions_right_positive_0ms), 2);
+    right_perolng_emg_civ_right_positive_0ms = tinv(0.975, sum(conditions_right_positive_0ms)-1) * std(right_perolng_emg_normalized(:, conditions_right_positive_0ms), 1, 2)/sqrt(sum(conditions_right_positive_0ms));
+    right_perolng_emg_mean_right_negative_0ms = mean(right_perolng_emg_normalized(:, conditions_right_negative_0ms), 2);
+    right_perolng_emg_civ_right_negative_0ms = tinv(0.975, sum(conditions_right_negative_0ms)-1) * std(right_perolng_emg_normalized(:, conditions_right_negative_0ms), 1, 2)/sqrt(sum(conditions_right_negative_0ms));
+    right_perolng_emg_mean_right_positive_150ms = mean(right_perolng_emg_normalized(:, conditions_right_positive_150ms), 2);
+    right_perolng_emg_civ_right_positive_150ms = tinv(0.975, sum(conditions_right_positive_150ms)-1) * std(right_perolng_emg_normalized(:, conditions_right_positive_150ms), 1, 2)/sqrt(sum(conditions_right_positive_150ms));
+    right_perolng_emg_mean_right_negative_150ms = mean(right_perolng_emg_normalized(:, conditions_right_negative_150ms), 2);
+    right_perolng_emg_civ_right_negative_150ms = tinv(0.975, sum(conditions_right_negative_150ms)-1) * std(right_perolng_emg_normalized(:, conditions_right_negative_150ms), 1, 2)/sqrt(sum(conditions_right_negative_150ms));
+    right_perolng_emg_mean_right_positive_450ms = mean(right_perolng_emg_normalized(:, conditions_right_positive_450ms), 2);
+    right_perolng_emg_civ_right_positive_450ms = tinv(0.975, sum(conditions_right_positive_450ms)-1) * std(right_perolng_emg_normalized(:, conditions_right_positive_450ms), 1, 2)/sqrt(sum(conditions_right_positive_450ms));
+    right_perolng_emg_mean_right_negative_450ms = mean(right_perolng_emg_normalized(:, conditions_right_negative_450ms), 2);
+    right_perolng_emg_civ_right_negative_450ms = tinv(0.975, sum(conditions_right_negative_450ms)-1) * std(right_perolng_emg_normalized(:, conditions_right_negative_450ms), 1, 2)/sqrt(sum(conditions_right_negative_450ms));
+    
+    
+    
+    
+    
     
     % responses
     left_cop_x_response_mean_left_positive_0ms = mean(left_cop_x_response(:, conditions_left_positive_0ms), 2);
@@ -975,12 +1230,204 @@ if do_heel_plots_absolute
     
 end
 
+%% do_emg_plots_absolute
+if do_emg_plots_absolute
+    % left gluteus medius
+    left_glutmed_right_0ms_figure = figure; axes; hold on; title('left gluteus medius EMG, right foot stance, 0ms'); set(gca, 'Fontsize', 12)
+    control_plot = shadedErrorBar(time_normalized, left_glutmed_emg_mean_right_control, left_glutmed_emg_civ_right_control, {'color', color_right_control, 'linewidth', 5}, 1);
+    positive_plot = shadedErrorBar(time_normalized, left_glutmed_emg_mean_right_positive_0ms, left_glutmed_emg_civ_right_positive_0ms, {'color', color_right_positive, 'linewidth', 5}, 1);
+    negative_plot = shadedErrorBar(time_normalized, left_glutmed_emg_mean_right_negative_0ms, left_glutmed_emg_civ_right_negative_0ms, {'color', color_right_negative, 'linewidth', 5}, 1);
+    xlabel('time'); set(gca, 'xlim', [0, step_time_mean]);
+    this_legend = legend([control_plot.mainLine positive_plot.mainLine negative_plot.mainLine], 'control', 'illusion left', 'illusion right');
+    set(this_legend, 'Location', 'NORTHWEST')
+    
+    left_glutmed_right_150ms_figure = figure; axes; hold on; title('left gluteus medius EMG, right foot stance, 150ms'); set(gca, 'Fontsize', 12)
+    control_plot = shadedErrorBar(time_normalized, left_glutmed_emg_mean_right_control, left_glutmed_emg_civ_right_control, {'color', color_right_control, 'linewidth', 5}, 1);
+    positive_plot = shadedErrorBar(time_normalized, left_glutmed_emg_mean_right_positive_150ms, left_glutmed_emg_civ_right_positive_150ms, {'color', color_right_positive, 'linewidth', 5}, 1);
+    negative_plot = shadedErrorBar(time_normalized, left_glutmed_emg_mean_right_negative_150ms, left_glutmed_emg_civ_right_negative_150ms, {'color', color_right_negative, 'linewidth', 5}, 1);
+    xlabel('time'); set(gca, 'xlim', [0, step_time_mean]);
+    this_legend = legend([control_plot.mainLine positive_plot.mainLine negative_plot.mainLine], 'control', 'illusion left', 'illusion right');
+    set(this_legend, 'Location', 'NORTHWEST')
+    
+    left_glutmed_left_450ms_figure = figure; axes; hold on; title('left gluteus medius EMG, left foot stance, 450ms'); set(gca, 'Fontsize', 12)
+    control_plot = shadedErrorBar(time_normalized, left_glutmed_emg_mean_left_control, left_glutmed_emg_civ_left_control, {'color', color_right_control, 'linewidth', 5}, 1);
+    positive_plot = shadedErrorBar(time_normalized, left_glutmed_emg_mean_left_positive_450ms, left_glutmed_emg_civ_left_positive_450ms, {'color', color_right_positive, 'linewidth', 5}, 1);
+    negative_plot = shadedErrorBar(time_normalized, left_glutmed_emg_mean_left_negative_450ms, left_glutmed_emg_civ_left_negative_450ms, {'color', color_right_negative, 'linewidth', 5}, 1);
+    xlabel('time'); set(gca, 'xlim', [0, step_time_mean]);
+    this_legend = legend([control_plot.mainLine positive_plot.mainLine negative_plot.mainLine], 'control', 'illusion left', 'illusion right');
+    set(this_legend, 'Location', 'NORTHWEST')
+    
+    % left tibialis anterior
+    left_tibiant_right_0ms_figure = figure; axes; hold on; title('left tibialis anterior EMG, right foot stance, 0ms'); set(gca, 'Fontsize', 12)
+    control_plot = shadedErrorBar(time_normalized, left_tibiant_emg_mean_right_control, left_tibiant_emg_civ_right_control, {'color', color_right_control, 'linewidth', 5}, 1);
+    positive_plot = shadedErrorBar(time_normalized, left_tibiant_emg_mean_right_positive_0ms, left_tibiant_emg_civ_right_positive_0ms, {'color', color_right_positive, 'linewidth', 5}, 1);
+    negative_plot = shadedErrorBar(time_normalized, left_tibiant_emg_mean_right_negative_0ms, left_tibiant_emg_civ_right_negative_0ms, {'color', color_right_negative, 'linewidth', 5}, 1);
+    xlabel('time'); set(gca, 'xlim', [0, step_time_mean]);
+    this_legend = legend([control_plot.mainLine positive_plot.mainLine negative_plot.mainLine], 'control', 'illusion left', 'illusion right');
+    set(this_legend, 'Location', 'NORTHWEST')
+    
+    left_tibiant_right_150ms_figure = figure; axes; hold on; title('left tibialis anterior EMG, right foot stance, 150ms'); set(gca, 'Fontsize', 12)
+    control_plot = shadedErrorBar(time_normalized, left_tibiant_emg_mean_right_control, left_tibiant_emg_civ_right_control, {'color', color_right_control, 'linewidth', 5}, 1);
+    positive_plot = shadedErrorBar(time_normalized, left_tibiant_emg_mean_right_positive_150ms, left_tibiant_emg_civ_right_positive_150ms, {'color', color_right_positive, 'linewidth', 5}, 1);
+    negative_plot = shadedErrorBar(time_normalized, left_tibiant_emg_mean_right_negative_150ms, left_tibiant_emg_civ_right_negative_150ms, {'color', color_right_negative, 'linewidth', 5}, 1);
+    xlabel('time'); set(gca, 'xlim', [0, step_time_mean]);
+    this_legend = legend([control_plot.mainLine positive_plot.mainLine negative_plot.mainLine], 'control', 'illusion left', 'illusion right');
+    set(this_legend, 'Location', 'NORTHWEST')
+    
+    left_tibiant_left_450ms_figure = figure; axes; hold on; title('left tibialis anterior EMG, left foot stance, 450ms'); set(gca, 'Fontsize', 12)
+    control_plot = shadedErrorBar(time_normalized, left_tibiant_emg_mean_left_control, left_tibiant_emg_civ_left_control, {'color', color_right_control, 'linewidth', 5}, 1);
+    positive_plot = shadedErrorBar(time_normalized, left_tibiant_emg_mean_left_positive_450ms, left_tibiant_emg_civ_left_positive_450ms, {'color', color_right_positive, 'linewidth', 5}, 1);
+    negative_plot = shadedErrorBar(time_normalized, left_tibiant_emg_mean_left_negative_450ms, left_tibiant_emg_civ_left_negative_450ms, {'color', color_right_negative, 'linewidth', 5}, 1);
+    xlabel('time'); set(gca, 'xlim', [0, step_time_mean]);
+    this_legend = legend([control_plot.mainLine positive_plot.mainLine negative_plot.mainLine], 'control', 'illusion left', 'illusion right');
+    set(this_legend, 'Location', 'NORTHWEST')
+    
+    % left peroneus longus
+    left_perolng_right_0ms_figure = figure; axes; hold on; title('left peroneus longus EMG, right foot stance, 0ms'); set(gca, 'Fontsize', 12)
+    control_plot = shadedErrorBar(time_normalized, left_perolng_emg_mean_right_control, left_perolng_emg_civ_right_control, {'color', color_right_control, 'linewidth', 5}, 1);
+    positive_plot = shadedErrorBar(time_normalized, left_perolng_emg_mean_right_positive_0ms, left_perolng_emg_civ_right_positive_0ms, {'color', color_right_positive, 'linewidth', 5}, 1);
+    negative_plot = shadedErrorBar(time_normalized, left_perolng_emg_mean_right_negative_0ms, left_perolng_emg_civ_right_negative_0ms, {'color', color_right_negative, 'linewidth', 5}, 1);
+    xlabel('time'); set(gca, 'xlim', [0, step_time_mean]);
+    this_legend = legend([control_plot.mainLine positive_plot.mainLine negative_plot.mainLine], 'control', 'illusion left', 'illusion right');
+    set(this_legend, 'Location', 'NORTHWEST')
+    
+    left_perolng_right_150ms_figure = figure; axes; hold on; title('left peroneus longus EMG, right foot stance, 150ms'); set(gca, 'Fontsize', 12)
+    control_plot = shadedErrorBar(time_normalized, left_perolng_emg_mean_right_control, left_perolng_emg_civ_right_control, {'color', color_right_control, 'linewidth', 5}, 1);
+    positive_plot = shadedErrorBar(time_normalized, left_perolng_emg_mean_right_positive_150ms, left_perolng_emg_civ_right_positive_150ms, {'color', color_right_positive, 'linewidth', 5}, 1);
+    negative_plot = shadedErrorBar(time_normalized, left_perolng_emg_mean_right_negative_150ms, left_perolng_emg_civ_right_negative_150ms, {'color', color_right_negative, 'linewidth', 5}, 1);
+    xlabel('time'); set(gca, 'xlim', [0, step_time_mean]);
+    this_legend = legend([control_plot.mainLine positive_plot.mainLine negative_plot.mainLine], 'control', 'illusion left', 'illusion right');
+    set(this_legend, 'Location', 'NORTHWEST')
+    
+    left_perolng_left_450ms_figure = figure; axes; hold on; title('left peroneus longus EMG, left foot stance, 450ms'); set(gca, 'Fontsize', 12)
+    control_plot = shadedErrorBar(time_normalized, left_perolng_emg_mean_left_control, left_perolng_emg_civ_left_control, {'color', color_right_control, 'linewidth', 5}, 1);
+    positive_plot = shadedErrorBar(time_normalized, left_perolng_emg_mean_left_positive_450ms, left_perolng_emg_civ_left_positive_450ms, {'color', color_right_positive, 'linewidth', 5}, 1);
+    negative_plot = shadedErrorBar(time_normalized, left_perolng_emg_mean_left_negative_450ms, left_perolng_emg_civ_left_negative_450ms, {'color', color_right_negative, 'linewidth', 5}, 1);
+    xlabel('time'); set(gca, 'xlim', [0, step_time_mean]);
+    this_legend = legend([control_plot.mainLine positive_plot.mainLine negative_plot.mainLine], 'control', 'illusion left', 'illusion right');
+    set(this_legend, 'Location', 'NORTHWEST')
+    
+
+    
+    
+    % right gluteus medius
+    right_glutmed_left_0ms_figure = figure; axes; hold on; title('right gluteus medius EMG, right foot stance, 0ms'); set(gca, 'Fontsize', 12)
+    control_plot = shadedErrorBar(time_normalized, right_glutmed_emg_mean_right_control, right_glutmed_emg_civ_right_control, {'color', color_right_control, 'linewidth', 5}, 1);
+    positive_plot = shadedErrorBar(time_normalized, right_glutmed_emg_mean_right_positive_0ms, right_glutmed_emg_civ_right_positive_0ms, {'color', color_right_positive, 'linewidth', 5}, 1);
+    negative_plot = shadedErrorBar(time_normalized, right_glutmed_emg_mean_right_negative_0ms, right_glutmed_emg_civ_right_negative_0ms, {'color', color_right_negative, 'linewidth', 5}, 1);
+    xlabel('time'); set(gca, 'xlim', [0, step_time_mean]);
+    this_legend = legend([control_plot.mainLine positive_plot.mainLine negative_plot.mainLine], 'control', 'illusion left', 'illusion right');
+    set(this_legend, 'Location', 'NORTHWEST')
+    
+    right_glutmed_left_150ms_figure = figure; axes; hold on; title('right gluteus medius EMG, right foot stance, 150ms'); set(gca, 'Fontsize', 12)
+    control_plot = shadedErrorBar(time_normalized, right_glutmed_emg_mean_right_control, right_glutmed_emg_civ_right_control, {'color', color_right_control, 'linewidth', 5}, 1);
+    positive_plot = shadedErrorBar(time_normalized, right_glutmed_emg_mean_right_positive_150ms, right_glutmed_emg_civ_right_positive_150ms, {'color', color_right_positive, 'linewidth', 5}, 1);
+    negative_plot = shadedErrorBar(time_normalized, right_glutmed_emg_mean_right_negative_150ms, right_glutmed_emg_civ_right_negative_150ms, {'color', color_right_negative, 'linewidth', 5}, 1);
+    xlabel('time'); set(gca, 'xlim', [0, step_time_mean]);
+    this_legend = legend([control_plot.mainLine positive_plot.mainLine negative_plot.mainLine], 'control', 'illusion left', 'illusion right');
+    set(this_legend, 'Location', 'NORTHWEST')
+    
+    right_glutmed_right_450ms_figure = figure; axes; hold on; title('right gluteus medius EMG, right foot stance, 450ms'); set(gca, 'Fontsize', 12)
+    control_plot = shadedErrorBar(time_normalized, right_glutmed_emg_mean_left_control, right_glutmed_emg_civ_left_control, {'color', color_right_control, 'linewidth', 5}, 1);
+    positive_plot = shadedErrorBar(time_normalized, right_glutmed_emg_mean_left_positive_450ms, right_glutmed_emg_civ_left_positive_450ms, {'color', color_right_positive, 'linewidth', 5}, 1);
+    negative_plot = shadedErrorBar(time_normalized, right_glutmed_emg_mean_left_negative_450ms, right_glutmed_emg_civ_left_negative_450ms, {'color', color_right_negative, 'linewidth', 5}, 1);
+    xlabel('time'); set(gca, 'xlim', [0, step_time_mean]);
+    this_legend = legend([control_plot.mainLine positive_plot.mainLine negative_plot.mainLine], 'control', 'illusion left', 'illusion right');
+    set(this_legend, 'Location', 'NORTHWEST')
+    
+    % right tibialis anterior
+    right_tibiant_left_0ms_figure = figure; axes; hold on; title('right tibialis anterior EMG, right foot stance, 0ms'); set(gca, 'Fontsize', 12)
+    control_plot = shadedErrorBar(time_normalized, right_tibiant_emg_mean_right_control, right_tibiant_emg_civ_right_control, {'color', color_right_control, 'linewidth', 5}, 1);
+    positive_plot = shadedErrorBar(time_normalized, right_tibiant_emg_mean_right_positive_0ms, right_tibiant_emg_civ_right_positive_0ms, {'color', color_right_positive, 'linewidth', 5}, 1);
+    negative_plot = shadedErrorBar(time_normalized, right_tibiant_emg_mean_right_negative_0ms, right_tibiant_emg_civ_right_negative_0ms, {'color', color_right_negative, 'linewidth', 5}, 1);
+    xlabel('time'); set(gca, 'xlim', [0, step_time_mean]);
+    this_legend = legend([control_plot.mainLine positive_plot.mainLine negative_plot.mainLine], 'control', 'illusion left', 'illusion right');
+    set(this_legend, 'Location', 'NORTHWEST')
+    
+    right_tibiant_left_150ms_figure = figure; axes; hold on; title('right tibialis anterior EMG, right foot stance, 150ms'); set(gca, 'Fontsize', 12)
+    control_plot = shadedErrorBar(time_normalized, right_tibiant_emg_mean_right_control, right_tibiant_emg_civ_right_control, {'color', color_right_control, 'linewidth', 5}, 1);
+    positive_plot = shadedErrorBar(time_normalized, right_tibiant_emg_mean_right_positive_150ms, right_tibiant_emg_civ_right_positive_150ms, {'color', color_right_positive, 'linewidth', 5}, 1);
+    negative_plot = shadedErrorBar(time_normalized, right_tibiant_emg_mean_right_negative_150ms, right_tibiant_emg_civ_right_negative_150ms, {'color', color_right_negative, 'linewidth', 5}, 1);
+    xlabel('time'); set(gca, 'xlim', [0, step_time_mean]);
+    this_legend = legend([control_plot.mainLine positive_plot.mainLine negative_plot.mainLine], 'control', 'illusion left', 'illusion right');
+    set(this_legend, 'Location', 'NORTHWEST')
+    
+    right_tibiant_right_450ms_figure = figure; axes; hold on; title('right tibialis anterior EMG, right foot stance, 450ms'); set(gca, 'Fontsize', 12)
+    control_plot = shadedErrorBar(time_normalized, right_tibiant_emg_mean_left_control, right_tibiant_emg_civ_left_control, {'color', color_right_control, 'linewidth', 5}, 1);
+    positive_plot = shadedErrorBar(time_normalized, right_tibiant_emg_mean_left_positive_450ms, right_tibiant_emg_civ_left_positive_450ms, {'color', color_right_positive, 'linewidth', 5}, 1);
+    negative_plot = shadedErrorBar(time_normalized, right_tibiant_emg_mean_left_negative_450ms, right_tibiant_emg_civ_left_negative_450ms, {'color', color_right_negative, 'linewidth', 5}, 1);
+    xlabel('time'); set(gca, 'xlim', [0, step_time_mean]);
+    this_legend = legend([control_plot.mainLine positive_plot.mainLine negative_plot.mainLine], 'control', 'illusion left', 'illusion right');
+    set(this_legend, 'Location', 'NORTHWEST')
+    
+    % right peroneus longus
+    right_perolng_left_0ms_figure = figure; axes; hold on; title('right peroneus longus EMG, right foot stance, 0ms'); set(gca, 'Fontsize', 12)
+    control_plot = shadedErrorBar(time_normalized, right_perolng_emg_mean_right_control, right_perolng_emg_civ_right_control, {'color', color_right_control, 'linewidth', 5}, 1);
+    positive_plot = shadedErrorBar(time_normalized, right_perolng_emg_mean_right_positive_0ms, right_perolng_emg_civ_right_positive_0ms, {'color', color_right_positive, 'linewidth', 5}, 1);
+    negative_plot = shadedErrorBar(time_normalized, right_perolng_emg_mean_right_negative_0ms, right_perolng_emg_civ_right_negative_0ms, {'color', color_right_negative, 'linewidth', 5}, 1);
+    xlabel('time'); set(gca, 'xlim', [0, step_time_mean]);
+    this_legend = legend([control_plot.mainLine positive_plot.mainLine negative_plot.mainLine], 'control', 'illusion left', 'illusion right');
+    set(this_legend, 'Location', 'NORTHWEST')
+    
+    right_perolng_left_150ms_figure = figure; axes; hold on; title('right peroneus longus EMG, right foot stance, 150ms'); set(gca, 'Fontsize', 12)
+    control_plot = shadedErrorBar(time_normalized, right_perolng_emg_mean_right_control, right_perolng_emg_civ_right_control, {'color', color_right_control, 'linewidth', 5}, 1);
+    positive_plot = shadedErrorBar(time_normalized, right_perolng_emg_mean_right_positive_150ms, right_perolng_emg_civ_right_positive_150ms, {'color', color_right_positive, 'linewidth', 5}, 1);
+    negative_plot = shadedErrorBar(time_normalized, right_perolng_emg_mean_right_negative_150ms, right_perolng_emg_civ_right_negative_150ms, {'color', color_right_negative, 'linewidth', 5}, 1);
+    xlabel('time'); set(gca, 'xlim', [0, step_time_mean]);
+    this_legend = legend([control_plot.mainLine positive_plot.mainLine negative_plot.mainLine], 'control', 'illusion left', 'illusion right');
+    set(this_legend, 'Location', 'NORTHWEST')
+    
+    right_perolng_right_450ms_figure = figure; axes; hold on; title('right peroneus longus EMG, right foot stance, 450ms'); set(gca, 'Fontsize', 12)
+    control_plot = shadedErrorBar(time_normalized, right_perolng_emg_mean_left_control, right_perolng_emg_civ_left_control, {'color', color_right_control, 'linewidth', 5}, 1);
+    positive_plot = shadedErrorBar(time_normalized, right_perolng_emg_mean_left_positive_450ms, right_perolng_emg_civ_left_positive_450ms, {'color', color_right_positive, 'linewidth', 5}, 1);
+    negative_plot = shadedErrorBar(time_normalized, right_perolng_emg_mean_left_negative_450ms, right_perolng_emg_civ_left_negative_450ms, {'color', color_right_negative, 'linewidth', 5}, 1);
+    xlabel('time'); set(gca, 'xlim', [0, step_time_mean]);
+    this_legend = legend([control_plot.mainLine positive_plot.mainLine negative_plot.mainLine], 'control', 'illusion left', 'illusion right');
+    set(this_legend, 'Location', 'NORTHWEST')    
+    
+%     saveas(left_glutmed_right_0ms_figure, 'left_glutmed_right_0ms_figure', 'eps2c');
+%     saveas(left_glutmed_right_150ms_figure, 'left_glutmed_right_150ms_figure', 'eps2c');
+%     saveas(left_glutmed_left_450ms_figure, 'left_glutmed_right_450ms_figure', 'eps2c');
+%     saveas(left_tibiant_right_0ms_figure, 'left_tibiant_right_0ms_figure', 'eps2c');
+%     saveas(left_tibiant_right_150ms_figure, 'left_tibiant_right_150ms_figure', 'eps2c');
+%     saveas(left_tibiant_left_450ms_figure, 'left_tibiant_right_450ms_figure', 'eps2c');
+%     saveas(left_perolng_right_0ms_figure, 'left_perolng_right_0ms_figure', 'eps2c');
+%     saveas(left_perolng_right_150ms_figure, 'left_perolng_right_150ms_figure', 'eps2c');
+%     saveas(left_perolng_left_450ms_figure, 'left_perolng_right_450ms_figure', 'eps2c');
+%     saveas(right_glutmed_left_0ms_figure, 'right_glutmed_left_0ms_figure', 'eps2c');
+%     saveas(right_glutmed_left_150ms_figure, 'right_glutmed_left_150ms_figure', 'eps2c');
+%     saveas(right_glutmed_right_450ms_figure, 'right_glutmed_left_450ms_figure', 'eps2c');
+%     saveas(right_tibiant_left_0ms_figure, 'right_tibiant_left_0ms_figure', 'eps2c');
+%     saveas(right_tibiant_left_150ms_figure, 'right_tibiant_left_150ms_figure', 'eps2c');
+%     saveas(right_tibiant_right_450ms_figure, 'right_tibiant_left_450ms_figure', 'eps2c');
+%     saveas(right_perolng_left_0ms_figure, 'right_perolng_left_0ms_figure', 'eps2c');
+%     saveas(right_perolng_left_150ms_figure, 'right_perolng_left_150ms_figure', 'eps2c');
+%     saveas(right_perolng_right_450ms_figure, 'right_perolng_left_450ms_figure', 'eps2c');
+    
+%     % single ones
+%     figure; axes; hold on; title('left gluteus medius EMG, 0ms')
+%     plot(time_normalized, left_glutmed_emg_normalized(:, conditions_right_control), 'color', color_right_control, 'linewidth', 1);
+%     plot(time_normalized, left_glutmed_emg_normalized(:, conditions_right_positive_0ms), 'color', color_left_positive, 'linewidth', 1);
+%     plot(time_normalized, left_glutmed_emg_normalized(:, conditions_right_negative_0ms), 'color', color_left_negative, 'linewidth', 1);
+%     
+%     figure; axes; hold on; title('left gluteus medius EMG, 0ms')
+%     plot(time_normalized, left_tibiant_emg_normalized(:, conditions_right_control), 'color', color_right_control, 'linewidth', 1);
+%     plot(time_normalized, left_tibiant_emg_normalized(:, conditions_right_positive_0ms), 'color', color_left_positive, 'linewidth', 1);
+%     plot(time_normalized, left_tibiant_emg_normalized(:, conditions_right_negative_0ms), 'color', color_left_negative, 'linewidth', 1);
+%     
+%     figure; axes; hold on; title('left gluteus medius EMG, 0ms')
+%     plot(time_normalized, left_perolng_emg_normalized(:, conditions_right_control), 'color', color_right_control, 'linewidth', 1);
+%     plot(time_normalized, left_perolng_emg_normalized(:, conditions_right_positive_0ms), 'color', color_left_positive, 'linewidth', 1);
+%     plot(time_normalized, left_perolng_emg_normalized(:, conditions_right_negative_0ms), 'color', color_left_negative, 'linewidth', 1);
+    
+end
+
 %% do_cop_plots_response
 if do_cop_plots_response
     figure; axes; hold on; title('right foot medial-lateral CoP response, 0ms'); set(gca, 'Fontsize', 12)
     positive_plot = shadedErrorBar(time_normalized, right_cop_x_response_mean_right_positive_0ms, right_cop_x_response_civ_right_positive_0ms, {'color', color_right_positive, 'linewidth', 5}, 1);
     negative_plot = shadedErrorBar(time_normalized, right_cop_x_response_mean_right_negative_0ms, right_cop_x_response_civ_right_positive_0ms, {'color', color_right_negative, 'linewidth', 5}, 1);
-    xlabel('time'); set(gca, 'xlim', [0, step_time_mean]);
+    xlabel('time'); set(gca, 'xlim', [0, step_time_mean], 'ylim', [-0.01 0.01]);
     this_legend = legend([positive_plot.mainLine negative_plot.mainLine], 'illusion left', 'illusion right');
     set(this_legend, 'Location', 'NORTHWEST')
     xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
@@ -990,7 +1437,7 @@ if do_cop_plots_response
     figure; axes; hold on; title('right foot medial-lateral CoP response, 150ms'); set(gca, 'Fontsize', 12)
     positive_plot = shadedErrorBar(time_normalized, right_cop_x_response_mean_right_positive_150ms, right_cop_x_response_civ_right_positive_150ms, {'color', color_right_positive, 'linewidth', 5}, 1);
     negative_plot = shadedErrorBar(time_normalized, right_cop_x_response_mean_right_negative_150ms, right_cop_x_response_civ_right_positive_150ms, {'color', color_right_negative, 'linewidth', 5}, 1);
-    xlabel('time'); set(gca, 'xlim', [0, step_time_mean]);
+    xlabel('time'); set(gca, 'xlim', [0, step_time_mean], 'ylim', [-0.01 0.01]);
     this_legend = legend([positive_plot.mainLine negative_plot.mainLine], 'illusion left', 'illusion right');
     set(this_legend, 'Location', 'NORTHWEST')
     xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
@@ -1000,7 +1447,7 @@ if do_cop_plots_response
     figure; axes; hold on; title('left foot medial-lateral CoP response, 450ms'); set(gca, 'Fontsize', 12)
     positive_plot = shadedErrorBar(time_normalized, left_cop_x_response_mean_left_positive_450ms, left_cop_x_response_civ_left_positive_450ms, {'color', color_left_positive, 'linewidth', 5}, 1);
     negative_plot = shadedErrorBar(time_normalized, left_cop_x_response_mean_left_negative_450ms, left_cop_x_response_civ_left_positive_450ms, {'color', color_left_negative, 'linewidth', 5}, 1);
-    xlabel('time'); set(gca, 'xlim', [0, step_time_mean]);
+    xlabel('time'); set(gca, 'xlim', [0, step_time_mean], 'ylim', [-0.01 0.01]);
     this_legend = legend([positive_plot.mainLine negative_plot.mainLine], 'illusion left', 'illusion right');
     set(this_legend, 'Location', 'NORTHWEST')
     xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');

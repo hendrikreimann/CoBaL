@@ -8,16 +8,26 @@ plot_angle_trajectories             = 1;
 
 close_figures = 0;
 
-trial_to_show = 3;
+trial_to_show = 4;
 
-segments_to_plot = [6 9 10 12 15 16 18 21 24];
+segments_to_plot = ...
+  [ ...
+    6 ...
+    9 10 12 ...
+    15 16 18 ...
+    21 24 ...
+    27 29 31 ...
+    34 36 38 ...
+  ];
 % segments_to_plot = [21 24];
 segment_labels = ...
   { ... 
     'pelvis', ...
     'left thigh', 'left shank', 'left foot', ...
     'right thigh', 'right shank', 'right foot', ...
-    'torso and arms', 'head and neck' ...
+    'torso and arms', 'head and neck', ...
+    'left upper arm', 'left lower arm', 'left hand', ...
+    'right upper arm', 'right lower arm', 'right hand', ...
   };
 
 marker_colors = {[1 0 0], [0 1 0], [0 0 1], [1 0.9 0], [1 0.5 0], [1 0 1], [1 0 0], [0 1 0], [0 0 1], [1 0.9 0], [1 0.5 0], [1 0 1], [1 0 0], [0 1 0], [0 0 1], [1 0.9 0], [1 0.5 0], [1 0 1], [1 0 0], [0 1 0], [0 0 1], [1 0.9 0], [1 0.5 0], [1 0 1]};
@@ -45,9 +55,9 @@ angle_plot_groups = ...
 
 %% plot_reconstruction_errors
 if plot_reconstruction_errors
-
+    reconstruction_plot_axes = [];
     for i_joint = segments_to_plot
-        figure('position', position_map(segments_to_plot==i_joint, :));
+        figure; reconstruction_plot_axes_segment = axes; hold on;
         number_of_markers = plant.getNumberOfMarkers(i_joint);
 
         for i_marker = 1 : number_of_markers
@@ -55,10 +65,9 @@ if plot_reconstruction_errors
             marker_index = (marker_indices(1)-1) / 3 + 1;
             plot(time_mocap, marker_reconstruction_error(:, marker_index), '-', 'color', plant.getMarkerVisualizationColor(i_joint, i_marker), 'linewidth', 2)
 %             semilogy(time, marker_reconstruction_error{trial_to_show}(:, marker_index), '-', 'color', marker_colors{i_marker}, 'linewidth', 2)
-            hold on;
         end
         title(['marker reconstruction errors' segment_labels(segments_to_plot==i_joint)]); xlabel('time (s)'); ylabel('error (m)'); 
-
+        reconstruction_plot_axes = [reconstruction_plot_axes reconstruction_plot_axes_segment];
     end
 end
 
@@ -69,7 +78,8 @@ if show_marker_comparison_stick_figure
 %     scene_limits = 1*[-2.5 1.5; -1 2; -0.1 2];
     scene_limits = 1*[-0.8 0.8; 0 2; -0.1 2];
     stick_figure = showMarkerComparisonStickFigure(plant, angle_trajectories, marker_trajectories, scene_limits);
-    
+    stick_figure.showLinkMassEllipsoids = false;
+    stick_figure.update;
 end
 
 %% plot marker paths
