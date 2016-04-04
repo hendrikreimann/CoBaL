@@ -1,7 +1,7 @@
 do_plots = 0;
 
 current_directory = pwd;
-data_dir = dir('*_rawTrajectories.mat');
+data_dir = dir('*_markerTrajectoriesRaw.mat');
 clear file_name_list;
 [file_name_list{1:length(data_dir)}] = deal(data_dir.name);
 
@@ -9,17 +9,15 @@ load('subjectInfo.mat');
 
 filter_order = 2;
 cutoff_frequency = 10; % cutoff frequency, in Hz
-[b, a] = butter(filter_order, cutoff_frequency/(sampling_rate/2));	% set filter parameters for butterworth filter: 2=order of filter;
+[b, a] = butter(filter_order, cutoff_frequency/(sampling_rate_mocap/2));	% set filter parameters for butterworth filter: 2=order of filter;
 
 gap_length_limit = 0.15; % maximum of allowable gap being splined over, in seconds
 
 number_of_files = length(file_name_list);
 for i_trial = 1 : number_of_files
-    % file name stuff
+    % load data
     raw_marker_file_name = file_name_list{i_trial};
     [date, subject_id, trial_type, trial_number, file_type] = getFileParameters(raw_marker_file_name);
-    
-    % load data
     load(raw_marker_file_name);
     
     % process data
@@ -28,10 +26,10 @@ for i_trial = 1 : number_of_files
     if do_plots
         figure; axes; hold on; title(['trial ' trial_id]);
     end
-    time = (1/sampling_rate : 1/sampling_rate : size(marker_trajectories_raw, 1) / sampling_rate)';
+    time = (1/sampling_rate_mocap : 1/sampling_rate_mocap : size(marker_trajectories_raw, 1) / sampling_rate_mocap)';
     number_of_time_steps = length(time);
     time_steps = 1 : number_of_time_steps;
-    gap_length_limit_time_steps = ceil(gap_length_limit * sampling_rate);
+    gap_length_limit_time_steps = ceil(gap_length_limit * sampling_rate_mocap);
     gap_template = ones(gap_length_limit_time_steps, 1);
 
     for i_column = 1 : size(marker_trajectories_raw, 2)
@@ -121,7 +119,7 @@ for i_trial = 1 : number_of_files
     end
 
     save_file_name = makeFileName(date, subject_id, trial_type, trial_number, 'markerTrajectories');
-    save(save_file_name, 'marker_trajectories', 'time_mocap', 'sampling_rate');
+    save(save_file_name, 'marker_trajectories', 'time_mocap', 'sampling_rate_mocap');
     disp(['filtered and saved as ' save_file_name])
     
     

@@ -139,16 +139,49 @@ for i_trial = 1 : number_of_files
             'heel_strike_count' ...
           );
     else
-        % import marker data
-        [A, delimiter, nheaderlines] = importdata(csv_data_file_name, ',', 5);
-        marker_trajectories_raw = A.data(:, 3:end) * millimeter_to_meter;
+        % import data
+        [imported_data, delimiter, nheaderlines] = importdata(csv_data_file_name, ',', 5);
         
-        sampling_rate = str2num(A.textdata{2, 1});
-        time_mocap = A.data(:, 1) * sampling_rate^(-1); % can I find the sampling rate automatically?
+        % check whether this is device data
+        if strcmp(imported_data.textdata{1, 1}, 'Devices')
+            % deal with devices data
+            data_devices = imported_data;
+            sampling_rate_emg = str2num(data_devices.textdata{2, 1});
+            emg_trajectories_raw = data_devices.data(:, 3:end);
+            
+            % figure out time
+            number_of_mocap_samples = data_devices.data(end, 1);
+            emg_samples_per_mocap_sample = size(emg_trajectories_raw, 1) / number_of_mocap_samples;
+            time_emg = (data_devices.data(:, 1)*emg_samples_per_mocap_sample + data_devices.data(:, 2)) * sampling_rate_emg^(-1); % this will need some work
+            
+            % save emg data
+            matlab_data_file_name = [csv_data_file_name(1 : end-4) '_emgTrajectoriesRaw.mat'];
+            save ...
+              ( ...
+                matlab_data_file_name, ...
+                'emg_trajectories_raw', ...
+                'time_emg', ...
+                'sampling_rate_emg' ...
+              );
+        
+            % import marker data
+            number_of_data_points_devices = size(data_devices.data, 1);
+            [data_markers, delimiter, nheaderlines] = importdata(csv_data_file_name, ',', 5 + number_of_data_points_devices + 6);
+            sampling_rate_mocap = str2num(data_markers.textdata{5 + number_of_data_points_devices + 3, 1});
+            
+        else
+            data_markers = imported_data;
+            sampling_rate_mocap = str2num(imported_data.textdata{2, 1});
+        end
+        
+        
+        % deal with marker data
+        marker_trajectories_raw = data_markers.data(:, 3:end) * millimeter_to_meter;
+        time_mocap = data_markers.data(:, 1) * sampling_rate_mocap^(-1);
         
         % save
-        matlab_data_file_name = [csv_data_file_name(1 : end-4) '_rawTrajectories.mat'];
-        save(matlab_data_file_name, 'marker_trajectories_raw', 'time_mocap', 'sampling_rate');
+        matlab_data_file_name = [csv_data_file_name(1 : end-4) '_markerTrajectoriesRaw.mat'];
+        save(matlab_data_file_name, 'marker_trajectories_raw', 'time_mocap', 'sampling_rate_mocap');
     end
     
     

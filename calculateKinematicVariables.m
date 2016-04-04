@@ -7,7 +7,7 @@ use_parallel    = 1;
 % trials_to_process = 1001;
 % trials_to_process = 6;
 % trials_to_process = 1001 : 1180;
-trials_to_process = 1;
+trials_to_process = 4;
 
 load subjectInfo.mat;
 model_file_name = makeFileName(date, subject_id, 'model');
@@ -18,9 +18,9 @@ if use_parallel
     number_of_labs = poolobject.NumWorkers;
 end
 
-tic
 disp('calculating kinematic variables');
 for i_trial = trials_to_process
+    tic
 
     % load data
     marker_trajectories_file_name = makeFileName(date, subject_id, 'walking', i_trial, 'markerTrajectories');
@@ -132,8 +132,8 @@ for i_trial = trials_to_process
         end
 
     else
-        for i_time = 1 : number_of_time_steps
-%         for i_time = 1 : 50
+%         for i_time = 1 : number_of_time_steps
+        for i_time = 1540 : 1550
             joint_angles = angle_trajectories(i_time, :)';
             if any(isnan(joint_angles))
                 marker_trajectories_reconstructed(i_time, :) = NaN;
@@ -213,9 +213,9 @@ for i_trial = trials_to_process
 
     
     disp(['Trial ' num2str(i_trial) ' completed']);
+    toc
 end
 fprintf(' done\n');
-toc
 
 
 
