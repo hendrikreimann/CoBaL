@@ -2,9 +2,9 @@
 
 % flags
 plot_reconstruction_errors          = 0;
-show_marker_comparison_stick_figure = 0;
+show_marker_comparison_stick_figure = 1;
 plot_marker_paths                   = 0;
-plot_angle_trajectories             = 1;
+plot_angle_trajectories             = 0;
 
 close_figures = 0;
 
