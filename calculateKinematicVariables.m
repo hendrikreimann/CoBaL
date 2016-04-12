@@ -1,8 +1,10 @@
 % reconstruct the marker trajectories from the joint angle trajectories
 
 % flags
-reconstruct     = 1;
-use_parallel    = 1;
+reconstruct             = 1;
+use_parallel            = 1;
+use_filtered_data       = 1;
+visualize_derivatives   = 0;
 
 % trials_to_process = 1001;
 % trials_to_process = 6;
@@ -18,18 +20,140 @@ if use_parallel
     number_of_labs = poolobject.NumWorkers;
 end
 
+filter_order = 2;
+cutoff_frequency = 10; % cutoff frequency, in Hz
+[b_filter, a_filter] = butter(filter_order, cutoff_frequency/(samplingRate/2));
+
+
 disp('calculating kinematic variables');
 for i_trial = trials_to_process
     tic
 
-    % load data
+    %% load data
     marker_trajectories_file_name = makeFileName(date, subject_id, 'walking', i_trial, 'markerTrajectories');
     load(marker_trajectories_file_name);
     angle_trajectories_file_name = makeFileName(date, subject_id, 'walking', i_trial, 'angleTrajectories');
     load(angle_trajectories_file_name);
     
     number_of_time_steps = size(angle_trajectories, 1);
+    number_of_joints = plant.numberOfJoints;
     
+    %% calculate angle derivatives
+    joint_angles_filtered = zeros(size(angle_trajectories)) * NaN;
+    joint_angles_unfiltered = zeros(size(angle_trajectories)) * NaN;
+    joint_velocities_from_filtered = zeros(size(angle_trajectories)) * NaN;
+    joint_velocities_from_unfiltered = zeros(size(angle_trajectories)) * NaN;
+    joint_accelerations_from_filtered = zeros(size(angle_trajectories)) * NaN;
+    joint_accelerations_from_unfiltered = zeros(size(angle_trajectories)) * NaN;
+    
+    % ACHTUNG! the gap finding was copied over and isn't tested yet
+    
+    % find the gaps
+    gap_start_indices = [];
+    gap_end_indices = [];
+    for i_time = 1 : number_of_time_steps
+        if isnan(angle_trajectories(i_time, 1))
+            % check if this is the start of a gap
+            if (i_time == 1) || (~isnan(angle_trajectories(i_time-1, 1)))
+                gap_start_indices = [gap_start_indices; i_time]; %#ok<*AGROW>
+            end
+            % check if this is the end of a gap
+            if (i_time == number_of_time_steps) || (~isnan(angle_trajectories(i_time+1, 1)))
+                gap_end_indices = [gap_end_indices; i_time];
+            end
+
+        end
+    end
+    gaps = [];
+    for i_gap = 1 : length(gap_start_indices)
+        gaps = [gaps; [gap_start_indices(i_gap) gap_end_indices(i_gap)]];
+    end
+
+    % find the pieces of data without gaps
+    data_stretches_without_gaps = [];
+    if isempty(gaps)
+        data_stretches_without_gaps = [1 number_of_time_steps];
+    else
+        if  gaps(1, 1) > 1
+            data_stretches_without_gaps = [1 gaps(1, 1)-1];
+        end
+        for i_gap = 1 : size(gaps, 1) - 1
+            % add the stretch after this big gaps to the list
+            data_stretches_without_gaps = [data_stretches_without_gaps; gaps(i_gap, 2)+1 gaps(i_gap+1, 1)-1];
+        end
+        if ~isempty(gaps) && gaps(end, 2) < number_of_time_steps
+            data_stretches_without_gaps = [data_stretches_without_gaps; gaps(end, 2)+1 number_of_time_steps];
+        end
+    end    
+    
+    % filter and calculate time derivatives for each stretch
+    for i_stretch = 1 : size(data_stretches_without_gaps, 1)
+        joint_angle_data_stretch = angle_trajectories(data_stretches_without_gaps(i_stretch, 1) : data_stretches_without_gaps(i_stretch, 2), :);
+        if length(joint_angle_data_stretch) > 3*filter_order
+            stretch_data_points = data_stretches_without_gaps(i_stretch, 1) : data_stretches_without_gaps(i_stretch, 2);
+            for i_joint = 1 : number_of_joints
+                
+                joint_angles_stretch_filtered = filtfilt(b_filter, a_filter, joint_angle_data_stretch(:, i_joint));
+                joint_angles_stretch_unfiltered = joint_angle_data_stretch(:, i_joint);
+                joint_velocities_stretch_from_filtered = centdiff(joint_angles_stretch_filtered, 1/samplingRate);
+                joint_velocities_stretch_from_unfiltered = centdiff(joint_angles_stretch_unfiltered, 1/samplingRate);
+                joint_accelerations_stretch_from_filtered = centdiff(joint_velocities_stretch_from_filtered, 1/samplingRate);
+                joint_accelerations_stretch_from_unfiltered = centdiff(joint_velocities_stretch_from_unfiltered, 1/samplingRate);
+                
+                joint_angles_filtered(stretch_data_points, i_joint) = joint_angles_stretch_filtered;
+                joint_angles_unfiltered(stretch_data_points, i_joint) = joint_angles_stretch_unfiltered;
+                joint_velocities_from_filtered(stretch_data_points, i_joint) = joint_velocities_stretch_from_filtered;
+                joint_velocities_from_unfiltered(stretch_data_points, i_joint) = joint_velocities_stretch_from_unfiltered;
+                joint_accelerations_from_filtered(stretch_data_points, i_joint) = joint_accelerations_stretch_from_filtered;
+                joint_accelerations_from_unfiltered(stretch_data_points, i_joint) = joint_accelerations_stretch_from_unfiltered;
+            end
+        end
+    end
+    
+    % choose data
+    if use_filtered_data
+        joint_angles = joint_angles_filtered;
+        joint_velocity_trajectories = joint_velocities_from_filtered;
+        joint_acceleration_trajectories = joint_accelerations_from_filtered;
+    else
+        joint_angles = joint_angles_unfiltered;
+        joint_velocity_trajectories = joint_velocities_from_unfiltered;
+        joint_acceleration_trajectories = joint_accelerations_from_unfiltered;
+    end    
+    
+    
+    % visualize
+    if visualize_derivatives
+        joints_to_visualize = 16;
+        angle_derivative_axes = zeros(3, length(joints_to_visualize));
+        for i_joint = joints_to_visualize
+            figure; angle_derivative_axes(1, joints_to_visualize==i_joint) = axes; hold on; title([plant.jointLabels{i_joint} ' - angle'])
+            plot(time_mocap, joint_angles_unfiltered(:, i_joint));
+            plot(time_mocap, joint_angles_filtered(:, i_joint));
+            legend('unfiltered', 'filtered')
+
+            figure; angle_derivative_axes(2, joints_to_visualize==i_joint) = axes; hold on; title([plant.jointLabels{i_joint} ' - velocity'])
+            plot(time_mocap, joint_velocities_from_unfiltered(:, i_joint));
+            plot(time_mocap, joint_velocities_from_filtered(:, i_joint));
+            legend('from unfiltered', 'from filtered')
+
+            figure; angle_derivative_axes(3, joints_to_visualize==i_joint) = axes; hold on; title([plant.jointLabels{i_joint} ' - acceleration'])
+            plot(time_mocap, joint_accelerations_from_unfiltered(:, i_joint));
+            plot(time_mocap, joint_accelerations_from_filtered(:, i_joint));
+            legend('from unfiltered', 'from filtered')
+        end
+        linkaxes(angle_derivative_axes, 'x');
+        distFig('cols', length(joints_to_visualize))
+    end    
+    
+    
+    
+    
+    
+    
+    
+    
+    %% calculate model-dependent variables
     marker_trajectories_reconstructed = zeros(size(marker_trajectories));
     right_heel_trajectory = zeros(number_of_time_steps, 3);
     right_toes_trajectory = zeros(number_of_time_steps, 3);
@@ -42,6 +166,8 @@ for i_trial = trials_to_process
     left_foot_roll_angle = zeros(number_of_time_steps, 1);
     T_left_ankle_to_world_trajectory = zeros(number_of_time_steps, 16);
     T_right_ankle_to_world_trajectory = zeros(number_of_time_steps, 16);
+    V_body_left_ankle = zeros(number_of_time_steps, 6);
+    V_body_right_ankle = zeros(number_of_time_steps, 6);
     com_trajectory = zeros(number_of_time_steps, 3);
 
    if use_parallel
@@ -58,6 +184,8 @@ for i_trial = trials_to_process
         right_foot_roll_angle_trajectory_pool = zeros(number_of_time_steps, 1);
         T_left_ankle_to_world_trajectory_pool = zeros(number_of_time_steps, 16);
         T_right_ankle_to_world_trajectory_pool = zeros(number_of_time_steps, 16);
+        V_body_left_ankle_pool = zeros(number_of_time_steps, 6);
+        V_body_right_ankle_pool = zeros(number_of_time_steps, 6);
         com_trajectory_pool = zeros(number_of_time_steps, 3);
 
 
@@ -66,6 +194,7 @@ for i_trial = trials_to_process
             plant_pool = plant.copy;
             for i_time = labindex : numlabs : number_of_time_steps
                 joint_angles = angle_trajectories(i_time, :)';
+                joint_velocities = joint_velocity_trajectories(i_time, :)';
                 if any(isnan(joint_angles))
                     marker_trajectories_pool(i_time, :) = NaN;
                     left_heel_trajectory_pool(i_time, :) = NaN;
@@ -79,9 +208,12 @@ for i_trial = trials_to_process
                     right_foot_roll_angle_trajectory_pool(i_time, :) = NaN;
                     T_left_ankle_to_world_trajectory_pool(i_time, :) = NaN;
                     T_right_ankle_to_world_trajectory_pool(i_time, :) = NaN;
+                    V_body_left_ankle_pool(i_time, :) = NaN;
+                    V_body_right_ankle_pool(i_time, :) = NaN;
                     com_trajectory_pool(i_time, :) = NaN;
                 else
                     plant_pool.jointAngles = joint_angles;
+                    plant_pool.jointVelocities = joint_angles;
                     plant_pool.updateKinematics();
                     marker_trajectories_pool(i_time, :) = plant_pool.exportMarkerPositions();
                     left_heel_trajectory_pool(i_time, :) = plant_pool.endEffectorPositions{1};
@@ -95,6 +227,8 @@ for i_trial = trials_to_process
                     right_foot_roll_angle_trajectory_pool(i_time, :) = -atan2(plant_pool.jointTransformations{18}(1, 2), plant_pool.jointTransformations{18}(3, 2));
                     T_left_ankle_to_world_trajectory_pool(i_time, :) = reshape(plant_pool.endEffectorTransformations{3}, 1, 16);
                     T_right_ankle_to_world_trajectory_pool(i_time, :) = reshape(plant_pool.endEffectorTransformations{6}, 1, 16);
+                    V_body_left_ankle_pool(i_time, :) = plant.bodyJacobians{3} * joint_velocities;
+                    V_body_right_ankle_pool(i_time, :) = plant.bodyJacobians{6} * joint_velocities;
                     com_trajectory_pool(i_time, :) = plant_pool.calculateCenterOfMassPosition();
                 end
 
@@ -113,6 +247,8 @@ for i_trial = trials_to_process
             right_foot_roll_angle_trajectory_lab = right_foot_roll_angle_trajectory_pool{i_lab};
             T_left_ankle_to_world_trajectory_lab = T_left_ankle_to_world_trajectory_pool{i_lab};
             T_right_ankle_to_world_trajectory_lab = T_right_ankle_to_world_trajectory_pool{i_lab};
+            V_body_left_ankle_lab = V_body_left_ankle_pool{i_lab};
+            V_body_right_ankle_lab = V_body_right_ankle_pool{i_lab};
             com_trajectory_lab = com_trajectory_pool{i_lab};
 
             marker_trajectories_reconstructed(i_lab : number_of_labs : number_of_time_steps, :) = marker_trajectories_lab(i_lab : number_of_labs : number_of_time_steps, :);
@@ -127,14 +263,16 @@ for i_trial = trials_to_process
             right_foot_roll_angle(i_lab : number_of_labs : number_of_time_steps, :) = right_foot_roll_angle_trajectory_lab(i_lab : number_of_labs : number_of_time_steps, :);
             T_left_ankle_to_world_trajectory(i_lab : number_of_labs : number_of_time_steps, :) = T_left_ankle_to_world_trajectory_lab(i_lab : number_of_labs : number_of_time_steps, :);
             T_right_ankle_to_world_trajectory(i_lab : number_of_labs : number_of_time_steps, :) = T_right_ankle_to_world_trajectory_lab(i_lab : number_of_labs : number_of_time_steps, :);
-
+            V_body_left_ankle(i_lab : number_of_labs : number_of_time_steps, :) = V_body_left_ankle_lab(i_lab : number_of_labs : number_of_time_steps, :);
+            V_body_right_ankle(i_lab : number_of_labs : number_of_time_steps, :) = V_body_right_ankle_lab(i_lab : number_of_labs : number_of_time_steps, :);
             com_trajectory(i_lab : number_of_labs : number_of_time_steps, :) = com_trajectory_lab(i_lab : number_of_labs : number_of_time_steps, :);
         end
 
     else
 %         for i_time = 1 : number_of_time_steps
-        for i_time = 1540 : 1550
+        for i_time = 1 : 10
             joint_angles = angle_trajectories(i_time, :)';
+            joint_velocities = joint_velocity_trajectories(i_time, :)';
             if any(isnan(joint_angles))
                 marker_trajectories_reconstructed(i_time, :) = NaN;
                 left_heel_trajectory(i_time, :) = NaN;
@@ -148,9 +286,12 @@ for i_trial = trials_to_process
                 right_foot_roll_angle(i_time, :) = NaN;
                 T_left_ankle_to_world_trajectory(i_time, :) = NaN;
                 T_right_ankle_to_world_trajectory(i_time, :) = NaN;
+                V_body_left_ankle(i_time, :) = NaN;
+                V_body_right_ankle(i_time, :) = NaN;
                 com_trajectory(i_time, :) = NaN;
             else
                 plant.jointAngles = joint_angles;
+                plant.jointVelocities = joint_velocities;
                 plant.updateKinematics();
                 marker_trajectories_reconstructed(i_time, :) = plant.exportMarkerPositions();
                 left_heel_trajectory(i_time, :) = plant.endEffectorPositions{1};
@@ -164,6 +305,8 @@ for i_trial = trials_to_process
                 left_foot_roll_angle(i_time, :) = atan2(plant.jointTransformations{12}(2, 2), plant.jointTransformations{12}(3, 2));
                 T_left_ankle_to_world_trajectory(i_time, :) = reshape(plant.endEffectorTransformations{3}, 1, 16);
                 T_right_ankle_to_world_trajectory(i_time, :) = reshape(plant.endEffectorTransformations{6}, 1, 16);
+                V_body_left_ankle(i_time, :) = plant.bodyJacobians{3} * joint_velocities;
+                V_body_right_ankle(i_time, :) = plant.bodyJacobians{6} * joint_velocities;
                 com_trajectory(i_time, :) = plant.calculateCenterOfMassPosition();
             end
             step = 100;
@@ -208,7 +351,11 @@ for i_trial = trials_to_process
         'left_foot_roll_angle', ...
         'T_left_ankle_to_world_trajectory', ...
         'T_right_ankle_to_world_trajectory', ...
-        'com_trajectory' ...
+        'V_body_left_ankle', ...
+        'V_body_right_ankle', ...
+        'com_trajectory', ...
+        'joint_velocity_trajectories', ...
+        'joint_acceleration_trajectories' ...
       );
 
     

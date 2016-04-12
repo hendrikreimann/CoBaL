@@ -1,75 +1,101 @@
 
+use_parallel    = 1;
 
-calculate_body_velocities           = 0;
-save_body_velocities                = 0;
-find_body_constraints               = 1;
+find_body_constraints               = 0;
 
 
 % load data
-trial_number = 3;
+trial_number = 2;
 load subjectInfo.mat;
 load(makeFileName(date, subject_id, 'model'));
 load(makeFileName(date, subject_id, 'walking', trial_number, 'markerTrajectories'));
 load(makeFileName(date, subject_id, 'walking', trial_number, 'angleTrajectories'));
 load(makeFileName(date, subject_id, 'walking', trial_number, 'kinematicTrajectories'));
+load(makeFileName(date, subject_id, 'walking', trial_number, 'stepEvents'));
 
 
 
-if calculate_body_velocities
-    disp('calculating body velocities')
-    % right heel
-    number_of_time_frames = size(angle_trajectories, 1);
-    V_body_left_ankle = zeros(number_of_time_frames, 6);
-    V_body_right_ankle = zeros(number_of_time_frames, 6);
+
+
+
+
+[phi_trajectory, rho_trajectory, ankle_z_trajectory] ...
+= estimateBodyVelocityConstraint(T_left_ankle_to_world_trajectory, V_body_left_ankle, left_contact_indicators_mocap, sampling_rate_mocap);
+
+
+
+% set irrelevant data points to NaN
+phi_threshold = 10.1;
+relevant_data_points = phi_trajectory < phi_threshold;
+irrelevant_data_points = ~relevant_data_points;
+phi_relevant = phi_trajectory;         phi_relevant(irrelevant_data_points) = NaN;
+rho_relevant = rho_trajectory;         rho_relevant(irrelevant_data_points) = NaN;
+ankle_z_relevant = ankle_z_trajectory;     ankle_z_relevant(irrelevant_data_points, :) = NaN;
+
+nan_data_points = any(isnan(phi_relevant), 2);
+phi_nanless = phi_relevant(~nan_data_points);
+rho_nanless = rho_relevant(~nan_data_points);
+ankle_z_nanless = ankle_z_relevant(~nan_data_points);
+
+return
+% visualize - body velocity vs. phi
+figure; axes; hold on; title('v_1');
+plot3(phi_trajectory, rho_trajectory, body_velocity_trajectory(:, 1));
+plot3(phi_relevant, rho_relevant, body_velocity_relevant(:, 1));
+
+figure; axes; hold on; title('v_2');
+plot3(phi_trajectory, rho_trajectory, body_velocity_trajectory(:, 2));
+plot3(phi_relevant, rho_relevant, body_velocity_relevant(:, 2));
+
+figure; axes; hold on; title('v_3');
+plot3(phi_trajectory, rho_trajectory, body_velocity_trajectory(:, 3));
+plot3(phi_relevant, rho_relevant, body_velocity_relevant(:, 3));
+
+figure; axes; hold on; title('v_4');
+plot3(phi_trajectory, rho_trajectory, body_velocity_trajectory(:, 4));
+plot3(phi_relevant, rho_relevant, body_velocity_relevant(:, 4));
+
+figure; axes; hold on; title('v_5');
+plot3(phi_trajectory, rho_trajectory, body_velocity_trajectory(:, 5));
+plot3(phi_relevant, rho_relevant, body_velocity_relevant(:, 5));
+
+figure; axes; hold on; title('v_6');
+plot3(phi_trajectory, rho_trajectory, body_velocity_trajectory(:, 6));
+plot3(phi_relevant, rho_relevant, body_velocity_relevant(:, 6));
+
+
+return
     
-    joint_velocity_trajectories = deriveByTime(angle_trajectories, samplingRate^(-1));
-    for i_time = 1 : number_of_time_frames
-        joint_angles = angle_trajectories(i_time, :)';
-        joint_velocities = joint_velocity_trajectories(i_time, :)';
-        if any(isnan(joint_angles))
-            V_body_left_ankle(i_time, :) = NaN;
-            V_body_right_ankle(i_time, :) = NaN;
-        else
-            plant.jointAngles = joint_angles;
-            plant.updateKinematics();
-            
-            % calculate left ankle body velocity
-            J_body_left_ankle = plant.bodyJacobians{3};
-            body_velocity_left_ankle = J_body_left_ankle * joint_velocities;
-            V_body_left_ankle(i_time, :) = body_velocity_left_ankle;
-            
-            % calculate right ankle body velocity
-            J_body_right_ankle = plant.bodyJacobians{6};
-            body_velocity_right_ankle = J_body_right_ankle * joint_velocities;
-            V_body_right_ankle(i_time, :) = body_velocity_right_ankle;
-        end
-        step = 100;
-        if ((i_time / step) == floor(i_time / step)) && ~ ((i_time / (5*step)) == floor(i_time / (5*step)))
-            fprintf('.');
-        elseif ((i_time / (5*step)) == floor(i_time / (5*step))) && ~ ((i_time / (10*step)) == floor(i_time / (10*step)))
-            fprintf(',');
-        elseif ((i_time / (10*step)) == floor(i_time / (10*step)))
-            fprintf('|');
-        end
-    end
-    fprintf('\n');
-    
-    if save_body_velocities
-        % save data
-        save( ...
-             makeFileName(date, subject_id, 'walking', trial_number, 'bodyVelocities'), ...
-             'V_body_left_ankle', ...
-             'V_body_right_ankle' ...
-            );    
-    end
     
 
-    
-    
-     
-end
+% find left heel constraint
+[ ...
+  polyfit_translation_x, ...
+  polyfit_translation_y, ...
+  polyfit_translation_z, ...
+  polyfit_rotation_x, ...
+  polyfit_rotation_y, ...
+  polyfit_rotation_z ...
+] ...
+= estimateBodyVelocityConstraint(T_left_ankle_to_world_trajectory, V_body_left_ankle, left_contact_indicators_mocap, sampling_rate_mocap);
+polyfit_body_velocity_left_heel_roll = ...
+[ ...
+  polyfit_translation_x; ...
+  polyfit_translation_y; ...
+  polyfit_translation_z; ...
+  polyfit_rotation_x; ...
+  polyfit_rotation_y; ...
+  polyfit_rotation_z ...
+];
 
-% 
+
+
+
+
+
+
+
+
 
 
 
@@ -83,10 +109,6 @@ if find_body_constraints
     
     
     % find right heel constraint
-    file_name = createFileName(date, subject_id, study_label, num2str(right_heel_reference_file_index), 'rightAnkleFrameTrajectory');
-    load([data_root directorySeparator file_name]);
-    file_name = createFileName(date, subject_id, study_label, num2str(right_heel_reference_file_index), 'rightAnkleFrameBodyVelocity');
-    load([data_root directorySeparator file_name]);
     [ ...
       polyfit_translation_x, ...
       polyfit_translation_y, ...

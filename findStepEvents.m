@@ -1,9 +1,9 @@
 % findStepEvents
 
-visualize = 0;
+visualize = 1;
 
-trials_to_process = 3 : 43;
-% trials_to_process = 4;
+% trials_to_process = 1 : 43;
+trials_to_process = 2;
 
 for i_trial = trials_to_process
 

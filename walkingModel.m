@@ -740,7 +740,7 @@ left_hand_inertia_tensor = [left_hand_I_xx left_hand_I_xy left_hand_I_xz; left_h
 
 
 
-
+%% assemble
 
 % adjust end-effector positions for foot extension in z-direction
 right_heel = right_ankle_cor; right_heel(3) = right_toe_mid(3);
