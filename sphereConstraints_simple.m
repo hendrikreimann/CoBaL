@@ -575,7 +575,6 @@ if find_rho_constraint_by_phi
     end
 end
 
-
 %% find_phi_constraint
 if find_phi_constraint
     rho_rotation_center_local = [0; 0; 0; 1]; % eventually this might depend upon phi, but for now, we can assume it's fixed
