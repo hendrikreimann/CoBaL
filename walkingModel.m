@@ -495,7 +495,6 @@ right_hand_com = right_wrist_cor ...
                    + hand_com_scaling_factor_y * right_hand_segment_length * right_hand_scs_y ...
                    + hand_com_scaling_factor_z * right_hand_segment_length * right_hand_scs_z;
 
-               
 %% calculate inertia tensors
 
 % pelvis
@@ -632,113 +631,6 @@ left_hand_I_xy = (hand_rxy_scaling_factor*left_hand_segment_length)^2 * hand_seg
 left_hand_I_xz = -(hand_rxz_scaling_factor*left_hand_segment_length)^2 * hand_segment_mass;
 left_hand_I_yz = -(hand_ryz_scaling_factor*left_hand_segment_length)^2 * hand_segment_mass;
 left_hand_inertia_tensor = [left_hand_I_xx left_hand_I_xy left_hand_I_xz; left_hand_I_xy left_hand_I_yy left_hand_I_yz; left_hand_I_xz left_hand_I_yz left_hand_I_zz];
-
-
-
-
-
-
-
-% % define marker indices
-% left_temple_marker_index = 1;
-% right_temple_marker_index = 2;
-% LBHD_marker_index = 3;
-% RBHD_marker_index = 4;
-% c7_marker_index = 5;
-% suprasternale_marker_index = 7;
-% left_ASIS_marker_index = 24;
-% right_ASIS_marker_index = 25;
-% left_PSIS_marker_index = 26;
-% right_PSIS_marker_index = 27;
-% left_calcaneous_marker_index = 34;
-% left_toetip_marker_index = 35;
-% right_calcaneous_marker_index = 42;
-% right_toetip_marker_index = 43;
-% 
-% 
-% 
-% 
-% sellion_marker_offset           = centroid_to_skin_correction * posterior_direction;
-% head_vertex_marker_offset       = centroid_to_skin_correction * distal_direction;
-% right_temple_marker_offset      = centroid_to_skin_correction * left_direction;
-% left_temple_marker_offset       = centroid_to_skin_correction * right_direction;
-% suprasternale_marker_offset     = centroid_to_skin_correction * posterior_direction;
-% c7_marker_offset                = centroid_to_skin_correction * anterior_direction;
-% MPSIS_marker_offset             = centroid_to_skin_correction * anterior_direction;
-% right_ASIS_marker_offset        = centroid_to_skin_correction * posterior_direction;
-% left_ASIS_marker_offset         = centroid_to_skin_correction * posterior_direction;
-% right_calcaneous_marker_offset  = centroid_to_skin_correction * anterior_direction;
-% right_met_one_marker_offset     = centroid_to_skin_correction * distal_direction;
-% right_met_five_marker_offset    = centroid_to_skin_correction * distal_direction;
-% right_toetip_marker_offset      = centroid_to_skin_correction * distal_direction;
-% left_calcaneous_marker_offset   = centroid_to_skin_correction * anterior_direction;
-% left_met_one_marker_offset      = centroid_to_skin_correction * distal_direction;
-% left_met_five_marker_offset     = centroid_to_skin_correction * distal_direction;
-% left_toetip_marker_offset       = centroid_to_skin_correction * distal_direction;
-
-%     sellion_position            = markerReference((sellion_marker_index-1)*3+1 : (sellion_marker_index-1)*3+3)'                     + sellion_marker_offset;
-%     head_vertex_position        = markerReference((head_vertex_marker_index-1)*3+1 : (head_vertex_marker_index-1)*3+3)'             + head_vertex_marker_offset;
-%     right_temple_position       = markerReference((right_temple_marker_index-1)*3+1 : (right_temple_marker_index-1)*3+3)'           + right_temple_marker_offset;
-%     left_temple_position        = markerReference((left_temple_marker_index-1)*3+1 : (left_temple_marker_index-1)*3+3)'             + left_temple_marker_offset;
-%     suprasternale      = markerReference((suprasternale_marker_index-1)*3+1 : (suprasternale_marker_index-1)*3+3)'         + suprasternale_marker_offset;
-%     c7                 = markerReference((c7_marker_index-1)*3+1 : (c7_marker_index-1)*3+3)'                               + c7_marker_offset;
-%     MPSIS_position              = markerReference((MPSIS_marker_index-1)*3+1 : (MPSIS_marker_index-1)*3+3)'                         + MPSIS_marker_offset;
-%     right_ASIS_position         = markerReference((right_ASIS_marker_index-1)*3+1 : (right_ASIS_marker_index-1)*3+3)'               + right_ASIS_marker_offset;
-%     left_ASIS_position          = markerReference((left_ASIS_marker_index-1)*3+1 : (left_ASIS_marker_index-1)*3+3)'                 + left_ASIS_marker_offset;
-%     right_calcaneous_position   = markerReference((right_calcaneous_marker_index-1)*3+1 : (right_calcaneous_marker_index-1)*3+3)'   + right_calcaneous_marker_offset;
-%     right_met_one_position      = markerReference((right_met_one_marker_index-1)*3+1 : (right_met_one_marker_index-1)*3+3)'         + right_met_one_marker_offset;
-%     right_met_five_position     = markerReference((right_met_five_marker_index-1)*3+1 : (right_met_five_marker_index-1)*3+3)'       + right_met_five_marker_offset;
-%     right_toetip_position       = markerReference((right_toetip_marker_index-1)*3+1 : (right_toetip_marker_index-1)*3+3)'           + right_toetip_marker_offset;
-%     left_calcaneous_position    = markerReference((left_calcaneous_marker_index-1)*3+1 : (left_calcaneous_marker_index-1)*3+3)'     + left_calcaneous_marker_offset;
-%     left_met_one_position       = markerReference((left_met_one_marker_index-1)*3+1 : (left_met_one_marker_index-1)*3+3)'           + left_met_one_marker_offset;
-%     left_met_five_position      = markerReference((left_met_five_marker_index-1)*3+1 : (left_met_five_marker_index-1)*3+3)'         + left_met_five_marker_offset;
-%     left_toetip_position        = markerReference((left_toetip_marker_index-1)*3+1 : (left_toetip_marker_index-1)*3+3)'             + left_toetip_marker_offset;
-
-% rough and dirty version
-% right_temple_position       = markerReference((right_temple_marker_index-1)*3+1 : (right_temple_marker_index-1)*3+3)';
-% left_temple_position        = markerReference((left_temple_marker_index-1)*3+1 : (left_temple_marker_index-1)*3+3)';
-% sellion_position            = mean([right_temple_position, left_temple_position], 2);
-% BHD_position                = mean([markerReference((LBHD_marker_index-1)*3+1 : (LBHD_marker_index-1)*3+3)' markerReference((RBHD_marker_index-1)*3+1 : (RBHD_marker_index-1)*3+3)'], 2);
-% head_vertex_position        = mean([sellion_position, BHD_position], 2) + [0; 0; 0.05];
-% suprasternale      = markerReference((suprasternale_marker_index-1)*3+1 : (suprasternale_marker_index-1)*3+3)'         + suprasternale_marker_offset;
-% c7                 = markerReference((c7_marker_index-1)*3+1 : (c7_marker_index-1)*3+3)'                               + c7_marker_offset;
-% MPSIS_position              = MPSIS_reference;
-% right_ASIS_position         = markerReference((right_ASIS_marker_index-1)*3+1 : (right_ASIS_marker_index-1)*3+3)'               + right_ASIS_marker_offset;
-% left_ASIS_position          = markerReference((left_ASIS_marker_index-1)*3+1 : (left_ASIS_marker_index-1)*3+3)'                 + left_ASIS_marker_offset;
-% right_calcaneous_position   = markerReference((right_calcaneous_marker_index-1)*3+1 : (right_calcaneous_marker_index-1)*3+3)'   + right_calcaneous_marker_offset;
-% right_toetip_position       = markerReference((right_toetip_marker_index-1)*3+1 : (right_toetip_marker_index-1)*3+3)'           + right_toetip_marker_offset;
-% left_calcaneous_position    = markerReference((left_calcaneous_marker_index-1)*3+1 : (left_calcaneous_marker_index-1)*3+3)'     + left_calcaneous_marker_offset;
-% left_toetip_position        = markerReference((left_toetip_marker_index-1)*3+1 : (left_toetip_marker_index-1)*3+3)'             + left_toetip_marker_offset;
-% 
-% right_met_one_position      = right_toetip_position + 0.05*left_direction;
-% right_met_five_position     = right_toetip_position + 0.05*right_direction;
-% left_met_one_position      = left_toetip_position + 0.05*right_direction;
-% left_met_five_position     = left_toetip_position + 0.05*left_direction;
-
-
-% define segment masses and correct for mean rounding errors
-% pelvis_segment_mass = pelvis_mass_scaling_factor*bodyMass * 1.002^(-1);
-% foot_segment_mass = foot_mass_scaling_factor*bodyMass * 1.002^(-1);
-% leg_segment_mass = shank_mass_scaling_factor*bodyMass * 1.002^(-1);
-% thigh_segment_mass = thigh_mass_scaling_factor*bodyMass * 1.002^(-1);
-% torso_segment_mass = (torso_mass_scaling_factor + 2*arm_mass_scaling_factor + 2*forearm_mass_scaling_factor + 2*hand_mass_scaling_factor)*bodyMass * 1.002^(-1); % adding the arm mass to the torso here
-% head_segment_mass = head_mass_scaling_factor*bodyMass * 1.002^(-1);
-
-% % find the lumbar joint center
-% pelvis_width = norm(left_ASIS_position - right_ASIS_position);
-% pelvis_acs_origin = mean([right_ASIS_position left_ASIS_position], 2);
-% 
-% lumbar_cor = pelvis_acs_origin + 0.264*posterior_direction*pelvis_width + 0.126*proximal_direction*pelvis_width;
-
-% % find the cervical joint center
-% c7_to_sup_direction = normVector(suprasternale - c7);
-% c7_to_cervix_cor = expAxis(posterior_direction, 8*pi/180) * c7_to_sup_direction;
-% thorax_width = norm(suprasternale - c7);
-% cervix_cor = c7 + 0.55*thorax_width*c7_to_cervix_cor;
-
-
-
-
 
 %% assemble
 

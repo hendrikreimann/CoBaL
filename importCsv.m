@@ -19,8 +19,12 @@ for i_trial = 1 : number_of_files
     last_underscore = find(csv_data_file_name == '_', 1, 'last');
     if strcmp(csv_data_file_name(last_underscore+1 : end-4), 'forcePlateData')
         % import force plate data
-        [imported_data, delimiter, nheaderlines] = importdata(csv_data_file_name, ',', 1);
+        [imported_data, delimiter, nheaderlines] = importdata(csv_data_file_name, ',', 3);
         force_plate_trajectories = imported_data.data;
+        
+        % extract headers
+        column_name_string = imported_data.textdata{1, 1};
+        number_of_columns = size(imported_data.textdata, 2);
         
         time_force_plate = force_plate_trajectories(:, 1) * milliseconds_to_seconds;
         
@@ -55,13 +59,15 @@ for i_trial = 1 : number_of_files
         belt_speed_left_trajectory = force_plate_trajectories(:, 26);
         belt_speed_right_trajectory = force_plate_trajectories(:, 27);
         
-        stim_sent_trajectory = force_plate_trajectories(:, 28);
-        stim_read_trajectory = force_plate_trajectories(:, 29);
+        gvs_out_trajectory = force_plate_trajectories(:, 28);
+        gvs_read_trajectory = force_plate_trajectories(:, 29);
         
-        left_foot_state = force_plate_trajectories(:, 30);
-        right_foot_state = force_plate_trajectories(:, 31);
-        stimulus_foot_state = force_plate_trajectories(:, 32);
-        heel_strike_count = force_plate_trajectories(:, 33);
+        visual_shift_ml_trajectory = force_plate_trajectories(:, 30);
+        
+        left_foot_state = force_plate_trajectories(:, 31);
+        right_foot_state = force_plate_trajectories(:, 32);
+        stimulus_foot_state = force_plate_trajectories(:, 33);
+        heel_strike_count = force_plate_trajectories(:, 34);
         
         if transform_force_plate_data_to_Acw
             % extract and process data
@@ -131,8 +137,9 @@ for i_trial = 1 : number_of_files
             'copy_trajectory', ...
             'belt_speed_left_trajectory', ...
             'belt_speed_right_trajectory', ...
-            'stim_sent_trajectory', ...
-            'stim_read_trajectory', ...
+            'gvs_out_trajectory', ...
+            'gvs_read_trajectory', ...
+            'visual_shift_ml_trajectory', ...
             'left_foot_state', ...
             'right_foot_state', ...
             'stimulus_foot_state', ...
