@@ -8,7 +8,7 @@ plot_angle_trajectories             = 0;
 
 close_figures = 0;
 
-trial_to_show = 4;
+trial_to_show = 2;
 
 segments_to_plot = ...
   [ ...
@@ -35,14 +35,10 @@ shade_factor = 0.6;
 
 % load data
 load subjectInfo.mat;
-model_file_name = makeFileName(date, subject_id, 'model');
-load(model_file_name);
-marker_trajectories_file_name = makeFileName(date, subject_id, 'walking', trial_to_show, 'markerTrajectories');
-load(marker_trajectories_file_name);
-angle_trajectories_file_name = makeFileName(date, subject_id, 'walking', trial_to_show, 'angleTrajectories');
-load(angle_trajectories_file_name);
-kinematic_trajectories_file_name = makeFileName(date, subject_id, 'walking', trial_to_show, 'kinematicTrajectories');
-load(kinematic_trajectories_file_name);
+load(makeFileName(date, subject_id, 'model'));
+load(makeFileName(date, subject_id, 'walking', trial_to_show, 'markerTrajectories'));
+load(makeFileName(date, subject_id, 'walking', trial_to_show, 'angleTrajectories'));
+load(makeFileName(date, subject_id, 'walking', trial_to_show, 'kinematicTrajectories'));
 
 
 angle_plot_groups = ...
@@ -76,7 +72,7 @@ if show_marker_comparison_stick_figure
 
 %     scene_limits = 1*[-2.5 1.5; 0 1; -0.1 2];
 %     scene_limits = 1*[-2.5 1.5; -1 2; -0.1 2];
-    scene_limits = 1*[-0.8 0.8; 0 2; -0.1 2];
+    scene_limits = [-0.8 0.8; 0 20; -0.1 2];
     stick_figure = showMarkerComparisonStickFigure(plant, angle_trajectories, marker_trajectories, scene_limits);
     stick_figure.showLinkMassEllipsoids = false;
     stick_figure.update;

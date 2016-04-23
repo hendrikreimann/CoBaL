@@ -20,10 +20,10 @@ load(makeFileName(date, subject_id, 'walking', trial_number, 'stepEvents'));
 
 
 [phi_trajectory, rho_trajectory, ankle_z_trajectory] ...
-= estimateBodyVelocityConstraint(T_left_ankle_to_world_trajectory, V_body_left_ankle, left_contact_indicators_mocap, sampling_rate_mocap);
+= estimateBodyVelocityConstraints(T_left_ankle_to_world_trajectory, V_body_left_ankle, left_contact_indicators_mocap, sampling_rate_mocap);
 
 
-
+return
 % set irrelevant data points to NaN
 phi_threshold = 10.1;
 relevant_data_points = phi_trajectory < phi_threshold;
