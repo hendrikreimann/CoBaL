@@ -2,14 +2,14 @@
 
 % flags
 reconstruct             = 1;
-use_parallel            = 1;
+use_parallel            = 0;
 use_filtered_data       = 1;
 visualize_derivatives   = 0;
 
 % trials_to_process = 1001;
 % trials_to_process = 6;
 % trials_to_process = 1001 : 1180;
-trials_to_process = 4;
+trials_to_process = 2;
 
 load subjectInfo.mat;
 model_file_name = makeFileName(date, subject_id, 'model');
@@ -30,13 +30,27 @@ for i_trial = trials_to_process
     tic
 
     %% load data
-    marker_trajectories_file_name = makeFileName(date, subject_id, 'walking', i_trial, 'markerTrajectories');
-    load(marker_trajectories_file_name);
-    angle_trajectories_file_name = makeFileName(date, subject_id, 'walking', i_trial, 'angleTrajectories');
-    load(angle_trajectories_file_name);
+    load(makeFileName(date, subject_id, 'walking', i_trial, 'markerTrajectories'));
+    load(makeFileName(date, subject_id, 'walking', i_trial, 'angleTrajectories'));
+    load(makeFileName(date, subject_id, 'walking', i_trial, 'forcePlateData'));
     
     number_of_time_steps = size(angle_trajectories, 1);
     number_of_joints = plant.numberOfJoints;
+    
+    %% shift to belt coordinates
+    
+    % calculate offset between world coordinates and belt coordinates
+    belt_speed_trajectory = mean([belt_speed_left_trajectory belt_speed_right_trajectory], 2);
+    delta_t = diff(time_force_plate);
+    belt_position_trajectory_forceplate = zeros(size(belt_speed_trajectory));
+    for i_time = 2 : length(belt_speed_trajectory)
+        belt_position_trajectory_forceplate(i_time) = belt_position_trajectory_forceplate(i_time-1) + delta_t(i_time-1) * belt_speed_trajectory(i_time-1);
+    end
+    belt_position_trajectory_mocap = spline(time_force_plate, belt_position_trajectory_forceplate, time_mocap);
+    
+    angle_trajectories_belt = angle_trajectories;
+    angle_trajectories_belt(:, 2) = angle_trajectories_belt(:, 2) + belt_position_trajectory_mocap;
+    angle_trajectories = angle_trajectories_belt;
     
     %% calculate angle derivatives
     joint_angles_filtered = zeros(size(angle_trajectories)) * NaN;
@@ -45,8 +59,6 @@ for i_trial = trials_to_process
     joint_velocities_from_unfiltered = zeros(size(angle_trajectories)) * NaN;
     joint_accelerations_from_filtered = zeros(size(angle_trajectories)) * NaN;
     joint_accelerations_from_unfiltered = zeros(size(angle_trajectories)) * NaN;
-    
-    % ACHTUNG! the gap finding was copied over and isn't tested yet
     
     % find the gaps
     gap_start_indices = [];
@@ -355,7 +367,10 @@ for i_trial = trials_to_process
         'V_body_right_ankle', ...
         'com_trajectory', ...
         'joint_velocity_trajectories', ...
-        'joint_acceleration_trajectories' ...
+        'joint_acceleration_trajectories', ...
+        'belt_position_trajectory_mocap', ...
+        'belt_position_trajectory_forceplate', ...
+        'angle_trajectories' ...
       );
 
     
