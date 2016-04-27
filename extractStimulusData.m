@@ -1,6 +1,6 @@
 
 
-extract_data                    = 0;
+extract_data                    = 1;
 calculate_responses             = 1;
 calculate_stats                 = 1;
 calculate_response_extrema      = 1;
