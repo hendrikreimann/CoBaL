@@ -1,20 +1,3 @@
-% function ...
-%   [ ...
-%     polyfit_translation_x, ...
-%     polyfit_translation_y, ...
-%     polyfit_translation_z, ...
-%     polyfit_rotation_x, ...
-%     polyfit_rotation_y, ...
-%     polyfit_rotation_z ...
-%   ] ...
-% function [phi_trajectory, rho_trajectory, ankle_z_trajectory] ...
-%   = estimateBodyVelocityConstraint ...
-%   ( ...
-%     joint_frame_trajectory, ...
-%     body_velocity_trajectory, ...
-%     contact_indicator_trajectory, ...
-%     sampling_rate ...
-%   )
 
 % load data
 trial_number = 2;
@@ -27,263 +10,389 @@ load(makeFileName(date, subject_id, 'walking', trial_number, 'stepEvents'));
 
 
 
-    number_of_time_steps = size(T_left_ankle_to_world_trajectory, 1);
+number_of_time_steps = size(T_left_ankle_to_world_trajectory, 1);
 
-    calculate_trajectories              = 0;
-    find_rho_constraint_by_phi          = 0;
-    find_phi_constraint                 = 1;
+calculate_trajectories              = 1;
+find_phi_constraint                 = 1;
+find_rho_constraint_by_phi          = 0;
+save_results                        = 1;
 
-    number_of_points_of_interest = 200;
-    number_of_phi_values = 200;
-    number_of_joints = plant.numberOfJoints;
+number_of_points_of_interest = 200;
+number_of_phi_values = 200;
+number_of_joints = plant.numberOfJoints;
+
+plant.jointAngles = zeros(number_of_joints, 1);
+plant.updateKinematics;
+left_ankle_scs_to_world_rotation_reference = plant.endEffectorTransformations{3}(1:3, 1:3);
+right_ankle_scs_to_world_rotation_reference = plant.endEffectorTransformations{6}(1:3, 1:3);
+
     
-    %% calculate trajectories
-    if calculate_trajectories
-        
-        % calculate z-trajectories for multiple points along the sphere z-axis
-        phi_trajectory = zeros(number_of_time_steps, 1);
-        rho_trajectory = zeros(number_of_time_steps, 1);
-        gamma_trajectory = zeros(number_of_time_steps, 1);
+%% calculate trajectories
+if calculate_trajectories
 
-        points_of_interest_z_local = linspace(-0.02, 0.08, number_of_points_of_interest);
-        points_of_interest_sphere = [zeros(2, number_of_points_of_interest); points_of_interest_z_local; ones(1, number_of_points_of_interest)]; % coordinates of the points of interest in sphere coordinates
-        points_of_interest_world_trajectories_x = zeros(number_of_time_steps, size(points_of_interest_sphere, 2));
-        points_of_interest_world_trajectories_y = zeros(number_of_time_steps, size(points_of_interest_sphere, 2));
-        points_of_interest_world_trajectories_z = zeros(number_of_time_steps, size(points_of_interest_sphere, 2));
-        for i_time = 1 : number_of_time_steps
-            ankle_scs_transformation_current = reshape(T_left_ankle_to_world_trajectory(i_time, :), 4, 4);
-            ankle_scs_to_world_rotation_current = ankle_scs_transformation_current(1:3, 1:3);
+    % calculate z-trajectories for multiple points along the sphere z-axis
+    phi_left_trajectory = zeros(number_of_time_steps, 1);
+    rho_left_trajectory = zeros(number_of_time_steps, 1);
+    gamma_left_trajectory = zeros(number_of_time_steps, 1);
+    phi_right_trajectory = zeros(number_of_time_steps, 1);
+    rho_right_trajectory = zeros(number_of_time_steps, 1);
+    gamma_right_trajectory = zeros(number_of_time_steps, 1);
 
-            euler_angles = eulerAnglesFromRotationMatrixYZX(ankle_scs_to_world_rotation_current);
-            gamma_trajectory(i_time) = euler_angles_abc(1);
-            phi_trajectory(i_time) = euler_angles_abc(2);
-            rho_trajectory(i_time) = euler_angles_abc(3);
+    points_of_interest_y_local = linspace(-0.02, 0.08, number_of_points_of_interest);
+    points_of_interest_sphere = [zeros(1, number_of_points_of_interest); points_of_interest_y_local; zeros(1, number_of_points_of_interest); ones(1, number_of_points_of_interest)]; % coordinates of the points of interest in sphere coordinates
+    left_points_of_interest_world_trajectories_x = zeros(number_of_time_steps, size(points_of_interest_sphere, 2));
+    left_points_of_interest_world_trajectories_y = zeros(number_of_time_steps, size(points_of_interest_sphere, 2));
+    left_points_of_interest_world_trajectories_z = zeros(number_of_time_steps, size(points_of_interest_sphere, 2));
+    right_points_of_interest_world_trajectories_x = zeros(number_of_time_steps, size(points_of_interest_sphere, 2));
+    right_points_of_interest_world_trajectories_y = zeros(number_of_time_steps, size(points_of_interest_sphere, 2));
+    right_points_of_interest_world_trajectories_z = zeros(number_of_time_steps, size(points_of_interest_sphere, 2));
+    for i_time = 1 : number_of_time_steps
+        % left ankle euler angles
+        left_ankle_scs_transformation_current = reshape(T_left_ankle_to_world_trajectory(i_time, :), 4, 4);
+        left_ankle_scs_to_world_rotation_current = left_ankle_scs_transformation_current(1:3, 1:3);
+        left_ankle_scs_rotation_reference_to_current = left_ankle_scs_to_world_rotation_reference^(-1) * left_ankle_scs_to_world_rotation_current;
+        left_euler_angles = eulerAnglesFromRotationMatrixYZX(left_ankle_scs_rotation_reference_to_current);
+        gamma_left_trajectory(i_time) = left_euler_angles(1);
+        phi_left_trajectory(i_time) = left_euler_angles(2);
+        rho_left_trajectory(i_time) = left_euler_angles(3);
 
-            points_of_interest_world_current = ankle_scs_transformation_current * points_of_interest_sphere;
+        % left ankle points of interest
+        left_points_of_interest_world_current = left_ankle_scs_transformation_current * points_of_interest_sphere;
+        left_points_of_interest_world_trajectories_x(i_time, :) = left_points_of_interest_world_current(1, :);
+        left_points_of_interest_world_trajectories_y(i_time, :) = left_points_of_interest_world_current(2, :);
+        left_points_of_interest_world_trajectories_z(i_time, :) = left_points_of_interest_world_current(3, :);
 
-            points_of_interest_world_trajectories_x(i_time, :) = points_of_interest_world_current(1, :);
-            points_of_interest_world_trajectories_y(i_time, :) = points_of_interest_world_current(2, :);
-            points_of_interest_world_trajectories_z(i_time, :) = points_of_interest_world_current(3, :);
-        end
-        
-        % get relevant data points
-        relevant_data_points = left_contact_indicators_mocap;
-        irrelevant_data_points = ~relevant_data_points;
+        % right ankle euler angles
+        right_ankle_scs_transformation_current = reshape(T_right_ankle_to_world_trajectory(i_time, :), 4, 4);
+        right_ankle_scs_to_world_rotation_current = right_ankle_scs_transformation_current(1:3, 1:3);
+        right_ankle_scs_rotation_reference_to_current = right_ankle_scs_to_world_rotation_reference^(-1) * right_ankle_scs_to_world_rotation_current;
+        right_euler_angles = eulerAnglesFromRotationMatrixYZX(right_ankle_scs_rotation_reference_to_current);
+        gamma_right_trajectory(i_time) = right_euler_angles(1);
+        phi_right_trajectory(i_time) = right_euler_angles(2);
+        rho_right_trajectory(i_time) = right_euler_angles(3);
 
-        phi_trajectory_relevant = phi_trajectory; phi_trajectory_relevant(irrelevant_data_points) = NaN;
-        rho_trajectory_relevant = rho_trajectory; rho_trajectory_relevant(irrelevant_data_points) = NaN;
-        
-        
-        phi_relevant_trajectory = phi_trajectory;   phi_relevant_trajectory(irrelevant_data_points) = NaN;
-        rho_relevant_trajectory = rho_trajectory;   rho_relevant_trajectory(irrelevant_data_points) = NaN;
-
-        phi_dot_trajectory = deriveByTime(phi_trajectory, 1/sampling_rate_mocap);
-        rho_dot_trajectory = deriveByTime(rho_trajectory, 1/sampling_rate_mocap);
-        gamma_dot_trajectory = deriveByTime(gamma_trajectory, 1/sampling_rate_mocap);
-        phi_dot_trajectory_relevant = deriveByTime(phi_relevant_trajectory, 1/sampling_rate_mocap);
-        rho_dot_trajectory_relevant = deriveByTime(rho_relevant_trajectory, 1/sampling_rate_mocap);
-        
-        body_velocity_relevant_trajectory = V_body_left_ankle;   body_velocity_relevant_trajectory(irrelevant_data_points, :) = NaN;
-        V_body_left_ankle_trajectory_relevant = V_body_left_ankle; V_body_left_ankle_trajectory_relevant(irrelevant_data_points, :) = NaN;
-        
-        % compare parameter velocities with body velocity
-        figure; axes; hold on
-        plot(V_body_left_ankle(:, 4:6));
-        plot(gamma_dot_trajectory);
-        plot(phi_dot_trajectory);
-        plot(rho_dot_trajectory);
-        legend('V_4', 'V_5', 'V_6', 'd\gamma / dt', 'd\phi / dt', 'd\rho / dt');
+        % right ankle points of interest
+        right_points_of_interest_world_current = right_ankle_scs_transformation_current * points_of_interest_sphere;
+        right_points_of_interest_world_trajectories_x(i_time, :) = right_points_of_interest_world_current(1, :);
+        right_points_of_interest_world_trajectories_y(i_time, :) = right_points_of_interest_world_current(2, :);
+        right_points_of_interest_world_trajectories_z(i_time, :) = right_points_of_interest_world_current(3, :);
     end
-    
-    %% find rho constraint by phi
-    if find_rho_constraint_by_phi
-        
-        % fit surfaces to phi-rho-z data
-        data_points_for_fit = find(left_contact_indicators_mocap);
-        phi_fitpoints = phi_trajectory(data_points_for_fit);
-        rho_fitpoints = rho_trajectory(data_points_for_fit);
-        poi_z_fits = cell(1, number_of_points_of_interest);
-        for i_poi = 1 : number_of_points_of_interest
-            p_z = points_of_interest_world_trajectories_z(data_points_for_fit, i_poi);
-            poi_z_fits{i_poi} = fit([phi_fitpoints, rho_fitpoints], p_z, 'poly55');
-%             figure; plot(poi_z_fits{i_poi}, [phi_fitpoints, rho_fitpoints], points_of_interest_world_trajectories_z(data_points_for_fit, i_poi));
-%             xlabel('\phi'); ylabel('\rho'); zlabel('z'); 
-        end
-        
-        % for a grid of each phi values, find the point of interest that moves least under changes of rho
-        phi_values = linspace(min(phi_fitpoints), max(phi_fitpoints), number_of_phi_values);
-        
-        z_values = cell(number_of_phi_values, number_of_points_of_interest);
-        poi_z_fits_by_rho = cell(number_of_phi_values, number_of_points_of_interest);
-        poi_z_fits_by_rho_error = zeros(number_of_phi_values, number_of_points_of_interest);
-        poi_z_fits_by_rho_derivative = zeros(number_of_phi_values, number_of_points_of_interest);
-        poi_z_fits_by_rho_derivative_error = zeros(number_of_phi_values, number_of_points_of_interest);
-        poi_z_fits_by_rho_rms = zeros(number_of_phi_values, number_of_points_of_interest);
-        
-%         figure; axes; hold on
-%         plot(rho_trajectory);
-        phi_window_radius = 0.025;
-        for i_phi = 1 : length(phi_values)
-            % for each point of interest, compare z-values to straight line
-            rho_windows = zeros(number_of_phi_values, 2);
-            phi_window = phi_values(i_phi) + [-1 1] * phi_window_radius;
-            phi_window_indices = find(phi_window(1) <= phi_trajectory & phi_trajectory <= phi_window(2));
-%             plot(phi_window_indices, rho_trajectory(phi_window_indices), '-')                
-            rho_windows(i_phi, :) = [min(rho_trajectory(phi_window_indices)) max(rho_trajectory(phi_window_indices))];
-%             plot([i_phi i_phi], rho_windows(i_phi, :));
-            rho_values = linspace(rho_windows(i_phi, 1), rho_windows(i_phi, 2), 20);
 
-    %         figure; hold on
-            for i_poi = 1 : number_of_points_of_interest
-                z_values{i_phi, i_poi} = feval(poi_z_fits{i_poi}, [ones(length(rho_values), 1)*phi_values(i_phi), rho_values']);
-                z_values_rms = sum((z_values{i_phi, i_poi} - mean(z_values{i_phi, i_poi})).^2).^(0.5);
-                poi_z_fits_by_rho_rms(i_phi, i_poi) = z_values_rms;
-            end
+    % get relevant data points
+    relevant_data_points_left = left_contact_indicators_mocap;
+    irrelevant_data_points_left = ~relevant_data_points_left;
+    relevant_data_points_right = right_contact_indicators_mocap;
+    irrelevant_data_points_right = ~relevant_data_points_right;
 
+    phi_left_relevant_trajectory = phi_left_trajectory;   phi_left_relevant_trajectory(irrelevant_data_points_left) = NaN;
+    rho_left_relevant_trajectory = rho_left_trajectory;   rho_left_relevant_trajectory(irrelevant_data_points_left) = NaN;
+    phi_right_relevant_trajectory = phi_right_trajectory;   phi_right_relevant_trajectory(irrelevant_data_points_right) = NaN;
+    rho_right_relevant_trajectory = rho_right_trajectory;   rho_right_relevant_trajectory(irrelevant_data_points_right) = NaN;
 
+    phi_dot_left_trajectory = deriveByTime(phi_left_trajectory, 1/sampling_rate_mocap);
+    rho_dot_left_trajectory = deriveByTime(rho_left_trajectory, 1/sampling_rate_mocap);
+    gamma_dot_left_trajectory = deriveByTime(gamma_left_trajectory, 1/sampling_rate_mocap);
+    phi_dot_left_relevant_trajectory = deriveByTime(phi_left_relevant_trajectory, 1/sampling_rate_mocap);
+    rho_dot_left_relevant_trajectory = deriveByTime(rho_left_relevant_trajectory, 1/sampling_rate_mocap);
+    phi_dot_right_trajectory = deriveByTime(phi_right_trajectory, 1/sampling_rate_mocap);
+    rho_dot_right_trajectory = deriveByTime(rho_right_trajectory, 1/sampling_rate_mocap);
+    gamma_dot_right_trajectory = deriveByTime(gamma_right_trajectory, 1/sampling_rate_mocap);
+    phi_dot_right_relevant_trajectory = deriveByTime(phi_right_relevant_trajectory, 1/sampling_rate_mocap);
+    rho_dot_right_relevant_trajectory = deriveByTime(rho_right_relevant_trajectory, 1/sampling_rate_mocap);
 
-            % plot z-curves
-%             figure; axes; hold on; title(['\phi = ' num2str(phi_values(i_phi))]);
-%             for i_poi = 1 : number_of_points_of_interest
-%                 plot(rho_values, z_values{i_phi, i_poi});
-%                 plot(rho_values, mean(z_values{i_phi, i_poi})*ones(size(rho_values)));
-%             end
-        end
+    body_velocity_left_relevant_trajectory = V_body_left_ankle;   body_velocity_left_relevant_trajectory(irrelevant_data_points_left, :) = NaN;
+    V_body_left_ankle_relevant_trajectory = V_body_left_ankle; V_body_left_ankle_relevant_trajectory(irrelevant_data_points_left, :) = NaN;
+    body_velocity_right_relevant_trajectory = V_body_right_ankle;   body_velocity_right_relevant_trajectory(irrelevant_data_points_right, :) = NaN;
+    V_body_right_ankle_relevant_trajectory = V_body_right_ankle; V_body_right_ankle_relevant_trajectory(irrelevant_data_points_right, :) = NaN;
 
-%         figure; plot(poi_z_fits_by_rho_rms', '-x'); title('different colors are different values of \phi')
-%         xlabel('point of interest'); ylabel('error')
+    body_velocity_left_relevant_trajectory_norms = sum(body_velocity_left_relevant_trajectory.^2, 2).^(0.5);
+    body_velocity_left_relevant_trajectory_normed = body_velocity_left_relevant_trajectory ./ repmat(body_velocity_left_relevant_trajectory_norms, 1, 6);
 
+%     % plot phi and rho
+%     figure; hold on;
+%     plot(time_mocap, phi_left_trajectory);
+%     plot(time_mocap, rho_left_trajectory);
+%     plot(time_mocap, phi_right_trajectory);
+%     plot(time_mocap, rho_right_trajectory);
+%     legend('\phi left', '\rho left', '\phi right', '\rho right')
 
-%         [~, poi_z_fits_by_rho_derivative_error_minimum_indices] = min(poi_z_fits_by_rho_derivative_error, [], 2);
-        [poi_z_fits_by_rho_rms_minima, poi_z_fits_by_rho_rms_minimum_indices] = min(poi_z_fits_by_rho_rms, [], 2);
+    % plot left relevant
+    figure; hold on;
+    plot(time_mocap, phi_left_trajectory);
+    plot(time_mocap, rho_left_trajectory);
+    plot(time_mocap, phi_left_relevant_trajectory, 'linewidth', 3);
+    plot(time_mocap, rho_left_relevant_trajectory, 'linewidth', 3);
+    legend('\phi left', '\rho left', '\phi left relevant', '\rho left relevant')
 
-        options = fitoptions('smoothingspline');
-        options.SmoothingParam = 0.9999;
-        rho_cor_fit = fit(phi_values', points_of_interest_z_local(poi_z_fits_by_rho_rms_minimum_indices)', 'smoothingspline', options);
-        
-        % plot minimum by phi value
-        figure; plot(rho_cor_fit, phi_values, points_of_interest_z_local(poi_z_fits_by_rho_rms_minimum_indices));
-        xlabel('\phi'); ylabel('z'); 
+    % plot right relevant
+    figure; hold on;
+    plot(time_mocap, phi_right_trajectory);
+    plot(time_mocap, rho_right_trajectory);
+    plot(time_mocap, phi_right_relevant_trajectory, 'linewidth', 3);
+    plot(time_mocap, rho_right_relevant_trajectory, 'linewidth', 3);
+    legend('\phi right', '\rho right', '\phi right relevant', '\rho right relevant')
 
-        figure; plot(phi_values, poi_z_fits_by_rho_rms_minima);
-        xlabel('\phi'); ylabel('rho rms minimum'); 
-
-%%
-
-
-%         % visualize
-%         phi_values = -1 : 0.1 : 0;
-%         rho_values = -0.3 : 0.1 : 0.3;
-%         [phi_grid, rho_grid] = meshgrid(phi_values, rho_values);
-%         poi_z_grids = cell(1, number_of_points_of_interest);
-%         for i_poi = 1 : number_of_points_of_interest
-%             poi_z_grids{i_poi} = feval(poi_z_fits{i_poi}, phi_grid, rho_grid);
-%         end
-%         pois_to_plot = 1 : number_of_points_of_interest;
-%         figure; axes; hold on;
-%         xlabel('phi'); ylabel('rho'); 
-%         for i_poi = pois_to_plot
-%             surf(phi_grid, rho_grid, poi_z_grids{i_poi});
-%             plot3(phi_trajectory, rho_trajectory, points_of_interest_world_trajectories_z(:, i_poi));
-%         end
+%     % plot body velocity
+%     figure; V_body_left_ankle_axes = axes; hold on; title('left ankle body velocity')
+%     plot(V_body_left_ankle(:, 1:6));
+%     legend('V_1', 'V_2', 'V_3', 'V_4', 'V_5', 'V_6');
 % 
-%         % fix a phi value
-%         phi = -0.5;
-% 
-%         % evaluate changes of z_i by rho for this phi value
-%         rho_values = (-0.3 : 0.01 : 0.3)';
-%         phi_values = phi * ones(size(rho_values));
-%         z_values = cell(1, number_of_points_of_interest);
-%         for i_poi = 1 : number_of_points_of_interest
-%             z_values{i_poi} = feval(poi_z_fits{i_poi}, [phi_values, rho_values]);
-%         end
-% 
-%         figure; axes; hold on; axis equal
-%         for i_poi = 1 : number_of_points_of_interest
-%             plot(rho_values, z_values{i_poi});
-%         end
-    end    
+%     figure; V_body_right_ankle_axes = axes; hold on; title('right ankle body velocity')
+%     plot(V_body_right_ankle(:, 1:6));
+%     legend('V_1', 'V_2', 'V_3', 'V_4', 'V_5', 'V_6');
+
+%     linkaxes([V_body_left_ankle_axes V_body_right_ankle_axes], 'x')
+
+end
     
     
 %% find_phi_constraint
 if find_phi_constraint
+    plot_relevant_body_velocity_data_left    = 1;
+    plot_relevant_body_velocity_data_right   = 1;
     
-    % calculate parameter trajectories (ACHTUNG: do I need to repeat this? This was already done in the previous section
-%     phi_trajectory = zeros(number_of_time_steps, 1);
-%     rho_trajectory = zeros(number_of_time_steps, 1);
-%     gamma_trajectory = zeros(number_of_time_steps, 1);
-%     for i_time = 1 : number_of_time_steps
-%         ankle_scs_transformation_current = reshape(joint_frame_trajectory(i_time, :), 4, 4);
-%         ankle_scs_to_world_rotation_current = ankle_scs_transformation_current(1:3, 1:3);
-% 
-%         ankle_scs_current_to_reference_rotation = ankle_scs_to_world_rotation_reference^(-1) * ankle_scs_to_world_rotation_current;
-%         ankle_abc_current_to_reference_rotation = scs_to_abc_rotation * ankle_scs_current_to_reference_rotation * scs_to_abc_rotation^(-1);
-% 
-%         euler_angles_scs = eulerAnglesFromRotationMatrixZXY(ankle_scs_current_to_reference_rotation);
-%         euler_angles_abc = eulerAnglesFromRotationMatrixZXY(ankle_abc_current_to_reference_rotation);
-%         gamma_trajectory(i_time) = euler_angles_abc(1);
-%         phi_trajectory(i_time) = euler_angles_abc(2);
-%         rho_trajectory(i_time) = euler_angles_abc(3);
-%     end    
+    % find data points for each constraint
+    phi_threshold = 0.05;
+    left_heelstrike_indices = phi_left_relevant_trajectory > phi_threshold;
+    left_pushoff_indices = phi_left_relevant_trajectory < -phi_threshold;
+    right_heelstrike_indices = phi_right_relevant_trajectory > phi_threshold;
+    right_pushoff_indices = phi_right_relevant_trajectory < -phi_threshold;
     
+    body_velocity_left_heelstrike_trajectory = V_body_left_ankle;   body_velocity_left_heelstrike_trajectory(~left_heelstrike_indices, :) = NaN;
+    body_velocity_left_pushoff_trajectory = V_body_left_ankle;   body_velocity_left_pushoff_trajectory(~left_pushoff_indices, :) = NaN;
+    body_velocity_right_heelstrike_trajectory = V_body_right_ankle;   body_velocity_right_heelstrike_trajectory(~right_heelstrike_indices, :) = NaN;
+    body_velocity_right_pushoff_trajectory = V_body_right_ankle;   body_velocity_right_pushoff_trajectory(~right_pushoff_indices, :) = NaN;
     
-%     figure; axes; hold on
-%     plot(phi_trajectory)
-%     plot(phi_trajectory_relevant)
+    % fit constraints
+    [V_body_left_1_fit_heelstrike, V_body_left_1_gof_heelstrike] = fit([phi_left_trajectory(left_heelstrike_indices), rho_left_trajectory(left_heelstrike_indices)], V_body_left_ankle(left_heelstrike_indices, 1), 'poly55');
+    [V_body_left_2_fit_heelstrike, V_body_left_2_gof_heelstrike] = fit([phi_left_trajectory(left_heelstrike_indices), rho_left_trajectory(left_heelstrike_indices)], V_body_left_ankle(left_heelstrike_indices, 2), 'poly55');
+    [V_body_left_3_fit_heelstrike, V_body_left_3_gof_heelstrike] = fit([phi_left_trajectory(left_heelstrike_indices), rho_left_trajectory(left_heelstrike_indices)], V_body_left_ankle(left_heelstrike_indices, 3), 'poly55');
+    [V_body_left_4_fit_heelstrike, V_body_left_4_gof_heelstrike] = fit([phi_left_trajectory(left_heelstrike_indices), rho_left_trajectory(left_heelstrike_indices)], V_body_left_ankle(left_heelstrike_indices, 4), 'poly55');
+    [V_body_left_5_fit_heelstrike, V_body_left_5_gof_heelstrike] = fit([phi_left_trajectory(left_heelstrike_indices), rho_left_trajectory(left_heelstrike_indices)], V_body_left_ankle(left_heelstrike_indices, 5), 'poly55');
+    [V_body_left_6_fit_heelstrike, V_body_left_6_gof_heelstrike] = fit([phi_left_trajectory(left_heelstrike_indices), rho_left_trajectory(left_heelstrike_indices)], V_body_left_ankle(left_heelstrike_indices, 6), 'poly55');
+    [V_body_left_1_fit_pushoff, V_body_left_1_gof_pushoff] = fit([phi_left_trajectory(left_pushoff_indices), rho_left_trajectory(left_pushoff_indices)], V_body_left_ankle(left_pushoff_indices, 1), 'poly55');
+    [V_body_left_2_fit_pushoff, V_body_left_2_gof_pushoff] = fit([phi_left_trajectory(left_pushoff_indices), rho_left_trajectory(left_pushoff_indices)], V_body_left_ankle(left_pushoff_indices, 2), 'poly55');
+    [V_body_left_3_fit_pushoff, V_body_left_3_gof_pushoff] = fit([phi_left_trajectory(left_pushoff_indices), rho_left_trajectory(left_pushoff_indices)], V_body_left_ankle(left_pushoff_indices, 3), 'poly55');
+    [V_body_left_4_fit_pushoff, V_body_left_4_gof_pushoff] = fit([phi_left_trajectory(left_pushoff_indices), rho_left_trajectory(left_pushoff_indices)], V_body_left_ankle(left_pushoff_indices, 4), 'poly55');
+    [V_body_left_5_fit_pushoff, V_body_left_5_gof_pushoff] = fit([phi_left_trajectory(left_pushoff_indices), rho_left_trajectory(left_pushoff_indices)], V_body_left_ankle(left_pushoff_indices, 5), 'poly55');
+    [V_body_left_6_fit_pushoff, V_body_left_6_gof_pushoff] = fit([phi_left_trajectory(left_pushoff_indices), rho_left_trajectory(left_pushoff_indices)], V_body_left_ankle(left_pushoff_indices, 6), 'poly55');
     
+    [V_body_right_1_fit_heelstrike, V_body_right_1_gof_heelstrike] = fit([phi_right_trajectory(right_heelstrike_indices), rho_right_trajectory(right_heelstrike_indices)], V_body_right_ankle(right_heelstrike_indices, 1), 'poly55');
+    [V_body_right_2_fit_heelstrike, V_body_right_2_gof_heelstrike] = fit([phi_right_trajectory(right_heelstrike_indices), rho_right_trajectory(right_heelstrike_indices)], V_body_right_ankle(right_heelstrike_indices, 2), 'poly55');
+    [V_body_right_3_fit_heelstrike, V_body_right_3_gof_heelstrike] = fit([phi_right_trajectory(right_heelstrike_indices), rho_right_trajectory(right_heelstrike_indices)], V_body_right_ankle(right_heelstrike_indices, 3), 'poly55');
+    [V_body_right_4_fit_heelstrike, V_body_right_4_gof_heelstrike] = fit([phi_right_trajectory(right_heelstrike_indices), rho_right_trajectory(right_heelstrike_indices)], V_body_right_ankle(right_heelstrike_indices, 4), 'poly55');
+    [V_body_right_5_fit_heelstrike, V_body_right_5_gof_heelstrike] = fit([phi_right_trajectory(right_heelstrike_indices), rho_right_trajectory(right_heelstrike_indices)], V_body_right_ankle(right_heelstrike_indices, 5), 'poly55');
+    [V_body_right_6_fit_heelstrike, V_body_right_6_gof_heelstrike] = fit([phi_right_trajectory(right_heelstrike_indices), rho_right_trajectory(right_heelstrike_indices)], V_body_right_ankle(right_heelstrike_indices, 6), 'poly55');
+    [V_body_right_1_fit_pushoff, V_body_right_1_gof_pushoff] = fit([phi_right_trajectory(right_pushoff_indices), rho_right_trajectory(right_pushoff_indices)], V_body_right_ankle(right_pushoff_indices, 1), 'poly55');
+    [V_body_right_2_fit_pushoff, V_body_right_2_gof_pushoff] = fit([phi_right_trajectory(right_pushoff_indices), rho_right_trajectory(right_pushoff_indices)], V_body_right_ankle(right_pushoff_indices, 2), 'poly55');
+    [V_body_right_3_fit_pushoff, V_body_right_3_gof_pushoff] = fit([phi_right_trajectory(right_pushoff_indices), rho_right_trajectory(right_pushoff_indices)], V_body_right_ankle(right_pushoff_indices, 3), 'poly55');
+    [V_body_right_4_fit_pushoff, V_body_right_4_gof_pushoff] = fit([phi_right_trajectory(right_pushoff_indices), rho_right_trajectory(right_pushoff_indices)], V_body_right_ankle(right_pushoff_indices, 4), 'poly55');
+    [V_body_right_5_fit_pushoff, V_body_right_5_gof_pushoff] = fit([phi_right_trajectory(right_pushoff_indices), rho_right_trajectory(right_pushoff_indices)], V_body_right_ankle(right_pushoff_indices, 5), 'poly55');
+    [V_body_right_6_fit_pushoff, V_body_right_6_gof_pushoff] = fit([phi_right_trajectory(right_pushoff_indices), rho_right_trajectory(right_pushoff_indices)], V_body_right_ankle(right_pushoff_indices, 6), 'poly55');
     
+    if plot_relevant_body_velocity_data_left
+        % visualize - normalized body velocity vs. phi and rho
+        figure; axes; hold on; title('v_1');
+        plot3(phi_left_trajectory, rho_left_trajectory, V_body_left_ankle(:, 1));
+        plot3(phi_left_trajectory, rho_left_trajectory, body_velocity_left_relevant_trajectory(:, 1));
+        plot3(phi_left_trajectory, rho_left_trajectory, body_velocity_left_heelstrike_trajectory(:, 1));
+        plot3(phi_left_trajectory, rho_left_trajectory, body_velocity_left_pushoff_trajectory(:, 1));
+        plot3(phi_left_trajectory(left_heelstrike_indices), rho_left_trajectory(left_heelstrike_indices), feval(V_body_left_1_fit_heelstrike, [phi_left_trajectory(left_heelstrike_indices) rho_left_trajectory(left_heelstrike_indices)]), 'o');
+        plot3(phi_left_trajectory(left_pushoff_indices), rho_left_trajectory(left_pushoff_indices), feval(V_body_left_1_fit_pushoff, [phi_left_trajectory(left_pushoff_indices) rho_left_trajectory(left_pushoff_indices)]), 'o');
+        xlabel('\phi'); ylabel('\rho'); zlabel('v_1'); view([0 -1 0]);
+%         legend('all', 'contact', 'heelstrike', 'pushoff', 'heelstrike fit', 'pushoff fit')
+        uicontrol('style', 'text', 'position', [10 25 600 30], 'string', ['HS: R-square = ' num2str(V_body_left_1_gof_heelstrike.rsquare) ', RMS error = ' num2str(V_body_left_1_gof_heelstrike.rmse)], 'fontsize', 14, 'HorizontalAlignment', 'left')
+        uicontrol('style', 'text', 'position', [10 5 600 30], 'string', ['PO: R-square = ' num2str(V_body_left_1_gof_pushoff.rsquare) ', RMS error = ' num2str(V_body_left_1_gof_pushoff.rmse)], 'fontsize', 14, 'HorizontalAlignment', 'left')
+
+        figure; axes; hold on; title('v_2');
+        plot3(phi_left_trajectory, rho_left_trajectory, V_body_left_ankle(:, 2));
+        plot3(phi_left_trajectory, rho_left_trajectory, body_velocity_left_relevant_trajectory(:, 2));
+        plot3(phi_left_trajectory, rho_left_trajectory, body_velocity_left_heelstrike_trajectory(:, 2));
+        plot3(phi_left_trajectory, rho_left_trajectory, body_velocity_left_pushoff_trajectory(:, 2));
+        plot3(phi_left_trajectory(left_heelstrike_indices), rho_left_trajectory(left_heelstrike_indices), feval(V_body_left_2_fit_heelstrike, [phi_left_trajectory(left_heelstrike_indices) rho_left_trajectory(left_heelstrike_indices)]), 'o');
+        plot3(phi_left_trajectory(left_pushoff_indices), rho_left_trajectory(left_pushoff_indices), feval(V_body_left_2_fit_pushoff, [phi_left_trajectory(left_pushoff_indices) rho_left_trajectory(left_pushoff_indices)]), 'o');
+        xlabel('\phi'); ylabel('\rho'); zlabel('v_1'); view([0 -1 0]);
+%         legend('all', 'contact', 'heelstrike', 'pushoff', 'heelstrike fit', 'pushoff fit')
+        uicontrol('style', 'text', 'position', [10 25 600 30], 'string', ['HS: R-square = ' num2str(V_body_left_2_gof_heelstrike.rsquare) ', RMS error = ' num2str(V_body_left_2_gof_heelstrike.rmse)], 'fontsize', 14, 'HorizontalAlignment', 'left')
+        uicontrol('style', 'text', 'position', [10 5 600 30], 'string', ['PO: R-square = ' num2str(V_body_left_2_gof_pushoff.rsquare) ', RMS error = ' num2str(V_body_left_2_gof_pushoff.rmse)], 'fontsize', 14, 'HorizontalAlignment', 'left')
+
+        figure; axes; hold on; title('v_3');
+        plot3(phi_left_trajectory, rho_left_trajectory, V_body_left_ankle(:, 3));
+        plot3(phi_left_trajectory, rho_left_trajectory, body_velocity_left_relevant_trajectory(:, 3));
+        plot3(phi_left_trajectory, rho_left_trajectory, body_velocity_left_heelstrike_trajectory(:, 3));
+        plot3(phi_left_trajectory, rho_left_trajectory, body_velocity_left_pushoff_trajectory(:, 3));
+        plot3(phi_left_trajectory(left_heelstrike_indices), rho_left_trajectory(left_heelstrike_indices), feval(V_body_left_3_fit_heelstrike, [phi_left_trajectory(left_heelstrike_indices) rho_left_trajectory(left_heelstrike_indices)]), 'o');
+        plot3(phi_left_trajectory(left_pushoff_indices), rho_left_trajectory(left_pushoff_indices), feval(V_body_left_3_fit_pushoff, [phi_left_trajectory(left_pushoff_indices) rho_left_trajectory(left_pushoff_indices)]), 'o');
+        xlabel('\phi'); ylabel('\rho'); zlabel('v_1'); view([0 -1 0]);
+%         legend('all', 'contact', 'heelstrike', 'pushoff', 'heelstrike fit', 'pushoff fit')
+        uicontrol('style', 'text', 'position', [10 25 600 30], 'string', ['HS: R-square = ' num2str(V_body_left_3_gof_heelstrike.rsquare) ', RMS error = ' num2str(V_body_left_3_gof_heelstrike.rmse)], 'fontsize', 14, 'HorizontalAlignment', 'left')
+        uicontrol('style', 'text', 'position', [10 5 600 30], 'string', ['PO: R-square = ' num2str(V_body_left_3_gof_pushoff.rsquare) ', RMS error = ' num2str(V_body_left_3_gof_pushoff.rmse)], 'fontsize', 14, 'HorizontalAlignment', 'left')
+
+        figure; axes; hold on; title('v_4');
+        plot3(phi_left_trajectory, rho_left_trajectory, V_body_left_ankle(:, 4));
+        plot3(phi_left_trajectory, rho_left_trajectory, body_velocity_left_relevant_trajectory(:, 4));
+        plot3(phi_left_trajectory, rho_left_trajectory, body_velocity_left_heelstrike_trajectory(:, 4));
+        plot3(phi_left_trajectory, rho_left_trajectory, body_velocity_left_pushoff_trajectory(:, 4));
+        plot3(phi_left_trajectory(left_heelstrike_indices), rho_left_trajectory(left_heelstrike_indices), feval(V_body_left_4_fit_heelstrike, [phi_left_trajectory(left_heelstrike_indices) rho_left_trajectory(left_heelstrike_indices)]), 'o');
+        plot3(phi_left_trajectory(left_pushoff_indices), rho_left_trajectory(left_pushoff_indices), feval(V_body_left_4_fit_pushoff, [phi_left_trajectory(left_pushoff_indices) rho_left_trajectory(left_pushoff_indices)]), 'o');
+        xlabel('\phi'); ylabel('\rho'); zlabel('v_1'); view([0 -1 0]);
+%         legend('all', 'contact', 'heelstrike', 'pushoff', 'heelstrike fit', 'pushoff fit')
+        uicontrol('style', 'text', 'position', [10 25 600 30], 'string', ['HS: R-square = ' num2str(V_body_left_4_gof_heelstrike.rsquare) ', RMS error = ' num2str(V_body_left_4_gof_heelstrike.rmse)], 'fontsize', 14, 'HorizontalAlignment', 'left')
+        uicontrol('style', 'text', 'position', [10 5 600 30], 'string', ['PO: R-square = ' num2str(V_body_left_4_gof_pushoff.rsquare) ', RMS error = ' num2str(V_body_left_4_gof_pushoff.rmse)], 'fontsize', 14, 'HorizontalAlignment', 'left')
+
+        figure; axes; hold on; title('v_5');
+        plot3(phi_left_trajectory, rho_left_trajectory, V_body_left_ankle(:, 5));
+        plot3(phi_left_trajectory, rho_left_trajectory, body_velocity_left_relevant_trajectory(:, 5));
+        plot3(phi_left_trajectory, rho_left_trajectory, body_velocity_left_heelstrike_trajectory(:, 5));
+        plot3(phi_left_trajectory, rho_left_trajectory, body_velocity_left_pushoff_trajectory(:, 5));
+        plot3(phi_left_trajectory(left_heelstrike_indices), rho_left_trajectory(left_heelstrike_indices), feval(V_body_left_5_fit_heelstrike, [phi_left_trajectory(left_heelstrike_indices) rho_left_trajectory(left_heelstrike_indices)]), 'o');
+        plot3(phi_left_trajectory(left_pushoff_indices), rho_left_trajectory(left_pushoff_indices), feval(V_body_left_5_fit_pushoff, [phi_left_trajectory(left_pushoff_indices) rho_left_trajectory(left_pushoff_indices)]), 'o');
+        xlabel('\phi'); ylabel('\rho'); zlabel('v_1'); view([0 -1 0]);
+%         legend('all', 'contact', 'heelstrike', 'pushoff', 'heelstrike fit', 'pushoff fit')
+        uicontrol('style', 'text', 'position', [10 25 600 30], 'string', ['HS: R-square = ' num2str(V_body_left_5_gof_heelstrike.rsquare) ', RMS error = ' num2str(V_body_left_5_gof_heelstrike.rmse)], 'fontsize', 14, 'HorizontalAlignment', 'left')
+        uicontrol('style', 'text', 'position', [10 5 600 30], 'string', ['PO: R-square = ' num2str(V_body_left_5_gof_pushoff.rsquare) ', RMS error = ' num2str(V_body_left_5_gof_pushoff.rmse)], 'fontsize', 14, 'HorizontalAlignment', 'left')
+
+        figure; axes; hold on; title('v_6');
+        plot3(phi_left_trajectory, rho_left_trajectory, V_body_left_ankle(:, 6));
+        plot3(phi_left_trajectory, rho_left_trajectory, body_velocity_left_relevant_trajectory(:, 6));
+        plot3(phi_left_trajectory, rho_left_trajectory, body_velocity_left_heelstrike_trajectory(:, 6));
+        plot3(phi_left_trajectory, rho_left_trajectory, body_velocity_left_pushoff_trajectory(:, 6));
+        plot3(phi_left_trajectory(left_heelstrike_indices), rho_left_trajectory(left_heelstrike_indices), feval(V_body_left_6_fit_heelstrike, [phi_left_trajectory(left_heelstrike_indices) rho_left_trajectory(left_heelstrike_indices)]), 'o');
+        plot3(phi_left_trajectory(left_pushoff_indices), rho_left_trajectory(left_pushoff_indices), feval(V_body_left_6_fit_pushoff, [phi_left_trajectory(left_pushoff_indices) rho_left_trajectory(left_pushoff_indices)]), 'o');
+        xlabel('\phi'); ylabel('\rho'); zlabel('v_1'); view([0 -1 0]);
+%         legend('all', 'contact', 'heelstrike', 'pushoff', 'heelstrike fit', 'pushoff fit')
+        uicontrol('style', 'text', 'position', [10 25 600 30], 'string', ['HS: R-square = ' num2str(V_body_left_6_gof_heelstrike.rsquare) ', RMS error = ' num2str(V_body_left_6_gof_heelstrike.rmse)], 'fontsize', 14, 'HorizontalAlignment', 'left')
+        uicontrol('style', 'text', 'position', [10 5 600 30], 'string', ['PO: R-square = ' num2str(V_body_left_6_gof_pushoff.rsquare) ', RMS error = ' num2str(V_body_left_6_gof_pushoff.rmse)], 'fontsize', 14, 'HorizontalAlignment', 'left')
+    end
     
-    V_phi_body_trajectory = zeros(number_of_time_steps, 6);
-    V_phi_body_direction_trajectory = zeros(number_of_time_steps, 6);
-    V_phi_body_normed_trajectory = zeros(number_of_time_steps, 6);
-    body_velocity_normed_trajectory = zeros(number_of_time_steps, 6);
+    if plot_relevant_body_velocity_data_right
+        % visualize - normalized body velocity vs. phi and rho
+        figure; axes; hold on; title('v_1');
+        plot3(phi_right_trajectory, rho_right_trajectory, V_body_right_ankle(:, 1));
+        plot3(phi_right_trajectory, rho_right_trajectory, body_velocity_right_relevant_trajectory(:, 1));
+        plot3(phi_right_trajectory, rho_right_trajectory, body_velocity_right_heelstrike_trajectory(:, 1));
+        plot3(phi_right_trajectory, rho_right_trajectory, body_velocity_right_pushoff_trajectory(:, 1));
+        plot3(phi_right_trajectory(right_heelstrike_indices), rho_right_trajectory(right_heelstrike_indices), feval(V_body_right_1_fit_heelstrike, [phi_right_trajectory(right_heelstrike_indices) rho_right_trajectory(right_heelstrike_indices)]), 'o');
+        plot3(phi_right_trajectory(right_pushoff_indices), rho_right_trajectory(right_pushoff_indices), feval(V_body_right_1_fit_pushoff, [phi_right_trajectory(right_pushoff_indices) rho_right_trajectory(right_pushoff_indices)]), 'o');
+        xlabel('\phi'); ylabel('\rho'); zlabel('v_1'); view([0 -1 0]);
+%         legend('all', 'contact', 'heelstrike', 'pushoff', 'heelstrike fit', 'pushoff fit')
+        uicontrol('style', 'text', 'position', [10 25 600 30], 'string', ['HS: R-square = ' num2str(V_body_right_1_gof_heelstrike.rsquare) ', RMS error = ' num2str(V_body_right_1_gof_heelstrike.rmse)], 'fontsize', 14, 'HorizontalAlignment', 'left')
+        uicontrol('style', 'text', 'position', [10 5 600 30], 'string', ['PO: R-square = ' num2str(V_body_right_1_gof_pushoff.rsquare) ', RMS error = ' num2str(V_body_right_1_gof_pushoff.rmse)], 'fontsize', 14, 'HorizontalAlignment', 'left')
+
+        figure; axes; hold on; title('v_2');
+        plot3(phi_right_trajectory, rho_right_trajectory, V_body_right_ankle(:, 2));
+        plot3(phi_right_trajectory, rho_right_trajectory, body_velocity_right_relevant_trajectory(:, 2));
+        plot3(phi_right_trajectory, rho_right_trajectory, body_velocity_right_heelstrike_trajectory(:, 2));
+        plot3(phi_right_trajectory, rho_right_trajectory, body_velocity_right_pushoff_trajectory(:, 2));
+        plot3(phi_right_trajectory(right_heelstrike_indices), rho_right_trajectory(right_heelstrike_indices), feval(V_body_right_2_fit_heelstrike, [phi_right_trajectory(right_heelstrike_indices) rho_right_trajectory(right_heelstrike_indices)]), 'o');
+        plot3(phi_right_trajectory(right_pushoff_indices), rho_right_trajectory(right_pushoff_indices), feval(V_body_right_2_fit_pushoff, [phi_right_trajectory(right_pushoff_indices) rho_right_trajectory(right_pushoff_indices)]), 'o');
+        xlabel('\phi'); ylabel('\rho'); zlabel('v_1'); view([0 -1 0]);
+%         legend('all', 'contact', 'heelstrike', 'pushoff', 'heelstrike fit', 'pushoff fit')
+        uicontrol('style', 'text', 'position', [10 25 600 30], 'string', ['HS: R-square = ' num2str(V_body_right_2_gof_heelstrike.rsquare) ', RMS error = ' num2str(V_body_right_2_gof_heelstrike.rmse)], 'fontsize', 14, 'HorizontalAlignment', 'left')
+        uicontrol('style', 'text', 'position', [10 5 600 30], 'string', ['PO: R-square = ' num2str(V_body_right_2_gof_pushoff.rsquare) ', RMS error = ' num2str(V_body_right_2_gof_pushoff.rmse)], 'fontsize', 14, 'HorizontalAlignment', 'left')
+
+        figure; axes; hold on; title('v_3');
+        plot3(phi_right_trajectory, rho_right_trajectory, V_body_right_ankle(:, 3));
+        plot3(phi_right_trajectory, rho_right_trajectory, body_velocity_right_relevant_trajectory(:, 3));
+        plot3(phi_right_trajectory, rho_right_trajectory, body_velocity_right_heelstrike_trajectory(:, 3));
+        plot3(phi_right_trajectory, rho_right_trajectory, body_velocity_right_pushoff_trajectory(:, 3));
+        plot3(phi_right_trajectory(right_heelstrike_indices), rho_right_trajectory(right_heelstrike_indices), feval(V_body_right_3_fit_heelstrike, [phi_right_trajectory(right_heelstrike_indices) rho_right_trajectory(right_heelstrike_indices)]), 'o');
+        plot3(phi_right_trajectory(right_pushoff_indices), rho_right_trajectory(right_pushoff_indices), feval(V_body_right_3_fit_pushoff, [phi_right_trajectory(right_pushoff_indices) rho_right_trajectory(right_pushoff_indices)]), 'o');
+        xlabel('\phi'); ylabel('\rho'); zlabel('v_1'); view([0 -1 0]);
+%         legend('all', 'contact', 'heelstrike', 'pushoff', 'heelstrike fit', 'pushoff fit')
+        uicontrol('style', 'text', 'position', [10 25 600 30], 'string', ['HS: R-square = ' num2str(V_body_right_3_gof_heelstrike.rsquare) ', RMS error = ' num2str(V_body_right_3_gof_heelstrike.rmse)], 'fontsize', 14, 'HorizontalAlignment', 'left')
+        uicontrol('style', 'text', 'position', [10 5 600 30], 'string', ['PO: R-square = ' num2str(V_body_right_3_gof_pushoff.rsquare) ', RMS error = ' num2str(V_body_right_3_gof_pushoff.rmse)], 'fontsize', 14, 'HorizontalAlignment', 'left')
+
+        figure; axes; hold on; title('v_4');
+        plot3(phi_right_trajectory, rho_right_trajectory, V_body_right_ankle(:, 4));
+        plot3(phi_right_trajectory, rho_right_trajectory, body_velocity_right_relevant_trajectory(:, 4));
+        plot3(phi_right_trajectory, rho_right_trajectory, body_velocity_right_heelstrike_trajectory(:, 4));
+        plot3(phi_right_trajectory, rho_right_trajectory, body_velocity_right_pushoff_trajectory(:, 4));
+        plot3(phi_right_trajectory(right_heelstrike_indices), rho_right_trajectory(right_heelstrike_indices), feval(V_body_right_4_fit_heelstrike, [phi_right_trajectory(right_heelstrike_indices) rho_right_trajectory(right_heelstrike_indices)]), 'o');
+        plot3(phi_right_trajectory(right_pushoff_indices), rho_right_trajectory(right_pushoff_indices), feval(V_body_right_4_fit_pushoff, [phi_right_trajectory(right_pushoff_indices) rho_right_trajectory(right_pushoff_indices)]), 'o');
+        xlabel('\phi'); ylabel('\rho'); zlabel('v_1'); view([0 -1 0]);
+%         legend('all', 'contact', 'heelstrike', 'pushoff', 'heelstrike fit', 'pushoff fit')
+        uicontrol('style', 'text', 'position', [10 25 600 30], 'string', ['HS: R-square = ' num2str(V_body_right_4_gof_heelstrike.rsquare) ', RMS error = ' num2str(V_body_right_4_gof_heelstrike.rmse)], 'fontsize', 14, 'HorizontalAlignment', 'left')
+        uicontrol('style', 'text', 'position', [10 5 600 30], 'string', ['PO: R-square = ' num2str(V_body_right_4_gof_pushoff.rsquare) ', RMS error = ' num2str(V_body_right_4_gof_pushoff.rmse)], 'fontsize', 14, 'HorizontalAlignment', 'left')
+
+        figure; axes; hold on; title('v_5');
+        plot3(phi_right_trajectory, rho_right_trajectory, V_body_right_ankle(:, 5));
+        plot3(phi_right_trajectory, rho_right_trajectory, body_velocity_right_relevant_trajectory(:, 5));
+        plot3(phi_right_trajectory, rho_right_trajectory, body_velocity_right_heelstrike_trajectory(:, 5));
+        plot3(phi_right_trajectory, rho_right_trajectory, body_velocity_right_pushoff_trajectory(:, 5));
+        plot3(phi_right_trajectory(right_heelstrike_indices), rho_right_trajectory(right_heelstrike_indices), feval(V_body_right_5_fit_heelstrike, [phi_right_trajectory(right_heelstrike_indices) rho_right_trajectory(right_heelstrike_indices)]), 'o');
+        plot3(phi_right_trajectory(right_pushoff_indices), rho_right_trajectory(right_pushoff_indices), feval(V_body_right_5_fit_pushoff, [phi_right_trajectory(right_pushoff_indices) rho_right_trajectory(right_pushoff_indices)]), 'o');
+        xlabel('\phi'); ylabel('\rho'); zlabel('v_1'); view([0 -1 0]);
+%         legend('all', 'contact', 'heelstrike', 'pushoff', 'heelstrike fit', 'pushoff fit')
+        uicontrol('style', 'text', 'position', [10 25 600 30], 'string', ['HS: R-square = ' num2str(V_body_right_5_gof_heelstrike.rsquare) ', RMS error = ' num2str(V_body_right_5_gof_heelstrike.rmse)], 'fontsize', 14, 'HorizontalAlignment', 'left')
+        uicontrol('style', 'text', 'position', [10 5 600 30], 'string', ['PO: R-square = ' num2str(V_body_right_5_gof_pushoff.rsquare) ', RMS error = ' num2str(V_body_right_5_gof_pushoff.rmse)], 'fontsize', 14, 'HorizontalAlignment', 'left')
+
+        figure; axes; hold on; title('v_6');
+        plot3(phi_right_trajectory, rho_right_trajectory, V_body_right_ankle(:, 6));
+        plot3(phi_right_trajectory, rho_right_trajectory, body_velocity_right_relevant_trajectory(:, 6));
+        plot3(phi_right_trajectory, rho_right_trajectory, body_velocity_right_heelstrike_trajectory(:, 6));
+        plot3(phi_right_trajectory, rho_right_trajectory, body_velocity_right_pushoff_trajectory(:, 6));
+        plot3(phi_right_trajectory(right_heelstrike_indices), rho_right_trajectory(right_heelstrike_indices), feval(V_body_right_6_fit_heelstrike, [phi_right_trajectory(right_heelstrike_indices) rho_right_trajectory(right_heelstrike_indices)]), 'o');
+        plot3(phi_right_trajectory(right_pushoff_indices), rho_right_trajectory(right_pushoff_indices), feval(V_body_right_6_fit_pushoff, [phi_right_trajectory(right_pushoff_indices) rho_right_trajectory(right_pushoff_indices)]), 'o');
+        xlabel('\phi'); ylabel('\rho'); zlabel('v_1'); view([0 -1 0]);
+%         legend('all', 'contact', 'heelstrike', 'pushoff', 'heelstrike fit', 'pushoff fit')
+        uicontrol('style', 'text', 'position', [10 25 600 30], 'string', ['HS: R-square = ' num2str(V_body_right_6_gof_heelstrike.rsquare) ', RMS error = ' num2str(V_body_right_6_gof_heelstrike.rmse)], 'fontsize', 14, 'HorizontalAlignment', 'left')
+        uicontrol('style', 'text', 'position', [10 5 600 30], 'string', ['PO: R-square = ' num2str(V_body_right_6_gof_pushoff.rsquare) ', RMS error = ' num2str(V_body_right_6_gof_pushoff.rmse)], 'fontsize', 14, 'HorizontalAlignment', 'left')
+    end
+end
+    
+if false % was: find_phi_constraint
+%     V_phi_body_trajectory = zeros(number_of_time_steps, 6);
+%     V_phi_body_direction_trajectory = zeros(number_of_time_steps, 6);
+%     V_phi_body_normed_trajectory = zeros(number_of_time_steps, 6);
+%     body_velocity_normed_trajectory = zeros(number_of_time_steps, 6);
     
     time_steps_to_fit = 1 : 3000;
 %     for i_time = 1 : number_of_time_steps
-    for i_time = time_steps_to_fit
-        phi_dot = phi_dot_trajectory_relevant(i_time);
-        
-        % calculate z-offset of rho rotation center
-        z_offset = feval(rho_cor_fit, phi_trajectory(i_time));
-        rho_rotation_center_local = [0; 0; z_offset; 1];
-        
-        % calculate V_rho_body
-        plant.jointAngles = angle_trajectories(i_time, :)';
-        plant.updateKinematics;
-        J_body = plant.bodyJacobians{3};
-        ankle_transformation = reshape(T_left_ankle_to_world_trajectory(i_time, :), 4, 4);
-        rho_rotation_center_world = ankle_transformation * rho_rotation_center_local;
-        
-        p_virtual_contact = [rho_rotation_center_world(1:2); 0; 1];
-        J_body_virtual_contact = plant.calculateArbitraryFrameBodyJacobian([eye(4, 3) p_virtual_contact], 12);
-        A_contact = J_body_virtual_contact([1:3 6], :);
-        
-        P_A_contact = A_contact' * (A_contact * A_contact')^(-1) * A_contact; % projection onto the space spanned by the columns of A
-        P_A_contact_orth = eye(number_of_joints) - P_A_contact; % projection onto the null space of A
-
-        % ACHTUNG: this is hard-coded for the left leg now, change it later (left ankle in-eversion is 12th joint)
-        joint_velocity_rho_change_unconstrained = [zeros(11, 1); 1; zeros(26, 1)];
-        joint_velocity_rho_change_constrained = (P_A_contact_orth * joint_velocity_rho_change_unconstrained);
-        body_velocity_rho_change_constrained = J_body * joint_velocity_rho_change_constrained;
-%         V_rho_body = body_velocity_rho_change_constrained * 1 / body_velocity_rho_change_constrained(5) * rho_dot;
-        body_velocity_rho = V_body_left_ankle(i_time, 4);
-        V_rho_body = body_velocity_rho_change_constrained * 1 / body_velocity_rho_change_constrained(4) * body_velocity_rho;
-        
-        % calculate V_phi_body
-        V_total_body = V_body_left_ankle(i_time, :)';
-        V_phi_body = V_total_body - V_rho_body;
-        V_phi_body_direction = V_phi_body * phi_dot^(-1);
-        
-        V_phi_body_trajectory(i_time, :) = V_phi_body;
-        V_phi_body_direction_trajectory(i_time, :) = V_phi_body_direction;
-        V_phi_body_normed_trajectory(i_time, :) = normVector(V_phi_body_direction);
-        
-        body_velocity_normed_trajectory(i_time, :) = normVector(V_body_left_ankle(i_time, :));
-        
-        if i_time/10  == floor(i_time / 10)
-            disp(num2str(i_time))
-        end
-    end
+%     for i_time = time_steps_to_fit
+%         phi_dot = phi_dot_left_relevant_trajectory(i_time);
+%         
+%         % calculate z-offset of rho rotation center
+%         z_offset = feval(rho_cor_fit, phi_left_trajectory(i_time));
+%         rho_rotation_center_local = [0; 0; z_offset; 1];
+%         
+%         % calculate V_rho_body
+%         plant.jointAngles = angle_trajectories(i_time, :)';
+%         plant.updateKinematics;
+%         J_body = plant.bodyJacobians{3};
+%         ankle_transformation = reshape(T_left_ankle_to_world_trajectory(i_time, :), 4, 4);
+%         rho_rotation_center_world = ankle_transformation * rho_rotation_center_local;
+%         
+%         p_virtual_contact = [rho_rotation_center_world(1:2); 0; 1];
+%         J_body_virtual_contact = plant.calculateArbitraryFrameBodyJacobian([eye(4, 3) p_virtual_contact], 12);
+%         A_contact = J_body_virtual_contact([1:3 6], :);
+%         
+%         P_A_contact = A_contact' * (A_contact * A_contact')^(-1) * A_contact; % projection onto the space spanned by the columns of A
+%         P_A_contact_orth = eye(number_of_joints) - P_A_contact; % projection onto the null space of A
+% 
+%         % ACHTUNG: this is hard-coded for the left leg now, change it later (left ankle in-eversion is 12th joint)
+%         joint_velocity_rho_change_unconstrained = [zeros(11, 1); 1; zeros(26, 1)];
+%         joint_velocity_rho_change_constrained = (P_A_contact_orth * joint_velocity_rho_change_unconstrained);
+%         body_velocity_rho_change_constrained = J_body * joint_velocity_rho_change_constrained;
+% %         V_rho_body = body_velocity_rho_change_constrained * 1 / body_velocity_rho_change_constrained(5) * rho_dot;
+%         body_velocity_rho = V_body_left_ankle(i_time, 4);
+%         V_rho_body = body_velocity_rho_change_constrained * 1 / body_velocity_rho_change_constrained(4) * body_velocity_rho;
+%         
+%         % calculate V_phi_body
+%         V_total_body = V_body_left_ankle(i_time, :)';
+%         V_phi_body = V_total_body - V_rho_body;
+%         V_phi_body_direction = V_phi_body * phi_dot^(-1);
+%         
+%         V_phi_body_trajectory(i_time, :) = V_phi_body;
+%         V_phi_body_direction_trajectory(i_time, :) = V_phi_body_direction;
+%         V_phi_body_normed_trajectory(i_time, :) = normVector(V_phi_body_direction);
+%         
+%         body_velocity_normed_trajectory(i_time, :) = normVector(V_body_left_ankle(i_time, :));
+%         
+%         if i_time/10  == floor(i_time / 10)
+%             disp(num2str(i_time))
+%         end
+%     end
     
     % normalize direction
 %     V_phi_body_normed_trajectory(V_phi_body_normed_trajectory(:, 1)<0, :) = - V_phi_body_normed_trajectory(V_phi_body_normed_trajectory(:, 1)<0, :);
@@ -292,52 +401,52 @@ if find_phi_constraint
 %     relevant_data_points = abs(phi_dot_trajectory_relevant) > 1.0;
 %     irrelevant_data_points = ~relevant_data_points;
 %     phi_dot_trajectory_double_relevant = phi_dot_trajectory_relevant; phi_dot_trajectory_double_relevant(irrelevant_data_points) = NaN;
-    body_velocity_trajectory_relevant = V_body_left_ankle; body_velocity_trajectory_relevant(irrelevant_data_points, :) = NaN;
-    body_velocity_normed_trajectory_relevant = body_velocity_normed_trajectory; body_velocity_normed_trajectory_relevant(irrelevant_data_points, :) = NaN;
-    V_phi_body_trajectory_relevant = V_phi_body_trajectory; V_phi_body_trajectory_relevant(irrelevant_data_points, :) = NaN;
-    V_phi_body_direction_trajectory_relevant = V_phi_body_direction_trajectory; V_phi_body_direction_trajectory_relevant(irrelevant_data_points, :) = NaN;
-    V_phi_body_normed_trajectory_relevant = V_phi_body_normed_trajectory; V_phi_body_normed_trajectory_relevant(irrelevant_data_points, :) = NaN;
+%     body_velocity_trajectory_relevant = V_body_left_ankle; body_velocity_trajectory_relevant(irrelevant_data_points_left, :) = NaN;
+%     body_velocity_normed_trajectory_relevant = body_velocity_normed_trajectory; body_velocity_normed_trajectory_relevant(irrelevant_data_points_left, :) = NaN;
+%     V_phi_body_trajectory_relevant = V_phi_body_trajectory; V_phi_body_trajectory_relevant(irrelevant_data_points_left, :) = NaN;
+%     V_phi_body_direction_trajectory_relevant = V_phi_body_direction_trajectory; V_phi_body_direction_trajectory_relevant(irrelevant_data_points_left, :) = NaN;
+%     V_phi_body_normed_trajectory_relevant = V_phi_body_normed_trajectory; V_phi_body_normed_trajectory_relevant(irrelevant_data_points_left, :) = NaN;
 
     %%
-    figure; axes; hold on; title('v_1');
-    plot(V_phi_body_trajectory(time_steps_to_fit, 1));
-    plot(V_phi_body_trajectory_relevant(time_steps_to_fit, 1));
-    plot(V_phi_body_direction_trajectory_relevant(time_steps_to_fit, 1), 'linewidth', 2);
-    plot(phi_dot_trajectory(time_steps_to_fit, 1));
-%     plot(V_phi_body_normed_trajectory_relevant(time_steps_to_fit, 1));
-    legend('body', 'normed');
-%     legend('body', 'direction', 'normed');
-    return
-    figure; axes; hold on; title('v_2');
-    plot(V_phi_body_trajectory(time_steps_to_fit, 2));
-    plot(V_phi_body_trajectory_relevant(time_steps_to_fit, 2));
-    plot(V_phi_body_direction_trajectory_relevant(time_steps_to_fit, 2), 'linewidth', 2);
-    plot(V_phi_body_normed_trajectory_relevant(time_steps_to_fit, 2));
-    
-    figure; axes; hold on; title('v_3');
-    plot(V_phi_body_trajectory(time_steps_to_fit, 3));
-    plot(V_phi_body_trajectory_relevant(time_steps_to_fit, 3));
-    plot(V_phi_body_direction_trajectory_relevant(time_steps_to_fit, 3), 'linewidth', 2);
-    plot(V_phi_body_normed_trajectory_relevant(time_steps_to_fit, 3));
-    
-    figure; axes; hold on; title('v_4');
-    plot(V_phi_body_trajectory(time_steps_to_fit, 4));
-    plot(V_phi_body_trajectory_relevant(time_steps_to_fit, 4));
-    plot(V_phi_body_direction_trajectory_relevant(time_steps_to_fit, 4), 'linewidth', 2);
-    plot(V_phi_body_normed_trajectory_relevant(time_steps_to_fit, 4));
-    
-    figure; axes; hold on; title('v_5');
-    plot(V_phi_body_trajectory(time_steps_to_fit, 5));
-    plot(V_phi_body_trajectory_relevant(time_steps_to_fit, 5));
-    plot(V_phi_body_direction_trajectory_relevant(time_steps_to_fit, 5), 'linewidth', 2);
-    plot(V_phi_body_normed_trajectory_relevant(time_steps_to_fit, 5));
-    
-    figure; axes; hold on; title('v_6');
-    plot(V_phi_body_trajectory(time_steps_to_fit, 6));
-    plot(V_phi_body_trajectory_relevant(time_steps_to_fit, 6));
-    plot(V_phi_body_direction_trajectory_relevant(time_steps_to_fit, 6), 'linewidth', 2);
-    plot(V_phi_body_normed_trajectory_relevant(time_steps_to_fit, 6));
-    return
+%     figure; axes; hold on; title('v_1');
+%     plot(V_phi_body_trajectory(time_steps_to_fit, 1));
+%     plot(V_phi_body_trajectory_relevant(time_steps_to_fit, 1));
+%     plot(V_phi_body_direction_trajectory_relevant(time_steps_to_fit, 1), 'linewidth', 2);
+%     plot(phi_dot_left_trajectory(time_steps_to_fit, 1));
+% %     plot(V_phi_body_normed_trajectory_relevant(time_steps_to_fit, 1));
+%     legend('body', 'normed');
+% %     legend('body', 'direction', 'normed');
+
+%     figure; axes; hold on; title('v_2');
+%     plot(V_phi_body_trajectory(time_steps_to_fit, 2));
+%     plot(V_phi_body_trajectory_relevant(time_steps_to_fit, 2));
+%     plot(V_phi_body_direction_trajectory_relevant(time_steps_to_fit, 2), 'linewidth', 2);
+%     plot(V_phi_body_normed_trajectory_relevant(time_steps_to_fit, 2));
+%     
+%     figure; axes; hold on; title('v_3');
+%     plot(V_phi_body_trajectory(time_steps_to_fit, 3));
+%     plot(V_phi_body_trajectory_relevant(time_steps_to_fit, 3));
+%     plot(V_phi_body_direction_trajectory_relevant(time_steps_to_fit, 3), 'linewidth', 2);
+%     plot(V_phi_body_normed_trajectory_relevant(time_steps_to_fit, 3));
+%     
+%     figure; axes; hold on; title('v_4');
+%     plot(V_phi_body_trajectory(time_steps_to_fit, 4));
+%     plot(V_phi_body_trajectory_relevant(time_steps_to_fit, 4));
+%     plot(V_phi_body_direction_trajectory_relevant(time_steps_to_fit, 4), 'linewidth', 2);
+%     plot(V_phi_body_normed_trajectory_relevant(time_steps_to_fit, 4));
+%     
+%     figure; axes; hold on; title('v_5');
+%     plot(V_phi_body_trajectory(time_steps_to_fit, 5));
+%     plot(V_phi_body_trajectory_relevant(time_steps_to_fit, 5));
+%     plot(V_phi_body_direction_trajectory_relevant(time_steps_to_fit, 5), 'linewidth', 2);
+%     plot(V_phi_body_normed_trajectory_relevant(time_steps_to_fit, 5));
+%     
+%     figure; axes; hold on; title('v_6');
+%     plot(V_phi_body_trajectory(time_steps_to_fit, 6));
+%     plot(V_phi_body_trajectory_relevant(time_steps_to_fit, 6));
+%     plot(V_phi_body_direction_trajectory_relevant(time_steps_to_fit, 6), 'linewidth', 2);
+%     plot(V_phi_body_normed_trajectory_relevant(time_steps_to_fit, 6));
+%     return
     %%
     
     
@@ -357,43 +466,8 @@ if find_phi_constraint
 %     plot(V_phi_body_normed_trajectory_relevant(:, 1));
     
     
-    % visualize - normalized body velocity vs. phi and rho
-    figure; axes; hold on; title('v_1');
-    plot3(phi_trajectory, rho_trajectory, body_velocity_trajectory(:, 1));
-    plot3(phi_trajectory, rho_trajectory, body_velocity_trajectory_relevant(:, 1));
-    plot3(phi_trajectory, rho_trajectory, body_velocity_normed_trajectory_relevant(:, 1));
-    xlabel('\phi'); ylabel('\rho'); zlabel('v_1'); view([0 -1 0]);
 
-    figure; axes; hold on; title('v_2');
-    plot3(phi_trajectory, rho_trajectory, body_velocity_trajectory(:, 2));
-    plot3(phi_trajectory, rho_trajectory, body_velocity_trajectory_relevant(:, 2));
-    plot3(phi_trajectory, rho_trajectory, body_velocity_normed_trajectory_relevant(:, 2));
-    xlabel('\phi'); ylabel('\rho'); zlabel('v_1'); view([0 -1 0]);
-    
-    figure; axes; hold on; title('v_3');
-    plot3(phi_trajectory, rho_trajectory, body_velocity_trajectory(:, 3));
-    plot3(phi_trajectory, rho_trajectory, body_velocity_trajectory_relevant(:, 3));
-    plot3(phi_trajectory, rho_trajectory, body_velocity_normed_trajectory_relevant(:, 3));
-    xlabel('\phi'); ylabel('\rho'); zlabel('v_1'); view([0 -1 0]);
-    
-    figure; axes; hold on; title('v_4');
-    plot3(phi_trajectory, rho_trajectory, body_velocity_trajectory(:, 4));
-    plot3(phi_trajectory, rho_trajectory, body_velocity_trajectory_relevant(:, 4));
-    plot3(phi_trajectory, rho_trajectory, body_velocity_normed_trajectory_relevant(:, 4));
-    xlabel('\phi'); ylabel('\rho'); zlabel('v_1'); view([0 -1 0]);
-    
-    figure; axes; hold on; title('v_5');
-    plot3(phi_trajectory, rho_trajectory, body_velocity_trajectory(:, 5));
-    plot3(phi_trajectory, rho_trajectory, body_velocity_trajectory_relevant(:, 5));
-    plot3(phi_trajectory, rho_trajectory, body_velocity_normed_trajectory_relevant(:, 5));
-    xlabel('\phi'); ylabel('\rho'); zlabel('v_1'); view([0 -1 0]);
-    
-    figure; axes; hold on; title('v_6');
-    plot3(phi_trajectory, rho_trajectory, body_velocity_trajectory(:, 6));
-    plot3(phi_trajectory, rho_trajectory, body_velocity_trajectory_relevant(:, 6));
-    plot3(phi_trajectory, rho_trajectory, body_velocity_normed_trajectory_relevant(:, 6));
-    xlabel('\phi'); ylabel('\rho'); zlabel('v_1'); view([0 -1 0]);
-    
+    return
     
     
 %     figure; axes; hold on; title('v_1');
@@ -454,43 +528,253 @@ if find_phi_constraint
 %     figure; plot(V_phi_body_5_fit, [phi_trajectory(data_points_for_fit), rho_trajectory(data_points_for_fit)], V_phi_body_normed_trajectory(data_points_for_fit, 5));
 %     figure; plot(V_phi_body_6_fit, [phi_trajectory(data_points_for_fit), rho_trajectory(data_points_for_fit)], V_phi_body_normed_trajectory(data_points_for_fit, 6));
     
-end    
+end        
+
+
+%% save results
+if save_results
+%     constraints_file_name = makeFileName(date, subject_id, 'walking', i_trial, 'constraints');
+    constraints_file_name = makeFileName(date, subject_id, 'constraints');
+    save ...
+      ( ...
+        constraints_file_name, ...
+        'V_body_left_1_fit_heelstrike', ...
+        'V_body_left_2_fit_heelstrike', ...
+        'V_body_left_3_fit_heelstrike', ...
+        'V_body_left_4_fit_heelstrike', ...
+        'V_body_left_5_fit_heelstrike', ...
+        'V_body_left_6_fit_heelstrike', ...
+        'V_body_left_1_fit_pushoff', ...
+        'V_body_left_2_fit_pushoff', ...
+        'V_body_left_3_fit_pushoff', ...
+        'V_body_left_4_fit_pushoff', ...
+        'V_body_left_5_fit_pushoff', ...
+        'V_body_left_6_fit_pushoff', ...
+        'V_body_right_1_fit_heelstrike', ...
+        'V_body_right_2_fit_heelstrike', ...
+        'V_body_right_3_fit_heelstrike', ...
+        'V_body_right_4_fit_heelstrike', ...
+        'V_body_right_5_fit_heelstrike', ...
+        'V_body_right_6_fit_heelstrike', ...
+        'V_body_right_1_fit_pushoff', ...
+        'V_body_right_2_fit_pushoff', ...
+        'V_body_right_3_fit_pushoff', ...
+        'V_body_right_4_fit_pushoff', ...
+        'V_body_right_5_fit_pushoff', ...
+        'V_body_right_6_fit_pushoff' ...
+      );
+    
+end
+
+
+    %% find rho constraint by phi
+    if find_rho_constraint_by_phi
+        
+        % fit surfaces to phi-rho-z data
+        data_points_for_fit_left = find(left_contact_indicators_mocap);
+        phi_left_fitpoints = phi_left_trajectory(data_points_for_fit_left);
+        rho_left_fitpoints = rho_left_trajectory(data_points_for_fit_left);
+        poi_z_left_fits = cell(1, number_of_points_of_interest);
+        for i_poi = 1 : number_of_points_of_interest
+            p_z = left_points_of_interest_world_trajectories_z(data_points_for_fit_left, i_poi);
+            poi_z_left_fits{i_poi} = fit([phi_left_fitpoints, rho_left_fitpoints], p_z, 'poly55');
+%             figure; plot(poi_z_left_fits{i_poi}, [phi_left_fitpoints, rho_left_fitpoints], left_points_of_interest_world_trajectories_z(data_points_for_fit_left, i_poi));
+%             xlabel('\phi'); ylabel('\rho'); zlabel('z'); 
+        end
+        
+        % for a grid of each phi values, find the point of interest that moves least under changes of rho
+        phi_left_values = linspace(min(phi_left_fitpoints), max(phi_left_fitpoints), number_of_phi_values);
+        left_z_values = cell(number_of_phi_values, number_of_points_of_interest);
+        poi_z_left_fits_by_rho_rms = zeros(number_of_phi_values, number_of_points_of_interest);
+        
+%         figure; axes; hold on
+%         plot(rho_trajectory);
+        phi_window_radius = 0.025;
+        for i_phi = 1 : length(phi_left_values)
+            % for each point of interest, compare z-values to straight line
+            rho_windows = zeros(number_of_phi_values, 2);
+            phi_window = phi_left_values(i_phi) + [-1 1] * phi_window_radius;
+            phi_window_indices = find(phi_window(1) <= phi_left_trajectory & phi_left_trajectory <= phi_window(2));
+%             plot(phi_window_indices, rho_trajectory(phi_window_indices), '-')                
+            rho_windows(i_phi, :) = [min(rho_left_trajectory(phi_window_indices)) max(rho_left_trajectory(phi_window_indices))];
+%             plot([i_phi i_phi], rho_windows(i_phi, :));
+            rho_values = linspace(rho_windows(i_phi, 1), rho_windows(i_phi, 2), 20);
+
+    %         figure; hold on
+            for i_poi = 1 : number_of_points_of_interest
+                left_z_values{i_phi, i_poi} = feval(poi_z_left_fits{i_poi}, [ones(length(rho_values), 1)*phi_left_values(i_phi), rho_values']);
+                z_values_rms = sum((left_z_values{i_phi, i_poi} - mean(left_z_values{i_phi, i_poi})).^2).^(0.5);
+                poi_z_left_fits_by_rho_rms(i_phi, i_poi) = z_values_rms;
+            end
+
+
+
+            % plot z-curves
+%             figure; axes; hold on; title(['\phi = ' num2str(phi_values(i_phi))]);
+%             for i_poi = 1 : number_of_points_of_interest
+%                 plot(rho_values, z_values{i_phi, i_poi});
+%                 plot(rho_values, mean(z_values{i_phi, i_poi})*ones(size(rho_values)));
+%             end
+        end
+
+%         figure; plot(poi_z_fits_by_rho_rms', '-x'); title('different colors are different values of \phi')
+%         xlabel('point of interest'); ylabel('error')
+
+
+%         [~, poi_z_fits_by_rho_derivative_error_minimum_indices] = min(poi_z_fits_by_rho_derivative_error, [], 2);
+        [poi_z_fits_by_rho_rms_minima, poi_z_fits_by_rho_rms_minimum_indices] = min(poi_z_left_fits_by_rho_rms, [], 2);
+
+        options = fitoptions('smoothingspline');
+        options.SmoothingParam = 0.9999;
+        rho_cor_fit = fit(phi_left_values', points_of_interest_y_local(poi_z_fits_by_rho_rms_minimum_indices)', 'smoothingspline', options);
+        
+        % plot minimum by phi value
+        figure; plot(rho_cor_fit, phi_left_values, points_of_interest_y_local(poi_z_fits_by_rho_rms_minimum_indices));
+        xlabel('\phi'); ylabel('z'); 
+
+        figure; plot(phi_left_values, poi_z_fits_by_rho_rms_minima);
+        xlabel('\phi'); ylabel('rho rms minimum'); 
+
+%%
+
+
+%         % visualize
+%         phi_values = -1 : 0.1 : 0;
+%         rho_values = -0.3 : 0.1 : 0.3;
+%         [phi_grid, rho_grid] = meshgrid(phi_values, rho_values);
+%         poi_z_grids = cell(1, number_of_points_of_interest);
+%         for i_poi = 1 : number_of_points_of_interest
+%             poi_z_grids{i_poi} = feval(poi_z_fits{i_poi}, phi_grid, rho_grid);
+%         end
+%         pois_to_plot = 1 : number_of_points_of_interest;
+%         figure; axes; hold on;
+%         xlabel('phi'); ylabel('rho'); 
+%         for i_poi = pois_to_plot
+%             surf(phi_grid, rho_grid, poi_z_grids{i_poi});
+%             plot3(phi_trajectory, rho_trajectory, points_of_interest_world_trajectories_z(:, i_poi));
+%         end
+% 
+%         % fix a phi value
+%         phi = -0.5;
+% 
+%         % evaluate changes of z_i by rho for this phi value
+%         rho_values = (-0.3 : 0.01 : 0.3)';
+%         phi_values = phi * ones(size(rho_values));
+%         z_values = cell(1, number_of_points_of_interest);
+%         for i_poi = 1 : number_of_points_of_interest
+%             z_values{i_poi} = feval(poi_z_fits{i_poi}, [phi_values, rho_values]);
+%         end
+% 
+%         figure; axes; hold on; axis equal
+%         for i_poi = 1 : number_of_points_of_interest
+%             plot(rho_values, z_values{i_poi});
+%         end
+
+
+
+        % fit surfaces to phi-rho-z data
+        data_points_for_fit_right = find(right_contact_indicators_mocap);
+        phi_right_fitpoints = phi_right_trajectory(data_points_for_fit_right);
+        rho_right_fitpoints = rho_right_trajectory(data_points_for_fit_right);
+        poi_z_right_fits = cell(1, number_of_points_of_interest);
+        for i_poi = 1 : number_of_points_of_interest
+            p_z = right_points_of_interest_world_trajectories_z(data_points_for_fit_right, i_poi);
+            poi_z_right_fits{i_poi} = fit([phi_right_fitpoints, rho_right_fitpoints], p_z, 'poly55');
+%             figure; plot(poi_z_right_fits{i_poi}, [phi_right_fitpoints, rho_right_fitpoints], right_points_of_interest_world_trajectories_z(data_points_for_fit_right, i_poi));
+%             xlabel('\phi'); ylabel('\rho'); zlabel('z'); 
+        end
+        
+        % for a grid of each phi values, find the point of interest that moves least under changes of rho
+        phi_right_values = linspace(min(phi_right_fitpoints), max(phi_right_fitpoints), number_of_phi_values);
+        left_z_values = cell(number_of_phi_values, number_of_points_of_interest);
+        poi_z_left_fits_by_rho_rms = zeros(number_of_phi_values, number_of_points_of_interest);
+        
+%         figure; axes; hold on
+%         plot(rho_trajectory);
+        phi_window_radius = 0.025;
+        for i_phi = 1 : length(phi_left_values)
+            % for each point of interest, compare z-values to straight line
+            rho_windows = zeros(number_of_phi_values, 2);
+            phi_window = phi_right_values(i_phi) + [-1 1] * phi_window_radius;
+            phi_window_indices = find(phi_window(1) <= phi_right_trajectory & phi_right_trajectory <= phi_window(2));
+%             plot(phi_window_indices, rho_trajectory(phi_window_indices), '-')                
+            rho_windows(i_phi, :) = [min(rho_right_trajectory(phi_window_indices)) max(rho_right_trajectory(phi_window_indices))];
+%             plot([i_phi i_phi], rho_windows(i_phi, :));
+            rho_values = linspace(rho_windows(i_phi, 1), rho_windows(i_phi, 2), 20);
+
+    %         figure; hold on
+            for i_poi = 1 : number_of_points_of_interest
+                right_z_values{i_phi, i_poi} = feval(poi_z_right_fits{i_poi}, [ones(length(rho_values), 1)*phi_right_values(i_phi), rho_values']);
+                z_values_rms = sum((right_z_values{i_phi, i_poi} - mean(right_z_values{i_phi, i_poi})).^2).^(0.5);
+                poi_z_right_fits_by_rho_rms(i_phi, i_poi) = z_values_rms;
+            end
+
+
+
+            % plot z-curves
+            figure; axes; hold on; title(['\phi = ' num2str(phi_values(i_phi))]);
+            for i_poi = 1 : number_of_points_of_interest
+                plot(rho_values, z_values{i_phi, i_poi});
+                plot(rho_values, mean(z_values{i_phi, i_poi})*ones(size(rho_values)));
+            end
+        end
+
+%         figure; plot(poi_z_fits_by_rho_rms', '-x'); title('different colors are different values of \phi')
+%         xlabel('point of interest'); ylabel('error')
+
+
+%         [~, poi_z_fits_by_rho_derivative_error_minimum_indices] = min(poi_z_fits_by_rho_derivative_error, [], 2);
+        [poi_z_fits_by_rho_rms_minima, poi_z_fits_by_rho_rms_minimum_indices] = min(poi_z_right_fits_by_rho_rms, [], 2);
+
+        options = fitoptions('smoothingspline');
+        options.SmoothingParam = 0.9999;
+        rho_cor_fit = fit(phi_right_values', points_of_interest_y_local(poi_z_fits_by_rho_rms_minimum_indices)', 'smoothingspline', options);
+        
+        % plot minimum by phi value
+        figure; plot(rho_cor_fit, phi_right_values, points_of_interest_y_local(poi_z_fits_by_rho_rms_minimum_indices));
+        xlabel('\phi'); ylabel('z'); 
+
+        figure; plot(phi_right_values, poi_z_fits_by_rho_rms_minima);
+        xlabel('\phi'); ylabel('rho rms minimum'); 
+    end    
     
     
+
     
     
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    return
-    %% old
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+return
+%% old
     
     ankle_z_trajectory = joint_frame_trajectory(:, 15);
     
