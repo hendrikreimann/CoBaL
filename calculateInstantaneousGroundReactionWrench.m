@@ -1,4 +1,4 @@
-function groundReactionWrench = calculateGroundReactionWrench(plant, constraintTorque, applicationFrame)
+function groundReactionWrench = calculateInstantaneousGroundReactionWrench(plant, constraintTorque, applicationFrame)
 
     % transform into ground reaction wrench automatically - go backwards, use only previous joints
     ground_reaction_wrenches = zeros(6, plant.numberOfJoints);

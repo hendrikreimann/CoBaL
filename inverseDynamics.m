@@ -98,7 +98,7 @@ for i_trial = trials_to_process
         load(makeFileName(date, subject_id, 'walking', i_trial, 'kinematicTrajectories'));
         load(makeFileName(date, subject_id, 'walking', i_trial, 'stepEvents'));
         load(makeFileName(date, subject_id, 'walking', i_trial, 'forcePlateData'));
-        number_of_time_steps = size(angle_trajectories, 1);
+        number_of_time_steps = size(joint_angle_trajectories_belt, 1);
 
         if load_results
             label = 'inverseDynamics';
@@ -176,7 +176,7 @@ for i_trial = trials_to_process
             tic
             fprintf('Calculating the dynamic matrices ... ');
 
-            numberOfDataPoints = size(angle_trajectories, 1);
+            numberOfDataPoints = size(joint_angle_trajectories_belt, 1);
             inertia_matrix_trajectory = cell(numberOfDataPoints, 1);
             coriolis_matrix_trajectory = cell(numberOfDataPoints, 1);
             gravitation_matrix_trajectory = cell(numberOfDataPoints, 1);
@@ -200,7 +200,7 @@ for i_trial = trials_to_process
                 spmd
                     plant_pool = plant.copy;
                     for i_time = data_points(1)+labindex-1 : numlabs : data_points(end)
-                        if any(isnan(angle_trajectories(i_time, :)))
+                        if any(isnan(joint_angle_trajectories_belt(i_time, :)))
                             inertia_matrix_trajectory_pool{i_time} = NaN;
                             coriolis_matrix_trajectory_pool{i_time} = NaN;
                             gravitation_matrix_trajectory_pool{i_time} = NaN;
@@ -210,9 +210,9 @@ for i_trial = trials_to_process
 
                         else
                             % update model
-                            plant_pool.jointAngles = angle_trajectories(i_time, :)';
-                            plant_pool.jointVelocities = joint_velocity_trajectories(i_time, :)';
-                            plant_pool.jointAccelerations = joint_acceleration_trajectories(i_time, :)';
+                            plant_pool.jointAngles = joint_angle_trajectories_belt(i_time, :)';
+                            plant_pool.jointVelocities = joint_velocity_trajectories_belt(i_time, :)';
+                            plant_pool.jointAccelerations = joint_acceleration_trajectories_belt(i_time, :)';
                             plant_pool.updateInternals;
 
                             % save dynamic matrices
@@ -275,7 +275,7 @@ for i_trial = trials_to_process
                 end
             else
                 for i_time = data_points
-                    if any(isnan(angle_trajectories(i_time, :)))
+                    if any(isnan(joint_angle_trajectories_belt(i_time, :)))
                         inertia_matrix_trajectory{i_time} = NaN;
                         coriolis_matrix_trajectory{i_time} = NaN;
                         gravitation_matrix_trajectory{i_time} = NaN;
@@ -283,9 +283,9 @@ for i_trial = trials_to_process
                         constraint_matrix_dot_trajectory{i_time} = NaN;
                     else
                         % update model
-                        plant.jointAngles = angle_trajectories(i_time, :)';
-                        plant.jointVelocities = joint_velocity_trajectories(i_time, :)';
-                        plant.jointAccelerations = joint_acceleration_trajectories(i_time, :)';
+                        plant.jointAngles = joint_angle_trajectories_belt(i_time, :)';
+                        plant.jointVelocities = joint_velocity_trajectories_belt(i_time, :)';
+                        plant.jointAccelerations = joint_acceleration_trajectories_belt(i_time, :)';
                         plant.updateInternals;
                         
                         % save dynamic matrices
@@ -345,9 +345,10 @@ for i_trial = trials_to_process
 
         %% calculate_torques
         if calculate_torques
+            tic
             fprintf('Calculating the constraint torques ... ');
             number_of_joints = plant.numberOfJoints;
-            numberOfDataPoints = size(angle_trajectories, 1);
+            numberOfDataPoints = size(joint_angle_trajectories_belt, 1);
             virtual_joints = 1:6;
             constraint_torque_trajectories_all = zeros(numberOfDataPoints, number_of_joints);
             constraint_torque_trajectories_right = zeros(numberOfDataPoints, number_of_joints);
@@ -379,7 +380,7 @@ for i_trial = trials_to_process
 %                 leftover_acceleration_trajectories_pool = zeros(numberOfDataPoints, number_of_joints);
                 spmd
                     for i_time = data_points(1)+labindex-1 : numlabs : data_points(end)
-                        if any(isnan(angle_trajectories(i_time, :)))
+                        if any(isnan(joint_angle_trajectories_belt(i_time, :)))
                             constraint_torque_trajectories_all_pool(i_time, :) = NaN;
                             constraint_torque_trajectories_right_pool(i_time, :) = NaN;
                             constraint_torque_trajectories_left_pool(i_time, :) = NaN;
@@ -397,8 +398,8 @@ for i_trial = trials_to_process
                             M = inertia_matrix_trajectory{i_time};
                             C = coriolis_matrix_trajectory{i_time};
                             N = gravitation_matrix_trajectory{i_time};
-                            theta_dot = joint_velocity_trajectories(i_time, :)';
-                            theta_two_dot = joint_acceleration_trajectories(i_time, :)';
+                            theta_dot = joint_velocity_trajectories_belt(i_time, :)';
+                            theta_two_dot = joint_acceleration_trajectories_belt(i_time, :)';
 
                             % calculate constraint forces
 %                             active_constraint = find(constraint_indicator_trajectories(i_time, :));
@@ -607,7 +608,7 @@ for i_trial = trials_to_process
                 end
             else
                 for i_time = data_points
-                    if any(isnan(angle_trajectories(i_time, :)))
+                    if any(isnan(joint_angle_trajectories_belt(i_time, :)))
                         constraint_torque_trajectories_all(i_time, :) = NaN;
                         constraint_torque_trajectories_right(i_time, :) = NaN;
                         constraint_torque_trajectories_left(i_time, :) = NaN;
@@ -630,8 +631,8 @@ for i_trial = trials_to_process
                         M = inertia_matrix_trajectory{i_time};
                         C = coriolis_matrix_trajectory{i_time};
                         N = gravitation_matrix_trajectory{i_time};
-                        theta_dot = joint_velocity_trajectories(i_time, :)';
-                        theta_two_dot = joint_acceleration_trajectories(i_time, :)';
+                        theta_dot = joint_velocity_trajectories_belt(i_time, :)';
+                        theta_two_dot = joint_acceleration_trajectories_belt(i_time, :)';
 
                         % calculate constraint forces
 %                         active_constraint = find(constraint_indicator_trajectories(i_time, :));
@@ -814,9 +815,8 @@ for i_trial = trials_to_process
                 end
             end
             fprintf(' done\n');
+            toc
         end
-        
-
         
         %% plot_joint_torques
         if plot_joint_torques
@@ -841,7 +841,7 @@ for i_trial = trials_to_process
 %             for i_group = 1 : number_of_groups
 %                 figure; group_axes(2, i_group) = axes; hold on
 %                 for i_joint = angle_plot_groups{i_group}
-%                     plot(time_mocap, angle_trajectories(:, i_joint), 'linewidth', 2, 'displayname', plant.jointLabels{i_joint})
+%                     plot(time_mocap, joint_angle_trajectories_belt(:, i_joint), 'linewidth', 2, 'displayname', plant.jointLabels{i_joint})
 %                 end
 %                 legend('show', 'location', 'SE')
 %             end
@@ -849,8 +849,6 @@ for i_trial = trials_to_process
             linkaxes(group_axes, 'x');
             distFig('rows', number_of_groups);
         end
-        
-
         
         %% save results
         if save_results
@@ -877,9 +875,6 @@ for i_trial = trials_to_process
                   'constraint_matrix_dot_trajectory', ...
                   'gravitation_matrix_trajectory', ...
                   'number_of_lambdas', ...
-                  'angle_trajectories', ...
-                  'joint_velocity_trajectories', ...
-                  'joint_acceleration_trajectories', ...
                   'joint_torque_trajectories', ...
                   'constraint_torque_trajectories_left', ...
                   'constraint_torque_trajectories_right' ...
@@ -925,7 +920,6 @@ for i_trial = trials_to_process
 %                   'left_ground_reaction_wrench_trajectory_origin_smoothed' ...
         end
         disp('done')
-        toc
     end
         
         
@@ -958,7 +952,7 @@ for i_trial = trials_to_process
         return
         
         %% stuff after this is old
-        if spline_and_smooth
+%         if spline_and_smooth
 %             gap_length_limit = 0.15; % maximum of allowable gap being splined over, in seconds
 %             time_steps = 1 : numberOfDataPoints;
 %             gap_length_limit_time_steps = gap_length_limit * sampling_rate_mocap;
@@ -969,7 +963,7 @@ for i_trial = trials_to_process
 %             cutoff_frequency = 10; % cutoff frequency, in Hz
 %             [b, a] = butter(filter_order, cutoff_frequency/(samplingRate/2));	% set filter parameters for butterworth filter
 % 
-%             data_raw = angle_trajectories(:, 1);
+%             data_raw = joint_angle_trajectories_belt(:, 1);
 % 
 %             % find the gaps
 %             gaps = isnan(data_raw);
@@ -1023,309 +1017,134 @@ for i_trial = trials_to_process
 %                 big_gap_indicator(big_gap_indicator == 0) = NaN;
 %             end        
 
-            % spline over the gaps
-            underconstrained_data_points = data_points(number_of_lambdas(data_points) < 6);
-            constraint_torques_trajectory_gaps = constraint_torque_trajectories_all;
-            constraint_torques_right_trajectory_gaps = constraint_torque_trajectories_right;
-            constraint_torques_left_trajectory_gaps = constraint_torque_trajectories_left;
-            joint_torques_trajectory_gaps = joint_torque_trajectories;
-            right_ground_reaction_wrench_trajectory_origin_gaps = right_ground_reaction_wrench_trajectory_origin;
-            left_ground_reaction_wrench_trajectory_origin_gaps = left_ground_reaction_wrench_trajectory_origin;
-            induced_accelerations_applied_gaps = induced_accelerations_applied_trajectories;
-            induced_accelerations_gravity_gaps = induced_accelerations_gravity_trajectories;
-            induced_accelerations_movement_gaps = induced_accelerations_movement_trajectories;
-            induced_accelerations_applied_single_gaps = induced_accelerations_applied_single_trajectories;
-            violating_velocity_trajectory_gaps = violating_velocity_trajectories;
-            violating_acceleration_trajectory_gaps = violating_acceleration_trajectories;
-            explained_acceleration_trajectory_gaps = explained_acceleration_trajectories;
-            leftover_acceleration_trajectory_gaps = leftover_acceleration_trajectories;
-
-            constraint_torques_trajectory_gaps(underconstrained_data_points, :) = NaN;
-            constraint_torques_right_trajectory_gaps(underconstrained_data_points, :) = NaN;
-            constraint_torques_left_trajectory_gaps(underconstrained_data_points, :) = NaN;
-            joint_torques_trajectory_gaps(underconstrained_data_points, :) = NaN;
-            right_ground_reaction_wrench_trajectory_origin_gaps(underconstrained_data_points, :) = NaN;
-            left_ground_reaction_wrench_trajectory_origin_gaps(underconstrained_data_points, :) = NaN;
-            induced_accelerations_applied_gaps(underconstrained_data_points, :) = NaN;
-            induced_accelerations_gravity_gaps(underconstrained_data_points, :) = NaN;
-            induced_accelerations_movement_gaps(underconstrained_data_points, :) = NaN;
-            induced_accelerations_applied_single_gaps(underconstrained_data_points, :, :) = NaN;
-            violating_velocity_trajectory_gaps(underconstrained_data_points, :) = NaN;
-            violating_acceleration_trajectory_gaps(underconstrained_data_points, :) = NaN;
-            explained_acceleration_trajectory_gaps(underconstrained_data_points, :) = NaN;
-            leftover_acceleration_trajectory_gaps(underconstrained_data_points, :) = NaN;
-
-            constraint_torques_trajectory_splined = zeros(numberOfDataPoints, number_of_joints);
-            constraint_torques_right_trajectory_splined = zeros(numberOfDataPoints, number_of_joints);
-            constraint_torques_left_trajectory_splined = zeros(numberOfDataPoints, number_of_joints);
-            joint_torques_trajectory_splined = zeros(numberOfDataPoints, number_of_joints);
-            right_ground_reaction_wrench_trajectory_origin_splined = zeros(numberOfDataPoints, 6);
-            left_ground_reaction_wrench_trajectory_origin_splined = zeros(numberOfDataPoints, 6);
-            induced_accelerations_applied_splined = zeros(numberOfDataPoints, number_of_joints);
-            induced_accelerations_gravity_splined = zeros(numberOfDataPoints, number_of_joints);
-            induced_accelerations_movement_splined = zeros(numberOfDataPoints, number_of_joints);
-            induced_accelerations_applied_single_splined = zeros(numberOfDataPoints, number_of_joints, number_of_joints);
-            violating_velocity_trajectory_splined = zeros(numberOfDataPoints, number_of_joints);
-            violating_acceleration_trajectory_splined = zeros(numberOfDataPoints, number_of_joints);
-            explained_acceleration_trajectory_splined = zeros(numberOfDataPoints, number_of_joints);
-            leftover_acceleration_trajectory_splined = zeros(numberOfDataPoints, number_of_joints);
-
-            for i_joint = 1 : number_of_joints
-                % spline
-                [~, constraint_torques_trajectory_splined(:, i_joint)] = evalc('csaps(time, constraint_torques_trajectory_gaps(:, i_joint), 1, time)');
-                [~, constraint_torques_right_trajectory_splined(:, i_joint)] = evalc('csaps(time, constraint_torques_right_trajectory_gaps(:, i_joint), 1, time)');
-                [~, constraint_torques_left_trajectory_splined(:, i_joint)] = evalc('csaps(time, constraint_torques_left_trajectory_gaps(:, i_joint), 1, time)');
-                [~, joint_torques_trajectory_splined(:, i_joint)] = evalc('csaps(time, joint_torques_trajectory_gaps(:, i_joint), 1, time)');
-                [~, induced_accelerations_applied_splined(:, i_joint)] = evalc('csaps(time, induced_accelerations_applied_gaps(:, i_joint), 1, time)');
-                [~, induced_accelerations_gravity_splined(:, i_joint)] = evalc('csaps(time, induced_accelerations_gravity_gaps(:, i_joint), 1, time)');
-                [~, induced_accelerations_movement_splined(:, i_joint)] = evalc('csaps(time, induced_accelerations_movement_gaps(:, i_joint), 1, time)');
-                for j_joint = 1 : number_of_joints
-                    [~, induced_accelerations_applied_single_splined(:, i_joint, j_joint)] = evalc('csaps(time, induced_accelerations_applied_single_gaps(:, i_joint, j_joint), 1, time)');
-                end
-                [~, violating_velocity_trajectory_splined(:, i_joint)] = evalc('csaps(time, violating_velocity_trajectory_gaps(:, i_joint), 1, time)');
-                [~, violating_acceleration_trajectory_splined(:, i_joint)] = evalc('csaps(time, violating_acceleration_trajectory_gaps(:, i_joint), 1, time)');
-                [~, explained_acceleration_trajectory_splined(:, i_joint)] = evalc('csaps(time, explained_acceleration_trajectory_gaps(:, i_joint), 1, time)');
-                [~, leftover_acceleration_trajectory_splined(:, i_joint)] = evalc('csaps(time, leftover_acceleration_trajectory_gaps(:, i_joint), 1, time)');
-            end
-            for i_dof = 1 : 6
-                [~, right_ground_reaction_wrench_trajectory_origin_splined(:, i_dof)] = evalc('csaps(time, right_ground_reaction_wrench_trajectory_origin_gaps(:, i_dof), 1, time)');
-                [~, left_ground_reaction_wrench_trajectory_origin_splined(:, i_dof)] = evalc('csaps(time, left_ground_reaction_wrench_trajectory_origin_gaps(:, i_dof), 1, time)');
-            end            
-
-            % remove parts in big gaps
-            constraint_torques_trajectory_splined(big_gap_indicator==1, :) = NaN;
-            constraint_torques_trajectory_splined(big_gap_indicator==1, :) = NaN;
-            constraint_torques_right_trajectory_splined(big_gap_indicator==1, :) = NaN;
-            constraint_torques_left_trajectory_splined(big_gap_indicator==1, :) = NaN;
-            joint_torques_trajectory_splined(big_gap_indicator==1, :) = NaN;
-            right_ground_reaction_wrench_trajectory_origin_splined(big_gap_indicator==1, :) = NaN;
-            left_ground_reaction_wrench_trajectory_origin_splined(big_gap_indicator==1, :) = NaN;
-            induced_accelerations_applied_splined(big_gap_indicator==1, :) = NaN;
-            induced_accelerations_gravity_splined(big_gap_indicator==1, :) = NaN;
-            induced_accelerations_movement_splined(big_gap_indicator==1, :) = NaN;
-            induced_accelerations_applied_single_splined(big_gap_indicator==1, :, :) = NaN;
-            violating_velocity_trajectory_splined(big_gap_indicator==1, :) = NaN;
-            violating_acceleration_trajectory_splined(big_gap_indicator==1, :) = NaN;
-            explained_acceleration_trajectory_splined(big_gap_indicator==1, :) = NaN;
-            leftover_acceleration_trajectory_splined(big_gap_indicator==1, :) = NaN;
-
-
-            % filter the stretches of data between the big gaps
-            constraint_torques_trajectory_smoothed = zeros(numberOfDataPoints, number_of_joints);
-            constraint_torques_right_trajectory_smoothed = zeros(numberOfDataPoints, number_of_joints);
-            constraint_torques_left_trajectory_smoothed = zeros(numberOfDataPoints, number_of_joints);
-            joint_torques_trajectory_smoothed = zeros(numberOfDataPoints, number_of_joints);
-            right_ground_reaction_wrench_trajectory_origin_smoothed = zeros(numberOfDataPoints, 6);
-            left_ground_reaction_wrench_trajectory_origin_smoothed = zeros(numberOfDataPoints, 6);
-            induced_accelerations_applied_smoothed = zeros(numberOfDataPoints, number_of_joints);
-            induced_accelerations_gravity_smoothed = zeros(numberOfDataPoints, number_of_joints);
-            induced_accelerations_movement_smoothed = zeros(numberOfDataPoints, number_of_joints);
-            induced_accelerations_applied_single_smoothed = zeros(numberOfDataPoints, number_of_joints, number_of_joints);
-            violating_velocity_trajectory_smoothed = zeros(numberOfDataPoints, number_of_joints);
-            violating_acceleration_trajectory_smoothed = zeros(numberOfDataPoints, number_of_joints);
-            explained_acceleration_trajectory_smoothed = zeros(numberOfDataPoints, number_of_joints);
-            leftover_acceleration_trajectory_smoothed = zeros(numberOfDataPoints, number_of_joints);
-            for i_stretch = 1 : size(data_stretches_without_big_gaps, 1)
-
-    %             column_filtered_by_stretch(data_stretches_without_big_gaps(i_stretch, 1) : data_stretches_without_big_gaps(i_stretch, 2)) = filtfilt(b, a, column_splined(data_stretches_without_big_gaps(i_stretch, 1) : data_stretches_without_big_gaps(i_stretch, 2)));
-
-                constraint_torques_trajectory_smoothed(data_stretches_without_big_gaps(i_stretch, 1) : data_stretches_without_big_gaps(i_stretch, 2), :) = filtfilt(b, a, constraint_torques_trajectory_splined(data_stretches_without_big_gaps(i_stretch, 1) : data_stretches_without_big_gaps(i_stretch, 2), :));
-                constraint_torques_right_trajectory_smoothed(data_stretches_without_big_gaps(i_stretch, 1) : data_stretches_without_big_gaps(i_stretch, 2), :) = filtfilt(b, a, constraint_torques_right_trajectory_splined(data_stretches_without_big_gaps(i_stretch, 1) : data_stretches_without_big_gaps(i_stretch, 2), :));
-                constraint_torques_left_trajectory_smoothed(data_stretches_without_big_gaps(i_stretch, 1) : data_stretches_without_big_gaps(i_stretch, 2), :) = filtfilt(b, a, constraint_torques_left_trajectory_splined(data_stretches_without_big_gaps(i_stretch, 1) : data_stretches_without_big_gaps(i_stretch, 2), :));
-                joint_torques_trajectory_smoothed(data_stretches_without_big_gaps(i_stretch, 1) : data_stretches_without_big_gaps(i_stretch, 2), :) = filtfilt(b, a, joint_torques_trajectory_splined(data_stretches_without_big_gaps(i_stretch, 1) : data_stretches_without_big_gaps(i_stretch, 2), :));
-                right_ground_reaction_wrench_trajectory_origin_smoothed(data_stretches_without_big_gaps(i_stretch, 1) : data_stretches_without_big_gaps(i_stretch, 2), :) = filtfilt(b, a, right_ground_reaction_wrench_trajectory_origin_splined(data_stretches_without_big_gaps(i_stretch, 1) : data_stretches_without_big_gaps(i_stretch, 2), :));
-                left_ground_reaction_wrench_trajectory_origin_smoothed(data_stretches_without_big_gaps(i_stretch, 1) : data_stretches_without_big_gaps(i_stretch, 2), :) = filtfilt(b, a, left_ground_reaction_wrench_trajectory_origin_splined(data_stretches_without_big_gaps(i_stretch, 1) : data_stretches_without_big_gaps(i_stretch, 2), :));
-                induced_accelerations_applied_smoothed(data_stretches_without_big_gaps(i_stretch, 1) : data_stretches_without_big_gaps(i_stretch, 2), :) = filtfilt(b, a, induced_accelerations_applied_splined(data_stretches_without_big_gaps(i_stretch, 1) : data_stretches_without_big_gaps(i_stretch, 2), :));
-                induced_accelerations_gravity_smoothed(data_stretches_without_big_gaps(i_stretch, 1) : data_stretches_without_big_gaps(i_stretch, 2), :) = filtfilt(b, a, induced_accelerations_gravity_splined(data_stretches_without_big_gaps(i_stretch, 1) : data_stretches_without_big_gaps(i_stretch, 2), :));
-                induced_accelerations_movement_smoothed(data_stretches_without_big_gaps(i_stretch, 1) : data_stretches_without_big_gaps(i_stretch, 2), :) = filtfilt(b, a, induced_accelerations_movement_splined(data_stretches_without_big_gaps(i_stretch, 1) : data_stretches_without_big_gaps(i_stretch, 2), :));
-                induced_accelerations_applied_single_smoothed(data_stretches_without_big_gaps(i_stretch, 1) : data_stretches_without_big_gaps(i_stretch, 2), :) = filtfilt(b, a, induced_accelerations_applied_single_splined(data_stretches_without_big_gaps(i_stretch, 1) : data_stretches_without_big_gaps(i_stretch, 2), :));
-                violating_velocity_trajectory_smoothed(data_stretches_without_big_gaps(i_stretch, 1) : data_stretches_without_big_gaps(i_stretch, 2), :) = filtfilt(b, a, violating_velocity_trajectory_splined(data_stretches_without_big_gaps(i_stretch, 1) : data_stretches_without_big_gaps(i_stretch, 2), :));
-                violating_acceleration_trajectory_smoothed(data_stretches_without_big_gaps(i_stretch, 1) : data_stretches_without_big_gaps(i_stretch, 2), :) = filtfilt(b, a, violating_acceleration_trajectory_splined(data_stretches_without_big_gaps(i_stretch, 1) : data_stretches_without_big_gaps(i_stretch, 2), :));
-                explained_acceleration_trajectory_smoothed(data_stretches_without_big_gaps(i_stretch, 1) : data_stretches_without_big_gaps(i_stretch, 2), :) = filtfilt(b, a, explained_acceleration_trajectory_splined(data_stretches_without_big_gaps(i_stretch, 1) : data_stretches_without_big_gaps(i_stretch, 2), :));
-                leftover_acceleration_trajectory_smoothed(data_stretches_without_big_gaps(i_stretch, 1) : data_stretches_without_big_gaps(i_stretch, 2), :) = filtfilt(b, a, leftover_acceleration_trajectory_splined(data_stretches_without_big_gaps(i_stretch, 1) : data_stretches_without_big_gaps(i_stretch, 2), :));
-
-
-            end
-
-
-
-
+%             % spline over the gaps
+%             underconstrained_data_points = data_points(number_of_lambdas(data_points) < 6);
+%             constraint_torques_trajectory_gaps = constraint_torque_trajectories_all;
+%             constraint_torques_right_trajectory_gaps = constraint_torque_trajectories_right;
+%             constraint_torques_left_trajectory_gaps = constraint_torque_trajectories_left;
+%             joint_torques_trajectory_gaps = joint_torque_trajectories;
+%             right_ground_reaction_wrench_trajectory_origin_gaps = right_ground_reaction_wrench_trajectory_origin;
+%             left_ground_reaction_wrench_trajectory_origin_gaps = left_ground_reaction_wrench_trajectory_origin;
+%             induced_accelerations_applied_gaps = induced_accelerations_applied_trajectories;
+%             induced_accelerations_gravity_gaps = induced_accelerations_gravity_trajectories;
+%             induced_accelerations_movement_gaps = induced_accelerations_movement_trajectories;
+%             induced_accelerations_applied_single_gaps = induced_accelerations_applied_single_trajectories;
+%             violating_velocity_trajectory_gaps = violating_velocity_trajectories;
+%             violating_acceleration_trajectory_gaps = violating_acceleration_trajectories;
+%             explained_acceleration_trajectory_gaps = explained_acceleration_trajectories;
+%             leftover_acceleration_trajectory_gaps = leftover_acceleration_trajectories;
+% 
+%             constraint_torques_trajectory_gaps(underconstrained_data_points, :) = NaN;
+%             constraint_torques_right_trajectory_gaps(underconstrained_data_points, :) = NaN;
+%             constraint_torques_left_trajectory_gaps(underconstrained_data_points, :) = NaN;
+%             joint_torques_trajectory_gaps(underconstrained_data_points, :) = NaN;
+%             right_ground_reaction_wrench_trajectory_origin_gaps(underconstrained_data_points, :) = NaN;
+%             left_ground_reaction_wrench_trajectory_origin_gaps(underconstrained_data_points, :) = NaN;
+%             induced_accelerations_applied_gaps(underconstrained_data_points, :) = NaN;
+%             induced_accelerations_gravity_gaps(underconstrained_data_points, :) = NaN;
+%             induced_accelerations_movement_gaps(underconstrained_data_points, :) = NaN;
+%             induced_accelerations_applied_single_gaps(underconstrained_data_points, :, :) = NaN;
+%             violating_velocity_trajectory_gaps(underconstrained_data_points, :) = NaN;
+%             violating_acceleration_trajectory_gaps(underconstrained_data_points, :) = NaN;
+%             explained_acceleration_trajectory_gaps(underconstrained_data_points, :) = NaN;
+%             leftover_acceleration_trajectory_gaps(underconstrained_data_points, :) = NaN;
+% 
+%             constraint_torques_trajectory_splined = zeros(numberOfDataPoints, number_of_joints);
+%             constraint_torques_right_trajectory_splined = zeros(numberOfDataPoints, number_of_joints);
+%             constraint_torques_left_trajectory_splined = zeros(numberOfDataPoints, number_of_joints);
+%             joint_torques_trajectory_splined = zeros(numberOfDataPoints, number_of_joints);
+%             right_ground_reaction_wrench_trajectory_origin_splined = zeros(numberOfDataPoints, 6);
+%             left_ground_reaction_wrench_trajectory_origin_splined = zeros(numberOfDataPoints, 6);
+%             induced_accelerations_applied_splined = zeros(numberOfDataPoints, number_of_joints);
+%             induced_accelerations_gravity_splined = zeros(numberOfDataPoints, number_of_joints);
+%             induced_accelerations_movement_splined = zeros(numberOfDataPoints, number_of_joints);
+%             induced_accelerations_applied_single_splined = zeros(numberOfDataPoints, number_of_joints, number_of_joints);
+%             violating_velocity_trajectory_splined = zeros(numberOfDataPoints, number_of_joints);
+%             violating_acceleration_trajectory_splined = zeros(numberOfDataPoints, number_of_joints);
+%             explained_acceleration_trajectory_splined = zeros(numberOfDataPoints, number_of_joints);
+%             leftover_acceleration_trajectory_splined = zeros(numberOfDataPoints, number_of_joints);
+% 
+%             for i_joint = 1 : number_of_joints
+%                 % spline
+%                 [~, constraint_torques_trajectory_splined(:, i_joint)] = evalc('csaps(time, constraint_torques_trajectory_gaps(:, i_joint), 1, time)');
+%                 [~, constraint_torques_right_trajectory_splined(:, i_joint)] = evalc('csaps(time, constraint_torques_right_trajectory_gaps(:, i_joint), 1, time)');
+%                 [~, constraint_torques_left_trajectory_splined(:, i_joint)] = evalc('csaps(time, constraint_torques_left_trajectory_gaps(:, i_joint), 1, time)');
+%                 [~, joint_torques_trajectory_splined(:, i_joint)] = evalc('csaps(time, joint_torques_trajectory_gaps(:, i_joint), 1, time)');
+%                 [~, induced_accelerations_applied_splined(:, i_joint)] = evalc('csaps(time, induced_accelerations_applied_gaps(:, i_joint), 1, time)');
+%                 [~, induced_accelerations_gravity_splined(:, i_joint)] = evalc('csaps(time, induced_accelerations_gravity_gaps(:, i_joint), 1, time)');
+%                 [~, induced_accelerations_movement_splined(:, i_joint)] = evalc('csaps(time, induced_accelerations_movement_gaps(:, i_joint), 1, time)');
+%                 for j_joint = 1 : number_of_joints
+%                     [~, induced_accelerations_applied_single_splined(:, i_joint, j_joint)] = evalc('csaps(time, induced_accelerations_applied_single_gaps(:, i_joint, j_joint), 1, time)');
+%                 end
+%                 [~, violating_velocity_trajectory_splined(:, i_joint)] = evalc('csaps(time, violating_velocity_trajectory_gaps(:, i_joint), 1, time)');
+%                 [~, violating_acceleration_trajectory_splined(:, i_joint)] = evalc('csaps(time, violating_acceleration_trajectory_gaps(:, i_joint), 1, time)');
+%                 [~, explained_acceleration_trajectory_splined(:, i_joint)] = evalc('csaps(time, explained_acceleration_trajectory_gaps(:, i_joint), 1, time)');
+%                 [~, leftover_acceleration_trajectory_splined(:, i_joint)] = evalc('csaps(time, leftover_acceleration_trajectory_gaps(:, i_joint), 1, time)');
+%             end
+%             for i_dof = 1 : 6
+%                 [~, right_ground_reaction_wrench_trajectory_origin_splined(:, i_dof)] = evalc('csaps(time, right_ground_reaction_wrench_trajectory_origin_gaps(:, i_dof), 1, time)');
+%                 [~, left_ground_reaction_wrench_trajectory_origin_splined(:, i_dof)] = evalc('csaps(time, left_ground_reaction_wrench_trajectory_origin_gaps(:, i_dof), 1, time)');
+%             end            
+% 
+%             % remove parts in big gaps
+%             constraint_torques_trajectory_splined(big_gap_indicator==1, :) = NaN;
+%             constraint_torques_trajectory_splined(big_gap_indicator==1, :) = NaN;
+%             constraint_torques_right_trajectory_splined(big_gap_indicator==1, :) = NaN;
+%             constraint_torques_left_trajectory_splined(big_gap_indicator==1, :) = NaN;
+%             joint_torques_trajectory_splined(big_gap_indicator==1, :) = NaN;
+%             right_ground_reaction_wrench_trajectory_origin_splined(big_gap_indicator==1, :) = NaN;
+%             left_ground_reaction_wrench_trajectory_origin_splined(big_gap_indicator==1, :) = NaN;
+%             induced_accelerations_applied_splined(big_gap_indicator==1, :) = NaN;
+%             induced_accelerations_gravity_splined(big_gap_indicator==1, :) = NaN;
+%             induced_accelerations_movement_splined(big_gap_indicator==1, :) = NaN;
+%             induced_accelerations_applied_single_splined(big_gap_indicator==1, :, :) = NaN;
+%             violating_velocity_trajectory_splined(big_gap_indicator==1, :) = NaN;
+%             violating_acceleration_trajectory_splined(big_gap_indicator==1, :) = NaN;
+%             explained_acceleration_trajectory_splined(big_gap_indicator==1, :) = NaN;
+%             leftover_acceleration_trajectory_splined(big_gap_indicator==1, :) = NaN;
+% 
+% 
+%             % filter the stretches of data between the big gaps
+%             constraint_torques_trajectory_smoothed = zeros(numberOfDataPoints, number_of_joints);
+%             constraint_torques_right_trajectory_smoothed = zeros(numberOfDataPoints, number_of_joints);
+%             constraint_torques_left_trajectory_smoothed = zeros(numberOfDataPoints, number_of_joints);
+%             joint_torques_trajectory_smoothed = zeros(numberOfDataPoints, number_of_joints);
+%             right_ground_reaction_wrench_trajectory_origin_smoothed = zeros(numberOfDataPoints, 6);
+%             left_ground_reaction_wrench_trajectory_origin_smoothed = zeros(numberOfDataPoints, 6);
+%             induced_accelerations_applied_smoothed = zeros(numberOfDataPoints, number_of_joints);
+%             induced_accelerations_gravity_smoothed = zeros(numberOfDataPoints, number_of_joints);
+%             induced_accelerations_movement_smoothed = zeros(numberOfDataPoints, number_of_joints);
+%             induced_accelerations_applied_single_smoothed = zeros(numberOfDataPoints, number_of_joints, number_of_joints);
+%             violating_velocity_trajectory_smoothed = zeros(numberOfDataPoints, number_of_joints);
+%             violating_acceleration_trajectory_smoothed = zeros(numberOfDataPoints, number_of_joints);
+%             explained_acceleration_trajectory_smoothed = zeros(numberOfDataPoints, number_of_joints);
+%             leftover_acceleration_trajectory_smoothed = zeros(numberOfDataPoints, number_of_joints);
+%             for i_stretch = 1 : size(data_stretches_without_big_gaps, 1)
+% 
+%     %             column_filtered_by_stretch(data_stretches_without_big_gaps(i_stretch, 1) : data_stretches_without_big_gaps(i_stretch, 2)) = filtfilt(b, a, column_splined(data_stretches_without_big_gaps(i_stretch, 1) : data_stretches_without_big_gaps(i_stretch, 2)));
+% 
+%                 constraint_torques_trajectory_smoothed(data_stretches_without_big_gaps(i_stretch, 1) : data_stretches_without_big_gaps(i_stretch, 2), :) = filtfilt(b, a, constraint_torques_trajectory_splined(data_stretches_without_big_gaps(i_stretch, 1) : data_stretches_without_big_gaps(i_stretch, 2), :));
+%                 constraint_torques_right_trajectory_smoothed(data_stretches_without_big_gaps(i_stretch, 1) : data_stretches_without_big_gaps(i_stretch, 2), :) = filtfilt(b, a, constraint_torques_right_trajectory_splined(data_stretches_without_big_gaps(i_stretch, 1) : data_stretches_without_big_gaps(i_stretch, 2), :));
+%                 constraint_torques_left_trajectory_smoothed(data_stretches_without_big_gaps(i_stretch, 1) : data_stretches_without_big_gaps(i_stretch, 2), :) = filtfilt(b, a, constraint_torques_left_trajectory_splined(data_stretches_without_big_gaps(i_stretch, 1) : data_stretches_without_big_gaps(i_stretch, 2), :));
+%                 joint_torques_trajectory_smoothed(data_stretches_without_big_gaps(i_stretch, 1) : data_stretches_without_big_gaps(i_stretch, 2), :) = filtfilt(b, a, joint_torques_trajectory_splined(data_stretches_without_big_gaps(i_stretch, 1) : data_stretches_without_big_gaps(i_stretch, 2), :));
+%                 right_ground_reaction_wrench_trajectory_origin_smoothed(data_stretches_without_big_gaps(i_stretch, 1) : data_stretches_without_big_gaps(i_stretch, 2), :) = filtfilt(b, a, right_ground_reaction_wrench_trajectory_origin_splined(data_stretches_without_big_gaps(i_stretch, 1) : data_stretches_without_big_gaps(i_stretch, 2), :));
+%                 left_ground_reaction_wrench_trajectory_origin_smoothed(data_stretches_without_big_gaps(i_stretch, 1) : data_stretches_without_big_gaps(i_stretch, 2), :) = filtfilt(b, a, left_ground_reaction_wrench_trajectory_origin_splined(data_stretches_without_big_gaps(i_stretch, 1) : data_stretches_without_big_gaps(i_stretch, 2), :));
+%                 induced_accelerations_applied_smoothed(data_stretches_without_big_gaps(i_stretch, 1) : data_stretches_without_big_gaps(i_stretch, 2), :) = filtfilt(b, a, induced_accelerations_applied_splined(data_stretches_without_big_gaps(i_stretch, 1) : data_stretches_without_big_gaps(i_stretch, 2), :));
+%                 induced_accelerations_gravity_smoothed(data_stretches_without_big_gaps(i_stretch, 1) : data_stretches_without_big_gaps(i_stretch, 2), :) = filtfilt(b, a, induced_accelerations_gravity_splined(data_stretches_without_big_gaps(i_stretch, 1) : data_stretches_without_big_gaps(i_stretch, 2), :));
+%                 induced_accelerations_movement_smoothed(data_stretches_without_big_gaps(i_stretch, 1) : data_stretches_without_big_gaps(i_stretch, 2), :) = filtfilt(b, a, induced_accelerations_movement_splined(data_stretches_without_big_gaps(i_stretch, 1) : data_stretches_without_big_gaps(i_stretch, 2), :));
+%                 induced_accelerations_applied_single_smoothed(data_stretches_without_big_gaps(i_stretch, 1) : data_stretches_without_big_gaps(i_stretch, 2), :) = filtfilt(b, a, induced_accelerations_applied_single_splined(data_stretches_without_big_gaps(i_stretch, 1) : data_stretches_without_big_gaps(i_stretch, 2), :));
+%                 violating_velocity_trajectory_smoothed(data_stretches_without_big_gaps(i_stretch, 1) : data_stretches_without_big_gaps(i_stretch, 2), :) = filtfilt(b, a, violating_velocity_trajectory_splined(data_stretches_without_big_gaps(i_stretch, 1) : data_stretches_without_big_gaps(i_stretch, 2), :));
+%                 violating_acceleration_trajectory_smoothed(data_stretches_without_big_gaps(i_stretch, 1) : data_stretches_without_big_gaps(i_stretch, 2), :) = filtfilt(b, a, violating_acceleration_trajectory_splined(data_stretches_without_big_gaps(i_stretch, 1) : data_stretches_without_big_gaps(i_stretch, 2), :));
+%                 explained_acceleration_trajectory_smoothed(data_stretches_without_big_gaps(i_stretch, 1) : data_stretches_without_big_gaps(i_stretch, 2), :) = filtfilt(b, a, explained_acceleration_trajectory_splined(data_stretches_without_big_gaps(i_stretch, 1) : data_stretches_without_big_gaps(i_stretch, 2), :));
+%                 leftover_acceleration_trajectory_smoothed(data_stretches_without_big_gaps(i_stretch, 1) : data_stretches_without_big_gaps(i_stretch, 2), :) = filtfilt(b, a, leftover_acceleration_trajectory_splined(data_stretches_without_big_gaps(i_stretch, 1) : data_stretches_without_big_gaps(i_stretch, 2), :));
+% 
+% 
+%             end
+% 
+%         end
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        end
-
-        right_force_plate_wrench_origin = [];
-        left_force_plate_wrench_origin = [];
-        if transform_force_plate_wrench_to_origin
-            force_plate_trafo_file_name = createFileName(date, subject_id, study_label, num2str(1), 'forcePlateTransformations');
-
-            % load data
-            force_plate_trafo_file_name = createFileName(date, subject_id, study_label, num2str(1), 'forcePlateTransformations');
-            load([data_root directorySeparator force_plate_trafo_file_name]);
-    %         disp('Achtung! using dummy force plate trafo')
-    % right_force_plate_to_origin_trafo = eye(4);
-    % left_force_plate_to_origin_trafo = eye(4);
-
-            force_plate_data_file_name = createFileName(date, subject_id, study_label, num2str(i_trial), 'forcePlateDataProcessed');
-            load([data_root directorySeparator force_plate_data_file_name]);
-
-            % downsample force plate data
-            right_force_plate_wrench_downsampled = interp1(time_force_plate, right_force_plate_wrench, time);
-            left_force_plate_wrench_downsampled = interp1(time_force_plate, left_force_plate_wrench, time);
-
-            % swap x and y- axes to get a right-handed coordinate frame for the force plate data
-            swapper_adjoint = createAdjointTransformation([0 1 0 0; 1 0 0 0; 0 0 1 0; 0 0 0 1]);
-            right_force_plate_wrench_downsampled = (swapper_adjoint'*right_force_plate_wrench_downsampled')';
-            left_force_plate_wrench_downsampled = (swapper_adjoint'*left_force_plate_wrench_downsampled')';
-
-            % calculate transformation adjoints
-    %         right_force_plate_to_origin_adjoint = createAdjointTransformation(right_force_plate_to_origin_trafo);
-    %         left_force_plate_to_origin_adjoint = createAdjointTransformation(left_force_plate_to_origin_trafo);
-            right_force_plate_to_origin_adjoint = invertAdjoint(createAdjointTransformation(right_force_plate_to_origin_trafo));
-            left_force_plate_to_origin_adjoint = invertAdjoint(createAdjointTransformation(left_force_plate_to_origin_trafo));
-    %         right_force_plate_to_origin_adjoint_inverse = invertAdjoint(right_force_plate_to_origin_adjoint);
-    %         left_force_plate_to_origin_adjoint_inverse = invertAdjoint(left_force_plate_to_origin_adjoint);
-
-            % transform
-            right_force_plate_wrench_origin = zeros(size(right_force_plate_wrench_downsampled));
-            left_force_plate_wrench_origin = zeros(size(left_force_plate_wrench_downsampled));
-            right_force_plate_wrench_origin(data_points, :) = (right_force_plate_to_origin_adjoint * right_force_plate_wrench_downsampled(data_points, :)')';
-            left_force_plate_wrench_origin(data_points, :) = (left_force_plate_to_origin_adjoint * left_force_plate_wrench_downsampled(data_points, :)')';
-
-    %         right_ground_reaction_wrench_trajectory_forceplateorigin = zeros(size(right_force_plate_wrench_downsampled));
-    %         left_ground_reaction_wrench_trajectory_forceplateorigin = zeros(size(left_force_plate_wrench_downsampled));
-    %         right_ground_reaction_wrench_trajectory_forceplateorigin(data_points, :) = (right_force_plate_to_origin_adjoint_inverse' * right_ground_reaction_wrench_trajectory_origin_smoothed(data_points, :)')';
-    %         left_ground_reaction_wrench_trajectory_forceplateorigin(data_points, :) = (left_force_plate_to_origin_adjoint_inverse' * left_ground_reaction_wrench_trajectory_origin_smoothed(data_points, :)')';
-
-            % checkplot
-            xlim = [time(data_points(1)) time(data_points(end))];
-    %             xlim = [13.4 14.8];
-    %         figure; axes; hold on; title('right, forces')
-    %         plot(time(data_points), right_force_plate_wrench_downsampled(data_points, 1), 'color', 'r');
-    %         plot(time(data_points), right_force_plate_wrench_downsampled(data_points, 2), 'color', 'g');
-    %         plot(time(data_points), right_force_plate_wrench_downsampled(data_points, 3), 'color', 'b');
-    %         plot(time(data_points), right_force_plate_wrench_origin(data_points, 1), 'color', 'r', 'linewidth', 2);
-    %         plot(time(data_points), right_force_plate_wrench_origin(data_points, 2), 'color', 'g', 'linewidth', 2);
-    %         plot(time(data_points), right_force_plate_wrench_origin(data_points, 3), 'color', 'b', 'linewidth', 2);
-    %         plot(time(data_points), right_ground_reaction_wrench_trajectory_origin_smoothed(data_points, 1), '--', 'color', 'r', 'linewidth', 2);
-    %         plot(time(data_points), right_ground_reaction_wrench_trajectory_origin_smoothed(data_points, 2), '--', 'color', 'g', 'linewidth', 2);
-    %         plot(time(data_points), right_ground_reaction_wrench_trajectory_origin_smoothed(data_points, 3), '--', 'color', 'b', 'linewidth', 2);
-    %         set(gca, 'xlim', xlim);
-
-    %         figure; axes; hold on; title('right, torques')
-    %         plot(time(data_points), right_force_plate_wrench_downsampled(data_points, 4), 'color', 'r', 'displayname', 'x - force plate, measured');
-    %         plot(time(data_points), right_force_plate_wrench_downsampled(data_points, 5), 'color', 'g', 'displayname', 'y - force plate, measured');
-    %         plot(time(data_points), right_force_plate_wrench_downsampled(data_points, 6), 'color', 'b', 'displayname', 'z - force plate, measured');
-    %         plot(time(data_points), right_ground_reaction_wrench_trajectory_forceplateorigin(data_points, 4), '--', 'color', 'r', 'displayname', 'x - inverse dynamics, transformed');
-    %         plot(time(data_points), right_ground_reaction_wrench_trajectory_forceplateorigin(data_points, 5), '--', 'color', 'g', 'displayname', 'y - inverse dynamics, transformed');
-    %         plot(time(data_points), right_ground_reaction_wrench_trajectory_forceplateorigin(data_points, 6), '--', 'color', 'b', 'displayname', 'z - inverse dynamics, transformed');
-
-            figure; axes; hold on; title('right, torques')
-            plot(time(data_points), right_force_plate_wrench_origin(data_points, 4), 'color', 'r', 'linewidth', 2, 'displayname', 'x - force plate, transformed');
-            plot(time(data_points), right_force_plate_wrench_origin(data_points, 5), 'color', 'g', 'linewidth', 2, 'displayname', 'y - force plate, transformed');
-            plot(time(data_points), right_force_plate_wrench_origin(data_points, 6), 'color', 'b', 'linewidth', 2, 'displayname', 'z - force plate, transformed');
-            plot(time(data_points), right_ground_reaction_wrench_trajectory_origin_smoothed(data_points, 4), '--', 'color', 'r', 'linewidth', 2, 'displayname', 'x - inverse dynamics');
-            plot(time(data_points), right_ground_reaction_wrench_trajectory_origin_smoothed(data_points, 5), '--', 'color', 'g', 'linewidth', 2, 'displayname', 'y - inverse dynamics');
-            plot(time(data_points), right_ground_reaction_wrench_trajectory_origin_smoothed(data_points, 6), '--', 'color', 'b', 'linewidth', 2, 'displayname', 'z - inverse dynamics');
-            set(gca, 'xlim', xlim);
-            legend('show')
-
-    %         figure; axes; hold on; title('left, forces')
-    %         plot(time(data_points), left_force_plate_wrench_downsampled(data_points, 1), 'color', 'r');
-    %         plot(time(data_points), left_force_plate_wrench_downsampled(data_points, 2), 'color', 'g');
-    %         plot(time(data_points), left_force_plate_wrench_downsampled(data_points, 3), 'color', 'b');
-    %         plot(time(data_points), left_force_plate_wrench_origin(data_points, 1), 'color', 'r', 'linewidth', 2);
-    %         plot(time(data_points), left_force_plate_wrench_origin(data_points, 2), 'color', 'g', 'linewidth', 2);
-    %         plot(time(data_points), left_force_plate_wrench_origin(data_points, 3), 'color', 'b', 'linewidth', 2);
-    %         plot(time(data_points), left_ground_reaction_wrench_trajectory_origin_smoothed(data_points, 1), '--', 'color', 'r', 'linewidth', 2);
-    %         plot(time(data_points), left_ground_reaction_wrench_trajectory_origin_smoothed(data_points, 2), '--', 'color', 'g', 'linewidth', 2);
-    %         plot(time(data_points), left_ground_reaction_wrench_trajectory_origin_smoothed(data_points, 3), '--', 'color', 'b', 'linewidth', 2);
-    %         set(gca, 'xlim', xlim);
-    % 
-    %         figure; axes; hold on; title('left, torques')
-    %         plot(time(data_points), left_force_plate_wrench_downsampled(data_points, 4), 'color', 'r');
-    %         plot(time(data_points), left_force_plate_wrench_downsampled(data_points, 5), 'color', 'g');
-    %         plot(time(data_points), left_force_plate_wrench_downsampled(data_points, 6), 'color', 'b');
-    %         plot(time(data_points), left_force_plate_wrench_origin(data_points, 4), 'color', 'r', 'linewidth', 2);
-    %         plot(time(data_points), left_force_plate_wrench_origin(data_points, 5), 'color', 'g', 'linewidth', 2);
-    %         plot(time(data_points), left_force_plate_wrench_origin(data_points, 6), 'color', 'b', 'linewidth', 2);
-    %         plot(time(data_points), left_ground_reaction_wrench_trajectory_origin_smoothed(data_points, 4), '--', 'color', 'r', 'linewidth', 2);
-    %         plot(time(data_points), left_ground_reaction_wrench_trajectory_origin_smoothed(data_points, 5), '--', 'color', 'g', 'linewidth', 2);
-    %         plot(time(data_points), left_ground_reaction_wrench_trajectory_origin_smoothed(data_points, 6), '--', 'color', 'b', 'linewidth', 2);
-    %         set(gca, 'xlim', xlim);
-
-        end
-
-
-        %% test plots
-        if false
-    %         constraint_trajectory = zeros(size(time))';
-    %         for i_constraint = 1 : 16
-    %             constraint_trajectory = constraint_trajectory + constraint_indicator_trajectories_unfiltered(:, i_constraint)*i_constraint;
-    %         end
-    %         figure; axes; hold on
-    %         plot(data_points, constraint_trajectory(data_points));
-
-
-    %         figure; axes; hold on
-    %         for i_constraint = 0 : 15
-    %             plot3(data_points, constraint_indicator_trajectories_unfiltered(data_points, i_constraint+1), i_constraint*ones(1, size(data_points, 2)), 'linewidth', 2);
-    %         end
-    %         figure; axes; hold on
-    %         for i_constraint = 0 : 15
-    %             plot3(time(data_points), constraint_indicator_trajectories_filtered(data_points, i_constraint+1), i_constraint*ones(1, size(data_points, 2)), 'linewidth', 2);
-    %         end
-
-
-
-            i_joint = 7;
-            % show the trajectories for each constraint
-            linewidth = 1;
-            figure; axes; hold on; title('joint torques');
-            for i_constraint = 0 : 15
-                plot(data_points, joint_torque_trajectories{i_constraint+1}(data_points, i_joint), 'linewidth', linewidth)
-            end
-            plot(data_points, joint_torques_trajectory_smoothed(data_points, i_joint), 'k', 'linewidth', 3)
-
-            linewidth = 1;
-            figure; axes; hold on; title('induced accelerations applied');
-            for i_constraint = 0 : 15
-    %             plot(data_points, induced_accelerations_applied_trajectories{i_constraint}(data_points, i_joint), 'linewidth', linewidth)
-                plot3(data_points, induced_accelerations_applied_trajectories{i_constraint+1}(data_points, i_joint), ones(size(data_points))*i_constraint, 'linewidth', linewidth)
-            end
-    %         plot(data_points, induced_accelerations_applied_smoothed(data_points, i_joint), 'k', 'linewidth', 3)
-            plot3(data_points, induced_accelerations_applied_smoothed(data_points, i_joint), ones(size(data_points))*16, 'k', 'linewidth', 3)
-
-
-
-
-            induced_accelerations_sum = induced_accelerations_applied_smoothed + induced_accelerations_gravity_smoothed + induced_accelerations_movement_smoothed;
-            linewidth = 3;
-            figure; axes; hold on;
-            plot(time(data_points), joint_acceleration_trajectories(data_points, i_joint), 'linewidth', linewidth, 'displayname', 'measured accelerations')
-            plot(time(data_points), induced_accelerations_applied_smoothed(data_points, i_joint),'linewidth', linewidth, 'displayname', 'applied induced accelerations')
-            plot(time(data_points), induced_accelerations_gravity_smoothed(data_points, i_joint), 'linewidth', linewidth, 'displayname', 'gravity induced accelerations')
-            plot(time(data_points), induced_accelerations_movement_smoothed(data_points, i_joint), 'linewidth', linewidth, 'displayname', 'movement induced accelerations')
-            plot(time(data_points), induced_accelerations_sum(data_points, i_joint), '--', 'linewidth', linewidth, 'displayname', 'sum induced accelerations')
-            legend('show')
-        end
 
 end
 
