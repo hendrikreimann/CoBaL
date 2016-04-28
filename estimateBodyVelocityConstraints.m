@@ -12,7 +12,7 @@ load(makeFileName(date, subject_id, 'walking', trial_number, 'stepEvents'));
 
 number_of_time_steps = size(T_left_ankle_to_world_trajectory, 1);
 
-calculate_trajectories              = 1;
+calculate_trajectories              = 0;
 find_phi_constraint                 = 1;
 find_rho_constraint_by_phi          = 0;
 save_results                        = 1;
@@ -148,7 +148,7 @@ end
     
 %% find_phi_constraint
 if find_phi_constraint
-    plot_relevant_body_velocity_data_left    = 1;
+    plot_relevant_body_velocity_data_left    = 0;
     plot_relevant_body_velocity_data_right   = 1;
     
     % find data points for each constraint
