@@ -1,9 +1,9 @@
 
 
-create_plant                        = 0;
-generate_trajectories               = 0;
-find_rho_constraint_by_phi          = 0;
-find_phi_constraint                 = 0;
+create_plant                        = 1;
+generate_trajectories               = 1;
+find_rho_constraint_by_phi          = 1;
+find_phi_constraint                 = 1;
 check_constraints                   = 1;
 show_stick_figure                   = 0;
 
@@ -575,6 +575,17 @@ if check_constraints
     C = [B W_phi W_rho]; % this is the space of unconstrained joint changes
     [U_constraint, S_constraint, V_constraint] = svd(C');
     A_constraint = V_constraint(:, 12:15)';
+    
+    
+    % compare this with the solution from createConstraintMatrix_bodyVelocityConstraints_24.m
+    V_body_allowed = [V_phi_body V_rho_body];
+    [~, ~, V] = svd(V_body_allowed');
+    C = V(:, 3:6)'; % orthogonal complement of the allowed body velocity directions
+    A_check = C * J_body;
+    
+    
+    
+    % A_actual, A_constraint and A_check should all span the same subspace
 end
 
 
