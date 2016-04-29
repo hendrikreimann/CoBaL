@@ -3,10 +3,11 @@
 use_parallel = 1;
 
 use_point_constraints           = 0;
-use_hinge_constraints           = 1;
-use_body_velocity_constraints   = 0;
+use_hinge_constraints           = 0;
+use_body_velocity_constraints   = 1;
 
 plot_ground_reaction_wrenches   = 1;
+save_results                    = 1;
 
 trials_to_process = 2;
 trials_to_exclude = [];
@@ -17,7 +18,8 @@ load(makeFileName(date, subject_id, 'model'));
 
 % data_points = 1 : numberOfDataPoints;
 % data_points = 1000 : 6000;
-data_points = 1000 : 1100;
+% data_points = 1000 : 1050;
+data_points = 1000 : 11000;
 
 if use_parallel
     poolobject = gcp;
@@ -67,10 +69,10 @@ for i_trial = trials_to_process
                         plant_pool.updateKinematics;
 
                         % calculate ground reaction wrenches
-                        treadmill_origin_belt = [0; joint_angle_trajectories(i_time, 2); 0]; % this is the physical location of the world coordinate frame in belt coordinates
+                        treadmill_origin_belt = [0; joint_angle_trajectories_belt(i_time, 2); 0]; % this is the physical location of the world coordinate frame in belt coordinates
                         world_to_belt_transformation = [eye(3), treadmill_origin_belt; 0 0 0 1];
-                        left_ground_reaction_wrench_trajectory_pool(i_time, :) = calculateInstantaneousGroundReactionWrench(plant_pool, constraint_torque_trajectories_left(i_time, :)', eye(4));
-                        right_ground_reaction_wrench_trajectory_pool(i_time, :) = calculateInstantaneousGroundReactionWrench(plant_pool, constraint_torque_trajectories_right(i_time, :)', eye(4));
+                        left_ground_reaction_wrench_trajectory_pool(i_time, :) = calculateInstantaneousGroundReactionWrench(plant_pool, constraint_torque_trajectories_left(i_time, :)', world_to_belt_transformation);
+                        right_ground_reaction_wrench_trajectory_pool(i_time, :) = calculateInstantaneousGroundReactionWrench(plant_pool, constraint_torque_trajectories_right(i_time, :)', world_to_belt_transformation);
                     end
                 end
             end
@@ -99,7 +101,7 @@ for i_trial = trials_to_process
                     plant.updateKinematics;
 
                     % calculate ground reaction wrenches
-                    treadmill_origin_belt = [0; joint_angle_trajectories(i_time, 2); 0]; % this is the physical location of the world coordinate frame in belt coordinates
+                    treadmill_origin_belt = [0; joint_angle_trajectories_belt(i_time, 2); 0]; % this is the physical location of the world coordinate frame in belt coordinates
                     world_to_belt_transformation = [eye(3), treadmill_origin_belt; 0 0 0 1];
                     left_ground_reaction_wrench_trajectory(i_time, :) = calculateInstantaneousGroundReactionWrench(plant, constraint_torque_trajectories_left(i_time, :)', world_to_belt_transformation);
                     right_ground_reaction_wrench_trajectory(i_time, :) = calculateInstantaneousGroundReactionWrench(plant, constraint_torque_trajectories_right(i_time, :)', world_to_belt_transformation);
@@ -109,11 +111,27 @@ for i_trial = trials_to_process
         end
         toc
         
-        %% transform to world coordinates
-        if transform_to_world_coordinates
-            for i_time = data_points
-            end
+        
+        %% save data
+        if save_results
+            label = 'groundReactionWrenches';
+            if use_point_constraints
+                label = [label '_pointConstraints'];
+            end            
+            if use_hinge_constraints
+                label = [label '_hingeConstraints'];
+            end            
+            if use_body_velocity_constraints
+                label = [label '_bodyVelocityConstraints'];
+            end            
+
+            save( ...
+                  makeFileName(date, subject_id, 'walking', i_trial, label), ...
+                  'left_ground_reaction_wrench_trajectory', ...
+                  'right_ground_reaction_wrench_trajectory' ...
+                );
         end
+        
         
         %% plot ground reaction wrenches
         if plot_ground_reaction_wrenches
@@ -158,7 +176,7 @@ for i_trial = trials_to_process
             
             linkaxes([left_grf_axes left_grm_axes right_grf_axes right_grm_axes], 'x')
             distFig('rows', 2, 'tight', true);
-        end        
+        end
     end
 end
 

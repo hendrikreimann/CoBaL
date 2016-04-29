@@ -2,7 +2,7 @@
 
 % flags
 reconstruct             = 1;
-use_parallel            = 0;
+use_parallel            = 1;
 use_filtered_data       = 1;
 visualize_derivatives   = 0;
 
@@ -121,7 +121,7 @@ for i_trial = trials_to_process
                 
                 joint_angles_belt_stretch_filtered = filtfilt(b_filter, a_filter, joint_angle_data_belt_stretch(:, i_joint));
                 joint_angles_belt_stretch_unfiltered = joint_angle_data_belt_stretch(:, i_joint);
-                joint_velocitie_belts_stretch_from_filtered = centdiff(joint_angles_belt_stretch_filtered, 1/samplingRate);
+                joint_velocities_belt_stretch_from_filtered = centdiff(joint_angles_belt_stretch_filtered, 1/samplingRate);
                 joint_velocities_belt_stretch_from_unfiltered = centdiff(joint_angles_belt_stretch_unfiltered, 1/samplingRate);
                 joint_accelerations_belt_stretch_from_filtered = centdiff(joint_velocities_belt_stretch_from_filtered, 1/samplingRate);
                 joint_accelerations_belt_stretch_from_unfiltered = centdiff(joint_velocities_belt_stretch_from_unfiltered, 1/samplingRate);
@@ -590,9 +590,7 @@ for i_trial = trials_to_process
         'com_trajectory_belt', ...
         'joint_angle_trajectories_belt', ...
         'joint_velocity_trajectories_belt', ...
-        'joint_acceleration_trajectories_belt', ...
-        'belt_position_trajectory_mocap_belt', ...
-        'belt_position_trajectory_forceplate_belt', ...
+        'joint_acceleration_trajectories_belt' ...
       );
 
     

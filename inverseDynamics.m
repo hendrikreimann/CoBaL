@@ -6,7 +6,6 @@ calculate_torques                       = 1;
 calculate_ground_reaction_wrenches      = 1;
 
 plot_joint_torques                      = 1;
-plot_ground_reaction_wrenches           = 0;
 
 use_parallel = 1;
 
@@ -14,8 +13,8 @@ load_results = 0;
 save_results = 1;
 
 use_point_constraints           = 0;
-use_hinge_constraints           = 1;
-use_body_velocity_constraints   = 0;
+use_hinge_constraints           = 0;
+use_body_velocity_constraints   = 1;
 
 
 % select which trials to process
@@ -38,7 +37,7 @@ number_of_joints = plant.numberOfJoints;
 data_points = 1 : numberOfDataPoints;
 % data_points = 200 : 900;
 % data_points = 450 : 480;
-% data_points = 1000 : 6000;
+data_points = 1000 : 11000;
 % data_points = 1000 : 1050;
 
 if use_parallel && (calculate_dynamic_matrices || calculate_torques)
@@ -240,16 +239,19 @@ for i_trial = trials_to_process
                             end
                             if use_body_velocity_constraints
                                 [constraint_matrix_trajectory_pool{i_time}, constraint_matrix_dot_trajectory_pool{i_time}] = ...
-                                    createConstraintMatrix_bodyVelocityConstraints_24 ...
+                                    createConstraintMatrix_bodyVelocityConstraints ...
                                       ( ...
                                         plant_pool, ...
-                                        active_constraint-1, ...
-                                        right_ankle_elevation, ...
-                                        left_ankle_elevation, ...
-                                        polyfit_body_velocity_right_heel_roll, ...
-                                        polyfit_body_velocity_right_toes_roll, ...
-                                        polyfit_body_velocity_left_heel_roll, ...
-                                        polyfit_body_velocity_left_toes_roll...
+                                        left_foot_constraint_number_trajectory(i_time), ...
+                                        right_foot_constraint_number_trajectory(i_time), ...
+                                        phi_left_trajectory(i_time), ...
+                                        rho_left_trajectory(i_time), ...
+                                        phi_right_trajectory(i_time), ...
+                                        rho_right_trajectory(i_time), ...
+                                        V_body_left_fits_heelstrike, ...
+                                        V_body_left_fits_pushoff, ...
+                                        V_body_right_fits_heelstrike, ...
+                                        V_body_right_fits_pushoff...
                                       );
                             end
                            number_of_lambdas_pool(i_time) = size(constraint_matrix_trajectory_pool{i_time}, 1);
@@ -476,14 +478,31 @@ for i_trial = trials_to_process
                             violating_velocity_trajectories_pool(i_time, :, :) = P_b * theta_dot;
                             violating_acceleration_trajectories_pool(i_time, :) = P_b * theta_two_dot;
                             explained_acceleration = M^(-1)*(T - C*theta_dot - N - A'*lambda);
-                            explained_acceleration_trajectories_pool(i_time, :) = explained_acceleration;
-                            leftover_acceleration_trajectories_pool(i_time, :) = theta_two_dot - explained_acceleration;
+%                             explained_acceleration_trajectories_pool(i_time, :) = explained_acceleration;
+%                             leftover_acceleration_trajectories_pool(i_time, :) = theta_two_dot - explained_acceleration;
 
                             if use_body_velocity_constraints
-                                [number_of_right_foot_constraints, number_of_left_foot_constraints] = constraintNumbersFromIndex_bodyVelocityConstraints_24(active_constraint-1);
+                                if left_foot_constraint_number_trajectory(i_time) == 0
+                                    number_of_left_foot_constraints = 0;
+                                elseif left_foot_constraint_number_trajectory(i_time) == 1
+                                    number_of_left_foot_constraints = 4;
+                                elseif left_foot_constraint_number_trajectory(i_time) == 2
+                                    number_of_left_foot_constraints = 4;
+                                else
+                                    error('Left foot constraint number must be an integer between 0 and 2')
+                                end
+
+                                if right_foot_constraint_number_trajectory(i_time) == 0
+                                    number_of_right_foot_constraints = 0;
+                                elseif right_foot_constraint_number_trajectory(i_time) == 1
+                                    number_of_right_foot_constraints = 4;
+                                elseif right_foot_constraint_number_trajectory(i_time) == 2
+                                    number_of_right_foot_constraints = 4;
+                                else
+                                    error('Right foot constraint number must be an integer between 0 and 2')
+                                end
                             end
                             if use_hinge_constraints
-%                                 [number_of_right_foot_constraints, number_of_left_foot_constraints] = constraintNumbersFromIndex_hingeConstraints_24(active_constraint-1);
                                 if left_foot_constraint_number_trajectory(i_time) == 0
                                     number_of_left_foot_constraints = 0;
                                 elseif left_foot_constraint_number_trajectory(i_time) == 1
@@ -543,11 +562,11 @@ for i_trial = trials_to_process
                             lambda_trajectories_pool{i_time} = lambda;
                             joint_torque_trajectories_pool(i_time, :) = T;
 
-                            ground_reaction_wrench_right = calculateGroundReactionWrench(plant_pool, constraint_torque_trajectories_right_pool(i_time, :)', eye(4));
-                            ground_reaction_wrench_left = calculateGroundReactionWrench(plant_pool, constraint_torque_trajectories_left_pool(i_time, :)', eye(4));
-
-                            right_ground_reaction_wrench_trajectory_origin_pool(i_time, :) = - ground_reaction_wrench_right;
-                            left_ground_reaction_wrench_trajectory_origin_pool(i_time, :) = - ground_reaction_wrench_left;
+%                             ground_reaction_wrench_right = calculateGroundReactionWrench(plant_pool, constraint_torque_trajectories_right_pool(i_time, :)', eye(4));
+%                             ground_reaction_wrench_left = calculateGroundReactionWrench(plant_pool, constraint_torque_trajectories_left_pool(i_time, :)', eye(4));
+% 
+%                             right_ground_reaction_wrench_trajectory_origin_pool(i_time, :) = - ground_reaction_wrench_right;
+%                             left_ground_reaction_wrench_trajectory_origin_pool(i_time, :) = - ground_reaction_wrench_left;
 
                             induced_accelerations_applied_trajectories_pool(i_time, :) = induced_acceleration_applied;
                             induced_accelerations_gravity_trajectories_pool(i_time, :) = induced_acceleration_gravity;
@@ -564,8 +583,8 @@ for i_trial = trials_to_process
                     constraint_torque_trajectories_left_lab = constraint_torque_trajectories_left_pool{i_lab};
                     lambda_trajectories_lab = lambda_trajectories_pool{i_lab};
                     joint_torque_trajectories_lab = joint_torque_trajectories_pool{i_lab};
-                    right_ground_reaction_wrench_trajectory_origin_lab = right_ground_reaction_wrench_trajectory_origin_pool{i_lab};
-                    left_ground_reaction_wrench_trajectory_origin_lab = left_ground_reaction_wrench_trajectory_origin_pool{i_lab};
+%                     right_ground_reaction_wrench_trajectory_origin_lab = right_ground_reaction_wrench_trajectory_origin_pool{i_lab};
+%                     left_ground_reaction_wrench_trajectory_origin_lab = left_ground_reaction_wrench_trajectory_origin_pool{i_lab};
                     induced_accelerations_applied_trajectories_lab = induced_accelerations_applied_trajectories_pool{i_lab};
                     induced_accelerations_gravity_trajectories_lab = induced_accelerations_gravity_trajectories_pool{i_lab};
                     induced_accelerations_movement_trajectories_lab = induced_accelerations_movement_trajectories_pool{i_lab};
@@ -585,10 +604,10 @@ for i_trial = trials_to_process
                         = lambda_trajectories_lab(data_points(1)+i_lab-1 : number_of_labs : data_points(end), :);
                     joint_torque_trajectories(data_points(1)+i_lab-1 : number_of_labs : data_points(end), :) ...
                         = joint_torque_trajectories_lab(data_points(1)+i_lab-1 : number_of_labs : data_points(end), :);
-                    right_ground_reaction_wrench_trajectory_origin(data_points(1)+i_lab-1 : number_of_labs : data_points(end), :) ...
-                        = right_ground_reaction_wrench_trajectory_origin_lab(data_points(1)+i_lab-1 : number_of_labs : data_points(end), :);
-                    left_ground_reaction_wrench_trajectory_origin(data_points(1)+i_lab-1 : number_of_labs : data_points(end), :) ...
-                        = left_ground_reaction_wrench_trajectory_origin_lab(data_points(1)+i_lab-1 : number_of_labs : data_points(end), :);
+%                     right_ground_reaction_wrench_trajectory_origin(data_points(1)+i_lab-1 : number_of_labs : data_points(end), :) ...
+%                         = right_ground_reaction_wrench_trajectory_origin_lab(data_points(1)+i_lab-1 : number_of_labs : data_points(end), :);
+%                     left_ground_reaction_wrench_trajectory_origin(data_points(1)+i_lab-1 : number_of_labs : data_points(end), :) ...
+%                         = left_ground_reaction_wrench_trajectory_origin_lab(data_points(1)+i_lab-1 : number_of_labs : data_points(end), :);
                     induced_accelerations_applied_trajectories(data_points(1)+i_lab-1 : number_of_labs : data_points(end), :) ...
                         = induced_accelerations_applied_trajectories_lab(data_points(1)+i_lab-1 : number_of_labs : data_points(end), :);
                     induced_accelerations_gravity_trajectories(data_points(1)+i_lab-1 : number_of_labs : data_points(end), :) ...
@@ -737,7 +756,25 @@ for i_trial = trials_to_process
 
 
                         if use_body_velocity_constraints
-                            [number_of_right_foot_constraints, number_of_left_foot_constraints] = constraintNumbersFromIndex_bodyVelocityConstraints_24(active_constraint-1);
+                            if left_foot_constraint_number_trajectory(i_time) == 0
+                                number_of_left_foot_constraints = 0;
+                            elseif left_foot_constraint_number_trajectory(i_time) == 1
+                                number_of_left_foot_constraints = 4;
+                            elseif left_foot_constraint_number_trajectory(i_time) == 2
+                                number_of_left_foot_constraints = 4;
+                            else
+                                error('Left foot constraint number must be an integer between 0 and 2')
+                            end
+                            
+                            if right_foot_constraint_number_trajectory(i_time) == 0
+                                number_of_right_foot_constraints = 0;
+                            elseif right_foot_constraint_number_trajectory(i_time) == 1
+                                number_of_right_foot_constraints = 4;
+                            elseif right_foot_constraint_number_trajectory(i_time) == 2
+                                number_of_right_foot_constraints = 4;
+                            else
+                                error('Right foot constraint number must be an integer between 0 and 2')
+                            end
                         end
                         if use_hinge_constraints
                             if left_foot_constraint_number_trajectory(i_time) == 0
@@ -796,7 +833,7 @@ for i_trial = trials_to_process
                         lambda_trajectories{i_time} = lambda;
                         joint_torque_trajectories(i_time, :) = T;
 
-%                         ground_reaction_wrench_right = calculateGroundReactionWrench(plant, constraint_torque_trajectories_right(i_time, :)', eye(4));
+%                         ground_reaction_wrench_right = (plant, constraint_torque_trajectories_right(i_time, :)', eye(4));
 %                         ground_reaction_wrench_left = calculateGroundReactionWrench(plant, constraint_torque_trajectories_left(i_time, :)', eye(4));
 % 
 %                         right_ground_reaction_wrench_trajectory_origin(i_time, :) = - ground_reaction_wrench_right;
@@ -868,7 +905,6 @@ for i_trial = trials_to_process
             
             save( ...
                   inverse_dynamics_file_name, ...
-                  'data_points', ...
                   'inertia_matrix_trajectory', ...
                   'coriolis_matrix_trajectory', ...
                   'constraint_matrix_trajectory', ...
