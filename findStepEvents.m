@@ -1,9 +1,12 @@
 % findStepEvents
 
-visualize = 1;
+visualize = 0;
 
-% trials_to_process = 1 : 43;
-trials_to_process = 2;
+trials_to_process = 0 : 23;
+trials_to_process = [0:7 9:23];
+
+
+% trials_to_process = 2;
 
 for i_trial = trials_to_process
 
@@ -11,12 +14,8 @@ for i_trial = trials_to_process
 
     % load data
     load subjectInfo.mat;
-    model_file_name = makeFileName(date, subject_id, 'model');
-    load(model_file_name);
-    marker_trajectories_file_name = makeFileName(date, subject_id, 'walking', i_trial, 'markerTrajectories');
-    load(marker_trajectories_file_name);
-    marker_trajectories_file_name = makeFileName(date, subject_id, 'walking', i_trial, 'forcePlateData');
-    load(marker_trajectories_file_name);
+    load(makeFileName(date, subject_id, 'walking', i_trial, 'markerTrajectories'));
+    load(makeFileName(date, subject_id, 'walking', i_trial, 'forcePlateData'));
 
     % extract data
     left_heel_marker = 34;

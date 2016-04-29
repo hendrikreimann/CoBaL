@@ -1,10 +1,11 @@
 % calculate ground reaction wrenches
 
 use_parallel = 1;
+use_smoothed = 1;
 
 use_point_constraints           = 0;
-use_hinge_constraints           = 0;
-use_body_velocity_constraints   = 1;
+use_hinge_constraints           = 1;
+use_body_velocity_constraints   = 0;
 
 plot_ground_reaction_wrenches   = 1;
 save_results                    = 1;
@@ -17,9 +18,9 @@ load subjectInfo.mat;
 load(makeFileName(date, subject_id, 'model'));
 
 % data_points = 1 : numberOfDataPoints;
-% data_points = 1000 : 6000;
+data_points = 1000 : 6000;
 % data_points = 1000 : 1050;
-data_points = 1000 : 11000;
+% data_points = 1000 : 11000;
 
 if use_parallel
     poolobject = gcp;
@@ -49,6 +50,14 @@ for i_trial = trials_to_process
         end            
         load(makeFileName(date, subject_id, 'walking', i_trial, label));
 
+        if use_smoothed
+            constraint_torque_trajectories_left_current = constraint_torque_trajectories_left_smoothed;
+            constraint_torque_trajectories_right_current = constraint_torque_trajectories_right_smoothed;
+        else
+            constraint_torque_trajectories_left_current = constraint_torque_trajectories_left;
+            constraint_torque_trajectories_right_current = constraint_torque_trajectories_right;
+        end
+        
         right_ground_reaction_wrench_trajectory = zeros(numberOfDataPoints, 6);
         left_ground_reaction_wrench_trajectory = zeros(numberOfDataPoints, 6);
 
@@ -71,8 +80,8 @@ for i_trial = trials_to_process
                         % calculate ground reaction wrenches
                         treadmill_origin_belt = [0; joint_angle_trajectories_belt(i_time, 2); 0]; % this is the physical location of the world coordinate frame in belt coordinates
                         world_to_belt_transformation = [eye(3), treadmill_origin_belt; 0 0 0 1];
-                        left_ground_reaction_wrench_trajectory_pool(i_time, :) = calculateInstantaneousGroundReactionWrench(plant_pool, constraint_torque_trajectories_left(i_time, :)', world_to_belt_transformation);
-                        right_ground_reaction_wrench_trajectory_pool(i_time, :) = calculateInstantaneousGroundReactionWrench(plant_pool, constraint_torque_trajectories_right(i_time, :)', world_to_belt_transformation);
+                        left_ground_reaction_wrench_trajectory_pool(i_time, :) = calculateInstantaneousGroundReactionWrench(plant_pool, constraint_torque_trajectories_left_current(i_time, :)', world_to_belt_transformation);
+                        right_ground_reaction_wrench_trajectory_pool(i_time, :) = calculateInstantaneousGroundReactionWrench(plant_pool, constraint_torque_trajectories_right_current(i_time, :)', world_to_belt_transformation);
                     end
                 end
             end
@@ -103,8 +112,8 @@ for i_trial = trials_to_process
                     % calculate ground reaction wrenches
                     treadmill_origin_belt = [0; joint_angle_trajectories_belt(i_time, 2); 0]; % this is the physical location of the world coordinate frame in belt coordinates
                     world_to_belt_transformation = [eye(3), treadmill_origin_belt; 0 0 0 1];
-                    left_ground_reaction_wrench_trajectory(i_time, :) = calculateInstantaneousGroundReactionWrench(plant, constraint_torque_trajectories_left(i_time, :)', world_to_belt_transformation);
-                    right_ground_reaction_wrench_trajectory(i_time, :) = calculateInstantaneousGroundReactionWrench(plant, constraint_torque_trajectories_right(i_time, :)', world_to_belt_transformation);
+                    left_ground_reaction_wrench_trajectory(i_time, :) = calculateInstantaneousGroundReactionWrench(plant, constraint_torque_trajectories_left_current(i_time, :)', world_to_belt_transformation);
+                    right_ground_reaction_wrench_trajectory(i_time, :) = calculateInstantaneousGroundReactionWrench(plant, constraint_torque_trajectories_right_current(i_time, :)', world_to_belt_transformation);
                     
                 end
             end

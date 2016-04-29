@@ -1,7 +1,7 @@
 %% Questions to answer...
 % Do the indices differ when emg and no emg?
 % 
-close all
+
 %% Choose Data Type
 visual_perturbation             = 1;
 phase_dependent                 = 0;
@@ -37,11 +37,9 @@ wait_time_labels = {'0ms', '150ms', '450ms'};
 load subjectInfo.mat;
 
 % trials_to_process = 1 : 23;
-trials_to_process = [0 1 2 3 4 5 6 7 9 11 12 13 14 15 16 17 18 20 21 22 23];
-bad_trials = [ 8 10 19];
-% trials_to_process = [24 25 29];
-% trials_to_process = 3 : 36;
-% trials_to_process = 29;
+trials_to_process = [1 2 3 4 5 6 7 9 11 12 13 14 15 16 17 18 20 21 22 23];
+trials_to_process = [1:7 9:23];
+% trials_to_process = 12 : 23;
 
 total_positive_steps = [];
 total_negative_steps = [];
@@ -163,7 +161,8 @@ if extract_data
         
         % find trigger
         trigger_indices_forceplate_trial = find(diff(sign(stimulus_foot_state - 0.5)) > 0) + 1;
-        stim_start_indices_forceplate_trial = find(diff(abs(stim_sent_trajectory)) > 0) + 1;
+        epsilon = 1e-5;
+        stim_start_indices_forceplate_trial = find(diff(sign(abs(stim_sent_trajectory) - epsilon)) > 0) + 1;
         trigger_indices_forceplate_trial = trigger_indices_forceplate_trial(1 : length(stim_start_indices_forceplate_trial)); % in case a stim is triggered, but not recorded
         % there might be a problem here where the stim start index is identified as the last time step before the stim
         
@@ -227,7 +226,7 @@ if extract_data
             if isempty(index_right)
                 removal_flags(i_trigger) = 1;
             else
-                if length(left_touchdown_indices_force_plate) < index_left + 2
+                if length(right_touchdown_indices_force_plate) < index_right + 2
                     removal_flags(i_trigger) = 1;
                 else
                     this_right_foot_heelstrike = right_touchdown_indices_force_plate(index_right+1);
@@ -368,7 +367,7 @@ if extract_data
                 touchdown_index_forceplate = stretch_start_index_forceplate + find(stance_foot_cop_stretch~=0, 1, 'first') - 1;
                 stance_foot_fz_step = left_fz_trajectory(touchdown_index_forceplate : stretch_end_index_forceplate);
                 swing_foot_fz_step = right_fz_trajectory(touchdown_index_forceplate : stretch_end_index_forceplate);
-            end     
+            end
             touchdown_time_forceplate = time_force_plate(touchdown_index_forceplate);
             time_extracted_forceplate = time_force_plate(touchdown_index_forceplate : stretch_end_index_forceplate);
             
@@ -378,6 +377,10 @@ if extract_data
             if number_of_swing_foot_fz_zeros_stretch < swing_foot_zero_stretch_length_threshold
                 removal_flags(i_stretch) = 1;
                 disp(['excluding stretch index ' num2str(i_stretch) ' - cross over']);
+            end
+            if isempty(touchdown_index_forceplate)
+                touchdown_index_forceplate = stretch_start_index_forceplate;
+                removal_flags(i_stretch) = 1;
             end
 
 %             figure; axes; hold on; title('left')
