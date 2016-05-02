@@ -8,12 +8,12 @@ phase_dependent                 = 0;
 emg_present                     = 0;
 
 %% Choose Analysis Processes
-extract_data                    = 1;
-calculate_responses             = 1;
-calculate_stats                 = 1;
-calculate_response_extrema      = 1;
+extract_data                    = 0;
+calculate_responses             = 0;
+calculate_stats                 = 0;
+calculate_response_extrema      = 0;
 
-view_totals_and_removals        = 1;
+view_totals_and_removals        = 0;
 visualize_triggers              = 0;
 visualize_steps_during_extract  = 0;
 do_cop_plots_absolute_right     = 0;
