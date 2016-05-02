@@ -1,9 +1,9 @@
 
-use_parallel            = 0;
+use_parallel            = 1;
 
-trials_to_process = 6;
+trials_to_process = 1;
 
-data_directory = '/Users/reimajbi/Neuro/walking/data/20160322_EEJ'; % should this be a function argument?
+data_directory = '/Users/reimajbi/TempleDrive/20160418_MCA'; % should this be a function argument?
 
 load subjectInfo.mat;
 model_file_name = makeFileName(date, subject_id, 'model');
@@ -159,27 +159,14 @@ end
 % pelvis_to_world_poe = pelvis_chain.productsOfExponentials{6};
 % right_thigh_marker_positions_from_right_leg_transformed = pelvis_to_world_poe * right_thigh_marker_positions_from_right_leg; % should be equal to right_thigh_marker_positions_from_full
 
-
-
-
-
-
-
-
-
 %% optimize
 for i_trial = trials_to_process
     % load data
-    marker_trajectories_file_name = makeFileName(date, subject_id, 'walking', i_trial, 'markerTrajectories');
-    load([data_directory filesep marker_trajectories_file_name]);
-    
-    % schedule for optimization
-    number_of_time_steps = size(marker_trajectories, 1);
-    time_steps_to_optimize = 1 : number_of_time_steps;
-    time_steps_to_optimize = 1540 : 1550;
+    load([data_directory filesep makeFileName(date, subject_id, 'walking', i_trial, 'markerTrajectories')]);
+    load([data_directory filesep makeFileName(date, subject_id, 'walking', i_trial, 'relevantDataStretches')]);
     
     % run optimization
-    number_of_time_steps_to_optimize = length(time_steps_to_optimize);
+    number_of_data_points_to_process_mocap = length(data_points_to_process_mocap);
     joint_angle_trajectory_optimized = zeros(number_of_time_steps, number_of_joints);
     tic
     if use_parallel
@@ -199,9 +186,9 @@ for i_trial = trials_to_process
             right_arm_chain_pool = right_arm_chain.copy;
             left_arm_chain_pool = left_arm_chain.copy;
             
-            time_steps_to_optimize_lab = time_steps_to_optimize(labindex : numlabs : number_of_time_steps_to_optimize);
+            data_points_to_process_mocap_lab = data_points_to_process_mocap(labindex : numlabs : number_of_data_points_to_process_mocap);
             
-            joint_angle_trajectory_optimized_pool(time_steps_to_optimize_lab, :) = ...
+            joint_angle_trajectory_optimized_pool(data_points_to_process_mocap_lab, :) = ...
             optimizeJointAngles ...
             ( ...
               plant_pool, ...
@@ -211,18 +198,18 @@ for i_trial = trials_to_process
               trunk_chain_pool, ...
               left_arm_chain_pool, ...
               right_arm_chain_pool, ...
-              marker_trajectories(time_steps_to_optimize_lab, :) ...
+              marker_trajectories(data_points_to_process_mocap_lab, :) ...
             );        
         end
         
         % reassemble
         for i_lab = 1 : number_of_labs
             joint_angle_trajectory_optimized_lab = joint_angle_trajectory_optimized_pool{i_lab};
-            joint_angle_trajectory_optimized(time_steps_to_optimize(i_lab : number_of_labs : number_of_time_steps_to_optimize), :) = joint_angle_trajectory_optimized_lab(time_steps_to_optimize(i_lab : number_of_labs : number_of_time_steps_to_optimize), :);
+            joint_angle_trajectory_optimized(data_points_to_process_mocap(i_lab : number_of_labs : number_of_data_points_to_process_mocap), :) = joint_angle_trajectory_optimized_lab(data_points_to_process_mocap(i_lab : number_of_labs : number_of_data_points_to_process_mocap), :);
         end        
 
     else
-        joint_angle_trajectory_optimized(time_steps_to_optimize, :) = ...
+        joint_angle_trajectory_optimized(data_points_to_process_mocap, :) = ...
         optimizeJointAngles ...
         ( ...
           plant, ...
@@ -232,17 +219,17 @@ for i_trial = trials_to_process
           trunk_chain, ...
           left_arm_chain, ...
           right_arm_chain, ...
-          marker_trajectories(time_steps_to_optimize, :) ...
+          marker_trajectories(data_points_to_process_mocap, :) ...
         );
     end
     toc
     
     % normalize
-    angle_trajectories = normalizeAngle(joint_angle_trajectory_optimized);
+    joint_angle_trajectories = normalizeAngle(joint_angle_trajectory_optimized);
     
     % save
     angle_trajectory_file_name = makeFileName(date, subject_id, 'walking', i_trial, 'angleTrajectories');
-    save([data_directory filesep angle_trajectory_file_name], 'angle_trajectories');
+    save([data_directory filesep angle_trajectory_file_name], 'joint_angle_trajectories');
     
     disp(['Trial ' num2str(i_trial) ' completed']);
 end

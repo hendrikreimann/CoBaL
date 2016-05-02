@@ -4,12 +4,12 @@
 reconstruct             = 1;
 use_parallel            = 1;
 use_filtered_data       = 1;
-visualize_derivatives   = 0;
+visualize_derivatives   = 1;
 
 % trials_to_process = 1001;
 % trials_to_process = 6;
 % trials_to_process = 1001 : 1180;
-trials_to_process = 2;
+trials_to_process = 1;
 
 load subjectInfo.mat;
 model_file_name = makeFileName(date, subject_id, 'model');
@@ -33,6 +33,7 @@ for i_trial = trials_to_process
     load(makeFileName(date, subject_id, 'walking', i_trial, 'markerTrajectories'));
     load(makeFileName(date, subject_id, 'walking', i_trial, 'angleTrajectories'));
     load(makeFileName(date, subject_id, 'walking', i_trial, 'forcePlateData'));
+    load(makeFileName(date, subject_id, 'walking', i_trial, 'relevantDataStretches'));
     
     number_of_time_steps = size(joint_angle_trajectories, 1);
     number_of_joints = plant.numberOfJoints;
@@ -50,6 +51,12 @@ for i_trial = trials_to_process
     
     joint_angle_trajectories_belt = joint_angle_trajectories;
     joint_angle_trajectories_belt(:, 2) = joint_angle_trajectories_belt(:, 2) + belt_position_trajectory_mocap;
+    
+    % set irrelevant data points to NaN
+    all_data_points = 1 : number_of_time_steps;
+    irrelevant_data_points = ~ismember(all_data_points, data_points_to_process_mocap);
+    joint_angle_trajectories(irrelevant_data_points, :) = NaN;
+    joint_angle_trajectories_belt(irrelevant_data_points, :) = NaN;
     
     %% calculate angle derivatives
     joint_angles_filtered = zeros(size(joint_angle_trajectories)) * NaN;
@@ -166,21 +173,21 @@ for i_trial = trials_to_process
     
     % visualize
     if visualize_derivatives
-        joints_to_visualize = 16;
+        joints_to_visualize = 2;
         angle_derivative_axes = zeros(3, length(joints_to_visualize));
         for i_joint = joints_to_visualize
             figure; angle_derivative_axes(1, joints_to_visualize==i_joint) = axes; hold on; title([plant.jointLabels{i_joint} ' - angle'])
-            plot(time_mocap, joint_angles_unfiltered(:, i_joint));
+            plot(time_mocap, joint_angles_unfiltered(:, i_joint), 'x-');
             plot(time_mocap, joint_angles_filtered(:, i_joint));
             legend('unfiltered', 'filtered')
 
             figure; angle_derivative_axes(2, joints_to_visualize==i_joint) = axes; hold on; title([plant.jointLabels{i_joint} ' - velocity'])
-            plot(time_mocap, joint_velocities_from_unfiltered(:, i_joint));
+            plot(time_mocap, joint_velocities_from_unfiltered(:, i_joint), 'x-');
             plot(time_mocap, joint_velocities_from_filtered(:, i_joint));
             legend('from unfiltered', 'from filtered')
 
             figure; angle_derivative_axes(3, joints_to_visualize==i_joint) = axes; hold on; title([plant.jointLabels{i_joint} ' - acceleration'])
-            plot(time_mocap, joint_accelerations_from_unfiltered(:, i_joint));
+            plot(time_mocap, joint_accelerations_from_unfiltered(:, i_joint), 'x-');
             plot(time_mocap, joint_accelerations_from_filtered(:, i_joint));
             legend('from unfiltered', 'from filtered')
         end
@@ -230,7 +237,7 @@ for i_trial = trials_to_process
             for i_time = labindex : numlabs : number_of_time_steps
                 joint_angles = joint_angle_trajectories(i_time, :)';
                 joint_velocities = joint_velocity_trajectories(i_time, :)';
-                if any(isnan(joint_angles))
+                if ~ismember(i_time, data_points_to_process_mocap) || any(isnan(joint_angles))
                     marker_trajectories_pool(i_time, :) = NaN;
                     left_heel_trajectory_pool(i_time, :) = NaN;
                     left_toes_trajectory_pool(i_time, :) = NaN;
@@ -307,7 +314,7 @@ for i_trial = trials_to_process
         for i_time = 1 : number_of_time_steps
             joint_angles = joint_angle_trajectories(i_time, :)';
             joint_velocities = joint_velocity_trajectories(i_time, :)';
-            if any(isnan(joint_angles))
+            if ~ismember(i_time, data_points_to_process_mocap) || any(isnan(joint_angles))
                 marker_trajectories_reconstructed(i_time, :) = NaN;
                 left_heel_trajectory(i_time, :) = NaN;
                 left_toes_trajectory(i_time, :) = NaN;

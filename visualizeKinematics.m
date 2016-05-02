@@ -8,7 +8,7 @@ plot_angle_trajectories             = 1;
 
 close_figures = 0;
 
-trial_to_show = 2;
+trial_to_show = 1;
 
 segments_to_plot = ...
   [ ...
@@ -70,10 +70,9 @@ end
 %% show_marker_comparison_stick_figure
 if show_marker_comparison_stick_figure
 
-%     scene_limits = 1*[-2.5 1.5; 0 1; -0.1 2];
-%     scene_limits = 1*[-2.5 1.5; -1 2; -0.1 2];
     scene_limits = [-0.8 0.8; 0 20; -0.1 2];
-    stick_figure = showMarkerComparisonStickFigure(plant, angle_trajectories, marker_trajectories, scene_limits);
+    scene_limits = [-0.8 0.8; 0 2; -0.1 2];
+    stick_figure = showMarkerComparisonStickFigure(plant, joint_angle_trajectories, marker_trajectories, scene_limits);
     stick_figure.showLinkMassEllipsoids = false;
     stick_figure.update;
 end
@@ -115,7 +114,7 @@ if plot_angle_trajectories
     for i_group = 1 : number_of_groups
         figure; group_axes(i_group) = axes; hold on
         for i_joint = angle_plot_groups{i_group}
-            plot(time_mocap, angle_trajectories(:, i_joint), 'linewidth', 2, 'displayname', plant.jointLabels{i_joint})
+            plot(time_mocap, joint_angle_trajectories(:, i_joint), 'linewidth', 2, 'displayname', plant.jointLabels{i_joint})
         end
         legend('show', 'location', 'SE')
     end

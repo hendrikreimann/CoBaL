@@ -84,10 +84,11 @@ if use_body_velocity_constraints
         V_body_right_5_fit_pushoff, ...
         V_body_right_6_fit_pushoff ...
       };
+  
+    left_ankle_scs_to_world_rotation_reference = plant.endEffectorTransformations{3}(1:3, 1:3);
+    right_ankle_scs_to_world_rotation_reference = plant.endEffectorTransformations{6}(1:3, 1:3);
 end
 
-left_ankle_scs_to_world_rotation_reference = plant.endEffectorTransformations{3}(1:3, 1:3);
-right_ankle_scs_to_world_rotation_reference = plant.endEffectorTransformations{6}(1:3, 1:3);
 
 for i_trial = trials_to_process
     if ~ismember(i_trial, trials_to_exclude)

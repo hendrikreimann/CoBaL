@@ -1,20 +1,28 @@
 % find the relevant stretches of data after the stimuli
 
 
-visualize_triggers = 0;
+%% Choose Data Type
+visual_perturbation             = 1;
+phase_dependent                 = 0;
+emg_present                     = 0;
 
-
+view_totals_and_removals        = 1;
+visualize_triggers              = 0;
 
 %% prepare
 wait_times = [0 0.150 0.450];
 wait_time_labels = {'0ms', '150ms', '450ms'};
 load subjectInfo.mat;
 
-% trials_to_process = 3 : 43;
-% trials_to_process = [24 25 29];
-% trials_to_process = 3 : 36;
-trials_to_process = 3;
+% trials_to_process = 1 : 23;
+trials_to_process = [1 2 3 4 5 6 7 9 11 12 13 14 15 16 17 18 20 21 22 23];
+trials_to_process = [1:7 9:23];
+% trials_to_process = 12 : 23;
 
+total_positive_steps = [];
+total_negative_steps = [];
+total_polarity_condition_list = [];
+total_step_condition_list = [];
 
 number_of_time_steps_normalized = 256;
 swing_foot_fz_zero_threshold = 20; % threshold for counting a vertical force reading as zero, in Nm
@@ -38,12 +46,20 @@ condition_stance_foot_list = {};
 condition_polarity_list = {};
 condition_delay_list = {};
 stim_start_time_relative_to_stretch = [];
+
 for i_trial = trials_to_process
     % load data
     load(makeFileName(date, subject_id, 'walking', i_trial, 'forcePlateData'));
     load(makeFileName(date, subject_id, 'walking', i_trial, 'markerTrajectories'));
-    load(makeFileName(date, subject_id, 'walking', i_trial, 'emgTrajectories'));
     load(makeFileName(date, subject_id, 'walking', i_trial, 'stepEvents'));
+    if emg_present
+        load(makeFileName(date, subject_id, 'walking', i_trial, 'emgTrajectories'));
+    end
+    load(makeFileName(date, subject_id, 'walking', i_trial, 'stepEvents'));
+
+    if visual_perturbation
+        stim_sent_trajectory = visual_shift_ml_trajectory;
+    end
 
     left_copx_trajectory = left_force_plate_cop_Acw(:, 1);
     right_copx_trajectory = right_force_plate_cop_Acw(:, 1);
@@ -52,7 +68,8 @@ for i_trial = trials_to_process
 
     % find trigger
     trigger_indices_forceplate = find(diff(sign(stimulus_foot_state - 0.5)) > 0) + 1;
-    stim_start_indices_forceplate = find(diff(abs(stim_sent_trajectory)) > 0) + 1;
+    epsilon = 1e-5;
+    stim_start_indices_forceplate = find(diff(sign(abs(stim_sent_trajectory) - epsilon)) > 0) + 1;
     trigger_indices_forceplate = trigger_indices_forceplate(1 : length(stim_start_indices_forceplate)); % in case a stim is triggered, but not recorded
 
     % visualize triggers
@@ -114,7 +131,7 @@ for i_trial = trials_to_process
         if isempty(index_right)
             removal_flags(i_trigger) = 1;
         else
-            if length(left_touchdown_indices_force_plate) < index_left + 2
+            if length(right_touchdown_indices_force_plate) < index_right + 2
                 removal_flags(i_trigger) = 1;
             else
                 this_right_foot_heelstrike = right_touchdown_indices_force_plate(index_right+1);
@@ -243,23 +260,31 @@ for i_trial = trials_to_process
             removal_flags(i_stretch) = 1;
             disp(['excluding stretch index ' num2str(i_stretch) ' - cross over']);
         end
+        if isempty(touchdown_index_forceplate)
+            touchdown_index_forceplate = stretch_start_index_forceplate;
+            removal_flags(i_stretch) = 1;
+        end
 
         % time
         start_index_force_plate = touchdown_index_forceplate;
         end_index_force_plate = stretch_end_indices_forceplate(i_stretch);
         [~, start_index_mocap] = min(abs(time_mocap - time_force_plate(start_index_force_plate)));
         [~, end_index_mocap] = min(abs(time_mocap - time_force_plate(end_index_force_plate)));
-        [~, start_index_emg] = min(abs(time_emg - time_force_plate(start_index_force_plate)));
-        [~, end_index_emg] = min(abs(time_emg - time_force_plate(end_index_force_plate)));
+        if emg_present
+            [~, start_index_emg] = min(abs(time_emg - time_force_plate(start_index_force_plate)));
+            [~, end_index_emg] = min(abs(time_emg - time_force_plate(end_index_force_plate)));
+        end
         
         % store
         start_indices_mocap(i_stretch) = start_index_mocap;
         end_indices_mocap(i_stretch) = end_index_mocap;
         start_indices_forceplate(i_stretch) = start_index_force_plate;
         end_indices_forceplate(i_stretch) = end_index_force_plate;
-        start_indices_emg(i_stretch) = start_index_emg;
-        end_indices_emg(i_stretch) = end_index_emg;
-
+        if emg_present
+            start_indices_emg(i_stretch) = start_index_emg;
+            end_indices_emg(i_stretch) = end_index_emg;
+        end
+        
         if stim_start_indices_forceplate(i_stretch) == 0
             stim_start_time_relative_to_stretch(i_stretch) = NaN;
         else
@@ -291,6 +316,26 @@ for i_trial = trials_to_process
     stim_start_time_relative_to_stretch = stim_start_time_relative_to_stretch(unflagged_indices);
 
 
+    % prepare stretches for further processing
+    data_points_to_process_mocap = [];
+    number_of_padding_steps = 20;
+    for i_stretch = 1 : size(start_indices_mocap)
+        % get start and end indices and apply padding
+        start_index_mocap_stretch = start_indices_mocap(i_stretch) - number_of_padding_steps;
+        end_index_mocap_stretch = end_indices_mocap(i_stretch) + number_of_padding_steps;
+        
+        % crop if necessary
+        if start_index_mocap_stretch < 1
+            start_index_mocap_stretch = 1;
+        end
+        if end_index_mocap_stretch > size(marker_trajectories, 1);
+            end_index_mocap_stretch = size(marker_trajectories, 1);
+        end
+        
+        time_steps_stretch = start_index_mocap_stretch : end_index_mocap_stretch;
+        data_points_to_process_mocap = [data_points_to_process_mocap time_steps_stretch];
+    end
+    
     %% save data
     file_name = makeFileName(date, subject_id, 'walking', i_trial, 'relevantDataStretches');
     save ...
@@ -305,7 +350,8 @@ for i_trial = trials_to_process
         'end_indices_forceplate', ...
         'start_indices_emg', ...
         'end_indices_emg', ...
-        'stim_start_time_relative_to_stretch' ...
+        'stim_start_time_relative_to_stretch', ...
+        'data_points_to_process_mocap' ...
       )
 
     disp(['Trial ' num2str(i_trial) ' completed']);
