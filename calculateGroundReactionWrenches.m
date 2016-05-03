@@ -10,15 +10,15 @@ use_body_velocity_constraints   = 0;
 plot_ground_reaction_wrenches   = 1;
 save_results                    = 1;
 
-trials_to_process = 2;
+trials_to_process = 1;
 trials_to_exclude = [];
 
 % load data
 load subjectInfo.mat;
 load(makeFileName(date, subject_id, 'model'));
 
-% data_points = 1 : numberOfDataPoints;
-data_points = 1000 : 6000;
+data_points = 1 : numberOfDataPoints;
+% data_points = 1000 : 6000;
 % data_points = 1000 : 1050;
 % data_points = 1000 : 11000;
 
@@ -36,6 +36,7 @@ for i_trial = trials_to_process
         load(makeFileName(date, subject_id, 'walking', i_trial, 'kinematicTrajectories'));
         load(makeFileName(date, subject_id, 'walking', i_trial, 'stepEvents'));
         load(makeFileName(date, subject_id, 'walking', i_trial, 'forcePlateData'));
+        load(makeFileName(date, subject_id, 'walking', i_trial, 'relevantDataStretches'));
         number_of_time_steps = size(joint_angle_trajectories_belt, 1);
         
         label = 'inverseDynamics';
@@ -151,10 +152,29 @@ for i_trial = trials_to_process
             color_y_b = [0.3 0.7 0];
             color_z_b = [0 0.3 0.7];
             
+            % prepare stretches for further processing without padding
+            data_points_to_process_mocap_without_padding = [];
+            number_of_padding_steps = 0;
+            for i_stretch = 1 : size(start_indices_mocap)
+                % get start and end indices and apply padding
+                start_index_mocap_stretch = start_indices_mocap(i_stretch) - number_of_padding_steps;
+                end_index_mocap_stretch = end_indices_mocap(i_stretch) + number_of_padding_steps;
+                time_steps_stretch = start_index_mocap_stretch : end_index_mocap_stretch;
+                data_points_to_process_mocap_without_padding = [data_points_to_process_mocap_without_padding time_steps_stretch];
+            end
+            all_data_points = 1 : number_of_time_steps;
+            irrelevant_data_points = ~ismember(all_data_points, data_points_to_process_mocap_without_padding);
+            left_ground_reaction_wrench_trajectory_unpadded = left_ground_reaction_wrench_trajectory; left_ground_reaction_wrench_trajectory_unpadded(irrelevant_data_points, :) = NaN;
+            right_ground_reaction_wrench_trajectory_unpadded = right_ground_reaction_wrench_trajectory; right_ground_reaction_wrench_trajectory_unpadded(irrelevant_data_points, :) = NaN;
+            
+            
             figure; left_grf_axes = axes; hold on; title('left ground reaction forces');
             plot(time_force_plate, left_force_plate_wrench_Acw(:, 1), 'color', color_x_a);
             plot(time_force_plate, left_force_plate_wrench_Acw(:, 2), 'color', color_y_a);
             plot(time_force_plate, left_force_plate_wrench_Acw(:, 3), 'color', color_z_a);
+            plot(time_mocap, left_ground_reaction_wrench_trajectory_unpadded(:, 1), 'color', color_x_b, 'linewidth', 3);
+            plot(time_mocap, left_ground_reaction_wrench_trajectory_unpadded(:, 2), 'color', color_y_b, 'linewidth', 3);
+            plot(time_mocap, left_ground_reaction_wrench_trajectory_unpadded(:, 3), 'color', color_z_b, 'linewidth', 3);
             plot(time_mocap, left_ground_reaction_wrench_trajectory(:, 1), 'color', color_x_b);
             plot(time_mocap, left_ground_reaction_wrench_trajectory(:, 2), 'color', color_y_b);
             plot(time_mocap, left_ground_reaction_wrench_trajectory(:, 3), 'color', color_z_b);
@@ -163,6 +183,9 @@ for i_trial = trials_to_process
             plot(time_force_plate, left_force_plate_wrench_Acw(:, 4), 'color', color_x_a);
             plot(time_force_plate, left_force_plate_wrench_Acw(:, 5), 'color', color_y_a);
             plot(time_force_plate, left_force_plate_wrench_Acw(:, 6), 'color', color_z_a);
+            plot(time_mocap, left_ground_reaction_wrench_trajectory_unpadded(:, 4), 'color', color_x_b, 'linewidth', 3);
+            plot(time_mocap, left_ground_reaction_wrench_trajectory_unpadded(:, 5), 'color', color_y_b, 'linewidth', 3);
+            plot(time_mocap, left_ground_reaction_wrench_trajectory_unpadded(:, 6), 'color', color_z_b, 'linewidth', 3);
             plot(time_mocap, left_ground_reaction_wrench_trajectory(:, 4), 'color', color_x_b);
             plot(time_mocap, left_ground_reaction_wrench_trajectory(:, 5), 'color', color_y_b);
             plot(time_mocap, left_ground_reaction_wrench_trajectory(:, 6), 'color', color_z_b);
@@ -171,6 +194,9 @@ for i_trial = trials_to_process
             plot(time_force_plate, right_force_plate_wrench_Acw(:, 1), 'color', color_x_a);
             plot(time_force_plate, right_force_plate_wrench_Acw(:, 2), 'color', color_y_a);
             plot(time_force_plate, right_force_plate_wrench_Acw(:, 3), 'color', color_z_a);
+            plot(time_mocap, right_ground_reaction_wrench_trajectory_unpadded(:, 1), 'color', color_x_b, 'linewidth', 3);
+            plot(time_mocap, right_ground_reaction_wrench_trajectory_unpadded(:, 2), 'color', color_y_b, 'linewidth', 3);
+            plot(time_mocap, right_ground_reaction_wrench_trajectory_unpadded(:, 3), 'color', color_z_b, 'linewidth', 3);
             plot(time_mocap, right_ground_reaction_wrench_trajectory(:, 1), 'color', color_x_b);
             plot(time_mocap, right_ground_reaction_wrench_trajectory(:, 2), 'color', color_y_b);
             plot(time_mocap, right_ground_reaction_wrench_trajectory(:, 3), 'color', color_z_b);
@@ -179,6 +205,9 @@ for i_trial = trials_to_process
             plot(time_force_plate, right_force_plate_wrench_Acw(:, 4), 'color', color_x_a);
             plot(time_force_plate, right_force_plate_wrench_Acw(:, 5), 'color', color_y_a);
             plot(time_force_plate, right_force_plate_wrench_Acw(:, 6), 'color', color_z_a);
+            plot(time_mocap, right_ground_reaction_wrench_trajectory_unpadded(:, 4), 'color', color_x_b, 'linewidth', 3);
+            plot(time_mocap, right_ground_reaction_wrench_trajectory_unpadded(:, 5), 'color', color_y_b, 'linewidth', 3);
+            plot(time_mocap, right_ground_reaction_wrench_trajectory_unpadded(:, 6), 'color', color_z_b, 'linewidth', 3);
             plot(time_mocap, right_ground_reaction_wrench_trajectory(:, 4), 'color', color_x_b);
             plot(time_mocap, right_ground_reaction_wrench_trajectory(:, 5), 'color', color_y_b);
             plot(time_mocap, right_ground_reaction_wrench_trajectory(:, 6), 'color', color_z_b);

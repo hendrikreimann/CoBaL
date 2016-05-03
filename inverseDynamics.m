@@ -1,8 +1,8 @@
 % inverse dynamics
 
-determine_constraint_numbers            = 0;
-calculate_dynamic_matrices              = 0;
-calculate_torques                       = 0;
+determine_constraint_numbers            = 1;
+calculate_dynamic_matrices              = 1;
+calculate_torques                       = 1;
 filter_torques                          = 1;
 
 plot_joint_torques                      = 1;
@@ -10,7 +10,7 @@ plot_joint_torques_smoothed             = 1;
 
 use_parallel = 1;
 
-load_results = 1;
+load_results = 0;
 save_results = 1;
 
 use_point_constraints           = 0;
@@ -23,7 +23,7 @@ use_body_velocity_constraints   = 0;
 
 % trials_to_process = 1001 : 1180;
 % trials_to_exclude = [1046 1064 1066 1069 1089 1092 1109 1114 1132];
-trials_to_process = 2;
+trials_to_process = 1;
 trials_to_exclude = [];
 
 
@@ -85,10 +85,10 @@ if use_body_velocity_constraints
         V_body_right_6_fit_pushoff ...
       };
   
-    left_ankle_scs_to_world_rotation_reference = plant.endEffectorTransformations{3}(1:3, 1:3);
-    right_ankle_scs_to_world_rotation_reference = plant.endEffectorTransformations{6}(1:3, 1:3);
 end
 
+left_ankle_scs_to_world_rotation_reference = plant.endEffectorTransformations{3}(1:3, 1:3);
+right_ankle_scs_to_world_rotation_reference = plant.endEffectorTransformations{6}(1:3, 1:3);
 
 for i_trial = trials_to_process
     if ~ismember(i_trial, trials_to_exclude)
@@ -99,6 +99,7 @@ for i_trial = trials_to_process
         load(makeFileName(date, subject_id, 'walking', i_trial, 'kinematicTrajectories'));
         load(makeFileName(date, subject_id, 'walking', i_trial, 'stepEvents'));
         load(makeFileName(date, subject_id, 'walking', i_trial, 'forcePlateData'));
+        load(makeFileName(date, subject_id, 'walking', i_trial, 'relevantDataStretches'));
         number_of_time_steps = size(joint_angle_trajectories_belt, 1);
 
         if load_results
@@ -127,7 +128,7 @@ for i_trial = trials_to_process
             left_foot_constraint_number_trajectory = zeros(number_of_time_steps, 1);
             right_foot_constraint_number_trajectory = zeros(number_of_time_steps, 1);
             
-            for i_time = data_points
+            for i_time = data_points_to_process_mocap
                 left_ankle_scs_transformation_current = reshape(T_left_ankle_to_world_trajectory(i_time, :), 4, 4);
                 left_ankle_scs_to_world_rotation_current = left_ankle_scs_transformation_current(1:3, 1:3);
                 left_ankle_scs_rotation_reference_to_current = left_ankle_scs_to_world_rotation_reference^(-1) * left_ankle_scs_to_world_rotation_current;
@@ -147,9 +148,9 @@ for i_trial = trials_to_process
 
                 % left foot
                 if left_contact_indicators_mocap(i_time)
-                    if phi_right_trajectory(i_time) < 0
+                    if phi_left_trajectory(i_time) < 0
                         left_foot_constraint_number_trajectory(i_time) = 1;
-                    elseif phi_right_trajectory(i_time) >= 0
+                    elseif phi_left_trajectory(i_time) >= 0
                         left_foot_constraint_number_trajectory(i_time) = 2;
                     else
                         error('fun times, some number is neither smaller nor larger than 0.');

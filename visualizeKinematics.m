@@ -8,7 +8,7 @@ plot_angle_trajectories             = 1;
 
 close_figures = 0;
 
-trial_to_show = 1;
+trial_to_show = 2;
 
 segments_to_plot = ...
   [ ...
