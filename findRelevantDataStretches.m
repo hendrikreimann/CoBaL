@@ -318,7 +318,7 @@ for i_trial = trials_to_process
 
     % prepare stretches for further processing
     data_points_to_process_mocap = [];
-    number_of_padding_steps = 20;
+    number_of_padding_steps = 30;
     for i_stretch = 1 : size(start_indices_mocap)
         % get start and end indices and apply padding
         start_index_mocap_stretch = start_indices_mocap(i_stretch) - number_of_padding_steps;

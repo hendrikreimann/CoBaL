@@ -21,7 +21,7 @@ if use_parallel
 end
 
 filter_order = 2;
-cutoff_frequency = 10; % cutoff frequency, in Hz
+cutoff_frequency = 20; % cutoff frequency, in Hz
 [b_filter, a_filter] = butter(filter_order, cutoff_frequency/(samplingRate/2));
 
 

@@ -1,6 +1,3 @@
-%% Questions to answer...
-% Do the indices differ when emg and no emg?
-% 
 
 %% Choose Data Type
 visual_perturbation             = 1;
