@@ -15,7 +15,6 @@ wait_time_labels = {'0ms', '150ms', '450ms'};
 load subjectInfo.mat;
 
 % trials_to_process = 1 : 23;
-trials_to_process = [1 2 3 4 5 6 7 9 11 12 13 14 15 16 17 18 20 21 22 23];
 trials_to_process = [1:7 9:23];
 % trials_to_process = 12 : 23;
 
