@@ -8,7 +8,7 @@ clear file_name_list;
 load('subjectInfo.mat');
 
 filter_order = 2;
-cutoff_frequency = 10; % cutoff frequency, in Hz
+cutoff_frequency = 20; % cutoff frequency, in Hz
 [b, a] = butter(filter_order, cutoff_frequency/(sampling_rate_mocap/2));	% set filter parameters for butterworth filter: 2=order of filter;
 
 gap_length_limit = 0.15; % maximum of allowable gap being splined over, in seconds

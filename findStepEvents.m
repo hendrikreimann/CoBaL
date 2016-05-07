@@ -1,12 +1,19 @@
 % findStepEvents
 
-visualize = 0;
+visualize_left = 1;
+visualize_right = 1;
 
-trials_to_process = 0 : 23;
-trials_to_process = [0:7 9:23];
+trials_to_process = 0 : 21;
+% trials_to_process = [0:7 9:23];
+trials_to_process = 4;
 
 
-% trials_to_process = 2;
+% method_touchdown = 'position_minima';
+method_touchdown = 'first_acceleration_peak';
+
+method_pushoff = 'first_velocity_peak';
+
+
 
 for i_trial = trials_to_process
 
@@ -33,48 +40,104 @@ for i_trial = trials_to_process
 
     % calculate derivatives
     filter_order = 2;
-    cutoff_frequency = 10; % cutoff frequency, in Hz
-
+    cutoff_frequency = 20; % cutoff frequency, in Hz
     [b, a] = butter(filter_order, cutoff_frequency/(samplingRate/2));	% set filter parameters for butterworth filter: 2=order of filter;
-    left_toes_marker_z_vel_trajectory = centdiff(filtfilt(b, a, left_toes_marker_z_trajectory), 1/samplingRate);
-    right_toes_marker_z_vel_trajectory = centdiff(filtfilt(b, a, right_toes_marker_z_trajectory), 1/samplingRate);
+    left_heel_marker_z_vel_trajectory = deriveByTime(filtfilt(b, a, left_heel_marker_z_trajectory), 1/samplingRate);
+    right_heel_marker_z_vel_trajectory = deriveByTime(filtfilt(b, a, right_heel_marker_z_trajectory), 1/samplingRate);
+    left_heel_marker_z_acc_trajectory = deriveByTime(filtfilt(b, a, left_heel_marker_z_vel_trajectory), 1/samplingRate);
+    right_heel_marker_z_acc_trajectory = deriveByTime(filtfilt(b, a, right_heel_marker_z_vel_trajectory), 1/samplingRate);
+    left_toes_marker_z_vel_trajectory = deriveByTime(filtfilt(b, a, left_toes_marker_z_trajectory), 1/samplingRate);
+    right_toes_marker_z_vel_trajectory = deriveByTime(filtfilt(b, a, right_toes_marker_z_trajectory), 1/samplingRate);
+    left_toes_marker_z_acc_trajectory = deriveByTime(filtfilt(b, a, left_toes_marker_z_vel_trajectory), 1/samplingRate);
+    right_toes_marker_z_acc_trajectory = deriveByTime(filtfilt(b, a, right_toes_marker_z_vel_trajectory), 1/samplingRate);
+    
+    
 
     %% find events
-
-    % find touch down indices as negative peaks of the heel marker z-position
-    peak_width_threshold = samplingRate * 0.25;
-    peak_prominence_threshold = 0.5;
-    peak_width_threshold = samplingRate * 0.25;
-    peak_prominence_threshold = 0.25;
-    [~, left_heel_peak_locations, left_heel_peak_widths] = findpeaks(-left_heel_marker_z_trajectory);
-    left_touchdown_indices_mocap = left_heel_peak_locations(left_heel_peak_widths > peak_width_threshold);
-    [~, right_heel_peak_locations, right_heel_peak_widths] = findpeaks(-right_heel_marker_z_trajectory);
-    right_touchdown_indices_mocap = right_heel_peak_locations(right_heel_peak_widths > peak_width_threshold);
-
-
-    % for touchdown, find the first significant toes z-velocity peak after each heelstrike
-    [~, left_toes_vel_peak_locations, left_toes_vel_peak_widths, left_toes_vel_peak_prominence] = findpeaks(left_toes_marker_z_vel_trajectory);
-    left_toes_vel_peak_indices = left_toes_vel_peak_locations(left_toes_vel_peak_prominence > peak_prominence_threshold);
-    left_pushoff_indices_mocap = [];
-    for i_touchdown = 1 : length(left_touchdown_indices_mocap)
-        left_toes_vel_peak_indices_after_touchdown = left_toes_vel_peak_indices(left_toes_vel_peak_indices > left_touchdown_indices_mocap(i_touchdown));
-        if ~isempty(left_toes_vel_peak_indices_after_touchdown)
-            left_pushoff_index = left_toes_vel_peak_indices_after_touchdown(1);
-            left_pushoff_indices_mocap = [left_pushoff_indices_mocap left_pushoff_index];
+    
+    if strcmp(method_touchdown, 'position_minima')
+        % find touch down indices as negative peaks of the heel marker z-position
+        peak_width_threshold = samplingRate * 0.25;
+        peak_prominence_threshold = 0.5;
+        peak_width_threshold = samplingRate * 0.25;
+        peak_prominence_threshold = 0.25;
+        
+        % left
+        [~, left_heel_peak_locations, left_heel_peak_widths] = findpeaks(-left_heel_marker_z_trajectory);
+        left_touchdown_indices_mocap = left_heel_peak_locations(left_heel_peak_widths > peak_width_threshold);
+        
+        % right
+        [~, right_heel_peak_locations, right_heel_peak_widths] = findpeaks(-right_heel_marker_z_trajectory);
+        right_touchdown_indices_mocap = right_heel_peak_locations(right_heel_peak_widths > peak_width_threshold);
+    elseif strcmp(method_touchdown, 'first_acceleration_peak')
+        % left
+        
+        % find mid-swing as peaks of heel position
+        min_peak_prominence = 0.05;
+        [~, left_heel_midswing_locations] = findpeaks(left_heel_marker_z_trajectory, 'MinPeakProminence', min_peak_prominence);
+        % find acceleration peaks
+        min_peak_prominence = 5;
+        [~, left_heel_acc_peak_locations] = findpeaks(left_heel_marker_z_acc_trajectory, 'MinPeakProminence', min_peak_prominence);
+        % identify acceleration peaks as touchdowns
+        left_touchdown_indices_mocap = zeros(size(left_heel_midswing_locations));
+        for i_step = 1 : length(left_heel_midswing_locations)
+            touchdown_index_index = left_heel_acc_peak_locations(find(left_heel_acc_peak_locations > left_heel_midswing_locations(i_step), 1, 'first'));
+            if ~isempty(touchdown_index_index)
+                left_touchdown_indices_mocap(i_step) = touchdown_index_index;
+            end
         end
-    end
-
-    [~, right_toes_vel_peak_locations, right_toes_vel_peak_widths, right_toes_vel_peak_prominence] = findpeaks(right_toes_marker_z_vel_trajectory);
-    right_toes_vel_peak_indices = right_toes_vel_peak_locations(right_toes_vel_peak_prominence > peak_prominence_threshold);
-    right_pushoff_indices_mocap = [];
-    for i_touchdown = 1 : length(right_touchdown_indices_mocap)
-        right_toes_vel_peak_indices_after_touchdown = right_toes_vel_peak_indices(right_toes_vel_peak_indices > right_touchdown_indices_mocap(i_touchdown));
-        if ~isempty(right_toes_vel_peak_indices_after_touchdown)
-            right_pushoff_index = right_toes_vel_peak_indices_after_touchdown(1);
-            right_pushoff_indices_mocap = [right_pushoff_indices_mocap right_pushoff_index];
+        left_touchdown_indices_mocap(left_touchdown_indices_mocap==0) = [];
+        
+        % right
+        
+        % find mid-swing as peaks of heel position
+        min_peak_prominence = 0.05;
+        [~, right_heel_midswing_locations] = findpeaks(right_heel_marker_z_trajectory, 'MinPeakProminence', min_peak_prominence);
+        % find acceleration peaks
+        min_peak_prominence = 5;
+        [~, right_heel_acc_peak_locations] = findpeaks(right_heel_marker_z_acc_trajectory, 'MinPeakProminence', min_peak_prominence);
+        % identify acceleration peaks as touchdowns
+        right_touchdown_indices_mocap = zeros(size(right_heel_midswing_locations));
+        for i_step = 1 : length(right_heel_midswing_locations)
+            touchdown_index_index = right_heel_acc_peak_locations(find(right_heel_acc_peak_locations > right_heel_midswing_locations(i_step), 1, 'first'));
+            if ~isempty(touchdown_index_index)
+                right_touchdown_indices_mocap(i_step) = touchdown_index_index;
+            end
         end
+        right_touchdown_indices_mocap(right_touchdown_indices_mocap==0) = [];
+        
+        
+        
+        
+        
     end
+    
+    if strcmp(method_pushoff, 'first_velocity_peak')
+        % for pushoff, find the first significant toes z-velocity peak after each heelstrike
+        min_peak_prominence = 0.1;
+        [~, left_toes_vel_peak_locations] = findpeaks(left_toes_marker_z_vel_trajectory, 'MinPeakProminence', min_peak_prominence);
+        left_pushoff_indices_mocap = zeros(size(left_touchdown_indices_mocap));
+        for i_touchdown = 1 : length(left_touchdown_indices_mocap)
+            pushoff_index_index = find(left_toes_vel_peak_locations > left_touchdown_indices_mocap(i_touchdown), 1, 'first');
+            if ~isempty(pushoff_index_index)
+                left_pushoff_indices_mocap(i_touchdown) = left_toes_vel_peak_locations(pushoff_index_index);
+            end
+        end
+        left_pushoff_indices_mocap(left_pushoff_indices_mocap==0) = [];
 
+        min_peak_prominence = 0.1;
+        [~, right_toes_vel_peak_locations] = findpeaks(right_toes_marker_z_vel_trajectory, 'MinPeakProminence', min_peak_prominence);
+        right_pushoff_indices_mocap = zeros(size(right_touchdown_indices_mocap));
+        for i_touchdown = 1 : length(right_touchdown_indices_mocap)
+            pushoff_index_index = find(right_toes_vel_peak_locations > right_touchdown_indices_mocap(i_touchdown), 1, 'first');
+            if ~isempty(pushoff_index_index)
+                right_pushoff_indices_mocap(i_touchdown) = right_toes_vel_peak_locations(pushoff_index_index);
+            end
+        end
+        right_pushoff_indices_mocap(right_pushoff_indices_mocap==0) = [];
+    end
+%     right_pushoff_indices_mocap = right_toes_vel_peak_locations;
+    
     % transform to force plate time
     left_pushoff_indices_force_plate = zeros(size(left_pushoff_indices_mocap));
     for i_index = 1 : length(left_pushoff_indices_mocap)
@@ -121,24 +184,34 @@ for i_trial = trials_to_process
 
 
     %% visualize
-    if visualize
-        force_scaler = 2e-4;
-        vel_scaler = 5e-2;
-        acc_scaler = 1e-2;
+    force_scaler = 2e-4;
+    vel_scaler = 5e-2;
+    acc_scaler = 1e-2;
 
 
-
+    if visualize_left
         % left events
         figure; axes_left = axes; hold on
         plot(time_force_plate, fzl_trajectory*force_scaler)
         plot(time_mocap, left_heel_marker_z_trajectory, 'linewidth', 1);
         plot(time_mocap, left_toes_marker_z_trajectory, 'linewidth', 1);
-        plot(time_mocap(left_touchdown_indices_mocap), left_toes_marker_z_trajectory(left_touchdown_indices_mocap)*0, 'o', 'linewidth', 2);
+        plot(time_mocap(left_touchdown_indices_mocap), left_heel_marker_z_trajectory(left_touchdown_indices_mocap)*0, 'o', 'linewidth', 2);
         plot(time_mocap(left_pushoff_indices_mocap), left_toes_marker_z_trajectory(left_pushoff_indices_mocap)*0, 'o', 'linewidth', 2);
         legend('fzl', 'heel', 'toes', 'touchdown', 'pushoff');
-%         plot(time_mocap, left_toes_marker_z_vel_trajectory, 'linewidth', 1);
-%         legend('fzl', 'heel', 'toes', 'touchdown', 'pushoff', 'toes velocity');
-
+        
+        figure; axes_left_derivatives = axes; hold on
+        plot(time_mocap, left_heel_marker_z_vel_trajectory, 'linewidth', 1);
+        plot(time_mocap, left_toes_marker_z_vel_trajectory, 'linewidth', 1);
+%         plot(time_mocap, left_heel_marker_z_acc_trajectory, 'linewidth', 1);
+%         plot(time_mocap, left_toes_marker_z_acc_trajectory, 'linewidth', 1);
+%         plot(time_mocap(left_touchdown_indices_mocap), left_heel_marker_z_acc_trajectory(left_touchdown_indices_mocap), 'o', 'linewidth', 2);
+        legend('heel vel', 'toes vel', 'heel acc', 'toes acc');
+        plot(time_mocap(left_pushoff_indices_mocap), left_toes_marker_z_vel_trajectory(left_pushoff_indices_mocap), 'o', 'linewidth', 2);
+        
+        linkaxes([axes_left, axes_left_derivatives], 'x')
+%         distFig('rows', 2)
+    end
+    if visualize_right
         % right events
         figure; axes_right = axes; hold on
         plot(time_force_plate, fzr_trajectory*force_scaler)
@@ -147,10 +220,16 @@ for i_trial = trials_to_process
         plot(time_mocap(right_touchdown_indices_mocap), right_toes_marker_z_trajectory(right_touchdown_indices_mocap)*0, 'o', 'linewidth', 2);
         plot(time_mocap(right_pushoff_indices_mocap), right_toes_marker_z_trajectory(right_pushoff_indices_mocap)*0, 'o', 'linewidth', 2);
         legend('fzl', 'heel', 'toes', 'touchdown', 'pushoff');
-%         plot(time_mocap, right_toes_marker_z_vel_trajectory, 'linewidth', 1);
-%         legend('fzl', 'heel', 'toes', 'touchdown', 'pushoff', 'toes velocity');
+        
+        figure; axes_right_derivatives = axes; hold on
+        plot(time_mocap, right_heel_marker_z_vel_trajectory, 'linewidth', 1);
+        plot(time_mocap, right_toes_marker_z_vel_trajectory, 'linewidth', 1);
+%         plot(time_mocap, right_heel_marker_z_acc_trajectory, 'linewidth', 1);
+%         plot(time_mocap, right_toes_marker_z_acc_trajectory, 'linewidth', 1);
+        legend('heel vel', 'toes vel', 'heel acc', 'toes acc');
+        plot(time_mocap(right_pushoff_indices_mocap), right_toes_marker_z_vel_trajectory(right_pushoff_indices_mocap), 'o', 'linewidth', 2);
 
-        linkaxes([axes_left, axes_right], 'x')
+        linkaxes([axes_right, axes_right_derivatives], 'x')
         distFig('rows', 2)
     end
 
@@ -188,89 +267,6 @@ end
 
 
 
-return
-% right events
-figure; axes; hold on
-plot(time_force_plate, fzr_trajectory*force_scaler)
-plot(time_mocap, right_heel_marker_z_trajectory, 'linewidth', 1);
-% plot(time_mocap, right_heel_contact_trajectories, 'linewidth', 2);
-plot(time_mocap, right_toes_marker_z_trajectory, 'linewidth', 1);
-% plot(time_mocap, right_toes_contact_trajectories, 'linewidth', 2);
-% plot(time_mocap, right_toes_marker_z_vel_trajectory * vel_scaler, 'linewidth', 1);
-% plot(right_touchdown_indices, right_toes_marker_z_vel_trajectory(right_touchdown_indices) * vel_scaler, 'o', 'linewidth', 2);
-% plot(right_toes_vel_peak_indices, right_toes_marker_z_vel_trajectory(right_toes_vel_peak_indices) * vel_scaler, 'o', 'linewidth', 2);
-% plot(time_mocap(right_touchdown_indices), right_toes_marker_z_trajectory(right_touchdown_indices)*0, 'o', 'linewidth', 2);
-% plot(time_mocap(right_pushoff_indices), right_toes_marker_z_trajectory(right_pushoff_indices)*0, 'o', 'linewidth', 2);
-
-
-
-% plot(right_toes_vel_peak_locations, right_toes_vel_peak_prominence, 'o', 'linewidth', 2);
-
-return
-
-
-% left heel position
-figure; axes; hold on
-plot(time_force_plate, fzl_trajectory*force_scaler)
-plot(time_mocap, left_heel_marker_z_trajectory, 'linewidth', 1);
-plot(time_mocap, left_heel_marker_z_vel_trajectory * vel_scaler, 'linewidth', 2);
-plot(time_mocap, left_heel_marker_z_acc_trajectory * acc_scaler, 'linewidth', 2);
-plot(time_mocap(left_touchdown_indices), left_heel_marker_z_trajectory(left_touchdown_indices), 'o');
-legend('force', 'pos', 'vel', 'acc')
-
-% left toes position
-figure; axes; hold on
-plot(time_force_plate, fzl_trajectory*force_scaler)
-plot(time_mocap, left_toes_marker_z_trajectory, 'linewidth', 1);
-plot(time_mocap, left_toes_marker_z_vel_trajectory * vel_scaler, 'linewidth', 2);
-plot(time_mocap(left_touchdown_indices), left_toes_marker_z_vel_trajectory(left_touchdown_indices) * vel_scaler, 'o', 'linewidth', 2);
-% plot(time_mocap, left_toes_marker_z_acc_trajectory * acc_scaler, 'linewidth', 2);
-% legend('force', 'pos', 'vel', 'acc')
-return
-
-
-
-% left heel position
-figure; axes; hold on
-% plot(time_force_plate, fzl_trajectory*force_scaler)
-plot(time_mocap, left_heel_marker_z_trajectory);
-% plot(time_mocap(left_heel_peak_locations), left_heel_marker_z_trajectory(left_heel_peak_locations), 'o');
-plot(time_mocap(left_heel_touchdown_indices), left_heel_marker_z_trajectory(left_heel_touchdown_indices), 'o');
-
-% left toes position
-figure; axes; hold on
-% plot(time_force_plate, fzl_trajectory*force_scaler)
-plot(time_mocap, left_toes_marker_z_trajectory);
-% plot(time_mocap(left_toes_peak_locations), left_toes_marker_z_trajectory(left_toes_peak_locations), 'o');
-plot(time_mocap(left_toes_pushoff_indices), left_toes_marker_z_trajectory(left_toes_pushoff_indices), 'o');
-
-% right heel position
-figure; axes; hold on
-% plot(time_force_plate, fzl_trajectory*force_scaler)
-plot(time_mocap, right_heel_marker_z_trajectory);
-% plot(time_mocap(right_heel_peak_locations), right_heel_marker_z_trajectory(right_heel_peak_locations), 'o');
-plot(time_mocap(right_heel_touchdown_indices), right_heel_marker_z_trajectory(right_heel_touchdown_indices), 'o');
-
-% right toes position
-figure; axes; hold on
-% plot(time_force_plate, fzl_trajectory*force_scaler)
-plot(time_mocap, right_toes_marker_z_trajectory);
-% plot(time_mocap(right_toes_peak_locations), right_toes_marker_z_trajectory(right_toes_peak_locations), 'o');
-plot(time_mocap(right_toes_pushoff_indices), right_toes_marker_z_trajectory(right_toes_pushoff_indices), 'o');
-
-return
-
-% left foot velocity
-figure; axes; hold on
-plot(time_mocap, left_heel_marker_z_trajectory);
-plot(time_mocap, left_heel_marker_z_velocity_trajectory);
-plot(time_mocap(left_heel_marker_upward_indices), left_heel_marker_z_velocity_trajectory(left_heel_marker_upward_indices), 'o');
-plot(time_mocap(left_heel_marker_downward_indices), left_heel_marker_z_velocity_trajectory(left_heel_marker_downward_indices), 'o');
-
-% plot(time_mocap, left_heel_vel_above_pos_threshold);
-% plot(time_mocap, -left_heel_vel_below_neg_threshold);
-plot(time_mocap, left_heel_marker_z_velocity_pos_threshold*ones(size(time_mocap)))
-plot(time_mocap, left_heel_marker_z_velocity_neg_threshold*ones(size(time_mocap)))
 
 
 
@@ -279,6 +275,3 @@ plot(time_mocap, left_heel_marker_z_velocity_neg_threshold*ones(size(time_mocap)
 
 
 
-
-
-return
