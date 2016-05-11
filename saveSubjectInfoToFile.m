@@ -1,6 +1,6 @@
 function saveSubjectInfoToFile(height, weight, gender, samplingRate, recordingTime)
     
-    data_dir = dir('*_markerTrajectoriesRaw.mat');
+    data_dir = dir('*_markerTrajectories.mat');
     clear file_name_list;
     [file_name_list{1:length(data_dir)}] = deal(data_dir.name);
     sample_file_name = file_name_list{1};

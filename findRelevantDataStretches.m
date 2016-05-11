@@ -2,9 +2,10 @@
 
 
 %% Choose Data Type
-visual_perturbation             = 1;
-phase_dependent                 = 0;
+visual_perturbation             = 0;
 emg_present                     = 0;
+% stimulus_type = 'gvs';
+stimulus_type = 'visual';
 
 view_totals_and_removals        = 1;
 visualize_triggers              = 0;
@@ -16,7 +17,8 @@ load subjectInfo.mat;
 
 % trials_to_process = 1 : 23;
 trials_to_process = [1:7 9:23];
-% trials_to_process = 12 : 23;
+trials_to_process = 1 : 21;
+% trials_to_process = 4;
 
 total_positive_steps = [];
 total_negative_steps = [];
@@ -25,8 +27,8 @@ total_step_condition_list = [];
 
 number_of_time_steps_normalized = 256;
 swing_foot_fz_zero_threshold = 20; % threshold for counting a vertical force reading as zero, in Nm
-swing_foot_zero_stretch_length_threshold = 30; % the number of zero indices in the vertical swing foot force has to be larger than this number
-duration_until_nearest_future_heelstrike_threshold = 0.1; % a heelstrike should happen less than this long after a trigger
+swing_foot_zero_stretch_length_threshold = 20; % the number of zero indices in the vertical swing foot force has to be larger than this number
+duration_until_nearest_future_heelstrike_threshold = 0.05; % a heelstrike should happen less than this long after a trigger
 
 left_heel_marker = 34;
 left_toes_marker = 35;
@@ -56,7 +58,9 @@ for i_trial = trials_to_process
     end
     load(makeFileName(date, subject_id, 'walking', i_trial, 'stepEvents'));
 
-    if visual_perturbation
+    if strcmp(stimulus_type, 'gvs')
+        stim_sent_trajectory = gvs_out_trajectory;
+    elseif strcmp(stimulus_type, 'visual')
         stim_sent_trajectory = visual_shift_ml_trajectory;
     end
 
@@ -92,7 +96,7 @@ for i_trial = trials_to_process
     stim_start_indices_forceplate = [stim_start_indices_forceplate zeros(number_of_triggers, 1)]; %#ok<AGROW>
     stretch_start_indices_forceplate = zeros(number_of_triggers, 2);
     stretch_end_indices_forceplate = zeros(number_of_triggers, 2);
-    duration_until_nearest_future_heelstrike = zeros(number_of_triggers, 2);
+    closest_heelstrike_distance_times = zeros(number_of_triggers, 2);
     condition_stance_foot_list = cell(number_of_triggers, 2);
     condition_polarity_list = cell(number_of_triggers, 2);
     condition_delay_list = cell(number_of_triggers, 2);
@@ -114,41 +118,126 @@ for i_trial = trials_to_process
         condition_delay_list{i_trigger, 1} = wait_time_labels{wait_condition_index};
         condition_delay_list{i_trigger, 2} = 'CONTROL';
 
-        % stance foot for time period of interest
-        [last_left_foot_heelstrike, index_left] = max(left_touchdown_indices_force_plate(left_touchdown_indices_force_plate <= trigger_indices_forceplate(i_trigger)));
-        if isempty(index_left)
-            removal_flags(i_trigger) = 1;
-        else
-            if length(left_touchdown_indices_force_plate) < index_left + 2
-                removal_flags(i_trigger) = 1;
-            else
-                this_left_foot_heelstrike = left_touchdown_indices_force_plate(index_left+1);
-                next_left_foot_heelstrike = left_touchdown_indices_force_plate(index_left+2);
-            end
-        end
-        [last_right_foot_heelstrike, index_right] = max(right_touchdown_indices_force_plate(right_touchdown_indices_force_plate <= trigger_indices_forceplate(i_trigger)));
-        if isempty(index_right)
-            removal_flags(i_trigger) = 1;
-        else
-            if length(right_touchdown_indices_force_plate) < index_right + 2
-                removal_flags(i_trigger) = 1;
-            else
-                this_right_foot_heelstrike = right_touchdown_indices_force_plate(index_right+1);
-                next_right_foot_heelstrike = right_touchdown_indices_force_plate(index_right+2);
-            end
-        end
-
+        % find out which heelstrike triggered
+        [distance_to_trigger_left_indices, index_left] = min(abs(left_touchdown_indices_force_plate - trigger_indices_forceplate(i_trigger)));
+        [distance_to_trigger_right_indices, index_right] = min(abs(right_touchdown_indices_force_plate - trigger_indices_forceplate(i_trigger)));
+        
         % confirm that the trigger happened less than 100ms before the actual heelstrike
-        nearest_future_heelstrike_index = min([this_left_foot_heelstrike this_right_foot_heelstrike]);
-        nearest_future_heelstrike_time = time_force_plate(nearest_future_heelstrike_index);
-        duration_until_nearest_future_heelstrike(i_trigger, 1) = nearest_future_heelstrike_time - time_force_plate(trigger_indices_forceplate(i_trigger));
-        if duration_until_nearest_future_heelstrike(i_trigger, 1) > duration_until_nearest_future_heelstrike_threshold
+%         nearest_future_heelstrike_index = min([this_left_foot_heelstrike this_right_foot_heelstrike]);
+%         nearest_future_heelstrike_time = time_force_plate(nearest_future_heelstrike_index);
+%         duration_until_nearest_future_heelstrike(i_trigger, 1) = nearest_future_heelstrike_time - time_force_plate(trigger_indices_forceplate(i_trigger));
+%         if duration_until_nearest_future_heelstrike(i_trigger, 1) > duration_until_nearest_future_heelstrike_threshold
+%             removal_flags(i_trigger) = 1;
+%             disp(['XXXXXXX Trial ' num2str(i_trial) ': something went wrong at time ' num2str(time_force_plate(trigger_indices_forceplate(i_trigger))) ' - trigger not in sync with heelstrike']);
+%         end
+        closest_heelstrike_distance_indices = min([distance_to_trigger_left_indices distance_to_trigger_right_indices]);
+        closest_heelstrike_distance_time = time_mocap(closest_heelstrike_distance_indices+1);
+        if closest_heelstrike_distance_time > duration_until_nearest_future_heelstrike_threshold
             removal_flags(i_trigger) = 1;
             disp(['XXXXXXX Trial ' num2str(i_trial) ': something went wrong at time ' num2str(time_force_plate(trigger_indices_forceplate(i_trigger))) ' - trigger not in sync with heelstrike']);
         end
+        
+        if distance_to_trigger_left_indices < distance_to_trigger_right_indices
+            % triggered by left heelstrike
+            trigger_foot = 'left';
+            % check whether time offset is positive or negative
+            if left_touchdown_indices_force_plate(index_left) - trigger_indices_forceplate(i_trigger) > 0
+                closest_heelstrike_distance_times(i_trigger) = closest_heelstrike_distance_time;
+            else
+                closest_heelstrike_distance_times(i_trigger) = -closest_heelstrike_distance_time;
+            end
+            if index_left == 1 || length(left_touchdown_indices_force_plate) < index_left + 1
+                % data doesn't include previous or next step
+                removal_flags(i_trigger) = 1;
+                last_right_foot_heelstrike = NaN;
+                this_right_foot_heelstrike = NaN;
+                next_right_foot_heelstrike = NaN;
+                last_left_foot_heelstrike = NaN;
+                this_left_foot_heelstrike = NaN;
+                next_left_foot_heelstrike = NaN;
+            else
+                last_left_foot_heelstrike = left_touchdown_indices_force_plate(index_left-1);
+                this_left_foot_heelstrike = left_touchdown_indices_force_plate(index_left);
+                next_left_foot_heelstrike = left_touchdown_indices_force_plate(index_left+1);
+                
+                last_right_foot_heelstrike = min(right_touchdown_indices_force_plate(right_touchdown_indices_force_plate >= last_left_foot_heelstrike));
+                this_right_foot_heelstrike = min(right_touchdown_indices_force_plate(right_touchdown_indices_force_plate >= this_left_foot_heelstrike));
+                next_right_foot_heelstrike = min(right_touchdown_indices_force_plate(right_touchdown_indices_force_plate >= next_left_foot_heelstrike));
+                
+%                 % check check
+%                 figure; hold on
+%                 plot([last_right_foot_heelstrike this_right_foot_heelstrike next_right_foot_heelstrike], [0 0 0], 'x');
+%                 plot([last_left_foot_heelstrike this_left_foot_heelstrike next_left_foot_heelstrike], [0 0 0], 'x');
+                
+            end            
+        elseif distance_to_trigger_right_indices < distance_to_trigger_left_indices
+            % triggered by right heelstrike
+            trigger_foot = 'right';
+            % check whether time offset is positive or negative
+            if right_touchdown_indices_force_plate(index_right) - trigger_indices_forceplate(i_trigger) > 0
+                closest_heelstrike_distance_times(i_trigger) = closest_heelstrike_distance_time;
+            else
+                closest_heelstrike_distance_times(i_trigger) = -closest_heelstrike_distance_time;
+            end
+            if index_right == 1 || length(right_touchdown_indices_force_plate) < index_right + 1
+                % data doesn't include previous or next step
+                removal_flags(i_trigger) = 1;
+                last_left_foot_heelstrike = NaN;
+                this_left_foot_heelstrike = NaN;
+                next_left_foot_heelstrike = NaN;
+                last_right_foot_heelstrike = NaN;
+                this_right_foot_heelstrike = NaN;
+                next_right_foot_heelstrike = NaN;
+            else
+                last_right_foot_heelstrike = right_touchdown_indices_force_plate(index_right-1);
+                this_right_foot_heelstrike = right_touchdown_indices_force_plate(index_right);
+                next_right_foot_heelstrike = right_touchdown_indices_force_plate(index_right+1);
+                
+                last_left_foot_heelstrike = min(left_touchdown_indices_force_plate(left_touchdown_indices_force_plate >= last_right_foot_heelstrike));
+                this_left_foot_heelstrike = min(left_touchdown_indices_force_plate(left_touchdown_indices_force_plate >= this_right_foot_heelstrike));
+                next_left_foot_heelstrike = min(left_touchdown_indices_force_plate(left_touchdown_indices_force_plate >= next_right_foot_heelstrike));
+                
+%                 % check check
+%                 figure; hold on
+%                 plot([last_right_foot_heelstrike this_right_foot_heelstrike next_right_foot_heelstrike], [0 0 0], 'x');
+%                 plot([last_left_foot_heelstrike this_left_foot_heelstrike next_left_foot_heelstrike], [0 0 0], 'x');
+                
+            end            
+        else
+            trigger_foot = 'unclear';
+            disp(['Trial ' num2str(i_trial) ': something went wrong at time ' num2str(time_force_plate(trigger_indices_forceplate(i_trigger))) ' - trigger exactly between two heelstrikes']);
+            removal_flags(i_trigger) = 1;
+        end
+        
+        
+%         % stance foot for time period of interest
+%         [last_left_foot_heelstrike, index_left] = max(left_touchdown_indices_force_plate(left_touchdown_indices_force_plate <= trigger_indices_forceplate(i_trigger)));
+%         if isempty(index_left)
+%             removal_flags(i_trigger) = 1;
+%         else
+%             if length(left_touchdown_indices_force_plate) < index_left + 2
+%                 removal_flags(i_trigger) = 1;
+%             else
+%                 this_left_foot_heelstrike = left_touchdown_indices_force_plate(index_left+1);
+%                 next_left_foot_heelstrike = left_touchdown_indices_force_plate(index_left+2);
+%             end
+%         end
+%         [last_right_foot_heelstrike, index_right] = max(right_touchdown_indices_force_plate(right_touchdown_indices_force_plate <= trigger_indices_forceplate(i_trigger)));
+%         if isempty(index_right)
+%             removal_flags(i_trigger) = 1;
+%         else
+%             if length(right_touchdown_indices_force_plate) < index_right + 2
+%                 removal_flags(i_trigger) = 1;
+%             else
+%                 this_right_foot_heelstrike = right_touchdown_indices_force_plate(index_right+1);
+%                 next_right_foot_heelstrike = right_touchdown_indices_force_plate(index_right+2);
+%             end
+%         end
+
 
         % mark relevant event delimiters depending on wait time and triggering foot
-        if left_contact_indicators_force_plate(trigger_indices_forceplate(i_trigger)) == 1 && right_contact_indicators_force_plate(trigger_indices_forceplate(i_trigger)) == 0
+%         if left_contact_indicators_force_plate(trigger_indices_forceplate(i_trigger)) == 1 && right_contact_indicators_force_plate(trigger_indices_forceplate(i_trigger)) == 0
+        if strcmp(trigger_foot, 'right')
             % triggered by right foot heelstrike
             if strcmp(condition_delay_list{i_trigger, 1}, '0ms') || strcmp(condition_delay_list{i_trigger, 1}, '150ms')
                 % this step is of interest
@@ -169,7 +258,8 @@ for i_trial = trials_to_process
             else
                 disp(['Trial ' num2str(i_trial) ': something went wrong at time ' num2str(time_force_plate(trigger_indices_forceplate(i_trigger))) ' - delay not defined']);
             end
-        elseif left_contact_indicators_force_plate(trigger_indices_forceplate(i_trigger)) == 0 && right_contact_indicators_force_plate(trigger_indices_forceplate(i_trigger)) == 1
+%         elseif left_contact_indicators_force_plate(trigger_indices_forceplate(i_trigger)) == 0 && right_contact_indicators_force_plate(trigger_indices_forceplate(i_trigger)) == 1
+        elseif strcmp(trigger_foot, 'left')
             % triggered by left foot heelstrike
             if strcmp(condition_delay_list{i_trigger, 1}, '0ms') || strcmp(condition_delay_list{i_trigger, 1}, '150ms')
                 % this step is of interest
@@ -194,7 +284,7 @@ for i_trial = trials_to_process
             removal_flags(i_trigger) = 1;
             condition_stance_foot_list{i_trigger, 1} = 'UNCLEAR';
             condition_stance_foot_list{i_trigger, 2} = 'UNCLEAR';
-            disp(['Trial ' num2str(i_trial) ': something went wrong at time ' num2str(time_force_plate(trigger_indices_forceplate(i_trigger))) ' - stance foot unclear']);
+%             disp(['Trial ' num2str(i_trial) ': something went wrong at time ' num2str(time_force_plate(trigger_indices_forceplate(i_trigger))) ' - stance foot unclear']);
         end
 
     end
@@ -207,7 +297,7 @@ for i_trial = trials_to_process
     condition_stance_foot_list = condition_stance_foot_list(unflagged_indices, :);
     condition_polarity_list = condition_polarity_list(unflagged_indices, :);
     condition_delay_list = condition_delay_list(unflagged_indices, :);
-    duration_until_nearest_future_heelstrike = duration_until_nearest_future_heelstrike(unflagged_indices, :);
+    closest_heelstrike_distance_times = closest_heelstrike_distance_times(unflagged_indices, :);
 
     % form stretches
     stim_start_indices_forceplate = [stim_start_indices_forceplate(:, 1); stim_start_indices_forceplate(:, 2)];
@@ -248,7 +338,7 @@ for i_trial = trials_to_process
             touchdown_index_forceplate = stretch_start_index_forceplate + find(stance_foot_cop_stretch~=0, 1, 'first') - 1;
             stance_foot_fz_step = left_fz_trajectory(touchdown_index_forceplate : stretch_end_index_forceplate);
             swing_foot_fz_step = right_fz_trajectory(touchdown_index_forceplate : stretch_end_index_forceplate);
-        end     
+        end
         touchdown_time_forceplate = time_force_plate(touchdown_index_forceplate);
         time_extracted_forceplate = time_force_plate(touchdown_index_forceplate : stretch_end_index_forceplate);
 
@@ -257,10 +347,11 @@ for i_trial = trials_to_process
         number_of_swing_foot_fz_zeros_stretch = sum(-swing_foot_fz_step < swing_foot_fz_zero_threshold);
         if number_of_swing_foot_fz_zeros_stretch < swing_foot_zero_stretch_length_threshold
             removal_flags(i_stretch) = 1;
-            disp(['excluding stretch index ' num2str(i_stretch) ' - cross over']);
+            disp(['excluding stretch index ' num2str(i_stretch) ' - cross over at time ' num2str(time_force_plate(stretch_start_index_forceplate))]);
         end
         if isempty(touchdown_index_forceplate)
             touchdown_index_forceplate = stretch_start_index_forceplate;
+            touchdown_time_forceplate = time_force_plate(touchdown_index_forceplate);
             removal_flags(i_stretch) = 1;
         end
 

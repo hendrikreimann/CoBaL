@@ -2,14 +2,17 @@
 
 visualize_left = 1;
 visualize_right = 1;
+visualize_position = 1;
+visualize_derivatives = 1;
+show_forceplate = 0;
 
-trials_to_process = 0 : 21;
+trials_to_process = 1 : 1 : 21;
 % trials_to_process = [0:7 9:23];
-trials_to_process = 4;
+trials_to_process = 1;
 
 
-% method_touchdown = 'position_minima';
-method_touchdown = 'first_acceleration_peak';
+method_touchdown = 'position_minima';
+% method_touchdown = 'first_acceleration_peak';
 
 method_pushoff = 'first_velocity_peak';
 
@@ -114,7 +117,7 @@ for i_trial = trials_to_process
     
     if strcmp(method_pushoff, 'first_velocity_peak')
         % for pushoff, find the first significant toes z-velocity peak after each heelstrike
-        min_peak_prominence = 0.1;
+        min_peak_prominence = 0.4;
         [~, left_toes_vel_peak_locations] = findpeaks(left_toes_marker_z_vel_trajectory, 'MinPeakProminence', min_peak_prominence);
         left_pushoff_indices_mocap = zeros(size(left_touchdown_indices_mocap));
         for i_touchdown = 1 : length(left_touchdown_indices_mocap)
@@ -125,7 +128,7 @@ for i_trial = trials_to_process
         end
         left_pushoff_indices_mocap(left_pushoff_indices_mocap==0) = [];
 
-        min_peak_prominence = 0.1;
+        min_peak_prominence = 0.4;
         [~, right_toes_vel_peak_locations] = findpeaks(right_toes_marker_z_vel_trajectory, 'MinPeakProminence', min_peak_prominence);
         right_pushoff_indices_mocap = zeros(size(right_touchdown_indices_mocap));
         for i_touchdown = 1 : length(right_touchdown_indices_mocap)
@@ -163,12 +166,13 @@ for i_trial = trials_to_process
 
 
     %% form contact indicators
-    number_of_time_steps = length(time_mocap);
+    number_of_time_steps_mocap = length(time_mocap);
+    number_of_time_steps_force_plate = length(time_force_plate);
 
-    left_contact_indicators_mocap = formContactIndicatorTrajectory(left_pushoff_indices_mocap, left_touchdown_indices_mocap, number_of_time_steps);
-    right_contact_indicators_mocap = formContactIndicatorTrajectory(right_pushoff_indices_mocap, right_touchdown_indices_mocap, number_of_time_steps);
-    left_contact_indicators_force_plate = formContactIndicatorTrajectory(left_pushoff_indices_force_plate, left_touchdown_indices_force_plate, number_of_time_steps);
-    right_contact_indicators_force_plate = formContactIndicatorTrajectory(right_pushoff_indices_force_plate, right_touchdown_indices_force_plate, number_of_time_steps);
+    left_contact_indicators_mocap = formContactIndicatorTrajectory(left_pushoff_indices_mocap, left_touchdown_indices_mocap, number_of_time_steps_mocap);
+    right_contact_indicators_mocap = formContactIndicatorTrajectory(right_pushoff_indices_mocap, right_touchdown_indices_mocap, number_of_time_steps_mocap);
+    left_contact_indicators_force_plate = formContactIndicatorTrajectory(left_pushoff_indices_force_plate, left_touchdown_indices_force_plate, number_of_time_steps_force_plate);
+    right_contact_indicators_force_plate = formContactIndicatorTrajectory(right_pushoff_indices_force_plate, right_touchdown_indices_force_plate, number_of_time_steps_force_plate);
 
     % form contact trajectories
     left_heel_contact_trajectories = left_heel_marker_z_trajectory; left_heel_contact_trajectories(~left_contact_indicators_mocap, :) = NaN;
@@ -184,57 +188,85 @@ for i_trial = trials_to_process
 
 
     %% visualize
+    color_heelstrike = [1 0 0];
+    color_pushoff = [0 1 0];
+    
     force_scaler = 2e-4;
-    vel_scaler = 5e-2;
-    acc_scaler = 1e-2;
+    vel_scaler = 1;
+    acc_scaler = .2;
 
+    fzl_trajectory_mocap = spline(time_force_plate, fzl_trajectory, time_mocap);
+    fzr_trajectory_mocap = spline(time_force_plate, fzr_trajectory, time_mocap);
+    
 
     if visualize_left
-        % left events
-        figure; axes_left = axes; hold on
-        plot(time_force_plate, fzl_trajectory*force_scaler)
-        plot(time_mocap, left_heel_marker_z_trajectory, 'linewidth', 1);
-        plot(time_mocap, left_toes_marker_z_trajectory, 'linewidth', 1);
-        plot(time_mocap(left_touchdown_indices_mocap), left_heel_marker_z_trajectory(left_touchdown_indices_mocap)*0, 'o', 'linewidth', 2);
-        plot(time_mocap(left_pushoff_indices_mocap), left_toes_marker_z_trajectory(left_pushoff_indices_mocap)*0, 'o', 'linewidth', 2);
-        legend('fzl', 'heel', 'toes', 'touchdown', 'pushoff');
+        if visualize_position
+            % left events
+            figure; axes_left = axes; hold on; title('left foot marker positions')
+            plot(time_mocap, left_heel_marker_z_trajectory, 'linewidth', 1);
+            plot(time_mocap, left_toes_marker_z_trajectory, 'linewidth', 1);
+            plot(time_mocap(left_touchdown_indices_mocap), left_heel_marker_z_trajectory(left_touchdown_indices_mocap), 'o', 'linewidth', 2, 'color', color_heelstrike);
+            plot(time_mocap(left_pushoff_indices_mocap), left_toes_marker_z_trajectory(left_pushoff_indices_mocap), 'o', 'linewidth', 2, 'color', color_pushoff);
+            if show_forceplate
+                plot(time_force_plate, fzl_trajectory*force_scaler)
+                legend('heel', 'toes', 'touchdown', 'pushoff', 'fzl');
+                plot(time_mocap(left_touchdown_indices_mocap), fzl_trajectory_mocap(left_touchdown_indices_mocap)*force_scaler, 'o', 'linewidth', 2, 'color', color_heelstrike);
+                plot(time_mocap(left_pushoff_indices_mocap), fzl_trajectory_mocap(left_pushoff_indices_mocap)*force_scaler, 'o', 'linewidth', 2, 'color', color_pushoff);
+            else
+                legend('heel', 'toes', 'touchdown', 'pushoff');
+            end
+        end
         
-        figure; axes_left_derivatives = axes; hold on
-        plot(time_mocap, left_heel_marker_z_vel_trajectory, 'linewidth', 1);
-        plot(time_mocap, left_toes_marker_z_vel_trajectory, 'linewidth', 1);
-%         plot(time_mocap, left_heel_marker_z_acc_trajectory, 'linewidth', 1);
-%         plot(time_mocap, left_toes_marker_z_acc_trajectory, 'linewidth', 1);
-%         plot(time_mocap(left_touchdown_indices_mocap), left_heel_marker_z_acc_trajectory(left_touchdown_indices_mocap), 'o', 'linewidth', 2);
-        legend('heel vel', 'toes vel', 'heel acc', 'toes acc');
-        plot(time_mocap(left_pushoff_indices_mocap), left_toes_marker_z_vel_trajectory(left_pushoff_indices_mocap), 'o', 'linewidth', 2);
-        
-        linkaxes([axes_left, axes_left_derivatives], 'x')
-%         distFig('rows', 2)
+        if visualize_derivatives
+            figure; axes_left_derivatives = axes; hold on;  title('left foot marker derivatives')
+    %         plot(time_mocap, left_heel_marker_z_vel_trajectory, 'linewidth', 1);
+            plot(time_mocap, left_heel_marker_z_acc_trajectory*acc_scaler, 'linewidth', 1);
+            plot(time_mocap, left_toes_marker_z_vel_trajectory*vel_scaler, 'linewidth', 1);
+    %         plot(time_mocap, left_toes_marker_z_acc_trajectory, 'linewidth', 1);
+    %         plot(time_mocap(left_touchdown_indices_mocap), left_heel_marker_z_acc_trajectory(left_touchdown_indices_mocap), 'o', 'linewidth', 2);
+            legend('heel acc', 'toes vel');
+            plot(time_mocap(left_touchdown_indices_mocap), left_heel_marker_z_acc_trajectory(left_touchdown_indices_mocap)*acc_scaler, 'o', 'linewidth', 2, 'color', color_heelstrike);
+            plot(time_mocap(left_pushoff_indices_mocap), left_toes_marker_z_vel_trajectory(left_pushoff_indices_mocap)*vel_scaler, 'o', 'linewidth', 2, 'color', color_pushoff);
+
+            linkaxes([axes_left, axes_left_derivatives], 'x')
+    %         distFig('rows', 2)
+        end
     end
     if visualize_right
-        % right events
-        figure; axes_right = axes; hold on
-        plot(time_force_plate, fzr_trajectory*force_scaler)
-        plot(time_mocap, right_heel_marker_z_trajectory, 'linewidth', 1);
-        plot(time_mocap, right_toes_marker_z_trajectory, 'linewidth', 1);
-        plot(time_mocap(right_touchdown_indices_mocap), right_toes_marker_z_trajectory(right_touchdown_indices_mocap)*0, 'o', 'linewidth', 2);
-        plot(time_mocap(right_pushoff_indices_mocap), right_toes_marker_z_trajectory(right_pushoff_indices_mocap)*0, 'o', 'linewidth', 2);
-        legend('fzl', 'heel', 'toes', 'touchdown', 'pushoff');
+        if visualize_position
+            % right events
+            figure; axes_right = axes; hold on; title('right foot marker positions')
+            plot(time_mocap, right_heel_marker_z_trajectory, 'linewidth', 1);
+            plot(time_mocap, right_toes_marker_z_trajectory, 'linewidth', 1);
+            plot(time_mocap(right_touchdown_indices_mocap), right_heel_marker_z_trajectory(right_touchdown_indices_mocap), 'o', 'linewidth', 2, 'color', color_heelstrike);
+            plot(time_mocap(right_pushoff_indices_mocap), right_toes_marker_z_trajectory(right_pushoff_indices_mocap), 'o', 'linewidth', 2, 'color', color_pushoff);
+            if show_forceplate
+                plot(time_force_plate, fzr_trajectory*force_scaler)
+                legend('heel', 'toes', 'touchdown', 'pushoff', 'fzl');
+                plot(time_mocap(right_touchdown_indices_mocap), fzr_trajectory_mocap(right_touchdown_indices_mocap)*force_scaler, 'o', 'linewidth', 2, 'color', color_heelstrike);
+                plot(time_mocap(right_pushoff_indices_mocap), fzr_trajectory_mocap(right_pushoff_indices_mocap)*force_scaler, 'o', 'linewidth', 2, 'color', color_pushoff);
+            else
+                legend('heel', 'toes', 'touchdown', 'pushoff');
+            end
+        end
         
-        figure; axes_right_derivatives = axes; hold on
-        plot(time_mocap, right_heel_marker_z_vel_trajectory, 'linewidth', 1);
-        plot(time_mocap, right_toes_marker_z_vel_trajectory, 'linewidth', 1);
-%         plot(time_mocap, right_heel_marker_z_acc_trajectory, 'linewidth', 1);
-%         plot(time_mocap, right_toes_marker_z_acc_trajectory, 'linewidth', 1);
-        legend('heel vel', 'toes vel', 'heel acc', 'toes acc');
-        plot(time_mocap(right_pushoff_indices_mocap), right_toes_marker_z_vel_trajectory(right_pushoff_indices_mocap), 'o', 'linewidth', 2);
+        if visualize_derivatives
+            figure; axes_right_derivatives = axes; hold on; title('left foot marker derivatives')
+    %         plot(time_mocap, right_heel_marker_z_vel_trajectory, 'linewidth', 1);
+            plot(time_mocap, right_heel_marker_z_acc_trajectory*acc_scaler, 'linewidth', 1);
+            plot(time_mocap, right_toes_marker_z_vel_trajectory*vel_scaler, 'linewidth', 1);
+    %         plot(time_mocap, right_toes_marker_z_acc_trajectory, 'linewidth', 1);
+            legend('heel acc', 'toes vel');
+            plot(time_mocap(right_touchdown_indices_mocap), right_heel_marker_z_acc_trajectory(right_touchdown_indices_mocap)*acc_scaler, 'o', 'linewidth', 2, 'color', color_heelstrike);
+            plot(time_mocap(right_pushoff_indices_mocap), right_toes_marker_z_vel_trajectory(right_pushoff_indices_mocap)*vel_scaler, 'o', 'linewidth', 2, 'color', color_pushoff);
 
-        linkaxes([axes_right, axes_right_derivatives], 'x')
-        distFig('rows', 2)
+            linkaxes([axes_right, axes_right_derivatives], 'x')
+            distFig('rows', 2)
+        end
     end
 
 
-
+    linkaxes(getAllAxes, 'x')
 
 
 

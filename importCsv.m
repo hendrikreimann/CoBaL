@@ -183,12 +183,12 @@ for i_trial = 1 : number_of_files
         
         
         % deal with marker data
-        marker_trajectories_raw = data_markers.data(:, 3:end) * millimeter_to_meter;
+        marker_trajectories = data_markers.data(:, 3:end) * millimeter_to_meter;
         time_mocap = data_markers.data(:, 1) * sampling_rate_mocap^(-1);
         
         % save
-        matlab_data_file_name = [csv_data_file_name(1 : end-4) '_markerTrajectoriesRaw.mat'];
-        save(matlab_data_file_name, 'marker_trajectories_raw', 'time_mocap', 'sampling_rate_mocap');
+        matlab_data_file_name = [csv_data_file_name(1 : end-4) '_markerTrajectories.mat'];
+        save(matlab_data_file_name, 'marker_trajectories', 'time_mocap', 'sampling_rate_mocap');
     end
     
     
