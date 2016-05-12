@@ -1,138 +1,123 @@
-classdef stepEventFigure;
+classdef stepEventFigure < handle;
     properties
         main_figure;
         main_axes;
         
-        left_heel_z_pos_plot;
-        left_heel_z_vel_plot;
-        left_heel_z_acc_plot;
-        left_toes_z_pos_plot;
-        left_toes_z_vel_plot;
-        left_toes_z_acc_plot;
-        right_heel_z_pos_plot;
-        right_heel_z_vel_plot;
-        right_heel_z_acc_plot;
-        right_toes_z_pos_plot;
-        right_toes_z_vel_plot;
-        right_toes_z_acc_plot;
+        trial_data;
+        event_data;
         
-        left_touchdown_plots;
-        left_pushoff_plots;
-        right_touchdown_plots;
-        right_pushoff_plots;
+        data_plots;
+        event_plots;
+
     end
     methods
-        function this = stepEventFigure(varargin)
-           parser = inputParser;
-           default_trial_data = createTrialDataStruct;
-           default_event_data = createEventDataStruct;
-           default_color_struct = createColorStruct;
-           default_title = 'Data Figure';
-
-           addOptional(parser, 'trialdata', default_trial_data);
-           addOptional(parser, 'eventdata', default_event_data);
-           addOptional(parser, 'colors', default_color_struct);
-           addOptional(parser, 'title', default_title);
-
-           parse(parser, varargin{:});
+        function this = stepEventFigure(figureTitle, trialData, eventData)
            
-           trial_data = parser.Results.trialdata;
-           event_data = parser.Results.eventdata;
-           color_struct = parser.Results.colors;
-           
-           this.main_figure = figure;
-           this.main_axes = axes;
-           title(parser.Results.title);
+           this.main_figure = figure('ButtonDownFcn', @this.ViewerClickCallback);
+           this.main_axes = axes('ButtonDownFcn', @this.ViewerClickCallback);
+           title(figureTitle);
            hold on;
            
-           this.left_heel_z_pos_plot = plot(trial_data.time_mocap, trial_data.left_heel_z_pos_trajectory, 'color', color_struct.left_heel_pos);
-           this.left_heel_z_vel_plot = plot(trial_data.time_mocap, trial_data.left_heel_z_vel_trajectory, 'color', color_struct.left_heel_vel);
-           this.left_heel_z_acc_plot = plot(trial_data.time_mocap, trial_data.left_heel_z_acc_trajectory, 'color', color_struct.left_heel_acc);
+           this.trial_data = trialData;
+           this.event_data = eventData;
            
-           this.left_toes_z_pos_plot = plot(trial_data.time_mocap, trial_data.left_toes_z_pos_trajectory, 'color', color_struct.left_toes_pos);
-           this.left_toes_z_vel_plot = plot(trial_data.time_mocap, trial_data.left_toes_z_vel_trajectory, 'color', color_struct.left_toes_vel);
-           this.left_toes_z_acc_plot = plot(trial_data.time_mocap, trial_data.left_toes_z_acc_trajectory, 'color', color_struct.left_toes_acc);
-           
-           this.right_heel_z_pos_plot = plot(trial_data.time_mocap, trial_data.right_heel_z_pos_trajectory, 'color', color_struct.right_heel_pos);
-           this.right_heel_z_vel_plot = plot(trial_data.time_mocap, trial_data.right_heel_z_vel_trajectory, 'color', color_struct.right_heel_vel);
-           this.right_heel_z_acc_plot = plot(trial_data.time_mocap, trial_data.right_heel_z_acc_trajectory, 'color', color_struct.right_heel_acc);
-           
-           this.right_toes_z_pos_plot = plot(trial_data.time_mocap, trial_data.right_toes_z_pos_trajectory, 'color', color_struct.right_toes_pos);
-           this.right_toes_z_vel_plot = plot(trial_data.time_mocap, trial_data.right_toes_z_vel_trajectory, 'color', color_struct.right_toes_vel);
-           this.right_toes_z_acc_plot = plot(trial_data.time_mocap, trial_data.right_toes_z_acc_trajectory, 'color', color_struct.right_toes_acc);
-           
-           this.left_touchdown_plots = plot(0, 0, 'v', 'linewidth', 2, 'color', color_struct.left_touchdown);
-           this.left_pushoff_plots = plot([], [], 'v', 'linewidth', 2, 'color', color_struct.left_pushoff);
-           this.right_touchdown_plots = plot([], [], 'v', 'linewidth', 2, 'color', color_struct.right_touchdown);
-           this.right_pushoff_plots = plot([], [], 'v', 'linewidth', 2, 'color', color_struct.right_pushoff);
-           
-           this.updateEventPlots(event_data);
         end
+        function addDataPlot(this, data_label)
+            new_plot = plot ...
+              ( ...
+                this.trial_data.getTime(data_label), ...
+                this.trial_data.getData(data_label), ...
+                'ButtonDownFcn', @this.ViewerClickCallback ...
+              );
+            new_plot.UserData = data_label;
+            this.data_plots{length(this.data_plots)+1} = new_plot;
+        end
+        function addEventPlot(this, data_label, event_label)
+            data_plot_handle = this.getDataPlot(data_label);
+            
+            new_plot = plot ...
+              ( ...
+                this.main_axes, ...
+                0, 0, 'o', ...
+                'linewidth', 2, ...
+                'ButtonDownFcn', @this.ViewerClickCallback ...
+              );
+            new_plot.UserData = {data_plot_handle, event_label};
+            this.event_plots{length(this.event_plots)+1} = new_plot;
+        end
+        function data_plot = getDataPlot(this, data_label)
+            i_plot = 1;
+            while i_plot < length(this.data_plots) && ~strcmp(this.data_plots{i_plot}.UserData, data_label)
+                i_plot = i_plot+1;
+            end
+            data_plot = this.data_plots{i_plot};
+%             eval(['data = this.' data_label ';']);
+        end
+        
+        function ViewerClickCallback(this, sender, eventdata)
+            % get click coordinates
+%             pixel_coordinates = get(viewer_figure, 'CurrentPoint');
+%             pixel_coordinates = pixel_coordinates(1,1:2);
+% 
+%             % take action
+%             if strcmp(current_action_state, 'add liftoff event')
+%                 % find closest point on any curve to the click
+%                 [curve_identifier, index] = pixelCoordinatesToClosestCurvePoint(pixel_coordinates(1, 1:2), sender);
+% 
+%                 % add the event
+%                 addEvent(curve_identifier(1), curve_identifier(2), 1, index);
+%                 createContactTrajectories();
+%                 updatePlots();
+%                 set(viewer_figure, 'Pointer', 'arrow');
+%                 set(add_liftoff_event_button, 'BackgroundColor', [.94 .94 .94]);
+%                 current_action_state = 'default';
+%             elseif strcmp(current_action_state, 'add touchdown event')
+%                 % find closest point on any curve to the click
+%                 [curve_identifier, index] = pixelCoordinatesToClosestCurvePoint(pixel_coordinates(1, 1:2), sender);
+% 
+%                 % add the event
+%                 addEvent(curve_identifier(1), curve_identifier(2), 2, index);
+%                 createContactTrajectories();
+%                 updatePlots();
+%                 set(viewer_figure, 'Pointer', 'arrow');
+%                 set(add_touchdown_event_button, 'BackgroundColor', [.94 .94 .94]);
+%                 current_action_state = 'default';
+%             elseif strcmp(current_action_state, 'default')
+%                 current_event_identifier = pixelCoordinatesToClosestEventIdentifier(pixel_coordinates(1, 1:2), sender);
+%                 updateCurrentEventIdentifierPlot();
+%             else
+%                 error('illegal action state')
+%             end
+disp('blubclick')
+        end
+        
+        
         function setting_struct = getSetting(this)
             setting_struct = struct();
             setting_struct.title = this.main_axes.Title.String;
             setting_struct.position = this.main_figure.Position;
             
-            setting_struct.left_heel_z_pos_plot_visibility = get(this.left_heel_z_pos_plot, 'Visible');
-            setting_struct.left_heel_z_vel_plot_visibility = get(this.left_heel_z_vel_plot, 'Visible');
-            setting_struct.left_heel_z_acc_plot_visibility = get(this.left_heel_z_acc_plot, 'Visible');
-            setting_struct.left_toes_z_pos_plot_visibility = get(this.left_toes_z_pos_plot, 'Visible');
-            setting_struct.left_toes_z_vel_plot_visibility = get(this.left_toes_z_vel_plot, 'Visible');
-            setting_struct.left_toes_z_acc_plot_visibility = get(this.left_toes_z_acc_plot, 'Visible');
-            setting_struct.right_heel_z_pos_plot_visibility = get(this.right_heel_z_pos_plot, 'Visible');
-            setting_struct.right_heel_z_vel_plot_visibility = get(this.right_heel_z_vel_plot, 'Visible');
-            setting_struct.right_heel_z_acc_plot_visibility = get(this.right_heel_z_acc_plot, 'Visible');
-            setting_struct.right_toes_z_pos_plot_visibility = get(this.right_toes_z_pos_plot, 'Visible');
-            setting_struct.right_toes_z_vel_plot_visibility = get(this.right_toes_z_vel_plot, 'Visible');
-            setting_struct.right_toes_z_acc_plot_visibility = get(this.right_toes_z_acc_plot, 'Visible');
-            
-            setting_struct.left_heel_z_pos_plot_color = get(this.left_heel_z_pos_plot, 'color');
-            setting_struct.left_heel_z_vel_plot_color = get(this.left_heel_z_vel_plot, 'Color');
-            setting_struct.left_heel_z_acc_plot_color = get(this.left_heel_z_acc_plot, 'Color');
-            setting_struct.left_toes_z_pos_plot_color = get(this.left_toes_z_pos_plot, 'Color');
-            setting_struct.left_toes_z_vel_plot_color = get(this.left_toes_z_vel_plot, 'Color');
-            setting_struct.left_toes_z_acc_plot_color = get(this.left_toes_z_acc_plot, 'Color');
-            setting_struct.right_heel_z_pos_plot_color = get(this.right_heel_z_pos_plot, 'Color');
-            setting_struct.right_heel_z_vel_plot_color = get(this.right_heel_z_vel_plot, 'Color');
-            setting_struct.right_heel_z_acc_plot_color = get(this.right_heel_z_acc_plot, 'Color');
-            setting_struct.right_toes_z_pos_plot_color = get(this.right_toes_z_pos_plot, 'Color');
-            setting_struct.right_toes_z_vel_plot_color = get(this.right_toes_z_vel_plot, 'Color');
-            setting_struct.right_toes_z_acc_plot_color = get(this.right_toes_z_acc_plot, 'Color');
+            setting_struct.data_labels = cell(size(this.data_plots));
+            for i_data_plot = 1 : length(this.data_plots)
+                setting_struct.data_labels{i_data_plot} = this.data_plots{i_data_plot}.UserData;
+            end
             
         end
         function applySettings(this, setting_struct)
             this.main_figure.Position = setting_struct.position;
             this.main_axes.Title.String = setting_struct.title;
             
-            set(this.left_heel_z_pos_plot, 'Visible', setting_struct.left_heel_z_pos_plot_visibility);
-            set(this.left_heel_z_vel_plot, 'Visible', setting_struct.left_heel_z_vel_plot_visibility);
-            set(this.left_heel_z_acc_plot, 'Visible', setting_struct.left_heel_z_acc_plot_visibility);
-            set(this.left_toes_z_pos_plot, 'Visible', setting_struct.left_toes_z_pos_plot_visibility);
-            set(this.left_toes_z_vel_plot, 'Visible', setting_struct.left_toes_z_vel_plot_visibility);
-            set(this.left_toes_z_acc_plot, 'Visible', setting_struct.left_toes_z_acc_plot_visibility);
-            set(this.right_heel_z_pos_plot, 'Visible', setting_struct.right_heel_z_pos_plot_visibility);
-            set(this.right_heel_z_vel_plot, 'Visible', setting_struct.right_heel_z_vel_plot_visibility);
-            set(this.right_heel_z_acc_plot, 'Visible', setting_struct.right_heel_z_acc_plot_visibility);
-            set(this.right_toes_z_pos_plot, 'Visible', setting_struct.right_toes_z_pos_plot_visibility);
-            set(this.right_toes_z_vel_plot, 'Visible', setting_struct.right_toes_z_vel_plot_visibility);
-            set(this.right_toes_z_acc_plot, 'Visible', setting_struct.right_toes_z_acc_plot_visibility);
-            
-            set(this.left_heel_z_pos_plot, 'Color', setting_struct.left_heel_z_pos_plot_color);
-            set(this.left_heel_z_vel_plot, 'Color', setting_struct.left_heel_z_vel_plot_color);
-            set(this.left_heel_z_acc_plot, 'Color', setting_struct.left_heel_z_acc_plot_color);
-            set(this.left_toes_z_pos_plot, 'Color', setting_struct.left_toes_z_pos_plot_color);
-            set(this.left_toes_z_vel_plot, 'Color', setting_struct.left_toes_z_vel_plot_color);
-            set(this.left_toes_z_acc_plot, 'Color', setting_struct.left_toes_z_acc_plot_color);
-            set(this.right_heel_z_pos_plot, 'Color', setting_struct.right_heel_z_pos_plot_color);
-            set(this.right_heel_z_vel_plot, 'Color', setting_struct.right_heel_z_vel_plot_color);
-            set(this.right_heel_z_acc_plot, 'Color', setting_struct.right_heel_z_acc_plot_color);
-            set(this.right_toes_z_pos_plot, 'Color', setting_struct.right_toes_z_pos_plot_color);
-            set(this.right_toes_z_vel_plot, 'Color', setting_struct.right_toes_z_vel_plot_color);
-            set(this.right_toes_z_acc_plot, 'Color', setting_struct.right_toes_z_acc_plot_color);
         end
-        function updateEventPlots(this, event_data)
-            time_mocap = get(this.left_heel_z_pos_plot, 'xdata');
-            set(this.left_touchdown_plots, 'xdata', time_mocap(event_data.left_touchdown), 'ydata', zeros(1, length(event_data.left_touchdown)));
+        function updateEventPlots(this)
+            for i_plot = 1 : length(this.event_plots)
+                data_plot_handle = this.event_plots{i_plot}.UserData{1};
+                event_label = this.event_plots{i_plot}.UserData{2};
+                time = get(data_plot_handle, 'xdata');
+                data = get(data_plot_handle, 'ydata');
+                event_time = this.event_data.getData(event_label);
+                event_data = interp1(time, data, event_time);
+                set(this.event_plots{i_plot}, 'xdata', event_time, 'ydata', event_data);
+            end
         end
     end
     
