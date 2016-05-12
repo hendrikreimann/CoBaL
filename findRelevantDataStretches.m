@@ -6,7 +6,7 @@ visual_perturbation             = 1;
 phase_dependent                 = 0;
 emg_present                     = 0;
 
-view_totals_and_removals        = 1;
+view_totals_and_removals       =  1;
 visualize_triggers              = 0;
 
 %% prepare
@@ -16,6 +16,8 @@ load subjectInfo.mat;
 
 % trials_to_process = 1 : 23;
 trials_to_process = [1:7 9:23];
+% trials_to_process = [1:21];
+% trials_to_process = 2;
 % trials_to_process = 12 : 23;
 
 total_positive_steps = [];
@@ -28,8 +30,12 @@ swing_foot_fz_zero_threshold = 20; % threshold for counting a vertical force rea
 swing_foot_zero_stretch_length_threshold = 30; % the number of zero indices in the vertical swing foot force has to be larger than this number
 duration_until_nearest_future_heelstrike_threshold = 0.1; % a heelstrike should happen less than this long after a trigger
 
-left_heel_marker = 34;
-left_toes_marker = 35;
+% left_heel_marker = 34;
+% left_toes_marker = 35;
+% right_heel_marker = 42;
+% right_toes_marker = 43;
+left_heel_marker = 33;
+left_toes_marker = 34;
 right_heel_marker = 42;
 right_toes_marker = 43;
 
@@ -66,6 +72,8 @@ for i_trial = trials_to_process
     right_fz_trajectory = right_force_plate_wrench_Acw(:, 3);
 
     % find trigger
+    % -- find the first index where the heel marker crosses the threshold
+    % and is then recognized as heel strike
     trigger_indices_forceplate = find(diff(sign(stimulus_foot_state - 0.5)) > 0) + 1;
     epsilon = 1e-5;
     stim_start_indices_forceplate = find(diff(sign(abs(stim_sent_trajectory) - epsilon)) > 0) + 1;
@@ -130,6 +138,7 @@ for i_trial = trials_to_process
         if isempty(index_right)
             removal_flags(i_trigger) = 1;
         else
+            % I don't understand what is going on here...
             if length(right_touchdown_indices_force_plate) < index_right + 2
                 removal_flags(i_trigger) = 1;
             else
