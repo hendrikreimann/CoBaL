@@ -1,0 +1,59 @@
+classdef stepEventController < handle
+    properties
+        trial_data;
+        event_data;
+        
+        selected_event_label;
+        selected_event_time;
+        
+        control_figure;
+        saveFigureSettingsButton;
+        loadFigureSettingsButton;
+        findEventsButton;
+        saveEventsButton;
+        figureSelectionBox;
+        heel_pos_peak_width;
+        toes_vel_peak_width;
+    end
+    methods
+        function controller = stepEventController(trial_data, event_data)
+            controller.trial_data = trial_data;
+            controller.event_data = event_data;
+
+            figure_height = 600;
+            figure_width = 420;
+            controller.control_figure = figure('position', [1600 300 figure_width figure_height], 'Units', 'pixels');
+
+            % figure control
+            figure_panel_height = 255;
+            figure_panel = uipanel(controller.control_figure, 'Title', 'Figure Control', 'FontSize', 12, 'BackgroundColor', 'white', 'Units', 'pixels', 'Position', [5, figure_height-figure_panel_height-5, figure_width-10, figure_panel_height]);
+            controller.figureSelectionBox = uicontrol(figure_panel, 'Style', 'popup', 'String', '<no figure>', 'Position', [5, figure_panel_height-40, 395, 20], 'Fontsize', 12, 'HorizontalAlignment', 'left');
+
+            controller.saveFigureSettingsButton = uicontrol(figure_panel, 'Style', 'pushbutton', 'Position', [5, figure_panel_height-250, 130, 60], 'Fontsize', 12, 'String', 'Save Figure Settings');
+            controller.loadFigureSettingsButton = uicontrol(figure_panel, 'Style', 'pushbutton', 'Position', [140, figure_panel_height-250, 130, 60], 'Fontsize', 12, 'String', 'Load Figure Settings');
+
+            % event controls
+            events_panel_height = 255;
+            events_panel = uipanel(controller.control_figure, 'Title', 'Events Control', 'FontSize', 12, 'BackgroundColor', 'white', 'Units', 'pixels', 'Position', [5, figure_height-figure_panel_height-events_panel_height-5, figure_width-10, events_panel_height]);
+            controller.findEventsButton = uicontrol(events_panel, 'Style', 'pushbutton', 'Position', [5, events_panel_height-75, 130, 60], 'Fontsize', 12, 'String', 'Find Events');
+            controller.saveEventsButton = uicontrol(events_panel, 'Style', 'pushbutton', 'Position', [140, events_panel_height-75, 130, 60], 'Fontsize', 12, 'String', 'Save Events');
+
+            uicontrol(events_panel, 'Style', 'text', 'string', 'Heel pos peak prominence (m):', 'Position', [5, events_panel_height-100, 190, 20], 'Fontsize', 10, 'HorizontalAlignment', 'left', 'BackgroundColor', 'white');
+            controller.heel_pos_peak_width = uicontrol(events_panel, 'Style', 'edit', 'BackgroundColor', 'white', 'Position', [150, events_panel_height-97, 40, 20], 'String', '0.05');
+            uicontrol(events_panel, 'Style', 'text', 'string', 'Toes vel peak prominence (m):', 'Position', [5, events_panel_height-120, 190, 20], 'Fontsize', 10, 'HorizontalAlignment', 'left', 'BackgroundColor', 'white');
+            controller.toes_vel_peak_width = uicontrol(events_panel, 'Style', 'edit', 'BackgroundColor', 'white', 'Position', [150, events_panel_height-117, 40, 20], 'String', '0.05');
+        end
+        function setSelectedEvent(this, event_label, event_time)
+            this.selected_event_label = event_label;
+            this.selected_event_time = event_time;
+            
+            this.updateSelectedEventPlots();
+        end
+        function updateSelectedEventPlots(this)
+            for i_figure = 1 : length(this.figureSelectionBox.String)
+                this.figureSelectionBox.UserData{i_figure}.updateSelectedEventPlot();
+            end
+        end
+    end
+    
+end
