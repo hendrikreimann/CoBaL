@@ -23,8 +23,8 @@ classdef WalkingEventData < handle
         function setRightPushoffTimes(this, right_pushoff)
             this.right_pushoff = right_pushoff;
         end
-        function data = getData(this, data_label)
-            eval(['data = this.' data_label ';']);
+        function event_times = getEventTimes(this, event_label)
+            eval(['event_times = this.' event_label ';']);
         end
     end
 end

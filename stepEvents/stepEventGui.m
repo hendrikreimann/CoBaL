@@ -16,9 +16,7 @@ function stepEventGui(dataDirectory, trialToProcess)
     event_data = WalkingEventData(trial_data);
     
     % init gui
-%     color_struct = createColorStruct();
-
-    controller = createController();
+    controller = createController;
     
     % create position figure
     step_event_figure = createStepEventFigure('Positions');
@@ -58,33 +56,16 @@ function stepEventGui(dataDirectory, trialToProcess)
 
     %% GUI
     function controller = createController()
-        controller = struct();
-
-        figure_height = 600;
-        figure_width = 420;
-        controller.control_figure = figure('position', [1600 300 figure_width figure_height], 'Units', 'pixels');
+        controller = stepEventController(trial_data, event_data);
+        set(controller.saveFigureSettingsButton, 'callback', @saveFigureSettings);
+        set(controller.loadFigureSettingsButton, 'callback', @loadFigureSettings);
+        set(controller.findEventsButton, 'callback', @findEvents);
+        set(controller.saveEventsButton, 'callback', @saveEvents);
         
-        % figure control
-        figure_panel_height = 255;
-        figure_panel = uipanel(controller.control_figure, 'Title', 'Figure Control', 'FontSize', 12, 'BackgroundColor', 'white', 'Units', 'pixels', 'Position', [5, figure_height-figure_panel_height-5, figure_width-10, figure_panel_height]);
-        controller.figureSelectionBox = uicontrol(figure_panel, 'Style', 'popup', 'String', '<no figure>', 'Position', [5, figure_panel_height-40, 395, 20], 'Fontsize', 12, 'HorizontalAlignment', 'left', 'callback', @updateVisibilityCheckBoxes);
         
-        uicontrol(figure_panel, 'Style', 'pushbutton', 'Position', [5, figure_panel_height-250, 130, 60], 'Fontsize', 12, 'String', 'Save Figure Settings', 'callback', @saveFigureSettings);
-        uicontrol(figure_panel, 'Style', 'pushbutton', 'Position', [140, figure_panel_height-250, 130, 60], 'Fontsize', 12, 'String', 'Load Figure Settings', 'callback', @loadFigureSettings);
-        
-        % event controls
-        events_panel_height = 255;
-        events_panel = uipanel(controller.control_figure, 'Title', 'Events Control', 'FontSize', 12, 'BackgroundColor', 'white', 'Units', 'pixels', 'Position', [5, figure_height-figure_panel_height-events_panel_height-5, figure_width-10, events_panel_height]);
-        uicontrol(events_panel, 'Style', 'pushbutton', 'Position', [5, events_panel_height-75, 130, 60], 'Fontsize', 12, 'String', 'Find Events', 'callback', @findEvents);
-        uicontrol(events_panel, 'Style', 'pushbutton', 'Position', [140, events_panel_height-75, 130, 60], 'Fontsize', 12, 'String', 'Save Events', 'callback', @saveEvents);
-        
-        uicontrol(events_panel, 'Style', 'text', 'string', 'Heel pos peak prominence (m):', 'Position', [5, events_panel_height-100, 190, 20], 'Fontsize', 10, 'HorizontalAlignment', 'left', 'BackgroundColor', 'white');
-        controller.heel_pos_peak_width = uicontrol(events_panel, 'Style', 'edit', 'BackgroundColor', 'white', 'Position', [150, events_panel_height-97, 40, 20], 'String', '0.05');
-        uicontrol(events_panel, 'Style', 'text', 'string', 'Toes vel peak prominence (m):', 'Position', [5, events_panel_height-120, 190, 20], 'Fontsize', 10, 'HorizontalAlignment', 'left', 'BackgroundColor', 'white');
-        controller.toes_vel_peak_width = uicontrol(events_panel, 'Style', 'edit', 'BackgroundColor', 'white', 'Position', [150, events_panel_height-117, 40, 20], 'String', '0.05');
     end
     function step_event_figure = createStepEventFigure(title)
-        step_event_figure = stepEventFigure(title, trial_data, event_data);
+        step_event_figure = stepEventFigure(title, controller, trial_data, event_data);
         if strcmp(controller.figureSelectionBox.String, '<no figure>')
             controller.figureSelectionBox.String = title;
             controller.figureSelectionBox.UserData = {step_event_figure};
