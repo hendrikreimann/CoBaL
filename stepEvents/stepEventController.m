@@ -22,7 +22,7 @@ classdef stepEventController < handle
 
             figure_height = 600;
             figure_width = 420;
-            controller.control_figure = figure('position', [1600 300 figure_width figure_height], 'Units', 'pixels');
+            controller.control_figure = figure('position', [1600 300 figure_width figure_height], 'Units', 'pixels', 'KeyPressFcn', @controller.processKeyPress);
 
             % figure control
             figures_panel_height = 100;
@@ -54,6 +54,50 @@ classdef stepEventController < handle
                 this.figureSelectionBox.UserData{i_figure}.updateSelectedEventPlot();
             end
         end
+        
+        function processKeyPress(this, sender, eventdata)
+            if strcmp(eventdata.Key, 'a')
+                this.selectPreviousEvent();
+                this.updateSelectedEventPlots();
+            elseif strcmp(eventdata.Key, 'd')
+                this.selectNextEvent();
+                this.updateSelectedEventPlots();
+            end
+        end
+        
+        function selectNextEvent(this)
+            % find index of currently selected event
+            currently_selected_event_time = this.selected_event_time;
+            event_data_of_current_type = this.event_data.getEventTimes(this.selected_event_label);
+            event_data_of_current_type_after_currently_selected = event_data_of_current_type(event_data_of_current_type > currently_selected_event_time);
+            
+            if isempty(event_data_of_current_type_after_currently_selected)
+                % the selected event was the last of this type, so go to next type
+                this.selected_event_label = this.event_data.getNextEventTypeLabel(this.selected_event_label);
+                event_data_of_current_type = this.event_data.getEventTimes(this.selected_event_label);
+                this.selected_event_time = event_data_of_current_type(1);
+            else
+                % select next one
+                this.selected_event_time = event_data_of_current_type_after_currently_selected(1);
+            end
+        end
+        function selectPreviousEvent(this)
+            % find index of currently selected event
+            currently_selected_event_time = this.selected_event_time;
+            event_data_of_current_type = this.event_data.getEventTimes(this.selected_event_label);
+            event_data_of_current_type_before_currently_selected = event_data_of_current_type(event_data_of_current_type < currently_selected_event_time);
+            
+            if isempty(event_data_of_current_type_before_currently_selected)
+                % the selected event was the last of this type, so go to next type
+                this.selected_event_label = this.event_data.getPreviousEventTypeLabel(this.selected_event_label);
+                event_data_of_current_type = this.event_data.getEventTimes(this.selected_event_label);
+                this.selected_event_time = event_data_of_current_type(end);
+            else
+                % select next one
+                this.selected_event_time = event_data_of_current_type_before_currently_selected(end);
+            end
+        end
+        
     end
     
 end
