@@ -25,16 +25,16 @@ classdef stepEventController < handle
             controller.control_figure = figure('position', [1600 300 figure_width figure_height], 'Units', 'pixels');
 
             % figure control
-            figure_panel_height = 255;
-            figure_panel = uipanel(controller.control_figure, 'Title', 'Figure Control', 'FontSize', 12, 'BackgroundColor', 'white', 'Units', 'pixels', 'Position', [5, figure_height-figure_panel_height-5, figure_width-10, figure_panel_height]);
-            controller.figureSelectionBox = uicontrol(figure_panel, 'Style', 'popup', 'String', '<no figure>', 'Position', [5, figure_panel_height-40, 395, 20], 'Fontsize', 12, 'HorizontalAlignment', 'left');
+            figures_panel_height = 100;
+            figures_panel = uipanel(controller.control_figure, 'Title', 'Figure Control', 'FontSize', 12, 'BackgroundColor', 'white', 'Units', 'pixels', 'Position', [5, figure_height-figures_panel_height-5, figure_width-10, figures_panel_height]);
+            controller.figureSelectionBox = uicontrol(figures_panel, 'Style', 'popup', 'String', '<no figure>', 'Position', [5, figures_panel_height-40, 395, 20], 'Fontsize', 12, 'HorizontalAlignment', 'left');
 
-            controller.saveFigureSettingsButton = uicontrol(figure_panel, 'Style', 'pushbutton', 'Position', [5, figure_panel_height-250, 130, 60], 'Fontsize', 12, 'String', 'Save Figure Settings');
-            controller.loadFigureSettingsButton = uicontrol(figure_panel, 'Style', 'pushbutton', 'Position', [140, figure_panel_height-250, 130, 60], 'Fontsize', 12, 'String', 'Load Figure Settings');
+            controller.saveFigureSettingsButton = uicontrol(figures_panel, 'Style', 'pushbutton', 'Position', [5, figures_panel_height-100, 130, 60], 'Fontsize', 12, 'String', 'Save Figure Settings');
+            controller.loadFigureSettingsButton = uicontrol(figures_panel, 'Style', 'pushbutton', 'Position', [140, figures_panel_height-100, 130, 60], 'Fontsize', 12, 'String', 'Load Figure Settings');
 
             % event controls
             events_panel_height = 255;
-            events_panel = uipanel(controller.control_figure, 'Title', 'Events Control', 'FontSize', 12, 'BackgroundColor', 'white', 'Units', 'pixels', 'Position', [5, figure_height-figure_panel_height-events_panel_height-5, figure_width-10, events_panel_height]);
+            events_panel = uipanel(controller.control_figure, 'Title', 'Events Control', 'FontSize', 12, 'BackgroundColor', 'white', 'Units', 'pixels', 'Position', [5, figure_height-figures_panel_height-events_panel_height-5, figure_width-10, events_panel_height]);
             controller.findEventsButton = uicontrol(events_panel, 'Style', 'pushbutton', 'Position', [5, events_panel_height-75, 130, 60], 'Fontsize', 12, 'String', 'Find Events');
             controller.saveEventsButton = uicontrol(events_panel, 'Style', 'pushbutton', 'Position', [140, events_panel_height-75, 130, 60], 'Fontsize', 12, 'String', 'Save Events');
 
