@@ -15,7 +15,7 @@ classdef stepEventFigure < handle;
     methods
         function this = stepEventFigure(figureTitle, controller, trialData, eventData)
            
-           this.main_figure = figure;
+           this.main_figure = figure('KeyPressFcn', @controller.processKeyPress);
            this.main_axes = axes('ButtonDownFcn', @this.ViewerClickCallback);
            title(figureTitle);
            hold on;

@@ -266,7 +266,7 @@ for i_trial = trials_to_process
     end
 
 
-    linkaxes(getAllAxes, 'x')
+%     linkaxes(getAllAxes, 'x')
 
 
 
