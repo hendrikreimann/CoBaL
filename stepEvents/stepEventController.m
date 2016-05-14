@@ -22,7 +22,7 @@ classdef stepEventController < handle
 
             figure_height = 600;
             figure_width = 420;
-            controller.control_figure = figure('position', [1600 300 figure_width figure_height], 'Units', 'pixels');
+            controller.control_figure = figure('position', [1600 300 figure_width figure_height], 'Units', 'pixels', 'KeyPressFcn', @controller.processKeyPress);
 
             % figure control
             figures_panel_height = 100;
@@ -53,6 +53,73 @@ classdef stepEventController < handle
             for i_figure = 1 : length(this.figureSelectionBox.String)
                 this.figureSelectionBox.UserData{i_figure}.updateSelectedEventPlot();
             end
+        end
+        
+        function processKeyPress(this, sender, eventdata)
+            if strcmp(eventdata.Key, 'a') && isempty(eventdata.Modifier)
+                this.selectPreviousEvent();
+                this.updateSelectedEventPlots();
+            elseif strcmp(eventdata.Key, 'd') && isempty(eventdata.Modifier)
+                this.selectNextEvent();
+                this.updateSelectedEventPlots();
+            elseif strcmp(eventdata.Key, 'w') && isempty(eventdata.Modifier)
+                this.zoom('in');
+            elseif strcmp(eventdata.Key, 'x') && strcmp(eventdata.Modifier, 'command')
+                % this won't work on windows systems, adapt that!
+                this.quit();
+            end
+        end
+        
+        function selectNextEvent(this)
+            % find index of currently selected event
+            currently_selected_event_time = this.selected_event_time;
+            event_data_of_current_type = this.event_data.getEventTimes(this.selected_event_label);
+            event_data_of_current_type_after_currently_selected = event_data_of_current_type(event_data_of_current_type > currently_selected_event_time);
+            
+            if isempty(event_data_of_current_type_after_currently_selected)
+                % the selected event was the last of this type, so go to next type
+                this.selected_event_label = this.event_data.getNextEventTypeLabel(this.selected_event_label);
+                event_data_of_current_type = this.event_data.getEventTimes(this.selected_event_label);
+                this.selected_event_time = event_data_of_current_type(1);
+            else
+                % select next one
+                this.selected_event_time = event_data_of_current_type_after_currently_selected(1);
+            end
+        end
+        function selectPreviousEvent(this)
+            % find index of currently selected event
+            currently_selected_event_time = this.selected_event_time;
+            event_data_of_current_type = this.event_data.getEventTimes(this.selected_event_label);
+            event_data_of_current_type_before_currently_selected = event_data_of_current_type(event_data_of_current_type < currently_selected_event_time);
+            
+            if isempty(event_data_of_current_type_before_currently_selected)
+                % the selected event was the last of this type, so go to next type
+                this.selected_event_label = this.event_data.getPreviousEventTypeLabel(this.selected_event_label);
+                event_data_of_current_type = this.event_data.getEventTimes(this.selected_event_label);
+                this.selected_event_time = event_data_of_current_type(end);
+            else
+                % select next one
+                this.selected_event_time = event_data_of_current_type_before_currently_selected(end);
+            end
+        end
+        function zoom(this, mode)
+            % get current time extension
+            current_time_extension = this.figureSelectionBox.UserData{1}.main_axes.XLim(2) - this.figureSelectionBox.UserData{1}.main_axes.XLim(1);
+            if strcmp(mode, 'in')
+                new_time_extension = max(this.figureSelectionBox.UserData{1}.time_extension_steps(this.figureSelectionBox.UserData{1}.time_extension_steps < current_time_extension));
+            elseif strcmp(mode, 'out')
+                new_time_extension = min(this.figureSelectionBox.UserData{1}.time_extension_steps(this.figureSelectionBox.UserData{1}.time_extension_steps > current_time_extension));
+            end
+            if isempty(new_time_extension)
+                return
+            end
+        end
+        
+        function quit(this)
+            for i_figure = 1 : length(this.figureSelectionBox.String)
+                close(this.figureSelectionBox.UserData{i_figure}.main_figure);
+            end
+            close(this.control_figure);
         end
     end
     

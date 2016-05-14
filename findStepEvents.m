@@ -280,7 +280,7 @@ end
     end
 
 
-    linkaxes(getAllAxes, 'x')
+%     linkaxes(getAllAxes, 'x')
 
 
 
