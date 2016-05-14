@@ -9,7 +9,6 @@ load('subjectInfo.mat');
 
 filter_order = 2;
 cutoff_frequency = 20; % cutoff frequency, in Hz
-[b, a] = butter(filter_order, cutoff_frequency/(sampling_rate_mocap/2));	% set filter parameters for butterworth filter: 2=order of filter;
 
 gap_length_limit = 0.15; % maximum of allowable gap being splined over, in seconds
 
@@ -19,6 +18,8 @@ for i_trial = 1 : number_of_files
     raw_marker_file_name = file_name_list{i_trial};
     [date, subject_id, trial_type, trial_number, file_type] = getFileParameters(raw_marker_file_name);
     load(raw_marker_file_name);
+    
+    [b, a] = butter(filter_order, cutoff_frequency/(sampling_rate_mocap/2));	% set filter parameters for butterworth filter: 2=order of filter;
     
     % process data
     marker_trajectories = zeros(size(marker_trajectories_raw));

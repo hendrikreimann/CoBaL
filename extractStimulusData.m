@@ -4,23 +4,23 @@ extract_conditions              = 0;
 calculate_responses             = 0;
 calculate_strategy_directions   = 0;
 calculate_strategy_responses    = 0;
-calculate_stats                 = 0;
+calculate_stats                 = 1;
 save_data                       = 0;
 
 process_data_forceplate     = 1;
 process_data_marker         = 1;
 process_data_emg            = 0;
-process_data_angles         = 1;
-process_data_torques        = 1;
+process_data_angles         = 0;
+process_data_torques        = 0;
 
-do_cop_plots_absolute_right = 0;
-do_cop_plots_absolute_left  = 0;
-do_cop_plots_response_right = 0;
-do_cop_plots_response_left  = 0;
+do_cop_plots_absolute_right = 1;
+do_cop_plots_absolute_left  = 1;
+do_cop_plots_response_right = 1;
+do_cop_plots_response_left  = 1;
 
-do_joint_angle_absolute_plots_left = 1;
-do_joint_angle_absolute_plots_right = 1;
-do_joint_angle_response_plots = 1;
+do_joint_angle_absolute_plots_left = 0;
+do_joint_angle_absolute_plots_right = 0;
+do_joint_angle_response_plots = 0;
 do_acceleration_strategy_response_plots     = 0;
 
 wait_times = [0 0.150 0.450];
@@ -28,8 +28,8 @@ wait_time_labels = {'0ms', '150ms', '450ms'};
 load subjectInfo.mat;
 load(makeFileName(date, subject_id, 'model'));
 
-% trials_to_process = 1 : 23;
-trials_to_process = [1:7 10:23];
+trials_to_process = 1 : 21;
+% trials_to_process = 4;
 
 number_of_time_steps_normalized = 100;
 
