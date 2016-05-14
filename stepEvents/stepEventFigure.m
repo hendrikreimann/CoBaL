@@ -11,11 +11,12 @@ classdef stepEventFigure < handle;
         event_plots;
         selected_event_plot;
 
+        time_extension_steps = [0.1 0.2 0.5 1 2 5 10 20 60 120];
     end
     methods
         function this = stepEventFigure(figureTitle, controller, trialData, eventData)
            
-           this.main_figure = figure;
+           this.main_figure = figure('KeyPressFcn', @controller.processKeyPress);
            this.main_axes = axes('ButtonDownFcn', @this.ViewerClickCallback);
            title(figureTitle);
            hold on;
