@@ -56,12 +56,17 @@ classdef stepEventController < handle
         end
         
         function processKeyPress(this, sender, eventdata)
-            if strcmp(eventdata.Key, 'a')
+            if strcmp(eventdata.Key, 'a') && isempty(eventdata.Modifier)
                 this.selectPreviousEvent();
                 this.updateSelectedEventPlots();
-            elseif strcmp(eventdata.Key, 'd')
+            elseif strcmp(eventdata.Key, 'd') && isempty(eventdata.Modifier)
                 this.selectNextEvent();
                 this.updateSelectedEventPlots();
+            elseif strcmp(eventdata.Key, 'w') && isempty(eventdata.Modifier)
+                this.zoom('in');
+            elseif strcmp(eventdata.Key, 'x') && strcmp(eventdata.Modifier, 'command')
+                % this won't work on windows systems, adapt that!
+                this.quit();
             end
         end
         
@@ -97,7 +102,25 @@ classdef stepEventController < handle
                 this.selected_event_time = event_data_of_current_type_before_currently_selected(end);
             end
         end
+        function zoom(this, mode)
+            % get current time extension
+            current_time_extension = this.figureSelectionBox.UserData{1}.main_axes.XLim(2) - this.figureSelectionBox.UserData{1}.main_axes.XLim(1);
+            if strcmp(mode, 'in')
+                new_time_extension = max(this.figureSelectionBox.UserData{1}.time_extension_steps(this.figureSelectionBox.UserData{1}.time_extension_steps < current_time_extension));
+            elseif strcmp(mode, 'out')
+                new_time_extension = min(this.figureSelectionBox.UserData{1}.time_extension_steps(this.figureSelectionBox.UserData{1}.time_extension_steps > current_time_extension));
+            end
+            if isempty(new_time_extension)
+                return
+            end
+        end
         
+        function quit(this)
+            for i_figure = 1 : length(this.figureSelectionBox.String)
+                close(this.figureSelectionBox.UserData{i_figure}.main_figure);
+            end
+            close(this.control_figure);
+        end
     end
     
 end
