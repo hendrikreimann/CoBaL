@@ -26,17 +26,27 @@ classdef stepEventFigure < handle;
            this.event_data = eventData;
            
         end
-        function addDataPlot(this, data_label)
+        function addDataPlot(this, data_label, color)
+            if nargin < 3
+                color = rand(1, 3);
+            end
             new_plot = plot ...
               ( ...
                 this.trial_data.getTime(data_label), ...
                 this.trial_data.getData(data_label), ...
+                'color', color, ...
                 'ButtonDownFcn', @this.ViewerClickCallback ...
               );
             new_plot.UserData = data_label;
             this.data_plots{length(this.data_plots)+1} = new_plot;
         end
-        function addEventPlot(this, data_label, event_label)
+        function addEventPlot(this, data_label, event_label, color, marker)
+            if nargin < 3
+                color = rand(1, 3);
+            end
+            if nargin < 4
+                marker = 'o';
+            end
             data_plot_handle = this.getDataPlot(data_label);
             
             new_plot = plot ...
@@ -44,6 +54,8 @@ classdef stepEventFigure < handle;
                 this.main_axes, ...
                 0, 0, 'o', ...
                 'linewidth', 2, ...
+                'color', color, ...
+                'marker', marker, ...
                 'ButtonDownFcn', @this.ViewerClickCallback ...
               );
             new_plot.UserData = {data_plot_handle, event_label};
@@ -120,7 +132,7 @@ classdef stepEventFigure < handle;
         end
         function applySettings(this, setting_struct)
             this.main_figure.Position = setting_struct.position;
-            this.main_axes.Title.String = setting_struct.title;
+%             this.main_axes.Title.String = setting_struct.title;
             
         end
         function updateEventPlots(this)
