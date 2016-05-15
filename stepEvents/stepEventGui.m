@@ -1,26 +1,33 @@
 function stepEventGui(dataDirectory, trialToProcess)
     if nargin < 2
-        trialToProcess = 11;
+        trialToProcess = 1;
     end
     if nargin < 1
         dataDirectory = pwd;
     end
     
-    %% set colors
-    color_left_heel = [0.3 0.7 0];
-    color_left_toes = [0 0.7 0.3];
-    color_left_touchdown = [0.0 0.3 0.7];
-    color_left_pushoff = [0.0 0.3 0.7];
+    %% set plot stuff
+    color_left_heel = [0.5 0.8 0];
+    color_left_toes = [0 0.8 0.5];
+    color_left_fz = [0.2 0.8 0.2];
+    color_left_touchdown = [0.0 0.5 0.8];
+    color_left_pushoff = [0.0 0.5 0.8];
     marker_left_touchdown = 'v';
     marker_left_pushoff = '^';
 
-    color_right_heel = [0.7 0.3 0];
-    color_right_toes = [0.7 0 0.3];
-    color_right_touchdown = [0.3 0 0.7];
-    color_right_pushoff = [0.3 0 0.7];
+    color_right_heel = [0.8 0.5 0];
+    color_right_toes = [0.8 0 0.5];
+    color_right_fz = [0.8 0.2 0.2];
+    color_right_touchdown = [0.5 0 0.8];
+    color_right_pushoff = [0.5 0 0.8];
     marker_right_touchdown = 'v';
     marker_right_pushoff = '^';
     
+    scale_factor_heel = 6;
+    scale_factor_toes = 20;
+    scale_factor_fz = 1/600;
+    offset_heel = - 0.07;
+    offset_toes = - 0.05;
     
     
     %% load data
@@ -32,14 +39,16 @@ function stepEventGui(dataDirectory, trialToProcess)
     
     % create position figures
     step_event_figure = stepEventFigure('Positions Left', controller, trial_data, event_data);
-    step_event_figure.addDataPlot('left_heel_z_pos', color_left_heel);
-    step_event_figure.addDataPlot('left_toes_z_pos', color_left_toes);
+    step_event_figure.addDataPlot('left_heel_z_pos', color_left_heel, scale_factor_heel, offset_heel);
+    step_event_figure.addDataPlot('left_toes_z_pos', color_left_toes, scale_factor_toes, offset_toes);
+    step_event_figure.addDataPlot('left_fz', color_left_fz, scale_factor_fz);
     step_event_figure.addEventPlot('left_heel_z_pos', 'left_touchdown', color_left_touchdown, marker_left_touchdown);
     step_event_figure.addEventPlot('left_toes_z_pos', 'left_pushoff', color_left_pushoff, marker_left_pushoff);
     
     step_event_figure = stepEventFigure('Positions Right', controller, trial_data, event_data);
-    step_event_figure.addDataPlot('right_heel_z_pos', color_right_heel);
-    step_event_figure.addDataPlot('right_toes_z_pos', color_right_toes);
+    step_event_figure.addDataPlot('right_heel_z_pos', color_right_heel, scale_factor_heel, offset_heel);
+    step_event_figure.addDataPlot('right_toes_z_pos', color_right_toes, scale_factor_toes, offset_toes);
+    step_event_figure.addDataPlot('right_fz', color_right_fz, scale_factor_fz);
     step_event_figure.addEventPlot('right_heel_z_pos', 'right_touchdown', color_right_touchdown, marker_right_touchdown);
     step_event_figure.addEventPlot('right_toes_z_pos', 'right_pushoff', color_right_pushoff, marker_right_pushoff);
 
@@ -73,7 +82,9 @@ function stepEventGui(dataDirectory, trialToProcess)
     
     % load settings
     controller.loadFigureSettings();
-    controller.findEvents();
+    
+    
+%     controller.findEvents();
     controller.setSelectedEvent();
 
 
