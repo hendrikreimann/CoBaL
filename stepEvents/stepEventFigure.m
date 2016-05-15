@@ -17,7 +17,7 @@ classdef stepEventFigure < handle;
         function this = stepEventFigure(figureTitle, controller, trialData, eventData)
             % create figures and plots
             this.main_figure = figure('KeyPressFcn', @controller.processKeyPress);
-            this.main_axes = axes('ButtonDownFcn', @this.ViewerClickCallback);
+            this.main_axes = axes('ButtonDownFcn', @this.stepEventFigureClicked);
             title(figureTitle);
             hold on;
             this.selected_event_plot = plot(0, 0, 'o', 'markersize', 15, 'linewidth', 3, 'color', [1 0.5 0], 'visible', 'off');
@@ -53,7 +53,7 @@ classdef stepEventFigure < handle;
                 (this.trial_data.getData(data_label) + offset) * scale_factor, ...
                 'color', color, ...
                 'UserData', [scale_factor offset], ...
-                'ButtonDownFcn', @this.ViewerClickCallback ...
+                'ButtonDownFcn', @this.stepEventFigureClicked ...
               );
             new_plot.UserData = data_label;
             this.data_plots{length(this.data_plots)+1} = new_plot;
@@ -74,7 +74,7 @@ classdef stepEventFigure < handle;
                 'linewidth', 2, ...
                 'color', color, ...
                 'marker', marker, ...
-                'ButtonDownFcn', @this.ViewerClickCallback ...
+                'ButtonDownFcn', @this.stepEventFigureClicked ...
               );
             new_plot.UserData = {data_plot_handle, event_label};
             this.event_plots{length(this.event_plots)+1} = new_plot;
@@ -89,19 +89,21 @@ classdef stepEventFigure < handle;
             data_plot = this.data_plots{i_plot};
         end
         
-        function ViewerClickCallback(this, sender, eventdata)
+        function stepEventFigureClicked(this, sender, eventdata)
             % get click coordinates in pixels
             current_point_pixel = get(this.main_figure, 'CurrentPoint');
             current_point_pixel = current_point_pixel(1,1:2);
             
-            [event_label, event_time, distance] = this.getClosestEvent(current_point_pixel);
-            
-            
-            this.controller.setSelectedEvent(event_label, event_time);
+            if strcmp(this.controller.getEventMode, 'select')
+                [event_label, event_time, distance] = this.getClosestEvent(current_point_pixel);
+                this.controller.setSelectedEvent(event_label, event_time);
+            elseif strcmp(this.controller.getEventMode, 'add')
+                point_time = this.getClosestDataPoint(current_point_pixel);
+                this.controller.addEvent(point_time);
+            end
                 
         end
         function [event_label, event_time, distance] = getClosestEvent(this, point_pixel)
-            
             % determine closest event for each type
             candidate_distances = zeros(1, length(this.event_plots));
             candidate_event_indices = zeros(1, length(this.event_plots));
@@ -116,6 +118,17 @@ classdef stepEventFigure < handle;
             event_times = this.event_data.getEventTimes(event_label);
             event_time = event_times(event_index);
             
+        end
+        function point_time = getClosestDataPoint(this, point_pixel)
+            candidate_distances = zeros(1, length(this.data_plots));
+            candidate_event_indices = zeros(1, length(this.data_plots));
+            for i_plot = 1 : length(this.data_plots)
+                [candidate_distances(i_plot), candidate_time_indices(i_plot)] = this.calculatePointToCurvePixelDistance(this.data_plots{i_plot}, point_pixel);
+            end
+            
+            % find the one with minimal distance among these candidates
+            [distance, plot_index] = min(candidate_distances);
+            point_time = this.data_plots{plot_index}.XData(candidate_time_indices(plot_index));
         end
         function [distance, point_index] = calculatePointToCurvePixelDistance(this, curve, point_pixel)
             % transform curve to pixel coordinates

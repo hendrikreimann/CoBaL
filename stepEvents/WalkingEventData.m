@@ -98,6 +98,14 @@ classdef WalkingEventData < handle
         function setEventTimes(this, event_times, event_label)
             eval(['this.' event_label ' = event_times;']);
         end
+        function addEventTime(this, event_time, event_label)
+            event_times = this.getEventTimes(event_label);
+            event_times = [event_times; event_time];
+            event_times = sort(event_times);
+            this.setEventTimes(sort(event_times), event_label);
+            this.selected_event_time = event_time;
+            this.selected_event_label = event_label;
+        end
         function event_times = getEventTimes(this, event_label)
             eval(['event_times = this.' event_label ';']);
         end
