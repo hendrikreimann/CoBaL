@@ -15,17 +15,27 @@ classdef stepEventFigure < handle;
     end
     methods
         function this = stepEventFigure(figureTitle, controller, trialData, eventData)
-           
-           this.main_figure = figure('KeyPressFcn', @controller.processKeyPress);
-           this.main_axes = axes('ButtonDownFcn', @this.ViewerClickCallback);
-           title(figureTitle);
-           hold on;
-           this.selected_event_plot = plot(0, 0, 'o', 'markersize', 15, 'linewidth', 3, 'color', [1 0.5 0], 'visible', 'off');
-           
-           this.controller = controller;
-           this.trial_data = trialData;
-           this.event_data = eventData;
-           
+            % create figures and plots
+            this.main_figure = figure('KeyPressFcn', @controller.processKeyPress);
+            this.main_axes = axes('ButtonDownFcn', @this.ViewerClickCallback);
+            title(figureTitle);
+            hold on;
+            this.selected_event_plot = plot(0, 0, 'o', 'markersize', 15, 'linewidth', 3, 'color', [1 0.5 0], 'visible', 'off');
+
+            % register with controller
+            if strcmp(controller.figureSelectionBox.String, '<no figure>')
+                controller.figureSelectionBox.String = figureTitle;
+                controller.figureSelectionBox.UserData = {this};
+            else
+                controller.figureSelectionBox.String = [controller.figureSelectionBox.String; {figureTitle}];
+                controller.figureSelectionBox.UserData = [controller.figureSelectionBox.UserData; {this}];
+            end
+            
+            % store handles
+            this.controller = controller;
+            this.trial_data = trialData;
+            this.event_data = eventData;
+            
         end
         function addDataPlot(this, data_label, color)
             if nargin < 3
