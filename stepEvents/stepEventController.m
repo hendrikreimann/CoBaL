@@ -32,20 +32,22 @@ classdef stepEventController < handle
             figures_panel = uipanel(controller.control_figure, 'Title', 'Figure Control', 'FontSize', 12, 'BackgroundColor', 'white', 'Units', 'pixels', 'Position', [5, figure_height-figures_panel_height-5, figure_width-10, figures_panel_height]);
             controller.figureSelectionBox = uicontrol(figures_panel, 'Style', 'popup', 'String', '<no figure>', 'Position', [5, figures_panel_height-40, 395, 20], 'Fontsize', 12, 'HorizontalAlignment', 'left');
 
-            controller.saveFigureSettingsButton = uicontrol(figures_panel, 'Style', 'pushbutton', 'Position', [5, figures_panel_height-100, 130, 60], 'Fontsize', 12, 'String', 'Save Figure Settings');
-            controller.loadFigureSettingsButton = uicontrol(figures_panel, 'Style', 'pushbutton', 'Position', [140, figures_panel_height-100, 130, 60], 'Fontsize', 12, 'String', 'Load Figure Settings');
+            controller.saveFigureSettingsButton = uicontrol(figures_panel, 'Style', 'pushbutton', 'Position', [5, figures_panel_height-100, 130, 60], 'Fontsize', 12, 'String', 'Save Figure Settings', 'callback', @controller.saveFigureSettings);
+            controller.loadFigureSettingsButton = uicontrol(figures_panel, 'Style', 'pushbutton', 'Position', [140, figures_panel_height-100, 130, 60], 'Fontsize', 12, 'String', 'Load Figure Settings', 'callback', @controller.loadFigureSettings);
 
             % event controls
             events_panel_height = 255;
             events_panel = uipanel(controller.control_figure, 'Title', 'Events Control', 'FontSize', 12, 'BackgroundColor', 'white', 'Units', 'pixels', 'Position', [5, figure_height-figures_panel_height-events_panel_height-5, figure_width-10, events_panel_height]);
-            controller.findEventsButton = uicontrol(events_panel, 'Style', 'pushbutton', 'Position', [5, events_panel_height-75, 130, 60], 'Fontsize', 12, 'String', 'Find Events');
-            controller.saveEventsButton = uicontrol(events_panel, 'Style', 'pushbutton', 'Position', [140, events_panel_height-75, 130, 60], 'Fontsize', 12, 'String', 'Save Events');
+            controller.findEventsButton = uicontrol(events_panel, 'Style', 'pushbutton', 'Position', [5, events_panel_height-75, 130, 60], 'Fontsize', 12, 'String', 'Find Events', 'callback', @controller.findEvents);
+            controller.saveEventsButton = uicontrol(events_panel, 'Style', 'pushbutton', 'Position', [140, events_panel_height-75, 130, 60], 'Fontsize', 12, 'String', 'Save Events', 'callback', @controller.saveEvents);
 
             uicontrol(events_panel, 'Style', 'text', 'string', 'Heel pos peak prominence (m):', 'Position', [5, events_panel_height-100, 190, 20], 'Fontsize', 10, 'HorizontalAlignment', 'left', 'BackgroundColor', 'white');
             controller.heel_pos_peak_width = uicontrol(events_panel, 'Style', 'edit', 'BackgroundColor', 'white', 'Position', [150, events_panel_height-97, 40, 20], 'String', '0.05');
             uicontrol(events_panel, 'Style', 'text', 'string', 'Toes vel peak prominence (m):', 'Position', [5, events_panel_height-120, 190, 20], 'Fontsize', 10, 'HorizontalAlignment', 'left', 'BackgroundColor', 'white');
             controller.toes_vel_peak_width = uicontrol(events_panel, 'Style', 'edit', 'BackgroundColor', 'white', 'Position', [150, events_panel_height-117, 40, 20], 'String', '0.05');
         end
+        
+        
         function setSelectedEvent(this, event_label, event_time)
             if nargin == 1
                 event_label = 'left_touchdown';
@@ -92,6 +94,61 @@ classdef stepEventController < handle
                 % this won't work on windows systems, adapt that!
                 this.quit();
             end
+        end
+        function saveFigureSettings(this, sender, eventdata)
+            figure_settings = cell(1, length(this.figureSelectionBox));
+            for i_figure = 1 : length(this.figureSelectionBox.String)
+                figure_settings{i_figure} = this.figureSelectionBox.UserData{i_figure}.getSetting();
+            end
+            control_figure_setting = struct();
+            control_figure_setting.position = this.control_figure.Position;
+
+            save_file = '/Users/reimajbi/Library/Application Support/stepEventFinder/figureSettings.mat';
+            save(save_file, 'figure_settings', 'control_figure_setting');
+        end
+        function loadFigureSettings(this, sender, eventdata)
+            load_file = '/Users/reimajbi/Library/Application Support/stepEventFinder/figureSettings.mat';
+
+            load(load_file, 'figure_settings', 'control_figure_setting')
+            for i_figure = 1 : length(figure_settings)
+    %             if length(step_event_figures) < i_figure
+    %                 step_event_figures{i_figure} = createStepEventFigure();
+    %             end
+                this.figureSelectionBox.UserData{i_figure}.applySettings(figure_settings{i_figure});
+            end
+            this.control_figure.Position = control_figure_setting.position;
+        end
+        function findEvents(this, sender, eventdata)
+            % left touchdown
+            [~, left_touchdown_indices_mocap] = findpeaks(-this.trial_data.getData('left_heel_z_pos'), 'MinPeakProminence', str2num(this.heel_pos_peak_width.String));
+            time = this.trial_data.getTime('left_heel_z_pos');
+            left_touchdown_times = time(left_touchdown_indices_mocap);
+            this.event_data.setEventTimes(left_touchdown_times, 'left_touchdown');
+
+            % left pushoff
+            [~, left_pushoff_indices_mocap] = findpeaks(this.trial_data.getData('left_toes_z_vel'), 'MinPeakProminence', str2num(this.toes_vel_peak_width.String));
+            time = this.trial_data.getTime('left_toes_z_vel');
+            left_pushoff_times = time(left_pushoff_indices_mocap);
+            this.event_data.setEventTimes(left_pushoff_times, 'left_pushoff');
+
+            % right touchdown
+            [~, right_touchdown_indices_mocap] = findpeaks(-this.trial_data.getData('right_heel_z_pos'), 'MinPeakProminence', str2num(this.heel_pos_peak_width.String));
+            time = this.trial_data.getTime('right_heel_z_pos');
+            right_touchdown_times = time(right_touchdown_indices_mocap);
+            this.event_data.setEventTimes(right_touchdown_times, 'right_touchdown');
+
+            % right pushoff
+            [~, right_pushoff_indices_mocap] = findpeaks(this.trial_data.getData('right_toes_z_vel'), 'MinPeakProminence', str2num(this.toes_vel_peak_width.String));
+            time = this.trial_data.getTime('right_toes_z_vel');
+            right_pushoff_times = time(right_pushoff_indices_mocap);
+            this.event_data.setEventTimes(right_pushoff_times, 'right_pushoff');
+
+            this.updateEventPlots();
+
+
+        end
+        function saveEvents(this, sender, eventdata)
+
         end
         
         function selectNextEvent(this)
