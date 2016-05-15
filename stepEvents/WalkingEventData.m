@@ -6,6 +6,10 @@ classdef WalkingEventData < handle
         left_touchdown;
         right_pushoff;
         right_touchdown;
+        
+        selected_event_label;
+        selected_event_time;
+        
     end
     methods
         function this = WalkingEventData(trialData)
@@ -102,18 +106,61 @@ classdef WalkingEventData < handle
             [~, event_index] = min(abs(event_times - event_time));
         end
         function new_event_time = updateEventTime(this, event_label, current_event_time, new_event_time)
-            % clamp to limits
-            new_event_time = max([new_event_time, 0]);
-            new_event_time = min([new_event_time, this.trial_data.recording_time]);
-            
-            % update
             event_index = this.getEventIndex(event_label, current_event_time);
             event_times = this.getEventTimes(event_label);
-            event_times(event_index) = new_event_time;
+            if isnan(new_event_time)
+                % delete event
+                event_times(event_index) = [];
+                this.setEventTimes(event_times, event_label);
+                this.selectNextEvent();
+                
+            else
+                % clamp new time to limits
+                new_event_time = max([new_event_time, 0]);
+                new_event_time = min([new_event_time, this.trial_data.recording_time]);
+                
+                % update
+                event_times(event_index) = new_event_time;
+                
+                % sort and store
+                this.setEventTimes(sort(event_times), event_label);
+            end
             
-            % sort and store
-            this.setEventTimes(sort(event_times), event_label);
             
+            
+            
+        end
+        function selectNextEvent(this)
+            % find index of currently selected event
+            currently_selected_event_time = this.selected_event_time;
+            event_data_of_current_type = this.getEventTimes(this.selected_event_label);
+            event_data_of_current_type_after_currently_selected = event_data_of_current_type(event_data_of_current_type > currently_selected_event_time);
+            
+            if isempty(event_data_of_current_type_after_currently_selected)
+                % the selected event was the last of this type, so go to next type
+                this.selected_event_label = this.getNextEventTypeLabel(this.selected_event_label);
+                event_data_of_current_type = this.getEventTimes(this.selected_event_label);
+                this.selected_event_time = event_data_of_current_type(1);
+            else
+                % select next one
+                this.selected_event_time = event_data_of_current_type_after_currently_selected(1);
+            end
+        end
+        function selectPreviousEvent(this)
+            % find index of currently selected event
+            currently_selected_event_time = this.selected_event_time;
+            event_data_of_current_type = this.getEventTimes(this.selected_event_label);
+            event_data_of_current_type_before_currently_selected = event_data_of_current_type(event_data_of_current_type < currently_selected_event_time);
+            
+            if isempty(event_data_of_current_type_before_currently_selected)
+                % the selected event was the last of this type, so go to next type
+                this.selected_event_label = this.getPreviousEventTypeLabel(this.selected_event_label);
+                event_data_of_current_type = this.getEventTimes(this.selected_event_label);
+                this.selected_event_time = event_data_of_current_type(end);
+            else
+                % select next one
+                this.selected_event_time = event_data_of_current_type_before_currently_selected(end);
+            end
         end
         function next_event_label = getNextEventTypeLabel(this, current_event_type_label)
             if strcmp(current_event_type_label, 'left_touchdown')
@@ -138,8 +185,6 @@ classdef WalkingEventData < handle
             elseif strcmp(current_event_type_label, 'left_touchdown')
                 previous_event_label = 'right_pushoff';
             end
-                
-
         end
     end
 end
