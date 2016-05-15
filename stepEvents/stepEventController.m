@@ -3,9 +3,6 @@ classdef stepEventController < handle
         trial_data;
         event_data;
         
-        selected_event_label;
-        selected_event_time;
-        
         event_time_normal_step = 0.005;
         event_time_large_step = 0.050;
         
@@ -14,6 +11,8 @@ classdef stepEventController < handle
         loadFigureSettingsButton;
         findEventsButton;
         saveEventsButton;
+        deleteEventButton;
+        
         figureSelectionBox;
         heel_pos_peak_width;
         toes_vel_peak_width;
@@ -32,19 +31,20 @@ classdef stepEventController < handle
             figures_panel = uipanel(controller.control_figure, 'Title', 'Figure Control', 'FontSize', 12, 'BackgroundColor', 'white', 'Units', 'pixels', 'Position', [5, figure_height-figures_panel_height-5, figure_width-10, figures_panel_height]);
             controller.figureSelectionBox = uicontrol(figures_panel, 'Style', 'popup', 'String', '<no figure>', 'Position', [5, figures_panel_height-40, 395, 20], 'Fontsize', 12, 'HorizontalAlignment', 'left');
 
-            controller.saveFigureSettingsButton = uicontrol(figures_panel, 'Style', 'pushbutton', 'Position', [5, figures_panel_height-100, 130, 60], 'Fontsize', 12, 'String', 'Save Figure Settings', 'callback', @controller.saveFigureSettings, 'HitTest', 'off');
-            controller.loadFigureSettingsButton = uicontrol(figures_panel, 'Style', 'pushbutton', 'Position', [140, figures_panel_height-100, 130, 60], 'Fontsize', 12, 'String', 'Load Figure Settings', 'callback', @controller.loadFigureSettings, 'HitTest', 'off');
+            controller.saveFigureSettingsButton = uicontrol(figures_panel, 'Style', 'pushbutton', 'Position', [5, figures_panel_height-100, 130, 60], 'Fontsize', 12, 'String', 'Save Figure Settings', 'callback', @controller.saveFigureSettings);
+            controller.loadFigureSettingsButton = uicontrol(figures_panel, 'Style', 'pushbutton', 'Position', [140, figures_panel_height-100, 130, 60], 'Fontsize', 12, 'String', 'Load Figure Settings', 'callback', @controller.loadFigureSettings);
 
             % event controls
             events_panel_height = 255;
             events_panel = uipanel(controller.control_figure, 'Title', 'Events Control', 'FontSize', 12, 'BackgroundColor', 'white', 'Units', 'pixels', 'Position', [5, figure_height-figures_panel_height-events_panel_height-5, figure_width-10, events_panel_height]);
-            controller.findEventsButton = uicontrol(events_panel, 'Style', 'pushbutton', 'Position', [5, events_panel_height-75, 130, 60], 'Fontsize', 12, 'String', 'Find Events', 'callback', @controller.findEvents, 'HitTest', 'off');
-            controller.saveEventsButton = uicontrol(events_panel, 'Style', 'pushbutton', 'Position', [140, events_panel_height-75, 130, 60], 'Fontsize', 12, 'String', 'Save Events', 'callback', @event_data.saveEvents, 'HitTest', 'off');
+            controller.findEventsButton = uicontrol(events_panel, 'Style', 'pushbutton', 'Position', [5, events_panel_height-75, 130, 60], 'Fontsize', 12, 'String', 'Find Events', 'callback', @controller.findEvents);
+            controller.saveEventsButton = uicontrol(events_panel, 'Style', 'pushbutton', 'Position', [140, events_panel_height-75, 130, 60], 'Fontsize', 12, 'String', 'Save Events', 'callback', @event_data.saveEvents);
+%             controller.deleteEventButton = uicontrol(events_panel, 'Style', 'pushbutton', 'Position', [275, events_panel_height-75, 130, 60], 'Fontsize', 12, 'String', 'Delete Event', 'callback', @event_data.deleteEvent);
 
-            uicontrol(events_panel, 'Style', 'text', 'string', 'Heel pos peak prominence (m):', 'Position', [5, events_panel_height-100, 190, 20], 'Fontsize', 10, 'HorizontalAlignment', 'left', 'BackgroundColor', 'white');
-            controller.heel_pos_peak_width = uicontrol(events_panel, 'Style', 'edit', 'BackgroundColor', 'white', 'Position', [150, events_panel_height-97, 40, 20], 'String', '0.05');
-            uicontrol(events_panel, 'Style', 'text', 'string', 'Toes vel peak prominence (m):', 'Position', [5, events_panel_height-120, 190, 20], 'Fontsize', 10, 'HorizontalAlignment', 'left', 'BackgroundColor', 'white');
-            controller.toes_vel_peak_width = uicontrol(events_panel, 'Style', 'edit', 'BackgroundColor', 'white', 'Position', [150, events_panel_height-117, 40, 20], 'String', '0.05');
+            uicontrol(events_panel, 'Style', 'text', 'string', 'Heel pos peak prominence (m):', 'Position', [5, events_panel_height-150, 190, 20], 'Fontsize', 10, 'HorizontalAlignment', 'left', 'BackgroundColor', 'white');
+            controller.heel_pos_peak_width = uicontrol(events_panel, 'Style', 'edit', 'BackgroundColor', 'white', 'Position', [150, events_panel_height-147, 40, 20], 'String', '0.05');
+            uicontrol(events_panel, 'Style', 'text', 'string', 'Toes vel peak prominence (m):', 'Position', [5, events_panel_height-170, 190, 20], 'Fontsize', 10, 'HorizontalAlignment', 'left', 'BackgroundColor', 'white');
+            controller.toes_vel_peak_width = uicontrol(events_panel, 'Style', 'edit', 'BackgroundColor', 'white', 'Position', [150, events_panel_height-167, 40, 20], 'String', '0.05');
         end
         
         
@@ -54,8 +54,8 @@ classdef stepEventController < handle
                 event_times = this.event_data.getEventTimes(event_label);
                 event_time = event_times(1);
             end
-            this.selected_event_label = event_label;
-            this.selected_event_time = event_time;
+            this.event_data.selected_event_label = event_label;
+            this.event_data.selected_event_time = event_time;
             
             this.updateSelectedEventPlots();
         end
@@ -73,10 +73,10 @@ classdef stepEventController < handle
         
         function processKeyPress(this, sender, eventdata)
             if strcmp(eventdata.Key, 'a') && isempty(eventdata.Modifier)
-                this.selectPreviousEvent();
+                this.event_data.selectPreviousEvent();
                 this.updateSelectedEventPlots();
             elseif strcmp(eventdata.Key, 'd') && isempty(eventdata.Modifier)
-                this.selectNextEvent();
+                this.event_data.selectNextEvent();
                 this.updateSelectedEventPlots();
             elseif strcmp(eventdata.Key, 'w') && isempty(eventdata.Modifier)
                 this.updateTimeWindow('zoom in');
@@ -93,6 +93,10 @@ classdef stepEventController < handle
             elseif strcmp(eventdata.Key, 'x') && strcmp(eventdata.Modifier, 'command')
                 % this won't work on windows systems, adapt that!
                 this.quit();
+            elseif strcmp(eventdata.Key, 'delete') || strcmp(eventdata.Key, 'backspace')
+                this.event_data.updateEventTime(this.event_data.selected_event_label, this.event_data.selected_event_time, NaN)
+                this.updateEventPlots();
+                this.updateSelectedEventPlots();
             end
         end
         function saveFigureSettings(this, sender, eventdata)
@@ -150,39 +154,17 @@ classdef stepEventController < handle
 
         end
         
-        function selectNextEvent(this)
-            % find index of currently selected event
-            currently_selected_event_time = this.selected_event_time;
-            event_data_of_current_type = this.event_data.getEventTimes(this.selected_event_label);
-            event_data_of_current_type_after_currently_selected = event_data_of_current_type(event_data_of_current_type > currently_selected_event_time);
+        function deleteEvent(this, sender, eventdata)
+            % this should eventually be moved to WalkingEventData
             
-            if isempty(event_data_of_current_type_after_currently_selected)
-                % the selected event was the last of this type, so go to next type
-                this.selected_event_label = this.event_data.getNextEventTypeLabel(this.selected_event_label);
-                event_data_of_current_type = this.event_data.getEventTimes(this.selected_event_label);
-                this.selected_event_time = event_data_of_current_type(1);
-            else
-                % select next one
-                this.selected_event_time = event_data_of_current_type_after_currently_selected(1);
-            end
-        end
-        function selectPreviousEvent(this)
-            % find index of currently selected event
-            currently_selected_event_time = this.selected_event_time;
-            event_data_of_current_type = this.event_data.getEventTimes(this.selected_event_label);
-            event_data_of_current_type_before_currently_selected = event_data_of_current_type(event_data_of_current_type < currently_selected_event_time);
+            selected_event_time_current = this.selected_event_time;
             
-            if isempty(event_data_of_current_type_before_currently_selected)
-                % the selected event was the last of this type, so go to next type
-                this.selected_event_label = this.event_data.getPreviousEventTypeLabel(this.selected_event_label);
-                event_data_of_current_type = this.event_data.getEventTimes(this.selected_event_label);
-                this.selected_event_time = event_data_of_current_type(end);
-            else
-                % select next one
-                this.selected_event_time = event_data_of_current_type_before_currently_selected(end);
-            end
+            this.selected_event_time = this.event_data.updateEventTime(this.selected_event_label, selected_event_time_current, NaN);
+            
         end
         function moveSelectedEvent(this, sender, eventdata)
+            % this should eventually be moved to WalkingEventData
+            
             selected_event_time_current = this.selected_event_time;
             
             % step forward or backward
@@ -199,7 +181,7 @@ classdef stepEventController < handle
                 return;
             end
             
-            % apply limits
+            % update
             this.selected_event_time = this.event_data.updateEventTime(this.selected_event_label, selected_event_time_current, selected_event_time_new);
             
             % update plots

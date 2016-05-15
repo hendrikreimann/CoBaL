@@ -168,10 +168,10 @@ classdef stepEventFigure < handle;
             selected_event_plot_x_data = [];
             selected_event_plot_y_data = [];
             for i_plot = 1 : length(this.event_plots)
-                if strcmp(this.controller.selected_event_label, this.event_plots{i_plot}.UserData{2})
+                if strcmp(this.controller.event_data.selected_event_label, this.event_plots{i_plot}.UserData{2})
                     % event type of this one and the selected is a match
-                    selected_event_plot_x_data = [selected_event_plot_x_data this.controller.selected_event_time];
-                    y_data_point = interp1(this.event_plots{i_plot}.UserData{1}.XData, this.event_plots{i_plot}.UserData{1}.YData, this.controller.selected_event_time);
+                    selected_event_plot_x_data = [selected_event_plot_x_data this.controller.event_data.selected_event_time];
+                    y_data_point = interp1(this.event_plots{i_plot}.UserData{1}.XData, this.event_plots{i_plot}.UserData{1}.YData, this.controller.event_data.selected_event_time);
                     selected_event_plot_y_data = [selected_event_plot_y_data y_data_point];
                 end
             end
