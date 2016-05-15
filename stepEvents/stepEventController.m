@@ -11,40 +11,47 @@ classdef stepEventController < handle
         loadFigureSettingsButton;
         findEventsButton;
         saveEventsButton;
-        deleteEventButton;
+        addEventButtons;
         
         figureSelectionBox;
         heel_pos_peak_width;
         toes_vel_peak_width;
+        
+        color_selected = [1 0.5 0];
+        color_normal = [0 0 0];
     end
     methods
-        function controller = stepEventController(trial_data, event_data)
-            controller.trial_data = trial_data;
-            controller.event_data = event_data;
+        function this = stepEventController(trial_data, event_data)
+            this.trial_data = trial_data;
+            this.event_data = event_data;
 
             figure_height = 600;
             figure_width = 420;
-            controller.control_figure = figure('position', [1600 300 figure_width figure_height], 'Units', 'pixels', 'KeyPressFcn', @controller.processKeyPress);
+            this.control_figure = figure('position', [1600 300 figure_width figure_height], 'Units', 'pixels', 'KeyPressFcn', @this.processKeyPress);
 
             % figure control
             figures_panel_height = 100;
-            figures_panel = uipanel(controller.control_figure, 'Title', 'Figure Control', 'FontSize', 12, 'BackgroundColor', 'white', 'Units', 'pixels', 'Position', [5, figure_height-figures_panel_height-5, figure_width-10, figures_panel_height]);
-            controller.figureSelectionBox = uicontrol(figures_panel, 'Style', 'popup', 'String', '<no figure>', 'Position', [5, figures_panel_height-40, 395, 20], 'Fontsize', 12, 'HorizontalAlignment', 'left');
+            figures_panel = uipanel(this.control_figure, 'Title', 'Figure Control', 'FontSize', 12, 'BackgroundColor', 'white', 'Units', 'pixels', 'Position', [5, figure_height-figures_panel_height-5, figure_width-10, figures_panel_height]);
+            this.figureSelectionBox = uicontrol(figures_panel, 'Style', 'popup', 'String', '<no figure>', 'Position', [5, figures_panel_height-40, 395, 20], 'Fontsize', 12, 'HorizontalAlignment', 'left');
 
-            controller.saveFigureSettingsButton = uicontrol(figures_panel, 'Style', 'pushbutton', 'Position', [5, figures_panel_height-100, 130, 60], 'Fontsize', 12, 'String', 'Save Figure Settings', 'callback', @controller.saveFigureSettings);
-            controller.loadFigureSettingsButton = uicontrol(figures_panel, 'Style', 'pushbutton', 'Position', [140, figures_panel_height-100, 130, 60], 'Fontsize', 12, 'String', 'Load Figure Settings', 'callback', @controller.loadFigureSettings);
+            this.saveFigureSettingsButton = uicontrol(figures_panel, 'Style', 'pushbutton', 'Position', [5, figures_panel_height-100, 130, 60], 'Fontsize', 12, 'String', 'Save Figure Settings', 'callback', @this.saveFigureSettings);
+            this.loadFigureSettingsButton = uicontrol(figures_panel, 'Style', 'pushbutton', 'Position', [140, figures_panel_height-100, 130, 60], 'Fontsize', 12, 'String', 'Load Figure Settings', 'callback', @this.loadFigureSettings);
 
             % event controls
             events_panel_height = 255;
-            events_panel = uipanel(controller.control_figure, 'Title', 'Events Control', 'FontSize', 12, 'BackgroundColor', 'white', 'Units', 'pixels', 'Position', [5, figure_height-figures_panel_height-events_panel_height-5, figure_width-10, events_panel_height]);
-            controller.findEventsButton = uicontrol(events_panel, 'Style', 'pushbutton', 'Position', [5, events_panel_height-75, 130, 60], 'Fontsize', 12, 'String', 'Find Events', 'callback', @controller.findEvents);
-            controller.saveEventsButton = uicontrol(events_panel, 'Style', 'pushbutton', 'Position', [140, events_panel_height-75, 130, 60], 'Fontsize', 12, 'String', 'Save Events', 'callback', @event_data.saveEvents);
-%             controller.deleteEventButton = uicontrol(events_panel, 'Style', 'pushbutton', 'Position', [275, events_panel_height-75, 130, 60], 'Fontsize', 12, 'String', 'Delete Event', 'callback', @event_data.deleteEvent);
+            events_panel = uipanel(this.control_figure, 'Title', 'Events Control', 'FontSize', 12, 'BackgroundColor', 'white', 'Units', 'pixels', 'Position', [5, figure_height-figures_panel_height-events_panel_height-5, figure_width-10, events_panel_height]);
+            this.findEventsButton = uicontrol(events_panel, 'Style', 'pushbutton', 'Position', [5, events_panel_height-75, 130, 60], 'Fontsize', 12, 'String', 'Find Events', 'callback', @this.findEvents);
+            this.saveEventsButton = uicontrol(events_panel, 'Style', 'pushbutton', 'Position', [140, events_panel_height-75, 130, 60], 'Fontsize', 12, 'String', 'Save Events', 'callback', @event_data.saveEvents);
+            
+            this.addEventButtons(1) = uicontrol(events_panel, 'Style', 'pushbutton', 'Position', [5, events_panel_height-135, 100, 60], 'Fontsize', 12, 'String', '<html><center>Add Left<br></center>Pushoff', 'callback', @this.addEventButtonPressed, 'UserData', 'left_pushoff');
+            this.addEventButtons(2) = uicontrol(events_panel, 'Style', 'pushbutton', 'Position', [105, events_panel_height-135, 100, 60], 'Fontsize', 12, 'String', '<html><center>Add Left<br></center>Touchdown', 'callback', @this.addEventButtonPressed, 'UserData', 'left_touchdown');
+            this.addEventButtons(3) = uicontrol(events_panel, 'Style', 'pushbutton', 'Position', [205, events_panel_height-135, 100, 60], 'Fontsize', 12, 'String', '<html><center>Add Right<br></center>Pushoff', 'callback', @this.addEventButtonPressed, 'UserData', 'right_pushoff');
+            this.addEventButtons(4)= uicontrol(events_panel, 'Style', 'pushbutton', 'Position', [305, events_panel_height-135, 100, 60], 'Fontsize', 12, 'String', '<html><center>Add Right<br></center>Touchdown', 'callback', @this.addEventButtonPressed, 'UserData', 'right_touchdown');
 
-            uicontrol(events_panel, 'Style', 'text', 'string', 'Heel pos peak prominence (m):', 'Position', [5, events_panel_height-150, 190, 20], 'Fontsize', 10, 'HorizontalAlignment', 'left', 'BackgroundColor', 'white');
-            controller.heel_pos_peak_width = uicontrol(events_panel, 'Style', 'edit', 'BackgroundColor', 'white', 'Position', [150, events_panel_height-147, 40, 20], 'String', '0.05');
-            uicontrol(events_panel, 'Style', 'text', 'string', 'Toes vel peak prominence (m):', 'Position', [5, events_panel_height-170, 190, 20], 'Fontsize', 10, 'HorizontalAlignment', 'left', 'BackgroundColor', 'white');
-            controller.toes_vel_peak_width = uicontrol(events_panel, 'Style', 'edit', 'BackgroundColor', 'white', 'Position', [150, events_panel_height-167, 40, 20], 'String', '0.05');
+            uicontrol(events_panel, 'Style', 'text', 'string', 'Heel pos peak prominence (m):', 'Position', [5, events_panel_height-160, 190, 20], 'Fontsize', 10, 'HorizontalAlignment', 'left', 'BackgroundColor', 'white');
+            this.heel_pos_peak_width = uicontrol(events_panel, 'Style', 'edit', 'BackgroundColor', 'white', 'Position', [150, events_panel_height-157, 40, 20], 'String', '0.05');
+            uicontrol(events_panel, 'Style', 'text', 'string', 'Toes vel peak prominence (m):', 'Position', [5, events_panel_height-180, 190, 20], 'Fontsize', 10, 'HorizontalAlignment', 'left', 'BackgroundColor', 'white');
+            this.toes_vel_peak_width = uicontrol(events_panel, 'Style', 'edit', 'BackgroundColor', 'white', 'Position', [150, events_panel_height-177, 40, 20], 'String', '0.05');
         end
         
         
@@ -69,7 +76,15 @@ classdef stepEventController < handle
                 this.figureSelectionBox.UserData{i_figure}.updateEventPlots();
             end
         end
-    
+        function event_mode = getEventMode(this)
+            event_mode = 'select';
+            for i_button = 1 : length(this.addEventButtons)
+                if get(this.addEventButtons(i_button), 'ForegroundColor') == this.color_selected;
+                    event_mode = 'add';
+                end
+            end
+
+        end
         
         function processKeyPress(this, sender, eventdata)
             if strcmp(eventdata.Key, 'a') && isempty(eventdata.Modifier)
@@ -97,6 +112,12 @@ classdef stepEventController < handle
                 this.event_data.updateEventTime(this.event_data.selected_event_label, this.event_data.selected_event_time, NaN)
                 this.updateEventPlots();
                 this.updateSelectedEventPlots();
+            elseif strcmp(eventdata.Key, 'escape')
+                set(this.addLeftPushoffButton, 'ForegroundColor', [0 0 0]);
+                set(this.addLeftTouchdownButton, 'ForegroundColor', [0 0 0]);
+                set(this.addRightPushoffButton, 'ForegroundColor', [0 0 0]);
+                set(this.addRightTouchdownButton, 'ForegroundColor', [0 0 0]);
+                
             end
         end
         function saveFigureSettings(this, sender, eventdata)
@@ -160,6 +181,42 @@ classdef stepEventController < handle
             selected_event_time_current = this.selected_event_time;
             
             this.selected_event_time = this.event_data.updateEventTime(this.selected_event_label, selected_event_time_current, NaN);
+            
+        end
+        function addEvent(this, event_time)
+            for i_button = 1 : length(this.addEventButtons)
+                if get(this.addEventButtons(i_button), 'ForegroundColor') == this.color_selected
+                    % this button was pressed to add an event
+                    event_label = get(this.addEventButtons(i_button), 'UserData');
+                    this.event_data.addEventTime(event_time, event_label);
+                    this.updateEventPlots();
+                    this.updateSelectedEventPlots();
+                    set(this.addEventButtons(i_button), 'ForegroundColor', this.color_normal);
+                end
+            end
+            
+        end
+        function addEventButtonPressed(this, sender, eventdata)
+            % check if this button was pressed
+            if get(sender, 'ForegroundColor') == this.color_normal
+                % set all buttons to normal
+                for i_button = 1 : length(this.addEventButtons)
+                    set(this.addEventButtons(i_button), 'ForegroundColor', this.color_normal);
+                end
+                % set this button to pressed
+                set(sender, 'ForegroundColor', this.color_selected);
+                
+                % change mouse cursors to crosshair
+                for i_figure = 1 : length(this.figureSelectionBox.String)
+                    set(this.figureSelectionBox.UserData{i_figure}.main_figure, 'Pointer', 'crosshair');
+                end
+            elseif get(sender, 'ForegroundColor') == this.color_selected
+                set(sender, 'ForegroundColor', this.color_normal);
+                % change mouse cursors to normal
+                for i_figure = 1 : length(this.figureSelectionBox.String)
+                    set(this.figureSelectionBox.UserData{i_figure}.main_figure, 'Pointer', 'arrow');
+                end
+            end            
             
         end
         function moveSelectedEvent(this, sender, eventdata)
