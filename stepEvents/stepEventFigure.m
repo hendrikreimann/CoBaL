@@ -70,7 +70,6 @@ classdef stepEventFigure < handle;
                 i_plot = i_plot+1;
             end
             data_plot = this.data_plots{i_plot};
-%             eval(['data = this.' data_label ';']);
         end
         
         function ViewerClickCallback(this, sender, eventdata)
