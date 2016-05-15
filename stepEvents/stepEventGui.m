@@ -79,7 +79,7 @@ function stepEventGui(dataDirectory, trialToProcess)
     % load settings
     loadFigureSettings();
     findEvents();
-
+    controller.setSelectedEvent();
 
     %% GUI
     function controller = createController()
@@ -89,7 +89,7 @@ function stepEventGui(dataDirectory, trialToProcess)
         set(controller.findEventsButton, 'callback', @findEvents);
         set(controller.saveEventsButton, 'callback', @saveEvents);
         
-        
+        % move all these callbacks to the controller
     end
     function step_event_figure = createStepEventFigure(title)
         step_event_figure = stepEventFigure(title, controller, trial_data, event_data);
@@ -125,11 +125,6 @@ function stepEventGui(dataDirectory, trialToProcess)
         end
         controller.control_figure.Position = control_figure_setting.position;
     end
-    function updateEventPlots()
-        for i_figure = 1 : length(controller.figureSelectionBox.String)
-            controller.figureSelectionBox.UserData{i_figure}.updateEventPlots();
-        end
-    end
 
     %% events
     function findEvents(varargin)
@@ -137,27 +132,27 @@ function stepEventGui(dataDirectory, trialToProcess)
         [~, left_touchdown_indices_mocap] = findpeaks(-trial_data.getData('left_heel_z_pos'), 'MinPeakProminence', str2num(controller.heel_pos_peak_width.String));
         time = trial_data.getTime('left_heel_z_pos');
         left_touchdown_times = time(left_touchdown_indices_mocap);
-        event_data.setLeftTouchdownTimes(left_touchdown_times);
+        event_data.setEventTimes(left_touchdown_times, 'left_touchdown');
         
         % left pushoff
         [~, left_pushoff_indices_mocap] = findpeaks(trial_data.getData('left_toes_z_vel'), 'MinPeakProminence', str2num(controller.toes_vel_peak_width.String));
         time = trial_data.getTime('left_toes_z_vel');
         left_pushoff_times = time(left_pushoff_indices_mocap);
-        event_data.setLeftPushoffTimes(left_pushoff_times);
+        event_data.setEventTimes(left_pushoff_times, 'left_pushoff');
         
         % right touchdown
         [~, right_touchdown_indices_mocap] = findpeaks(-trial_data.getData('right_heel_z_pos'), 'MinPeakProminence', str2num(controller.heel_pos_peak_width.String));
         time = trial_data.getTime('right_heel_z_pos');
         right_touchdown_times = time(right_touchdown_indices_mocap);
-        event_data.setRightTouchdownTimes(right_touchdown_times);
+        event_data.setEventTimes(right_touchdown_times, 'right_touchdown');
 
         % right pushoff
         [~, right_pushoff_indices_mocap] = findpeaks(trial_data.getData('right_toes_z_vel'), 'MinPeakProminence', str2num(controller.toes_vel_peak_width.String));
         time = trial_data.getTime('right_toes_z_vel');
         right_pushoff_times = time(right_pushoff_indices_mocap);
-        event_data.setRightPushoffTimes(right_pushoff_times);
+        event_data.setEventTimes(right_pushoff_times, 'right_pushoff');
 
-        updateEventPlots();
+        controller.updateEventPlots();
 
 
     end
