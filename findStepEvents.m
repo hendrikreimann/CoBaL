@@ -1,14 +1,14 @@
 % findStepEvents
 
-visualize_left = 1;
-visualize_right = 1;
-visualize_position = 1;
-visualize_derivatives = 1;
+visualize_left          = 0;
+visualize_right         = 0;
+visualize_position      = 0;
+visualize_derivatives   = 0;
 show_forceplate = 0;
 
 trials_to_process = 1 : 1 : 21;
 % trials_to_process = [0:7 9:23];
-trials_to_process = 1;
+% trials_to_process = 1;
 
 
 % Choose Identification method for each event and foot
@@ -59,7 +59,7 @@ for i_trial = trials_to_process
     
     
 
-    %% find events
+    %% find events for left foot
     %         peak_width_threshold = samplingRate * 0.25;
 %         peak_prominence_threshold = 0.5;
         peak_width_threshold = samplingRate * 0.25;
@@ -114,7 +114,7 @@ for i_trial = trials_to_process
         left_pushoff_indices_mocap(left_pushoff_indices_mocap==0) = [];
     end
      
-        %% RIGHT FOOT IDENTIFY
+    %% find events for right foot
      
     if strcmp(right_method_touchdown, 'right_heel_position_minima')
         [~, right_heel_peak_locations, right_heel_peak_widths] = findpeaks(-right_heel_marker_z_trajectory);
@@ -142,8 +142,8 @@ for i_trial = trials_to_process
         right_touchdown_indices_mocap(right_touchdown_indices_mocap==0) = [];
     end
         
- if strcmp(right_method_pushoff, 'right_first_velocity_peak')
- min_peak_prominence = 0.25;
+    if strcmp(right_method_pushoff, 'right_first_velocity_peak')
+        min_peak_prominence = 0.25;
         [~, right_toes_vel_peak_locations] = findpeaks(right_toes_marker_z_vel_trajectory, 'MinPeakProminence', min_peak_prominence);
         right_pushoff_indices_mocap = zeros(size(right_touchdown_indices_mocap));
         for i_touchdown = 1 : length(right_touchdown_indices_mocap)
@@ -153,7 +153,7 @@ for i_trial = trials_to_process
             end
         end
         right_pushoff_indices_mocap(right_pushoff_indices_mocap==0) = [];
-end
+    end
     
     % transform to force plate time
     left_pushoff_indices_force_plate = zeros(size(left_pushoff_indices_mocap));
@@ -177,7 +177,11 @@ end
         right_touchdown_indices_force_plate(i_index) = index_force_plate;
     end
 
-
+    % calculate times
+    left_pushoff_times = time_mocap(left_pushoff_indices_mocap);
+    left_touchdown_times = time_mocap(left_touchdown_indices_mocap);
+    right_pushoff_times = time_mocap(right_pushoff_indices_mocap);
+    right_touchdown_times = time_mocap(right_touchdown_indices_mocap);
 
     %% form contact indicators
     number_of_time_steps_mocap = length(time_mocap);
@@ -297,6 +301,10 @@ end
         'left_touchdown_indices_force_plate', ...
         'right_touchdown_indices_force_plate', ...
         'left_pushoff_indices_force_plate', ...
+        'left_pushoff_times', ...
+        'left_touchdown_times', ...
+        'right_pushoff_times', ...
+        'right_touchdown_times', ...
         'right_pushoff_indices_force_plate', ...
         'left_contact_indicators_force_plate', ...
         'right_contact_indicators_force_plate' ...
@@ -304,10 +312,7 @@ end
     
     disp(['Trial ' num2str(i_trial) ' completed']);
     
-    if visualize_left || visualize_right
-        keyboard
-        distFig
-    end
+
 end
 
 

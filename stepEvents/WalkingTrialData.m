@@ -7,9 +7,11 @@ classdef WalkingTrialData < handle
         date = [];
         subject_id = [];
         sampling_rate_mocap = -1;
+        sampling_rate_forceplate = -1;
         
         % time
         time_mocap = [];
+        time_forceplate = [];
         
         % marker kinematics
         left_heel_z_pos = [];
@@ -28,21 +30,42 @@ classdef WalkingTrialData < handle
         right_toes_z_vel = [];
         right_toes_z_acc = [];
         
+        left_fx = [];
+        left_fy = [];
+        left_fz = [];
+        left_mx = [];
+        left_my = [];
+        left_mz = [];
+        
+        right_fx = [];
+        right_fy = [];
+        right_fz = [];
+        right_mx = [];
+        right_my = [];
+        right_mz = [];
+        
         data_labels_mocap = ...
           { ...
             'left_heel_z_pos', 'left_heel_z_vel', 'left_heel_z_acc', ...
             'left_toes_z_pos', 'left_toes_z_vel', 'left_toes_z_acc', ...
             'right_heel_z_pos', 'right_heel_z_vel', 'right_heel_z_acc', ...
             'right_toes_z_pos', 'right_toes_z_vel', 'right_toes_z_acc' ...
+          };
+        data_labels_forceplate = ...
+          {
+            'left_fx', 'left_fy', 'left_fz', 'left_mx', 'left_my', 'left_mz', ...
+            'right_fx', 'right_fy', 'right_fz', 'right_mx', 'right_my', 'right_mz' ...
           }
     end
     methods
-        function object = WalkingTrialData(dataDirectory, trialNumber)
+        function this = WalkingTrialData(dataDirectory, trialNumber)
             if nargin > 1
-                object.data_directory = dataDirectory;
-                object.trial_number = trialNumber;
-                object.loadSubjectInfo();
-                object.loadMarkerTrajectories();
+                this.data_directory = dataDirectory;
+                this.trial_number = trialNumber;
+                this.loadSubjectInfo();
+                this.loadMarkerTrajectories();
+                this.loadForceplateTrajectories();
+                
             end
         end
         function loadSubjectInfo(this)
@@ -102,10 +125,31 @@ classdef WalkingTrialData < handle
             this.right_toes_z_vel = right_toes_z_vel_trajectory;
             this.right_toes_z_acc = right_toes_z_acc_trajectory;        
         end
+        function loadForceplateTrajectories(this)
+            loaded_forceplate_trajectories = load([this.data_directory filesep makeFileName(this.date, this.subject_id, 'walking', this.trial_number, 'forcePlateData')]);
+            
+            this.time_forceplate = loaded_forceplate_trajectories.time_forceplate;
+            
+            this.left_fx = loaded_forceplate_trajectories.fxl_trajectory;
+            this.left_fy = loaded_forceplate_trajectories.fyl_trajectory;
+            this.left_fz = loaded_forceplate_trajectories.fzl_trajectory;
+            this.left_mx = loaded_forceplate_trajectories.mxl_trajectory;
+            this.left_my = loaded_forceplate_trajectories.myl_trajectory;
+            this.left_mz = loaded_forceplate_trajectories.mzl_trajectory;
+            this.right_fx = loaded_forceplate_trajectories.fxr_trajectory;
+            this.right_fy = loaded_forceplate_trajectories.fyr_trajectory;
+            this.right_fz = loaded_forceplate_trajectories.fzr_trajectory;
+            this.right_mx = loaded_forceplate_trajectories.mxr_trajectory;
+            this.right_my = loaded_forceplate_trajectories.myr_trajectory;
+            this.right_mz = loaded_forceplate_trajectories.mzr_trajectory;
+            
+        end
         
         function time = getTime(this, data_label)
             if any(strcmp(data_label, this.data_labels_mocap))
                 time = this.time_mocap;
+            elseif any(strcmp(data_label, this.data_labels_forceplate))
+                time = this.time_forceplate;
             end
         end
         function data = getData(this, data_label)
