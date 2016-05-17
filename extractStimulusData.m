@@ -1,7 +1,7 @@
 
 extract_data                    = 0;
 extract_conditions              = 0;
-calculate_responses             = 0;
+calculate_responses             = 1;
 calculate_strategy_directions   = 0;
 calculate_strategy_responses    = 0;
 calculate_stats                 = 1;
@@ -18,6 +18,11 @@ do_cop_plots_absolute_left  = 1;
 do_cop_plots_response_right = 1;
 do_cop_plots_response_left  = 1;
 
+do_heel_plots_absolute_right = 1;
+do_heel_plots_absolute_left  = 1;
+do_heel_plots_response_right = 1;
+do_heel_plots_response_left  = 1;
+
 do_joint_angle_absolute_plots_left = 0;
 do_joint_angle_absolute_plots_right = 0;
 do_joint_angle_response_plots = 0;
@@ -30,6 +35,8 @@ load(makeFileName(date, subject_id, 'model'));
 
 trials_to_process = 1 : 21;
 % trials_to_process = 4;
+trials_to_process = [2 4:12 14:15 18:20];
+
 
 number_of_time_steps_normalized = 100;
 
@@ -226,11 +233,11 @@ if extract_data
 
             % force plate data
             if process_data_forceplate
-                start_index_force_plate = start_indices_forceplate(i_stretch);
-                end_index_force_plate = end_indices_forceplate(i_stretch);
-                left_cop_x_extracted_stretch = left_force_plate_cop_Acw(start_index_force_plate : end_index_force_plate, 1);
-                right_cop_x_extracted_stretch = right_force_plate_cop_Acw(start_index_force_plate : end_index_force_plate, 1);
-                time_extracted_forceplate = time_force_plate(start_index_force_plate : end_index_force_plate);
+                start_index_forceplate = start_indices_forceplate(i_stretch);
+                end_index_forceplate = end_indices_forceplate(i_stretch);
+                left_cop_x_extracted_stretch = left_forceplate_cop_Acw(start_index_forceplate : end_index_forceplate, 1);
+                right_cop_x_extracted_stretch = right_forceplate_cop_Acw(start_index_forceplate : end_index_forceplate, 1);
+                time_extracted_forceplate = time_forceplate(start_index_forceplate : end_index_forceplate);
                 time_normalized_forceplate = linspace(time_extracted_forceplate(1), time_extracted_forceplate(end), number_of_time_steps_normalized);
                 left_cop_x_normalized_stretch = spline(time_extracted_forceplate, left_cop_x_extracted_stretch, time_normalized_forceplate);
                 right_cop_x_normalized_stretch = spline(time_extracted_forceplate, right_cop_x_extracted_stretch, time_normalized_forceplate);
@@ -1017,7 +1024,7 @@ color_right_negative = [0.3 1 0.1] * 0.7;
 
 %% plot    
     
-%% do_cop_plots_absolute
+%% cop plots
 if do_cop_plots_absolute_right
     figure; axes; hold on; title('right foot medial-lateral CoP, 0ms'); set(gca, 'Fontsize', 12)
     control_plot = shadedErrorBar(time_normalized, right_cop_x_mean_right_control, right_cop_x_civ_right_control, {'color', color_right_control, 'linewidth', 5}, 1);
@@ -1029,7 +1036,7 @@ if do_cop_plots_absolute_right
     xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
     text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), 'right \rightarrow', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right')
     text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(1), '\leftarrow left', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'left')
-    
+    saveas(gcf, 'cop_absolute_left.eps', 'epsc2')
 end
 
 if do_cop_plots_absolute_left
@@ -1043,31 +1050,92 @@ if do_cop_plots_absolute_left
     xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
     text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), 'right \rightarrow', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right')
     text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(1), '\leftarrow left', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'left')
+    saveas(gcf, 'cop_absolute_right.eps', 'epsc2')
 end
 
 if do_cop_plots_response_right
     figure; axes; hold on; title('right foot medial-lateral CoP response, 0ms'); set(gca, 'Fontsize', 12)
     positive_plot = shadedErrorBar(time_normalized, right_cop_x_response_mean_right_positive_0ms, right_cop_x_response_civ_right_positive_0ms, {'color', color_right_positive, 'linewidth', 5}, 1);
     negative_plot = shadedErrorBar(time_normalized, right_cop_x_response_mean_right_negative_0ms, right_cop_x_response_civ_right_positive_0ms, {'color', color_right_negative, 'linewidth', 5}, 1);
-    xlabel('time'); set(gca, 'xlim', [0, step_time_mean], 'ylim', [-0.01 0.01]);
+    xlabel('time'); set(gca, 'xlim', [0, step_time_mean], 'ylim', [-0.015 0.015]);
     this_legend = legend([positive_plot.mainLine negative_plot.mainLine], 'illusion left', 'illusion right');
     set(this_legend, 'Location', 'NORTHWEST')
     xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
     text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), 'right \rightarrow', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right')
     text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(1), '\leftarrow left', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'left')
+    saveas(gcf, 'cop_response_right.eps', 'epsc2')
 end
 
 if do_cop_plots_response_left
     figure; axes; hold on; title('left foot medial-lateral CoP response, 0ms'); set(gca, 'Fontsize', 12)
     positive_plot = shadedErrorBar(time_normalized, left_cop_x_response_mean_left_positive_0ms, left_cop_x_response_civ_left_positive_0ms, {'color', color_left_positive, 'linewidth', 5}, 1);
     negative_plot = shadedErrorBar(time_normalized, left_cop_x_response_mean_left_negative_0ms, left_cop_x_response_civ_left_positive_0ms, {'color', color_left_negative, 'linewidth', 5}, 1);
-    xlabel('time'); set(gca, 'xlim', [0, step_time_mean], 'ylim', [-0.01 0.01]);
+    xlabel('time'); set(gca, 'xlim', [0, step_time_mean], 'ylim', [-0.015 0.015]);
     this_legend = legend([positive_plot.mainLine negative_plot.mainLine], 'illusion left', 'illusion right');
     set(this_legend, 'Location', 'NORTHWEST')
     xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
     text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), 'right \rightarrow', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right')
     text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(1), '\leftarrow left', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'left')
+    saveas(gcf, 'cop_response_left.eps', 'epsc2')
 end
+
+%% heel plots
+if do_heel_plots_absolute_right
+    figure; axes; hold on; title('right foot medial-lateral heel, 0ms'); set(gca, 'Fontsize', 12)
+    control_plot = shadedErrorBar(time_normalized, right_heel_x_pos_mean_left_control, right_heel_x_pos_civ_left_control, {'color', color_right_control, 'linewidth', 5}, 1);
+    positive_plot = shadedErrorBar(time_normalized, right_heel_x_pos_mean_left_positive_0ms, right_heel_x_pos_civ_left_positive_0ms, {'color', color_left_positive, 'linewidth', 5}, 1);
+    negative_plot = shadedErrorBar(time_normalized, right_heel_x_pos_mean_left_negative_0ms, right_heel_x_pos_civ_left_negative_0ms, {'color', color_left_negative, 'linewidth', 5}, 1);
+    xlabel('time'); set(gca, 'xlim', [0, step_time_mean]); 
+    this_legend = legend([control_plot.mainLine positive_plot.mainLine negative_plot.mainLine], 'control', 'illusion left', 'illusion right');
+    set(this_legend, 'Location', 'NORTHWEST')
+    xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
+    text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), 'right \rightarrow', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right')
+    text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(1), '\leftarrow left', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'left')
+    saveas(gcf, 'heel_absolute_right.eps', 'epsc2')
+    
+end
+
+if do_heel_plots_absolute_left
+    figure; axes; hold on; title('left foot medial-lateral heel, 0ms'); set(gca, 'Fontsize', 12)
+    control_plot = shadedErrorBar(time_normalized, left_heel_x_pos_mean_right_control, left_heel_x_pos_civ_right_control, {'color', color_right_control, 'linewidth', 5}, 1);
+    positive_plot = shadedErrorBar(time_normalized, left_heel_x_pos_mean_right_positive_0ms, left_heel_x_pos_civ_right_positive_0ms, {'color', color_right_positive, 'linewidth', 5}, 1);
+    negative_plot = shadedErrorBar(time_normalized, left_heel_x_pos_mean_right_negative_0ms, left_heel_x_pos_civ_right_negative_0ms, {'color', color_right_negative, 'linewidth', 5}, 1);
+    xlabel('time'); set(gca, 'xlim', [0, step_time_mean]); 
+    this_legend = legend([control_plot.mainLine positive_plot.mainLine negative_plot.mainLine], 'control', 'illusion left', 'illusion right');
+    set(this_legend, 'Location', 'NORTHWEST')
+    xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
+    text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), 'right \rightarrow', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right')
+    text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(1), '\leftarrow left', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'left')
+    saveas(gcf, 'heel_absolute_left.eps', 'epsc2')
+end
+
+if do_heel_plots_response_right
+    figure; axes; hold on; title('right foot medial-lateral heel response, 0ms'); set(gca, 'Fontsize', 12)
+    positive_plot = shadedErrorBar(time_normalized, right_heel_x_pos_response_mean_left_positive_0ms, right_heel_x_pos_response_civ_left_positive_0ms, {'color', color_left_positive, 'linewidth', 5}, 1);
+    negative_plot = shadedErrorBar(time_normalized, right_heel_x_pos_response_mean_left_negative_0ms, right_heel_x_pos_response_civ_left_positive_0ms, {'color', color_left_negative, 'linewidth', 5}, 1);
+    xlabel('time'); set(gca, 'xlim', [0, step_time_mean], 'ylim', [-0.03 0.03]);
+    this_legend = legend([positive_plot.mainLine negative_plot.mainLine], 'illusion left', 'illusion right');
+    set(this_legend, 'Location', 'NORTHWEST')
+    xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
+    text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), 'right \rightarrow', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right')
+    text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(1), '\leftarrow left', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'left')
+    saveas(gcf, 'heel_response_right.eps', 'epsc2')
+end
+
+if do_heel_plots_response_left
+    figure; axes; hold on; title('left foot medial-lateral heel response, 0ms'); set(gca, 'Fontsize', 12)
+    positive_plot = shadedErrorBar(time_normalized, left_heel_x_pos_response_mean_right_positive_0ms, left_heel_x_pos_response_civ_right_positive_0ms, {'color', color_right_positive, 'linewidth', 5}, 1);
+    negative_plot = shadedErrorBar(time_normalized, left_heel_x_pos_response_mean_right_negative_0ms, left_heel_x_pos_response_civ_right_positive_0ms, {'color', color_right_negative, 'linewidth', 5}, 1);
+    xlabel('time'); set(gca, 'xlim', [0, step_time_mean], 'ylim', [-0.03 0.03]);
+    this_legend = legend([positive_plot.mainLine negative_plot.mainLine], 'illusion left', 'illusion right');
+    set(this_legend, 'Location', 'NORTHWEST')
+    xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
+    text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), 'right \rightarrow', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right')
+    text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(1), '\leftarrow left', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'left')
+    saveas(gcf, 'heel_response_left.eps', 'epsc2')
+end
+
+
 
 %%
 if do_joint_angle_absolute_plots_left
