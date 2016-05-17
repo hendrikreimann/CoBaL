@@ -12,6 +12,7 @@ classdef stepEventController < handle
         findEventsButton;
         saveEventsButton;
         addEventButtons;
+        lockAddEventsButton
         
         figureSelectionBox;
         heel_pos_peak_width;
@@ -42,6 +43,7 @@ classdef stepEventController < handle
             events_panel = uipanel(this.control_figure, 'Title', 'Events Control', 'FontSize', 12, 'BackgroundColor', 'white', 'Units', 'pixels', 'Position', [5, figure_height-figures_panel_height-events_panel_height-5, figure_width-10, events_panel_height]);
             this.findEventsButton = uicontrol(events_panel, 'Style', 'pushbutton', 'Position', [5, events_panel_height-75, 130, 60], 'Fontsize', 12, 'String', 'Find Events', 'callback', @this.findEvents);
             this.saveEventsButton = uicontrol(events_panel, 'Style', 'pushbutton', 'Position', [140, events_panel_height-75, 130, 60], 'Fontsize', 12, 'String', 'Save Events', 'callback', @event_data.saveEvents);
+            this.lockAddEventsButton = uicontrol(events_panel, 'Style', 'pushbutton', 'Position', [275, events_panel_height-75, 130, 60], 'Fontsize', 12, 'String', 'Lock Add', 'callback', @this.lockAddEvents);
             
             this.addEventButtons(1) = uicontrol(events_panel, 'Style', 'pushbutton', 'Position', [5, events_panel_height-135, 100, 60], 'Fontsize', 12, 'String', '<html><center>Add Left<br></center>Pushoff', 'callback', @this.addEventButtonPressed, 'UserData', 'left_pushoff');
             this.addEventButtons(2) = uicontrol(events_panel, 'Style', 'pushbutton', 'Position', [105, events_panel_height-135, 100, 60], 'Fontsize', 12, 'String', '<html><center>Add Left<br></center>Touchdown', 'callback', @this.addEventButtonPressed, 'UserData', 'left_touchdown');
@@ -109,7 +111,7 @@ classdef stepEventController < handle
                 % this won't work on windows systems, adapt that!
                 this.quit();
             elseif strcmp(eventdata.Key, 'delete') || strcmp(eventdata.Key, 'backspace')
-                this.event_data.updateEventTime(this.event_data.selected_event_label, this.event_data.selected_event_time, NaN)
+                this.event_data.updateEventTime(this.event_data.selected_event_label, this.event_data.selected_event_time, NaN);
                 this.updateEventPlots();
                 this.updateSelectedEventPlots();
             elseif strcmp(eventdata.Key, 'escape')
@@ -191,7 +193,13 @@ classdef stepEventController < handle
                     this.event_data.addEventTime(event_time, event_label);
                     this.updateEventPlots();
                     this.updateSelectedEventPlots();
-                    set(this.addEventButtons(i_button), 'ForegroundColor', this.color_normal);
+                    if get(this.lockAddEventsButton, 'ForegroundColor') == this.color_normal
+                        set(this.addEventButtons(i_button), 'ForegroundColor', this.color_normal);
+                        % change mouse cursors to normal
+                        for i_figure = 1 : length(this.figureSelectionBox.String)
+                            set(this.figureSelectionBox.UserData{i_figure}.main_figure, 'Pointer', 'arrow');
+                        end
+                    end
                 end
             end
             
@@ -216,13 +224,20 @@ classdef stepEventController < handle
                 for i_figure = 1 : length(this.figureSelectionBox.String)
                     set(this.figureSelectionBox.UserData{i_figure}.main_figure, 'Pointer', 'arrow');
                 end
-            end            
+            end
+        end
+        function lockAddEvents(this, sender, eventdata)
+            if get(sender, 'ForegroundColor') == this.color_normal
+                set(sender, 'ForegroundColor', this.color_selected);
+            else
+                set(sender, 'ForegroundColor', this.color_normal);
+            end
             
         end
         function moveSelectedEvent(this, sender, eventdata)
             % this should eventually be moved to WalkingEventData
             
-            selected_event_time_current = this.selected_event_time;
+            selected_event_time_current = this.event_data.selected_event_time;
             
             % step forward or backward
             if strcmp(eventdata.Key, 'z') && isempty(eventdata.Modifier)
@@ -239,7 +254,7 @@ classdef stepEventController < handle
             end
             
             % update
-            this.selected_event_time = this.event_data.updateEventTime(this.selected_event_label, selected_event_time_current, selected_event_time_new);
+            this.event_data.selected_event_time = this.event_data.updateEventTime(this.event_data.selected_event_label, selected_event_time_current, selected_event_time_new);
             
             % update plots
             this.updateSelectedEventPlots();
@@ -259,7 +274,7 @@ classdef stepEventController < handle
                 new_center = current_center;
             elseif strcmp(mode, 'center')
                 new_extension = current_extension;
-                new_center = this.selected_event_time;
+                new_center = this.event_data.selected_event_time;
             elseif strcmp(mode, 'previous')
                 new_extension = current_extension;
                 new_center = current_center - current_extension;
@@ -277,7 +292,7 @@ classdef stepEventController < handle
                 new_x_lim = new_x_lim - new_x_lim(1);
             end
             if new_x_lim(2) > this.trial_data.recording_time
-                new_x_lim = new_x_lim - (new_x_lim(2) - this.trial_data.recording_time)
+                new_x_lim = new_x_lim - (new_x_lim(2) - this.trial_data.recording_time);
             end
             set(this.figureSelectionBox.UserData{1}.main_axes, 'xlim', new_x_lim);
             
