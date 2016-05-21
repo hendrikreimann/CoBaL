@@ -106,7 +106,6 @@ for i_file = 1 : number_of_files
         
         
         % save
-%         matlab_data_file_name = [csv_data_file_name(1 : end-4) '.mat'];
         matlab_data_file_name = makeFileName(date, subject_id, 'walking', trial_number, 'labviewTrajectories');
         
         save ...
@@ -204,19 +203,28 @@ for i_file = 1 : number_of_files
                         % check for forceplate data
                     end
 
-                    number_of_header_lines = number_of_header_lines + number_of_samples + 6;
-
-
-    %                 % import marker data
-    %                 number_of_data_points_devices = size(imported_data.data, 1);
-    %                 [data_markers, delimiter, nheaderlines] = importdata(csv_data_file_name, ',', 5 + number_of_data_points_devices + 6);
-    %                 sampling_rate_mocap = str2num(data_markers.textdata{5 + number_of_data_points_devices + 3, 1});
+                    
 
                 elseif strcmp(data_class, 'Trajectories')
                     data_type = 'markers';
                     
-    %                 data_markers = imported_data;
-    %                 sampling_rate_mocap = str2num(imported_data.textdata{2, 1});
+                    % deal with marker data
+                    marker_trajectories = imported_data.data(:, 3:end) * millimeter_to_meter;
+                    marker_headers_with_subject = data_group(2 : end-1);
+                    sampling_rate_mocap = str2num(imported_data.textdata{number_of_header_lines-3, 1});
+                    time_mocap = (1 : number_of_samples) / sampling_rate_mocap;
+                    
+                    % remove subject name from header strings
+                    marker_headers = cell(size(marker_headers_with_subject));
+                    for i_marker = 1 : length(marker_headers_with_subject)
+                        marker_header = strsplit(marker_headers_with_subject{i_marker}, ':');
+                        marker_headers{i_marker} = marker_header{2};
+                    end
+
+                    % save
+                    matlab_data_file_name = [csv_data_file_name(1 : end-4) '_markerTrajectories.mat'];
+                    save(matlab_data_file_name, 'marker_trajectories', 'time_mocap', 'sampling_rate_mocap', 'marker_headers');
+                    
                 else 
                     error(['unkown data type: ' data_class]); 
                 end
@@ -225,15 +233,9 @@ for i_file = 1 : number_of_files
                 import_more_data = 0;
             end
 
+            % prepare for next import
+            number_of_header_lines = number_of_header_lines + number_of_samples + 6;
 
-
-%             % deal with marker data
-%             marker_trajectories = data_markers.data(:, 3:end) * millimeter_to_meter;
-%             time_mocap = data_markers.data(:, 1) * sampling_rate_mocap^(-1);
-% 
-%             % save
-%             matlab_data_file_name = [csv_data_file_name(1 : end-4) '_markerTrajectories.mat'];
-%             save(matlab_data_file_name, 'marker_trajectories', 'time_mocap', 'sampling_rate_mocap');
         end
     end
     
