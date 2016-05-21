@@ -11,13 +11,18 @@ number_of_files = length(file_name_list);
 millimeter_to_meter = 1e-3; % millimeter to meter
 milliseconds_to_seconds = 1e-3; % millimeter to meter
 
-for i_trial = 1 : number_of_files
+for i_file = 1 : number_of_files
     % file name stuff
-    csv_data_file_name = file_name_list{i_trial};
+    csv_data_file_name = file_name_list{i_file};
+    
+    [date, subject_id, trial_type, trial_number, file_type] = getFileParameters(csv_data_file_name);
     
     % is this marker data or force plate data?
     last_underscore = find(csv_data_file_name == '_', 1, 'last');
     if strcmp(csv_data_file_name(last_underscore+1 : end-4), 'forcePlateData')
+        
+        % this is labview data, fix this later
+        
         % import force plate data
         [imported_data, delimiter, nheaderlines] = importdata(csv_data_file_name, ',', 3);
         forceplate_trajectories = imported_data.data;
@@ -26,7 +31,7 @@ for i_trial = 1 : number_of_files
         column_name_string = imported_data.textdata{1, 1};
         number_of_columns = size(imported_data.textdata, 2);
         
-        time_forceplate = forceplate_trajectories(:, 1) * milliseconds_to_seconds;
+        time_labview = forceplate_trajectories(:, 1) * milliseconds_to_seconds;
         
         fxl_trajectory = forceplate_trajectories(:, 2);
         fyl_trajectory = forceplate_trajectories(:, 3);
@@ -101,11 +106,13 @@ for i_trial = 1 : number_of_files
         
         
         % save
-        matlab_data_file_name = [csv_data_file_name(1 : end-4) '.mat'];
+%         matlab_data_file_name = [csv_data_file_name(1 : end-4) '.mat'];
+        matlab_data_file_name = makeFileName(date, subject_id, 'walking', trial_number, 'labviewTrajectories');
+        
         save ...
           ( ...
             matlab_data_file_name, ...
-            'time_forceplate', ...
+            'time_labview', ...
             'left_forceplate_wrench_Acw', ...
             'left_forceplate_cop_Acw', ...
             'right_forceplate_wrench_Acw', ...
@@ -146,49 +153,88 @@ for i_trial = 1 : number_of_files
             'heel_strike_count' ...
           );
     else
-        % import data
-        [imported_data, delimiter, nheaderlines] = importdata(csv_data_file_name, ',', 5);
-        
-        % check whether this is device data
-        if strcmp(imported_data.textdata{1, 1}, 'Devices')
-            % deal with devices data
-            data_devices = imported_data;
-            sampling_rate_emg = str2num(data_devices.textdata{2, 1});
-            emg_trajectories_raw = data_devices.data(:, 3:end);
-            
-            % figure out time
-            number_of_mocap_samples = data_devices.data(end, 1);
-            emg_samples_per_mocap_sample = size(emg_trajectories_raw, 1) / number_of_mocap_samples;
-            time_emg = (data_devices.data(:, 1)*emg_samples_per_mocap_sample + data_devices.data(:, 2)) * sampling_rate_emg^(-1); % this will need some work
-            
-            % save emg data
-            matlab_data_file_name = [csv_data_file_name(1 : end-4) '_emgTrajectoriesRaw.mat'];
-            save ...
-              ( ...
-                matlab_data_file_name, ...
-                'emg_trajectories_raw', ...
-                'time_emg', ...
-                'sampling_rate_emg' ...
-              );
-        
-            % import marker data
-            number_of_data_points_devices = size(data_devices.data, 1);
-            [data_markers, delimiter, nheaderlines] = importdata(csv_data_file_name, ',', 5 + number_of_data_points_devices + 6);
-            sampling_rate_mocap = str2num(data_markers.textdata{5 + number_of_data_points_devices + 3, 1});
-            
-        else
-            data_markers = imported_data;
-            sampling_rate_mocap = str2num(imported_data.textdata{2, 1});
+        import_more_data = true;
+        number_of_header_lines = 5;
+        while import_more_data
+            % import data
+            [imported_data, delimiter, nheaderlines] = importdata(csv_data_file_name, ',', number_of_header_lines);
+            if isstruct(imported_data)
+                % extract info
+                data_class = imported_data.textdata{number_of_header_lines-4, 1};
+                data_group = strsplit(imported_data.textdata{number_of_header_lines-2, 1}, ',');
+                data_headers = strsplit(imported_data.textdata{number_of_header_lines-1, 1}, ',');
+
+                number_of_samples = size(imported_data.data, 1);
+
+                if strcmp(data_class, 'Devices')
+                    % deal with devices data
+                    if strcmp(data_group{2}(1 : 17), 'Delsys Trigno EMG')
+                        data_type = 'emg';
+                        emg_trajectories_raw = imported_data.data(:, 3:end);
+                        sampling_rate_emg = str2num(imported_data.textdata{number_of_header_lines-3, 1});
+                        time_emg = (1 : number_of_samples) / sampling_rate_emg;
+
+                        % save emg data
+                        matlab_data_file_name = makeFileName(date, subject_id, 'walking', trial_number, 'emgTrajectoriesRaw');
+                        save ...
+                          ( ...
+                            matlab_data_file_name, ...
+                            'emg_trajectories_raw', ...
+                            'time_emg', ...
+                            'sampling_rate_emg' ...
+                          );
+                    elseif strcmp(data_group{2}(1 : 27), 'Bertec Force Plates - Force')
+                        data_type = 'forceplate';
+                        forceplate_trajectories_raw = imported_data.data(:, 3:end);
+                        forceplate_headers = data_headers(3 : end);
+                        sampling_rate_forceplate = str2num(imported_data.textdata{number_of_header_lines-3, 1});
+                        time_forceplate = (1 : number_of_samples) / sampling_rate_forceplate;
+
+                        % save forceplate data
+                        matlab_data_file_name = makeFileName(date, subject_id, 'walking', trial_number, 'forceplateTrajectoriesRaw');
+                        save ...
+                          ( ...
+                            matlab_data_file_name, ...
+                            'forceplate_trajectories_raw', ...
+                            'forceplate_headers', ...
+                            'time_forceplate', ...
+                            'sampling_rate_forceplate' ...
+                          );
+                    else
+                        % check for forceplate data
+                    end
+
+                    number_of_header_lines = number_of_header_lines + number_of_samples + 6;
+
+
+    %                 % import marker data
+    %                 number_of_data_points_devices = size(imported_data.data, 1);
+    %                 [data_markers, delimiter, nheaderlines] = importdata(csv_data_file_name, ',', 5 + number_of_data_points_devices + 6);
+    %                 sampling_rate_mocap = str2num(data_markers.textdata{5 + number_of_data_points_devices + 3, 1});
+
+                elseif strcmp(data_class, 'Trajectories')
+                    data_type = 'markers';
+                    
+    %                 data_markers = imported_data;
+    %                 sampling_rate_mocap = str2num(imported_data.textdata{2, 1});
+                else 
+                    error(['unkown data type: ' data_class]); 
+                end
+                
+            else
+                import_more_data = 0;
+            end
+
+
+
+%             % deal with marker data
+%             marker_trajectories = data_markers.data(:, 3:end) * millimeter_to_meter;
+%             time_mocap = data_markers.data(:, 1) * sampling_rate_mocap^(-1);
+% 
+%             % save
+%             matlab_data_file_name = [csv_data_file_name(1 : end-4) '_markerTrajectories.mat'];
+%             save(matlab_data_file_name, 'marker_trajectories', 'time_mocap', 'sampling_rate_mocap');
         end
-        
-        
-        % deal with marker data
-        marker_trajectories = data_markers.data(:, 3:end) * millimeter_to_meter;
-        time_mocap = data_markers.data(:, 1) * sampling_rate_mocap^(-1);
-        
-        % save
-        matlab_data_file_name = [csv_data_file_name(1 : end-4) '_markerTrajectories.mat'];
-        save(matlab_data_file_name, 'marker_trajectories', 'time_mocap', 'sampling_rate_mocap');
     end
     
     
