@@ -12,6 +12,7 @@ classdef WalkingTrialData < handle
         % time
         time_mocap = [];
         time_forceplate = [];
+        time_labview = [];
         
         % marker kinematics
         left_heel_z_pos = [];
@@ -44,6 +45,8 @@ classdef WalkingTrialData < handle
         right_my = [];
         right_mz = [];
         
+        stimulus_state = [];
+        
         data_labels_mocap = ...
           { ...
             'left_heel_z_pos', 'left_heel_z_vel', 'left_heel_z_acc', ...
@@ -56,6 +59,10 @@ classdef WalkingTrialData < handle
             'left_fx', 'left_fy', 'left_fz', 'left_mx', 'left_my', 'left_mz', ...
             'right_fx', 'right_fy', 'right_fz', 'right_mx', 'right_my', 'right_mz' ...
           }
+        data_labels_labview = ...
+          {
+            'stimulus_state' ...
+          }
     end
     methods
         function this = WalkingTrialData(dataDirectory, trialNumber)
@@ -65,7 +72,7 @@ classdef WalkingTrialData < handle
                 this.loadSubjectInfo();
                 this.loadMarkerTrajectories();
                 this.loadForceplateTrajectories();
-                
+                this.loadLabviewTrajectories();
             end
         end
         function loadSubjectInfo(this)
@@ -80,10 +87,10 @@ classdef WalkingTrialData < handle
             this.sampling_rate_mocap = loaded_marker_trajectories.sampling_rate_mocap;
 
             % extract data
-            left_heel_marker = 34;
-            left_toes_marker = 35;
-            right_heel_marker = 42;
-            right_toes_marker = 43;
+            left_heel_marker = find(strcmp(loaded_marker_trajectories.marker_headers, 'LHEE'));
+            left_toes_marker = find(strcmp(loaded_marker_trajectories.marker_headers, 'LTOE'));
+            right_heel_marker = find(strcmp(loaded_marker_trajectories.marker_headers, 'RHEE'));
+            right_toes_marker = find(strcmp(loaded_marker_trajectories.marker_headers, 'RTOE'));
             left_heel_marker_indices = reshape([(left_heel_marker - 1) * 3 + 1; (left_heel_marker - 1) * 3 + 2; (left_heel_marker - 1) * 3 + 3], 1, length(left_heel_marker)*3);
             left_toes_marker_indices = reshape([(left_toes_marker - 1) * 3 + 1; (left_toes_marker - 1) * 3 + 2; (left_toes_marker - 1) * 3 + 3], 1, length(left_toes_marker)*3);
             right_heel_marker_indices = reshape([(right_heel_marker - 1) * 3 + 1; (right_heel_marker - 1) * 3 + 2; (right_heel_marker - 1) * 3 + 3], 1, length(right_heel_marker)*3);
@@ -126,7 +133,7 @@ classdef WalkingTrialData < handle
             this.right_toes_z_acc = right_toes_z_acc_trajectory;        
         end
         function loadForceplateTrajectories(this)
-            loaded_forceplate_trajectories = load([this.data_directory filesep makeFileName(this.date, this.subject_id, 'walking', this.trial_number, 'forcePlateData')]);
+            loaded_forceplate_trajectories = load([this.data_directory filesep makeFileName(this.date, this.subject_id, 'walking', this.trial_number, 'forceplateTrajectories')]);
             
             this.time_forceplate = loaded_forceplate_trajectories.time_forceplate;
             
@@ -144,12 +151,20 @@ classdef WalkingTrialData < handle
             this.right_mz = loaded_forceplate_trajectories.mzr_trajectory;
             
         end
+        function loadLabviewTrajectories(this)
+            loaded_labview_trajectories = load([this.data_directory filesep makeFileName(this.date, this.subject_id, 'walking', this.trial_number, 'labviewTrajectories')]);
+            
+            this.time_labview = loaded_labview_trajectories.time_labview;
+            this.stimulus_state = loaded_labview_trajectories.stimulus_foot_state;
+        end
         
         function time = getTime(this, data_label)
             if any(strcmp(data_label, this.data_labels_mocap))
                 time = this.time_mocap;
             elseif any(strcmp(data_label, this.data_labels_forceplate))
                 time = this.time_forceplate;
+            elseif any(strcmp(data_label, this.data_labels_labview))
+                time = this.time_labview;
             end
         end
         function data = getData(this, data_label)
