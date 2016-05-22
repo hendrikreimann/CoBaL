@@ -1,19 +1,20 @@
 % findStepEvents
 
-visualize_left          = 0;
-visualize_right         = 0;
-visualize_position      = 0;
-visualize_derivatives   = 0;
+visualize_left          = 1;
+visualize_right         = 1;
+visualize_position      = 1;
+visualize_derivatives   = 1;
 show_forceplate = 0;
 
-trials_to_process = 1 : 1 : 21;
+% trials_to_process = 1 : 1 : 21;
 % trials_to_process = [0:7 9:23];
-% trials_to_process = 1;
+trials_to_process = 6 : 20;
+trials_to_process = 6;
 
 
 % Choose Identification method for each event and foot
-% left_method_touchdown = 'left_heel_position_minima';
-left_method_touchdown = 'left_toe_position_minima';
+left_method_touchdown = 'left_heel_position_minima';
+% left_method_touchdown = 'left_toe_position_minima';
 % method_touchdown = 'zpos_threshold';
 left_method_pushoff = 'left_first_velocity_peak';
 
@@ -28,13 +29,13 @@ for i_trial = trials_to_process
     % load data
     load subjectInfo.mat;
     load(makeFileName(date, subject_id, 'walking', i_trial, 'markerTrajectories'));
-    load(makeFileName(date, subject_id, 'walking', i_trial, 'forcePlateData'));
+    load(makeFileName(date, subject_id, 'walking', i_trial, 'forceplateTrajectories'));
 
     % extract data
-    left_heel_marker = 34;
-    left_toes_marker = 35;
-    right_heel_marker = 42;
-    right_toes_marker = 43;
+    left_heel_marker = find(strcmp(marker_headers, 'LHEE'));
+    left_toes_marker = find(strcmp(marker_headers, 'LTOE'));
+    right_heel_marker = find(strcmp(marker_headers, 'RHEE'));
+    right_toes_marker = find(strcmp(marker_headers, 'RTOE'));
     left_heel_marker_indices = reshape([(left_heel_marker - 1) * 3 + 1; (left_heel_marker - 1) * 3 + 2; (left_heel_marker - 1) * 3 + 3], 1, length(left_heel_marker)*3);
     left_toes_marker_indices = reshape([(left_toes_marker - 1) * 3 + 1; (left_toes_marker - 1) * 3 + 2; (left_toes_marker - 1) * 3 + 3], 1, length(left_toes_marker)*3);
     right_heel_marker_indices = reshape([(right_heel_marker - 1) * 3 + 1; (right_heel_marker - 1) * 3 + 2; (right_heel_marker - 1) * 3 + 3], 1, length(right_heel_marker)*3);
@@ -156,25 +157,25 @@ for i_trial = trials_to_process
     end
     
     % transform to force plate time
-    left_pushoff_indices_force_plate = zeros(size(left_pushoff_indices_mocap));
+    left_pushoff_indices_forceplate = zeros(size(left_pushoff_indices_mocap));
     for i_index = 1 : length(left_pushoff_indices_mocap)
-        [~, index_force_plate] = min(abs(time_force_plate - time_mocap(left_pushoff_indices_mocap(i_index))));
-        left_pushoff_indices_force_plate(i_index) = index_force_plate;
+        [~, index_forceplate] = min(abs(time_forceplate - time_mocap(left_pushoff_indices_mocap(i_index))));
+        left_pushoff_indices_forceplate(i_index) = index_forceplate;
     end
-    left_touchdown_indices_force_plate = zeros(size(left_touchdown_indices_mocap));
+    left_touchdown_indices_forceplate = zeros(size(left_touchdown_indices_mocap));
     for i_index = 1 : length(left_touchdown_indices_mocap)
-        [~, index_force_plate] = min(abs(time_force_plate - time_mocap(left_touchdown_indices_mocap(i_index))));
-        left_touchdown_indices_force_plate(i_index) = index_force_plate;
+        [~, index_forceplate] = min(abs(time_forceplate - time_mocap(left_touchdown_indices_mocap(i_index))));
+        left_touchdown_indices_forceplate(i_index) = index_forceplate;
     end
-    right_pushoff_indices_force_plate = zeros(size(right_pushoff_indices_mocap));
+    right_pushoff_indices_forceplate = zeros(size(right_pushoff_indices_mocap));
     for i_index = 1 : length(right_pushoff_indices_mocap)
-        [~, index_force_plate] = min(abs(time_force_plate - time_mocap(right_pushoff_indices_mocap(i_index))));
-        right_pushoff_indices_force_plate(i_index) = index_force_plate;
+        [~, index_forceplate] = min(abs(time_forceplate - time_mocap(right_pushoff_indices_mocap(i_index))));
+        right_pushoff_indices_forceplate(i_index) = index_forceplate;
     end
-    right_touchdown_indices_force_plate = zeros(size(right_touchdown_indices_mocap));
+    right_touchdown_indices_forceplate = zeros(size(right_touchdown_indices_mocap));
     for i_index = 1 : length(right_touchdown_indices_mocap)
-        [~, index_force_plate] = min(abs(time_force_plate - time_mocap(right_touchdown_indices_mocap(i_index))));
-        right_touchdown_indices_force_plate(i_index) = index_force_plate;
+        [~, index_forceplate] = min(abs(time_forceplate - time_mocap(right_touchdown_indices_mocap(i_index))));
+        right_touchdown_indices_forceplate(i_index) = index_forceplate;
     end
 
     % calculate times
@@ -185,12 +186,12 @@ for i_trial = trials_to_process
 
     %% form contact indicators
     number_of_time_steps_mocap = length(time_mocap);
-    number_of_time_steps_force_plate = length(time_force_plate);
+    number_of_time_steps_forceplate = length(time_forceplate);
 
     left_contact_indicators_mocap = formContactIndicatorTrajectory(left_pushoff_indices_mocap, left_touchdown_indices_mocap, number_of_time_steps_mocap);
     right_contact_indicators_mocap = formContactIndicatorTrajectory(right_pushoff_indices_mocap, right_touchdown_indices_mocap, number_of_time_steps_mocap);
-    left_contact_indicators_force_plate = formContactIndicatorTrajectory(left_pushoff_indices_force_plate, left_touchdown_indices_force_plate, number_of_time_steps_force_plate);
-    right_contact_indicators_force_plate = formContactIndicatorTrajectory(right_pushoff_indices_force_plate, right_touchdown_indices_force_plate, number_of_time_steps_force_plate);
+    left_contact_indicators_forceplate = formContactIndicatorTrajectory(left_pushoff_indices_forceplate, left_touchdown_indices_forceplate, number_of_time_steps_forceplate);
+    right_contact_indicators_forceplate = formContactIndicatorTrajectory(right_pushoff_indices_forceplate, right_touchdown_indices_forceplate, number_of_time_steps_forceplate);
 
     % form contact trajectories
     left_heel_contact_trajectories = left_heel_marker_z_trajectory; left_heel_contact_trajectories(~left_contact_indicators_mocap, :) = NaN;
@@ -213,8 +214,8 @@ for i_trial = trials_to_process
     vel_scaler = 1;
     acc_scaler = .2;
 
-    fzl_trajectory_mocap = spline(time_force_plate, fzl_trajectory, time_mocap);
-    fzr_trajectory_mocap = spline(time_force_plate, fzr_trajectory, time_mocap);
+    fzl_trajectory_mocap = spline(time_forceplate, fzl_trajectory, time_mocap);
+    fzr_trajectory_mocap = spline(time_forceplate, fzr_trajectory, time_mocap);
     
 
     if visualize_left
@@ -226,7 +227,7 @@ for i_trial = trials_to_process
             plot(time_mocap(left_touchdown_indices_mocap), left_heel_marker_z_trajectory(left_touchdown_indices_mocap), 'o', 'linewidth', 2, 'color', color_heelstrike);
             plot(time_mocap(left_pushoff_indices_mocap), left_toes_marker_z_trajectory(left_pushoff_indices_mocap), 'o', 'linewidth', 2, 'color', color_pushoff);
             if show_forceplate
-                plot(time_force_plate, fzl_trajectory*force_scaler)
+                plot(time_forceplate, fzl_trajectory*force_scaler)
                 legend('heel', 'toes', 'touchdown', 'pushoff', 'fzl');
                 plot(time_mocap(left_touchdown_indices_mocap), fzl_trajectory_mocap(left_touchdown_indices_mocap)*force_scaler, 'o', 'linewidth', 2, 'color', color_heelstrike);
                 plot(time_mocap(left_pushoff_indices_mocap), fzl_trajectory_mocap(left_pushoff_indices_mocap)*force_scaler, 'o', 'linewidth', 2, 'color', color_pushoff);
@@ -259,7 +260,7 @@ for i_trial = trials_to_process
             plot(time_mocap(right_touchdown_indices_mocap), right_heel_marker_z_trajectory(right_touchdown_indices_mocap), 'o', 'linewidth', 2, 'color', color_heelstrike);
             plot(time_mocap(right_pushoff_indices_mocap), right_toes_marker_z_trajectory(right_pushoff_indices_mocap), 'o', 'linewidth', 2, 'color', color_pushoff);
             if show_forceplate
-                plot(time_force_plate, fzr_trajectory*force_scaler)
+                plot(time_forceplate, fzr_trajectory*force_scaler)
                 legend('heel', 'toes', 'touchdown', 'pushoff', 'fzl');
                 plot(time_mocap(right_touchdown_indices_mocap), fzr_trajectory_mocap(right_touchdown_indices_mocap)*force_scaler, 'o', 'linewidth', 2, 'color', color_heelstrike);
                 plot(time_mocap(right_pushoff_indices_mocap), fzr_trajectory_mocap(right_pushoff_indices_mocap)*force_scaler, 'o', 'linewidth', 2, 'color', color_pushoff);
@@ -298,16 +299,16 @@ for i_trial = trials_to_process
         'right_pushoff_indices_mocap', ...
         'left_contact_indicators_mocap', ...
         'right_contact_indicators_mocap', ...
-        'left_touchdown_indices_force_plate', ...
-        'right_touchdown_indices_force_plate', ...
-        'left_pushoff_indices_force_plate', ...
+        'left_touchdown_indices_forceplate', ...
+        'right_touchdown_indices_forceplate', ...
+        'left_pushoff_indices_forceplate', ...
         'left_pushoff_times', ...
         'left_touchdown_times', ...
         'right_pushoff_times', ...
         'right_touchdown_times', ...
-        'right_pushoff_indices_force_plate', ...
-        'left_contact_indicators_force_plate', ...
-        'right_contact_indicators_force_plate' ...
+        'right_pushoff_indices_forceplate', ...
+        'left_contact_indicators_forceplate', ...
+        'right_contact_indicators_forceplate' ...
       );
     
     disp(['Trial ' num2str(i_trial) ' completed']);
