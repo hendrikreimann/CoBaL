@@ -1,34 +1,65 @@
-function stepEventGui(dataDirectory, trialToProcess)
+function stepEventGui(dataDirectory, trialToProcess, color_scheme)
+    if nargin < 3
+        color_scheme = 'intra';
+    end
     if nargin < 2
-        trialToProcess = 1;
+        trialToProcess = 6;
     end
     if nargin < 1
         dataDirectory = pwd;
     end
     
     %% set plot stuff
-    color_left_heel = [0.5 0.8 0];
-    color_left_toes = [0 0.8 0.5];
-    color_left_fz = [0.2 0.8 0.2];
-    color_left_touchdown = [0.0 0.5 0.8];
-    color_left_pushoff = [0.0 0.5 0.8];
-    marker_left_touchdown = 'v';
-    marker_left_pushoff = '^';
+    
+    if strcmp(color_scheme, 'side')
+        color_left_heel = [0.5 0.8 0];
+        color_left_toes = [0 0.8 0.5];
+        color_left_fz = [0.2 0.8 0.2];
+        color_left_touchdown = [0.0 0.5 0.8];
+        color_left_pushoff = [0.0 0.5 0.8];
+        marker_left_touchdown = 'v';
+        marker_left_pushoff = '^';
 
-    color_right_heel = [0.8 0.5 0];
-    color_right_toes = [0.8 0 0.5];
-    color_right_fz = [0.8 0.2 0.2];
-    color_right_touchdown = [0.5 0 0.8];
-    color_right_pushoff = [0.5 0 0.8];
-    marker_right_touchdown = 'v';
-    marker_right_pushoff = '^';
-    
-    scale_factor_heel = 6;
-    scale_factor_toes = 20;
-    scale_factor_fz = 1/600;
-    offset_heel = - 0.07;
-    offset_toes = - 0.05;
-    
+        color_right_heel = [0.8 0.5 0];
+        color_right_toes = [0.8 0 0.5];
+        color_right_fz = [0.8 0.2 0.2];
+        color_right_touchdown = [0.5 0 0.8];
+        color_right_pushoff = [0.5 0 0.8];
+        marker_right_touchdown = 'v';
+        marker_right_pushoff = '^';
+
+        scale_factor_heel = 6;
+        scale_factor_toes = 20;
+        scale_factor_fz = 1/600;
+        offset_heel = - 0.07;
+        offset_toes = - 0.05;
+    elseif strcmp(color_scheme, 'intra')
+        color_left_heel = [232 26 75]*1/255;
+        color_left_toes = [57 181 74]*1/255;
+        color_left_fz = [134 50 140]*1/255;
+        color_left_touchdown = [0 131 202]*1/255;
+        color_left_pushoff = [241 90 34]*1/255;
+
+        color_right_heel = [232 26 75]*1/255;
+        color_right_toes = [57 181 74]*1/255;
+        color_right_fz = [134 50 140]*1/255;
+        color_right_touchdown = [0 131 202]*1/255;
+        color_right_pushoff = [241 90 34]*1/255;
+        
+        color_stimulus_state = [255 198 11]*1/255;
+        
+        marker_right_touchdown = 'v';
+        marker_right_pushoff = '^';
+        marker_left_touchdown = 'v';
+        marker_left_pushoff = '^';
+        
+        scale_factor_heel = 1;
+        scale_factor_toes = 1;
+        scale_factor_fz = 1/2000;
+        scale_factor_stimulus_state = 1/8;
+        offset_heel = - 0.0;
+        offset_toes = - 0.0;
+    end
     
     %% load data
     trial_data = WalkingTrialData(dataDirectory, trialToProcess);
@@ -45,6 +76,8 @@ function stepEventGui(dataDirectory, trialToProcess)
     step_event_figure.addEventPlot('left_heel_z_pos', 'left_touchdown', color_left_touchdown, marker_left_touchdown);
     step_event_figure.addEventPlot('left_toes_z_pos', 'left_pushoff', color_left_pushoff, marker_left_pushoff);
     step_event_figure.addEventPlot('left_fz', 'left_pushoff', color_left_pushoff, marker_left_pushoff);
+    step_event_figure.addEventPlot('left_fz', 'left_touchdown', color_left_touchdown, marker_left_touchdown);
+    step_event_figure.addDataPlot('stimulus_state', color_stimulus_state, scale_factor_stimulus_state);
     
     step_event_figure = stepEventFigure('Positions Right', controller, trial_data, event_data);
     step_event_figure.addDataPlot('right_heel_z_pos', color_right_heel, scale_factor_heel, offset_heel);
@@ -53,6 +86,8 @@ function stepEventGui(dataDirectory, trialToProcess)
     step_event_figure.addEventPlot('right_heel_z_pos', 'right_touchdown', color_right_touchdown, marker_right_touchdown);
     step_event_figure.addEventPlot('right_toes_z_pos', 'right_pushoff', color_right_pushoff, marker_right_pushoff);
     step_event_figure.addEventPlot('right_fz', 'right_pushoff', color_right_pushoff, marker_right_pushoff);
+    step_event_figure.addEventPlot('right_fz', 'right_touchdown', color_right_touchdown, marker_right_touchdown);
+    step_event_figure.addDataPlot('stimulus_state', color_stimulus_state, scale_factor_stimulus_state);
 
     % create velocity figures
     step_event_figure = stepEventFigure('Velocities Left', controller, trial_data, event_data);
