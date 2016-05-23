@@ -1,4 +1,3 @@
-do_plots = 0;
 
 current_directory = pwd;
 data_dir = dir('*_forceplateTrajectoriesRaw.mat');
@@ -22,6 +21,7 @@ for i_trial = 1 : number_of_files
     cutoff_frequency_low = 50; % in Hz
     [b_lowpass, a_lowpass] = butter(filter_order_low, cutoff_frequency_low/(sampling_rate_forceplate/2), 'low');
     forceplate_trajectories_filtered = filtfilt(b_lowpass, a_lowpass, forceplate_trajectories_raw);
+    
     
     % extract
     fxl_trajectory = forceplate_trajectories_filtered(:, 1);
@@ -78,11 +78,6 @@ for i_trial = 1 : number_of_files
     right_forceplate_low_load_indicator = copxr_trajectory == 0;
     right_forceplate_cop_Acw(right_forceplate_low_load_indicator, :) = 0;
     
-    
-    
-    
-    
-    
     % save
     save_file_name = makeFileName(date, subject_id, trial_type, trial_number, 'forceplateTrajectories');
     save ...
@@ -113,24 +108,8 @@ for i_trial = 1 : number_of_files
       );
     disp(['filtered and saved as ' save_file_name])
     
-    
     % delete raw data file
     delete(raw_forceplate_file_name);
 
-    % visualize
-    if do_plots
-        i_channel = 1;
-        figure; axes; hold on
-        plot(time_forceplate, forceplate_trajectories_raw(:, i_channel));
-        plot(time_forceplate, forceplate_trajectories_filtered_lowpass(:, i_channel));
-        plot(time_forceplate, forceplate_trajectories_filtered_highpass(:, i_channel));
-        plot(time_forceplate, forceplate_trajectories_rectified(:, i_channel));
-        plot(time_forceplate, forceplate_trajectories_filtered(:, i_channel), 'linewidth', 2);
-    end    
-    
-    
-    
-    
-    
 end
 
