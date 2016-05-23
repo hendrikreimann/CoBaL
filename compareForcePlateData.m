@@ -43,17 +43,17 @@ copxr_trajectory_nexus = copxr_trajectory;
 copyr_trajectory_nexus = copyr_trajectory;
 
 
-% figure; axes; hold on; title('fxl')
-% plot(time_labview, fxl_trajectory_labview, 'linewidth', 2)
-% plot(time_forceplate, fxl_trajectory_nexus, 'linewidth', 2)
-% 
-% figure; axes; hold on; title('fyl')
-% plot(time_labview, fyl_trajectory_labview, 'linewidth', 2)
-% plot(time_forceplate, fyl_trajectory_nexus, 'linewidth', 2)
-% 
-% figure; axes; hold on; title('fzl')
-% plot(time_labview, fzl_trajectory_labview, 'linewidth', 2)
-% plot(time_forceplate, fzl_trajectory_nexus, 'linewidth', 2)
+figure; axes; hold on; title('fxl')
+plot(time_labview, fxl_trajectory_labview, 'linewidth', 2)
+plot(time_forceplate, fxl_trajectory_nexus, 'linewidth', 2)
+
+figure; axes; hold on; title('fyl')
+plot(time_labview, fyl_trajectory_labview, 'linewidth', 2)
+plot(time_forceplate, fyl_trajectory_nexus, 'linewidth', 2)
+
+figure; axes; hold on; title('fzl')
+plot(time_labview, fzl_trajectory_labview, 'linewidth', 2)
+plot(time_forceplate, fzl_trajectory_nexus, 'linewidth', 2)
 
 figure; axes; hold on; title('copxl')
 plot(time_labview, copxl_trajectory_labview, 'linewidth', 2)
@@ -63,13 +63,13 @@ figure; axes; hold on; title('copyl')
 plot(time_labview, copyl_trajectory_labview, 'linewidth', 2)
 plot(time_forceplate, copyl_trajectory_nexus, 'linewidth', 2)
 
-figure; axes; hold on; title('copxr')
-plot(time_labview, copxr_trajectory_labview, 'linewidth', 2)
-plot(time_forceplate, copxr_trajectory_nexus, 'linewidth', 2)
-
-figure; axes; hold on; title('copyr')
-plot(time_labview, copyr_trajectory_labview, 'linewidth', 2)
-plot(time_forceplate, copyr_trajectory_nexus, 'linewidth', 2)
+% figure; axes; hold on; title('copxr')
+% plot(time_labview, copxr_trajectory_labview, 'linewidth', 2)
+% plot(time_forceplate, copxr_trajectory_nexus, 'linewidth', 2)
+% 
+% figure; axes; hold on; title('copyr')
+% plot(time_labview, copyr_trajectory_labview, 'linewidth', 2)
+% plot(time_forceplate, copyr_trajectory_nexus, 'linewidth', 2)
 
 linkaxes(getAllAxes, 'x')
 distFig
