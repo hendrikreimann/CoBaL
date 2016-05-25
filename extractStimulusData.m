@@ -1,41 +1,33 @@
+extract_data                        = 1;
+extract_conditions                  = 1;
+calculate_responses                 = 1;
+calculate_strategy_directions       = 0;
+calculate_strategy_responses        = 0;
+calculate_stats                     = 1;
 
-extract_data                    = 0;
-extract_conditions              = 0;
-calculate_responses             = 1;
-calculate_strategy_directions   = 0;
-calculate_strategy_responses    = 0;
-calculate_stats                 = 1;
-save_data                       = 0;
+save_data                           = 1;
+save_figures                        = 0;
 
-process_data_forceplate     = 1;
-process_data_marker         = 1;
-process_data_emg            = 0;
-process_data_angles         = 0;
-process_data_torques        = 0;
+process_data_forceplate             = 1;
+process_data_marker                 = 1;
+process_data_emg                    = 0;
+process_data_angles                 = 0;
+process_data_torques                = 0;
 
-do_cop_plots_absolute_right = 1;
-do_cop_plots_absolute_left  = 1;
-do_cop_plots_response_right = 1;
-do_cop_plots_response_left  = 1;
-
-do_heel_plots_absolute_right = 1;
-do_heel_plots_absolute_left  = 1;
-do_heel_plots_response_right = 1;
-do_heel_plots_response_left  = 1;
-
-do_joint_angle_absolute_plots_left = 0;
+do_joint_angle_absolute_plots_left  = 0;
 do_joint_angle_absolute_plots_right = 0;
-do_joint_angle_response_plots = 0;
+do_joint_angle_response_plots       = 0;
+
 do_acceleration_strategy_response_plots     = 0;
 
 wait_times = [0 0.150 0.450];
 wait_time_labels = {'0ms', '150ms', '450ms'};
 load subjectInfo.mat;
-load(makeFileName(date, subject_id, 'model'));
+% load(makeFileName(date, subject_id, 'model'));
 
-trials_to_process = 1 : 21;
-% trials_to_process = 4;
-trials_to_process = [2 4:12 14:15 18:20];
+trials_to_process = 2 : 21;
+% trials_to_process = 1;
+% trials_to_process = [2 4:12 14:15 18:20];
 
 
 number_of_time_steps_normalized = 100;
@@ -43,32 +35,16 @@ number_of_time_steps_normalized = 100;
 
 %% extract data
 if extract_data
-    % define markers and indices
-    lasi_marker = 24;
-    rasi_marker = 25;
-    lpsi_marker = 26;
-    rpsi_marker = 27;
-    left_heel_marker = 34;
-    left_toes_marker = 35;
-    right_heel_marker = 42;
-    right_toes_marker = 43;
-
-    lasi_marker_indices = reshape([(lasi_marker - 1) * 3 + 1; (lasi_marker - 1) * 3 + 2; (lasi_marker - 1) * 3 + 3], 1, length(lasi_marker)*3);
-    rasi_marker_indices = reshape([(rasi_marker - 1) * 3 + 1; (rasi_marker - 1) * 3 + 2; (rasi_marker - 1) * 3 + 3], 1, length(rasi_marker)*3);
-    lpsi_marker_indices = reshape([(lpsi_marker - 1) * 3 + 1; (lpsi_marker - 1) * 3 + 2; (lpsi_marker - 1) * 3 + 3], 1, length(lpsi_marker)*3);
-    rpsi_marker_indices = reshape([(rpsi_marker - 1) * 3 + 1; (rpsi_marker - 1) * 3 + 2; (rpsi_marker - 1) * 3 + 3], 1, length(rpsi_marker)*3);
-    left_heel_marker_indices = reshape([(left_heel_marker - 1) * 3 + 1; (left_heel_marker - 1) * 3 + 2; (left_heel_marker - 1) * 3 + 3], 1, length(left_heel_marker)*3);
-    left_toes_marker_indices = reshape([(left_toes_marker - 1) * 3 + 1; (left_toes_marker - 1) * 3 + 2; (left_toes_marker - 1) * 3 + 3], 1, length(left_toes_marker)*3);
-    right_heel_marker_indices = reshape([(right_heel_marker - 1) * 3 + 1; (right_heel_marker - 1) * 3 + 2; (right_heel_marker - 1) * 3 + 3], 1, length(right_heel_marker)*3);
-    right_toes_marker_indices = reshape([(right_toes_marker - 1) * 3 + 1; (right_toes_marker - 1) * 3 + 2; (right_toes_marker - 1) * 3 + 3], 1, length(right_toes_marker)*3);
-
     % initialize containers
     stretch_length_indices_forceplate = [];
     condition_stance_foot_list_total = {};
     condition_polarity_list_total = {};
     condition_delay_list_total = {};
-    left_cop_x_normalized_total = [];
-    right_cop_x_normalized_total = [];
+    origin_trial_list_total = [];
+    origin_start_time_list_total = [];
+    origin_end_time_list_total = [];
+    lcop_x_normalized_total = [];
+    rcop_x_normalized_total = [];
     lasi_x_pos_normalized_total = [];
     rasi_x_pos_normalized_total = [];
     lpsi_x_pos_normalized_total = [];
@@ -79,16 +55,16 @@ if extract_data
     rpsi_x_vel_normalized_total = [];
     pelvis_x_pos_normalized_total = [];
     pelvis_x_vel_normalized_total = [];
-    left_heel_x_pos_normalized_total = [];
-    right_heel_x_pos_normalized_total = [];
-    left_heel_y_pos_normalized_total = [];
-    right_heel_y_pos_normalized_total = [];
-    left_glutmed_emg_normalized_total = [];
-    left_tibiant_emg_normalized_total = [];
-    left_perolng_emg_normalized_total = [];
-    right_glutmed_emg_normalized_total = [];
-    right_tibiant_emg_normalized_total = [];
-    right_perolng_emg_normalized_total = [];
+    lheel_x_pos_normalized_total = [];
+    rheel_x_pos_normalized_total = [];
+    lheel_y_pos_normalized_total = [];
+    rheel_y_pos_normalized_total = [];
+    lglutmed_emg_normalized_total = [];
+    ltibiant_emg_normalized_total = [];
+    lperolng_emg_normalized_total = [];
+    rglutmed_emg_normalized_total = [];
+    rtibiant_emg_normalized_total = [];
+    rperolng_emg_normalized_total = [];
     joint_angles_normalized_total = [];
     joint_velocities_normalized_total = [];
     joint_accelerations_normalized_total = [];
@@ -104,11 +80,30 @@ if extract_data
         condition_stance_foot_list_trial = condition_stance_foot_list;
         condition_polarity_list_trial = condition_polarity_list;
         condition_delay_list_trial = condition_delay_list;
+        origin_trial_list_trial = zeros(number_of_stretches_trial, 1);
+        origin_start_time_list_trial = zeros(number_of_stretches_trial, 1);
+        origin_end_time_list_trial = zeros(number_of_stretches_trial, 1);
         step_times_trial = zeros(number_of_stretches_trial, 1);
         stim_start_time_relative_to_stretch_trial = stim_start_time_relative_to_stretch;
 
         if process_data_marker
             load(makeFileName(date, subject_id, 'walking', i_trial, 'markerTrajectories'));
+            
+            % define markers and indices
+            lasi_marker = find(strcmp(marker_headers, 'LASI'));
+            rasi_marker = find(strcmp(marker_headers, 'RASI'));
+            lpsi_marker = find(strcmp(marker_headers, 'LPSI'));
+            rpsi_marker = find(strcmp(marker_headers, 'RPSI'));
+            lheel_marker = find(strcmp(marker_headers, 'LHEE'));
+            rheel_marker = find(strcmp(marker_headers, 'RHEE'));
+
+            lasi_marker_indices = reshape([(lasi_marker - 1) * 3 + 1; (lasi_marker - 1) * 3 + 2; (lasi_marker - 1) * 3 + 3], 1, length(lasi_marker)*3);
+            rasi_marker_indices = reshape([(rasi_marker - 1) * 3 + 1; (rasi_marker - 1) * 3 + 2; (rasi_marker - 1) * 3 + 3], 1, length(rasi_marker)*3);
+            lpsi_marker_indices = reshape([(lpsi_marker - 1) * 3 + 1; (lpsi_marker - 1) * 3 + 2; (lpsi_marker - 1) * 3 + 3], 1, length(lpsi_marker)*3);
+            rpsi_marker_indices = reshape([(rpsi_marker - 1) * 3 + 1; (rpsi_marker - 1) * 3 + 2; (rpsi_marker - 1) * 3 + 3], 1, length(rpsi_marker)*3);
+            lheel_marker_indices = reshape([(lheel_marker - 1) * 3 + 1; (lheel_marker - 1) * 3 + 2; (lheel_marker - 1) * 3 + 3], 1, length(lheel_marker)*3);
+            rheel_marker_indices = reshape([(rheel_marker - 1) * 3 + 1; (rheel_marker - 1) * 3 + 2; (rheel_marker - 1) * 3 + 3], 1, length(rheel_marker)*3);
+
 
             % rename relevant trajectories
             lasi_x_pos_trajectory = marker_trajectories(:, lasi_marker_indices(1));
@@ -119,10 +114,10 @@ if extract_data
             rasi_x_vel_trajectory = deriveByTime(rasi_x_pos_trajectory, sampling_rate_mocap^(-1));
             lpsi_x_vel_trajectory = deriveByTime(lpsi_x_pos_trajectory, sampling_rate_mocap^(-1));
             rpsi_x_vel_trajectory = deriveByTime(rpsi_x_pos_trajectory, sampling_rate_mocap^(-1));
-            left_heel_x_pos_trajectory = marker_trajectories(:, left_heel_marker_indices(1));
-            right_heel_x_pos_trajectory = marker_trajectories(:, right_heel_marker_indices(1));
-            left_heel_y_pos_trajectory = marker_trajectories(:, left_heel_marker_indices(2));
-            right_heel_y_pos_trajectory = marker_trajectories(:, right_heel_marker_indices(2));
+            lheel_x_pos_trajectory = marker_trajectories(:, lheel_marker_indices(1));
+            rheel_x_pos_trajectory = marker_trajectories(:, rheel_marker_indices(1));
+            lheel_y_pos_trajectory = marker_trajectories(:, lheel_marker_indices(2));
+            rheel_y_pos_trajectory = marker_trajectories(:, rheel_marker_indices(2));
 
             % initialize containers
             lasi_x_pos_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
@@ -135,18 +130,18 @@ if extract_data
             rpsi_x_vel_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
             pelvis_x_pos_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
             pelvis_x_vel_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
-            left_heel_x_pos_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
-            right_heel_x_pos_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
-            left_heel_y_pos_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
-            right_heel_y_pos_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
+            lheel_x_pos_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
+            rheel_x_pos_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
+            lheel_y_pos_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
+            rheel_y_pos_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
 
         end
         if process_data_forceplate
-            load(makeFileName(date, subject_id, 'walking', i_trial, 'forcePlateData'));
+            load(makeFileName(date, subject_id, 'walking', i_trial, 'forceplateTrajectories'));
 
             % initialize containers
-            left_cop_x_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
-            right_cop_x_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
+            lcop_x_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
+            rcop_x_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
         end
         if process_data_emg
             load(makeFileName(date, subject_id, 'walking', i_trial, 'emgTrajectories'));
@@ -182,18 +177,18 @@ if extract_data
                 rasi_x_vel_extracted_stretch = rasi_x_vel_trajectory(start_index_mocap : end_index_mocap);
                 lpsi_x_vel_extracted_stretch = lpsi_x_vel_trajectory(start_index_mocap : end_index_mocap);
                 rpsi_x_vel_extracted_stretch = rpsi_x_vel_trajectory(start_index_mocap : end_index_mocap);
-                left_heel_x_pos_extracted_stretch = left_heel_x_pos_trajectory(start_index_mocap : end_index_mocap);
-                right_heel_x_pos_extracted_stretch = right_heel_x_pos_trajectory(start_index_mocap : end_index_mocap);
-                left_heel_y_pos_extracted_stretch = left_heel_y_pos_trajectory(start_index_mocap : end_index_mocap);
-                right_heel_y_pos_extracted_stretch = right_heel_y_pos_trajectory(start_index_mocap : end_index_mocap);
+                lheel_x_pos_extracted_stretch = lheel_x_pos_trajectory(start_index_mocap : end_index_mocap);
+                rheel_x_pos_extracted_stretch = rheel_x_pos_trajectory(start_index_mocap : end_index_mocap);
+                lheel_y_pos_extracted_stretch = lheel_y_pos_trajectory(start_index_mocap : end_index_mocap);
+                rheel_y_pos_extracted_stretch = rheel_y_pos_trajectory(start_index_mocap : end_index_mocap);
 
                 % define stance foot heel as spatial point of reference
                 if strcmp(condition_stance_foot_list_trial{i_stretch}, 'RIGHT')
-                    stance_foot_heel_x_initial = right_heel_x_pos_extracted_stretch(1);
-                    stance_foot_heel_y_initial = right_heel_y_pos_extracted_stretch(1);
+                    stance_foot_heel_x_initial = rheel_x_pos_extracted_stretch(1);
+                    stance_foot_heel_y_initial = rheel_y_pos_extracted_stretch(1);
                 elseif strcmp(condition_stance_foot_list_trial{i_stretch}, 'LEFT')
-                    stance_foot_heel_x_initial = left_heel_x_pos_extracted_stretch(1);
-                    stance_foot_heel_y_initial = left_heel_y_pos_extracted_stretch(1);
+                    stance_foot_heel_x_initial = lheel_x_pos_extracted_stretch(1);
+                    stance_foot_heel_y_initial = lheel_y_pos_extracted_stretch(1);
                 end
 
                 % normalize mocap data in time
@@ -206,10 +201,10 @@ if extract_data
                 rasi_x_vel_normalized_stretch = spline(time_extracted_mocap, rasi_x_vel_extracted_stretch, time_normalized_mocap);
                 lpsi_x_vel_normalized_stretch = spline(time_extracted_mocap, lpsi_x_vel_extracted_stretch, time_normalized_mocap);
                 rpsi_x_vel_normalized_stretch = spline(time_extracted_mocap, rpsi_x_vel_extracted_stretch, time_normalized_mocap);
-                left_heel_x_pos_normalized_stretch = spline(time_extracted_mocap, left_heel_x_pos_extracted_stretch, time_normalized_mocap);
-                right_heel_x_pos_normalized_stretch = spline(time_extracted_mocap, right_heel_x_pos_extracted_stretch, time_normalized_mocap);
-                left_heel_y_pos_normalized_stretch = spline(time_extracted_mocap, left_heel_y_pos_extracted_stretch, time_normalized_mocap);
-                right_heel_y_pos_normalized_stretch = spline(time_extracted_mocap, right_heel_y_pos_extracted_stretch, time_normalized_mocap);
+                lheel_x_pos_normalized_stretch = spline(time_extracted_mocap, lheel_x_pos_extracted_stretch, time_normalized_mocap);
+                rheel_x_pos_normalized_stretch = spline(time_extracted_mocap, rheel_x_pos_extracted_stretch, time_normalized_mocap);
+                lheel_y_pos_normalized_stretch = spline(time_extracted_mocap, lheel_y_pos_extracted_stretch, time_normalized_mocap);
+                rheel_y_pos_normalized_stretch = spline(time_extracted_mocap, rheel_y_pos_extracted_stretch, time_normalized_mocap);
 
                 % use stance foot heel as reference and store
                 lasi_x_pos_normalized_trial(:, i_stretch) = lasi_x_pos_normalized_stretch - stance_foot_heel_x_initial;
@@ -222,29 +217,32 @@ if extract_data
                 rpsi_x_vel_normalized_trial(:, i_stretch) = rpsi_x_vel_normalized_stretch;
                 pelvis_x_pos_normalized_trial(:, i_stretch) = mean([lasi_x_pos_normalized_stretch; rasi_x_pos_normalized_stretch; lpsi_x_pos_normalized_stretch; rpsi_x_pos_normalized_stretch]) - stance_foot_heel_x_initial;
                 pelvis_x_vel_normalized_trial(:, i_stretch) = mean([lasi_x_vel_normalized_stretch; rasi_x_vel_normalized_stretch; lpsi_x_vel_normalized_stretch; rpsi_x_vel_normalized_stretch]);
-                left_heel_x_pos_normalized_trial(:, i_stretch) = left_heel_x_pos_normalized_stretch - stance_foot_heel_x_initial;
-                right_heel_x_pos_normalized_trial(:, i_stretch) = right_heel_x_pos_normalized_stretch - stance_foot_heel_x_initial;
-                left_heel_y_pos_normalized_trial(:, i_stretch) = left_heel_y_pos_normalized_stretch - stance_foot_heel_y_initial;
-                right_heel_y_pos_normalized_trial(:, i_stretch) = right_heel_y_pos_normalized_stretch - stance_foot_heel_y_initial;
+                lheel_x_pos_normalized_trial(:, i_stretch) = lheel_x_pos_normalized_stretch - stance_foot_heel_x_initial;
+                rheel_x_pos_normalized_trial(:, i_stretch) = rheel_x_pos_normalized_stretch - stance_foot_heel_x_initial;
+                lheel_y_pos_normalized_trial(:, i_stretch) = lheel_y_pos_normalized_stretch - stance_foot_heel_y_initial;
+                rheel_y_pos_normalized_trial(:, i_stretch) = rheel_y_pos_normalized_stretch - stance_foot_heel_y_initial;
 
-                % time
+                % time and origin
+                origin_trial_list_trial(i_stretch) = i_trial;
+                origin_start_time_list_trial(i_stretch) = time_mocap(start_index_mocap);
+                origin_end_time_list_trial(i_stretch) = time_mocap(end_index_mocap);
                 step_times_trial(i_stretch) = time_mocap(end_index_mocap) - time_mocap(start_index_mocap);
             end
 
-            % force plate data
+            % forceplate data
             if process_data_forceplate
                 start_index_forceplate = start_indices_forceplate(i_stretch);
                 end_index_forceplate = end_indices_forceplate(i_stretch);
-                left_cop_x_extracted_stretch = left_forceplate_cop_Acw(start_index_forceplate : end_index_forceplate, 1);
-                right_cop_x_extracted_stretch = right_forceplate_cop_Acw(start_index_forceplate : end_index_forceplate, 1);
+                lcop_x_extracted_stretch = left_forceplate_cop_Acw(start_index_forceplate : end_index_forceplate, 1);
+                rcop_x_extracted_stretch = right_forceplate_cop_Acw(start_index_forceplate : end_index_forceplate, 1);
                 time_extracted_forceplate = time_forceplate(start_index_forceplate : end_index_forceplate);
                 time_normalized_forceplate = linspace(time_extracted_forceplate(1), time_extracted_forceplate(end), number_of_time_steps_normalized);
-                left_cop_x_normalized_stretch = spline(time_extracted_forceplate, left_cop_x_extracted_stretch, time_normalized_forceplate);
-                right_cop_x_normalized_stretch = spline(time_extracted_forceplate, right_cop_x_extracted_stretch, time_normalized_forceplate);
+                lcop_x_normalized_stretch = spline(time_extracted_forceplate, lcop_x_extracted_stretch, time_normalized_forceplate);
+                rcop_x_normalized_stretch = spline(time_extracted_forceplate, rcop_x_extracted_stretch, time_normalized_forceplate);
 
                 % use stance foot heel as reference and store
-                left_cop_x_normalized_trial(:, i_stretch) = left_cop_x_normalized_stretch - stance_foot_heel_x_initial;
-                right_cop_x_normalized_trial(:, i_stretch) = right_cop_x_normalized_stretch - stance_foot_heel_x_initial;
+                lcop_x_normalized_trial(:, i_stretch) = lcop_x_normalized_stretch - stance_foot_heel_x_initial;
+                rcop_x_normalized_trial(:, i_stretch) = rcop_x_normalized_stretch - stance_foot_heel_x_initial;
             end    
 
             % angle data
@@ -282,6 +280,9 @@ if extract_data
         condition_stance_foot_list_total = [condition_stance_foot_list_total; condition_stance_foot_list_trial];
         condition_polarity_list_total = [condition_polarity_list_total; condition_polarity_list_trial];
         condition_delay_list_total = [condition_delay_list_total; condition_delay_list_trial];
+        origin_trial_list_total = [origin_trial_list_total; origin_trial_list_trial];
+        origin_start_time_list_total = [origin_start_time_list_total; origin_start_time_list_trial];
+        origin_end_time_list_total = [origin_end_time_list_total; origin_end_time_list_trial];
         step_times_total = [step_times_total; step_times_trial];
         stim_start_time_relative_to_stretch_total = [stim_start_time_relative_to_stretch_total; stim_start_time_relative_to_stretch_trial];
 
@@ -296,16 +297,16 @@ if extract_data
             rpsi_x_vel_normalized_total = [rpsi_x_vel_normalized_total rpsi_x_vel_normalized_trial];
             pelvis_x_pos_normalized_total = [pelvis_x_pos_normalized_total pelvis_x_pos_normalized_trial];
             pelvis_x_vel_normalized_total = [pelvis_x_vel_normalized_total pelvis_x_vel_normalized_trial];
-            left_heel_x_pos_normalized_total = [left_heel_x_pos_normalized_total left_heel_x_pos_normalized_trial];
-            right_heel_x_pos_normalized_total = [right_heel_x_pos_normalized_total right_heel_x_pos_normalized_trial];
-            left_heel_y_pos_normalized_total = [left_heel_y_pos_normalized_total left_heel_y_pos_normalized_trial];
-            right_heel_y_pos_normalized_total = [right_heel_y_pos_normalized_total right_heel_y_pos_normalized_trial];
+            lheel_x_pos_normalized_total = [lheel_x_pos_normalized_total lheel_x_pos_normalized_trial];
+            rheel_x_pos_normalized_total = [rheel_x_pos_normalized_total rheel_x_pos_normalized_trial];
+            lheel_y_pos_normalized_total = [lheel_y_pos_normalized_total lheel_y_pos_normalized_trial];
+            rheel_y_pos_normalized_total = [rheel_y_pos_normalized_total rheel_y_pos_normalized_trial];
 
         end
 
         if process_data_forceplate
-            left_cop_x_normalized_total = [left_cop_x_normalized_total left_cop_x_normalized_trial];
-            right_cop_x_normalized_total = [right_cop_x_normalized_total right_cop_x_normalized_trial];
+            lcop_x_normalized_total = [lcop_x_normalized_total lcop_x_normalized_trial];
+            rcop_x_normalized_total = [rcop_x_normalized_total rcop_x_normalized_trial];
         end
 
         if process_data_angles
@@ -324,31 +325,37 @@ end
 %% extract conditions
 if extract_conditions
     % extract conditions
-    conditions_left_control = strcmp(condition_stance_foot_list_total, 'LEFT') & strcmp(condition_polarity_list_total, 'CONTROL');
-    conditions_right_control = strcmp(condition_stance_foot_list_total, 'RIGHT') & strcmp(condition_polarity_list_total, 'CONTROL');
-    conditions_left_positive_0ms = strcmp(condition_stance_foot_list_total, 'LEFT') & strcmp(condition_polarity_list_total, 'POSITIVE') & strcmp(condition_delay_list_total, '0ms');
-    conditions_left_negative_0ms = strcmp(condition_stance_foot_list_total, 'LEFT') & strcmp(condition_polarity_list_total, 'NEGATIVE') & strcmp(condition_delay_list_total, '0ms');
-    conditions_right_positive_0ms = strcmp(condition_stance_foot_list_total, 'RIGHT') & strcmp(condition_polarity_list_total, 'POSITIVE') & strcmp(condition_delay_list_total, '0ms');
-    conditions_right_negative_0ms = strcmp(condition_stance_foot_list_total, 'RIGHT') & strcmp(condition_polarity_list_total, 'NEGATIVE') & strcmp(condition_delay_list_total, '0ms');
-    conditions_left_positive_150ms = strcmp(condition_stance_foot_list_total, 'LEFT') & strcmp(condition_polarity_list_total, 'POSITIVE') & strcmp(condition_delay_list_total, '150ms');
-    conditions_left_negative_150ms = strcmp(condition_stance_foot_list_total, 'LEFT') & strcmp(condition_polarity_list_total, 'NEGATIVE') & strcmp(condition_delay_list_total, '150ms');
-    conditions_right_positive_150ms = strcmp(condition_stance_foot_list_total, 'RIGHT') & strcmp(condition_polarity_list_total, 'POSITIVE') & strcmp(condition_delay_list_total, '150ms');
-    conditions_right_negative_150ms = strcmp(condition_stance_foot_list_total, 'RIGHT') & strcmp(condition_polarity_list_total, 'NEGATIVE') & strcmp(condition_delay_list_total, '150ms');
-    conditions_left_positive_450ms = strcmp(condition_stance_foot_list_total, 'LEFT') & strcmp(condition_polarity_list_total, 'POSITIVE') & strcmp(condition_delay_list_total, '450ms');
-    conditions_left_negative_450ms = strcmp(condition_stance_foot_list_total, 'LEFT') & strcmp(condition_polarity_list_total, 'NEGATIVE') & strcmp(condition_delay_list_total, '450ms');
-    conditions_right_positive_450ms = strcmp(condition_stance_foot_list_total, 'RIGHT') & strcmp(condition_polarity_list_total, 'POSITIVE') & strcmp(condition_delay_list_total, '450ms');
-    conditions_right_negative_450ms = strcmp(condition_stance_foot_list_total, 'RIGHT') & strcmp(condition_polarity_list_total, 'NEGATIVE') & strcmp(condition_delay_list_total, '450ms');
+    conditions_stanceL_stimNo = strcmp(condition_stance_foot_list_total, 'LEFT') & strcmp(condition_polarity_list_total, 'CONTROL');
+    conditions_stanceR_stimNo = strcmp(condition_stance_foot_list_total, 'RIGHT') & strcmp(condition_polarity_list_total, 'CONTROL');
+    conditions_stanceL_stimPos_0ms = strcmp(condition_stance_foot_list_total, 'LEFT') & strcmp(condition_polarity_list_total, 'POSITIVE') & strcmp(condition_delay_list_total, '0ms');
+    conditions_stanceL_stimNeg_0ms = strcmp(condition_stance_foot_list_total, 'LEFT') & strcmp(condition_polarity_list_total, 'NEGATIVE') & strcmp(condition_delay_list_total, '0ms');
+    conditions_stanceR_stimPos_0ms = strcmp(condition_stance_foot_list_total, 'RIGHT') & strcmp(condition_polarity_list_total, 'POSITIVE') & strcmp(condition_delay_list_total, '0ms');
+    conditions_stanceR_stimNeg_0ms = strcmp(condition_stance_foot_list_total, 'RIGHT') & strcmp(condition_polarity_list_total, 'NEGATIVE') & strcmp(condition_delay_list_total, '0ms');
+    conditions_stanceL_stimPos_150ms = strcmp(condition_stance_foot_list_total, 'LEFT') & strcmp(condition_polarity_list_total, 'POSITIVE') & strcmp(condition_delay_list_total, '150ms');
+    conditions_stanceL_stimNeg_150ms = strcmp(condition_stance_foot_list_total, 'LEFT') & strcmp(condition_polarity_list_total, 'NEGATIVE') & strcmp(condition_delay_list_total, '150ms');
+    conditions_stanceR_stimPos_150ms = strcmp(condition_stance_foot_list_total, 'RIGHT') & strcmp(condition_polarity_list_total, 'POSITIVE') & strcmp(condition_delay_list_total, '150ms');
+    conditions_stanceR_stimNeg_150ms = strcmp(condition_stance_foot_list_total, 'RIGHT') & strcmp(condition_polarity_list_total, 'NEGATIVE') & strcmp(condition_delay_list_total, '150ms');
+    conditions_stanceL_stimPos_450ms = strcmp(condition_stance_foot_list_total, 'LEFT') & strcmp(condition_polarity_list_total, 'POSITIVE') & strcmp(condition_delay_list_total, '450ms');
+    conditions_stanceL_stimNeg_450ms = strcmp(condition_stance_foot_list_total, 'LEFT') & strcmp(condition_polarity_list_total, 'NEGATIVE') & strcmp(condition_delay_list_total, '450ms');
+    conditions_stanceR_stimPos_450ms = strcmp(condition_stance_foot_list_total, 'RIGHT') & strcmp(condition_polarity_list_total, 'POSITIVE') & strcmp(condition_delay_list_total, '450ms');
+    conditions_stanceR_stimNeg_450ms = strcmp(condition_stance_foot_list_total, 'RIGHT') & strcmp(condition_polarity_list_total, 'NEGATIVE') & strcmp(condition_delay_list_total, '450ms');
 
-    conditions_left_0ms = conditions_left_positive_0ms | conditions_left_negative_0ms;
-    conditions_right_0ms = conditions_right_positive_0ms | conditions_right_negative_0ms;
-    conditions_left_150ms = conditions_left_positive_150ms | conditions_left_negative_150ms;
-    conditions_right_150ms = conditions_right_positive_150ms | conditions_right_negative_150ms;
-    conditions_left_450ms = conditions_left_positive_450ms | conditions_left_negative_450ms;
-    conditions_right_450ms = conditions_right_positive_450ms | conditions_right_negative_450ms;
+    conditions_stanceL_0ms = conditions_stanceL_stimPos_0ms | conditions_stanceL_stimNeg_0ms;
+    conditions_stanceR_0ms = conditions_stanceR_stimPos_0ms | conditions_stanceR_stimNeg_0ms;
+    conditions_stanceL_150ms = conditions_stanceL_stimPos_150ms | conditions_stanceL_stimNeg_150ms;
+    conditions_stanceR_150ms = conditions_stanceR_stimPos_150ms | conditions_stanceR_stimNeg_150ms;
+    conditions_stanceL_450ms = conditions_stanceL_stimPos_450ms | conditions_stanceL_stimNeg_450ms;
+    conditions_stanceR_450ms = conditions_stanceR_stimPos_450ms | conditions_stanceR_stimNeg_450ms;
     
-    conditions_all = conditions_left_control | conditions_right_control | conditions_left_positive_0ms | conditions_left_negative_0ms | conditions_right_positive_0ms | conditions_right_negative_0ms;
-    % this should add up to all conditions, but for some reason several trials got identified as 450ms trials. Check
-    % into that later!
+    conditions_all = conditions_stanceL_stimNo | conditions_stanceR_stimNo | conditions_stanceL_stimPos_0ms | conditions_stanceL_stimNeg_0ms | conditions_stanceR_stimPos_0ms | conditions_stanceR_stimNeg_0ms;
+    
+    disp(['Number of trials LEFT 0ms:       ' num2str(length(find(conditions_stanceL_0ms)))]);
+    disp(['Number of trials RIGHT 0ms:      ' num2str(length(find(conditions_stanceR_0ms)))]);
+    disp(['Number of trials LEFT 150ms:     ' num2str(length(find(conditions_stanceL_150ms)))]);
+    disp(['Number of trials RIGHT 150ms:    ' num2str(length(find(conditions_stanceR_150ms)))]);
+    disp(['Number of trials LEFT 450ms:     ' num2str(length(find(conditions_stanceL_450ms)))]);
+    disp(['Number of trials RIGHT 450ms:    ' num2str(length(find(conditions_stanceR_450ms)))]);
+    
 end
 
 %% calculate responses
@@ -358,64 +365,64 @@ if calculate_responses
     
     if process_data_marker
         % control means
-        left_heel_x_pos_mean_left_control = mean(left_heel_x_pos_normalized_total(:, conditions_left_control), 2);
-        left_heel_x_pos_mean_right_control = mean(left_heel_x_pos_normalized_total(:, conditions_right_control), 2);
-        right_heel_x_pos_mean_left_control = mean(right_heel_x_pos_normalized_total(:, conditions_left_control), 2);
-        right_heel_x_pos_mean_right_control = mean(right_heel_x_pos_normalized_total(:, conditions_right_control), 2);
-        left_heel_y_pos_mean_left_control = mean(left_heel_y_pos_normalized_total(:, conditions_left_control), 2);
-        left_heel_y_pos_mean_right_control = mean(left_heel_y_pos_normalized_total(:, conditions_right_control), 2);
-        right_heel_y_pos_mean_left_control = mean(right_heel_y_pos_normalized_total(:, conditions_left_control), 2);
-        right_heel_y_pos_mean_right_control = mean(right_heel_y_pos_normalized_total(:, conditions_right_control), 2);
+        lheel_x_pos_mean_stanceL_control = mean(lheel_x_pos_normalized_total(:, conditions_stanceL_stimNo), 2);
+        lheel_x_pos_mean_stanceR_control = mean(lheel_x_pos_normalized_total(:, conditions_stanceR_stimNo), 2);
+        rheel_x_pos_mean_stanceL_control = mean(rheel_x_pos_normalized_total(:, conditions_stanceL_stimNo), 2);
+        rheel_x_pos_mean_stanceR_control = mean(rheel_x_pos_normalized_total(:, conditions_stanceR_stimNo), 2);
+        lheel_y_pos_mean_stanceL_control = mean(lheel_y_pos_normalized_total(:, conditions_stanceL_stimNo), 2);
+        lheel_y_pos_mean_stanceR_control = mean(lheel_y_pos_normalized_total(:, conditions_stanceR_stimNo), 2);
+        rheel_y_pos_mean_stanceL_control = mean(rheel_y_pos_normalized_total(:, conditions_stanceL_stimNo), 2);
+        rheel_y_pos_mean_stanceR_control = mean(rheel_y_pos_normalized_total(:, conditions_stanceR_stimNo), 2);
         
         % responses
-        left_heel_x_pos_right_response = left_heel_x_pos_normalized_total - repmat(left_heel_x_pos_mean_right_control, 1, number_of_stretches);
-        right_heel_x_pos_left_response = right_heel_x_pos_normalized_total - repmat(right_heel_x_pos_mean_left_control, 1, number_of_stretches);
-        left_heel_y_pos_right_response = left_heel_y_pos_normalized_total - repmat(left_heel_y_pos_mean_right_control, 1, number_of_stretches);
-        right_heel_y_pos_left_response = right_heel_y_pos_normalized_total - repmat(right_heel_y_pos_mean_left_control, 1, number_of_stretches);
+        lheel_x_pos_stanceR_response = lheel_x_pos_normalized_total - repmat(lheel_x_pos_mean_stanceR_control, 1, number_of_stretches);
+        rheel_x_pos_stanceL_response = rheel_x_pos_normalized_total - repmat(rheel_x_pos_mean_stanceL_control, 1, number_of_stretches);
+        lheel_y_pos_stanceR_response = lheel_y_pos_normalized_total - repmat(lheel_y_pos_mean_stanceR_control, 1, number_of_stretches);
+        rheel_y_pos_stanceL_response = rheel_y_pos_normalized_total - repmat(rheel_y_pos_mean_stanceL_control, 1, number_of_stretches);
     end
     
     if process_data_forceplate
         % control means
-        left_cop_x_mean_left_control = mean(left_cop_x_normalized_total(:, conditions_left_control), 2);
-        right_cop_x_mean_right_control = mean(right_cop_x_normalized_total(:, conditions_right_control), 2);
+        lcop_x_mean_stanceL_control = mean(lcop_x_normalized_total(:, conditions_stanceL_stimNo), 2);
+        rcop_x_mean_stanceR_control = mean(rcop_x_normalized_total(:, conditions_stanceR_stimNo), 2);
         
         % response
-        left_cop_x_left_response = left_cop_x_normalized_total - repmat(left_cop_x_mean_left_control, 1, number_of_stretches);
-        right_cop_x_right_response = right_cop_x_normalized_total - repmat(right_cop_x_mean_right_control, 1, number_of_stretches);
+        lcop_x_stanceL_response = lcop_x_normalized_total - repmat(lcop_x_mean_stanceL_control, 1, number_of_stretches);
+        rcop_x_stanceR_response = rcop_x_normalized_total - repmat(rcop_x_mean_stanceR_control, 1, number_of_stretches);
     end
     
     if process_data_angles
         % control means
-        joint_angles_mean_left_control = squeeze(mean(joint_angles_normalized_total(:, conditions_left_control, :), 2));
-        joint_angles_mean_right_control = squeeze(mean(joint_angles_normalized_total(:, conditions_right_control, :), 2));
-        joint_velocities_mean_left_control = squeeze(mean(joint_velocities_normalized_total(:, conditions_left_control, :), 2));
-        joint_velocities_mean_right_control = squeeze(mean(joint_velocities_normalized_total(:, conditions_right_control, :), 2));
-        joint_accelerations_mean_left_control = squeeze(mean(joint_accelerations_normalized_total(:, conditions_left_control, :), 2));
-        joint_accelerations_mean_right_control = squeeze(mean(joint_accelerations_normalized_total(:, conditions_right_control, :), 2));
+        joint_angles_mean_stanceL_control = squeeze(mean(joint_angles_normalized_total(:, conditions_stanceL_stimNo, :), 2));
+        joint_angles_mean_stanceR_control = squeeze(mean(joint_angles_normalized_total(:, conditions_stanceR_stimNo, :), 2));
+        joint_velocities_mean_stanceL_control = squeeze(mean(joint_velocities_normalized_total(:, conditions_stanceL_stimNo, :), 2));
+        joint_velocities_mean_stanceR_control = squeeze(mean(joint_velocities_normalized_total(:, conditions_stanceR_stimNo, :), 2));
+        joint_accelerations_mean_stanceL_control = squeeze(mean(joint_accelerations_normalized_total(:, conditions_stanceL_stimNo, :), 2));
+        joint_accelerations_mean_stanceR_control = squeeze(mean(joint_accelerations_normalized_total(:, conditions_stanceR_stimNo, :), 2));
         
         % response
-        joint_angles_left_response = joint_angles_normalized_total - permute(repmat(joint_angles_mean_left_control, 1, 1, number_of_stretches), [1 3 2]);
-        joint_angles_right_response = joint_angles_normalized_total - permute(repmat(joint_angles_mean_right_control, 1, 1, number_of_stretches), [1 3 2]);
-        joint_velocities_left_response = joint_velocities_normalized_total - permute(repmat(joint_velocities_mean_left_control, 1, 1, number_of_stretches), [1 3 2]);
-        joint_velocities_right_response = joint_velocities_normalized_total - permute(repmat(joint_velocities_mean_right_control, 1, 1, number_of_stretches), [1 3 2]);
-        joint_accelerations_left_response = joint_accelerations_normalized_total - permute(repmat(joint_accelerations_mean_left_control, 1, 1, number_of_stretches), [1 3 2]);
-        joint_accelerations_right_response = joint_accelerations_normalized_total - permute(repmat(joint_accelerations_mean_right_control, 1, 1, number_of_stretches), [1 3 2]);
+        joint_angles_stanceL_response = joint_angles_normalized_total - permute(repmat(joint_angles_mean_stanceL_control, 1, 1, number_of_stretches), [1 3 2]);
+        joint_angles_stanceR_response = joint_angles_normalized_total - permute(repmat(joint_angles_mean_stanceR_control, 1, 1, number_of_stretches), [1 3 2]);
+        joint_velocities_stanceL_response = joint_velocities_normalized_total - permute(repmat(joint_velocities_mean_stanceL_control, 1, 1, number_of_stretches), [1 3 2]);
+        joint_velocities_stanceR_response = joint_velocities_normalized_total - permute(repmat(joint_velocities_mean_stanceR_control, 1, 1, number_of_stretches), [1 3 2]);
+        joint_accelerations_stanceL_response = joint_accelerations_normalized_total - permute(repmat(joint_accelerations_mean_stanceL_control, 1, 1, number_of_stretches), [1 3 2]);
+        joint_accelerations_stanceR_response = joint_accelerations_normalized_total - permute(repmat(joint_accelerations_mean_stanceR_control, 1, 1, number_of_stretches), [1 3 2]);
         
 %         i_joint = 11;
-%         plot(squeeze(joint_angles_normalized_total(:, conditions_left_control, i_joint)))
-%         plot(squeeze(joint_angles_normalized_total(:, conditions_right_control, i_joint)))
-%         plot(squeeze(joint_velocities_normalized_total(:, conditions_left_control, i_joint)))
-%         plot(squeeze(joint_velocities_normalized_total(:, conditions_right_control, i_joint)))
-%         plot(squeeze(joint_accelerations_normalized_total(:, conditions_left_control, i_joint)))
-%         plot(squeeze(joint_accelerations_normalized_total(:, conditions_right_control, i_joint)))
+%         plot(squeeze(joint_angles_normalized_total(:, conditions_stanceL_control, i_joint)))
+%         plot(squeeze(joint_angles_normalized_total(:, conditions_stanceR_control, i_joint)))
+%         plot(squeeze(joint_velocities_normalized_total(:, conditions_stanceL_control, i_joint)))
+%         plot(squeeze(joint_velocities_normalized_total(:, conditions_stanceR_control, i_joint)))
+%         plot(squeeze(joint_accelerations_normalized_total(:, conditions_stanceL_control, i_joint)))
+%         plot(squeeze(joint_accelerations_normalized_total(:, conditions_stanceR_control, i_joint)))
   
 %         i_joint = 11;
-%         plot(mean(squeeze(joint_angles_left_response(:, conditions_left_control, i_joint)), 2))
-%         plot(mean(squeeze(joint_angles_right_response(:, conditions_right_control, i_joint)), 2))
-%         plot(mean(squeeze(joint_velocities_left_response(:, conditions_left_control, i_joint)), 2))
-%         plot(mean(squeeze(joint_velocities_right_response(:, conditions_right_control, i_joint)), 2))
-%         plot(mean(squeeze(joint_accelerations_left_response(:, conditions_left_control, i_joint)), 2))
-%         plot(mean(squeeze(joint_accelerations_right_response(:, conditions_right_control, i_joint)), 2))
+%         plot(mean(squeeze(joint_angles_stanceL_response(:, conditions_stanceL_control, i_joint)), 2))
+%         plot(mean(squeeze(joint_angles_right_response(:, conditions_stanceR_control, i_joint)), 2))
+%         plot(mean(squeeze(joint_velocities_stanceL_response(:, conditions_stanceL_control, i_joint)), 2))
+%         plot(mean(squeeze(joint_velocities_right_response(:, conditions_stanceR_control, i_joint)), 2))
+%         plot(mean(squeeze(joint_accelerations_stanceL_response(:, conditions_stanceL_control, i_joint)), 2))
+%         plot(mean(squeeze(joint_accelerations_right_response(:, conditions_stanceR_control, i_joint)), 2))
 
     end
 end
@@ -788,303 +795,345 @@ if calculate_stats
     
     if process_data_marker
         % absolute data
-        left_heel_x_pos_civ_right_control = tinv(0.975, sum(conditions_right_control)-1) * std(left_heel_x_pos_normalized_total(:, conditions_right_control), 1, 2)/sqrt(sum(conditions_right_control));
-        left_heel_x_pos_mean_right_positive_0ms = mean(left_heel_x_pos_normalized_total(:, conditions_right_positive_0ms), 2);
-        left_heel_x_pos_civ_right_positive_0ms = tinv(0.975, sum(conditions_right_positive_0ms)-1) * std(left_heel_x_pos_normalized_total(:, conditions_right_positive_0ms), 1, 2)/sqrt(sum(conditions_right_positive_0ms));
-        left_heel_x_pos_mean_right_negative_0ms = mean(left_heel_x_pos_normalized_total(:, conditions_right_negative_0ms), 2);
-        left_heel_x_pos_civ_right_negative_0ms = tinv(0.975, sum(conditions_right_negative_0ms)-1) * std(left_heel_x_pos_normalized_total(:, conditions_right_negative_0ms), 1, 2)/sqrt(sum(conditions_right_negative_0ms));
-        left_heel_x_pos_mean_right_positive_150ms = mean(left_heel_x_pos_normalized_total(:, conditions_right_positive_150ms), 2);
-        left_heel_x_pos_civ_right_positive_150ms = tinv(0.975, sum(conditions_right_positive_150ms)-1) * std(left_heel_x_pos_normalized_total(:, conditions_right_positive_150ms), 1, 2)/sqrt(sum(conditions_right_positive_150ms));
-        left_heel_x_pos_mean_right_negative_150ms = mean(left_heel_x_pos_normalized_total(:, conditions_right_negative_150ms), 2);
-        left_heel_x_pos_civ_right_negative_150ms = tinv(0.975, sum(conditions_right_negative_150ms)-1) * std(left_heel_x_pos_normalized_total(:, conditions_right_negative_150ms), 1, 2)/sqrt(sum(conditions_right_negative_150ms));
-        left_heel_x_pos_mean_right_positive_450ms = mean(left_heel_x_pos_normalized_total(:, conditions_right_positive_450ms), 2);
-        left_heel_x_pos_civ_right_positive_450ms = tinv(0.975, sum(conditions_right_positive_450ms)-1) * std(left_heel_x_pos_normalized_total(:, conditions_right_positive_450ms), 1, 2)/sqrt(sum(conditions_right_positive_450ms));
-        left_heel_x_pos_mean_right_negative_450ms = mean(left_heel_x_pos_normalized_total(:, conditions_right_negative_450ms), 2);
-        left_heel_x_pos_civ_right_negative_450ms = tinv(0.975, sum(conditions_right_negative_450ms)-1) * std(left_heel_x_pos_normalized_total(:, conditions_right_negative_450ms), 1, 2)/sqrt(sum(conditions_right_negative_450ms));
+        lheel_x_pos_civ_stanceR_control = tinv(0.975, sum(conditions_stanceR_stimNo)-1) * std(lheel_x_pos_normalized_total(:, conditions_stanceR_stimNo), 1, 2)/sqrt(sum(conditions_stanceR_stimNo));
+        lheel_x_pos_mean_stanceR_stimPos_0ms = mean(lheel_x_pos_normalized_total(:, conditions_stanceR_stimPos_0ms), 2);
+        lheel_x_pos_civ_stanceR_stimPos_0ms = tinv(0.975, sum(conditions_stanceR_stimPos_0ms)-1) * std(lheel_x_pos_normalized_total(:, conditions_stanceR_stimPos_0ms), 1, 2)/sqrt(sum(conditions_stanceR_stimPos_0ms));
+        lheel_x_pos_mean_stanceR_stimNeg_0ms = mean(lheel_x_pos_normalized_total(:, conditions_stanceR_stimNeg_0ms), 2);
+        lheel_x_pos_civ_stanceR_stimNeg_0ms = tinv(0.975, sum(conditions_stanceR_stimNeg_0ms)-1) * std(lheel_x_pos_normalized_total(:, conditions_stanceR_stimNeg_0ms), 1, 2)/sqrt(sum(conditions_stanceR_stimNeg_0ms));
+        lheel_x_pos_mean_stanceR_stimPos_150ms = mean(lheel_x_pos_normalized_total(:, conditions_stanceR_stimPos_150ms), 2);
+        lheel_x_pos_civ_stanceR_stimPos_150ms = tinv(0.975, sum(conditions_stanceR_stimPos_150ms)-1) * std(lheel_x_pos_normalized_total(:, conditions_stanceR_stimPos_150ms), 1, 2)/sqrt(sum(conditions_stanceR_stimPos_150ms));
+        lheel_x_pos_mean_stanceR_stimNeg_150ms = mean(lheel_x_pos_normalized_total(:, conditions_stanceR_stimNeg_150ms), 2);
+        lheel_x_pos_civ_stanceR_stimNeg_150ms = tinv(0.975, sum(conditions_stanceR_stimNeg_150ms)-1) * std(lheel_x_pos_normalized_total(:, conditions_stanceR_stimNeg_150ms), 1, 2)/sqrt(sum(conditions_stanceR_stimNeg_150ms));
+        lheel_x_pos_mean_stanceR_stimPos_450ms = mean(lheel_x_pos_normalized_total(:, conditions_stanceR_stimPos_450ms), 2);
+        lheel_x_pos_civ_stanceR_stimPos_450ms = tinv(0.975, sum(conditions_stanceR_stimPos_450ms)-1) * std(lheel_x_pos_normalized_total(:, conditions_stanceR_stimPos_450ms), 1, 2)/sqrt(sum(conditions_stanceR_stimPos_450ms));
+        lheel_x_pos_mean_stanceR_stimNeg_450ms = mean(lheel_x_pos_normalized_total(:, conditions_stanceR_stimNeg_450ms), 2);
+        lheel_x_pos_civ_stanceR_stimNeg_450ms = tinv(0.975, sum(conditions_stanceR_stimNeg_450ms)-1) * std(lheel_x_pos_normalized_total(:, conditions_stanceR_stimNeg_450ms), 1, 2)/sqrt(sum(conditions_stanceR_stimNeg_450ms));
 
-        right_heel_x_pos_civ_left_control = tinv(0.975, sum(conditions_left_control)-1) * std(right_heel_x_pos_normalized_total(:, conditions_left_control), 1, 2)/sqrt(sum(conditions_left_control));
-        right_heel_x_pos_mean_left_positive_0ms = mean(right_heel_x_pos_normalized_total(:, conditions_left_positive_0ms), 2);
-        right_heel_x_pos_civ_left_positive_0ms = tinv(0.975, sum(conditions_left_positive_0ms)-1) * std(right_heel_x_pos_normalized_total(:, conditions_left_positive_0ms), 1, 2)/sqrt(sum(conditions_left_positive_0ms));
-        right_heel_x_pos_mean_left_negative_0ms = mean(right_heel_x_pos_normalized_total(:, conditions_left_negative_0ms), 2);
-        right_heel_x_pos_civ_left_negative_0ms = tinv(0.975, sum(conditions_left_negative_0ms)-1) * std(right_heel_x_pos_normalized_total(:, conditions_left_negative_0ms), 1, 2)/sqrt(sum(conditions_left_negative_0ms));
-        right_heel_x_pos_mean_left_positive_150ms = mean(right_heel_x_pos_normalized_total(:, conditions_left_positive_150ms), 2);
-        right_heel_x_pos_civ_left_positive_150ms = tinv(0.975, sum(conditions_left_positive_150ms)-1) * std(right_heel_x_pos_normalized_total(:, conditions_left_positive_150ms), 1, 2)/sqrt(sum(conditions_left_positive_150ms));
-        right_heel_x_pos_mean_left_negative_150ms = mean(right_heel_x_pos_normalized_total(:, conditions_left_negative_150ms), 2);
-        right_heel_x_pos_civ_left_negative_150ms = tinv(0.975, sum(conditions_left_negative_150ms)-1) * std(right_heel_x_pos_normalized_total(:, conditions_left_negative_150ms), 1, 2)/sqrt(sum(conditions_left_negative_150ms));
-        right_heel_x_pos_mean_left_positive_450ms = mean(right_heel_x_pos_normalized_total(:, conditions_left_positive_450ms), 2);
-        right_heel_x_pos_civ_left_positive_450ms = tinv(0.975, sum(conditions_left_positive_450ms)-1) * std(right_heel_x_pos_normalized_total(:, conditions_left_positive_450ms), 1, 2)/sqrt(sum(conditions_left_positive_450ms));
-        right_heel_x_pos_mean_left_negative_450ms = mean(right_heel_x_pos_normalized_total(:, conditions_left_negative_450ms), 2);
-        right_heel_x_pos_civ_left_negative_450ms = tinv(0.975, sum(conditions_left_negative_450ms)-1) * std(right_heel_x_pos_normalized_total(:, conditions_left_negative_450ms), 1, 2)/sqrt(sum(conditions_left_negative_450ms));
+        rheel_x_pos_civ_stanceL_control = tinv(0.975, sum(conditions_stanceL_stimNo)-1) * std(rheel_x_pos_normalized_total(:, conditions_stanceL_stimNo), 1, 2)/sqrt(sum(conditions_stanceL_stimNo));
+        rheel_x_pos_mean_stanceL_stimPos_0ms = mean(rheel_x_pos_normalized_total(:, conditions_stanceL_stimPos_0ms), 2);
+        rheel_x_pos_civ_stanceL_stimPos_0ms = tinv(0.975, sum(conditions_stanceL_stimPos_0ms)-1) * std(rheel_x_pos_normalized_total(:, conditions_stanceL_stimPos_0ms), 1, 2)/sqrt(sum(conditions_stanceL_stimPos_0ms));
+        rheel_x_pos_mean_stanceL_stimNeg_0ms = mean(rheel_x_pos_normalized_total(:, conditions_stanceL_stimNeg_0ms), 2);
+        rheel_x_pos_civ_stanceL_stimNeg_0ms = tinv(0.975, sum(conditions_stanceL_stimNeg_0ms)-1) * std(rheel_x_pos_normalized_total(:, conditions_stanceL_stimNeg_0ms), 1, 2)/sqrt(sum(conditions_stanceL_stimNeg_0ms));
+        rheel_x_pos_mean_stanceL_stimPos_150ms = mean(rheel_x_pos_normalized_total(:, conditions_stanceL_stimPos_150ms), 2);
+        rheel_x_pos_civ_stanceL_stimPos_150ms = tinv(0.975, sum(conditions_stanceL_stimPos_150ms)-1) * std(rheel_x_pos_normalized_total(:, conditions_stanceL_stimPos_150ms), 1, 2)/sqrt(sum(conditions_stanceL_stimPos_150ms));
+        rheel_x_pos_mean_stanceL_stimNeg_150ms = mean(rheel_x_pos_normalized_total(:, conditions_stanceL_stimNeg_150ms), 2);
+        rheel_x_pos_civ_stanceL_stimNeg_150ms = tinv(0.975, sum(conditions_stanceL_stimNeg_150ms)-1) * std(rheel_x_pos_normalized_total(:, conditions_stanceL_stimNeg_150ms), 1, 2)/sqrt(sum(conditions_stanceL_stimNeg_150ms));
+        rheel_x_pos_mean_stanceL_stimPos_450ms = mean(rheel_x_pos_normalized_total(:, conditions_stanceL_stimPos_450ms), 2);
+        rheel_x_pos_civ_stanceL_stimPos_450ms = tinv(0.975, sum(conditions_stanceL_stimPos_450ms)-1) * std(rheel_x_pos_normalized_total(:, conditions_stanceL_stimPos_450ms), 1, 2)/sqrt(sum(conditions_stanceL_stimPos_450ms));
+        rheel_x_pos_mean_stanceL_stimNeg_450ms = mean(rheel_x_pos_normalized_total(:, conditions_stanceL_stimNeg_450ms), 2);
+        rheel_x_pos_civ_stanceL_stimNeg_450ms = tinv(0.975, sum(conditions_stanceL_stimNeg_450ms)-1) * std(rheel_x_pos_normalized_total(:, conditions_stanceL_stimNeg_450ms), 1, 2)/sqrt(sum(conditions_stanceL_stimNeg_450ms));
         
         % responses
-        left_heel_x_pos_response_mean_right_positive_0ms = mean(left_heel_x_pos_right_response(:, conditions_right_positive_0ms), 2);
-        left_heel_x_pos_response_civ_right_positive_0ms = tinv(0.975, sum(conditions_right_positive_0ms)-1) * std(left_heel_x_pos_right_response(:, conditions_right_positive_0ms), 1, 2)/sqrt(sum(conditions_right_positive_0ms));
-        left_heel_x_pos_response_mean_right_negative_0ms = mean(left_heel_x_pos_right_response(:, conditions_right_negative_0ms), 2);
-        left_heel_x_pos_response_civ_right_negative_0ms = tinv(0.975, sum(conditions_right_negative_0ms)-1) * std(left_heel_x_pos_right_response(:, conditions_right_negative_0ms), 1, 2)/sqrt(sum(conditions_right_negative_0ms));
-        left_heel_x_pos_response_mean_right_positive_150ms = mean(left_heel_x_pos_right_response(:, conditions_right_positive_150ms), 2);
-        left_heel_x_pos_response_civ_right_positive_150ms = tinv(0.975, sum(conditions_right_positive_150ms)-1) * std(left_heel_x_pos_right_response(:, conditions_right_positive_150ms), 1, 2)/sqrt(sum(conditions_right_positive_150ms));
-        left_heel_x_pos_response_mean_right_negative_150ms = mean(left_heel_x_pos_right_response(:, conditions_right_negative_150ms), 2);
-        left_heel_x_pos_response_civ_right_negative_150ms = tinv(0.975, sum(conditions_right_negative_150ms)-1) * std(left_heel_x_pos_right_response(:, conditions_right_negative_150ms), 1, 2)/sqrt(sum(conditions_right_negative_150ms));
-        left_heel_x_pos_response_mean_right_positive_450ms = mean(left_heel_x_pos_right_response(:, conditions_right_positive_450ms), 2);
-        left_heel_x_pos_response_civ_right_positive_450ms = tinv(0.975, sum(conditions_right_positive_450ms)-1) * std(left_heel_x_pos_right_response(:, conditions_right_positive_450ms), 1, 2)/sqrt(sum(conditions_right_positive_450ms));
-        left_heel_x_pos_response_mean_right_negative_450ms = mean(left_heel_x_pos_right_response(:, conditions_right_negative_450ms), 2);
-        left_heel_x_pos_response_civ_right_negative_450ms = tinv(0.975, sum(conditions_right_negative_450ms)-1) * std(left_heel_x_pos_right_response(:, conditions_right_negative_450ms), 1, 2)/sqrt(sum(conditions_right_negative_450ms));
+        lheel_x_pos_response_mean_stanceR_stimPos_0ms = mean(lheel_x_pos_stanceR_response(:, conditions_stanceR_stimPos_0ms), 2);
+        lheel_x_pos_response_civ_stanceR_stimPos_0ms = tinv(0.975, sum(conditions_stanceR_stimPos_0ms)-1) * std(lheel_x_pos_stanceR_response(:, conditions_stanceR_stimPos_0ms), 1, 2)/sqrt(sum(conditions_stanceR_stimPos_0ms));
+        lheel_x_pos_response_mean_stanceR_stimNeg_0ms = mean(lheel_x_pos_stanceR_response(:, conditions_stanceR_stimNeg_0ms), 2);
+        lheel_x_pos_response_civ_stanceR_stimNeg_0ms = tinv(0.975, sum(conditions_stanceR_stimNeg_0ms)-1) * std(lheel_x_pos_stanceR_response(:, conditions_stanceR_stimNeg_0ms), 1, 2)/sqrt(sum(conditions_stanceR_stimNeg_0ms));
+        lheel_x_pos_response_mean_stanceR_stimPos_150ms = mean(lheel_x_pos_stanceR_response(:, conditions_stanceR_stimPos_150ms), 2);
+        lheel_x_pos_response_civ_stanceR_stimPos_150ms = tinv(0.975, sum(conditions_stanceR_stimPos_150ms)-1) * std(lheel_x_pos_stanceR_response(:, conditions_stanceR_stimPos_150ms), 1, 2)/sqrt(sum(conditions_stanceR_stimPos_150ms));
+        lheel_x_pos_response_mean_stanceR_stimNeg_150ms = mean(lheel_x_pos_stanceR_response(:, conditions_stanceR_stimNeg_150ms), 2);
+        lheel_x_pos_response_civ_stanceR_stimNeg_150ms = tinv(0.975, sum(conditions_stanceR_stimNeg_150ms)-1) * std(lheel_x_pos_stanceR_response(:, conditions_stanceR_stimNeg_150ms), 1, 2)/sqrt(sum(conditions_stanceR_stimNeg_150ms));
+        lheel_x_pos_response_mean_stanceR_stimPos_450ms = mean(lheel_x_pos_stanceR_response(:, conditions_stanceR_stimPos_450ms), 2);
+        lheel_x_pos_response_civ_stanceR_stimPos_450ms = tinv(0.975, sum(conditions_stanceR_stimPos_450ms)-1) * std(lheel_x_pos_stanceR_response(:, conditions_stanceR_stimPos_450ms), 1, 2)/sqrt(sum(conditions_stanceR_stimPos_450ms));
+        lheel_x_pos_response_mean_stanceR_stimNeg_450ms = mean(lheel_x_pos_stanceR_response(:, conditions_stanceR_stimNeg_450ms), 2);
+        lheel_x_pos_response_civ_stanceR_stimNeg_450ms = tinv(0.975, sum(conditions_stanceR_stimNeg_450ms)-1) * std(lheel_x_pos_stanceR_response(:, conditions_stanceR_stimNeg_450ms), 1, 2)/sqrt(sum(conditions_stanceR_stimNeg_450ms));
 
-        right_heel_x_pos_response_mean_left_positive_0ms = mean(right_heel_x_pos_left_response(:, conditions_left_positive_0ms), 2);
-        right_heel_x_pos_response_civ_left_positive_0ms = tinv(0.975, sum(conditions_left_positive_0ms)-1) * std(right_heel_x_pos_left_response(:, conditions_left_positive_0ms), 1, 2)/sqrt(sum(conditions_left_positive_0ms));
-        right_heel_x_pos_response_mean_left_negative_0ms = mean(right_heel_x_pos_left_response(:, conditions_left_negative_0ms), 2);
-        right_heel_x_pos_response_civ_left_negative_0ms = tinv(0.975, sum(conditions_left_negative_0ms)-1) * std(right_heel_x_pos_left_response(:, conditions_left_negative_0ms), 1, 2)/sqrt(sum(conditions_left_negative_0ms));
-        right_heel_x_pos_response_mean_left_positive_150ms = mean(right_heel_x_pos_left_response(:, conditions_left_positive_150ms), 2);
-        right_heel_x_pos_response_civ_left_positive_150ms = tinv(0.975, sum(conditions_left_positive_150ms)-1) * std(right_heel_x_pos_left_response(:, conditions_left_positive_150ms), 1, 2)/sqrt(sum(conditions_left_positive_150ms));
-        right_heel_x_pos_response_mean_left_negative_150ms = mean(right_heel_x_pos_left_response(:, conditions_left_negative_150ms), 2);
-        right_heel_x_pos_response_civ_left_negative_150ms = tinv(0.975, sum(conditions_left_negative_150ms)-1) * std(right_heel_x_pos_left_response(:, conditions_left_negative_150ms), 1, 2)/sqrt(sum(conditions_left_negative_150ms));
-        right_heel_x_pos_response_mean_left_positive_450ms = mean(right_heel_x_pos_left_response(:, conditions_left_positive_450ms), 2);
-        right_heel_x_pos_response_civ_left_positive_450ms = tinv(0.975, sum(conditions_left_positive_450ms)-1) * std(right_heel_x_pos_left_response(:, conditions_left_positive_450ms), 1, 2)/sqrt(sum(conditions_left_positive_450ms));
-        right_heel_x_pos_response_mean_left_negative_450ms = mean(right_heel_x_pos_left_response(:, conditions_left_negative_450ms), 2);
-        right_heel_x_pos_response_civ_left_negative_450ms = tinv(0.975, sum(conditions_left_negative_450ms)-1) * std(right_heel_x_pos_left_response(:, conditions_left_negative_450ms), 1, 2)/sqrt(sum(conditions_left_negative_450ms));
+        rheel_x_pos_response_mean_stanceL_stimPos_0ms = mean(rheel_x_pos_stanceL_response(:, conditions_stanceL_stimPos_0ms), 2);
+        rheel_x_pos_response_civ_stanceL_stimPos_0ms = tinv(0.975, sum(conditions_stanceL_stimPos_0ms)-1) * std(rheel_x_pos_stanceL_response(:, conditions_stanceL_stimPos_0ms), 1, 2)/sqrt(sum(conditions_stanceL_stimPos_0ms));
+        rheel_x_pos_response_mean_stanceL_stimNeg_0ms = mean(rheel_x_pos_stanceL_response(:, conditions_stanceL_stimNeg_0ms), 2);
+        rheel_x_pos_response_civ_stanceL_stimNeg_0ms = tinv(0.975, sum(conditions_stanceL_stimNeg_0ms)-1) * std(rheel_x_pos_stanceL_response(:, conditions_stanceL_stimNeg_0ms), 1, 2)/sqrt(sum(conditions_stanceL_stimNeg_0ms));
+        rheel_x_pos_response_mean_stanceL_stimPos_150ms = mean(rheel_x_pos_stanceL_response(:, conditions_stanceL_stimPos_150ms), 2);
+        rheel_x_pos_response_civ_stanceL_stimPos_150ms = tinv(0.975, sum(conditions_stanceL_stimPos_150ms)-1) * std(rheel_x_pos_stanceL_response(:, conditions_stanceL_stimPos_150ms), 1, 2)/sqrt(sum(conditions_stanceL_stimPos_150ms));
+        rheel_x_pos_response_mean_stanceL_stimNeg_150ms = mean(rheel_x_pos_stanceL_response(:, conditions_stanceL_stimNeg_150ms), 2);
+        rheel_x_pos_response_civ_stanceL_stimNeg_150ms = tinv(0.975, sum(conditions_stanceL_stimNeg_150ms)-1) * std(rheel_x_pos_stanceL_response(:, conditions_stanceL_stimNeg_150ms), 1, 2)/sqrt(sum(conditions_stanceL_stimNeg_150ms));
+        rheel_x_pos_response_mean_stanceL_stimPos_450ms = mean(rheel_x_pos_stanceL_response(:, conditions_stanceL_stimPos_450ms), 2);
+        rheel_x_pos_response_civ_stanceL_stimPos_450ms = tinv(0.975, sum(conditions_stanceL_stimPos_450ms)-1) * std(rheel_x_pos_stanceL_response(:, conditions_stanceL_stimPos_450ms), 1, 2)/sqrt(sum(conditions_stanceL_stimPos_450ms));
+        rheel_x_pos_response_mean_stanceL_stimNeg_450ms = mean(rheel_x_pos_stanceL_response(:, conditions_stanceL_stimNeg_450ms), 2);
+        rheel_x_pos_response_civ_stanceL_stimNeg_450ms = tinv(0.975, sum(conditions_stanceL_stimNeg_450ms)-1) * std(rheel_x_pos_stanceL_response(:, conditions_stanceL_stimNeg_450ms), 1, 2)/sqrt(sum(conditions_stanceL_stimNeg_450ms));
 
-        left_heel_y_pos_response_mean_right_positive_0ms = mean(left_heel_y_pos_right_response(:, conditions_right_positive_0ms), 2);
-        left_heel_y_pos_response_civ_right_positive_0ms = tinv(0.975, sum(conditions_right_positive_0ms)-1) * std(left_heel_y_pos_right_response(:, conditions_right_positive_0ms), 1, 2)/sqrt(sum(conditions_right_positive_0ms));
-        left_heel_y_pos_response_mean_right_negative_0ms = mean(left_heel_y_pos_right_response(:, conditions_right_negative_0ms), 2);
-        left_heel_y_pos_response_civ_right_negative_0ms = tinv(0.975, sum(conditions_right_negative_0ms)-1) * std(left_heel_y_pos_right_response(:, conditions_right_negative_0ms), 1, 2)/sqrt(sum(conditions_right_negative_0ms));
-        left_heel_y_pos_response_mean_right_positive_150ms = mean(left_heel_y_pos_right_response(:, conditions_right_positive_150ms), 2);
-        left_heel_y_pos_response_civ_right_positive_150ms = tinv(0.975, sum(conditions_right_positive_150ms)-1) * std(left_heel_y_pos_right_response(:, conditions_right_positive_150ms), 1, 2)/sqrt(sum(conditions_right_positive_150ms));
-        left_heel_y_pos_response_mean_right_negative_150ms = mean(left_heel_y_pos_right_response(:, conditions_right_negative_150ms), 2);
-        left_heel_y_pos_response_civ_right_negative_150ms = tinv(0.975, sum(conditions_right_negative_150ms)-1) * std(left_heel_y_pos_right_response(:, conditions_right_negative_150ms), 1, 2)/sqrt(sum(conditions_right_negative_150ms));
-        left_heel_y_pos_response_mean_right_positive_450ms = mean(left_heel_y_pos_right_response(:, conditions_right_positive_450ms), 2);
-        left_heel_y_pos_response_civ_right_positive_450ms = tinv(0.975, sum(conditions_right_positive_450ms)-1) * std(left_heel_y_pos_right_response(:, conditions_right_positive_450ms), 1, 2)/sqrt(sum(conditions_right_positive_450ms));
-        left_heel_y_pos_response_mean_right_negative_450ms = mean(left_heel_y_pos_right_response(:, conditions_right_negative_450ms), 2);
-        left_heel_y_pos_response_civ_right_negative_450ms = tinv(0.975, sum(conditions_right_negative_450ms)-1) * std(left_heel_y_pos_right_response(:, conditions_right_negative_450ms), 1, 2)/sqrt(sum(conditions_right_negative_450ms));
+        lheel_y_pos_response_mean_stanceR_stimPos_0ms = mean(lheel_y_pos_stanceR_response(:, conditions_stanceR_stimPos_0ms), 2);
+        lheel_y_pos_response_civ_stanceR_stimPos_0ms = tinv(0.975, sum(conditions_stanceR_stimPos_0ms)-1) * std(lheel_y_pos_stanceR_response(:, conditions_stanceR_stimPos_0ms), 1, 2)/sqrt(sum(conditions_stanceR_stimPos_0ms));
+        lheel_y_pos_response_mean_stanceR_stimNeg_0ms = mean(lheel_y_pos_stanceR_response(:, conditions_stanceR_stimNeg_0ms), 2);
+        lheel_y_pos_response_civ_stanceR_stimNeg_0ms = tinv(0.975, sum(conditions_stanceR_stimNeg_0ms)-1) * std(lheel_y_pos_stanceR_response(:, conditions_stanceR_stimNeg_0ms), 1, 2)/sqrt(sum(conditions_stanceR_stimNeg_0ms));
+        lheel_y_pos_response_mean_stanceR_stimPos_150ms = mean(lheel_y_pos_stanceR_response(:, conditions_stanceR_stimPos_150ms), 2);
+        lheel_y_pos_response_civ_stanceR_stimPos_150ms = tinv(0.975, sum(conditions_stanceR_stimPos_150ms)-1) * std(lheel_y_pos_stanceR_response(:, conditions_stanceR_stimPos_150ms), 1, 2)/sqrt(sum(conditions_stanceR_stimPos_150ms));
+        lheel_y_pos_response_mean_stanceR_stimNeg_150ms = mean(lheel_y_pos_stanceR_response(:, conditions_stanceR_stimNeg_150ms), 2);
+        lheel_y_pos_response_civ_stanceR_stimNeg_150ms = tinv(0.975, sum(conditions_stanceR_stimNeg_150ms)-1) * std(lheel_y_pos_stanceR_response(:, conditions_stanceR_stimNeg_150ms), 1, 2)/sqrt(sum(conditions_stanceR_stimNeg_150ms));
+        lheel_y_pos_response_mean_stanceR_stimPos_450ms = mean(lheel_y_pos_stanceR_response(:, conditions_stanceR_stimPos_450ms), 2);
+        lheel_y_pos_response_civ_stanceR_stimPos_450ms = tinv(0.975, sum(conditions_stanceR_stimPos_450ms)-1) * std(lheel_y_pos_stanceR_response(:, conditions_stanceR_stimPos_450ms), 1, 2)/sqrt(sum(conditions_stanceR_stimPos_450ms));
+        lheel_y_pos_response_mean_stanceR_stimNeg_450ms = mean(lheel_y_pos_stanceR_response(:, conditions_stanceR_stimNeg_450ms), 2);
+        lheel_y_pos_response_civ_stanceR_stimNeg_450ms = tinv(0.975, sum(conditions_stanceR_stimNeg_450ms)-1) * std(lheel_y_pos_stanceR_response(:, conditions_stanceR_stimNeg_450ms), 1, 2)/sqrt(sum(conditions_stanceR_stimNeg_450ms));
 
-        right_heel_y_pos_response_mean_left_positive_0ms = mean(right_heel_y_pos_left_response(:, conditions_left_positive_0ms), 2);
-        right_heel_y_pos_response_civ_left_positive_0ms = tinv(0.975, sum(conditions_left_positive_0ms)-1) * std(right_heel_y_pos_left_response(:, conditions_left_positive_0ms), 1, 2)/sqrt(sum(conditions_left_positive_0ms));
-        right_heel_y_pos_response_mean_left_negative_0ms = mean(right_heel_y_pos_left_response(:, conditions_left_negative_0ms), 2);
-        right_heel_y_pos_response_civ_left_negative_0ms = tinv(0.975, sum(conditions_left_negative_0ms)-1) * std(right_heel_y_pos_left_response(:, conditions_left_negative_0ms), 1, 2)/sqrt(sum(conditions_left_negative_0ms));
-        right_heel_y_pos_response_mean_left_positive_150ms = mean(right_heel_y_pos_left_response(:, conditions_left_positive_150ms), 2);
-        right_heel_y_pos_response_civ_left_positive_150ms = tinv(0.975, sum(conditions_left_positive_150ms)-1) * std(right_heel_y_pos_left_response(:, conditions_left_positive_150ms), 1, 2)/sqrt(sum(conditions_left_positive_150ms));
-        right_heel_y_pos_response_mean_left_negative_150ms = mean(right_heel_y_pos_left_response(:, conditions_left_negative_150ms), 2);
-        right_heel_y_pos_response_civ_left_negative_150ms = tinv(0.975, sum(conditions_left_negative_150ms)-1) * std(right_heel_y_pos_left_response(:, conditions_left_negative_150ms), 1, 2)/sqrt(sum(conditions_left_negative_150ms));
-        right_heel_y_pos_response_mean_left_positive_450ms = mean(right_heel_y_pos_left_response(:, conditions_left_positive_450ms), 2);
-        right_heel_y_pos_response_civ_left_positive_450ms = tinv(0.975, sum(conditions_left_positive_450ms)-1) * std(right_heel_y_pos_left_response(:, conditions_left_positive_450ms), 1, 2)/sqrt(sum(conditions_left_positive_450ms));
-        right_heel_y_pos_response_mean_left_negative_450ms = mean(right_heel_y_pos_left_response(:, conditions_left_negative_450ms), 2);
-        right_heel_y_pos_response_civ_left_negative_450ms = tinv(0.975, sum(conditions_left_negative_450ms)-1) * std(right_heel_y_pos_left_response(:, conditions_left_negative_450ms), 1, 2)/sqrt(sum(conditions_left_negative_450ms));
+        rheel_y_pos_response_mean_stanceL_stimPos_0ms = mean(rheel_y_pos_stanceL_response(:, conditions_stanceL_stimPos_0ms), 2);
+        rheel_y_pos_response_civ_stanceL_stimPos_0ms = tinv(0.975, sum(conditions_stanceL_stimPos_0ms)-1) * std(rheel_y_pos_stanceL_response(:, conditions_stanceL_stimPos_0ms), 1, 2)/sqrt(sum(conditions_stanceL_stimPos_0ms));
+        rheel_y_pos_response_mean_stanceL_stimNeg_0ms = mean(rheel_y_pos_stanceL_response(:, conditions_stanceL_stimNeg_0ms), 2);
+        rheel_y_pos_response_civ_stanceL_stimNeg_0ms = tinv(0.975, sum(conditions_stanceL_stimNeg_0ms)-1) * std(rheel_y_pos_stanceL_response(:, conditions_stanceL_stimNeg_0ms), 1, 2)/sqrt(sum(conditions_stanceL_stimNeg_0ms));
+        rheel_y_pos_response_mean_stanceL_stimPos_150ms = mean(rheel_y_pos_stanceL_response(:, conditions_stanceL_stimPos_150ms), 2);
+        rheel_y_pos_response_civ_stanceL_stimPos_150ms = tinv(0.975, sum(conditions_stanceL_stimPos_150ms)-1) * std(rheel_y_pos_stanceL_response(:, conditions_stanceL_stimPos_150ms), 1, 2)/sqrt(sum(conditions_stanceL_stimPos_150ms));
+        rheel_y_pos_response_mean_stanceL_stimNeg_150ms = mean(rheel_y_pos_stanceL_response(:, conditions_stanceL_stimNeg_150ms), 2);
+        rheel_y_pos_response_civ_stanceL_stimNeg_150ms = tinv(0.975, sum(conditions_stanceL_stimNeg_150ms)-1) * std(rheel_y_pos_stanceL_response(:, conditions_stanceL_stimNeg_150ms), 1, 2)/sqrt(sum(conditions_stanceL_stimNeg_150ms));
+        rheel_y_pos_response_mean_stanceL_stimPos_450ms = mean(rheel_y_pos_stanceL_response(:, conditions_stanceL_stimPos_450ms), 2);
+        rheel_y_pos_response_civ_stanceL_stimPos_450ms = tinv(0.975, sum(conditions_stanceL_stimPos_450ms)-1) * std(rheel_y_pos_stanceL_response(:, conditions_stanceL_stimPos_450ms), 1, 2)/sqrt(sum(conditions_stanceL_stimPos_450ms));
+        rheel_y_pos_response_mean_stanceL_stimNeg_450ms = mean(rheel_y_pos_stanceL_response(:, conditions_stanceL_stimNeg_450ms), 2);
+        rheel_y_pos_response_civ_stanceL_stimNeg_450ms = tinv(0.975, sum(conditions_stanceL_stimNeg_450ms)-1) * std(rheel_y_pos_stanceL_response(:, conditions_stanceL_stimNeg_450ms), 1, 2)/sqrt(sum(conditions_stanceL_stimNeg_450ms));
 
     end
 
     if process_data_forceplate
         % absolute data
-        left_cop_x_civ_left_control = tinv(0.975, sum(conditions_left_control)-1) * std(left_cop_x_normalized_total(:, conditions_left_control), 1, 2)/sqrt(sum(conditions_left_control));
-        left_cop_x_mean_left_positive_0ms = mean(left_cop_x_normalized_total(:, conditions_left_positive_0ms), 2);
-        left_cop_x_civ_left_positive_0ms = tinv(0.975, sum(conditions_left_positive_0ms)-1) * std(left_cop_x_normalized_total(:, conditions_left_positive_0ms), 1, 2)/sqrt(sum(conditions_left_positive_0ms));
-        left_cop_x_mean_left_negative_0ms = mean(left_cop_x_normalized_total(:, conditions_left_negative_0ms), 2);
-        left_cop_x_civ_left_negative_0ms = tinv(0.975, sum(conditions_left_negative_0ms)-1) * std(left_cop_x_normalized_total(:, conditions_left_negative_0ms), 1, 2)/sqrt(sum(conditions_left_negative_0ms));
-        left_cop_x_mean_left_positive_150ms = mean(left_cop_x_normalized_total(:, conditions_left_positive_150ms), 2);
-        left_cop_x_civ_left_positive_150ms = tinv(0.975, sum(conditions_left_positive_150ms)-1) * std(left_cop_x_normalized_total(:, conditions_left_positive_150ms), 1, 2)/sqrt(sum(conditions_left_positive_150ms));
-        left_cop_x_mean_left_negative_150ms = mean(left_cop_x_normalized_total(:, conditions_left_negative_150ms), 2);
-        left_cop_x_civ_left_negative_150ms = tinv(0.975, sum(conditions_left_negative_150ms)-1) * std(left_cop_x_normalized_total(:, conditions_left_negative_150ms), 1, 2)/sqrt(sum(conditions_left_negative_150ms));
-        left_cop_x_mean_left_positive_450ms = mean(left_cop_x_normalized_total(:, conditions_left_positive_450ms), 2);
-        left_cop_x_civ_left_positive_450ms = tinv(0.975, sum(conditions_left_positive_450ms)-1) * std(left_cop_x_normalized_total(:, conditions_left_positive_450ms), 1, 2)/sqrt(sum(conditions_left_positive_450ms));
-        left_cop_x_mean_left_negative_450ms = mean(left_cop_x_normalized_total(:, conditions_left_negative_450ms), 2);
-        left_cop_x_civ_left_negative_450ms = tinv(0.975, sum(conditions_left_negative_450ms)-1) * std(left_cop_x_normalized_total(:, conditions_left_negative_450ms), 1, 2)/sqrt(sum(conditions_left_negative_450ms));
+        lcop_x_civ_stanceL_control = tinv(0.975, sum(conditions_stanceL_stimNo)-1) * std(lcop_x_normalized_total(:, conditions_stanceL_stimNo), 1, 2)/sqrt(sum(conditions_stanceL_stimNo));
+        lcop_x_mean_stanceL_stimPos_0ms = mean(lcop_x_normalized_total(:, conditions_stanceL_stimPos_0ms), 2);
+        lcop_x_civ_stanceL_stimPos_0ms = tinv(0.975, sum(conditions_stanceL_stimPos_0ms)-1) * std(lcop_x_normalized_total(:, conditions_stanceL_stimPos_0ms), 1, 2)/sqrt(sum(conditions_stanceL_stimPos_0ms));
+        lcop_x_mean_stanceL_stimNeg_0ms = mean(lcop_x_normalized_total(:, conditions_stanceL_stimNeg_0ms), 2);
+        lcop_x_civ_stanceL_stimNeg_0ms = tinv(0.975, sum(conditions_stanceL_stimNeg_0ms)-1) * std(lcop_x_normalized_total(:, conditions_stanceL_stimNeg_0ms), 1, 2)/sqrt(sum(conditions_stanceL_stimNeg_0ms));
+        lcop_x_mean_stanceL_stimPos_150ms = mean(lcop_x_normalized_total(:, conditions_stanceL_stimPos_150ms), 2);
+        lcop_x_civ_stanceL_stimPos_150ms = tinv(0.975, sum(conditions_stanceL_stimPos_150ms)-1) * std(lcop_x_normalized_total(:, conditions_stanceL_stimPos_150ms), 1, 2)/sqrt(sum(conditions_stanceL_stimPos_150ms));
+        lcop_x_mean_stanceL_stimNeg_150ms = mean(lcop_x_normalized_total(:, conditions_stanceL_stimNeg_150ms), 2);
+        lcop_x_civ_stanceL_stimNeg_150ms = tinv(0.975, sum(conditions_stanceL_stimNeg_150ms)-1) * std(lcop_x_normalized_total(:, conditions_stanceL_stimNeg_150ms), 1, 2)/sqrt(sum(conditions_stanceL_stimNeg_150ms));
+        lcop_x_mean_stanceL_stimPos_450ms = mean(lcop_x_normalized_total(:, conditions_stanceL_stimPos_450ms), 2);
+        lcop_x_civ_stanceL_stimPos_450ms = tinv(0.975, sum(conditions_stanceL_stimPos_450ms)-1) * std(lcop_x_normalized_total(:, conditions_stanceL_stimPos_450ms), 1, 2)/sqrt(sum(conditions_stanceL_stimPos_450ms));
+        lcop_x_mean_stanceL_stimNeg_450ms = mean(lcop_x_normalized_total(:, conditions_stanceL_stimNeg_450ms), 2);
+        lcop_x_civ_stanceL_stimNeg_450ms = tinv(0.975, sum(conditions_stanceL_stimNeg_450ms)-1) * std(lcop_x_normalized_total(:, conditions_stanceL_stimNeg_450ms), 1, 2)/sqrt(sum(conditions_stanceL_stimNeg_450ms));
 
-        right_cop_x_civ_right_control = tinv(0.975, sum(conditions_right_control)-1) * std(right_cop_x_normalized_total(:, conditions_right_control), 1, 2)/sqrt(sum(conditions_right_control));
-        right_cop_x_mean_right_positive_0ms = mean(right_cop_x_normalized_total(:, conditions_right_positive_0ms), 2);
-        right_cop_x_civ_right_positive_0ms = tinv(0.975, sum(conditions_right_positive_0ms)-1) * std(right_cop_x_normalized_total(:, conditions_right_positive_0ms), 1, 2)/sqrt(sum(conditions_right_positive_0ms));
-        right_cop_x_mean_right_negative_0ms = mean(right_cop_x_normalized_total(:, conditions_right_negative_0ms), 2);
-        right_cop_x_civ_right_negative_0ms = tinv(0.975, sum(conditions_right_negative_0ms)-1) * std(right_cop_x_normalized_total(:, conditions_right_negative_0ms), 1, 2)/sqrt(sum(conditions_right_negative_0ms));
-        right_cop_x_mean_right_positive_150ms = mean(right_cop_x_normalized_total(:, conditions_right_positive_150ms), 2);
-        right_cop_x_civ_right_positive_150ms = tinv(0.975, sum(conditions_right_positive_150ms)-1) * std(right_cop_x_normalized_total(:, conditions_right_positive_150ms), 1, 2)/sqrt(sum(conditions_right_positive_150ms));
-        right_cop_x_mean_right_negative_150ms = mean(right_cop_x_normalized_total(:, conditions_right_negative_150ms), 2);
-        right_cop_x_civ_right_negative_150ms = tinv(0.975, sum(conditions_right_negative_150ms)-1) * std(right_cop_x_normalized_total(:, conditions_right_negative_150ms), 1, 2)/sqrt(sum(conditions_right_negative_150ms));
-        right_cop_x_mean_right_positive_450ms = mean(right_cop_x_normalized_total(:, conditions_right_positive_450ms), 2);
-        right_cop_x_civ_right_positive_450ms = tinv(0.975, sum(conditions_right_positive_450ms)-1) * std(right_cop_x_normalized_total(:, conditions_right_positive_450ms), 1, 2)/sqrt(sum(conditions_right_positive_450ms));
-        right_cop_x_mean_right_negative_450ms = mean(right_cop_x_normalized_total(:, conditions_right_negative_450ms), 2);
-        right_cop_x_civ_right_negative_450ms = tinv(0.975, sum(conditions_right_negative_450ms)-1) * std(right_cop_x_normalized_total(:, conditions_right_negative_450ms), 1, 2)/sqrt(sum(conditions_right_negative_450ms));
+        rcop_x_civ_stanceR_control = tinv(0.975, sum(conditions_stanceR_stimNo)-1) * std(rcop_x_normalized_total(:, conditions_stanceR_stimNo), 1, 2)/sqrt(sum(conditions_stanceR_stimNo));
+        rcop_x_mean_stanceR_stimPos_0ms = mean(rcop_x_normalized_total(:, conditions_stanceR_stimPos_0ms), 2);
+        rcop_x_civ_stanceR_stimPos_0ms = tinv(0.975, sum(conditions_stanceR_stimPos_0ms)-1) * std(rcop_x_normalized_total(:, conditions_stanceR_stimPos_0ms), 1, 2)/sqrt(sum(conditions_stanceR_stimPos_0ms));
+        rcop_x_mean_stanceR_stimNeg_0ms = mean(rcop_x_normalized_total(:, conditions_stanceR_stimNeg_0ms), 2);
+        rcop_x_civ_stanceR_stimNeg_0ms = tinv(0.975, sum(conditions_stanceR_stimNeg_0ms)-1) * std(rcop_x_normalized_total(:, conditions_stanceR_stimNeg_0ms), 1, 2)/sqrt(sum(conditions_stanceR_stimNeg_0ms));
+        rcop_x_mean_stanceR_stimPos_150ms = mean(rcop_x_normalized_total(:, conditions_stanceR_stimPos_150ms), 2);
+        rcop_x_civ_stanceR_stimPos_150ms = tinv(0.975, sum(conditions_stanceR_stimPos_150ms)-1) * std(rcop_x_normalized_total(:, conditions_stanceR_stimPos_150ms), 1, 2)/sqrt(sum(conditions_stanceR_stimPos_150ms));
+        rcop_x_mean_stanceR_stimNeg_150ms = mean(rcop_x_normalized_total(:, conditions_stanceR_stimNeg_150ms), 2);
+        rcop_x_civ_stanceR_stimNeg_150ms = tinv(0.975, sum(conditions_stanceR_stimNeg_150ms)-1) * std(rcop_x_normalized_total(:, conditions_stanceR_stimNeg_150ms), 1, 2)/sqrt(sum(conditions_stanceR_stimNeg_150ms));
+        rcop_x_mean_stanceR_stimPos_450ms = mean(rcop_x_normalized_total(:, conditions_stanceR_stimPos_450ms), 2);
+        rcop_x_civ_stanceR_stimPos_450ms = tinv(0.975, sum(conditions_stanceR_stimPos_450ms)-1) * std(rcop_x_normalized_total(:, conditions_stanceR_stimPos_450ms), 1, 2)/sqrt(sum(conditions_stanceR_stimPos_450ms));
+        rcop_x_mean_stanceR_stimNeg_450ms = mean(rcop_x_normalized_total(:, conditions_stanceR_stimNeg_450ms), 2);
+        rcop_x_civ_stanceR_stimNeg_450ms = tinv(0.975, sum(conditions_stanceR_stimNeg_450ms)-1) * std(rcop_x_normalized_total(:, conditions_stanceR_stimNeg_450ms), 1, 2)/sqrt(sum(conditions_stanceR_stimNeg_450ms));
 
         % responses
-        left_cop_x_response_mean_left_positive_0ms = mean(left_cop_x_left_response(:, conditions_left_positive_0ms), 2);
-        left_cop_x_response_civ_left_positive_0ms = tinv(0.975, sum(conditions_left_positive_0ms)-1) * std(left_cop_x_left_response(:, conditions_left_positive_0ms), 1, 2)/sqrt(sum(conditions_left_positive_0ms));
-        left_cop_x_response_mean_left_negative_0ms = mean(left_cop_x_left_response(:, conditions_left_negative_0ms), 2);
-        left_cop_x_response_civ_left_negative_0ms = tinv(0.975, sum(conditions_left_negative_0ms)-1) * std(left_cop_x_left_response(:, conditions_left_negative_0ms), 1, 2)/sqrt(sum(conditions_left_negative_0ms));
-        left_cop_x_response_mean_left_positive_150ms = mean(left_cop_x_left_response(:, conditions_left_positive_150ms), 2);
-        left_cop_x_response_civ_left_positive_150ms = tinv(0.975, sum(conditions_left_positive_150ms)-1) * std(left_cop_x_left_response(:, conditions_left_positive_150ms), 1, 2)/sqrt(sum(conditions_left_positive_150ms));
-        left_cop_x_response_mean_left_negative_150ms = mean(left_cop_x_left_response(:, conditions_left_negative_150ms), 2);
-        left_cop_x_response_civ_left_negative_150ms = tinv(0.975, sum(conditions_left_negative_150ms)-1) * std(left_cop_x_left_response(:, conditions_left_negative_150ms), 1, 2)/sqrt(sum(conditions_left_negative_150ms));
-        left_cop_x_response_mean_left_positive_450ms = mean(left_cop_x_left_response(:, conditions_left_positive_450ms), 2);
-        left_cop_x_response_civ_left_positive_450ms = tinv(0.975, sum(conditions_left_positive_450ms)-1) * std(left_cop_x_left_response(:, conditions_left_positive_450ms), 1, 2)/sqrt(sum(conditions_left_positive_450ms));
-        left_cop_x_response_mean_left_negative_450ms = mean(left_cop_x_left_response(:, conditions_left_negative_450ms), 2);
-        left_cop_x_response_civ_left_negative_450ms = tinv(0.975, sum(conditions_left_negative_450ms)-1) * std(left_cop_x_left_response(:, conditions_left_negative_450ms), 1, 2)/sqrt(sum(conditions_left_negative_450ms));
+        lcop_x_response_mean_stanceL_stimPos_0ms = mean(lcop_x_stanceL_response(:, conditions_stanceL_stimPos_0ms), 2);
+        lcop_x_response_civ_stanceL_stimPos_0ms = tinv(0.975, sum(conditions_stanceL_stimPos_0ms)-1) * std(lcop_x_stanceL_response(:, conditions_stanceL_stimPos_0ms), 1, 2)/sqrt(sum(conditions_stanceL_stimPos_0ms));
+        lcop_x_response_mean_stanceL_stimNeg_0ms = mean(lcop_x_stanceL_response(:, conditions_stanceL_stimNeg_0ms), 2);
+        lcop_x_response_civ_stanceL_stimNeg_0ms = tinv(0.975, sum(conditions_stanceL_stimNeg_0ms)-1) * std(lcop_x_stanceL_response(:, conditions_stanceL_stimNeg_0ms), 1, 2)/sqrt(sum(conditions_stanceL_stimNeg_0ms));
+        lcop_x_response_mean_stanceL_stimPos_150ms = mean(lcop_x_stanceL_response(:, conditions_stanceL_stimPos_150ms), 2);
+        lcop_x_response_civ_stanceL_stimPos_150ms = tinv(0.975, sum(conditions_stanceL_stimPos_150ms)-1) * std(lcop_x_stanceL_response(:, conditions_stanceL_stimPos_150ms), 1, 2)/sqrt(sum(conditions_stanceL_stimPos_150ms));
+        lcop_x_response_mean_stanceL_stimNeg_150ms = mean(lcop_x_stanceL_response(:, conditions_stanceL_stimNeg_150ms), 2);
+        lcop_x_response_civ_stanceL_stimNeg_150ms = tinv(0.975, sum(conditions_stanceL_stimNeg_150ms)-1) * std(lcop_x_stanceL_response(:, conditions_stanceL_stimNeg_150ms), 1, 2)/sqrt(sum(conditions_stanceL_stimNeg_150ms));
+        lcop_x_response_mean_stanceL_stimPos_450ms = mean(lcop_x_stanceL_response(:, conditions_stanceL_stimPos_450ms), 2);
+        lcop_x_response_civ_stanceL_stimPos_450ms = tinv(0.975, sum(conditions_stanceL_stimPos_450ms)-1) * std(lcop_x_stanceL_response(:, conditions_stanceL_stimPos_450ms), 1, 2)/sqrt(sum(conditions_stanceL_stimPos_450ms));
+        lcop_x_response_mean_stanceL_stimNeg_450ms = mean(lcop_x_stanceL_response(:, conditions_stanceL_stimNeg_450ms), 2);
+        lcop_x_response_civ_stanceL_stimNeg_450ms = tinv(0.975, sum(conditions_stanceL_stimNeg_450ms)-1) * std(lcop_x_stanceL_response(:, conditions_stanceL_stimNeg_450ms), 1, 2)/sqrt(sum(conditions_stanceL_stimNeg_450ms));
 
-        right_cop_x_response_mean_right_positive_0ms = mean(right_cop_x_right_response(:, conditions_right_positive_0ms), 2);
-        right_cop_x_response_civ_right_positive_0ms = tinv(0.975, sum(conditions_right_positive_0ms)-1) * std(right_cop_x_right_response(:, conditions_right_positive_0ms), 1, 2)/sqrt(sum(conditions_right_positive_0ms));
-        right_cop_x_response_mean_right_negative_0ms = mean(right_cop_x_right_response(:, conditions_right_negative_0ms), 2);
-        right_cop_x_response_civ_right_negative_0ms = tinv(0.975, sum(conditions_right_negative_0ms)-1) * std(right_cop_x_right_response(:, conditions_right_negative_0ms), 1, 2)/sqrt(sum(conditions_right_negative_0ms));
-        right_cop_x_response_mean_right_positive_150ms = mean(right_cop_x_right_response(:, conditions_right_positive_150ms), 2);
-        right_cop_x_response_civ_right_positive_150ms = tinv(0.975, sum(conditions_right_positive_150ms)-1) * std(right_cop_x_right_response(:, conditions_right_positive_150ms), 1, 2)/sqrt(sum(conditions_right_positive_150ms));
-        right_cop_x_response_mean_right_negative_150ms = mean(right_cop_x_right_response(:, conditions_right_negative_150ms), 2);
-        right_cop_x_response_civ_right_negative_150ms = tinv(0.975, sum(conditions_right_negative_150ms)-1) * std(right_cop_x_right_response(:, conditions_right_negative_150ms), 1, 2)/sqrt(sum(conditions_right_negative_150ms));
-        right_cop_x_response_mean_right_positive_450ms = mean(right_cop_x_right_response(:, conditions_right_positive_450ms), 2);
-        right_cop_x_response_civ_right_positive_450ms = tinv(0.975, sum(conditions_right_positive_450ms)-1) * std(right_cop_x_right_response(:, conditions_right_positive_450ms), 1, 2)/sqrt(sum(conditions_right_positive_450ms));
-        right_cop_x_response_mean_right_negative_450ms = mean(right_cop_x_right_response(:, conditions_right_negative_450ms), 2);
-        right_cop_x_response_civ_right_negative_450ms = tinv(0.975, sum(conditions_right_negative_450ms)-1) * std(right_cop_x_right_response(:, conditions_right_negative_450ms), 1, 2)/sqrt(sum(conditions_right_negative_450ms));
+        rcop_x_response_mean_stanceR_stimPos_0ms = mean(rcop_x_stanceR_response(:, conditions_stanceR_stimPos_0ms), 2);
+        rcop_x_response_civ_stanceR_stimPos_0ms = tinv(0.975, sum(conditions_stanceR_stimPos_0ms)-1) * std(rcop_x_stanceR_response(:, conditions_stanceR_stimPos_0ms), 1, 2)/sqrt(sum(conditions_stanceR_stimPos_0ms));
+        rcop_x_response_mean_stanceR_stimNeg_0ms = mean(rcop_x_stanceR_response(:, conditions_stanceR_stimNeg_0ms), 2);
+        rcop_x_response_civ_stanceR_stimNeg_0ms = tinv(0.975, sum(conditions_stanceR_stimNeg_0ms)-1) * std(rcop_x_stanceR_response(:, conditions_stanceR_stimNeg_0ms), 1, 2)/sqrt(sum(conditions_stanceR_stimNeg_0ms));
+        rcop_x_response_mean_stanceR_stimPos_150ms = mean(rcop_x_stanceR_response(:, conditions_stanceR_stimPos_150ms), 2);
+        rcop_x_response_civ_stanceR_stimPos_150ms = tinv(0.975, sum(conditions_stanceR_stimPos_150ms)-1) * std(rcop_x_stanceR_response(:, conditions_stanceR_stimPos_150ms), 1, 2)/sqrt(sum(conditions_stanceR_stimPos_150ms));
+        rcop_x_response_mean_stanceR_stimNeg_150ms = mean(rcop_x_stanceR_response(:, conditions_stanceR_stimNeg_150ms), 2);
+        rcop_x_response_civ_stanceR_stimNeg_150ms = tinv(0.975, sum(conditions_stanceR_stimNeg_150ms)-1) * std(rcop_x_stanceR_response(:, conditions_stanceR_stimNeg_150ms), 1, 2)/sqrt(sum(conditions_stanceR_stimNeg_150ms));
+        rcop_x_response_mean_stanceR_stimPos_450ms = mean(rcop_x_stanceR_response(:, conditions_stanceR_stimPos_450ms), 2);
+        rcop_x_response_civ_stanceR_stimPos_450ms = tinv(0.975, sum(conditions_stanceR_stimPos_450ms)-1) * std(rcop_x_stanceR_response(:, conditions_stanceR_stimPos_450ms), 1, 2)/sqrt(sum(conditions_stanceR_stimPos_450ms));
+        rcop_x_response_mean_stanceR_stimNeg_450ms = mean(rcop_x_stanceR_response(:, conditions_stanceR_stimNeg_450ms), 2);
+        rcop_x_response_civ_stanceR_stimNeg_450ms = tinv(0.975, sum(conditions_stanceR_stimNeg_450ms)-1) * std(rcop_x_stanceR_response(:, conditions_stanceR_stimNeg_450ms), 1, 2)/sqrt(sum(conditions_stanceR_stimNeg_450ms));
     end
     
     if process_data_angles
         % absolute data
-        joint_angles_civ_left_control = tinv(0.975, sum(conditions_left_control)-1) * squeeze(std(joint_angles_normalized_total(:, conditions_left_control, :), 1, 2))/sqrt(sum(conditions_left_control));
-        joint_angles_mean_left_positive_0ms = squeeze(mean(joint_angles_normalized_total(:, conditions_left_positive_0ms, :), 2));
-        joint_angles_civ_left_positive_0ms = tinv(0.975, sum(conditions_left_positive_0ms)-1) * squeeze(std(joint_angles_normalized_total(:, conditions_left_positive_0ms, :), 1, 2))/sqrt(sum(conditions_left_positive_0ms));
-        joint_angles_mean_left_negative_0ms = squeeze(mean(joint_angles_normalized_total(:, conditions_left_negative_0ms, :), 2));
-        joint_angles_civ_left_negative_0ms = tinv(0.975, sum(conditions_left_negative_0ms)-1) * squeeze(std(joint_angles_normalized_total(:, conditions_left_negative_0ms, :), 1, 2))/sqrt(sum(conditions_left_negative_0ms));
-        joint_angles_mean_left_positive_150ms = squeeze(mean(joint_angles_normalized_total(:, conditions_left_positive_150ms, :), 2));
-        joint_angles_civ_left_positive_150ms = tinv(0.975, sum(conditions_left_positive_150ms)-1) * squeeze(std(joint_angles_normalized_total(:, conditions_left_positive_150ms, :), 1, 2))/sqrt(sum(conditions_left_positive_150ms));
-        joint_angles_mean_left_negative_150ms = squeeze(mean(joint_angles_normalized_total(:, conditions_left_negative_150ms, :), 2));
-        joint_angles_civ_left_negative_150ms = tinv(0.975, sum(conditions_left_negative_150ms)-1) * squeeze(std(joint_angles_normalized_total(:, conditions_left_negative_150ms, :), 1, 2))/sqrt(sum(conditions_left_negative_150ms));
-        joint_angles_mean_left_positive_450ms = squeeze(mean(joint_angles_normalized_total(:, conditions_left_positive_450ms, :), 2));
-        joint_angles_civ_left_positive_450ms = tinv(0.975, sum(conditions_left_positive_450ms)-1) * squeeze(std(joint_angles_normalized_total(:, conditions_left_positive_450ms, :), 1, 2))/sqrt(sum(conditions_left_positive_450ms));
-        joint_angles_mean_left_negative_450ms = squeeze(mean(joint_angles_normalized_total(:, conditions_left_negative_450ms, :), 2));
-        joint_angles_civ_left_negative_450ms = tinv(0.975, sum(conditions_left_negative_450ms)-1) * squeeze(std(joint_angles_normalized_total(:, conditions_left_negative_450ms, :), 1, 2))/sqrt(sum(conditions_left_negative_450ms));
+        joint_angles_civ_stanceL_control = tinv(0.975, sum(conditions_stanceL_stimNo)-1) * squeeze(std(joint_angles_normalized_total(:, conditions_stanceL_stimNo, :), 1, 2))/sqrt(sum(conditions_stanceL_stimNo));
+        joint_angles_mean_stanceL_stimPos_0ms = squeeze(mean(joint_angles_normalized_total(:, conditions_stanceL_stimPos_0ms, :), 2));
+        joint_angles_civ_stanceL_stimPos_0ms = tinv(0.975, sum(conditions_stanceL_stimPos_0ms)-1) * squeeze(std(joint_angles_normalized_total(:, conditions_stanceL_stimPos_0ms, :), 1, 2))/sqrt(sum(conditions_stanceL_stimPos_0ms));
+        joint_angles_mean_stanceL_stimNeg_0ms = squeeze(mean(joint_angles_normalized_total(:, conditions_stanceL_stimNeg_0ms, :), 2));
+        joint_angles_civ_stanceL_stimNeg_0ms = tinv(0.975, sum(conditions_stanceL_stimNeg_0ms)-1) * squeeze(std(joint_angles_normalized_total(:, conditions_stanceL_stimNeg_0ms, :), 1, 2))/sqrt(sum(conditions_stanceL_stimNeg_0ms));
+        joint_angles_mean_stanceL_stimPos_150ms = squeeze(mean(joint_angles_normalized_total(:, conditions_stanceL_stimPos_150ms, :), 2));
+        joint_angles_civ_stanceL_stimPos_150ms = tinv(0.975, sum(conditions_stanceL_stimPos_150ms)-1) * squeeze(std(joint_angles_normalized_total(:, conditions_stanceL_stimPos_150ms, :), 1, 2))/sqrt(sum(conditions_stanceL_stimPos_150ms));
+        joint_angles_mean_stanceL_stimNeg_150ms = squeeze(mean(joint_angles_normalized_total(:, conditions_stanceL_stimNeg_150ms, :), 2));
+        joint_angles_civ_stanceL_stimNeg_150ms = tinv(0.975, sum(conditions_stanceL_stimNeg_150ms)-1) * squeeze(std(joint_angles_normalized_total(:, conditions_stanceL_stimNeg_150ms, :), 1, 2))/sqrt(sum(conditions_stanceL_stimNeg_150ms));
+        joint_angles_mean_stanceL_stimPos_450ms = squeeze(mean(joint_angles_normalized_total(:, conditions_stanceL_stimPos_450ms, :), 2));
+        joint_angles_civ_stanceL_stimPos_450ms = tinv(0.975, sum(conditions_stanceL_stimPos_450ms)-1) * squeeze(std(joint_angles_normalized_total(:, conditions_stanceL_stimPos_450ms, :), 1, 2))/sqrt(sum(conditions_stanceL_stimPos_450ms));
+        joint_angles_mean_stanceL_stimNeg_450ms = squeeze(mean(joint_angles_normalized_total(:, conditions_stanceL_stimNeg_450ms, :), 2));
+        joint_angles_civ_stanceL_stimNeg_450ms = tinv(0.975, sum(conditions_stanceL_stimNeg_450ms)-1) * squeeze(std(joint_angles_normalized_total(:, conditions_stanceL_stimNeg_450ms, :), 1, 2))/sqrt(sum(conditions_stanceL_stimNeg_450ms));
 
-        joint_angles_civ_right_control = tinv(0.975, sum(conditions_right_control)-1) * squeeze(std(joint_angles_normalized_total(:, conditions_right_control, :), 1, 2))/sqrt(sum(conditions_right_control));
-        joint_angles_mean_right_positive_0ms = squeeze(mean(joint_angles_normalized_total(:, conditions_right_positive_0ms, :), 2));
-        joint_angles_civ_right_positive_0ms = tinv(0.975, sum(conditions_right_positive_0ms)-1) * squeeze(std(joint_angles_normalized_total(:, conditions_right_positive_0ms, :), 1, 2))/sqrt(sum(conditions_right_positive_0ms));
-        joint_angles_mean_right_negative_0ms = squeeze(mean(joint_angles_normalized_total(:, conditions_right_negative_0ms, :), 2));
-        joint_angles_civ_right_negative_0ms = tinv(0.975, sum(conditions_right_negative_0ms)-1) * squeeze(std(joint_angles_normalized_total(:, conditions_right_negative_0ms, :), 1, 2))/sqrt(sum(conditions_right_negative_0ms));
-        joint_angles_mean_right_positive_150ms = squeeze(mean(joint_angles_normalized_total(:, conditions_right_positive_150ms, :), 2));
-        joint_angles_civ_right_positive_150ms = tinv(0.975, sum(conditions_right_positive_150ms)-1) * squeeze(std(joint_angles_normalized_total(:, conditions_right_positive_150ms, :), 1, 2))/sqrt(sum(conditions_right_positive_150ms));
-        joint_angles_mean_right_negative_150ms = squeeze(mean(joint_angles_normalized_total(:, conditions_right_negative_150ms, :), 2));
-        joint_angles_civ_right_negative_150ms = tinv(0.975, sum(conditions_right_negative_150ms)-1) * squeeze(std(joint_angles_normalized_total(:, conditions_right_negative_150ms, :), 1, 2))/sqrt(sum(conditions_right_negative_150ms));
-        joint_angles_mean_right_positive_450ms = squeeze(mean(joint_angles_normalized_total(:, conditions_right_positive_450ms, :), 2));
-        joint_angles_civ_right_positive_450ms = tinv(0.975, sum(conditions_right_positive_450ms)-1) * squeeze(std(joint_angles_normalized_total(:, conditions_right_positive_450ms, :), 1, 2))/sqrt(sum(conditions_right_positive_450ms));
-        joint_angles_mean_right_negative_450ms = squeeze(mean(joint_angles_normalized_total(:, conditions_right_negative_450ms, :), 2));
-        joint_angles_civ_right_negative_450ms = tinv(0.975, sum(conditions_right_negative_450ms)-1) * squeeze(std(joint_angles_normalized_total(:, conditions_right_negative_450ms, :), 1, 2))/sqrt(sum(conditions_right_negative_450ms));
+        joint_angles_civ_stanceR_control = tinv(0.975, sum(conditions_stanceR_stimNo)-1) * squeeze(std(joint_angles_normalized_total(:, conditions_stanceR_stimNo, :), 1, 2))/sqrt(sum(conditions_stanceR_stimNo));
+        joint_angles_mean_stanceR_stimPos_0ms = squeeze(mean(joint_angles_normalized_total(:, conditions_stanceR_stimPos_0ms, :), 2));
+        joint_angles_civ_stanceR_stimPos_0ms = tinv(0.975, sum(conditions_stanceR_stimPos_0ms)-1) * squeeze(std(joint_angles_normalized_total(:, conditions_stanceR_stimPos_0ms, :), 1, 2))/sqrt(sum(conditions_stanceR_stimPos_0ms));
+        joint_angles_mean_stanceR_stimNeg_0ms = squeeze(mean(joint_angles_normalized_total(:, conditions_stanceR_stimNeg_0ms, :), 2));
+        joint_angles_civ_stanceR_stimNeg_0ms = tinv(0.975, sum(conditions_stanceR_stimNeg_0ms)-1) * squeeze(std(joint_angles_normalized_total(:, conditions_stanceR_stimNeg_0ms, :), 1, 2))/sqrt(sum(conditions_stanceR_stimNeg_0ms));
+        joint_angles_mean_stanceR_stimPos_150ms = squeeze(mean(joint_angles_normalized_total(:, conditions_stanceR_stimPos_150ms, :), 2));
+        joint_angles_civ_stanceR_stimPos_150ms = tinv(0.975, sum(conditions_stanceR_stimPos_150ms)-1) * squeeze(std(joint_angles_normalized_total(:, conditions_stanceR_stimPos_150ms, :), 1, 2))/sqrt(sum(conditions_stanceR_stimPos_150ms));
+        joint_angles_mean_stanceR_stimNeg_150ms = squeeze(mean(joint_angles_normalized_total(:, conditions_stanceR_stimNeg_150ms, :), 2));
+        joint_angles_civ_stanceR_stimNeg_150ms = tinv(0.975, sum(conditions_stanceR_stimNeg_150ms)-1) * squeeze(std(joint_angles_normalized_total(:, conditions_stanceR_stimNeg_150ms, :), 1, 2))/sqrt(sum(conditions_stanceR_stimNeg_150ms));
+        joint_angles_mean_stanceR_stimPos_450ms = squeeze(mean(joint_angles_normalized_total(:, conditions_stanceR_stimPos_450ms, :), 2));
+        joint_angles_civ_stanceR_stimPos_450ms = tinv(0.975, sum(conditions_stanceR_stimPos_450ms)-1) * squeeze(std(joint_angles_normalized_total(:, conditions_stanceR_stimPos_450ms, :), 1, 2))/sqrt(sum(conditions_stanceR_stimPos_450ms));
+        joint_angles_mean_stanceR_stimNeg_450ms = squeeze(mean(joint_angles_normalized_total(:, conditions_stanceR_stimNeg_450ms, :), 2));
+        joint_angles_civ_stanceR_stimNeg_450ms = tinv(0.975, sum(conditions_stanceR_stimNeg_450ms)-1) * squeeze(std(joint_angles_normalized_total(:, conditions_stanceR_stimNeg_450ms, :), 1, 2))/sqrt(sum(conditions_stanceR_stimNeg_450ms));
 
         % responses
-        joint_angles_response_mean_left_positive_0ms = squeeze(mean(joint_angles_left_response(:, conditions_left_positive_0ms, :), 2));
-        joint_angles_response_civ_left_positive_0ms = tinv(0.975, sum(conditions_left_positive_0ms)-1) * squeeze(std(joint_angles_left_response(:, conditions_left_positive_0ms, :), 1, 2))/sqrt(sum(conditions_left_positive_0ms));
-        joint_angles_response_mean_left_negative_0ms = squeeze(mean(joint_angles_left_response(:, conditions_left_negative_0ms, :), 2));
-        joint_angles_response_civ_left_negative_0ms = tinv(0.975, sum(conditions_left_negative_0ms)-1) * squeeze(std(joint_angles_left_response(:, conditions_left_negative_0ms, :), 1, 2))/sqrt(sum(conditions_left_negative_0ms));
-        joint_angles_response_mean_left_positive_150ms = squeeze(mean(joint_angles_left_response(:, conditions_left_positive_150ms, :), 2));
-        joint_angles_response_civ_left_positive_150ms = tinv(0.975, sum(conditions_left_positive_150ms)-1) * squeeze(std(joint_angles_left_response(:, conditions_left_positive_150ms, :), 1, 2))/sqrt(sum(conditions_left_positive_150ms));
-        joint_angles_response_mean_left_negative_150ms = squeeze(mean(joint_angles_left_response(:, conditions_left_negative_150ms, :), 2));
-        joint_angles_response_civ_left_negative_150ms = tinv(0.975, sum(conditions_left_negative_150ms)-1) * squeeze(std(joint_angles_left_response(:, conditions_left_negative_150ms, :), 1, 2))/sqrt(sum(conditions_left_negative_150ms));
-        joint_angles_response_mean_left_positive_450ms = squeeze(mean(joint_angles_left_response(:, conditions_left_positive_450ms, :), 2));
-        joint_angles_response_civ_left_positive_450ms = tinv(0.975, sum(conditions_left_positive_450ms)-1) * squeeze(std(joint_angles_left_response(:, conditions_left_positive_450ms, :), 1, 2))/sqrt(sum(conditions_left_positive_450ms));
-        joint_angles_response_mean_left_negative_450ms = squeeze(mean(joint_angles_left_response(:, conditions_left_negative_450ms, :), 2));
-        joint_angles_response_civ_left_negative_450ms = tinv(0.975, sum(conditions_left_negative_450ms)-1) * squeeze(std(joint_angles_left_response(:, conditions_left_negative_450ms, :), 1, 2))/sqrt(sum(conditions_left_negative_450ms));
+        joint_angles_response_mean_stanceL_stimPos_0ms = squeeze(mean(joint_angles_stanceL_response(:, conditions_stanceL_stimPos_0ms, :), 2));
+        joint_angles_response_civ_stanceL_stimPos_0ms = tinv(0.975, sum(conditions_stanceL_stimPos_0ms)-1) * squeeze(std(joint_angles_stanceL_response(:, conditions_stanceL_stimPos_0ms, :), 1, 2))/sqrt(sum(conditions_stanceL_stimPos_0ms));
+        joint_angles_response_mean_stanceL_stimNeg_0ms = squeeze(mean(joint_angles_stanceL_response(:, conditions_stanceL_stimNeg_0ms, :), 2));
+        joint_angles_response_civ_stanceL_stimNeg_0ms = tinv(0.975, sum(conditions_stanceL_stimNeg_0ms)-1) * squeeze(std(joint_angles_stanceL_response(:, conditions_stanceL_stimNeg_0ms, :), 1, 2))/sqrt(sum(conditions_stanceL_stimNeg_0ms));
+        joint_angles_response_mean_stanceL_stimPos_150ms = squeeze(mean(joint_angles_stanceL_response(:, conditions_stanceL_stimPos_150ms, :), 2));
+        joint_angles_response_civ_stanceL_stimPos_150ms = tinv(0.975, sum(conditions_stanceL_stimPos_150ms)-1) * squeeze(std(joint_angles_stanceL_response(:, conditions_stanceL_stimPos_150ms, :), 1, 2))/sqrt(sum(conditions_stanceL_stimPos_150ms));
+        joint_angles_response_mean_stanceL_stimNeg_150ms = squeeze(mean(joint_angles_stanceL_response(:, conditions_stanceL_stimNeg_150ms, :), 2));
+        joint_angles_response_civ_stanceL_stimNeg_150ms = tinv(0.975, sum(conditions_stanceL_stimNeg_150ms)-1) * squeeze(std(joint_angles_stanceL_response(:, conditions_stanceL_stimNeg_150ms, :), 1, 2))/sqrt(sum(conditions_stanceL_stimNeg_150ms));
+        joint_angles_response_mean_stanceL_stimPos_450ms = squeeze(mean(joint_angles_stanceL_response(:, conditions_stanceL_stimPos_450ms, :), 2));
+        joint_angles_response_civ_stanceL_stimPos_450ms = tinv(0.975, sum(conditions_stanceL_stimPos_450ms)-1) * squeeze(std(joint_angles_stanceL_response(:, conditions_stanceL_stimPos_450ms, :), 1, 2))/sqrt(sum(conditions_stanceL_stimPos_450ms));
+        joint_angles_response_mean_stanceL_stimNeg_450ms = squeeze(mean(joint_angles_stanceL_response(:, conditions_stanceL_stimNeg_450ms, :), 2));
+        joint_angles_response_civ_stanceL_stimNeg_450ms = tinv(0.975, sum(conditions_stanceL_stimNeg_450ms)-1) * squeeze(std(joint_angles_stanceL_response(:, conditions_stanceL_stimNeg_450ms, :), 1, 2))/sqrt(sum(conditions_stanceL_stimNeg_450ms));
 
-        joint_angles_response_mean_right_positive_0ms = squeeze(mean(joint_angles_right_response(:, conditions_right_positive_0ms, :), 2));
-        joint_angles_response_civ_right_positive_0ms = tinv(0.975, sum(conditions_right_positive_0ms)-1) * squeeze(std(joint_angles_right_response(:, conditions_right_positive_0ms, :), 1, 2))/sqrt(sum(conditions_right_positive_0ms));
-        joint_angles_response_mean_right_negative_0ms = squeeze(mean(joint_angles_right_response(:, conditions_right_negative_0ms, :), 2));
-        joint_angles_response_civ_right_negative_0ms = tinv(0.975, sum(conditions_right_negative_0ms)-1) * squeeze(std(joint_angles_right_response(:, conditions_right_negative_0ms, :), 1, 2))/sqrt(sum(conditions_right_negative_0ms));
-        joint_angles_response_mean_right_positive_150ms = squeeze(mean(joint_angles_right_response(:, conditions_right_positive_150ms, :), 2));
-        joint_angles_response_civ_right_positive_150ms = tinv(0.975, sum(conditions_right_positive_150ms)-1) * squeeze(std(joint_angles_right_response(:, conditions_right_positive_150ms, :), 1, 2))/sqrt(sum(conditions_right_positive_150ms));
-        joint_angles_response_mean_right_negative_150ms = squeeze(mean(joint_angles_right_response(:, conditions_right_negative_150ms, :), 2));
-        joint_angles_response_civ_right_negative_150ms = tinv(0.975, sum(conditions_right_negative_150ms)-1) * squeeze(std(joint_angles_right_response(:, conditions_right_negative_150ms, :), 1, 2))/sqrt(sum(conditions_right_negative_150ms));
-        joint_angles_response_mean_right_positive_450ms = squeeze(mean(joint_angles_right_response(:, conditions_right_positive_450ms, :), 2));
-        joint_angles_response_civ_right_positive_450ms = tinv(0.975, sum(conditions_right_positive_450ms)-1) * squeeze(std(joint_angles_right_response(:, conditions_right_positive_450ms, :), 1, 2))/sqrt(sum(conditions_right_positive_450ms));
-        joint_angles_response_mean_right_negative_450ms = squeeze(mean(joint_angles_right_response(:, conditions_right_negative_450ms, :), 2));
-        joint_angles_response_civ_right_negative_450ms = tinv(0.975, sum(conditions_right_negative_450ms)-1) * squeeze(std(joint_angles_right_response(:, conditions_right_negative_450ms, :), 1, 2))/sqrt(sum(conditions_right_negative_450ms));
+        joint_angles_response_mean_stanceR_stimPos_0ms = squeeze(mean(joint_angles_stanceR_response(:, conditions_stanceR_stimPos_0ms, :), 2));
+        joint_angles_response_civ_stanceR_stimPos_0ms = tinv(0.975, sum(conditions_stanceR_stimPos_0ms)-1) * squeeze(std(joint_angles_stanceR_response(:, conditions_stanceR_stimPos_0ms, :), 1, 2))/sqrt(sum(conditions_stanceR_stimPos_0ms));
+        joint_angles_response_mean_stanceR_stimNeg_0ms = squeeze(mean(joint_angles_stanceR_response(:, conditions_stanceR_stimNeg_0ms, :), 2));
+        joint_angles_response_civ_stanceR_stimNeg_0ms = tinv(0.975, sum(conditions_stanceR_stimNeg_0ms)-1) * squeeze(std(joint_angles_stanceR_response(:, conditions_stanceR_stimNeg_0ms, :), 1, 2))/sqrt(sum(conditions_stanceR_stimNeg_0ms));
+        joint_angles_response_mean_stanceR_stimPos_150ms = squeeze(mean(joint_angles_stanceR_response(:, conditions_stanceR_stimPos_150ms, :), 2));
+        joint_angles_response_civ_stanceR_stimPos_150ms = tinv(0.975, sum(conditions_stanceR_stimPos_150ms)-1) * squeeze(std(joint_angles_stanceR_response(:, conditions_stanceR_stimPos_150ms, :), 1, 2))/sqrt(sum(conditions_stanceR_stimPos_150ms));
+        joint_angles_response_mean_stanceR_stimNeg_150ms = squeeze(mean(joint_angles_stanceR_response(:, conditions_stanceR_stimNeg_150ms, :), 2));
+        joint_angles_response_civ_stanceR_stimNeg_150ms = tinv(0.975, sum(conditions_stanceR_stimNeg_150ms)-1) * squeeze(std(joint_angles_stanceR_response(:, conditions_stanceR_stimNeg_150ms, :), 1, 2))/sqrt(sum(conditions_stanceR_stimNeg_150ms));
+        joint_angles_response_mean_stanceR_stimPos_450ms = squeeze(mean(joint_angles_stanceR_response(:, conditions_stanceR_stimPos_450ms, :), 2));
+        joint_angles_response_civ_stanceR_stimPos_450ms = tinv(0.975, sum(conditions_stanceR_stimPos_450ms)-1) * squeeze(std(joint_angles_stanceR_response(:, conditions_stanceR_stimPos_450ms, :), 1, 2))/sqrt(sum(conditions_stanceR_stimPos_450ms));
+        joint_angles_response_mean_stanceR_stimNeg_450ms = squeeze(mean(joint_angles_stanceR_response(:, conditions_stanceR_stimNeg_450ms, :), 2));
+        joint_angles_response_civ_stanceR_stimNeg_450ms = tinv(0.975, sum(conditions_stanceR_stimNeg_450ms)-1) * squeeze(std(joint_angles_stanceR_response(:, conditions_stanceR_stimNeg_450ms, :), 1, 2))/sqrt(sum(conditions_stanceR_stimNeg_450ms));
 
      
     end
     
     % stim start times
-    stim_start_times_mean_left_0ms = mean(stim_start_time_relative_to_stretch_total(conditions_left_0ms));
-    stim_start_times_mean_right_0ms = mean(stim_start_time_relative_to_stretch_total(conditions_right_0ms));
-    stim_start_times_mean_left_150ms = mean(stim_start_time_relative_to_stretch_total(conditions_left_150ms));
-    stim_start_times_mean_right_150ms = mean(stim_start_time_relative_to_stretch_total(conditions_right_150ms));
-    stim_start_times_mean_left_450ms = mean(stim_start_time_relative_to_stretch_total(conditions_left_450ms));
-    stim_start_times_mean_right_450ms = mean(stim_start_time_relative_to_stretch_total(conditions_right_450ms));
+    stim_start_times_mean_stanceL_0ms = mean(stim_start_time_relative_to_stretch_total(conditions_stanceL_0ms));
+    stim_start_times_mean_stanceR_0ms = mean(stim_start_time_relative_to_stretch_total(conditions_stanceR_0ms));
+    stim_start_times_mean_stanceL_150ms = mean(stim_start_time_relative_to_stretch_total(conditions_stanceL_150ms));
+    stim_start_times_mean_stanceR_150ms = mean(stim_start_time_relative_to_stretch_total(conditions_stanceR_150ms));
+    stim_start_times_mean_stanceL_450ms = mean(stim_start_time_relative_to_stretch_total(conditions_stanceL_450ms));
+    stim_start_times_mean_stanceR_450ms = mean(stim_start_time_relative_to_stretch_total(conditions_stanceR_450ms));
     
 end
 
 %% save data
 if save_data
 
-    file_name = makeFileName(date, subject_id, 'stimulusData');
     save ...
       ( ...
-        file_name, ...
-        'left_cop_x_response', ...
-        'right_cop_x_response' ...
-      )
-
-    disp(['Trial ' num2str(i_trial) ' completed']);
-
+        makeFileName(date, subject_id, 'resultsConditions'), ...
+        'time_normalized', ...
+        'origin_trial_list_total', ...
+        'origin_start_time_list_total', ...
+        'origin_end_time_list_total', ...
+        'conditions_stanceL_stimNo', ...
+        'conditions_stanceR_stimNo', ...
+        'conditions_stanceL_stimPos_0ms', ...
+        'conditions_stanceL_stimNeg_0ms', ...
+        'conditions_stanceR_stimPos_0ms', ...
+        'conditions_stanceR_stimNeg_0ms', ...
+        'conditions_stanceL_stimPos_150ms', ...
+        'conditions_stanceL_stimNeg_150ms', ...
+        'conditions_stanceR_stimPos_150ms', ...
+        'conditions_stanceR_stimNeg_150ms', ...
+        'conditions_stanceL_stimPos_450ms', ...
+        'conditions_stanceL_stimNeg_450ms', ...
+        'conditions_stanceR_stimPos_450ms', ...
+        'conditions_stanceR_stimNeg_450ms', ...
+        'conditions_stanceL_0ms', ...
+        'conditions_stanceR_0ms', ...
+        'conditions_stanceL_150ms', ...
+        'conditions_stanceR_150ms', ...
+        'conditions_stanceL_450ms', ...
+        'conditions_stanceR_450ms' ...
+      );
+    
+    if process_data_marker
+        save ...
+          ( ...
+            makeFileName(date, subject_id, 'resultsMarker'), ...
+            'lasi_x_pos_normalized_total', ...
+            'rasi_x_pos_normalized_total', ...
+            'lpsi_x_pos_normalized_total', ...
+            'rpsi_x_pos_normalized_total', ...
+            'lasi_x_vel_normalized_total', ...
+            'rasi_x_vel_normalized_total', ...
+            'lpsi_x_vel_normalized_total', ...
+            'rpsi_x_vel_normalized_total', ...
+            'pelvis_x_pos_normalized_total', ...
+            'pelvis_x_vel_normalized_total', ...
+            'lheel_x_pos_normalized_total', ...
+            'rheel_x_pos_normalized_total', ...
+            'lheel_y_pos_normalized_total', ...
+            'rheel_y_pos_normalized_total', ...
+            'rheel_x_pos_mean_stanceL_control', ...
+            'rheel_x_pos_civ_stanceL_control', ...
+            'lheel_x_pos_mean_stanceR_control', ...
+            'lheel_x_pos_civ_stanceR_control', ... %
+            'lheel_x_pos_mean_stanceR_stimPos_0ms', ...
+            'lheel_x_pos_civ_stanceR_stimPos_0ms', ...
+            'lheel_x_pos_mean_stanceR_stimNeg_0ms', ...
+            'lheel_x_pos_civ_stanceR_stimNeg_0ms', ...
+            'lheel_x_pos_mean_stanceR_stimPos_150ms', ...
+            'lheel_x_pos_civ_stanceR_stimPos_150ms', ...
+            'lheel_x_pos_mean_stanceR_stimNeg_150ms', ...
+            'lheel_x_pos_civ_stanceR_stimNeg_150ms', ...
+            'rheel_x_pos_mean_stanceL_stimPos_450ms', ...
+            'rheel_x_pos_civ_stanceL_stimPos_450ms', ...
+            'rheel_x_pos_mean_stanceL_stimNeg_450ms', ...
+            'rheel_x_pos_civ_stanceL_stimNeg_450ms', ... %
+            'lheel_x_pos_response_mean_stanceR_stimPos_0ms', ...
+            'lheel_x_pos_response_civ_stanceR_stimPos_0ms', ...
+            'lheel_x_pos_response_mean_stanceR_stimNeg_0ms', ...
+            'lheel_x_pos_response_civ_stanceR_stimNeg_0ms', ...
+            'lheel_x_pos_response_mean_stanceR_stimPos_150ms', ...
+            'lheel_x_pos_response_civ_stanceR_stimPos_150ms', ...
+            'lheel_x_pos_response_mean_stanceR_stimNeg_150ms', ...
+            'lheel_x_pos_response_civ_stanceR_stimNeg_150ms', ...
+            'rheel_x_pos_response_mean_stanceL_stimPos_450ms', ...
+            'rheel_x_pos_response_civ_stanceL_stimPos_450ms', ...
+            'rheel_x_pos_response_mean_stanceL_stimNeg_450ms', ...
+            'rheel_x_pos_response_civ_stanceL_stimNeg_450ms' ...
+          );
+    end
+    
+    if process_data_forceplate
+        save ...
+          ( ...
+            makeFileName(date, subject_id, 'resultsForceplate'), ...
+            'lcop_x_normalized_total', ...
+            'rcop_x_normalized_total', ...
+            'rcop_x_mean_stanceR_control', ...
+            'rcop_x_civ_stanceR_control', ...
+            'lcop_x_mean_stanceL_control', ...
+            'lcop_x_civ_stanceL_control', ...
+            'rcop_x_mean_stanceR_stimPos_0ms', ...
+            'rcop_x_civ_stanceR_stimPos_0ms', ...
+            'rcop_x_mean_stanceR_stimNeg_0ms', ...
+            'rcop_x_civ_stanceR_stimNeg_0ms', ...
+            'rcop_x_mean_stanceR_stimPos_150ms', ...
+            'rcop_x_civ_stanceR_stimPos_150ms', ...
+            'rcop_x_mean_stanceR_stimNeg_150ms', ...
+            'rcop_x_civ_stanceR_stimNeg_150ms', ...
+            'lcop_x_mean_stanceL_stimPos_450ms', ...
+            'lcop_x_civ_stanceL_stimPos_450ms', ...
+            'lcop_x_mean_stanceL_stimNeg_450ms', ...
+            'lcop_x_civ_stanceL_stimNeg_450ms', ...
+            'rcop_x_response_mean_stanceR_stimPos_0ms', ...
+            'rcop_x_response_civ_stanceR_stimPos_0ms', ...
+            'rcop_x_response_mean_stanceR_stimNeg_0ms', ...
+            'rcop_x_response_civ_stanceR_stimNeg_0ms', ...
+            'rcop_x_response_mean_stanceR_stimPos_150ms', ...
+            'rcop_x_response_civ_stanceR_stimPos_150ms', ...
+            'rcop_x_response_mean_stanceR_stimNeg_150ms', ...
+            'rcop_x_response_civ_stanceR_stimNeg_150ms', ...
+            'lcop_x_response_mean_stanceL_stimPos_450ms', ...
+            'lcop_x_response_civ_stanceL_stimPos_450ms', ...
+            'lcop_x_response_mean_stanceL_stimNeg_450ms', ...
+            'lcop_x_response_civ_stanceL_stimNeg_450ms' ...
+          );
+    end
 end
     
-%% plot stuff should go to different script eventually
-color_left_control = [0.3 0.1 1];
-color_left_positive = [1 0.3 .1] * 0.7;
-color_left_negative = [0.3 1 0.1] * 0.7;
-color_right_control = [0.3 0.1 1];
-color_right_positive = [1 0.3 .1] * 0.7;
-color_right_negative = [0.3 1 0.1] * 0.7;
 
-%% plot    
-    
-%% cop plots
-if do_cop_plots_absolute_right
-    figure; axes; hold on; title('right foot medial-lateral CoP, 0ms'); set(gca, 'Fontsize', 12)
-    control_plot = shadedErrorBar(time_normalized, right_cop_x_mean_right_control, right_cop_x_civ_right_control, {'color', color_right_control, 'linewidth', 5}, 1);
-    positive_plot = shadedErrorBar(time_normalized, right_cop_x_mean_right_positive_0ms, right_cop_x_civ_right_positive_0ms, {'color', color_right_positive, 'linewidth', 5}, 1);
-    negative_plot = shadedErrorBar(time_normalized, right_cop_x_mean_right_negative_0ms, right_cop_x_civ_right_negative_0ms, {'color', color_right_negative, 'linewidth', 5}, 1);
-    xlabel('time'); set(gca, 'xlim', [0, step_time_mean]); 
-    this_legend = legend([control_plot.mainLine positive_plot.mainLine negative_plot.mainLine], 'control', 'illusion left', 'illusion right');
-    set(this_legend, 'Location', 'NORTHWEST')
-    xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
-    text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), 'right \rightarrow', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right')
-    text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(1), '\leftarrow left', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'left')
-    saveas(gcf, 'cop_absolute_left.eps', 'epsc2')
-end
+return    
 
-if do_cop_plots_absolute_left
-    figure; axes; hold on; title('left foot medial-lateral CoP, 0ms'); set(gca, 'Fontsize', 12)
-    control_plot = shadedErrorBar(time_normalized, left_cop_x_mean_left_control, left_cop_x_civ_left_control, {'color', color_left_control, 'linewidth', 5}, 1);
-    positive_plot = shadedErrorBar(time_normalized, left_cop_x_mean_left_positive_0ms, left_cop_x_civ_left_positive_0ms, {'color', color_left_positive, 'linewidth', 5}, 1);
-    negative_plot = shadedErrorBar(time_normalized, left_cop_x_mean_left_negative_0ms, left_cop_x_civ_left_negative_0ms, {'color', color_left_negative, 'linewidth', 5}, 1);
-    xlabel('time'); set(gca, 'xlim', [0, step_time_mean]); 
-    this_legend = legend([control_plot.mainLine positive_plot.mainLine negative_plot.mainLine], 'control', 'illusion left', 'illusion right');
-    set(this_legend, 'Location', 'NORTHWEST')
-    xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
-    text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), 'right \rightarrow', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right')
-    text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(1), '\leftarrow left', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'left')
-    saveas(gcf, 'cop_absolute_right.eps', 'epsc2')
-end
-
-if do_cop_plots_response_right
-    figure; axes; hold on; title('right foot medial-lateral CoP response, 0ms'); set(gca, 'Fontsize', 12)
-    positive_plot = shadedErrorBar(time_normalized, right_cop_x_response_mean_right_positive_0ms, right_cop_x_response_civ_right_positive_0ms, {'color', color_right_positive, 'linewidth', 5}, 1);
-    negative_plot = shadedErrorBar(time_normalized, right_cop_x_response_mean_right_negative_0ms, right_cop_x_response_civ_right_positive_0ms, {'color', color_right_negative, 'linewidth', 5}, 1);
-    xlabel('time'); set(gca, 'xlim', [0, step_time_mean], 'ylim', [-0.015 0.015]);
-    this_legend = legend([positive_plot.mainLine negative_plot.mainLine], 'illusion left', 'illusion right');
-    set(this_legend, 'Location', 'NORTHWEST')
-    xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
-    text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), 'right \rightarrow', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right')
-    text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(1), '\leftarrow left', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'left')
-    saveas(gcf, 'cop_response_right.eps', 'epsc2')
-end
-
-if do_cop_plots_response_left
-    figure; axes; hold on; title('left foot medial-lateral CoP response, 0ms'); set(gca, 'Fontsize', 12)
-    positive_plot = shadedErrorBar(time_normalized, left_cop_x_response_mean_left_positive_0ms, left_cop_x_response_civ_left_positive_0ms, {'color', color_left_positive, 'linewidth', 5}, 1);
-    negative_plot = shadedErrorBar(time_normalized, left_cop_x_response_mean_left_negative_0ms, left_cop_x_response_civ_left_positive_0ms, {'color', color_left_negative, 'linewidth', 5}, 1);
-    xlabel('time'); set(gca, 'xlim', [0, step_time_mean], 'ylim', [-0.015 0.015]);
-    this_legend = legend([positive_plot.mainLine negative_plot.mainLine], 'illusion left', 'illusion right');
-    set(this_legend, 'Location', 'NORTHWEST')
-    xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
-    text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), 'right \rightarrow', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right')
-    text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(1), '\leftarrow left', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'left')
-    saveas(gcf, 'cop_response_left.eps', 'epsc2')
-end
-
-%% heel plots
+%% heel plots old
 if do_heel_plots_absolute_right
     figure; axes; hold on; title('right foot medial-lateral heel, 0ms'); set(gca, 'Fontsize', 12)
-    control_plot = shadedErrorBar(time_normalized, right_heel_x_pos_mean_left_control, right_heel_x_pos_civ_left_control, {'color', color_right_control, 'linewidth', 5}, 1);
-    positive_plot = shadedErrorBar(time_normalized, right_heel_x_pos_mean_left_positive_0ms, right_heel_x_pos_civ_left_positive_0ms, {'color', color_left_positive, 'linewidth', 5}, 1);
-    negative_plot = shadedErrorBar(time_normalized, right_heel_x_pos_mean_left_negative_0ms, right_heel_x_pos_civ_left_negative_0ms, {'color', color_left_negative, 'linewidth', 5}, 1);
+    control_plot = shadedErrorBar(time_normalized, rheel_x_pos_mean_left_control, rheel_x_pos_civ_left_control, {'color', color_right_control, 'linewidth', 5}, 1);
+    positive_plot = shadedErrorBar(time_normalized, rheel_x_pos_mean_left_positive_0ms, rheel_x_pos_civ_left_positive_0ms, {'color', color_left_positive, 'linewidth', 5}, 1);
+    negative_plot = shadedErrorBar(time_normalized, rheel_x_pos_mean_left_negative_0ms, rheel_x_pos_civ_left_negative_0ms, {'color', color_left_negative, 'linewidth', 5}, 1);
     xlabel('time'); set(gca, 'xlim', [0, step_time_mean]); 
     this_legend = legend([control_plot.mainLine positive_plot.mainLine negative_plot.mainLine], 'control', 'illusion left', 'illusion right');
     set(this_legend, 'Location', 'NORTHWEST')
@@ -1097,9 +1146,9 @@ end
 
 if do_heel_plots_absolute_left
     figure; axes; hold on; title('left foot medial-lateral heel, 0ms'); set(gca, 'Fontsize', 12)
-    control_plot = shadedErrorBar(time_normalized, left_heel_x_pos_mean_right_control, left_heel_x_pos_civ_right_control, {'color', color_right_control, 'linewidth', 5}, 1);
-    positive_plot = shadedErrorBar(time_normalized, left_heel_x_pos_mean_right_positive_0ms, left_heel_x_pos_civ_right_positive_0ms, {'color', color_right_positive, 'linewidth', 5}, 1);
-    negative_plot = shadedErrorBar(time_normalized, left_heel_x_pos_mean_right_negative_0ms, left_heel_x_pos_civ_right_negative_0ms, {'color', color_right_negative, 'linewidth', 5}, 1);
+    control_plot = shadedErrorBar(time_normalized, lheel_x_pos_mean_right_control, lheel_x_pos_civ_right_control, {'color', color_right_control, 'linewidth', 5}, 1);
+    positive_plot = shadedErrorBar(time_normalized, lheel_x_pos_mean_right_positive_0ms, lheel_x_pos_civ_right_positive_0ms, {'color', color_right_positive, 'linewidth', 5}, 1);
+    negative_plot = shadedErrorBar(time_normalized, lheel_x_pos_mean_right_negative_0ms, lheel_x_pos_civ_right_negative_0ms, {'color', color_right_negative, 'linewidth', 5}, 1);
     xlabel('time'); set(gca, 'xlim', [0, step_time_mean]); 
     this_legend = legend([control_plot.mainLine positive_plot.mainLine negative_plot.mainLine], 'control', 'illusion left', 'illusion right');
     set(this_legend, 'Location', 'NORTHWEST')
@@ -1111,8 +1160,8 @@ end
 
 if do_heel_plots_response_right
     figure; axes; hold on; title('right foot medial-lateral heel response, 0ms'); set(gca, 'Fontsize', 12)
-    positive_plot = shadedErrorBar(time_normalized, right_heel_x_pos_response_mean_left_positive_0ms, right_heel_x_pos_response_civ_left_positive_0ms, {'color', color_left_positive, 'linewidth', 5}, 1);
-    negative_plot = shadedErrorBar(time_normalized, right_heel_x_pos_response_mean_left_negative_0ms, right_heel_x_pos_response_civ_left_positive_0ms, {'color', color_left_negative, 'linewidth', 5}, 1);
+    positive_plot = shadedErrorBar(time_normalized, rheel_x_pos_response_mean_left_positive_0ms, rheel_x_pos_response_civ_left_positive_0ms, {'color', color_left_positive, 'linewidth', 5}, 1);
+    negative_plot = shadedErrorBar(time_normalized, rheel_x_pos_response_mean_left_negative_0ms, rheel_x_pos_response_civ_left_positive_0ms, {'color', color_left_negative, 'linewidth', 5}, 1);
     xlabel('time'); set(gca, 'xlim', [0, step_time_mean], 'ylim', [-0.03 0.03]);
     this_legend = legend([positive_plot.mainLine negative_plot.mainLine], 'illusion left', 'illusion right');
     set(this_legend, 'Location', 'NORTHWEST')
@@ -1124,8 +1173,8 @@ end
 
 if do_heel_plots_response_left
     figure; axes; hold on; title('left foot medial-lateral heel response, 0ms'); set(gca, 'Fontsize', 12)
-    positive_plot = shadedErrorBar(time_normalized, left_heel_x_pos_response_mean_right_positive_0ms, left_heel_x_pos_response_civ_right_positive_0ms, {'color', color_right_positive, 'linewidth', 5}, 1);
-    negative_plot = shadedErrorBar(time_normalized, left_heel_x_pos_response_mean_right_negative_0ms, left_heel_x_pos_response_civ_right_positive_0ms, {'color', color_right_negative, 'linewidth', 5}, 1);
+    positive_plot = shadedErrorBar(time_normalized, lheel_x_pos_response_mean_right_positive_0ms, lheel_x_pos_response_civ_right_positive_0ms, {'color', color_right_positive, 'linewidth', 5}, 1);
+    negative_plot = shadedErrorBar(time_normalized, lheel_x_pos_response_mean_right_negative_0ms, lheel_x_pos_response_civ_right_positive_0ms, {'color', color_right_negative, 'linewidth', 5}, 1);
     xlabel('time'); set(gca, 'xlim', [0, step_time_mean], 'ylim', [-0.03 0.03]);
     this_legend = legend([positive_plot.mainLine negative_plot.mainLine], 'illusion left', 'illusion right');
     set(this_legend, 'Location', 'NORTHWEST')
@@ -1135,20 +1184,18 @@ if do_heel_plots_response_left
     saveas(gcf, 'heel_response_left.eps', 'epsc2')
 end
 
-
-
-%%
+%% angle-related stuff
 if do_joint_angle_absolute_plots_left
     joints_to_plot = [8 12 14 18];
 %     joints_to_plot = [20 23];
     for i_joint = joints_to_plot
         figure; axes; hold on; title([plant.jointLabels{i_joint} ', LEFT 0ms']); set(gca, 'Fontsize', 12)
-        plot(time_normalized, squeeze(joint_angles_normalized_total(:, conditions_left_control, i_joint)), 'color', color_left_control);
-        plot(time_normalized, squeeze(joint_angles_normalized_total(:, conditions_left_positive_0ms, i_joint)), 'color', color_left_positive);
-        plot(time_normalized, squeeze(joint_angles_normalized_total(:, conditions_left_negative_0ms, i_joint)), 'color', color_left_negative);
-        plot(time_normalized, mean(squeeze(joint_angles_normalized_total(:, conditions_left_control, i_joint)), 2), 'color', color_left_control, 'linewidth', 5);
-        plot(time_normalized, mean(squeeze(joint_angles_normalized_total(:, conditions_left_positive_0ms, i_joint)), 2), 'color', color_left_positive, 'linewidth', 5);
-        plot(time_normalized, mean(squeeze(joint_angles_normalized_total(:, conditions_left_negative_0ms, i_joint)), 2), 'color', color_left_negative, 'linewidth', 5);
+        plot(time_normalized, squeeze(joint_angles_normalized_total(:, conditions_stanceL_stimNo, i_joint)), 'color', color_left_control);
+        plot(time_normalized, squeeze(joint_angles_normalized_total(:, conditions_stanceL_stimPos_0ms, i_joint)), 'color', color_left_positive);
+        plot(time_normalized, squeeze(joint_angles_normalized_total(:, conditions_stanceL_stimNeg_0ms, i_joint)), 'color', color_left_negative);
+        plot(time_normalized, mean(squeeze(joint_angles_normalized_total(:, conditions_stanceL_stimNo, i_joint)), 2), 'color', color_left_control, 'linewidth', 5);
+        plot(time_normalized, mean(squeeze(joint_angles_normalized_total(:, conditions_stanceL_stimPos_0ms, i_joint)), 2), 'color', color_left_positive, 'linewidth', 5);
+        plot(time_normalized, mean(squeeze(joint_angles_normalized_total(:, conditions_stanceL_stimNeg_0ms, i_joint)), 2), 'color', color_left_negative, 'linewidth', 5);
     end    
 end
 
@@ -1157,12 +1204,12 @@ if do_joint_angle_absolute_plots_right
 %     joints_to_plot = [20 23];
     for i_joint = joints_to_plot
         figure; axes; hold on; title([plant.jointLabels{i_joint} ', RIGHT 0ms']); set(gca, 'Fontsize', 12)
-        plot(time_normalized, squeeze(joint_angles_normalized_total(:, conditions_right_control, i_joint)), 'color', color_right_control);
-        plot(time_normalized, squeeze(joint_angles_normalized_total(:, conditions_right_positive_0ms, i_joint)), 'color', color_right_positive);
-        plot(time_normalized, squeeze(joint_angles_normalized_total(:, conditions_right_negative_0ms, i_joint)), 'color', color_right_negative);
-        plot(time_normalized, mean(squeeze(joint_angles_normalized_total(:, conditions_right_control, i_joint)), 2), 'color', color_right_control, 'linewidth', 5);
-        plot(time_normalized, mean(squeeze(joint_angles_normalized_total(:, conditions_right_positive_0ms, i_joint)), 2), 'color', color_right_positive, 'linewidth', 5);
-        plot(time_normalized, mean(squeeze(joint_angles_normalized_total(:, conditions_right_negative_0ms, i_joint)), 2), 'color', color_right_negative, 'linewidth', 5);
+        plot(time_normalized, squeeze(joint_angles_normalized_total(:, conditions_stanceR_stimNo, i_joint)), 'color', color_right_control);
+        plot(time_normalized, squeeze(joint_angles_normalized_total(:, conditions_stanceR_stimPos_0ms, i_joint)), 'color', color_right_positive);
+        plot(time_normalized, squeeze(joint_angles_normalized_total(:, conditions_stanceR_stimNeg_0ms, i_joint)), 'color', color_right_negative);
+        plot(time_normalized, mean(squeeze(joint_angles_normalized_total(:, conditions_stanceR_stimNo, i_joint)), 2), 'color', color_right_control, 'linewidth', 5);
+        plot(time_normalized, mean(squeeze(joint_angles_normalized_total(:, conditions_stanceR_stimPos_0ms, i_joint)), 2), 'color', color_right_positive, 'linewidth', 5);
+        plot(time_normalized, mean(squeeze(joint_angles_normalized_total(:, conditions_stanceR_stimNeg_0ms, i_joint)), 2), 'color', color_right_negative, 'linewidth', 5);
     end    
 end
 
@@ -1179,20 +1226,20 @@ if do_acceleration_strategy_response_plots
 %     plot(time_normalized, hip_acceleration_strategy_left_response(:, conditions_left_negative_0ms), 'color', color_left_negative);
     
     figure; axes; hold on; title('right ankle strategy, 0ms'); set(gca, 'Fontsize', 12)
-    plot(time_normalized, ankle_acceleration_strategy_right_response(:, conditions_right_control), 'color', color_right_control);
-    plot(time_normalized, ankle_acceleration_strategy_right_response(:, conditions_right_positive_0ms), 'color', color_right_positive);
-    plot(time_normalized, ankle_acceleration_strategy_right_response(:, conditions_right_negative_0ms), 'color', color_right_negative);
-    plot(time_normalized, mean(ankle_acceleration_strategy_right_response(:, conditions_right_control), 2), 'color', color_right_control, 'linewidth', 5);
-    plot(time_normalized, mean(ankle_acceleration_strategy_right_response(:, conditions_right_positive_0ms), 2), 'color', color_right_positive, 'linewidth', 5);
-    plot(time_normalized, mean(ankle_acceleration_strategy_right_response(:, conditions_right_negative_0ms), 2), 'color', color_right_negative, 'linewidth', 5);
+    plot(time_normalized, ankle_acceleration_strategy_right_response(:, conditions_stanceR_stimNo), 'color', color_right_control);
+    plot(time_normalized, ankle_acceleration_strategy_right_response(:, conditions_stanceR_stimPos_0ms), 'color', color_right_positive);
+    plot(time_normalized, ankle_acceleration_strategy_right_response(:, conditions_stanceR_stimNeg_0ms), 'color', color_right_negative);
+    plot(time_normalized, mean(ankle_acceleration_strategy_right_response(:, conditions_stanceR_stimNo), 2), 'color', color_right_control, 'linewidth', 5);
+    plot(time_normalized, mean(ankle_acceleration_strategy_right_response(:, conditions_stanceR_stimPos_0ms), 2), 'color', color_right_positive, 'linewidth', 5);
+    plot(time_normalized, mean(ankle_acceleration_strategy_right_response(:, conditions_stanceR_stimNeg_0ms), 2), 'color', color_right_negative, 'linewidth', 5);
     
     figure; axes; hold on; title('right hip strategy, 0ms'); set(gca, 'Fontsize', 12)
-    plot(time_normalized, hip_acceleration_strategy_right_response(:, conditions_right_control), 'color', color_right_control);
-    plot(time_normalized, hip_acceleration_strategy_right_response(:, conditions_right_positive_0ms), 'color', color_right_positive);
-    plot(time_normalized, hip_acceleration_strategy_right_response(:, conditions_right_negative_0ms), 'color', color_right_negative);
-    plot(time_normalized, mean(hip_acceleration_strategy_right_response(:, conditions_right_control), 2), 'color', color_right_control, 'linewidth', 5);
-    plot(time_normalized, mean(hip_acceleration_strategy_right_response(:, conditions_right_positive_0ms), 2), 'color', color_right_positive, 'linewidth', 5);
-    plot(time_normalized, mean(hip_acceleration_strategy_right_response(:, conditions_right_negative_0ms), 2), 'color', color_right_negative, 'linewidth', 5);
+    plot(time_normalized, hip_acceleration_strategy_right_response(:, conditions_stanceR_stimNo), 'color', color_right_control);
+    plot(time_normalized, hip_acceleration_strategy_right_response(:, conditions_stanceR_stimPos_0ms), 'color', color_right_positive);
+    plot(time_normalized, hip_acceleration_strategy_right_response(:, conditions_stanceR_stimNeg_0ms), 'color', color_right_negative);
+    plot(time_normalized, mean(hip_acceleration_strategy_right_response(:, conditions_stanceR_stimNo), 2), 'color', color_right_control, 'linewidth', 5);
+    plot(time_normalized, mean(hip_acceleration_strategy_right_response(:, conditions_stanceR_stimPos_0ms), 2), 'color', color_right_positive, 'linewidth', 5);
+    plot(time_normalized, mean(hip_acceleration_strategy_right_response(:, conditions_stanceR_stimNeg_0ms), 2), 'color', color_right_negative, 'linewidth', 5);
 end
 
 
