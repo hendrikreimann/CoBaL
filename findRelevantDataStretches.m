@@ -17,7 +17,7 @@ load subjectInfo.mat;
 % trials_to_process = 1 : 23;
 % trials_to_process = [2:12 14:15 18:20];
 % trials_to_process = 12 : 23;
-trials_to_process = [6:20];
+trials_to_process = 2:43;
 % trials_to_process = 2;
 % trials_to_process = 12 : 23;
 % trials_to_process = 1 : 21;
@@ -28,7 +28,6 @@ total_negative_steps = [];
 total_polarity_condition_list = [];
 total_step_condition_list = [];
 
-number_of_time_steps_normalized = 256;
 swing_foot_fz_zero_threshold = 20; % threshold for counting a vertical force reading as zero, in Nm
 swing_foot_zero_stretch_length_threshold = 20; % the number of zero indices in the vertical swing foot force has to be larger than this number
 duration_until_nearest_future_heelstrike_threshold = 0.1; % a heelstrike should happen less than this long after a trigger
@@ -122,7 +121,7 @@ for i_trial = trials_to_process
         elseif stim_sent_trajectory(stim_start_indices_labview(i_trigger)) < 0
             condition_polarity_list{i_trigger, 1} = 'NEGATIVE';
         else
-            disp(['Trial ' num2str(i_trial) ': something went wrong at time ' num2str(time_forceplate(trigger_indices_labview(i_trigger))) ' - no stim']);
+            disp(['Trial ' num2str(i_trial) ': something went wrong at time ' num2str(time_labview(trigger_indices_labview(i_trigger))) ' - no stim']);
         end
         condition_polarity_list{i_trigger, 2} = 'CONTROL';
 

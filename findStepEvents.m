@@ -1,21 +1,21 @@
 % findStepEvents
 
-visualize_left          = 1;
-visualize_right         = 1;
-visualize_position      = 1;
-visualize_derivatives   = 1;
-show_forceplate = 0;
+visualize_left          = 0;
+visualize_right         = 0;
+visualize_position      = 0;
+visualize_derivatives   = 0;
+
+show_forceplate         = 0;
 
 % trials_to_process = 1 : 1 : 21;
 % trials_to_process = [0:7 9:23];
-trials_to_process = 6 : 20;
-trials_to_process = 6;
+trials_to_process = 1 : 5;
+% trials_to_process = 6;
 
 
 % Choose Identification method for each event and foot
 left_method_touchdown = 'left_heel_position_minima';
 % left_method_touchdown = 'left_toe_position_minima';
-% method_touchdown = 'zpos_threshold';
 left_method_pushoff = 'left_first_velocity_peak';
 
 right_method_touchdown = 'right_heel_position_minima';
@@ -48,22 +48,22 @@ for i_trial = trials_to_process
     % calculate derivatives
     filter_order = 2;
     cutoff_frequency = 20; % cutoff frequency, in Hz
-    [b, a] = butter(filter_order, cutoff_frequency/(samplingRate/2));	% set filter parameters for butterworth filter: 2=order of filter;
-    left_heel_marker_z_vel_trajectory = deriveByTime(filtfilt(b, a, left_heel_marker_z_trajectory), 1/samplingRate);
-    right_heel_marker_z_vel_trajectory = deriveByTime(filtfilt(b, a, right_heel_marker_z_trajectory), 1/samplingRate);
-    left_heel_marker_z_acc_trajectory = deriveByTime(filtfilt(b, a, left_heel_marker_z_vel_trajectory), 1/samplingRate);
-    right_heel_marker_z_acc_trajectory = deriveByTime(filtfilt(b, a, right_heel_marker_z_vel_trajectory), 1/samplingRate);
-    left_toes_marker_z_vel_trajectory = deriveByTime(filtfilt(b, a, left_toes_marker_z_trajectory), 1/samplingRate);
-    right_toes_marker_z_vel_trajectory = deriveByTime(filtfilt(b, a, right_toes_marker_z_trajectory), 1/samplingRate);
-    left_toes_marker_z_acc_trajectory = deriveByTime(filtfilt(b, a, left_toes_marker_z_vel_trajectory), 1/samplingRate);
-    right_toes_marker_z_acc_trajectory = deriveByTime(filtfilt(b, a, right_toes_marker_z_vel_trajectory), 1/samplingRate);
+    [b, a] = butter(filter_order, cutoff_frequency/(sampling_rate_mocap/2));	% set filter parameters for butterworth filter: 2=order of filter;
+    left_heel_marker_z_vel_trajectory = deriveByTime(filtfilt(b, a, left_heel_marker_z_trajectory), 1/sampling_rate_mocap);
+    right_heel_marker_z_vel_trajectory = deriveByTime(filtfilt(b, a, right_heel_marker_z_trajectory), 1/sampling_rate_mocap);
+    left_heel_marker_z_acc_trajectory = deriveByTime(filtfilt(b, a, left_heel_marker_z_vel_trajectory), 1/sampling_rate_mocap);
+    right_heel_marker_z_acc_trajectory = deriveByTime(filtfilt(b, a, right_heel_marker_z_vel_trajectory), 1/sampling_rate_mocap);
+    left_toes_marker_z_vel_trajectory = deriveByTime(filtfilt(b, a, left_toes_marker_z_trajectory), 1/sampling_rate_mocap);
+    right_toes_marker_z_vel_trajectory = deriveByTime(filtfilt(b, a, right_toes_marker_z_trajectory), 1/sampling_rate_mocap);
+    left_toes_marker_z_acc_trajectory = deriveByTime(filtfilt(b, a, left_toes_marker_z_vel_trajectory), 1/sampling_rate_mocap);
+    right_toes_marker_z_acc_trajectory = deriveByTime(filtfilt(b, a, right_toes_marker_z_vel_trajectory), 1/sampling_rate_mocap);
     
     
 
     %% find events for left foot
-    %         peak_width_threshold = samplingRate * 0.25;
+    %         peak_width_threshold = sampling_rate_mocap * 0.25;
 %         peak_prominence_threshold = 0.5;
-        peak_width_threshold = samplingRate * 0.25;
+        peak_width_threshold = sampling_rate_mocap * 0.25;
         peak_prominence_threshold = 0.25;
     % For Left Foot   
     if strcmp(left_method_touchdown, 'left_heel_position_minima')
@@ -103,7 +103,7 @@ for i_trial = trials_to_process
     
     if strcmp(left_method_pushoff, 'left_first_velocity_peak')
         % for pushoff, find the first significant toes z-velocity peak after each heelstrike
-        min_peak_prominence = 0.25;
+        min_peak_prominence = 0.35;
         [~, left_toes_vel_peak_locations] = findpeaks(left_toes_marker_z_vel_trajectory, 'MinPeakProminence', min_peak_prominence);
         left_pushoff_indices_mocap = zeros(size(left_touchdown_indices_mocap));
         for i_touchdown = 1 : length(left_touchdown_indices_mocap)
@@ -144,7 +144,7 @@ for i_trial = trials_to_process
     end
         
     if strcmp(right_method_pushoff, 'right_first_velocity_peak')
-        min_peak_prominence = 0.25;
+        min_peak_prominence = 0.35;
         [~, right_toes_vel_peak_locations] = findpeaks(right_toes_marker_z_vel_trajectory, 'MinPeakProminence', min_peak_prominence);
         right_pushoff_indices_mocap = zeros(size(right_touchdown_indices_mocap));
         for i_touchdown = 1 : length(right_touchdown_indices_mocap)
