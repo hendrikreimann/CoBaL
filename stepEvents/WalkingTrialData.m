@@ -77,7 +77,6 @@ classdef WalkingTrialData < handle
         end
         function loadSubjectInfo(this)
             loaded_subject_info = load([this.data_directory filesep 'subjectInfo.mat']);
-            this.recording_time = loaded_subject_info.recordingTime;
             this.date = loaded_subject_info.date;
             this.subject_id = loaded_subject_info.subject_id;
         end
@@ -85,6 +84,7 @@ classdef WalkingTrialData < handle
             loaded_marker_trajectories = load([this.data_directory filesep makeFileName(this.date, this.subject_id, 'walking', this.trial_number, 'markerTrajectories')]);
             
             this.sampling_rate_mocap = loaded_marker_trajectories.sampling_rate_mocap;
+            this.recording_time = loaded_marker_trajectories.time_mocap(end);
 
             % extract data
             left_heel_marker = find(strcmp(loaded_marker_trajectories.marker_headers, 'LHEE'));
