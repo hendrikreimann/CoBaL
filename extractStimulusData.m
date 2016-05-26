@@ -8,8 +8,8 @@ calculate_stats                     = 1;
 save_data                           = 1;
 save_figures                        = 0;
 
-process_data_forceplate             = 1;
 process_data_marker                 = 1;
+process_data_forceplate             = 1;
 process_data_emg                    = 0;
 process_data_angles                 = 0;
 process_data_torques                = 0;
@@ -25,7 +25,7 @@ wait_time_labels = {'0ms', '150ms', '450ms'};
 load subjectInfo.mat;
 % load(makeFileName(date, subject_id, 'model'));
 
-trials_to_process = 2 : 21;
+trials_to_process = 1 : 20;
 % trials_to_process = 1;
 % trials_to_process = [2 4:12 14:15 18:20];
 
@@ -43,33 +43,47 @@ if extract_data
     origin_trial_list_total = [];
     origin_start_time_list_total = [];
     origin_end_time_list_total = [];
-    lcop_x_normalized_total = [];
-    rcop_x_normalized_total = [];
-    lasi_x_pos_normalized_total = [];
-    rasi_x_pos_normalized_total = [];
-    lpsi_x_pos_normalized_total = [];
-    rpsi_x_pos_normalized_total = [];
-    lasi_x_vel_normalized_total = [];
-    rasi_x_vel_normalized_total = [];
-    lpsi_x_vel_normalized_total = [];
-    rpsi_x_vel_normalized_total = [];
-    pelvis_x_pos_normalized_total = [];
-    pelvis_x_vel_normalized_total = [];
-    lheel_x_pos_normalized_total = [];
-    rheel_x_pos_normalized_total = [];
-    lheel_y_pos_normalized_total = [];
-    rheel_y_pos_normalized_total = [];
-    lglutmed_emg_normalized_total = [];
-    ltibiant_emg_normalized_total = [];
-    lperolng_emg_normalized_total = [];
-    rglutmed_emg_normalized_total = [];
-    rtibiant_emg_normalized_total = [];
-    rperolng_emg_normalized_total = [];
-    joint_angles_normalized_total = [];
-    joint_velocities_normalized_total = [];
-    joint_accelerations_normalized_total = [];
     step_times_total = [];
     stim_start_time_relative_to_stretch_total = [];    
+    if process_data_marker
+        lasi_x_pos_normalized_total = [];
+        rasi_x_pos_normalized_total = [];
+        lpsi_x_pos_normalized_total = [];
+        rpsi_x_pos_normalized_total = [];
+        lasi_x_vel_normalized_total = [];
+        rasi_x_vel_normalized_total = [];
+        lpsi_x_vel_normalized_total = [];
+        rpsi_x_vel_normalized_total = [];
+        pelvis_x_pos_normalized_total = [];
+        pelvis_x_vel_normalized_total = [];
+        lheel_x_pos_normalized_total = [];
+        rheel_x_pos_normalized_total = [];
+        lheel_y_pos_normalized_total = [];
+        rheel_y_pos_normalized_total = [];
+    end
+    if process_data_forceplate
+        lcop_x_normalized_total = [];
+        rcop_x_normalized_total = [];
+        fxl_normalized_total = [];
+        fzl_normalized_total = [];
+        myl_normalized_total = [];
+        fxr_normalized_total = [];
+        fzr_normalized_total = [];
+        myr_normalized_total = [];
+    end
+    if process_data_emg
+        lglutmed_emg_normalized_total = [];
+        ltibiant_emg_normalized_total = [];
+        lperolng_emg_normalized_total = [];
+        rglutmed_emg_normalized_total = [];
+        rtibiant_emg_normalized_total = [];
+        rperolng_emg_normalized_total = [];
+    end
+    if process_data_angles
+        joint_angles_normalized_total = [];
+        joint_velocities_normalized_total = [];
+        joint_accelerations_normalized_total = [];
+    end
     
     for i_trial = trials_to_process
         % load data
@@ -142,6 +156,12 @@ if extract_data
             % initialize containers
             lcop_x_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
             rcop_x_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
+            fxl_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
+            fzl_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
+            myl_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
+            fxr_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
+            fzr_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
+            myr_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
         end
         if process_data_emg
             load(makeFileName(date, subject_id, 'walking', i_trial, 'emgTrajectories'));
@@ -231,13 +251,30 @@ if extract_data
 
             % forceplate data
             if process_data_forceplate
+                % define times
                 start_index_forceplate = start_indices_forceplate(i_stretch);
                 end_index_forceplate = end_indices_forceplate(i_stretch);
+                
+                % extract
                 lcop_x_extracted_stretch = left_forceplate_cop_Acw(start_index_forceplate : end_index_forceplate, 1);
+                fxl_extracted_stretch = left_forceplate_wrench_Acw(start_index_forceplate : end_index_forceplate, 1);
+                fzl_extracted_stretch = left_forceplate_wrench_Acw(start_index_forceplate : end_index_forceplate, 3);
+                myl_extracted_stretch = left_forceplate_wrench_Acw(start_index_forceplate : end_index_forceplate, 5);
+                fxr_extracted_stretch = right_forceplate_wrench_Acw(start_index_forceplate : end_index_forceplate, 1);
+                fzr_extracted_stretch = right_forceplate_wrench_Acw(start_index_forceplate : end_index_forceplate, 3);
+                myr_extracted_stretch = right_forceplate_wrench_Acw(start_index_forceplate : end_index_forceplate, 5);
                 rcop_x_extracted_stretch = right_forceplate_cop_Acw(start_index_forceplate : end_index_forceplate, 1);
                 time_extracted_forceplate = time_forceplate(start_index_forceplate : end_index_forceplate);
+                
+                % normalize
                 time_normalized_forceplate = linspace(time_extracted_forceplate(1), time_extracted_forceplate(end), number_of_time_steps_normalized);
+                fxl_normalized_stretch = spline(time_extracted_forceplate, fxl_extracted_stretch, time_normalized_forceplate);
+                fzl_normalized_stretch = spline(time_extracted_forceplate, fzl_extracted_stretch, time_normalized_forceplate);
+                myl_normalized_stretch = spline(time_extracted_forceplate, myl_extracted_stretch, time_normalized_forceplate);
                 lcop_x_normalized_stretch = spline(time_extracted_forceplate, lcop_x_extracted_stretch, time_normalized_forceplate);
+                fxr_normalized_stretch = spline(time_extracted_forceplate, fxr_extracted_stretch, time_normalized_forceplate);
+                fzr_normalized_stretch = spline(time_extracted_forceplate, fzr_extracted_stretch, time_normalized_forceplate);
+                myr_normalized_stretch = spline(time_extracted_forceplate, myr_extracted_stretch, time_normalized_forceplate);
                 rcop_x_normalized_stretch = spline(time_extracted_forceplate, rcop_x_extracted_stretch, time_normalized_forceplate);
 
                 % use stance foot heel as reference and store
@@ -301,11 +338,16 @@ if extract_data
             rheel_x_pos_normalized_total = [rheel_x_pos_normalized_total rheel_x_pos_normalized_trial];
             lheel_y_pos_normalized_total = [lheel_y_pos_normalized_total lheel_y_pos_normalized_trial];
             rheel_y_pos_normalized_total = [rheel_y_pos_normalized_total rheel_y_pos_normalized_trial];
-
         end
 
         if process_data_forceplate
+            fxl_normalized_total = [fxl_normalized_total fxl_normalized_trial];
+            fzl_normalized_total = [fzl_normalized_total fxl_normalized_trial];
+            myl_normalized_total = [myl_normalized_total fxl_normalized_trial];
             lcop_x_normalized_total = [lcop_x_normalized_total lcop_x_normalized_trial];
+            fxr_normalized_total = [fxr_normalized_total fxr_normalized_trial];
+            fzr_normalized_total = [fzr_normalized_total fxr_normalized_trial];
+            myr_normalized_total = [myr_normalized_total fxr_normalized_trial];
             rcop_x_normalized_total = [rcop_x_normalized_total rcop_x_normalized_trial];
         end
 
