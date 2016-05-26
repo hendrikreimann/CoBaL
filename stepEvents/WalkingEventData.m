@@ -66,11 +66,31 @@ classdef WalkingEventData < handle
                 [~, right_touchdown_indices_forceplate(i_event)] = min(abs(this.trial_data.time_forceplate - this.right_touchdown(i_event)));
             end
             
+            % find corresponding indices - labview
+            left_pushoff_indices_labview = zeros(size(this.left_pushoff));
+            for i_event = 1 : length(this.left_pushoff)
+                [~, left_pushoff_indices_labview(i_event)] = min(abs(this.trial_data.time_labview - this.left_pushoff(i_event)));
+            end
+            left_touchdown_indices_labview = zeros(size(this.left_touchdown));
+            for i_event = 1 : length(this.left_touchdown)
+                [~, left_touchdown_indices_labview(i_event)] = min(abs(this.trial_data.time_labview - this.left_touchdown(i_event)));
+            end
+            right_pushoff_indices_labview = zeros(size(this.right_pushoff));
+            for i_event = 1 : length(this.right_pushoff)
+                [~, right_pushoff_indices_labview(i_event)] = min(abs(this.trial_data.time_labview - this.right_pushoff(i_event)));
+            end
+            right_touchdown_indices_labview = zeros(size(this.right_touchdown));
+            for i_event = 1 : length(this.right_touchdown)
+                [~, right_touchdown_indices_labview(i_event)] = min(abs(this.trial_data.time_labview - this.right_touchdown(i_event)));
+            end
+            
             % form contact indicators
             left_contact_indicators_mocap = formContactIndicatorTrajectory(left_pushoff_indices_mocap, left_touchdown_indices_mocap, length(this.trial_data.time_mocap));
             right_contact_indicators_mocap = formContactIndicatorTrajectory(right_pushoff_indices_mocap, right_touchdown_indices_mocap, length(this.trial_data.time_mocap));
             left_contact_indicators_forceplate = formContactIndicatorTrajectory(left_pushoff_indices_forceplate, left_touchdown_indices_forceplate, length(this.trial_data.time_forceplate));
             right_contact_indicators_forceplate = formContactIndicatorTrajectory(right_pushoff_indices_forceplate, right_touchdown_indices_forceplate, length(this.trial_data.time_forceplate));
+            left_contact_indicators_labview = formContactIndicatorTrajectory(left_pushoff_indices_labview, left_touchdown_indices_labview, length(this.trial_data.time_labview));
+            right_contact_indicators_labview = formContactIndicatorTrajectory(right_pushoff_indices_labview, right_touchdown_indices_labview, length(this.trial_data.time_labview));
 
             step_events_file_name = makeFileName(this.trial_data.date, this.trial_data.subject_id, 'walking', this.trial_data.trial_number, 'stepEvents');
             save ...
@@ -88,6 +108,12 @@ classdef WalkingEventData < handle
                 'right_touchdown_indices_forceplate', ...
                 'left_contact_indicators_forceplate', ...
                 'right_contact_indicators_forceplate', ...
+                'left_pushoff_indices_labview', ...
+                'left_touchdown_indices_labview', ...
+                'right_pushoff_indices_labview', ...
+                'right_touchdown_indices_labview', ...
+                'left_contact_indicators_labview', ...
+                'right_contact_indicators_labview', ...
                 'left_pushoff_times', ...
                 'left_touchdown_times', ...
                 'right_pushoff_times', ...

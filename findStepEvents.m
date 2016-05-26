@@ -10,7 +10,7 @@ show_forceplate         = 0;
 % trials_to_process = 1 : 1 : 21;
 % trials_to_process = [0:7 9:23];
 trials_to_process = 1 : 5;
-% trials_to_process = 6;
+trials_to_process = 4;
 
 
 % Choose Identification method for each event and foot
@@ -72,12 +72,14 @@ for i_trial = trials_to_process
         
         % left
         [~, left_heel_peak_locations, left_heel_peak_widths] = findpeaks(-left_heel_marker_z_trajectory);
+        left_heel_peak_locations = left_heel_peak_locations';
         left_touchdown_indices_mocap = left_heel_peak_locations(left_heel_peak_widths > peak_width_threshold);
         
        
     elseif strcmp(left_method_touchdown, 'left_toe_position_minima')
         % left
         [~, left_toe_peak_locations, left_toe_peak_widths] = findpeaks(-left_toes_marker_z_trajectory);
+        left_toe_peak_locations = left_toe_peak_locations';
         left_touchdown_indices_mocap = left_toe_peak_locations(left_toe_peak_widths > peak_width_threshold);
         
     elseif strcmp(left_method_touchdown, 'left_first_acceleration_peak')
@@ -86,9 +88,11 @@ for i_trial = trials_to_process
         % find mid-swing as peaks of heel position
         min_peak_prominence = 0.05;
         [~, left_heel_midswing_locations] = findpeaks(left_heel_marker_z_trajectory, 'MinPeakProminence', min_peak_prominence);
+        left_heel_midswing_locations = left_heel_midswing_locations';
         % find acceleration peaks
         min_peak_prominence = 5;
         [~, left_heel_acc_peak_locations] = findpeaks(left_heel_marker_z_acc_trajectory, 'MinPeakProminence', min_peak_prominence);
+        left_heel_acc_peak_locations = left_heel_acc_peak_locations';
         % identify acceleration peaks as touchdowns
         left_touchdown_indices_mocap = zeros(size(left_heel_midswing_locations));
         for i_step = 1 : length(left_heel_midswing_locations)
@@ -105,6 +109,7 @@ for i_trial = trials_to_process
         % for pushoff, find the first significant toes z-velocity peak after each heelstrike
         min_peak_prominence = 0.35;
         [~, left_toes_vel_peak_locations] = findpeaks(left_toes_marker_z_vel_trajectory, 'MinPeakProminence', min_peak_prominence);
+        left_toes_vel_peak_locations = left_toes_vel_peak_locations';
         left_pushoff_indices_mocap = zeros(size(left_touchdown_indices_mocap));
         for i_touchdown = 1 : length(left_touchdown_indices_mocap)
             pushoff_index_index = find(left_toes_vel_peak_locations > left_touchdown_indices_mocap(i_touchdown), 1, 'first');
@@ -119,19 +124,23 @@ for i_trial = trials_to_process
      
     if strcmp(right_method_touchdown, 'right_heel_position_minima')
         [~, right_heel_peak_locations, right_heel_peak_widths] = findpeaks(-right_heel_marker_z_trajectory);
+        right_heel_peak_locations = right_heel_peak_locations';
         right_touchdown_indices_mocap = right_heel_peak_locations(right_heel_peak_widths > peak_width_threshold);
     
     elseif strcmp(left_method_touchdown, 'left_toe_position_minima')
         [~, right_toe_peak_locations, right_toe_peak_widths] = findpeaks(-right_toes_marker_z_trajectory);
+        right_toe_peak_locations = right_toe_peak_locations';
         right_touchdown_indices_mocap = right_toe_peak_locations(right_toe_peak_widths > peak_width_threshold);    
          
     elseif strcmp(left_method_touchdown, 'left_first_acceleration_peak')       
         % find mid-swing as peaks of heel position
         min_peak_prominence = 0.05;
         [~, right_heel_midswing_locations] = findpeaks(right_heel_marker_z_trajectory, 'MinPeakProminence', min_peak_prominence);
+        right_heel_midswing_locations = right_heel_midswing_locations';
         % find acceleration peaks
         min_peak_prominence = 5;
         [~, right_heel_acc_peak_locations] = findpeaks(right_heel_marker_z_acc_trajectory, 'MinPeakProminence', min_peak_prominence);
+        right_heel_acc_peak_locations = right_heel_acc_peak_locations';
         % identify acceleration peaks as touchdowns
         right_touchdown_indices_mocap = zeros(size(right_heel_midswing_locations));
         for i_step = 1 : length(right_heel_midswing_locations)
@@ -146,6 +155,7 @@ for i_trial = trials_to_process
     if strcmp(right_method_pushoff, 'right_first_velocity_peak')
         min_peak_prominence = 0.35;
         [~, right_toes_vel_peak_locations] = findpeaks(right_toes_marker_z_vel_trajectory, 'MinPeakProminence', min_peak_prominence);
+        right_toes_vel_peak_locations = right_toes_vel_peak_locations';
         right_pushoff_indices_mocap = zeros(size(right_touchdown_indices_mocap));
         for i_touchdown = 1 : length(right_touchdown_indices_mocap)
             pushoff_index_index = find(right_toes_vel_peak_locations > right_touchdown_indices_mocap(i_touchdown), 1, 'first');
@@ -156,7 +166,7 @@ for i_trial = trials_to_process
         right_pushoff_indices_mocap(right_pushoff_indices_mocap==0) = [];
     end
     
-    % transform to force plate time
+    % transform to forceplate time
     left_pushoff_indices_forceplate = zeros(size(left_pushoff_indices_mocap));
     for i_index = 1 : length(left_pushoff_indices_mocap)
         [~, index_forceplate] = min(abs(time_forceplate - time_mocap(left_pushoff_indices_mocap(i_index))));
@@ -178,6 +188,28 @@ for i_trial = trials_to_process
         right_touchdown_indices_forceplate(i_index) = index_forceplate;
     end
 
+    % transform to labview time
+    left_pushoff_indices_labview = zeros(size(left_pushoff_indices_mocap));
+    for i_index = 1 : length(left_pushoff_indices_mocap)
+        [~, index_labview] = min(abs(time_labview - time_mocap(left_pushoff_indices_mocap(i_index))));
+        left_pushoff_indices_labview(i_index) = index_labview;
+    end
+    left_touchdown_indices_labview = zeros(size(left_touchdown_indices_mocap));
+    for i_index = 1 : length(left_touchdown_indices_mocap)
+        [~, index_labview] = min(abs(time_labview - time_mocap(left_touchdown_indices_mocap(i_index))));
+        left_touchdown_indices_labview(i_index) = index_labview;
+    end
+    right_pushoff_indices_labview = zeros(size(right_pushoff_indices_mocap));
+    for i_index = 1 : length(right_pushoff_indices_mocap)
+        [~, index_labview] = min(abs(time_labview - time_mocap(right_pushoff_indices_mocap(i_index))));
+        right_pushoff_indices_labview(i_index) = index_labview;
+    end
+    right_touchdown_indices_labview = zeros(size(right_touchdown_indices_mocap));
+    for i_index = 1 : length(right_touchdown_indices_mocap)
+        [~, index_labview] = min(abs(time_labview - time_mocap(right_touchdown_indices_mocap(i_index))));
+        right_touchdown_indices_labview(i_index) = index_labview;
+    end
+
     % calculate times
     left_pushoff_times = time_mocap(left_pushoff_indices_mocap);
     left_touchdown_times = time_mocap(left_touchdown_indices_mocap);
@@ -187,11 +219,14 @@ for i_trial = trials_to_process
     %% form contact indicators
     number_of_time_steps_mocap = length(time_mocap);
     number_of_time_steps_forceplate = length(time_forceplate);
+    number_of_time_steps_labview = length(time_labview);
 
     left_contact_indicators_mocap = formContactIndicatorTrajectory(left_pushoff_indices_mocap, left_touchdown_indices_mocap, number_of_time_steps_mocap);
     right_contact_indicators_mocap = formContactIndicatorTrajectory(right_pushoff_indices_mocap, right_touchdown_indices_mocap, number_of_time_steps_mocap);
     left_contact_indicators_forceplate = formContactIndicatorTrajectory(left_pushoff_indices_forceplate, left_touchdown_indices_forceplate, number_of_time_steps_forceplate);
     right_contact_indicators_forceplate = formContactIndicatorTrajectory(right_pushoff_indices_forceplate, right_touchdown_indices_forceplate, number_of_time_steps_forceplate);
+    left_contact_indicators_labview = formContactIndicatorTrajectory(left_pushoff_indices_labview, left_touchdown_indices_labview, number_of_time_steps_labview);
+    right_contact_indicators_labview = formContactIndicatorTrajectory(right_pushoff_indices_labview, right_touchdown_indices_labview, number_of_time_steps_labview);
 
     % form contact trajectories
     left_heel_contact_trajectories = left_heel_marker_z_trajectory; left_heel_contact_trajectories(~left_contact_indicators_mocap, :) = NaN;
@@ -206,7 +241,7 @@ for i_trial = trials_to_process
 
 
 
-    %% visualize
+%% visualize
     color_heelstrike = [1 0 0];
     color_pushoff = [0 1 0];
     
@@ -288,7 +323,7 @@ for i_trial = trials_to_process
 %     linkaxes(getAllAxes, 'x')
 
 
-
+%% save
     step_events_file_name = makeFileName(date, subject_id, 'walking', i_trial, 'stepEvents');
     save ...
       ( ...
@@ -302,13 +337,19 @@ for i_trial = trials_to_process
         'left_touchdown_indices_forceplate', ...
         'right_touchdown_indices_forceplate', ...
         'left_pushoff_indices_forceplate', ...
+        'right_pushoff_indices_forceplate', ...
+        'left_contact_indicators_forceplate', ...
+        'right_contact_indicators_forceplate', ...
+        'left_touchdown_indices_labview', ...
+        'right_touchdown_indices_labview', ...
+        'left_pushoff_indices_labview', ...
+        'right_pushoff_indices_labview', ...
+        'left_contact_indicators_labview', ...
+        'right_contact_indicators_labview', ...
         'left_pushoff_times', ...
         'left_touchdown_times', ...
         'right_pushoff_times', ...
-        'right_touchdown_times', ...
-        'right_pushoff_indices_forceplate', ...
-        'left_contact_indicators_forceplate', ...
-        'right_contact_indicators_forceplate' ...
+        'right_touchdown_times' ...
       );
     
     disp(['Trial ' num2str(i_trial) ' completed']);
