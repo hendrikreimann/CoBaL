@@ -4,8 +4,8 @@
 %% Choose Data Type
 emg_present                     = 0;
 % stimulus_type = 'gvs';
-% stimulus_type = 'visual';
-stimulus_type = 'none';
+stimulus_type = 'visual';
+% stimulus_type = 'none';
 
 view_totals_and_removals        = 1;
 visualize_triggers              = 0;
@@ -18,11 +18,11 @@ load subjectInfo.mat;
 % trials_to_process = 1 : 23;
 % trials_to_process = [2:12 14:15 18:20];
 % trials_to_process = 12 : 23;
-trials_to_process = 2:4;
+trials_to_process = 1:4;
 % trials_to_process = 3;
 % trials_to_process = 12 : 23;
-% trials_to_process = 1 : 21;
-% trials_to_process = 11;
+trials_to_process = 1 : 20;
+% trials_to_process = 1;
 
 total_positive_steps = [];
 total_negative_steps = [];
@@ -30,17 +30,9 @@ total_polarity_condition_list = [];
 total_step_condition_list = [];
 
 swing_foot_fz_zero_threshold = 20; % threshold for counting a vertical force reading as zero, in Nm
-swing_foot_zero_stretch_length_threshold = 20; % the number of zero indices in the vertical swing foot force has to be larger than this number
-duration_until_nearest_future_heelstrike_threshold = 0.1; % a heelstrike should happen less than this long after a trigger
-
-% left_heel_marker = 34;
-% left_toes_marker = 35;
-% right_heel_marker = 42;
-% right_toes_marker = 43;
-% left_heel_marker = 33;
-% left_toes_marker = 34;
-% right_heel_marker = 42;
-% right_toes_marker = 43;
+swing_foot_zero_stretch_length_threshold_time = 0.2; % the force plate should register zero for at least this long
+duration_until_nearest_future_heelstrike_threshold = 0.20; % a heelstrike should happen less than this long after a trigger
+duration_prelude = 0.4; % duration that should have zero vertical force prior to a heelstrike, to identify crossover
 
 
 %% extract data
@@ -61,15 +53,12 @@ for i_trial = trials_to_process
     end
     load(makeFileName(date, subject_id, 'walking', i_trial, 'stepEvents'));
 
-%     left_heel_marker = find(strcmp(marker_headers, 'LHEE'));
-%     left_toes_marker = find(strcmp(marker_headers, 'LTOE'));
-%     right_heel_marker = find(strcmp(marker_headers, 'RHEE'));
-%     right_toes_marker = find(strcmp(marker_headers, 'RTOE'));
-%     left_heel_marker_indices = reshape([(left_heel_marker - 1) * 3 + 1; (left_heel_marker - 1) * 3 + 2; (left_heel_marker - 1) * 3 + 3], 1, length(left_heel_marker)*3);
-%     left_toes_marker_indices = reshape([(left_toes_marker - 1) * 3 + 1; (left_toes_marker - 1) * 3 + 2; (left_toes_marker - 1) * 3 + 3], 1, length(left_toes_marker)*3);
-%     right_heel_marker_indices = reshape([(right_heel_marker - 1) * 3 + 1; (right_heel_marker - 1) * 3 + 2; (right_heel_marker - 1) * 3 + 3], 1, length(right_heel_marker)*3);
-%     right_toes_marker_indices = reshape([(right_toes_marker - 1) * 3 + 1; (right_toes_marker - 1) * 3 + 2; (right_toes_marker - 1) * 3 + 3], 1, length(right_toes_marker)*3);
-    
+    if isnan(sampling_rate_forceplate)
+        sampling_rate_forceplate = 1 / median(diff(time_forceplate));
+    end
+    number_of_prelude_time_steps = ceil(duration_prelude * sampling_rate_forceplate);
+    swing_foot_zero_stretch_length_threshold_indices = ceil(swing_foot_zero_stretch_length_threshold_time * 1/sampling_rate_forceplate);
+
     if strcmp(stimulus_type, 'gvs')
         stim_sent_trajectory = gvs_out_trajectory;
     elseif strcmp(stimulus_type, 'visual')
@@ -342,22 +331,24 @@ for i_trial = trials_to_process
     end
 
     % check step times and remove outliers
-    number_of_stretches = length(stretch_start_indices_forceplate);
-    stretch_times = time_forceplate(stretch_end_indices_forceplate) - time_forceplate(stretch_start_indices_forceplate);
-    stretch_time_outlier_limits = median(stretch_times) * [0.8 1.2];
-    removal_flags = zeros(number_of_stretches, 1);
-    removal_flags(stretch_times < stretch_time_outlier_limits(1)) = 1;
-    removal_flags(stretch_times > stretch_time_outlier_limits(2)) = 1;
-    unflagged_indices = ~removal_flags;
-    if ~strcmp(stimulus_type, 'none')
-        stim_start_indices_labview = stim_start_indices_labview(unflagged_indices, :);
+    if strcmp(stimulus_type, 'none')
+        number_of_stretches = length(stretch_start_indices_forceplate);
+        stretch_times = time_forceplate(stretch_end_indices_forceplate) - time_forceplate(stretch_start_indices_forceplate);
+        stretch_time_outlier_limits = median(stretch_times) * [0.8 1.2];
+        removal_flags = zeros(number_of_stretches, 1);
+        removal_flags(stretch_times < stretch_time_outlier_limits(1)) = 1;
+        removal_flags(stretch_times > stretch_time_outlier_limits(2)) = 1;
+        unflagged_indices = ~removal_flags;
+        if ~strcmp(stimulus_type, 'none')
+            stim_start_indices_labview = stim_start_indices_labview(unflagged_indices, :);
+        end
+        stretch_start_indices_forceplate = stretch_start_indices_forceplate(unflagged_indices, :);
+        stretch_end_indices_forceplate = stretch_end_indices_forceplate(unflagged_indices, :);
+        condition_stance_foot_list = condition_stance_foot_list(unflagged_indices, :);
+        condition_polarity_list = condition_polarity_list(unflagged_indices, :);
+        condition_delay_list = condition_delay_list(unflagged_indices, :);
+        closest_heelstrike_distance_times = closest_heelstrike_distance_times(unflagged_indices, :);
     end
-    stretch_start_indices_forceplate = stretch_start_indices_forceplate(unflagged_indices, :);
-    stretch_end_indices_forceplate = stretch_end_indices_forceplate(unflagged_indices, :);
-    condition_stance_foot_list = condition_stance_foot_list(unflagged_indices, :);
-    condition_polarity_list = condition_polarity_list(unflagged_indices, :);
-    condition_delay_list = condition_delay_list(unflagged_indices, :);
-    closest_heelstrike_distance_times = closest_heelstrike_distance_times(unflagged_indices, :);
     
     % extract and time-normalize data
     number_of_stretches = length(stretch_start_indices_forceplate);
@@ -385,11 +376,13 @@ for i_trial = trials_to_process
             touchdown_index_forceplate = stretch_start_index_forceplate + find(stance_foot_cop_stretch~=0, 1, 'first') - 1;
             stance_foot_fz_step = right_fz_trajectory(touchdown_index_forceplate : stretch_end_index_forceplate);
             swing_foot_fz_step = left_fz_trajectory(touchdown_index_forceplate : stretch_end_index_forceplate);
+            stance_foot_fz_prelude = right_fz_trajectory(touchdown_index_forceplate-number_of_prelude_time_steps : touchdown_index_forceplate-1);
         elseif strcmp(condition_stance_foot_list{i_stretch}, 'LEFT')
             stance_foot_cop_stretch = left_copx_trajectory(stretch_start_index_forceplate : stretch_end_index_forceplate);
             touchdown_index_forceplate = stretch_start_index_forceplate + find(stance_foot_cop_stretch~=0, 1, 'first') - 1;
             stance_foot_fz_step = left_fz_trajectory(touchdown_index_forceplate : stretch_end_index_forceplate);
             swing_foot_fz_step = right_fz_trajectory(touchdown_index_forceplate : stretch_end_index_forceplate);
+            stance_foot_fz_prelude = left_fz_trajectory(touchdown_index_forceplate-number_of_prelude_time_steps : touchdown_index_forceplate-1);
         end
         touchdown_time_forceplate = time_forceplate(touchdown_index_forceplate);
         time_extracted_forceplate = time_forceplate(touchdown_index_forceplate : stretch_end_index_forceplate);
@@ -397,7 +390,17 @@ for i_trial = trials_to_process
         % check if this stretch is usable
         number_of_indices_per_step(i_stretch) = length(time_extracted_forceplate);
         number_of_swing_foot_fz_zeros_stretch = sum(-swing_foot_fz_step < swing_foot_fz_zero_threshold);
-        if number_of_swing_foot_fz_zeros_stretch < swing_foot_zero_stretch_length_threshold
+        number_of_swing_foot_fz_zeros_prelude = sum(-stance_foot_fz_prelude < swing_foot_fz_zero_threshold);
+        
+%         plot(stance_foot_fz_step, 'displayname', num2str(i_stretch));
+%         plot(swing_foot_fz_step, 'displayname', num2str(i_stretch));
+%         plot(stance_foot_cop_stretch, 'displayname', num2str(i_stretch));
+        
+        if number_of_swing_foot_fz_zeros_stretch < swing_foot_zero_stretch_length_threshold_indices
+            removal_flags(i_stretch) = 1;
+            disp(['excluding stretch index ' num2str(i_stretch) ' - cross over at time ' num2str(time_forceplate(stretch_start_index_forceplate))]);
+        end
+        if number_of_swing_foot_fz_zeros_prelude < swing_foot_zero_stretch_length_threshold_indices
             removal_flags(i_stretch) = 1;
             disp(['excluding stretch index ' num2str(i_stretch) ' - cross over at time ' num2str(time_forceplate(stretch_start_index_forceplate))]);
         end
