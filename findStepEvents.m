@@ -1,7 +1,7 @@
 % findStepEvents
 
-visualize_left          = 0;
-visualize_right         = 0;
+visualize_left          = 1;
+visualize_right         = 1;
 visualize_position      = 0;
 visualize_derivatives   = 0;
 
@@ -9,8 +9,8 @@ show_forceplate         = 0;
 
 % trials_to_process = 1 : 1 : 21;
 % trials_to_process = [0:7 9:23];
-trials_to_process = 1 : 20;
-% trials_to_process = 4;
+trials_to_process = 22 : 44;
+% trials_to_process = 21;
 
 
 % Choose Identification method for each event and foot
@@ -29,7 +29,9 @@ for i_trial = trials_to_process
     % load data
     load subjectInfo.mat;
     load(makeFileName(date, subject_id, 'walking', i_trial, 'markerTrajectories'));
+    load(makeFileName(date, subject_id, 'walking', i_trial, 'labviewTrajectories'));
     load(makeFileName(date, subject_id, 'walking', i_trial, 'forceplateTrajectories'));
+    
 
     % extract data
     left_heel_marker = find(strcmp(marker_headers, 'LHEE'));
@@ -53,10 +55,10 @@ for i_trial = trials_to_process
     right_heel_marker_z_vel_trajectory = deriveByTime(filtfilt(b, a, right_heel_marker_z_trajectory), 1/sampling_rate_mocap);
     left_heel_marker_z_acc_trajectory = deriveByTime(filtfilt(b, a, left_heel_marker_z_vel_trajectory), 1/sampling_rate_mocap);
     right_heel_marker_z_acc_trajectory = deriveByTime(filtfilt(b, a, right_heel_marker_z_vel_trajectory), 1/sampling_rate_mocap);
-    left_toes_marker_z_vel_trajectory = deriveByTime(filtfilt(b, a, left_toes_marker_z_trajectory), 1/sampling_rate_mocap);
-    right_toes_marker_z_vel_trajectory = deriveByTime(filtfilt(b, a, right_toes_marker_z_trajectory), 1/sampling_rate_mocap);
-    left_toes_marker_z_acc_trajectory = deriveByTime(filtfilt(b, a, left_toes_marker_z_vel_trajectory), 1/sampling_rate_mocap);
-    right_toes_marker_z_acc_trajectory = deriveByTime(filtfilt(b, a, right_toes_marker_z_vel_trajectory), 1/sampling_rate_mocap);
+    left_toes_marker_z_vel_trajectory = deriveByTime(filtfilt(b, a, spline(time_mocap, left_toes_marker_z_trajectory, time_mocap)'), 1/sampling_rate_mocap);
+    right_toes_marker_z_vel_trajectory = deriveByTime(filtfilt(b, a, spline(time_mocap, right_toes_marker_z_trajectory, time_mocap)'), 1/sampling_rate_mocap);
+    left_toes_marker_z_acc_trajectory = deriveByTime(filtfilt(b, a, spline(time_mocap, left_toes_marker_z_vel_trajectory, time_mocap)'), 1/sampling_rate_mocap);
+    right_toes_marker_z_acc_trajectory = deriveByTime(filtfilt(b, a, spline(time_mocap, right_toes_marker_z_vel_trajectory, time_mocap)'), 1/sampling_rate_mocap);
     
     
 

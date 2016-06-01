@@ -1,16 +1,39 @@
 
 check_out_origin                    = 0;
 
+% CoP
 do_cop_plots_single                 = 0;
-do_cop_plots_absolute_right         = 1;
+do_cop_plots_absolute_right         = 0;
 do_cop_plots_absolute_left          = 0;
-do_cop_plots_response_right         = 1;
+do_cop_plots_response_right         = 0;
 do_cop_plots_response_left          = 0;
 
-do_heel_plots_single                = 0;
-do_heel_plots_absolute_right        = 1;
+% fx
+do_fx_plots_single                  = 0;
+do_fx_plots_absolute_right          = 0;
+do_fx_plots_absolute_left           = 0;
+do_fx_plots_response_right          = 0;
+do_fx_plots_response_left           = 0;
+
+% fz
+do_fz_plots_single                  = 0;
+do_fz_plots_absolute_right          = 0;
+do_fz_plots_absolute_left           = 0;
+do_fz_plots_response_right          = 0;
+do_fz_plots_response_left           = 0;
+
+% my
+do_my_plots_single                  = 0;
+do_my_plots_absolute_right          = 0;
+do_my_plots_absolute_left           = 0;
+do_my_plots_response_right          = 0;
+do_my_plots_response_left           = 0;
+
+% heel
+do_heel_plots_single                = 1;
+do_heel_plots_absolute_right        = 0;
 do_heel_plots_absolute_left         = 0;
-do_heel_plots_response_right        = 1;
+do_heel_plots_response_right        = 0;
 do_heel_plots_response_left         = 0;
 
 do_phase_delayed_plots              = 1;
@@ -44,7 +67,7 @@ if check_out_origin
     origin_start_time_list_condition = origin_start_time_list_total(condition);
     origin_end_time_list_condition = origin_end_time_list_total(condition);
     
-    figure; axes; hold on; title('origin finder'); set(gca, 'Fontsize', 12)
+    figure; axes; hold on; title(['origin finder - ' subject_id]); set(gca, 'Fontsize', 12)
     plot3(time_data, data, index_data)
 return    
  
@@ -52,48 +75,48 @@ end
 
 %% cop plots
 if do_cop_plots_single
-    figure; axes; hold on; title(['left foot medial-lateral CoP, N = ' num2str(sum(conditions_stanceL_stimNo))]); set(gca, 'Fontsize', 12)
+    figure; axes; hold on; title(['left foot medial-lateral CoP, N = ' num2str(sum(conditions_stanceL_stimNo)) ' - ' subject_id]); set(gca, 'Fontsize', 12)
     plot(time_normalized, lcop_x_normalized_total(:, conditions_stanceL_stimNo), 'color', lightenColor(color_control, 0.5));
     plot(time_normalized, mean(lcop_x_normalized_total(:, conditions_stanceL_stimNo), 2), 'color', color_control, 'linewidth', 5);
     
-    figure; axes; hold on; title(['right foot medial-lateral CoP, N = ' num2str(sum(conditions_stanceR_stimNo))]); set(gca, 'Fontsize', 12)
+    figure; axes; hold on; title(['right foot medial-lateral CoP, N = ' num2str(sum(conditions_stanceR_stimNo)) ' - ' subject_id]); set(gca, 'Fontsize', 12)
     plot(time_normalized, rcop_x_normalized_total(:, conditions_stanceR_stimNo), 'color', lightenColor(color_control, 0.5));
     plot(time_normalized, mean(rcop_x_normalized_total(:, conditions_stanceR_stimNo), 2), 'color', color_control, 'linewidth', 5);
     
-    figure; axes; hold on; title(['left foot medial-lateral CoP, 0ms, N = ' num2str(sum(conditions_stanceL_0ms))]); set(gca, 'Fontsize', 12)
-    plot(time_normalized, lcop_x_normalized_total(:, conditions_stanceL_stimNeg_0ms), 'color', lightenColor(color_negative, 0.5));
-    plot(time_normalized, lcop_x_normalized_total(:, conditions_stanceL_stimPos_0ms), 'color', lightenColor(color_positive, 0.5));
+    figure; axes; hold on; title(['left foot medial-lateral CoP, 0ms, N = ' num2str(sum(conditions_stanceL_0ms)) ' - ' subject_id]); set(gca, 'Fontsize', 12)
+    if any(conditions_stanceL_stimNeg_0ms) plot(time_normalized, lcop_x_normalized_total(:, conditions_stanceL_stimNeg_0ms), 'color', lightenColor(color_negative, 0.5)); end
+    if any(conditions_stanceL_stimPos_0ms) plot(time_normalized, lcop_x_normalized_total(:, conditions_stanceL_stimPos_0ms), 'color', lightenColor(color_positive, 0.5)); end
     plot(time_normalized, mean(lcop_x_normalized_total(:, conditions_stanceL_stimNeg_0ms), 2), 'color', color_negative, 'linewidth', 5);
     plot(time_normalized, mean(lcop_x_normalized_total(:, conditions_stanceL_stimPos_0ms), 2), 'color', color_positive, 'linewidth', 5);
     
-    figure; axes; hold on; title(['right foot medial-lateral CoP, 0ms, N = ' num2str(sum(conditions_stanceR_0ms))]); set(gca, 'Fontsize', 12)
+    figure; axes; hold on; title(['right foot medial-lateral CoP, 0ms, N = ' num2str(sum(conditions_stanceR_0ms)) ' - ' subject_id]); set(gca, 'Fontsize', 12)
     plot(time_normalized, rcop_x_normalized_total(:, conditions_stanceR_stimNeg_0ms), 'color', lightenColor(color_negative, 0.5));
     plot(time_normalized, rcop_x_normalized_total(:, conditions_stanceR_stimPos_0ms), 'color', lightenColor(color_positive, 0.5));
     plot(time_normalized, mean(rcop_x_normalized_total(:, conditions_stanceR_stimNeg_0ms), 2), 'color', color_negative, 'linewidth', 5);
     plot(time_normalized, mean(rcop_x_normalized_total(:, conditions_stanceR_stimPos_0ms), 2), 'color', color_positive, 'linewidth', 5);
     
     if do_phase_delayed_plots
-        figure; axes; hold on; title(['right foot medial-lateral CoP, 150ms, N = ' num2str(sum(conditions_stanceR_150ms))]); set(gca, 'Fontsize', 12)
+        figure; axes; hold on; title(['right foot medial-lateral CoP, 150ms, N = ' num2str(sum(conditions_stanceR_150ms)) ' - ' subject_id]); set(gca, 'Fontsize', 12)
         plot(time_normalized, rcop_x_normalized_total(:, conditions_stanceR_stimNeg_150ms), 'color', lightenColor(color_negative, 0.5));
         plot(time_normalized, rcop_x_normalized_total(:, conditions_stanceR_stimPos_150ms), 'color', lightenColor(color_positive, 0.5));
         plot(time_normalized, mean(rcop_x_normalized_total(:, conditions_stanceR_stimNeg_150ms), 2), 'color', color_negative, 'linewidth', 5);
         plot(time_normalized, mean(rcop_x_normalized_total(:, conditions_stanceR_stimPos_150ms), 2), 'color', color_positive, 'linewidth', 5);
 
-        figure; axes; hold on; title(['left foot medial-lateral CoP, 450ms, N = ' num2str(sum(conditions_stanceL_450ms))]); set(gca, 'Fontsize', 12)
+        figure; axes; hold on; title(['left foot medial-lateral CoP, 450ms, N = ' num2str(sum(conditions_stanceL_450ms)) ' - ' subject_id]); set(gca, 'Fontsize', 12)
         plot(time_normalized, lcop_x_normalized_total(:, conditions_stanceL_stimNeg_450ms), 'color', lightenColor(color_negative, 0.5));
         plot(time_normalized, lcop_x_normalized_total(:, conditions_stanceL_stimPos_450ms), 'color', lightenColor(color_positive, 0.5));
         plot(time_normalized, mean(lcop_x_normalized_total(:, conditions_stanceL_stimNeg_450ms), 2), 'color', color_negative, 'linewidth', 5);
         plot(time_normalized, mean(lcop_x_normalized_total(:, conditions_stanceL_stimPos_450ms), 2), 'color', color_positive, 'linewidth', 5);
         
-        figure; axes; hold on; title(['left foot medial-lateral CoP, 150ms, N = ' num2str(sum(conditions_stanceL_150ms))]); set(gca, 'Fontsize', 12)
-        plot(time_normalized, lcop_x_normalized_total(:, conditions_stanceL_stimNeg_150ms), 'color', lightenColor(color_negative, 0.5));
-        plot(time_normalized, lcop_x_normalized_total(:, conditions_stanceL_stimPos_150ms), 'color', lightenColor(color_positive, 0.5));
+        figure; axes; hold on; title(['left foot medial-lateral CoP, 150ms, N = ' num2str(sum(conditions_stanceL_150ms)) ' - ' subject_id]); set(gca, 'Fontsize', 12)
+        if any(conditions_stanceL_stimNeg_150ms) plot(time_normalized, lcop_x_normalized_total(:, conditions_stanceL_stimNeg_150ms), 'color', lightenColor(color_negative, 0.5)); end
+        if any(conditions_stanceL_stimPos_150ms) plot(time_normalized, lcop_x_normalized_total(:, conditions_stanceL_stimPos_150ms), 'color', lightenColor(color_positive, 0.5)); end
         plot(time_normalized, mean(lcop_x_normalized_total(:, conditions_stanceL_stimNeg_150ms), 2), 'color', color_negative, 'linewidth', 5);
         plot(time_normalized, mean(lcop_x_normalized_total(:, conditions_stanceL_stimPos_150ms), 2), 'color', color_positive, 'linewidth', 5);
 
-        figure; axes; hold on; title(['right foot medial-lateral CoP, 450ms, N = ' num2str(sum(conditions_stanceR_450ms))]); set(gca, 'Fontsize', 12)
-        plot(time_normalized, rcop_x_normalized_total(:, conditions_stanceR_stimNeg_450ms), 'color', lightenColor(color_negative, 0.5));
-        plot(time_normalized, rcop_x_normalized_total(:, conditions_stanceR_stimPos_450ms), 'color', lightenColor(color_positive, 0.5));
+        figure; axes; hold on; title(['right foot medial-lateral CoP, 450ms, N = ' num2str(sum(conditions_stanceR_450ms)) ' - ' subject_id]); set(gca, 'Fontsize', 12)
+        if any(conditions_stanceR_stimNeg_450ms) plot(time_normalized, rcop_x_normalized_total(:, conditions_stanceR_stimNeg_450ms), 'color', lightenColor(color_negative, 0.5)); end
+        if any(conditions_stanceR_stimPos_450ms) plot(time_normalized, rcop_x_normalized_total(:, conditions_stanceR_stimPos_450ms), 'color', lightenColor(color_positive, 0.5)); end
         plot(time_normalized, mean(rcop_x_normalized_total(:, conditions_stanceR_stimNeg_450ms), 2), 'color', color_negative, 'linewidth', 5);
         plot(time_normalized, mean(rcop_x_normalized_total(:, conditions_stanceR_stimPos_450ms), 2), 'color', color_positive, 'linewidth', 5);
     end
@@ -101,10 +124,10 @@ end
 
 if do_cop_plots_absolute_right
     % 0ms
-    figure; axes; hold on; title('right foot medial-lateral CoP, 0ms'); set(gca, 'Fontsize', 12)
-    control_plot = shadedErrorBar(time_normalized, rcop_x_mean_stanceR_control, rcop_x_civ_stanceR_control, {'color', color_control, 'linewidth', 5}, 1);
-    positive_plot = shadedErrorBar(time_normalized, rcop_x_mean_stanceR_stimPos_0ms, rcop_x_civ_stanceR_stimPos_0ms, {'color', color_positive, 'linewidth', 5}, 1);
-    negative_plot = shadedErrorBar(time_normalized, rcop_x_mean_stanceR_stimNeg_0ms, rcop_x_civ_stanceR_stimNeg_0ms, {'color', color_negative, 'linewidth', 5}, 1);
+    figure; axes; hold on; title(['right foot medial-lateral CoP, 0ms - ' subject_id]); set(gca, 'Fontsize', 12)
+    control_plot = shadedErrorBar(time_normalized, mean(rcop_x_normalized_total(:, conditions_stanceR_stimNo), 2), cinv(rcop_x_normalized_total(:, conditions_stanceR_stimNo), 2), {'color', color_control, 'linewidth', 5}, 1);
+    positive_plot = shadedErrorBar(time_normalized, mean(rcop_x_normalized_total(:, conditions_stanceR_stimPos_0ms), 2), cinv(rcop_x_normalized_total(:, conditions_stanceR_stimPos_0ms), 2), {'color', color_positive, 'linewidth', 5}, 1);
+    negative_plot = shadedErrorBar(time_normalized, mean(rcop_x_normalized_total(:, conditions_stanceR_stimNeg_0ms), 2), cinv(rcop_x_normalized_total(:, conditions_stanceR_stimNeg_0ms), 2), {'color', color_negative, 'linewidth', 5}, 1);
     xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)]); 
     this_legend = legend([control_plot.mainLine positive_plot.mainLine negative_plot.mainLine], 'control', 'illusion left', 'illusion right');
     set(this_legend, 'Location', 'NORTHWEST')
@@ -117,10 +140,10 @@ if do_cop_plots_absolute_right
     
     if do_phase_delayed_plots
         % 150ms
-        figure; axes; hold on; title('right foot medial-lateral CoP, 150ms'); set(gca, 'Fontsize', 12)
-        control_plot = shadedErrorBar(time_normalized, rcop_x_mean_stanceR_control, rcop_x_civ_stanceR_control, {'color', color_control, 'linewidth', 5}, 1);
-        positive_plot = shadedErrorBar(time_normalized, rcop_x_mean_stanceR_stimPos_150ms, rcop_x_civ_stanceR_stimPos_150ms, {'color', color_positive, 'linewidth', 5}, 1);
-        negative_plot = shadedErrorBar(time_normalized, rcop_x_mean_stanceR_stimNeg_150ms, rcop_x_civ_stanceR_stimNeg_150ms, {'color', color_negative, 'linewidth', 5}, 1);
+        figure; axes; hold on; title(['right foot medial-lateral CoP, 150ms - ' subject_id]); set(gca, 'Fontsize', 12)
+        control_plot = shadedErrorBar(time_normalized, mean(rcop_x_normalized_total(:, conditions_stanceR_stimNo), 2), cinv(rcop_x_normalized_total(:, conditions_stanceR_stimNo), 2), {'color', color_control, 'linewidth', 5}, 1);
+        positive_plot = shadedErrorBar(time_normalized, mean(rcop_x_normalized_total(:, conditions_stanceR_stimPos_150ms), 2), cinv(rcop_x_normalized_total(:, conditions_stanceR_stimPos_150ms), 2), {'color', color_positive, 'linewidth', 5}, 1);
+        negative_plot = shadedErrorBar(time_normalized, mean(rcop_x_normalized_total(:, conditions_stanceR_stimNeg_150ms), 2), cinv(rcop_x_normalized_total(:, conditions_stanceR_stimNeg_150ms), 2), {'color', color_negative, 'linewidth', 5}, 1);
         xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)]); 
         this_legend = legend([control_plot.mainLine positive_plot.mainLine negative_plot.mainLine], 'control', 'illusion left', 'illusion right');
         set(this_legend, 'Location', 'NORTHWEST')
@@ -132,10 +155,10 @@ if do_cop_plots_absolute_right
         end
 
         % 450ms
-        figure; axes; hold on; title('left foot medial-lateral CoP, 450ms'); set(gca, 'Fontsize', 12)
-        control_plot = shadedErrorBar(time_normalized, lcop_x_mean_stanceL_control, lcop_x_civ_stanceL_control, {'color', color_control, 'linewidth', 5}, 1);
-        positive_plot = shadedErrorBar(time_normalized, lcop_x_mean_stanceL_stimPos_450ms, lcop_x_civ_stanceL_stimPos_450ms, {'color', color_positive, 'linewidth', 5}, 1);
-        negative_plot = shadedErrorBar(time_normalized, lcop_x_mean_stanceL_stimNeg_450ms, lcop_x_civ_stanceL_stimNeg_450ms, {'color', color_negative, 'linewidth', 5}, 1);
+        figure; axes; hold on; title(['left foot medial-lateral CoP, 450ms - ' subject_id]); set(gca, 'Fontsize', 12)
+        control_plot = shadedErrorBar(time_normalized, mean(lcop_x_normalized_total(:, conditions_stanceL_stimNo), 2), cinv(lcop_x_normalized_total(:, conditions_stanceL_stimNo), 2), {'color', color_control, 'linewidth', 5}, 1);
+        positive_plot = shadedErrorBar(time_normalized, mean(lcop_x_normalized_total(:, conditions_stanceL_stimPos_450ms), 2), cinv(lcop_x_normalized_total(:, conditions_stanceL_stimPos_450ms), 2), {'color', color_positive, 'linewidth', 5}, 1);
+        negative_plot = shadedErrorBar(time_normalized, mean(lcop_x_normalized_total(:, conditions_stanceL_stimNeg_450ms), 2), cinv(lcop_x_normalized_total(:, conditions_stanceL_stimNeg_450ms), 2), {'color', color_negative, 'linewidth', 5}, 1);
         xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)]); 
         this_legend = legend([control_plot.mainLine positive_plot.mainLine negative_plot.mainLine], 'control', 'illusion left', 'illusion right');
         set(this_legend, 'Location', 'NORTHWEST')
@@ -149,10 +172,10 @@ if do_cop_plots_absolute_right
 end
 
 if do_cop_plots_absolute_left
-    figure; axes; hold on; title('left foot medial-lateral CoP, 0ms'); set(gca, 'Fontsize', 12)
-    control_plot = shadedErrorBar(time_normalized, lcop_x_mean_stanceL_control, lcop_x_civ_stanceL_control, {'color', color_control, 'linewidth', 5}, 1);
-    positive_plot = shadedErrorBar(time_normalized, lcop_x_mean_stanceL_stimPos_0ms, lcop_x_civ_stanceL_stimPos_0ms, {'color', color_positive, 'linewidth', 5}, 1);
-    negative_plot = shadedErrorBar(time_normalized, lcop_x_mean_stanceL_stimNeg_0ms, lcop_x_civ_stanceL_stimNeg_0ms, {'color', color_negative, 'linewidth', 5}, 1);
+    figure; axes; hold on; title(['left foot medial-lateral CoP, 0ms - ' subject_id]); set(gca, 'Fontsize', 12)
+    control_plot = shadedErrorBar(time_normalized, mean(lcop_x_normalized_total(:, conditions_stanceL_stimNo), 2), cinv(lcop_x_normalized_total(:, conditions_stanceL_stimNo), 2), {'color', color_control, 'linewidth', 5}, 1);
+    positive_plot = shadedErrorBar(time_normalized, mean(lcop_x_normalized_total(:, conditions_stanceL_stimPos_0ms), 2), cinv(lcop_x_normalized_total(:, conditions_stanceL_stimPos_0ms), 2), {'color', color_positive, 'linewidth', 5}, 1);
+    negative_plot = shadedErrorBar(time_normalized, mean(lcop_x_normalized_total(:, conditions_stanceL_stimNeg_0ms), 2), cinv(lcop_x_normalized_total(:, conditions_stanceL_stimNeg_0ms), 2), {'color', color_negative, 'linewidth', 5}, 1);
     xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)]); 
     this_legend = legend([control_plot.mainLine positive_plot.mainLine negative_plot.mainLine], 'control', 'illusion left', 'illusion right');
     set(this_legend, 'Location', 'NORTHWEST')
@@ -165,10 +188,10 @@ if do_cop_plots_absolute_left
     
     if do_phase_delayed_plots
         % 150ms
-        figure; axes; hold on; title('left foot medial-lateral CoP, 150ms'); set(gca, 'Fontsize', 12)
-        control_plot = shadedErrorBar(time_normalized, lcop_x_mean_stanceL_control, lcop_x_civ_stanceL_control, {'color', color_control, 'linewidth', 5}, 1);
-        positive_plot = shadedErrorBar(time_normalized, lcop_x_mean_stanceL_stimPos_150ms, lcop_x_civ_stanceL_stimPos_150ms, {'color', color_positive, 'linewidth', 5}, 1);
-        negative_plot = shadedErrorBar(time_normalized, lcop_x_mean_stanceL_stimNeg_150ms, lcop_x_civ_stanceL_stimNeg_150ms, {'color', color_negative, 'linewidth', 5}, 1);
+        figure; axes; hold on; title(['left foot medial-lateral CoP, 150ms - ' subject_id]); set(gca, 'Fontsize', 12)
+        control_plot = shadedErrorBar(time_normalized, mean(lcop_x_normalized_total(:, conditions_stanceL_stimNo), 2), cinv(lcop_x_normalized_total(:, conditions_stanceL_stimNo), 2), {'color', color_control, 'linewidth', 5}, 1);
+        positive_plot = shadedErrorBar(time_normalized, mean(lcop_x_normalized_total(:, conditions_stanceL_stimPos_150ms), 2), cinv(lcop_x_normalized_total(:, conditions_stanceL_stimPos_150ms), 2), {'color', color_positive, 'linewidth', 5}, 1);
+        negative_plot = shadedErrorBar(time_normalized, mean(lcop_x_normalized_total(:, conditions_stanceL_stimNeg_150ms), 2), cinv(lcop_x_normalized_total(:, conditions_stanceL_stimNeg_150ms), 2), {'color', color_negative, 'linewidth', 5}, 1);
         xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)]); 
         this_legend = legend([control_plot.mainLine positive_plot.mainLine negative_plot.mainLine], 'control', 'illusion left', 'illusion right');
         set(this_legend, 'Location', 'NORTHWEST')
@@ -180,10 +203,10 @@ if do_cop_plots_absolute_left
         end
 
         % 450ms
-        figure; axes; hold on; title('right foot medial-lateral CoP, 450ms'); set(gca, 'Fontsize', 12)
-        control_plot = shadedErrorBar(time_normalized, rcop_x_mean_stanceR_control, rcop_x_civ_stanceR_control, {'color', color_control, 'linewidth', 5}, 1);
-        positive_plot = shadedErrorBar(time_normalized, rcop_x_mean_stanceR_stimPos_450ms, rcop_x_civ_stanceR_stimPos_450ms, {'color', color_positive, 'linewidth', 5}, 1);
-        negative_plot = shadedErrorBar(time_normalized, rcop_x_mean_stanceR_stimNeg_450ms, rcop_x_civ_stanceR_stimNeg_450ms, {'color', color_negative, 'linewidth', 5}, 1);
+        figure; axes; hold on; title(['right foot medial-lateral CoP, 450ms - ' subject_id]); set(gca, 'Fontsize', 12)
+        control_plot = shadedErrorBar(time_normalized, mean(rcop_x_normalized_total(:, conditions_stanceR_stimNo), 2), cinv(rcop_x_normalized_total(:, conditions_stanceR_stimNo), 2), {'color', color_control, 'linewidth', 5}, 1);
+        positive_plot = shadedErrorBar(time_normalized, mean(rcop_x_normalized_total(:, conditions_stanceR_stimPos_450ms), 2), cinv(rcop_x_normalized_total(:, conditions_stanceR_stimPos_450ms), 2), {'color', color_positive, 'linewidth', 5}, 1);
+        negative_plot = shadedErrorBar(time_normalized, mean(rcop_x_normalized_total(:, conditions_stanceR_stimNeg_450ms), 2), cinv(rcop_x_normalized_total(:, conditions_stanceR_stimNeg_450ms), 2), {'color', color_negative, 'linewidth', 5}, 1);
         xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)]); 
         this_legend = legend([control_plot.mainLine positive_plot.mainLine negative_plot.mainLine], 'control', 'illusion left', 'illusion right');
         set(this_legend, 'Location', 'NORTHWEST')
@@ -198,9 +221,9 @@ end
 
 if do_cop_plots_response_right
     % 0ms
-    figure; axes; hold on; title('right foot medial-lateral CoP response, 0ms'); set(gca, 'Fontsize', 12)
-    positive_plot = shadedErrorBar(time_normalized, rcop_x_response_mean_stanceR_stimPos_0ms, rcop_x_response_civ_stanceR_stimPos_0ms, {'color', color_positive, 'linewidth', 5}, 1);
-    negative_plot = shadedErrorBar(time_normalized, rcop_x_response_mean_stanceR_stimNeg_0ms, rcop_x_response_civ_stanceR_stimPos_0ms, {'color', color_negative, 'linewidth', 5}, 1);
+    figure; axes; hold on; title(['right foot medial-lateral CoP response, 0ms - ' subject_id]); set(gca, 'Fontsize', 12)
+    positive_plot = shadedErrorBar(time_normalized, mean(rcop_x_stanceR_response(:, conditions_stanceR_stimPos_0ms), 2), cinv(rcop_x_stanceR_response(:, conditions_stanceR_stimPos_0ms), 2), {'color', color_positive, 'linewidth', 5}, 1);
+    negative_plot = shadedErrorBar(time_normalized, mean(rcop_x_stanceR_response(:, conditions_stanceR_stimNeg_0ms), 2), cinv(rcop_x_stanceR_response(:, conditions_stanceR_stimNeg_0ms), 2), {'color', color_negative, 'linewidth', 5}, 1);
     xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)], 'ylim', [-0.015 0.015]);
     this_legend = legend([positive_plot.mainLine negative_plot.mainLine], 'illusion left', 'illusion right');
     set(this_legend, 'Location', 'NORTHWEST')
@@ -213,9 +236,9 @@ if do_cop_plots_response_right
     
     if do_phase_delayed_plots
         % 150ms
-        figure; axes; hold on; title('right foot medial-lateral CoP response, 150ms'); set(gca, 'Fontsize', 12)
-        positive_plot = shadedErrorBar(time_normalized, rcop_x_response_mean_stanceR_stimPos_150ms, rcop_x_response_civ_stanceR_stimPos_150ms, {'color', color_positive, 'linewidth', 5}, 1);
-        negative_plot = shadedErrorBar(time_normalized, rcop_x_response_mean_stanceR_stimNeg_150ms, rcop_x_response_civ_stanceR_stimPos_150ms, {'color', color_negative, 'linewidth', 5}, 1);
+        figure; axes; hold on; title(['right foot medial-lateral CoP response, 150ms - ' subject_id]); set(gca, 'Fontsize', 12)
+        positive_plot = shadedErrorBar(time_normalized, mean(rcop_x_stanceR_response(:, conditions_stanceR_stimPos_150ms), 2), cinv(rcop_x_stanceR_response(:, conditions_stanceR_stimPos_150ms), 2), {'color', color_positive, 'linewidth', 5}, 1);
+        negative_plot = shadedErrorBar(time_normalized, mean(rcop_x_stanceR_response(:, conditions_stanceR_stimNeg_150ms), 2), cinv(rcop_x_stanceR_response(:, conditions_stanceR_stimNeg_150ms), 2), {'color', color_negative, 'linewidth', 5}, 1);
         xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)], 'ylim', [-0.015 0.015]);
         this_legend = legend([positive_plot.mainLine negative_plot.mainLine], 'illusion left', 'illusion right');
         set(this_legend, 'Location', 'NORTHWEST')
@@ -227,9 +250,9 @@ if do_cop_plots_response_right
         end
 
         % 450ms
-        figure; axes; hold on; title('left foot medial-lateral CoP response, 450ms'); set(gca, 'Fontsize', 12)
-        positive_plot = shadedErrorBar(time_normalized, lcop_x_response_mean_stanceL_stimPos_450ms, lcop_x_response_civ_stanceL_stimPos_450ms, {'color', color_positive, 'linewidth', 5}, 1);
-        negative_plot = shadedErrorBar(time_normalized, lcop_x_response_mean_stanceL_stimNeg_450ms, lcop_x_response_civ_stanceL_stimPos_450ms, {'color', color_negative, 'linewidth', 5}, 1);
+        figure; axes; hold on; title(['left foot medial-lateral CoP response, 450ms - ' subject_id]); set(gca, 'Fontsize', 12)
+        positive_plot = shadedErrorBar(time_normalized, mean(lcop_x_stanceL_response(:, conditions_stanceL_stimPos_450ms), 2), cinv(lcop_x_stanceL_response(:, conditions_stanceL_stimPos_450ms), 2), {'color', color_positive, 'linewidth', 5}, 1);
+        negative_plot = shadedErrorBar(time_normalized, mean(lcop_x_stanceL_response(:, conditions_stanceL_stimNeg_450ms), 2), cinv(lcop_x_stanceL_response(:, conditions_stanceL_stimNeg_450ms), 2), {'color', color_negative, 'linewidth', 5}, 1);
         xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)], 'ylim', [-0.015 0.015]);
         this_legend = legend([positive_plot.mainLine negative_plot.mainLine], 'illusion left', 'illusion right');
         set(this_legend, 'Location', 'NORTHWEST')
@@ -243,9 +266,9 @@ if do_cop_plots_response_right
 end
 
 if do_cop_plots_response_left
-    figure; axes; hold on; title('left foot medial-lateral CoP response, 0ms'); set(gca, 'Fontsize', 12)
-    positive_plot = shadedErrorBar(time_normalized, lcop_x_response_mean_stanceL_stimPos_0ms, lcop_x_response_civ_stanceL_stimPos_0ms, {'color', color_positive, 'linewidth', 5}, 1);
-    negative_plot = shadedErrorBar(time_normalized, lcop_x_response_mean_stanceL_stimNeg_0ms, lcop_x_response_civ_stanceL_stimPos_0ms, {'color', color_negative, 'linewidth', 5}, 1);
+    figure; axes; hold on; title(['left foot medial-lateral CoP response, 0ms - ' subject_id]); set(gca, 'Fontsize', 12)
+    positive_plot = shadedErrorBar(time_normalized, mean(lcop_x_stanceL_response(:, conditions_stanceL_stimPos_0ms), 2), cinv(lcop_x_stanceL_response(:, conditions_stanceL_stimPos_0ms), 2), {'color', color_positive, 'linewidth', 5}, 1);
+    negative_plot = shadedErrorBar(time_normalized, mean(lcop_x_stanceL_response(:, conditions_stanceL_stimNeg_0ms), 2), cinv(lcop_x_stanceL_response(:, conditions_stanceL_stimNeg_0ms), 2), {'color', color_negative, 'linewidth', 5}, 1);
     xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)], 'ylim', [-0.015 0.015]);
     this_legend = legend([positive_plot.mainLine negative_plot.mainLine], 'illusion left', 'illusion right');
     set(this_legend, 'Location', 'NORTHWEST')
@@ -258,9 +281,9 @@ if do_cop_plots_response_left
     
     if do_phase_delayed_plots
         % 150ms
-        figure; axes; hold on; title('left foot medial-lateral CoP response, 150ms'); set(gca, 'Fontsize', 12)
-        positive_plot = shadedErrorBar(time_normalized, lcop_x_response_mean_stanceL_stimPos_150ms, lcop_x_response_civ_stanceL_stimPos_150ms, {'color', color_positive, 'linewidth', 5}, 1);
-        negative_plot = shadedErrorBar(time_normalized, lcop_x_response_mean_stanceL_stimNeg_150ms, lcop_x_response_civ_stanceL_stimPos_150ms, {'color', color_negative, 'linewidth', 5}, 1);
+        figure; axes; hold on; title(['left foot medial-lateral CoP response, 150ms - ' subject_id]); set(gca, 'Fontsize', 12)
+        positive_plot = shadedErrorBar(time_normalized, mean(lcop_x_stanceL_response(:, conditions_stanceL_stimPos_150ms), 2), cinv(lcop_x_stanceL_response(:, conditions_stanceL_stimPos_150ms), 2), {'color', color_positive, 'linewidth', 5}, 1);
+        negative_plot = shadedErrorBar(time_normalized, mean(lcop_x_stanceL_response(:, conditions_stanceL_stimNeg_150ms), 2), cinv(lcop_x_stanceL_response(:, conditions_stanceL_stimNeg_150ms), 2), {'color', color_negative, 'linewidth', 5}, 1);
         xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)], 'ylim', [-0.015 0.015]);
         this_legend = legend([positive_plot.mainLine negative_plot.mainLine], 'illusion left', 'illusion right');
         set(this_legend, 'Location', 'NORTHWEST')
@@ -272,10 +295,721 @@ if do_cop_plots_response_left
         end
 
         % 450ms
-        figure; axes; hold on; title('right foot medial-lateral CoP response, 450ms'); set(gca, 'Fontsize', 12)
-        positive_plot = shadedErrorBar(time_normalized, rcop_x_response_mean_stanceR_stimPos_450ms, rcop_x_response_civ_stanceR_stimPos_450ms, {'color', color_positive, 'linewidth', 5}, 1);
-        negative_plot = shadedErrorBar(time_normalized, rcop_x_response_mean_stanceR_stimNeg_450ms, rcop_x_response_civ_stanceR_stimPos_450ms, {'color', color_negative, 'linewidth', 5}, 1);
+        figure; axes; hold on; title(['right foot medial-lateral CoP response, 450ms - ' subject_id]); set(gca, 'Fontsize', 12)
+        positive_plot = shadedErrorBar(time_normalized, mean(rcop_x_stanceR_response(:, conditions_stanceR_stimPos_450ms), 2), cinv(rcop_x_stanceR_response(:, conditions_stanceR_stimPos_450ms), 2), {'color', color_positive, 'linewidth', 5}, 1);
+        negative_plot = shadedErrorBar(time_normalized, mean(rcop_x_stanceR_response(:, conditions_stanceR_stimNeg_450ms), 2), cinv(rcop_x_stanceR_response(:, conditions_stanceR_stimNeg_450ms), 2), {'color', color_negative, 'linewidth', 5}, 1);
         xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)], 'ylim', [-0.015 0.015]);
+        this_legend = legend([positive_plot.mainLine negative_plot.mainLine], 'illusion left', 'illusion right');
+        set(this_legend, 'Location', 'NORTHWEST')
+        xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), 'right \rightarrow', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right')
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(1), '\leftarrow left', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'left')
+        if save_figures
+            saveas(gcf, 'cop_response_stanceR_450ms.eps', 'epsc2')
+        end
+    end
+end
+
+%% fx plots
+if do_fx_plots_single
+    figure; axes; hold on; title(['left foot f_x, N = ' num2str(sum(conditions_stanceL_stimNo))]); set(gca, 'Fontsize', 12)
+    plot(time_normalized, fxl_normalized_total(:, conditions_stanceL_stimNo), 'color', lightenColor(color_control, 0.5));
+    plot(time_normalized, mean(fxl_normalized_total(:, conditions_stanceL_stimNo), 2), 'color', color_control, 'linewidth', 5);
+    
+    figure; axes; hold on; title(['right foot f_x, N = ' num2str(sum(conditions_stanceR_stimNo))]); set(gca, 'Fontsize', 12)
+    plot(time_normalized, fxr_normalized_total(:, conditions_stanceR_stimNo), 'color', lightenColor(color_control, 0.5));
+    plot(time_normalized, mean(fxr_normalized_total(:, conditions_stanceR_stimNo), 2), 'color', color_control, 'linewidth', 5);
+    
+    figure; axes; hold on; title(['left foot f_x, 0ms, N = ' num2str(sum(conditions_stanceL_0ms))]); set(gca, 'Fontsize', 12)
+    if any(conditions_stanceL_stimNeg_0ms) plot(time_normalized, fxl_normalized_total(:, conditions_stanceL_stimNeg_0ms), 'color', lightenColor(color_negative, 0.5)); end
+    if any(conditions_stanceL_stimPos_0ms) plot(time_normalized, fxl_normalized_total(:, conditions_stanceL_stimPos_0ms), 'color', lightenColor(color_positive, 0.5)); end
+    plot(time_normalized, mean(fxl_normalized_total(:, conditions_stanceL_stimNeg_0ms), 2), 'color', color_negative, 'linewidth', 5);
+    plot(time_normalized, mean(fxl_normalized_total(:, conditions_stanceL_stimPos_0ms), 2), 'color', color_positive, 'linewidth', 5);
+    
+    figure; axes; hold on; title(['right foot f_x, 0ms, N = ' num2str(sum(conditions_stanceR_0ms))]); set(gca, 'Fontsize', 12)
+    plot(time_normalized, fxr_normalized_total(:, conditions_stanceR_stimNeg_0ms), 'color', lightenColor(color_negative, 0.5));
+    plot(time_normalized, fxr_normalized_total(:, conditions_stanceR_stimPos_0ms), 'color', lightenColor(color_positive, 0.5));
+    plot(time_normalized, mean(fxr_normalized_total(:, conditions_stanceR_stimNeg_0ms), 2), 'color', color_negative, 'linewidth', 5);
+    plot(time_normalized, mean(fxr_normalized_total(:, conditions_stanceR_stimPos_0ms), 2), 'color', color_positive, 'linewidth', 5);
+    
+    if do_phase_delayed_plots
+        figure; axes; hold on; title(['right foot f_x, 150ms, N = ' num2str(sum(conditions_stanceR_150ms))]); set(gca, 'Fontsize', 12)
+        plot(time_normalized, fxr_normalized_total(:, conditions_stanceR_stimNeg_150ms), 'color', lightenColor(color_negative, 0.5));
+        plot(time_normalized, fxr_normalized_total(:, conditions_stanceR_stimPos_150ms), 'color', lightenColor(color_positive, 0.5));
+        plot(time_normalized, mean(fxr_normalized_total(:, conditions_stanceR_stimNeg_150ms), 2), 'color', color_negative, 'linewidth', 5);
+        plot(time_normalized, mean(fxr_normalized_total(:, conditions_stanceR_stimPos_150ms), 2), 'color', color_positive, 'linewidth', 5);
+
+        figure; axes; hold on; title(['left foot f_x, 450ms, N = ' num2str(sum(conditions_stanceL_450ms))]); set(gca, 'Fontsize', 12)
+        plot(time_normalized, fxl_normalized_total(:, conditions_stanceL_stimNeg_450ms), 'color', lightenColor(color_negative, 0.5));
+        plot(time_normalized, fxl_normalized_total(:, conditions_stanceL_stimPos_450ms), 'color', lightenColor(color_positive, 0.5));
+        plot(time_normalized, mean(fxl_normalized_total(:, conditions_stanceL_stimNeg_450ms), 2), 'color', color_negative, 'linewidth', 5);
+        plot(time_normalized, mean(fxl_normalized_total(:, conditions_stanceL_stimPos_450ms), 2), 'color', color_positive, 'linewidth', 5);
+        
+        figure; axes; hold on; title(['left foot f_x, 150ms, N = ' num2str(sum(conditions_stanceL_150ms))]); set(gca, 'Fontsize', 12)
+        if any(conditions_stanceL_stimNeg_150ms) plot(time_normalized, fxl_normalized_total(:, conditions_stanceL_stimNeg_150ms), 'color', lightenColor(color_negative, 0.5)); end
+        if any(conditions_stanceL_stimPos_150ms) plot(time_normalized, fxl_normalized_total(:, conditions_stanceL_stimPos_150ms), 'color', lightenColor(color_positive, 0.5)); end
+        plot(time_normalized, mean(fxl_normalized_total(:, conditions_stanceL_stimNeg_150ms), 2), 'color', color_negative, 'linewidth', 5);
+        plot(time_normalized, mean(fxl_normalized_total(:, conditions_stanceL_stimPos_150ms), 2), 'color', color_positive, 'linewidth', 5);
+
+        figure; axes; hold on; title(['right foot f_x, 450ms, N = ' num2str(sum(conditions_stanceR_450ms))]); set(gca, 'Fontsize', 12)
+        if any(conditions_stanceR_stimNeg_450ms) plot(time_normalized, fxr_normalized_total(:, conditions_stanceR_stimNeg_450ms), 'color', lightenColor(color_negative, 0.5)); end
+        if any(conditions_stanceR_stimPos_450ms) plot(time_normalized, fxr_normalized_total(:, conditions_stanceR_stimPos_450ms), 'color', lightenColor(color_positive, 0.5)); end
+        plot(time_normalized, mean(fxr_normalized_total(:, conditions_stanceR_stimNeg_450ms), 2), 'color', color_negative, 'linewidth', 5);
+        plot(time_normalized, mean(fxr_normalized_total(:, conditions_stanceR_stimPos_450ms), 2), 'color', color_positive, 'linewidth', 5);
+    end
+end
+
+if do_fx_plots_absolute_right
+    % 0ms
+    figure; axes; hold on; title(['right foot f_x, 0ms - ' subject_id]); set(gca, 'Fontsize', 12)
+    control_plot = shadedErrorBar(time_normalized, mean(fxr_normalized_total(:, conditions_stanceR_stimNo), 2), cinv(fxr_normalized_total(:, conditions_stanceR_stimNo), 2), {'color', color_control, 'linewidth', 5}, 1);
+    positive_plot = shadedErrorBar(time_normalized, mean(fxr_normalized_total(:, conditions_stanceR_stimPos_0ms), 2), cinv(fxr_normalized_total(:, conditions_stanceR_stimPos_0ms), 2), {'color', color_positive, 'linewidth', 5}, 1);
+    negative_plot = shadedErrorBar(time_normalized, mean(fxr_normalized_total(:, conditions_stanceR_stimNeg_0ms), 2), cinv(fxr_normalized_total(:, conditions_stanceR_stimNeg_0ms), 2), {'color', color_negative, 'linewidth', 5}, 1);
+    xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)]); 
+    this_legend = legend([control_plot.mainLine positive_plot.mainLine negative_plot.mainLine], 'control', 'illusion left', 'illusion right');
+    set(this_legend, 'Location', 'NORTHWEST')
+    xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
+    text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), 'right \rightarrow', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right')
+    text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(1), '\leftarrow left', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'left')
+    if save_figures
+        saveas(gcf, 'cop_absolute_stanceR_0ms.eps', 'epsc2')
+    end
+    
+    if do_phase_delayed_plots
+        % 150ms
+        figure; axes; hold on; title(['right foot f_x, 150ms - ' subject_id]); set(gca, 'Fontsize', 12)
+        control_plot = shadedErrorBar(time_normalized, mean(fxr_normalized_total(:, conditions_stanceR_stimNo), 2), cinv(fxr_normalized_total(:, conditions_stanceR_stimNo), 2), {'color', color_control, 'linewidth', 5}, 1);
+        positive_plot = shadedErrorBar(time_normalized, mean(fxr_normalized_total(:, conditions_stanceR_stimPos_150ms), 2), cinv(fxr_normalized_total(:, conditions_stanceR_stimPos_150ms), 2), {'color', color_positive, 'linewidth', 5}, 1);
+        negative_plot = shadedErrorBar(time_normalized, mean(fxr_normalized_total(:, conditions_stanceR_stimNeg_150ms), 2), cinv(fxr_normalized_total(:, conditions_stanceR_stimNeg_150ms), 2), {'color', color_negative, 'linewidth', 5}, 1);
+        xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)]); 
+        this_legend = legend([control_plot.mainLine positive_plot.mainLine negative_plot.mainLine], 'control', 'illusion left', 'illusion right');
+        set(this_legend, 'Location', 'NORTHWEST')
+        xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), 'right \rightarrow', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right')
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(1), '\leftarrow left', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'left')
+        if save_figures
+            saveas(gcf, 'cop_absolute_stanceR_150ms.eps', 'epsc2')
+        end
+
+        % 450ms
+        figure; axes; hold on; title(['left foot f_x, 450ms - ' subject_id]); set(gca, 'Fontsize', 12)
+        control_plot = shadedErrorBar(time_normalized, mean(fxl_normalized_total(:, conditions_stanceL_stimNo), 2), cinv(fxl_normalized_total(:, conditions_stanceL_stimNo), 2), {'color', color_control, 'linewidth', 5}, 1);
+        positive_plot = shadedErrorBar(time_normalized, mean(fxl_normalized_total(:, conditions_stanceL_stimPos_450ms), 2), cinv(fxl_normalized_total(:, conditions_stanceL_stimPos_450ms), 2), {'color', color_positive, 'linewidth', 5}, 1);
+        negative_plot = shadedErrorBar(time_normalized, mean(fxl_normalized_total(:, conditions_stanceL_stimNeg_450ms), 2), cinv(fxl_normalized_total(:, conditions_stanceL_stimNeg_450ms), 2), {'color', color_negative, 'linewidth', 5}, 1);
+        xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)]); 
+        this_legend = legend([control_plot.mainLine positive_plot.mainLine negative_plot.mainLine], 'control', 'illusion left', 'illusion right');
+        set(this_legend, 'Location', 'NORTHWEST')
+        xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), 'right \rightarrow', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right')
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(1), '\leftarrow left', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'left')
+        if save_figures
+            saveas(gcf, 'cop_absolute_stanceL_450ms.eps', 'epsc2')
+        end
+    end
+end
+
+if do_fx_plots_absolute_left
+    figure; axes; hold on; title(['left foot f_x, 0ms - ' subject_id]); set(gca, 'Fontsize', 12)
+    control_plot = shadedErrorBar(time_normalized, mean(fxl_normalized_total(:, conditions_stanceL_stimNo), 2), cinv(fxl_normalized_total(:, conditions_stanceL_stimNo), 2), {'color', color_control, 'linewidth', 5}, 1);
+    positive_plot = shadedErrorBar(time_normalized, mean(fxl_normalized_total(:, conditions_stanceL_stimPos_0ms), 2), cinv(fxl_normalized_total(:, conditions_stanceL_stimPos_0ms), 2), {'color', color_positive, 'linewidth', 5}, 1);
+    negative_plot = shadedErrorBar(time_normalized, mean(fxl_normalized_total(:, conditions_stanceL_stimNeg_0ms), 2), cinv(fxl_normalized_total(:, conditions_stanceL_stimNeg_0ms), 2), {'color', color_negative, 'linewidth', 5}, 1);
+    xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)]); 
+    this_legend = legend([control_plot.mainLine positive_plot.mainLine negative_plot.mainLine], 'control', 'illusion left', 'illusion right');
+    set(this_legend, 'Location', 'NORTHWEST')
+    xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
+    text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), 'right \rightarrow', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right')
+    text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(1), '\leftarrow left', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'left')
+    if save_figures
+        saveas(gcf, 'cop_absolute_stanceL_0ms.eps', 'epsc2')
+    end
+    
+    if do_phase_delayed_plots
+        % 150ms
+        figure; axes; hold on; title(['left foot f_x, 150ms - ' subject_id]); set(gca, 'Fontsize', 12)
+        control_plot = shadedErrorBar(time_normalized, mean(fxl_normalized_total(:, conditions_stanceL_stimNo), 2), cinv(fxl_normalized_total(:, conditions_stanceL_stimNo), 2), {'color', color_control, 'linewidth', 5}, 1);
+        positive_plot = shadedErrorBar(time_normalized, mean(fxl_normalized_total(:, conditions_stanceL_stimPos_150ms), 2), cinv(fxl_normalized_total(:, conditions_stanceL_stimPos_150ms), 2), {'color', color_positive, 'linewidth', 5}, 1);
+        negative_plot = shadedErrorBar(time_normalized, mean(fxl_normalized_total(:, conditions_stanceL_stimNeg_150ms), 2), cinv(fxl_normalized_total(:, conditions_stanceL_stimNeg_150ms), 2), {'color', color_negative, 'linewidth', 5}, 1);
+        xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)]); 
+        this_legend = legend([control_plot.mainLine positive_plot.mainLine negative_plot.mainLine], 'control', 'illusion left', 'illusion right');
+        set(this_legend, 'Location', 'NORTHWEST')
+        xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), 'right \rightarrow', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right')
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(1), '\leftarrow left', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'left')
+        if save_figures
+            saveas(gcf, 'cop_absolute_stanceL_150ms.eps', 'epsc2')
+        end
+
+        % 450ms
+        figure; axes; hold on; title(['right foot f_x, 450ms - ' subject_id]); set(gca, 'Fontsize', 12)
+        control_plot = shadedErrorBar(time_normalized, mean(fxr_normalized_total(:, conditions_stanceR_stimNo), 2), cinv(fxr_normalized_total(:, conditions_stanceR_stimNo), 2), {'color', color_control, 'linewidth', 5}, 1);
+        positive_plot = shadedErrorBar(time_normalized, mean(fxr_normalized_total(:, conditions_stanceR_stimPos_450ms), 2), cinv(fxr_normalized_total(:, conditions_stanceR_stimPos_450ms), 2), {'color', color_positive, 'linewidth', 5}, 1);
+        negative_plot = shadedErrorBar(time_normalized, mean(fxr_normalized_total(:, conditions_stanceR_stimNeg_450ms), 2), cinv(fxr_normalized_total(:, conditions_stanceR_stimNeg_450ms), 2), {'color', color_negative, 'linewidth', 5}, 1);
+        xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)]); 
+        this_legend = legend([control_plot.mainLine positive_plot.mainLine negative_plot.mainLine], 'control', 'illusion left', 'illusion right');
+        set(this_legend, 'Location', 'NORTHWEST')
+        xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), 'right \rightarrow', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right')
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(1), '\leftarrow left', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'left')
+        if save_figures
+            saveas(gcf, 'cop_absolute_stanceR_450ms.eps', 'epsc2')
+        end
+    end
+end
+
+if do_fx_plots_response_right
+    % 0ms
+    figure; axes; hold on; title(['right foot f_x response, 0ms - ' subject_id]); set(gca, 'Fontsize', 12)
+    positive_plot = shadedErrorBar(time_normalized, mean(fxr_stanceR_response(:, conditions_stanceR_stimPos_0ms), 2), cinv(fxr_stanceR_response(:, conditions_stanceR_stimPos_0ms), 2), {'color', color_positive, 'linewidth', 5}, 1);
+    negative_plot = shadedErrorBar(time_normalized, mean(fxr_stanceR_response(:, conditions_stanceR_stimNeg_0ms), 2), cinv(fxr_stanceR_response(:, conditions_stanceR_stimNeg_0ms), 2), {'color', color_negative, 'linewidth', 5}, 1);
+    xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)], 'ylim', [-15 15]);
+    this_legend = legend([positive_plot.mainLine negative_plot.mainLine], 'illusion left', 'illusion right');
+    set(this_legend, 'Location', 'NORTHWEST')
+    xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
+    text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), 'right \rightarrow', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right')
+    text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(1), '\leftarrow left', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'left')
+    if save_figures
+        saveas(gcf, 'cop_response_stanceR_0ms.eps', 'epsc2')
+    end
+    
+    if do_phase_delayed_plots
+        % 150ms
+        figure; axes; hold on; title(['right foot f_x response, 150ms - ' subject_id]); set(gca, 'Fontsize', 12)
+        positive_plot = shadedErrorBar(time_normalized, mean(fxr_stanceR_response(:, conditions_stanceR_stimPos_150ms), 2), cinv(fxr_stanceR_response(:, conditions_stanceR_stimPos_150ms), 2), {'color', color_positive, 'linewidth', 5}, 1);
+        negative_plot = shadedErrorBar(time_normalized, mean(fxr_stanceR_response(:, conditions_stanceR_stimNeg_150ms), 2), cinv(fxr_stanceR_response(:, conditions_stanceR_stimNeg_150ms), 2), {'color', color_negative, 'linewidth', 5}, 1);
+        xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)], 'ylim', [-15 15]);
+        this_legend = legend([positive_plot.mainLine negative_plot.mainLine], 'illusion left', 'illusion right');
+        set(this_legend, 'Location', 'NORTHWEST')
+        xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), 'right \rightarrow', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right')
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(1), '\leftarrow left', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'left')
+        if save_figures
+            saveas(gcf, 'cop_response_stanceR_150ms.eps', 'epsc2')
+        end
+
+        % 450ms
+        figure; axes; hold on; title(['left foot f_x response, 450ms - ' subject_id]); set(gca, 'Fontsize', 12)
+        positive_plot = shadedErrorBar(time_normalized, mean(fxl_stanceL_response(:, conditions_stanceL_stimPos_450ms), 2), cinv(fxl_stanceL_response(:, conditions_stanceL_stimPos_450ms), 2), {'color', color_positive, 'linewidth', 5}, 1);
+        negative_plot = shadedErrorBar(time_normalized, mean(fxl_stanceL_response(:, conditions_stanceL_stimNeg_450ms), 2), cinv(fxl_stanceL_response(:, conditions_stanceL_stimNeg_450ms), 2), {'color', color_negative, 'linewidth', 5}, 1);
+        xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)], 'ylim', [-15 15]);
+        this_legend = legend([positive_plot.mainLine negative_plot.mainLine], 'illusion left', 'illusion right');
+        set(this_legend, 'Location', 'NORTHWEST')
+        xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), 'right \rightarrow', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right')
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(1), '\leftarrow left', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'left')
+        if save_figures
+            saveas(gcf, 'cop_response_stanceL_450ms.eps', 'epsc2')
+        end
+    end
+end
+
+if do_fx_plots_response_left
+    figure; axes; hold on; title(['left foot f_x response, 0ms - ' subject_id]); set(gca, 'Fontsize', 12)
+    positive_plot = shadedErrorBar(time_normalized, mean(fxl_stanceL_response(:, conditions_stanceL_stimPos_0ms), 2), cinv(fxl_stanceL_response(:, conditions_stanceL_stimPos_0ms), 2), {'color', color_positive, 'linewidth', 5}, 1);
+    negative_plot = shadedErrorBar(time_normalized, mean(fxl_stanceL_response(:, conditions_stanceL_stimNeg_0ms), 2), cinv(fxl_stanceL_response(:, conditions_stanceL_stimNeg_0ms), 2), {'color', color_negative, 'linewidth', 5}, 1);
+    xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)], 'ylim', [-15 15]);
+    this_legend = legend([positive_plot.mainLine negative_plot.mainLine], 'illusion left', 'illusion right');
+    set(this_legend, 'Location', 'NORTHWEST')
+    xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
+    text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), 'right \rightarrow', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right')
+    text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(1), '\leftarrow left', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'left')
+    if save_figures
+        saveas(gcf, 'cop_response_stanceL_0ms.eps', 'epsc2')
+    end
+    
+    if do_phase_delayed_plots
+        % 150ms
+        figure; axes; hold on; title(['left foot f_x response, 150ms - ' subject_id]); set(gca, 'Fontsize', 12)
+        positive_plot = shadedErrorBar(time_normalized, mean(fxl_stanceL_response(:, conditions_stanceL_stimPos_150ms), 2), cinv(fxl_stanceL_response(:, conditions_stanceL_stimPos_150ms), 2), {'color', color_positive, 'linewidth', 5}, 1);
+        negative_plot = shadedErrorBar(time_normalized, mean(fxl_stanceL_response(:, conditions_stanceL_stimNeg_150ms), 2), cinv(fxl_stanceL_response(:, conditions_stanceL_stimNeg_150ms), 2), {'color', color_negative, 'linewidth', 5}, 1);
+        xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)], 'ylim', [-15 15]);
+        this_legend = legend([positive_plot.mainLine negative_plot.mainLine], 'illusion left', 'illusion right');
+        set(this_legend, 'Location', 'NORTHWEST')
+        xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), 'right \rightarrow', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right')
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(1), '\leftarrow left', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'left')
+        if save_figures
+            saveas(gcf, 'cop_response_stanceL_150ms.eps', 'epsc2')
+        end
+
+        % 450ms
+        figure; axes; hold on; title(['right foot f_x response, 450ms - ' subject_id]); set(gca, 'Fontsize', 12)
+        positive_plot = shadedErrorBar(time_normalized, mean(fxr_stanceR_response(:, conditions_stanceR_stimPos_450ms), 2), cinv(fxr_stanceR_response(:, conditions_stanceR_stimPos_450ms), 2), {'color', color_positive, 'linewidth', 5}, 1);
+        negative_plot = shadedErrorBar(time_normalized, mean(fxr_stanceR_response(:, conditions_stanceR_stimNeg_450ms), 2), cinv(fxr_stanceR_response(:, conditions_stanceR_stimNeg_450ms), 2), {'color', color_negative, 'linewidth', 5}, 1);
+        xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)], 'ylim', [-15 15]);
+        this_legend = legend([positive_plot.mainLine negative_plot.mainLine], 'illusion left', 'illusion right');
+        set(this_legend, 'Location', 'NORTHWEST')
+        xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), 'right \rightarrow', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right')
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(1), '\leftarrow left', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'left')
+        if save_figures
+            saveas(gcf, 'cop_response_stanceR_450ms.eps', 'epsc2')
+        end
+    end
+end
+
+%% fz plots
+if do_fz_plots_single
+    figure; axes; hold on; title(['left foot f_z, N = ' num2str(sum(conditions_stanceL_stimNo))]); set(gca, 'Fontsize', 12)
+    plot(time_normalized, fzl_normalized_total(:, conditions_stanceL_stimNo), 'color', lightenColor(color_control, 0.5));
+    plot(time_normalized, mean(fzl_normalized_total(:, conditions_stanceL_stimNo), 2), 'color', color_control, 'linewidth', 5);
+    
+    figure; axes; hold on; title(['right foot f_z, N = ' num2str(sum(conditions_stanceR_stimNo))]); set(gca, 'Fontsize', 12)
+    plot(time_normalized, fzr_normalized_total(:, conditions_stanceR_stimNo), 'color', lightenColor(color_control, 0.5));
+    plot(time_normalized, mean(fzr_normalized_total(:, conditions_stanceR_stimNo), 2), 'color', color_control, 'linewidth', 5);
+    
+    figure; axes; hold on; title(['left foot f_z, 0ms, N = ' num2str(sum(conditions_stanceL_0ms))]); set(gca, 'Fontsize', 12)
+    if any(conditions_stanceL_stimNeg_0ms) plot(time_normalized, fzl_normalized_total(:, conditions_stanceL_stimNeg_0ms), 'color', lightenColor(color_negative, 0.5)); end
+    if any(conditions_stanceL_stimPos_0ms) plot(time_normalized, fzl_normalized_total(:, conditions_stanceL_stimPos_0ms), 'color', lightenColor(color_positive, 0.5)); end
+    plot(time_normalized, mean(fzl_normalized_total(:, conditions_stanceL_stimNeg_0ms), 2), 'color', color_negative, 'linewidth', 5);
+    plot(time_normalized, mean(fzl_normalized_total(:, conditions_stanceL_stimPos_0ms), 2), 'color', color_positive, 'linewidth', 5);
+    
+    figure; axes; hold on; title(['right foot f_z, 0ms, N = ' num2str(sum(conditions_stanceR_0ms))]); set(gca, 'Fontsize', 12)
+    plot(time_normalized, fzr_normalized_total(:, conditions_stanceR_stimNeg_0ms), 'color', lightenColor(color_negative, 0.5));
+    plot(time_normalized, fzr_normalized_total(:, conditions_stanceR_stimPos_0ms), 'color', lightenColor(color_positive, 0.5));
+    plot(time_normalized, mean(fzr_normalized_total(:, conditions_stanceR_stimNeg_0ms), 2), 'color', color_negative, 'linewidth', 5);
+    plot(time_normalized, mean(fzr_normalized_total(:, conditions_stanceR_stimPos_0ms), 2), 'color', color_positive, 'linewidth', 5);
+    
+    if do_phase_delayed_plots
+        figure; axes; hold on; title(['right foot f_z, 150ms, N = ' num2str(sum(conditions_stanceR_150ms))]); set(gca, 'Fontsize', 12)
+        plot(time_normalized, fzr_normalized_total(:, conditions_stanceR_stimNeg_150ms), 'color', lightenColor(color_negative, 0.5));
+        plot(time_normalized, fzr_normalized_total(:, conditions_stanceR_stimPos_150ms), 'color', lightenColor(color_positive, 0.5));
+        plot(time_normalized, mean(fzr_normalized_total(:, conditions_stanceR_stimNeg_150ms), 2), 'color', color_negative, 'linewidth', 5);
+        plot(time_normalized, mean(fzr_normalized_total(:, conditions_stanceR_stimPos_150ms), 2), 'color', color_positive, 'linewidth', 5);
+
+        figure; axes; hold on; title(['left foot f_z, 450ms, N = ' num2str(sum(conditions_stanceL_450ms))]); set(gca, 'Fontsize', 12)
+        plot(time_normalized, fzl_normalized_total(:, conditions_stanceL_stimNeg_450ms), 'color', lightenColor(color_negative, 0.5));
+        plot(time_normalized, fzl_normalized_total(:, conditions_stanceL_stimPos_450ms), 'color', lightenColor(color_positive, 0.5));
+        plot(time_normalized, mean(fzl_normalized_total(:, conditions_stanceL_stimNeg_450ms), 2), 'color', color_negative, 'linewidth', 5);
+        plot(time_normalized, mean(fzl_normalized_total(:, conditions_stanceL_stimPos_450ms), 2), 'color', color_positive, 'linewidth', 5);
+        
+        figure; axes; hold on; title(['left foot f_z, 150ms, N = ' num2str(sum(conditions_stanceL_150ms))]); set(gca, 'Fontsize', 12)
+        if any(conditions_stanceL_stimNeg_150ms) plot(time_normalized, fzl_normalized_total(:, conditions_stanceL_stimNeg_150ms), 'color', lightenColor(color_negative, 0.5)); end
+        if any(conditions_stanceL_stimPos_150ms) plot(time_normalized, fzl_normalized_total(:, conditions_stanceL_stimPos_150ms), 'color', lightenColor(color_positive, 0.5)); end
+        plot(time_normalized, mean(fzl_normalized_total(:, conditions_stanceL_stimNeg_150ms), 2), 'color', color_negative, 'linewidth', 5);
+        plot(time_normalized, mean(fzl_normalized_total(:, conditions_stanceL_stimPos_150ms), 2), 'color', color_positive, 'linewidth', 5);
+
+        figure; axes; hold on; title(['right foot f_z, 450ms, N = ' num2str(sum(conditions_stanceR_450ms))]); set(gca, 'Fontsize', 12)
+        if any(conditions_stanceR_stimNeg_450ms) plot(time_normalized, fzr_normalized_total(:, conditions_stanceR_stimNeg_450ms), 'color', lightenColor(color_negative, 0.5)); end
+        if any(conditions_stanceR_stimPos_450ms) plot(time_normalized, fzr_normalized_total(:, conditions_stanceR_stimPos_450ms), 'color', lightenColor(color_positive, 0.5)); end
+        plot(time_normalized, mean(fzr_normalized_total(:, conditions_stanceR_stimNeg_450ms), 2), 'color', color_negative, 'linewidth', 5);
+        plot(time_normalized, mean(fzr_normalized_total(:, conditions_stanceR_stimPos_450ms), 2), 'color', color_positive, 'linewidth', 5);
+    end
+end
+
+if do_fz_plots_absolute_right
+    % 0ms
+    figure; axes; hold on; title(['right foot f_z, 0ms - ' subject_id]); set(gca, 'Fontsize', 12)
+    control_plot = shadedErrorBar(time_normalized, mean(fzr_normalized_total(:, conditions_stanceR_stimNo), 2), cinv(fzr_normalized_total(:, conditions_stanceR_stimNo), 2), {'color', color_control, 'linewidth', 5}, 1);
+    positive_plot = shadedErrorBar(time_normalized, mean(fzr_normalized_total(:, conditions_stanceR_stimPos_0ms), 2), cinv(fzr_normalized_total(:, conditions_stanceR_stimPos_0ms), 2), {'color', color_positive, 'linewidth', 5}, 1);
+    negative_plot = shadedErrorBar(time_normalized, mean(fzr_normalized_total(:, conditions_stanceR_stimNeg_0ms), 2), cinv(fzr_normalized_total(:, conditions_stanceR_stimNeg_0ms), 2), {'color', color_negative, 'linewidth', 5}, 1);
+    xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)]); 
+    this_legend = legend([control_plot.mainLine positive_plot.mainLine negative_plot.mainLine], 'control', 'illusion left', 'illusion right');
+    set(this_legend, 'Location', 'NORTHWEST')
+    xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
+    text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), 'right \rightarrow', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right')
+    text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(1), '\leftarrow left', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'left')
+    if save_figures
+        saveas(gcf, 'cop_absolute_stanceR_0ms.eps', 'epsc2')
+    end
+    
+    if do_phase_delayed_plots
+        % 150ms
+        figure; axes; hold on; title(['right foot f_z, 150ms - ' subject_id]); set(gca, 'Fontsize', 12)
+        control_plot = shadedErrorBar(time_normalized, mean(fzr_normalized_total(:, conditions_stanceR_stimNo), 2), cinv(fzr_normalized_total(:, conditions_stanceR_stimNo), 2), {'color', color_control, 'linewidth', 5}, 1);
+        positive_plot = shadedErrorBar(time_normalized, mean(fzr_normalized_total(:, conditions_stanceR_stimPos_150ms), 2), cinv(fzr_normalized_total(:, conditions_stanceR_stimPos_150ms), 2), {'color', color_positive, 'linewidth', 5}, 1);
+        negative_plot = shadedErrorBar(time_normalized, mean(fzr_normalized_total(:, conditions_stanceR_stimNeg_150ms), 2), cinv(fzr_normalized_total(:, conditions_stanceR_stimNeg_150ms), 2), {'color', color_negative, 'linewidth', 5}, 1);
+        xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)]); 
+        this_legend = legend([control_plot.mainLine positive_plot.mainLine negative_plot.mainLine], 'control', 'illusion left', 'illusion right');
+        set(this_legend, 'Location', 'NORTHWEST')
+        xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), 'right \rightarrow', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right')
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(1), '\leftarrow left', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'left')
+        if save_figures
+            saveas(gcf, 'cop_absolute_stanceR_150ms.eps', 'epsc2')
+        end
+
+        % 450ms
+        figure; axes; hold on; title(['left foot f_z, 450ms - ' subject_id]); set(gca, 'Fontsize', 12)
+        control_plot = shadedErrorBar(time_normalized, mean(fzl_normalized_total(:, conditions_stanceL_stimNo), 2), cinv(fzl_normalized_total(:, conditions_stanceL_stimNo), 2), {'color', color_control, 'linewidth', 5}, 1);
+        positive_plot = shadedErrorBar(time_normalized, mean(fzl_normalized_total(:, conditions_stanceL_stimPos_450ms), 2), cinv(fzl_normalized_total(:, conditions_stanceL_stimPos_450ms), 2), {'color', color_positive, 'linewidth', 5}, 1);
+        negative_plot = shadedErrorBar(time_normalized, mean(fzl_normalized_total(:, conditions_stanceL_stimNeg_450ms), 2), cinv(fzl_normalized_total(:, conditions_stanceL_stimNeg_450ms), 2), {'color', color_negative, 'linewidth', 5}, 1);
+        xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)]); 
+        this_legend = legend([control_plot.mainLine positive_plot.mainLine negative_plot.mainLine], 'control', 'illusion left', 'illusion right');
+        set(this_legend, 'Location', 'NORTHWEST')
+        xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), 'right \rightarrow', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right')
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(1), '\leftarrow left', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'left')
+        if save_figures
+            saveas(gcf, 'cop_absolute_stanceL_450ms.eps', 'epsc2')
+        end
+    end
+end
+
+if do_fz_plots_absolute_left
+    figure; axes; hold on; title(['left foot f_z, 0ms - ' subject_id]); set(gca, 'Fontsize', 12)
+    control_plot = shadedErrorBar(time_normalized, mean(fzl_normalized_total(:, conditions_stanceL_stimNo), 2), cinv(fzl_normalized_total(:, conditions_stanceL_stimNo), 2), {'color', color_control, 'linewidth', 5}, 1);
+    positive_plot = shadedErrorBar(time_normalized, mean(fzl_normalized_total(:, conditions_stanceL_stimPos_0ms), 2), cinv(fzl_normalized_total(:, conditions_stanceL_stimPos_0ms), 2), {'color', color_positive, 'linewidth', 5}, 1);
+    negative_plot = shadedErrorBar(time_normalized, mean(fzl_normalized_total(:, conditions_stanceL_stimNeg_0ms), 2), cinv(fzl_normalized_total(:, conditions_stanceL_stimNeg_0ms), 2), {'color', color_negative, 'linewidth', 5}, 1);
+    xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)]); 
+    this_legend = legend([control_plot.mainLine positive_plot.mainLine negative_plot.mainLine], 'control', 'illusion left', 'illusion right');
+    set(this_legend, 'Location', 'NORTHWEST')
+    xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
+    text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), 'right \rightarrow', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right')
+    text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(1), '\leftarrow left', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'left')
+    if save_figures
+        saveas(gcf, 'cop_absolute_stanceL_0ms.eps', 'epsc2')
+    end
+    
+    if do_phase_delayed_plots
+        % 150ms
+        figure; axes; hold on; title(['left foot f_z, 150ms - ' subject_id]); set(gca, 'Fontsize', 12)
+        control_plot = shadedErrorBar(time_normalized, mean(fzl_normalized_total(:, conditions_stanceL_stimNo), 2), cinv(fzl_normalized_total(:, conditions_stanceL_stimNo), 2), {'color', color_control, 'linewidth', 5}, 1);
+        positive_plot = shadedErrorBar(time_normalized, mean(fzl_normalized_total(:, conditions_stanceL_stimPos_150ms), 2), cinv(fzl_normalized_total(:, conditions_stanceL_stimPos_150ms), 2), {'color', color_positive, 'linewidth', 5}, 1);
+        negative_plot = shadedErrorBar(time_normalized, mean(fzl_normalized_total(:, conditions_stanceL_stimNeg_150ms), 2), cinv(fzl_normalized_total(:, conditions_stanceL_stimNeg_150ms), 2), {'color', color_negative, 'linewidth', 5}, 1);
+        xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)]); 
+        this_legend = legend([control_plot.mainLine positive_plot.mainLine negative_plot.mainLine], 'control', 'illusion left', 'illusion right');
+        set(this_legend, 'Location', 'NORTHWEST')
+        xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), 'right \rightarrow', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right')
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(1), '\leftarrow left', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'left')
+        if save_figures
+            saveas(gcf, 'cop_absolute_stanceL_150ms.eps', 'epsc2')
+        end
+
+        % 450ms
+        figure; axes; hold on; title(['right foot f_z, 450ms - ' subject_id]); set(gca, 'Fontsize', 12)
+        control_plot = shadedErrorBar(time_normalized, mean(fzr_normalized_total(:, conditions_stanceR_stimNo), 2), cinv(fzr_normalized_total(:, conditions_stanceR_stimNo), 2), {'color', color_control, 'linewidth', 5}, 1);
+        positive_plot = shadedErrorBar(time_normalized, mean(fzr_normalized_total(:, conditions_stanceR_stimPos_450ms), 2), cinv(fzr_normalized_total(:, conditions_stanceR_stimPos_450ms), 2), {'color', color_positive, 'linewidth', 5}, 1);
+        negative_plot = shadedErrorBar(time_normalized, mean(fzr_normalized_total(:, conditions_stanceR_stimNeg_450ms), 2), cinv(fzr_normalized_total(:, conditions_stanceR_stimNeg_450ms), 2), {'color', color_negative, 'linewidth', 5}, 1);
+        xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)]); 
+        this_legend = legend([control_plot.mainLine positive_plot.mainLine negative_plot.mainLine], 'control', 'illusion left', 'illusion right');
+        set(this_legend, 'Location', 'NORTHWEST')
+        xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), 'right \rightarrow', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right')
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(1), '\leftarrow left', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'left')
+        if save_figures
+            saveas(gcf, 'cop_absolute_stanceR_450ms.eps', 'epsc2')
+        end
+    end
+end
+
+if do_fz_plots_response_right
+    % 0ms
+    figure; axes; hold on; title(['right foot f_z response, 0ms - ' subject_id]); set(gca, 'Fontsize', 12)
+    positive_plot = shadedErrorBar(time_normalized, mean(fzr_stanceR_response(:, conditions_stanceR_stimPos_0ms), 2), cinv(fzr_stanceR_response(:, conditions_stanceR_stimPos_0ms), 2), {'color', color_positive, 'linewidth', 5}, 1);
+    negative_plot = shadedErrorBar(time_normalized, mean(fzr_stanceR_response(:, conditions_stanceR_stimNeg_0ms), 2), cinv(fzr_stanceR_response(:, conditions_stanceR_stimNeg_0ms), 2), {'color', color_negative, 'linewidth', 5}, 1);
+    xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)], 'ylim', [-30 30]);
+    this_legend = legend([positive_plot.mainLine negative_plot.mainLine], 'illusion left', 'illusion right');
+    set(this_legend, 'Location', 'NORTHWEST')
+    xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
+    text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), 'right \rightarrow', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right')
+    text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(1), '\leftarrow left', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'left')
+    if save_figures
+        saveas(gcf, 'cop_response_stanceR_0ms.eps', 'epsc2')
+    end
+    
+    if do_phase_delayed_plots
+        % 150ms
+        figure; axes; hold on; title(['right foot f_z response, 150ms - ' subject_id]); set(gca, 'Fontsize', 12)
+        positive_plot = shadedErrorBar(time_normalized, mean(fzr_stanceR_response(:, conditions_stanceR_stimPos_150ms), 2), cinv(fzr_stanceR_response(:, conditions_stanceR_stimPos_150ms), 2), {'color', color_positive, 'linewidth', 5}, 1);
+        negative_plot = shadedErrorBar(time_normalized, mean(fzr_stanceR_response(:, conditions_stanceR_stimNeg_150ms), 2), cinv(fzr_stanceR_response(:, conditions_stanceR_stimNeg_150ms), 2), {'color', color_negative, 'linewidth', 5}, 1);
+        xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)], 'ylim', [-30 30]);
+        this_legend = legend([positive_plot.mainLine negative_plot.mainLine], 'illusion left', 'illusion right');
+        set(this_legend, 'Location', 'NORTHWEST')
+        xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), 'right \rightarrow', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right')
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(1), '\leftarrow left', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'left')
+        if save_figures
+            saveas(gcf, 'cop_response_stanceR_150ms.eps', 'epsc2')
+        end
+
+        % 450ms
+        figure; axes; hold on; title(['left foot f_z response, 450ms - ' subject_id]); set(gca, 'Fontsize', 12)
+        positive_plot = shadedErrorBar(time_normalized, mean(fzl_stanceL_response(:, conditions_stanceL_stimPos_450ms), 2), cinv(fzl_stanceL_response(:, conditions_stanceL_stimPos_450ms), 2), {'color', color_positive, 'linewidth', 5}, 1);
+        negative_plot = shadedErrorBar(time_normalized, mean(fzl_stanceL_response(:, conditions_stanceL_stimNeg_450ms), 2), cinv(fzl_stanceL_response(:, conditions_stanceL_stimNeg_450ms), 2), {'color', color_negative, 'linewidth', 5}, 1);
+        xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)], 'ylim', [-30 30]);
+        this_legend = legend([positive_plot.mainLine negative_plot.mainLine], 'illusion left', 'illusion right');
+        set(this_legend, 'Location', 'NORTHWEST')
+        xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), 'right \rightarrow', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right')
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(1), '\leftarrow left', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'left')
+        if save_figures
+            saveas(gcf, 'cop_response_stanceL_450ms.eps', 'epsc2')
+        end
+    end
+end
+
+if do_fz_plots_response_left
+    figure; axes; hold on; title(['left foot f_z response, 0ms - ' subject_id]); set(gca, 'Fontsize', 12)
+    positive_plot = shadedErrorBar(time_normalized, mean(fzl_stanceL_response(:, conditions_stanceL_stimPos_0ms), 2), cinv(fzl_stanceL_response(:, conditions_stanceL_stimPos_0ms), 2), {'color', color_positive, 'linewidth', 5}, 1);
+    negative_plot = shadedErrorBar(time_normalized, mean(fzl_stanceL_response(:, conditions_stanceL_stimNeg_0ms), 2), cinv(fzl_stanceL_response(:, conditions_stanceL_stimNeg_0ms), 2), {'color', color_negative, 'linewidth', 5}, 1);
+    xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)], 'ylim', [-30 30]);
+    this_legend = legend([positive_plot.mainLine negative_plot.mainLine], 'illusion left', 'illusion right');
+    set(this_legend, 'Location', 'NORTHWEST')
+    xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
+    text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), 'right \rightarrow', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right')
+    text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(1), '\leftarrow left', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'left')
+    if save_figures
+        saveas(gcf, 'cop_response_stanceL_0ms.eps', 'epsc2')
+    end
+    
+    if do_phase_delayed_plots
+        % 150ms
+        figure; axes; hold on; title(['left foot f_z response, 150ms - ' subject_id]); set(gca, 'Fontsize', 12)
+        positive_plot = shadedErrorBar(time_normalized, mean(fzl_stanceL_response(:, conditions_stanceL_stimPos_150ms), 2), cinv(fzl_stanceL_response(:, conditions_stanceL_stimPos_150ms), 2), {'color', color_positive, 'linewidth', 5}, 1);
+        negative_plot = shadedErrorBar(time_normalized, mean(fzl_stanceL_response(:, conditions_stanceL_stimNeg_150ms), 2), cinv(fzl_stanceL_response(:, conditions_stanceL_stimNeg_150ms), 2), {'color', color_negative, 'linewidth', 5}, 1);
+        xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)], 'ylim', [-30 30]);
+        this_legend = legend([positive_plot.mainLine negative_plot.mainLine], 'illusion left', 'illusion right');
+        set(this_legend, 'Location', 'NORTHWEST')
+        xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), 'right \rightarrow', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right')
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(1), '\leftarrow left', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'left')
+        if save_figures
+            saveas(gcf, 'cop_response_stanceL_150ms.eps', 'epsc2')
+        end
+
+        % 450ms
+        figure; axes; hold on; title(['right foot f_z response, 450ms - ' subject_id]); set(gca, 'Fontsize', 12)
+        positive_plot = shadedErrorBar(time_normalized, mean(fzr_stanceR_response(:, conditions_stanceR_stimPos_450ms), 2), cinv(fzr_stanceR_response(:, conditions_stanceR_stimPos_450ms), 2), {'color', color_positive, 'linewidth', 5}, 1);
+        negative_plot = shadedErrorBar(time_normalized, mean(fzr_stanceR_response(:, conditions_stanceR_stimNeg_450ms), 2), cinv(fzr_stanceR_response(:, conditions_stanceR_stimNeg_450ms), 2), {'color', color_negative, 'linewidth', 5}, 1);
+        xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)], 'ylim', [-30 30]);
+        this_legend = legend([positive_plot.mainLine negative_plot.mainLine], 'illusion left', 'illusion right');
+        set(this_legend, 'Location', 'NORTHWEST')
+        xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), 'right \rightarrow', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right')
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(1), '\leftarrow left', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'left')
+        if save_figures
+            saveas(gcf, 'cop_response_stanceR_450ms.eps', 'epsc2')
+        end
+    end
+end
+
+%% my plots
+if do_my_plots_single
+    figure; axes; hold on; title(['left foot m_y, N = ' num2str(sum(conditions_stanceL_stimNo))]); set(gca, 'Fontsize', 12)
+    plot(time_normalized, myl_normalized_total(:, conditions_stanceL_stimNo), 'color', lightenColor(color_control, 0.5));
+    plot(time_normalized, mean(myl_normalized_total(:, conditions_stanceL_stimNo), 2), 'color', color_control, 'linewidth', 5);
+    
+    figure; axes; hold on; title(['right foot m_y, N = ' num2str(sum(conditions_stanceR_stimNo))]); set(gca, 'Fontsize', 12)
+    plot(time_normalized, myr_normalized_total(:, conditions_stanceR_stimNo), 'color', lightenColor(color_control, 0.5));
+    plot(time_normalized, mean(myr_normalized_total(:, conditions_stanceR_stimNo), 2), 'color', color_control, 'linewidth', 5);
+    
+    figure; axes; hold on; title(['left foot m_y, 0ms, N = ' num2str(sum(conditions_stanceL_0ms))]); set(gca, 'Fontsize', 12)
+    if any(conditions_stanceL_stimNeg_0ms) plot(time_normalized, myl_normalized_total(:, conditions_stanceL_stimNeg_0ms), 'color', lightenColor(color_negative, 0.5)); end
+    if any(conditions_stanceL_stimPos_0ms) plot(time_normalized, myl_normalized_total(:, conditions_stanceL_stimPos_0ms), 'color', lightenColor(color_positive, 0.5)); end
+    plot(time_normalized, mean(myl_normalized_total(:, conditions_stanceL_stimNeg_0ms), 2), 'color', color_negative, 'linewidth', 5);
+    plot(time_normalized, mean(myl_normalized_total(:, conditions_stanceL_stimPos_0ms), 2), 'color', color_positive, 'linewidth', 5);
+    
+    figure; axes; hold on; title(['right foot m_y, 0ms, N = ' num2str(sum(conditions_stanceR_0ms))]); set(gca, 'Fontsize', 12)
+    plot(time_normalized, myr_normalized_total(:, conditions_stanceR_stimNeg_0ms), 'color', lightenColor(color_negative, 0.5));
+    plot(time_normalized, myr_normalized_total(:, conditions_stanceR_stimPos_0ms), 'color', lightenColor(color_positive, 0.5));
+    plot(time_normalized, mean(myr_normalized_total(:, conditions_stanceR_stimNeg_0ms), 2), 'color', color_negative, 'linewidth', 5);
+    plot(time_normalized, mean(myr_normalized_total(:, conditions_stanceR_stimPos_0ms), 2), 'color', color_positive, 'linewidth', 5);
+    
+    if do_phase_delayed_plots
+        figure; axes; hold on; title(['right foot m_y, 150ms, N = ' num2str(sum(conditions_stanceR_150ms))]); set(gca, 'Fontsize', 12)
+        plot(time_normalized, myr_normalized_total(:, conditions_stanceR_stimNeg_150ms), 'color', lightenColor(color_negative, 0.5));
+        plot(time_normalized, myr_normalized_total(:, conditions_stanceR_stimPos_150ms), 'color', lightenColor(color_positive, 0.5));
+        plot(time_normalized, mean(myr_normalized_total(:, conditions_stanceR_stimNeg_150ms), 2), 'color', color_negative, 'linewidth', 5);
+        plot(time_normalized, mean(myr_normalized_total(:, conditions_stanceR_stimPos_150ms), 2), 'color', color_positive, 'linewidth', 5);
+
+        figure; axes; hold on; title(['left foot m_y, 450ms, N = ' num2str(sum(conditions_stanceL_450ms))]); set(gca, 'Fontsize', 12)
+        plot(time_normalized, myl_normalized_total(:, conditions_stanceL_stimNeg_450ms), 'color', lightenColor(color_negative, 0.5));
+        plot(time_normalized, myl_normalized_total(:, conditions_stanceL_stimPos_450ms), 'color', lightenColor(color_positive, 0.5));
+        plot(time_normalized, mean(myl_normalized_total(:, conditions_stanceL_stimNeg_450ms), 2), 'color', color_negative, 'linewidth', 5);
+        plot(time_normalized, mean(myl_normalized_total(:, conditions_stanceL_stimPos_450ms), 2), 'color', color_positive, 'linewidth', 5);
+        
+        figure; axes; hold on; title(['left foot m_y, 150ms, N = ' num2str(sum(conditions_stanceL_150ms))]); set(gca, 'Fontsize', 12)
+        if any(conditions_stanceL_stimNeg_150ms) plot(time_normalized, myl_normalized_total(:, conditions_stanceL_stimNeg_150ms), 'color', lightenColor(color_negative, 0.5)); end
+        if any(conditions_stanceL_stimPos_150ms) plot(time_normalized, myl_normalized_total(:, conditions_stanceL_stimPos_150ms), 'color', lightenColor(color_positive, 0.5)); end
+        plot(time_normalized, mean(myl_normalized_total(:, conditions_stanceL_stimNeg_150ms), 2), 'color', color_negative, 'linewidth', 5);
+        plot(time_normalized, mean(myl_normalized_total(:, conditions_stanceL_stimPos_150ms), 2), 'color', color_positive, 'linewidth', 5);
+
+        figure; axes; hold on; title(['right foot m_y, 450ms, N = ' num2str(sum(conditions_stanceR_450ms))]); set(gca, 'Fontsize', 12)
+        if any(conditions_stanceR_stimNeg_450ms) plot(time_normalized, myr_normalized_total(:, conditions_stanceR_stimNeg_450ms), 'color', lightenColor(color_negative, 0.5)); end
+        if any(conditions_stanceR_stimPos_450ms) plot(time_normalized, myr_normalized_total(:, conditions_stanceR_stimPos_450ms), 'color', lightenColor(color_positive, 0.5)); end
+        plot(time_normalized, mean(myr_normalized_total(:, conditions_stanceR_stimNeg_450ms), 2), 'color', color_negative, 'linewidth', 5);
+        plot(time_normalized, mean(myr_normalized_total(:, conditions_stanceR_stimPos_450ms), 2), 'color', color_positive, 'linewidth', 5);
+    end
+end
+
+if do_my_plots_absolute_right
+    % 0ms
+    figure; axes; hold on; title(['right foot m_y, 0ms - ' subject_id]); set(gca, 'Fontsize', 12)
+    control_plot = shadedErrorBar(time_normalized, mean(myr_normalized_total(:, conditions_stanceR_stimNo), 2), cinv(myr_normalized_total(:, conditions_stanceR_stimNo), 2), {'color', color_control, 'linewidth', 5}, 1);
+    positive_plot = shadedErrorBar(time_normalized, mean(myr_normalized_total(:, conditions_stanceR_stimPos_0ms), 2), cinv(myr_normalized_total(:, conditions_stanceR_stimPos_0ms), 2), {'color', color_positive, 'linewidth', 5}, 1);
+    negative_plot = shadedErrorBar(time_normalized, mean(myr_normalized_total(:, conditions_stanceR_stimNeg_0ms), 2), cinv(myr_normalized_total(:, conditions_stanceR_stimNeg_0ms), 2), {'color', color_negative, 'linewidth', 5}, 1);
+    xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)]); 
+    this_legend = legend([control_plot.mainLine positive_plot.mainLine negative_plot.mainLine], 'control', 'illusion left', 'illusion right');
+    set(this_legend, 'Location', 'NORTHWEST')
+    xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
+    text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), 'right \rightarrow', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right')
+    text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(1), '\leftarrow left', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'left')
+    if save_figures
+        saveas(gcf, 'cop_absolute_stanceR_0ms.eps', 'epsc2')
+    end
+    
+    if do_phase_delayed_plots
+        % 150ms
+        figure; axes; hold on; title(['right foot m_y, 150ms - ' subject_id]); set(gca, 'Fontsize', 12)
+        control_plot = shadedErrorBar(time_normalized, mean(myr_normalized_total(:, conditions_stanceR_stimNo), 2), cinv(myr_normalized_total(:, conditions_stanceR_stimNo), 2), {'color', color_control, 'linewidth', 5}, 1);
+        positive_plot = shadedErrorBar(time_normalized, mean(myr_normalized_total(:, conditions_stanceR_stimPos_150ms), 2), cinv(myr_normalized_total(:, conditions_stanceR_stimPos_150ms), 2), {'color', color_positive, 'linewidth', 5}, 1);
+        negative_plot = shadedErrorBar(time_normalized, mean(myr_normalized_total(:, conditions_stanceR_stimNeg_150ms), 2), cinv(myr_normalized_total(:, conditions_stanceR_stimNeg_150ms), 2), {'color', color_negative, 'linewidth', 5}, 1);
+        xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)]); 
+        this_legend = legend([control_plot.mainLine positive_plot.mainLine negative_plot.mainLine], 'control', 'illusion left', 'illusion right');
+        set(this_legend, 'Location', 'NORTHWEST')
+        xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), 'right \rightarrow', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right')
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(1), '\leftarrow left', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'left')
+        if save_figures
+            saveas(gcf, 'cop_absolute_stanceR_150ms.eps', 'epsc2')
+        end
+
+        % 450ms
+        figure; axes; hold on; title(['left foot m_y, 450ms - ' subject_id]); set(gca, 'Fontsize', 12)
+        control_plot = shadedErrorBar(time_normalized, mean(myl_normalized_total(:, conditions_stanceL_stimNo), 2), cinv(myl_normalized_total(:, conditions_stanceL_stimNo), 2), {'color', color_control, 'linewidth', 5}, 1);
+        positive_plot = shadedErrorBar(time_normalized, mean(myl_normalized_total(:, conditions_stanceL_stimPos_450ms), 2), cinv(myl_normalized_total(:, conditions_stanceL_stimPos_450ms), 2), {'color', color_positive, 'linewidth', 5}, 1);
+        negative_plot = shadedErrorBar(time_normalized, mean(myl_normalized_total(:, conditions_stanceL_stimNeg_450ms), 2), cinv(myl_normalized_total(:, conditions_stanceL_stimNeg_450ms), 2), {'color', color_negative, 'linewidth', 5}, 1);
+        xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)]); 
+        this_legend = legend([control_plot.mainLine positive_plot.mainLine negative_plot.mainLine], 'control', 'illusion left', 'illusion right');
+        set(this_legend, 'Location', 'NORTHWEST')
+        xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), 'right \rightarrow', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right')
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(1), '\leftarrow left', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'left')
+        if save_figures
+            saveas(gcf, 'cop_absolute_stanceL_450ms.eps', 'epsc2')
+        end
+    end
+end
+
+if do_my_plots_absolute_left
+    figure; axes; hold on; title(['left foot m_y, 0ms - ' subject_id]); set(gca, 'Fontsize', 12)
+    control_plot = shadedErrorBar(time_normalized, mean(myl_normalized_total(:, conditions_stanceL_stimNo), 2), cinv(myl_normalized_total(:, conditions_stanceL_stimNo), 2), {'color', color_control, 'linewidth', 5}, 1);
+    positive_plot = shadedErrorBar(time_normalized, mean(myl_normalized_total(:, conditions_stanceL_stimPos_0ms), 2), cinv(myl_normalized_total(:, conditions_stanceL_stimPos_0ms), 2), {'color', color_positive, 'linewidth', 5}, 1);
+    negative_plot = shadedErrorBar(time_normalized, mean(myl_normalized_total(:, conditions_stanceL_stimNeg_0ms), 2), cinv(myl_normalized_total(:, conditions_stanceL_stimNeg_0ms), 2), {'color', color_negative, 'linewidth', 5}, 1);
+    xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)]); 
+    this_legend = legend([control_plot.mainLine positive_plot.mainLine negative_plot.mainLine], 'control', 'illusion left', 'illusion right');
+    set(this_legend, 'Location', 'NORTHWEST')
+    xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
+    text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), 'right \rightarrow', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right')
+    text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(1), '\leftarrow left', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'left')
+    if save_figures
+        saveas(gcf, 'cop_absolute_stanceL_0ms.eps', 'epsc2')
+    end
+    
+    if do_phase_delayed_plots
+        % 150ms
+        figure; axes; hold on; title(['left foot m_y, 150ms - ' subject_id]); set(gca, 'Fontsize', 12)
+        control_plot = shadedErrorBar(time_normalized, mean(myl_normalized_total(:, conditions_stanceL_stimNo), 2), cinv(myl_normalized_total(:, conditions_stanceL_stimNo), 2), {'color', color_control, 'linewidth', 5}, 1);
+        positive_plot = shadedErrorBar(time_normalized, mean(myl_normalized_total(:, conditions_stanceL_stimPos_150ms), 2), cinv(myl_normalized_total(:, conditions_stanceL_stimPos_150ms), 2), {'color', color_positive, 'linewidth', 5}, 1);
+        negative_plot = shadedErrorBar(time_normalized, mean(myl_normalized_total(:, conditions_stanceL_stimNeg_150ms), 2), cinv(myl_normalized_total(:, conditions_stanceL_stimNeg_150ms), 2), {'color', color_negative, 'linewidth', 5}, 1);
+        xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)]); 
+        this_legend = legend([control_plot.mainLine positive_plot.mainLine negative_plot.mainLine], 'control', 'illusion left', 'illusion right');
+        set(this_legend, 'Location', 'NORTHWEST')
+        xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), 'right \rightarrow', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right')
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(1), '\leftarrow left', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'left')
+        if save_figures
+            saveas(gcf, 'cop_absolute_stanceL_150ms.eps', 'epsc2')
+        end
+
+        % 450ms
+        figure; axes; hold on; title(['right foot m_y, 450ms - ' subject_id]); set(gca, 'Fontsize', 12)
+        control_plot = shadedErrorBar(time_normalized, mean(myr_normalized_total(:, conditions_stanceR_stimNo), 2), cinv(myr_normalized_total(:, conditions_stanceR_stimNo), 2), {'color', color_control, 'linewidth', 5}, 1);
+        positive_plot = shadedErrorBar(time_normalized, mean(myr_normalized_total(:, conditions_stanceR_stimPos_450ms), 2), cinv(myr_normalized_total(:, conditions_stanceR_stimPos_450ms), 2), {'color', color_positive, 'linewidth', 5}, 1);
+        negative_plot = shadedErrorBar(time_normalized, mean(myr_normalized_total(:, conditions_stanceR_stimNeg_450ms), 2), cinv(myr_normalized_total(:, conditions_stanceR_stimNeg_450ms), 2), {'color', color_negative, 'linewidth', 5}, 1);
+        xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)]); 
+        this_legend = legend([control_plot.mainLine positive_plot.mainLine negative_plot.mainLine], 'control', 'illusion left', 'illusion right');
+        set(this_legend, 'Location', 'NORTHWEST')
+        xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), 'right \rightarrow', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right')
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(1), '\leftarrow left', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'left')
+        if save_figures
+            saveas(gcf, 'cop_absolute_stanceR_450ms.eps', 'epsc2')
+        end
+    end
+end
+
+if do_my_plots_response_right
+    % 0ms
+    figure; axes; hold on; title(['right foot m_y response, 0ms - ' subject_id]); set(gca, 'Fontsize', 12)
+    positive_plot = shadedErrorBar(time_normalized, mean(myr_stanceR_response(:, conditions_stanceR_stimPos_0ms), 2), cinv(myr_stanceR_response(:, conditions_stanceR_stimPos_0ms), 2), {'color', color_positive, 'linewidth', 5}, 1);
+    negative_plot = shadedErrorBar(time_normalized, mean(myr_stanceR_response(:, conditions_stanceR_stimNeg_0ms), 2), cinv(myr_stanceR_response(:, conditions_stanceR_stimNeg_0ms), 2), {'color', color_negative, 'linewidth', 5}, 1);
+    xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)], 'ylim', [-20 20]);
+    this_legend = legend([positive_plot.mainLine negative_plot.mainLine], 'illusion left', 'illusion right');
+    set(this_legend, 'Location', 'NORTHWEST')
+    xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
+    text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), 'right \rightarrow', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right')
+    text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(1), '\leftarrow left', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'left')
+    if save_figures
+        saveas(gcf, 'cop_response_stanceR_0ms.eps', 'epsc2')
+    end
+    
+    if do_phase_delayed_plots
+        % 150ms
+        figure; axes; hold on; title(['right foot m_y response, 150ms - ' subject_id]); set(gca, 'Fontsize', 12)
+        positive_plot = shadedErrorBar(time_normalized, mean(myr_stanceR_response(:, conditions_stanceR_stimPos_150ms), 2), cinv(myr_stanceR_response(:, conditions_stanceR_stimPos_150ms), 2), {'color', color_positive, 'linewidth', 5}, 1);
+        negative_plot = shadedErrorBar(time_normalized, mean(myr_stanceR_response(:, conditions_stanceR_stimNeg_150ms), 2), cinv(myr_stanceR_response(:, conditions_stanceR_stimNeg_150ms), 2), {'color', color_negative, 'linewidth', 5}, 1);
+        xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)], 'ylim', [-20 20]);
+        this_legend = legend([positive_plot.mainLine negative_plot.mainLine], 'illusion left', 'illusion right');
+        set(this_legend, 'Location', 'NORTHWEST')
+        xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), 'right \rightarrow', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right')
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(1), '\leftarrow left', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'left')
+        if save_figures
+            saveas(gcf, 'cop_response_stanceR_150ms.eps', 'epsc2')
+        end
+
+        % 450ms
+        figure; axes; hold on; title(['left foot m_y response, 450ms - ' subject_id]); set(gca, 'Fontsize', 12)
+        positive_plot = shadedErrorBar(time_normalized, mean(myl_stanceL_response(:, conditions_stanceL_stimPos_450ms), 2), cinv(myl_stanceL_response(:, conditions_stanceL_stimPos_450ms), 2), {'color', color_positive, 'linewidth', 5}, 1);
+        negative_plot = shadedErrorBar(time_normalized, mean(myl_stanceL_response(:, conditions_stanceL_stimNeg_450ms), 2), cinv(myl_stanceL_response(:, conditions_stanceL_stimNeg_450ms), 2), {'color', color_negative, 'linewidth', 5}, 1);
+        xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)], 'ylim', [-20 20]);
+        this_legend = legend([positive_plot.mainLine negative_plot.mainLine], 'illusion left', 'illusion right');
+        set(this_legend, 'Location', 'NORTHWEST')
+        xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), 'right \rightarrow', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right')
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(1), '\leftarrow left', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'left')
+        if save_figures
+            saveas(gcf, 'cop_response_stanceL_450ms.eps', 'epsc2')
+        end
+    end
+end
+
+if do_my_plots_response_left
+    figure; axes; hold on; title(['left foot m_y response, 0ms - ' subject_id]); set(gca, 'Fontsize', 12)
+    positive_plot = shadedErrorBar(time_normalized, mean(myl_stanceL_response(:, conditions_stanceL_stimPos_0ms), 2), cinv(myl_stanceL_response(:, conditions_stanceL_stimPos_0ms), 2), {'color', color_positive, 'linewidth', 5}, 1);
+    negative_plot = shadedErrorBar(time_normalized, mean(myl_stanceL_response(:, conditions_stanceL_stimNeg_0ms), 2), cinv(myl_stanceL_response(:, conditions_stanceL_stimNeg_0ms), 2), {'color', color_negative, 'linewidth', 5}, 1);
+    xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)], 'ylim', [-20 20]);
+    this_legend = legend([positive_plot.mainLine negative_plot.mainLine], 'illusion left', 'illusion right');
+    set(this_legend, 'Location', 'NORTHWEST')
+    xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
+    text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), 'right \rightarrow', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right')
+    text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(1), '\leftarrow left', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'left')
+    if save_figures
+        saveas(gcf, 'cop_response_stanceL_0ms.eps', 'epsc2')
+    end
+    
+    if do_phase_delayed_plots
+        % 150ms
+        figure; axes; hold on; title(['left foot m_y response, 150ms - ' subject_id]); set(gca, 'Fontsize', 12)
+        positive_plot = shadedErrorBar(time_normalized, mean(myl_stanceL_response(:, conditions_stanceL_stimPos_150ms), 2), cinv(myl_stanceL_response(:, conditions_stanceL_stimPos_150ms), 2), {'color', color_positive, 'linewidth', 5}, 1);
+        negative_plot = shadedErrorBar(time_normalized, mean(myl_stanceL_response(:, conditions_stanceL_stimNeg_150ms), 2), cinv(myl_stanceL_response(:, conditions_stanceL_stimNeg_150ms), 2), {'color', color_negative, 'linewidth', 5}, 1);
+        xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)], 'ylim', [-20 20]);
+        this_legend = legend([positive_plot.mainLine negative_plot.mainLine], 'illusion left', 'illusion right');
+        set(this_legend, 'Location', 'NORTHWEST')
+        xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), 'right \rightarrow', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right')
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(1), '\leftarrow left', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'left')
+        if save_figures
+            saveas(gcf, 'cop_response_stanceL_150ms.eps', 'epsc2')
+        end
+
+        % 450ms
+        figure; axes; hold on; title(['right foot m_y response, 450ms - ' subject_id]); set(gca, 'Fontsize', 12)
+        positive_plot = shadedErrorBar(time_normalized, mean(myr_stanceR_response(:, conditions_stanceR_stimPos_450ms), 2), cinv(myr_stanceR_response(:, conditions_stanceR_stimPos_450ms), 2), {'color', color_positive, 'linewidth', 5}, 1);
+        negative_plot = shadedErrorBar(time_normalized, mean(myr_stanceR_response(:, conditions_stanceR_stimNeg_450ms), 2), cinv(myr_stanceR_response(:, conditions_stanceR_stimNeg_450ms), 2), {'color', color_negative, 'linewidth', 5}, 1);
+        xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)], 'ylim', [-20 20]);
         this_legend = legend([positive_plot.mainLine negative_plot.mainLine], 'illusion left', 'illusion right');
         set(this_legend, 'Location', 'NORTHWEST')
         xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
@@ -304,46 +1038,32 @@ if do_heel_plots_single
     plot(time_normalized, mean(lheel_x_pos_normalized_total(:, conditions_stanceR_stimPos_0ms), 2), 'color', color_positive, 'linewidth', 5);
     
     figure; axes; hold on; title(['right foot medial-lateral heel pos, 0ms, N = ' num2str(sum(conditions_stanceL_0ms))]); set(gca, 'Fontsize', 12)
-    plot(time_normalized, rheel_x_pos_normalized_total(:, conditions_stanceL_stimNeg_0ms), 'color', lightenColor(color_negative, 0.5));
-    plot(time_normalized, rheel_x_pos_normalized_total(:, conditions_stanceL_stimPos_0ms), 'color', lightenColor(color_positive, 0.5));
+    if any(conditions_stanceL_stimNeg_0ms) plot(time_normalized, rheel_x_pos_normalized_total(:, conditions_stanceL_stimNeg_0ms), 'color', lightenColor(color_negative, 0.5)); end
+    if any(conditions_stanceL_stimPos_0ms) plot(time_normalized, rheel_x_pos_normalized_total(:, conditions_stanceL_stimPos_0ms), 'color', lightenColor(color_positive, 0.5)); end
     plot(time_normalized, mean(rheel_x_pos_normalized_total(:, conditions_stanceL_stimNeg_0ms), 2), 'color', color_negative, 'linewidth', 5);
     plot(time_normalized, mean(rheel_x_pos_normalized_total(:, conditions_stanceL_stimPos_0ms), 2), 'color', color_positive, 'linewidth', 5);
     
     if do_phase_delayed_plots
-        figure; axes; hold on; title(['right foot medial-lateral heel pos, 150ms, N = ' num2str(sum(conditions_stanceR_150ms))]); set(gca, 'Fontsize', 12)
-        plot(time_normalized, lheel_x_pos_normalized_total(:, conditions_stanceL_stimNeg_150ms), 'color', lightenColor(color_negative, 0.5));
-        plot(time_normalized, lheel_x_pos_normalized_total(:, conditions_stanceL_stimPos_150ms), 'color', lightenColor(color_positive, 0.5));
+        figure; axes; hold on; title(['right foot medial-lateral heel pos, 150ms, N = ' num2str(sum(conditions_stanceL_150ms))]); set(gca, 'Fontsize', 12)
+        if any(conditions_stanceL_stimNeg_150ms) plot(time_normalized, lheel_x_pos_normalized_total(:, conditions_stanceL_stimNeg_150ms), 'color', lightenColor(color_negative, 0.5)); end
+        if any(conditions_stanceL_stimPos_150ms) plot(time_normalized, lheel_x_pos_normalized_total(:, conditions_stanceL_stimPos_150ms), 'color', lightenColor(color_positive, 0.5)); end
         plot(time_normalized, mean(lheel_x_pos_normalized_total(:, conditions_stanceL_stimNeg_150ms), 2), 'color', color_negative, 'linewidth', 5);
         plot(time_normalized, mean(lheel_x_pos_normalized_total(:, conditions_stanceL_stimPos_150ms), 2), 'color', color_positive, 'linewidth', 5);
 
-        figure; axes; hold on; title(['left foot medial-lateral heel pos, 450ms, N = ' num2str(sum(conditions_stanceL_450ms))]); set(gca, 'Fontsize', 12)
-        plot(time_normalized, rheel_x_pos_normalized_total(:, conditions_stanceR_stimNeg_450ms), 'color', lightenColor(color_negative, 0.5));
-        plot(time_normalized, rheel_x_pos_normalized_total(:, conditions_stanceR_stimPos_450ms), 'color', lightenColor(color_positive, 0.5));
+        figure; axes; hold on; title(['left foot medial-lateral heel pos, 450ms, N = ' num2str(sum(conditions_stanceR_450ms))]); set(gca, 'Fontsize', 12)
+        if any(conditions_stanceR_stimNeg_450ms) plot(time_normalized, rheel_x_pos_normalized_total(:, conditions_stanceR_stimNeg_450ms), 'color', lightenColor(color_negative, 0.5)); end
+        if any(conditions_stanceR_stimPos_450ms) plot(time_normalized, rheel_x_pos_normalized_total(:, conditions_stanceR_stimPos_450ms), 'color', lightenColor(color_positive, 0.5)); end
         plot(time_normalized, mean(rheel_x_pos_normalized_total(:, conditions_stanceR_stimNeg_450ms), 2), 'color', color_negative, 'linewidth', 5);
         plot(time_normalized, mean(rheel_x_pos_normalized_total(:, conditions_stanceR_stimPos_450ms), 2), 'color', color_positive, 'linewidth', 5);    
     end    
-    
-    if do_phase_delayed_plots
-        figure; axes; hold on; title(['left foot medial-lateral CoP, 150ms, N = ' num2str(sum(conditions_stanceR_150ms))]); set(gca, 'Fontsize', 12)
-        plot(time_normalized, lcop_x_normalized_total(:, conditions_stanceL_stimNeg_150ms), 'color', lightenColor(color_negative, 0.5));
-        plot(time_normalized, lcop_x_normalized_total(:, conditions_stanceL_stimPos_150ms), 'color', lightenColor(color_positive, 0.5));
-        plot(time_normalized, mean(lcop_x_normalized_total(:, conditions_stanceL_stimNeg_150ms), 2), 'color', color_negative, 'linewidth', 5);
-        plot(time_normalized, mean(lcop_x_normalized_total(:, conditions_stanceL_stimPos_150ms), 2), 'color', color_positive, 'linewidth', 5);
-
-        figure; axes; hold on; title(['right foot medial-lateral CoP, 450ms, N = ' num2str(sum(conditions_stanceL_450ms))]); set(gca, 'Fontsize', 12)
-        plot(time_normalized, rcop_x_normalized_total(:, conditions_stanceR_stimNeg_450ms), 'color', lightenColor(color_negative, 0.5));
-        plot(time_normalized, rcop_x_normalized_total(:, conditions_stanceR_stimPos_450ms), 'color', lightenColor(color_positive, 0.5));
-        plot(time_normalized, mean(rcop_x_normalized_total(:, conditions_stanceR_stimNeg_450ms), 2), 'color', color_negative, 'linewidth', 5);
-        plot(time_normalized, mean(rcop_x_normalized_total(:, conditions_stanceR_stimPos_450ms), 2), 'color', color_positive, 'linewidth', 5);
-    end
 end
 
 if do_heel_plots_absolute_right
     % 0ms
-    figure; axes; hold on; title('left foot medial-lateral heel pos, 0ms'); set(gca, 'Fontsize', 12)
-    control_plot = shadedErrorBar(time_normalized, lheel_x_pos_mean_stanceR_control, lheel_x_pos_civ_stanceR_control, {'color', color_control, 'linewidth', 5}, 1);
-    positive_plot = shadedErrorBar(time_normalized, lheel_x_pos_mean_stanceR_stimPos_0ms, lheel_x_pos_civ_stanceR_stimPos_0ms, {'color', color_positive, 'linewidth', 5}, 1);
-    negative_plot = shadedErrorBar(time_normalized, lheel_x_pos_mean_stanceR_stimNeg_0ms, lheel_x_pos_civ_stanceR_stimNeg_0ms, {'color', color_negative, 'linewidth', 5}, 1);
+    figure; axes; hold on; title(['left foot medial-lateral heel pos, 0ms - ' subject_id]); set(gca, 'Fontsize', 12)
+    control_plot = shadedErrorBar(time_normalized, mean(lheel_x_pos_normalized_total(:, conditions_stanceR_0ms), 2), cinv(lheel_x_pos_normalized_total(:, conditions_stanceR_0ms), 2), {'color', color_control, 'linewidth', 5}, 1);
+    positive_plot = shadedErrorBar(time_normalized, mean(lheel_x_pos_normalized_total(:, conditions_stanceR_stimPos_0ms), 2), cinv(lheel_x_pos_normalized_total(:, conditions_stanceR_stimPos_0ms), 2), {'color', color_positive, 'linewidth', 5}, 1);
+    negative_plot = shadedErrorBar(time_normalized, mean(lheel_x_pos_normalized_total(:, conditions_stanceR_stimNeg_0ms), 2), cinv(lheel_x_pos_normalized_total(:, conditions_stanceR_stimNeg_0ms), 2), {'color', color_negative, 'linewidth', 5}, 1);
     xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)]); 
     this_legend = legend([control_plot.mainLine positive_plot.mainLine negative_plot.mainLine], 'control', 'illusion left', 'illusion right');
     set(this_legend, 'Location', 'NORTHWEST')
@@ -356,10 +1076,10 @@ if do_heel_plots_absolute_right
     
     if do_phase_delayed_plots
         % 150ms
-        figure; axes; hold on; title('left foot medial-lateral heel pos, 150ms'); set(gca, 'Fontsize', 12)
-        control_plot = shadedErrorBar(time_normalized, lheel_x_pos_mean_stanceR_control, lheel_x_pos_civ_stanceR_control, {'color', color_control, 'linewidth', 5}, 1);
-        positive_plot = shadedErrorBar(time_normalized, lheel_x_pos_mean_stanceR_stimPos_150ms, lheel_x_pos_civ_stanceR_stimPos_150ms, {'color', color_positive, 'linewidth', 5}, 1);
-        negative_plot = shadedErrorBar(time_normalized, lheel_x_pos_mean_stanceR_stimNeg_150ms, lheel_x_pos_civ_stanceR_stimNeg_150ms, {'color', color_negative, 'linewidth', 5}, 1);
+        figure; axes; hold on; title(['left foot medial-lateral heel pos, 150ms - ' subject_id]); set(gca, 'Fontsize', 12)
+        control_plot = shadedErrorBar(time_normalized, mean(lheel_x_pos_normalized_total(:, conditions_stanceR_150ms), 2), cinv(lheel_x_pos_normalized_total(:, conditions_stanceR_150ms), 2), {'color', color_control, 'linewidth', 5}, 1);
+        positive_plot = shadedErrorBar(time_normalized, mean(lheel_x_pos_normalized_total(:, conditions_stanceR_stimPos_150ms), 2), cinv(lheel_x_pos_normalized_total(:, conditions_stanceR_stimPos_150ms), 2), {'color', color_positive, 'linewidth', 5}, 1);
+        negative_plot = shadedErrorBar(time_normalized, mean(lheel_x_pos_normalized_total(:, conditions_stanceR_stimNeg_150ms), 2), cinv(lheel_x_pos_normalized_total(:, conditions_stanceR_stimNeg_150ms), 2), {'color', color_negative, 'linewidth', 5}, 1);
         xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)]); 
         this_legend = legend([control_plot.mainLine positive_plot.mainLine negative_plot.mainLine], 'control', 'illusion left', 'illusion right');
         set(this_legend, 'Location', 'NORTHWEST')
@@ -371,10 +1091,10 @@ if do_heel_plots_absolute_right
         end
 
         % 450ms
-        figure; axes; hold on; title('right foot medial-lateral heel pos, 450ms'); set(gca, 'Fontsize', 12)
-        control_plot = shadedErrorBar(time_normalized, rheel_x_pos_mean_stanceL_control, rheel_x_pos_civ_stanceL_control, {'color', color_control, 'linewidth', 5}, 1);
-        positive_plot = shadedErrorBar(time_normalized, rheel_x_pos_mean_stanceL_stimPos_450ms, rheel_x_pos_civ_stanceL_stimPos_450ms, {'color', color_positive, 'linewidth', 5}, 1);
-        negative_plot = shadedErrorBar(time_normalized, rheel_x_pos_mean_stanceL_stimNeg_450ms, rheel_x_pos_civ_stanceL_stimNeg_450ms, {'color', color_negative, 'linewidth', 5}, 1);
+        figure; axes; hold on; title(['right foot medial-lateral heel pos, 450ms - ' subject_id]); set(gca, 'Fontsize', 12)
+        control_plot = shadedErrorBar(time_normalized, mean(rheel_x_pos_normalized_total(:, conditions_stanceL_450ms), 2), cinv(rheel_x_pos_normalized_total(:, conditions_stanceL_450ms), 2), {'color', color_control, 'linewidth', 5}, 1);
+        positive_plot = shadedErrorBar(time_normalized, mean(rheel_x_pos_normalized_total(:, conditions_stanceL_stimPos_450ms), 2), cinv(rheel_x_pos_normalized_total(:, conditions_stanceL_stimPos_450ms), 2), {'color', color_positive, 'linewidth', 5}, 1);
+        negative_plot = shadedErrorBar(time_normalized, mean(rheel_x_pos_normalized_total(:, conditions_stanceL_stimNeg_450ms), 2), cinv(rheel_x_pos_normalized_total(:, conditions_stanceL_stimNeg_450ms), 2), {'color', color_negative, 'linewidth', 5}, 1);
         xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)]); 
         this_legend = legend([control_plot.mainLine positive_plot.mainLine negative_plot.mainLine], 'control', 'illusion left', 'illusion right');
         set(this_legend, 'Location', 'NORTHWEST')
@@ -389,7 +1109,7 @@ end
 
 if do_heel_plots_absolute_left
     % 0ms
-    figure; axes; hold on; title('right foot medial-lateral heel pos, 0ms'); set(gca, 'Fontsize', 12)
+    figure; axes; hold on; title(['right foot medial-lateral heel pos, 0ms - ' subject_id]); set(gca, 'Fontsize', 12)
     control_plot = shadedErrorBar(time_normalized, rheel_x_pos_mean_stanceL_control, rheel_x_pos_civ_stanceL_control, {'color', color_control, 'linewidth', 5}, 1);
     positive_plot = shadedErrorBar(time_normalized, rheel_x_pos_mean_stanceL_stimPos_0ms, rheel_x_pos_civ_stanceL_stimPos_0ms, {'color', color_positive, 'linewidth', 5}, 1);
     negative_plot = shadedErrorBar(time_normalized, rheel_x_pos_mean_stanceL_stimNeg_0ms, rheel_x_pos_civ_stanceL_stimNeg_0ms, {'color', color_negative, 'linewidth', 5}, 1);
@@ -405,7 +1125,7 @@ if do_heel_plots_absolute_left
     
     if do_phase_delayed_plots
         % 150ms
-        figure; axes; hold on; title('right foot medial-lateral heel pos, 150ms'); set(gca, 'Fontsize', 12)
+        figure; axes; hold on; title(['right foot medial-lateral heel pos, 150ms - ' subject_id]); set(gca, 'Fontsize', 12)
         control_plot = shadedErrorBar(time_normalized, rheel_x_pos_mean_stanceL_control, rheel_x_pos_civ_stanceL_control, {'color', color_control, 'linewidth', 5}, 1);
         positive_plot = shadedErrorBar(time_normalized, rheel_x_pos_mean_stanceL_stimPos_150ms, rheel_x_pos_civ_stanceL_stimPos_150ms, {'color', color_positive, 'linewidth', 5}, 1);
         negative_plot = shadedErrorBar(time_normalized, rheel_x_pos_mean_stanceL_stimNeg_150ms, rheel_x_pos_civ_stanceL_stimNeg_150ms, {'color', color_negative, 'linewidth', 5}, 1);
@@ -420,7 +1140,7 @@ if do_heel_plots_absolute_left
         end
 
         % 450ms
-        figure; axes; hold on; title('left foot medial-lateral heel pos, 450ms'); set(gca, 'Fontsize', 12)
+        figure; axes; hold on; title(['left foot medial-lateral heel pos, 450ms - ' subject_id]); set(gca, 'Fontsize', 12)
         control_plot = shadedErrorBar(time_normalized, lheel_x_pos_mean_stanceR_control, lheel_x_pos_civ_stanceR_control, {'color', color_control, 'linewidth', 5}, 1);
         positive_plot = shadedErrorBar(time_normalized, lheel_x_pos_mean_stanceR_stimPos_450ms, lheel_x_pos_civ_stanceR_stimPos_450ms, {'color', color_positive, 'linewidth', 5}, 1);
         negative_plot = shadedErrorBar(time_normalized, lheel_x_pos_mean_stanceR_stimNeg_450ms, lheel_x_pos_civ_stanceR_stimNeg_450ms, {'color', color_negative, 'linewidth', 5}, 1);
@@ -438,9 +1158,9 @@ end
 
 if do_heel_plots_response_right
     % 0ms
-    figure; axes; hold on; title('left foot medial-lateral heel pos response, 0ms'); set(gca, 'Fontsize', 12)
-    positive_plot = shadedErrorBar(time_normalized, lheel_x_pos_response_mean_stanceR_stimPos_0ms, lheel_x_pos_response_civ_stanceR_stimPos_0ms, {'color', color_positive, 'linewidth', 5}, 1);
-    negative_plot = shadedErrorBar(time_normalized, lheel_x_pos_response_mean_stanceR_stimNeg_0ms, lheel_x_pos_response_civ_stanceR_stimPos_0ms, {'color', color_negative, 'linewidth', 5}, 1);
+    figure; axes; hold on; title(['left foot medial-lateral heel pos response, 0ms - ' subject_id]); set(gca, 'Fontsize', 12)
+    positive_plot = shadedErrorBar(time_normalized, mean(lheel_x_pos_stanceR_response(:, conditions_stanceR_stimPos_0ms), 2), cinv(lheel_x_pos_stanceR_response(:, conditions_stanceR_stimPos_0ms), 2), {'color', color_positive, 'linewidth', 5}, 1);
+    negative_plot = shadedErrorBar(time_normalized, mean(lheel_x_pos_stanceR_response(:, conditions_stanceR_stimNeg_0ms), 2), cinv(lheel_x_pos_stanceR_response(:, conditions_stanceR_stimNeg_0ms), 2), {'color', color_negative, 'linewidth', 5}, 1);
     xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)], 'ylim', [-0.015 0.015]);
     this_legend = legend([positive_plot.mainLine negative_plot.mainLine], 'illusion left', 'illusion right');
     set(this_legend, 'Location', 'NORTHWEST')
@@ -453,9 +1173,9 @@ if do_heel_plots_response_right
     
     if do_phase_delayed_plots
         % 150ms
-        figure; axes; hold on; title('left foot medial-lateral heel pos response, 150ms'); set(gca, 'Fontsize', 12)
-        positive_plot = shadedErrorBar(time_normalized, lheel_x_pos_response_mean_stanceR_stimPos_150ms, lheel_x_pos_response_civ_stanceR_stimPos_150ms, {'color', color_positive, 'linewidth', 5}, 1);
-        negative_plot = shadedErrorBar(time_normalized, lheel_x_pos_response_mean_stanceR_stimNeg_150ms, lheel_x_pos_response_civ_stanceR_stimPos_150ms, {'color', color_negative, 'linewidth', 5}, 1);
+        figure; axes; hold on; title(['left foot medial-lateral heel pos response, 150ms - ' subject_id]); set(gca, 'Fontsize', 12)
+        positive_plot = shadedErrorBar(time_normalized, mean(lheel_x_pos_stanceR_response(:, conditions_stanceR_stimPos_150ms), 2), cinv(lheel_x_pos_stanceR_response(:, conditions_stanceR_stimPos_150ms), 2), {'color', color_positive, 'linewidth', 5}, 1);
+        negative_plot = shadedErrorBar(time_normalized, mean(lheel_x_pos_stanceR_response(:, conditions_stanceR_stimNeg_150ms), 2), cinv(lheel_x_pos_stanceR_response(:, conditions_stanceR_stimNeg_150ms), 2), {'color', color_negative, 'linewidth', 5}, 1);
         xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)], 'ylim', [-0.015 0.015]);
         this_legend = legend([positive_plot.mainLine negative_plot.mainLine], 'illusion left', 'illusion right');
         set(this_legend, 'Location', 'NORTHWEST')
@@ -467,9 +1187,9 @@ if do_heel_plots_response_right
         end
 
         % 450ms
-        figure; axes; hold on; title('right foot medial-lateral heel pos response, 450ms'); set(gca, 'Fontsize', 12)
-        positive_plot = shadedErrorBar(time_normalized, rheel_x_pos_response_mean_stanceL_stimPos_450ms, rheel_x_pos_response_civ_stanceL_stimPos_450ms, {'color', color_positive, 'linewidth', 5}, 1);
-        negative_plot = shadedErrorBar(time_normalized, rheel_x_pos_response_mean_stanceL_stimNeg_450ms, rheel_x_pos_response_civ_stanceL_stimPos_450ms, {'color', color_negative, 'linewidth', 5}, 1);
+        figure; axes; hold on; title(['right foot medial-lateral heel pos response, 450ms - ' subject_id]); set(gca, 'Fontsize', 12)
+        positive_plot = shadedErrorBar(time_normalized, mean(rheel_x_pos_stanceL_response(:, conditions_stanceL_stimPos_450ms), 2), cinv(rheel_x_pos_stanceL_response(:, conditions_stanceL_stimPos_450ms), 2), {'color', color_positive, 'linewidth', 5}, 1);
+        negative_plot = shadedErrorBar(time_normalized, mean(rheel_x_pos_stanceL_response(:, conditions_stanceL_stimNeg_450ms), 2), cinv(rheel_x_pos_stanceL_response(:, conditions_stanceL_stimNeg_450ms), 2), {'color', color_negative, 'linewidth', 5}, 1);
         xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)], 'ylim', [-0.015 0.015]);
         this_legend = legend([positive_plot.mainLine negative_plot.mainLine], 'illusion left', 'illusion right');
         set(this_legend, 'Location', 'NORTHWEST')
@@ -484,7 +1204,7 @@ end
 
 if do_heel_plots_response_left
     % 0ms
-    figure; axes; hold on; title('right foot medial-lateral heel pos response, 0ms'); set(gca, 'Fontsize', 12)
+    figure; axes; hold on; title(['right foot medial-lateral heel pos response, 0ms - ' subject_id]); set(gca, 'Fontsize', 12)
     positive_plot = shadedErrorBar(time_normalized, rheel_x_pos_response_mean_stanceL_stimPos_0ms, rheel_x_pos_response_civ_stanceL_stimPos_0ms, {'color', color_positive, 'linewidth', 5}, 1);
     negative_plot = shadedErrorBar(time_normalized, rheel_x_pos_response_mean_stanceL_stimNeg_0ms, rheel_x_pos_response_civ_stanceL_stimPos_0ms, {'color', color_negative, 'linewidth', 5}, 1);
     xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)], 'ylim', [-0.015 0.015]);
@@ -499,7 +1219,7 @@ if do_heel_plots_response_left
     
     if do_phase_delayed_plots
         % 150ms
-        figure; axes; hold on; title('right foot medial-lateral heel pos response, 150ms'); set(gca, 'Fontsize', 12)
+        figure; axes; hold on; title(['right foot medial-lateral heel pos response, 150ms - ' subject_id]); set(gca, 'Fontsize', 12)
         positive_plot = shadedErrorBar(time_normalized, rheel_x_pos_response_mean_stanceL_stimPos_150ms, rheel_x_pos_response_civ_stanceL_stimPos_150ms, {'color', color_positive, 'linewidth', 5}, 1);
         negative_plot = shadedErrorBar(time_normalized, rheel_x_pos_response_mean_stanceL_stimNeg_150ms, rheel_x_pos_response_civ_stanceL_stimPos_150ms, {'color', color_negative, 'linewidth', 5}, 1);
         xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)], 'ylim', [-0.015 0.015]);
@@ -513,7 +1233,7 @@ if do_heel_plots_response_left
         end
 
         % 450ms
-        figure; axes; hold on; title('left foot medial-lateral heel pos response, 450ms'); set(gca, 'Fontsize', 12)
+        figure; axes; hold on; title(['left foot medial-lateral heel pos response, 450ms - ' subject_id]); set(gca, 'Fontsize', 12)
         positive_plot = shadedErrorBar(time_normalized, lheel_x_pos_response_mean_stanceR_stimPos_450ms, lheel_x_pos_response_civ_stanceR_stimPos_450ms, {'color', color_positive, 'linewidth', 5}, 1);
         negative_plot = shadedErrorBar(time_normalized, lheel_x_pos_response_mean_stanceR_stimNeg_450ms, lheel_x_pos_response_civ_stanceR_stimPos_450ms, {'color', color_negative, 'linewidth', 5}, 1);
         xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)], 'ylim', [-0.015 0.015]);

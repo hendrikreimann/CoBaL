@@ -3,11 +3,12 @@
 
 %% Choose Data Type
 emg_present                     = 0;
-% stimulus_type = 'gvs';
-stimulus_type = 'visual';
+stimulus_type = 'gvs';
+% stimulus_type = 'visual';
 % stimulus_type = 'none';
 
-view_totals_and_removals        = 1;
+ignore_crossover                = 0;
+
 visualize_triggers              = 0;
 
 %% prepare
@@ -18,11 +19,11 @@ load subjectInfo.mat;
 % trials_to_process = 1 : 23;
 % trials_to_process = [2:12 14:15 18:20];
 % trials_to_process = 12 : 23;
-trials_to_process = 1:4;
-% trials_to_process = 3;
-% trials_to_process = 12 : 23;
-trials_to_process = 1 : 20;
+trials_to_process = 2:21;
 % trials_to_process = 1;
+trials_to_process = 3 : 43;
+% trials_to_process = 1 : 20;
+% trials_to_process = 3;
 
 total_positive_steps = [];
 total_negative_steps = [];
@@ -51,7 +52,6 @@ for i_trial = trials_to_process
     if emg_present
         load(makeFileName(date, subject_id, 'walking', i_trial, 'emgTrajectories'));
     end
-    load(makeFileName(date, subject_id, 'walking', i_trial, 'stepEvents'));
 
     if isnan(sampling_rate_forceplate)
         sampling_rate_forceplate = 1 / median(diff(time_forceplate));
@@ -93,7 +93,7 @@ for i_trial = trials_to_process
         plot(time_forceplate(left_touchdown_indices_forceplate), zeros(size(left_touchdown_indices_forceplate)), 'o')
         plot(time_forceplate(right_touchdown_indices_forceplate), zeros(size(right_touchdown_indices_forceplate)), 'o')
         plot(time_labview(trigger_indices_labview), zeros(size(trigger_indices_labview)), 'x')
-        plot(time_labview(stim_start_indices_labview), zeros(size(stim_start_indices_labview)), 'x')
+%         plot(time_labview(stim_start_indices_labview), zeros(size(stim_start_indices_labview)), 'x')
         legend('stimulus state', 'left cop', 'right cop', 'left touchdown', 'right touchdown', 'trigger', 'stim start')
     end
 
@@ -147,9 +147,11 @@ for i_trial = trials_to_process
         closest_heelstrike_distance_time = min([distance_to_trigger_left_time distance_to_trigger_right_time]);
         
         % confirm that the trigger happened less than 100ms (or whatever time's set) before the actual heelstrike
-        if closest_heelstrike_distance_time > duration_until_nearest_future_heelstrike_threshold
-            removal_flags(i_trigger) = 1;
-            disp(['Trial ' num2str(i_trial) ': something went wrong at time ' num2str(time_labview(trigger_indices_labview(i_trigger))) ' - trigger not in sync with heelstrike']);
+        if ~strcmp(stimulus_type, 'none')
+            if closest_heelstrike_distance_time > duration_until_nearest_future_heelstrike_threshold
+                removal_flags(i_trigger) = 1;
+                disp(['Trial ' num2str(i_trial) ': something went wrong at time ' num2str(time_labview(trigger_indices_labview(i_trigger))) ' - trigger not in sync with heelstrike']);
+            end
         end
         
         if distance_to_trigger_left_time < distance_to_trigger_right_time
@@ -221,7 +223,7 @@ for i_trial = trials_to_process
             end            
         else
             trigger_foot = 'unclear';
-            disp(['Trial ' num2str(i_trial) ': something went wrong at time ' num2str(time_forceplate(trigger_indices_labview(i_trigger))) ' - trigger exactly between two heelstrikes']);
+            disp(['Trial ' num2str(i_trial) ': something went wrong at time ' num2str(time_labview(trigger_indices_labview(i_trigger))) ' - trigger exactly between two heelstrikes']);
             removal_flags(i_trigger) = 1;
         end
         
@@ -358,6 +360,8 @@ for i_trial = trials_to_process
     end_indices_mocap = zeros(number_of_stretches, 1);
     start_indices_forceplate = zeros(number_of_stretches, 1);
     end_indices_forceplate = zeros(number_of_stretches, 1);
+    start_indices_labview = zeros(number_of_stretches, 1);
+    end_indices_labview = zeros(number_of_stretches, 1);
     start_indices_emg = zeros(number_of_stretches, 1);
     end_indices_emg = zeros(number_of_stretches, 1);
     removal_flags = zeros(number_of_stretches, 1);
@@ -396,6 +400,7 @@ for i_trial = trials_to_process
 %         plot(swing_foot_fz_step, 'displayname', num2str(i_stretch));
 %         plot(stance_foot_cop_stretch, 'displayname', num2str(i_stretch));
         
+% XXX removed these three conditionals for the balance beam data. This is a rough hack, make this right later!
         if number_of_swing_foot_fz_zeros_stretch < swing_foot_zero_stretch_length_threshold_indices
             removal_flags(i_stretch) = 1;
             disp(['excluding stretch index ' num2str(i_stretch) ' - cross over at time ' num2str(time_forceplate(stretch_start_index_forceplate))]);
@@ -411,7 +416,11 @@ for i_trial = trials_to_process
         end
 
         % time
-        start_index_forceplate = touchdown_index_forceplate;
+        if ignore_crossover
+            start_index_forceplate = stretch_start_index_forceplate;
+        else
+            start_index_forceplate = touchdown_index_forceplate;
+        end
         end_index_forceplate = stretch_end_indices_forceplate(i_stretch);
         [~, start_index_mocap] = min(abs(time_mocap - time_forceplate(start_index_forceplate)));
         [~, end_index_mocap] = min(abs(time_mocap - time_forceplate(end_index_forceplate)));

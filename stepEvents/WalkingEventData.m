@@ -126,7 +126,7 @@ classdef WalkingEventData < handle
         end
         function addEventTime(this, event_time, event_label)
             event_times = this.getEventTimes(event_label);
-            event_times = [event_times; event_time];
+            event_times = [event_times event_time];
             event_times = sort(event_times);
             this.setEventTimes(sort(event_times), event_label);
             this.selected_event_time = event_time;
