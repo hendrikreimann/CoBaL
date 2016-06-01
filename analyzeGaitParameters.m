@@ -23,19 +23,37 @@ wait_time_labels = {'0ms', '150ms', '450ms'};
 load subjectInfo.mat;
 % load(makeFileName(date, subject_id, 'model'));
 
-trials_to_process = 1 : 4;
+trials_to_process = 1 : 14;
 % trials_to_process = 2;
-% trials_to_process = [2 4:12 14:15 18:20];
+trials_to_process = [1:11 13:14];
 
 
 number_of_time_steps_normalized = 150;
 
+beam_condition_by_trial = ...
+  { ...
+    'NARROW', ...
+    'WIDE', ...
+    'NARROW', ...
+    'NARROW', ...
+    'NARROW', ...
+    'WIDE', ...
+    'WIDE', ...
+    'WIDE', ...
+    'WIDE', ...
+    'NARROW', ...
+    'WIDE', ...
+    'NARROW', ...
+    'NARROW', ...
+    'WIDE' ...
+  };
 
 %% extract data
 if extract_data
     % initialize containers
     stretch_length_indices_forceplate = [];
     condition_stance_foot_list_total = {};
+    condition_beam_list_total = {};
     origin_trial_list_total = [];
     origin_start_time_list_total = [];
     origin_end_time_list_total = [];
@@ -89,6 +107,8 @@ if extract_data
         number_of_stretches_trial = length(condition_stance_foot_list);
 
         condition_stance_foot_list_trial = condition_stance_foot_list;
+        condition_beam_list_trial = cell(size(condition_stance_foot_list));
+        condition_beam_list_trial(1 : end) = beam_condition_by_trial(i_trial);
         origin_trial_list_trial = zeros(number_of_stretches_trial, 1);
         origin_start_time_list_trial = zeros(number_of_stretches_trial, 1);
         origin_end_time_list_trial = zeros(number_of_stretches_trial, 1);
@@ -286,6 +306,8 @@ if extract_data
                 % use stance foot heel as reference and store
                 lcop_x_normalized_trial(:, i_stretch) = lcop_x_normalized_stretch - stance_foot_heel_x_initial;
                 rcop_x_normalized_trial(:, i_stretch) = rcop_x_normalized_stretch - stance_foot_heel_x_initial;
+%                 lcop_x_normalized_trial(:, i_stretch) = lcop_x_normalized_stretch;
+%                 rcop_x_normalized_trial(:, i_stretch) = rcop_x_normalized_stretch;
             end    
 
             % angle data
@@ -321,6 +343,7 @@ if extract_data
 
         % append trial containers to total containers
         condition_stance_foot_list_total = [condition_stance_foot_list_total; condition_stance_foot_list_trial];
+        condition_beam_list_total = [condition_beam_list_total; condition_beam_list_trial];
         origin_trial_list_total = [origin_trial_list_total; origin_trial_list_trial];
         origin_start_time_list_total = [origin_start_time_list_total; origin_start_time_list_trial];
         origin_end_time_list_total = [origin_end_time_list_total; origin_end_time_list_trial];
@@ -374,11 +397,20 @@ if extract_conditions
     % extract conditions
     conditions_stanceL = strcmp(condition_stance_foot_list_total, 'LEFT');
     conditions_stanceR = strcmp(condition_stance_foot_list_total, 'RIGHT');
+    conditions_beamN = strcmp(condition_beam_list_total, 'NARROW');
+    conditions_beamW = strcmp(condition_beam_list_total, 'WIDE');
+    
+    conditions_stanceL_beamN = conditions_stanceL & conditions_beamN;
+    conditions_stanceL_beamW = conditions_stanceL & conditions_beamW;
+    conditions_stanceR_beamN = conditions_stanceR & conditions_beamN;
+    conditions_stanceR_beamW = conditions_stanceR & conditions_beamW;
 
     conditions_all = conditions_stanceL | conditions_stanceR;
     
     disp(['Number of data points LEFT:       ' num2str(length(find(conditions_stanceL)))]);
     disp(['Number of data points RIGHT:      ' num2str(length(find(conditions_stanceR)))]);
+    disp(['Number of data points NARROW:       ' num2str(length(find(conditions_beamN)))]);
+    disp(['Number of data points WIDE:      ' num2str(length(find(conditions_beamW)))]);
     
 end
 
@@ -472,7 +504,13 @@ if save_data
         'origin_start_time_list_total', ...
         'origin_end_time_list_total', ...
         'conditions_stanceL', ...
-        'conditions_stanceR' ...
+        'conditions_stanceR', ...
+        'conditions_beamN', ...
+        'conditions_beamW', ...
+        'conditions_stanceL_beamN', ...
+        'conditions_stanceL_beamW', ...
+        'conditions_stanceR_beamN', ...
+        'conditions_stanceR_beamW' ...
       );
     
     if process_data_marker
