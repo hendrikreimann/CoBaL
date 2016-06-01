@@ -42,11 +42,34 @@ for i_trial = 1 : number_of_files
         right_forceplate_wrench_Acw = (Acr_to_Acw_adjoint' * right_forceplate_wrench_Acr')';
         right_forceplate_cop_Acw = (eye(2, 4) * Acr_to_Acw_trafo * [right_forceplate_cop_Acr ones(size(right_forceplate_cop_Acr, 1), 1)]')';
 
+        % calculate wrenches and CoP for complete plate
+        total_forceplate_wrench_Acw = left_forceplate_wrench_Acw + right_forceplate_wrench_Acw;
+        copx_trajectory = - total_forceplate_wrench_Acw(:, 5) ./ total_forceplate_wrench_Acw(:, 3);
+        copy_trajectory = total_forceplate_wrench_Acw(:, 4) ./ total_forceplate_wrench_Acw(:, 3);
+        total_forceplate_cop_Acw = [copx_trajectory copy_trajectory];
+        
         % re-zero CoP for low loads
         left_forceplate_low_load_indicator = copxl_trajectory == 0;
         left_forceplate_cop_Acw(left_forceplate_low_load_indicator, :) = 0;
         right_forceplate_low_load_indicator = copxr_trajectory == 0;
         right_forceplate_cop_Acw(right_forceplate_low_load_indicator, :) = 0;
+        total_forceplate_low_load_indicator = copx_trajectory == 0;
+        total_forceplate_cop_Acw(total_forceplate_low_load_indicator, :) = 0;
+        
+        
+%         % visualize
+%         figure; axes; hold on
+%         plot(time_forceplate, total_forceplate_cop_Acw(:, 1));
+%         plot(time_forceplate, left_forceplate_cop_Acw(:, 1));
+%         plot(time_forceplate, right_forceplate_cop_Acw(:, 1));
+%         legend('total', 'left', 'right')
+%         
+%         figure; axes; hold on
+%         plot(time_forceplate, total_forceplate_cop_Acw(:, 2));
+%         plot(time_forceplate, left_forceplate_cop_Acw(:, 2));
+%         plot(time_forceplate, right_forceplate_cop_Acw(:, 2));
+%         legend('total', 'left', 'right')
+        
         
         % save
         save_file_name = makeFileName(date, subject_id, trial_type, trial_number, 'forceplateTrajectories');
@@ -57,6 +80,8 @@ for i_trial = 1 : number_of_files
             'left_forceplate_cop_Acw', ...
             'right_forceplate_wrench_Acw', ...
             'right_forceplate_cop_Acw', ...
+            'total_forceplate_wrench_Acw', ...
+            'total_forceplate_cop_Acw', ...
             'fxl_trajectory', ...
             'fyl_trajectory', ...
             'fzl_trajectory', ...
@@ -150,6 +175,34 @@ for i_trial = 1 : number_of_files
     right_forceplate_wrench_Acw = (Acr_to_Acw_adjoint' * right_forceplate_wrench_Acr')';
     right_forceplate_cop_Acw = (eye(2, 4) * Acr_to_Acw_trafo * [right_forceplate_cop_Acr ones(size(right_forceplate_cop_Acr, 1), 1)]')';
 
+    % calculate wrenches and CoP for complete plate
+    total_forceplate_wrench_Acw = left_forceplate_wrench_Acw + right_forceplate_wrench_Acw;
+    copx_trajectory = - total_forceplate_wrench_Acw(:, 5) ./ total_forceplate_wrench_Acw(:, 3);
+    copy_trajectory = total_forceplate_wrench_Acw(:, 4) ./ total_forceplate_wrench_Acw(:, 3);
+    total_forceplate_cop_Acw = [copx_trajectory copy_trajectory];
+
+    % re-zero CoP for low loads
+    left_forceplate_low_load_indicator = copxl_trajectory == 0;
+    left_forceplate_cop_Acw(left_forceplate_low_load_indicator, :) = 0;
+    right_forceplate_low_load_indicator = copxr_trajectory == 0;
+    right_forceplate_cop_Acw(right_forceplate_low_load_indicator, :) = 0;
+    total_forceplate_low_load_indicator = copx_trajectory == 0;
+    total_forceplate_cop_Acw(total_forceplate_low_load_indicator, :) = 0;
+
+
+%     % visualize
+%     figure; axes; hold on
+%     plot(time_forceplate, total_forceplate_cop_Acw(:, 1));
+%     plot(time_forceplate, left_forceplate_cop_Acw(:, 1));
+%     plot(time_forceplate, right_forceplate_cop_Acw(:, 1));
+%     legend('total', 'left', 'right')
+% 
+%     figure; axes; hold on
+%     plot(time_forceplate, total_forceplate_cop_Acw(:, 2));
+%     plot(time_forceplate, left_forceplate_cop_Acw(:, 2));
+%     plot(time_forceplate, right_forceplate_cop_Acw(:, 2));
+%     legend('total', 'left', 'right')    
+    
     % re-zero CoP for low loads
     left_forceplate_low_load_indicator = copxl_trajectory == 0;
     left_forceplate_cop_Acw(left_forceplate_low_load_indicator, :) = 0;
@@ -165,6 +218,8 @@ for i_trial = 1 : number_of_files
         'left_forceplate_cop_Acw', ...
         'right_forceplate_wrench_Acw', ...
         'right_forceplate_cop_Acw', ...
+        'total_forceplate_wrench_Acw', ...
+        'total_forceplate_cop_Acw', ...
         'fxl_trajectory', ...
         'fyl_trajectory', ...
         'fzl_trajectory', ...
