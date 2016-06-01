@@ -67,12 +67,18 @@ for i_file = 1 : number_of_files
         gvs_out_trajectory = forceplate_trajectories(:, 28);
         gvs_read_trajectory = forceplate_trajectories(:, 29);
         
-        visual_shift_ml_trajectory = forceplate_trajectories(:, 30);
+%         visual_shift_ml_trajectory = forceplate_trajectories(:, 30);
+%         left_foot_state = forceplate_trajectories(:, 31);
+%         right_foot_state = forceplate_trajectories(:, 32);
+%         stimulus_foot_state = forceplate_trajectories(:, 33);
+%         heel_strike_count = forceplate_trajectories(:, 34);
         
-        left_foot_state = forceplate_trajectories(:, 31);
-        right_foot_state = forceplate_trajectories(:, 32);
-        stimulus_foot_state = forceplate_trajectories(:, 33);
-        heel_strike_count = forceplate_trajectories(:, 34);
+        % replacement for the five lines above for legacy file format without viusal shift trajectory
+        visual_shift_ml_trajectory = [];
+        left_foot_state = forceplate_trajectories(:, 30);
+        right_foot_state = forceplate_trajectories(:, 31);
+        stimulus_foot_state = forceplate_trajectories(:, 32);
+        heel_strike_count = forceplate_trajectories(:, 33);
         
         % save
         matlab_data_file_name = makeFileName(date, subject_id, 'walking', trial_number, 'labviewTrajectories');
@@ -137,6 +143,7 @@ for i_file = 1 : number_of_files
                 if strcmp(data_class, 'Devices')
                     % deal with devices data
                     if strcmp(data_group{2}(1 : 17), 'Delsys Trigno EMG')
+%                     if strcmp(data_group{2}(1 : 26), 'Imported Delsys Trigno IMU')
                         data_type = 'emg';
                         emg_trajectories_raw = imported_data.data(:, 3:end);
                         sampling_rate_emg = str2num(imported_data.textdata{number_of_header_lines-3, 1});
@@ -169,7 +176,7 @@ for i_file = 1 : number_of_files
                             'sampling_rate_forceplate' ...
                           );
                     else
-                        % check for forceplate data
+                        error(['data not recognized: file "' csv_data_file_name])
                     end
 
                     
