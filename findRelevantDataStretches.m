@@ -2,7 +2,7 @@
 
 
 %% Choose Data Type
-emg_present                     = 0;
+emg_present                     = 1;
 stimulus_type = 'gvs';
 % stimulus_type = 'visual';
 % stimulus_type = 'none';

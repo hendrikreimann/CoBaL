@@ -30,11 +30,18 @@ do_my_plots_response_right          = 0;
 do_my_plots_response_left           = 0;
 
 % heel
-do_heel_plots_single                = 1;
+do_heel_plots_single                = 0;
 do_heel_plots_absolute_right        = 0;
 do_heel_plots_absolute_left         = 0;
 do_heel_plots_response_right        = 0;
 do_heel_plots_response_left         = 0;
+
+% emg
+do_emg_plots_single                 = 0;
+do_emg_plots_absolute_right         = 0;
+do_emg_plots_absolute_left          = 0;
+do_emg_plots_response_right         = 1;
+do_emg_plots_response_left          = 0;
 
 do_phase_delayed_plots              = 1;
 
@@ -1261,4 +1268,871 @@ end
 
 
 
-return
+
+%% emg plots
+if do_emg_plots_single
+    % no stim
+    figure; axes; hold on; title(['left gluteus medius, left stance, control, N = ' num2str(sum(conditions_stanceL_stimNo)) ' - ' subject_id]); set(gca, 'Fontsize', 12)
+    plot(time_normalized, lglutmed_normalized_total(:, conditions_stanceL_stimNo), 'color', lightenColor(color_control, 0.5));
+    plot(time_normalized, mean(lglutmed_normalized_total(:, conditions_stanceL_stimNo), 2), 'color', color_control, 'linewidth', 5);
+
+    figure; axes; hold on; title(['left tibialis anterior, left stance, control, N = ' num2str(sum(conditions_stanceL_stimNo)) ' - ' subject_id]); set(gca, 'Fontsize', 12)
+    plot(time_normalized, ltibiant_normalized_total(:, conditions_stanceL_stimNo), 'color', lightenColor(color_control, 0.5));
+    plot(time_normalized, mean(ltibiant_normalized_total(:, conditions_stanceL_stimNo), 2), 'color', color_control, 'linewidth', 5);
+
+    figure; axes; hold on; title(['left peroneus longus, left stance, control, N = ' num2str(sum(conditions_stanceL_stimNo)) ' - ' subject_id]); set(gca, 'Fontsize', 12)
+    plot(time_normalized, lperolng_normalized_total(:, conditions_stanceL_stimNo), 'color', lightenColor(color_control, 0.5));
+    plot(time_normalized, mean(lperolng_normalized_total(:, conditions_stanceL_stimNo), 2), 'color', color_control, 'linewidth', 5);
+
+    figure; axes; hold on; title(['right gluteus medius, left stance, control, N = ' num2str(sum(conditions_stanceL_stimNo)) ' - ' subject_id]); set(gca, 'Fontsize', 12)
+    plot(time_normalized, rglutmed_normalized_total(:, conditions_stanceL_stimNo), 'color', lightenColor(color_control, 0.5));
+    plot(time_normalized, mean(rglutmed_normalized_total(:, conditions_stanceL_stimNo), 2), 'color', color_control, 'linewidth', 5);
+
+    figure; axes; hold on; title(['right tibialis anterior, left stance, control, N = ' num2str(sum(conditions_stanceL_stimNo)) ' - ' subject_id]); set(gca, 'Fontsize', 12)
+    plot(time_normalized, rtibiant_normalized_total(:, conditions_stanceL_stimNo), 'color', lightenColor(color_control, 0.5));
+    plot(time_normalized, mean(rtibiant_normalized_total(:, conditions_stanceL_stimNo), 2), 'color', color_control, 'linewidth', 5);
+
+    figure; axes; hold on; title(['right peroneus longus, left stance, control, N = ' num2str(sum(conditions_stanceL_stimNo)) ' - ' subject_id]); set(gca, 'Fontsize', 12)
+    plot(time_normalized, rperolng_normalized_total(:, conditions_stanceL_stimNo), 'color', lightenColor(color_control, 0.5));
+    plot(time_normalized, mean(rperolng_normalized_total(:, conditions_stanceL_stimNo), 2), 'color', color_control, 'linewidth', 5);
+
+    figure; axes; hold on; title(['left gluteus medius, right stance, control, N = ' num2str(sum(conditions_stanceR_stimNo)) ' - ' subject_id]); set(gca, 'Fontsize', 12)
+    plot(time_normalized, lglutmed_normalized_total(:, conditions_stanceR_stimNo), 'color', lightenColor(color_control, 0.5));
+    plot(time_normalized, mean(lglutmed_normalized_total(:, conditions_stanceR_stimNo), 2), 'color', color_control, 'linewidth', 5);
+
+    figure; axes; hold on; title(['left tibialis anterior, right stance, control, N = ' num2str(sum(conditions_stanceR_stimNo)) ' - ' subject_id]); set(gca, 'Fontsize', 12)
+    plot(time_normalized, ltibiant_normalized_total(:, conditions_stanceR_stimNo), 'color', lightenColor(color_control, 0.5));
+    plot(time_normalized, mean(ltibiant_normalized_total(:, conditions_stanceR_stimNo), 2), 'color', color_control, 'linewidth', 5);
+
+    figure; axes; hold on; title(['left peroneus longus, right stance, control, N = ' num2str(sum(conditions_stanceR_stimNo)) ' - ' subject_id]); set(gca, 'Fontsize', 12)
+    plot(time_normalized, lperolng_normalized_total(:, conditions_stanceR_stimNo), 'color', lightenColor(color_control, 0.5));
+    plot(time_normalized, mean(lperolng_normalized_total(:, conditions_stanceR_stimNo), 2), 'color', color_control, 'linewidth', 5);
+
+    figure; axes; hold on; title(['right gluteus medius, right stance, control, N = ' num2str(sum(conditions_stanceR_stimNo)) ' - ' subject_id]); set(gca, 'Fontsize', 12)
+    plot(time_normalized, rglutmed_normalized_total(:, conditions_stanceR_stimNo), 'color', lightenColor(color_control, 0.5));
+    plot(time_normalized, mean(rglutmed_normalized_total(:, conditions_stanceR_stimNo), 2), 'color', color_control, 'linewidth', 5);
+
+    figure; axes; hold on; title(['right tibialis anterior, right stance, control, N = ' num2str(sum(conditions_stanceR_stimNo)) ' - ' subject_id]); set(gca, 'Fontsize', 12)
+    plot(time_normalized, rtibiant_normalized_total(:, conditions_stanceR_stimNo), 'color', lightenColor(color_control, 0.5));
+    plot(time_normalized, mean(rtibiant_normalized_total(:, conditions_stanceR_stimNo), 2), 'color', color_control, 'linewidth', 5);
+
+    figure; axes; hold on; title(['right peroneus longus, right stance, control, N = ' num2str(sum(conditions_stanceR_stimNo)) ' - ' subject_id]); set(gca, 'Fontsize', 12)
+    plot(time_normalized, rperolng_normalized_total(:, conditions_stanceR_stimNo), 'color', lightenColor(color_control, 0.5));
+    plot(time_normalized, mean(rperolng_normalized_total(:, conditions_stanceR_stimNo), 2), 'color', color_control, 'linewidth', 5);
+
+    % pos
+    if any(conditions_stanceL_stimPos_0ms)
+        figure; axes; hold on; title(['left gluteus medius, left stance, 0ms, N = ' num2str(sum(conditions_stanceL_stimPos_0ms)) ' - ' subject_id]); set(gca, 'Fontsize', 12)
+        plot(time_normalized, lglutmed_normalized_total(:, conditions_stanceL_stimPos_0ms), 'color', lightenColor(color_positive, 0.5));
+        plot(time_normalized, mean(lglutmed_normalized_total(:, conditions_stanceL_stimPos_0ms), 2), 'color', color_positive, 'linewidth', 5);
+        
+        figure; axes; hold on; title(['left tibialis anterior, left stance, 0ms, N = ' num2str(sum(conditions_stanceL_stimPos_0ms)) ' - ' subject_id]); set(gca, 'Fontsize', 12)
+        plot(time_normalized, ltibiant_normalized_total(:, conditions_stanceL_stimPos_0ms), 'color', lightenColor(color_positive, 0.5));
+        plot(time_normalized, mean(ltibiant_normalized_total(:, conditions_stanceL_stimPos_0ms), 2), 'color', color_positive, 'linewidth', 5);
+
+        figure; axes; hold on; title(['left peroneus longus, left stance, 0ms, N = ' num2str(sum(conditions_stanceL_stimPos_0ms)) ' - ' subject_id]); set(gca, 'Fontsize', 12)
+        plot(time_normalized, lperolng_normalized_total(:, conditions_stanceL_stimPos_0ms), 'color', lightenColor(color_positive, 0.5));
+        plot(time_normalized, mean(lperolng_normalized_total(:, conditions_stanceL_stimPos_0ms), 2), 'color', color_positive, 'linewidth', 5);
+
+        figure; axes; hold on; title(['right gluteus medius, left stance, 0ms, N = ' num2str(sum(conditions_stanceL_stimPos_0ms)) ' - ' subject_id]); set(gca, 'Fontsize', 12)
+        plot(time_normalized, rglutmed_normalized_total(:, conditions_stanceL_stimPos_0ms), 'color', lightenColor(color_positive, 0.5));
+        plot(time_normalized, mean(rglutmed_normalized_total(:, conditions_stanceL_stimPos_0ms), 2), 'color', color_positive, 'linewidth', 5);
+
+        figure; axes; hold on; title(['right tibialis anterior, left stance, 0ms, N = ' num2str(sum(conditions_stanceL_stimPos_0ms)) ' - ' subject_id]); set(gca, 'Fontsize', 12)
+        plot(time_normalized, rtibiant_normalized_total(:, conditions_stanceL_stimPos_0ms), 'color', lightenColor(color_positive, 0.5));
+        plot(time_normalized, mean(rtibiant_normalized_total(:, conditions_stanceL_stimPos_0ms), 2), 'color', color_positive, 'linewidth', 5);
+
+        figure; axes; hold on; title(['right peroneus longus, left stance, 0ms, N = ' num2str(sum(conditions_stanceL_stimPos_0ms)) ' - ' subject_id]); set(gca, 'Fontsize', 12)
+        plot(time_normalized, rperolng_normalized_total(:, conditions_stanceL_stimPos_0ms), 'color', lightenColor(color_positive, 0.5));
+        plot(time_normalized, mean(rperolng_normalized_total(:, conditions_stanceL_stimPos_0ms), 2), 'color', color_positive, 'linewidth', 5);
+    end
+    
+    if any(conditions_stanceR_stimPos_0ms)
+        figure; axes; hold on; title(['left gluteus medius, right stance, 0ms, N = ' num2str(sum(conditions_stanceR_stimPos_0ms)) ' - ' subject_id]); set(gca, 'Fontsize', 12)
+        plot(time_normalized, lglutmed_normalized_total(:, conditions_stanceR_stimPos_0ms), 'color', lightenColor(color_positive, 0.5));
+        plot(time_normalized, mean(lglutmed_normalized_total(:, conditions_stanceR_stimPos_0ms), 2), 'color', color_positive, 'linewidth', 5);
+
+        figure; axes; hold on; title(['left tibialis anterior, right stance, 0ms, N = ' num2str(sum(conditions_stanceR_stimPos_0ms)) ' - ' subject_id]); set(gca, 'Fontsize', 12)
+        plot(time_normalized, ltibiant_normalized_total(:, conditions_stanceR_stimPos_0ms), 'color', lightenColor(color_positive, 0.5));
+        plot(time_normalized, mean(ltibiant_normalized_total(:, conditions_stanceR_stimPos_0ms), 2), 'color', color_positive, 'linewidth', 5);
+
+        figure; axes; hold on; title(['left peroneus longus, right stance, 0ms, N = ' num2str(sum(conditions_stanceR_stimPos_0ms)) ' - ' subject_id]); set(gca, 'Fontsize', 12)
+        plot(time_normalized, lperolng_normalized_total(:, conditions_stanceR_stimPos_0ms), 'color', lightenColor(color_positive, 0.5));
+        plot(time_normalized, mean(lperolng_normalized_total(:, conditions_stanceR_stimPos_0ms), 2), 'color', color_positive, 'linewidth', 5);
+
+        figure; axes; hold on; title(['right gluteus medius, right stance, 0ms, N = ' num2str(sum(conditions_stanceR_stimPos_0ms)) ' - ' subject_id]); set(gca, 'Fontsize', 12)
+        plot(time_normalized, rglutmed_normalized_total(:, conditions_stanceR_stimPos_0ms), 'color', lightenColor(color_positive, 0.5));
+        plot(time_normalized, mean(rglutmed_normalized_total(:, conditions_stanceR_stimPos_0ms), 2), 'color', color_positive, 'linewidth', 5);
+
+        figure; axes; hold on; title(['right tibialis anterior, right stance, 0ms, N = ' num2str(sum(conditions_stanceR_stimPos_0ms)) ' - ' subject_id]); set(gca, 'Fontsize', 12)
+        plot(time_normalized, rtibiant_normalized_total(:, conditions_stanceR_stimPos_0ms), 'color', lightenColor(color_positive, 0.5));
+        plot(time_normalized, mean(rtibiant_normalized_total(:, conditions_stanceR_stimPos_0ms), 2), 'color', color_positive, 'linewidth', 5);
+
+        figure; axes; hold on; title(['right peroneus longus, right stance, 0ms, N = ' num2str(sum(conditions_stanceR_stimPos_0ms)) ' - ' subject_id]); set(gca, 'Fontsize', 12)
+        plot(time_normalized, rperolng_normalized_total(:, conditions_stanceR_stimPos_0ms), 'color', lightenColor(color_positive, 0.5));
+        plot(time_normalized, mean(rperolng_normalized_total(:, conditions_stanceR_stimPos_0ms), 2), 'color', color_positive, 'linewidth', 5);
+    end
+    
+    % neg
+    if any(conditions_stanceL_stimPos_0ms)
+        figure; axes; hold on; title(['left gluteus medius, left stance, 0ms, N = ' num2str(sum(conditions_stanceL_stimNeg_0ms)) ' - ' subject_id]); set(gca, 'Fontsize', 12)
+        plot(time_normalized, lglutmed_normalized_total(:, conditions_stanceL_stimNeg_0ms), 'color', lightenColor(color_negative, 0.5));
+        plot(time_normalized, mean(lglutmed_normalized_total(:, conditions_stanceL_stimNeg_0ms), 2), 'color', color_negative, 'linewidth', 5);
+        
+        figure; axes; hold on; title(['left tibialis anterior, left stance, 0ms, N = ' num2str(sum(conditions_stanceL_stimNeg_0ms)) ' - ' subject_id]); set(gca, 'Fontsize', 12)
+        plot(time_normalized, ltibiant_normalized_total(:, conditions_stanceL_stimNeg_0ms), 'color', lightenColor(color_negative, 0.5));
+        plot(time_normalized, mean(ltibiant_normalized_total(:, conditions_stanceL_stimNeg_0ms), 2), 'color', color_negative, 'linewidth', 5);
+
+        figure; axes; hold on; title(['left peroneus longus, left stance, 0ms, N = ' num2str(sum(conditions_stanceL_stimNeg_0ms)) ' - ' subject_id]); set(gca, 'Fontsize', 12)
+        plot(time_normalized, lperolng_normalized_total(:, conditions_stanceL_stimNeg_0ms), 'color', lightenColor(color_negative, 0.5));
+        plot(time_normalized, mean(lperolng_normalized_total(:, conditions_stanceL_stimNeg_0ms), 2), 'color', color_negative, 'linewidth', 5);
+
+        figure; axes; hold on; title(['right gluteus medius, left stance, 0ms, N = ' num2str(sum(conditions_stanceL_stimNeg_0ms)) ' - ' subject_id]); set(gca, 'Fontsize', 12)
+        plot(time_normalized, rglutmed_normalized_total(:, conditions_stanceL_stimNeg_0ms), 'color', lightenColor(color_negative, 0.5));
+        plot(time_normalized, mean(rglutmed_normalized_total(:, conditions_stanceL_stimNeg_0ms), 2), 'color', color_negative, 'linewidth', 5);
+
+        figure; axes; hold on; title(['right tibialis anterior, left stance, 0ms, N = ' num2str(sum(conditions_stanceL_stimNeg_0ms)) ' - ' subject_id]); set(gca, 'Fontsize', 12)
+        plot(time_normalized, rtibiant_normalized_total(:, conditions_stanceL_stimNeg_0ms), 'color', lightenColor(color_negative, 0.5));
+        plot(time_normalized, mean(rtibiant_normalized_total(:, conditions_stanceL_stimNeg_0ms), 2), 'color', color_negative, 'linewidth', 5);
+
+        figure; axes; hold on; title(['right peroneus longus, left stance, 0ms, N = ' num2str(sum(conditions_stanceL_stimNeg_0ms)) ' - ' subject_id]); set(gca, 'Fontsize', 12)
+        plot(time_normalized, rperolng_normalized_total(:, conditions_stanceL_stimNeg_0ms), 'color', lightenColor(color_negative, 0.5));
+        plot(time_normalized, mean(rperolng_normalized_total(:, conditions_stanceL_stimNeg_0ms), 2), 'color', color_negative, 'linewidth', 5);
+    end
+    
+    if any(conditions_stanceR_stimNeg_0ms)
+        figure; axes; hold on; title(['left gluteus medius, right stance, 0ms, N = ' num2str(sum(conditions_stanceR_stimNeg_0ms)) ' - ' subject_id]); set(gca, 'Fontsize', 12)
+        plot(time_normalized, lglutmed_normalized_total(:, conditions_stanceR_stimNeg_0ms), 'color', lightenColor(color_negative, 0.5));
+        plot(time_normalized, mean(lglutmed_normalized_total(:, conditions_stanceR_stimNeg_0ms), 2), 'color', color_negative, 'linewidth', 5);
+
+        figure; axes; hold on; title(['left tibialis anterior, right stance, 0ms, N = ' num2str(sum(conditions_stanceR_stimNeg_0ms)) ' - ' subject_id]); set(gca, 'Fontsize', 12)
+        plot(time_normalized, ltibiant_normalized_total(:, conditions_stanceR_stimNeg_0ms), 'color', lightenColor(color_negative, 0.5));
+        plot(time_normalized, mean(ltibiant_normalized_total(:, conditions_stanceR_stimNeg_0ms), 2), 'color', color_negative, 'linewidth', 5);
+
+        figure; axes; hold on; title(['left peroneus longus, right stance, 0ms, N = ' num2str(sum(conditions_stanceR_stimNeg_0ms)) ' - ' subject_id]); set(gca, 'Fontsize', 12)
+        plot(time_normalized, lperolng_normalized_total(:, conditions_stanceR_stimNeg_0ms), 'color', lightenColor(color_negative, 0.5));
+        plot(time_normalized, mean(lperolng_normalized_total(:, conditions_stanceR_stimNeg_0ms), 2), 'color', color_negative, 'linewidth', 5);
+
+        figure; axes; hold on; title(['right gluteus medius, right stance, 0ms, N = ' num2str(sum(conditions_stanceR_stimNeg_0ms)) ' - ' subject_id]); set(gca, 'Fontsize', 12)
+        plot(time_normalized, rglutmed_normalized_total(:, conditions_stanceR_stimNeg_0ms), 'color', lightenColor(color_negative, 0.5));
+        plot(time_normalized, mean(rglutmed_normalized_total(:, conditions_stanceR_stimNeg_0ms), 2), 'color', color_negative, 'linewidth', 5);
+
+        figure; axes; hold on; title(['right tibialis anterior, right stance, 0ms, N = ' num2str(sum(conditions_stanceR_stimNeg_0ms)) ' - ' subject_id]); set(gca, 'Fontsize', 12)
+        plot(time_normalized, rtibiant_normalized_total(:, conditions_stanceR_stimNeg_0ms), 'color', lightenColor(color_negative, 0.5));
+        plot(time_normalized, mean(rtibiant_normalized_total(:, conditions_stanceR_stimNeg_0ms), 2), 'color', color_negative, 'linewidth', 5);
+
+        figure; axes; hold on; title(['right peroneus longus, right stance, 0ms, N = ' num2str(sum(conditions_stanceR_stimNeg_0ms)) ' - ' subject_id]); set(gca, 'Fontsize', 12)
+        plot(time_normalized, rperolng_normalized_total(:, conditions_stanceR_stimNeg_0ms), 'color', lightenColor(color_negative, 0.5));
+        plot(time_normalized, mean(rperolng_normalized_total(:, conditions_stanceR_stimNeg_0ms), 2), 'color', color_negative, 'linewidth', 5);
+    end    
+    
+    if do_phase_delayed_plots
+        % 150ms
+        % pos
+        if any(conditions_stanceL_stimPos_150ms)
+            figure; axes; hold on; title(['left gluteus medius, left stance, 150ms, N = ' num2str(sum(conditions_stanceL_stimPos_150ms)) ' - ' subject_id]); set(gca, 'Fontsize', 12)
+            plot(time_normalized, lglutmed_normalized_total(:, conditions_stanceL_stimPos_150ms), 'color', lightenColor(color_positive, 0.5));
+            plot(time_normalized, mean(lglutmed_normalized_total(:, conditions_stanceL_stimPos_150ms), 2), 'color', color_positive, 'linewidth', 5);
+
+            figure; axes; hold on; title(['left tibialis anterior, left stance, 150ms, N = ' num2str(sum(conditions_stanceL_stimPos_150ms)) ' - ' subject_id]); set(gca, 'Fontsize', 12)
+            plot(time_normalized, ltibiant_normalized_total(:, conditions_stanceL_stimPos_150ms), 'color', lightenColor(color_positive, 0.5));
+            plot(time_normalized, mean(ltibiant_normalized_total(:, conditions_stanceL_stimPos_150ms), 2), 'color', color_positive, 'linewidth', 5);
+
+            figure; axes; hold on; title(['left peroneus longus, left stance, 150ms, N = ' num2str(sum(conditions_stanceL_stimPos_150ms)) ' - ' subject_id]); set(gca, 'Fontsize', 12)
+            plot(time_normalized, lperolng_normalized_total(:, conditions_stanceL_stimPos_150ms), 'color', lightenColor(color_positive, 0.5));
+            plot(time_normalized, mean(lperolng_normalized_total(:, conditions_stanceL_stimPos_150ms), 2), 'color', color_positive, 'linewidth', 5);
+
+            figure; axes; hold on; title(['right gluteus medius, left stance, 150ms, N = ' num2str(sum(conditions_stanceL_stimPos_150ms)) ' - ' subject_id]); set(gca, 'Fontsize', 12)
+            plot(time_normalized, rglutmed_normalized_total(:, conditions_stanceL_stimPos_150ms), 'color', lightenColor(color_positive, 0.5));
+            plot(time_normalized, mean(rglutmed_normalized_total(:, conditions_stanceL_stimPos_150ms), 2), 'color', color_positive, 'linewidth', 5);
+
+            figure; axes; hold on; title(['right tibialis anterior, left stance, 150ms, N = ' num2str(sum(conditions_stanceL_stimPos_150ms)) ' - ' subject_id]); set(gca, 'Fontsize', 12)
+            plot(time_normalized, rtibiant_normalized_total(:, conditions_stanceL_stimPos_150ms), 'color', lightenColor(color_positive, 0.5));
+            plot(time_normalized, mean(rtibiant_normalized_total(:, conditions_stanceL_stimPos_150ms), 2), 'color', color_positive, 'linewidth', 5);
+
+            figure; axes; hold on; title(['right peroneus longus, left stance, 150ms, N = ' num2str(sum(conditions_stanceL_stimPos_150ms)) ' - ' subject_id]); set(gca, 'Fontsize', 12)
+            plot(time_normalized, rperolng_normalized_total(:, conditions_stanceL_stimPos_150ms), 'color', lightenColor(color_positive, 0.5));
+            plot(time_normalized, mean(rperolng_normalized_total(:, conditions_stanceL_stimPos_150ms), 2), 'color', color_positive, 'linewidth', 5);
+        end
+
+        if any(conditions_stanceR_stimPos_150ms)
+            figure; axes; hold on; title(['left gluteus medius, right stance, 150ms, N = ' num2str(sum(conditions_stanceR_stimPos_150ms)) ' - ' subject_id]); set(gca, 'Fontsize', 12)
+            plot(time_normalized, lglutmed_normalized_total(:, conditions_stanceR_stimPos_150ms), 'color', lightenColor(color_positive, 0.5));
+            plot(time_normalized, mean(lglutmed_normalized_total(:, conditions_stanceR_stimPos_150ms), 2), 'color', color_positive, 'linewidth', 5);
+
+            figure; axes; hold on; title(['left tibialis anterior, right stance, 150ms, N = ' num2str(sum(conditions_stanceR_stimPos_150ms)) ' - ' subject_id]); set(gca, 'Fontsize', 12)
+            plot(time_normalized, ltibiant_normalized_total(:, conditions_stanceR_stimPos_150ms), 'color', lightenColor(color_positive, 0.5));
+            plot(time_normalized, mean(ltibiant_normalized_total(:, conditions_stanceR_stimPos_150ms), 2), 'color', color_positive, 'linewidth', 5);
+
+            figure; axes; hold on; title(['left peroneus longus, right stance, 150ms, N = ' num2str(sum(conditions_stanceR_stimPos_150ms)) ' - ' subject_id]); set(gca, 'Fontsize', 12)
+            plot(time_normalized, lperolng_normalized_total(:, conditions_stanceR_stimPos_150ms), 'color', lightenColor(color_positive, 0.5));
+            plot(time_normalized, mean(lperolng_normalized_total(:, conditions_stanceR_stimPos_150ms), 2), 'color', color_positive, 'linewidth', 5);
+
+            figure; axes; hold on; title(['right gluteus medius, right stance, 150ms, N = ' num2str(sum(conditions_stanceR_stimPos_150ms)) ' - ' subject_id]); set(gca, 'Fontsize', 12)
+            plot(time_normalized, rglutmed_normalized_total(:, conditions_stanceR_stimPos_150ms), 'color', lightenColor(color_positive, 0.5));
+            plot(time_normalized, mean(rglutmed_normalized_total(:, conditions_stanceR_stimPos_150ms), 2), 'color', color_positive, 'linewidth', 5);
+
+            figure; axes; hold on; title(['right tibialis anterior, right stance, 150ms, N = ' num2str(sum(conditions_stanceR_stimPos_150ms)) ' - ' subject_id]); set(gca, 'Fontsize', 12)
+            plot(time_normalized, rtibiant_normalized_total(:, conditions_stanceR_stimPos_150ms), 'color', lightenColor(color_positive, 0.5));
+            plot(time_normalized, mean(rtibiant_normalized_total(:, conditions_stanceR_stimPos_150ms), 2), 'color', color_positive, 'linewidth', 5);
+
+            figure; axes; hold on; title(['right peroneus longus, right stance, 150ms, N = ' num2str(sum(conditions_stanceR_stimPos_150ms)) ' - ' subject_id]); set(gca, 'Fontsize', 12)
+            plot(time_normalized, rperolng_normalized_total(:, conditions_stanceR_stimPos_150ms), 'color', lightenColor(color_positive, 0.5));
+            plot(time_normalized, mean(rperolng_normalized_total(:, conditions_stanceR_stimPos_150ms), 2), 'color', color_positive, 'linewidth', 5);
+        end
+
+        % neg
+        if any(conditions_stanceL_stimPos_150ms)
+            figure; axes; hold on; title(['left gluteus medius, left stance, 150ms, N = ' num2str(sum(conditions_stanceL_stimNeg_150ms)) ' - ' subject_id]); set(gca, 'Fontsize', 12)
+            plot(time_normalized, lglutmed_normalized_total(:, conditions_stanceL_stimNeg_150ms), 'color', lightenColor(color_negative, 0.5));
+            plot(time_normalized, mean(lglutmed_normalized_total(:, conditions_stanceL_stimNeg_150ms), 2), 'color', color_negative, 'linewidth', 5);
+
+            figure; axes; hold on; title(['left tibialis anterior, left stance, 150ms, N = ' num2str(sum(conditions_stanceL_stimNeg_150ms)) ' - ' subject_id]); set(gca, 'Fontsize', 12)
+            plot(time_normalized, ltibiant_normalized_total(:, conditions_stanceL_stimNeg_150ms), 'color', lightenColor(color_negative, 0.5));
+            plot(time_normalized, mean(ltibiant_normalized_total(:, conditions_stanceL_stimNeg_150ms), 2), 'color', color_negative, 'linewidth', 5);
+
+            figure; axes; hold on; title(['left peroneus longus, left stance, 150ms, N = ' num2str(sum(conditions_stanceL_stimNeg_150ms)) ' - ' subject_id]); set(gca, 'Fontsize', 12)
+            plot(time_normalized, lperolng_normalized_total(:, conditions_stanceL_stimNeg_150ms), 'color', lightenColor(color_negative, 0.5));
+            plot(time_normalized, mean(lperolng_normalized_total(:, conditions_stanceL_stimNeg_150ms), 2), 'color', color_negative, 'linewidth', 5);
+
+            figure; axes; hold on; title(['right gluteus medius, left stance, 150ms, N = ' num2str(sum(conditions_stanceL_stimNeg_150ms)) ' - ' subject_id]); set(gca, 'Fontsize', 12)
+            plot(time_normalized, rglutmed_normalized_total(:, conditions_stanceL_stimNeg_150ms), 'color', lightenColor(color_negative, 0.5));
+            plot(time_normalized, mean(rglutmed_normalized_total(:, conditions_stanceL_stimNeg_150ms), 2), 'color', color_negative, 'linewidth', 5);
+
+            figure; axes; hold on; title(['right tibialis anterior, left stance, 150ms, N = ' num2str(sum(conditions_stanceL_stimNeg_150ms)) ' - ' subject_id]); set(gca, 'Fontsize', 12)
+            plot(time_normalized, rtibiant_normalized_total(:, conditions_stanceL_stimNeg_150ms), 'color', lightenColor(color_negative, 0.5));
+            plot(time_normalized, mean(rtibiant_normalized_total(:, conditions_stanceL_stimNeg_150ms), 2), 'color', color_negative, 'linewidth', 5);
+
+            figure; axes; hold on; title(['right peroneus longus, left stance, 150ms, N = ' num2str(sum(conditions_stanceL_stimNeg_150ms)) ' - ' subject_id]); set(gca, 'Fontsize', 12)
+            plot(time_normalized, rperolng_normalized_total(:, conditions_stanceL_stimNeg_150ms), 'color', lightenColor(color_negative, 0.5));
+            plot(time_normalized, mean(rperolng_normalized_total(:, conditions_stanceL_stimNeg_150ms), 2), 'color', color_negative, 'linewidth', 5);
+        end
+
+        if any(conditions_stanceR_stimNeg_150ms)
+            figure; axes; hold on; title(['left gluteus medius, right stance, 150ms, N = ' num2str(sum(conditions_stanceR_stimNeg_150ms)) ' - ' subject_id]); set(gca, 'Fontsize', 12)
+            plot(time_normalized, lglutmed_normalized_total(:, conditions_stanceR_stimNeg_150ms), 'color', lightenColor(color_negative, 0.5));
+            plot(time_normalized, mean(lglutmed_normalized_total(:, conditions_stanceR_stimNeg_150ms), 2), 'color', color_negative, 'linewidth', 5);
+
+            figure; axes; hold on; title(['left tibialis anterior, right stance, 150ms, N = ' num2str(sum(conditions_stanceR_stimNeg_150ms)) ' - ' subject_id]); set(gca, 'Fontsize', 12)
+            plot(time_normalized, ltibiant_normalized_total(:, conditions_stanceR_stimNeg_150ms), 'color', lightenColor(color_negative, 0.5));
+            plot(time_normalized, mean(ltibiant_normalized_total(:, conditions_stanceR_stimNeg_150ms), 2), 'color', color_negative, 'linewidth', 5);
+
+            figure; axes; hold on; title(['left peroneus longus, right stance, 150ms, N = ' num2str(sum(conditions_stanceR_stimNeg_150ms)) ' - ' subject_id]); set(gca, 'Fontsize', 12)
+            plot(time_normalized, lperolng_normalized_total(:, conditions_stanceR_stimNeg_150ms), 'color', lightenColor(color_negative, 0.5));
+            plot(time_normalized, mean(lperolng_normalized_total(:, conditions_stanceR_stimNeg_150ms), 2), 'color', color_negative, 'linewidth', 5);
+
+            figure; axes; hold on; title(['right gluteus medius, right stance, 150ms, N = ' num2str(sum(conditions_stanceR_stimNeg_150ms)) ' - ' subject_id]); set(gca, 'Fontsize', 12)
+            plot(time_normalized, rglutmed_normalized_total(:, conditions_stanceR_stimNeg_150ms), 'color', lightenColor(color_negative, 0.5));
+            plot(time_normalized, mean(rglutmed_normalized_total(:, conditions_stanceR_stimNeg_150ms), 2), 'color', color_negative, 'linewidth', 5);
+
+            figure; axes; hold on; title(['right tibialis anterior, right stance, 150ms, N = ' num2str(sum(conditions_stanceR_stimNeg_150ms)) ' - ' subject_id]); set(gca, 'Fontsize', 12)
+            plot(time_normalized, rtibiant_normalized_total(:, conditions_stanceR_stimNeg_150ms), 'color', lightenColor(color_negative, 0.5));
+            plot(time_normalized, mean(rtibiant_normalized_total(:, conditions_stanceR_stimNeg_150ms), 2), 'color', color_negative, 'linewidth', 5);
+
+            figure; axes; hold on; title(['right peroneus longus, right stance, 150ms, N = ' num2str(sum(conditions_stanceR_stimNeg_150ms)) ' - ' subject_id]); set(gca, 'Fontsize', 12)
+            plot(time_normalized, rperolng_normalized_total(:, conditions_stanceR_stimNeg_150ms), 'color', lightenColor(color_negative, 0.5));
+            plot(time_normalized, mean(rperolng_normalized_total(:, conditions_stanceR_stimNeg_150ms), 2), 'color', color_negative, 'linewidth', 5);
+        end  
+    
+        % 450ms
+        % pos
+        if any(conditions_stanceL_stimPos_450ms)
+            figure; axes; hold on; title(['left gluteus medius, left stance, 450ms, N = ' num2str(sum(conditions_stanceL_stimPos_450ms)) ' - ' subject_id]); set(gca, 'Fontsize', 12)
+            plot(time_normalized, lglutmed_normalized_total(:, conditions_stanceL_stimPos_450ms), 'color', lightenColor(color_positive, 0.5));
+            plot(time_normalized, mean(lglutmed_normalized_total(:, conditions_stanceL_stimPos_450ms), 2), 'color', color_positive, 'linewidth', 5);
+
+            figure; axes; hold on; title(['left tibialis anterior, left stance, 450ms, N = ' num2str(sum(conditions_stanceL_stimPos_450ms)) ' - ' subject_id]); set(gca, 'Fontsize', 12)
+            plot(time_normalized, ltibiant_normalized_total(:, conditions_stanceL_stimPos_450ms), 'color', lightenColor(color_positive, 0.5));
+            plot(time_normalized, mean(ltibiant_normalized_total(:, conditions_stanceL_stimPos_450ms), 2), 'color', color_positive, 'linewidth', 5);
+
+            figure; axes; hold on; title(['left peroneus longus, left stance, 450ms, N = ' num2str(sum(conditions_stanceL_stimPos_450ms)) ' - ' subject_id]); set(gca, 'Fontsize', 12)
+            plot(time_normalized, lperolng_normalized_total(:, conditions_stanceL_stimPos_450ms), 'color', lightenColor(color_positive, 0.5));
+            plot(time_normalized, mean(lperolng_normalized_total(:, conditions_stanceL_stimPos_450ms), 2), 'color', color_positive, 'linewidth', 5);
+
+            figure; axes; hold on; title(['right gluteus medius, left stance, 450ms, N = ' num2str(sum(conditions_stanceL_stimPos_450ms)) ' - ' subject_id]); set(gca, 'Fontsize', 12)
+            plot(time_normalized, rglutmed_normalized_total(:, conditions_stanceL_stimPos_450ms), 'color', lightenColor(color_positive, 0.5));
+            plot(time_normalized, mean(rglutmed_normalized_total(:, conditions_stanceL_stimPos_450ms), 2), 'color', color_positive, 'linewidth', 5);
+
+            figure; axes; hold on; title(['right tibialis anterior, left stance, 450ms, N = ' num2str(sum(conditions_stanceL_stimPos_450ms)) ' - ' subject_id]); set(gca, 'Fontsize', 12)
+            plot(time_normalized, rtibiant_normalized_total(:, conditions_stanceL_stimPos_450ms), 'color', lightenColor(color_positive, 0.5));
+            plot(time_normalized, mean(rtibiant_normalized_total(:, conditions_stanceL_stimPos_450ms), 2), 'color', color_positive, 'linewidth', 5);
+
+            figure; axes; hold on; title(['right peroneus longus, left stance, 450ms, N = ' num2str(sum(conditions_stanceL_stimPos_450ms)) ' - ' subject_id]); set(gca, 'Fontsize', 12)
+            plot(time_normalized, rperolng_normalized_total(:, conditions_stanceL_stimPos_450ms), 'color', lightenColor(color_positive, 0.5));
+            plot(time_normalized, mean(rperolng_normalized_total(:, conditions_stanceL_stimPos_450ms), 2), 'color', color_positive, 'linewidth', 5);
+        end
+
+        if any(conditions_stanceR_stimPos_450ms)
+            figure; axes; hold on; title(['left gluteus medius, right stance, 450ms, N = ' num2str(sum(conditions_stanceR_stimPos_450ms)) ' - ' subject_id]); set(gca, 'Fontsize', 12)
+            plot(time_normalized, lglutmed_normalized_total(:, conditions_stanceR_stimPos_450ms), 'color', lightenColor(color_positive, 0.5));
+            plot(time_normalized, mean(lglutmed_normalized_total(:, conditions_stanceR_stimPos_450ms), 2), 'color', color_positive, 'linewidth', 5);
+
+            figure; axes; hold on; title(['left tibialis anterior, right stance, 450ms, N = ' num2str(sum(conditions_stanceR_stimPos_450ms)) ' - ' subject_id]); set(gca, 'Fontsize', 12)
+            plot(time_normalized, ltibiant_normalized_total(:, conditions_stanceR_stimPos_450ms), 'color', lightenColor(color_positive, 0.5));
+            plot(time_normalized, mean(ltibiant_normalized_total(:, conditions_stanceR_stimPos_450ms), 2), 'color', color_positive, 'linewidth', 5);
+
+            figure; axes; hold on; title(['left peroneus longus, right stance, 450ms, N = ' num2str(sum(conditions_stanceR_stimPos_450ms)) ' - ' subject_id]); set(gca, 'Fontsize', 12)
+            plot(time_normalized, lperolng_normalized_total(:, conditions_stanceR_stimPos_450ms), 'color', lightenColor(color_positive, 0.5));
+            plot(time_normalized, mean(lperolng_normalized_total(:, conditions_stanceR_stimPos_450ms), 2), 'color', color_positive, 'linewidth', 5);
+
+            figure; axes; hold on; title(['right gluteus medius, right stance, 450ms, N = ' num2str(sum(conditions_stanceR_stimPos_450ms)) ' - ' subject_id]); set(gca, 'Fontsize', 12)
+            plot(time_normalized, rglutmed_normalized_total(:, conditions_stanceR_stimPos_450ms), 'color', lightenColor(color_positive, 0.5));
+            plot(time_normalized, mean(rglutmed_normalized_total(:, conditions_stanceR_stimPos_450ms), 2), 'color', color_positive, 'linewidth', 5);
+
+            figure; axes; hold on; title(['right tibialis anterior, right stance, 450ms, N = ' num2str(sum(conditions_stanceR_stimPos_450ms)) ' - ' subject_id]); set(gca, 'Fontsize', 12)
+            plot(time_normalized, rtibiant_normalized_total(:, conditions_stanceR_stimPos_450ms), 'color', lightenColor(color_positive, 0.5));
+            plot(time_normalized, mean(rtibiant_normalized_total(:, conditions_stanceR_stimPos_450ms), 2), 'color', color_positive, 'linewidth', 5);
+
+            figure; axes; hold on; title(['right peroneus longus, right stance, 450ms, N = ' num2str(sum(conditions_stanceR_stimPos_450ms)) ' - ' subject_id]); set(gca, 'Fontsize', 12)
+            plot(time_normalized, rperolng_normalized_total(:, conditions_stanceR_stimPos_450ms), 'color', lightenColor(color_positive, 0.5));
+            plot(time_normalized, mean(rperolng_normalized_total(:, conditions_stanceR_stimPos_450ms), 2), 'color', color_positive, 'linewidth', 5);
+        end
+
+        % neg
+        if any(conditions_stanceL_stimPos_450ms)
+            figure; axes; hold on; title(['left gluteus medius, left stance, 450ms, N = ' num2str(sum(conditions_stanceL_stimNeg_450ms)) ' - ' subject_id]); set(gca, 'Fontsize', 12)
+            plot(time_normalized, lglutmed_normalized_total(:, conditions_stanceL_stimNeg_450ms), 'color', lightenColor(color_negative, 0.5));
+            plot(time_normalized, mean(lglutmed_normalized_total(:, conditions_stanceL_stimNeg_450ms), 2), 'color', color_negative, 'linewidth', 5);
+
+            figure; axes; hold on; title(['left tibialis anterior, left stance, 450ms, N = ' num2str(sum(conditions_stanceL_stimNeg_450ms)) ' - ' subject_id]); set(gca, 'Fontsize', 12)
+            plot(time_normalized, ltibiant_normalized_total(:, conditions_stanceL_stimNeg_450ms), 'color', lightenColor(color_negative, 0.5));
+            plot(time_normalized, mean(ltibiant_normalized_total(:, conditions_stanceL_stimNeg_450ms), 2), 'color', color_negative, 'linewidth', 5);
+
+            figure; axes; hold on; title(['left peroneus longus, left stance, 450ms, N = ' num2str(sum(conditions_stanceL_stimNeg_450ms)) ' - ' subject_id]); set(gca, 'Fontsize', 12)
+            plot(time_normalized, lperolng_normalized_total(:, conditions_stanceL_stimNeg_450ms), 'color', lightenColor(color_negative, 0.5));
+            plot(time_normalized, mean(lperolng_normalized_total(:, conditions_stanceL_stimNeg_450ms), 2), 'color', color_negative, 'linewidth', 5);
+
+            figure; axes; hold on; title(['right gluteus medius, left stance, 450ms, N = ' num2str(sum(conditions_stanceL_stimNeg_450ms)) ' - ' subject_id]); set(gca, 'Fontsize', 12)
+            plot(time_normalized, rglutmed_normalized_total(:, conditions_stanceL_stimNeg_450ms), 'color', lightenColor(color_negative, 0.5));
+            plot(time_normalized, mean(rglutmed_normalized_total(:, conditions_stanceL_stimNeg_450ms), 2), 'color', color_negative, 'linewidth', 5);
+
+            figure; axes; hold on; title(['right tibialis anterior, left stance, 450ms, N = ' num2str(sum(conditions_stanceL_stimNeg_450ms)) ' - ' subject_id]); set(gca, 'Fontsize', 12)
+            plot(time_normalized, rtibiant_normalized_total(:, conditions_stanceL_stimNeg_450ms), 'color', lightenColor(color_negative, 0.5));
+            plot(time_normalized, mean(rtibiant_normalized_total(:, conditions_stanceL_stimNeg_450ms), 2), 'color', color_negative, 'linewidth', 5);
+
+            figure; axes; hold on; title(['right peroneus longus, left stance, 450ms, N = ' num2str(sum(conditions_stanceL_stimNeg_450ms)) ' - ' subject_id]); set(gca, 'Fontsize', 12)
+            plot(time_normalized, rperolng_normalized_total(:, conditions_stanceL_stimNeg_450ms), 'color', lightenColor(color_negative, 0.5));
+            plot(time_normalized, mean(rperolng_normalized_total(:, conditions_stanceL_stimNeg_450ms), 2), 'color', color_negative, 'linewidth', 5);
+        end
+
+        if any(conditions_stanceR_stimNeg_450ms)
+            figure; axes; hold on; title(['left gluteus medius, right stance, 450ms, N = ' num2str(sum(conditions_stanceR_stimNeg_450ms)) ' - ' subject_id]); set(gca, 'Fontsize', 12)
+            plot(time_normalized, lglutmed_normalized_total(:, conditions_stanceR_stimNeg_450ms), 'color', lightenColor(color_negative, 0.5));
+            plot(time_normalized, mean(lglutmed_normalized_total(:, conditions_stanceR_stimNeg_450ms), 2), 'color', color_negative, 'linewidth', 5);
+
+            figure; axes; hold on; title(['left tibialis anterior, right stance, 450ms, N = ' num2str(sum(conditions_stanceR_stimNeg_450ms)) ' - ' subject_id]); set(gca, 'Fontsize', 12)
+            plot(time_normalized, ltibiant_normalized_total(:, conditions_stanceR_stimNeg_450ms), 'color', lightenColor(color_negative, 0.5));
+            plot(time_normalized, mean(ltibiant_normalized_total(:, conditions_stanceR_stimNeg_450ms), 2), 'color', color_negative, 'linewidth', 5);
+
+            figure; axes; hold on; title(['left peroneus longus, right stance, 450ms, N = ' num2str(sum(conditions_stanceR_stimNeg_450ms)) ' - ' subject_id]); set(gca, 'Fontsize', 12)
+            plot(time_normalized, lperolng_normalized_total(:, conditions_stanceR_stimNeg_450ms), 'color', lightenColor(color_negative, 0.5));
+            plot(time_normalized, mean(lperolng_normalized_total(:, conditions_stanceR_stimNeg_450ms), 2), 'color', color_negative, 'linewidth', 5);
+
+            figure; axes; hold on; title(['right gluteus medius, right stance, 450ms, N = ' num2str(sum(conditions_stanceR_stimNeg_450ms)) ' - ' subject_id]); set(gca, 'Fontsize', 12)
+            plot(time_normalized, rglutmed_normalized_total(:, conditions_stanceR_stimNeg_450ms), 'color', lightenColor(color_negative, 0.5));
+            plot(time_normalized, mean(rglutmed_normalized_total(:, conditions_stanceR_stimNeg_450ms), 2), 'color', color_negative, 'linewidth', 5);
+
+            figure; axes; hold on; title(['right tibialis anterior, right stance, 450ms, N = ' num2str(sum(conditions_stanceR_stimNeg_450ms)) ' - ' subject_id]); set(gca, 'Fontsize', 12)
+            plot(time_normalized, rtibiant_normalized_total(:, conditions_stanceR_stimNeg_450ms), 'color', lightenColor(color_negative, 0.5));
+            plot(time_normalized, mean(rtibiant_normalized_total(:, conditions_stanceR_stimNeg_450ms), 2), 'color', color_negative, 'linewidth', 5);
+
+            figure; axes; hold on; title(['right peroneus longus, right stance, 450ms, N = ' num2str(sum(conditions_stanceR_stimNeg_450ms)) ' - ' subject_id]); set(gca, 'Fontsize', 12)
+            plot(time_normalized, rperolng_normalized_total(:, conditions_stanceR_stimNeg_450ms), 'color', lightenColor(color_negative, 0.5));
+            plot(time_normalized, mean(rperolng_normalized_total(:, conditions_stanceR_stimNeg_450ms), 2), 'color', color_negative, 'linewidth', 5);
+        end  
+    end
+end
+
+if do_emg_plots_absolute_right
+    % 0ms
+    figure; axes; hold on; title(['left gluteus medius, right stance, 0ms - ' subject_id]); set(gca, 'Fontsize', 12)
+    control_plot = shadedErrorBar(time_normalized, mean(lglutmed_normalized_total(:, conditions_stanceR_stimNo), 2), cinv(lglutmed_normalized_total(:, conditions_stanceR_stimNo), 2), {'color', color_control, 'linewidth', 5}, 1);
+    positive_plot = shadedErrorBar(time_normalized, mean(lglutmed_normalized_total(:, conditions_stanceR_stimPos_0ms), 2), cinv(lglutmed_normalized_total(:, conditions_stanceR_stimPos_0ms), 2), {'color', color_positive, 'linewidth', 5}, 1);
+    negative_plot = shadedErrorBar(time_normalized, mean(lglutmed_normalized_total(:, conditions_stanceR_stimNeg_0ms), 2), cinv(lglutmed_normalized_total(:, conditions_stanceR_stimNeg_0ms), 2), {'color', color_negative, 'linewidth', 5}, 1);
+    xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)]); 
+    this_legend = legend([control_plot.mainLine positive_plot.mainLine negative_plot.mainLine], 'control', 'illusion left', 'illusion right'); set(this_legend, 'Location', 'NORTHWEST')
+    xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
+    text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), 'right \rightarrow', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right')
+    text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(1), '\leftarrow left', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'left')
+    if save_figures
+        saveas(gcf, 'cop_absolute_stanceR_0ms.eps', 'epsc2')
+    end
+    
+    figure; axes; hold on; title(['left tibialis anterior, right stance, 0ms - ' subject_id]); set(gca, 'Fontsize', 12)
+    control_plot = shadedErrorBar(time_normalized, mean(ltibiant_normalized_total(:, conditions_stanceR_stimNo), 2), cinv(ltibiant_normalized_total(:, conditions_stanceR_stimNo), 2), {'color', color_control, 'linewidth', 5}, 1);
+    positive_plot = shadedErrorBar(time_normalized, mean(ltibiant_normalized_total(:, conditions_stanceR_stimPos_0ms), 2), cinv(ltibiant_normalized_total(:, conditions_stanceR_stimPos_0ms), 2), {'color', color_positive, 'linewidth', 5}, 1);
+    negative_plot = shadedErrorBar(time_normalized, mean(ltibiant_normalized_total(:, conditions_stanceR_stimNeg_0ms), 2), cinv(ltibiant_normalized_total(:, conditions_stanceR_stimNeg_0ms), 2), {'color', color_negative, 'linewidth', 5}, 1);
+    xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)]); 
+    this_legend = legend([control_plot.mainLine positive_plot.mainLine negative_plot.mainLine], 'control', 'illusion left', 'illusion right'); set(this_legend, 'Location', 'NORTHWEST')
+    xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
+    text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), 'right \rightarrow', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right')
+    text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(1), '\leftarrow left', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'left')
+    if save_figures
+        saveas(gcf, 'cop_absolute_stanceR_0ms.eps', 'epsc2')
+    end
+    
+    figure; axes; hold on; title(['left peroneus longus, right stance, 0ms - ' subject_id]); set(gca, 'Fontsize', 12)
+    control_plot = shadedErrorBar(time_normalized, mean(lperolng_normalized_total(:, conditions_stanceR_stimNo), 2), cinv(lperolng_normalized_total(:, conditions_stanceR_stimNo), 2), {'color', color_control, 'linewidth', 5}, 1);
+    positive_plot = shadedErrorBar(time_normalized, mean(lperolng_normalized_total(:, conditions_stanceR_stimPos_0ms), 2), cinv(lperolng_normalized_total(:, conditions_stanceR_stimPos_0ms), 2), {'color', color_positive, 'linewidth', 5}, 1);
+    negative_plot = shadedErrorBar(time_normalized, mean(lperolng_normalized_total(:, conditions_stanceR_stimNeg_0ms), 2), cinv(lperolng_normalized_total(:, conditions_stanceR_stimNeg_0ms), 2), {'color', color_negative, 'linewidth', 5}, 1);
+    xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)]); 
+    this_legend = legend([control_plot.mainLine positive_plot.mainLine negative_plot.mainLine], 'control', 'illusion left', 'illusion right'); set(this_legend, 'Location', 'NORTHWEST')
+    xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
+    text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), 'right \rightarrow', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right')
+    text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(1), '\leftarrow left', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'left')
+    if save_figures
+        saveas(gcf, 'cop_absolute_stanceR_0ms.eps', 'epsc2')
+    end
+
+    figure; axes; hold on; title(['right gluteus medius, right stance, 0ms - ' subject_id]); set(gca, 'Fontsize', 12)
+    control_plot = shadedErrorBar(time_normalized, mean(rglutmed_normalized_total(:, conditions_stanceR_stimNo), 2), cinv(rglutmed_normalized_total(:, conditions_stanceR_stimNo), 2), {'color', color_control, 'linewidth', 5}, 1);
+    positive_plot = shadedErrorBar(time_normalized, mean(rglutmed_normalized_total(:, conditions_stanceR_stimPos_0ms), 2), cinv(rglutmed_normalized_total(:, conditions_stanceR_stimPos_0ms), 2), {'color', color_positive, 'linewidth', 5}, 1);
+    negative_plot = shadedErrorBar(time_normalized, mean(rglutmed_normalized_total(:, conditions_stanceR_stimNeg_0ms), 2), cinv(rglutmed_normalized_total(:, conditions_stanceR_stimNeg_0ms), 2), {'color', color_negative, 'linewidth', 5}, 1);
+    xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)]); 
+    this_legend = legend([control_plot.mainLine positive_plot.mainLine negative_plot.mainLine], 'control', 'illusion left', 'illusion right'); set(this_legend, 'Location', 'NORTHWEST')
+    xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
+    text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), 'right \rightarrow', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right')
+    text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(1), '\leftarrow left', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'left')
+    if save_figures
+        saveas(gcf, 'cop_absolute_stanceR_0ms.eps', 'epsc2')
+    end
+    
+    figure; axes; hold on; title(['right tibialis anterior, right stance, 0ms - ' subject_id]); set(gca, 'Fontsize', 12)
+    control_plot = shadedErrorBar(time_normalized, mean(rtibiant_normalized_total(:, conditions_stanceR_stimNo), 2), cinv(rtibiant_normalized_total(:, conditions_stanceR_stimNo), 2), {'color', color_control, 'linewidth', 5}, 1);
+    positive_plot = shadedErrorBar(time_normalized, mean(rtibiant_normalized_total(:, conditions_stanceR_stimPos_0ms), 2), cinv(rtibiant_normalized_total(:, conditions_stanceR_stimPos_0ms), 2), {'color', color_positive, 'linewidth', 5}, 1);
+    negative_plot = shadedErrorBar(time_normalized, mean(rtibiant_normalized_total(:, conditions_stanceR_stimNeg_0ms), 2), cinv(rtibiant_normalized_total(:, conditions_stanceR_stimNeg_0ms), 2), {'color', color_negative, 'linewidth', 5}, 1);
+    xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)]); 
+    this_legend = legend([control_plot.mainLine positive_plot.mainLine negative_plot.mainLine], 'control', 'illusion left', 'illusion right'); set(this_legend, 'Location', 'NORTHWEST')
+    xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
+    text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), 'right \rightarrow', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right')
+    text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(1), '\leftarrow left', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'left')
+    if save_figures
+        saveas(gcf, 'cop_absolute_stanceR_0ms.eps', 'epsc2')
+    end
+    
+    figure; axes; hold on; title(['right peroneus longus, right stance, 0ms - ' subject_id]); set(gca, 'Fontsize', 12)
+    control_plot = shadedErrorBar(time_normalized, mean(rperolng_normalized_total(:, conditions_stanceR_stimNo), 2), cinv(rperolng_normalized_total(:, conditions_stanceR_stimNo), 2), {'color', color_control, 'linewidth', 5}, 1);
+    positive_plot = shadedErrorBar(time_normalized, mean(rperolng_normalized_total(:, conditions_stanceR_stimPos_0ms), 2), cinv(rperolng_normalized_total(:, conditions_stanceR_stimPos_0ms), 2), {'color', color_positive, 'linewidth', 5}, 1);
+    negative_plot = shadedErrorBar(time_normalized, mean(rperolng_normalized_total(:, conditions_stanceR_stimNeg_0ms), 2), cinv(rperolng_normalized_total(:, conditions_stanceR_stimNeg_0ms), 2), {'color', color_negative, 'linewidth', 5}, 1);
+    xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)]); 
+    this_legend = legend([control_plot.mainLine positive_plot.mainLine negative_plot.mainLine], 'control', 'illusion left', 'illusion right'); set(this_legend, 'Location', 'NORTHWEST')
+    xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
+    text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), 'right \rightarrow', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right')
+    text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(1), '\leftarrow left', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'left')
+    if save_figures
+        saveas(gcf, 'cop_absolute_stanceR_0ms.eps', 'epsc2')
+    end
+
+    
+    
+    
+    
+    
+    
+    if do_phase_delayed_plots
+        % 150ms
+        figure; axes; hold on; title(['left gluteus medius, right stance, 150ms - ' subject_id]); set(gca, 'Fontsize', 12)
+        control_plot = shadedErrorBar(time_normalized, mean(lglutmed_normalized_total(:, conditions_stanceR_stimNo), 2), cinv(lglutmed_normalized_total(:, conditions_stanceR_stimNo), 2), {'color', color_control, 'linewidth', 5}, 1);
+        positive_plot = shadedErrorBar(time_normalized, mean(lglutmed_normalized_total(:, conditions_stanceR_stimPos_150ms), 2), cinv(lglutmed_normalized_total(:, conditions_stanceR_stimPos_150ms), 2), {'color', color_positive, 'linewidth', 5}, 1);
+        negative_plot = shadedErrorBar(time_normalized, mean(lglutmed_normalized_total(:, conditions_stanceR_stimNeg_150ms), 2), cinv(lglutmed_normalized_total(:, conditions_stanceR_stimNeg_150ms), 2), {'color', color_negative, 'linewidth', 5}, 1);
+        xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)]); 
+        this_legend = legend([control_plot.mainLine positive_plot.mainLine negative_plot.mainLine], 'control', 'illusion left', 'illusion right'); set(this_legend, 'Location', 'NORTHWEST')
+        xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), 'right \rightarrow', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right')
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(1), '\leftarrow left', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'left')
+        if save_figures
+            saveas(gcf, 'cop_absolute_stanceR_150ms.eps', 'epsc2')
+        end
+
+        figure; axes; hold on; title(['left tibialis anterior, right stance, 150ms - ' subject_id]); set(gca, 'Fontsize', 12)
+        control_plot = shadedErrorBar(time_normalized, mean(ltibiant_normalized_total(:, conditions_stanceR_stimNo), 2), cinv(ltibiant_normalized_total(:, conditions_stanceR_stimNo), 2), {'color', color_control, 'linewidth', 5}, 1);
+        positive_plot = shadedErrorBar(time_normalized, mean(ltibiant_normalized_total(:, conditions_stanceR_stimPos_150ms), 2), cinv(ltibiant_normalized_total(:, conditions_stanceR_stimPos_150ms), 2), {'color', color_positive, 'linewidth', 5}, 1);
+        negative_plot = shadedErrorBar(time_normalized, mean(ltibiant_normalized_total(:, conditions_stanceR_stimNeg_150ms), 2), cinv(ltibiant_normalized_total(:, conditions_stanceR_stimNeg_150ms), 2), {'color', color_negative, 'linewidth', 5}, 1);
+        xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)]); 
+        this_legend = legend([control_plot.mainLine positive_plot.mainLine negative_plot.mainLine], 'control', 'illusion left', 'illusion right'); set(this_legend, 'Location', 'NORTHWEST')
+        xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), 'right \rightarrow', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right')
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(1), '\leftarrow left', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'left')
+        if save_figures
+            saveas(gcf, 'cop_absolute_stanceR_150ms.eps', 'epsc2')
+        end
+
+        figure; axes; hold on; title(['left peroneus longus, right stance, 150ms - ' subject_id]); set(gca, 'Fontsize', 12)
+        control_plot = shadedErrorBar(time_normalized, mean(lperolng_normalized_total(:, conditions_stanceR_stimNo), 2), cinv(lperolng_normalized_total(:, conditions_stanceR_stimNo), 2), {'color', color_control, 'linewidth', 5}, 1);
+        positive_plot = shadedErrorBar(time_normalized, mean(lperolng_normalized_total(:, conditions_stanceR_stimPos_150ms), 2), cinv(lperolng_normalized_total(:, conditions_stanceR_stimPos_150ms), 2), {'color', color_positive, 'linewidth', 5}, 1);
+        negative_plot = shadedErrorBar(time_normalized, mean(lperolng_normalized_total(:, conditions_stanceR_stimNeg_150ms), 2), cinv(lperolng_normalized_total(:, conditions_stanceR_stimNeg_150ms), 2), {'color', color_negative, 'linewidth', 5}, 1);
+        xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)]); 
+        this_legend = legend([control_plot.mainLine positive_plot.mainLine negative_plot.mainLine], 'control', 'illusion left', 'illusion right'); set(this_legend, 'Location', 'NORTHWEST')
+        xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), 'right \rightarrow', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right')
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(1), '\leftarrow left', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'left')
+        if save_figures
+            saveas(gcf, 'cop_absolute_stanceR_150ms.eps', 'epsc2')
+        end
+
+        figure; axes; hold on; title(['right gluteus medius, right stance, 150ms - ' subject_id]); set(gca, 'Fontsize', 12)
+        control_plot = shadedErrorBar(time_normalized, mean(rglutmed_normalized_total(:, conditions_stanceR_stimNo), 2), cinv(rglutmed_normalized_total(:, conditions_stanceR_stimNo), 2), {'color', color_control, 'linewidth', 5}, 1);
+        positive_plot = shadedErrorBar(time_normalized, mean(rglutmed_normalized_total(:, conditions_stanceR_stimPos_150ms), 2), cinv(rglutmed_normalized_total(:, conditions_stanceR_stimPos_150ms), 2), {'color', color_positive, 'linewidth', 5}, 1);
+        negative_plot = shadedErrorBar(time_normalized, mean(rglutmed_normalized_total(:, conditions_stanceR_stimNeg_150ms), 2), cinv(rglutmed_normalized_total(:, conditions_stanceR_stimNeg_150ms), 2), {'color', color_negative, 'linewidth', 5}, 1);
+        xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)]); 
+        this_legend = legend([control_plot.mainLine positive_plot.mainLine negative_plot.mainLine], 'control', 'illusion left', 'illusion right'); set(this_legend, 'Location', 'NORTHWEST')
+        xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), 'right \rightarrow', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right')
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(1), '\leftarrow left', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'left')
+        if save_figures
+            saveas(gcf, 'cop_absolute_stanceR_150ms.eps', 'epsc2')
+        end
+
+        figure; axes; hold on; title(['right tibialis anterior, right stance, 150ms - ' subject_id]); set(gca, 'Fontsize', 12)
+        control_plot = shadedErrorBar(time_normalized, mean(rtibiant_normalized_total(:, conditions_stanceR_stimNo), 2), cinv(rtibiant_normalized_total(:, conditions_stanceR_stimNo), 2), {'color', color_control, 'linewidth', 5}, 1);
+        positive_plot = shadedErrorBar(time_normalized, mean(rtibiant_normalized_total(:, conditions_stanceR_stimPos_150ms), 2), cinv(rtibiant_normalized_total(:, conditions_stanceR_stimPos_150ms), 2), {'color', color_positive, 'linewidth', 5}, 1);
+        negative_plot = shadedErrorBar(time_normalized, mean(rtibiant_normalized_total(:, conditions_stanceR_stimNeg_150ms), 2), cinv(rtibiant_normalized_total(:, conditions_stanceR_stimNeg_150ms), 2), {'color', color_negative, 'linewidth', 5}, 1);
+        xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)]); 
+        this_legend = legend([control_plot.mainLine positive_plot.mainLine negative_plot.mainLine], 'control', 'illusion left', 'illusion right'); set(this_legend, 'Location', 'NORTHWEST')
+        xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), 'right \rightarrow', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right')
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(1), '\leftarrow left', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'left')
+        if save_figures
+            saveas(gcf, 'cop_absolute_stanceR_150ms.eps', 'epsc2')
+        end
+
+        figure; axes; hold on; title(['right peroneus longus, right stance, 150ms - ' subject_id]); set(gca, 'Fontsize', 12)
+        control_plot = shadedErrorBar(time_normalized, mean(rperolng_normalized_total(:, conditions_stanceR_stimNo), 2), cinv(rperolng_normalized_total(:, conditions_stanceR_stimNo), 2), {'color', color_control, 'linewidth', 5}, 1);
+        positive_plot = shadedErrorBar(time_normalized, mean(rperolng_normalized_total(:, conditions_stanceR_stimPos_150ms), 2), cinv(rperolng_normalized_total(:, conditions_stanceR_stimPos_150ms), 2), {'color', color_positive, 'linewidth', 5}, 1);
+        negative_plot = shadedErrorBar(time_normalized, mean(rperolng_normalized_total(:, conditions_stanceR_stimNeg_150ms), 2), cinv(rperolng_normalized_total(:, conditions_stanceR_stimNeg_150ms), 2), {'color', color_negative, 'linewidth', 5}, 1);
+        xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)]); 
+        this_legend = legend([control_plot.mainLine positive_plot.mainLine negative_plot.mainLine], 'control', 'illusion left', 'illusion right'); set(this_legend, 'Location', 'NORTHWEST')
+        xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), 'right \rightarrow', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right')
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(1), '\leftarrow left', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'left')
+        if save_figures
+            saveas(gcf, 'cop_absolute_stanceR_150ms.eps', 'epsc2')
+        end
+
+        % 450ms
+        figure; axes; hold on; title(['left gluteus medius, right stance, 450ms - ' subject_id]); set(gca, 'Fontsize', 12)
+        control_plot = shadedErrorBar(time_normalized, mean(lglutmed_normalized_total(:, conditions_stanceL_stimNo), 2), cinv(lglutmed_normalized_total(:, conditions_stanceL_stimNo), 2), {'color', color_control, 'linewidth', 5}, 1);
+        positive_plot = shadedErrorBar(time_normalized, mean(lglutmed_normalized_total(:, conditions_stanceL_stimPos_450ms), 2), cinv(lglutmed_normalized_total(:, conditions_stanceL_stimPos_450ms), 2), {'color', color_positive, 'linewidth', 5}, 1);
+        negative_plot = shadedErrorBar(time_normalized, mean(lglutmed_normalized_total(:, conditions_stanceL_stimNeg_450ms), 2), cinv(lglutmed_normalized_total(:, conditions_stanceL_stimNeg_450ms), 2), {'color', color_negative, 'linewidth', 5}, 1);
+        xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)]); 
+        this_legend = legend([control_plot.mainLine positive_plot.mainLine negative_plot.mainLine], 'control', 'illusion left', 'illusion right'); set(this_legend, 'Location', 'NORTHWEST')
+        xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), 'right \rightarrow', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right')
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(1), '\leftarrow left', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'left')
+        if save_figures
+            saveas(gcf, 'cop_absolute_stanceL_450ms.eps', 'epsc2')
+        end
+
+        figure; axes; hold on; title(['left tibialis anterior, right stance, 450ms - ' subject_id]); set(gca, 'Fontsize', 12)
+        control_plot = shadedErrorBar(time_normalized, mean(ltibiant_normalized_total(:, conditions_stanceL_stimNo), 2), cinv(ltibiant_normalized_total(:, conditions_stanceL_stimNo), 2), {'color', color_control, 'linewidth', 5}, 1);
+        positive_plot = shadedErrorBar(time_normalized, mean(ltibiant_normalized_total(:, conditions_stanceL_stimPos_450ms), 2), cinv(ltibiant_normalized_total(:, conditions_stanceL_stimPos_450ms), 2), {'color', color_positive, 'linewidth', 5}, 1);
+        negative_plot = shadedErrorBar(time_normalized, mean(ltibiant_normalized_total(:, conditions_stanceL_stimNeg_450ms), 2), cinv(ltibiant_normalized_total(:, conditions_stanceL_stimNeg_450ms), 2), {'color', color_negative, 'linewidth', 5}, 1);
+        xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)]); 
+        this_legend = legend([control_plot.mainLine positive_plot.mainLine negative_plot.mainLine], 'control', 'illusion left', 'illusion right'); set(this_legend, 'Location', 'NORTHWEST')
+        xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), 'right \rightarrow', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right')
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(1), '\leftarrow left', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'left')
+        if save_figures
+            saveas(gcf, 'cop_absolute_stanceL_450ms.eps', 'epsc2')
+        end
+
+        figure; axes; hold on; title(['left peroneus longus, right stance, 450ms - ' subject_id]); set(gca, 'Fontsize', 12)
+        control_plot = shadedErrorBar(time_normalized, mean(lperolng_normalized_total(:, conditions_stanceL_stimNo), 2), cinv(lperolng_normalized_total(:, conditions_stanceL_stimNo), 2), {'color', color_control, 'linewidth', 5}, 1);
+        positive_plot = shadedErrorBar(time_normalized, mean(lperolng_normalized_total(:, conditions_stanceL_stimPos_450ms), 2), cinv(lperolng_normalized_total(:, conditions_stanceL_stimPos_450ms), 2), {'color', color_positive, 'linewidth', 5}, 1);
+        negative_plot = shadedErrorBar(time_normalized, mean(lperolng_normalized_total(:, conditions_stanceL_stimNeg_450ms), 2), cinv(lperolng_normalized_total(:, conditions_stanceL_stimNeg_450ms), 2), {'color', color_negative, 'linewidth', 5}, 1);
+        xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)]); 
+        this_legend = legend([control_plot.mainLine positive_plot.mainLine negative_plot.mainLine], 'control', 'illusion left', 'illusion right'); set(this_legend, 'Location', 'NORTHWEST')
+        xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), 'right \rightarrow', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right')
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(1), '\leftarrow left', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'left')
+        if save_figures
+            saveas(gcf, 'cop_absolute_stanceL_450ms.eps', 'epsc2')
+        end
+
+        figure; axes; hold on; title(['right gluteus medius, right stance, 450ms - ' subject_id]); set(gca, 'Fontsize', 12)
+        control_plot = shadedErrorBar(time_normalized, mean(rglutmed_normalized_total(:, conditions_stanceL_stimNo), 2), cinv(rglutmed_normalized_total(:, conditions_stanceL_stimNo), 2), {'color', color_control, 'linewidth', 5}, 1);
+        positive_plot = shadedErrorBar(time_normalized, mean(rglutmed_normalized_total(:, conditions_stanceL_stimPos_450ms), 2), cinv(rglutmed_normalized_total(:, conditions_stanceL_stimPos_450ms), 2), {'color', color_positive, 'linewidth', 5}, 1);
+        negative_plot = shadedErrorBar(time_normalized, mean(rglutmed_normalized_total(:, conditions_stanceL_stimNeg_450ms), 2), cinv(rglutmed_normalized_total(:, conditions_stanceL_stimNeg_450ms), 2), {'color', color_negative, 'linewidth', 5}, 1);
+        xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)]); 
+        this_legend = legend([control_plot.mainLine positive_plot.mainLine negative_plot.mainLine], 'control', 'illusion left', 'illusion right'); set(this_legend, 'Location', 'NORTHWEST')
+        xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), 'right \rightarrow', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right')
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(1), '\leftarrow left', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'left')
+        if save_figures
+            saveas(gcf, 'cop_absolute_stanceL_450ms.eps', 'epsc2')
+        end
+
+        figure; axes; hold on; title(['right tibialis anterior, right stance, 450ms - ' subject_id]); set(gca, 'Fontsize', 12)
+        control_plot = shadedErrorBar(time_normalized, mean(rtibiant_normalized_total(:, conditions_stanceL_stimNo), 2), cinv(rtibiant_normalized_total(:, conditions_stanceL_stimNo), 2), {'color', color_control, 'linewidth', 5}, 1);
+        positive_plot = shadedErrorBar(time_normalized, mean(rtibiant_normalized_total(:, conditions_stanceL_stimPos_450ms), 2), cinv(rtibiant_normalized_total(:, conditions_stanceL_stimPos_450ms), 2), {'color', color_positive, 'linewidth', 5}, 1);
+        negative_plot = shadedErrorBar(time_normalized, mean(rtibiant_normalized_total(:, conditions_stanceL_stimNeg_450ms), 2), cinv(rtibiant_normalized_total(:, conditions_stanceL_stimNeg_450ms), 2), {'color', color_negative, 'linewidth', 5}, 1);
+        xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)]); 
+        this_legend = legend([control_plot.mainLine positive_plot.mainLine negative_plot.mainLine], 'control', 'illusion left', 'illusion right'); set(this_legend, 'Location', 'NORTHWEST')
+        xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), 'right \rightarrow', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right')
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(1), '\leftarrow left', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'left')
+        if save_figures
+            saveas(gcf, 'cop_absolute_stanceL_450ms.eps', 'epsc2')
+        end
+
+        figure; axes; hold on; title(['right peroneus longus, right stance, 450ms - ' subject_id]); set(gca, 'Fontsize', 12)
+        control_plot = shadedErrorBar(time_normalized, mean(rperolng_normalized_total(:, conditions_stanceL_stimNo), 2), cinv(rperolng_normalized_total(:, conditions_stanceL_stimNo), 2), {'color', color_control, 'linewidth', 5}, 1);
+        positive_plot = shadedErrorBar(time_normalized, mean(rperolng_normalized_total(:, conditions_stanceL_stimPos_450ms), 2), cinv(rperolng_normalized_total(:, conditions_stanceL_stimPos_450ms), 2), {'color', color_positive, 'linewidth', 5}, 1);
+        negative_plot = shadedErrorBar(time_normalized, mean(rperolng_normalized_total(:, conditions_stanceL_stimNeg_450ms), 2), cinv(rperolng_normalized_total(:, conditions_stanceL_stimNeg_450ms), 2), {'color', color_negative, 'linewidth', 5}, 1);
+        xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)]); 
+        this_legend = legend([control_plot.mainLine positive_plot.mainLine negative_plot.mainLine], 'control', 'illusion left', 'illusion right'); set(this_legend, 'Location', 'NORTHWEST')
+        xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), 'right \rightarrow', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right')
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(1), '\leftarrow left', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'left')
+        if save_figures
+            saveas(gcf, 'cop_absolute_stanceL_450ms.eps', 'epsc2')
+        end
+        
+    end
+end
+
+if do_emg_plots_response_right
+    % 0ms
+    figure; axes; hold on; title(['left gluteus medius response, right stance, 0ms - ' subject_id]); set(gca, 'Fontsize', 12)
+    positive_plot = shadedErrorBar(time_normalized, mean(lglutmed_stanceR_response(:, conditions_stanceR_stimPos_0ms), 2), cinv(lglutmed_stanceR_response(:, conditions_stanceR_stimPos_0ms), 2), {'color', color_positive, 'linewidth', 5}, 1);
+    negative_plot = shadedErrorBar(time_normalized, mean(lglutmed_stanceR_response(:, conditions_stanceR_stimNeg_0ms), 2), cinv(lglutmed_stanceR_response(:, conditions_stanceR_stimNeg_0ms), 2), {'color', color_negative, 'linewidth', 5}, 1);
+    xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)]);
+    this_legend = legend([positive_plot.mainLine negative_plot.mainLine], 'illusion left', 'illusion right'); set(this_legend, 'Location', 'NORTHWEST')
+    xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
+    text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), 'right \rightarrow', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right')
+    text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(1), '\leftarrow left', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'left')
+    if save_figures
+        saveas(gcf, 'lglutmed_response_stanceR_0ms.eps', 'epsc2')
+    end
+    
+    figure; axes; hold on; title(['left tibialis anterior response, right stance, 0ms - ' subject_id]); set(gca, 'Fontsize', 12)
+    positive_plot = shadedErrorBar(time_normalized, mean(ltibiant_stanceR_response(:, conditions_stanceR_stimPos_0ms), 2), cinv(ltibiant_stanceR_response(:, conditions_stanceR_stimPos_0ms), 2), {'color', color_positive, 'linewidth', 5}, 1);
+    negative_plot = shadedErrorBar(time_normalized, mean(ltibiant_stanceR_response(:, conditions_stanceR_stimNeg_0ms), 2), cinv(ltibiant_stanceR_response(:, conditions_stanceR_stimNeg_0ms), 2), {'color', color_negative, 'linewidth', 5}, 1);
+    xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)]);
+    this_legend = legend([positive_plot.mainLine negative_plot.mainLine], 'illusion left', 'illusion right'); set(this_legend, 'Location', 'NORTHWEST')
+    xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
+    text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), 'right \rightarrow', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right')
+    text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(1), '\leftarrow left', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'left')
+    if save_figures
+        saveas(gcf, 'ltibiant_response_stanceR_0ms.eps', 'epsc2')
+    end
+    
+    figure; axes; hold on; title(['left peroneus longus response, right stance, 0ms - ' subject_id]); set(gca, 'Fontsize', 12)
+    positive_plot = shadedErrorBar(time_normalized, mean(lperolng_stanceR_response(:, conditions_stanceR_stimPos_0ms), 2), cinv(lperolng_stanceR_response(:, conditions_stanceR_stimPos_0ms), 2), {'color', color_positive, 'linewidth', 5}, 1);
+    negative_plot = shadedErrorBar(time_normalized, mean(lperolng_stanceR_response(:, conditions_stanceR_stimNeg_0ms), 2), cinv(lperolng_stanceR_response(:, conditions_stanceR_stimNeg_0ms), 2), {'color', color_negative, 'linewidth', 5}, 1);
+    xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)]);
+    this_legend = legend([positive_plot.mainLine negative_plot.mainLine], 'illusion left', 'illusion right'); set(this_legend, 'Location', 'NORTHWEST')
+    xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
+    text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), 'right \rightarrow', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right')
+    text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(1), '\leftarrow left', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'left')
+    if save_figures
+        saveas(gcf, 'lperolng_response_stanceR_0ms.eps', 'epsc2')
+    end
+    
+    
+    figure; axes; hold on; title(['right gluteus medius response, right stance, 0ms - ' subject_id]); set(gca, 'Fontsize', 12)
+    positive_plot = shadedErrorBar(time_normalized, mean(rglutmed_stanceR_response(:, conditions_stanceR_stimPos_0ms), 2), cinv(rglutmed_stanceR_response(:, conditions_stanceR_stimPos_0ms), 2), {'color', color_positive, 'linewidth', 5}, 1);
+    negative_plot = shadedErrorBar(time_normalized, mean(rglutmed_stanceR_response(:, conditions_stanceR_stimNeg_0ms), 2), cinv(rglutmed_stanceR_response(:, conditions_stanceR_stimNeg_0ms), 2), {'color', color_negative, 'linewidth', 5}, 1);
+    xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)]);
+    this_legend = legend([positive_plot.mainLine negative_plot.mainLine], 'illusion left', 'illusion right'); set(this_legend, 'Location', 'NORTHWEST')
+    xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
+    text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), 'right \rightarrow', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right')
+    text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(1), '\leftarrow left', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'left')
+    if save_figures
+        saveas(gcf, 'lglutmed_response_stanceR_0ms.eps', 'epsc2')
+    end
+    
+    figure; axes; hold on; title(['right tibialis anterior response, right stance, 0ms - ' subject_id]); set(gca, 'Fontsize', 12)
+    positive_plot = shadedErrorBar(time_normalized, mean(rtibiant_stanceR_response(:, conditions_stanceR_stimPos_0ms), 2), cinv(rtibiant_stanceR_response(:, conditions_stanceR_stimPos_0ms), 2), {'color', color_positive, 'linewidth', 5}, 1);
+    negative_plot = shadedErrorBar(time_normalized, mean(rtibiant_stanceR_response(:, conditions_stanceR_stimNeg_0ms), 2), cinv(rtibiant_stanceR_response(:, conditions_stanceR_stimNeg_0ms), 2), {'color', color_negative, 'linewidth', 5}, 1);
+    xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)]);
+    this_legend = legend([positive_plot.mainLine negative_plot.mainLine], 'illusion left', 'illusion right'); set(this_legend, 'Location', 'NORTHWEST')
+    xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
+    text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), 'right \rightarrow', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right')
+    text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(1), '\leftarrow left', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'left')
+    if save_figures
+        saveas(gcf, 'ltibiant_response_stanceR_0ms.eps', 'epsc2')
+    end
+    
+    figure; axes; hold on; title(['right peroneus longus response, right stance, 0ms - ' subject_id]); set(gca, 'Fontsize', 12)
+    positive_plot = shadedErrorBar(time_normalized, mean(rperolng_stanceR_response(:, conditions_stanceR_stimPos_0ms), 2), cinv(rperolng_stanceR_response(:, conditions_stanceR_stimPos_0ms), 2), {'color', color_positive, 'linewidth', 5}, 1);
+    negative_plot = shadedErrorBar(time_normalized, mean(rperolng_stanceR_response(:, conditions_stanceR_stimNeg_0ms), 2), cinv(rperolng_stanceR_response(:, conditions_stanceR_stimNeg_0ms), 2), {'color', color_negative, 'linewidth', 5}, 1);
+    xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)]);
+    this_legend = legend([positive_plot.mainLine negative_plot.mainLine], 'illusion left', 'illusion right'); set(this_legend, 'Location', 'NORTHWEST')
+    xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
+    text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), 'right \rightarrow', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right')
+    text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(1), '\leftarrow left', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'left')
+    if save_figures
+        saveas(gcf, 'lperolng_response_stanceR_0ms.eps', 'epsc2')
+    end
+    
+    
+    
+    
+    if do_phase_delayed_plots
+        % 150ms
+        figure; axes; hold on; title(['left gluteus medius response, 150ms - ' subject_id]); set(gca, 'Fontsize', 12)
+        positive_plot = shadedErrorBar(time_normalized, mean(lglutmed_stanceR_response(:, conditions_stanceR_stimPos_150ms), 2), cinv(lglutmed_stanceR_response(:, conditions_stanceR_stimPos_150ms), 2), {'color', color_positive, 'linewidth', 5}, 1);
+        negative_plot = shadedErrorBar(time_normalized, mean(lglutmed_stanceR_response(:, conditions_stanceR_stimNeg_150ms), 2), cinv(lglutmed_stanceR_response(:, conditions_stanceR_stimNeg_150ms), 2), {'color', color_negative, 'linewidth', 5}, 1);
+        xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)]);
+        this_legend = legend([positive_plot.mainLine negative_plot.mainLine], 'illusion left', 'illusion right');
+        set(this_legend, 'Location', 'NORTHWEST')
+        xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), 'right \rightarrow', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right')
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(1), '\leftarrow left', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'left')
+        if save_figures
+            saveas(gcf, 'lglutmed_response_stanceR_150ms.eps', 'epsc2')
+        end
+
+        figure; axes; hold on; title(['left tibialis anterior response, 150ms - ' subject_id]); set(gca, 'Fontsize', 12)
+        positive_plot = shadedErrorBar(time_normalized, mean(ltibiant_stanceR_response(:, conditions_stanceR_stimPos_150ms), 2), cinv(ltibiant_stanceR_response(:, conditions_stanceR_stimPos_150ms), 2), {'color', color_positive, 'linewidth', 5}, 1);
+        negative_plot = shadedErrorBar(time_normalized, mean(ltibiant_stanceR_response(:, conditions_stanceR_stimNeg_150ms), 2), cinv(ltibiant_stanceR_response(:, conditions_stanceR_stimNeg_150ms), 2), {'color', color_negative, 'linewidth', 5}, 1);
+        xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)]);
+        this_legend = legend([positive_plot.mainLine negative_plot.mainLine], 'illusion left', 'illusion right');
+        set(this_legend, 'Location', 'NORTHWEST')
+        xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), 'right \rightarrow', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right')
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(1), '\leftarrow left', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'left')
+        if save_figures
+            saveas(gcf, 'ltibiant_response_stanceR_150ms.eps', 'epsc2')
+        end
+
+        figure; axes; hold on; title(['left peroneus longus response, 150ms - ' subject_id]); set(gca, 'Fontsize', 12)
+        positive_plot = shadedErrorBar(time_normalized, mean(lperolng_stanceR_response(:, conditions_stanceR_stimPos_150ms), 2), cinv(lperolng_stanceR_response(:, conditions_stanceR_stimPos_150ms), 2), {'color', color_positive, 'linewidth', 5}, 1);
+        negative_plot = shadedErrorBar(time_normalized, mean(lperolng_stanceR_response(:, conditions_stanceR_stimNeg_150ms), 2), cinv(lperolng_stanceR_response(:, conditions_stanceR_stimNeg_150ms), 2), {'color', color_negative, 'linewidth', 5}, 1);
+        xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)]);
+        this_legend = legend([positive_plot.mainLine negative_plot.mainLine], 'illusion left', 'illusion right');
+        set(this_legend, 'Location', 'NORTHWEST')
+        xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), 'right \rightarrow', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right')
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(1), '\leftarrow left', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'left')
+        if save_figures
+            saveas(gcf, 'lperolng_response_stanceR_150ms.eps', 'epsc2')
+        end
+
+        figure; axes; hold on; title(['right gluteus medius response, 150ms - ' subject_id]); set(gca, 'Fontsize', 12)
+        positive_plot = shadedErrorBar(time_normalized, mean(rglutmed_stanceR_response(:, conditions_stanceR_stimPos_150ms), 2), cinv(rglutmed_stanceR_response(:, conditions_stanceR_stimPos_150ms), 2), {'color', color_positive, 'linewidth', 5}, 1);
+        negative_plot = shadedErrorBar(time_normalized, mean(rglutmed_stanceR_response(:, conditions_stanceR_stimNeg_150ms), 2), cinv(rglutmed_stanceR_response(:, conditions_stanceR_stimNeg_150ms), 2), {'color', color_negative, 'linewidth', 5}, 1);
+        xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)]);
+        this_legend = legend([positive_plot.mainLine negative_plot.mainLine], 'illusion left', 'illusion right');
+        set(this_legend, 'Location', 'NORTHWEST')
+        xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), 'right \rightarrow', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right')
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(1), '\leftarrow left', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'left')
+        if save_figures
+            saveas(gcf, 'rglutmed_response_stanceR_150ms.eps', 'epsc2')
+        end
+
+        figure; axes; hold on; title(['right tibialis anterior response, 150ms - ' subject_id]); set(gca, 'Fontsize', 12)
+        positive_plot = shadedErrorBar(time_normalized, mean(rtibiant_stanceR_response(:, conditions_stanceR_stimPos_150ms), 2), cinv(rtibiant_stanceR_response(:, conditions_stanceR_stimPos_150ms), 2), {'color', color_positive, 'linewidth', 5}, 1);
+        negative_plot = shadedErrorBar(time_normalized, mean(rtibiant_stanceR_response(:, conditions_stanceR_stimNeg_150ms), 2), cinv(rtibiant_stanceR_response(:, conditions_stanceR_stimNeg_150ms), 2), {'color', color_negative, 'linewidth', 5}, 1);
+        xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)]);
+        this_legend = legend([positive_plot.mainLine negative_plot.mainLine], 'illusion left', 'illusion right');
+        set(this_legend, 'Location', 'NORTHWEST')
+        xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), 'right \rightarrow', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right')
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(1), '\leftarrow left', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'left')
+        if save_figures
+            saveas(gcf, 'rtibiant_response_stanceR_150ms.eps', 'epsc2')
+        end
+
+        figure; axes; hold on; title(['right peroneus longus response, 150ms - ' subject_id]); set(gca, 'Fontsize', 12)
+        positive_plot = shadedErrorBar(time_normalized, mean(rperolng_stanceR_response(:, conditions_stanceR_stimPos_150ms), 2), cinv(rperolng_stanceR_response(:, conditions_stanceR_stimPos_150ms), 2), {'color', color_positive, 'linewidth', 5}, 1);
+        negative_plot = shadedErrorBar(time_normalized, mean(rperolng_stanceR_response(:, conditions_stanceR_stimNeg_150ms), 2), cinv(rperolng_stanceR_response(:, conditions_stanceR_stimNeg_150ms), 2), {'color', color_negative, 'linewidth', 5}, 1);
+        xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)]);
+        this_legend = legend([positive_plot.mainLine negative_plot.mainLine], 'illusion left', 'illusion right');
+        set(this_legend, 'Location', 'NORTHWEST')
+        xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), 'right \rightarrow', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right')
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(1), '\leftarrow left', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'left')
+        if save_figures
+            saveas(gcf, 'rperolng_response_stanceR_150ms.eps', 'epsc2')
+        end
+
+        % 450ms
+        figure; axes; hold on; title(['left gluteus medius response, 450ms - ' subject_id]); set(gca, 'Fontsize', 12)
+        positive_plot = shadedErrorBar(time_normalized, mean(lglutmed_stanceL_response(:, conditions_stanceL_stimPos_450ms), 2), cinv(lglutmed_stanceL_response(:, conditions_stanceL_stimPos_450ms), 2), {'color', color_positive, 'linewidth', 5}, 1);
+        negative_plot = shadedErrorBar(time_normalized, mean(lglutmed_stanceL_response(:, conditions_stanceL_stimNeg_450ms), 2), cinv(lglutmed_stanceL_response(:, conditions_stanceL_stimNeg_450ms), 2), {'color', color_negative, 'linewidth', 5}, 1);
+        xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)]);
+        this_legend = legend([positive_plot.mainLine negative_plot.mainLine], 'illusion left', 'illusion right');
+        set(this_legend, 'Location', 'NORTHWEST')
+        xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), 'right \rightarrow', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right')
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(1), '\leftarrow left', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'left')
+        if save_figures
+            saveas(gcf, 'lglutmed_response_stanceL_450ms.eps', 'epsc2')
+        end
+
+        figure; axes; hold on; title(['left tibialis anterior response, 450ms - ' subject_id]); set(gca, 'Fontsize', 12)
+        positive_plot = shadedErrorBar(time_normalized, mean(ltibiant_stanceL_response(:, conditions_stanceL_stimPos_450ms), 2), cinv(ltibiant_stanceL_response(:, conditions_stanceL_stimPos_450ms), 2), {'color', color_positive, 'linewidth', 5}, 1);
+        negative_plot = shadedErrorBar(time_normalized, mean(ltibiant_stanceL_response(:, conditions_stanceL_stimNeg_450ms), 2), cinv(ltibiant_stanceL_response(:, conditions_stanceL_stimNeg_450ms), 2), {'color', color_negative, 'linewidth', 5}, 1);
+        xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)]);
+        this_legend = legend([positive_plot.mainLine negative_plot.mainLine], 'illusion left', 'illusion right');
+        set(this_legend, 'Location', 'NORTHWEST')
+        xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), 'right \rightarrow', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right')
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(1), '\leftarrow left', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'left')
+        if save_figures
+            saveas(gcf, 'ltibiant_response_stanceL_450ms.eps', 'epsc2')
+        end
+
+        figure; axes; hold on; title(['left peroneus longus response, 450ms - ' subject_id]); set(gca, 'Fontsize', 12)
+        positive_plot = shadedErrorBar(time_normalized, mean(lperolng_stanceL_response(:, conditions_stanceL_stimPos_450ms), 2), cinv(lperolng_stanceL_response(:, conditions_stanceL_stimPos_450ms), 2), {'color', color_positive, 'linewidth', 5}, 1);
+        negative_plot = shadedErrorBar(time_normalized, mean(lperolng_stanceL_response(:, conditions_stanceL_stimNeg_450ms), 2), cinv(lperolng_stanceL_response(:, conditions_stanceL_stimNeg_450ms), 2), {'color', color_negative, 'linewidth', 5}, 1);
+        xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)]);
+        this_legend = legend([positive_plot.mainLine negative_plot.mainLine], 'illusion left', 'illusion right');
+        set(this_legend, 'Location', 'NORTHWEST')
+        xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), 'right \rightarrow', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right')
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(1), '\leftarrow left', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'left')
+        if save_figures
+            saveas(gcf, 'lperolng_response_stanceL_450ms.eps', 'epsc2')
+        end
+
+        figure; axes; hold on; title(['right gluteus medius response, 450ms - ' subject_id]); set(gca, 'Fontsize', 12)
+        positive_plot = shadedErrorBar(time_normalized, mean(rglutmed_stanceL_response(:, conditions_stanceL_stimPos_450ms), 2), cinv(rglutmed_stanceL_response(:, conditions_stanceL_stimPos_450ms), 2), {'color', color_positive, 'linewidth', 5}, 1);
+        negative_plot = shadedErrorBar(time_normalized, mean(rglutmed_stanceL_response(:, conditions_stanceL_stimNeg_450ms), 2), cinv(rglutmed_stanceL_response(:, conditions_stanceL_stimNeg_450ms), 2), {'color', color_negative, 'linewidth', 5}, 1);
+        xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)]);
+        this_legend = legend([positive_plot.mainLine negative_plot.mainLine], 'illusion left', 'illusion right');
+        set(this_legend, 'Location', 'NORTHWEST')
+        xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), 'right \rightarrow', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right')
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(1), '\leftarrow left', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'left')
+        if save_figures
+            saveas(gcf, 'rglutmed_response_stanceL_450ms.eps', 'epsc2')
+        end
+
+        figure; axes; hold on; title(['right tibialis anterior response, 450ms - ' subject_id]); set(gca, 'Fontsize', 12)
+        positive_plot = shadedErrorBar(time_normalized, mean(rtibiant_stanceL_response(:, conditions_stanceL_stimPos_450ms), 2), cinv(rtibiant_stanceL_response(:, conditions_stanceL_stimPos_450ms), 2), {'color', color_positive, 'linewidth', 5}, 1);
+        negative_plot = shadedErrorBar(time_normalized, mean(rtibiant_stanceL_response(:, conditions_stanceL_stimNeg_450ms), 2), cinv(rtibiant_stanceL_response(:, conditions_stanceL_stimNeg_450ms), 2), {'color', color_negative, 'linewidth', 5}, 1);
+        xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)]);
+        this_legend = legend([positive_plot.mainLine negative_plot.mainLine], 'illusion left', 'illusion right');
+        set(this_legend, 'Location', 'NORTHWEST')
+        xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), 'right \rightarrow', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right')
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(1), '\leftarrow left', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'left')
+        if save_figures
+            saveas(gcf, 'rtibiant_response_stanceL_450ms.eps', 'epsc2')
+        end
+
+        figure; axes; hold on; title(['right peroneus longus response, 450ms - ' subject_id]); set(gca, 'Fontsize', 12)
+        positive_plot = shadedErrorBar(time_normalized, mean(rperolng_stanceL_response(:, conditions_stanceL_stimPos_450ms), 2), cinv(rperolng_stanceL_response(:, conditions_stanceL_stimPos_450ms), 2), {'color', color_positive, 'linewidth', 5}, 1);
+        negative_plot = shadedErrorBar(time_normalized, mean(rperolng_stanceL_response(:, conditions_stanceL_stimNeg_450ms), 2), cinv(rperolng_stanceL_response(:, conditions_stanceL_stimNeg_450ms), 2), {'color', color_negative, 'linewidth', 5}, 1);
+        xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)]);
+        this_legend = legend([positive_plot.mainLine negative_plot.mainLine], 'illusion left', 'illusion right');
+        set(this_legend, 'Location', 'NORTHWEST')
+        xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), 'right \rightarrow', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right')
+        text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(1), '\leftarrow left', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'left')
+        if save_figures
+            saveas(gcf, 'rperolng_response_stanceL_450ms.eps', 'epsc2')
+        end
+        
+        
+        
+        
+        
+        
+    end
+end
+

@@ -1,4 +1,5 @@
-do_plots = 0;
+do_plots                = 0;
+map_sensors_manually    = 1;
 
 current_directory = pwd;
 data_dir = dir('*_emgTrajectoriesRaw.mat');
@@ -40,6 +41,22 @@ for i_trial = 1 : number_of_files
     % filter again
     emg_trajectories = filtfilt(b_final, a_final, emg_trajectories_rectified);
     
+    if map_sensors_manually
+        lglutmed_sensor_index = 7;
+        ltibiant_sensor_index = 8;
+        lperolng_sensor_index = 9;
+        rglutmed_sensor_index = 1;
+        rtibiant_sensor_index = 2;
+        rperolng_sensor_index = 3;
+        
+        emg_headers{lglutmed_sensor_index} = 'LGLUTMED';
+        emg_headers{ltibiant_sensor_index} = 'LTIBIANT';
+        emg_headers{lperolng_sensor_index} = 'LPEROLNG';
+        emg_headers{rglutmed_sensor_index} = 'RGLUTMED';
+        emg_headers{rtibiant_sensor_index} = 'RTIBIANT';
+        emg_headers{rperolng_sensor_index} = 'RPEROLNG';
+    end
+    
     % save
     save_file_name = makeFileName(date, subject_id, trial_type, trial_number, 'emgTrajectories');
     save ...
@@ -47,10 +64,13 @@ for i_trial = 1 : number_of_files
         save_file_name, ...
         'emg_trajectories', ...
         'time_emg', ...
-        'sampling_rate_emg' ...
+        'sampling_rate_emg', ...
+        'emg_headers' ...
       );
     disp(['filtered and saved as ' save_file_name])
     
+    % delete raw data file
+%     delete(raw_emg_file_name);
     
     % visualize
     if do_plots
