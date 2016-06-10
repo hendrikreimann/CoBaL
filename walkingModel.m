@@ -1,4 +1,4 @@
-function kinematic_tree = walkingModel(markerReference, jointAxes, bodyMass, gender)
+function kinematic_tree = walkingModel(markerReference, markerHeaders, jointAxes, bodyMass, gender)
 
 % TODO: the link inertia matrices should be set up so that the principal
 % axes coincide with the actual segment axes, not the world axes, i.e. the
@@ -14,34 +14,34 @@ elbow_width = 0.07;
 head_thickness = 0.2;
 
 %% define marker numbers and indices
-LFHD_marker = 1;
-RFHD_marker = 2;
-LBHD_marker = 3;
-RBHD_marker = 4;
-C7_marker = 5;
-CLAV_marker = 7;
-LSHO_marker = 10;
-LELB_marker = 12;
-LWRA_marker = 14;
-LWRB_marker = 15;
-LFIN_marker = 16;
-RSHO_marker = 17;
-RELB_marker = 19;
-RWRA_marker = 21;
-RWRB_marker = 22;
-RFIN_marker = 23;
-LASI_marker = 24;
-RASI_marker = 25;
-LPSI_marker = 26;
-RPSI_marker = 27;
-LKNE_marker = 30;
-LANK_marker = 33;
-LHEE_marker = 34;
-LTOE_marker = 35;
-RKNE_marker = 38;
-RANK_marker = 41;
-RHEE_marker = 42;
-RTOE_marker = 43;
+LFHD_marker = find(strcmp(markerHeaders, 'LFHD'));
+RFHD_marker = find(strcmp(markerHeaders, 'RFHD'));
+LBHD_marker = find(strcmp(markerHeaders, 'LBHD'));
+RBHD_marker = find(strcmp(markerHeaders, 'RBHD'));
+C7_marker = find(strcmp(markerHeaders, 'C7'));
+CLAV_marker = find(strcmp(markerHeaders, 'CLAV'));
+LSHO_marker = find(strcmp(markerHeaders, 'LSHO'));
+LELB_marker = find(strcmp(markerHeaders, 'LELB'));
+LWRA_marker = find(strcmp(markerHeaders, 'LWRA'));
+LWRB_marker = find(strcmp(markerHeaders, 'LWRB'));
+LFIN_marker = find(strcmp(markerHeaders, 'LFIN'));
+RSHO_marker = find(strcmp(markerHeaders, 'RSHO'));
+RELB_marker = find(strcmp(markerHeaders, 'RELB'));
+RWRA_marker = find(strcmp(markerHeaders, 'RWRA'));
+RWRB_marker = find(strcmp(markerHeaders, 'RWRB'));
+RFIN_marker = find(strcmp(markerHeaders, 'RFIN'));
+LASI_marker = find(strcmp(markerHeaders, 'LASI'));
+RASI_marker = find(strcmp(markerHeaders, 'RASI'));
+LPSI_marker = find(strcmp(markerHeaders, 'LPSI'));
+RPSI_marker = find(strcmp(markerHeaders, 'RPSI'));
+LKNE_marker = find(strcmp(markerHeaders, 'LKNE'));
+LANK_marker = find(strcmp(markerHeaders, 'LANK'));
+LHEE_marker = find(strcmp(markerHeaders, 'LHEE'));
+LTOE_marker = find(strcmp(markerHeaders, 'LTOE'));
+RKNE_marker = find(strcmp(markerHeaders, 'RKNE'));
+RANK_marker = find(strcmp(markerHeaders, 'RANK'));
+RHEE_marker = find(strcmp(markerHeaders, 'RHEE'));
+RTOE_marker = find(strcmp(markerHeaders, 'RTOE'));
 
 LFHD_markers_indices = reshape([(LFHD_marker - 1) * 3 + 1; (LFHD_marker - 1) * 3 + 2; (LFHD_marker - 1) * 3 + 3], 1, length(LFHD_marker)*3);
 RFHD_markers_indices = reshape([(RFHD_marker - 1) * 3 + 1; (RFHD_marker - 1) * 3 + 2; (RFHD_marker - 1) * 3 + 3], 1, length(RFHD_marker)*3);
@@ -222,16 +222,18 @@ left_wrist_cor = mean([left_outer_wrist, left_inner_wrist], 2);
 right_wrist_cor = mean([right_outer_wrist, right_inner_wrist], 2);
 left_wrist_flexion_axis = normVector(left_outer_wrist - left_inner_wrist);
 right_wrist_flexion_axis = normVector(right_inner_wrist - right_outer_wrist);
-left_wrist_inversion_axis = distal_direction;
-right_wrist_inversion_axis = proximal_direction;
 
 % estimate elbow axes and joint centers
-left_elbow_axis = distal_direction;
-right_elbow_axis = proximal_direction;
-left_elbow_cor = left_lateral_humeral_epicondyle + ejc_correction_factor*elbow_width*left_elbow_axis;
-right_elbow_cor = right_lateral_humeral_epicondyle - ejc_correction_factor*elbow_width*right_elbow_axis;
+left_elbow_cor = left_lateral_humeral_epicondyle + ejc_correction_factor*elbow_width*right_direction;
+left_elbow_axis = right_direction;
 left_radioulnar_axis = normVector(left_wrist_cor - left_elbow_cor);
+
+right_elbow_cor = right_lateral_humeral_epicondyle - ejc_correction_factor*elbow_width*right_direction;
+right_elbow_axis = right_direction;
 right_radioulnar_axis = - normVector(right_wrist_cor - right_elbow_cor);
+
+left_wrist_inversion_axis = cross(left_wrist_flexion_axis, left_radioulnar_axis);
+right_wrist_inversion_axis = cross(right_wrist_flexion_axis, right_radioulnar_axis);
 
 %% define scaling factors
 if strcmp(gender, 'male')
@@ -655,8 +657,8 @@ joint_axes = ...
     right_direction, anterior_direction, proximal_direction, left_knee_aor, left_direction, posterior_direction, ...   % left leg
     right_direction, posterior_direction, distal_direction, right_knee_aor, left_direction, anterior_direction,...   % right leg
     left_direction, posterior_direction, proximal_direction, left_direction, posterior_direction, proximal_direction, ...       % trunk and neck
-    anterior_direction, distal_direction, left_direction, left_elbow_axis, left_radioulnar_axis, left_wrist_flexion_axis, left_wrist_inversion_axis, ... % left arm
-    posterior_direction, proximal_direction, left_direction, right_elbow_axis, right_radioulnar_axis, right_wrist_flexion_axis, right_wrist_inversion_axis, ... % right arm
+    anterior_direction, right_direction, distal_direction, left_elbow_axis, left_radioulnar_axis, left_wrist_flexion_axis, left_wrist_inversion_axis, ... % left arm
+    posterior_direction, right_direction, proximal_direction, right_elbow_axis, right_radioulnar_axis, right_wrist_flexion_axis, right_wrist_inversion_axis, ... % right arm
 };
 
 
@@ -780,41 +782,112 @@ green = [0 1 0];
 blue = [0 0 1];
 yellow = [1 0.9 0];
 
-markerSegments = ...
-  [ ...
-    24 24 24 24 ...             % head
-    21 21 21 21 21 ...          % trunk
-    21 ...                      % left shoulder
-    27 27 ...                   % left upper arm
-    29 29 29 ...                % left lower arm
-    31 ...                      % left hand
-    21 ...                      % right shoulder
-    34 34 ...                   % right upper arm
-    36 36 36 ...                % right lower arm
-    38 ...                      % right hand
-    6 6 6 6 ...                 % pelvis
-    9 9 9 ...                   % left thigh
-    10 10 10 ...                % left shank
-    12 12 ...                   % left foot
-    15 15 15 ...                % right thigh
-    16 16 16 ...                % right shank
-    18 18 ...                   % right foot
-  ];
 
-marker_color_list = ...
-  { ...
-    blue blue blue blue ...                         % head
-    blue blue blue blue blue ...                    % trunk
-    red red red red red red red ...                 % left arm (fixed to trunk for now)
-    green green green green green green green ...   % right arm (fixed to trunk for now)
-    blue blue blue blue ...                         % pelvis
-    red red red ...                                 % left thigh
-    red red red ...                                 % left shank
-    red red ...                                     % left foot
-    green green green  ...                          % right thigh
-    green green green  ...                          % right shank
-    green green ...                                 % right foot
-  };
+markerSegments = zeros(1, length(markerHeaders));
+markerSegments(strcmp(markerHeaders, 'LFHD')) = 24;
+markerSegments(strcmp(markerHeaders, 'RFHD')) = 24;
+markerSegments(strcmp(markerHeaders, 'LBHD')) = 24;
+markerSegments(strcmp(markerHeaders, 'RBHD')) = 24;
+
+markerSegments(strcmp(markerHeaders, 'C7')) = 21;
+markerSegments(strcmp(markerHeaders, 'T10')) = 21;
+markerSegments(strcmp(markerHeaders, 'CLAV')) = 21;
+markerSegments(strcmp(markerHeaders, 'STRN')) = 21;
+markerSegments(strcmp(markerHeaders, 'RBAK')) = 21;
+
+markerSegments(strcmp(markerHeaders, 'LSHO')) = 21;
+markerSegments(strcmp(markerHeaders, 'LUPA')) = 27;
+markerSegments(strcmp(markerHeaders, 'LELB')) = 27;
+markerSegments(strcmp(markerHeaders, 'LFRM')) = 29;
+markerSegments(strcmp(markerHeaders, 'LWRA')) = 29;
+markerSegments(strcmp(markerHeaders, 'LWRB')) = 29;
+markerSegments(strcmp(markerHeaders, 'LFIN')) = 31;
+
+markerSegments(strcmp(markerHeaders, 'RSHO')) = 21;
+markerSegments(strcmp(markerHeaders, 'RUPA')) = 34;
+markerSegments(strcmp(markerHeaders, 'RELB')) = 34;
+markerSegments(strcmp(markerHeaders, 'RFRM')) = 36;
+markerSegments(strcmp(markerHeaders, 'RWRA')) = 36;
+markerSegments(strcmp(markerHeaders, 'RWRB')) = 36;
+markerSegments(strcmp(markerHeaders, 'RFIN')) = 38;
+
+markerSegments(strcmp(markerHeaders, 'LASI')) = 6;
+markerSegments(strcmp(markerHeaders, 'RASI')) = 6;
+markerSegments(strcmp(markerHeaders, 'LPSI')) = 6;
+markerSegments(strcmp(markerHeaders, 'RPSI')) = 6;
+
+markerSegments(strcmp(markerHeaders, 'LTHI')) = 9;
+markerSegments(strcmp(markerHeaders, 'LTHIA')) = 9;
+markerSegments(strcmp(markerHeaders, 'LKNE')) = 9;
+markerSegments(strcmp(markerHeaders, 'LTIB')) = 10;
+markerSegments(strcmp(markerHeaders, 'LTIBA')) = 10;
+markerSegments(strcmp(markerHeaders, 'LANK')) = 10;
+markerSegments(strcmp(markerHeaders, 'LHEE')) = 12;
+markerSegments(strcmp(markerHeaders, 'LTOE')) = 12;
+markerSegments(strcmp(markerHeaders, 'LTOEL')) = 12;
+
+markerSegments(strcmp(markerHeaders, 'RTHI')) = 15;
+markerSegments(strcmp(markerHeaders, 'RTHIA')) = 15;
+markerSegments(strcmp(markerHeaders, 'RKNE')) = 15;
+markerSegments(strcmp(markerHeaders, 'RTIB')) = 16;
+markerSegments(strcmp(markerHeaders, 'RTIBA')) = 16;
+markerSegments(strcmp(markerHeaders, 'RANK')) = 16;
+markerSegments(strcmp(markerHeaders, 'RHEE')) = 18;
+markerSegments(strcmp(markerHeaders, 'RTOE')) = 18;
+markerSegments(strcmp(markerHeaders, 'RTOEL')) = 18;
+
+marker_color_list = cell(1, length(markerHeaders));
+marker_color_list{strcmp(markerHeaders, 'LFHD')} = red;
+marker_color_list{strcmp(markerHeaders, 'RFHD')} = green;
+marker_color_list{strcmp(markerHeaders, 'LBHD')} = red;
+marker_color_list{strcmp(markerHeaders, 'RBHD')} = green;
+
+marker_color_list{strcmp(markerHeaders, 'C7')} = blue;
+marker_color_list{strcmp(markerHeaders, 'T10')} = blue;
+marker_color_list{strcmp(markerHeaders, 'CLAV')} = blue;
+marker_color_list{strcmp(markerHeaders, 'STRN')} = blue;
+marker_color_list{strcmp(markerHeaders, 'RBAK')} = blue;
+
+marker_color_list{strcmp(markerHeaders, 'LSHO')} = red;
+marker_color_list{strcmp(markerHeaders, 'LUPA')} = red;
+marker_color_list{strcmp(markerHeaders, 'LELB')} = red;
+marker_color_list{strcmp(markerHeaders, 'LFRM')} = red;
+marker_color_list{strcmp(markerHeaders, 'LWRA')} = red;
+marker_color_list{strcmp(markerHeaders, 'LWRB')} = red;
+marker_color_list{strcmp(markerHeaders, 'LFIN')} = red;
+
+marker_color_list{strcmp(markerHeaders, 'RSHO')} = green;
+marker_color_list{strcmp(markerHeaders, 'RUPA')} = green;
+marker_color_list{strcmp(markerHeaders, 'RELB')} = green;
+marker_color_list{strcmp(markerHeaders, 'RFRM')} = green;
+marker_color_list{strcmp(markerHeaders, 'RWRA')} = green;
+marker_color_list{strcmp(markerHeaders, 'RWRB')} = green;
+marker_color_list{strcmp(markerHeaders, 'RFIN')} = green;
+
+marker_color_list{strcmp(markerHeaders, 'LASI')} = red;
+marker_color_list{strcmp(markerHeaders, 'RASI')} = green;
+marker_color_list{strcmp(markerHeaders, 'LPSI')} = red;
+marker_color_list{strcmp(markerHeaders, 'RPSI')} = green;
+
+marker_color_list{strcmp(markerHeaders, 'LTHI')} = red;
+marker_color_list{strcmp(markerHeaders, 'LTHIA')} = red;
+marker_color_list{strcmp(markerHeaders, 'LKNE')} = red;
+marker_color_list{strcmp(markerHeaders, 'LTIB')} = red;
+marker_color_list{strcmp(markerHeaders, 'LTIBA')} = red;
+marker_color_list{strcmp(markerHeaders, 'LANK')} = red;
+marker_color_list{strcmp(markerHeaders, 'LHEE')} = red;
+marker_color_list{strcmp(markerHeaders, 'LTOE')} = red;
+marker_color_list{strcmp(markerHeaders, 'LTOEL')} = red;
+
+marker_color_list{strcmp(markerHeaders, 'RTHI')} = green;
+marker_color_list{strcmp(markerHeaders, 'RTHIA')} = green;
+marker_color_list{strcmp(markerHeaders, 'RKNE')} = green;
+marker_color_list{strcmp(markerHeaders, 'RTIB')} = green;
+marker_color_list{strcmp(markerHeaders, 'RTIBA')} = green;
+marker_color_list{strcmp(markerHeaders, 'RANK')} = green;
+marker_color_list{strcmp(markerHeaders, 'RHEE')} = green;
+marker_color_list{strcmp(markerHeaders, 'RTOE')} = green;
+marker_color_list{strcmp(markerHeaders, 'RTOEL')} = green;
 
 number_of_markers = length(markerSegments);
 for i_marker = 1 : number_of_markers

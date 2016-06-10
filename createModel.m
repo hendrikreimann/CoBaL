@@ -25,19 +25,11 @@ while any(isnan(marker_trajectories(i_time, :)))
 end
 marker_reference = marker_trajectories(i_time, :);
 
-head_markers = [1 2 3 4];
-trunk_markers = [5 6 7 8 9];
-pelvis_markers = [24 25 26 27];
-left_thigh_markers = [28 29 30];
-left_shank_markers = [31 32 33];
-left_foot_markers = [34 35];
-right_thigh_markers = [36 37 38];
-right_shank_markers = [39 40 41];
-right_foot_markers = [42 43];
-LASIS_marker = 24;
-RASIS_marker = 25;
-LPSIS_marker = 26;
-RPSIS_marker = 27;
+
+
+LASI_marker = find(strcmp(marker_headers, 'LASI'));
+RASI_marker = find(strcmp(marker_headers, 'RASI'));
+
 
 % marker indices
 head_markers_indices = reshape([(head_markers - 1) * 3 + 1; (head_markers - 1) * 3 + 2; (head_markers - 1) * 3 + 3], 1, length(head_markers)*3);
@@ -49,10 +41,10 @@ left_foot_markers_indices = reshape([(left_foot_markers - 1) * 3 + 1; (left_foot
 right_thigh_markers_indices = reshape([(right_thigh_markers - 1) * 3 + 1; (right_thigh_markers - 1) * 3 + 2; (right_thigh_markers - 1) * 3 + 3], 1, length(right_thigh_markers)*3);
 right_shank_markers_indices = reshape([(right_shank_markers - 1) * 3 + 1; (right_shank_markers - 1) * 3 + 2; (right_shank_markers - 1) * 3 + 3], 1, length(right_shank_markers)*3);
 right_foot_markers_indices = reshape([(right_foot_markers - 1) * 3 + 1; (right_foot_markers - 1) * 3 + 2; (right_foot_markers - 1) * 3 + 3], 1, length(right_foot_markers)*3);
-LASIS_markers_indices = reshape([(LASIS_marker - 1) * 3 + 1; (LASIS_marker - 1) * 3 + 2; (LASIS_marker - 1) * 3 + 3], 1, length(LASIS_marker)*3);
-RASIS_markers_indices = reshape([(RASIS_marker - 1) * 3 + 1; (RASIS_marker - 1) * 3 + 2; (RASIS_marker - 1) * 3 + 3], 1, length(RASIS_marker)*3);
-LPSIS_markers_indices = reshape([(LPSIS_marker - 1) * 3 + 1; (LPSIS_marker - 1) * 3 + 2; (LPSIS_marker - 1) * 3 + 3], 1, length(LPSIS_marker)*3);
-RPSIS_markers_indices = reshape([(RPSIS_marker - 1) * 3 + 1; (RPSIS_marker - 1) * 3 + 2; (RPSIS_marker - 1) * 3 + 3], 1, length(RPSIS_marker)*3);
+LASI_markers_indices = reshape([(LASI_marker - 1) * 3 + 1; (LASI_marker - 1) * 3 + 2; (LASI_marker - 1) * 3 + 3], 1, length(LASI_marker)*3);
+RASI_markers_indices = reshape([(RASI_marker - 1) * 3 + 1; (RASI_marker - 1) * 3 + 2; (RASI_marker - 1) * 3 + 3], 1, length(RASI_marker)*3);
+% LPSIS_markers_indices = reshape([(LPSIS_marker - 1) * 3 + 1; (LPSIS_marker - 1) * 3 + 2; (LPSIS_marker - 1) * 3 + 3], 1, length(LPSIS_marker)*3);
+% RPSIS_markers_indices = reshape([(RPSIS_marker - 1) * 3 + 1; (RPSIS_marker - 1) * 3 + 2; (RPSIS_marker - 1) * 3 + 3], 1, length(RPSIS_marker)*3);
 
 % marker references
 head_markers_reference = marker_reference(head_markers_indices);
@@ -64,10 +56,10 @@ left_foot_markers_reference = marker_reference(left_foot_markers_indices);
 right_thigh_markers_reference = marker_reference(right_thigh_markers_indices);
 right_shank_markers_reference = marker_reference(right_shank_markers_indices);
 right_foot_markers_reference = marker_reference(right_foot_markers_indices);
-LASIS_marker_reference = marker_reference(LASIS_markers_indices);
-RASIS_marker_reference = marker_reference(RASIS_markers_indices);
-LPSIS_marker_reference = marker_reference(LPSIS_markers_indices);
-RPSIS_marker_reference = marker_reference(RPSIS_markers_indices);
+LASI_marker_reference = marker_reference(LASI_markers_indices);
+RASI_marker_reference = marker_reference(RASI_markers_indices);
+% LPSIS_marker_reference = marker_reference(LPSIS_markers_indices);
+% RPSIS_marker_reference = marker_reference(RPSIS_markers_indices);
 
 %% estimate_joint_cors
 if estimate_joint_cors_with_score
@@ -162,17 +154,17 @@ if estimate_hip_centers_from_landmarks
     centroid_to_skin_correction = 0.0152; % in meters
     skin_to_bone_correction = 0.01; % in meters
     centroid_to_bone_correction = centroid_to_skin_correction + skin_to_bone_correction;
-    LASIS_position_bone = LASIS_marker_reference' + skin_to_bone_correction * posterior;
-    RASIS_position_bone = RASIS_marker_reference' + skin_to_bone_correction * posterior;
-    inter_ASIS_distance = norm(LASIS_position_bone - RASIS_position_bone);
-    left_hip_cor = LASIS_position_bone ...
-                    + 0.11 * inter_ASIS_distance * rightward ...
-                    + 0.12 * inter_ASIS_distance * distal ...
-                    + 0.21 * inter_ASIS_distance * posterior;
-    right_hip_cor = RASIS_position_bone ...
-                    + 0.11 * inter_ASIS_distance * leftward ...
-                    + 0.12 * inter_ASIS_distance * distal ...
-                    + 0.21 * inter_ASIS_distance * posterior;
+    LASI_position_bone = LASI_marker_reference' + skin_to_bone_correction * posterior;
+    RASI_position_bone = RASI_marker_reference' + skin_to_bone_correction * posterior;
+    inter_ASI_distance = norm(LASI_position_bone - RASI_position_bone);
+    left_hip_cor = LASI_position_bone ...
+                    + 0.11 * inter_ASI_distance * rightward ...
+                    + 0.12 * inter_ASI_distance * distal ...
+                    + 0.21 * inter_ASI_distance * posterior;
+    right_hip_cor = RASI_position_bone ...
+                    + 0.11 * inter_ASI_distance * leftward ...
+                    + 0.12 * inter_ASI_distance * distal ...
+                    + 0.21 * inter_ASI_distance * posterior;
                 
 end
 
@@ -181,6 +173,7 @@ if create_plant
     plant = walkingModel ...
       ( ...
         marker_reference, ...
+        marker_headers, ...
         {left_knee_aor, right_knee_aor}, ...
         weight, ...
         gender ...
