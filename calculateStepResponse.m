@@ -73,12 +73,13 @@ function ...
     
     
     
-%     figure
+%     figure;
 %     plot(com_positions_mid_delta_ref, foot_positions_end_delta_ref, 'x')
+%     axis equal
 % 
-%     figure
+%     figure;
 %     plot(com_velocities_mid_delta_ref, foot_positions_end_delta_ref, 'x')
-
+%     axis equal
 
 
 

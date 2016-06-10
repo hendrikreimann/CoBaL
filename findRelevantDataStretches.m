@@ -32,7 +32,7 @@ total_step_condition_list = [];
 
 swing_foot_fz_zero_threshold = 20; % threshold for counting a vertical force reading as zero, in Nm
 swing_foot_zero_stretch_length_threshold_time = 0.2; % the force plate should register zero for at least this long
-duration_until_nearest_future_heelstrike_threshold = 0.20; % a heelstrike should happen less than this long after a trigger
+duration_until_nearest_future_heelstrike_threshold = 0.15; % a heelstrike should happen less than this long after a trigger
 duration_prelude = 0.4; % duration that should have zero vertical force prior to a heelstrike, to identify crossover
 
 
