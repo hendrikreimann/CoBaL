@@ -85,6 +85,7 @@ classdef WalkingTrialData < handle
             
             this.sampling_rate_mocap = loaded_marker_trajectories.sampling_rate_mocap;
             this.recording_time = loaded_marker_trajectories.time_mocap(end);
+            time_mocap = loaded_marker_trajectories.time_mocap;
 
             % extract data
             left_heel_marker = find(strcmp(loaded_marker_trajectories.marker_headers, 'LHEE'));
@@ -108,7 +109,7 @@ classdef WalkingTrialData < handle
             right_heel_z_vel_trajectory = deriveByTime(filtfilt(b, a, right_heel_z_trajectory), 1/this.sampling_rate_mocap);
             left_heel_z_acc_trajectory = deriveByTime(filtfilt(b, a, left_heel_z_vel_trajectory), 1/this.sampling_rate_mocap);
             right_heel_z_acc_trajectory = deriveByTime(filtfilt(b, a, right_heel_z_vel_trajectory), 1/this.sampling_rate_mocap);
-            left_toes_z_vel_trajectory = deriveByTime(filtfilt(b, a, left_toes_z_trajectory), 1/this.sampling_rate_mocap);
+            left_toes_z_vel_trajectory = deriveByTime(filtfilt(b, a, spline(time_mocap, left_toes_z_trajectory, time_mocap)), 1/this.sampling_rate_mocap);
             right_toes_z_vel_trajectory = deriveByTime(filtfilt(b, a, right_toes_z_trajectory), 1/this.sampling_rate_mocap);
             left_toes_z_acc_trajectory = deriveByTime(filtfilt(b, a, left_toes_z_vel_trajectory), 1/this.sampling_rate_mocap);
             right_toes_z_acc_trajectory = deriveByTime(filtfilt(b, a, right_toes_z_vel_trajectory), 1/this.sampling_rate_mocap);        
