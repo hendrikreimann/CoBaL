@@ -1,6 +1,6 @@
 
-extract_data                            = 0;
-estimate_contact_point_trajectories     = 0;
+extract_data                            = 1;
+estimate_contact_point_trajectories     = 1;
 fit_rollover_shape                      = 1;
 
 
@@ -175,11 +175,11 @@ if fit_rollover_shape
     rollover_shape_x = rollover_shape(:, 1);
     rollover_shape_y = rollover_shape(:, 2);
     
-%     curvefit = fit(rollover_shape(:, 1), rollover_shape(:, 2), 'smoothingspline', 'SmoothingParam', 0.999999);
+    curvefit = fit(rollover_shape(:, 1), rollover_shape(:, 2), 'smoothingspline', 'SmoothingParam', 0.999999);
     fit_y_data = left_contact_point_foot_trajectory(:, 1);
     fit_z_data = curvefit(fit_y_data);
     
-    figure; axes; hold on; axis equal
+    figure; axes; hold on; axis equal; title(['rollover curve, foot frame - ' subject_id])
     plot(left_contact_point_foot_trajectory(:, 1), left_contact_point_foot_trajectory(:, 2));
     plot(fit_y_data, fit_z_data, '-', 'linewidth', 3);
     
