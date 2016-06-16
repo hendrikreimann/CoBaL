@@ -3,8 +3,9 @@ check_out_origin                    = 0;
 
 do_cop_plots_single                 = 0;
 do_cop_plots_absolute               = 0;
-do_cop_plots_beam                   = 1;
-do_step_parameter_plots             = 0;
+do_step_parameter_plots             = 1;
+
+do_cop_plots_beam                   = 0;
 do_step_parameter_plots_beam        = 0;
 
 

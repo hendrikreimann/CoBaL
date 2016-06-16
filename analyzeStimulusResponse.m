@@ -5,11 +5,11 @@ calculate_strategy_directions       = 0;
 calculate_strategy_responses        = 0;
 calculate_stats                     = 0;
 
-save_data                           = 1;
+save_data                           = 0;
 
 process_data_marker                 = 1;
 process_data_forceplate             = 1;
-process_data_emg                    = 1;
+process_data_emg                    = 0;
 process_data_angles                 = 0;
 process_data_torques                = 0;
 
@@ -22,7 +22,7 @@ load subjectInfo.mat;
 
 % trials_to_process = 1 : 20;
 trials_to_process = 3 : 43;
-trials_to_process = 3 : 36;
+trials_to_process = 2 : 21;
 % trials_to_process = 3;
 % trials_to_process = [2 4:21];
 
