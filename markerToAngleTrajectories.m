@@ -1,15 +1,31 @@
 
-use_parallel            = 1;
+use_parallel                = 0;
+process_all_data            = 1;
 
 trials_to_process = 1;
 
-data_directory = '/Users/reimajbi/TempleDrive/20160418_MCA'; % should this be a function argument?
+% data_directory = '/Users/reimajbi/TempleDrive/20160418_MCA'; % should this be a function argument?
+data_directory = pwd;
 
 load subjectInfo.mat;
 model_file_name = makeFileName(date, subject_id, 'model');
 load(model_file_name);
 
 weight_matrix = ones(1, plant.getNumberOfMarkers);
+weight_matrix(strcmp(plant.markerLabels, 'LTHI')) = 0;
+weight_matrix(strcmp(plant.markerLabels, 'LTHIA')) = 0;
+weight_matrix(strcmp(plant.markerLabels, 'LTIB')) = 0;
+weight_matrix(strcmp(plant.markerLabels, 'LTIBA')) = 0;
+weight_matrix(strcmp(plant.markerLabels, 'LHEE')) = 0;
+
+weight_matrix(strcmp(plant.markerLabels, 'RTHI')) = 0;
+weight_matrix(strcmp(plant.markerLabels, 'RTHIA')) = 0;
+weight_matrix(strcmp(plant.markerLabels, 'RTIB')) = 0;
+weight_matrix(strcmp(plant.markerLabels, 'RTIBA')) = 0;
+weight_matrix(strcmp(plant.markerLabels, 'RHEE')) = 0;
+
+
+
 number_of_joints = plant.numberOfJoints;
 
 
@@ -164,10 +180,37 @@ for i_trial = trials_to_process
     % load data
     load([data_directory filesep makeFileName(date, subject_id, 'walking', i_trial, 'markerTrajectories')]);
     load([data_directory filesep makeFileName(date, subject_id, 'walking', i_trial, 'relevantDataStretches')]);
+
+    number_of_time_steps_mocap = length(time_mocap);
+    if process_all_data
+        time_steps_to_optimize = 1 : length(time_mocap);
+        time_steps_to_optimize = 500 : 600;
+        time_steps_to_optimize = 6 : 10;
+    else
+        % schedule relevant time steps for optimization
+        time_steps_to_optimize = [];
+        number_of_padding_steps = 20;
+        for i_stretch = 1 : size(start_indices_mocap)
+            % get start and end indices and apply padding
+            start_index_mocap_stretch = start_indices_mocap(i_stretch) - number_of_padding_steps;
+            end_index_mocap_stretch = end_indices_mocap(i_stretch) + number_of_padding_steps;
+
+            % crop if necessary
+            if start_index_mocap_stretch < 1
+                start_index_mocap_stretch = 1;
+            end
+            if end_index_mocap_stretch > size(marker_trajectories, 1);
+                end_index_mocap_stretch = size(marker_trajectories, 1);
+            end
+
+            time_steps_stretch = start_index_mocap_stretch : end_index_mocap_stretch;
+            time_steps_to_optimize = [time_steps_to_optimize time_steps_stretch];
+        end 
+    end
     
     % run optimization
-    number_of_data_points_to_process_mocap = length(data_points_to_process_mocap);
-    joint_angle_trajectory_optimized = zeros(number_of_time_steps, number_of_joints);
+    number_of_time_steps_to_optimize = length(time_steps_to_optimize);
+    joint_angle_trajectory_optimized = zeros(size(marker_trajectories, 1), number_of_joints);
     tic
     if use_parallel
         joint_angle_trajectory_optimized_pool = zeros(size(joint_angle_trajectory_optimized));
@@ -186,9 +229,9 @@ for i_trial = trials_to_process
             right_arm_chain_pool = right_arm_chain.copy;
             left_arm_chain_pool = left_arm_chain.copy;
             
-            data_points_to_process_mocap_lab = data_points_to_process_mocap(labindex : numlabs : number_of_data_points_to_process_mocap);
+            time_steps_to_optimize_lab = time_steps_to_optimize(labindex : numlabs : number_of_time_steps_to_optimize);
             
-            joint_angle_trajectory_optimized_pool(data_points_to_process_mocap_lab, :) = ...
+            joint_angle_trajectory_optimized_pool(time_steps_to_optimize_lab, :) = ...
             optimizeJointAngles ...
             ( ...
               plant_pool, ...
@@ -198,18 +241,19 @@ for i_trial = trials_to_process
               trunk_chain_pool, ...
               left_arm_chain_pool, ...
               right_arm_chain_pool, ...
-              marker_trajectories(data_points_to_process_mocap_lab, :) ...
+              marker_trajectories(time_steps_to_optimize_lab, :), ...
+              weight_matrix ...
             );        
         end
         
         % reassemble
         for i_lab = 1 : number_of_labs
             joint_angle_trajectory_optimized_lab = joint_angle_trajectory_optimized_pool{i_lab};
-            joint_angle_trajectory_optimized(data_points_to_process_mocap(i_lab : number_of_labs : number_of_data_points_to_process_mocap), :) = joint_angle_trajectory_optimized_lab(data_points_to_process_mocap(i_lab : number_of_labs : number_of_data_points_to_process_mocap), :);
+            joint_angle_trajectory_optimized(time_steps_to_optimize(i_lab : number_of_labs : number_of_time_steps_to_optimize), :) = joint_angle_trajectory_optimized_lab(time_steps_to_optimize(i_lab : number_of_labs : number_of_time_steps_to_optimize), :);
         end        
 
     else
-        joint_angle_trajectory_optimized(data_points_to_process_mocap, :) = ...
+        joint_angle_trajectory_optimized(time_steps_to_optimize, :) = ...
         optimizeJointAngles ...
         ( ...
           plant, ...
@@ -219,7 +263,8 @@ for i_trial = trials_to_process
           trunk_chain, ...
           left_arm_chain, ...
           right_arm_chain, ...
-          marker_trajectories(data_points_to_process_mocap, :) ...
+          marker_trajectories(time_steps_to_optimize, :), ...
+          weight_matrix ...
         );
     end
     toc

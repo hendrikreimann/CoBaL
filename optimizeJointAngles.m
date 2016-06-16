@@ -7,7 +7,8 @@ function optimizedJointAngles = optimizeJointAngles ...
   trunkAndHeadChain, ...
   leftArmChain, ...
   rightArmChain, ...
-  markerTrajectories ...
+  markerTrajectories, ...
+  weightMatrix ...
 )
 
 %
@@ -87,10 +88,14 @@ options = optimset ...
         'UseParallel', 'always' ...
     );
 
+weight_matrix_by_indices = reshape(repmat(weightMatrix, 3, 1), 1, length(weightMatrix)*3);
+
 for i_time = 1 : number_of_time_steps
     theta_0 = zeros(plant.numberOfJoints, 1);
     current_marker_positions_measured = markerTrajectories(i_time, :);
-    if any(isnan(current_marker_positions_measured)) % check whether NaNs are present
+    current_marker_positions_relevant = markerTrajectories(weight_matrix_by_indices~=0);
+    
+    if any(isnan(current_marker_positions_relevant)) % check whether NaNs are present
         theta_opt = zeros(size(theta_0)) * NaN;
     else % if not, optimize
         
@@ -129,7 +134,7 @@ function f = objfun_virtual_modular(theta_virtual)
         marker_position_reconstr = current_marker_positions_reconstr(marker_indices_modular);
         
         error_vector = marker_position_measured - marker_position_reconstr;
-        marker_reconstruction_error(i_marker) = norm(error_vector);
+        marker_reconstruction_error(i_marker) = norm(error_vector * weightMatrix(virtual_joint_markers(i_marker)));
     end
     
     % calculate sum of squares
@@ -154,7 +159,7 @@ function f = objfun_right_leg_modular(theta_right_leg)
         marker_position_reconstr_world = marker_position_reconstr_world_homogeneous(1:3)';
         
         error_vector = marker_position_measured - marker_position_reconstr_world;
-        marker_reconstruction_error(i_marker) = norm(error_vector);
+        marker_reconstruction_error(i_marker) = norm(error_vector * weightMatrix(right_leg_markers(i_marker)));
     end
     
     % calculate sum of squares
@@ -179,7 +184,7 @@ function f = objfun_left_leg_modular(theta_left_leg)
         marker_position_reconstr_world = marker_position_reconstr_world_homogeneous(1:3)';
         
         error_vector = marker_position_measured - marker_position_reconstr_world;
-        marker_reconstruction_error(i_marker) = norm(error_vector);
+        marker_reconstruction_error(i_marker) = norm(error_vector * weightMatrix(left_leg_markers(i_marker)));
     end
     
     % calculate sum of squares
@@ -204,7 +209,7 @@ function f = objfun_trunk_modular(theta_trunk)
         marker_position_reconstr_world = marker_position_reconstr_world_homogeneous(1:3)';
         
         error_vector = marker_position_measured - marker_position_reconstr_world;
-        marker_reconstruction_error(i_marker) = norm(error_vector);
+        marker_reconstruction_error(i_marker) = norm(error_vector * weightMatrix(trunk_and_head_markers(i_marker)));
     end
     
     % calculate sum of squares
@@ -229,7 +234,7 @@ function f = objfun_right_arm_modular(theta_right_arm)
         marker_position_reconstr_world = marker_position_reconstr_world_homogeneous(1:3)';
         
         error_vector = marker_position_measured - marker_position_reconstr_world;
-        marker_reconstruction_error(i_marker) = norm(error_vector);
+        marker_reconstruction_error(i_marker) = norm(error_vector * weightMatrix(right_arm_markers(i_marker)));
     end
     
     % calculate sum of squares
@@ -254,7 +259,7 @@ function f = objfun_left_arm_modular(theta_left_arm)
         marker_position_reconstr_world = marker_position_reconstr_world_homogeneous(1:3)';
         
         error_vector = marker_position_measured - marker_position_reconstr_world;
-        marker_reconstruction_error(i_marker) = norm(error_vector);
+        marker_reconstruction_error(i_marker) = norm(error_vector * weightMatrix(left_arm_markers(i_marker)));
     end
     
     % calculate sum of squares

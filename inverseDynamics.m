@@ -6,16 +6,18 @@ calculate_torques                       = 1;
 filter_torques                          = 1;
 
 plot_joint_torques                      = 1;
-plot_joint_torques_smoothed             = 1;
+plot_joint_torques_smoothed             = 0;
 
-use_parallel = 1;
+process_all_data                        = 1;
+use_parallel                            = 0;
 
-load_results = 0;
-save_results = 1;
+load_results                            = 0;
+save_results                            = 1;
 
-use_point_constraints           = 0;
-use_hinge_constraints           = 1;
-use_body_velocity_constraints   = 0;
+use_point_constraints                   = 0;
+use_hinge_constraints                   = 0;
+use_body_velocity_constraints           = 0;
+use_rollover_constraints                = 1;
 
 
 % select which trials to process
@@ -23,7 +25,7 @@ use_body_velocity_constraints   = 0;
 
 % trials_to_process = 1001 : 1180;
 % trials_to_exclude = [1046 1064 1066 1069 1089 1092 1109 1114 1132];
-trials_to_process = 1;
+trials_to_process = 2;
 trials_to_exclude = [];
 
 
@@ -35,7 +37,7 @@ load(makeFileName(date, subject_id, 'model'));
 % parameters
 number_of_joints = plant.numberOfJoints;
 
-data_points = 1 : numberOfDataPoints;
+data_points = 1 : 30000;
 % data_points = 200 : 900;
 % data_points = 450 : 480;
 % data_points = 1000 : 11000;
@@ -98,9 +100,15 @@ for i_trial = trials_to_process
         load(makeFileName(date, subject_id, 'walking', i_trial, 'angleTrajectories'));
         load(makeFileName(date, subject_id, 'walking', i_trial, 'kinematicTrajectories'));
         load(makeFileName(date, subject_id, 'walking', i_trial, 'stepEvents'));
-        load(makeFileName(date, subject_id, 'walking', i_trial, 'forcePlateData'));
+        load(makeFileName(date, subject_id, 'walking', i_trial, 'forceplateTrajectories'));
         load(makeFileName(date, subject_id, 'walking', i_trial, 'relevantDataStretches'));
         number_of_time_steps = size(joint_angle_trajectories_belt, 1);
+        if process_all_data
+            data_points = 2001 : 3000;
+            data_points = 1 : 30000;
+            data_points = 3000 : 3010;
+        end
+        
 
         if load_results
             label = 'inverseDynamics';
@@ -113,22 +121,47 @@ for i_trial = trials_to_process
             if use_body_velocity_constraints
                 label = [label '_bodyVelocityConstraints'];
             end            
+            if use_rollover_constraints
+                label = [label '_rolloverConstraints'];
+            end            
 
             load(makeFileName(date, subject_id, 'walking', i_trial, label));
         end
         
         %% determine_constraint_numbers
         if determine_constraint_numbers
-            gamma_left_trajectory = zeros(numberOfDataPoints, 1);
-            phi_left_trajectory = zeros(numberOfDataPoints, 1);
-            rho_left_trajectory = zeros(numberOfDataPoints, 1);
-            gamma_right_trajectory = zeros(numberOfDataPoints, 1);
-            phi_right_trajectory = zeros(numberOfDataPoints, 1);
-            rho_right_trajectory = zeros(numberOfDataPoints, 1);
+            % 0 = swing
+            % 1 = heelstrike
+            % 2 = pushoff
+            gamma_left_trajectory = zeros(number_of_time_steps, 1);
+            phi_left_trajectory = zeros(number_of_time_steps, 1);
+            rho_left_trajectory = zeros(number_of_time_steps, 1);
+            theta_left_trajectory = zeros(number_of_time_steps, 1);
+            gamma_right_trajectory = zeros(number_of_time_steps, 1);
+            phi_right_trajectory = zeros(number_of_time_steps, 1);
+            rho_right_trajectory = zeros(number_of_time_steps, 1);
             left_foot_constraint_number_trajectory = zeros(number_of_time_steps, 1);
             right_foot_constraint_number_trajectory = zeros(number_of_time_steps, 1);
             
-            for i_time = data_points_to_process_mocap
+            % extract data
+            left_ankle_marker = find(strcmp(marker_headers, 'LANK'));
+            left_ankle_marker_indices = reshape([(left_ankle_marker - 1) * 3 + 1; (left_ankle_marker - 1) * 3 + 2; (left_ankle_marker - 1) * 3 + 3], 1, length(left_ankle_marker)*3);
+            left_ankle_marker_pos_trajectory = marker_trajectories(:, left_ankle_marker_indices);
+
+            left_toes_marker = find(strcmp(marker_headers, 'LTOE'));
+            left_toes_marker_indices = reshape([(left_toes_marker - 1) * 3 + 1; (left_toes_marker - 1) * 3 + 2; (left_toes_marker - 1) * 3 + 3], 1, length(left_toes_marker)*3);
+            left_toes_marker_pos_trajectory = marker_trajectories(:, left_toes_marker_indices);
+
+            right_ankle_marker = find(strcmp(marker_headers, 'RANK'));
+            right_ankle_marker_indices = reshape([(right_ankle_marker - 1) * 3 + 1; (right_ankle_marker - 1) * 3 + 2; (right_ankle_marker - 1) * 3 + 3], 1, length(right_ankle_marker)*3);
+            right_ankle_marker_pos_trajectory = marker_trajectories(:, right_ankle_marker_indices);
+
+            right_toes_marker = find(strcmp(marker_headers, 'RTOE'));
+            right_toes_marker_indices = reshape([(right_toes_marker - 1) * 3 + 1; (right_toes_marker - 1) * 3 + 2; (right_toes_marker - 1) * 3 + 3], 1, length(right_toes_marker)*3);
+            right_toes_marker_pos_trajectory = marker_trajectories(:, right_toes_marker_indices);
+            
+            for i_time = data_points
+                % right foot segment euler angles
                 left_ankle_scs_transformation_current = reshape(T_left_ankle_to_world_trajectory(i_time, :), 4, 4);
                 left_ankle_scs_to_world_rotation_current = left_ankle_scs_transformation_current(1:3, 1:3);
                 left_ankle_scs_rotation_reference_to_current = left_ankle_scs_to_world_rotation_reference^(-1) * left_ankle_scs_to_world_rotation_current;
@@ -137,7 +170,7 @@ for i_trial = trials_to_process
                 phi_left_trajectory(i_time) = left_euler_angles(2);
                 rho_left_trajectory(i_time) = left_euler_angles(3);
 
-                % right ankle euler angles
+                % right foot segment euler angles
                 right_ankle_scs_transformation_current = reshape(T_right_ankle_to_world_trajectory(i_time, :), 4, 4);
                 right_ankle_scs_to_world_rotation_current = right_ankle_scs_transformation_current(1:3, 1:3);
                 right_ankle_scs_rotation_reference_to_current = right_ankle_scs_to_world_rotation_reference^(-1) * right_ankle_scs_to_world_rotation_current;
@@ -145,6 +178,26 @@ for i_trial = trials_to_process
                 gamma_right_trajectory(i_time) = right_euler_angles(1);
                 phi_right_trajectory(i_time) = right_euler_angles(2);
                 rho_right_trajectory(i_time) = right_euler_angles(3);
+                
+                % left foot theta angle
+                left_ankle_point_position_world = left_ankle_marker_pos_trajectory(i_time, :)';
+                left_toes_position_world = left_toes_marker_pos_trajectory(i_time, :)';
+        
+                left_ankle_to_toes_vector = left_toes_position_world - left_ankle_point_position_world;
+                foot_x = normVector(left_ankle_to_toes_vector);
+                subspace(foot_x, [0 1; 1 0; 0 0]);
+                
+                theta_left_trajectory(i_time, :) = -atan2(left_ankle_to_toes_vector(3), left_ankle_to_toes_vector(2));
+                R_foot_to_world_left = ...
+                  [ ...
+                    cos(theta_left_trajectory(i_time, :)), sin(theta_left_trajectory(i_time, :)), 0; 
+                    -sin(theta_left_trajectory(i_time, :)), cos(theta_left_trajectory(i_time, :)), 0; ...
+                    0, 0, 1; ...
+                  ];
+                T_foot_to_world_left = [R_foot_to_world_left left_ankle_point_position_world; 0 0 0 1];
+                
+                
+                
 
                 % left foot
                 if left_contact_indicators_mocap(i_time)
@@ -178,14 +231,14 @@ for i_trial = trials_to_process
             tic
             fprintf('Calculating the dynamic matrices ... ');
 
-            numberOfDataPoints = size(joint_angle_trajectories_belt, 1);
-            inertia_matrix_trajectory = cell(numberOfDataPoints, 1);
-            coriolis_matrix_trajectory = cell(numberOfDataPoints, 1);
-            gravitation_matrix_trajectory = cell(numberOfDataPoints, 1);
+            number_of_time_steps = size(joint_angle_trajectories_belt, 1);
+            inertia_matrix_trajectory = cell(number_of_time_steps, 1);
+            coriolis_matrix_trajectory = cell(number_of_time_steps, 1);
+            gravitation_matrix_trajectory = cell(number_of_time_steps, 1);
 
-            constraint_matrix_trajectory = cell(numberOfDataPoints, 1);
-            constraint_matrix_dot_trajectory = cell(numberOfDataPoints, 1);
-            number_of_lambdas = zeros(numberOfDataPoints, 1);
+            constraint_matrix_trajectory = cell(number_of_time_steps, 1);
+            constraint_matrix_dot_trajectory = cell(number_of_time_steps, 1);
+            number_of_lambdas = zeros(number_of_time_steps, 1);
 
             
                 
@@ -198,7 +251,7 @@ for i_trial = trials_to_process
                 gravitation_matrix_trajectory_pool = cell(size(gravitation_matrix_trajectory));
                 constraint_matrix_trajectory_pool = cell(size(constraint_matrix_trajectory));
                 constraint_matrix_dot_trajectory_pool = cell(size(constraint_matrix_dot_trajectory));
-                number_of_lambdas_pool = zeros(numberOfDataPoints, 1);
+                number_of_lambdas_pool = zeros(number_of_time_steps, 1);
                 spmd
                     plant_pool = plant.copy;
                     for i_time = data_points(1)+labindex-1 : numlabs : data_points(end)
@@ -353,36 +406,36 @@ for i_trial = trials_to_process
             tic
             fprintf('Calculating the constraint torques ... ');
             number_of_joints = plant.numberOfJoints;
-            numberOfDataPoints = size(joint_angle_trajectories_belt, 1);
+            number_of_time_steps = size(joint_angle_trajectories_belt, 1);
             virtual_joints = 1:6;
-            constraint_torque_trajectories_all = zeros(numberOfDataPoints, number_of_joints);
-            constraint_torque_trajectories_right = zeros(numberOfDataPoints, number_of_joints);
-            constraint_torque_trajectories_left = zeros(numberOfDataPoints, number_of_joints);
-            lambda_trajectories = cell(numberOfDataPoints, 1);
-            joint_torque_trajectories = zeros(numberOfDataPoints, number_of_joints);
-            induced_accelerations_applied_trajectories = zeros(numberOfDataPoints, number_of_joints);
-            induced_accelerations_gravity_trajectories = zeros(numberOfDataPoints, number_of_joints);
-            induced_accelerations_movement_trajectories = zeros(numberOfDataPoints, number_of_joints);
-            induced_accelerations_applied_single_trajectories = zeros(numberOfDataPoints, number_of_joints, number_of_joints); % (i_time, i, j)-th entry holds acceleration of the i_th joint from torque at the j_th joint
-            violating_velocity_trajectories = zeros(numberOfDataPoints, number_of_joints);
-            violating_acceleration_trajectories = zeros(numberOfDataPoints, number_of_joints);
-%             explained_acceleration_trajectories = zeros(numberOfDataPoints, number_of_joints);
-%             leftover_acceleration_trajectories = zeros(numberOfDataPoints, number_of_joints);
+            constraint_torque_trajectories_all = zeros(number_of_time_steps, number_of_joints);
+            constraint_torque_trajectories_right = zeros(number_of_time_steps, number_of_joints);
+            constraint_torque_trajectories_left = zeros(number_of_time_steps, number_of_joints);
+            lambda_trajectories = cell(number_of_time_steps, 1);
+            joint_torque_trajectories = zeros(number_of_time_steps, number_of_joints);
+            induced_accelerations_applied_trajectories = zeros(number_of_time_steps, number_of_joints);
+            induced_accelerations_gravity_trajectories = zeros(number_of_time_steps, number_of_joints);
+            induced_accelerations_movement_trajectories = zeros(number_of_time_steps, number_of_joints);
+            induced_accelerations_applied_single_trajectories = zeros(number_of_time_steps, number_of_joints, number_of_joints); % (i_time, i, j)-th entry holds acceleration of the i_th joint from torque at the j_th joint
+            violating_velocity_trajectories = zeros(number_of_time_steps, number_of_joints);
+            violating_acceleration_trajectories = zeros(number_of_time_steps, number_of_joints);
+%             explained_acceleration_trajectories = zeros(number_of_time_steps, number_of_joints);
+%             leftover_acceleration_trajectories = zeros(number_of_time_steps, number_of_joints);
 
             if use_parallel
-                constraint_torque_trajectories_all_pool = zeros(numberOfDataPoints, number_of_joints);
-                constraint_torque_trajectories_right_pool = zeros(numberOfDataPoints, number_of_joints);
-                constraint_torque_trajectories_left_pool = zeros(numberOfDataPoints, number_of_joints);
-                lambda_trajectories_pool = cell(numberOfDataPoints, 1);
-                joint_torque_trajectories_pool = zeros(numberOfDataPoints, number_of_joints);
-                induced_accelerations_applied_trajectories_pool = zeros(numberOfDataPoints, number_of_joints);
-                induced_accelerations_gravity_trajectories_pool = zeros(numberOfDataPoints, number_of_joints);
-                induced_accelerations_movement_trajectories_pool = zeros(numberOfDataPoints, number_of_joints);
-                induced_accelerations_applied_single_trajectories_pool = zeros(numberOfDataPoints, number_of_joints, number_of_joints); 
-                violating_velocity_trajectories_pool = zeros(numberOfDataPoints, number_of_joints);
-                violating_acceleration_trajectories_pool = zeros(numberOfDataPoints, number_of_joints);
-%                 explained_acceleration_trajectories_pool = zeros(numberOfDataPoints, number_of_joints);
-%                 leftover_acceleration_trajectories_pool = zeros(numberOfDataPoints, number_of_joints);
+                constraint_torque_trajectories_all_pool = zeros(number_of_time_steps, number_of_joints);
+                constraint_torque_trajectories_right_pool = zeros(number_of_time_steps, number_of_joints);
+                constraint_torque_trajectories_left_pool = zeros(number_of_time_steps, number_of_joints);
+                lambda_trajectories_pool = cell(number_of_time_steps, 1);
+                joint_torque_trajectories_pool = zeros(number_of_time_steps, number_of_joints);
+                induced_accelerations_applied_trajectories_pool = zeros(number_of_time_steps, number_of_joints);
+                induced_accelerations_gravity_trajectories_pool = zeros(number_of_time_steps, number_of_joints);
+                induced_accelerations_movement_trajectories_pool = zeros(number_of_time_steps, number_of_joints);
+                induced_accelerations_applied_single_trajectories_pool = zeros(number_of_time_steps, number_of_joints, number_of_joints); 
+                violating_velocity_trajectories_pool = zeros(number_of_time_steps, number_of_joints);
+                violating_acceleration_trajectories_pool = zeros(number_of_time_steps, number_of_joints);
+%                 explained_acceleration_trajectories_pool = zeros(number_of_time_steps, number_of_joints);
+%                 leftover_acceleration_trajectories_pool = zeros(number_of_time_steps, number_of_joints);
                 spmd
                     for i_time = data_points(1)+labindex-1 : numlabs : data_points(end)
                         if any(isnan(joint_angle_trajectories_belt(i_time, :)))
@@ -844,7 +897,7 @@ for i_trial = trials_to_process
         %% filter_torques
         if filter_torques
             gap_length_limit = 0.15; % maximum of allowable gap being splined over, in seconds
-            time_steps = 1 : numberOfDataPoints;
+            time_steps = 1 : number_of_time_steps;
             gap_length_limit_time_steps = gap_length_limit * sampling_rate_mocap;
             gap_template = ones(round(gap_length_limit * sampling_rate_mocap), 1);
 
@@ -852,7 +905,7 @@ for i_trial = trials_to_process
             cutoff_frequency = 3; % cutoff frequency, in Hz
             cutoff_frequency = 10; % cutoff frequency, in Hz
             cutoff_frequency = 20; % cutoff frequency, in Hz
-            [b_filter, a_filter] = butter(filter_order, cutoff_frequency/(samplingRate/2));	% set filter parameters for butterworth filter
+            [b_filter, a_filter] = butter(filter_order, cutoff_frequency/(sampling_rate_mocap/2));	% set filter parameters for butterworth filter
 
             data_raw = joint_angle_trajectories_belt(:, 1);
 
@@ -860,14 +913,14 @@ for i_trial = trials_to_process
             gaps = isnan(data_raw);
             gap_start_indices = [];
             gap_end_indices = [];
-            for i_time = 1 : numberOfDataPoints
+            for i_time = 1 : number_of_time_steps
                 if isnan(data_raw(i_time))
                     % check if this is the start of a gap
                     if (i_time == 1) || (~isnan(data_raw(i_time-1)))
                         gap_start_indices = [gap_start_indices; i_time]; %#ok<*AGROW>
                     end
                     % check if this is the end of a gap
-                    if (i_time == numberOfDataPoints) || (~isnan(data_raw(i_time+1)))
+                    if (i_time == number_of_time_steps) || (~isnan(data_raw(i_time+1)))
                         gap_end_indices = [gap_end_indices; i_time];
                     end
 
@@ -886,7 +939,7 @@ for i_trial = trials_to_process
             % find the pieces of data without big gaps
             data_stretches_without_big_gaps = [];
             if isempty(big_gaps)
-                data_stretches_without_big_gaps = [1 numberOfDataPoints];
+                data_stretches_without_big_gaps = [1 number_of_time_steps];
             else
                 if  big_gaps(1, 1) > 1
                     data_stretches_without_big_gaps = [1 big_gaps(1, 1)-1];
@@ -895,8 +948,8 @@ for i_trial = trials_to_process
                     % add the stretch after this big gaps to the list
                     data_stretches_without_big_gaps = [data_stretches_without_big_gaps; big_gaps(i_gap, 2)+1 big_gaps(i_gap+1, 1)-1];
                 end
-                if ~isempty(big_gaps) && big_gaps(end, 2) < numberOfDataPoints
-                    data_stretches_without_big_gaps = [data_stretches_without_big_gaps; big_gaps(end, 2)+1 numberOfDataPoints];
+                if ~isempty(big_gaps) && big_gaps(end, 2) < number_of_time_steps
+                    data_stretches_without_big_gaps = [data_stretches_without_big_gaps; big_gaps(end, 2)+1 number_of_time_steps];
                 end
                 % TODO: check if the limit cases are treated correctly
 
@@ -940,20 +993,20 @@ for i_trial = trials_to_process
 %             explained_acceleration_trajectory_gaps(underconstrained_data_points, :) = NaN;
 %             leftover_acceleration_trajectory_gaps(underconstrained_data_points, :) = NaN;
 % 
-%             constraint_torques_trajectory_splined = zeros(numberOfDataPoints, number_of_joints);
-%             constraint_torques_right_trajectory_splined = zeros(numberOfDataPoints, number_of_joints);
-%             constraint_torques_left_trajectory_splined = zeros(numberOfDataPoints, number_of_joints);
-%             joint_torques_trajectory_splined = zeros(numberOfDataPoints, number_of_joints);
-%             right_ground_reaction_wrench_trajectory_origin_splined = zeros(numberOfDataPoints, 6);
-%             left_ground_reaction_wrench_trajectory_origin_splined = zeros(numberOfDataPoints, 6);
-%             induced_accelerations_applied_splined = zeros(numberOfDataPoints, number_of_joints);
-%             induced_accelerations_gravity_splined = zeros(numberOfDataPoints, number_of_joints);
-%             induced_accelerations_movement_splined = zeros(numberOfDataPoints, number_of_joints);
-%             induced_accelerations_applied_single_splined = zeros(numberOfDataPoints, number_of_joints, number_of_joints);
-%             violating_velocity_trajectory_splined = zeros(numberOfDataPoints, number_of_joints);
-%             violating_acceleration_trajectory_splined = zeros(numberOfDataPoints, number_of_joints);
-%             explained_acceleration_trajectory_splined = zeros(numberOfDataPoints, number_of_joints);
-%             leftover_acceleration_trajectory_splined = zeros(numberOfDataPoints, number_of_joints);
+%             constraint_torques_trajectory_splined = zeros(number_of_time_steps, number_of_joints);
+%             constraint_torques_right_trajectory_splined = zeros(number_of_time_steps, number_of_joints);
+%             constraint_torques_left_trajectory_splined = zeros(number_of_time_steps, number_of_joints);
+%             joint_torques_trajectory_splined = zeros(number_of_time_steps, number_of_joints);
+%             right_ground_reaction_wrench_trajectory_origin_splined = zeros(number_of_time_steps, 6);
+%             left_ground_reaction_wrench_trajectory_origin_splined = zeros(number_of_time_steps, 6);
+%             induced_accelerations_applied_splined = zeros(number_of_time_steps, number_of_joints);
+%             induced_accelerations_gravity_splined = zeros(number_of_time_steps, number_of_joints);
+%             induced_accelerations_movement_splined = zeros(number_of_time_steps, number_of_joints);
+%             induced_accelerations_applied_single_splined = zeros(number_of_time_steps, number_of_joints, number_of_joints);
+%             violating_velocity_trajectory_splined = zeros(number_of_time_steps, number_of_joints);
+%             violating_acceleration_trajectory_splined = zeros(number_of_time_steps, number_of_joints);
+%             explained_acceleration_trajectory_splined = zeros(number_of_time_steps, number_of_joints);
+%             leftover_acceleration_trajectory_splined = zeros(number_of_time_steps, number_of_joints);
 % 
 %             for i_joint = 1 : number_of_joints
 %                 % spline
@@ -996,18 +1049,18 @@ for i_trial = trials_to_process
 
 
             % filter the stretches of data between the big gaps
-            constraint_torque_trajectories_all_smoothed = zeros(numberOfDataPoints, number_of_joints);
-            constraint_torque_trajectories_left_smoothed = zeros(numberOfDataPoints, number_of_joints);
-            constraint_torque_trajectories_right_smoothed = zeros(numberOfDataPoints, number_of_joints);
-            joint_torque_trajectories_smoothed = zeros(numberOfDataPoints, number_of_joints);
-%             induced_accelerations_applied_smoothed = zeros(numberOfDataPoints, number_of_joints);
-%             induced_accelerations_gravity_smoothed = zeros(numberOfDataPoints, number_of_joints);
-%             induced_accelerations_movement_smoothed = zeros(numberOfDataPoints, number_of_joints);
-%             induced_accelerations_applied_single_smoothed = zeros(numberOfDataPoints, number_of_joints, number_of_joints);
-%             violating_velocity_trajectory_smoothed = zeros(numberOfDataPoints, number_of_joints);
-%             violating_acceleration_trajectory_smoothed = zeros(numberOfDataPoints, number_of_joints);
-%             explained_acceleration_trajectory_smoothed = zeros(numberOfDataPoints, number_of_joints);
-%             leftover_acceleration_trajectory_smoothed = zeros(numberOfDataPoints, number_of_joints);
+            constraint_torque_trajectories_all_smoothed = zeros(number_of_time_steps, number_of_joints);
+            constraint_torque_trajectories_left_smoothed = zeros(number_of_time_steps, number_of_joints);
+            constraint_torque_trajectories_right_smoothed = zeros(number_of_time_steps, number_of_joints);
+            joint_torque_trajectories_smoothed = zeros(number_of_time_steps, number_of_joints);
+%             induced_accelerations_applied_smoothed = zeros(number_of_time_steps, number_of_joints);
+%             induced_accelerations_gravity_smoothed = zeros(number_of_time_steps, number_of_joints);
+%             induced_accelerations_movement_smoothed = zeros(number_of_time_steps, number_of_joints);
+%             induced_accelerations_applied_single_smoothed = zeros(number_of_time_steps, number_of_joints, number_of_joints);
+%             violating_velocity_trajectory_smoothed = zeros(number_of_time_steps, number_of_joints);
+%             violating_acceleration_trajectory_smoothed = zeros(number_of_time_steps, number_of_joints);
+%             explained_acceleration_trajectory_smoothed = zeros(number_of_time_steps, number_of_joints);
+%             leftover_acceleration_trajectory_smoothed = zeros(number_of_time_steps, number_of_joints);
             for i_stretch = 1 : size(data_stretches_without_big_gaps, 1)
 %                 constraint_torque_trajectories_all_smoothed(data_stretches_without_big_gaps(i_stretch, 1) : data_stretches_without_big_gaps(i_stretch, 2), :) = filtfilt(b_filter, a_filter, constraint_torque_trajectories_all(data_stretches_without_big_gaps(i_stretch, 1) : data_stretches_without_big_gaps(i_stretch, 2), :));
                 constraint_torque_trajectories_left_smoothed(data_stretches_without_big_gaps(i_stretch, 1) : data_stretches_without_big_gaps(i_stretch, 2), :) = filtfilt(b_filter, a_filter, constraint_torque_trajectories_left(data_stretches_without_big_gaps(i_stretch, 1) : data_stretches_without_big_gaps(i_stretch, 2), :));
@@ -1067,7 +1120,7 @@ for i_trial = trials_to_process
             distFig('rows', number_of_groups, 'Position', 'E', 'only', group_figures_smoothed);
         end
         
-        linkaxes([group_axes group_axes_smoothed], 'x');
+%         linkaxes([group_axes group_axes_smoothed], 'x');
         
         %% save results
         if save_results

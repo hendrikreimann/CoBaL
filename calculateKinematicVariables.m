@@ -4,12 +4,13 @@
 reconstruct             = 1;
 use_parallel            = 1;
 use_filtered_data       = 1;
-visualize_derivatives   = 1;
+visualize_derivatives   = 0;
+process_all_data        = 1;
 
 % trials_to_process = 1001;
 % trials_to_process = 6;
 % trials_to_process = 1001 : 1180;
-trials_to_process = 1;
+trials_to_process = 3;
 
 load subjectInfo.mat;
 model_file_name = makeFileName(date, subject_id, 'model');
@@ -20,11 +21,6 @@ if use_parallel
     number_of_labs = poolobject.NumWorkers;
 end
 
-filter_order = 2;
-cutoff_frequency = 20; % cutoff frequency, in Hz
-[b_filter, a_filter] = butter(filter_order, cutoff_frequency/(samplingRate/2));
-
-
 disp('calculating kinematic variables');
 for i_trial = trials_to_process
     tic
@@ -32,8 +28,12 @@ for i_trial = trials_to_process
     %% load data
     load(makeFileName(date, subject_id, 'walking', i_trial, 'markerTrajectories'));
     load(makeFileName(date, subject_id, 'walking', i_trial, 'angleTrajectories'));
-    load(makeFileName(date, subject_id, 'walking', i_trial, 'forcePlateData'));
+    load(makeFileName(date, subject_id, 'walking', i_trial, 'labviewTrajectories'));
     load(makeFileName(date, subject_id, 'walking', i_trial, 'relevantDataStretches'));
+    
+    filter_order = 2;
+    cutoff_frequency = 20; % cutoff frequency, in Hz
+    [b_filter, a_filter] = butter(filter_order, cutoff_frequency/(sampling_rate_mocap/2));
     
     number_of_time_steps = size(joint_angle_trajectories, 1);
     number_of_joints = plant.numberOfJoints;
@@ -42,17 +42,22 @@ for i_trial = trials_to_process
     
     % calculate offset between world coordinates and belt coordinates
     belt_speed_trajectory = mean([belt_speed_left_trajectory belt_speed_right_trajectory], 2);
-    delta_t = diff(time_force_plate);
+    delta_t = diff(time_labview);
     belt_position_trajectory_forceplate = zeros(size(belt_speed_trajectory));
     for i_time = 2 : length(belt_speed_trajectory)
         belt_position_trajectory_forceplate(i_time) = belt_position_trajectory_forceplate(i_time-1) + delta_t(i_time-1) * belt_speed_trajectory(i_time-1);
     end
-    belt_position_trajectory_mocap = spline(time_force_plate, belt_position_trajectory_forceplate, time_mocap);
+    belt_position_trajectory_mocap = spline(time_labview, belt_position_trajectory_forceplate, time_mocap)';
     
     joint_angle_trajectories_belt = joint_angle_trajectories;
     joint_angle_trajectories_belt(:, 2) = joint_angle_trajectories_belt(:, 2) + belt_position_trajectory_mocap;
     
     % set irrelevant data points to NaN
+    number_of_time_steps_mocap = length(time_mocap);
+    if process_all_data
+        data_points_to_process_mocap = 1 : length(time_mocap);
+%         data_points_to_process_mocap = 500 : 600;
+    end
     all_data_points = 1 : number_of_time_steps;
     irrelevant_data_points = ~ismember(all_data_points, data_points_to_process_mocap);
     joint_angle_trajectories(irrelevant_data_points, :) = NaN;
@@ -121,17 +126,17 @@ for i_trial = trials_to_process
                 % filter data from this stretch and calculate derivatives
                 joint_angles_stretch_filtered = filtfilt(b_filter, a_filter, joint_angle_data_stretch(:, i_joint));
                 joint_angles_stretch_unfiltered = joint_angle_data_stretch(:, i_joint);
-                joint_velocities_stretch_from_filtered = centdiff(joint_angles_stretch_filtered, 1/samplingRate);
-                joint_velocities_stretch_from_unfiltered = centdiff(joint_angles_stretch_unfiltered, 1/samplingRate);
-                joint_accelerations_stretch_from_filtered = centdiff(joint_velocities_stretch_from_filtered, 1/samplingRate);
-                joint_accelerations_stretch_from_unfiltered = centdiff(joint_velocities_stretch_from_unfiltered, 1/samplingRate);
+                joint_velocities_stretch_from_filtered = centdiff(joint_angles_stretch_filtered, 1/sampling_rate_mocap);
+                joint_velocities_stretch_from_unfiltered = centdiff(joint_angles_stretch_unfiltered, 1/sampling_rate_mocap);
+                joint_accelerations_stretch_from_filtered = centdiff(joint_velocities_stretch_from_filtered, 1/sampling_rate_mocap);
+                joint_accelerations_stretch_from_unfiltered = centdiff(joint_velocities_stretch_from_unfiltered, 1/sampling_rate_mocap);
                 
                 joint_angles_belt_stretch_filtered = filtfilt(b_filter, a_filter, joint_angle_data_belt_stretch(:, i_joint));
                 joint_angles_belt_stretch_unfiltered = joint_angle_data_belt_stretch(:, i_joint);
-                joint_velocities_belt_stretch_from_filtered = centdiff(joint_angles_belt_stretch_filtered, 1/samplingRate);
-                joint_velocities_belt_stretch_from_unfiltered = centdiff(joint_angles_belt_stretch_unfiltered, 1/samplingRate);
-                joint_accelerations_belt_stretch_from_filtered = centdiff(joint_velocities_belt_stretch_from_filtered, 1/samplingRate);
-                joint_accelerations_belt_stretch_from_unfiltered = centdiff(joint_velocities_belt_stretch_from_unfiltered, 1/samplingRate);
+                joint_velocities_belt_stretch_from_filtered = centdiff(joint_angles_belt_stretch_filtered, 1/sampling_rate_mocap);
+                joint_velocities_belt_stretch_from_unfiltered = centdiff(joint_angles_belt_stretch_unfiltered, 1/sampling_rate_mocap);
+                joint_accelerations_belt_stretch_from_filtered = centdiff(joint_velocities_belt_stretch_from_filtered, 1/sampling_rate_mocap);
+                joint_accelerations_belt_stretch_from_unfiltered = centdiff(joint_velocities_belt_stretch_from_unfiltered, 1/sampling_rate_mocap);
                 
                 % insert stretch data into trajectories
                 joint_angles_filtered(stretch_data_points, i_joint) = joint_angles_stretch_filtered;

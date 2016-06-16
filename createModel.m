@@ -10,6 +10,10 @@ right_hip_calibration_file_index = 3;
 left_knee_calibration_file_index = 4;
 right_knee_calibration_file_index = 5;
 
+left_hip_calibration_file_index = 1;
+right_hip_calibration_file_index = 2;
+left_knee_calibration_file_index = 3;
+right_knee_calibration_file_index = 4;
 
 load subjectInfo.mat;
 
@@ -27,8 +31,67 @@ marker_reference = marker_trajectories(i_time, :);
 
 
 
+% head_markers = [1 2 3 4];
+% trunk_markers = [5 6 7 8 9];
+% pelvis_markers = [24 25 26 27];
+% left_thigh_markers = [28 29 30];
+% left_shank_markers = [31 32 33];
+% left_foot_markers = [34 35];
+% right_thigh_markers = [36 37 38];
+% right_shank_markers = [39 40 41];
+% right_foot_markers = [42 43];
+
+LFHD_marker = find(strcmp(marker_headers, 'LFHD'));
+RFHD_marker = find(strcmp(marker_headers, 'RFHD'));
+LBHD_marker = find(strcmp(marker_headers, 'LBHD'));
+RBHD_marker = find(strcmp(marker_headers, 'RBHD'));
+C7_marker = find(strcmp(marker_headers, 'C7'));
+T10_marker = find(strcmp(marker_headers, 'T10'));
+CLAV_marker = find(strcmp(marker_headers, 'CLAV'));
+STRN_marker = find(strcmp(marker_headers, 'STRN'));
+RBAK_marker = find(strcmp(marker_headers, 'RBAK'));
+LSHO_marker = find(strcmp(marker_headers, 'LSHO'));
+LELB_marker = find(strcmp(marker_headers, 'LELB'));
+LWRA_marker = find(strcmp(marker_headers, 'LWRA'));
+LWRB_marker = find(strcmp(marker_headers, 'LWRB'));
+LFIN_marker = find(strcmp(marker_headers, 'LFIN'));
+RSHO_marker = find(strcmp(marker_headers, 'RSHO'));
+RELB_marker = find(strcmp(marker_headers, 'RELB'));
+RWRA_marker = find(strcmp(marker_headers, 'RWRA'));
+RWRB_marker = find(strcmp(marker_headers, 'RWRB'));
+RFIN_marker = find(strcmp(marker_headers, 'RFIN'));
 LASI_marker = find(strcmp(marker_headers, 'LASI'));
 RASI_marker = find(strcmp(marker_headers, 'RASI'));
+LPSI_marker = find(strcmp(marker_headers, 'LPSI'));
+RPSI_marker = find(strcmp(marker_headers, 'RPSI'));
+LTHI_marker = find(strcmp(marker_headers, 'LTHI'));
+LTHIA_marker = find(strcmp(marker_headers, 'LTHIA'));
+LKNE_marker = find(strcmp(marker_headers, 'LKNE'));
+LTIB_marker = find(strcmp(marker_headers, 'LTIB'));
+LTIBA_marker = find(strcmp(marker_headers, 'LTIBA'));
+LANK_marker = find(strcmp(marker_headers, 'LANK'));
+LHEE_marker = find(strcmp(marker_headers, 'LHEE'));
+LTOE_marker = find(strcmp(marker_headers, 'LTOE'));
+LTOEL_marker = find(strcmp(marker_headers, 'LTOES'));
+RTHI_marker = find(strcmp(marker_headers, 'RTHI'));
+RTHIA_marker = find(strcmp(marker_headers, 'RTHIA'));
+RKNE_marker = find(strcmp(marker_headers, 'RKNE'));
+RTIB_marker = find(strcmp(marker_headers, 'RTIB'));
+RTIBA_marker = find(strcmp(marker_headers, 'RTIBA'));
+RANK_marker = find(strcmp(marker_headers, 'RANK'));
+RHEE_marker = find(strcmp(marker_headers, 'RHEE'));
+RTOE_marker = find(strcmp(marker_headers, 'RTOE'));
+RTOEL_marker = find(strcmp(marker_headers, 'RTOES'));
+
+head_markers = [LFHD_marker RFHD_marker LBHD_marker RBHD_marker];
+trunk_markers = [C7_marker T10_marker CLAV_marker STRN_marker RBAK_marker];
+pelvis_markers = [LASI_marker RASI_marker LPSI_marker RPSI_marker];
+left_thigh_markers = [LTHI_marker LTHIA_marker LKNE_marker];
+left_shank_markers = [LTIB_marker LTIBA_marker LANK_marker];
+left_foot_markers = [LHEE_marker LTOE_marker LTOEL_marker];
+right_thigh_markers = [RTHI_marker RTHIA_marker RKNE_marker];
+right_shank_markers = [RTIB_marker RTIBA_marker RANK_marker];
+right_foot_markers = [RHEE_marker RTOE_marker RTOEL_marker];
 
 
 % marker indices
