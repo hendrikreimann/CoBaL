@@ -1,8 +1,8 @@
 function [A, ADot] = createConstraintMatrix_bodyVelocityConstraints ...
   ( ...
     plant, ... 
-    left_foot_constraint, ...
-    right_foot_constraint, ...
+    left_foot_constraint_index, ...
+    right_foot_constraint_index, ...
     phi_left, ...
     rho_left, ...
     phi_right, ...
@@ -14,10 +14,10 @@ function [A, ADot] = createConstraintMatrix_bodyVelocityConstraints ...
   )
 
     % left foot
-    if left_foot_constraint == 0
+    if left_foot_constraint_index == 0
         % left foot is in swing
-        left_foot_constraint = [];
-        left_foot_constraint_dot = [];
+        left_foot_constraint_matrix = [];
+        left_foot_constraint_matrix_dot = [];
     else 
         left_ankle_body_jacobian = plant.bodyJacobians{3};
         left_ankle_body_jacobian_dot = plant.bodyJacobianTemporalDerivatives{3};
@@ -40,14 +40,14 @@ function [A, ADot] = createConstraintMatrix_bodyVelocityConstraints ...
         
         % calculate body velocity direction for anterior roll
         V_phi_body = zeros(6, 1);
-        if left_foot_constraint == 1
+        if left_foot_constraint_index == 1
             V_phi_body(1) = feval(V_body_left_fits_heelstrike{1},[phi_left, rho_left]);
             V_phi_body(2) = feval(V_body_left_fits_heelstrike{2},[phi_left, rho_left]);
             V_phi_body(3) = feval(V_body_left_fits_heelstrike{3},[phi_left, rho_left]);
             V_phi_body(4) = feval(V_body_left_fits_heelstrike{4},[phi_left, rho_left]);
             V_phi_body(5) = feval(V_body_left_fits_heelstrike{5},[phi_left, rho_left]);
             V_phi_body(6) = feval(V_body_left_fits_heelstrike{6},[phi_left, rho_left]);
-        elseif left_foot_constraint==2
+        elseif left_foot_constraint_index==2
             V_phi_body(1) = feval(V_body_left_fits_pushoff{1},[phi_left, rho_left]);
             V_phi_body(2) = feval(V_body_left_fits_pushoff{2},[phi_left, rho_left]);
             V_phi_body(3) = feval(V_body_left_fits_pushoff{3},[phi_left, rho_left]);
@@ -63,8 +63,8 @@ function [A, ADot] = createConstraintMatrix_bodyVelocityConstraints ...
         V_body_allowed = [V_phi_body V_rho_body];
         [~, ~, V] = svd(V_body_allowed');
         C = V(:, 3:6)'; % orthogonal complement of the allowed body velocity directions
-        left_foot_constraint = C * left_ankle_body_jacobian;
-        left_foot_constraint_dot = C * left_ankle_body_jacobian_dot; % TODO: add C_dot * left_ankle_body_jacobian
+        left_foot_constraint_matrix = C * left_ankle_body_jacobian;
+        left_foot_constraint_matrix_dot = C * left_ankle_body_jacobian_dot; % TODO: add C_dot * left_ankle_body_jacobian
         
 %         W_rho = pinv(left_ankle_body_jacobian) * V_rho_body;
 %         W_phi = pinv(left_ankle_body_jacobian) * V_phi_body;
@@ -77,10 +77,10 @@ function [A, ADot] = createConstraintMatrix_bodyVelocityConstraints ...
     end
     
     % right foot
-    if right_foot_constraint == 0
+    if right_foot_constraint_index == 0
         % right foot is in swing
-        right_foot_constraint = [];
-        right_foot_constraint_dot = [];
+        right_foot_constraint_matrix = [];
+        right_foot_constraint_matrix_dot = [];
     else 
         right_ankle_body_jacobian = plant.bodyJacobians{6};
         right_ankle_body_jacobian_dot = plant.bodyJacobianTemporalDerivatives{6};
@@ -103,14 +103,14 @@ function [A, ADot] = createConstraintMatrix_bodyVelocityConstraints ...
         
         % calculate body velocity direction for anterior roll
         V_phi_body = zeros(6, 1);
-        if right_foot_constraint == 1
+        if right_foot_constraint_index == 1
             V_phi_body(1) = feval(V_body_right_fits_heelstrike{1},[phi_right, rho_right]);
             V_phi_body(2) = feval(V_body_right_fits_heelstrike{2},[phi_right, rho_right]);
             V_phi_body(3) = feval(V_body_right_fits_heelstrike{3},[phi_right, rho_right]);
             V_phi_body(4) = feval(V_body_right_fits_heelstrike{4},[phi_right, rho_right]);
             V_phi_body(5) = feval(V_body_right_fits_heelstrike{5},[phi_right, rho_right]);
             V_phi_body(6) = feval(V_body_right_fits_heelstrike{6},[phi_right, rho_right]);
-        elseif right_foot_constraint==2
+        elseif right_foot_constraint_index==2
             V_phi_body(1) = feval(V_body_right_fits_pushoff{1},[phi_right, rho_right]);
             V_phi_body(2) = feval(V_body_right_fits_pushoff{2},[phi_right, rho_right]);
             V_phi_body(3) = feval(V_body_right_fits_pushoff{3},[phi_right, rho_right]);
@@ -126,8 +126,8 @@ function [A, ADot] = createConstraintMatrix_bodyVelocityConstraints ...
         V_body_allowed = [V_phi_body V_rho_body];
         [~, ~, V] = svd(V_body_allowed');
         C = V(:, 3:6)'; % orthogonal complement of the allowed body velocity directions
-        right_foot_constraint = C * right_ankle_body_jacobian;
-        right_foot_constraint_dot = C * right_ankle_body_jacobian_dot; % TODO: add C_dot * right_ankle_body_jacobian
+        right_foot_constraint_matrix = C * right_ankle_body_jacobian;
+        right_foot_constraint_matrix_dot = C * right_ankle_body_jacobian_dot; % TODO: add C_dot * right_ankle_body_jacobian
         
 %         W_rho = pinv(right_ankle_body_jacobian) * V_rho_body;
 %         W_phi = pinv(right_ankle_body_jacobian) * V_phi_body;
@@ -140,11 +140,11 @@ function [A, ADot] = createConstraintMatrix_bodyVelocityConstraints ...
     end
 
     % concatenate to a single constraint matrix
-    if numel(right_foot_constraint) + numel(left_foot_constraint) == 0
+    if numel(right_foot_constraint_matrix) + numel(left_foot_constraint_matrix) == 0
         A = zeros(1, plant.numberOfJoints);
         ADot = zeros(1, plant.numberOfJoints);
     else
-        A = [right_foot_constraint; left_foot_constraint];
-        ADot = [right_foot_constraint_dot; left_foot_constraint_dot];
+        A = [right_foot_constraint_matrix; left_foot_constraint_matrix];
+        ADot = [right_foot_constraint_matrix_dot; left_foot_constraint_matrix_dot];
     end
 end

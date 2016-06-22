@@ -3,9 +3,9 @@
 
 %% Choose Data Type
 emg_present                     = 1;
-stimulus_type = 'gvs';
+% stimulus_type = 'gvs';
 % stimulus_type = 'visual';
-% stimulus_type = 'none';
+stimulus_type = 'none';
 
 ignore_crossover                = 0;
 
@@ -22,7 +22,7 @@ load subjectInfo.mat;
 trials_to_process = 2:21;
 % trials_to_process = 1;
 trials_to_process = 3 : 43;
-% trials_to_process = 1 : 20;
+trials_to_process = 1 : 16;
 % trials_to_process = 3;
 
 total_positive_steps = [];

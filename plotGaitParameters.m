@@ -1,12 +1,12 @@
 
-check_out_origin                    = 0;
+check_out_origin                        = 0;
 
-do_cop_plots_single                 = 0;
-do_cop_plots_absolute               = 0;
-do_step_parameter_plots             = 1;
+do_cop_plots_single                     = 0;
+do_cop_plots_absolute                   = 0;
+do_step_parameter_plots                 = 0;
 
-do_cop_plots_beam                   = 0;
-do_step_parameter_plots_beam        = 0;
+do_cop_plots_experimental               = 0;
+do_step_parameter_plots_experimental    = 1;
 
 
 save_figures                        = 0;
@@ -67,35 +67,38 @@ if do_cop_plots_absolute
     
 end
 
-if do_cop_plots_beam
+%% experimental condition
+
+if do_cop_plots_experimental
+    number_of_experimental_conditions = length(experimental_conditions);
+    color_list = ...
+      [ ...
+             0    0.4470    0.7410
+        0.8500    0.3250    0.0980
+        0.9290    0.6940    0.1250
+        0.4940    0.1840    0.5560
+        0.4660    0.6740    0.1880
+        0.3010    0.7450    0.9330
+        0.6350    0.0780    0.1840
+      ];
+    
+    % left
     figure; axes; hold on; title('LEFT foot medial-lateral CoP - relative to stance foot'); set(gca, 'Fontsize', 12)
-    left_wide_plot = shadedErrorBar(time_normalized, mean(rcop_x_normalized_total(:, conditions_stanceL_beamW), 2), std(rcop_x_normalized_total(:, conditions_stanceL_beamW), 0, 2), {'color', color_right, 'linewidth', 5}, 1);
-    left_narrow_plot = shadedErrorBar(time_normalized, mean(rcop_x_normalized_total(:, conditions_stanceL_beamN), 2), std(rcop_x_normalized_total(:, conditions_stanceL_beamN), 0, 2), {'color', color_left, 'linewidth', 5}, 1);
-    xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)], 'ylim', [-0.08 0.08]); 
-    this_legend = legend([left_wide_plot.mainLine left_narrow_plot.mainLine], 'WIDE', 'NARROW');
-    set(this_legend, 'Location', 'NORTHWEST')
-    xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
-    text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), 'right \rightarrow', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right')
-    text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(1), '\leftarrow left', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'left')
-    if save_figures
-        saveas(gcf, 'cop_left_rel.eps', 'epsc2')
-        savefig(gcf, 'cop_left_rel.fig')
+    left_plots = zeros(1, number_of_experimental_conditions);
+    for i_condition = 1 : number_of_experimental_conditions
+        new_plot = shadedErrorBar(time_normalized, mean(lcop_x_normalized_total(:, strcmp(condition_stance_foot_list_total, 'LEFT') & strcmp(condition_experimental_list_total, experimental_conditions{i_condition})), 2), std(lcop_x_normalized_total(:, strcmp(condition_stance_foot_list_total, 'LEFT') & strcmp(condition_experimental_list_total, experimental_conditions{i_condition})), 0, 2), {'color', color_list(i_condition, :), 'linewidth', 5}, 1);
+        left_plots(i_condition) = new_plot.mainLine;
     end
+    legend(left_plots, experimental_conditions);
     
+    % right
     figure; axes; hold on; title('RIGHT foot medial-lateral CoP - relative to stance foot'); set(gca, 'Fontsize', 12)
-    right_wide_plot = shadedErrorBar(time_normalized, mean(rcop_x_normalized_total(:, conditions_stanceR_beamW), 2), std(rcop_x_normalized_total(:, conditions_stanceR_beamW), 0, 2), {'color', color_right, 'linewidth', 5}, 1);
-    right_narrow_plot = shadedErrorBar(time_normalized, mean(rcop_x_normalized_total(:, conditions_stanceR_beamN), 2), std(rcop_x_normalized_total(:, conditions_stanceR_beamN), 0, 2), {'color', color_left, 'linewidth', 5}, 1);
-    xlabel('time'); set(gca, 'xlim', [time_normalized(1) time_normalized(end)], 'ylim', [-0.08 0.08]); 
-    this_legend = legend([right_wide_plot.mainLine right_narrow_plot.mainLine], 'WIDE', 'NARROW');
-    set(this_legend, 'Location', 'NORTHWEST')
-    xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
-    text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), 'right \rightarrow', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right')
-    text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(1), '\leftarrow left', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'left')
-    if save_figures
-        saveas(gcf, 'cop_right_rel.eps', 'epsc2')
-        savefig(gcf, 'cop_right_rel.fig')
+    right_plots = zeros(1, number_of_experimental_conditions);
+    for i_condition = 1 : number_of_experimental_conditions
+        new_plot = shadedErrorBar(time_normalized, mean(rcop_x_normalized_total(:, strcmp(condition_stance_foot_list_total, 'RIGHT') & strcmp(condition_experimental_list_total, experimental_conditions{i_condition})), 2), std(rcop_x_normalized_total(:, strcmp(condition_stance_foot_list_total, 'RIGHT') & strcmp(condition_experimental_list_total, experimental_conditions{i_condition})), 0, 2), {'color', color_list(i_condition, :), 'linewidth', 5}, 1);
+        right_plots(i_condition) = new_plot.mainLine;
     end
-    
+    legend(right_plots, experimental_conditions);
 end
 
 
@@ -112,41 +115,32 @@ if do_step_parameter_plots
 end
 
 %% step parameter plots
-if do_step_parameter_plots_beam
+if do_step_parameter_plots_experimental
+    % width histogram
     bin_edges = linspace(-0.15, 0.15, 39);
-    
-    step_width_narrow_figure = figure; axes('fontsize', 12); hold on; title('step width, NARROW', 'fontsize', 16);
-    step_width_left_narrow_histogram = histogram(step_width_total(conditions_stanceR_beamN), bin_edges, 'Normalization', 'pdf', 'displaystyle', 'bar', 'edgecolor', color_right, 'facecolor', lightenColor(color_right, 0.5));
-    step_width_right_narrow_histogram = histogram(step_width_total(conditions_stanceL_beamN), bin_edges, 'Normalization', 'pdf', 'displaystyle', 'bar', 'edgecolor', color_left, 'facecolor', lightenColor(color_left, 0.5));
-    if save_figures
-        saveas(gcf, 'step_width_narrow.eps', 'epsc2')
-        savefig(gcf, 'step_width_narrow.fig')
+    step_width_figure = figure; axes('fontsize', 12); hold on; title('step width', 'fontsize', 16);
+    step_width_left_histograms = zeros(1, number_of_experimental_conditions);
+    step_width_right_histograms = zeros(1, number_of_experimental_conditions);
+    for i_condition = 1 : number_of_experimental_conditions
+       step_width_left_histograms(i_condition) = histogram(step_width_total(strcmp(condition_stance_foot_list_total, 'LEFT') & strcmp(condition_experimental_list_total, experimental_conditions{i_condition})), 'Normalization', 'pdf', 'displaystyle', 'bar', 'edgecolor', color_list(i_condition, :), 'facecolor', lightenColor(color_list(i_condition, :), 0.5));        
+       step_width_right_histograms(i_condition) = histogram(step_width_total(strcmp(condition_stance_foot_list_total, 'RIGHT') & strcmp(condition_experimental_list_total, experimental_conditions{i_condition})), 'Normalization', 'pdf', 'displaystyle', 'bar', 'edgecolor', color_list(i_condition, :), 'facecolor', lightenColor(color_list(i_condition, :), 0.5));        
     end
+    legend(step_width_left_histograms, experimental_conditions);
     
-    step_width_wide_figure = figure; axes('fontsize', 12); hold on; title('step width, WIDE', 'fontsize', 16);
-    step_width_left_wide_histogram = histogram(step_width_total(conditions_stanceR_beamW), bin_edges, 'Normalization', 'pdf', 'displaystyle', 'bar', 'edgecolor', color_right, 'facecolor', lightenColor(color_right, 0.5));
-    step_width_right_wide_histogram = histogram(step_width_total(conditions_stanceL_beamW), bin_edges, 'Normalization', 'pdf', 'displaystyle', 'bar', 'edgecolor', color_left, 'facecolor', lightenColor(color_left, 0.5));
-    if save_figures
-        saveas(gcf, 'step_width_wide.eps', 'epsc2')
-        savefig(gcf, 'step_width_wide.fig')
-    end
-    
+    % length histogram
     bin_edges = linspace(-0.75, -0.45, 39);
-    step_length_narrow_figure = figure; axes('fontsize', 12); hold on; title('step length, NARROW', 'fontsize', 16);
-    step_length_left_narrow_histogram = histogram(step_length_total(conditions_stanceR_beamN), bin_edges, 'Normalization', 'pdf', 'displaystyle', 'bar', 'edgecolor', color_right, 'facecolor', lightenColor(color_right, 0.5));
-    step_length_right_narrow_histogram = histogram(step_length_total(conditions_stanceL_beamN), bin_edges, 'Normalization', 'pdf', 'displaystyle', 'bar', 'edgecolor', color_left, 'facecolor', lightenColor(color_left, 0.5));
-    if save_figures
-        saveas(gcf, 'step_length_narrow.eps', 'epsc2')
-        savefig(gcf, 'step_length_narrow.fig')
+    step_length_figure = figure; axes('fontsize', 12); hold on; title('step length', 'fontsize', 16);
+    step_length_left_histograms = zeros(1, number_of_experimental_conditions);
+    step_length_right_histograms = zeros(1, number_of_experimental_conditions);
+    for i_condition = 1 : number_of_experimental_conditions
+       step_length_left_histograms(i_condition) = histogram(step_length_total(strcmp(condition_stance_foot_list_total, 'LEFT') & strcmp(condition_experimental_list_total, experimental_conditions{i_condition})), 'Normalization', 'pdf', 'displaystyle', 'bar', 'edgecolor', color_list(i_condition, :), 'facecolor', lightenColor(color_list(i_condition, :), 0.5));        
+       step_length_right_histograms(i_condition) = histogram(step_length_total(strcmp(condition_stance_foot_list_total, 'RIGHT') & strcmp(condition_experimental_list_total, experimental_conditions{i_condition})), 'Normalization', 'pdf', 'displaystyle', 'bar', 'edgecolor', color_list(i_condition, :), 'facecolor', lightenColor(color_list(i_condition, :), 0.5));        
     end
+    legend(step_length_left_histograms, experimental_conditions);
     
-    step_length_wide_figure = figure; axes('fontsize', 12); hold on; title('step length, WIDE', 'fontsize', 16);
-    step_length_left_wide_histogram = histogram(step_length_total(conditions_stanceR_beamW), bin_edges, 'Normalization', 'pdf', 'displaystyle', 'bar', 'edgecolor', color_right, 'facecolor', lightenColor(color_right, 0.5));
-    step_length_right_wide_histogram = histogram(step_length_total(conditions_stanceL_beamW), bin_edges, 'Normalization', 'pdf', 'displaystyle', 'bar', 'edgecolor', color_left, 'facecolor', lightenColor(color_left, 0.5));
-    if save_figures
-        saveas(gcf, 'step_length_wide.eps', 'epsc2')
-        savefig(gcf, 'step_length_wide.fig')
-    end
+    
+    
+    
     
 end
 

@@ -94,11 +94,13 @@ function stepEventGui(dataDirectory, trialToProcess, color_scheme)
 %     step_event_figure.addDataPlot('left_heel_z_vel', color_left_heel);
     step_event_figure.addDataPlot('left_toes_z_vel', color_left_toes);
     step_event_figure.addEventPlot('left_toes_z_vel', 'left_pushoff', color_left_pushoff, marker_left_pushoff);
+    step_event_figure.addEventPlot('left_toes_z_vel', 'left_touchdown', color_left_touchdown, marker_left_touchdown);
     
     step_event_figure = stepEventFigure('Velocities Right', controller, trial_data, event_data);
 %     step_event_figure.addDataPlot('right_heel_z_vel', color_right_heel);
     step_event_figure.addDataPlot('right_toes_z_vel', color_right_toes);
     step_event_figure.addEventPlot('right_toes_z_vel', 'right_pushoff', color_right_pushoff, marker_right_pushoff);
+    step_event_figure.addEventPlot('right_toes_z_vel', 'right_touchdown', color_right_touchdown, marker_right_touchdown);
     
     % create acceleration figure
     step_event_figure = stepEventFigure('Acceleration Left', controller, trial_data, event_data);

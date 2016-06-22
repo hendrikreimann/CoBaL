@@ -1,25 +1,32 @@
 % findStepEvents
 
-visualize_left          = 1;
-visualize_right         = 1;
-visualize_position      = 0;
-visualize_derivatives   = 0;
+visualize_left          = 0;
+visualize_right         = 0;
+visualize_position      = 1;
+visualize_derivatives   = 1;
 
 show_forceplate         = 0;
 
+
+
 % trials_to_process = 1 : 1 : 21;
 % trials_to_process = [0:7 9:23];
-trials_to_process = 22 : 44;
-% trials_to_process = 21;
+trials_to_process = 4 : 16;
+% trials_to_process = 1;
 
 
 % Choose Identification method for each event and foot
-left_method_touchdown = 'left_heel_position_minima';
+% left_method_touchdown = 'left_heel_position_minima';
+left_method_touchdown = 'left_toe_velocity_minima';
 % left_method_touchdown = 'left_toe_position_minima';
+% left_method_touchdown = 'left_first_acceleration_peak';
+
 left_method_pushoff = 'left_first_velocity_peak';
 
-right_method_touchdown = 'right_heel_position_minima';
+% right_method_touchdown = 'right_heel_position_minima';
 % right_method_touchdown = 'right_toe_position_minima';
+right_method_touchdown = 'right_toe_velocity_minima';
+% right_method_touchdown = 'right_first_acceleration_peak';
 right_method_pushoff = 'right_first_velocity_peak';
 
 for i_trial = trials_to_process
@@ -84,6 +91,12 @@ for i_trial = trials_to_process
         left_toe_peak_locations = left_toe_peak_locations';
         left_touchdown_indices_mocap = left_toe_peak_locations(left_toe_peak_widths > peak_width_threshold);
         
+    elseif strcmp(left_method_touchdown, 'left_toe_velocity_minima')
+        min_peak_prominence = 1.3;
+        [~, left_toe_peak_locations, left_toe_peak_widths, p] = findpeaks(-left_toes_marker_z_vel_trajectory, 'MinPeakProminence', min_peak_prominence);
+        left_toe_peak_locations = left_toe_peak_locations';
+        left_touchdown_indices_mocap = left_toe_peak_locations;
+        
     elseif strcmp(left_method_touchdown, 'left_first_acceleration_peak')
         % left
         
@@ -129,12 +142,18 @@ for i_trial = trials_to_process
         right_heel_peak_locations = right_heel_peak_locations';
         right_touchdown_indices_mocap = right_heel_peak_locations(right_heel_peak_widths > peak_width_threshold);
     
-    elseif strcmp(left_method_touchdown, 'left_toe_position_minima')
+    elseif strcmp(right_method_touchdown, 'right_toe_position_minima')
         [~, right_toe_peak_locations, right_toe_peak_widths] = findpeaks(-right_toes_marker_z_trajectory);
         right_toe_peak_locations = right_toe_peak_locations';
         right_touchdown_indices_mocap = right_toe_peak_locations(right_toe_peak_widths > peak_width_threshold);    
          
-    elseif strcmp(left_method_touchdown, 'left_first_acceleration_peak')       
+    elseif strcmp(right_method_touchdown, 'right_toe_velocity_minima')
+        min_peak_prominence = 1.2;
+        [~, right_toe_peak_locations, right_toe_peak_widths, p] = findpeaks(-right_toes_marker_z_vel_trajectory, 'MinPeakProminence', min_peak_prominence);
+        right_toe_peak_locations = right_toe_peak_locations';
+        right_touchdown_indices_mocap = right_toe_peak_locations;
+         
+    elseif strcmp(right_method_touchdown, 'right_first_acceleration_peak')
         % find mid-swing as peaks of heel position
         min_peak_prominence = 0.05;
         [~, right_heel_midswing_locations] = findpeaks(right_heel_marker_z_trajectory, 'MinPeakProminence', min_peak_prominence);
@@ -307,7 +326,7 @@ for i_trial = trials_to_process
         end
         
         if visualize_derivatives
-            figure; axes_right_derivatives = axes; hold on; title('left foot marker derivatives')
+            figure; axes_right_derivatives = axes; hold on; title('right foot marker derivatives')
     %         plot(time_mocap, right_heel_marker_z_vel_trajectory, 'linewidth', 1);
             plot(time_mocap, right_heel_marker_z_acc_trajectory*acc_scaler, 'linewidth', 1);
             plot(time_mocap, right_toes_marker_z_vel_trajectory*vel_scaler, 'linewidth', 1);
@@ -317,9 +336,9 @@ for i_trial = trials_to_process
             plot(time_mocap(right_pushoff_indices_mocap), right_toes_marker_z_vel_trajectory(right_pushoff_indices_mocap)*vel_scaler, 'o', 'linewidth', 2, 'color', color_pushoff);
 
             linkaxes([axes_right, axes_right_derivatives], 'x')
-            distFig('rows', 2)
         end
     end
+    distFig('rows', 2)
 
 
 %     linkaxes(getAllAxes, 'x')
