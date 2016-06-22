@@ -1,6 +1,6 @@
 % inverse dynamics
 
-determine_constraint_numbers            = 1;
+determine_constraint_numbers            = 0;
 calculate_dynamic_matrices              = 1;
 calculate_torques                       = 1;
 filter_torques                          = 1;
@@ -88,6 +88,14 @@ if use_body_velocity_constraints
       };
   
 end
+if use_rollover_constraints
+    load(makeFileName(date, subject_id, 'rolloverShapes'));
+    rollover_shapes = struct;
+    rollover_shapes.left_fit_theta_x = left_fit_theta_x;
+    rollover_shapes.left_fit_theta_y = left_fit_theta_y;
+    rollover_shapes.right_fit_theta_x = right_fit_theta_x;
+    rollover_shapes.right_fit_theta_y = right_fit_theta_y;
+end
 
 left_ankle_scs_to_world_rotation_reference = plant.endEffectorTransformations{3}(1:3, 1:3);
 right_ankle_scs_to_world_rotation_reference = plant.endEffectorTransformations{6}(1:3, 1:3);
@@ -137,10 +145,13 @@ for i_trial = trials_to_process
             phi_left_trajectory = zeros(number_of_time_steps, 1);
             rho_left_trajectory = zeros(number_of_time_steps, 1);
             theta_left_trajectory = zeros(number_of_time_steps, 1);
+            T_foot_to_world_left_trajectory = zeros(number_of_time_steps, 16);
+            left_foot_constraint_number_trajectory = zeros(number_of_time_steps, 1);
             gamma_right_trajectory = zeros(number_of_time_steps, 1);
             phi_right_trajectory = zeros(number_of_time_steps, 1);
             rho_right_trajectory = zeros(number_of_time_steps, 1);
-            left_foot_constraint_number_trajectory = zeros(number_of_time_steps, 1);
+            theta_right_trajectory = zeros(number_of_time_steps, 1);
+            T_foot_to_world_right_trajectory = zeros(number_of_time_steps, 16);
             right_foot_constraint_number_trajectory = zeros(number_of_time_steps, 1);
             
             % extract data
@@ -179,23 +190,30 @@ for i_trial = trials_to_process
                 phi_right_trajectory(i_time) = right_euler_angles(2);
                 rho_right_trajectory(i_time) = right_euler_angles(3);
                 
-                % left foot theta angle
+                % left foot theta angle and transformation
                 left_ankle_point_position_world = left_ankle_marker_pos_trajectory(i_time, :)';
                 left_toes_position_world = left_toes_marker_pos_trajectory(i_time, :)';
-        
                 left_ankle_to_toes_vector = left_toes_position_world - left_ankle_point_position_world;
-                foot_x = normVector(left_ankle_to_toes_vector);
-                subspace(foot_x, [0 1; 1 0; 0 0]);
+                foot_y = normVector(left_ankle_to_toes_vector);
+                foot_z = normVector([0; 0; 1] - dot(foot_y, [0; 0; 1]) * foot_y);
+                foot_x = cross(foot_y, foot_z);
+                R_foot_to_world_left = [foot_x foot_y foot_z];
+                T_foot_to_world_left = [R_foot_to_world_left left_ankle_point_position_world; 0 0 0 1];
+                T_foot_to_world_left_trajectory(i_time, :) = reshape(T_foot_to_world_left, 1, 16);
                 
                 theta_left_trajectory(i_time, :) = -atan2(left_ankle_to_toes_vector(3), left_ankle_to_toes_vector(2));
-                R_foot_to_world_left = ...
-                  [ ...
-                    cos(theta_left_trajectory(i_time, :)), sin(theta_left_trajectory(i_time, :)), 0; 
-                    -sin(theta_left_trajectory(i_time, :)), cos(theta_left_trajectory(i_time, :)), 0; ...
-                    0, 0, 1; ...
-                  ];
-                T_foot_to_world_left = [R_foot_to_world_left left_ankle_point_position_world; 0 0 0 1];
                 
+                % right foot theta angle and transformation
+                right_ankle_point_position_world = right_ankle_marker_pos_trajectory(i_time, :)';
+                right_toes_position_world = right_toes_marker_pos_trajectory(i_time, :)';
+                right_ankle_to_toes_vector = right_toes_position_world - right_ankle_point_position_world;
+                foot_y = normVector(right_ankle_to_toes_vector);
+                foot_z = normVector([0; 0; 1] - dot(foot_y, [0; 0; 1]) * foot_y);
+                foot_x = cross(foot_y, foot_z);
+                R_foot_to_world_right = [foot_x foot_y foot_z];
+                T_foot_to_world_right = [R_foot_to_world_right right_ankle_point_position_world; 0 0 0 1];
+                theta_right_trajectory(i_time, :) = -atan2(right_ankle_to_toes_vector(3), right_ankle_to_toes_vector(2));
+                T_foot_to_world_right_trajectory(i_time, :) = reshape(T_foot_to_world_right, 1, 16);
                 
                 
 
@@ -385,6 +403,21 @@ for i_trial = trials_to_process
                                     V_body_right_fits_heelstrike, ...
                                     V_body_right_fits_pushoff ...
                                   );
+                        end
+                        if use_rollover_constraints
+                            [constraint_matrix_trajectory{i_time}, constraint_matrix_dot_trajectory{i_time}] = ...
+                                createConstraintMatrix_rolloverConstraints ...
+                                  ( ...
+                                    plant, ...
+                                    rollover_shapes, ...
+                                    left_foot_constraint_number_trajectory(i_time), ...
+                                    right_foot_constraint_number_trajectory(i_time), ...
+                                    theta_left_trajectory(i_time), ...
+                                    theta_right_trajectory(i_time), ...
+                                    reshape(T_foot_to_world_left_trajectory(i_time, :), 4, 4), ...
+                                    reshape(T_foot_to_world_right_trajectory(i_time, :), 4, 4) ...
+                                  );
+                            
                         end
                         number_of_lambdas(i_time) = size(constraint_matrix_trajectory{i_time}, 1);
 

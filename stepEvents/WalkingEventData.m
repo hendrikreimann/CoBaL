@@ -119,6 +119,7 @@ classdef WalkingEventData < handle
                 'right_pushoff_times', ...
                 'right_touchdown_times' ...
               );
+            disp(['Step events saved as "' step_events_file_name '"']);
         end
         
         function setEventTimes(this, event_times, event_label)
