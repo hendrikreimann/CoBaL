@@ -253,10 +253,10 @@ if extract_data
                 % calculate step width and length
                 if strcmp(condition_stance_foot_list_trial{i_stretch}, 'RIGHT')
                     step_width_trial(i_stretch) = lheel_x_pos_extracted_stretch(end) - rheel_x_pos_extracted_stretch(end);
-                    step_length_trial(i_stretch) = lheel_y_pos_extracted_stretch(end) - lheel_y_pos_extracted_stretch(1);
+                    step_length_trial(i_stretch) = lheel_y_pos_extracted_stretch(end) - rheel_y_pos_extracted_stretch(end);
                 elseif strcmp(condition_stance_foot_list_trial{i_stretch}, 'LEFT')
                     step_width_trial(i_stretch) = rheel_x_pos_extracted_stretch(end) - lheel_x_pos_extracted_stretch(end);
-                    step_length_trial(i_stretch) = rheel_y_pos_extracted_stretch(end) - rheel_y_pos_extracted_stretch(1);
+                    step_length_trial(i_stretch) = rheel_y_pos_extracted_stretch(end) - lheel_y_pos_extracted_stretch(end);
                 end
 
                 % normalize mocap data in time
@@ -508,6 +508,7 @@ if calculate_stats
         lcop_x_std_stanceL = std(lcop_x_normalized_total(:, conditions_stanceL), 1, 2);
         rcop_x_std_stanceR = std(rcop_x_normalized_total(:, conditions_stanceR), 1, 2);
     end
+    
     
 end
 
