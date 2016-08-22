@@ -10,10 +10,10 @@ right_hip_calibration_file_index = 3;
 left_knee_calibration_file_index = 4;
 right_knee_calibration_file_index = 5;
 
-left_hip_calibration_file_index = 1;
-right_hip_calibration_file_index = 2;
-left_knee_calibration_file_index = 3;
-right_knee_calibration_file_index = 4;
+% left_hip_calibration_file_index = 1;
+% right_hip_calibration_file_index = 2;
+% left_knee_calibration_file_index = 3;
+% right_knee_calibration_file_index = 4;
 
 load subjectInfo.mat;
 

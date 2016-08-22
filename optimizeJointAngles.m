@@ -109,6 +109,7 @@ for i_time = 1 : number_of_time_steps
         theta_right_leg = fminunc(@objfun_right_leg_modular, theta_0(right_leg_joints), options);
         theta_trunk_and_head = fminunc(@objfun_trunk_modular, theta_0(trunk_and_neck_joints), options);
 
+        trunk_to_world_poe = pelvisChain.productsOfExponentials{6} * trunkAndHeadChain.productsOfExponentials{3};
         theta_left_arm = fminunc(@objfun_left_arm_modular, theta_0(left_arm_joints), options);
         theta_right_arm = fminunc(@objfun_right_arm_modular, theta_0(right_arm_joints), options);
         
@@ -230,7 +231,7 @@ function f = objfun_right_arm_modular(theta_right_arm)
         marker_position_measured = current_marker_positions_measured(marker_indices);
         marker_position_reconstr_pelvis = current_marker_positions_reconstr(marker_indices_modular);
         
-        marker_position_reconstr_world_homogeneous = pelvis_to_world_poe * [marker_position_reconstr_pelvis'; 1];
+        marker_position_reconstr_world_homogeneous = trunk_to_world_poe * [marker_position_reconstr_pelvis'; 1];
         marker_position_reconstr_world = marker_position_reconstr_world_homogeneous(1:3)';
         
         error_vector = marker_position_measured - marker_position_reconstr_world;
@@ -255,7 +256,7 @@ function f = objfun_left_arm_modular(theta_left_arm)
         marker_position_measured = current_marker_positions_measured(marker_indices);
         marker_position_reconstr_pelvis = current_marker_positions_reconstr(marker_indices_modular);
         
-        marker_position_reconstr_world_homogeneous = pelvis_to_world_poe * [marker_position_reconstr_pelvis'; 1];
+        marker_position_reconstr_world_homogeneous = trunk_to_world_poe * [marker_position_reconstr_pelvis'; 1];
         marker_position_reconstr_world = marker_position_reconstr_world_homogeneous(1:3)';
         
         error_vector = marker_position_measured - marker_position_reconstr_world;
