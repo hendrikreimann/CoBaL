@@ -10,7 +10,7 @@ process_all_data        = 1;
 % trials_to_process = 1001;
 % trials_to_process = 6;
 % trials_to_process = 1001 : 1180;
-trials_to_process = 3;
+trials_to_process = 1;
 
 load subjectInfo.mat;
 model_file_name = makeFileName(date, subject_id, 'model');
@@ -29,7 +29,9 @@ for i_trial = trials_to_process
     load(makeFileName(date, subject_id, 'walking', i_trial, 'markerTrajectories'));
     load(makeFileName(date, subject_id, 'walking', i_trial, 'angleTrajectories'));
     load(makeFileName(date, subject_id, 'walking', i_trial, 'labviewTrajectories'));
-    load(makeFileName(date, subject_id, 'walking', i_trial, 'relevantDataStretches'));
+    if ~process_all_data
+        load(makeFileName(date, subject_id, 'walking', i_trial, 'relevantDataStretches'));
+    end
     
     filter_order = 2;
     cutoff_frequency = 20; % cutoff frequency, in Hz
@@ -57,6 +59,7 @@ for i_trial = trials_to_process
     if process_all_data
         data_points_to_process_mocap = 1 : length(time_mocap);
 %         data_points_to_process_mocap = 500 : 600;
+        data_points_to_process_mocap = 501 : 520;
     end
     all_data_points = 1 : number_of_time_steps;
     irrelevant_data_points = ~ismember(all_data_points, data_points_to_process_mocap);

@@ -1,5 +1,5 @@
 
-use_parallel                = 0;
+use_parallel                = 1;
 process_all_data            = 1;
 
 trials_to_process = 1;
@@ -103,7 +103,7 @@ left_arm_chain = GeneralKinematicTree ...
   joint_axes(25:31), ...
   [1 1 1 1 1 1 1], ...                                                        % types
   ones(1, 7), ...                                                           % branch matrix
-  {plant.endEffectorPositions{7}}, ...                                      % end-effector
+  {plant.endEffectorPositions{8}}, ...                                      % end-effector
   link_com_positions(25:31), ...
   link_orientations(25:31), ...
   generalized_link_inertia_matrices(25:31) ...
@@ -114,7 +114,7 @@ right_arm_chain = GeneralKinematicTree ...
   joint_axes(32:38), ...
   [1 1 1 1 1 1 1], ...                                                        % types
   ones(1, 7), ...                                                           % branch matrix
-  {plant.endEffectorPositions{8}}, ...                                      % end-effector
+  {plant.endEffectorPositions{9}}, ...                                      % end-effector
   link_com_positions(32:38), ...
   link_orientations(32:38), ...
   generalized_link_inertia_matrices(32:38) ...
@@ -179,13 +179,15 @@ end
 for i_trial = trials_to_process
     % load data
     load([data_directory filesep makeFileName(date, subject_id, 'walking', i_trial, 'markerTrajectories')]);
-    load([data_directory filesep makeFileName(date, subject_id, 'walking', i_trial, 'relevantDataStretches')]);
-
+    if ~process_all_data
+        load([data_directory filesep makeFileName(date, subject_id, 'walking', i_trial, 'relevantDataStretches')]);
+    end
+    
     number_of_time_steps_mocap = length(time_mocap);
     if process_all_data
         time_steps_to_optimize = 1 : length(time_mocap);
         time_steps_to_optimize = 500 : 600;
-        time_steps_to_optimize = 6 : 10;
+        time_steps_to_optimize = 501 : 520;
     else
         % schedule relevant time steps for optimization
         time_steps_to_optimize = [];

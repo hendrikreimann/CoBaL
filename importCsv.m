@@ -137,7 +137,7 @@ for i_file = 1 : number_of_files
                             'sampling_rate_emg', ...
                             'emg_headers' ...
                           );
-                    elseif strcmp(data_group{2}(1 : 26), 'Bertec Force Plate - Force')
+                    elseif strcmp(data_group{2}(1 : 27), 'Bertec Force Plates - Force')
                         data_type = 'forceplate';
                         forceplate_trajectories_raw = imported_data.data(:, 3:end);
                         forceplate_headers = data_headers(3 : end);
