@@ -113,6 +113,8 @@ for i_trial = trials_to_process
                         left_ground_reaction_wrench_trajectory(i_time, :) = NaN;
                     else
                         % TODO: transform the plant back to world coordinates from belt coordinates, so the ground reaction wrench will coincide with the force plate readings 
+                        % 23.8.2016: this is already corrected, isn't it?
+                        
                         % update model
                         plant.jointAngles = joint_angle_trajectories_belt(i_time, :)';
                         plant.jointVelocities = joint_velocity_trajectories_belt(i_time, :)';
