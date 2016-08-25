@@ -188,6 +188,7 @@ for i_trial = trials_to_process
         time_steps_to_optimize = 1 : length(time_mocap);
         time_steps_to_optimize = 500 : 600;
         time_steps_to_optimize = 501 : 520;
+%         time_steps_to_optimize = 1 : 20;
     else
         % schedule relevant time steps for optimization
         time_steps_to_optimize = [];

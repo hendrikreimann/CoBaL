@@ -93,7 +93,7 @@ weight_matrix_by_indices = reshape(repmat(weightMatrix, 3, 1), 1, length(weightM
 for i_time = 1 : number_of_time_steps
     theta_0 = zeros(plant.numberOfJoints, 1);
     current_marker_positions_measured = markerTrajectories(i_time, :);
-    current_marker_positions_relevant = markerTrajectories(weight_matrix_by_indices~=0);
+    current_marker_positions_relevant = current_marker_positions_measured(weight_matrix_by_indices~=0);
     
     if any(isnan(current_marker_positions_relevant)) % check whether NaNs are present
         theta_opt = zeros(size(theta_0)) * NaN;

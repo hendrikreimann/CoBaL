@@ -59,7 +59,7 @@ for i_trial = trials_to_process
     if process_all_data
         data_points_to_process_mocap = 1 : length(time_mocap);
 %         data_points_to_process_mocap = 500 : 600;
-        data_points_to_process_mocap = 501 : 520;
+%         data_points_to_process_mocap = 1001 : 2000;
     end
     all_data_points = 1 : number_of_time_steps;
     irrelevant_data_points = ~ismember(all_data_points, data_points_to_process_mocap);
