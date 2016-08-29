@@ -9,7 +9,7 @@ load subjectInfo.mat;
 model_file_name = makeFileName(date, subject_id, 'model');
 load(model_file_name);
 
-plant.updateInternals;
+% plant.updateInternals;
 
 
 % calculate constraints
@@ -20,6 +20,8 @@ A_right_dot = plant.bodyJacobianTemporalDerivatives{6};
 
 % A_left = [];
 % A_left_dot = [];
+% A_right = [];
+% A_right_dot = [];
 
 number_of_left_foot_constraints = size(A_left, 1);
 number_of_right_foot_constraints = size(A_right, 1);
@@ -66,8 +68,8 @@ T = pinv ...
   ) * ...
   [ ...
     P*C*plant.jointVelocities + P*N + M*theta_two_dot_des; ...  % desired joint acceleration
-    zeros(6, 1); ...                                            % torques in free dofs
-    zeros(6, 1); ...                                            % workless torques
+    zeros(size(B_v, 2), 1); ...                                            % torques in free dofs
+    zeros(size(C_w, 2), 1); ...                                            % workless torques
   ];
 
 % try applying the torque that keeps the body still for only the right foot constrained, but with both feet constrained
@@ -126,9 +128,11 @@ combined_ground_reaction_wrench = [left_ground_reaction_wrench; right_ground_rea
 
 left_ground_reaction_wrench_alt = calculateInstantaneousGroundReactionWrench_alt(plant, constraint_torque_left_alt, eye(4, 4), 12);
 right_ground_reaction_wrench_alt = calculateInstantaneousGroundReactionWrench_alt(plant, constraint_torque_right_alt, eye(4, 4), 18);
-% combined_ground_reaction_wrench_alt = left_ground_reaction_wrench_alt + right_ground_reaction_wrench_alt;
-combined_ground_reaction_wrench_alt = right_ground_reaction_wrench_alt;
+added_ground_reaction_wrench_alt = left_ground_reaction_wrench_alt + right_ground_reaction_wrench_alt;
+% combined_ground_reaction_wrench_alt = right_ground_reaction_wrench_alt;
 
+left_ground_reaction_wrench = pinv(plant.calculateArbitraryFrameBodyJacobian(eye(4, 4), 12)') * constraint_torque_left;
+right_ground_reaction_wrench = pinv(plant.calculateArbitraryFrameBodyJacobian(eye(4, 4), 18)') * constraint_torque_right;
 
 
 
@@ -146,12 +150,12 @@ C_w = V_w(:, k_w+1:end);
 D = [B_v C_w];
 
 % do not use the "no workless torques"-assumption
-D = B_v;
+% D = B_v;
 
 % set up equation matrices
-% R_left = pinv(plant.calculateArbitraryFrameBodyJacobian(eye(4, 4), 12)');
-% H_1_left = R_left * A' * (A*M^(-1)*A')^(-1)*A*M^(-1);
-% b_1_left = left_ground_reaction_wrench_alt - R_left * A' * (A*M^(-1)*A')^(-1) * (A*M^(-1)*(- C*plant.jointVelocities - N) + A_dot*plant.jointVelocities);
+R_left = pinv(plant.calculateArbitraryFrameBodyJacobian(eye(4, 4), 12)');
+H_1_left = R_left * A' * (A*M^(-1)*A')^(-1)*A*M^(-1);
+b_1_left = left_ground_reaction_wrench_alt - R_left * A' * (A*M^(-1)*A')^(-1) * (A*M^(-1)*(- C*plant.jointVelocities - N) + A_dot*plant.jointVelocities);
 
 R_right = pinv(plant.calculateArbitraryFrameBodyJacobian(eye(4, 4), 18)');
 H_1_right = R_right * A' * (A*M^(-1)*A')^(-1)*A*M^(-1);
@@ -160,6 +164,28 @@ b_1_right = right_ground_reaction_wrench_alt - R_right * A' * (A*M^(-1)*A')^(-1)
 % R_both = [pinv(plant.calculateArbitraryFrameBodyJacobian(eye(4, 4), 12)'); pinv(plant.calculateArbitraryFrameBodyJacobian(eye(4, 4), 18)')];
 % H_1_both = R_both * A' * (A*M^(-1)*A')^(-1)*A*M^(-1);
 % b_1_both = combined_ground_reaction_wrench - R_both * A' * (A*M^(-1)*A')^(-1) * (A*M^(-1)*(- C*plant.jointVelocities - N) + A_dot*plant.jointVelocities);
+H_1_both = [H_1_left; H_1_right];
+b_1_both = [b_1_left; b_1_right];
+
+% same equation, just using A_left and A_right instead of full A
+% R_left = pinv(plant.calculateArbitraryFrameBodyJacobian(eye(4, 4), 12)');
+% H_1_left = R_left * A_left' * (A_left*M^(-1)*A_left')^(-1)*A_left*M^(-1);
+% b_1_left = left_ground_reaction_wrench_alt - R_left * A_left' * (A_left*M^(-1)*A_left')^(-1) * (A_left*M^(-1)*(- C*plant.jointVelocities - N) + A_left_dot*plant.jointVelocities);
+% R_right = pinv(plant.calculateArbitraryFrameBodyJacobian(eye(4, 4), 18)');
+% H_1_right = R_right * A_right' * (A_right*M^(-1)*A_right')^(-1)*A_right*M^(-1);
+% b_1_right = right_ground_reaction_wrench_alt - R_right * A_right' * (A_right*M^(-1)*A_right')^(-1) * (A_right*M^(-1)*(- C*plant.jointVelocities - N) + A_right_dot*plant.jointVelocities);
+
+% GRF equations with appropriate projections
+Q_left = [eye(6) zeros(6); zeros(6) zeros(6)];
+R_left = pinv(plant.calculateArbitraryFrameBodyJacobian(eye(4, 4), 12)');
+H_1_left = R_left * A' * Q_left * (A*M^(-1)*A')^(-1)*A*M^(-1);
+b_1_left = left_ground_reaction_wrench_alt - R_left * A' * Q_left * (A*M^(-1)*A')^(-1) * (A*M^(-1)*(- C*plant.jointVelocities - N) + A_dot*plant.jointVelocities);
+
+Q_right = [zeros(6) zeros(6); zeros(6) eye(6)];
+R_right = pinv(plant.calculateArbitraryFrameBodyJacobian(eye(4, 4), 18)');
+H_1_right = R_right * A' * Q_right * (A*M^(-1)*A')^(-1)*A*M^(-1);
+b_1_right = right_ground_reaction_wrench_alt - R_right * A' * Q_right * (A*M^(-1)*A')^(-1) * (A*M^(-1)*(- C*plant.jointVelocities - N) + A_dot*plant.jointVelocities);
+
 
 
 H_2 = M^(-1)*P;
@@ -167,14 +193,15 @@ b_2 = theta_two_dot_res + M^(-1)*P*(C*plant.jointVelocities + N) + M^(-1)*A'*(A*
 H_3 = D';
 b_3 = zeros(size(D, 2), 1);
 
+H = [H_2; H_3];
+b = [b_2; b_3];
+
 % H = [H_1_left; H_2; H_3];
 % b = [b_1_left; b_2; b_3];
 
-% H = [H_1_both; H_2; H_3];
-% b = [b_1_both; b_2; b_3];
+H = [H_1_left; H_1_right; H_2; H_3];
+b = [b_1_left; b_1_right; b_2; b_3];
 
-H = [H_2; H_3];
-b = [b_2; b_3];
 
 F = pinv(H) * b;
 
@@ -182,7 +209,24 @@ TF = [T F];
 TmF = T - F;
 % works for one contact foot, i.e. F = T, the joint torques calculated by inverse dynamics are the same as I applied
 
+% test the GRF equations for the solution without GRF data
+check_left = H_1_left * T;
+b_1_left;
+check_right = H_1_right * T;
 
+% these equations do not hold. 
+% Why not? check that from the beginning
+
+left_ground_reaction_wrench = R_left * constraint_torque_left;
+combined_ground_reaction_wrench = [R_left zeros(size(R_left)); zeros(size(R_left)) R_right] * [constraint_torque_left; constraint_torque_right];
+
+
+
+Q_left = [eye(6) zeros(6); zeros(6) zeros(6)];
+left_ground_reaction_wrench_check = R_left * A' * Q_left * lambda; 
+
+check_left_side = R_left * A' * Q_left * (A*M^(-1)*A')^(-1) * A * M^(-1) * T;
+check_right_side = left_ground_reaction_wrench_alt - R_left * A' * Q_left * (A*M^(-1)*A')^(-1) * (A*M^(-1)*(- C*plant.jointVelocities - N) + A_dot*plant.jointVelocities);
 
 return
 
