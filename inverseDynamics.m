@@ -1,6 +1,6 @@
 % inverse dynamics
 
-determine_constraint_numbers            = 0;
+determine_constraint_numbers            = 1;
 calculate_dynamic_matrices              = 1;
 calculate_torques                       = 1;
 filter_torques                          = 1;
@@ -9,15 +9,15 @@ plot_joint_torques                      = 1;
 plot_joint_torques_smoothed             = 0;
 
 process_all_data                        = 1;
-use_parallel                            = 0;
+use_parallel                            = 1;
 
 load_results                            = 0;
 save_results                            = 1;
 
 use_point_constraints                   = 0;
-use_hinge_constraints                   = 0;
+use_hinge_constraints                   = 1;
 use_body_velocity_constraints           = 0;
-use_rollover_constraints                = 1;
+use_rollover_constraints                = 0;
 
 
 % select which trials to process
@@ -25,7 +25,7 @@ use_rollover_constraints                = 1;
 
 % trials_to_process = 1001 : 1180;
 % trials_to_exclude = [1046 1064 1066 1069 1089 1092 1109 1114 1132];
-trials_to_process = 2;
+trials_to_process = 1;
 trials_to_exclude = [];
 
 
@@ -109,12 +109,13 @@ for i_trial = trials_to_process
         load(makeFileName(date, subject_id, 'walking', i_trial, 'kinematicTrajectories'));
         load(makeFileName(date, subject_id, 'walking', i_trial, 'stepEvents'));
         load(makeFileName(date, subject_id, 'walking', i_trial, 'forceplateTrajectories'));
-        load(makeFileName(date, subject_id, 'walking', i_trial, 'relevantDataStretches'));
         number_of_time_steps = size(joint_angle_trajectories_belt, 1);
         if process_all_data
             data_points = 2001 : 3000;
             data_points = 1 : 30000;
-            data_points = 3000 : 3010;
+            data_points = 3000 : 4000;
+        else
+            load(makeFileName(date, subject_id, 'walking', i_trial, 'relevantDataStretches'));
         end
         
 

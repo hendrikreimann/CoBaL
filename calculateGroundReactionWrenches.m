@@ -1,7 +1,7 @@
 % calculate ground reaction wrenches
 
 use_parallel                            = 1;
-use_smoothed                            = 1;
+use_smoothed                            = 0;
 process_all_data                        = 1;
 
 use_point_constraints                   = 0;
@@ -12,7 +12,7 @@ calculate_ground_reaction_wrenches      = 1;
 plot_ground_reaction_wrenches           = 1;
 save_results                            = 1;
 
-trials_to_process = 2;
+trials_to_process = 1;
 trials_to_exclude = [];
 
 % load data
@@ -23,6 +23,7 @@ data_points = 1 : 30000;
 % data_points = 1000 : 6000;
 % data_points = 1000 : 1050;
 % data_points = 1000 : 11000;
+
 
 if use_parallel
     poolobject = gcp;
@@ -37,7 +38,12 @@ for i_trial = trials_to_process
         load(makeFileName(date, subject_id, 'walking', i_trial, 'kinematicTrajectories'));
         load(makeFileName(date, subject_id, 'walking', i_trial, 'stepEvents'));
         load(makeFileName(date, subject_id, 'walking', i_trial, 'forceplateTrajectories'));
-        load(makeFileName(date, subject_id, 'walking', i_trial, 'relevantDataStretches'));
+        
+        if process_all_data
+            data_points = 3000 : 4000;
+        else
+            load(makeFileName(date, subject_id, 'walking', i_trial, 'relevantDataStretches'));
+        end
         number_of_time_steps = size(joint_angle_trajectories_belt, 1);
         
         label = 'inverseDynamics';
@@ -45,7 +51,7 @@ for i_trial = trials_to_process
             label = [label '_pointConstraints'];
         end            
         if use_hinge_constraints
-            label = [label '_hingeConstraints'];
+            label = [label '_hingeConstraints_old'];
         end            
         if use_body_velocity_constraints
             label = [label '_bodyVelocityConstraints'];
@@ -140,7 +146,7 @@ for i_trial = trials_to_process
                 label = [label '_pointConstraints'];
             end            
             if use_hinge_constraints
-                label = [label '_hingeConstraints'];
+                label = [label '_hingeConstraints_old'];
             end            
             if use_body_velocity_constraints
                 label = [label '_bodyVelocityConstraints'];
@@ -164,19 +170,19 @@ for i_trial = trials_to_process
             color_z_b = [0 0.3 0.7];
             
             % prepare stretches for further processing without padding
-            data_points_to_process_mocap_without_padding = [];
-            number_of_padding_steps = 0;
-            for i_stretch = 1 : size(start_indices_mocap)
-                % get start and end indices and apply padding
-                start_index_mocap_stretch = start_indices_mocap(i_stretch) - number_of_padding_steps;
-                end_index_mocap_stretch = end_indices_mocap(i_stretch) + number_of_padding_steps;
-                time_steps_stretch = start_index_mocap_stretch : end_index_mocap_stretch;
-                data_points_to_process_mocap_without_padding = [data_points_to_process_mocap_without_padding time_steps_stretch];
-            end
-            all_data_points = 1 : number_of_time_steps;
-            irrelevant_data_points = ~ismember(all_data_points, data_points_to_process_mocap_without_padding);
-            left_ground_reaction_wrench_trajectory_unpadded = left_ground_reaction_wrench_trajectory; left_ground_reaction_wrench_trajectory_unpadded(irrelevant_data_points, :) = NaN;
-            right_ground_reaction_wrench_trajectory_unpadded = right_ground_reaction_wrench_trajectory; right_ground_reaction_wrench_trajectory_unpadded(irrelevant_data_points, :) = NaN;
+%             data_points_to_process_mocap_without_padding = [];
+%             number_of_padding_steps = 0;
+%             for i_stretch = 1 : size(start_indices_mocap)
+%                 % get start and end indices and apply padding
+%                 start_index_mocap_stretch = start_indices_mocap(i_stretch) - number_of_padding_steps;
+%                 end_index_mocap_stretch = end_indices_mocap(i_stretch) + number_of_padding_steps;
+%                 time_steps_stretch = start_index_mocap_stretch : end_index_mocap_stretch;
+%                 data_points_to_process_mocap_without_padding = [data_points_to_process_mocap_without_padding time_steps_stretch];
+%             end
+%             all_data_points = 1 : number_of_time_steps;
+%             irrelevant_data_points = ~ismember(all_data_points, data_points_to_process_mocap_without_padding);
+%             left_ground_reaction_wrench_trajectory_unpadded = left_ground_reaction_wrench_trajectory; left_ground_reaction_wrench_trajectory_unpadded(irrelevant_data_points, :) = NaN;
+%             right_ground_reaction_wrench_trajectory_unpadded = right_ground_reaction_wrench_trajectory; right_ground_reaction_wrench_trajectory_unpadded(irrelevant_data_points, :) = NaN;
             
             
             figure; left_grf_axes = axes; hold on; title('left ground reaction forces');

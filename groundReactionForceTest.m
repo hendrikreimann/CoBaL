@@ -29,6 +29,14 @@ number_of_right_foot_constraints = size(A_right, 1);
 A = [A_left; A_right];
 A_dot = [A_left_dot; A_right_dot];
 
+% try hinge constraints
+[A, A_dot] = createConstraintMatrix_hingeConstraints(plant, 1, 2);
+number_of_left_foot_constraints = 5;
+number_of_right_foot_constraints = 5;
+A_left = A(1 : number_of_left_foot_constraints, :);
+A_left_dot = A_dot(1 : number_of_left_foot_constraints, :);
+A_right = A(number_of_left_foot_constraints + 1 : end, :);
+A_right_dot = A_dot(number_of_left_foot_constraints + 1 : end, :);
 
 M = plant.inertiaMatrix;
 C = plant.coriolisMatrix;
@@ -149,6 +157,7 @@ k_w = rank([B_v C_c]);
 C_w = V_w(:, k_w+1:end);
 D = [B_v C_w];
 
+
 % do not use the "no workless torques"-assumption
 % D = B_v;
 
@@ -176,20 +185,25 @@ b_1_both = [b_1_left; b_1_right];
 % b_1_right = right_ground_reaction_wrench_alt - R_right * A_right' * (A_right*M^(-1)*A_right')^(-1) * (A_right*M^(-1)*(- C*plant.jointVelocities - N) + A_right_dot*plant.jointVelocities);
 
 % GRF equations with appropriate projections
-Q_left = [eye(6) zeros(6); zeros(6) zeros(6)];
+Q_left = [eye(number_of_left_foot_constraints) zeros(number_of_right_foot_constraints, number_of_left_foot_constraints); zeros(number_of_left_foot_constraints, number_of_right_foot_constraints) zeros(number_of_right_foot_constraints)];
 R_left = pinv(plant.calculateArbitraryFrameBodyJacobian(eye(4, 4), 12)');
 H_1_left = R_left * A' * Q_left * (A*M^(-1)*A')^(-1)*A*M^(-1);
 b_1_left = left_ground_reaction_wrench_alt - R_left * A' * Q_left * (A*M^(-1)*A')^(-1) * (A*M^(-1)*(- C*plant.jointVelocities - N) + A_dot*plant.jointVelocities);
 
-Q_right = [zeros(6) zeros(6); zeros(6) eye(6)];
+Q_right = [zeros(number_of_left_foot_constraints) zeros(number_of_right_foot_constraints, number_of_left_foot_constraints); zeros(number_of_left_foot_constraints, number_of_right_foot_constraints) eye(number_of_right_foot_constraints)];
 R_right = pinv(plant.calculateArbitraryFrameBodyJacobian(eye(4, 4), 18)');
 H_1_right = R_right * A' * Q_right * (A*M^(-1)*A')^(-1)*A*M^(-1);
 b_1_right = right_ground_reaction_wrench_alt - R_right * A' * Q_right * (A*M^(-1)*A')^(-1) * (A*M^(-1)*(- C*plant.jointVelocities - N) + A_dot*plant.jointVelocities);
 
+% GRF equation with only one forceplate for two feet
+H_1_both = H_1_left + H_1_right;
+b_1_both = b_1_left + b_1_right;
 
 
+% measured accelerations are generated
 H_2 = M^(-1)*P;
 b_2 = theta_two_dot_res + M^(-1)*P*(C*plant.jointVelocities + N) + M^(-1)*A'*(A*M^(-1)*A')^(-1)*A_dot*plant.jointVelocities;
+% no virtual and no workless torques
 H_3 = D';
 b_3 = zeros(size(D, 2), 1);
 
@@ -214,6 +228,8 @@ check_left = H_1_left * T;
 b_1_left;
 check_right = H_1_right * T;
 
+
+
 % these equations do not hold. 
 % Why not? check that from the beginning
 
@@ -222,7 +238,6 @@ combined_ground_reaction_wrench = [R_left zeros(size(R_left)); zeros(size(R_left
 
 
 
-Q_left = [eye(6) zeros(6); zeros(6) zeros(6)];
 left_ground_reaction_wrench_check = R_left * A' * Q_left * lambda; 
 
 check_left_side = R_left * A' * Q_left * (A*M^(-1)*A')^(-1) * A * M^(-1) * T;
