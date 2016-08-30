@@ -1,9 +1,9 @@
 % findStepEvents
 
-visualize_left          = 0;
-visualize_right         = 0;
+visualize_left          = 1;
+visualize_right         = 1;
 visualize_position      = 1;
-visualize_derivatives   = 1;
+visualize_derivatives   = 0;
 
 show_forceplate         = 0;
 
@@ -12,20 +12,20 @@ show_forceplate         = 0;
 % trials_to_process = 1 : 1 : 21;
 % trials_to_process = [0:7 9:23];
 trials_to_process = 4 : 16;
-% trials_to_process = 1;
+trials_to_process = 1;
 
 
 % Choose Identification method for each event and foot
-% left_method_touchdown = 'left_heel_position_minima';
-left_method_touchdown = 'left_toe_velocity_minima';
+left_method_touchdown = 'left_heel_position_minima';
+% left_method_touchdown = 'left_toe_velocity_minima';
 % left_method_touchdown = 'left_toe_position_minima';
 % left_method_touchdown = 'left_first_acceleration_peak';
 
 left_method_pushoff = 'left_first_velocity_peak';
 
-% right_method_touchdown = 'right_heel_position_minima';
+right_method_touchdown = 'right_heel_position_minima';
 % right_method_touchdown = 'right_toe_position_minima';
-right_method_touchdown = 'right_toe_velocity_minima';
+% right_method_touchdown = 'right_toe_velocity_minima';
 % right_method_touchdown = 'right_first_acceleration_peak';
 right_method_pushoff = 'right_first_velocity_peak';
 

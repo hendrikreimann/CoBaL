@@ -35,7 +35,7 @@ processForceplateData
 filterEmgData
     applies a sequence of filter and rectification to the EMG data
 findStepEvents
-stepEventGui(<trial number>) (to validate and correct step events)
+stepEventGui(<data directory>, <trial number>) (to validate and correct step events)
 findRelevantDataStretches
     
 2. For stimulus response paradigms
