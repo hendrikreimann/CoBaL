@@ -9,8 +9,8 @@ load subjectInfo.mat;
 model_file_name = makeFileName(date, subject_id, 'model');
 load(model_file_name);
 
-% plant.updateInternals;
-
+plant.jointVelocities = rand(plant.numberOfJoints, 1);
+plant.updateInternals;
 
 % calculate constraints
 A_left = plant.bodyJacobians{3};
