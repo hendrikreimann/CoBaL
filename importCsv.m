@@ -19,83 +19,93 @@ for i_file = 1 : number_of_files
     
     % is this marker data or force plate data?
     last_underscore = find(csv_data_file_name == '_', 1, 'last');
-    if strcmp(csv_data_file_name(last_underscore+1 : end-4), 'forcePlateData')
+    if strcmp(csv_data_file_name(last_underscore+1 : end-4), 'labviewData')
         
-        % this is labview data, fix this later
-        
-        % import force plate data
+        % import labview data
         [imported_data, delimiter, nheaderlines] = importdata(csv_data_file_name, ',', 3);
-        forceplate_trajectories = imported_data.data;
+        labview_trajectories = imported_data.data;
         
         % extract headers
         column_name_string = imported_data.textdata{1, 1};
-        number_of_columns = size(imported_data.textdata, 2);
+        labview_header = strsplit(column_name_string, ',');
+        number_of_data_columns = size(imported_data.textdata, 2);
         
+        % extract data into properly named variables
         variables_to_save = struct();
-        
-        variables_to_save.time_labview = forceplate_trajectories(:, 1) * milliseconds_to_seconds;
-        
-        variables_to_save.fxl_trajectory = forceplate_trajectories(:, 2);
-        variables_to_save.fyl_trajectory = forceplate_trajectories(:, 3);
-        variables_to_save.fzl_trajectory = forceplate_trajectories(:, 4);
-        variables_to_save.mxl_trajectory = forceplate_trajectories(:, 5);
-        variables_to_save.myl_trajectory = forceplate_trajectories(:, 6);
-        variables_to_save.mzl_trajectory = forceplate_trajectories(:, 7);
-        
-        variables_to_save.fxr_trajectory = forceplate_trajectories(:, 8);
-        variables_to_save.fyr_trajectory = forceplate_trajectories(:, 9);
-        variables_to_save.fzr_trajectory = forceplate_trajectories(:, 10);
-        variables_to_save.mxr_trajectory = forceplate_trajectories(:, 11);
-        variables_to_save.myr_trajectory = forceplate_trajectories(:, 12);
-        variables_to_save.mzr_trajectory = forceplate_trajectories(:, 13);
-        
-        variables_to_save.fx_trajectory = forceplate_trajectories(:, 14);
-        variables_to_save.fy_trajectory = forceplate_trajectories(:, 15);
-        variables_to_save.fz_trajectory = forceplate_trajectories(:, 16);
-        variables_to_save.mx_trajectory = forceplate_trajectories(:, 17);
-        variables_to_save.my_trajectory = forceplate_trajectories(:, 18);
-        variables_to_save.mz_trajectory = forceplate_trajectories(:, 19);
-        
-        variables_to_save.copxl_trajectory = forceplate_trajectories(:, 20);
-        variables_to_save.copyl_trajectory = forceplate_trajectories(:, 21);
-        variables_to_save.copxr_trajectory = forceplate_trajectories(:, 22);
-        variables_to_save.copyr_trajectory = forceplate_trajectories(:, 23);
-        variables_to_save.copx_trajectory = forceplate_trajectories(:, 24);
-        variables_to_save.copy_trajectory = forceplate_trajectories(:, 25);
-        
-        variables_to_save.belt_speed_left_trajectory = forceplate_trajectories(:, 26);
-        variables_to_save.belt_speed_right_trajectory = forceplate_trajectories(:, 27);
-        
-        
-        if size(forceplate_trajectories, 2) >= 29
-            variables_to_save.gvs_out_trajectory = forceplate_trajectories(:, 28);
-            variables_to_save.gvs_read_trajectory = forceplate_trajectories(:, 29);
-        else
-            variables_to_save.gvs_out_trajectory = zeros(size(variables_to_save.time_labview));
-            variables_to_save.gvs_read_trajectory = zeros(size(variables_to_save.time_labview));
+        for i_column = 1 : number_of_data_columns
+            variable_name = [strrep(labview_header{i_column}, ' ', '_'), '_trajectory'];
+            extract_string = ['variables_to_save.' variable_name ' = labview_trajectories(:, i_column);'];
+            eval(extract_string);
         end
         
-%         visual_shift_ml_trajectory = forceplate_trajectories(:, 30);
-%         left_foot_state = forceplate_trajectories(:, 31);
-%         right_foot_state = forceplate_trajectories(:, 32);
-%         stimulus_foot_state = forceplate_trajectories(:, 33);
-%         heel_strike_count = forceplate_trajectories(:, 34);
+        % take special care of time
+        variables_to_save.time_labview = variables_to_save.time_trajectory * milliseconds_to_seconds;
+        variables_to_save = rmfield(variables_to_save, 'time_trajectory');
         
-        % replacement for the five lines above for legacy file format without viusal shift trajectory
-        if size(forceplate_trajectories, 2) >= 34
-            variables_to_save.visual_shift_ml_trajectory = [];
-            variables_to_save.left_foot_state = forceplate_trajectories(:, 30);
-            variables_to_save.right_foot_state = forceplate_trajectories(:, 31);
-            variables_to_save.stimulus_foot_state = forceplate_trajectories(:, 32);
-            variables_to_save.heel_strike_count = forceplate_trajectories(:, 33);
-        else
-            variables_to_save.visual_shift_ml_trajectory = zeros(size(variables_to_save.time_labview));
-            variables_to_save.left_foot_state = zeros(size(variables_to_save.time_labview));
-            variables_to_save.right_foot_state = zeros(size(variables_to_save.time_labview));
-            variables_to_save.stimulus_foot_state = zeros(size(variables_to_save.time_labview));
-            variables_to_save.heel_strike_count = zeros(size(variables_to_save.time_labview));
-            
-        end
+        % old code where the extraction and assignment was done by hand
+%         variables_to_save.time_labview = labview_trajectories(:, 1) * milliseconds_to_seconds;
+%         
+%         variables_to_save.fxl_trajectory = labview_trajectories(:, 2);
+%         variables_to_save.fyl_trajectory = labview_trajectories(:, 3);
+%         variables_to_save.fzl_trajectory = labview_trajectories(:, 4);
+%         variables_to_save.mxl_trajectory = labview_trajectories(:, 5);
+%         variables_to_save.myl_trajectory = labview_trajectories(:, 6);
+%         variables_to_save.mzl_trajectory = labview_trajectories(:, 7);
+%         
+%         variables_to_save.fxr_trajectory = labview_trajectories(:, 8);
+%         variables_to_save.fyr_trajectory = labview_trajectories(:, 9);
+%         variables_to_save.fzr_trajectory = labview_trajectories(:, 10);
+%         variables_to_save.mxr_trajectory = labview_trajectories(:, 11);
+%         variables_to_save.myr_trajectory = labview_trajectories(:, 12);
+%         variables_to_save.mzr_trajectory = labview_trajectories(:, 13);
+%         
+%         variables_to_save.fx_trajectory = labview_trajectories(:, 14);
+%         variables_to_save.fy_trajectory = labview_trajectories(:, 15);
+%         variables_to_save.fz_trajectory = labview_trajectories(:, 16);
+%         variables_to_save.mx_trajectory = labview_trajectories(:, 17);
+%         variables_to_save.my_trajectory = labview_trajectories(:, 18);
+%         variables_to_save.mz_trajectory = labview_trajectories(:, 19);
+%         
+%         variables_to_save.copxl_trajectory = labview_trajectories(:, 20);
+%         variables_to_save.copyl_trajectory = labview_trajectories(:, 21);
+%         variables_to_save.copxr_trajectory = labview_trajectories(:, 22);
+%         variables_to_save.copyr_trajectory = labview_trajectories(:, 23);
+%         variables_to_save.copx_trajectory = labview_trajectories(:, 24);
+%         variables_to_save.copy_trajectory = labview_trajectories(:, 25);
+%         
+%         variables_to_save.belt_speed_left_trajectory = labview_trajectories(:, 26);
+%         variables_to_save.belt_speed_right_trajectory = labview_trajectories(:, 27);
+%         
+%         
+%         if size(labview_trajectories, 2) >= 29
+%             variables_to_save.gvs_out_trajectory = labview_trajectories(:, 28);
+%             variables_to_save.gvs_read_trajectory = labview_trajectories(:, 29);
+%         else
+%             variables_to_save.gvs_out_trajectory = zeros(size(variables_to_save.time_labview));
+%             variables_to_save.gvs_read_trajectory = zeros(size(variables_to_save.time_labview));
+%         end
+%         
+% %         visual_shift_ml_trajectory = forceplate_trajectories(:, 30);
+% %         left_foot_state = forceplate_trajectories(:, 31);
+% %         right_foot_state = forceplate_trajectories(:, 32);
+% %         stimulus_foot_state = forceplate_trajectories(:, 33);
+% %         heel_strike_count = forceplate_trajectories(:, 34);
+%         
+%         % replacement for the five lines above for legacy file format without visual shift trajectory
+%         if size(labview_trajectories, 2) >= 34
+%             variables_to_save.visual_shift_ml_trajectory = [];
+%             variables_to_save.left_foot_state = labview_trajectories(:, 30);
+%             variables_to_save.right_foot_state = labview_trajectories(:, 31);
+%             variables_to_save.stimulus_foot_state = labview_trajectories(:, 32);
+%             variables_to_save.heel_strike_count = labview_trajectories(:, 33);
+%         else
+%             variables_to_save.visual_shift_ml_trajectory = zeros(size(variables_to_save.time_labview));
+%             variables_to_save.left_foot_state = zeros(size(variables_to_save.time_labview));
+%             variables_to_save.right_foot_state = zeros(size(variables_to_save.time_labview));
+%             variables_to_save.stimulus_foot_state = zeros(size(variables_to_save.time_labview));
+%             variables_to_save.heel_strike_count = zeros(size(variables_to_save.time_labview));
+%             
+%         end
         
         % save
         matlab_data_file_name = makeFileName(date, subject_id, 'walking', trial_number, 'labviewTrajectories');
