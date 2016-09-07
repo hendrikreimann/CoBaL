@@ -22,8 +22,8 @@ load subjectInfo.mat;
 trials_to_process = 2:21;
 % trials_to_process = 1;
 trials_to_process = 3 : 43;
-trials_to_process = 1 : 20;
-trials_to_process = 3;
+trials_to_process = 2 : 20;
+% trials_to_process = 2;
 
 total_positive_steps = [];
 total_negative_steps = [];
@@ -204,9 +204,9 @@ for i_trial = trials_to_process
                 last_left_foot_heelstrike = left_touchdown_indices_forceplate(index_left-1);
                 this_left_foot_heelstrike = left_touchdown_indices_forceplate(index_left);
                 next_left_foot_heelstrike = left_touchdown_indices_forceplate(index_left+1);
-                last_left_foot_pushoff = left_pushoff_indices_forceplate(index_left-1);
-                this_left_foot_pushoff = left_pushoff_indices_forceplate(index_left);
-                next_left_foot_pushoff = left_pushoff_indices_forceplate(index_left+1);
+                last_left_foot_pushoff = min(left_pushoff_indices_forceplate(left_pushoff_indices_forceplate >= last_left_foot_heelstrike));
+                this_left_foot_pushoff = min(left_pushoff_indices_forceplate(left_pushoff_indices_forceplate >= this_left_foot_heelstrike));
+                next_left_foot_pushoff = min(left_pushoff_indices_forceplate(left_pushoff_indices_forceplate >= next_left_foot_heelstrike));
                 
                 last_right_foot_heelstrike = min(right_touchdown_indices_forceplate(right_touchdown_indices_forceplate >= last_left_foot_heelstrike));
                 this_right_foot_heelstrike = min(right_touchdown_indices_forceplate(right_touchdown_indices_forceplate >= this_left_foot_heelstrike));
@@ -245,9 +245,9 @@ for i_trial = trials_to_process
                 last_right_foot_heelstrike = right_touchdown_indices_forceplate(index_right-1);
                 this_right_foot_heelstrike = right_touchdown_indices_forceplate(index_right);
                 next_right_foot_heelstrike = right_touchdown_indices_forceplate(index_right+1);
-                last_right_foot_pushoff = right_pushoff_indices_forceplate(index_right-1);
-                this_right_foot_pushoff = right_pushoff_indices_forceplate(index_right);
-                next_right_foot_pushoff = right_pushoff_indices_forceplate(index_right+1);
+                last_right_foot_pushoff = min(right_pushoff_indices_forceplate(right_pushoff_indices_forceplate >= last_right_foot_heelstrike));
+                this_right_foot_pushoff = min(right_pushoff_indices_forceplate(right_pushoff_indices_forceplate >= this_right_foot_heelstrike));
+                next_right_foot_pushoff = min(right_pushoff_indices_forceplate(right_pushoff_indices_forceplate >= next_right_foot_heelstrike));
                 
                 last_left_foot_heelstrike = min(left_touchdown_indices_forceplate(left_touchdown_indices_forceplate >= last_right_foot_heelstrike));
                 this_left_foot_heelstrike = min(left_touchdown_indices_forceplate(left_touchdown_indices_forceplate >= this_right_foot_heelstrike));
@@ -549,7 +549,7 @@ for i_trial = trials_to_process
                 stim_start_time_relative_to_stretch(i_stretch) = NaN;
             else
                 stim_start_time = time_forceplate(stim_start_indices_labview(i_stretch));
-                stim_start_time_relative_to_stretch(i_stretch) = stim_start_time - touchdown_time_forceplate;
+                stim_start_time_relative_to_stretch(i_stretch) = stim_start_time - time_forceplate(start_index_forceplate);
             end
         end
         
