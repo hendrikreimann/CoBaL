@@ -1,15 +1,15 @@
-% find the relevant stretches of data after the stimuli
+% This script finds the stretches of data relevant to the experimental paradigm.
 
 
 %% Choose Data Type
 emg_present                     = 1;
-% stimulus_type = 'gvs';
+stimulus_type = 'gvs';
 % stimulus_type = 'visual';
-stimulus_type = 'none';
+% stimulus_type = 'none';
 
-ignore_crossover                = 0;
+remove_crossover_steps          = 1;
 
-visualize_triggers              = 0;
+visualize_triggers              = 1;
 
 %% prepare
 wait_times = [0 0.150 0.450];
@@ -22,29 +22,34 @@ load subjectInfo.mat;
 trials_to_process = 2:21;
 % trials_to_process = 1;
 trials_to_process = 3 : 43;
-trials_to_process = 1 : 16;
-% trials_to_process = 3;
+trials_to_process = 1 : 20;
+trials_to_process = 3;
 
 total_positive_steps = [];
 total_negative_steps = [];
-total_polarity_condition_list = [];
+total_perturbation_condition_list = [];
 total_step_condition_list = [];
 
 swing_foot_fz_zero_threshold = 20; % threshold for counting a vertical force reading as zero, in Nm
-swing_foot_zero_stretch_length_threshold_time = 0.2; % the force plate should register zero for at least this long
-duration_until_nearest_future_heelstrike_threshold = 0.15; % a heelstrike should happen less than this long after a trigger
+swing_foot_nonzero_stretch_length_threshold_time = 0.05; % the force plate should register non-zero for at less than this long
+time_to_nearest_future_heelstrike_threshold = 0.15; % a heelstrike should happen less than this long after a trigger
 duration_prelude = 0.4; % duration that should have zero vertical force prior to a heelstrike, to identify crossover
 
 
 %% extract data
 stretch_length_indices_forceplate = [];
 condition_stance_foot_list = {};
-condition_polarity_list = {};
+condition_perturbation_list = {};
 condition_delay_list = {};
+condition_index_list = {};
 stim_start_time_relative_to_stretch = [];
 
 for i_trial = trials_to_process
-    % load data
+    %% load data
+    %
+    % Load the trial data from disk. 
+    %
+    
     load(makeFileName(date, subject_id, 'walking', i_trial, 'markerTrajectories'));
     load(makeFileName(date, subject_id, 'walking', i_trial, 'labviewTrajectories'));
     load(makeFileName(date, subject_id, 'walking', i_trial, 'forceplateTrajectories'));
@@ -53,30 +58,40 @@ for i_trial = trials_to_process
         load(makeFileName(date, subject_id, 'walking', i_trial, 'emgTrajectories'));
     end
 
+    % estimate forceplate sampling rate if not provided
     if isnan(sampling_rate_forceplate)
         sampling_rate_forceplate = 1 / median(diff(time_forceplate));
     end
     number_of_prelude_time_steps = ceil(duration_prelude * sampling_rate_forceplate);
-    swing_foot_zero_stretch_length_threshold_indices = ceil(swing_foot_zero_stretch_length_threshold_time * 1/sampling_rate_forceplate);
+    swing_foot_nonzero_stretch_length_threshold_indices = ceil(swing_foot_nonzero_stretch_length_threshold_time * sampling_rate_forceplate);
 
     if strcmp(stimulus_type, 'gvs')
-        stim_sent_trajectory = gvs_out_trajectory;
+        stim_sent_trajectory = GVS_out_trajectory;
     elseif strcmp(stimulus_type, 'visual')
-        stim_sent_trajectory = visual_shift_ml_trajectory;
+        stim_sent_trajectory = visual_scene_ml_translation_trajectory;
     end
-
+    
+    % get CoP trajectories
     left_copx_trajectory = left_forceplate_cop_Acw(:, 1);
     right_copx_trajectory = right_forceplate_cop_Acw(:, 1);
     left_fz_trajectory = left_forceplate_wrench_Acw(:, 3);
     right_fz_trajectory = right_forceplate_wrench_Acw(:, 3);
 
-    % find trigger
+    %% find triggers
+    %
+    % Find the triggering events that indicate a stretch of interest. For perturbation experiments, this is the onset of
+    % a perturbation. For unperturbed walking, this is any heelstrike.
+    % The result is trigger_indices_labview.
+    %
     if strcmp(stimulus_type, 'none')
+        % use all touchdown events as triggers
         trigger_indices_labview = [left_touchdown_indices_labview right_touchdown_indices_labview];
     else
-        % -- find the first index where the heel marker crosses the threshold
-        % and is then recognized as heel strike
-        trigger_indices_labview = find(diff(sign(stimulus_foot_state - 0.5)) > 0) + 1;
+        % find the time steps where the stimulus state crosses a threshold
+        stimulus_threshold = 0.5;
+        trigger_indices_labview = find(diff(sign(stimulus_state_trajectory - stimulus_threshold)) > 0) + 1;
+        
+        %
         epsilon = 1e-5;
         stim_start_indices_labview = find(diff(sign(abs(stim_sent_trajectory) - epsilon)) > 0) + 1;
         trigger_indices_labview = trigger_indices_labview(1 : length(stim_start_indices_labview)); % in case a stim is triggered, but not recorded
@@ -87,16 +102,23 @@ for i_trial = trials_to_process
         left_cop_x_trajectory_relevant = left_copx_trajectory; left_cop_x_trajectory_relevant(left_cop_x_trajectory_relevant==0) = NaN;
         right_cop_x_trajectory_relevant = right_copx_trajectory; right_cop_x_trajectory_relevant(right_cop_x_trajectory_relevant==0) = NaN;
         figure; axes; hold on
-        plot(time_labview, stimulus_foot_state);
+        plot(time_labview, stimulus_state_trajectory*0.02);
         plot(time_forceplate, left_cop_x_trajectory_relevant, 'linewidth', 2);
         plot(time_forceplate, right_cop_x_trajectory_relevant, 'linewidth', 2);
         plot(time_forceplate(left_touchdown_indices_forceplate), zeros(size(left_touchdown_indices_forceplate)), 'o')
         plot(time_forceplate(right_touchdown_indices_forceplate), zeros(size(right_touchdown_indices_forceplate)), 'o')
         plot(time_labview(trigger_indices_labview), zeros(size(trigger_indices_labview)), 'x')
-%         plot(time_labview(stim_start_indices_labview), zeros(size(stim_start_indices_labview)), 'x')
+        plot(time_labview(stim_start_indices_labview), zeros(size(stim_start_indices_labview)), 'x')
         legend('stimulus state', 'left cop', 'right cop', 'left touchdown', 'right touchdown', 'trigger', 'stim start')
     end
 
+    %% extract event data
+    %
+    % For each trigger, determine the conditions and the relevant step events.
+    % The result is 
+    % stretch_start_indices_forceplate, stretch_end_indices_forceplate
+    % condition_stance_foot_list, condition_perturbation_list, condition_delay_list, condition_index_list
+    
     % for each trigger, extract conditions and relevant step events
     number_of_triggers = length(trigger_indices_labview);
     removal_flags = zeros(number_of_triggers, 1);
@@ -105,39 +127,45 @@ for i_trial = trials_to_process
         stretch_end_indices_forceplate = zeros(number_of_triggers, 1);
         closest_heelstrike_distance_times = zeros(number_of_triggers, 1);
         condition_stance_foot_list = cell(number_of_triggers, 1);
-        condition_polarity_list = cell(number_of_triggers, 1);
+        condition_perturbation_list = cell(number_of_triggers, 1);
         condition_delay_list = cell(number_of_triggers, 1);
+        condition_index_list = cell(number_of_triggers, 1);
     else
-        stim_start_indices_labview = [stim_start_indices_labview zeros(number_of_triggers, 1)]; %#ok<AGROW>
-        stretch_start_indices_forceplate = zeros(number_of_triggers, 2);
-        stretch_end_indices_forceplate = zeros(number_of_triggers, 2);
-        closest_heelstrike_distance_times = zeros(number_of_triggers, 2);
-        condition_stance_foot_list = cell(number_of_triggers, 2);
-        condition_polarity_list = cell(number_of_triggers, 2);
-        condition_delay_list = cell(number_of_triggers, 2);
+        stim_start_indices_labview = [stim_start_indices_labview zeros(number_of_triggers, 1) zeros(number_of_triggers, 1)]; %#ok<AGROW>
+        stretch_start_indices_forceplate = zeros(number_of_triggers, 3);
+        stretch_end_indices_forceplate = zeros(number_of_triggers, 3);
+        closest_heelstrike_distance_times = zeros(number_of_triggers, 3);
+        condition_stance_foot_list = cell(number_of_triggers, 3);
+        condition_perturbation_list = cell(number_of_triggers, 3);
+        condition_delay_list = cell(number_of_triggers, 3);
+        condition_index_list = cell(number_of_triggers, 3);
     end
 
     for i_trigger = 1 : number_of_triggers
         % determine condition
         if strcmp(stimulus_type, 'none')
-            condition_polarity_list{i_trigger, 1} = 'CONTROL';
+            condition_perturbation_list{i_trigger, 1} = 'CONTROL';
             condition_delay_list{i_trigger, 1} = 'CONTROL';
+            condition_index_list{i_trigger, 1} = 'CONTROL';
         else
-            % polarity condition
+            % perturbation condition
             if stim_sent_trajectory(stim_start_indices_labview(i_trigger)) > 0
-                condition_polarity_list{i_trigger, 1} = 'POSITIVE';
+                condition_perturbation_list{i_trigger, 1} = 'POSITIVE';
+                condition_perturbation_list{i_trigger, 2} = 'POSITIVE';
             elseif stim_sent_trajectory(stim_start_indices_labview(i_trigger)) < 0
-                condition_polarity_list{i_trigger, 1} = 'NEGATIVE';
+                condition_perturbation_list{i_trigger, 1} = 'NEGATIVE';
+                condition_perturbation_list{i_trigger, 2} = 'NEGATIVE';
             else
                 disp(['Trial ' num2str(i_trial) ': something went wrong at time ' num2str(time_labview(trigger_indices_labview(i_trigger))) ' - no stim']);
             end
-            condition_polarity_list{i_trigger, 2} = 'CONTROL';
+            condition_perturbation_list{i_trigger, 3} = 'CONTROL';
             
             % delay
             wait_time_stim = time_labview(stim_start_indices_labview(i_trigger)) - time_labview(trigger_indices_labview(i_trigger));
             [~, wait_condition_index] = min(abs(wait_times - wait_time_stim));
             condition_delay_list{i_trigger, 1} = wait_time_labels{wait_condition_index};
-            condition_delay_list{i_trigger, 2} = 'CONTROL';
+            condition_delay_list{i_trigger, 2} = wait_time_labels{wait_condition_index};
+            condition_delay_list{i_trigger, 3} = 'CONTROL';
         end
         
 
@@ -148,7 +176,7 @@ for i_trial = trials_to_process
         
         % confirm that the trigger happened less than 100ms (or whatever time's set) before the actual heelstrike
         if ~strcmp(stimulus_type, 'none')
-            if closest_heelstrike_distance_time > duration_until_nearest_future_heelstrike_threshold
+            if closest_heelstrike_distance_time > time_to_nearest_future_heelstrike_threshold
                 removal_flags(i_trigger) = 1;
                 disp(['Trial ' num2str(i_trial) ': something went wrong at time ' num2str(time_labview(trigger_indices_labview(i_trigger))) ' - trigger not in sync with heelstrike']);
             end
@@ -176,15 +204,23 @@ for i_trial = trials_to_process
                 last_left_foot_heelstrike = left_touchdown_indices_forceplate(index_left-1);
                 this_left_foot_heelstrike = left_touchdown_indices_forceplate(index_left);
                 next_left_foot_heelstrike = left_touchdown_indices_forceplate(index_left+1);
+                last_left_foot_pushoff = left_pushoff_indices_forceplate(index_left-1);
+                this_left_foot_pushoff = left_pushoff_indices_forceplate(index_left);
+                next_left_foot_pushoff = left_pushoff_indices_forceplate(index_left+1);
                 
                 last_right_foot_heelstrike = min(right_touchdown_indices_forceplate(right_touchdown_indices_forceplate >= last_left_foot_heelstrike));
                 this_right_foot_heelstrike = min(right_touchdown_indices_forceplate(right_touchdown_indices_forceplate >= this_left_foot_heelstrike));
                 next_right_foot_heelstrike = min(right_touchdown_indices_forceplate(right_touchdown_indices_forceplate >= next_left_foot_heelstrike));
+                last_right_foot_pushoff = max(right_pushoff_indices_forceplate(right_pushoff_indices_forceplate <= last_left_foot_pushoff));
+                this_right_foot_pushoff = max(right_pushoff_indices_forceplate(right_pushoff_indices_forceplate <= this_left_foot_pushoff));
+                next_right_foot_pushoff = max(right_pushoff_indices_forceplate(right_pushoff_indices_forceplate <= next_left_foot_pushoff));
                 
-%                 % check check
+                % check check
 %                 figure; hold on
-%                 plot([last_right_foot_heelstrike this_right_foot_heelstrike next_right_foot_heelstrike], [0 0 0], 'x');
-%                 plot([last_left_foot_heelstrike this_left_foot_heelstrike next_left_foot_heelstrike], [0 0 0], 'x');
+                plot(time_forceplate([last_left_foot_heelstrike this_left_foot_heelstrike next_left_foot_heelstrike]), [0 0 0]-0.05, 'v', 'linewidth', 3);
+                plot(time_forceplate([last_left_foot_pushoff  this_left_foot_pushoff next_left_foot_pushoff]), [0 0 0]-0.05, '^', 'linewidth', 3);
+                plot(time_forceplate([last_right_foot_heelstrike this_right_foot_heelstrike next_right_foot_heelstrike]), [0 0 0]+0.05, 'v', 'linewidth', 3);
+                plot(time_forceplate([last_right_foot_pushoff  this_right_foot_pushoff next_right_foot_pushoff]), [0 0 0]+0.05, '^', 'linewidth', 3);
                 
             end            
         elseif distance_to_trigger_right_time < distance_to_trigger_left_time
@@ -209,16 +245,24 @@ for i_trial = trials_to_process
                 last_right_foot_heelstrike = right_touchdown_indices_forceplate(index_right-1);
                 this_right_foot_heelstrike = right_touchdown_indices_forceplate(index_right);
                 next_right_foot_heelstrike = right_touchdown_indices_forceplate(index_right+1);
+                last_right_foot_pushoff = right_pushoff_indices_forceplate(index_right-1);
+                this_right_foot_pushoff = right_pushoff_indices_forceplate(index_right);
+                next_right_foot_pushoff = right_pushoff_indices_forceplate(index_right+1);
                 
                 last_left_foot_heelstrike = min(left_touchdown_indices_forceplate(left_touchdown_indices_forceplate >= last_right_foot_heelstrike));
                 this_left_foot_heelstrike = min(left_touchdown_indices_forceplate(left_touchdown_indices_forceplate >= this_right_foot_heelstrike));
                 next_left_foot_heelstrike = min(left_touchdown_indices_forceplate(left_touchdown_indices_forceplate >= next_right_foot_heelstrike));
+                last_left_foot_pushoff = max(left_pushoff_indices_forceplate(left_pushoff_indices_forceplate <= last_right_foot_pushoff));
+                this_left_foot_pushoff = max(left_pushoff_indices_forceplate(left_pushoff_indices_forceplate <= this_right_foot_pushoff));
+                next_left_foot_pushoff = max(left_pushoff_indices_forceplate(left_pushoff_indices_forceplate <= next_right_foot_pushoff));
                 
                 
 %                 % check check
 %                 figure; hold on
-%                 plot([last_right_foot_heelstrike this_right_foot_heelstrike next_right_foot_heelstrike], [0 0 0], 'x');
-%                 plot([last_left_foot_heelstrike this_left_foot_heelstrike next_left_foot_heelstrike], [0 0 0], 'x');
+                plot(time_forceplate([last_left_foot_heelstrike this_left_foot_heelstrike next_left_foot_heelstrike]), [0 0 0]-0.05, 'v', 'linewidth', 3);
+                plot(time_forceplate([last_left_foot_pushoff  this_left_foot_pushoff next_left_foot_pushoff]), [0 0 0]-0.05, '^', 'linewidth', 3);
+                plot(time_forceplate([last_right_foot_heelstrike this_right_foot_heelstrike next_right_foot_heelstrike]), [0 0 0]+0.05, 'v', 'linewidth', 3);
+                plot(time_forceplate([last_right_foot_pushoff  this_right_foot_pushoff next_right_foot_pushoff]), [0 0 0]+0.05, '^', 'linewidth', 3);
                 
             end            
         else
@@ -238,6 +282,7 @@ for i_trial = trials_to_process
                   isempty(next_right_foot_heelstrike) ...
                 ] ...
               )
+            % not all events are present
             removal_flags(i_trigger) = 1;
             last_left_foot_heelstrike = NaN;
             this_left_foot_heelstrike = NaN;
@@ -246,66 +291,118 @@ for i_trial = trials_to_process
             this_right_foot_heelstrike = NaN;
             next_right_foot_heelstrike = NaN;
             
-        else
+        else % all events are present
             % mark relevant event delimiters depending on wait time and triggering foot
             if strcmp(trigger_foot, 'right')
                 % triggered by right foot heelstrike
                 if strcmp(stimulus_type, 'none')
                     condition_stance_foot_list{i_trigger, 1} = 'RIGHT';
-                    stretch_start_indices_forceplate(i_trigger, 1) = this_right_foot_heelstrike;
+                    stretch_start_indices_forceplate(i_trigger, 1) = this_left_foot_pushoff;
                     stretch_end_indices_forceplate(i_trigger, 1) = this_left_foot_heelstrike;
                 else
-                    if strcmp(condition_delay_list{i_trigger, 1}, '0ms') || strcmp(condition_delay_list{i_trigger, 1}, '150ms')
-                        % this step is of interest
-                        condition_stance_foot_list{i_trigger, 1} = 'RIGHT';
-                        condition_stance_foot_list{i_trigger, 2} = 'RIGHT';
-                        stretch_start_indices_forceplate(i_trigger, 1) = this_right_foot_heelstrike;
-                        stretch_end_indices_forceplate(i_trigger, 1) = this_left_foot_heelstrike;
-                        stretch_start_indices_forceplate(i_trigger, 2) = last_right_foot_heelstrike;
-                        stretch_end_indices_forceplate(i_trigger, 2) = last_left_foot_heelstrike;
-                    elseif strcmp(condition_delay_list{i_trigger, 1}, '450ms')
-                        % next step is of interest
-                        condition_stance_foot_list{i_trigger, 1} = 'LEFT';
-                        condition_stance_foot_list{i_trigger, 2} = 'LEFT';
-                        stretch_start_indices_forceplate(i_trigger, 1) = this_left_foot_heelstrike;
-                        stretch_end_indices_forceplate(i_trigger, 1) = next_right_foot_heelstrike;
-                        stretch_start_indices_forceplate(i_trigger, 2) = last_left_foot_heelstrike;
-                        stretch_end_indices_forceplate(i_trigger, 2) = this_right_foot_heelstrike;
-                    else
-                        disp(['Trial ' num2str(i_trial) ': something went wrong at time ' num2str(time_forceplate(trigger_indices_labview(i_trigger))) ' - delay not defined']);
-                    end
+                    % this step
+                    condition_index_list{i_trigger, 1} = 'ONE';
+                    condition_stance_foot_list{i_trigger, 1} = 'RIGHT';
+                    stretch_start_indices_forceplate(i_trigger, 1) = this_left_foot_pushoff;
+                    stretch_end_indices_forceplate(i_trigger, 1) = this_left_foot_heelstrike;
+                    
+                    % next step
+                    condition_index_list{i_trigger, 2} = 'TWO';
+                    condition_stance_foot_list{i_trigger, 2} = 'LEFT';
+                    stretch_start_indices_forceplate(i_trigger, 2) = this_right_foot_pushoff;
+                    stretch_end_indices_forceplate(i_trigger, 2) = next_right_foot_heelstrike;
+                    
+                    % this step
+                    condition_index_list{i_trigger, 3} = 'CONTROL';
+                    condition_stance_foot_list{i_trigger, 3} = 'RIGHT';
+                    stretch_start_indices_forceplate(i_trigger, 3) = last_left_foot_pushoff;
+                    stretch_end_indices_forceplate(i_trigger, 3) = last_left_foot_heelstrike;
+                    
+                    % visualize
+                    plot(time_forceplate([stretch_start_indices_forceplate(i_trigger, 1) stretch_end_indices_forceplate(i_trigger, 1)]), [0 0]-0.05, 'r', 'linewidth', 3);
+                    plot(time_forceplate([stretch_start_indices_forceplate(i_trigger, 2) stretch_end_indices_forceplate(i_trigger, 2)]), [0 0]+0.05, 'g', 'linewidth', 3);
+                    plot(time_forceplate([stretch_start_indices_forceplate(i_trigger, 3) stretch_end_indices_forceplate(i_trigger, 3)]), [0 0]-0.05, 'b', 'linewidth', 3);
+                    
+                    % obsolete, because which stretches we extract does not depend upon time anymore
+%                     if strcmp(condition_delay_list{i_trigger, 1}, '0ms') || strcmp(condition_delay_list{i_trigger, 1}, '150ms')
+%                         
+%                         
+%                         % this step is of interest
+%                         condition_stance_foot_list{i_trigger, 1} = 'RIGHT';
+%                         condition_stance_foot_list{i_trigger, 2} = 'RIGHT';
+%                         
+%                         stretch_start_indices_forceplate(i_trigger, 2) = last_right_foot_heelstrike;
+%                         stretch_end_indices_forceplate(i_trigger, 2) = last_left_foot_heelstrike;
+%                         
+%                         stretch_start_indices_forceplate(i_trigger, 1) = this_left_foot_pushoff;
+%                         stretch_end_indices_forceplate(i_trigger, 1) = this_left_foot_heelstrike;
+%                     elseif strcmp(condition_delay_list{i_trigger, 1}, '450ms')
+%                         % next step is of interest
+%                         condition_stance_foot_list{i_trigger, 1} = 'LEFT';
+%                         condition_stance_foot_list{i_trigger, 2} = 'LEFT';
+%                         stretch_start_indices_forceplate(i_trigger, 1) = this_left_foot_heelstrike;
+%                         stretch_end_indices_forceplate(i_trigger, 1) = next_right_foot_heelstrike;
+%                         stretch_start_indices_forceplate(i_trigger, 2) = last_left_foot_heelstrike;
+%                         stretch_end_indices_forceplate(i_trigger, 2) = this_right_foot_heelstrike;
+%                     else
+%                         disp(['Trial ' num2str(i_trial) ': something went wrong at time ' num2str(time_forceplate(trigger_indices_labview(i_trigger))) ' - delay not defined']);
+%                     end
                 end
             elseif strcmp(trigger_foot, 'left')
                 % triggered by left foot heelstrike
                 if strcmp(stimulus_type, 'none')
                     condition_stance_foot_list{i_trigger, 1} = 'LEFT';
-                    stretch_start_indices_forceplate(i_trigger, 1) = this_left_foot_heelstrike;
+                    stretch_start_indices_forceplate(i_trigger, 1) = this_right_foot_pushoff;
                     stretch_end_indices_forceplate(i_trigger, 1) = this_right_foot_heelstrike;
                 else
-                    if strcmp(condition_delay_list{i_trigger, 1}, '0ms') || strcmp(condition_delay_list{i_trigger, 1}, '150ms')
-                        % this step is of interest
-                        condition_stance_foot_list{i_trigger, 1} = 'LEFT';
-                        condition_stance_foot_list{i_trigger, 2} = 'LEFT';
-                        stretch_start_indices_forceplate(i_trigger, 1) = this_left_foot_heelstrike;
-                        stretch_end_indices_forceplate(i_trigger, 1) = this_right_foot_heelstrike;
-                        stretch_start_indices_forceplate(i_trigger, 2) = last_left_foot_heelstrike;
-                        stretch_end_indices_forceplate(i_trigger, 2) = last_right_foot_heelstrike;
-                    elseif strcmp(condition_delay_list{i_trigger, 1}, '450ms')
-                        % next step is of interest
-                        condition_stance_foot_list{i_trigger, 1} = 'RIGHT';
-                        condition_stance_foot_list{i_trigger, 2} = 'RIGHT';
-                        stretch_start_indices_forceplate(i_trigger, 1) = this_right_foot_heelstrike;
-                        stretch_end_indices_forceplate(i_trigger, 1) = next_left_foot_heelstrike;
-                        stretch_start_indices_forceplate(i_trigger, 2) = last_right_foot_heelstrike;
-                        stretch_end_indices_forceplate(i_trigger, 2) = this_left_foot_heelstrike;
-                    else
-                        disp(['Trial ' num2str(i_trial) ': something went wrong at time ' num2str(time_forceplate(trigger_indices_labview(i_trigger))) ' - delay not defined']);
-                    end
+                    % this step
+                    condition_index_list{i_trigger, 1} = 'ONE';
+                    condition_stance_foot_list{i_trigger, 1} = 'LEFT';
+                    stretch_start_indices_forceplate(i_trigger, 1) = this_right_foot_pushoff;
+                    stretch_end_indices_forceplate(i_trigger, 1) = this_right_foot_heelstrike;
+                    
+                    % next step
+                    condition_index_list{i_trigger, 2} = 'TWO';
+                    condition_stance_foot_list{i_trigger, 2} = 'RIGHT';
+                    stretch_start_indices_forceplate(i_trigger, 2) = this_left_foot_pushoff;
+                    stretch_end_indices_forceplate(i_trigger, 2) = next_left_foot_heelstrike;
+                    
+                    % this step
+                    condition_index_list{i_trigger, 3} = 'CONTROL';
+                    condition_stance_foot_list{i_trigger, 3} = 'LEFT';
+                    stretch_start_indices_forceplate(i_trigger, 3) = last_right_foot_pushoff;
+                    stretch_end_indices_forceplate(i_trigger, 3) = last_right_foot_heelstrike;
+                    
+                    % visualize
+                    plot(time_forceplate([stretch_start_indices_forceplate(i_trigger, 1) stretch_end_indices_forceplate(i_trigger, 1)]), [0 0]+0.05, 'r', 'linewidth', 3);
+                    plot(time_forceplate([stretch_start_indices_forceplate(i_trigger, 2) stretch_end_indices_forceplate(i_trigger, 2)]), [0 0]-0.05, 'g', 'linewidth', 3);
+                    plot(time_forceplate([stretch_start_indices_forceplate(i_trigger, 3) stretch_end_indices_forceplate(i_trigger, 3)]), [0 0]+0.05, 'b', 'linewidth', 3);                    
+                    
+%                     if strcmp(condition_delay_list{i_trigger, 1}, '0ms') || strcmp(condition_delay_list{i_trigger, 1}, '150ms')
+%                         % this step is of interest
+%                         condition_stance_foot_list{i_trigger, 1} = 'LEFT';
+%                         condition_stance_foot_list{i_trigger, 2} = 'LEFT';
+%                         stretch_start_indices_forceplate(i_trigger, 1) = this_left_foot_heelstrike;
+%                         stretch_end_indices_forceplate(i_trigger, 1) = this_right_foot_heelstrike;
+%                         stretch_start_indices_forceplate(i_trigger, 2) = last_left_foot_heelstrike;
+%                         stretch_end_indices_forceplate(i_trigger, 2) = last_right_foot_heelstrike;
+%                     elseif strcmp(condition_delay_list{i_trigger, 1}, '450ms')
+%                         % next step is of interest
+%                         condition_stance_foot_list{i_trigger, 1} = 'RIGHT';
+%                         condition_stance_foot_list{i_trigger, 2} = 'RIGHT';
+%                         stretch_start_indices_forceplate(i_trigger, 1) = this_right_foot_heelstrike;
+%                         stretch_end_indices_forceplate(i_trigger, 1) = next_left_foot_heelstrike;
+%                         stretch_start_indices_forceplate(i_trigger, 2) = last_right_foot_heelstrike;
+%                         stretch_end_indices_forceplate(i_trigger, 2) = this_left_foot_heelstrike;
+%                     else
+%                         disp(['Trial ' num2str(i_trial) ': something went wrong at time ' num2str(time_forceplate(trigger_indices_labview(i_trigger))) ' - delay not defined']);
+%                     end
                 end
             else
                 removal_flags(i_trigger) = 1;
                 condition_stance_foot_list{i_trigger, 1} = 'UNCLEAR';
                 condition_stance_foot_list{i_trigger, 2} = 'UNCLEAR';
+                condition_stance_foot_list{i_trigger, 3} = 'UNCLEAR';
             end
         end
     end
@@ -318,18 +415,28 @@ for i_trial = trials_to_process
     stretch_start_indices_forceplate = stretch_start_indices_forceplate(unflagged_indices, :);
     stretch_end_indices_forceplate = stretch_end_indices_forceplate(unflagged_indices, :);
     condition_stance_foot_list = condition_stance_foot_list(unflagged_indices, :);
-    condition_polarity_list = condition_polarity_list(unflagged_indices, :);
+    condition_perturbation_list = condition_perturbation_list(unflagged_indices, :);
     condition_delay_list = condition_delay_list(unflagged_indices, :);
+    condition_index_list = condition_index_list(unflagged_indices, :);
     closest_heelstrike_distance_times = closest_heelstrike_distance_times(unflagged_indices, :);
 
+    %% extract and time normalize stretch data
+    %
+    % Now take the stretches of data between the previously identified events, normalize it in time and save to lists.
+    % Result is ...
+    % 
+    % 
+    
+    
     % form stretches
     if ~strcmp(stimulus_type, 'none')
-        stim_start_indices_labview = [stim_start_indices_labview(:, 1); stim_start_indices_labview(:, 2)];
-        stretch_start_indices_forceplate = [stretch_start_indices_forceplate(:, 1); stretch_start_indices_forceplate(:, 2)];
-        stretch_end_indices_forceplate = [stretch_end_indices_forceplate(:, 1); stretch_end_indices_forceplate(:, 2)];
-        condition_stance_foot_list = [condition_stance_foot_list(:, 1); condition_stance_foot_list(:, 2)];
-        condition_polarity_list = [condition_polarity_list(:, 1); condition_polarity_list(:, 2)];
-        condition_delay_list = [condition_delay_list(:, 1); condition_delay_list(:, 2)];
+        stim_start_indices_labview = [stim_start_indices_labview(:, 1); stim_start_indices_labview(:, 2); stim_start_indices_labview(:, 3)];
+        stretch_start_indices_forceplate = [stretch_start_indices_forceplate(:, 1); stretch_start_indices_forceplate(:, 2); stretch_start_indices_forceplate(:, 3)];
+        stretch_end_indices_forceplate = [stretch_end_indices_forceplate(:, 1); stretch_end_indices_forceplate(:, 2); stretch_end_indices_forceplate(:, 3)];
+        condition_stance_foot_list = [condition_stance_foot_list(:, 1); condition_stance_foot_list(:, 2); condition_stance_foot_list(:, 3)];
+        condition_perturbation_list = [condition_perturbation_list(:, 1); condition_perturbation_list(:, 2); condition_perturbation_list(:, 3)];
+        condition_delay_list = [condition_delay_list(:, 1); condition_delay_list(:, 2); condition_delay_list(:, 3)];
+        condition_index_list = [condition_index_list(:, 1); condition_index_list(:, 2); condition_index_list(:, 3)];
     end
 
     % check step times and remove outliers
@@ -347,7 +454,7 @@ for i_trial = trials_to_process
         stretch_start_indices_forceplate = stretch_start_indices_forceplate(unflagged_indices, :);
         stretch_end_indices_forceplate = stretch_end_indices_forceplate(unflagged_indices, :);
         condition_stance_foot_list = condition_stance_foot_list(unflagged_indices, :);
-        condition_polarity_list = condition_polarity_list(unflagged_indices, :);
+        condition_perturbation_list = condition_perturbation_list(unflagged_indices, :);
         condition_delay_list = condition_delay_list(unflagged_indices, :);
         closest_heelstrike_distance_times = closest_heelstrike_distance_times(unflagged_indices, :);
     end
@@ -366,62 +473,57 @@ for i_trial = trials_to_process
     end_indices_emg = zeros(number_of_stretches, 1);
     removal_flags = zeros(number_of_stretches, 1);
     for i_stretch = 1 : number_of_stretches
-        % we have the delimiters for the stretches of interest, based on touchdown and pushoff identification from mocap
-        % now look at the force plate data and decide whether this stretch is usable or not due to cross-over
-        % if the stretch is usable, find the touchdown and pushoff events from force plate loading
-
-        stretch_start_index_forceplate = stretch_start_indices_forceplate(i_stretch);
-        stretch_end_index_forceplate = stretch_end_indices_forceplate(i_stretch);
         
+        start_index_forceplate = stretch_start_indices_forceplate(i_stretch);
+        end_index_forceplate = stretch_end_indices_forceplate(i_stretch);
+        if remove_crossover_steps
+            % determine if this step should be removed due to crossover of the contralateral foot onto the ipsilateral forceplate
+            if strcmp(condition_stance_foot_list{i_stretch}, 'RIGHT')
+                stance_foot_cop_stretch = right_copx_trajectory(start_index_forceplate : end_index_forceplate);
+%                 touchdown_index_forceplate = stretch_start_index_forceplate + find(stance_foot_cop_stretch~=0, 1, 'first') - 1;
+                stance_foot_fz_step = right_fz_trajectory(start_index_forceplate : end_index_forceplate);
+                swing_foot_fz_step = left_fz_trajectory(start_index_forceplate : end_index_forceplate);
+%                 stance_foot_fz_prelude = right_fz_trajectory(stretch_start_index_forceplate-number_of_prelude_time_steps : touchdown_index_forceplate-1);
+            elseif strcmp(condition_stance_foot_list{i_stretch}, 'LEFT')
+                stance_foot_cop_stretch = left_copx_trajectory(start_index_forceplate : end_index_forceplate);
+%                 touchdown_index_forceplate = stretch_start_index_forceplate + find(stance_foot_cop_stretch~=0, 1, 'first') - 1;
+                stance_foot_fz_step = left_fz_trajectory(start_index_forceplate : end_index_forceplate);
+                swing_foot_fz_step = right_fz_trajectory(start_index_forceplate : end_index_forceplate);
+%                 stance_foot_fz_prelude = left_fz_trajectory(touchdown_index_forceplate-number_of_prelude_time_steps : touchdown_index_forceplate-1);
+            end
+%             touchdown_time_forceplate = time_forceplate(touchdown_index_forceplate);
+            time_extracted_forceplate = time_forceplate(start_index_forceplate : end_index_forceplate);
+            
+            % check if this stretch is usable
+            number_of_indices_per_step(i_stretch) = length(time_extracted_forceplate);
+            number_of_swing_foot_fz_zeros_stretch = sum(abs(swing_foot_fz_step) < swing_foot_fz_zero_threshold);
+            number_of_swing_foot_fz_nonzeros_stretch = sum(abs(swing_foot_fz_step) >= swing_foot_fz_zero_threshold);
+            
+%             number_of_swing_foot_fz_zeros_prelude = sum(-stance_foot_fz_prelude < swing_foot_fz_zero_threshold);
+            
 
-        % find start of CoP data
-        if strcmp(condition_stance_foot_list{i_stretch}, 'RIGHT')
-            stance_foot_cop_stretch = right_copx_trajectory(stretch_start_index_forceplate : stretch_end_index_forceplate);
-            touchdown_index_forceplate = stretch_start_index_forceplate + find(stance_foot_cop_stretch~=0, 1, 'first') - 1;
-            stance_foot_fz_step = right_fz_trajectory(touchdown_index_forceplate : stretch_end_index_forceplate);
-            swing_foot_fz_step = left_fz_trajectory(touchdown_index_forceplate : stretch_end_index_forceplate);
-            stance_foot_fz_prelude = right_fz_trajectory(touchdown_index_forceplate-number_of_prelude_time_steps : touchdown_index_forceplate-1);
-        elseif strcmp(condition_stance_foot_list{i_stretch}, 'LEFT')
-            stance_foot_cop_stretch = left_copx_trajectory(stretch_start_index_forceplate : stretch_end_index_forceplate);
-            touchdown_index_forceplate = stretch_start_index_forceplate + find(stance_foot_cop_stretch~=0, 1, 'first') - 1;
-            stance_foot_fz_step = left_fz_trajectory(touchdown_index_forceplate : stretch_end_index_forceplate);
-            swing_foot_fz_step = right_fz_trajectory(touchdown_index_forceplate : stretch_end_index_forceplate);
-            stance_foot_fz_prelude = left_fz_trajectory(touchdown_index_forceplate-number_of_prelude_time_steps : touchdown_index_forceplate-1);
+            if number_of_swing_foot_fz_nonzeros_stretch > swing_foot_nonzero_stretch_length_threshold_indices
+                removal_flags(i_stretch) = 1;
+                disp(['excluding stretch index ' num2str(i_stretch) ' - cross over at time ' num2str(time_forceplate(start_index_forceplate))]);
+            end
+%             if number_of_swing_foot_fz_zeros_prelude < swing_foot_zero_stretch_length_threshold_indices
+%                 removal_flags(i_stretch) = 1;
+%                 disp(['excluding stretch index ' num2str(i_stretch) ' - cross over at time ' num2str(time_forceplate(stretch_start_index_forceplate))]);
+%             end
+%             if isempty(touchdown_index_forceplate)
+%                 touchdown_index_forceplate = stretch_start_index_forceplate;
+%                 touchdown_time_forceplate = time_forceplate(touchdown_index_forceplate);
+%                 removal_flags(i_stretch) = 1;
+%             end
         end
-        touchdown_time_forceplate = time_forceplate(touchdown_index_forceplate);
-        time_extracted_forceplate = time_forceplate(touchdown_index_forceplate : stretch_end_index_forceplate);
-
-        % check if this stretch is usable
-        number_of_indices_per_step(i_stretch) = length(time_extracted_forceplate);
-        number_of_swing_foot_fz_zeros_stretch = sum(-swing_foot_fz_step < swing_foot_fz_zero_threshold);
-        number_of_swing_foot_fz_zeros_prelude = sum(-stance_foot_fz_prelude < swing_foot_fz_zero_threshold);
+        
         
 %         plot(stance_foot_fz_step, 'displayname', num2str(i_stretch));
 %         plot(swing_foot_fz_step, 'displayname', num2str(i_stretch));
 %         plot(stance_foot_cop_stretch, 'displayname', num2str(i_stretch));
         
-% XXX removed these three conditionals for the balance beam data. This is a rough hack, make this right later!
-        if number_of_swing_foot_fz_zeros_stretch < swing_foot_zero_stretch_length_threshold_indices
-            removal_flags(i_stretch) = 1;
-            disp(['excluding stretch index ' num2str(i_stretch) ' - cross over at time ' num2str(time_forceplate(stretch_start_index_forceplate))]);
-        end
-        if number_of_swing_foot_fz_zeros_prelude < swing_foot_zero_stretch_length_threshold_indices
-            removal_flags(i_stretch) = 1;
-            disp(['excluding stretch index ' num2str(i_stretch) ' - cross over at time ' num2str(time_forceplate(stretch_start_index_forceplate))]);
-        end
-        if isempty(touchdown_index_forceplate)
-            touchdown_index_forceplate = stretch_start_index_forceplate;
-            touchdown_time_forceplate = time_forceplate(touchdown_index_forceplate);
-            removal_flags(i_stretch) = 1;
-        end
 
         % time
-        if ignore_crossover
-            start_index_forceplate = stretch_start_index_forceplate;
-        else
-            start_index_forceplate = touchdown_index_forceplate;
-        end
-        end_index_forceplate = stretch_end_indices_forceplate(i_stretch);
         [~, start_index_mocap] = min(abs(time_mocap - time_forceplate(start_index_forceplate)));
         [~, end_index_mocap] = min(abs(time_mocap - time_forceplate(end_index_forceplate)));
         [~, start_index_labview] = min(abs(time_labview - time_forceplate(start_index_forceplate)));
@@ -465,8 +567,9 @@ for i_trial = trials_to_process
     % remove flagged stretches
     unflagged_indices = ~removal_flags;
     condition_stance_foot_list = condition_stance_foot_list(unflagged_indices);
-    condition_polarity_list = condition_polarity_list(unflagged_indices);
+    condition_perturbation_list = condition_perturbation_list(unflagged_indices);
     condition_delay_list = condition_delay_list(unflagged_indices);
+    condition_index_list = condition_index_list(unflagged_indices);
     start_indices_mocap = start_indices_mocap(unflagged_indices);
     end_indices_mocap = end_indices_mocap(unflagged_indices);
     start_indices_forceplate = start_indices_forceplate(unflagged_indices);
@@ -502,8 +605,9 @@ for i_trial = trials_to_process
       ( ...
         file_name, ...
         'condition_stance_foot_list', ...
-        'condition_polarity_list', ...
+        'condition_perturbation_list', ...
         'condition_delay_list', ...
+        'condition_index_list', ...
         'start_indices_mocap', ...
         'end_indices_mocap', ...
         'start_indices_forceplate', ...
