@@ -22,9 +22,12 @@ classdef WalkingEventData < handle
             this.left_touchdown = loaded_event_data.left_touchdown_times;
             this.right_pushoff = loaded_event_data.right_pushoff_times;
             this.right_touchdown = loaded_event_data.right_touchdown_times;
+            
+            this.removeDuplicates();
         end
         function saveEvents(this, sender, eventdata)
             % prepare data
+            this.removeDuplicates();
             left_pushoff_times = this.left_pushoff;
             left_touchdown_times = this.left_touchdown;
             right_pushoff_times = this.right_pushoff;
@@ -220,6 +223,12 @@ classdef WalkingEventData < handle
             elseif strcmp(current_event_type_label, 'left_touchdown')
                 previous_event_label = 'right_pushoff';
             end
+        end
+        function removeDuplicates(this)
+            this.left_pushoff = unique(this.left_pushoff);
+            this.left_touchdown = unique(this.left_touchdown);
+            this.right_pushoff = unique(this.right_pushoff);
+            this.right_touchdown = unique(this.right_touchdown);
         end
     end
 end

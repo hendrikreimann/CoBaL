@@ -156,7 +156,7 @@ classdef WalkingTrialData < handle
             loaded_labview_trajectories = load([this.data_directory filesep makeFileName(this.date, this.subject_id, 'walking', this.trial_number, 'labviewTrajectories')]);
             
             this.time_labview = loaded_labview_trajectories.time_labview;
-            this.stimulus_state = loaded_labview_trajectories.stimulus_foot_state;
+            this.stimulus_state = loaded_labview_trajectories.stimulus_state_trajectory;
         end
         
         function time = getTime(this, data_label)
