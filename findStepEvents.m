@@ -2,7 +2,7 @@
 
 visualize_left          = 1;
 visualize_right         = 1;
-visualize_position      = 1;
+visualize_position      = 0;
 visualize_derivatives   = 0;
 
 show_forceplate         = 0;
@@ -11,8 +11,8 @@ show_forceplate         = 0;
 
 % trials_to_process = 1 : 1 : 21;
 % trials_to_process = [0:7 9:23];
-trials_to_process = 4 : 16;
-trials_to_process = 1;
+trials_to_process = 1 : 20;
+trials_to_process = 2;
 
 
 % Choose Identification method for each event and foot
@@ -186,6 +186,14 @@ for i_trial = trials_to_process
         end
         right_pushoff_indices_mocap(right_pushoff_indices_mocap==0) = [];
     end
+    
+    % remove duplicates
+    % Achtung, untested!
+    left_pushoff_indices_mocap = unique(left_pushoff_indices_mocap);
+    left_touchdown_indices_mocap = unique(left_touchdown_indices_mocap);
+    right_pushoff_indices_mocap = unique(right_pushoff_indices_mocap);
+    right_touchdown_indices_mocap = unique(right_touchdown_indices_mocap);
+    
     
     % transform to forceplate time
     left_pushoff_indices_forceplate = zeros(size(left_pushoff_indices_mocap));
