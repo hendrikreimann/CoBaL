@@ -24,7 +24,7 @@ and number, e.g. 20160518_HR_resultsMarker.mat.
 
 III. Processing steps
 1. General processing
-importCsv 
+importCsv
     scans for any .csv and attempts to import the contained data. Will store different 
     data types in different files, e.g. marker, forcplate, emg, labview.
 saveSubjectInfoToFile(<height>, <weight>, <gender>)
