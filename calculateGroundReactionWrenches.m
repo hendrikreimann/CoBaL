@@ -1,6 +1,6 @@
 % calculate ground reaction wrenches
 
-use_parallel                            = 0;
+use_parallel                            = 1;
 use_smoothed                            = 0;
 process_all_data                        = 1;
 
@@ -230,8 +230,8 @@ for i_trial = trials_to_process
             plot(time_mocap, right_ground_reaction_wrench_trajectory(:, 5), 'color', color_y_b, 'linewidth', 2);
             plot(time_mocap, right_ground_reaction_wrench_trajectory(:, 6), 'color', color_z_b, 'linewidth', 2);
             
-            linkaxes([left_grf_axes left_grm_axes right_grf_axes right_grm_axes], 'x')
-            distFig('rows', 2, 'tight', true);
+%             linkaxes([left_grf_axes left_grm_axes right_grf_axes right_grm_axes], 'x')
+%             distFig('rows', 2, 'tight', true);
         end
     end
 end

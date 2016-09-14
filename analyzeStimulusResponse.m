@@ -1,5 +1,5 @@
-extract_data                        = 1;
-extract_conditions                  = 1;
+extract_data                        = 0;
+extract_conditions                  = 0;
 calculate_responses                 = 1;
 calculate_strategy_directions       = 0;
 calculate_strategy_responses        = 0;
@@ -11,7 +11,7 @@ save_data_old                       = 0;
 
 process_data_marker                 = 1;
 process_data_forceplate             = 1;
-process_data_emg                    = 0;
+process_data_emg                    = 1;
 process_data_angles                 = 0;
 process_data_torques                = 0;
 
@@ -126,9 +126,11 @@ if extract_data
     if process_data_emg
         lglutmed_normalized_all = [];
         ltibiant_normalized_all = [];
+        lgastroc_normalized_all = [];
         lperolng_normalized_all = [];
         rglutmed_normalized_all = [];
         rtibiant_normalized_all = [];
+        rgastroc_normalized_all = [];
         rperolng_normalized_all = [];
     end
     if process_data_angles
@@ -215,17 +217,21 @@ if extract_data
             % rename relevant trajectories
             lglutmed_trajectory = emg_trajectories(:, strcmp(emg_headers, 'LGLUTMED'));
             ltibiant_trajectory = emg_trajectories(:, strcmp(emg_headers, 'LTIBIANT'));
+            lgastroc_trajectory = emg_trajectories(:, strcmp(emg_headers, 'LGASTROC'));
             lperolng_trajectory = emg_trajectories(:, strcmp(emg_headers, 'LPEROLNG'));
             rglutmed_trajectory = emg_trajectories(:, strcmp(emg_headers, 'RGLUTMED'));
             rtibiant_trajectory = emg_trajectories(:, strcmp(emg_headers, 'RTIBIANT'));
+            rgastroc_trajectory = emg_trajectories(:, strcmp(emg_headers, 'RGASTROC'));
             rperolng_trajectory = emg_trajectories(:, strcmp(emg_headers, 'RPEROLNG'));
             
             % initialize containers
             lglutmed_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
             ltibiant_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
+            lgastroc_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
             lperolng_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
             rglutmed_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
             rtibiant_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
+            rgastroc_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
             rperolng_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
             
         end
@@ -355,26 +361,32 @@ if extract_data
                 time_extracted_emg = time_emg(start_index_emg : end_index_emg);
                 lglutmed_extracted_stretch = lglutmed_trajectory(start_index_emg : end_index_emg, 1);
                 ltibiant_extracted_stretch = ltibiant_trajectory(start_index_emg : end_index_emg, 1);
+                lgastroc_extracted_stretch = lgastroc_trajectory(start_index_emg : end_index_emg, 1);
                 lperolng_extracted_stretch = lperolng_trajectory(start_index_emg : end_index_emg, 1);
                 rglutmed_extracted_stretch = rglutmed_trajectory(start_index_emg : end_index_emg, 1);
                 rtibiant_extracted_stretch = rtibiant_trajectory(start_index_emg : end_index_emg, 1);
+                rgastroc_extracted_stretch = rgastroc_trajectory(start_index_emg : end_index_emg, 1);
                 rperolng_extracted_stretch = rperolng_trajectory(start_index_emg : end_index_emg, 1);
                 
                 % normalize
                 time_normalized_emg = linspace(time_extracted_emg(1), time_extracted_emg(end), number_of_time_steps_normalized);
                 lglutmed_normalized_stretch = spline(time_extracted_emg, lglutmed_extracted_stretch, time_normalized_emg);
                 ltibiant_normalized_stretch = spline(time_extracted_emg, ltibiant_extracted_stretch, time_normalized_emg);
+                lgastroc_normalized_stretch = spline(time_extracted_emg, lgastroc_extracted_stretch, time_normalized_emg);
                 lperolng_normalized_stretch = spline(time_extracted_emg, lperolng_extracted_stretch, time_normalized_emg);
                 rglutmed_normalized_stretch = spline(time_extracted_emg, rglutmed_extracted_stretch, time_normalized_emg);
                 rtibiant_normalized_stretch = spline(time_extracted_emg, rtibiant_extracted_stretch, time_normalized_emg);
+                rgastroc_normalized_stretch = spline(time_extracted_emg, rgastroc_extracted_stretch, time_normalized_emg);
                 rperolng_normalized_stretch = spline(time_extracted_emg, rperolng_extracted_stretch, time_normalized_emg);
                 
                 % store
                 lglutmed_normalized_trial(:, i_stretch) = lglutmed_normalized_stretch;
                 ltibiant_normalized_trial(:, i_stretch) = ltibiant_normalized_stretch;
+                lgastroc_normalized_trial(:, i_stretch) = lgastroc_normalized_stretch;
                 lperolng_normalized_trial(:, i_stretch) = lperolng_normalized_stretch;
                 rglutmed_normalized_trial(:, i_stretch) = rglutmed_normalized_stretch;
                 rtibiant_normalized_trial(:, i_stretch) = rtibiant_normalized_stretch;
+                rgastroc_normalized_trial(:, i_stretch) = rgastroc_normalized_stretch;
                 rperolng_normalized_trial(:, i_stretch) = rperolng_normalized_stretch;
             end
 
@@ -445,9 +457,11 @@ if extract_data
         if process_data_emg
             lglutmed_normalized_all = [lglutmed_normalized_all lglutmed_normalized_trial];
             ltibiant_normalized_all = [ltibiant_normalized_all ltibiant_normalized_trial];
+            lgastroc_normalized_all = [lgastroc_normalized_all lgastroc_normalized_trial];
             lperolng_normalized_all = [lperolng_normalized_all lperolng_normalized_trial];
             rglutmed_normalized_all = [rglutmed_normalized_all rglutmed_normalized_trial];
             rtibiant_normalized_all = [rtibiant_normalized_all rtibiant_normalized_trial];
+            rgastroc_normalized_all = [rgastroc_normalized_all rgastroc_normalized_trial];
             rperolng_normalized_all = [rperolng_normalized_all rperolng_normalized_trial];
         end
         if process_data_angles
@@ -837,33 +851,59 @@ if calculate_responses
     end
     
     if process_data_emg
-%         % control means
-%         lglutmed_stanceL_control = mean(lglutmed_normalized_all(:, conditions_stanceL_stimNo), 2);
-%         ltibiant_stanceL_control = mean(ltibiant_normalized_all(:, conditions_stanceL_stimNo), 2);
-%         lperolng_stanceL_control = mean(lperolng_normalized_all(:, conditions_stanceL_stimNo), 2);
-%         rglutmed_stanceL_control = mean(rglutmed_normalized_all(:, conditions_stanceL_stimNo), 2);
-%         rtibiant_stanceL_control = mean(rtibiant_normalized_all(:, conditions_stanceL_stimNo), 2);
-%         rperolng_stanceL_control = mean(rperolng_normalized_all(:, conditions_stanceL_stimNo), 2);
-%         lglutmed_stanceR_control = mean(lglutmed_normalized_all(:, conditions_stanceR_stimNo), 2);
-%         ltibiant_stanceR_control = mean(ltibiant_normalized_all(:, conditions_stanceR_stimNo), 2);
-%         lperolng_stanceR_control = mean(lperolng_normalized_all(:, conditions_stanceR_stimNo), 2);
-%         rglutmed_stanceR_control = mean(rglutmed_normalized_all(:, conditions_stanceR_stimNo), 2);
-%         rtibiant_stanceR_control = mean(rtibiant_normalized_all(:, conditions_stanceR_stimNo), 2);
-%         rperolng_stanceR_control = mean(rperolng_normalized_all(:, conditions_stanceR_stimNo), 2);
-%         
-%         % response
-%         lglutmed_stanceL_response = lglutmed_normalized_all - repmat(lglutmed_stanceL_control, 1, number_of_stretches);
-%         ltibiant_stanceL_response = ltibiant_normalized_all - repmat(ltibiant_stanceL_control, 1, number_of_stretches);
-%         lperolng_stanceL_response = lperolng_normalized_all - repmat(lperolng_stanceL_control, 1, number_of_stretches);
-%         rglutmed_stanceL_response = rglutmed_normalized_all - repmat(rglutmed_stanceL_control, 1, number_of_stretches);
-%         rtibiant_stanceL_response = rtibiant_normalized_all - repmat(rtibiant_stanceL_control, 1, number_of_stretches);
-%         rperolng_stanceL_response = rperolng_normalized_all - repmat(rperolng_stanceL_control, 1, number_of_stretches);
-%         lglutmed_stanceR_response = lglutmed_normalized_all - repmat(lglutmed_stanceR_control, 1, number_of_stretches);
-%         ltibiant_stanceR_response = ltibiant_normalized_all - repmat(ltibiant_stanceR_control, 1, number_of_stretches);
-%         lperolng_stanceR_response = lperolng_normalized_all - repmat(lperolng_stanceR_control, 1, number_of_stretches);
-%         rglutmed_stanceR_response = rglutmed_normalized_all - repmat(rglutmed_stanceR_control, 1, number_of_stretches);
-%         rtibiant_stanceR_response = rtibiant_normalized_all - repmat(rtibiant_stanceR_control, 1, number_of_stretches);
-%         rperolng_stanceR_response = rperolng_normalized_all - repmat(rperolng_stanceR_control, 1, number_of_stretches);
+        % calculate control means
+        lglutmed_control_means = zeros(number_of_time_steps_normalized, number_of_conditions_control);
+        ltibiant_control_means = zeros(number_of_time_steps_normalized, number_of_conditions_control);
+        lgastroc_control_means = zeros(number_of_time_steps_normalized, number_of_conditions_control);
+        lperolng_control_means = zeros(number_of_time_steps_normalized, number_of_conditions_control);
+        rglutmed_control_means = zeros(number_of_time_steps_normalized, number_of_conditions_control);
+        rtibiant_control_means = zeros(number_of_time_steps_normalized, number_of_conditions_control);
+        rgastroc_control_means = zeros(number_of_time_steps_normalized, number_of_conditions_control);
+        rperolng_control_means = zeros(number_of_time_steps_normalized, number_of_conditions_control);
+        
+        for i_condition = 1 : number_of_conditions_control
+            condition_indicator = conditions_control_indicators(:, i_condition);
+            lglutmed_control_means(:, i_condition) = mean(lglutmed_normalized_all(:, condition_indicator), 2);
+            ltibiant_control_means(:, i_condition) = mean(ltibiant_normalized_all(:, condition_indicator), 2);
+            lgastroc_control_means(:, i_condition) = mean(lgastroc_normalized_all(:, condition_indicator), 2);
+            lperolng_control_means(:, i_condition) = mean(lperolng_normalized_all(:, condition_indicator), 2);
+            rglutmed_control_means(:, i_condition) = mean(rglutmed_normalized_all(:, condition_indicator), 2);
+            rtibiant_control_means(:, i_condition) = mean(rtibiant_normalized_all(:, condition_indicator), 2);
+            rgastroc_control_means(:, i_condition) = mean(rgastroc_normalized_all(:, condition_indicator), 2);
+            rperolng_control_means(:, i_condition) = mean(rperolng_normalized_all(:, condition_indicator), 2);
+        end
+        
+        % calculate stimulus responses
+        lglutmed_response = zeros(size(lglutmed_normalized_all));
+        ltibiant_response = zeros(size(ltibiant_normalized_all));
+        lgastroc_response = zeros(size(lgastroc_normalized_all));
+        lperolng_response = zeros(size(lperolng_normalized_all));
+        rglutmed_response = zeros(size(rglutmed_normalized_all));
+        rtibiant_response = zeros(size(rtibiant_normalized_all));
+        rgastroc_response = zeros(size(rgastroc_normalized_all));
+        rperolng_response = zeros(size(rperolng_normalized_all));
+        for i_condition = 1 : number_of_conditions_control
+            condition_indicator = conditions_control_indicators(:, i_condition);
+            lglutmed_response(:, condition_indicator) = lglutmed_normalized_all(:, condition_indicator) - repmat(lglutmed_control_means(:, i_condition), 1, sum(condition_indicator));
+            ltibiant_response(:, condition_indicator) = ltibiant_normalized_all(:, condition_indicator) - repmat(ltibiant_control_means(:, i_condition), 1, sum(condition_indicator));
+            lgastroc_response(:, condition_indicator) = lgastroc_normalized_all(:, condition_indicator) - repmat(lgastroc_control_means(:, i_condition), 1, sum(condition_indicator));
+            lperolng_response(:, condition_indicator) = lperolng_normalized_all(:, condition_indicator) - repmat(lperolng_control_means(:, i_condition), 1, sum(condition_indicator));
+            rglutmed_response(:, condition_indicator) = rglutmed_normalized_all(:, condition_indicator) - repmat(rglutmed_control_means(:, i_condition), 1, sum(condition_indicator));
+            rtibiant_response(:, condition_indicator) = rtibiant_normalized_all(:, condition_indicator) - repmat(rtibiant_control_means(:, i_condition), 1, sum(condition_indicator));
+            rgastroc_response(:, condition_indicator) = rgastroc_normalized_all(:, condition_indicator) - repmat(rgastroc_control_means(:, i_condition), 1, sum(condition_indicator));
+            rperolng_response(:, condition_indicator) = rperolng_normalized_all(:, condition_indicator) - repmat(rperolng_control_means(:, i_condition), 1, sum(condition_indicator));
+        end
+        for i_condition = 1 : number_of_conditions_to_analyze
+            condition_indicator = conditions_to_analyze_indicators(:, i_condition);
+            lglutmed_response(:, condition_indicator) = lglutmed_normalized_all(:, condition_indicator) - repmat(lglutmed_control_means(:, applicable_control_condition_indices(i_condition)), 1, sum(condition_indicator));
+            ltibiant_response(:, condition_indicator) = ltibiant_normalized_all(:, condition_indicator) - repmat(ltibiant_control_means(:, applicable_control_condition_indices(i_condition)), 1, sum(condition_indicator));
+            lgastroc_response(:, condition_indicator) = lgastroc_normalized_all(:, condition_indicator) - repmat(lgastroc_control_means(:, applicable_control_condition_indices(i_condition)), 1, sum(condition_indicator));
+            lperolng_response(:, condition_indicator) = lperolng_normalized_all(:, condition_indicator) - repmat(lperolng_control_means(:, applicable_control_condition_indices(i_condition)), 1, sum(condition_indicator));
+            rglutmed_response(:, condition_indicator) = rglutmed_normalized_all(:, condition_indicator) - repmat(rglutmed_control_means(:, applicable_control_condition_indices(i_condition)), 1, sum(condition_indicator));
+            rtibiant_response(:, condition_indicator) = rtibiant_normalized_all(:, condition_indicator) - repmat(rtibiant_control_means(:, applicable_control_condition_indices(i_condition)), 1, sum(condition_indicator));
+            rgastroc_response(:, condition_indicator) = rgastroc_normalized_all(:, condition_indicator) - repmat(rgastroc_control_means(:, applicable_control_condition_indices(i_condition)), 1, sum(condition_indicator));
+            rperolng_response(:, condition_indicator) = rperolng_normalized_all(:, condition_indicator) - repmat(rperolng_control_means(:, applicable_control_condition_indices(i_condition)), 1, sum(condition_indicator));
+        end        
     end
         
     if process_data_angles
@@ -1698,6 +1738,29 @@ if save_data
             'rcop_x_response' ...
           );
     end
+    
+    if process_data_emg
+        save ...
+          ( ...
+            makeFileName(date, subject_id, 'resultsEmg'), ...
+            'lglutmed_normalized_all', ...
+            'ltibiant_normalized_all', ...
+            'lgastroc_normalized_all', ...
+            'lperolng_normalized_all', ...
+            'rglutmed_normalized_all', ...
+            'rtibiant_normalized_all', ...
+            'rgastroc_normalized_all', ...
+            'rperolng_normalized_all', ...
+            'lglutmed_response', ...
+            'ltibiant_response', ...
+            'lgastroc_response', ...
+            'lperolng_response', ...
+            'rglutmed_response', ...
+            'rtibiant_response', ...
+            'rgastroc_response', ...
+            'rperolng_response' ...
+          )
+    end    
 end
     
 %% save data old
