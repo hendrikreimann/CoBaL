@@ -12,7 +12,7 @@ process_all_data                        = 1;
 use_parallel                            = 0;
 
 load_results                            = 0;
-save_results                            = 1;
+save_results                            = 0;
 
 use_point_constraints                   = 0;
 use_hinge_constraints                   = 1;
@@ -114,7 +114,7 @@ for i_trial = trials_to_process
             data_points = 2001 : 3000;
             data_points = 1 : 30000;
             data_points = 3100 : 3200;
-%             data_points = 3100 : 3100;
+            data_points = 3100 : 3100;
         else
             load(makeFileName(date, subject_id, 'walking', i_trial, 'relevantDataStretches'));
         end
@@ -754,54 +754,7 @@ for i_trial = trials_to_process
                         A = constraint_matrix_trajectory{i_time};
                         A_dot = constraint_matrix_dot_trajectory{i_time};
                         
-                        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%                         % begin old stuff
-%                         k_c = rank(A);
-%                         k_v = length(virtual_joints);
-%                         [~, ~, V_c] = svd(A);
-%                         C_c = V_c(:, k_c+1:end); % C_c spans the null space of A
-%                         B_v = [eye(k_v); zeros(number_of_joints - k_v, k_v)];
-%                         k_w = rank([B_v C_c]);
-%                         [~, ~, V_w] = svd([B_v C_c]');
-%                         C_w = V_w(:, k_w+1:end);
-%                         D = [B_v C_w];
-%                         if rank(A) > 0
-%                             P = eye(plant.numberOfJoints) - A' * (A * M^(-1) * A')^(-1) * A * M^(-1);
-%                             Q = M*theta_two_dot + P*C*theta_dot + P*N - A'*(A*M^(-1)*A')^(-1)*(A * theta_two_dot);
-%                             Q = M*theta_two_dot + P*C*theta_dot + P*N + A'*(A*M^(-1)*A')^(-1)*(A_dot * theta_dot);
-%                         else
-%                             P = eye(plant.numberOfJoints);
-%                             Q = M*theta_two_dot + C*theta_dot + N;
-%                         end
-%                         E = [P; D'];
-% 
-%                         H = A'*(A*M^(-1)*A')^(-1)*A;
-%                         T = pinv(E) * [Q; zeros(size(D, 2), 1)];
-%                         if rank(A) == 0
-%                             lambda = 0;
-%                         else
-%                             lambda = (A*M^(-1)*A')^(-1) *  A*M^(-1)*(T - C*theta_dot - N) - (A*M^(-1)*A')^(-1)*A*theta_two_dot;
-%                             test_left_side = M*theta_two_dot + C*theta_dot + N + A'*lambda;
-%                             lambda_T = (A*M^(-1)*A')^(-1) *  A*M^(-1) * T;
-%                             lambda_C = - (A*M^(-1)*A')^(-1) *  A*M^(-1) * C*theta_dot;
-%                             lambda_N = - (A*M^(-1)*A')^(-1) *  A*M^(-1) * N;
-% 
-%     %                                 lambda_leftover = -(A*M^(-1)*A')^(-1) * A * theta_two_dot;
-%     %                                 test_right_side = lambda_T + lambda_C + lambda_N + lambda_leftover;
-% 
-%     %                                 T_pure = T;
-%     %                                 T = T_pure - A'*lambda_leftover;
-%                         end                        
-%                         T_old = T;
-%                         
-%                         % end old stuff
-                        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-                        
-                        
-                        
-                        
-                        
-                        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
                         % begin new stuff
                         P = eye(plant.numberOfJoints) - A' * (A * M^(-1) * A')^(-1) * A * M^(-1);
 
@@ -847,13 +800,8 @@ for i_trial = trials_to_process
                         b_2 = (M*theta_two_dot + P*C*theta_dot + P*N + A'*(A*M^(-1)*A')^(-1)*(A_dot * theta_dot));
 
                         % according to equation - new version
-                        H_2 = M^(-1)*P;
-                        b_2 = theta_two_dot + M^(-1) * P*(C*theta_dot + N) + M^(-1) * A'*(A*M^(-1)*A')^(-1)*A_dot*theta_dot;
-                        
-                        
-                        
-                        
-                        
+%                         H_2 = M^(-1)*P;
+%                         b_2 = theta_two_dot + M^(-1) * P*(C*theta_dot + N) + M^(-1) * A'*(A*M^(-1)*A')^(-1)*A_dot*theta_dot;
                         
                         % no virtual torques
                         k_v = length(virtual_joints);
@@ -883,6 +831,18 @@ for i_trial = trials_to_process
                             zeros(number_of_joints - k_w, 1); ...
                           ];
 %                             b_1; ...
+
+                        T = pinv(H) * b;
+
+                        % weight matrix
+                        acceleration_weights = [1e-3 1e-2 1e-1 1 1e1 1e2 1e3];
+                        T_weighted = zeros(size(T, 1), length(acceleration_weights));
+                        for i_weight = 1 : length(acceleration_weights)
+                            W_inv = diag([ones(1, size(H_2, 1))*acceleration_weights(i_weight), ones(1, k_v + number_of_joints - k_w)]);
+                            H_weighted_pinv = (H'*W_inv*H)^(-1)*H'*W_inv;
+                            T_weighted(:, i_weight) = H_weighted_pinv * b;
+                        end
+                        
                         
 % status 31.8.2016: I realized that the old code probably had an error, where I would use Q = M*theta_two_dot + P*C*theta_dot + P*N - A'*(A*M^(-1)*A')^(-1)*(A * theta_two_dot);
 % with A * theta_two_dot instead of A_dot * theta_dot, and wrong sign. The corrected version does not change the
@@ -890,7 +850,8 @@ for i_trial = trials_to_process
 
 % Now, add the GRF constraint for a stretch with only one contact
 
-                        T = pinv(H) * b;
+                        
+                        
                         
 %                         T_check = [T_old T];
 %                         T_check';
@@ -1287,7 +1248,7 @@ for i_trial = trials_to_process
             group_axes = zeros(1, number_of_groups);
             
             for i_group = 1 : number_of_groups
-                group_figures(i_group) = figure; group_axes(i_group) = axes; hold on
+                group_figures(i_group) = figure; group_axes(i_group) = axes; hold on; title('joint torques')
                 for i_joint = angle_plot_groups{i_group}
                     plot(time_mocap, joint_torque_trajectories(:, i_joint), 'linewidth', 2, 'displayname', plant.jointLabels{i_joint})
                 end
@@ -1295,11 +1256,11 @@ for i_trial = trials_to_process
             end
             
             linkaxes(group_axes, 'x');
-            distFig('rows', number_of_groups, 'Position', 'W', 'only', group_figures);
+%             distFig('rows', number_of_groups, 'Position', 'W', 'only', group_figures);
         end
 
-        %% plot_joint_torques
-        if plot_joint_torques
+        %% plot_joint_torques_smoothed
+        if plot_joint_torques_smoothed
             angle_plot_groups = ...
               { ...
                  1 : 6; ...

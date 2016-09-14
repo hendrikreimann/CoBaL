@@ -1,29 +1,55 @@
 
 
 plot_single         = 0;
-plot_absolute       = 1;
+plot_shaded         = 1;
 
-plot_rheel_x_pos    = 1;
-
+save_figures        = 1;
 
 % variable infor contains the following columns
-% variable name | display name | y-label with unit
-variable_info = ...
-  { ...
-    'rcop_x_normalized_all', 'right foot CoP, ml', 'CoP (m)'; ...
-  };
+% variable name | display name | y-label with unit | save label
+variable_info = {};
+
+% markers
+% variable_info = [variable_info; {'lheel_x_pos_normalized_all', 'left heel pos, ml', 'heel pos (m)', 'lheelpos'}];
+% variable_info = [variable_info; {'rheel_x_pos_normalized_all', 'right heel pos, ml', 'heel pos (m)', 'rheelpos'}];
+% variable_info = [variable_info; {'lheel_x_pos_response', 'left heel pos response, ml', 'heel pos (m)', 'lheelposRsp'}];
+% variable_info = [variable_info; {'rheel_x_pos_response', 'right heel pos response, ml', 'heel pos (m)', 'rheelposRsp'}];
+
+% forceplate
+% variable_info = [variable_info; {'lcop_x_normalized_all', 'left foot CoP, ml', 'CoP (m)', 'lcopx'}];
+% variable_info = [variable_info; {'rcop_x_normalized_all', 'right foot CoP, ml', 'CoP (m)', 'rcopx'}];
+% variable_info = [variable_info; {'lcop_x_response', 'left foot CoP response, ml', 'CoP (m)', 'lcopxRsp'}];
+% variable_info = [variable_info; {'rcop_x_response', 'right foot CoP response, ml', 'CoP (m)', 'rcopxRsp'}];
+
+
+% EMG
+variable_info = [variable_info; {'lglutmed_normalized_all', 'left Gluteus Medius', 'EMG', 'lglutmed'}];
+variable_info = [variable_info; {'ltibiant_normalized_all', 'left Tibialis Anterior', 'EMG', 'ltibiant'}];
+variable_info = [variable_info; {'lgastroc_normalized_all', 'left Gastrocnemius Medialis', 'EMG', 'lgastroc'}];
+variable_info = [variable_info; {'lperolng_normalized_all', 'left Peroneus Longus', 'EMG', 'lperolng'}];
+variable_info = [variable_info; {'rglutmed_normalized_all', 'right Gluteus Medius', 'EMG', 'rglutmed'}];
+variable_info = [variable_info; {'rtibiant_normalized_all', 'right Tibialis Anterior', 'EMG', 'rtibiant'}];
+variable_info = [variable_info; {'rgastroc_normalized_all', 'right Gastrocnemius Medialis', 'EMG', 'rgastroc'}];
+variable_info = [variable_info; {'rperolng_normalized_all', 'right Peroneus Longus', 'EMG', 'rperolng'}];
+
+%     'ltibiant_normalized_all', 'left Tibialis Anterior', 'EMG'; ...
+%     'lgastroc_normalized_all', 'left Gastrocnemius Medialis', 'EMG'; ...
+%     'lperolng_normalized_all', 'left Peroneus Longus', 'EMG'; ...
+%     'rglutmed_normalized_all', 'right Gluteus Medius', 'EMG'; ...
+%     'rtibiant_normalized_all', 'right Tibialis Anterior', 'EMG'; ...
+%     'rgastroc_normalized_all', 'right Gastrocnemius Medialis', 'EMG'; ...
+%     'rperolng_normalized_all', 'right Peroneus Longus', 'EMG'; ...
+%     'rcop_x_normalized_all', 'right foot CoP, ml', 'CoP (m)'; ...
 %     'rcop_x_response', 'right foot CoP response, ml', 'm'; ...
 %     'lcop_x_response'; ...
 %     'lcop_x_normalized_all'; ...
-%     'lheel_x_pos_normalized_all'; ...
-%     'rheel_x_pos_normalized_all'; ...
 
 %% load data
 load subjectInfo.mat;
 load(makeFileName(date, subject_id, 'resultsConditions'));
 load(makeFileName(date, subject_id, 'resultsMarker'));
 load(makeFileName(date, subject_id, 'resultsForceplate'));
-% load(makeFileName(date, subject_id, 'resultsEmg'));
+load(makeFileName(date, subject_id, 'resultsEmg'));
 
 
 
@@ -198,8 +224,8 @@ end
 
 
 
-%% plot absolute
-if plot_absolute
+%% plot shaded
+if plot_shaded
     for i_variable = 1 : size(variable_info, 1)
         evalstring = ['trajectories_to_plot = ' variable_info{i_variable, 1} ';'];
         eval(evalstring);
@@ -237,18 +263,18 @@ if plot_absolute
                     1 ...
                   );
                 legend_handles = [legend_handles, current_plots.mainLine];
-                label_string = clarifyConditionString(conditions_to_analyze{comparison_indices{i_comparison}(i_condition), comparison_to_make});
+                label_string = conditionStringToTitle(conditions_to_analyze{comparison_indices{i_comparison}(i_condition), comparison_to_make});
                 legend_data = [legend_data, label_string];
             end
 
             % annotate
             this_legend = legend(legend_handles, legend_data);
             title_string = variable_info{i_variable, 2};
-%             title_string = strrep(variables_to_plot{i_variable}, '_', ' ');
-%             title_string = strrep(title_string, ' normalized all', '');
+            filename_string = variable_info{i_variable, 4};
             for i_label = 1 : length(condition_labels);
                 if i_label ~= comparison_to_make
-                    title_string = [title_string ' - ' clarifyConditionString(conditions_to_analyze{comparison_indices{i_comparison}(1), i_label})];
+                    title_string = [title_string ' - ' conditionStringToTitle(conditions_to_analyze{comparison_indices{i_comparison}(1), i_label})];
+                    filename_string = [filename_string '_' conditionStringToFilename(conditions_to_analyze{comparison_indices{i_comparison}(1), i_label})];
                 end
             end
             title(title_string); set(gca, 'Fontsize', 12)
@@ -260,6 +286,13 @@ if plot_absolute
             xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
             text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), 'right \rightarrow', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right')
             text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(1), '\leftarrow left', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'left')
+            
+            % save
+            if save_figures
+                filename = ['../figures/' filename_string '.eps'];
+                saveas(gcf, filename, 'epsc2')
+                
+            end
         end
     end    
     

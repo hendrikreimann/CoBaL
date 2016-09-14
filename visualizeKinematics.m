@@ -122,14 +122,14 @@ if plot_angle_trajectories
     number_of_groups = size(angle_plot_groups, 1);
     group_axes = zeros(1, number_of_groups);
     for i_group = 1 : number_of_groups
-        figure; group_axes(i_group) = axes; hold on
+        figure; group_axes(i_group) = axes; hold on; title('joint angles')
         for i_joint = angle_plot_groups{i_group}
             plot(time_mocap, joint_angle_trajectories(:, i_joint), 'linewidth', 2, 'displayname', plant.jointLabels{i_joint})
         end
         legend('show', 'location', 'SE')
     end
     linkaxes(group_axes, 'x');
-    distFig('rows', number_of_groups);
+%     distFig('rows', number_of_groups);
     
     
 
