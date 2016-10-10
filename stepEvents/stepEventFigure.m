@@ -11,7 +11,7 @@ classdef stepEventFigure < handle;
         event_plots;
         selected_event_plot;
 
-        time_extension_steps = [0.1 0.2 0.5 1 2 5 10 20 60 120];
+        time_extension_steps = [0.1 0.2 0.5 1 2 5 10 20 40 60 120];
     end
     methods
         function this = stepEventFigure(figureTitle, controller, trialData, eventData)
