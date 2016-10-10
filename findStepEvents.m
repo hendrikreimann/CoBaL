@@ -12,7 +12,7 @@ show_forceplate         = 0;
 % trials_to_process = 1 : 1 : 21;
 % trials_to_process = [0:7 9:23];
 trials_to_process = 1 : 20;
-trials_to_process = 2;
+% trials_to_process = 1;
 
 
 % Choose Identification method for each event and foot

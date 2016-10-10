@@ -1,6 +1,7 @@
-extract_data                        = 0;
-extract_conditions                  = 0;
+extract_data                        = 1;
+extract_conditions                  = 1;
 calculate_responses                 = 1;
+
 calculate_strategy_directions       = 0;
 calculate_strategy_responses        = 0;
 calculate_stats                     = 0;
@@ -17,12 +18,14 @@ process_data_torques                = 0;
 
 do_acceleration_strategy_response_plots     = 0;
 
-wait_times = [0 0.150 0.450];
-wait_time_labels = {'0ms', '150ms', '450ms'};
+% wait_times = [0 0.150 0.450];
+% wait_time_labels = {'0ms', '150ms', '450ms'};
+wait_times = 0;
+wait_time_labels = {'0ms'};
 load subjectInfo.mat;
 % load(makeFileName(date, subject_id, 'model'));
 
-trials_to_process = 2 : 20;
+trials_to_process = 1 : 20;
 % trials_to_process = 3 : 43;
 % trials_to_process = 2 : 21;
 % trials_to_process = 3;
@@ -42,26 +45,46 @@ number_of_time_steps_normalized = 100;
 
 condition_labels = {'stance foot', 'perturbation', 'delay', 'index'};
 
+% for phase-dependent GVS
+% conditions_control = ...
+%   {
+%     'LEFT', 'CONTROL', 'CONTROL', 'CONTROL'; ...
+%     'RIGHT', 'CONTROL', 'CONTROL', 'CONTROL'; ...
+%   };
+% 
+% conditions_to_analyze = ...
+%   {
+%     'LEFT', 'POSITIVE', '0ms', 'TWO'; ...
+%     'LEFT', 'POSITIVE', '150ms', 'TWO'; ...
+%     'LEFT', 'POSITIVE', '450ms', 'TWO'; ...
+%     'LEFT', 'NEGATIVE', '0ms', 'TWO'; ...
+%     'LEFT', 'NEGATIVE', '150ms', 'TWO'; ...
+%     'LEFT', 'NEGATIVE', '450ms', 'TWO'; ...
+%     'RIGHT', 'POSITIVE', '0ms', 'ONE'; ...
+%     'RIGHT', 'POSITIVE', '150ms', 'ONE'; ...
+%     'RIGHT', 'POSITIVE', '450ms', 'ONE'; ...
+%     'RIGHT', 'NEGATIVE', '0ms', 'ONE'; ...
+%     'RIGHT', 'NEGATIVE', '150ms', 'ONE'; ...
+%     'RIGHT', 'NEGATIVE', '450ms', 'ONE'; ...
+%   };
+
+% for vision
 conditions_control = ...
   {
-    'LEFT', 'CONTROL', 'CONTROL', 'CONTROL'; ...
-    'RIGHT', 'CONTROL', 'CONTROL', 'CONTROL'; ...
+    'STANCE_LEFT', 'CONTROL', 'CONTROL', 'CONTROL'; ...
+    'STANCE_RIGHT', 'CONTROL', 'CONTROL', 'CONTROL'; ...
   };
 
 conditions_to_analyze = ...
   {
-    'LEFT', 'POSITIVE', '0ms', 'TWO'; ...
-    'LEFT', 'POSITIVE', '150ms', 'TWO'; ...
-    'LEFT', 'POSITIVE', '450ms', 'TWO'; ...
-    'LEFT', 'NEGATIVE', '0ms', 'TWO'; ...
-    'LEFT', 'NEGATIVE', '150ms', 'TWO'; ...
-    'LEFT', 'NEGATIVE', '450ms', 'TWO'; ...
-    'RIGHT', 'POSITIVE', '0ms', 'ONE'; ...
-    'RIGHT', 'POSITIVE', '150ms', 'ONE'; ...
-    'RIGHT', 'POSITIVE', '450ms', 'ONE'; ...
-    'RIGHT', 'NEGATIVE', '0ms', 'ONE'; ...
-    'RIGHT', 'NEGATIVE', '150ms', 'ONE'; ...
-    'RIGHT', 'NEGATIVE', '450ms', 'ONE'; ...
+    'STANCE_LEFT', 'ILLUSION_RIGHT', '0ms', 'ONE'; ...
+    'STANCE_LEFT', 'ILLUSION_LEFT', '0ms', 'ONE'; ...
+    'STANCE_RIGHT', 'ILLUSION_RIGHT', '0ms', 'ONE'; ...
+    'STANCE_RIGHT', 'ILLUSION_LEFT', '0ms', 'ONE'; ...
+    'STANCE_LEFT', 'ILLUSION_RIGHT', '0ms', 'TWO'; ...
+    'STANCE_LEFT', 'ILLUSION_LEFT', '0ms', 'TWO'; ...
+    'STANCE_RIGHT', 'ILLUSION_RIGHT', '0ms', 'TWO'; ...
+    'STANCE_RIGHT', 'ILLUSION_LEFT', '0ms', 'TWO'; ...
   };
 
 number_of_conditions_control = size(conditions_control, 1);
@@ -69,9 +92,9 @@ number_of_conditions_to_analyze = size(conditions_to_analyze, 1);
     
 applicable_control_condition_indices = zeros(number_of_conditions_to_analyze, 1);
 for i_condition = 1 : number_of_conditions_to_analyze
-    if strcmp(conditions_to_analyze(i_condition, 1), 'LEFT')
+    if strcmp(conditions_to_analyze(i_condition, 1), 'STANCE_LEFT')
         applicable_control_condition_indices(i_condition) = 1;
-    elseif strcmp(conditions_to_analyze(i_condition, 1), 'RIGHT')
+    elseif strcmp(conditions_to_analyze(i_condition, 1), 'STANCE_RIGHT')
         applicable_control_condition_indices(i_condition) = 2;
     end
 end
@@ -114,6 +137,7 @@ if extract_data
         rheel_y_pos_normalized_all = [];
     end
     if process_data_forceplate
+        cop_x_normalized_all = [];
         lcop_x_normalized_all = [];
         rcop_x_normalized_all = [];
         fxl_normalized_all = [];
@@ -202,6 +226,7 @@ if extract_data
             load(makeFileName(date, subject_id, 'walking', i_trial, 'forceplateTrajectories'));
 
             % initialize containers
+            cop_x_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
             lcop_x_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
             rcop_x_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
             fxl_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
@@ -270,10 +295,10 @@ if extract_data
                 rheel_y_pos_extracted_stretch = rheel_y_pos_trajectory(start_index_mocap : end_index_mocap);
 
                 % define stance foot heel as spatial point of reference
-                if strcmp(condition_stance_foot_list_trial{i_stretch}, 'RIGHT')
+                if strcmp(condition_stance_foot_list_trial{i_stretch}, 'STANCE_RIGHT')
                     stance_foot_heel_x_initial = rheel_x_pos_extracted_stretch(1);
                     stance_foot_heel_y_initial = rheel_y_pos_extracted_stretch(1);
-                elseif strcmp(condition_stance_foot_list_trial{i_stretch}, 'LEFT')
+                elseif strcmp(condition_stance_foot_list_trial{i_stretch}, 'STANCE_LEFT')
                     stance_foot_heel_x_initial = lheel_x_pos_extracted_stretch(1);
                     stance_foot_heel_y_initial = lheel_y_pos_extracted_stretch(1);
                 end
@@ -319,27 +344,30 @@ if extract_data
                 
                 % extract
                 time_extracted_forceplate = time_forceplate(start_index_forceplate : end_index_forceplate);
+                cop_x_extracted_stretch = total_forceplate_cop_Acw(start_index_forceplate : end_index_forceplate, 1);
                 lcop_x_extracted_stretch = left_forceplate_cop_Acw(start_index_forceplate : end_index_forceplate, 1);
+                rcop_x_extracted_stretch = right_forceplate_cop_Acw(start_index_forceplate : end_index_forceplate, 1);
                 fxl_extracted_stretch = left_forceplate_wrench_Acw(start_index_forceplate : end_index_forceplate, 1);
                 fzl_extracted_stretch = left_forceplate_wrench_Acw(start_index_forceplate : end_index_forceplate, 3);
                 myl_extracted_stretch = left_forceplate_wrench_Acw(start_index_forceplate : end_index_forceplate, 5);
                 fxr_extracted_stretch = right_forceplate_wrench_Acw(start_index_forceplate : end_index_forceplate, 1);
                 fzr_extracted_stretch = right_forceplate_wrench_Acw(start_index_forceplate : end_index_forceplate, 3);
                 myr_extracted_stretch = right_forceplate_wrench_Acw(start_index_forceplate : end_index_forceplate, 5);
-                rcop_x_extracted_stretch = right_forceplate_cop_Acw(start_index_forceplate : end_index_forceplate, 1);
                 
                 % normalize
                 time_normalized_forceplate = linspace(time_extracted_forceplate(1), time_extracted_forceplate(end), number_of_time_steps_normalized);
+                cop_x_normalized_stretch = spline(time_extracted_forceplate, cop_x_extracted_stretch, time_normalized_forceplate);
+                lcop_x_normalized_stretch = spline(time_extracted_forceplate, lcop_x_extracted_stretch, time_normalized_forceplate);
+                rcop_x_normalized_stretch = spline(time_extracted_forceplate, rcop_x_extracted_stretch, time_normalized_forceplate);
                 fxl_normalized_stretch = spline(time_extracted_forceplate, fxl_extracted_stretch, time_normalized_forceplate);
                 fzl_normalized_stretch = spline(time_extracted_forceplate, fzl_extracted_stretch, time_normalized_forceplate);
                 myl_normalized_stretch = spline(time_extracted_forceplate, myl_extracted_stretch, time_normalized_forceplate);
-                lcop_x_normalized_stretch = spline(time_extracted_forceplate, lcop_x_extracted_stretch, time_normalized_forceplate);
                 fxr_normalized_stretch = spline(time_extracted_forceplate, fxr_extracted_stretch, time_normalized_forceplate);
                 fzr_normalized_stretch = spline(time_extracted_forceplate, fzr_extracted_stretch, time_normalized_forceplate);
                 myr_normalized_stretch = spline(time_extracted_forceplate, myr_extracted_stretch, time_normalized_forceplate);
-                rcop_x_normalized_stretch = spline(time_extracted_forceplate, rcop_x_extracted_stretch, time_normalized_forceplate);
 
                 % use stance foot heel as reference and store
+                cop_x_normalized_trial(:, i_stretch) = cop_x_normalized_stretch - stance_foot_heel_x_initial;
                 lcop_x_normalized_trial(:, i_stretch) = lcop_x_normalized_stretch - stance_foot_heel_x_initial;
                 rcop_x_normalized_trial(:, i_stretch) = rcop_x_normalized_stretch - stance_foot_heel_x_initial;
                 
@@ -445,14 +473,15 @@ if extract_data
             rheel_y_pos_normalized_all = [rheel_y_pos_normalized_all rheel_y_pos_normalized_trial];
         end
         if process_data_forceplate
+            cop_x_normalized_all = [cop_x_normalized_all cop_x_normalized_trial];
+            lcop_x_normalized_all = [lcop_x_normalized_all lcop_x_normalized_trial];
+            rcop_x_normalized_all = [rcop_x_normalized_all rcop_x_normalized_trial];
             fxl_normalized_all = [fxl_normalized_all fxl_normalized_trial];
             fzl_normalized_all = [fzl_normalized_all fzl_normalized_trial];
             myl_normalized_all = [myl_normalized_all myl_normalized_trial];
-            lcop_x_normalized_all = [lcop_x_normalized_all lcop_x_normalized_trial];
             fxr_normalized_all = [fxr_normalized_all fxr_normalized_trial];
             fzr_normalized_all = [fzr_normalized_all fzr_normalized_trial];
             myr_normalized_all = [myr_normalized_all myr_normalized_trial];
-            rcop_x_normalized_all = [rcop_x_normalized_all rcop_x_normalized_trial];
         end
         if process_data_emg
             lglutmed_normalized_all = [lglutmed_normalized_all lglutmed_normalized_trial];
@@ -776,38 +805,42 @@ if calculate_responses
     
     if process_data_forceplate
         % calculate control means
+        cop_x_control_means = zeros(number_of_time_steps_normalized, number_of_conditions_control);
+        lcop_x_control_means = zeros(number_of_time_steps_normalized, number_of_conditions_control);
+        rcop_x_control_means = zeros(number_of_time_steps_normalized, number_of_conditions_control);
         fxl_control_means = zeros(number_of_time_steps_normalized, number_of_conditions_control);
         fzl_control_means = zeros(number_of_time_steps_normalized, number_of_conditions_control);
         myl_control_means = zeros(number_of_time_steps_normalized, number_of_conditions_control);
-        lcop_x_control_means = zeros(number_of_time_steps_normalized, number_of_conditions_control);
         fxr_control_means = zeros(number_of_time_steps_normalized, number_of_conditions_control);
         fzr_control_means = zeros(number_of_time_steps_normalized, number_of_conditions_control);
         myr_control_means = zeros(number_of_time_steps_normalized, number_of_conditions_control);
-        rcop_x_control_means = zeros(number_of_time_steps_normalized, number_of_conditions_control);
         
         for i_condition = 1 : number_of_conditions_control
             condition_indicator = conditions_control_indicators(:, i_condition);
+            cop_x_control_means(:, i_condition) = mean(cop_x_normalized_all(:, condition_indicator), 2);
+            lcop_x_control_means(:, i_condition) = mean(lcop_x_normalized_all(:, condition_indicator), 2);
+            rcop_x_control_means(:, i_condition) = mean(rcop_x_normalized_all(:, condition_indicator), 2);
             fxl_control_means(:, i_condition) = mean(fxl_normalized_all(:, condition_indicator), 2);
             fzl_control_means(:, i_condition) = mean(fzl_normalized_all(:, condition_indicator), 2);
             myl_control_means(:, i_condition) = mean(myl_normalized_all(:, condition_indicator), 2);
-            lcop_x_control_means(:, i_condition) = mean(lcop_x_normalized_all(:, condition_indicator), 2);
             fxr_control_means(:, i_condition) = mean(fxr_normalized_all(:, condition_indicator), 2);
             fzr_control_means(:, i_condition) = mean(fzr_normalized_all(:, condition_indicator), 2);
             myr_control_means(:, i_condition) = mean(myr_normalized_all(:, condition_indicator), 2);
-            rcop_x_control_means(:, i_condition) = mean(rcop_x_normalized_all(:, condition_indicator), 2);
         end
         
         % calculate stimulus responses
+        cop_x_response = zeros(size(cop_x_normalized_all));
+        lcop_x_response = zeros(size(lcop_x_normalized_all));
+        rcop_x_response = zeros(size(lcop_x_normalized_all));
         fxl_response = zeros(size(fxl_normalized_all));
         fzl_response = zeros(size(fzl_normalized_all));
         myl_response = zeros(size(myl_normalized_all));
-        lcop_x_response = zeros(size(lcop_x_normalized_all));
         fxr_response = zeros(size(fxl_normalized_all));
         fzr_response = zeros(size(fzl_normalized_all));
         myr_response = zeros(size(myl_normalized_all));
-        rcop_x_response = zeros(size(lcop_x_normalized_all));
         for i_condition = 1 : number_of_conditions_control
             condition_indicator = conditions_control_indicators(:, i_condition);
+            cop_x_response(:, condition_indicator) = cop_x_normalized_all(:, condition_indicator) - repmat(cop_x_control_means(:, i_condition), 1, sum(condition_indicator));
             fxl_response(:, condition_indicator) = fxl_normalized_all(:, condition_indicator) - repmat(fxl_control_means(:, i_condition), 1, sum(condition_indicator));
             fzl_response(:, condition_indicator) = fzl_normalized_all(:, condition_indicator) - repmat(fzl_control_means(:, i_condition), 1, sum(condition_indicator));
             myl_response(:, condition_indicator) = myl_normalized_all(:, condition_indicator) - repmat(myl_control_means(:, i_condition), 1, sum(condition_indicator));
@@ -819,6 +852,7 @@ if calculate_responses
         end
         for i_condition = 1 : number_of_conditions_to_analyze
             condition_indicator = conditions_to_analyze_indicators(:, i_condition);
+            cop_x_response(:, condition_indicator) = cop_x_normalized_all(:, condition_indicator) - repmat(cop_x_control_means(:, applicable_control_condition_indices(i_condition)), 1, sum(condition_indicator));
             fxl_response(:, condition_indicator) = fxl_normalized_all(:, condition_indicator) - repmat(fxl_control_means(:, applicable_control_condition_indices(i_condition)), 1, sum(condition_indicator));
             fzl_response(:, condition_indicator) = fzl_normalized_all(:, condition_indicator) - repmat(fzl_control_means(:, applicable_control_condition_indices(i_condition)), 1, sum(condition_indicator));
             myl_response(:, condition_indicator) = myl_normalized_all(:, condition_indicator) - repmat(myl_control_means(:, applicable_control_condition_indices(i_condition)), 1, sum(condition_indicator));
@@ -1720,6 +1754,7 @@ if save_data
         save ...
           ( ...
             makeFileName(date, subject_id, 'resultsForceplate'), ...
+            'cop_x_normalized_all', ...
             'fxl_normalized_all', ...
             'fzl_normalized_all', ...
             'myl_normalized_all', ...
@@ -1728,6 +1763,7 @@ if save_data
             'fzr_normalized_all', ...
             'myr_normalized_all', ...
             'rcop_x_normalized_all', ...
+            'cop_x_response', ...
             'fxl_response', ...
             'fzl_response', ...
             'myl_response', ...
