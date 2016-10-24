@@ -16,7 +16,8 @@ process_data_emg                    = 1;
 process_data_angles                 = 0;
 process_data_torques                = 0;
 
-do_acceleration_strategy_response_plots     = 0;
+
+use_stance_foot_as_reference        = 1;
 
 % wait_times = [0 0.150 0.450];
 % wait_time_labels = {'0ms', '150ms', '450ms'};
@@ -85,6 +86,14 @@ conditions_to_analyze = ...
     'STANCE_LEFT', 'ILLUSION_LEFT', '0ms', 'TWO'; ...
     'STANCE_RIGHT', 'ILLUSION_RIGHT', '0ms', 'TWO'; ...
     'STANCE_RIGHT', 'ILLUSION_LEFT', '0ms', 'TWO'; ...
+    'STANCE_LEFT', 'ILLUSION_RIGHT', '0ms', 'THREE'; ...
+    'STANCE_LEFT', 'ILLUSION_LEFT', '0ms', 'THREE'; ...
+    'STANCE_RIGHT', 'ILLUSION_RIGHT', '0ms', 'THREE'; ...
+    'STANCE_RIGHT', 'ILLUSION_LEFT', '0ms', 'THREE'; ...
+    'STANCE_LEFT', 'ILLUSION_RIGHT', '0ms', 'FOUR'; ...
+    'STANCE_LEFT', 'ILLUSION_LEFT', '0ms', 'FOUR'; ...
+    'STANCE_RIGHT', 'ILLUSION_RIGHT', '0ms', 'FOUR'; ...
+    'STANCE_RIGHT', 'ILLUSION_LEFT', '0ms', 'FOUR'; ...
   };
 
 number_of_conditions_control = size(conditions_control, 1);
@@ -122,19 +131,37 @@ if extract_data
     step_times_total = [];
     stim_start_time_relative_to_stretch_total = [];    
     if process_data_marker
+        c7_x_pos_normalized_all = [];
+        c7_y_pos_normalized_all = [];
+        c7_z_pos_normalized_all = [];
         lpsi_x_pos_normalized_all = [];
+        lpsi_y_pos_normalized_all = [];
+        lpsi_z_pos_normalized_all = [];
         rpsi_x_pos_normalized_all = [];
-        lasi_x_vel_normalized_all = [];
-        rasi_x_vel_normalized_all = [];
-        lpsi_x_vel_normalized_all = [];
-        rpsi_x_vel_normalized_all = [];
-        pelvis_x_pos_normalized_all = [];
-        pelvis_x_vel_normalized_all = [];
-        pelvis_x_acc_normalized_all = [];
+        rpsi_y_pos_normalized_all = [];
+        rpsi_z_pos_normalized_all = [];
         lheel_x_pos_normalized_all = [];
-        rheel_x_pos_normalized_all = [];
         lheel_y_pos_normalized_all = [];
+        lheel_z_pos_normalized_all = [];
+        rheel_x_pos_normalized_all = [];
         rheel_y_pos_normalized_all = [];
+        rheel_z_pos_normalized_all = [];
+        
+        % velocities
+%         lasi_x_vel_normalized_all = [];
+%         rasi_x_vel_normalized_all = [];
+%         lpsi_x_vel_normalized_all = [];
+%         rpsi_x_vel_normalized_all = [];
+        
+%         pelvis_x_pos_normalized_all = [];
+%         pelvis_x_vel_normalized_all = [];
+%         pelvis_x_acc_normalized_all = [];
+        
+        % angles
+        lleg_angle_ml_normalized_all = [];
+        rleg_angle_ml_normalized_all = [];
+        trunk_angle_ml_normalized_all = [];
+        
     end
     if process_data_forceplate
         cop_x_normalized_all = [];
@@ -186,41 +213,64 @@ if extract_data
             [b_lowpass, a_lowpass] = butter(filter_order_low, cutoff_frequency_low/(sampling_rate_mocap/2), 'low');
             
             % define markers and indices
+            c7_marker = find(strcmp(marker_headers, 'C7'));
             lpsi_marker = find(strcmp(marker_headers, 'LPSI'));
             rpsi_marker = find(strcmp(marker_headers, 'RPSI'));
             lheel_marker = find(strcmp(marker_headers, 'LHEE'));
             rheel_marker = find(strcmp(marker_headers, 'RHEE'));
 
+            c7_marker_indices = reshape([(rheel_marker - 1) * 3 + 1; (c7_marker - 1) * 3 + 2; (c7_marker - 1) * 3 + 3], 1, length(c7_marker)*3);
             lpsi_marker_indices = reshape([(lpsi_marker - 1) * 3 + 1; (lpsi_marker - 1) * 3 + 2; (lpsi_marker - 1) * 3 + 3], 1, length(lpsi_marker)*3);
             rpsi_marker_indices = reshape([(rpsi_marker - 1) * 3 + 1; (rpsi_marker - 1) * 3 + 2; (rpsi_marker - 1) * 3 + 3], 1, length(rpsi_marker)*3);
             lheel_marker_indices = reshape([(lheel_marker - 1) * 3 + 1; (lheel_marker - 1) * 3 + 2; (lheel_marker - 1) * 3 + 3], 1, length(lheel_marker)*3);
             rheel_marker_indices = reshape([(rheel_marker - 1) * 3 + 1; (rheel_marker - 1) * 3 + 2; (rheel_marker - 1) * 3 + 3], 1, length(rheel_marker)*3);
 
             % rename relevant trajectories
+            c7_x_pos_trajectory = marker_trajectories(:, c7_marker_indices(1));
+            c7_y_pos_trajectory = marker_trajectories(:, c7_marker_indices(2));
+            c7_z_pos_trajectory = marker_trajectories(:, c7_marker_indices(3));
             lpsi_x_pos_trajectory = marker_trajectories(:, lpsi_marker_indices(1));
+            lpsi_y_pos_trajectory = marker_trajectories(:, lpsi_marker_indices(2));
+            lpsi_z_pos_trajectory = marker_trajectories(:, lpsi_marker_indices(3));
             rpsi_x_pos_trajectory = marker_trajectories(:, rpsi_marker_indices(1));
-            lpsi_x_vel_trajectory = deriveByTime(filtfilt(b_lowpass, a_lowpass, spline(time_mocap, lpsi_x_pos_trajectory, time_mocap)), sampling_rate_mocap^(-1));
-            rpsi_x_vel_trajectory = deriveByTime(filtfilt(b_lowpass, a_lowpass, spline(time_mocap, rpsi_x_pos_trajectory, time_mocap)), sampling_rate_mocap^(-1));
-            lpsi_x_acc_trajectory = deriveByTime(filtfilt(b_lowpass, a_lowpass, lpsi_x_vel_trajectory), sampling_rate_mocap^(-1));
-            rpsi_x_acc_trajectory = deriveByTime(filtfilt(b_lowpass, a_lowpass, rpsi_x_vel_trajectory), sampling_rate_mocap^(-1));
+            rpsi_y_pos_trajectory = marker_trajectories(:, rpsi_marker_indices(2));
+            rpsi_z_pos_trajectory = marker_trajectories(:, rpsi_marker_indices(3));
             lheel_x_pos_trajectory = marker_trajectories(:, lheel_marker_indices(1));
-            rheel_x_pos_trajectory = marker_trajectories(:, rheel_marker_indices(1));
             lheel_y_pos_trajectory = marker_trajectories(:, lheel_marker_indices(2));
+            lheel_z_pos_trajectory = marker_trajectories(:, lheel_marker_indices(3));
+            rheel_x_pos_trajectory = marker_trajectories(:, rheel_marker_indices(1));
             rheel_y_pos_trajectory = marker_trajectories(:, rheel_marker_indices(2));
-
+            rheel_z_pos_trajectory = marker_trajectories(:, rheel_marker_indices(3));
+%             lpsi_x_vel_trajectory = deriveByTime(filtfilt(b_lowpass, a_lowpass, spline(time_mocap, lpsi_x_pos_trajectory, time_mocap)), sampling_rate_mocap^(-1));
+%             rpsi_x_vel_trajectory = deriveByTime(filtfilt(b_lowpass, a_lowpass, spline(time_mocap, rpsi_x_pos_trajectory, time_mocap)), sampling_rate_mocap^(-1));
+%             lpsi_x_acc_trajectory = deriveByTime(filtfilt(b_lowpass, a_lowpass, lpsi_x_vel_trajectory), sampling_rate_mocap^(-1));
+%             rpsi_x_acc_trajectory = deriveByTime(filtfilt(b_lowpass, a_lowpass, rpsi_x_vel_trajectory), sampling_rate_mocap^(-1));
+            
             % initialize containers
+            c7_x_pos_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
+            c7_y_pos_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
+            c7_z_pos_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
             lpsi_x_pos_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
+            lpsi_y_pos_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
+            lpsi_z_pos_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
             rpsi_x_pos_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
-            lpsi_x_vel_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
-            rpsi_x_vel_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
-            pelvis_x_pos_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
-            pelvis_x_vel_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
-            pelvis_x_acc_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
+            rpsi_y_pos_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
+            rpsi_z_pos_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
             lheel_x_pos_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
-            rheel_x_pos_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
             lheel_y_pos_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
+            lheel_z_pos_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
+            rheel_x_pos_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
             rheel_y_pos_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
-
+            rheel_z_pos_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
+%             lpsi_x_vel_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
+%             rpsi_x_vel_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
+%             pelvis_x_pos_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
+%             pelvis_x_vel_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
+%             pelvis_x_acc_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
+            
+            lleg_angle_ml_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
+            rleg_angle_ml_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
+            trunk_angle_ml_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
         end
         if process_data_forceplate
             load(makeFileName(date, subject_id, 'walking', i_trial, 'forceplateTrajectories'));
@@ -283,17 +333,47 @@ if extract_data
                 start_index_mocap = start_indices_mocap(i_stretch);
                 end_index_mocap = end_indices_mocap(i_stretch);
                 time_extracted_mocap = time_mocap(start_index_mocap : end_index_mocap);
+                c7_x_pos_extracted_stretch = c7_x_pos_trajectory(start_index_mocap : end_index_mocap);
+                c7_y_pos_extracted_stretch = c7_y_pos_trajectory(start_index_mocap : end_index_mocap);
+                c7_z_pos_extracted_stretch = c7_z_pos_trajectory(start_index_mocap : end_index_mocap);
                 lpsi_x_pos_extracted_stretch = lpsi_x_pos_trajectory(start_index_mocap : end_index_mocap);
+                lpsi_y_pos_extracted_stretch = lpsi_y_pos_trajectory(start_index_mocap : end_index_mocap);
+                lpsi_z_pos_extracted_stretch = lpsi_z_pos_trajectory(start_index_mocap : end_index_mocap);
                 rpsi_x_pos_extracted_stretch = rpsi_x_pos_trajectory(start_index_mocap : end_index_mocap);
-                lpsi_x_vel_extracted_stretch = lpsi_x_vel_trajectory(start_index_mocap : end_index_mocap);
-                rpsi_x_vel_extracted_stretch = rpsi_x_vel_trajectory(start_index_mocap : end_index_mocap);
-                lpsi_x_acc_extracted_stretch = lpsi_x_acc_trajectory(start_index_mocap : end_index_mocap);
-                rpsi_x_acc_extracted_stretch = rpsi_x_acc_trajectory(start_index_mocap : end_index_mocap);
+                rpsi_y_pos_extracted_stretch = rpsi_y_pos_trajectory(start_index_mocap : end_index_mocap);
+                rpsi_z_pos_extracted_stretch = rpsi_z_pos_trajectory(start_index_mocap : end_index_mocap);
                 lheel_x_pos_extracted_stretch = lheel_x_pos_trajectory(start_index_mocap : end_index_mocap);
-                rheel_x_pos_extracted_stretch = rheel_x_pos_trajectory(start_index_mocap : end_index_mocap);
                 lheel_y_pos_extracted_stretch = lheel_y_pos_trajectory(start_index_mocap : end_index_mocap);
+                lheel_z_pos_extracted_stretch = lheel_z_pos_trajectory(start_index_mocap : end_index_mocap);
+                rheel_x_pos_extracted_stretch = rheel_x_pos_trajectory(start_index_mocap : end_index_mocap);
                 rheel_y_pos_extracted_stretch = rheel_y_pos_trajectory(start_index_mocap : end_index_mocap);
-
+                rheel_z_pos_extracted_stretch = rheel_z_pos_trajectory(start_index_mocap : end_index_mocap);
+                
+%                 lpsi_x_vel_extracted_stretch = lpsi_x_vel_trajectory(start_index_mocap : end_index_mocap);
+%                 rpsi_x_vel_extracted_stretch = rpsi_x_vel_trajectory(start_index_mocap : end_index_mocap);
+%                 lpsi_x_acc_extracted_stretch = lpsi_x_acc_trajectory(start_index_mocap : end_index_mocap);
+%                 rpsi_x_acc_extracted_stretch = rpsi_x_acc_trajectory(start_index_mocap : end_index_mocap);
+                
+                
+                % calculate vectors
+                mpsi_x_pos = (lpsi_x_pos_extracted_stretch + rpsi_x_pos_extracted_stretch) * 0.5;
+                mpsi_y_pos = (lpsi_y_pos_extracted_stretch + rpsi_y_pos_extracted_stretch) * 0.5;
+                mpsi_z_pos = (lpsi_z_pos_extracted_stretch + rpsi_z_pos_extracted_stretch) * 0.5;
+                lleg_vector_x = mpsi_x_pos - lheel_x_pos_extracted_stretch;
+                lleg_vector_y = mpsi_y_pos - lheel_y_pos_extracted_stretch;
+                lleg_vector_z = mpsi_z_pos - lheel_z_pos_extracted_stretch;
+                rleg_vector_x = mpsi_x_pos - rheel_x_pos_extracted_stretch;
+                rleg_vector_y = mpsi_y_pos - rheel_y_pos_extracted_stretch;
+                rleg_vector_z = mpsi_z_pos - rheel_z_pos_extracted_stretch;
+                trunk_vector_x = c7_x_pos_extracted_stretch - mpsi_x_pos;
+                trunk_vector_y = c7_y_pos_extracted_stretch - mpsi_y_pos;
+                trunk_vector_z = c7_z_pos_extracted_stretch - mpsi_z_pos;
+                
+                % calculate angles
+                trunk_angle_ml_extracted_stretch = rad2deg(atan2(trunk_vector_x, trunk_vector_z));
+                lleg_angle_ml_extracted_stretch = rad2deg(atan2(lleg_vector_x, lleg_vector_z));
+                rleg_angle_ml_extracted_stretch = rad2deg(atan2(rleg_vector_x, rleg_vector_z));
+                
                 % define stance foot heel as spatial point of reference
                 if strcmp(condition_stance_foot_list_trial{i_stretch}, 'STANCE_RIGHT')
                     stance_foot_heel_x_initial = rheel_x_pos_extracted_stretch(1);
@@ -306,28 +386,45 @@ if extract_data
                 % normalize mocap data in time
                 time_normalized_mocap = linspace(time_extracted_mocap(1), time_extracted_mocap(end), number_of_time_steps_normalized);
                 lpsi_x_pos_normalized_stretch = spline(time_extracted_mocap, lpsi_x_pos_extracted_stretch, time_normalized_mocap);
-                rpsi_x_pos_normalized_stretch = spline(time_extracted_mocap, rpsi_x_pos_extracted_stretch, time_normalized_mocap);
-                lpsi_x_vel_normalized_stretch = spline(time_extracted_mocap, lpsi_x_vel_extracted_stretch, time_normalized_mocap);
-                rpsi_x_vel_normalized_stretch = spline(time_extracted_mocap, rpsi_x_vel_extracted_stretch, time_normalized_mocap);
-                lpsi_x_acc_normalized_stretch = spline(time_extracted_mocap, lpsi_x_acc_extracted_stretch, time_normalized_mocap);
-                rpsi_x_acc_normalized_stretch = spline(time_extracted_mocap, rpsi_x_acc_extracted_stretch, time_normalized_mocap);
                 lheel_x_pos_normalized_stretch = spline(time_extracted_mocap, lheel_x_pos_extracted_stretch, time_normalized_mocap);
-                rheel_x_pos_normalized_stretch = spline(time_extracted_mocap, rheel_x_pos_extracted_stretch, time_normalized_mocap);
                 lheel_y_pos_normalized_stretch = spline(time_extracted_mocap, lheel_y_pos_extracted_stretch, time_normalized_mocap);
+                rpsi_x_pos_normalized_stretch = spline(time_extracted_mocap, rpsi_x_pos_extracted_stretch, time_normalized_mocap);
+                rheel_x_pos_normalized_stretch = spline(time_extracted_mocap, rheel_x_pos_extracted_stretch, time_normalized_mocap);
                 rheel_y_pos_normalized_stretch = spline(time_extracted_mocap, rheel_y_pos_extracted_stretch, time_normalized_mocap);
+                
+                trunk_angle_ml_normalized_stretch = spline(time_extracted_mocap, trunk_angle_ml_extracted_stretch, time_normalized_mocap);
+                lleg_angle_ml_normalized_stretch = spline(time_extracted_mocap, lleg_angle_ml_extracted_stretch, time_normalized_mocap);
+                rleg_angle_ml_normalized_stretch = spline(time_extracted_mocap, rleg_angle_ml_extracted_stretch, time_normalized_mocap);
+                
+%                 lpsi_x_vel_normalized_stretch = spline(time_extracted_mocap, lpsi_x_vel_extracted_stretch, time_normalized_mocap);
+%                 rpsi_x_vel_normalized_stretch = spline(time_extracted_mocap, rpsi_x_vel_extracted_stretch, time_normalized_mocap);
+%                 lpsi_x_acc_normalized_stretch = spline(time_extracted_mocap, lpsi_x_acc_extracted_stretch, time_normalized_mocap);
+%                 rpsi_x_acc_normalized_stretch = spline(time_extracted_mocap, rpsi_x_acc_extracted_stretch, time_normalized_mocap);
+
+                if use_stance_foot_as_reference
+                    reference_x = stance_foot_heel_x_initial;
+                    reference_y = stance_foot_heel_y_initial;
+                else
+                    reference_x = 0;
+                    reference_y = 0;
+                end
 
                 % use stance foot heel as reference and store
-                lpsi_x_pos_normalized_trial(:, i_stretch) = lpsi_x_pos_normalized_stretch - stance_foot_heel_x_initial;
-                rpsi_x_pos_normalized_trial(:, i_stretch) = rpsi_x_pos_normalized_stretch - stance_foot_heel_x_initial;
-                lpsi_x_vel_normalized_trial(:, i_stretch) = lpsi_x_vel_normalized_stretch;
-                rpsi_x_vel_normalized_trial(:, i_stretch) = rpsi_x_vel_normalized_stretch;
-                pelvis_x_pos_normalized_trial(:, i_stretch) = mean([lpsi_x_pos_normalized_stretch; rpsi_x_pos_normalized_stretch]) - stance_foot_heel_x_initial;
-                pelvis_x_vel_normalized_trial(:, i_stretch) = mean([lpsi_x_vel_normalized_stretch; rpsi_x_vel_normalized_stretch]);
-                pelvis_x_acc_normalized_trial(:, i_stretch) = mean([lpsi_x_acc_normalized_stretch; rpsi_x_acc_normalized_stretch]);
-                lheel_x_pos_normalized_trial(:, i_stretch) = lheel_x_pos_normalized_stretch - stance_foot_heel_x_initial;
-                rheel_x_pos_normalized_trial(:, i_stretch) = rheel_x_pos_normalized_stretch - stance_foot_heel_x_initial;
-                lheel_y_pos_normalized_trial(:, i_stretch) = lheel_y_pos_normalized_stretch - stance_foot_heel_y_initial;
-                rheel_y_pos_normalized_trial(:, i_stretch) = rheel_y_pos_normalized_stretch - stance_foot_heel_y_initial;
+                lpsi_x_pos_normalized_trial(:, i_stretch) = lpsi_x_pos_normalized_stretch - reference_x;
+                rpsi_x_pos_normalized_trial(:, i_stretch) = rpsi_x_pos_normalized_stretch - reference_x;
+                lheel_x_pos_normalized_trial(:, i_stretch) = lheel_x_pos_normalized_stretch - reference_x;
+                rheel_x_pos_normalized_trial(:, i_stretch) = rheel_x_pos_normalized_stretch - reference_x;
+                lheel_y_pos_normalized_trial(:, i_stretch) = lheel_y_pos_normalized_stretch - reference_y;
+                rheel_y_pos_normalized_trial(:, i_stretch) = rheel_y_pos_normalized_stretch - reference_y;
+                trunk_angle_ml_normalized_trial(:, i_stretch) = trunk_angle_ml_normalized_stretch;
+                lleg_angle_ml_normalized_trial(:, i_stretch) = lleg_angle_ml_normalized_stretch;
+                rleg_angle_ml_normalized_trial(:, i_stretch) = rleg_angle_ml_normalized_stretch;
+                
+%                 lpsi_x_vel_normalized_trial(:, i_stretch) = lpsi_x_vel_normalized_stretch;
+%                 rpsi_x_vel_normalized_trial(:, i_stretch) = rpsi_x_vel_normalized_stretch;
+%                 pelvis_x_pos_normalized_trial(:, i_stretch) = mean([lpsi_x_pos_normalized_stretch; rpsi_x_pos_normalized_stretch]) - stance_foot_heel_x_initial;
+%                 pelvis_x_vel_normalized_trial(:, i_stretch) = mean([lpsi_x_vel_normalized_stretch; rpsi_x_vel_normalized_stretch]);
+%                 pelvis_x_acc_normalized_trial(:, i_stretch) = mean([lpsi_x_acc_normalized_stretch; rpsi_x_acc_normalized_stretch]);
 
                 % time and origin
                 origin_trial_list_trial(i_stretch) = i_trial;
@@ -462,15 +559,22 @@ if extract_data
         if process_data_marker
             lpsi_x_pos_normalized_all = [lpsi_x_pos_normalized_all lpsi_x_pos_normalized_trial];
             rpsi_x_pos_normalized_all = [rpsi_x_pos_normalized_all rpsi_x_pos_normalized_trial];
-            lpsi_x_vel_normalized_all = [lpsi_x_vel_normalized_all lpsi_x_vel_normalized_trial];
-            rpsi_x_vel_normalized_all = [rpsi_x_vel_normalized_all rpsi_x_vel_normalized_trial];
-            pelvis_x_pos_normalized_all = [pelvis_x_pos_normalized_all pelvis_x_pos_normalized_trial];
-            pelvis_x_vel_normalized_all = [pelvis_x_vel_normalized_all pelvis_x_vel_normalized_trial];
-            pelvis_x_acc_normalized_all = [pelvis_x_acc_normalized_all pelvis_x_acc_normalized_trial];
             lheel_x_pos_normalized_all = [lheel_x_pos_normalized_all lheel_x_pos_normalized_trial];
             rheel_x_pos_normalized_all = [rheel_x_pos_normalized_all rheel_x_pos_normalized_trial];
             lheel_y_pos_normalized_all = [lheel_y_pos_normalized_all lheel_y_pos_normalized_trial];
             rheel_y_pos_normalized_all = [rheel_y_pos_normalized_all rheel_y_pos_normalized_trial];
+            
+            trunk_angle_ml_normalized_all = [trunk_angle_ml_normalized_all trunk_angle_ml_normalized_trial];
+            lleg_angle_ml_normalized_all = [lleg_angle_ml_normalized_all lleg_angle_ml_normalized_trial];
+            rleg_angle_ml_normalized_all = [rleg_angle_ml_normalized_all rleg_angle_ml_normalized_trial];
+            
+%             lpsi_x_vel_normalized_all = [lpsi_x_vel_normalized_all lpsi_x_vel_normalized_trial];
+%             rpsi_x_vel_normalized_all = [rpsi_x_vel_normalized_all rpsi_x_vel_normalized_trial];
+%             pelvis_x_pos_normalized_all = [pelvis_x_pos_normalized_all pelvis_x_pos_normalized_trial];
+%             pelvis_x_vel_normalized_all = [pelvis_x_vel_normalized_all pelvis_x_vel_normalized_trial];
+%             pelvis_x_acc_normalized_all = [pelvis_x_acc_normalized_all pelvis_x_acc_normalized_trial];
+            
+            
         end
         if process_data_forceplate
             cop_x_normalized_all = [cop_x_normalized_all cop_x_normalized_trial];
@@ -611,9 +715,13 @@ if calculate_responses
         rheel_x_pos_control_means = zeros(number_of_time_steps_normalized, number_of_conditions_control);
         lheel_y_pos_control_means = zeros(number_of_time_steps_normalized, number_of_conditions_control);
         rheel_y_pos_control_means = zeros(number_of_time_steps_normalized, number_of_conditions_control);
-        pelvis_x_pos_control_means = zeros(number_of_time_steps_normalized, number_of_conditions_control);
-        pelvis_x_vel_control_means = zeros(number_of_time_steps_normalized, number_of_conditions_control);
-        pelvis_x_acc_control_means = zeros(number_of_time_steps_normalized, number_of_conditions_control);
+        trunk_angle_ml_control_means = zeros(number_of_time_steps_normalized, number_of_conditions_control);
+        lleg_angle_ml_control_means = zeros(number_of_time_steps_normalized, number_of_conditions_control);
+        rleg_angle_ml_control_means = zeros(number_of_time_steps_normalized, number_of_conditions_control);
+        
+%         pelvis_x_pos_control_means = zeros(number_of_time_steps_normalized, number_of_conditions_control);
+%         pelvis_x_vel_control_means = zeros(number_of_time_steps_normalized, number_of_conditions_control);
+%         pelvis_x_acc_control_means = zeros(number_of_time_steps_normalized, number_of_conditions_control);
         
         for i_condition = 1 : number_of_conditions_control
             condition_indicator = conditions_control_indicators(:, i_condition);
@@ -621,9 +729,12 @@ if calculate_responses
             rheel_x_pos_control_means(:, i_condition) = mean(rheel_x_pos_normalized_all(:, condition_indicator), 2);
             lheel_y_pos_control_means(:, i_condition) = mean(lheel_y_pos_normalized_all(:, condition_indicator), 2);
             rheel_y_pos_control_means(:, i_condition) = mean(rheel_y_pos_normalized_all(:, condition_indicator), 2);
-            pelvis_x_pos_control_means(:, i_condition) = mean(pelvis_x_pos_normalized_all(:, condition_indicator), 2);
-            pelvis_x_vel_control_means(:, i_condition) = mean(pelvis_x_vel_normalized_all(:, condition_indicator), 2);
-            pelvis_x_acc_control_means(:, i_condition) = mean(pelvis_x_acc_normalized_all(:, condition_indicator), 2);
+            trunk_angle_ml_control_means(:, i_condition) = mean(trunk_angle_ml_normalized_all(:, condition_indicator), 2);
+            lleg_angle_ml_control_means(:, i_condition) = mean(lleg_angle_ml_normalized_all(:, condition_indicator), 2);
+            rleg_angle_ml_control_means(:, i_condition) = mean(rleg_angle_ml_normalized_all(:, condition_indicator), 2);
+%             pelvis_x_pos_control_means(:, i_condition) = mean(pelvis_x_pos_normalized_all(:, condition_indicator), 2);
+%             pelvis_x_vel_control_means(:, i_condition) = mean(pelvis_x_vel_normalized_all(:, condition_indicator), 2);
+%             pelvis_x_acc_control_means(:, i_condition) = mean(pelvis_x_acc_normalized_all(:, condition_indicator), 2);
         end
         
         % calculate stimulus responses
@@ -631,18 +742,26 @@ if calculate_responses
         rheel_x_pos_response = zeros(size(rheel_x_pos_normalized_all));
         lheel_y_pos_response = zeros(size(lheel_y_pos_normalized_all));
         rheel_y_pos_response = zeros(size(rheel_y_pos_normalized_all));
-        pelvis_x_pos_response = zeros(size(pelvis_x_pos_normalized_all));
-        pelvis_x_vel_response = zeros(size(pelvis_x_vel_normalized_all));
-        pelvis_x_acc_response = zeros(size(pelvis_x_acc_normalized_all));
+        trunk_angle_ml_response = zeros(size(trunk_angle_ml_normalized_all));
+        lleg_angle_ml_response = zeros(size(lleg_angle_ml_normalized_all));
+        rleg_angle_ml_response = zeros(size(rleg_angle_ml_normalized_all));
+        
+%         pelvis_x_pos_response = zeros(size(pelvis_x_pos_normalized_all));
+%         pelvis_x_vel_response = zeros(size(pelvis_x_vel_normalized_all));
+%         pelvis_x_acc_response = zeros(size(pelvis_x_acc_normalized_all));
         for i_condition = 1 : number_of_conditions_control
             condition_indicator = conditions_control_indicators(:, i_condition);
             lheel_x_pos_response(:, condition_indicator) = lheel_x_pos_normalized_all(:, condition_indicator) - repmat(lheel_x_pos_control_means(:, i_condition), 1, sum(condition_indicator));
             rheel_x_pos_response(:, condition_indicator) = rheel_x_pos_normalized_all(:, condition_indicator) - repmat(rheel_x_pos_control_means(:, i_condition), 1, sum(condition_indicator));
             lheel_y_pos_response(:, condition_indicator) = lheel_y_pos_normalized_all(:, condition_indicator) - repmat(lheel_y_pos_control_means(:, i_condition), 1, sum(condition_indicator));
             rheel_y_pos_response(:, condition_indicator) = rheel_y_pos_normalized_all(:, condition_indicator) - repmat(rheel_y_pos_control_means(:, i_condition), 1, sum(condition_indicator));
-            pelvis_x_pos_response(:, condition_indicator) = pelvis_x_pos_normalized_all(:, condition_indicator) - repmat(pelvis_x_pos_control_means(:, i_condition), 1, sum(condition_indicator));
-            pelvis_x_vel_response(:, condition_indicator) = pelvis_x_vel_normalized_all(:, condition_indicator) - repmat(pelvis_x_vel_control_means(:, i_condition), 1, sum(condition_indicator));
-            pelvis_x_acc_response(:, condition_indicator) = pelvis_x_acc_normalized_all(:, condition_indicator) - repmat(pelvis_x_acc_control_means(:, i_condition), 1, sum(condition_indicator));
+            
+            trunk_angle_ml_response(:, condition_indicator) = trunk_angle_ml_normalized_all(:, condition_indicator) - repmat(trunk_angle_ml_control_means(:, i_condition), 1, sum(condition_indicator));
+            lleg_angle_ml_response(:, condition_indicator) = lleg_angle_ml_normalized_all(:, condition_indicator) - repmat(lleg_angle_ml_control_means(:, i_condition), 1, sum(condition_indicator));
+            rleg_angle_ml_response(:, condition_indicator) = rleg_angle_ml_normalized_all(:, condition_indicator) - repmat(rleg_angle_ml_control_means(:, i_condition), 1, sum(condition_indicator));
+%             pelvis_x_pos_response(:, condition_indicator) = pelvis_x_pos_normalized_all(:, condition_indicator) - repmat(pelvis_x_pos_control_means(:, i_condition), 1, sum(condition_indicator));
+%             pelvis_x_vel_response(:, condition_indicator) = pelvis_x_vel_normalized_all(:, condition_indicator) - repmat(pelvis_x_vel_control_means(:, i_condition), 1, sum(condition_indicator));
+%             pelvis_x_acc_response(:, condition_indicator) = pelvis_x_acc_normalized_all(:, condition_indicator) - repmat(pelvis_x_acc_control_means(:, i_condition), 1, sum(condition_indicator));
         end
         for i_condition = 1 : number_of_conditions_to_analyze
             condition_indicator = conditions_to_analyze_indicators(:, i_condition);
@@ -650,41 +769,14 @@ if calculate_responses
             rheel_x_pos_response(:, condition_indicator) = rheel_x_pos_normalized_all(:, condition_indicator) - repmat(rheel_x_pos_control_means(:, applicable_control_condition_indices(i_condition)), 1, sum(condition_indicator));
             lheel_y_pos_response(:, condition_indicator) = lheel_y_pos_normalized_all(:, condition_indicator) - repmat(lheel_y_pos_control_means(:, applicable_control_condition_indices(i_condition)), 1, sum(condition_indicator));
             rheel_y_pos_response(:, condition_indicator) = rheel_y_pos_normalized_all(:, condition_indicator) - repmat(rheel_y_pos_control_means(:, applicable_control_condition_indices(i_condition)), 1, sum(condition_indicator));
-            pelvis_x_pos_response(:, condition_indicator) = pelvis_x_pos_normalized_all(:, condition_indicator) - repmat(pelvis_x_pos_control_means(:, applicable_control_condition_indices(i_condition)), 1, sum(condition_indicator));
-            pelvis_x_vel_response(:, condition_indicator) = pelvis_x_vel_normalized_all(:, condition_indicator) - repmat(pelvis_x_vel_control_means(:, applicable_control_condition_indices(i_condition)), 1, sum(condition_indicator));
-            pelvis_x_acc_response(:, condition_indicator) = pelvis_x_acc_normalized_all(:, condition_indicator) - repmat(pelvis_x_acc_control_means(:, applicable_control_condition_indices(i_condition)), 1, sum(condition_indicator));
+            trunk_angle_ml_response(:, condition_indicator) = trunk_angle_ml_normalized_all(:, condition_indicator) - repmat(trunk_angle_ml_control_means(:, applicable_control_condition_indices(i_condition)), 1, sum(condition_indicator));
+            lleg_angle_ml_response(:, condition_indicator) = lleg_angle_ml_normalized_all(:, condition_indicator) - repmat(lleg_angle_ml_control_means(:, applicable_control_condition_indices(i_condition)), 1, sum(condition_indicator));
+            rleg_angle_ml_response(:, condition_indicator) = rleg_angle_ml_normalized_all(:, condition_indicator) - repmat(rleg_angle_ml_control_means(:, applicable_control_condition_indices(i_condition)), 1, sum(condition_indicator));
+%             pelvis_x_pos_response(:, condition_indicator) = pelvis_x_pos_normalized_all(:, condition_indicator) - repmat(pelvis_x_pos_control_means(:, applicable_control_condition_indices(i_condition)), 1, sum(condition_indicator));
+%             pelvis_x_vel_response(:, condition_indicator) = pelvis_x_vel_normalized_all(:, condition_indicator) - repmat(pelvis_x_vel_control_means(:, applicable_control_condition_indices(i_condition)), 1, sum(condition_indicator));
+%             pelvis_x_acc_response(:, condition_indicator) = pelvis_x_acc_normalized_all(:, condition_indicator) - repmat(pelvis_x_acc_control_means(:, applicable_control_condition_indices(i_condition)), 1, sum(condition_indicator));
         end
         
-        % outdated, this was replaced with the code above
-%         % control means
-%         lheel_x_pos_mean_stanceL_control = mean(lheel_x_pos_normalized_all(:, conditions_stanceL_stimNo), 2);
-%         lheel_x_pos_mean_stanceR_control = mean(lheel_x_pos_normalized_all(:, conditions_stanceR_stimNo), 2);
-%         rheel_x_pos_mean_stanceL_control = mean(rheel_x_pos_normalized_all(:, conditions_stanceL_stimNo), 2);
-%         rheel_x_pos_mean_stanceR_control = mean(rheel_x_pos_normalized_all(:, conditions_stanceR_stimNo), 2);
-%         lheel_y_pos_mean_stanceL_control = mean(lheel_y_pos_normalized_all(:, conditions_stanceL_stimNo), 2);
-%         lheel_y_pos_mean_stanceR_control = mean(lheel_y_pos_normalized_all(:, conditions_stanceR_stimNo), 2);
-%         rheel_y_pos_mean_stanceL_control = mean(rheel_y_pos_normalized_all(:, conditions_stanceL_stimNo), 2);
-%         rheel_y_pos_mean_stanceR_control = mean(rheel_y_pos_normalized_all(:, conditions_stanceR_stimNo), 2);
-%         pelvis_x_pos_mean_stanceL_control = mean(pelvis_x_pos_normalized_all(:, conditions_stanceL_stimNo), 2);
-%         pelvis_x_pos_mean_stanceR_control = mean(pelvis_x_pos_normalized_all(:, conditions_stanceR_stimNo), 2);
-%         pelvis_x_vel_mean_stanceL_control = mean(pelvis_x_vel_normalized_all(:, conditions_stanceL_stimNo), 2);
-%         pelvis_x_vel_mean_stanceR_control = mean(pelvis_x_vel_normalized_all(:, conditions_stanceR_stimNo), 2);
-%         pelvis_x_acc_mean_stanceL_control = mean(pelvis_x_acc_normalized_all(:, conditions_stanceL_stimNo), 2);
-%         pelvis_x_acc_mean_stanceR_control = mean(pelvis_x_acc_normalized_all(:, conditions_stanceR_stimNo), 2);
-        
-%         % responses
-%         lheel_x_pos_stanceR_response = lheel_x_pos_normalized_all - repmat(lheel_x_pos_mean_stanceR_control, 1, number_of_stretches);
-%         rheel_x_pos_stanceL_response = rheel_x_pos_normalized_all - repmat(rheel_x_pos_mean_stanceL_control, 1, number_of_stretches);
-%         lheel_y_pos_stanceR_response = lheel_y_pos_normalized_all - repmat(lheel_y_pos_mean_stanceR_control, 1, number_of_stretches);
-%         rheel_y_pos_stanceL_response = rheel_y_pos_normalized_all - repmat(rheel_y_pos_mean_stanceL_control, 1, number_of_stretches);
-%         pelvis_x_pos_stanceR_response = pelvis_x_pos_normalized_all - repmat(pelvis_x_pos_mean_stanceR_control, 1, number_of_stretches);
-%         pelvis_x_pos_stanceL_response = pelvis_x_pos_normalized_all - repmat(pelvis_x_pos_mean_stanceL_control, 1, number_of_stretches);
-%         pelvis_x_vel_stanceR_response = pelvis_x_vel_normalized_all - repmat(pelvis_x_vel_mean_stanceR_control, 1, number_of_stretches);
-%         pelvis_x_vel_stanceL_response = pelvis_x_vel_normalized_all - repmat(pelvis_x_vel_mean_stanceL_control, 1, number_of_stretches);
-%         pelvis_x_acc_stanceR_response = pelvis_x_acc_normalized_all - repmat(pelvis_x_acc_mean_stanceR_control, 1, number_of_stretches);
-%         pelvis_x_acc_stanceL_response = pelvis_x_acc_normalized_all - repmat(pelvis_x_acc_mean_stanceL_control, 1, number_of_stretches);
-        
-
 % the following is still relevant, but I'm not quite sure how to automate it 
 %{
         % estimate stimulus response
@@ -975,6 +1067,112 @@ if calculate_responses
 
     end
 end
+
+%% save data
+if save_data
+    % save conditions 
+    save ...
+      ( ...
+        makeFileName(date, subject_id, 'resultsConditions'), ...
+        'time_normalized', ...
+        'origin_trial_list_total', ...
+        'origin_start_time_list_total', ...
+        'origin_end_time_list_total', ...
+        'condition_stance_foot_list_total', ...
+        'condition_perturbation_list_total', ...
+        'condition_delay_list_total', ...
+        'condition_index_list_total', ...
+        'conditions_control_indicators', ...
+        'conditions_to_analyze_indicators' ...
+      );
+  
+    if process_data_marker
+        save ...
+          ( ...
+            makeFileName(date, subject_id, 'resultsMarker'), ...
+            'lheel_x_pos_normalized_all', ...
+            'rheel_x_pos_normalized_all', ...
+            'lheel_y_pos_normalized_all', ...
+            'rheel_y_pos_normalized_all', ...
+            'trunk_angle_ml_normalized_all', ...
+            'lleg_angle_ml_normalized_all', ...
+            'rleg_angle_ml_normalized_all', ...
+            'lheel_x_pos_response', ...
+            'rheel_x_pos_response', ...
+            'lheel_y_pos_response', ...
+            'rheel_y_pos_response', ...
+            'trunk_angle_ml_response', ...
+            'lleg_angle_ml_response', ...
+            'rleg_angle_ml_response' ...
+          );
+%             'pelvis_x_pos_normalized_all', ...
+%             'pelvis_x_vel_normalized_all', ...
+%             'pelvis_x_acc_normalized_all', ...
+%             'pelvis_x_pos_response', ...
+%             'pelvis_x_vel_response', ...
+%             'pelvis_x_acc_response' ...
+%             'lheel_x_pos_control_means', ...
+%             'rheel_x_pos_control_means', ...
+%             'lheel_y_pos_control_means', ...
+%             'rheel_y_pos_control_means', ...
+%             'pelvis_x_pos_control_means', ...
+%             'pelvis_x_vel_control_means', ...
+%             'pelvis_x_acc_control_means', ...
+    end  
+    
+    if process_data_forceplate
+        save ...
+          ( ...
+            makeFileName(date, subject_id, 'resultsForceplate'), ...
+            'cop_x_normalized_all', ...
+            'fxl_normalized_all', ...
+            'fzl_normalized_all', ...
+            'myl_normalized_all', ...
+            'lcop_x_normalized_all', ...
+            'fxr_normalized_all', ...
+            'fzr_normalized_all', ...
+            'myr_normalized_all', ...
+            'rcop_x_normalized_all', ...
+            'cop_x_response', ...
+            'fxl_response', ...
+            'fzl_response', ...
+            'myl_response', ...
+            'lcop_x_response', ...
+            'fxr_response', ...
+            'fzr_response', ...
+            'myr_response', ...
+            'rcop_x_response' ...
+          );
+    end
+    
+    if process_data_emg
+        save ...
+          ( ...
+            makeFileName(date, subject_id, 'resultsEmg'), ...
+            'lglutmed_normalized_all', ...
+            'ltibiant_normalized_all', ...
+            'lgastroc_normalized_all', ...
+            'lperolng_normalized_all', ...
+            'rglutmed_normalized_all', ...
+            'rtibiant_normalized_all', ...
+            'rgastroc_normalized_all', ...
+            'rperolng_normalized_all', ...
+            'lglutmed_response', ...
+            'ltibiant_response', ...
+            'lgastroc_response', ...
+            'lperolng_response', ...
+            'rglutmed_response', ...
+            'rtibiant_response', ...
+            'rgastroc_response', ...
+            'rperolng_response' ...
+          )
+    end    
+end
+    
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% old stuff
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% calculate_strategy_directions
 if calculate_strategy_directions
@@ -1340,572 +1538,467 @@ if calculate_strategy_responses
 end
 
 %% calculate stats
-if calculate_stats
-    % this is not needed anymore, I believe
-    if process_data_marker
-        % absolute data
-        lheel_x_pos_civ_stanceR_control = tinv(0.975, sum(conditions_stanceR_stimNo)-1) * std(lheel_x_pos_normalized_all(:, conditions_stanceR_stimNo), 1, 2)/sqrt(sum(conditions_stanceR_stimNo));
-        lheel_x_pos_mean_stanceR_stimPos_0ms = mean(lheel_x_pos_normalized_all(:, conditions_stanceR_stimPos_0ms), 2);
-        lheel_x_pos_civ_stanceR_stimPos_0ms = tinv(0.975, sum(conditions_stanceR_stimPos_0ms)-1) * std(lheel_x_pos_normalized_all(:, conditions_stanceR_stimPos_0ms), 1, 2)/sqrt(sum(conditions_stanceR_stimPos_0ms));
-        lheel_x_pos_mean_stanceR_stimNeg_0ms = mean(lheel_x_pos_normalized_all(:, conditions_stanceR_stimNeg_0ms), 2);
-        lheel_x_pos_civ_stanceR_stimNeg_0ms = tinv(0.975, sum(conditions_stanceR_stimNeg_0ms)-1) * std(lheel_x_pos_normalized_all(:, conditions_stanceR_stimNeg_0ms), 1, 2)/sqrt(sum(conditions_stanceR_stimNeg_0ms));
-        lheel_x_pos_mean_stanceR_stimPos_150ms = mean(lheel_x_pos_normalized_all(:, conditions_stanceR_stimPos_150ms), 2);
-        lheel_x_pos_civ_stanceR_stimPos_150ms = tinv(0.975, sum(conditions_stanceR_stimPos_150ms)-1) * std(lheel_x_pos_normalized_all(:, conditions_stanceR_stimPos_150ms), 1, 2)/sqrt(sum(conditions_stanceR_stimPos_150ms));
-        lheel_x_pos_mean_stanceR_stimNeg_150ms = mean(lheel_x_pos_normalized_all(:, conditions_stanceR_stimNeg_150ms), 2);
-        lheel_x_pos_civ_stanceR_stimNeg_150ms = tinv(0.975, sum(conditions_stanceR_stimNeg_150ms)-1) * std(lheel_x_pos_normalized_all(:, conditions_stanceR_stimNeg_150ms), 1, 2)/sqrt(sum(conditions_stanceR_stimNeg_150ms));
-        lheel_x_pos_mean_stanceR_stimPos_450ms = mean(lheel_x_pos_normalized_all(:, conditions_stanceR_stimPos_450ms), 2);
-        lheel_x_pos_civ_stanceR_stimPos_450ms = tinv(0.975, sum(conditions_stanceR_stimPos_450ms)-1) * std(lheel_x_pos_normalized_all(:, conditions_stanceR_stimPos_450ms), 1, 2)/sqrt(sum(conditions_stanceR_stimPos_450ms));
-        lheel_x_pos_mean_stanceR_stimNeg_450ms = mean(lheel_x_pos_normalized_all(:, conditions_stanceR_stimNeg_450ms), 2);
-        lheel_x_pos_civ_stanceR_stimNeg_450ms = tinv(0.975, sum(conditions_stanceR_stimNeg_450ms)-1) * std(lheel_x_pos_normalized_all(:, conditions_stanceR_stimNeg_450ms), 1, 2)/sqrt(sum(conditions_stanceR_stimNeg_450ms));
+% if calculate_stats
+%     % this is not needed anymore, I believe
+%     if process_data_marker
+%         % absolute data
+%         lheel_x_pos_civ_stanceR_control = tinv(0.975, sum(conditions_stanceR_stimNo)-1) * std(lheel_x_pos_normalized_all(:, conditions_stanceR_stimNo), 1, 2)/sqrt(sum(conditions_stanceR_stimNo));
+%         lheel_x_pos_mean_stanceR_stimPos_0ms = mean(lheel_x_pos_normalized_all(:, conditions_stanceR_stimPos_0ms), 2);
+%         lheel_x_pos_civ_stanceR_stimPos_0ms = tinv(0.975, sum(conditions_stanceR_stimPos_0ms)-1) * std(lheel_x_pos_normalized_all(:, conditions_stanceR_stimPos_0ms), 1, 2)/sqrt(sum(conditions_stanceR_stimPos_0ms));
+%         lheel_x_pos_mean_stanceR_stimNeg_0ms = mean(lheel_x_pos_normalized_all(:, conditions_stanceR_stimNeg_0ms), 2);
+%         lheel_x_pos_civ_stanceR_stimNeg_0ms = tinv(0.975, sum(conditions_stanceR_stimNeg_0ms)-1) * std(lheel_x_pos_normalized_all(:, conditions_stanceR_stimNeg_0ms), 1, 2)/sqrt(sum(conditions_stanceR_stimNeg_0ms));
+%         lheel_x_pos_mean_stanceR_stimPos_150ms = mean(lheel_x_pos_normalized_all(:, conditions_stanceR_stimPos_150ms), 2);
+%         lheel_x_pos_civ_stanceR_stimPos_150ms = tinv(0.975, sum(conditions_stanceR_stimPos_150ms)-1) * std(lheel_x_pos_normalized_all(:, conditions_stanceR_stimPos_150ms), 1, 2)/sqrt(sum(conditions_stanceR_stimPos_150ms));
+%         lheel_x_pos_mean_stanceR_stimNeg_150ms = mean(lheel_x_pos_normalized_all(:, conditions_stanceR_stimNeg_150ms), 2);
+%         lheel_x_pos_civ_stanceR_stimNeg_150ms = tinv(0.975, sum(conditions_stanceR_stimNeg_150ms)-1) * std(lheel_x_pos_normalized_all(:, conditions_stanceR_stimNeg_150ms), 1, 2)/sqrt(sum(conditions_stanceR_stimNeg_150ms));
+%         lheel_x_pos_mean_stanceR_stimPos_450ms = mean(lheel_x_pos_normalized_all(:, conditions_stanceR_stimPos_450ms), 2);
+%         lheel_x_pos_civ_stanceR_stimPos_450ms = tinv(0.975, sum(conditions_stanceR_stimPos_450ms)-1) * std(lheel_x_pos_normalized_all(:, conditions_stanceR_stimPos_450ms), 1, 2)/sqrt(sum(conditions_stanceR_stimPos_450ms));
+%         lheel_x_pos_mean_stanceR_stimNeg_450ms = mean(lheel_x_pos_normalized_all(:, conditions_stanceR_stimNeg_450ms), 2);
+%         lheel_x_pos_civ_stanceR_stimNeg_450ms = tinv(0.975, sum(conditions_stanceR_stimNeg_450ms)-1) * std(lheel_x_pos_normalized_all(:, conditions_stanceR_stimNeg_450ms), 1, 2)/sqrt(sum(conditions_stanceR_stimNeg_450ms));
+% 
+%         rheel_x_pos_civ_stanceL_control = tinv(0.975, sum(conditions_stanceL_stimNo)-1) * std(rheel_x_pos_normalized_all(:, conditions_stanceL_stimNo), 1, 2)/sqrt(sum(conditions_stanceL_stimNo));
+%         rheel_x_pos_mean_stanceL_stimPos_0ms = mean(rheel_x_pos_normalized_all(:, conditions_stanceL_stimPos_0ms), 2);
+%         rheel_x_pos_civ_stanceL_stimPos_0ms = tinv(0.975, sum(conditions_stanceL_stimPos_0ms)-1) * std(rheel_x_pos_normalized_all(:, conditions_stanceL_stimPos_0ms), 1, 2)/sqrt(sum(conditions_stanceL_stimPos_0ms));
+%         rheel_x_pos_mean_stanceL_stimNeg_0ms = mean(rheel_x_pos_normalized_all(:, conditions_stanceL_stimNeg_0ms), 2);
+%         rheel_x_pos_civ_stanceL_stimNeg_0ms = tinv(0.975, sum(conditions_stanceL_stimNeg_0ms)-1) * std(rheel_x_pos_normalized_all(:, conditions_stanceL_stimNeg_0ms), 1, 2)/sqrt(sum(conditions_stanceL_stimNeg_0ms));
+%         rheel_x_pos_mean_stanceL_stimPos_150ms = mean(rheel_x_pos_normalized_all(:, conditions_stanceL_stimPos_150ms), 2);
+%         rheel_x_pos_civ_stanceL_stimPos_150ms = tinv(0.975, sum(conditions_stanceL_stimPos_150ms)-1) * std(rheel_x_pos_normalized_all(:, conditions_stanceL_stimPos_150ms), 1, 2)/sqrt(sum(conditions_stanceL_stimPos_150ms));
+%         rheel_x_pos_mean_stanceL_stimNeg_150ms = mean(rheel_x_pos_normalized_all(:, conditions_stanceL_stimNeg_150ms), 2);
+%         rheel_x_pos_civ_stanceL_stimNeg_150ms = tinv(0.975, sum(conditions_stanceL_stimNeg_150ms)-1) * std(rheel_x_pos_normalized_all(:, conditions_stanceL_stimNeg_150ms), 1, 2)/sqrt(sum(conditions_stanceL_stimNeg_150ms));
+%         rheel_x_pos_mean_stanceL_stimPos_450ms = mean(rheel_x_pos_normalized_all(:, conditions_stanceL_stimPos_450ms), 2);
+%         rheel_x_pos_civ_stanceL_stimPos_450ms = tinv(0.975, sum(conditions_stanceL_stimPos_450ms)-1) * std(rheel_x_pos_normalized_all(:, conditions_stanceL_stimPos_450ms), 1, 2)/sqrt(sum(conditions_stanceL_stimPos_450ms));
+%         rheel_x_pos_mean_stanceL_stimNeg_450ms = mean(rheel_x_pos_normalized_all(:, conditions_stanceL_stimNeg_450ms), 2);
+%         rheel_x_pos_civ_stanceL_stimNeg_450ms = tinv(0.975, sum(conditions_stanceL_stimNeg_450ms)-1) * std(rheel_x_pos_normalized_all(:, conditions_stanceL_stimNeg_450ms), 1, 2)/sqrt(sum(conditions_stanceL_stimNeg_450ms));
+%         
+%         % responses
+%         lheel_x_pos_response_mean_stanceR_stimPos_0ms = mean(lheel_x_pos_stanceR_response(:, conditions_stanceR_stimPos_0ms), 2);
+%         lheel_x_pos_response_civ_stanceR_stimPos_0ms = tinv(0.975, sum(conditions_stanceR_stimPos_0ms)-1) * std(lheel_x_pos_stanceR_response(:, conditions_stanceR_stimPos_0ms), 1, 2)/sqrt(sum(conditions_stanceR_stimPos_0ms));
+%         lheel_x_pos_response_mean_stanceR_stimNeg_0ms = mean(lheel_x_pos_stanceR_response(:, conditions_stanceR_stimNeg_0ms), 2);
+%         lheel_x_pos_response_civ_stanceR_stimNeg_0ms = tinv(0.975, sum(conditions_stanceR_stimNeg_0ms)-1) * std(lheel_x_pos_stanceR_response(:, conditions_stanceR_stimNeg_0ms), 1, 2)/sqrt(sum(conditions_stanceR_stimNeg_0ms));
+%         lheel_x_pos_response_mean_stanceR_stimPos_150ms = mean(lheel_x_pos_stanceR_response(:, conditions_stanceR_stimPos_150ms), 2);
+%         lheel_x_pos_response_civ_stanceR_stimPos_150ms = tinv(0.975, sum(conditions_stanceR_stimPos_150ms)-1) * std(lheel_x_pos_stanceR_response(:, conditions_stanceR_stimPos_150ms), 1, 2)/sqrt(sum(conditions_stanceR_stimPos_150ms));
+%         lheel_x_pos_response_mean_stanceR_stimNeg_150ms = mean(lheel_x_pos_stanceR_response(:, conditions_stanceR_stimNeg_150ms), 2);
+%         lheel_x_pos_response_civ_stanceR_stimNeg_150ms = tinv(0.975, sum(conditions_stanceR_stimNeg_150ms)-1) * std(lheel_x_pos_stanceR_response(:, conditions_stanceR_stimNeg_150ms), 1, 2)/sqrt(sum(conditions_stanceR_stimNeg_150ms));
+%         lheel_x_pos_response_mean_stanceR_stimPos_450ms = mean(lheel_x_pos_stanceR_response(:, conditions_stanceR_stimPos_450ms), 2);
+%         lheel_x_pos_response_civ_stanceR_stimPos_450ms = tinv(0.975, sum(conditions_stanceR_stimPos_450ms)-1) * std(lheel_x_pos_stanceR_response(:, conditions_stanceR_stimPos_450ms), 1, 2)/sqrt(sum(conditions_stanceR_stimPos_450ms));
+%         lheel_x_pos_response_mean_stanceR_stimNeg_450ms = mean(lheel_x_pos_stanceR_response(:, conditions_stanceR_stimNeg_450ms), 2);
+%         lheel_x_pos_response_civ_stanceR_stimNeg_450ms = tinv(0.975, sum(conditions_stanceR_stimNeg_450ms)-1) * std(lheel_x_pos_stanceR_response(:, conditions_stanceR_stimNeg_450ms), 1, 2)/sqrt(sum(conditions_stanceR_stimNeg_450ms));
+% 
+%         rheel_x_pos_response_mean_stanceL_stimPos_0ms = mean(rheel_x_pos_stanceL_response(:, conditions_stanceL_stimPos_0ms), 2);
+%         rheel_x_pos_response_civ_stanceL_stimPos_0ms = tinv(0.975, sum(conditions_stanceL_stimPos_0ms)-1) * std(rheel_x_pos_stanceL_response(:, conditions_stanceL_stimPos_0ms), 1, 2)/sqrt(sum(conditions_stanceL_stimPos_0ms));
+%         rheel_x_pos_response_mean_stanceL_stimNeg_0ms = mean(rheel_x_pos_stanceL_response(:, conditions_stanceL_stimNeg_0ms), 2);
+%         rheel_x_pos_response_civ_stanceL_stimNeg_0ms = tinv(0.975, sum(conditions_stanceL_stimNeg_0ms)-1) * std(rheel_x_pos_stanceL_response(:, conditions_stanceL_stimNeg_0ms), 1, 2)/sqrt(sum(conditions_stanceL_stimNeg_0ms));
+%         rheel_x_pos_response_mean_stanceL_stimPos_150ms = mean(rheel_x_pos_stanceL_response(:, conditions_stanceL_stimPos_150ms), 2);
+%         rheel_x_pos_response_civ_stanceL_stimPos_150ms = tinv(0.975, sum(conditions_stanceL_stimPos_150ms)-1) * std(rheel_x_pos_stanceL_response(:, conditions_stanceL_stimPos_150ms), 1, 2)/sqrt(sum(conditions_stanceL_stimPos_150ms));
+%         rheel_x_pos_response_mean_stanceL_stimNeg_150ms = mean(rheel_x_pos_stanceL_response(:, conditions_stanceL_stimNeg_150ms), 2);
+%         rheel_x_pos_response_civ_stanceL_stimNeg_150ms = tinv(0.975, sum(conditions_stanceL_stimNeg_150ms)-1) * std(rheel_x_pos_stanceL_response(:, conditions_stanceL_stimNeg_150ms), 1, 2)/sqrt(sum(conditions_stanceL_stimNeg_150ms));
+%         rheel_x_pos_response_mean_stanceL_stimPos_450ms = mean(rheel_x_pos_stanceL_response(:, conditions_stanceL_stimPos_450ms), 2);
+%         rheel_x_pos_response_civ_stanceL_stimPos_450ms = tinv(0.975, sum(conditions_stanceL_stimPos_450ms)-1) * std(rheel_x_pos_stanceL_response(:, conditions_stanceL_stimPos_450ms), 1, 2)/sqrt(sum(conditions_stanceL_stimPos_450ms));
+%         rheel_x_pos_response_mean_stanceL_stimNeg_450ms = mean(rheel_x_pos_stanceL_response(:, conditions_stanceL_stimNeg_450ms), 2);
+%         rheel_x_pos_response_civ_stanceL_stimNeg_450ms = tinv(0.975, sum(conditions_stanceL_stimNeg_450ms)-1) * std(rheel_x_pos_stanceL_response(:, conditions_stanceL_stimNeg_450ms), 1, 2)/sqrt(sum(conditions_stanceL_stimNeg_450ms));
+% 
+%         lheel_y_pos_response_mean_stanceR_stimPos_0ms = mean(lheel_y_pos_stanceR_response(:, conditions_stanceR_stimPos_0ms), 2);
+%         lheel_y_pos_response_civ_stanceR_stimPos_0ms = tinv(0.975, sum(conditions_stanceR_stimPos_0ms)-1) * std(lheel_y_pos_stanceR_response(:, conditions_stanceR_stimPos_0ms), 1, 2)/sqrt(sum(conditions_stanceR_stimPos_0ms));
+%         lheel_y_pos_response_mean_stanceR_stimNeg_0ms = mean(lheel_y_pos_stanceR_response(:, conditions_stanceR_stimNeg_0ms), 2);
+%         lheel_y_pos_response_civ_stanceR_stimNeg_0ms = tinv(0.975, sum(conditions_stanceR_stimNeg_0ms)-1) * std(lheel_y_pos_stanceR_response(:, conditions_stanceR_stimNeg_0ms), 1, 2)/sqrt(sum(conditions_stanceR_stimNeg_0ms));
+%         lheel_y_pos_response_mean_stanceR_stimPos_150ms = mean(lheel_y_pos_stanceR_response(:, conditions_stanceR_stimPos_150ms), 2);
+%         lheel_y_pos_response_civ_stanceR_stimPos_150ms = tinv(0.975, sum(conditions_stanceR_stimPos_150ms)-1) * std(lheel_y_pos_stanceR_response(:, conditions_stanceR_stimPos_150ms), 1, 2)/sqrt(sum(conditions_stanceR_stimPos_150ms));
+%         lheel_y_pos_response_mean_stanceR_stimNeg_150ms = mean(lheel_y_pos_stanceR_response(:, conditions_stanceR_stimNeg_150ms), 2);
+%         lheel_y_pos_response_civ_stanceR_stimNeg_150ms = tinv(0.975, sum(conditions_stanceR_stimNeg_150ms)-1) * std(lheel_y_pos_stanceR_response(:, conditions_stanceR_stimNeg_150ms), 1, 2)/sqrt(sum(conditions_stanceR_stimNeg_150ms));
+%         lheel_y_pos_response_mean_stanceR_stimPos_450ms = mean(lheel_y_pos_stanceR_response(:, conditions_stanceR_stimPos_450ms), 2);
+%         lheel_y_pos_response_civ_stanceR_stimPos_450ms = tinv(0.975, sum(conditions_stanceR_stimPos_450ms)-1) * std(lheel_y_pos_stanceR_response(:, conditions_stanceR_stimPos_450ms), 1, 2)/sqrt(sum(conditions_stanceR_stimPos_450ms));
+%         lheel_y_pos_response_mean_stanceR_stimNeg_450ms = mean(lheel_y_pos_stanceR_response(:, conditions_stanceR_stimNeg_450ms), 2);
+%         lheel_y_pos_response_civ_stanceR_stimNeg_450ms = tinv(0.975, sum(conditions_stanceR_stimNeg_450ms)-1) * std(lheel_y_pos_stanceR_response(:, conditions_stanceR_stimNeg_450ms), 1, 2)/sqrt(sum(conditions_stanceR_stimNeg_450ms));
+% 
+%         rheel_y_pos_response_mean_stanceL_stimPos_0ms = mean(rheel_y_pos_stanceL_response(:, conditions_stanceL_stimPos_0ms), 2);
+%         rheel_y_pos_response_civ_stanceL_stimPos_0ms = tinv(0.975, sum(conditions_stanceL_stimPos_0ms)-1) * std(rheel_y_pos_stanceL_response(:, conditions_stanceL_stimPos_0ms), 1, 2)/sqrt(sum(conditions_stanceL_stimPos_0ms));
+%         rheel_y_pos_response_mean_stanceL_stimNeg_0ms = mean(rheel_y_pos_stanceL_response(:, conditions_stanceL_stimNeg_0ms), 2);
+%         rheel_y_pos_response_civ_stanceL_stimNeg_0ms = tinv(0.975, sum(conditions_stanceL_stimNeg_0ms)-1) * std(rheel_y_pos_stanceL_response(:, conditions_stanceL_stimNeg_0ms), 1, 2)/sqrt(sum(conditions_stanceL_stimNeg_0ms));
+%         rheel_y_pos_response_mean_stanceL_stimPos_150ms = mean(rheel_y_pos_stanceL_response(:, conditions_stanceL_stimPos_150ms), 2);
+%         rheel_y_pos_response_civ_stanceL_stimPos_150ms = tinv(0.975, sum(conditions_stanceL_stimPos_150ms)-1) * std(rheel_y_pos_stanceL_response(:, conditions_stanceL_stimPos_150ms), 1, 2)/sqrt(sum(conditions_stanceL_stimPos_150ms));
+%         rheel_y_pos_response_mean_stanceL_stimNeg_150ms = mean(rheel_y_pos_stanceL_response(:, conditions_stanceL_stimNeg_150ms), 2);
+%         rheel_y_pos_response_civ_stanceL_stimNeg_150ms = tinv(0.975, sum(conditions_stanceL_stimNeg_150ms)-1) * std(rheel_y_pos_stanceL_response(:, conditions_stanceL_stimNeg_150ms), 1, 2)/sqrt(sum(conditions_stanceL_stimNeg_150ms));
+%         rheel_y_pos_response_mean_stanceL_stimPos_450ms = mean(rheel_y_pos_stanceL_response(:, conditions_stanceL_stimPos_450ms), 2);
+%         rheel_y_pos_response_civ_stanceL_stimPos_450ms = tinv(0.975, sum(conditions_stanceL_stimPos_450ms)-1) * std(rheel_y_pos_stanceL_response(:, conditions_stanceL_stimPos_450ms), 1, 2)/sqrt(sum(conditions_stanceL_stimPos_450ms));
+%         rheel_y_pos_response_mean_stanceL_stimNeg_450ms = mean(rheel_y_pos_stanceL_response(:, conditions_stanceL_stimNeg_450ms), 2);
+%         rheel_y_pos_response_civ_stanceL_stimNeg_450ms = tinv(0.975, sum(conditions_stanceL_stimNeg_450ms)-1) * std(rheel_y_pos_stanceL_response(:, conditions_stanceL_stimNeg_450ms), 1, 2)/sqrt(sum(conditions_stanceL_stimNeg_450ms));
+% 
+%     end
+% 
+%     if process_data_forceplate
+%         % absolute data
+%         fxl_civ_stanceL_control = tinv(0.975, sum(conditions_stanceL_stimNo)-1) * std(fxl_normalized_all(:, conditions_stanceL_stimNo), 1, 2)/sqrt(sum(conditions_stanceL_stimNo));
+%         fxl_mean_stanceL_stimPos_0ms = mean(fxl_normalized_all(:, conditions_stanceL_stimPos_0ms), 2);
+%         fxl_civ_stanceL_stimPos_0ms = tinv(0.975, sum(conditions_stanceL_stimPos_0ms)-1) * std(fxl_normalized_all(:, conditions_stanceL_stimPos_0ms), 1, 2)/sqrt(sum(conditions_stanceL_stimPos_0ms));
+%         fxl_mean_stanceL_stimNeg_0ms = mean(fxl_normalized_all(:, conditions_stanceL_stimNeg_0ms), 2);
+%         fxl_civ_stanceL_stimNeg_0ms = tinv(0.975, sum(conditions_stanceL_stimNeg_0ms)-1) * std(fxl_normalized_all(:, conditions_stanceL_stimNeg_0ms), 1, 2)/sqrt(sum(conditions_stanceL_stimNeg_0ms));
+%         fxl_mean_stanceL_stimPos_150ms = mean(fxl_normalized_all(:, conditions_stanceL_stimPos_150ms), 2);
+%         fxl_civ_stanceL_stimPos_150ms = tinv(0.975, sum(conditions_stanceL_stimPos_150ms)-1) * std(fxl_normalized_all(:, conditions_stanceL_stimPos_150ms), 1, 2)/sqrt(sum(conditions_stanceL_stimPos_150ms));
+%         fxl_mean_stanceL_stimNeg_150ms = mean(fxl_normalized_all(:, conditions_stanceL_stimNeg_150ms), 2);
+%         fxl_civ_stanceL_stimNeg_150ms = tinv(0.975, sum(conditions_stanceL_stimNeg_150ms)-1) * std(fxl_normalized_all(:, conditions_stanceL_stimNeg_150ms), 1, 2)/sqrt(sum(conditions_stanceL_stimNeg_150ms));
+%         fxl_mean_stanceL_stimPos_450ms = mean(fxl_normalized_all(:, conditions_stanceL_stimPos_450ms), 2);
+%         fxl_civ_stanceL_stimPos_450ms = tinv(0.975, sum(conditions_stanceL_stimPos_450ms)-1) * std(fxl_normalized_all(:, conditions_stanceL_stimPos_450ms), 1, 2)/sqrt(sum(conditions_stanceL_stimPos_450ms));
+%         fxl_mean_stanceL_stimNeg_450ms = mean(fxl_normalized_all(:, conditions_stanceL_stimNeg_450ms), 2);
+%         fxl_civ_stanceL_stimNeg_450ms = tinv(0.975, sum(conditions_stanceL_stimNeg_450ms)-1) * std(fxl_normalized_all(:, conditions_stanceL_stimNeg_450ms), 1, 2)/sqrt(sum(conditions_stanceL_stimNeg_450ms));
+%         
+%         fzl_civ_stanceL_control = tinv(0.975, sum(conditions_stanceL_stimNo)-1) * std(fzl_normalized_all(:, conditions_stanceL_stimNo), 1, 2)/sqrt(sum(conditions_stanceL_stimNo));
+%         fzl_mean_stanceL_stimPos_0ms = mean(fzl_normalized_all(:, conditions_stanceL_stimPos_0ms), 2);
+%         fzl_civ_stanceL_stimPos_0ms = tinv(0.975, sum(conditions_stanceL_stimPos_0ms)-1) * std(fzl_normalized_all(:, conditions_stanceL_stimPos_0ms), 1, 2)/sqrt(sum(conditions_stanceL_stimPos_0ms));
+%         fzl_mean_stanceL_stimNeg_0ms = mean(fzl_normalized_all(:, conditions_stanceL_stimNeg_0ms), 2);
+%         fzl_civ_stanceL_stimNeg_0ms = tinv(0.975, sum(conditions_stanceL_stimNeg_0ms)-1) * std(fzl_normalized_all(:, conditions_stanceL_stimNeg_0ms), 1, 2)/sqrt(sum(conditions_stanceL_stimNeg_0ms));
+%         fzl_mean_stanceL_stimPos_150ms = mean(fzl_normalized_all(:, conditions_stanceL_stimPos_150ms), 2);
+%         fzl_civ_stanceL_stimPos_150ms = tinv(0.975, sum(conditions_stanceL_stimPos_150ms)-1) * std(fzl_normalized_all(:, conditions_stanceL_stimPos_150ms), 1, 2)/sqrt(sum(conditions_stanceL_stimPos_150ms));
+%         fzl_mean_stanceL_stimNeg_150ms = mean(fzl_normalized_all(:, conditions_stanceL_stimNeg_150ms), 2);
+%         fzl_civ_stanceL_stimNeg_150ms = tinv(0.975, sum(conditions_stanceL_stimNeg_150ms)-1) * std(fzl_normalized_all(:, conditions_stanceL_stimNeg_150ms), 1, 2)/sqrt(sum(conditions_stanceL_stimNeg_150ms));
+%         fzl_mean_stanceL_stimPos_450ms = mean(fzl_normalized_all(:, conditions_stanceL_stimPos_450ms), 2);
+%         fzl_civ_stanceL_stimPos_450ms = tinv(0.975, sum(conditions_stanceL_stimPos_450ms)-1) * std(fzl_normalized_all(:, conditions_stanceL_stimPos_450ms), 1, 2)/sqrt(sum(conditions_stanceL_stimPos_450ms));
+%         fzl_mean_stanceL_stimNeg_450ms = mean(fzl_normalized_all(:, conditions_stanceL_stimNeg_450ms), 2);
+%         fzl_civ_stanceL_stimNeg_450ms = tinv(0.975, sum(conditions_stanceL_stimNeg_450ms)-1) * std(fzl_normalized_all(:, conditions_stanceL_stimNeg_450ms), 1, 2)/sqrt(sum(conditions_stanceL_stimNeg_450ms));
+% 
+%         myl_civ_stanceL_control = tinv(0.975, sum(conditions_stanceL_stimNo)-1) * std(myl_normalized_all(:, conditions_stanceL_stimNo), 1, 2)/sqrt(sum(conditions_stanceL_stimNo));
+%         myl_mean_stanceL_stimPos_0ms = mean(myl_normalized_all(:, conditions_stanceL_stimPos_0ms), 2);
+%         myl_civ_stanceL_stimPos_0ms = tinv(0.975, sum(conditions_stanceL_stimPos_0ms)-1) * std(myl_normalized_all(:, conditions_stanceL_stimPos_0ms), 1, 2)/sqrt(sum(conditions_stanceL_stimPos_0ms));
+%         myl_mean_stanceL_stimNeg_0ms = mean(myl_normalized_all(:, conditions_stanceL_stimNeg_0ms), 2);
+%         myl_civ_stanceL_stimNeg_0ms = tinv(0.975, sum(conditions_stanceL_stimNeg_0ms)-1) * std(myl_normalized_all(:, conditions_stanceL_stimNeg_0ms), 1, 2)/sqrt(sum(conditions_stanceL_stimNeg_0ms));
+%         myl_mean_stanceL_stimPos_150ms = mean(myl_normalized_all(:, conditions_stanceL_stimPos_150ms), 2);
+%         myl_civ_stanceL_stimPos_150ms = tinv(0.975, sum(conditions_stanceL_stimPos_150ms)-1) * std(myl_normalized_all(:, conditions_stanceL_stimPos_150ms), 1, 2)/sqrt(sum(conditions_stanceL_stimPos_150ms));
+%         myl_mean_stanceL_stimNeg_150ms = mean(myl_normalized_all(:, conditions_stanceL_stimNeg_150ms), 2);
+%         myl_civ_stanceL_stimNeg_150ms = tinv(0.975, sum(conditions_stanceL_stimNeg_150ms)-1) * std(myl_normalized_all(:, conditions_stanceL_stimNeg_150ms), 1, 2)/sqrt(sum(conditions_stanceL_stimNeg_150ms));
+%         myl_mean_stanceL_stimPos_450ms = mean(myl_normalized_all(:, conditions_stanceL_stimPos_450ms), 2);
+%         myl_civ_stanceL_stimPos_450ms = tinv(0.975, sum(conditions_stanceL_stimPos_450ms)-1) * std(myl_normalized_all(:, conditions_stanceL_stimPos_450ms), 1, 2)/sqrt(sum(conditions_stanceL_stimPos_450ms));
+%         myl_mean_stanceL_stimNeg_450ms = mean(myl_normalized_all(:, conditions_stanceL_stimNeg_450ms), 2);
+%         myl_civ_stanceL_stimNeg_450ms = tinv(0.975, sum(conditions_stanceL_stimNeg_450ms)-1) * std(myl_normalized_all(:, conditions_stanceL_stimNeg_450ms), 1, 2)/sqrt(sum(conditions_stanceL_stimNeg_450ms));
+%         
+%         lcop_x_civ_stanceL_control = tinv(0.975, sum(conditions_stanceL_stimNo)-1) * std(lcop_x_normalized_all(:, conditions_stanceL_stimNo), 1, 2)/sqrt(sum(conditions_stanceL_stimNo));
+%         lcop_x_mean_stanceL_stimPos_0ms = mean(lcop_x_normalized_all(:, conditions_stanceL_stimPos_0ms), 2);
+%         lcop_x_civ_stanceL_stimPos_0ms = tinv(0.975, sum(conditions_stanceL_stimPos_0ms)-1) * std(lcop_x_normalized_all(:, conditions_stanceL_stimPos_0ms), 1, 2)/sqrt(sum(conditions_stanceL_stimPos_0ms));
+%         lcop_x_mean_stanceL_stimNeg_0ms = mean(lcop_x_normalized_all(:, conditions_stanceL_stimNeg_0ms), 2);
+%         lcop_x_civ_stanceL_stimNeg_0ms = tinv(0.975, sum(conditions_stanceL_stimNeg_0ms)-1) * std(lcop_x_normalized_all(:, conditions_stanceL_stimNeg_0ms), 1, 2)/sqrt(sum(conditions_stanceL_stimNeg_0ms));
+%         lcop_x_mean_stanceL_stimPos_150ms = mean(lcop_x_normalized_all(:, conditions_stanceL_stimPos_150ms), 2);
+%         lcop_x_civ_stanceL_stimPos_150ms = tinv(0.975, sum(conditions_stanceL_stimPos_150ms)-1) * std(lcop_x_normalized_all(:, conditions_stanceL_stimPos_150ms), 1, 2)/sqrt(sum(conditions_stanceL_stimPos_150ms));
+%         lcop_x_mean_stanceL_stimNeg_150ms = mean(lcop_x_normalized_all(:, conditions_stanceL_stimNeg_150ms), 2);
+%         lcop_x_civ_stanceL_stimNeg_150ms = tinv(0.975, sum(conditions_stanceL_stimNeg_150ms)-1) * std(lcop_x_normalized_all(:, conditions_stanceL_stimNeg_150ms), 1, 2)/sqrt(sum(conditions_stanceL_stimNeg_150ms));
+%         lcop_x_mean_stanceL_stimPos_450ms = mean(lcop_x_normalized_all(:, conditions_stanceL_stimPos_450ms), 2);
+%         lcop_x_civ_stanceL_stimPos_450ms = tinv(0.975, sum(conditions_stanceL_stimPos_450ms)-1) * std(lcop_x_normalized_all(:, conditions_stanceL_stimPos_450ms), 1, 2)/sqrt(sum(conditions_stanceL_stimPos_450ms));
+%         lcop_x_mean_stanceL_stimNeg_450ms = mean(lcop_x_normalized_all(:, conditions_stanceL_stimNeg_450ms), 2);
+%         lcop_x_civ_stanceL_stimNeg_450ms = tinv(0.975, sum(conditions_stanceL_stimNeg_450ms)-1) * std(lcop_x_normalized_all(:, conditions_stanceL_stimNeg_450ms), 1, 2)/sqrt(sum(conditions_stanceL_stimNeg_450ms));
+% 
+%         fxr_civ_stanceR_control = tinv(0.975, sum(conditions_stanceR_stimNo)-1) * std(fxr_normalized_all(:, conditions_stanceR_stimNo), 1, 2)/sqrt(sum(conditions_stanceR_stimNo));
+%         fxr_mean_stanceR_stimPos_0ms = mean(fxr_normalized_all(:, conditions_stanceR_stimPos_0ms), 2);
+%         fxr_civ_stanceR_stimPos_0ms = tinv(0.975, sum(conditions_stanceR_stimPos_0ms)-1) * std(fxr_normalized_all(:, conditions_stanceR_stimPos_0ms), 1, 2)/sqrt(sum(conditions_stanceR_stimPos_0ms));
+%         fxr_mean_stanceR_stimNeg_0ms = mean(fxr_normalized_all(:, conditions_stanceR_stimNeg_0ms), 2);
+%         fxr_civ_stanceR_stimNeg_0ms = tinv(0.975, sum(conditions_stanceR_stimNeg_0ms)-1) * std(fxr_normalized_all(:, conditions_stanceR_stimNeg_0ms), 1, 2)/sqrt(sum(conditions_stanceR_stimNeg_0ms));
+%         fxr_mean_stanceR_stimPos_150ms = mean(fxr_normalized_all(:, conditions_stanceR_stimPos_150ms), 2);
+%         fxr_civ_stanceR_stimPos_150ms = tinv(0.975, sum(conditions_stanceR_stimPos_150ms)-1) * std(fxr_normalized_all(:, conditions_stanceR_stimPos_150ms), 1, 2)/sqrt(sum(conditions_stanceR_stimPos_150ms));
+%         fxr_mean_stanceR_stimNeg_150ms = mean(fxr_normalized_all(:, conditions_stanceR_stimNeg_150ms), 2);
+%         fxr_civ_stanceR_stimNeg_150ms = tinv(0.975, sum(conditions_stanceR_stimNeg_150ms)-1) * std(fxr_normalized_all(:, conditions_stanceR_stimNeg_150ms), 1, 2)/sqrt(sum(conditions_stanceR_stimNeg_150ms));
+%         fxr_mean_stanceR_stimPos_450ms = mean(fxr_normalized_all(:, conditions_stanceR_stimPos_450ms), 2);
+%         fxr_civ_stanceR_stimPos_450ms = tinv(0.975, sum(conditions_stanceR_stimPos_450ms)-1) * std(fxr_normalized_all(:, conditions_stanceR_stimPos_450ms), 1, 2)/sqrt(sum(conditions_stanceR_stimPos_450ms));
+%         fxr_mean_stanceR_stimNeg_450ms = mean(fxr_normalized_all(:, conditions_stanceR_stimNeg_450ms), 2);
+%         fxr_civ_stanceR_stimNeg_450ms = tinv(0.975, sum(conditions_stanceR_stimNeg_450ms)-1) * std(fxr_normalized_all(:, conditions_stanceR_stimNeg_450ms), 1, 2)/sqrt(sum(conditions_stanceR_stimNeg_450ms));
+% 
+%         fzr_civ_stanceR_control = tinv(0.975, sum(conditions_stanceR_stimNo)-1) * std(fzr_normalized_all(:, conditions_stanceR_stimNo), 1, 2)/sqrt(sum(conditions_stanceR_stimNo));
+%         fzr_mean_stanceR_stimPos_0ms = mean(fzr_normalized_all(:, conditions_stanceR_stimPos_0ms), 2);
+%         fzr_civ_stanceR_stimPos_0ms = tinv(0.975, sum(conditions_stanceR_stimPos_0ms)-1) * std(fzr_normalized_all(:, conditions_stanceR_stimPos_0ms), 1, 2)/sqrt(sum(conditions_stanceR_stimPos_0ms));
+%         fzr_mean_stanceR_stimNeg_0ms = mean(fzr_normalized_all(:, conditions_stanceR_stimNeg_0ms), 2);
+%         fzr_civ_stanceR_stimNeg_0ms = tinv(0.975, sum(conditions_stanceR_stimNeg_0ms)-1) * std(fzr_normalized_all(:, conditions_stanceR_stimNeg_0ms), 1, 2)/sqrt(sum(conditions_stanceR_stimNeg_0ms));
+%         fzr_mean_stanceR_stimPos_150ms = mean(fzr_normalized_all(:, conditions_stanceR_stimPos_150ms), 2);
+%         fzr_civ_stanceR_stimPos_150ms = tinv(0.975, sum(conditions_stanceR_stimPos_150ms)-1) * std(fzr_normalized_all(:, conditions_stanceR_stimPos_150ms), 1, 2)/sqrt(sum(conditions_stanceR_stimPos_150ms));
+%         fzr_mean_stanceR_stimNeg_150ms = mean(fzr_normalized_all(:, conditions_stanceR_stimNeg_150ms), 2);
+%         fzr_civ_stanceR_stimNeg_150ms = tinv(0.975, sum(conditions_stanceR_stimNeg_150ms)-1) * std(fzr_normalized_all(:, conditions_stanceR_stimNeg_150ms), 1, 2)/sqrt(sum(conditions_stanceR_stimNeg_150ms));
+%         fzr_mean_stanceR_stimPos_450ms = mean(fzr_normalized_all(:, conditions_stanceR_stimPos_450ms), 2);
+%         fzr_civ_stanceR_stimPos_450ms = tinv(0.975, sum(conditions_stanceR_stimPos_450ms)-1) * std(fzr_normalized_all(:, conditions_stanceR_stimPos_450ms), 1, 2)/sqrt(sum(conditions_stanceR_stimPos_450ms));
+%         fzr_mean_stanceR_stimNeg_450ms = mean(fzr_normalized_all(:, conditions_stanceR_stimNeg_450ms), 2);
+%         fzr_civ_stanceR_stimNeg_450ms = tinv(0.975, sum(conditions_stanceR_stimNeg_450ms)-1) * std(fzr_normalized_all(:, conditions_stanceR_stimNeg_450ms), 1, 2)/sqrt(sum(conditions_stanceR_stimNeg_450ms));
+% 
+%         myr_civ_stanceR_control = tinv(0.975, sum(conditions_stanceR_stimNo)-1) * std(myr_normalized_all(:, conditions_stanceR_stimNo), 1, 2)/sqrt(sum(conditions_stanceR_stimNo));
+%         myr_mean_stanceR_stimPos_0ms = mean(myr_normalized_all(:, conditions_stanceR_stimPos_0ms), 2);
+%         myr_civ_stanceR_stimPos_0ms = tinv(0.975, sum(conditions_stanceR_stimPos_0ms)-1) * std(myr_normalized_all(:, conditions_stanceR_stimPos_0ms), 1, 2)/sqrt(sum(conditions_stanceR_stimPos_0ms));
+%         myr_mean_stanceR_stimNeg_0ms = mean(myr_normalized_all(:, conditions_stanceR_stimNeg_0ms), 2);
+%         myr_civ_stanceR_stimNeg_0ms = tinv(0.975, sum(conditions_stanceR_stimNeg_0ms)-1) * std(myr_normalized_all(:, conditions_stanceR_stimNeg_0ms), 1, 2)/sqrt(sum(conditions_stanceR_stimNeg_0ms));
+%         myr_mean_stanceR_stimPos_150ms = mean(myr_normalized_all(:, conditions_stanceR_stimPos_150ms), 2);
+%         myr_civ_stanceR_stimPos_150ms = tinv(0.975, sum(conditions_stanceR_stimPos_150ms)-1) * std(myr_normalized_all(:, conditions_stanceR_stimPos_150ms), 1, 2)/sqrt(sum(conditions_stanceR_stimPos_150ms));
+%         myr_mean_stanceR_stimNeg_150ms = mean(myr_normalized_all(:, conditions_stanceR_stimNeg_150ms), 2);
+%         myr_civ_stanceR_stimNeg_150ms = tinv(0.975, sum(conditions_stanceR_stimNeg_150ms)-1) * std(myr_normalized_all(:, conditions_stanceR_stimNeg_150ms), 1, 2)/sqrt(sum(conditions_stanceR_stimNeg_150ms));
+%         myr_mean_stanceR_stimPos_450ms = mean(myr_normalized_all(:, conditions_stanceR_stimPos_450ms), 2);
+%         myr_civ_stanceR_stimPos_450ms = tinv(0.975, sum(conditions_stanceR_stimPos_450ms)-1) * std(myr_normalized_all(:, conditions_stanceR_stimPos_450ms), 1, 2)/sqrt(sum(conditions_stanceR_stimPos_450ms));
+%         myr_mean_stanceR_stimNeg_450ms = mean(myr_normalized_all(:, conditions_stanceR_stimNeg_450ms), 2);
+%         myr_civ_stanceR_stimNeg_450ms = tinv(0.975, sum(conditions_stanceR_stimNeg_450ms)-1) * std(myr_normalized_all(:, conditions_stanceR_stimNeg_450ms), 1, 2)/sqrt(sum(conditions_stanceR_stimNeg_450ms));
+% 
+%         rcop_x_civ_stanceR_control = tinv(0.975, sum(conditions_stanceR_stimNo)-1) * std(rcop_x_normalized_all(:, conditions_stanceR_stimNo), 1, 2)/sqrt(sum(conditions_stanceR_stimNo));
+%         rcop_x_mean_stanceR_stimPos_0ms = mean(rcop_x_normalized_all(:, conditions_stanceR_stimPos_0ms), 2);
+%         rcop_x_civ_stanceR_stimPos_0ms = tinv(0.975, sum(conditions_stanceR_stimPos_0ms)-1) * std(rcop_x_normalized_all(:, conditions_stanceR_stimPos_0ms), 1, 2)/sqrt(sum(conditions_stanceR_stimPos_0ms));
+%         rcop_x_mean_stanceR_stimNeg_0ms = mean(rcop_x_normalized_all(:, conditions_stanceR_stimNeg_0ms), 2);
+%         rcop_x_civ_stanceR_stimNeg_0ms = tinv(0.975, sum(conditions_stanceR_stimNeg_0ms)-1) * std(rcop_x_normalized_all(:, conditions_stanceR_stimNeg_0ms), 1, 2)/sqrt(sum(conditions_stanceR_stimNeg_0ms));
+%         rcop_x_mean_stanceR_stimPos_150ms = mean(rcop_x_normalized_all(:, conditions_stanceR_stimPos_150ms), 2);
+%         rcop_x_civ_stanceR_stimPos_150ms = tinv(0.975, sum(conditions_stanceR_stimPos_150ms)-1) * std(rcop_x_normalized_all(:, conditions_stanceR_stimPos_150ms), 1, 2)/sqrt(sum(conditions_stanceR_stimPos_150ms));
+%         rcop_x_mean_stanceR_stimNeg_150ms = mean(rcop_x_normalized_all(:, conditions_stanceR_stimNeg_150ms), 2);
+%         rcop_x_civ_stanceR_stimNeg_150ms = tinv(0.975, sum(conditions_stanceR_stimNeg_150ms)-1) * std(rcop_x_normalized_all(:, conditions_stanceR_stimNeg_150ms), 1, 2)/sqrt(sum(conditions_stanceR_stimNeg_150ms));
+%         rcop_x_mean_stanceR_stimPos_450ms = mean(rcop_x_normalized_all(:, conditions_stanceR_stimPos_450ms), 2);
+%         rcop_x_civ_stanceR_stimPos_450ms = tinv(0.975, sum(conditions_stanceR_stimPos_450ms)-1) * std(rcop_x_normalized_all(:, conditions_stanceR_stimPos_450ms), 1, 2)/sqrt(sum(conditions_stanceR_stimPos_450ms));
+%         rcop_x_mean_stanceR_stimNeg_450ms = mean(rcop_x_normalized_all(:, conditions_stanceR_stimNeg_450ms), 2);
+%         rcop_x_civ_stanceR_stimNeg_450ms = tinv(0.975, sum(conditions_stanceR_stimNeg_450ms)-1) * std(rcop_x_normalized_all(:, conditions_stanceR_stimNeg_450ms), 1, 2)/sqrt(sum(conditions_stanceR_stimNeg_450ms));
+% 
+%         % responses
+%         fxl_response_mean_stanceL_stimPos_0ms = mean(fxl_stanceL_response(:, conditions_stanceL_stimPos_0ms), 2);
+%         fxl_response_civ_stanceL_stimPos_0ms = tinv(0.975, sum(conditions_stanceL_stimPos_0ms)-1) * std(fxl_stanceL_response(:, conditions_stanceL_stimPos_0ms), 1, 2)/sqrt(sum(conditions_stanceL_stimPos_0ms));
+%         fxl_response_mean_stanceL_stimNeg_0ms = mean(fxl_stanceL_response(:, conditions_stanceL_stimNeg_0ms), 2);
+%         fxl_response_civ_stanceL_stimNeg_0ms = tinv(0.975, sum(conditions_stanceL_stimNeg_0ms)-1) * std(fxl_stanceL_response(:, conditions_stanceL_stimNeg_0ms), 1, 2)/sqrt(sum(conditions_stanceL_stimNeg_0ms));
+%         fxl_response_mean_stanceL_stimPos_150ms = mean(fxl_stanceL_response(:, conditions_stanceL_stimPos_150ms), 2);
+%         fxl_response_civ_stanceL_stimPos_150ms = tinv(0.975, sum(conditions_stanceL_stimPos_150ms)-1) * std(fxl_stanceL_response(:, conditions_stanceL_stimPos_150ms), 1, 2)/sqrt(sum(conditions_stanceL_stimPos_150ms));
+%         fxl_response_mean_stanceL_stimNeg_150ms = mean(fxl_stanceL_response(:, conditions_stanceL_stimNeg_150ms), 2);
+%         fxl_response_civ_stanceL_stimNeg_150ms = tinv(0.975, sum(conditions_stanceL_stimNeg_150ms)-1) * std(fxl_stanceL_response(:, conditions_stanceL_stimNeg_150ms), 1, 2)/sqrt(sum(conditions_stanceL_stimNeg_150ms));
+%         fxl_response_mean_stanceL_stimPos_450ms = mean(fxl_stanceL_response(:, conditions_stanceL_stimPos_450ms), 2);
+%         fxl_response_civ_stanceL_stimPos_450ms = tinv(0.975, sum(conditions_stanceL_stimPos_450ms)-1) * std(fxl_stanceL_response(:, conditions_stanceL_stimPos_450ms), 1, 2)/sqrt(sum(conditions_stanceL_stimPos_450ms));
+%         fxl_response_mean_stanceL_stimNeg_450ms = mean(fxl_stanceL_response(:, conditions_stanceL_stimNeg_450ms), 2);
+%         fxl_response_civ_stanceL_stimNeg_450ms = tinv(0.975, sum(conditions_stanceL_stimNeg_450ms)-1) * std(fxl_stanceL_response(:, conditions_stanceL_stimNeg_450ms), 1, 2)/sqrt(sum(conditions_stanceL_stimNeg_450ms));
+% 
+%         fzl_response_mean_stanceL_stimPos_0ms = mean(fzl_stanceL_response(:, conditions_stanceL_stimPos_0ms), 2);
+%         fzl_response_civ_stanceL_stimPos_0ms = tinv(0.975, sum(conditions_stanceL_stimPos_0ms)-1) * std(fzl_stanceL_response(:, conditions_stanceL_stimPos_0ms), 1, 2)/sqrt(sum(conditions_stanceL_stimPos_0ms));
+%         fzl_response_mean_stanceL_stimNeg_0ms = mean(fzl_stanceL_response(:, conditions_stanceL_stimNeg_0ms), 2);
+%         fzl_response_civ_stanceL_stimNeg_0ms = tinv(0.975, sum(conditions_stanceL_stimNeg_0ms)-1) * std(fzl_stanceL_response(:, conditions_stanceL_stimNeg_0ms), 1, 2)/sqrt(sum(conditions_stanceL_stimNeg_0ms));
+%         fzl_response_mean_stanceL_stimPos_150ms = mean(fzl_stanceL_response(:, conditions_stanceL_stimPos_150ms), 2);
+%         fzl_response_civ_stanceL_stimPos_150ms = tinv(0.975, sum(conditions_stanceL_stimPos_150ms)-1) * std(fzl_stanceL_response(:, conditions_stanceL_stimPos_150ms), 1, 2)/sqrt(sum(conditions_stanceL_stimPos_150ms));
+%         fzl_response_mean_stanceL_stimNeg_150ms = mean(fzl_stanceL_response(:, conditions_stanceL_stimNeg_150ms), 2);
+%         fzl_response_civ_stanceL_stimNeg_150ms = tinv(0.975, sum(conditions_stanceL_stimNeg_150ms)-1) * std(fzl_stanceL_response(:, conditions_stanceL_stimNeg_150ms), 1, 2)/sqrt(sum(conditions_stanceL_stimNeg_150ms));
+%         fzl_response_mean_stanceL_stimPos_450ms = mean(fzl_stanceL_response(:, conditions_stanceL_stimPos_450ms), 2);
+%         fzl_response_civ_stanceL_stimPos_450ms = tinv(0.975, sum(conditions_stanceL_stimPos_450ms)-1) * std(fzl_stanceL_response(:, conditions_stanceL_stimPos_450ms), 1, 2)/sqrt(sum(conditions_stanceL_stimPos_450ms));
+%         fzl_response_mean_stanceL_stimNeg_450ms = mean(fzl_stanceL_response(:, conditions_stanceL_stimNeg_450ms), 2);
+%         fzl_response_civ_stanceL_stimNeg_450ms = tinv(0.975, sum(conditions_stanceL_stimNeg_450ms)-1) * std(fzl_stanceL_response(:, conditions_stanceL_stimNeg_450ms), 1, 2)/sqrt(sum(conditions_stanceL_stimNeg_450ms));
+% 
+%         myl_response_mean_stanceL_stimPos_0ms = mean(myl_stanceL_response(:, conditions_stanceL_stimPos_0ms), 2);
+%         myl_response_civ_stanceL_stimPos_0ms = tinv(0.975, sum(conditions_stanceL_stimPos_0ms)-1) * std(myl_stanceL_response(:, conditions_stanceL_stimPos_0ms), 1, 2)/sqrt(sum(conditions_stanceL_stimPos_0ms));
+%         myl_response_mean_stanceL_stimNeg_0ms = mean(myl_stanceL_response(:, conditions_stanceL_stimNeg_0ms), 2);
+%         myl_response_civ_stanceL_stimNeg_0ms = tinv(0.975, sum(conditions_stanceL_stimNeg_0ms)-1) * std(myl_stanceL_response(:, conditions_stanceL_stimNeg_0ms), 1, 2)/sqrt(sum(conditions_stanceL_stimNeg_0ms));
+%         myl_response_mean_stanceL_stimPos_150ms = mean(myl_stanceL_response(:, conditions_stanceL_stimPos_150ms), 2);
+%         myl_response_civ_stanceL_stimPos_150ms = tinv(0.975, sum(conditions_stanceL_stimPos_150ms)-1) * std(myl_stanceL_response(:, conditions_stanceL_stimPos_150ms), 1, 2)/sqrt(sum(conditions_stanceL_stimPos_150ms));
+%         myl_response_mean_stanceL_stimNeg_150ms = mean(myl_stanceL_response(:, conditions_stanceL_stimNeg_150ms), 2);
+%         myl_response_civ_stanceL_stimNeg_150ms = tinv(0.975, sum(conditions_stanceL_stimNeg_150ms)-1) * std(myl_stanceL_response(:, conditions_stanceL_stimNeg_150ms), 1, 2)/sqrt(sum(conditions_stanceL_stimNeg_150ms));
+%         myl_response_mean_stanceL_stimPos_450ms = mean(myl_stanceL_response(:, conditions_stanceL_stimPos_450ms), 2);
+%         myl_response_civ_stanceL_stimPos_450ms = tinv(0.975, sum(conditions_stanceL_stimPos_450ms)-1) * std(myl_stanceL_response(:, conditions_stanceL_stimPos_450ms), 1, 2)/sqrt(sum(conditions_stanceL_stimPos_450ms));
+%         myl_response_mean_stanceL_stimNeg_450ms = mean(myl_stanceL_response(:, conditions_stanceL_stimNeg_450ms), 2);
+%         myl_response_civ_stanceL_stimNeg_450ms = tinv(0.975, sum(conditions_stanceL_stimNeg_450ms)-1) * std(myl_stanceL_response(:, conditions_stanceL_stimNeg_450ms), 1, 2)/sqrt(sum(conditions_stanceL_stimNeg_450ms));
+% 
+%         lcop_x_response_mean_stanceL_stimPos_0ms = mean(lcop_x_stanceL_response(:, conditions_stanceL_stimPos_0ms), 2);
+%         lcop_x_response_civ_stanceL_stimPos_0ms = tinv(0.975, sum(conditions_stanceL_stimPos_0ms)-1) * std(lcop_x_stanceL_response(:, conditions_stanceL_stimPos_0ms), 1, 2)/sqrt(sum(conditions_stanceL_stimPos_0ms));
+%         lcop_x_response_mean_stanceL_stimNeg_0ms = mean(lcop_x_stanceL_response(:, conditions_stanceL_stimNeg_0ms), 2);
+%         lcop_x_response_civ_stanceL_stimNeg_0ms = tinv(0.975, sum(conditions_stanceL_stimNeg_0ms)-1) * std(lcop_x_stanceL_response(:, conditions_stanceL_stimNeg_0ms), 1, 2)/sqrt(sum(conditions_stanceL_stimNeg_0ms));
+%         lcop_x_response_mean_stanceL_stimPos_150ms = mean(lcop_x_stanceL_response(:, conditions_stanceL_stimPos_150ms), 2);
+%         lcop_x_response_civ_stanceL_stimPos_150ms = tinv(0.975, sum(conditions_stanceL_stimPos_150ms)-1) * std(lcop_x_stanceL_response(:, conditions_stanceL_stimPos_150ms), 1, 2)/sqrt(sum(conditions_stanceL_stimPos_150ms));
+%         lcop_x_response_mean_stanceL_stimNeg_150ms = mean(lcop_x_stanceL_response(:, conditions_stanceL_stimNeg_150ms), 2);
+%         lcop_x_response_civ_stanceL_stimNeg_150ms = tinv(0.975, sum(conditions_stanceL_stimNeg_150ms)-1) * std(lcop_x_stanceL_response(:, conditions_stanceL_stimNeg_150ms), 1, 2)/sqrt(sum(conditions_stanceL_stimNeg_150ms));
+%         lcop_x_response_mean_stanceL_stimPos_450ms = mean(lcop_x_stanceL_response(:, conditions_stanceL_stimPos_450ms), 2);
+%         lcop_x_response_civ_stanceL_stimPos_450ms = tinv(0.975, sum(conditions_stanceL_stimPos_450ms)-1) * std(lcop_x_stanceL_response(:, conditions_stanceL_stimPos_450ms), 1, 2)/sqrt(sum(conditions_stanceL_stimPos_450ms));
+%         lcop_x_response_mean_stanceL_stimNeg_450ms = mean(lcop_x_stanceL_response(:, conditions_stanceL_stimNeg_450ms), 2);
+%         lcop_x_response_civ_stanceL_stimNeg_450ms = tinv(0.975, sum(conditions_stanceL_stimNeg_450ms)-1) * std(lcop_x_stanceL_response(:, conditions_stanceL_stimNeg_450ms), 1, 2)/sqrt(sum(conditions_stanceL_stimNeg_450ms));
+% 
+%         fxr_response_mean_stanceR_stimPos_0ms = mean(fxr_stanceR_response(:, conditions_stanceR_stimPos_0ms), 2);
+%         fxr_response_civ_stanceR_stimPos_0ms = tinv(0.975, sum(conditions_stanceR_stimPos_0ms)-1) * std(fxr_stanceR_response(:, conditions_stanceR_stimPos_0ms), 1, 2)/sqrt(sum(conditions_stanceR_stimPos_0ms));
+%         fxr_response_mean_stanceR_stimNeg_0ms = mean(fxr_stanceR_response(:, conditions_stanceR_stimNeg_0ms), 2);
+%         fxr_response_civ_stanceR_stimNeg_0ms = tinv(0.975, sum(conditions_stanceR_stimNeg_0ms)-1) * std(fxr_stanceR_response(:, conditions_stanceR_stimNeg_0ms), 1, 2)/sqrt(sum(conditions_stanceR_stimNeg_0ms));
+%         fxr_response_mean_stanceR_stimPos_150ms = mean(fxr_stanceR_response(:, conditions_stanceR_stimPos_150ms), 2);
+%         fxr_response_civ_stanceR_stimPos_150ms = tinv(0.975, sum(conditions_stanceR_stimPos_150ms)-1) * std(fxr_stanceR_response(:, conditions_stanceR_stimPos_150ms), 1, 2)/sqrt(sum(conditions_stanceR_stimPos_150ms));
+%         fxr_response_mean_stanceR_stimNeg_150ms = mean(fxr_stanceR_response(:, conditions_stanceR_stimNeg_150ms), 2);
+%         fxr_response_civ_stanceR_stimNeg_150ms = tinv(0.975, sum(conditions_stanceR_stimNeg_150ms)-1) * std(fxr_stanceR_response(:, conditions_stanceR_stimNeg_150ms), 1, 2)/sqrt(sum(conditions_stanceR_stimNeg_150ms));
+%         fxr_response_mean_stanceR_stimPos_450ms = mean(fxr_stanceR_response(:, conditions_stanceR_stimPos_450ms), 2);
+%         fxr_response_civ_stanceR_stimPos_450ms = tinv(0.975, sum(conditions_stanceR_stimPos_450ms)-1) * std(fxr_stanceR_response(:, conditions_stanceR_stimPos_450ms), 1, 2)/sqrt(sum(conditions_stanceR_stimPos_450ms));
+%         fxr_response_mean_stanceR_stimNeg_450ms = mean(fxr_stanceR_response(:, conditions_stanceR_stimNeg_450ms), 2);
+%         fxr_response_civ_stanceR_stimNeg_450ms = tinv(0.975, sum(conditions_stanceR_stimNeg_450ms)-1) * std(fxr_stanceR_response(:, conditions_stanceR_stimNeg_450ms), 1, 2)/sqrt(sum(conditions_stanceR_stimNeg_450ms));
+% 
+%         fzr_response_mean_stanceR_stimPos_0ms = mean(fzr_stanceR_response(:, conditions_stanceR_stimPos_0ms), 2);
+%         fzr_response_civ_stanceR_stimPos_0ms = tinv(0.975, sum(conditions_stanceR_stimPos_0ms)-1) * std(fzr_stanceR_response(:, conditions_stanceR_stimPos_0ms), 1, 2)/sqrt(sum(conditions_stanceR_stimPos_0ms));
+%         fzr_response_mean_stanceR_stimNeg_0ms = mean(fzr_stanceR_response(:, conditions_stanceR_stimNeg_0ms), 2);
+%         fzr_response_civ_stanceR_stimNeg_0ms = tinv(0.975, sum(conditions_stanceR_stimNeg_0ms)-1) * std(fzr_stanceR_response(:, conditions_stanceR_stimNeg_0ms), 1, 2)/sqrt(sum(conditions_stanceR_stimNeg_0ms));
+%         fzr_response_mean_stanceR_stimPos_150ms = mean(fzr_stanceR_response(:, conditions_stanceR_stimPos_150ms), 2);
+%         fzr_response_civ_stanceR_stimPos_150ms = tinv(0.975, sum(conditions_stanceR_stimPos_150ms)-1) * std(fzr_stanceR_response(:, conditions_stanceR_stimPos_150ms), 1, 2)/sqrt(sum(conditions_stanceR_stimPos_150ms));
+%         fzr_response_mean_stanceR_stimNeg_150ms = mean(fzr_stanceR_response(:, conditions_stanceR_stimNeg_150ms), 2);
+%         fzr_response_civ_stanceR_stimNeg_150ms = tinv(0.975, sum(conditions_stanceR_stimNeg_150ms)-1) * std(fzr_stanceR_response(:, conditions_stanceR_stimNeg_150ms), 1, 2)/sqrt(sum(conditions_stanceR_stimNeg_150ms));
+%         fzr_response_mean_stanceR_stimPos_450ms = mean(fzr_stanceR_response(:, conditions_stanceR_stimPos_450ms), 2);
+%         fzr_response_civ_stanceR_stimPos_450ms = tinv(0.975, sum(conditions_stanceR_stimPos_450ms)-1) * std(fzr_stanceR_response(:, conditions_stanceR_stimPos_450ms), 1, 2)/sqrt(sum(conditions_stanceR_stimPos_450ms));
+%         fzr_response_mean_stanceR_stimNeg_450ms = mean(fzr_stanceR_response(:, conditions_stanceR_stimNeg_450ms), 2);
+%         fzr_response_civ_stanceR_stimNeg_450ms = tinv(0.975, sum(conditions_stanceR_stimNeg_450ms)-1) * std(fzr_stanceR_response(:, conditions_stanceR_stimNeg_450ms), 1, 2)/sqrt(sum(conditions_stanceR_stimNeg_450ms));
+% 
+%         myr_response_mean_stanceR_stimPos_0ms = mean(myr_stanceR_response(:, conditions_stanceR_stimPos_0ms), 2);
+%         myr_response_civ_stanceR_stimPos_0ms = tinv(0.975, sum(conditions_stanceR_stimPos_0ms)-1) * std(myr_stanceR_response(:, conditions_stanceR_stimPos_0ms), 1, 2)/sqrt(sum(conditions_stanceR_stimPos_0ms));
+%         myr_response_mean_stanceR_stimNeg_0ms = mean(myr_stanceR_response(:, conditions_stanceR_stimNeg_0ms), 2);
+%         myr_response_civ_stanceR_stimNeg_0ms = tinv(0.975, sum(conditions_stanceR_stimNeg_0ms)-1) * std(myr_stanceR_response(:, conditions_stanceR_stimNeg_0ms), 1, 2)/sqrt(sum(conditions_stanceR_stimNeg_0ms));
+%         myr_response_mean_stanceR_stimPos_150ms = mean(myr_stanceR_response(:, conditions_stanceR_stimPos_150ms), 2);
+%         myr_response_civ_stanceR_stimPos_150ms = tinv(0.975, sum(conditions_stanceR_stimPos_150ms)-1) * std(myr_stanceR_response(:, conditions_stanceR_stimPos_150ms), 1, 2)/sqrt(sum(conditions_stanceR_stimPos_150ms));
+%         myr_response_mean_stanceR_stimNeg_150ms = mean(myr_stanceR_response(:, conditions_stanceR_stimNeg_150ms), 2);
+%         myr_response_civ_stanceR_stimNeg_150ms = tinv(0.975, sum(conditions_stanceR_stimNeg_150ms)-1) * std(myr_stanceR_response(:, conditions_stanceR_stimNeg_150ms), 1, 2)/sqrt(sum(conditions_stanceR_stimNeg_150ms));
+%         myr_response_mean_stanceR_stimPos_450ms = mean(myr_stanceR_response(:, conditions_stanceR_stimPos_450ms), 2);
+%         myr_response_civ_stanceR_stimPos_450ms = tinv(0.975, sum(conditions_stanceR_stimPos_450ms)-1) * std(myr_stanceR_response(:, conditions_stanceR_stimPos_450ms), 1, 2)/sqrt(sum(conditions_stanceR_stimPos_450ms));
+%         myr_response_mean_stanceR_stimNeg_450ms = mean(myr_stanceR_response(:, conditions_stanceR_stimNeg_450ms), 2);
+%         myr_response_civ_stanceR_stimNeg_450ms = tinv(0.975, sum(conditions_stanceR_stimNeg_450ms)-1) * std(myr_stanceR_response(:, conditions_stanceR_stimNeg_450ms), 1, 2)/sqrt(sum(conditions_stanceR_stimNeg_450ms));
+%     end
+%     
+%     if process_data_angles
+%         % absolute data
+%         joint_angles_civ_stanceL_control = tinv(0.975, sum(conditions_stanceL_stimNo)-1) * squeeze(std(joint_angles_normalized_all(:, conditions_stanceL_stimNo, :), 1, 2))/sqrt(sum(conditions_stanceL_stimNo));
+%         joint_angles_mean_stanceL_stimPos_0ms = squeeze(mean(joint_angles_normalized_all(:, conditions_stanceL_stimPos_0ms, :), 2));
+%         joint_angles_civ_stanceL_stimPos_0ms = tinv(0.975, sum(conditions_stanceL_stimPos_0ms)-1) * squeeze(std(joint_angles_normalized_all(:, conditions_stanceL_stimPos_0ms, :), 1, 2))/sqrt(sum(conditions_stanceL_stimPos_0ms));
+%         joint_angles_mean_stanceL_stimNeg_0ms = squeeze(mean(joint_angles_normalized_all(:, conditions_stanceL_stimNeg_0ms, :), 2));
+%         joint_angles_civ_stanceL_stimNeg_0ms = tinv(0.975, sum(conditions_stanceL_stimNeg_0ms)-1) * squeeze(std(joint_angles_normalized_all(:, conditions_stanceL_stimNeg_0ms, :), 1, 2))/sqrt(sum(conditions_stanceL_stimNeg_0ms));
+%         joint_angles_mean_stanceL_stimPos_150ms = squeeze(mean(joint_angles_normalized_all(:, conditions_stanceL_stimPos_150ms, :), 2));
+%         joint_angles_civ_stanceL_stimPos_150ms = tinv(0.975, sum(conditions_stanceL_stimPos_150ms)-1) * squeeze(std(joint_angles_normalized_all(:, conditions_stanceL_stimPos_150ms, :), 1, 2))/sqrt(sum(conditions_stanceL_stimPos_150ms));
+%         joint_angles_mean_stanceL_stimNeg_150ms = squeeze(mean(joint_angles_normalized_all(:, conditions_stanceL_stimNeg_150ms, :), 2));
+%         joint_angles_civ_stanceL_stimNeg_150ms = tinv(0.975, sum(conditions_stanceL_stimNeg_150ms)-1) * squeeze(std(joint_angles_normalized_all(:, conditions_stanceL_stimNeg_150ms, :), 1, 2))/sqrt(sum(conditions_stanceL_stimNeg_150ms));
+%         joint_angles_mean_stanceL_stimPos_450ms = squeeze(mean(joint_angles_normalized_all(:, conditions_stanceL_stimPos_450ms, :), 2));
+%         joint_angles_civ_stanceL_stimPos_450ms = tinv(0.975, sum(conditions_stanceL_stimPos_450ms)-1) * squeeze(std(joint_angles_normalized_all(:, conditions_stanceL_stimPos_450ms, :), 1, 2))/sqrt(sum(conditions_stanceL_stimPos_450ms));
+%         joint_angles_mean_stanceL_stimNeg_450ms = squeeze(mean(joint_angles_normalized_all(:, conditions_stanceL_stimNeg_450ms, :), 2));
+%         joint_angles_civ_stanceL_stimNeg_450ms = tinv(0.975, sum(conditions_stanceL_stimNeg_450ms)-1) * squeeze(std(joint_angles_normalized_all(:, conditions_stanceL_stimNeg_450ms, :), 1, 2))/sqrt(sum(conditions_stanceL_stimNeg_450ms));
+% 
+%         joint_angles_civ_stanceR_control = tinv(0.975, sum(conditions_stanceR_stimNo)-1) * squeeze(std(joint_angles_normalized_all(:, conditions_stanceR_stimNo, :), 1, 2))/sqrt(sum(conditions_stanceR_stimNo));
+%         joint_angles_mean_stanceR_stimPos_0ms = squeeze(mean(joint_angles_normalized_all(:, conditions_stanceR_stimPos_0ms, :), 2));
+%         joint_angles_civ_stanceR_stimPos_0ms = tinv(0.975, sum(conditions_stanceR_stimPos_0ms)-1) * squeeze(std(joint_angles_normalized_all(:, conditions_stanceR_stimPos_0ms, :), 1, 2))/sqrt(sum(conditions_stanceR_stimPos_0ms));
+%         joint_angles_mean_stanceR_stimNeg_0ms = squeeze(mean(joint_angles_normalized_all(:, conditions_stanceR_stimNeg_0ms, :), 2));
+%         joint_angles_civ_stanceR_stimNeg_0ms = tinv(0.975, sum(conditions_stanceR_stimNeg_0ms)-1) * squeeze(std(joint_angles_normalized_all(:, conditions_stanceR_stimNeg_0ms, :), 1, 2))/sqrt(sum(conditions_stanceR_stimNeg_0ms));
+%         joint_angles_mean_stanceR_stimPos_150ms = squeeze(mean(joint_angles_normalized_all(:, conditions_stanceR_stimPos_150ms, :), 2));
+%         joint_angles_civ_stanceR_stimPos_150ms = tinv(0.975, sum(conditions_stanceR_stimPos_150ms)-1) * squeeze(std(joint_angles_normalized_all(:, conditions_stanceR_stimPos_150ms, :), 1, 2))/sqrt(sum(conditions_stanceR_stimPos_150ms));
+%         joint_angles_mean_stanceR_stimNeg_150ms = squeeze(mean(joint_angles_normalized_all(:, conditions_stanceR_stimNeg_150ms, :), 2));
+%         joint_angles_civ_stanceR_stimNeg_150ms = tinv(0.975, sum(conditions_stanceR_stimNeg_150ms)-1) * squeeze(std(joint_angles_normalized_all(:, conditions_stanceR_stimNeg_150ms, :), 1, 2))/sqrt(sum(conditions_stanceR_stimNeg_150ms));
+%         joint_angles_mean_stanceR_stimPos_450ms = squeeze(mean(joint_angles_normalized_all(:, conditions_stanceR_stimPos_450ms, :), 2));
+%         joint_angles_civ_stanceR_stimPos_450ms = tinv(0.975, sum(conditions_stanceR_stimPos_450ms)-1) * squeeze(std(joint_angles_normalized_all(:, conditions_stanceR_stimPos_450ms, :), 1, 2))/sqrt(sum(conditions_stanceR_stimPos_450ms));
+%         joint_angles_mean_stanceR_stimNeg_450ms = squeeze(mean(joint_angles_normalized_all(:, conditions_stanceR_stimNeg_450ms, :), 2));
+%         joint_angles_civ_stanceR_stimNeg_450ms = tinv(0.975, sum(conditions_stanceR_stimNeg_450ms)-1) * squeeze(std(joint_angles_normalized_all(:, conditions_stanceR_stimNeg_450ms, :), 1, 2))/sqrt(sum(conditions_stanceR_stimNeg_450ms));
+% 
+%         % responses
+%         joint_angles_response_mean_stanceL_stimPos_0ms = squeeze(mean(joint_angles_stanceL_response(:, conditions_stanceL_stimPos_0ms, :), 2));
+%         joint_angles_response_civ_stanceL_stimPos_0ms = tinv(0.975, sum(conditions_stanceL_stimPos_0ms)-1) * squeeze(std(joint_angles_stanceL_response(:, conditions_stanceL_stimPos_0ms, :), 1, 2))/sqrt(sum(conditions_stanceL_stimPos_0ms));
+%         joint_angles_response_mean_stanceL_stimNeg_0ms = squeeze(mean(joint_angles_stanceL_response(:, conditions_stanceL_stimNeg_0ms, :), 2));
+%         joint_angles_response_civ_stanceL_stimNeg_0ms = tinv(0.975, sum(conditions_stanceL_stimNeg_0ms)-1) * squeeze(std(joint_angles_stanceL_response(:, conditions_stanceL_stimNeg_0ms, :), 1, 2))/sqrt(sum(conditions_stanceL_stimNeg_0ms));
+%         joint_angles_response_mean_stanceL_stimPos_150ms = squeeze(mean(joint_angles_stanceL_response(:, conditions_stanceL_stimPos_150ms, :), 2));
+%         joint_angles_response_civ_stanceL_stimPos_150ms = tinv(0.975, sum(conditions_stanceL_stimPos_150ms)-1) * squeeze(std(joint_angles_stanceL_response(:, conditions_stanceL_stimPos_150ms, :), 1, 2))/sqrt(sum(conditions_stanceL_stimPos_150ms));
+%         joint_angles_response_mean_stanceL_stimNeg_150ms = squeeze(mean(joint_angles_stanceL_response(:, conditions_stanceL_stimNeg_150ms, :), 2));
+%         joint_angles_response_civ_stanceL_stimNeg_150ms = tinv(0.975, sum(conditions_stanceL_stimNeg_150ms)-1) * squeeze(std(joint_angles_stanceL_response(:, conditions_stanceL_stimNeg_150ms, :), 1, 2))/sqrt(sum(conditions_stanceL_stimNeg_150ms));
+%         joint_angles_response_mean_stanceL_stimPos_450ms = squeeze(mean(joint_angles_stanceL_response(:, conditions_stanceL_stimPos_450ms, :), 2));
+%         joint_angles_response_civ_stanceL_stimPos_450ms = tinv(0.975, sum(conditions_stanceL_stimPos_450ms)-1) * squeeze(std(joint_angles_stanceL_response(:, conditions_stanceL_stimPos_450ms, :), 1, 2))/sqrt(sum(conditions_stanceL_stimPos_450ms));
+%         joint_angles_response_mean_stanceL_stimNeg_450ms = squeeze(mean(joint_angles_stanceL_response(:, conditions_stanceL_stimNeg_450ms, :), 2));
+%         joint_angles_response_civ_stanceL_stimNeg_450ms = tinv(0.975, sum(conditions_stanceL_stimNeg_450ms)-1) * squeeze(std(joint_angles_stanceL_response(:, conditions_stanceL_stimNeg_450ms, :), 1, 2))/sqrt(sum(conditions_stanceL_stimNeg_450ms));
+% 
+%         joint_angles_response_mean_stanceR_stimPos_0ms = squeeze(mean(joint_angles_stanceR_response(:, conditions_stanceR_stimPos_0ms, :), 2));
+%         joint_angles_response_civ_stanceR_stimPos_0ms = tinv(0.975, sum(conditions_stanceR_stimPos_0ms)-1) * squeeze(std(joint_angles_stanceR_response(:, conditions_stanceR_stimPos_0ms, :), 1, 2))/sqrt(sum(conditions_stanceR_stimPos_0ms));
+%         joint_angles_response_mean_stanceR_stimNeg_0ms = squeeze(mean(joint_angles_stanceR_response(:, conditions_stanceR_stimNeg_0ms, :), 2));
+%         joint_angles_response_civ_stanceR_stimNeg_0ms = tinv(0.975, sum(conditions_stanceR_stimNeg_0ms)-1) * squeeze(std(joint_angles_stanceR_response(:, conditions_stanceR_stimNeg_0ms, :), 1, 2))/sqrt(sum(conditions_stanceR_stimNeg_0ms));
+%         joint_angles_response_mean_stanceR_stimPos_150ms = squeeze(mean(joint_angles_stanceR_response(:, conditions_stanceR_stimPos_150ms, :), 2));
+%         joint_angles_response_civ_stanceR_stimPos_150ms = tinv(0.975, sum(conditions_stanceR_stimPos_150ms)-1) * squeeze(std(joint_angles_stanceR_response(:, conditions_stanceR_stimPos_150ms, :), 1, 2))/sqrt(sum(conditions_stanceR_stimPos_150ms));
+%         joint_angles_response_mean_stanceR_stimNeg_150ms = squeeze(mean(joint_angles_stanceR_response(:, conditions_stanceR_stimNeg_150ms, :), 2));
+%         joint_angles_response_civ_stanceR_stimNeg_150ms = tinv(0.975, sum(conditions_stanceR_stimNeg_150ms)-1) * squeeze(std(joint_angles_stanceR_response(:, conditions_stanceR_stimNeg_150ms, :), 1, 2))/sqrt(sum(conditions_stanceR_stimNeg_150ms));
+%         joint_angles_response_mean_stanceR_stimPos_450ms = squeeze(mean(joint_angles_stanceR_response(:, conditions_stanceR_stimPos_450ms, :), 2));
+%         joint_angles_response_civ_stanceR_stimPos_450ms = tinv(0.975, sum(conditions_stanceR_stimPos_450ms)-1) * squeeze(std(joint_angles_stanceR_response(:, conditions_stanceR_stimPos_450ms, :), 1, 2))/sqrt(sum(conditions_stanceR_stimPos_450ms));
+%         joint_angles_response_mean_stanceR_stimNeg_450ms = squeeze(mean(joint_angles_stanceR_response(:, conditions_stanceR_stimNeg_450ms, :), 2));
+%         joint_angles_response_civ_stanceR_stimNeg_450ms = tinv(0.975, sum(conditions_stanceR_stimNeg_450ms)-1) * squeeze(std(joint_angles_stanceR_response(:, conditions_stanceR_stimNeg_450ms, :), 1, 2))/sqrt(sum(conditions_stanceR_stimNeg_450ms));
+% 
+%      
+%     end
+%     
+%     % stim start times
+%     stim_start_times_mean_stanceL_0ms = mean(stim_start_time_relative_to_stretch_total(conditions_stanceL_0ms));
+%     stim_start_times_mean_stanceR_0ms = mean(stim_start_time_relative_to_stretch_total(conditions_stanceR_0ms));
+%     stim_start_times_mean_stanceL_150ms = mean(stim_start_time_relative_to_stretch_total(conditions_stanceL_150ms));
+%     stim_start_times_mean_stanceR_150ms = mean(stim_start_time_relative_to_stretch_total(conditions_stanceR_150ms));
+%     stim_start_times_mean_stanceL_450ms = mean(stim_start_time_relative_to_stretch_total(conditions_stanceL_450ms));
+%     stim_start_times_mean_stanceR_450ms = mean(stim_start_time_relative_to_stretch_total(conditions_stanceR_450ms));
+%     
+% end
 
-        rheel_x_pos_civ_stanceL_control = tinv(0.975, sum(conditions_stanceL_stimNo)-1) * std(rheel_x_pos_normalized_all(:, conditions_stanceL_stimNo), 1, 2)/sqrt(sum(conditions_stanceL_stimNo));
-        rheel_x_pos_mean_stanceL_stimPos_0ms = mean(rheel_x_pos_normalized_all(:, conditions_stanceL_stimPos_0ms), 2);
-        rheel_x_pos_civ_stanceL_stimPos_0ms = tinv(0.975, sum(conditions_stanceL_stimPos_0ms)-1) * std(rheel_x_pos_normalized_all(:, conditions_stanceL_stimPos_0ms), 1, 2)/sqrt(sum(conditions_stanceL_stimPos_0ms));
-        rheel_x_pos_mean_stanceL_stimNeg_0ms = mean(rheel_x_pos_normalized_all(:, conditions_stanceL_stimNeg_0ms), 2);
-        rheel_x_pos_civ_stanceL_stimNeg_0ms = tinv(0.975, sum(conditions_stanceL_stimNeg_0ms)-1) * std(rheel_x_pos_normalized_all(:, conditions_stanceL_stimNeg_0ms), 1, 2)/sqrt(sum(conditions_stanceL_stimNeg_0ms));
-        rheel_x_pos_mean_stanceL_stimPos_150ms = mean(rheel_x_pos_normalized_all(:, conditions_stanceL_stimPos_150ms), 2);
-        rheel_x_pos_civ_stanceL_stimPos_150ms = tinv(0.975, sum(conditions_stanceL_stimPos_150ms)-1) * std(rheel_x_pos_normalized_all(:, conditions_stanceL_stimPos_150ms), 1, 2)/sqrt(sum(conditions_stanceL_stimPos_150ms));
-        rheel_x_pos_mean_stanceL_stimNeg_150ms = mean(rheel_x_pos_normalized_all(:, conditions_stanceL_stimNeg_150ms), 2);
-        rheel_x_pos_civ_stanceL_stimNeg_150ms = tinv(0.975, sum(conditions_stanceL_stimNeg_150ms)-1) * std(rheel_x_pos_normalized_all(:, conditions_stanceL_stimNeg_150ms), 1, 2)/sqrt(sum(conditions_stanceL_stimNeg_150ms));
-        rheel_x_pos_mean_stanceL_stimPos_450ms = mean(rheel_x_pos_normalized_all(:, conditions_stanceL_stimPos_450ms), 2);
-        rheel_x_pos_civ_stanceL_stimPos_450ms = tinv(0.975, sum(conditions_stanceL_stimPos_450ms)-1) * std(rheel_x_pos_normalized_all(:, conditions_stanceL_stimPos_450ms), 1, 2)/sqrt(sum(conditions_stanceL_stimPos_450ms));
-        rheel_x_pos_mean_stanceL_stimNeg_450ms = mean(rheel_x_pos_normalized_all(:, conditions_stanceL_stimNeg_450ms), 2);
-        rheel_x_pos_civ_stanceL_stimNeg_450ms = tinv(0.975, sum(conditions_stanceL_stimNeg_450ms)-1) * std(rheel_x_pos_normalized_all(:, conditions_stanceL_stimNeg_450ms), 1, 2)/sqrt(sum(conditions_stanceL_stimNeg_450ms));
-        
-        % responses
-        lheel_x_pos_response_mean_stanceR_stimPos_0ms = mean(lheel_x_pos_stanceR_response(:, conditions_stanceR_stimPos_0ms), 2);
-        lheel_x_pos_response_civ_stanceR_stimPos_0ms = tinv(0.975, sum(conditions_stanceR_stimPos_0ms)-1) * std(lheel_x_pos_stanceR_response(:, conditions_stanceR_stimPos_0ms), 1, 2)/sqrt(sum(conditions_stanceR_stimPos_0ms));
-        lheel_x_pos_response_mean_stanceR_stimNeg_0ms = mean(lheel_x_pos_stanceR_response(:, conditions_stanceR_stimNeg_0ms), 2);
-        lheel_x_pos_response_civ_stanceR_stimNeg_0ms = tinv(0.975, sum(conditions_stanceR_stimNeg_0ms)-1) * std(lheel_x_pos_stanceR_response(:, conditions_stanceR_stimNeg_0ms), 1, 2)/sqrt(sum(conditions_stanceR_stimNeg_0ms));
-        lheel_x_pos_response_mean_stanceR_stimPos_150ms = mean(lheel_x_pos_stanceR_response(:, conditions_stanceR_stimPos_150ms), 2);
-        lheel_x_pos_response_civ_stanceR_stimPos_150ms = tinv(0.975, sum(conditions_stanceR_stimPos_150ms)-1) * std(lheel_x_pos_stanceR_response(:, conditions_stanceR_stimPos_150ms), 1, 2)/sqrt(sum(conditions_stanceR_stimPos_150ms));
-        lheel_x_pos_response_mean_stanceR_stimNeg_150ms = mean(lheel_x_pos_stanceR_response(:, conditions_stanceR_stimNeg_150ms), 2);
-        lheel_x_pos_response_civ_stanceR_stimNeg_150ms = tinv(0.975, sum(conditions_stanceR_stimNeg_150ms)-1) * std(lheel_x_pos_stanceR_response(:, conditions_stanceR_stimNeg_150ms), 1, 2)/sqrt(sum(conditions_stanceR_stimNeg_150ms));
-        lheel_x_pos_response_mean_stanceR_stimPos_450ms = mean(lheel_x_pos_stanceR_response(:, conditions_stanceR_stimPos_450ms), 2);
-        lheel_x_pos_response_civ_stanceR_stimPos_450ms = tinv(0.975, sum(conditions_stanceR_stimPos_450ms)-1) * std(lheel_x_pos_stanceR_response(:, conditions_stanceR_stimPos_450ms), 1, 2)/sqrt(sum(conditions_stanceR_stimPos_450ms));
-        lheel_x_pos_response_mean_stanceR_stimNeg_450ms = mean(lheel_x_pos_stanceR_response(:, conditions_stanceR_stimNeg_450ms), 2);
-        lheel_x_pos_response_civ_stanceR_stimNeg_450ms = tinv(0.975, sum(conditions_stanceR_stimNeg_450ms)-1) * std(lheel_x_pos_stanceR_response(:, conditions_stanceR_stimNeg_450ms), 1, 2)/sqrt(sum(conditions_stanceR_stimNeg_450ms));
 
-        rheel_x_pos_response_mean_stanceL_stimPos_0ms = mean(rheel_x_pos_stanceL_response(:, conditions_stanceL_stimPos_0ms), 2);
-        rheel_x_pos_response_civ_stanceL_stimPos_0ms = tinv(0.975, sum(conditions_stanceL_stimPos_0ms)-1) * std(rheel_x_pos_stanceL_response(:, conditions_stanceL_stimPos_0ms), 1, 2)/sqrt(sum(conditions_stanceL_stimPos_0ms));
-        rheel_x_pos_response_mean_stanceL_stimNeg_0ms = mean(rheel_x_pos_stanceL_response(:, conditions_stanceL_stimNeg_0ms), 2);
-        rheel_x_pos_response_civ_stanceL_stimNeg_0ms = tinv(0.975, sum(conditions_stanceL_stimNeg_0ms)-1) * std(rheel_x_pos_stanceL_response(:, conditions_stanceL_stimNeg_0ms), 1, 2)/sqrt(sum(conditions_stanceL_stimNeg_0ms));
-        rheel_x_pos_response_mean_stanceL_stimPos_150ms = mean(rheel_x_pos_stanceL_response(:, conditions_stanceL_stimPos_150ms), 2);
-        rheel_x_pos_response_civ_stanceL_stimPos_150ms = tinv(0.975, sum(conditions_stanceL_stimPos_150ms)-1) * std(rheel_x_pos_stanceL_response(:, conditions_stanceL_stimPos_150ms), 1, 2)/sqrt(sum(conditions_stanceL_stimPos_150ms));
-        rheel_x_pos_response_mean_stanceL_stimNeg_150ms = mean(rheel_x_pos_stanceL_response(:, conditions_stanceL_stimNeg_150ms), 2);
-        rheel_x_pos_response_civ_stanceL_stimNeg_150ms = tinv(0.975, sum(conditions_stanceL_stimNeg_150ms)-1) * std(rheel_x_pos_stanceL_response(:, conditions_stanceL_stimNeg_150ms), 1, 2)/sqrt(sum(conditions_stanceL_stimNeg_150ms));
-        rheel_x_pos_response_mean_stanceL_stimPos_450ms = mean(rheel_x_pos_stanceL_response(:, conditions_stanceL_stimPos_450ms), 2);
-        rheel_x_pos_response_civ_stanceL_stimPos_450ms = tinv(0.975, sum(conditions_stanceL_stimPos_450ms)-1) * std(rheel_x_pos_stanceL_response(:, conditions_stanceL_stimPos_450ms), 1, 2)/sqrt(sum(conditions_stanceL_stimPos_450ms));
-        rheel_x_pos_response_mean_stanceL_stimNeg_450ms = mean(rheel_x_pos_stanceL_response(:, conditions_stanceL_stimNeg_450ms), 2);
-        rheel_x_pos_response_civ_stanceL_stimNeg_450ms = tinv(0.975, sum(conditions_stanceL_stimNeg_450ms)-1) * std(rheel_x_pos_stanceL_response(:, conditions_stanceL_stimNeg_450ms), 1, 2)/sqrt(sum(conditions_stanceL_stimNeg_450ms));
-
-        lheel_y_pos_response_mean_stanceR_stimPos_0ms = mean(lheel_y_pos_stanceR_response(:, conditions_stanceR_stimPos_0ms), 2);
-        lheel_y_pos_response_civ_stanceR_stimPos_0ms = tinv(0.975, sum(conditions_stanceR_stimPos_0ms)-1) * std(lheel_y_pos_stanceR_response(:, conditions_stanceR_stimPos_0ms), 1, 2)/sqrt(sum(conditions_stanceR_stimPos_0ms));
-        lheel_y_pos_response_mean_stanceR_stimNeg_0ms = mean(lheel_y_pos_stanceR_response(:, conditions_stanceR_stimNeg_0ms), 2);
-        lheel_y_pos_response_civ_stanceR_stimNeg_0ms = tinv(0.975, sum(conditions_stanceR_stimNeg_0ms)-1) * std(lheel_y_pos_stanceR_response(:, conditions_stanceR_stimNeg_0ms), 1, 2)/sqrt(sum(conditions_stanceR_stimNeg_0ms));
-        lheel_y_pos_response_mean_stanceR_stimPos_150ms = mean(lheel_y_pos_stanceR_response(:, conditions_stanceR_stimPos_150ms), 2);
-        lheel_y_pos_response_civ_stanceR_stimPos_150ms = tinv(0.975, sum(conditions_stanceR_stimPos_150ms)-1) * std(lheel_y_pos_stanceR_response(:, conditions_stanceR_stimPos_150ms), 1, 2)/sqrt(sum(conditions_stanceR_stimPos_150ms));
-        lheel_y_pos_response_mean_stanceR_stimNeg_150ms = mean(lheel_y_pos_stanceR_response(:, conditions_stanceR_stimNeg_150ms), 2);
-        lheel_y_pos_response_civ_stanceR_stimNeg_150ms = tinv(0.975, sum(conditions_stanceR_stimNeg_150ms)-1) * std(lheel_y_pos_stanceR_response(:, conditions_stanceR_stimNeg_150ms), 1, 2)/sqrt(sum(conditions_stanceR_stimNeg_150ms));
-        lheel_y_pos_response_mean_stanceR_stimPos_450ms = mean(lheel_y_pos_stanceR_response(:, conditions_stanceR_stimPos_450ms), 2);
-        lheel_y_pos_response_civ_stanceR_stimPos_450ms = tinv(0.975, sum(conditions_stanceR_stimPos_450ms)-1) * std(lheel_y_pos_stanceR_response(:, conditions_stanceR_stimPos_450ms), 1, 2)/sqrt(sum(conditions_stanceR_stimPos_450ms));
-        lheel_y_pos_response_mean_stanceR_stimNeg_450ms = mean(lheel_y_pos_stanceR_response(:, conditions_stanceR_stimNeg_450ms), 2);
-        lheel_y_pos_response_civ_stanceR_stimNeg_450ms = tinv(0.975, sum(conditions_stanceR_stimNeg_450ms)-1) * std(lheel_y_pos_stanceR_response(:, conditions_stanceR_stimNeg_450ms), 1, 2)/sqrt(sum(conditions_stanceR_stimNeg_450ms));
-
-        rheel_y_pos_response_mean_stanceL_stimPos_0ms = mean(rheel_y_pos_stanceL_response(:, conditions_stanceL_stimPos_0ms), 2);
-        rheel_y_pos_response_civ_stanceL_stimPos_0ms = tinv(0.975, sum(conditions_stanceL_stimPos_0ms)-1) * std(rheel_y_pos_stanceL_response(:, conditions_stanceL_stimPos_0ms), 1, 2)/sqrt(sum(conditions_stanceL_stimPos_0ms));
-        rheel_y_pos_response_mean_stanceL_stimNeg_0ms = mean(rheel_y_pos_stanceL_response(:, conditions_stanceL_stimNeg_0ms), 2);
-        rheel_y_pos_response_civ_stanceL_stimNeg_0ms = tinv(0.975, sum(conditions_stanceL_stimNeg_0ms)-1) * std(rheel_y_pos_stanceL_response(:, conditions_stanceL_stimNeg_0ms), 1, 2)/sqrt(sum(conditions_stanceL_stimNeg_0ms));
-        rheel_y_pos_response_mean_stanceL_stimPos_150ms = mean(rheel_y_pos_stanceL_response(:, conditions_stanceL_stimPos_150ms), 2);
-        rheel_y_pos_response_civ_stanceL_stimPos_150ms = tinv(0.975, sum(conditions_stanceL_stimPos_150ms)-1) * std(rheel_y_pos_stanceL_response(:, conditions_stanceL_stimPos_150ms), 1, 2)/sqrt(sum(conditions_stanceL_stimPos_150ms));
-        rheel_y_pos_response_mean_stanceL_stimNeg_150ms = mean(rheel_y_pos_stanceL_response(:, conditions_stanceL_stimNeg_150ms), 2);
-        rheel_y_pos_response_civ_stanceL_stimNeg_150ms = tinv(0.975, sum(conditions_stanceL_stimNeg_150ms)-1) * std(rheel_y_pos_stanceL_response(:, conditions_stanceL_stimNeg_150ms), 1, 2)/sqrt(sum(conditions_stanceL_stimNeg_150ms));
-        rheel_y_pos_response_mean_stanceL_stimPos_450ms = mean(rheel_y_pos_stanceL_response(:, conditions_stanceL_stimPos_450ms), 2);
-        rheel_y_pos_response_civ_stanceL_stimPos_450ms = tinv(0.975, sum(conditions_stanceL_stimPos_450ms)-1) * std(rheel_y_pos_stanceL_response(:, conditions_stanceL_stimPos_450ms), 1, 2)/sqrt(sum(conditions_stanceL_stimPos_450ms));
-        rheel_y_pos_response_mean_stanceL_stimNeg_450ms = mean(rheel_y_pos_stanceL_response(:, conditions_stanceL_stimNeg_450ms), 2);
-        rheel_y_pos_response_civ_stanceL_stimNeg_450ms = tinv(0.975, sum(conditions_stanceL_stimNeg_450ms)-1) * std(rheel_y_pos_stanceL_response(:, conditions_stanceL_stimNeg_450ms), 1, 2)/sqrt(sum(conditions_stanceL_stimNeg_450ms));
-
-    end
-
-    if process_data_forceplate
-        % absolute data
-        fxl_civ_stanceL_control = tinv(0.975, sum(conditions_stanceL_stimNo)-1) * std(fxl_normalized_all(:, conditions_stanceL_stimNo), 1, 2)/sqrt(sum(conditions_stanceL_stimNo));
-        fxl_mean_stanceL_stimPos_0ms = mean(fxl_normalized_all(:, conditions_stanceL_stimPos_0ms), 2);
-        fxl_civ_stanceL_stimPos_0ms = tinv(0.975, sum(conditions_stanceL_stimPos_0ms)-1) * std(fxl_normalized_all(:, conditions_stanceL_stimPos_0ms), 1, 2)/sqrt(sum(conditions_stanceL_stimPos_0ms));
-        fxl_mean_stanceL_stimNeg_0ms = mean(fxl_normalized_all(:, conditions_stanceL_stimNeg_0ms), 2);
-        fxl_civ_stanceL_stimNeg_0ms = tinv(0.975, sum(conditions_stanceL_stimNeg_0ms)-1) * std(fxl_normalized_all(:, conditions_stanceL_stimNeg_0ms), 1, 2)/sqrt(sum(conditions_stanceL_stimNeg_0ms));
-        fxl_mean_stanceL_stimPos_150ms = mean(fxl_normalized_all(:, conditions_stanceL_stimPos_150ms), 2);
-        fxl_civ_stanceL_stimPos_150ms = tinv(0.975, sum(conditions_stanceL_stimPos_150ms)-1) * std(fxl_normalized_all(:, conditions_stanceL_stimPos_150ms), 1, 2)/sqrt(sum(conditions_stanceL_stimPos_150ms));
-        fxl_mean_stanceL_stimNeg_150ms = mean(fxl_normalized_all(:, conditions_stanceL_stimNeg_150ms), 2);
-        fxl_civ_stanceL_stimNeg_150ms = tinv(0.975, sum(conditions_stanceL_stimNeg_150ms)-1) * std(fxl_normalized_all(:, conditions_stanceL_stimNeg_150ms), 1, 2)/sqrt(sum(conditions_stanceL_stimNeg_150ms));
-        fxl_mean_stanceL_stimPos_450ms = mean(fxl_normalized_all(:, conditions_stanceL_stimPos_450ms), 2);
-        fxl_civ_stanceL_stimPos_450ms = tinv(0.975, sum(conditions_stanceL_stimPos_450ms)-1) * std(fxl_normalized_all(:, conditions_stanceL_stimPos_450ms), 1, 2)/sqrt(sum(conditions_stanceL_stimPos_450ms));
-        fxl_mean_stanceL_stimNeg_450ms = mean(fxl_normalized_all(:, conditions_stanceL_stimNeg_450ms), 2);
-        fxl_civ_stanceL_stimNeg_450ms = tinv(0.975, sum(conditions_stanceL_stimNeg_450ms)-1) * std(fxl_normalized_all(:, conditions_stanceL_stimNeg_450ms), 1, 2)/sqrt(sum(conditions_stanceL_stimNeg_450ms));
-        
-        fzl_civ_stanceL_control = tinv(0.975, sum(conditions_stanceL_stimNo)-1) * std(fzl_normalized_all(:, conditions_stanceL_stimNo), 1, 2)/sqrt(sum(conditions_stanceL_stimNo));
-        fzl_mean_stanceL_stimPos_0ms = mean(fzl_normalized_all(:, conditions_stanceL_stimPos_0ms), 2);
-        fzl_civ_stanceL_stimPos_0ms = tinv(0.975, sum(conditions_stanceL_stimPos_0ms)-1) * std(fzl_normalized_all(:, conditions_stanceL_stimPos_0ms), 1, 2)/sqrt(sum(conditions_stanceL_stimPos_0ms));
-        fzl_mean_stanceL_stimNeg_0ms = mean(fzl_normalized_all(:, conditions_stanceL_stimNeg_0ms), 2);
-        fzl_civ_stanceL_stimNeg_0ms = tinv(0.975, sum(conditions_stanceL_stimNeg_0ms)-1) * std(fzl_normalized_all(:, conditions_stanceL_stimNeg_0ms), 1, 2)/sqrt(sum(conditions_stanceL_stimNeg_0ms));
-        fzl_mean_stanceL_stimPos_150ms = mean(fzl_normalized_all(:, conditions_stanceL_stimPos_150ms), 2);
-        fzl_civ_stanceL_stimPos_150ms = tinv(0.975, sum(conditions_stanceL_stimPos_150ms)-1) * std(fzl_normalized_all(:, conditions_stanceL_stimPos_150ms), 1, 2)/sqrt(sum(conditions_stanceL_stimPos_150ms));
-        fzl_mean_stanceL_stimNeg_150ms = mean(fzl_normalized_all(:, conditions_stanceL_stimNeg_150ms), 2);
-        fzl_civ_stanceL_stimNeg_150ms = tinv(0.975, sum(conditions_stanceL_stimNeg_150ms)-1) * std(fzl_normalized_all(:, conditions_stanceL_stimNeg_150ms), 1, 2)/sqrt(sum(conditions_stanceL_stimNeg_150ms));
-        fzl_mean_stanceL_stimPos_450ms = mean(fzl_normalized_all(:, conditions_stanceL_stimPos_450ms), 2);
-        fzl_civ_stanceL_stimPos_450ms = tinv(0.975, sum(conditions_stanceL_stimPos_450ms)-1) * std(fzl_normalized_all(:, conditions_stanceL_stimPos_450ms), 1, 2)/sqrt(sum(conditions_stanceL_stimPos_450ms));
-        fzl_mean_stanceL_stimNeg_450ms = mean(fzl_normalized_all(:, conditions_stanceL_stimNeg_450ms), 2);
-        fzl_civ_stanceL_stimNeg_450ms = tinv(0.975, sum(conditions_stanceL_stimNeg_450ms)-1) * std(fzl_normalized_all(:, conditions_stanceL_stimNeg_450ms), 1, 2)/sqrt(sum(conditions_stanceL_stimNeg_450ms));
-
-        myl_civ_stanceL_control = tinv(0.975, sum(conditions_stanceL_stimNo)-1) * std(myl_normalized_all(:, conditions_stanceL_stimNo), 1, 2)/sqrt(sum(conditions_stanceL_stimNo));
-        myl_mean_stanceL_stimPos_0ms = mean(myl_normalized_all(:, conditions_stanceL_stimPos_0ms), 2);
-        myl_civ_stanceL_stimPos_0ms = tinv(0.975, sum(conditions_stanceL_stimPos_0ms)-1) * std(myl_normalized_all(:, conditions_stanceL_stimPos_0ms), 1, 2)/sqrt(sum(conditions_stanceL_stimPos_0ms));
-        myl_mean_stanceL_stimNeg_0ms = mean(myl_normalized_all(:, conditions_stanceL_stimNeg_0ms), 2);
-        myl_civ_stanceL_stimNeg_0ms = tinv(0.975, sum(conditions_stanceL_stimNeg_0ms)-1) * std(myl_normalized_all(:, conditions_stanceL_stimNeg_0ms), 1, 2)/sqrt(sum(conditions_stanceL_stimNeg_0ms));
-        myl_mean_stanceL_stimPos_150ms = mean(myl_normalized_all(:, conditions_stanceL_stimPos_150ms), 2);
-        myl_civ_stanceL_stimPos_150ms = tinv(0.975, sum(conditions_stanceL_stimPos_150ms)-1) * std(myl_normalized_all(:, conditions_stanceL_stimPos_150ms), 1, 2)/sqrt(sum(conditions_stanceL_stimPos_150ms));
-        myl_mean_stanceL_stimNeg_150ms = mean(myl_normalized_all(:, conditions_stanceL_stimNeg_150ms), 2);
-        myl_civ_stanceL_stimNeg_150ms = tinv(0.975, sum(conditions_stanceL_stimNeg_150ms)-1) * std(myl_normalized_all(:, conditions_stanceL_stimNeg_150ms), 1, 2)/sqrt(sum(conditions_stanceL_stimNeg_150ms));
-        myl_mean_stanceL_stimPos_450ms = mean(myl_normalized_all(:, conditions_stanceL_stimPos_450ms), 2);
-        myl_civ_stanceL_stimPos_450ms = tinv(0.975, sum(conditions_stanceL_stimPos_450ms)-1) * std(myl_normalized_all(:, conditions_stanceL_stimPos_450ms), 1, 2)/sqrt(sum(conditions_stanceL_stimPos_450ms));
-        myl_mean_stanceL_stimNeg_450ms = mean(myl_normalized_all(:, conditions_stanceL_stimNeg_450ms), 2);
-        myl_civ_stanceL_stimNeg_450ms = tinv(0.975, sum(conditions_stanceL_stimNeg_450ms)-1) * std(myl_normalized_all(:, conditions_stanceL_stimNeg_450ms), 1, 2)/sqrt(sum(conditions_stanceL_stimNeg_450ms));
-        
-        lcop_x_civ_stanceL_control = tinv(0.975, sum(conditions_stanceL_stimNo)-1) * std(lcop_x_normalized_all(:, conditions_stanceL_stimNo), 1, 2)/sqrt(sum(conditions_stanceL_stimNo));
-        lcop_x_mean_stanceL_stimPos_0ms = mean(lcop_x_normalized_all(:, conditions_stanceL_stimPos_0ms), 2);
-        lcop_x_civ_stanceL_stimPos_0ms = tinv(0.975, sum(conditions_stanceL_stimPos_0ms)-1) * std(lcop_x_normalized_all(:, conditions_stanceL_stimPos_0ms), 1, 2)/sqrt(sum(conditions_stanceL_stimPos_0ms));
-        lcop_x_mean_stanceL_stimNeg_0ms = mean(lcop_x_normalized_all(:, conditions_stanceL_stimNeg_0ms), 2);
-        lcop_x_civ_stanceL_stimNeg_0ms = tinv(0.975, sum(conditions_stanceL_stimNeg_0ms)-1) * std(lcop_x_normalized_all(:, conditions_stanceL_stimNeg_0ms), 1, 2)/sqrt(sum(conditions_stanceL_stimNeg_0ms));
-        lcop_x_mean_stanceL_stimPos_150ms = mean(lcop_x_normalized_all(:, conditions_stanceL_stimPos_150ms), 2);
-        lcop_x_civ_stanceL_stimPos_150ms = tinv(0.975, sum(conditions_stanceL_stimPos_150ms)-1) * std(lcop_x_normalized_all(:, conditions_stanceL_stimPos_150ms), 1, 2)/sqrt(sum(conditions_stanceL_stimPos_150ms));
-        lcop_x_mean_stanceL_stimNeg_150ms = mean(lcop_x_normalized_all(:, conditions_stanceL_stimNeg_150ms), 2);
-        lcop_x_civ_stanceL_stimNeg_150ms = tinv(0.975, sum(conditions_stanceL_stimNeg_150ms)-1) * std(lcop_x_normalized_all(:, conditions_stanceL_stimNeg_150ms), 1, 2)/sqrt(sum(conditions_stanceL_stimNeg_150ms));
-        lcop_x_mean_stanceL_stimPos_450ms = mean(lcop_x_normalized_all(:, conditions_stanceL_stimPos_450ms), 2);
-        lcop_x_civ_stanceL_stimPos_450ms = tinv(0.975, sum(conditions_stanceL_stimPos_450ms)-1) * std(lcop_x_normalized_all(:, conditions_stanceL_stimPos_450ms), 1, 2)/sqrt(sum(conditions_stanceL_stimPos_450ms));
-        lcop_x_mean_stanceL_stimNeg_450ms = mean(lcop_x_normalized_all(:, conditions_stanceL_stimNeg_450ms), 2);
-        lcop_x_civ_stanceL_stimNeg_450ms = tinv(0.975, sum(conditions_stanceL_stimNeg_450ms)-1) * std(lcop_x_normalized_all(:, conditions_stanceL_stimNeg_450ms), 1, 2)/sqrt(sum(conditions_stanceL_stimNeg_450ms));
-
-        fxr_civ_stanceR_control = tinv(0.975, sum(conditions_stanceR_stimNo)-1) * std(fxr_normalized_all(:, conditions_stanceR_stimNo), 1, 2)/sqrt(sum(conditions_stanceR_stimNo));
-        fxr_mean_stanceR_stimPos_0ms = mean(fxr_normalized_all(:, conditions_stanceR_stimPos_0ms), 2);
-        fxr_civ_stanceR_stimPos_0ms = tinv(0.975, sum(conditions_stanceR_stimPos_0ms)-1) * std(fxr_normalized_all(:, conditions_stanceR_stimPos_0ms), 1, 2)/sqrt(sum(conditions_stanceR_stimPos_0ms));
-        fxr_mean_stanceR_stimNeg_0ms = mean(fxr_normalized_all(:, conditions_stanceR_stimNeg_0ms), 2);
-        fxr_civ_stanceR_stimNeg_0ms = tinv(0.975, sum(conditions_stanceR_stimNeg_0ms)-1) * std(fxr_normalized_all(:, conditions_stanceR_stimNeg_0ms), 1, 2)/sqrt(sum(conditions_stanceR_stimNeg_0ms));
-        fxr_mean_stanceR_stimPos_150ms = mean(fxr_normalized_all(:, conditions_stanceR_stimPos_150ms), 2);
-        fxr_civ_stanceR_stimPos_150ms = tinv(0.975, sum(conditions_stanceR_stimPos_150ms)-1) * std(fxr_normalized_all(:, conditions_stanceR_stimPos_150ms), 1, 2)/sqrt(sum(conditions_stanceR_stimPos_150ms));
-        fxr_mean_stanceR_stimNeg_150ms = mean(fxr_normalized_all(:, conditions_stanceR_stimNeg_150ms), 2);
-        fxr_civ_stanceR_stimNeg_150ms = tinv(0.975, sum(conditions_stanceR_stimNeg_150ms)-1) * std(fxr_normalized_all(:, conditions_stanceR_stimNeg_150ms), 1, 2)/sqrt(sum(conditions_stanceR_stimNeg_150ms));
-        fxr_mean_stanceR_stimPos_450ms = mean(fxr_normalized_all(:, conditions_stanceR_stimPos_450ms), 2);
-        fxr_civ_stanceR_stimPos_450ms = tinv(0.975, sum(conditions_stanceR_stimPos_450ms)-1) * std(fxr_normalized_all(:, conditions_stanceR_stimPos_450ms), 1, 2)/sqrt(sum(conditions_stanceR_stimPos_450ms));
-        fxr_mean_stanceR_stimNeg_450ms = mean(fxr_normalized_all(:, conditions_stanceR_stimNeg_450ms), 2);
-        fxr_civ_stanceR_stimNeg_450ms = tinv(0.975, sum(conditions_stanceR_stimNeg_450ms)-1) * std(fxr_normalized_all(:, conditions_stanceR_stimNeg_450ms), 1, 2)/sqrt(sum(conditions_stanceR_stimNeg_450ms));
-
-        fzr_civ_stanceR_control = tinv(0.975, sum(conditions_stanceR_stimNo)-1) * std(fzr_normalized_all(:, conditions_stanceR_stimNo), 1, 2)/sqrt(sum(conditions_stanceR_stimNo));
-        fzr_mean_stanceR_stimPos_0ms = mean(fzr_normalized_all(:, conditions_stanceR_stimPos_0ms), 2);
-        fzr_civ_stanceR_stimPos_0ms = tinv(0.975, sum(conditions_stanceR_stimPos_0ms)-1) * std(fzr_normalized_all(:, conditions_stanceR_stimPos_0ms), 1, 2)/sqrt(sum(conditions_stanceR_stimPos_0ms));
-        fzr_mean_stanceR_stimNeg_0ms = mean(fzr_normalized_all(:, conditions_stanceR_stimNeg_0ms), 2);
-        fzr_civ_stanceR_stimNeg_0ms = tinv(0.975, sum(conditions_stanceR_stimNeg_0ms)-1) * std(fzr_normalized_all(:, conditions_stanceR_stimNeg_0ms), 1, 2)/sqrt(sum(conditions_stanceR_stimNeg_0ms));
-        fzr_mean_stanceR_stimPos_150ms = mean(fzr_normalized_all(:, conditions_stanceR_stimPos_150ms), 2);
-        fzr_civ_stanceR_stimPos_150ms = tinv(0.975, sum(conditions_stanceR_stimPos_150ms)-1) * std(fzr_normalized_all(:, conditions_stanceR_stimPos_150ms), 1, 2)/sqrt(sum(conditions_stanceR_stimPos_150ms));
-        fzr_mean_stanceR_stimNeg_150ms = mean(fzr_normalized_all(:, conditions_stanceR_stimNeg_150ms), 2);
-        fzr_civ_stanceR_stimNeg_150ms = tinv(0.975, sum(conditions_stanceR_stimNeg_150ms)-1) * std(fzr_normalized_all(:, conditions_stanceR_stimNeg_150ms), 1, 2)/sqrt(sum(conditions_stanceR_stimNeg_150ms));
-        fzr_mean_stanceR_stimPos_450ms = mean(fzr_normalized_all(:, conditions_stanceR_stimPos_450ms), 2);
-        fzr_civ_stanceR_stimPos_450ms = tinv(0.975, sum(conditions_stanceR_stimPos_450ms)-1) * std(fzr_normalized_all(:, conditions_stanceR_stimPos_450ms), 1, 2)/sqrt(sum(conditions_stanceR_stimPos_450ms));
-        fzr_mean_stanceR_stimNeg_450ms = mean(fzr_normalized_all(:, conditions_stanceR_stimNeg_450ms), 2);
-        fzr_civ_stanceR_stimNeg_450ms = tinv(0.975, sum(conditions_stanceR_stimNeg_450ms)-1) * std(fzr_normalized_all(:, conditions_stanceR_stimNeg_450ms), 1, 2)/sqrt(sum(conditions_stanceR_stimNeg_450ms));
-
-        myr_civ_stanceR_control = tinv(0.975, sum(conditions_stanceR_stimNo)-1) * std(myr_normalized_all(:, conditions_stanceR_stimNo), 1, 2)/sqrt(sum(conditions_stanceR_stimNo));
-        myr_mean_stanceR_stimPos_0ms = mean(myr_normalized_all(:, conditions_stanceR_stimPos_0ms), 2);
-        myr_civ_stanceR_stimPos_0ms = tinv(0.975, sum(conditions_stanceR_stimPos_0ms)-1) * std(myr_normalized_all(:, conditions_stanceR_stimPos_0ms), 1, 2)/sqrt(sum(conditions_stanceR_stimPos_0ms));
-        myr_mean_stanceR_stimNeg_0ms = mean(myr_normalized_all(:, conditions_stanceR_stimNeg_0ms), 2);
-        myr_civ_stanceR_stimNeg_0ms = tinv(0.975, sum(conditions_stanceR_stimNeg_0ms)-1) * std(myr_normalized_all(:, conditions_stanceR_stimNeg_0ms), 1, 2)/sqrt(sum(conditions_stanceR_stimNeg_0ms));
-        myr_mean_stanceR_stimPos_150ms = mean(myr_normalized_all(:, conditions_stanceR_stimPos_150ms), 2);
-        myr_civ_stanceR_stimPos_150ms = tinv(0.975, sum(conditions_stanceR_stimPos_150ms)-1) * std(myr_normalized_all(:, conditions_stanceR_stimPos_150ms), 1, 2)/sqrt(sum(conditions_stanceR_stimPos_150ms));
-        myr_mean_stanceR_stimNeg_150ms = mean(myr_normalized_all(:, conditions_stanceR_stimNeg_150ms), 2);
-        myr_civ_stanceR_stimNeg_150ms = tinv(0.975, sum(conditions_stanceR_stimNeg_150ms)-1) * std(myr_normalized_all(:, conditions_stanceR_stimNeg_150ms), 1, 2)/sqrt(sum(conditions_stanceR_stimNeg_150ms));
-        myr_mean_stanceR_stimPos_450ms = mean(myr_normalized_all(:, conditions_stanceR_stimPos_450ms), 2);
-        myr_civ_stanceR_stimPos_450ms = tinv(0.975, sum(conditions_stanceR_stimPos_450ms)-1) * std(myr_normalized_all(:, conditions_stanceR_stimPos_450ms), 1, 2)/sqrt(sum(conditions_stanceR_stimPos_450ms));
-        myr_mean_stanceR_stimNeg_450ms = mean(myr_normalized_all(:, conditions_stanceR_stimNeg_450ms), 2);
-        myr_civ_stanceR_stimNeg_450ms = tinv(0.975, sum(conditions_stanceR_stimNeg_450ms)-1) * std(myr_normalized_all(:, conditions_stanceR_stimNeg_450ms), 1, 2)/sqrt(sum(conditions_stanceR_stimNeg_450ms));
-
-        rcop_x_civ_stanceR_control = tinv(0.975, sum(conditions_stanceR_stimNo)-1) * std(rcop_x_normalized_all(:, conditions_stanceR_stimNo), 1, 2)/sqrt(sum(conditions_stanceR_stimNo));
-        rcop_x_mean_stanceR_stimPos_0ms = mean(rcop_x_normalized_all(:, conditions_stanceR_stimPos_0ms), 2);
-        rcop_x_civ_stanceR_stimPos_0ms = tinv(0.975, sum(conditions_stanceR_stimPos_0ms)-1) * std(rcop_x_normalized_all(:, conditions_stanceR_stimPos_0ms), 1, 2)/sqrt(sum(conditions_stanceR_stimPos_0ms));
-        rcop_x_mean_stanceR_stimNeg_0ms = mean(rcop_x_normalized_all(:, conditions_stanceR_stimNeg_0ms), 2);
-        rcop_x_civ_stanceR_stimNeg_0ms = tinv(0.975, sum(conditions_stanceR_stimNeg_0ms)-1) * std(rcop_x_normalized_all(:, conditions_stanceR_stimNeg_0ms), 1, 2)/sqrt(sum(conditions_stanceR_stimNeg_0ms));
-        rcop_x_mean_stanceR_stimPos_150ms = mean(rcop_x_normalized_all(:, conditions_stanceR_stimPos_150ms), 2);
-        rcop_x_civ_stanceR_stimPos_150ms = tinv(0.975, sum(conditions_stanceR_stimPos_150ms)-1) * std(rcop_x_normalized_all(:, conditions_stanceR_stimPos_150ms), 1, 2)/sqrt(sum(conditions_stanceR_stimPos_150ms));
-        rcop_x_mean_stanceR_stimNeg_150ms = mean(rcop_x_normalized_all(:, conditions_stanceR_stimNeg_150ms), 2);
-        rcop_x_civ_stanceR_stimNeg_150ms = tinv(0.975, sum(conditions_stanceR_stimNeg_150ms)-1) * std(rcop_x_normalized_all(:, conditions_stanceR_stimNeg_150ms), 1, 2)/sqrt(sum(conditions_stanceR_stimNeg_150ms));
-        rcop_x_mean_stanceR_stimPos_450ms = mean(rcop_x_normalized_all(:, conditions_stanceR_stimPos_450ms), 2);
-        rcop_x_civ_stanceR_stimPos_450ms = tinv(0.975, sum(conditions_stanceR_stimPos_450ms)-1) * std(rcop_x_normalized_all(:, conditions_stanceR_stimPos_450ms), 1, 2)/sqrt(sum(conditions_stanceR_stimPos_450ms));
-        rcop_x_mean_stanceR_stimNeg_450ms = mean(rcop_x_normalized_all(:, conditions_stanceR_stimNeg_450ms), 2);
-        rcop_x_civ_stanceR_stimNeg_450ms = tinv(0.975, sum(conditions_stanceR_stimNeg_450ms)-1) * std(rcop_x_normalized_all(:, conditions_stanceR_stimNeg_450ms), 1, 2)/sqrt(sum(conditions_stanceR_stimNeg_450ms));
-
-        % responses
-        fxl_response_mean_stanceL_stimPos_0ms = mean(fxl_stanceL_response(:, conditions_stanceL_stimPos_0ms), 2);
-        fxl_response_civ_stanceL_stimPos_0ms = tinv(0.975, sum(conditions_stanceL_stimPos_0ms)-1) * std(fxl_stanceL_response(:, conditions_stanceL_stimPos_0ms), 1, 2)/sqrt(sum(conditions_stanceL_stimPos_0ms));
-        fxl_response_mean_stanceL_stimNeg_0ms = mean(fxl_stanceL_response(:, conditions_stanceL_stimNeg_0ms), 2);
-        fxl_response_civ_stanceL_stimNeg_0ms = tinv(0.975, sum(conditions_stanceL_stimNeg_0ms)-1) * std(fxl_stanceL_response(:, conditions_stanceL_stimNeg_0ms), 1, 2)/sqrt(sum(conditions_stanceL_stimNeg_0ms));
-        fxl_response_mean_stanceL_stimPos_150ms = mean(fxl_stanceL_response(:, conditions_stanceL_stimPos_150ms), 2);
-        fxl_response_civ_stanceL_stimPos_150ms = tinv(0.975, sum(conditions_stanceL_stimPos_150ms)-1) * std(fxl_stanceL_response(:, conditions_stanceL_stimPos_150ms), 1, 2)/sqrt(sum(conditions_stanceL_stimPos_150ms));
-        fxl_response_mean_stanceL_stimNeg_150ms = mean(fxl_stanceL_response(:, conditions_stanceL_stimNeg_150ms), 2);
-        fxl_response_civ_stanceL_stimNeg_150ms = tinv(0.975, sum(conditions_stanceL_stimNeg_150ms)-1) * std(fxl_stanceL_response(:, conditions_stanceL_stimNeg_150ms), 1, 2)/sqrt(sum(conditions_stanceL_stimNeg_150ms));
-        fxl_response_mean_stanceL_stimPos_450ms = mean(fxl_stanceL_response(:, conditions_stanceL_stimPos_450ms), 2);
-        fxl_response_civ_stanceL_stimPos_450ms = tinv(0.975, sum(conditions_stanceL_stimPos_450ms)-1) * std(fxl_stanceL_response(:, conditions_stanceL_stimPos_450ms), 1, 2)/sqrt(sum(conditions_stanceL_stimPos_450ms));
-        fxl_response_mean_stanceL_stimNeg_450ms = mean(fxl_stanceL_response(:, conditions_stanceL_stimNeg_450ms), 2);
-        fxl_response_civ_stanceL_stimNeg_450ms = tinv(0.975, sum(conditions_stanceL_stimNeg_450ms)-1) * std(fxl_stanceL_response(:, conditions_stanceL_stimNeg_450ms), 1, 2)/sqrt(sum(conditions_stanceL_stimNeg_450ms));
-
-        fzl_response_mean_stanceL_stimPos_0ms = mean(fzl_stanceL_response(:, conditions_stanceL_stimPos_0ms), 2);
-        fzl_response_civ_stanceL_stimPos_0ms = tinv(0.975, sum(conditions_stanceL_stimPos_0ms)-1) * std(fzl_stanceL_response(:, conditions_stanceL_stimPos_0ms), 1, 2)/sqrt(sum(conditions_stanceL_stimPos_0ms));
-        fzl_response_mean_stanceL_stimNeg_0ms = mean(fzl_stanceL_response(:, conditions_stanceL_stimNeg_0ms), 2);
-        fzl_response_civ_stanceL_stimNeg_0ms = tinv(0.975, sum(conditions_stanceL_stimNeg_0ms)-1) * std(fzl_stanceL_response(:, conditions_stanceL_stimNeg_0ms), 1, 2)/sqrt(sum(conditions_stanceL_stimNeg_0ms));
-        fzl_response_mean_stanceL_stimPos_150ms = mean(fzl_stanceL_response(:, conditions_stanceL_stimPos_150ms), 2);
-        fzl_response_civ_stanceL_stimPos_150ms = tinv(0.975, sum(conditions_stanceL_stimPos_150ms)-1) * std(fzl_stanceL_response(:, conditions_stanceL_stimPos_150ms), 1, 2)/sqrt(sum(conditions_stanceL_stimPos_150ms));
-        fzl_response_mean_stanceL_stimNeg_150ms = mean(fzl_stanceL_response(:, conditions_stanceL_stimNeg_150ms), 2);
-        fzl_response_civ_stanceL_stimNeg_150ms = tinv(0.975, sum(conditions_stanceL_stimNeg_150ms)-1) * std(fzl_stanceL_response(:, conditions_stanceL_stimNeg_150ms), 1, 2)/sqrt(sum(conditions_stanceL_stimNeg_150ms));
-        fzl_response_mean_stanceL_stimPos_450ms = mean(fzl_stanceL_response(:, conditions_stanceL_stimPos_450ms), 2);
-        fzl_response_civ_stanceL_stimPos_450ms = tinv(0.975, sum(conditions_stanceL_stimPos_450ms)-1) * std(fzl_stanceL_response(:, conditions_stanceL_stimPos_450ms), 1, 2)/sqrt(sum(conditions_stanceL_stimPos_450ms));
-        fzl_response_mean_stanceL_stimNeg_450ms = mean(fzl_stanceL_response(:, conditions_stanceL_stimNeg_450ms), 2);
-        fzl_response_civ_stanceL_stimNeg_450ms = tinv(0.975, sum(conditions_stanceL_stimNeg_450ms)-1) * std(fzl_stanceL_response(:, conditions_stanceL_stimNeg_450ms), 1, 2)/sqrt(sum(conditions_stanceL_stimNeg_450ms));
-
-        myl_response_mean_stanceL_stimPos_0ms = mean(myl_stanceL_response(:, conditions_stanceL_stimPos_0ms), 2);
-        myl_response_civ_stanceL_stimPos_0ms = tinv(0.975, sum(conditions_stanceL_stimPos_0ms)-1) * std(myl_stanceL_response(:, conditions_stanceL_stimPos_0ms), 1, 2)/sqrt(sum(conditions_stanceL_stimPos_0ms));
-        myl_response_mean_stanceL_stimNeg_0ms = mean(myl_stanceL_response(:, conditions_stanceL_stimNeg_0ms), 2);
-        myl_response_civ_stanceL_stimNeg_0ms = tinv(0.975, sum(conditions_stanceL_stimNeg_0ms)-1) * std(myl_stanceL_response(:, conditions_stanceL_stimNeg_0ms), 1, 2)/sqrt(sum(conditions_stanceL_stimNeg_0ms));
-        myl_response_mean_stanceL_stimPos_150ms = mean(myl_stanceL_response(:, conditions_stanceL_stimPos_150ms), 2);
-        myl_response_civ_stanceL_stimPos_150ms = tinv(0.975, sum(conditions_stanceL_stimPos_150ms)-1) * std(myl_stanceL_response(:, conditions_stanceL_stimPos_150ms), 1, 2)/sqrt(sum(conditions_stanceL_stimPos_150ms));
-        myl_response_mean_stanceL_stimNeg_150ms = mean(myl_stanceL_response(:, conditions_stanceL_stimNeg_150ms), 2);
-        myl_response_civ_stanceL_stimNeg_150ms = tinv(0.975, sum(conditions_stanceL_stimNeg_150ms)-1) * std(myl_stanceL_response(:, conditions_stanceL_stimNeg_150ms), 1, 2)/sqrt(sum(conditions_stanceL_stimNeg_150ms));
-        myl_response_mean_stanceL_stimPos_450ms = mean(myl_stanceL_response(:, conditions_stanceL_stimPos_450ms), 2);
-        myl_response_civ_stanceL_stimPos_450ms = tinv(0.975, sum(conditions_stanceL_stimPos_450ms)-1) * std(myl_stanceL_response(:, conditions_stanceL_stimPos_450ms), 1, 2)/sqrt(sum(conditions_stanceL_stimPos_450ms));
-        myl_response_mean_stanceL_stimNeg_450ms = mean(myl_stanceL_response(:, conditions_stanceL_stimNeg_450ms), 2);
-        myl_response_civ_stanceL_stimNeg_450ms = tinv(0.975, sum(conditions_stanceL_stimNeg_450ms)-1) * std(myl_stanceL_response(:, conditions_stanceL_stimNeg_450ms), 1, 2)/sqrt(sum(conditions_stanceL_stimNeg_450ms));
-
-        lcop_x_response_mean_stanceL_stimPos_0ms = mean(lcop_x_stanceL_response(:, conditions_stanceL_stimPos_0ms), 2);
-        lcop_x_response_civ_stanceL_stimPos_0ms = tinv(0.975, sum(conditions_stanceL_stimPos_0ms)-1) * std(lcop_x_stanceL_response(:, conditions_stanceL_stimPos_0ms), 1, 2)/sqrt(sum(conditions_stanceL_stimPos_0ms));
-        lcop_x_response_mean_stanceL_stimNeg_0ms = mean(lcop_x_stanceL_response(:, conditions_stanceL_stimNeg_0ms), 2);
-        lcop_x_response_civ_stanceL_stimNeg_0ms = tinv(0.975, sum(conditions_stanceL_stimNeg_0ms)-1) * std(lcop_x_stanceL_response(:, conditions_stanceL_stimNeg_0ms), 1, 2)/sqrt(sum(conditions_stanceL_stimNeg_0ms));
-        lcop_x_response_mean_stanceL_stimPos_150ms = mean(lcop_x_stanceL_response(:, conditions_stanceL_stimPos_150ms), 2);
-        lcop_x_response_civ_stanceL_stimPos_150ms = tinv(0.975, sum(conditions_stanceL_stimPos_150ms)-1) * std(lcop_x_stanceL_response(:, conditions_stanceL_stimPos_150ms), 1, 2)/sqrt(sum(conditions_stanceL_stimPos_150ms));
-        lcop_x_response_mean_stanceL_stimNeg_150ms = mean(lcop_x_stanceL_response(:, conditions_stanceL_stimNeg_150ms), 2);
-        lcop_x_response_civ_stanceL_stimNeg_150ms = tinv(0.975, sum(conditions_stanceL_stimNeg_150ms)-1) * std(lcop_x_stanceL_response(:, conditions_stanceL_stimNeg_150ms), 1, 2)/sqrt(sum(conditions_stanceL_stimNeg_150ms));
-        lcop_x_response_mean_stanceL_stimPos_450ms = mean(lcop_x_stanceL_response(:, conditions_stanceL_stimPos_450ms), 2);
-        lcop_x_response_civ_stanceL_stimPos_450ms = tinv(0.975, sum(conditions_stanceL_stimPos_450ms)-1) * std(lcop_x_stanceL_response(:, conditions_stanceL_stimPos_450ms), 1, 2)/sqrt(sum(conditions_stanceL_stimPos_450ms));
-        lcop_x_response_mean_stanceL_stimNeg_450ms = mean(lcop_x_stanceL_response(:, conditions_stanceL_stimNeg_450ms), 2);
-        lcop_x_response_civ_stanceL_stimNeg_450ms = tinv(0.975, sum(conditions_stanceL_stimNeg_450ms)-1) * std(lcop_x_stanceL_response(:, conditions_stanceL_stimNeg_450ms), 1, 2)/sqrt(sum(conditions_stanceL_stimNeg_450ms));
-
-        fxr_response_mean_stanceR_stimPos_0ms = mean(fxr_stanceR_response(:, conditions_stanceR_stimPos_0ms), 2);
-        fxr_response_civ_stanceR_stimPos_0ms = tinv(0.975, sum(conditions_stanceR_stimPos_0ms)-1) * std(fxr_stanceR_response(:, conditions_stanceR_stimPos_0ms), 1, 2)/sqrt(sum(conditions_stanceR_stimPos_0ms));
-        fxr_response_mean_stanceR_stimNeg_0ms = mean(fxr_stanceR_response(:, conditions_stanceR_stimNeg_0ms), 2);
-        fxr_response_civ_stanceR_stimNeg_0ms = tinv(0.975, sum(conditions_stanceR_stimNeg_0ms)-1) * std(fxr_stanceR_response(:, conditions_stanceR_stimNeg_0ms), 1, 2)/sqrt(sum(conditions_stanceR_stimNeg_0ms));
-        fxr_response_mean_stanceR_stimPos_150ms = mean(fxr_stanceR_response(:, conditions_stanceR_stimPos_150ms), 2);
-        fxr_response_civ_stanceR_stimPos_150ms = tinv(0.975, sum(conditions_stanceR_stimPos_150ms)-1) * std(fxr_stanceR_response(:, conditions_stanceR_stimPos_150ms), 1, 2)/sqrt(sum(conditions_stanceR_stimPos_150ms));
-        fxr_response_mean_stanceR_stimNeg_150ms = mean(fxr_stanceR_response(:, conditions_stanceR_stimNeg_150ms), 2);
-        fxr_response_civ_stanceR_stimNeg_150ms = tinv(0.975, sum(conditions_stanceR_stimNeg_150ms)-1) * std(fxr_stanceR_response(:, conditions_stanceR_stimNeg_150ms), 1, 2)/sqrt(sum(conditions_stanceR_stimNeg_150ms));
-        fxr_response_mean_stanceR_stimPos_450ms = mean(fxr_stanceR_response(:, conditions_stanceR_stimPos_450ms), 2);
-        fxr_response_civ_stanceR_stimPos_450ms = tinv(0.975, sum(conditions_stanceR_stimPos_450ms)-1) * std(fxr_stanceR_response(:, conditions_stanceR_stimPos_450ms), 1, 2)/sqrt(sum(conditions_stanceR_stimPos_450ms));
-        fxr_response_mean_stanceR_stimNeg_450ms = mean(fxr_stanceR_response(:, conditions_stanceR_stimNeg_450ms), 2);
-        fxr_response_civ_stanceR_stimNeg_450ms = tinv(0.975, sum(conditions_stanceR_stimNeg_450ms)-1) * std(fxr_stanceR_response(:, conditions_stanceR_stimNeg_450ms), 1, 2)/sqrt(sum(conditions_stanceR_stimNeg_450ms));
-
-        fzr_response_mean_stanceR_stimPos_0ms = mean(fzr_stanceR_response(:, conditions_stanceR_stimPos_0ms), 2);
-        fzr_response_civ_stanceR_stimPos_0ms = tinv(0.975, sum(conditions_stanceR_stimPos_0ms)-1) * std(fzr_stanceR_response(:, conditions_stanceR_stimPos_0ms), 1, 2)/sqrt(sum(conditions_stanceR_stimPos_0ms));
-        fzr_response_mean_stanceR_stimNeg_0ms = mean(fzr_stanceR_response(:, conditions_stanceR_stimNeg_0ms), 2);
-        fzr_response_civ_stanceR_stimNeg_0ms = tinv(0.975, sum(conditions_stanceR_stimNeg_0ms)-1) * std(fzr_stanceR_response(:, conditions_stanceR_stimNeg_0ms), 1, 2)/sqrt(sum(conditions_stanceR_stimNeg_0ms));
-        fzr_response_mean_stanceR_stimPos_150ms = mean(fzr_stanceR_response(:, conditions_stanceR_stimPos_150ms), 2);
-        fzr_response_civ_stanceR_stimPos_150ms = tinv(0.975, sum(conditions_stanceR_stimPos_150ms)-1) * std(fzr_stanceR_response(:, conditions_stanceR_stimPos_150ms), 1, 2)/sqrt(sum(conditions_stanceR_stimPos_150ms));
-        fzr_response_mean_stanceR_stimNeg_150ms = mean(fzr_stanceR_response(:, conditions_stanceR_stimNeg_150ms), 2);
-        fzr_response_civ_stanceR_stimNeg_150ms = tinv(0.975, sum(conditions_stanceR_stimNeg_150ms)-1) * std(fzr_stanceR_response(:, conditions_stanceR_stimNeg_150ms), 1, 2)/sqrt(sum(conditions_stanceR_stimNeg_150ms));
-        fzr_response_mean_stanceR_stimPos_450ms = mean(fzr_stanceR_response(:, conditions_stanceR_stimPos_450ms), 2);
-        fzr_response_civ_stanceR_stimPos_450ms = tinv(0.975, sum(conditions_stanceR_stimPos_450ms)-1) * std(fzr_stanceR_response(:, conditions_stanceR_stimPos_450ms), 1, 2)/sqrt(sum(conditions_stanceR_stimPos_450ms));
-        fzr_response_mean_stanceR_stimNeg_450ms = mean(fzr_stanceR_response(:, conditions_stanceR_stimNeg_450ms), 2);
-        fzr_response_civ_stanceR_stimNeg_450ms = tinv(0.975, sum(conditions_stanceR_stimNeg_450ms)-1) * std(fzr_stanceR_response(:, conditions_stanceR_stimNeg_450ms), 1, 2)/sqrt(sum(conditions_stanceR_stimNeg_450ms));
-
-        myr_response_mean_stanceR_stimPos_0ms = mean(myr_stanceR_response(:, conditions_stanceR_stimPos_0ms), 2);
-        myr_response_civ_stanceR_stimPos_0ms = tinv(0.975, sum(conditions_stanceR_stimPos_0ms)-1) * std(myr_stanceR_response(:, conditions_stanceR_stimPos_0ms), 1, 2)/sqrt(sum(conditions_stanceR_stimPos_0ms));
-        myr_response_mean_stanceR_stimNeg_0ms = mean(myr_stanceR_response(:, conditions_stanceR_stimNeg_0ms), 2);
-        myr_response_civ_stanceR_stimNeg_0ms = tinv(0.975, sum(conditions_stanceR_stimNeg_0ms)-1) * std(myr_stanceR_response(:, conditions_stanceR_stimNeg_0ms), 1, 2)/sqrt(sum(conditions_stanceR_stimNeg_0ms));
-        myr_response_mean_stanceR_stimPos_150ms = mean(myr_stanceR_response(:, conditions_stanceR_stimPos_150ms), 2);
-        myr_response_civ_stanceR_stimPos_150ms = tinv(0.975, sum(conditions_stanceR_stimPos_150ms)-1) * std(myr_stanceR_response(:, conditions_stanceR_stimPos_150ms), 1, 2)/sqrt(sum(conditions_stanceR_stimPos_150ms));
-        myr_response_mean_stanceR_stimNeg_150ms = mean(myr_stanceR_response(:, conditions_stanceR_stimNeg_150ms), 2);
-        myr_response_civ_stanceR_stimNeg_150ms = tinv(0.975, sum(conditions_stanceR_stimNeg_150ms)-1) * std(myr_stanceR_response(:, conditions_stanceR_stimNeg_150ms), 1, 2)/sqrt(sum(conditions_stanceR_stimNeg_150ms));
-        myr_response_mean_stanceR_stimPos_450ms = mean(myr_stanceR_response(:, conditions_stanceR_stimPos_450ms), 2);
-        myr_response_civ_stanceR_stimPos_450ms = tinv(0.975, sum(conditions_stanceR_stimPos_450ms)-1) * std(myr_stanceR_response(:, conditions_stanceR_stimPos_450ms), 1, 2)/sqrt(sum(conditions_stanceR_stimPos_450ms));
-        myr_response_mean_stanceR_stimNeg_450ms = mean(myr_stanceR_response(:, conditions_stanceR_stimNeg_450ms), 2);
-        myr_response_civ_stanceR_stimNeg_450ms = tinv(0.975, sum(conditions_stanceR_stimNeg_450ms)-1) * std(myr_stanceR_response(:, conditions_stanceR_stimNeg_450ms), 1, 2)/sqrt(sum(conditions_stanceR_stimNeg_450ms));
-    end
-    
-    if process_data_angles
-        % absolute data
-        joint_angles_civ_stanceL_control = tinv(0.975, sum(conditions_stanceL_stimNo)-1) * squeeze(std(joint_angles_normalized_all(:, conditions_stanceL_stimNo, :), 1, 2))/sqrt(sum(conditions_stanceL_stimNo));
-        joint_angles_mean_stanceL_stimPos_0ms = squeeze(mean(joint_angles_normalized_all(:, conditions_stanceL_stimPos_0ms, :), 2));
-        joint_angles_civ_stanceL_stimPos_0ms = tinv(0.975, sum(conditions_stanceL_stimPos_0ms)-1) * squeeze(std(joint_angles_normalized_all(:, conditions_stanceL_stimPos_0ms, :), 1, 2))/sqrt(sum(conditions_stanceL_stimPos_0ms));
-        joint_angles_mean_stanceL_stimNeg_0ms = squeeze(mean(joint_angles_normalized_all(:, conditions_stanceL_stimNeg_0ms, :), 2));
-        joint_angles_civ_stanceL_stimNeg_0ms = tinv(0.975, sum(conditions_stanceL_stimNeg_0ms)-1) * squeeze(std(joint_angles_normalized_all(:, conditions_stanceL_stimNeg_0ms, :), 1, 2))/sqrt(sum(conditions_stanceL_stimNeg_0ms));
-        joint_angles_mean_stanceL_stimPos_150ms = squeeze(mean(joint_angles_normalized_all(:, conditions_stanceL_stimPos_150ms, :), 2));
-        joint_angles_civ_stanceL_stimPos_150ms = tinv(0.975, sum(conditions_stanceL_stimPos_150ms)-1) * squeeze(std(joint_angles_normalized_all(:, conditions_stanceL_stimPos_150ms, :), 1, 2))/sqrt(sum(conditions_stanceL_stimPos_150ms));
-        joint_angles_mean_stanceL_stimNeg_150ms = squeeze(mean(joint_angles_normalized_all(:, conditions_stanceL_stimNeg_150ms, :), 2));
-        joint_angles_civ_stanceL_stimNeg_150ms = tinv(0.975, sum(conditions_stanceL_stimNeg_150ms)-1) * squeeze(std(joint_angles_normalized_all(:, conditions_stanceL_stimNeg_150ms, :), 1, 2))/sqrt(sum(conditions_stanceL_stimNeg_150ms));
-        joint_angles_mean_stanceL_stimPos_450ms = squeeze(mean(joint_angles_normalized_all(:, conditions_stanceL_stimPos_450ms, :), 2));
-        joint_angles_civ_stanceL_stimPos_450ms = tinv(0.975, sum(conditions_stanceL_stimPos_450ms)-1) * squeeze(std(joint_angles_normalized_all(:, conditions_stanceL_stimPos_450ms, :), 1, 2))/sqrt(sum(conditions_stanceL_stimPos_450ms));
-        joint_angles_mean_stanceL_stimNeg_450ms = squeeze(mean(joint_angles_normalized_all(:, conditions_stanceL_stimNeg_450ms, :), 2));
-        joint_angles_civ_stanceL_stimNeg_450ms = tinv(0.975, sum(conditions_stanceL_stimNeg_450ms)-1) * squeeze(std(joint_angles_normalized_all(:, conditions_stanceL_stimNeg_450ms, :), 1, 2))/sqrt(sum(conditions_stanceL_stimNeg_450ms));
-
-        joint_angles_civ_stanceR_control = tinv(0.975, sum(conditions_stanceR_stimNo)-1) * squeeze(std(joint_angles_normalized_all(:, conditions_stanceR_stimNo, :), 1, 2))/sqrt(sum(conditions_stanceR_stimNo));
-        joint_angles_mean_stanceR_stimPos_0ms = squeeze(mean(joint_angles_normalized_all(:, conditions_stanceR_stimPos_0ms, :), 2));
-        joint_angles_civ_stanceR_stimPos_0ms = tinv(0.975, sum(conditions_stanceR_stimPos_0ms)-1) * squeeze(std(joint_angles_normalized_all(:, conditions_stanceR_stimPos_0ms, :), 1, 2))/sqrt(sum(conditions_stanceR_stimPos_0ms));
-        joint_angles_mean_stanceR_stimNeg_0ms = squeeze(mean(joint_angles_normalized_all(:, conditions_stanceR_stimNeg_0ms, :), 2));
-        joint_angles_civ_stanceR_stimNeg_0ms = tinv(0.975, sum(conditions_stanceR_stimNeg_0ms)-1) * squeeze(std(joint_angles_normalized_all(:, conditions_stanceR_stimNeg_0ms, :), 1, 2))/sqrt(sum(conditions_stanceR_stimNeg_0ms));
-        joint_angles_mean_stanceR_stimPos_150ms = squeeze(mean(joint_angles_normalized_all(:, conditions_stanceR_stimPos_150ms, :), 2));
-        joint_angles_civ_stanceR_stimPos_150ms = tinv(0.975, sum(conditions_stanceR_stimPos_150ms)-1) * squeeze(std(joint_angles_normalized_all(:, conditions_stanceR_stimPos_150ms, :), 1, 2))/sqrt(sum(conditions_stanceR_stimPos_150ms));
-        joint_angles_mean_stanceR_stimNeg_150ms = squeeze(mean(joint_angles_normalized_all(:, conditions_stanceR_stimNeg_150ms, :), 2));
-        joint_angles_civ_stanceR_stimNeg_150ms = tinv(0.975, sum(conditions_stanceR_stimNeg_150ms)-1) * squeeze(std(joint_angles_normalized_all(:, conditions_stanceR_stimNeg_150ms, :), 1, 2))/sqrt(sum(conditions_stanceR_stimNeg_150ms));
-        joint_angles_mean_stanceR_stimPos_450ms = squeeze(mean(joint_angles_normalized_all(:, conditions_stanceR_stimPos_450ms, :), 2));
-        joint_angles_civ_stanceR_stimPos_450ms = tinv(0.975, sum(conditions_stanceR_stimPos_450ms)-1) * squeeze(std(joint_angles_normalized_all(:, conditions_stanceR_stimPos_450ms, :), 1, 2))/sqrt(sum(conditions_stanceR_stimPos_450ms));
-        joint_angles_mean_stanceR_stimNeg_450ms = squeeze(mean(joint_angles_normalized_all(:, conditions_stanceR_stimNeg_450ms, :), 2));
-        joint_angles_civ_stanceR_stimNeg_450ms = tinv(0.975, sum(conditions_stanceR_stimNeg_450ms)-1) * squeeze(std(joint_angles_normalized_all(:, conditions_stanceR_stimNeg_450ms, :), 1, 2))/sqrt(sum(conditions_stanceR_stimNeg_450ms));
-
-        % responses
-        joint_angles_response_mean_stanceL_stimPos_0ms = squeeze(mean(joint_angles_stanceL_response(:, conditions_stanceL_stimPos_0ms, :), 2));
-        joint_angles_response_civ_stanceL_stimPos_0ms = tinv(0.975, sum(conditions_stanceL_stimPos_0ms)-1) * squeeze(std(joint_angles_stanceL_response(:, conditions_stanceL_stimPos_0ms, :), 1, 2))/sqrt(sum(conditions_stanceL_stimPos_0ms));
-        joint_angles_response_mean_stanceL_stimNeg_0ms = squeeze(mean(joint_angles_stanceL_response(:, conditions_stanceL_stimNeg_0ms, :), 2));
-        joint_angles_response_civ_stanceL_stimNeg_0ms = tinv(0.975, sum(conditions_stanceL_stimNeg_0ms)-1) * squeeze(std(joint_angles_stanceL_response(:, conditions_stanceL_stimNeg_0ms, :), 1, 2))/sqrt(sum(conditions_stanceL_stimNeg_0ms));
-        joint_angles_response_mean_stanceL_stimPos_150ms = squeeze(mean(joint_angles_stanceL_response(:, conditions_stanceL_stimPos_150ms, :), 2));
-        joint_angles_response_civ_stanceL_stimPos_150ms = tinv(0.975, sum(conditions_stanceL_stimPos_150ms)-1) * squeeze(std(joint_angles_stanceL_response(:, conditions_stanceL_stimPos_150ms, :), 1, 2))/sqrt(sum(conditions_stanceL_stimPos_150ms));
-        joint_angles_response_mean_stanceL_stimNeg_150ms = squeeze(mean(joint_angles_stanceL_response(:, conditions_stanceL_stimNeg_150ms, :), 2));
-        joint_angles_response_civ_stanceL_stimNeg_150ms = tinv(0.975, sum(conditions_stanceL_stimNeg_150ms)-1) * squeeze(std(joint_angles_stanceL_response(:, conditions_stanceL_stimNeg_150ms, :), 1, 2))/sqrt(sum(conditions_stanceL_stimNeg_150ms));
-        joint_angles_response_mean_stanceL_stimPos_450ms = squeeze(mean(joint_angles_stanceL_response(:, conditions_stanceL_stimPos_450ms, :), 2));
-        joint_angles_response_civ_stanceL_stimPos_450ms = tinv(0.975, sum(conditions_stanceL_stimPos_450ms)-1) * squeeze(std(joint_angles_stanceL_response(:, conditions_stanceL_stimPos_450ms, :), 1, 2))/sqrt(sum(conditions_stanceL_stimPos_450ms));
-        joint_angles_response_mean_stanceL_stimNeg_450ms = squeeze(mean(joint_angles_stanceL_response(:, conditions_stanceL_stimNeg_450ms, :), 2));
-        joint_angles_response_civ_stanceL_stimNeg_450ms = tinv(0.975, sum(conditions_stanceL_stimNeg_450ms)-1) * squeeze(std(joint_angles_stanceL_response(:, conditions_stanceL_stimNeg_450ms, :), 1, 2))/sqrt(sum(conditions_stanceL_stimNeg_450ms));
-
-        joint_angles_response_mean_stanceR_stimPos_0ms = squeeze(mean(joint_angles_stanceR_response(:, conditions_stanceR_stimPos_0ms, :), 2));
-        joint_angles_response_civ_stanceR_stimPos_0ms = tinv(0.975, sum(conditions_stanceR_stimPos_0ms)-1) * squeeze(std(joint_angles_stanceR_response(:, conditions_stanceR_stimPos_0ms, :), 1, 2))/sqrt(sum(conditions_stanceR_stimPos_0ms));
-        joint_angles_response_mean_stanceR_stimNeg_0ms = squeeze(mean(joint_angles_stanceR_response(:, conditions_stanceR_stimNeg_0ms, :), 2));
-        joint_angles_response_civ_stanceR_stimNeg_0ms = tinv(0.975, sum(conditions_stanceR_stimNeg_0ms)-1) * squeeze(std(joint_angles_stanceR_response(:, conditions_stanceR_stimNeg_0ms, :), 1, 2))/sqrt(sum(conditions_stanceR_stimNeg_0ms));
-        joint_angles_response_mean_stanceR_stimPos_150ms = squeeze(mean(joint_angles_stanceR_response(:, conditions_stanceR_stimPos_150ms, :), 2));
-        joint_angles_response_civ_stanceR_stimPos_150ms = tinv(0.975, sum(conditions_stanceR_stimPos_150ms)-1) * squeeze(std(joint_angles_stanceR_response(:, conditions_stanceR_stimPos_150ms, :), 1, 2))/sqrt(sum(conditions_stanceR_stimPos_150ms));
-        joint_angles_response_mean_stanceR_stimNeg_150ms = squeeze(mean(joint_angles_stanceR_response(:, conditions_stanceR_stimNeg_150ms, :), 2));
-        joint_angles_response_civ_stanceR_stimNeg_150ms = tinv(0.975, sum(conditions_stanceR_stimNeg_150ms)-1) * squeeze(std(joint_angles_stanceR_response(:, conditions_stanceR_stimNeg_150ms, :), 1, 2))/sqrt(sum(conditions_stanceR_stimNeg_150ms));
-        joint_angles_response_mean_stanceR_stimPos_450ms = squeeze(mean(joint_angles_stanceR_response(:, conditions_stanceR_stimPos_450ms, :), 2));
-        joint_angles_response_civ_stanceR_stimPos_450ms = tinv(0.975, sum(conditions_stanceR_stimPos_450ms)-1) * squeeze(std(joint_angles_stanceR_response(:, conditions_stanceR_stimPos_450ms, :), 1, 2))/sqrt(sum(conditions_stanceR_stimPos_450ms));
-        joint_angles_response_mean_stanceR_stimNeg_450ms = squeeze(mean(joint_angles_stanceR_response(:, conditions_stanceR_stimNeg_450ms, :), 2));
-        joint_angles_response_civ_stanceR_stimNeg_450ms = tinv(0.975, sum(conditions_stanceR_stimNeg_450ms)-1) * squeeze(std(joint_angles_stanceR_response(:, conditions_stanceR_stimNeg_450ms, :), 1, 2))/sqrt(sum(conditions_stanceR_stimNeg_450ms));
-
-     
-    end
-    
-    % stim start times
-    stim_start_times_mean_stanceL_0ms = mean(stim_start_time_relative_to_stretch_total(conditions_stanceL_0ms));
-    stim_start_times_mean_stanceR_0ms = mean(stim_start_time_relative_to_stretch_total(conditions_stanceR_0ms));
-    stim_start_times_mean_stanceL_150ms = mean(stim_start_time_relative_to_stretch_total(conditions_stanceL_150ms));
-    stim_start_times_mean_stanceR_150ms = mean(stim_start_time_relative_to_stretch_total(conditions_stanceR_150ms));
-    stim_start_times_mean_stanceL_450ms = mean(stim_start_time_relative_to_stretch_total(conditions_stanceL_450ms));
-    stim_start_times_mean_stanceR_450ms = mean(stim_start_time_relative_to_stretch_total(conditions_stanceR_450ms));
-    
-end
-
-%% save data
-if save_data
-    % save conditions 
-    save ...
-      ( ...
-        makeFileName(date, subject_id, 'resultsConditions'), ...
-        'time_normalized', ...
-        'origin_trial_list_total', ...
-        'origin_start_time_list_total', ...
-        'origin_end_time_list_total', ...
-        'condition_stance_foot_list_total', ...
-        'condition_perturbation_list_total', ...
-        'condition_delay_list_total', ...
-        'condition_index_list_total', ...
-        'conditions_control_indicators', ...
-        'conditions_to_analyze_indicators' ...
-      );
-  
-    if process_data_marker
-        save ...
-          ( ...
-            makeFileName(date, subject_id, 'resultsMarker'), ...
-            'pelvis_x_pos_normalized_all', ...
-            'pelvis_x_vel_normalized_all', ...
-            'pelvis_x_acc_normalized_all', ...
-            'lheel_x_pos_normalized_all', ...
-            'rheel_x_pos_normalized_all', ...
-            'lheel_y_pos_normalized_all', ...
-            'rheel_y_pos_normalized_all', ...
-            'lheel_x_pos_response', ...
-            'rheel_x_pos_response', ...
-            'lheel_y_pos_response', ...
-            'rheel_y_pos_response', ...
-            'pelvis_x_pos_response', ...
-            'pelvis_x_vel_response', ...
-            'pelvis_x_acc_response' ...
-          );
-%             'lheel_x_pos_control_means', ...
-%             'rheel_x_pos_control_means', ...
-%             'lheel_y_pos_control_means', ...
-%             'rheel_y_pos_control_means', ...
-%             'pelvis_x_pos_control_means', ...
-%             'pelvis_x_vel_control_means', ...
-%             'pelvis_x_acc_control_means', ...
-    end  
-    
-    if process_data_forceplate
-        save ...
-          ( ...
-            makeFileName(date, subject_id, 'resultsForceplate'), ...
-            'cop_x_normalized_all', ...
-            'fxl_normalized_all', ...
-            'fzl_normalized_all', ...
-            'myl_normalized_all', ...
-            'lcop_x_normalized_all', ...
-            'fxr_normalized_all', ...
-            'fzr_normalized_all', ...
-            'myr_normalized_all', ...
-            'rcop_x_normalized_all', ...
-            'cop_x_response', ...
-            'fxl_response', ...
-            'fzl_response', ...
-            'myl_response', ...
-            'lcop_x_response', ...
-            'fxr_response', ...
-            'fzr_response', ...
-            'myr_response', ...
-            'rcop_x_response' ...
-          );
-    end
-    
-    if process_data_emg
-        save ...
-          ( ...
-            makeFileName(date, subject_id, 'resultsEmg'), ...
-            'lglutmed_normalized_all', ...
-            'ltibiant_normalized_all', ...
-            'lgastroc_normalized_all', ...
-            'lperolng_normalized_all', ...
-            'rglutmed_normalized_all', ...
-            'rtibiant_normalized_all', ...
-            'rgastroc_normalized_all', ...
-            'rperolng_normalized_all', ...
-            'lglutmed_response', ...
-            'ltibiant_response', ...
-            'lgastroc_response', ...
-            'lperolng_response', ...
-            'rglutmed_response', ...
-            'rtibiant_response', ...
-            'rgastroc_response', ...
-            'rperolng_response' ...
-          )
-    end    
-end
-    
 %% save data old
-if save_data_old
-    save ...
-      ( ...
-        makeFileName(date, subject_id, 'resultsConditions'), ...
-        'time_normalized', ...
-        'origin_trial_list_total', ...
-        'origin_start_time_list_total', ...
-        'origin_end_time_list_total', ...
-        'condition_stance_foot_list_total', ...
-        'condition_perturbation_list_total', ...
-        'condition_delay_list_total', ...
-        'conditions_stanceL_stimNo', ...
-        'conditions_stanceR_stimNo', ...
-        'conditions_stanceL_stimPos_0ms', ...
-        'conditions_stanceL_stimNeg_0ms', ...
-        'conditions_stanceR_stimPos_0ms', ...
-        'conditions_stanceR_stimNeg_0ms', ...
-        'conditions_stanceL_stimPos_150ms', ...
-        'conditions_stanceL_stimNeg_150ms', ...
-        'conditions_stanceR_stimPos_150ms', ...
-        'conditions_stanceR_stimNeg_150ms', ...
-        'conditions_stanceL_stimPos_450ms', ...
-        'conditions_stanceL_stimNeg_450ms', ...
-        'conditions_stanceR_stimPos_450ms', ...
-        'conditions_stanceR_stimNeg_450ms', ...
-        'conditions_stanceL_0ms', ...
-        'conditions_stanceR_0ms', ...
-        'conditions_stanceL_150ms', ...
-        'conditions_stanceR_150ms', ...
-        'conditions_stanceL_450ms', ...
-        'conditions_stanceR_450ms' ...
-      );
-    
-    if process_data_marker
-        save ...
-          ( ...
-            makeFileName(date, subject_id, 'resultsMarker'), ...
-            'step_response_total', ...
-            'stim_response_total', ...
-            'lpsi_x_pos_normalized_all', ...
-            'rpsi_x_pos_normalized_all', ...
-            'lpsi_x_vel_normalized_all', ...
-            'rpsi_x_vel_normalized_all', ...
-            'pelvis_x_pos_normalized_all', ...
-            'pelvis_x_vel_normalized_all', ...
-            'pelvis_x_acc_normalized_all', ...
-            'lheel_x_pos_normalized_all', ...
-            'rheel_x_pos_normalized_all', ...
-            'lheel_y_pos_normalized_all', ...
-            'rheel_y_pos_normalized_all', ...
-            'lheel_x_pos_stanceR_response', ...
-            'rheel_x_pos_stanceL_response', ...
-            'lheel_y_pos_stanceR_response', ...
-            'rheel_y_pos_stanceL_response', ...
-            'pelvis_x_pos_stanceR_response', ...
-            'pelvis_x_pos_stanceL_response', ...
-            'pelvis_x_vel_stanceR_response', ...
-            'pelvis_x_vel_stanceL_response', ...
-            'pelvis_x_acc_stanceR_response', ...
-            'pelvis_x_acc_stanceL_response' ...
-          );
-    end
-            
-    if process_data_forceplate
-        save ...
-          ( ...
-            makeFileName(date, subject_id, 'resultsForceplate'), ...
-            'fxl_normalized_all', ...
-            'fzl_normalized_all', ...
-            'myl_normalized_all', ...
-            'lcop_x_normalized_all', ...
-            'fxr_normalized_all', ...
-            'fzr_normalized_all', ...
-            'myr_normalized_all', ...
-            'rcop_x_normalized_all', ...
-            'lcop_x_stanceL_response', ...
-            'rcop_x_stanceR_response' ...
-          );
-    end
-    
-    if process_data_emg
-        save ...
-          ( ...
-            makeFileName(date, subject_id, 'resultsEmg'), ...
-            'lglutmed_normalized_all', ...
-            'ltibiant_normalized_all', ...
-            'lperolng_normalized_all', ...
-            'rglutmed_normalized_all', ...
-            'rtibiant_normalized_all', ...
-            'rperolng_normalized_all', ...
-            'lglutmed_stanceL_response', ...
-            'ltibiant_stanceL_response', ...
-            'lperolng_stanceL_response', ...
-            'rglutmed_stanceL_response', ...
-            'rtibiant_stanceL_response', ...
-            'rperolng_stanceL_response', ...
-            'lglutmed_stanceR_response', ...
-            'ltibiant_stanceR_response', ...
-            'lperolng_stanceR_response', ...
-            'rglutmed_stanceR_response', ...
-            'rtibiant_stanceR_response', ...
-            'rperolng_stanceR_response' ...
-          )
-    end
-    
-end
+% if save_data_old
+%     save ...
+%       ( ...
+%         makeFileName(date, subject_id, 'resultsConditions'), ...
+%         'time_normalized', ...
+%         'origin_trial_list_total', ...
+%         'origin_start_time_list_total', ...
+%         'origin_end_time_list_total', ...
+%         'condition_stance_foot_list_total', ...
+%         'condition_perturbation_list_total', ...
+%         'condition_delay_list_total', ...
+%         'conditions_stanceL_stimNo', ...
+%         'conditions_stanceR_stimNo', ...
+%         'conditions_stanceL_stimPos_0ms', ...
+%         'conditions_stanceL_stimNeg_0ms', ...
+%         'conditions_stanceR_stimPos_0ms', ...
+%         'conditions_stanceR_stimNeg_0ms', ...
+%         'conditions_stanceL_stimPos_150ms', ...
+%         'conditions_stanceL_stimNeg_150ms', ...
+%         'conditions_stanceR_stimPos_150ms', ...
+%         'conditions_stanceR_stimNeg_150ms', ...
+%         'conditions_stanceL_stimPos_450ms', ...
+%         'conditions_stanceL_stimNeg_450ms', ...
+%         'conditions_stanceR_stimPos_450ms', ...
+%         'conditions_stanceR_stimNeg_450ms', ...
+%         'conditions_stanceL_0ms', ...
+%         'conditions_stanceR_0ms', ...
+%         'conditions_stanceL_150ms', ...
+%         'conditions_stanceR_150ms', ...
+%         'conditions_stanceL_450ms', ...
+%         'conditions_stanceR_450ms' ...
+%       );
+%     
+%     if process_data_marker
+%         save ...
+%           ( ...
+%             makeFileName(date, subject_id, 'resultsMarker'), ...
+%             'step_response_total', ...
+%             'stim_response_total', ...
+%             'lpsi_x_pos_normalized_all', ...
+%             'rpsi_x_pos_normalized_all', ...
+%             'lheel_x_pos_normalized_all', ...
+%             'rheel_x_pos_normalized_all', ...
+%             'lheel_y_pos_normalized_all', ...
+%             'rheel_y_pos_normalized_all', ...
+%             'lheel_x_pos_stanceR_response', ...
+%             'rheel_x_pos_stanceL_response', ...
+%             'lheel_y_pos_stanceR_response', ...
+%             'rheel_y_pos_stanceL_response' ...
+%           );
+%     end
+%             
+%     if process_data_forceplate
+%         save ...
+%           ( ...
+%             makeFileName(date, subject_id, 'resultsForceplate'), ...
+%             'fxl_normalized_all', ...
+%             'fzl_normalized_all', ...
+%             'myl_normalized_all', ...
+%             'lcop_x_normalized_all', ...
+%             'fxr_normalized_all', ...
+%             'fzr_normalized_all', ...
+%             'myr_normalized_all', ...
+%             'rcop_x_normalized_all', ...
+%             'lcop_x_stanceL_response', ...
+%             'rcop_x_stanceR_response' ...
+%           );
+%     end
+%     
+%     if process_data_emg
+%         save ...
+%           ( ...
+%             makeFileName(date, subject_id, 'resultsEmg'), ...
+%             'lglutmed_normalized_all', ...
+%             'ltibiant_normalized_all', ...
+%             'lperolng_normalized_all', ...
+%             'rglutmed_normalized_all', ...
+%             'rtibiant_normalized_all', ...
+%             'rperolng_normalized_all', ...
+%             'lglutmed_stanceL_response', ...
+%             'ltibiant_stanceL_response', ...
+%             'lperolng_stanceL_response', ...
+%             'rglutmed_stanceL_response', ...
+%             'rtibiant_stanceL_response', ...
+%             'rperolng_stanceL_response', ...
+%             'lglutmed_stanceR_response', ...
+%             'ltibiant_stanceR_response', ...
+%             'lperolng_stanceR_response', ...
+%             'rglutmed_stanceR_response', ...
+%             'rtibiant_stanceR_response', ...
+%             'rperolng_stanceR_response' ...
+%           )
+%     end
+%     
+% end
     
 
 return    

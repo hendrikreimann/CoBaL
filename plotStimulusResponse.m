@@ -3,7 +3,10 @@
 plot_single         = 0;
 plot_shaded         = 1;
 
-save_figures        = 0;
+show_legend         = 0;
+dictate_axes        = 0;
+
+save_figures        = 1;
 
 % variable info contains the following columns
 % variable name | display name | y-label with unit | save label
@@ -12,12 +15,21 @@ variable_info = {};
 % markers
 % variable_info = [variable_info; {'lheel_x_pos_normalized_all', 'left heel pos, ml', 'heel pos (m)', 'lheelpos'}];
 % variable_info = [variable_info; {'rheel_x_pos_normalized_all', 'right heel pos, ml', 'heel pos (m)', 'rheelpos'}];
-variable_info = [variable_info; {'lheel_x_pos_response', 'left heel pos response, ml', 'heel pos (m)', 'lheelposRsp'}];
-variable_info = [variable_info; {'rheel_x_pos_response', 'right heel pos response, ml', 'heel pos (m)', 'rheelposRsp'}];
+% variable_info = [variable_info; {'trunk_angle_ml_normalized_all', 'trunk angle, ml', 'angle (deg)', 'trunkangleml'}];
+% variable_info = [variable_info; {'lleg_angle_ml_normalized_all', 'left leg angle, ml', 'angle (deg)', 'llegangleml'}];
+% variable_info = [variable_info; {'rleg_angle_ml_normalized_all', 'right leg angle, ml', 'angle (deg)', 'rlegangleml'}];
+
+% variable_info = [variable_info; {'lheel_x_pos_response', 'left heel pos response, ml', 'heel pos (m)', 'lheelposRsp', 0.05}];
+% variable_info = [variable_info; {'rheel_x_pos_response', 'right heel pos response, ml', 'heel pos (m)', 'rheelposRsp', 0.05}];
+% variable_info = [variable_info; {'trunk_angle_ml_response', 'trunk angle response, ml', 'angle (deg)', 'trunkanglemlRsp', 2}];
+% variable_info = [variable_info; {'lleg_angle_ml_response', 'left leg angle response, ml', 'angle (deg)', 'lleganglemlRsp', 2}];
+% variable_info = [variable_info; {'rleg_angle_ml_response', 'right leg angle response, ml', 'angle (deg)', 'rleganglemlRsp', 2}];
+
+
 
 % forceplate
 % variable_info = [variable_info; {'cop_x_normalized_all', 'total CoP, ml', 'CoP (m)', 'copx'}];
-variable_info = [variable_info; {'cop_x_response', 'total CoP response, ml', 'CoP (m)', 'copxRsp'}];
+% variable_info = [variable_info; {'cop_x_response', 'total CoP response, ml', 'CoP (m)', 'copxRsp', 0.015}];
 
 % variable_info = [variable_info; {'lcop_x_normalized_all', 'left foot CoP, ml', 'CoP (m)', 'lcopx'}];
 % variable_info = [variable_info; {'rcop_x_normalized_all', 'right foot CoP, ml', 'CoP (m)', 'rcopx'}];
@@ -28,11 +40,11 @@ variable_info = [variable_info; {'cop_x_response', 'total CoP response, ml', 'Co
 % variable_info = [variable_info; {'lglutmed_normalized_all', 'left Gluteus Medius', 'EMG', 'lglutmed'}];
 % variable_info = [variable_info; {'ltibiant_normalized_all', 'left Tibialis Anterior', 'EMG', 'ltibiant'}];
 % variable_info = [variable_info; {'lgastroc_normalized_all', 'left Gastrocnemius Medialis', 'EMG', 'lgastroc'}];
-% variable_info = [variable_info; {'lperolng_normalized_all', 'left Peroneus Longus', 'EMG', 'lperolng'}];
+variable_info = [variable_info; {'lperolng_normalized_all', 'left Peroneus Longus', 'EMG', 'lperolng'}];
 % variable_info = [variable_info; {'rglutmed_normalized_all', 'right Gluteus Medius', 'EMG', 'rglutmed'}];
 % variable_info = [variable_info; {'rtibiant_normalized_all', 'right Tibialis Anterior', 'EMG', 'rtibiant'}];
 % variable_info = [variable_info; {'rgastroc_normalized_all', 'right Gastrocnemius Medialis', 'EMG', 'rgastroc'}];
-% variable_info = [variable_info; {'rperolng_normalized_all', 'right Peroneus Longus', 'EMG', 'rperolng'}];
+variable_info = [variable_info; {'rperolng_normalized_all', 'right Peroneus Longus', 'EMG', 'rperolng'}];
 
 
 %% load data
@@ -100,6 +112,14 @@ conditions_to_analyze = ...
     'STANCE_LEFT', 'ILLUSION_LEFT', '0ms', 'TWO'; ...
     'STANCE_RIGHT', 'ILLUSION_RIGHT', '0ms', 'TWO'; ...
     'STANCE_RIGHT', 'ILLUSION_LEFT', '0ms', 'TWO'; ...
+    'STANCE_LEFT', 'ILLUSION_RIGHT', '0ms', 'THREE'; ...
+    'STANCE_LEFT', 'ILLUSION_LEFT', '0ms', 'THREE'; ...
+    'STANCE_RIGHT', 'ILLUSION_RIGHT', '0ms', 'THREE'; ...
+    'STANCE_RIGHT', 'ILLUSION_LEFT', '0ms', 'THREE'; ...
+    'STANCE_LEFT', 'ILLUSION_RIGHT', '0ms', 'FOUR'; ...
+    'STANCE_LEFT', 'ILLUSION_LEFT', '0ms', 'FOUR'; ...
+    'STANCE_RIGHT', 'ILLUSION_RIGHT', '0ms', 'FOUR'; ...
+    'STANCE_RIGHT', 'ILLUSION_LEFT', '0ms', 'FOUR'; ...
   };
 
 
@@ -152,7 +172,7 @@ while length(conditions_already_compared) < number_of_conditions_to_analyze
     conditions_already_compared = [conditions_already_compared this_comparison];
 end
 
-
+%% do plots
 color_control = [0.3 0.1 1];
 colors_comparison = ...
   [ ...
@@ -218,7 +238,9 @@ if plot_single
             end
 
             % annotate
-            legend('toggle')
+            if show_legend
+                legend('toggle')
+            end
             title_string = variable_info{i_variable, 2};
             for i_label = 1 : length(condition_labels);
                 if i_label ~= comparison_to_make
@@ -274,17 +296,22 @@ if plot_shaded
                     1 ...
                   );
                 legend_handles = [legend_handles, current_plots.mainLine];
-                label_string = conditionStringToTitle(conditions_to_analyze{comparison_indices{i_comparison}(i_condition), comparison_to_make});
+%                 label_string = conditionStringToTitle(conditions_to_analyze{comparison_indices{i_comparison}(i_condition), comparison_to_make});
+                label_string = strrep(conditions_to_analyze{comparison_indices{i_comparison}(i_condition), comparison_to_make}, '_', ' ');
                 legend_data = [legend_data, label_string];
             end
 
             % annotate
-            this_legend = legend(legend_handles, legend_data);
+            if show_legend
+                this_legend = legend(legend_handles, legend_data);
+            end
             title_string = variable_info{i_variable, 2};
             filename_string = variable_info{i_variable, 4};
             for i_label = 1 : length(condition_labels);
                 if i_label ~= comparison_to_make
-                    title_string = [title_string ' - ' conditionStringToTitle(conditions_to_analyze{comparison_indices{i_comparison}(1), i_label})];
+%                     title_string = [title_string ' - ' conditionStringToTitle(conditions_to_analyze{comparison_indices{i_comparison}(1), i_label})];
+                    title_string = [title_string ' - ' strrep(conditions_to_analyze{comparison_indices{i_comparison}(1), i_label}, '_', ' ')];
+%                     title_string = strrep(title_string, '_', ' ');
                     filename_string = [filename_string '_' conditionStringToFilename(conditions_to_analyze{comparison_indices{i_comparison}(1), i_label})];
                 end
             end
@@ -293,6 +320,11 @@ if plot_shaded
             set(gca, 'xlim', [time_normalized(1), time_normalized(end)]);
             xlabel('normalized time (s)');
             ylabel(variable_info{i_variable, 3});
+            
+            if dictate_axes
+                set(gca, 'xlim', [time_normalized(1), time_normalized(end)]);
+                set(gca, 'ylim', [-variable_info{i_variable, 5}, variable_info{i_variable, 5}]);
+            end
             
             xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
             text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), 'right \rightarrow', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right')
