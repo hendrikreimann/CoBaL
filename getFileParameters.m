@@ -1,5 +1,9 @@
 function [date, subject_id, trial_type, trial_number, file_type] = getFileParameters(fileName)
-    elements = strsplit(fileName, '_');
+    % remove file ending if necessary
+    file_split = strsplit(fileName, '.');
+
+    % split at underscores
+    elements = strsplit(file_split{1}, '_');
     date = elements{1};
     subject_id = elements{2};
     trial_type = elements{3};
