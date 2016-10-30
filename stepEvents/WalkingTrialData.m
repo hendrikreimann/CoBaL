@@ -2,6 +2,7 @@ classdef WalkingTrialData < handle
     properties
         % administration
         data_directory = [];
+        condition = [];
         trial_number = [];
         recording_time = 0;
         date = [];
@@ -65,15 +66,14 @@ classdef WalkingTrialData < handle
           }
     end
     methods
-        function this = WalkingTrialData(dataDirectory, trialNumber)
-            if nargin > 1
-                this.data_directory = dataDirectory;
-                this.trial_number = trialNumber;
-                this.loadSubjectInfo();
-                this.loadMarkerTrajectories();
-                this.loadForceplateTrajectories();
-                this.loadLabviewTrajectories();
-            end
+        function this = WalkingTrialData(dataDirectory, condition, trialNumber)
+            this.data_directory = dataDirectory;
+            this.condition = condition;
+            this.trial_number = trialNumber;
+            this.loadSubjectInfo();
+            this.loadMarkerTrajectories();
+            this.loadForceplateTrajectories();
+%             this.loadLabviewTrajectories();
         end
         function loadSubjectInfo(this)
             loaded_subject_info = load([this.data_directory filesep 'subjectInfo.mat']);
@@ -81,7 +81,7 @@ classdef WalkingTrialData < handle
             this.subject_id = loaded_subject_info.subject_id;
         end
         function loadMarkerTrajectories(this)
-            loaded_marker_trajectories = load([this.data_directory filesep makeFileName(this.date, this.subject_id, 'walking', this.trial_number, 'markerTrajectories')]);
+            loaded_marker_trajectories = load([this.data_directory filesep makeFileName(this.date, this.subject_id, this.condition, this.trial_number, 'markerTrajectories')]);
             
             this.sampling_rate_mocap = loaded_marker_trajectories.sampling_rate_mocap;
             this.recording_time = loaded_marker_trajectories.time_mocap(end);
@@ -134,7 +134,7 @@ classdef WalkingTrialData < handle
             this.right_toes_z_acc = right_toes_z_acc_trajectory;        
         end
         function loadForceplateTrajectories(this)
-            loaded_forceplate_trajectories = load([this.data_directory filesep makeFileName(this.date, this.subject_id, 'walking', this.trial_number, 'forceplateTrajectories')]);
+            loaded_forceplate_trajectories = load([this.data_directory filesep makeFileName(this.date, this.subject_id, this.condition, this.trial_number, 'forceplateTrajectories')]);
             
             this.time_forceplate = loaded_forceplate_trajectories.time_forceplate;
             
@@ -152,12 +152,12 @@ classdef WalkingTrialData < handle
             this.right_mz = loaded_forceplate_trajectories.mzr_trajectory;
             
         end
-        function loadLabviewTrajectories(this)
-            loaded_labview_trajectories = load([this.data_directory filesep makeFileName(this.date, this.subject_id, 'walking', this.trial_number, 'labviewTrajectories')]);
-            
-            this.time_labview = loaded_labview_trajectories.time_labview;
-            this.stimulus_state = loaded_labview_trajectories.stimulus_state_trajectory;
-        end
+%         function loadLabviewTrajectories(this)
+%             loaded_labview_trajectories = load([this.data_directory filesep makeFileName(this.date, this.subject_id, this.condition, this.trial_number, 'labviewTrajectories')]);
+%             
+%             this.time_labview = loaded_labview_trajectories.time_labview;
+%             this.stimulus_state = loaded_labview_trajectories.stimulus_state_trajectory;
+%         end
         
         function time = getTime(this, data_label)
             if any(strcmp(data_label, this.data_labels_mocap))

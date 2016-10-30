@@ -1,13 +1,14 @@
-function stepEventGui(dataDirectory, trialToProcess, color_scheme)
+function stepEventGui(varargin)
+    [condition_list, trial_number_list] = parseTrialArguments(varargin);
+    condition = condition_list{1};
+    trial_to_process = trial_number_list{1}(1);
+    
     if nargin < 3
         color_scheme = 'intra';
+    else
+        color_scheme = varargin{3};
     end
-    if nargin < 2
-        trialToProcess = 6;
-    end
-    if nargin < 1
-        dataDirectory = pwd;
-    end
+
     
     %% set plot stuff
     if strcmp(color_scheme, 'side')
@@ -61,7 +62,7 @@ function stepEventGui(dataDirectory, trialToProcess, color_scheme)
     end
     
     %% load data
-    trial_data = WalkingTrialData(dataDirectory, trialToProcess);
+    trial_data = WalkingTrialData(pwd, condition, trial_to_process);
     event_data = WalkingEventData(trial_data);
     
     % init gui

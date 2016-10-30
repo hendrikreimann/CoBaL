@@ -10,6 +10,8 @@ classdef stepEventFigure < handle;
         data_plots;
         event_plots;
         selected_event_plot;
+        data_plot_offsets;
+        data_plot_scale_factors;
 
         time_extension_steps = [0.1 0.2 0.5 1 2 5 10 20 40 60 120];
     end
@@ -52,11 +54,14 @@ classdef stepEventFigure < handle;
                 this.trial_data.getTime(data_label), ...
                 (this.trial_data.getData(data_label) + offset) * scale_factor, ...
                 'color', color, ...
-                'UserData', [scale_factor offset], ...
                 'ButtonDownFcn', @this.stepEventFigureClicked ...
               );
             new_plot.UserData = data_label;
             this.data_plots{length(this.data_plots)+1} = new_plot;
+            
+            this.data_plot_offsets(length(this.data_plot_offsets)+1) = offset;
+            this.data_plot_scale_factors(length(this.data_plot_scale_factors)+1) = scale_factor;
+            
         end
         function addEventPlot(this, data_label, event_label, color, marker)
             if nargin < 3
@@ -174,6 +179,21 @@ classdef stepEventFigure < handle;
                 event_time = this.event_data.getEventTimes(event_label);
                 event_data = interp1(time, data, event_time);
                 set(this.event_plots{i_plot}, 'xdata', event_time, 'ydata', event_data);
+            end
+        end
+        function updateDataPlots(this)
+            for i_plot = 1 : length(this.data_plots)
+                data_plot_handle = this.data_plots{i_plot};
+                
+                data_label = this.data_plots{i_plot}.UserData;
+                offset = this.data_plot_offsets(i_plot);
+                scale_factor = this.data_plot_scale_factors(i_plot);
+                
+                time_data = this.trial_data.getTime(data_label);
+                trajectory_data = (this.trial_data.getData(data_label) + offset) * scale_factor;
+                
+                
+                set(data_plot_handle, 'xdata', time_data, 'ydata', trajectory_data);
             end
         end
         function updateSelectedEventPlot(this)

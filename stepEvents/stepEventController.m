@@ -13,6 +13,12 @@ classdef stepEventController < handle
         saveEventsButton;
         addEventButtons;
         lockAddEventsButton
+        previousTrialButton
+        nextTrialButton
+        quitButton
+        
+        condition_label
+        trial_number_label
         
         figureSelectionBox;
         heel_pos_peak_width;
@@ -39,7 +45,7 @@ classdef stepEventController < handle
             this.loadFigureSettingsButton = uicontrol(figures_panel, 'Style', 'pushbutton', 'Position', [140, figures_panel_height-100, 130, 60], 'Fontsize', 12, 'String', 'Load Figure Settings', 'callback', @this.loadFigureSettings);
 
             % event controls
-            events_panel_height = 255;
+            events_panel_height = 180;
             events_panel = uipanel(this.control_figure, 'Title', 'Events Control', 'FontSize', 12, 'BackgroundColor', 'white', 'Units', 'pixels', 'Position', [5, figure_height-figures_panel_height-events_panel_height-5, figure_width-10, events_panel_height]);
             this.findEventsButton = uicontrol(events_panel, 'Style', 'pushbutton', 'Position', [5, events_panel_height-75, 130, 60], 'Fontsize', 12, 'String', 'Find Events', 'callback', @this.findEvents);
             this.saveEventsButton = uicontrol(events_panel, 'Style', 'pushbutton', 'Position', [140, events_panel_height-75, 130, 60], 'Fontsize', 12, 'String', 'Save Events', 'callback', @event_data.saveEvents);
@@ -54,6 +60,17 @@ classdef stepEventController < handle
             this.heel_pos_peak_width = uicontrol(events_panel, 'Style', 'edit', 'BackgroundColor', 'white', 'Position', [150, events_panel_height-157, 40, 20], 'String', '0.05');
             uicontrol(events_panel, 'Style', 'text', 'string', 'Toes vel peak prominence (m):', 'Position', [5, events_panel_height-180, 190, 20], 'Fontsize', 10, 'HorizontalAlignment', 'left', 'BackgroundColor', 'white');
             this.toes_vel_peak_width = uicontrol(events_panel, 'Style', 'edit', 'BackgroundColor', 'white', 'Position', [150, events_panel_height-177, 40, 20], 'String', '0.05');
+            
+            % figure control
+            files_panel_height = 95;
+            files_panel = uipanel(this.control_figure, 'Title', 'Files', 'FontSize', 12, 'BackgroundColor', 'white', 'Units', 'pixels', 'Position', [5, figure_height-figures_panel_height-events_panel_height-files_panel_height-5, figure_width-10, files_panel_height]);
+            uicontrol(files_panel, 'Style', 'text', 'Position', [5, files_panel_height-32, 70, 15], 'Fontsize', 12, 'String', 'Condition:', 'HorizontalAlignment', 'left', 'BackgroundColor', 'white');
+            this.condition_label = uicontrol(files_panel, 'Style', 'text', 'Position', [75, files_panel_height-32, 80, 15], 'Fontsize', 12, 'String', this.trial_data.condition, 'HorizontalAlignment', 'left', 'BackgroundColor', 'white');
+            uicontrol(files_panel, 'Style', 'text', 'Position', [195, files_panel_height-32, 50, 15], 'Fontsize', 12, 'String', 'Trial:', 'HorizontalAlignment', 'left', 'BackgroundColor', 'white');
+            this.trial_number_label = uicontrol(files_panel, 'Style', 'text', 'Position', [235, files_panel_height-32, 80, 15], 'Fontsize', 12, 'String', num2str(this.trial_data.trial_number), 'HorizontalAlignment', 'left', 'BackgroundColor', 'white');
+            this.previousTrialButton = uicontrol(files_panel, 'Style', 'pushbutton', 'Position', [5, figures_panel_height-100, 130, 60], 'Fontsize', 12, 'String', 'Previous Trial', 'callback', @this.blub);
+            this.nextTrialButton = uicontrol(files_panel, 'Style', 'pushbutton', 'Position', [140, figures_panel_height-100, 130, 60], 'Fontsize', 12, 'String', 'Next Trial', 'callback', @this.loadNextTrial);
+            this.quitButton = uicontrol(files_panel, 'Style', 'pushbutton', 'Position', [275, figures_panel_height-100, 130, 60], 'Fontsize', 12, 'String', 'Quit', 'callback', @this.quit);
         end
         
         
@@ -77,6 +94,15 @@ classdef stepEventController < handle
             for i_figure = 1 : length(this.figureSelectionBox.String)
                 this.figureSelectionBox.UserData{i_figure}.updateEventPlots();
             end
+        end
+        function updateDataPlots(this)
+            for i_figure = 1 : length(this.figureSelectionBox.String)
+                this.figureSelectionBox.UserData{i_figure}.updateDataPlots();
+            end
+        end
+        function updateTrialLabels(this)
+            this.condition_label.String = this.trial_data.condition;
+            this.trial_number_label.String = num2str(this.trial_data.trial_number);
         end
         function event_mode = getEventMode(this)
             event_mode = 'select';
@@ -298,7 +324,37 @@ classdef stepEventController < handle
             
         end
         
-        function quit(this)
+        function loadPreviousTrial(this, sender, eventdata)
+            current_condition = this.trial_data.condition;
+            current_trial_number = this.trial_data.trial_number;
+        end
+        function loadNextTrial(this, sender, eventdata)
+            current_condition = this.trial_data.condition;
+            current_trial_number = this.trial_data.trial_number;
+            
+            [condition_list, trial_number_list] = parseTrialArguments({});
+            condition_index = find(strcmp(condition_list, current_condition));
+            if current_trial_number == trial_number_list{condition_index}(end)
+                new_condition = condition_list{condition_index + 1};
+                new_trial_number = trial_number_list{condition_index + 1}(1);
+            else
+                new_condition = this.trial_data.condition;
+                trial_index = find(trial_number_list{condition_index} == current_trial_number);
+                new_trial_number = trial_number_list{condition_index}(trial_index + 1);
+            end
+            this.trial_data.condition = new_condition;
+            this.trial_data.trial_number = new_trial_number;
+            this.trial_data.loadMarkerTrajectories;
+            this.trial_data.loadForceplateTrajectories;
+            this.event_data.loadEvents;
+            
+            this.updateDataPlots;
+            this.updateEventPlots;
+            this.event_data.selectNextEvent;
+            this.updateSelectedEventPlots;
+            this.updateTrialLabels;
+        end
+        function quit(this, sender, eventdata)
             for i_figure = 1 : length(this.figureSelectionBox.String)
                 try
                     close(this.figureSelectionBox.UserData{i_figure}.main_figure);
