@@ -25,13 +25,14 @@ function [conditions_to_analyze, trials_to_analyze] = parseTrialArguments(argin)
         end
     end
     if length(argin) == 2
-        if length(argin{1}) ~= length(argin{2})
-            error('list of conditions and list of list of trials to analyze must have the same length');
-        end
+        % if the first argument is not a cell, make it one
         if iscell(argin{1})
             conditions_to_analyze = argin{1};
         else
             conditions_to_analyze = argin(1);
+        end
+        if length(conditions_to_analyze) ~= length(argin{2})
+            error('list of conditions and list of list of trials to analyze must have the same length');
         end
         if iscell(argin{2})
             trials_to_analyze = argin{2};

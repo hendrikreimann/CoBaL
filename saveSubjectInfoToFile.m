@@ -10,7 +10,7 @@ function saveSubjectInfoToFile(height, weight, gender)
         gender = 'unknown';
     end
     
-    data_dir = dir('*_markerTrajectories.mat');
+    data_dir = dir(['raw' filesep '*_markerTrajectoriesRaw.mat']);
     clear file_name_list;
     [file_name_list{1:length(data_dir)}] = deal(data_dir.name);
     sample_file_name = file_name_list{1};
