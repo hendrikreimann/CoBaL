@@ -81,7 +81,7 @@ classdef WalkingTrialData < handle
             this.subject_id = loaded_subject_info.subject_id;
         end
         function loadMarkerTrajectories(this)
-            loaded_marker_trajectories = load([this.data_directory filesep makeFileName(this.date, this.subject_id, this.condition, this.trial_number, 'markerTrajectories')]);
+            loaded_marker_trajectories = load([this.data_directory filesep 'processed' filesep makeFileName(this.date, this.subject_id, this.condition, this.trial_number, 'markerTrajectories')]);
             
             this.sampling_rate_mocap = loaded_marker_trajectories.sampling_rate_mocap;
             this.recording_time = loaded_marker_trajectories.time_mocap(end);
@@ -134,7 +134,7 @@ classdef WalkingTrialData < handle
             this.right_toes_z_acc = right_toes_z_acc_trajectory;        
         end
         function loadForceplateTrajectories(this)
-            loaded_forceplate_trajectories = load([this.data_directory filesep makeFileName(this.date, this.subject_id, this.condition, this.trial_number, 'forceplateTrajectories')]);
+            loaded_forceplate_trajectories = load([this.data_directory filesep 'processed' filesep makeFileName(this.date, this.subject_id, this.condition, this.trial_number, 'forceplateTrajectories')]);
             
             this.time_forceplate = loaded_forceplate_trajectories.time_forceplate;
             

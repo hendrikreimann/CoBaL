@@ -1,9 +1,14 @@
 function findStepEvents(varargin)
     
     
-    
+    % figure out folders
+    if ~exist('analysis', 'dir')
+        mkdir('analysis')
+    end
+
     
     [condition_list, trial_number_list] = parseTrialArguments(varargin);
+    load('subjectInfo.mat', 'date', 'subject_id');
 
 
     % findStepEvents
@@ -40,9 +45,8 @@ function findStepEvents(varargin)
 
             %% prepare
             % load data
-            load('subjectInfo.mat', 'date', 'subject_id');
             condition = condition_list{i_condition};
-            load(makeFileName(date, subject_id, condition, i_trial, 'markerTrajectories'));
+            load(['processed' filesep makeFileName(date, subject_id, condition, i_trial, 'markerTrajectories')]);
 %             load(makeFileName(date, subject_id, condition, i_trial, 'labviewTrajectories'));
 %             load(makeFileName(date, subject_id, condition, i_trial, 'forceplateTrajectories'));
 
@@ -359,7 +363,7 @@ function findStepEvents(varargin)
 
 
             %% save
-            step_events_file_name = makeFileName(date, subject_id, condition, i_trial, 'stepEvents');
+            step_events_file_name = ['analysis' filesep makeFileName(date, subject_id, condition, i_trial, 'stepEvents')];
             save ...
               ( ...
                 step_events_file_name, ...
