@@ -431,8 +431,13 @@ function analyzeGaitParameters(varargin)
                     linclination_extracted_stretch = zeros(size(time_extracted_mocap, 2), 1);
                     rinclination_extracted_stretch = zeros(size(time_extracted_mocap, 2), 1);
                     for i_time = 1 : size(time_extracted_mocap, 2)
-                        linclination_extracted_stretch(i_time) = subspace([larm_vector_x(i_time); larm_vector_y(i_time); larm_vector_z(i_time)], vertical);
-                        rinclination_extracted_stretch(i_time) = subspace([rarm_vector_x(i_time); rarm_vector_y(i_time); rarm_vector_z(i_time)], vertical);
+                        left_arm_vector = normVector([larm_vector_x(i_time); larm_vector_y(i_time); larm_vector_z(i_time)]);
+                        left_arm_vector_projected_length = norm(left_arm_vector(1:2));
+                        linclination_extracted_stretch(i_time) = rad2deg(atan2(left_arm_vector_projected_length, left_arm_vector(3)));
+                        
+                        right_arm_vector = normVector([rarm_vector_x(i_time); rarm_vector_y(i_time); rarm_vector_z(i_time)]);
+                        right_arm_vector_projected_length = norm(right_arm_vector(1:2));
+                        rinclination_extracted_stretch(i_time) = rad2deg(atan2(right_arm_vector_projected_length, right_arm_vector(3)));
                         
                     end
                     
@@ -607,7 +612,8 @@ function analyzeGaitParameters(varargin)
             'origin_start_time_list_all', ...
             'origin_end_time_list_all', ...
             'condition_stance_foot_list_all', ...
-            'condition_experimental_list_all' ...
+            'condition_experimental_list_all', ...
+            'conditions_to_analyze_indicators' ...
           );
 
         if process_data_balance
