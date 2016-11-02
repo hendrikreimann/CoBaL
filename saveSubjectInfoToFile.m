@@ -30,7 +30,7 @@ function saveSubjectInfoToFile(height, weight, gender)
         else
             % add current trial to trial number list
             condition_index = find(strcmp(condition_list, trial_type), 1);
-            trial_number_list{condition_index} = [trial_number_list{condition_index}; trial_number];
+            trial_number_list{condition_index} = [trial_number_list{condition_index} trial_number];
             % remove duplicates
             trial_number_list{condition_index} = unique(trial_number_list{condition_index});
         end
