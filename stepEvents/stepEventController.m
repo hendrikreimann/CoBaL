@@ -68,7 +68,7 @@ classdef stepEventController < handle
             this.condition_label = uicontrol(files_panel, 'Style', 'text', 'Position', [75, files_panel_height-32, 80, 15], 'Fontsize', 12, 'String', this.trial_data.condition, 'HorizontalAlignment', 'left', 'BackgroundColor', 'white');
             uicontrol(files_panel, 'Style', 'text', 'Position', [195, files_panel_height-32, 50, 15], 'Fontsize', 12, 'String', 'Trial:', 'HorizontalAlignment', 'left', 'BackgroundColor', 'white');
             this.trial_number_label = uicontrol(files_panel, 'Style', 'text', 'Position', [235, files_panel_height-32, 80, 15], 'Fontsize', 12, 'String', num2str(this.trial_data.trial_number), 'HorizontalAlignment', 'left', 'BackgroundColor', 'white');
-            this.previousTrialButton = uicontrol(files_panel, 'Style', 'pushbutton', 'Position', [5, figures_panel_height-100, 130, 60], 'Fontsize', 12, 'String', 'Previous Trial', 'callback', @this.blub);
+            this.previousTrialButton = uicontrol(files_panel, 'Style', 'pushbutton', 'Position', [5, figures_panel_height-100, 130, 60], 'Fontsize', 12, 'String', 'Previous Trial', 'callback', @this.loadPreviousTrial);
             this.nextTrialButton = uicontrol(files_panel, 'Style', 'pushbutton', 'Position', [140, figures_panel_height-100, 130, 60], 'Fontsize', 12, 'String', 'Next Trial', 'callback', @this.loadNextTrial);
             this.quitButton = uicontrol(files_panel, 'Style', 'pushbutton', 'Position', [275, figures_panel_height-100, 130, 60], 'Fontsize', 12, 'String', 'Quit', 'callback', @this.quit);
         end
@@ -327,6 +327,28 @@ classdef stepEventController < handle
         function loadPreviousTrial(this, sender, eventdata)
             current_condition = this.trial_data.condition;
             current_trial_number = this.trial_data.trial_number;
+            
+            [condition_list, trial_number_list] = parseTrialArguments({});
+            condition_index = find(strcmp(condition_list, current_condition));
+            if current_trial_number == trial_number_list{condition_index}(1)
+                new_condition = condition_list{condition_index - 1};
+                new_trial_number = trial_number_list{condition_index - 1}(end);
+            else
+                new_condition = this.trial_data.condition;
+                trial_index = find(trial_number_list{condition_index} == current_trial_number);
+                new_trial_number = trial_number_list{condition_index}(trial_index - 1);
+            end
+            this.trial_data.condition = new_condition;
+            this.trial_data.trial_number = new_trial_number;
+            this.trial_data.loadMarkerTrajectories;
+            this.trial_data.loadForceplateTrajectories;
+            this.event_data.loadEvents;
+            
+            this.updateDataPlots;
+            this.updateEventPlots;
+            this.event_data.selectNextEvent;
+            this.updateSelectedEventPlots;
+            this.updateTrialLabels;
         end
         function loadNextTrial(this, sender, eventdata)
             current_condition = this.trial_data.condition;

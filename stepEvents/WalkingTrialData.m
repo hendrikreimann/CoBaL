@@ -134,22 +134,41 @@ classdef WalkingTrialData < handle
             this.right_toes_z_acc = right_toes_z_acc_trajectory;        
         end
         function loadForceplateTrajectories(this)
-            loaded_forceplate_trajectories = load([this.data_directory filesep 'processed' filesep makeFileName(this.date, this.subject_id, this.condition, this.trial_number, 'forceplateTrajectories')]);
+            file_name_forceplate = [this.data_directory filesep 'processed' filesep makeFileName(this.date, this.subject_id, this.condition, this.trial_number, 'forceplateTrajectories')];
+            if exist(file_name_forceplate, 'file')
+                loaded_forceplate_trajectories = load(file_name_forceplate);
+                this.time_forceplate = loaded_forceplate_trajectories.time_forceplate;
+
+                this.left_fx = loaded_forceplate_trajectories.fxl_trajectory;
+                this.left_fy = loaded_forceplate_trajectories.fyl_trajectory;
+                this.left_fz = loaded_forceplate_trajectories.fzl_trajectory;
+                this.left_mx = loaded_forceplate_trajectories.mxl_trajectory;
+                this.left_my = loaded_forceplate_trajectories.myl_trajectory;
+                this.left_mz = loaded_forceplate_trajectories.mzl_trajectory;
+                this.right_fx = loaded_forceplate_trajectories.fxr_trajectory;
+                this.right_fy = loaded_forceplate_trajectories.fyr_trajectory;
+                this.right_fz = loaded_forceplate_trajectories.fzr_trajectory;
+                this.right_mx = loaded_forceplate_trajectories.mxr_trajectory;
+                this.right_my = loaded_forceplate_trajectories.myr_trajectory;
+                this.right_mz = loaded_forceplate_trajectories.mzr_trajectory;
+            else
+                this.time_forceplate = [];
+
+                this.left_fx = [];
+                this.left_fy = [];
+                this.left_fz = [];
+                this.left_mx = [];
+                this.left_my = [];
+                this.left_mz = [];
+                this.right_fx = [];
+                this.right_fy = [];
+                this.right_fz = [];
+                this.right_mx = [];
+                this.right_my = [];
+                this.right_mz = [];
+                
+            end
             
-            this.time_forceplate = loaded_forceplate_trajectories.time_forceplate;
-            
-            this.left_fx = loaded_forceplate_trajectories.fxl_trajectory;
-            this.left_fy = loaded_forceplate_trajectories.fyl_trajectory;
-            this.left_fz = loaded_forceplate_trajectories.fzl_trajectory;
-            this.left_mx = loaded_forceplate_trajectories.mxl_trajectory;
-            this.left_my = loaded_forceplate_trajectories.myl_trajectory;
-            this.left_mz = loaded_forceplate_trajectories.mzl_trajectory;
-            this.right_fx = loaded_forceplate_trajectories.fxr_trajectory;
-            this.right_fy = loaded_forceplate_trajectories.fyr_trajectory;
-            this.right_fz = loaded_forceplate_trajectories.fzr_trajectory;
-            this.right_mx = loaded_forceplate_trajectories.mxr_trajectory;
-            this.right_my = loaded_forceplate_trajectories.myr_trajectory;
-            this.right_mz = loaded_forceplate_trajectories.mzr_trajectory;
             
         end
 %         function loadLabviewTrajectories(this)

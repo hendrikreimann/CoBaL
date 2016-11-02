@@ -10,7 +10,8 @@ function saveSubjectInfoToFile(height, weight, gender)
         gender = 'unknown';
     end
     
-    data_dir = dir(['raw' filesep '*_markerTrajectoriesRaw.mat']);
+%     data_dir = dir(['raw' filesep '*_markerTrajectoriesRaw.mat']);
+    data_dir = dir(['raw' filesep '*.mat']);
     clear file_name_list;
     [file_name_list{1:length(data_dir)}] = deal(data_dir.name);
     sample_file_name = file_name_list{1};
@@ -30,6 +31,8 @@ function saveSubjectInfoToFile(height, weight, gender)
             % add current trial to trial number list
             condition_index = find(strcmp(condition_list, trial_type), 1);
             trial_number_list{condition_index} = [trial_number_list{condition_index}; trial_number];
+            % remove duplicates
+            trial_number_list{condition_index} = unique(trial_number_list{condition_index});
         end
     end
 

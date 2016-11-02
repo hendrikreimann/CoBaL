@@ -57,21 +57,32 @@ function findRelevantDataStretches(varargin)
             condition = condition_list{i_condition};
 
             load(['processed' filesep makeFileName(date, subject_id, condition, i_trial, 'markerTrajectories')]);
-            if ~strcmp(stimulus_type, 'none')
-                load(['processed' filesep makeFileName(date, subject_id, condition, i_trial, 'labviewTrajectories')]);
+            
+            % XXX this should be replaced with a system where the subject info file stores the available data for each trial
+            labview_file_name = ['processed' filesep makeFileName(date, subject_id, condition, i_trial, 'labviewTrajectories')];
+            if exist(labview_file_name)
+                load(labview_file_name);
+            end                
+            forceplate_file_name = ['processed' filesep makeFileName(date, subject_id, condition, i_trial, 'forceplateTrajectories')];
+            if exist(forceplate_file_name)
+                load(forceplate_file_name);
+                force_plate_data_available = 1;
+            else
+                force_plate_data_available = 0;
             end
-            load(['processed' filesep makeFileName(date, subject_id, condition, i_trial, 'forceplateTrajectories')]);
             load(['analysis' filesep makeFileName(date, subject_id, condition, i_trial, 'stepEvents')]);
             if emg_present
                 load(['processed' filesep makeFileName(date, subject_id, condition, i_trial, 'emgTrajectories')]);
             end
 
             % estimate forceplate sampling rate if not provided
-            if isnan(sampling_rate_forceplate)
-                sampling_rate_forceplate = 1 / median(diff(time_forceplate));
+            if ~strcmp(stimulus_type, 'none')
+                if isnan(sampling_rate_forceplate)
+                    sampling_rate_forceplate = 1 / median(diff(time_forceplate));
+                end
+                number_of_prelude_time_steps = ceil(duration_prelude * sampling_rate_forceplate);
+                swing_foot_nonzero_stretch_length_threshold_indices = ceil(swing_foot_nonzero_stretch_length_threshold_time * sampling_rate_forceplate);
             end
-            number_of_prelude_time_steps = ceil(duration_prelude * sampling_rate_forceplate);
-            swing_foot_nonzero_stretch_length_threshold_indices = ceil(swing_foot_nonzero_stretch_length_threshold_time * sampling_rate_forceplate);
 
             % determine illusion
             if ~strcmp(stimulus_type, 'none')
@@ -103,11 +114,12 @@ function findRelevantDataStretches(varargin)
             end
             
             % get CoP trajectories
-            left_copx_trajectory = left_forceplate_cop_Acw(:, 1);
-            right_copx_trajectory = right_forceplate_cop_Acw(:, 1);
-            left_fz_trajectory = left_forceplate_wrench_Acw(:, 3);
-            right_fz_trajectory = right_forceplate_wrench_Acw(:, 3);
-
+            if force_plate_data_available
+                left_copx_trajectory = left_forceplate_cop_Acw(:, 1);
+                right_copx_trajectory = right_forceplate_cop_Acw(:, 1);
+                left_fz_trajectory = left_forceplate_wrench_Acw(:, 3);
+                right_fz_trajectory = right_forceplate_wrench_Acw(:, 3);
+            end
             %% find triggers
             %
             % Find the triggering events that indicate a stretch of interest. For perturbation experiments, this is the onset of
@@ -116,7 +128,7 @@ function findRelevantDataStretches(varargin)
             %
             if strcmp(stimulus_type, 'none')
                 % use all touchdown events as triggers
-                trigger_times = [left_touchdown_times right_touchdown_times];
+                trigger_times = [left_touchdown_times; right_touchdown_times];
 
                 % calculate indices
                 trigger_indices_mocap = zeros(size(trigger_times));
@@ -139,18 +151,22 @@ function findRelevantDataStretches(varargin)
 
             % visualize triggers
             if visualize
-                left_cop_x_trajectory_relevant = left_copx_trajectory; left_cop_x_trajectory_relevant(left_cop_x_trajectory_relevant==0) = NaN;
-                right_cop_x_trajectory_relevant = right_copx_trajectory; right_cop_x_trajectory_relevant(right_cop_x_trajectory_relevant==0) = NaN;
+                if force_plate_data_available
+                    left_cop_x_trajectory_relevant = left_copx_trajectory; left_cop_x_trajectory_relevant(left_cop_x_trajectory_relevant==0) = NaN;
+                    right_cop_x_trajectory_relevant = right_copx_trajectory; right_cop_x_trajectory_relevant(right_cop_x_trajectory_relevant==0) = NaN;
+                end
                 figure; axes; hold on
 %                 plot(time_labview, stimulus_state_trajectory*0.02);
-                plot(time_forceplate, left_cop_x_trajectory_relevant, 'linewidth', 2);
-                plot(time_forceplate, right_cop_x_trajectory_relevant, 'linewidth', 2);
+                if force_plate_data_available
+                    plot(time_forceplate, left_cop_x_trajectory_relevant, 'linewidth', 2, 'Displayname', 'cop left');
+                    plot(time_forceplate, right_cop_x_trajectory_relevant, 'linewidth', 2, 'Displayname', 'cop right');
+                end
 %                 plot(time_forceplate(left_touchdown_indices_forceplate), zeros(size(left_touchdown_indices_forceplate)), 'o')
 %                 plot(time_forceplate(right_touchdown_indices_forceplate), zeros(size(right_touchdown_indices_forceplate)), 'o')
-                plot(time_mocap(trigger_indices_mocap), zeros(size(trigger_indices_mocap)), 'x')
+                plot(time_mocap(trigger_indices_mocap), zeros(size(trigger_indices_mocap)), 'x', 'Displayname', 'heelstrikes')
 %                 plot(time_labview(stim_start_indices_labview), zeros(size(stim_start_indices_labview)), 'x')
 %                 legend('stimulus state', 'left cop', 'right cop', 'left touchdown', 'right touchdown', 'trigger', 'stim start')
-                legend('left cop', 'right cop', 'trigger')
+                legend('toggle')
             end
 
             %% extract event data

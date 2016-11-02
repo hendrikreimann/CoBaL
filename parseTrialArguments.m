@@ -11,6 +11,12 @@ function [conditions_to_analyze, trials_to_analyze] = parseTrialArguments(argin)
             conditions_to_analyze(strcmp(conditions_to_analyze, 'calibration')) = [];
         end
         
+        % exclude emg
+        if any(strcmp(conditions_to_analyze, 'emg'))
+            trials_to_analyze(strcmp(conditions_to_analyze, 'emg')) = [];
+            conditions_to_analyze(strcmp(conditions_to_analyze, 'emg')) = [];
+        end
+        
         
     end
     if length(argin) == 1

@@ -360,7 +360,18 @@ function findStepEvents(varargin)
 
 
         %     linkaxes(getAllAxes, 'x')
-
+            if isrow(left_pushoff_times)
+                left_pushoff_times = left_pushoff_times';
+            end
+            if isrow(left_touchdown_times)
+                left_touchdown_times = left_touchdown_times';
+            end
+            if isrow(right_pushoff_times)
+                right_pushoff_times = right_pushoff_times';
+            end
+            if isrow(right_touchdown_times)
+                right_touchdown_times = right_touchdown_times';
+            end
 
             %% save
             step_events_file_name = ['analysis' filesep makeFileName(date, subject_id, condition, i_trial, 'stepEvents')];

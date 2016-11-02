@@ -33,41 +33,41 @@ classdef WalkingEventData < handle
             right_pushoff_times = this.right_pushoff;
             right_touchdown_times = this.right_touchdown;
             
-            % find corresponding indices - mocap
-            left_pushoff_indices_mocap = zeros(size(this.left_pushoff));
-            for i_event = 1 : length(this.left_pushoff)
-                [~, left_pushoff_indices_mocap(i_event)] = min(abs(this.trial_data.time_mocap - this.left_pushoff(i_event)));
-            end
-            left_touchdown_indices_mocap = zeros(size(this.left_touchdown));
-            for i_event = 1 : length(this.left_touchdown)
-                [~, left_touchdown_indices_mocap(i_event)] = min(abs(this.trial_data.time_mocap - this.left_touchdown(i_event)));
-            end
-            right_pushoff_indices_mocap = zeros(size(this.right_pushoff));
-            for i_event = 1 : length(this.right_pushoff)
-                [~, right_pushoff_indices_mocap(i_event)] = min(abs(this.trial_data.time_mocap - this.right_pushoff(i_event)));
-            end
-            right_touchdown_indices_mocap = zeros(size(this.right_touchdown));
-            for i_event = 1 : length(this.right_touchdown)
-                [~, right_touchdown_indices_mocap(i_event)] = min(abs(this.trial_data.time_mocap - this.right_touchdown(i_event)));
-            end
-
-            % find corresponding indices - forceplate
-            left_pushoff_indices_forceplate = zeros(size(this.left_pushoff));
-            for i_event = 1 : length(this.left_pushoff)
-                [~, left_pushoff_indices_forceplate(i_event)] = min(abs(this.trial_data.time_forceplate - this.left_pushoff(i_event)));
-            end
-            left_touchdown_indices_forceplate = zeros(size(this.left_touchdown));
-            for i_event = 1 : length(this.left_touchdown)
-                [~, left_touchdown_indices_forceplate(i_event)] = min(abs(this.trial_data.time_forceplate - this.left_touchdown(i_event)));
-            end
-            right_pushoff_indices_forceplate = zeros(size(this.right_pushoff));
-            for i_event = 1 : length(this.right_pushoff)
-                [~, right_pushoff_indices_forceplate(i_event)] = min(abs(this.trial_data.time_forceplate - this.right_pushoff(i_event)));
-            end
-            right_touchdown_indices_forceplate = zeros(size(this.right_touchdown));
-            for i_event = 1 : length(this.right_touchdown)
-                [~, right_touchdown_indices_forceplate(i_event)] = min(abs(this.trial_data.time_forceplate - this.right_touchdown(i_event)));
-            end
+%             % find corresponding indices - mocap
+%             left_pushoff_indices_mocap = zeros(size(this.left_pushoff));
+%             for i_event = 1 : length(this.left_pushoff)
+%                 [~, left_pushoff_indices_mocap(i_event)] = min(abs(this.trial_data.time_mocap - this.left_pushoff(i_event)));
+%             end
+%             left_touchdown_indices_mocap = zeros(size(this.left_touchdown));
+%             for i_event = 1 : length(this.left_touchdown)
+%                 [~, left_touchdown_indices_mocap(i_event)] = min(abs(this.trial_data.time_mocap - this.left_touchdown(i_event)));
+%             end
+%             right_pushoff_indices_mocap = zeros(size(this.right_pushoff));
+%             for i_event = 1 : length(this.right_pushoff)
+%                 [~, right_pushoff_indices_mocap(i_event)] = min(abs(this.trial_data.time_mocap - this.right_pushoff(i_event)));
+%             end
+%             right_touchdown_indices_mocap = zeros(size(this.right_touchdown));
+%             for i_event = 1 : length(this.right_touchdown)
+%                 [~, right_touchdown_indices_mocap(i_event)] = min(abs(this.trial_data.time_mocap - this.right_touchdown(i_event)));
+%             end
+% 
+%             % find corresponding indices - forceplate
+%             left_pushoff_indices_forceplate = zeros(size(this.left_pushoff));
+%             for i_event = 1 : length(this.left_pushoff)
+%                 [~, left_pushoff_indices_forceplate(i_event)] = min(abs(this.trial_data.time_forceplate - this.left_pushoff(i_event)));
+%             end
+%             left_touchdown_indices_forceplate = zeros(size(this.left_touchdown));
+%             for i_event = 1 : length(this.left_touchdown)
+%                 [~, left_touchdown_indices_forceplate(i_event)] = min(abs(this.trial_data.time_forceplate - this.left_touchdown(i_event)));
+%             end
+%             right_pushoff_indices_forceplate = zeros(size(this.right_pushoff));
+%             for i_event = 1 : length(this.right_pushoff)
+%                 [~, right_pushoff_indices_forceplate(i_event)] = min(abs(this.trial_data.time_forceplate - this.right_pushoff(i_event)));
+%             end
+%             right_touchdown_indices_forceplate = zeros(size(this.right_touchdown));
+%             for i_event = 1 : length(this.right_touchdown)
+%                 [~, right_touchdown_indices_forceplate(i_event)] = min(abs(this.trial_data.time_forceplate - this.right_touchdown(i_event)));
+%             end
             
 %             % find corresponding indices - labview
 %             left_pushoff_indices_labview = zeros(size(this.left_pushoff));
@@ -130,7 +130,7 @@ classdef WalkingEventData < handle
         end
         function addEventTime(this, event_time, event_label)
             event_times = this.getEventTimes(event_label);
-            event_times = [event_times event_time];
+            event_times = [event_times; event_time];
             event_times = sort(event_times);
             this.setEventTimes(sort(event_times), event_label);
             this.selected_event_time = event_time;

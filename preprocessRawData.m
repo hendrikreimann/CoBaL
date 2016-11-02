@@ -7,6 +7,8 @@ function preprocessRawData()
     map_emg_sensors_manually    = 1;
     transform_to_belt_space     = 1;
     
+    conditions_to_transform_to_belt_space = {'baselineTM', 'feedback', 'postTM'};
+    
     load('subjectInfo.mat');
 
     %% emg
@@ -284,37 +286,72 @@ function preprocessRawData()
             for i_trial = trials_to_process
                 % load data
                 condition = condition_list{i_condition};
+                if any(strcmp(conditions_to_transform_to_belt_space, condition))
+                    % extract data for new structure
+                    load(['processed' filesep makeFileName(date, subject_id, condition, i_trial, 'plcData')]);
+                    time_belts = time_plcData - time_plcData(1);
 
-                % extract data for new structure
-                load(['processed' filesep makeFileName(date, subject_id, condition, i_trial, 'plcData')]);
-                time_belts = time_plcData - time_plcData(1);
+                    % calculate shift
+                    belt_speed_trajectory = mean([belt_speed_left_trajectory belt_speed_right_trajectory], 2);
+                    delta_t = diff(time_belts);
+                    belt_position_trajectory_plcData = zeros(size(belt_speed_trajectory));
+                    for i_time = 2 : length(belt_speed_trajectory)
+                        belt_position_trajectory_plcData(i_time) = belt_position_trajectory_plcData(i_time-1) + delta_t(i_time-1) * belt_speed_trajectory(i_time-1);
+                    end
+
+                    
+                    % apply shift to marker trajectories
+                    file_name_raw = ['raw' filesep makeFileName(date, subject_id, condition, i_trial, 'markerTrajectoriesRaw.mat')];
+                    load(file_name_raw);
+%                     marker_trajectories_original = marker_trajectories;
+                    belt_position_trajectory_mocap = spline(time_belts, belt_position_trajectory_plcData, time_mocap)';
+                    for i_marker = 1 : size(marker_headers, 2)
+                        marker_trajectories(:, (i_marker-1)*3+2) = marker_trajectories(:, (i_marker-1)*3+2) + belt_position_trajectory_mocap;
+                    end
+                    
+                    
+%                     % do the same thing, but move to mocap time first
+%                     belt_speed_trajectory = mean([belt_speed_left_trajectory belt_speed_right_trajectory], 2);
+%                     belt_speed_trajectory_mocap = spline(time_belts, belt_speed_trajectory, time_mocap)';
+%                     delta_t = 1/sampling_rate_mocap;
+%                     belt_position_trajectory_mocap = zeros(size(belt_speed_trajectory_mocap));
+%                     for i_time = 2 : length(belt_speed_trajectory_mocap)
+%                         belt_position_trajectory_mocap(i_time) = belt_position_trajectory_mocap(i_time-1) + delta_t * belt_speed_trajectory_mocap(i_time-1);
+%                     end
+%                     marker_trajectories_alt = marker_trajectories_original;
+%                     for i_marker = 1 : size(marker_headers, 2)
+%                         marker_trajectories_alt(:, (i_marker-1)*3+2) = marker_trajectories_alt(:, (i_marker-1)*3+2) + belt_position_trajectory_mocap;
+%                     end
+                    
+%                     figure; axes; hold on
+                    plot(marker_trajectories(:, 101), 'linewidth', 2)
+%                     plot(marker_trajectories_alt(:, 101), 'linewidth', 1)
+
+%                     % things do not make sense, play around
+%                     left_heel_y_marker_trajectory_raw = marker_trajectories_original(:, 101);
+%                     left_heel_y_marker_speed_raw = deriveByTime(left_heel_y_marker_trajectory_raw, delta_t);
+%                     
+%                     figure; axes; hold on
+% %                     plot(left_heel_y_marker_trajectory_raw, 'linewidth', 2)
+%                     plot(time_mocap, left_heel_y_marker_speed_raw, 'linewidth', 2)
+%                     plot(time_belts, -belt_speed_trajectory, 'linewidth', 2)
+
+
+
+                    file_name_shifted = ['processed' filesep makeFileName(date, subject_id, condition, i_trial, 'markerTrajectories.mat')];
+                    save ...
+                      ( ...
+                        file_name_shifted, ...
+                        'marker_trajectories', ...
+                        'time_mocap', ...
+                        'sampling_rate_mocap', ...
+                        'marker_headers' ...
+                      );
+                    disp(['Transformed marker data in ' file_name_raw ' to belt space and saved to ' file_name_shifted])                    
+                end
                 
-                % calculate shift
-                belt_speed_trajectory = mean([belt_speed_left_trajectory belt_speed_right_trajectory], 2);
-                delta_t = diff(time_belts);
-                belt_position_trajectory_plcData = zeros(size(belt_speed_trajectory));
-                for i_time = 2 : length(belt_speed_trajectory)
-                    belt_position_trajectory_plcData(i_time) = belt_position_trajectory_plcData(i_time-1) + delta_t(i_time-1) * belt_speed_trajectory(i_time-1);
-                end
 
-
-
-                % apply shift to marker trajectories
-                file_name = ['processed' filesep makeFileName(date, subject_id, condition, i_trial, 'markerTrajectories.mat')];
-                load(file_name);
-                belt_position_trajectory_mocap = spline(time_belts, belt_position_trajectory_plcData, time_mocap)';
-                for i_marker = 1 : size(marker_headers, 2)
-                    marker_trajectories(:, (i_marker-1)*3+2) = marker_trajectories(:, (i_marker-1)*3+2) + belt_position_trajectory_mocap;
-                end
-                save ...
-                  ( ...
-                    file_name, ...
-                    'marker_trajectories', ...
-                    'time_mocap', ...
-                    'sampling_rate_mocap', ...
-                    'marker_headers' ...
-                  );
-                disp(['Transformed marker data in ' file_name ' to belt space'])        
+    
 
 
 
