@@ -30,10 +30,10 @@ function analyzeGaitParameters(varargin)
         'STANCE_RIGHT', 'baselineTM'; ...
         'STANCE_LEFT', 'feedback'; ...
         'STANCE_RIGHT', 'feedback'; ...
-        'STANCE_LEFT', 'postOG'; ...
-        'STANCE_RIGHT', 'postOG'; ...
         'STANCE_LEFT', 'postTM'; ...
         'STANCE_RIGHT', 'postTM'; ...
+        'STANCE_LEFT', 'postOG'; ...
+        'STANCE_RIGHT', 'postOG'; ...
       };
     number_of_conditions_to_analyze = size(conditions_to_analyze, 1);
 
@@ -48,7 +48,6 @@ function analyzeGaitParameters(varargin)
     origin_trial_list_all = [];
     origin_start_time_list_all = [];
     origin_end_time_list_all = [];
-    step_times_all = [];
     if process_data_balance
         step_width_all = [];
         step_length_all = [];
@@ -74,6 +73,10 @@ function analyzeGaitParameters(varargin)
         rleg_angle_ml_normalized_all = [];
         trunk_angle_ap_normalized_all = [];
         trunk_angle_ml_normalized_all = [];
+        
+        % step speed
+        step_times_all = [];
+        step_speed_all = [];
         
     end
     if process_data_armswing
@@ -196,7 +199,9 @@ function analyzeGaitParameters(varargin)
                 rleg_angle_ml_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
                 trunk_angle_ap_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
                 trunk_angle_ml_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
-
+                step_speed_trial = zeros(1, number_of_stretches_trial);
+                
+                
             end
             if process_data_armswing
                 if ~process_data_balance
@@ -398,6 +403,9 @@ function analyzeGaitParameters(varargin)
                     origin_start_time_list_trial(i_stretch) = time_mocap(start_index_mocap);
                     origin_end_time_list_trial(i_stretch) = time_mocap(end_index_mocap);
                     step_times_trial(i_stretch) = time_mocap(end_index_mocap) - time_mocap(start_index_mocap);
+                    
+                    % calculate step time and speed
+                    step_speed_trial(i_stretch) = step_length_trial(i_stretch) / step_times_trial(i_stretch);
                 end
 
                 % armswing data
@@ -525,6 +533,9 @@ function analyzeGaitParameters(varargin)
                 trunk_angle_ml_normalized_all = [trunk_angle_ml_normalized_all trunk_angle_ml_normalized_trial];
                 lleg_angle_ml_normalized_all = [lleg_angle_ml_normalized_all lleg_angle_ml_normalized_trial];
                 rleg_angle_ml_normalized_all = [rleg_angle_ml_normalized_all rleg_angle_ml_normalized_trial];
+                
+                step_speed_all = [step_speed_all step_speed_trial];
+                
             end
 
             if process_data_armswing
@@ -631,7 +642,8 @@ function analyzeGaitParameters(varargin)
             'origin_end_time_list_all', ...
             'condition_stance_foot_list_all', ...
             'condition_experimental_list_all', ...
-            'conditions_to_analyze_indicators' ...
+            'conditions_to_analyze_indicators', ...
+            'step_times_all' ...
           );
 
         if process_data_balance
@@ -647,7 +659,8 @@ function analyzeGaitParameters(varargin)
                 'trunk_angle_ap_normalized_all', ...
                 'trunk_angle_ml_normalized_all', ...
                 'lleg_angle_ml_normalized_all', ...
-                'rleg_angle_ml_normalized_all' ...
+                'rleg_angle_ml_normalized_all', ...
+                'step_speed_all' ...
               );
         end
 

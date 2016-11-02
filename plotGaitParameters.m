@@ -1,6 +1,6 @@
 
 plot_detailed       = 0;
-plot_shaded         = 1;
+plot_overview       = 1;
 
 show_legend         = 1;
 dictate_axes        = 0;
@@ -23,7 +23,9 @@ continuous_variable_info = [continuous_variable_info; {'rinclination_normalized_
 % continuous_variable_info = [continuous_variable_info; {'trunk_angle_ap_normalized_all', 'trunk angle, ap', 'angle (deg)', 'trunkangleap', 0, 'forward', '$backward'}];
 
 % discrete_variable_info = [discrete_variable_info; {'step_width_all', 'step width'}];
-% discrete_variable_info = [discrete_variable_info; {'step_length_all', 'step length'}];
+discrete_variable_info = [discrete_variable_info; {'step_length_all', 'step length'}];
+% discrete_variable_info = [discrete_variable_info; {'step_times_all', 'step times'}];
+discrete_variable_info = [discrete_variable_info; {'step_speed_all', 'step speed'}];
 
 load subjectInfo.mat;
 load(['analysis' filesep makeFileName(date, subject_id, 'resultsConditions')]);
@@ -47,6 +49,8 @@ load(['analysis' filesep makeFileName(date, subject_id, 'resultsForceplate')]);
 %
 % this should be loaded from a file
 
+
+% XXX for now, this has to be EXACTLY the same as in analyzeGaitParameters, or bad stuff will happen
 condition_labels = {'stance foot', 'experimental'};
 conditions_to_analyze = ...
   {
@@ -56,10 +60,10 @@ conditions_to_analyze = ...
         'STANCE_RIGHT', 'baselineTM'; ...
         'STANCE_LEFT', 'feedback'; ...
         'STANCE_RIGHT', 'feedback'; ...
-        'STANCE_LEFT', 'postOG'; ...
-        'STANCE_RIGHT', 'postOG'; ...
         'STANCE_LEFT', 'postTM'; ...
         'STANCE_RIGHT', 'postTM'; ...
+        'STANCE_LEFT', 'postOG'; ...
+        'STANCE_RIGHT', 'postOG'; ...
   };
 
 number_of_conditions_to_analyze = size(conditions_to_analyze, 1);
@@ -111,7 +115,7 @@ colors_comparison = ...
     [191 0 0] * 1/255; ...
     [64 0 146] * 1/255; ...
     [255 178 0] * 1/255; ...
-    [46 255 0] * 1/255; ...
+    [1 168 5] * 1/255; ...
     [0 202 229] * 1/255; ...
   ]; % should have one row per condition in the comparison
 
@@ -202,8 +206,8 @@ if plot_detailed
     end
 end
 
-%% plot shaded
-if plot_shaded
+%% plot overview
+if plot_overview
     % single variables
     for i_variable = 1 : size(discrete_variable_info, 1)
         evalstring = ['points_to_plot = ' discrete_variable_info{i_variable, 1} ';'];
@@ -232,8 +236,20 @@ if plot_shaded
             points_to_plot_pruned = points_to_plot(indices_for_this_comparison);
             condition_labels_for_boxplot_pruned = condition_labels_for_boxplot(indices_for_this_comparison);
             
+            group_order = conditions_to_analyze(comparison_indices{i_comparison}, comparison_to_make);
+            
             figure; axes; hold on;
-            boxplot(points_to_plot_pruned, condition_labels_for_boxplot_pruned);
+            box_plot_data = boxplot(points_to_plot_pruned, condition_labels_for_boxplot_pruned, 'grouporder', group_order);
+            
+            
+            
+
+            
+
+            experimental_conditions = group_order;
+            
+            setBoxPlotColors(gca, box_plot_data, group_order, experimental_conditions, colors_comparison);
+            
 
             % annotate
             title_string = discrete_variable_info{i_variable, 2};
