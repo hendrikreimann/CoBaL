@@ -1,58 +1,61 @@
 
 
-plot_single         = 0;
-plot_shaded         = 1;
+plot_detailed       = 0;
+plot_overview       = 1;
 
 show_legend         = 0;
 dictate_axes        = 0;
 
-save_figures        = 1;
+save_figures        = 0;
 
 % variable info contains the following columns
 % variable name | display name | y-label with unit | save label
-variable_info = {};
+continuous_variable_info = {};
+discrete_variable_info = {};
 
 % markers
-% variable_info = [variable_info; {'lheel_x_pos_normalized_all', 'left heel pos, ml', 'heel pos (m)', 'lheelpos'}];
-% variable_info = [variable_info; {'rheel_x_pos_normalized_all', 'right heel pos, ml', 'heel pos (m)', 'rheelpos'}];
-% variable_info = [variable_info; {'trunk_angle_ml_normalized_all', 'trunk angle, ml', 'angle (deg)', 'trunkangleml'}];
-% variable_info = [variable_info; {'lleg_angle_ml_normalized_all', 'left leg angle, ml', 'angle (deg)', 'llegangleml'}];
-% variable_info = [variable_info; {'rleg_angle_ml_normalized_all', 'right leg angle, ml', 'angle (deg)', 'rlegangleml'}];
+% the cell array should have the following entries in each line: variable name, variable label, unit, file label for saving, forced axis scale, positive direction label, negative direction label
+% continuous_variable_info = [continuous_variable_info; {'lheel_x_pos_normalized_all', 'left heel pos, ml', 'heel pos (m)', 'lheelpos', 0, 'right', 'left'}];
+% continuous_variable_info = [continuous_variable_info; {'rheel_x_pos_normalized_all', 'right heel pos, ml', 'heel pos (m)', 'rheelpos', 0, 'right', 'left'}];
+% continuous_variable_info = [continuous_variable_info; {'trunk_angle_ml_normalized_all', 'trunk angle, ml', 'angle (deg)', 'trunkangleml', 0, 'right', 'left'}];
+% continuous_variable_info = [continuous_variable_info; {'lleg_angle_ml_normalized_all', 'left leg angle, ml', 'angle (deg)', 'llegangleml', 0, 'right', 'left'}];
+% continuous_variable_info = [continuous_variable_info; {'rleg_angle_ml_normalized_all', 'right leg angle, ml', 'angle (deg)', 'rlegangleml', 0, 'right', 'left'}];
 
-% variable_info = [variable_info; {'lheel_x_pos_response', 'left heel pos response, ml', 'heel pos (m)', 'lheelposRsp', 0.05}];
-% variable_info = [variable_info; {'rheel_x_pos_response', 'right heel pos response, ml', 'heel pos (m)', 'rheelposRsp', 0.05}];
-% variable_info = [variable_info; {'trunk_angle_ml_response', 'trunk angle response, ml', 'angle (deg)', 'trunkanglemlRsp', 2}];
-% variable_info = [variable_info; {'lleg_angle_ml_response', 'left leg angle response, ml', 'angle (deg)', 'lleganglemlRsp', 2}];
-% variable_info = [variable_info; {'rleg_angle_ml_response', 'right leg angle response, ml', 'angle (deg)', 'rleganglemlRsp', 2}];
-
-
+% continuous_variable_info = [continuous_variable_info; {'lheel_x_pos_response', 'left heel pos response, ml', 'heel pos (m)', 'lheelposRsp', 0.05, 'right', 'left'}];
+% continuous_variable_info = [continuous_variable_info; {'rheel_x_pos_response', 'right heel pos response, ml', 'heel pos (m)', 'rheelposRsp', 0.05, 'right', 'left'}];
+% continuous_variable_info = [continuous_variable_info; {'trunk_angle_ml_response', 'trunk angle response, ml', 'angle (deg)', 'trunkanglemlRsp', 2, 'right', 'left'}];
+% continuous_variable_info = [continuous_variable_info; {'lleg_angle_ml_response', 'left leg angle response, ml', 'angle (deg)', 'lleganglemlRsp', 2, 'right', 'left'}];
+% continuous_variable_info = [continuous_variable_info; {'rleg_angle_ml_response', 'right leg angle response, ml', 'angle (deg)', 'rleganglemlRsp', 2, 'right', 'left'}];
 
 % forceplate
-% variable_info = [variable_info; {'cop_x_normalized_all', 'total CoP, ml', 'CoP (m)', 'copx'}];
-% variable_info = [variable_info; {'cop_x_response', 'total CoP response, ml', 'CoP (m)', 'copxRsp', 0.015}];
+% continuous_variable_info = [continuous_variable_info; {'cop_x_normalized_all', 'total CoP, ml', 'CoP (m)', 'copx', 0, 'right', 'left'}];
+% continuous_variable_info = [continuous_variable_info; {'cop_x_response', 'total CoP response, ml', 'CoP (m)', 'copxRsp', 0.015, 'right', 'left'}];
 
-% variable_info = [variable_info; {'lcop_x_normalized_all', 'left foot CoP, ml', 'CoP (m)', 'lcopx'}];
-% variable_info = [variable_info; {'rcop_x_normalized_all', 'right foot CoP, ml', 'CoP (m)', 'rcopx'}];
-% variable_info = [variable_info; {'lcop_x_response', 'left foot CoP response, ml', 'CoP (m)', 'lcopxRsp'}];
-% variable_info = [variable_info; {'rcop_x_response', 'right foot CoP response, ml', 'CoP (m)', 'rcopxRsp'}];
+% continuous_variable_info = [continuous_variable_info; {'lcop_x_normalized_all', 'left foot CoP, ml', 'CoP (m)', 'lcopx', 0, 'right', 'left'}];
+% continuous_variable_info = [continuous_variable_info; {'rcop_x_normalized_all', 'right foot CoP, ml', 'CoP (m)', 'rcopx', 0, 'right', 'left'}];
+% continuous_variable_info = [continuous_variable_info; {'lcop_x_response', 'left foot CoP response, ml', 'CoP (m)', 'lcopxRsp', 0, 'right', 'left'}];
+% continuous_variable_info = [continuous_variable_info; {'rcop_x_response', 'right foot CoP response, ml', 'CoP (m)', 'rcopxRsp', 0, 'right', 'left'}];
 
 % EMG
-% variable_info = [variable_info; {'lglutmed_normalized_all', 'left Gluteus Medius', 'EMG', 'lglutmed'}];
-% variable_info = [variable_info; {'ltibiant_normalized_all', 'left Tibialis Anterior', 'EMG', 'ltibiant'}];
-% variable_info = [variable_info; {'lgastroc_normalized_all', 'left Gastrocnemius Medialis', 'EMG', 'lgastroc'}];
-variable_info = [variable_info; {'lperolng_normalized_all', 'left Peroneus Longus', 'EMG', 'lperolng'}];
-% variable_info = [variable_info; {'rglutmed_normalized_all', 'right Gluteus Medius', 'EMG', 'rglutmed'}];
-% variable_info = [variable_info; {'rtibiant_normalized_all', 'right Tibialis Anterior', 'EMG', 'rtibiant'}];
-% variable_info = [variable_info; {'rgastroc_normalized_all', 'right Gastrocnemius Medialis', 'EMG', 'rgastroc'}];
-variable_info = [variable_info; {'rperolng_normalized_all', 'right Peroneus Longus', 'EMG', 'rperolng'}];
+% continuous_variable_info = [continuous_variable_info; {'lglutmed_normalized_all', 'left Gluteus Medius', 'EMG', 'lglutmed'}];
+% continuous_variable_info = [continuous_variable_info; {'ltibiant_normalized_all', 'left Tibialis Anterior', 'EMG', 'ltibiant'}];
+% continuous_variable_info = [continuous_variable_info; {'lgastroc_normalized_all', 'left Gastrocnemius Medialis', 'EMG', 'lgastroc'}];
+% continuous_variable_info = [continuous_variable_info; {'lperolng_normalized_all', 'left Peroneus Longus', 'EMG', 'lperolng'}];
+% continuous_variable_info = [continuous_variable_info; {'rglutmed_normalized_all', 'right Gluteus Medius', 'EMG', 'rglutmed'}];
+% continuous_variable_info = [continuous_variable_info; {'rtibiant_normalized_all', 'right Tibialis Anterior', 'EMG', 'rtibiant'}];
+% continuous_variable_info = [continuous_variable_info; {'rgastroc_normalized_all', 'right Gastrocnemius Medialis', 'EMG', 'rgastroc'}];
+% continuous_variable_info = [continuous_variable_info; {'rperolng_normalized_all', 'right Peroneus Longus', 'EMG', 'rperolng'}];
 
+% discrete_variable_info = [discrete_variable_info; {'step_length_all', 'step length'}];
+% discrete_variable_info = [discrete_variable_info; {'step_width_all', 'step width'}];
+% discrete_variable_info = [discrete_variable_info; {'step_times_all', 'step times'}];
 
 %% load data
 load subjectInfo.mat;
-load(makeFileName(date, subject_id, 'resultsConditions'));
-load(makeFileName(date, subject_id, 'resultsMarker'));
-load(makeFileName(date, subject_id, 'resultsForceplate'));
-load(makeFileName(date, subject_id, 'resultsEmg'));
+load(['analysis' filesep makeFileName(date, subject_id, 'resultsConditions')]);
+load(['analysis' filesep makeFileName(date, subject_id, 'resultsBalance')]);
+load(['analysis' filesep makeFileName(date, subject_id, 'resultsArmswing')]);
+load(['analysis' filesep makeFileName(date, subject_id, 'resultsForceplate')]);
 
 
 
@@ -187,10 +190,46 @@ colors_comparison = ...
 
 
 
-%% plot single
-if plot_single
-    for i_variable = 1 : size(variable_info, 1)
-        evalstring = ['trajectories_to_plot = ' variable_info{i_variable, 1} ';'];
+%% plot detailed
+if plot_detailed
+    % discrete variables
+    for i_variable = 1 : size(discrete_variable_info, 1)
+        evalstring = ['points_to_plot = ' discrete_variable_info{i_variable, 1} ';'];
+        eval(evalstring);
+        for i_comparison = 1 : length(comparison_indices);
+            figure; axes; hold on;
+            this_comparison = comparison_indices{i_comparison};
+            for i_condition = 1 : length(this_comparison)
+                condition_indicator = conditions_to_analyze_indicators(:, this_comparison(i_condition));
+                label_string = conditions_to_analyze{comparison_indices{i_comparison}(i_condition), comparison_to_make};
+                histogram ...
+                  ( ...
+                    points_to_plot(condition_indicator), ...
+                    'edgecolor', colors_comparison(i_condition, :), ...
+                    'facecolor', lightenColor(colors_comparison(i_condition, :), 0.5), ...
+                    'DisplayName', label_string ...
+                  )
+            end
+
+            % annotate
+            if show_legend
+                legend('toggle')
+            end
+            title_string = discrete_variable_info{i_variable, 2};
+            for i_label = 1 : length(condition_labels);
+                if i_label ~= comparison_to_make
+                    title_string = [title_string ' - ' conditions_to_analyze{comparison_indices{i_comparison}(1), i_label}];
+                end
+            end
+            title(title_string); set(gca, 'Fontsize', 12)
+        end
+    end    
+    
+    
+    
+    
+    for i_variable = 1 : size(continuous_variable_info, 1)
+        evalstring = ['trajectories_to_plot = ' continuous_variable_info{i_variable, 1} ';'];
         eval(evalstring);
         for i_comparison = 1 : length(comparison_indices);
             figure; axes; hold on;
@@ -241,7 +280,7 @@ if plot_single
             if show_legend
                 legend('toggle')
             end
-            title_string = variable_info{i_variable, 2};
+            title_string = continuous_variable_info{i_variable, 2};
             for i_label = 1 : length(condition_labels);
                 if i_label ~= comparison_to_make
                     title_string = [title_string ' - ' conditions_to_analyze{comparison_indices{i_comparison}(1), i_label}];
@@ -253,14 +292,67 @@ if plot_single
 end
 
 
+%% plot overview
+if plot_overview
+    % single variables
+    for i_variable = 1 : size(discrete_variable_info, 1)
+        evalstring = ['points_to_plot = ' discrete_variable_info{i_variable, 1} ';'];
+        eval(evalstring);
+        
+        
+        for i_comparison = 1 : length(comparison_indices);
+            this_comparison = comparison_indices{i_comparison};
+            % make condition labels for box plot
+            condition_labels_for_boxplot = cell(length(points_to_plot), 1);
+            for i_condition = 1 : length(this_comparison)
+                % figure out condition label
+                condition_indicator = conditions_to_analyze_indicators(:, this_comparison(i_condition));
+                label_string = conditions_to_analyze{comparison_indices{i_comparison}(i_condition), comparison_to_make};
+                % place condition label into label cell array
+                for i_point = 1 : length(condition_labels_for_boxplot)
+                    if condition_indicator(i_point)
+                        condition_labels_for_boxplot{i_point} = label_string;
+                    end
+                end
+            end            
+            % prune data points that we don't want to look at in this plot
+            conditions_for_this_comparison = conditions_to_analyze_indicators(:, this_comparison);
+            indices_for_this_comparison = any(conditions_for_this_comparison, 2);
+            conditions_pruned = conditions_for_this_comparison(indices_for_this_comparison, :);
+            points_to_plot_pruned = points_to_plot(indices_for_this_comparison);
+            condition_labels_for_boxplot_pruned = condition_labels_for_boxplot(indices_for_this_comparison);
+            
+            group_order = conditions_to_analyze(comparison_indices{i_comparison}, comparison_to_make);
+            
+            figure; axes; hold on;
+            box_plot_data = boxplot(points_to_plot_pruned, condition_labels_for_boxplot_pruned, 'grouporder', group_order);
+            
+            
+            
 
+            
 
+            experimental_conditions = group_order;
+            
+            setBoxPlotColors(gca, box_plot_data, group_order, experimental_conditions, colors_comparison);
+            
 
-
-%% plot shaded
-if plot_shaded
-    for i_variable = 1 : size(variable_info, 1)
-        evalstring = ['trajectories_to_plot = ' variable_info{i_variable, 1} ';'];
+            % annotate
+            title_string = discrete_variable_info{i_variable, 2};
+            filename_string = discrete_variable_info{i_variable, 2};
+            for i_label = 1 : length(condition_labels);
+                if i_label ~= comparison_to_make
+                    title_string = [title_string ' - ' strrep(conditions_to_analyze{comparison_indices{i_comparison}(1), i_label}, '_', ' ')];
+                    filename_string = [filename_string '_' conditionStringToFilename(conditions_to_analyze{comparison_indices{i_comparison}(1), i_label})];
+                end
+            end
+            title(title_string, 'interpreter', 'LaTeX'); set(gca, 'Fontsize', 12)
+        end
+    end      
+    
+    
+    for i_variable = 1 : size(continuous_variable_info, 1)
+        evalstring = ['trajectories_to_plot = ' continuous_variable_info{i_variable, 1} ';'];
         eval(evalstring);
         for i_comparison = 1 : length(comparison_indices);
             figure; axes; hold on;
@@ -305,8 +397,8 @@ if plot_shaded
             if show_legend
                 this_legend = legend(legend_handles, legend_data);
             end
-            title_string = variable_info{i_variable, 2};
-            filename_string = variable_info{i_variable, 4};
+            title_string = continuous_variable_info{i_variable, 2};
+            filename_string = continuous_variable_info{i_variable, 4};
             for i_label = 1 : length(condition_labels);
                 if i_label ~= comparison_to_make
 %                     title_string = [title_string ' - ' conditionStringToTitle(conditions_to_analyze{comparison_indices{i_comparison}(1), i_label})];
@@ -315,20 +407,20 @@ if plot_shaded
                     filename_string = [filename_string '_' conditionStringToFilename(conditions_to_analyze{comparison_indices{i_comparison}(1), i_label})];
                 end
             end
-            title(title_string); set(gca, 'Fontsize', 12)
+            title(title_string, 'interpreter', 'LaTeX'); set(gca, 'Fontsize', 12)
             
             set(gca, 'xlim', [time_normalized(1), time_normalized(end)]);
             xlabel('normalized time (s)');
-            ylabel(variable_info{i_variable, 3});
+            ylabel(continuous_variable_info{i_variable, 3});
             
             if dictate_axes
                 set(gca, 'xlim', [time_normalized(1), time_normalized(end)]);
-                set(gca, 'ylim', [-variable_info{i_variable, 5}, variable_info{i_variable, 5}]);
+                set(gca, 'ylim', [-continuous_variable_info{i_variable, 5}, continuous_variable_info{i_variable, 5}]);
             end
             
             xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
-            text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), 'right \rightarrow', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right')
-            text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(1), '\leftarrow left', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'left')
+            text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), [continuous_variable_info{i_variable, 6} ' $\rightarrow$'] , 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right', 'interpreter', 'LaTeX')
+            text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(1), ['$\leftarrow$ ' continuous_variable_info{i_variable, 7}], 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'left', 'interpreter', 'LaTeX')
             
             % save
             if save_figures

@@ -1,10 +1,6 @@
 function analyzeGaitParameters(varargin)
-    [condition_list, trial_number_list] = parseTrialArguments(varargin);
+    [condition_list, trial_number_list] = parseTrialArguments(varargin{:});
     
-    
-
-
-
     save_data                           = 1;
     use_stance_foot_as_reference        = 1;
 
@@ -48,9 +44,11 @@ function analyzeGaitParameters(varargin)
     origin_trial_list_all = [];
     origin_start_time_list_all = [];
     origin_end_time_list_all = [];
+    step_times_all = [];
     if process_data_balance
         step_width_all = [];
         step_length_all = [];
+        step_speed_all = [];
         
         c7_x_pos_normalized_all = [];
         c7_y_pos_normalized_all = [];
@@ -73,10 +71,6 @@ function analyzeGaitParameters(varargin)
         rleg_angle_ml_normalized_all = [];
         trunk_angle_ap_normalized_all = [];
         trunk_angle_ml_normalized_all = [];
-        
-        % step speed
-        step_times_all = [];
-        step_speed_all = [];
         
     end
     if process_data_armswing
@@ -133,8 +127,8 @@ function analyzeGaitParameters(varargin)
         for i_trial = trials_to_process
             % load data
             condition = condition_list{i_condition};
-%             load(makeFileName(date, subject_id, condition, i_trial, 'stepEvents'));
             load(['analysis' filesep makeFileName(date, subject_id, condition, i_trial, 'relevantDataStretches')]);
+            load(['processed' filesep makeFileName(date, subject_id, condition, i_trial, 'markerTrajectories')]);
             number_of_stretches_trial = length(condition_stance_foot_list);
 
             condition_stance_foot_list_trial = condition_stance_foot_list;
@@ -145,8 +139,6 @@ function analyzeGaitParameters(varargin)
             step_times_trial = zeros(number_of_stretches_trial, 1);
 
             if process_data_balance
-                load(['processed' filesep makeFileName(date, subject_id, condition, i_trial, 'markerTrajectories')]);
-
                 % define markers and indices
                 c7_marker = find(strcmp(marker_headers, 'C7'));
                 lpsi_marker = find(strcmp(marker_headers, 'LPSI'));
@@ -180,6 +172,7 @@ function analyzeGaitParameters(varargin)
                 % initialize containers
                 step_width_trial = zeros(1, number_of_stretches_trial);
                 step_length_trial = zeros(1, number_of_stretches_trial);
+                step_speed_trial = zeros(1, number_of_stretches_trial);
                 c7_x_pos_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
                 c7_y_pos_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
                 c7_z_pos_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
@@ -199,14 +192,10 @@ function analyzeGaitParameters(varargin)
                 rleg_angle_ml_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
                 trunk_angle_ap_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
                 trunk_angle_ml_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
-                step_speed_trial = zeros(1, number_of_stretches_trial);
                 
                 
             end
             if process_data_armswing
-                if ~process_data_balance
-                    load(['processed' filesep makeFileName(date, subject_id, condition, i_trial, 'markerTrajectories')]);
-                end
                 
                 % define markers and indices
                 lelb_marker = find(strcmp(marker_headers, 'LELB'));
@@ -296,14 +285,16 @@ function analyzeGaitParameters(varargin)
                 load(makeFileName(date, subject_id, 'walking', i_trial, 'inverseDynamics_hingeConstraints'));
             end    
 
-
+            % go through each stretch to extract data, time-normalize it and store it in lists
             for i_stretch = 1 : number_of_stretches_trial
+                % time
+                [~, start_index_mocap] = min(abs(time_mocap - stretch_start_times(i_stretch)));
+                [~, end_index_mocap] = min(abs(time_mocap - stretch_end_times(i_stretch)));
+                step_times_trial(i_stretch) = time_mocap(end_index_mocap) - time_mocap(start_index_mocap);
 
                 % balance data
                 if process_data_balance
                     % define times
-                    [~, start_index_mocap] = min(abs(time_mocap - stretch_start_times(i_stretch)));
-                    [~, end_index_mocap] = min(abs(time_mocap - stretch_end_times(i_stretch)));
                     time_extracted_mocap = time_mocap(start_index_mocap : end_index_mocap);
                     
                     % extract
@@ -402,7 +393,6 @@ function analyzeGaitParameters(varargin)
                     origin_trial_list_trial(i_stretch) = i_trial;
                     origin_start_time_list_trial(i_stretch) = time_mocap(start_index_mocap);
                     origin_end_time_list_trial(i_stretch) = time_mocap(end_index_mocap);
-                    step_times_trial(i_stretch) = time_mocap(end_index_mocap) - time_mocap(start_index_mocap);
                     
                     % calculate step time and speed
                     step_speed_trial(i_stretch) = step_length_trial(i_stretch) / step_times_trial(i_stretch);
@@ -580,27 +570,6 @@ function analyzeGaitParameters(varargin)
     disp(conditions_to_analyze_with_labels);
     
     disp(['Number of unassigned stretches: ' num2str(number_of_stretches - sum(trials_per_condition_to_analyze))]);    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-
-
-
 
     %% calculate stats - old code
     if false

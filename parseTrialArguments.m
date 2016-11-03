@@ -24,7 +24,15 @@ function [conditions_to_analyze, trials_to_analyze] = parseTrialArguments(vararg
     % list of trials for each condition
     if trials == 0;
         % find list of available trials for this condition
-        trials_to_analyze = trial_number_list(strcmp(condition_list, condition));
+        trials_to_analyze = cell(size(conditions_to_analyze));
+        for i_condition = 1 : length(conditions_to_analyze)
+            condition_label = conditions_to_analyze{i_condition};
+            condition_index_in_complete_list = find(strcmp(condition_list, condition_label));
+            trials_to_analyze_in_this_condition = trial_number_list{condition_index_in_complete_list};
+            trials_to_analyze{i_condition} = trials_to_analyze_in_this_condition;
+        end        
+        
+%         trials_to_analyze = trial_number_list(strcmp(condition_list, condition));
     else
         trials_to_analyze = {trials};
         % was there one list of trials given for several conditions?

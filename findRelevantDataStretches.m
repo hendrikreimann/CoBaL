@@ -183,7 +183,7 @@ function findRelevantDataStretches(varargin)
             % stretch_start_times, stretch_end_times
             % condition_stance_foot_list, condition_perturbation_list, condition_delay_list, condition_index_list
 
-            number_of_triggers = length(trigger_indices_mocap);
+            number_of_triggers = length(trigger_times);
             removal_flags = zeros(number_of_triggers, 1);
             if strcmp(stimulus_type, 'none')
                 stretch_start_times = zeros(number_of_triggers, 1);
@@ -235,6 +235,7 @@ function findRelevantDataStretches(varargin)
                 
                 % remove flagged triggers
                 unflagged_indices = ~removal_flags;
+                trigger_times = trigger_times(unflagged_indices);
                 stretch_start_times = stretch_start_times(unflagged_indices, :);
                 stretch_end_times = stretch_end_times(unflagged_indices, :);
                 condition_experimental_list = condition_experimental_list(unflagged_indices, :);
@@ -275,6 +276,7 @@ function findRelevantDataStretches(varargin)
                 
                 % remove flagged triggers
                 unflagged_indices = ~removal_flags;
+                trigger_times = trigger_times(unflagged_indices);
                 stretch_start_times = stretch_start_times(unflagged_indices, :);
                 stretch_end_times = stretch_end_times(unflagged_indices, :);
                 condition_stance_foot_list = condition_stance_foot_list(unflagged_indices, :);
@@ -712,6 +714,7 @@ function findRelevantDataStretches(varargin)
 
                 % remove flagged triggers
                 unflagged_indices = ~removal_flags;
+                trigger_times = trigger_times(unflagged_indices);
                 stim_start_indices_labview = stim_start_indices_labview(unflagged_indices, :);
                 stretch_start_times = stretch_start_times(unflagged_indices, :);
                 stretch_end_times = stretch_end_times(unflagged_indices, :);
@@ -723,6 +726,7 @@ function findRelevantDataStretches(varargin)
                 closest_heelstrike_distance_times = closest_heelstrike_distance_times(unflagged_indices, :);
                 
                 % reorder
+                % XXX this should be replaced with a reshape
                 stretch_start_times = ...
                   [ ...
                     stretch_start_times(:, 1); ...
@@ -829,6 +833,7 @@ function findRelevantDataStretches(varargin)
                     'condition_delay_list', ...
                     'condition_index_list', ...
                     'condition_experimental_list', ...
+                    'trigger_times', ...
                     'stretch_start_times', ...
                     'stretch_end_times', ...
                     'closest_heelstrike_distance_times' ...
@@ -1018,10 +1023,10 @@ function findRelevantDataStretches(varargin)
 %             disp(['Trial ' num2str(i_trial) ' completed']);
 
 %         end
+        end
+
     end
-
 end
-
 
 
 

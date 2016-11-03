@@ -19,6 +19,7 @@ subject_code = path_split{end};
 potential_sources = {'devices', 'labview', 'marker', 'ascii'};
 % potential_sources = {'ascii'};
 % potential_sources = {'devices'};
+% potential_sources = {'markers'};
 for i_source = 1 : length(potential_sources)
     source_dir = [subject_code '_' potential_sources{i_source}];
     if exist(source_dir, 'dir')

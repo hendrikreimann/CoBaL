@@ -122,7 +122,7 @@ colors_comparison = ...
 
 %% plot detailed
 if plot_detailed
-    % single variables
+    % discrete variables
     for i_variable = 1 : size(discrete_variable_info, 1)
         evalstring = ['points_to_plot = ' discrete_variable_info{i_variable, 1} ';'];
         eval(evalstring);
@@ -325,8 +325,6 @@ if plot_overview
             end
             
             xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
-%             text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), 'right $\rightarrow$', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right', 'interpreter', 'LaTeX')
-%             text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(1), '$\leftarrow$ left', 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'left', 'interpreter', 'LaTeX')
             text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), [continuous_variable_info{i_variable, 6} ' $\rightarrow$'] , 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right', 'interpreter', 'LaTeX')
             text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(1), ['$\leftarrow$ ' continuous_variable_info{i_variable, 7}], 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'left', 'interpreter', 'LaTeX')
             
