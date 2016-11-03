@@ -26,6 +26,8 @@ classdef stepEventController < handle
         
         color_selected = [1 0.5 0];
         color_normal = [0 0 0];
+        
+        settings_file = '/Users/reimajbi/Library/Application Support/stepEventFinder/figureSettings.mat';
     end
     methods
         function this = stepEventController(trial_data, event_data)
@@ -156,20 +158,22 @@ classdef stepEventController < handle
             control_figure_setting = struct();
             control_figure_setting.position = this.control_figure.Position;
 
-            save_file = '/Users/reimajbi/Library/Application Support/stepEventFinder/figureSettings.mat';
+            save_file = this.settings_file;
             save(save_file, 'figure_settings', 'control_figure_setting');
         end
         function loadFigureSettings(this, sender, eventdata)
-            load_file = '/Users/reimajbi/Library/Application Support/stepEventFinder/figureSettings.mat';
+            load_file = this.settings_file;
 
-            load(load_file, 'figure_settings', 'control_figure_setting')
-            for i_figure = 1 : length(figure_settings)
-    %             if length(step_event_figures) < i_figure
-    %                 step_event_figures{i_figure} = createStepEventFigure();
-    %             end
-                this.figureSelectionBox.UserData{i_figure}.applySettings(figure_settings{i_figure});
+            if exist(load_file, 'file')
+                load(load_file, 'figure_settings', 'control_figure_setting')
+                for i_figure = 1 : length(figure_settings)
+        %             if length(step_event_figures) < i_figure
+        %                 step_event_figures{i_figure} = createStepEventFigure();
+        %             end
+                    this.figureSelectionBox.UserData{i_figure}.applySettings(figure_settings{i_figure});
+                end
+                this.control_figure.Position = control_figure_setting.position;
             end
-            this.control_figure.Position = control_figure_setting.position;
         end
         function findEvents(this, sender, eventdata)
             % this should eventually be moved to WalkingEventData

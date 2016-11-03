@@ -1,5 +1,5 @@
 function stepEventGui(varargin)
-    [condition_list, trial_number_list] = parseTrialArguments(varargin);
+    [condition_list, trial_number_list] = parseTrialArguments(varargin{:});
     condition = condition_list{1};
     trial_to_process = trial_number_list{1}(1);
     
