@@ -51,12 +51,12 @@ for i_source = 1 : length(potential_sources)
                 number_of_header_lines = 5;
                 while import_more_data
                     % import data
-                    [imported_data, delimiter, nheaderlines] = importdata([source_dir filesep data_file_name], ',', number_of_header_lines);
+                    [imported_data, delimiter, number_of_header_lines_returned] = importdata([source_dir filesep data_file_name], ',', number_of_header_lines);
                     if isstruct(imported_data)
                         % extract info
-                        data_class = imported_data.textdata{number_of_header_lines-4, 1};
-                        data_group = strsplit(imported_data.textdata{number_of_header_lines-2, 1}, ',');
-                        data_headers = strsplit(imported_data.textdata{number_of_header_lines-1, 1}, ',');
+                        data_class = imported_data.textdata{number_of_header_lines_returned-4, 1};
+                        data_group = strsplit(imported_data.textdata{number_of_header_lines_returned-2, 1}, ',');
+                        data_headers = strsplit(imported_data.textdata{number_of_header_lines_returned-1, 1}, ',');
 
                         number_of_samples = size(imported_data.data, 1);
 
@@ -66,7 +66,7 @@ for i_source = 1 : length(potential_sources)
                                 data_type = 'emg';
                                 emg_headers = data_group(2 : end-1);
                                 emg_trajectories_raw = imported_data.data(:, 3:end);
-                                sampling_rate_emg = str2num(imported_data.textdata{number_of_header_lines-3, 1});
+                                sampling_rate_emg = str2num(imported_data.textdata{number_of_header_lines_returned-3, 1});
                                 time_emg = (1 : number_of_samples) / sampling_rate_emg;
 
                                 % save emg data
@@ -84,7 +84,7 @@ for i_source = 1 : length(potential_sources)
                                 data_type = 'forceplate';
                                 forceplate_trajectories_raw = imported_data.data(:, 3:end);
                                 forceplate_headers = data_headers(3 : end);
-                                sampling_rate_forceplate = str2num(imported_data.textdata{number_of_header_lines-3, 1});
+                                sampling_rate_forceplate = str2num(imported_data.textdata{number_of_header_lines_returned-3, 1});
                                 time_forceplate = (1 : number_of_samples) / sampling_rate_forceplate;
 
                                 % save forceplate data
@@ -110,7 +110,7 @@ for i_source = 1 : length(potential_sources)
                             % deal with marker data
                             marker_trajectories = imported_data.data(:, 3:end) * millimeter_to_meter;
                             marker_headers_with_subject = data_group(2 : end-1);
-                            sampling_rate_mocap = str2num(imported_data.textdata{number_of_header_lines-3, 1});
+                            sampling_rate_mocap = str2num(imported_data.textdata{number_of_header_lines_returned-3, 1});
                             time_mocap = (1 : number_of_samples) / sampling_rate_mocap;
 
                             % remove subject name from header strings
