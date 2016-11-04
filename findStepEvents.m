@@ -7,7 +7,7 @@ function findStepEvents(varargin)
     end
 
     
-    [condition_list, trial_number_list] = parseTrialArguments(varargin);
+    [condition_list, trial_number_list] = parseTrialArguments(varargin{:});
     load('subjectInfo.mat', 'date', 'subject_id');
 
 

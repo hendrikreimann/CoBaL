@@ -1,9 +1,9 @@
 function preprocessRawData()
 
     visualize                   = 0;
-    process_emg                 = 1;
-    process_forceplate          = 1;
-    process_marker              = 1;
+    process_emg                 = 0;
+    process_forceplate          = 0;
+    process_marker              = 0;
     map_emg_sensors_manually    = 1;
     transform_to_belt_space     = 1;
     
@@ -279,7 +279,7 @@ function preprocessRawData()
     
     %% if transform to belt space
     if transform_to_belt_space
-        [condition_list, trial_number_list] = parseTrialArguments({});
+        [condition_list, trial_number_list] = parseTrialArguments();
     
         for i_condition = 1 : length(condition_list)
             trials_to_process = trial_number_list{i_condition};
