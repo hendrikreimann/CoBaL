@@ -4,14 +4,14 @@ plot_detailed       = 0;
 plot_overview       = 1;
 
 show_legend         = 0;
-dictate_axes        = 0;
+dictate_axes        = 1;
 
-save_figures        = 0;
+save_figures        = 1;
 
 % define subjects
 subjects = {'DXT', 'EFU', 'GHJ', 'RON', 'RRB', 'YMU'};
 % subjects = {'DXT', 'EFU', 'RON', 'RRB', 'YMU'};
-subjects = {'DXT'};
+% subjects = {'DXT'};
 % subjects = {'RON'};
 % subjects = {'BRC', 'RTZ'};
 % subjects = {'BRC'};
@@ -31,15 +31,15 @@ discrete_variable_info = {};
 % continuous_variable_info = [continuous_variable_info; {'lleg_angle_ml_normalized_all', 'left leg angle, ml', 'angle (deg)', 'llegangleml', 0, 'right', 'left'}];
 % continuous_variable_info = [continuous_variable_info; {'rleg_angle_ml_normalized_all', 'right leg angle, ml', 'angle (deg)', 'rlegangleml', 0, 'right', 'left'}];
 
-continuous_variable_info = [continuous_variable_info; {'lheel_x_pos_response', 'left heel pos response, ml', 'heel pos (m)', 'lheelposRsp', 0.05, 'right', 'left'}];
-continuous_variable_info = [continuous_variable_info; {'rheel_x_pos_response', 'right heel pos response, ml', 'heel pos (m)', 'rheelposRsp', 0.05, 'right', 'left'}];
+% continuous_variable_info = [continuous_variable_info; {'lheel_x_pos_response', 'left heel pos response, ml', 'heel pos (m)', 'lheelposRsp', 0.02, 'right', 'left'}];
+% continuous_variable_info = [continuous_variable_info; {'rheel_x_pos_response', 'right heel pos response, ml', 'heel pos (m)', 'rheelposRsp', 0.02, 'right', 'left'}];
 % continuous_variable_info = [continuous_variable_info; {'trunk_angle_ml_response', 'trunk angle response, ml', 'angle (deg)', 'trunkanglemlRsp', 2, 'right', 'left'}];
 % continuous_variable_info = [continuous_variable_info; {'lleg_angle_ml_response', 'left leg angle response, ml', 'angle (deg)', 'lleganglemlRsp', 2, 'right', 'left'}];
 % continuous_variable_info = [continuous_variable_info; {'rleg_angle_ml_response', 'right leg angle response, ml', 'angle (deg)', 'rleganglemlRsp', 2, 'right', 'left'}];
 
 % forceplate
-% continuous_variable_info = [continuous_variable_info; {'cop_x_normalized_all', 'total CoP, ml', 'CoP (m)', 'copx', 0, '?', '?'}];
-% continuous_variable_info = [continuous_variable_info; {'cop_x_response', 'total CoP response, ml', 'CoP (m)', 'copxRsp', 0.015, '?', '?'}];
+% continuous_variable_info = [continuous_variable_info; {'cop_x_normalized_all', 'total CoP, ml', 'CoP (m)', 'copx', 0, 'right', 'left'}];
+continuous_variable_info = [continuous_variable_info; {'cop_x_response', 'total CoP response, ml', 'CoP (m)', 'copxRsp', 0.015, 'right', 'left'}];
 % continuous_variable_info = [continuous_variable_info; {'f_x_normalized_all', 'total force, ml', 'f (N)', 'fx', 100, '?', '?'}];
 % continuous_variable_info = [continuous_variable_info; {'f_x_response', 'total force response, ml', 'f (N)', 'fxRsp', 30, '?', '?'}];
 % continuous_variable_info = [continuous_variable_info; {'f_z_normalized_all', 'total vertical force', 'f (N)', 'fz', 0, '?', '?'}];
@@ -227,14 +227,14 @@ colors_comparison = ...
     [1 0.3 0.0] * 1.0; ...
   ]; % should have one row per condition in the comparison
 
-colors_comparison = ...
-  [ ...
-    [191 0 0] * 1/255; ...
-    [64 0 146] * 1/255; ...
-    [255 178 0] * 1/255; ...
-    [1 168 5] * 1/255; ...
-    [0 202 229] * 1/255; ...
-  ]; % should have one row per condition in the comparison
+% colors_comparison = ...
+%   [ ...
+%     [191 0 0] * 1/255; ...
+%     [64 0 146] * 1/255; ...
+%     [255 178 0] * 1/255; ...
+%     [1 168 5] * 1/255; ...
+%     [0 202 229] * 1/255; ...
+%   ]; % should have one row per condition in the comparison
 
 
 %% plot detailed
@@ -451,7 +451,11 @@ if plot_overview
             
             % save
             if save_figures
-                filename = ['../figures/' filename_string '.eps'];
+                % figure out folders
+                if ~exist('figures', 'dir')
+                    mkdir('figures')
+                end
+                filename = ['figures/' filename_string '.eps'];
                 saveas(gcf, filename, 'epsc2')
                 
             end
@@ -562,7 +566,11 @@ if plot_overview
             
             % save
             if save_figures
-                filename = ['../figures/' filename_string '.eps'];
+                % figure out folders
+                if ~exist('figures', 'dir')
+                    mkdir('figures')
+                end
+                filename = ['figures/' filename_string '.eps'];
                 saveas(gcf, filename, 'epsc2')
                 
             end
