@@ -40,6 +40,9 @@ function analyzeGaitParameters(varargin)
     
     % initialize containers
     condition_stance_foot_list_all = {};
+    condition_perturbation_list_all = {};
+    condition_delay_list_all = {};
+    condition_index_list_all = {};
     condition_experimental_list_all = {};
     origin_trial_list_all = [];
     origin_start_time_list_all = [];
@@ -132,6 +135,9 @@ function analyzeGaitParameters(varargin)
             number_of_stretches_trial = length(condition_stance_foot_list);
 
             condition_stance_foot_list_trial = condition_stance_foot_list;
+            condition_perturbation_list_trial = condition_perturbation_list;
+            condition_delay_list_trial = condition_delay_list;
+            condition_index_list_trial = condition_index_list;
             condition_experimental_list_trial = condition_experimental_list;
             origin_trial_list_trial = zeros(number_of_stretches_trial, 1);
             origin_start_time_list_trial = zeros(number_of_stretches_trial, 1);
@@ -502,6 +508,9 @@ function analyzeGaitParameters(varargin)
 
             % append trial containers to total containers
             condition_stance_foot_list_all = [condition_stance_foot_list_all; condition_stance_foot_list_trial];
+            condition_perturbation_list_all = [condition_perturbation_list_all; condition_perturbation_list_trial];
+            condition_delay_list_all = [condition_delay_list_all; condition_delay_list_trial];
+            condition_index_list_all = [condition_index_list_all; condition_index_list_trial];
             condition_experimental_list_all = [condition_experimental_list_all; condition_experimental_list_trial];
             origin_trial_list_all = [origin_trial_list_all; origin_trial_list_trial];
             origin_start_time_list_all = [origin_start_time_list_all; origin_start_time_list_trial];
@@ -610,8 +619,13 @@ function analyzeGaitParameters(varargin)
             'origin_start_time_list_all', ...
             'origin_end_time_list_all', ...
             'condition_stance_foot_list_all', ...
+            'condition_perturbation_list_all', ...
+            'condition_delay_list_all', ...
+            'condition_index_list_all', ...
             'condition_experimental_list_all', ...
-            'conditions_to_analyze_indicators', ...
+            'conditions_to_analyze_indicators', ... % shouldn't be needed, just leave here for current version of plotGaitParameters to still work
+            'condition_labels', ...
+            'conditions_to_analyze', ...
             'step_times_all' ...
           );
 

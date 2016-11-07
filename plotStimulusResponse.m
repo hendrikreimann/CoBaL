@@ -1,7 +1,7 @@
 
 
-plot_detailed       = 1;
-plot_overview       = 0;
+plot_detailed       = 0;
+plot_overview       = 1;
 
 show_legend         = 0;
 dictate_axes        = 0;
@@ -15,21 +15,21 @@ discrete_variable_info = {};
 
 % markers
 % the cell array should have the following entries in each line: variable name, variable label, unit, file label for saving, forced axis scale, positive direction label, negative direction label
-% continuous_variable_info = [continuous_variable_info; {'lheel_x_pos_normalized_all', 'left heel pos, ml', 'heel pos (m)', 'lheelpos', 0, 'right', 'left'}];
-% continuous_variable_info = [continuous_variable_info; {'rheel_x_pos_normalized_all', 'right heel pos, ml', 'heel pos (m)', 'rheelpos', 0, 'right', 'left'}];
+% continuous_variable_info = [continuous_variable_info; {'lheel_x_pos_normalized_all', 'left heel pos, ml', 'heel pos (m)', 'lheelpos', 0.2, 'right', 'left'}];
+% continuous_variable_info = [continuous_variable_info; {'rheel_x_pos_normalized_all', 'right heel pos, ml', 'heel pos (m)', 'rheelpos', 0.2, 'right', 'left'}];
 % continuous_variable_info = [continuous_variable_info; {'trunk_angle_ml_normalized_all', 'trunk angle, ml', 'angle (deg)', 'trunkangleml', 0, 'right', 'left'}];
 % continuous_variable_info = [continuous_variable_info; {'lleg_angle_ml_normalized_all', 'left leg angle, ml', 'angle (deg)', 'llegangleml', 0, 'right', 'left'}];
 % continuous_variable_info = [continuous_variable_info; {'rleg_angle_ml_normalized_all', 'right leg angle, ml', 'angle (deg)', 'rlegangleml', 0, 'right', 'left'}];
 
-% continuous_variable_info = [continuous_variable_info; {'lheel_x_pos_response', 'left heel pos response, ml', 'heel pos (m)', 'lheelposRsp', 0.05, 'right', 'left'}];
-% continuous_variable_info = [continuous_variable_info; {'rheel_x_pos_response', 'right heel pos response, ml', 'heel pos (m)', 'rheelposRsp', 0.05, 'right', 'left'}];
-% continuous_variable_info = [continuous_variable_info; {'trunk_angle_ml_response', 'trunk angle response, ml', 'angle (deg)', 'trunkanglemlRsp', 2, 'right', 'left'}];
+% continuous_variable_info = [continuous_variable_info; {'lheel_x_pos_response', 'left heel pos response, ml', 'heel pos (m)', 'lheelposRsp', 0.02, 'right', 'left'}];
+% continuous_variable_info = [continuous_variable_info; {'rheel_x_pos_response', 'right heel pos response, ml', 'heel pos (m)', 'rheelposRsp', 0.02, 'right', 'left'}];
+continuous_variable_info = [continuous_variable_info; {'trunk_angle_ml_response', 'trunk angle response, ml', 'angle (deg)', 'trunkanglemlRsp', 2, 'right', 'left'}];
 % continuous_variable_info = [continuous_variable_info; {'lleg_angle_ml_response', 'left leg angle response, ml', 'angle (deg)', 'lleganglemlRsp', 2, 'right', 'left'}];
 % continuous_variable_info = [continuous_variable_info; {'rleg_angle_ml_response', 'right leg angle response, ml', 'angle (deg)', 'rleganglemlRsp', 2, 'right', 'left'}];
 
 % forceplate
-% continuous_variable_info = [continuous_variable_info; {'cop_x_normalized_all', 'total CoP, ml', 'CoP (m)', 'copx', 0, '?', '?'}];
-% continuous_variable_info = [continuous_variable_info; {'cop_x_response', 'total CoP response, ml', 'CoP (m)', 'copxRsp', 0.025, '?', '?'}];
+% continuous_variable_info = [continuous_variable_info; {'cop_x_normalized_all', 'total CoP, ml', 'CoP (m)', 'copx', 0, 'right', 'left'}];
+% continuous_variable_info = [continuous_variable_info; {'cop_x_response', 'total CoP response, ml', 'CoP (m)', 'copxRsp', 0.025, 'right', 'left'}];
 % continuous_variable_info = [continuous_variable_info; {'f_x_normalized_all', 'total force, ml', 'f (N)', 'fx', 0, '?', '?'}];
 % continuous_variable_info = [continuous_variable_info; {'f_x_response', 'total force response, ml', 'f (N)', 'fxRsp', 0.025, '?', '?'}];
 % continuous_variable_info = [continuous_variable_info; {'f_z_normalized_all', 'total vertical force', 'f (N)', 'fz', 0, '?', '?'}];
@@ -53,7 +53,7 @@ discrete_variable_info = {};
 % continuous_variable_info = [continuous_variable_info; {'rperolng_normalized_all', 'right Peroneus Longus', 'EMG', 'rperolng'}];
 
 % discrete_variable_info = [discrete_variable_info; {'step_length_all', 'step length'}];
-discrete_variable_info = [discrete_variable_info; {'step_width_all', 'step width'}];
+% discrete_variable_info = [discrete_variable_info; {'step_width_all', 'step width'}];
 % discrete_variable_info = [discrete_variable_info; {'step_times_all', 'step times'}];
 
 %% load data
@@ -79,7 +79,8 @@ load(['analysis' filesep makeFileName(date, subject_id, 'resultsForceplate')]);
 %
 % this should be loaded from a file
 
-condition_labels = {'stance foot', 'perturbation', 'delay', 'index'};
+% condition_labels = {'stance foot', 'perturbation', 'delay', 'index'};
+% now actually being loaded from condition results
 
 % for phase-dependent GVS
 % conditions_control = ...
@@ -112,6 +113,7 @@ condition_labels = {'stance foot', 'perturbation', 'delay', 'index'};
 %   };
 
 % all
+% now actually being loaded from condition results
 % conditions_to_analyze = ...
 %   {
 %     'STANCE_LEFT', 'ILLUSION_RIGHT', '0ms', 'ONE'; ...
@@ -234,7 +236,7 @@ if plot_detailed
             figure; axes; hold on;
             
             % ... control plot is missing here
-           u  
+             
             this_comparison = comparison_indices{i_comparison};
             for i_condition = 1 : length(this_comparison)
                 condition_indicator = conditions_to_analyze_indicators(:, this_comparison(i_condition));

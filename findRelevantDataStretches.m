@@ -245,8 +245,11 @@ function findRelevantDataStretches(varargin)
                 trigger_times = trigger_times(unflagged_indices);
                 stretch_start_times = stretch_start_times(unflagged_indices, :);
                 stretch_end_times = stretch_end_times(unflagged_indices, :);
-                condition_experimental_list = condition_experimental_list(unflagged_indices, :);
                 condition_stance_foot_list = condition_stance_foot_list(unflagged_indices, :);
+                condition_perturbation_list = condition_perturbation_list(unflagged_indices, :);
+                condition_delay_list = condition_delay_list(unflagged_indices, :);
+                condition_index_list = condition_index_list(unflagged_indices, :);
+                condition_experimental_list = condition_experimental_list(unflagged_indices, :);
                 closest_heelstrike_distance_times = closest_heelstrike_distance_times(unflagged_indices, :); 
                 
                 
@@ -287,6 +290,9 @@ function findRelevantDataStretches(varargin)
                 stretch_start_times = stretch_start_times(unflagged_indices, :);
                 stretch_end_times = stretch_end_times(unflagged_indices, :);
                 condition_stance_foot_list = condition_stance_foot_list(unflagged_indices, :);
+                condition_perturbation_list = condition_perturbation_list(unflagged_indices, :);
+                condition_delay_list = condition_delay_list(unflagged_indices, :);
+                condition_index_list = condition_index_list(unflagged_indices, :);
                 condition_experimental_list = condition_experimental_list(unflagged_indices, :);
                 closest_heelstrike_distance_times = closest_heelstrike_distance_times(unflagged_indices, :);
                 
@@ -296,6 +302,9 @@ function findRelevantDataStretches(varargin)
                   ( ...
                     data_stretches_file_name, ...
                     'condition_stance_foot_list', ...
+                    'condition_perturbation_list', ...
+                    'condition_delay_list', ...
+                    'condition_index_list', ...
                     'condition_experimental_list', ...
                     'stretch_start_times', ...
                     'stretch_end_times' ...
