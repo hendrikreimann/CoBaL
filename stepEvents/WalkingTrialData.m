@@ -105,14 +105,14 @@ classdef WalkingTrialData < handle
             filter_order = 2;
             cutoff_frequency = 20; % cutoff frequency, in Hz
             [b, a] = butter(filter_order, cutoff_frequency/(this.sampling_rate_mocap/2));	% set filter parameters for butterworth filter: 2=order of filter;
-            left_heel_z_vel_trajectory = deriveByTime(filtfilt(b, a, left_heel_z_trajectory), 1/this.sampling_rate_mocap);
-            right_heel_z_vel_trajectory = deriveByTime(filtfilt(b, a, right_heel_z_trajectory), 1/this.sampling_rate_mocap);
-            left_heel_z_acc_trajectory = deriveByTime(filtfilt(b, a, left_heel_z_vel_trajectory), 1/this.sampling_rate_mocap);
-            right_heel_z_acc_trajectory = deriveByTime(filtfilt(b, a, right_heel_z_vel_trajectory), 1/this.sampling_rate_mocap);
-            left_toes_z_vel_trajectory = deriveByTime(filtfilt(b, a, spline(time_mocap, left_toes_z_trajectory, time_mocap)), 1/this.sampling_rate_mocap);
-            right_toes_z_vel_trajectory = deriveByTime(filtfilt(b, a, right_toes_z_trajectory), 1/this.sampling_rate_mocap);
-            left_toes_z_acc_trajectory = deriveByTime(filtfilt(b, a, left_toes_z_vel_trajectory), 1/this.sampling_rate_mocap);
-            right_toes_z_acc_trajectory = deriveByTime(filtfilt(b, a, right_toes_z_vel_trajectory), 1/this.sampling_rate_mocap);        
+            left_heel_z_vel_trajectory = deriveByTime(nanfiltfilt(b, a, left_heel_z_trajectory), 1/this.sampling_rate_mocap);
+            right_heel_z_vel_trajectory = deriveByTime(nanfiltfilt(b, a, right_heel_z_trajectory), 1/this.sampling_rate_mocap);
+            left_heel_z_acc_trajectory = deriveByTime(nanfiltfilt(b, a, left_heel_z_vel_trajectory), 1/this.sampling_rate_mocap);
+            right_heel_z_acc_trajectory = deriveByTime(nanfiltfilt(b, a, right_heel_z_vel_trajectory), 1/this.sampling_rate_mocap);
+            left_toes_z_vel_trajectory = deriveByTime(nanfiltfilt(b, a, left_toes_z_trajectory), 1/this.sampling_rate_mocap);
+            right_toes_z_vel_trajectory = deriveByTime(nanfiltfilt(b, a, right_toes_z_trajectory), 1/this.sampling_rate_mocap);
+            left_toes_z_acc_trajectory = deriveByTime(nanfiltfilt(b, a, left_toes_z_vel_trajectory), 1/this.sampling_rate_mocap);
+            right_toes_z_acc_trajectory = deriveByTime(nanfiltfilt(b, a, right_toes_z_vel_trajectory), 1/this.sampling_rate_mocap);        
 
             % package
             this.time_mocap = loaded_marker_trajectories.time_mocap;

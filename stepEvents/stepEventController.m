@@ -332,7 +332,7 @@ classdef stepEventController < handle
             current_condition = this.trial_data.condition;
             current_trial_number = this.trial_data.trial_number;
             
-            [condition_list, trial_number_list] = parseTrialArguments({});
+            [condition_list, trial_number_list] = parseTrialArguments();
             condition_index = find(strcmp(condition_list, current_condition));
             if current_trial_number == trial_number_list{condition_index}(1)
                 new_condition = condition_list{condition_index - 1};
@@ -358,7 +358,7 @@ classdef stepEventController < handle
             current_condition = this.trial_data.condition;
             current_trial_number = this.trial_data.trial_number;
             
-            [condition_list, trial_number_list] = parseTrialArguments({});
+            [condition_list, trial_number_list] = parseTrialArguments();
             condition_index = find(strcmp(condition_list, current_condition));
             if current_trial_number == trial_number_list{condition_index}(end)
                 new_condition = condition_list{condition_index + 1};
