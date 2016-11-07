@@ -169,14 +169,9 @@ function analyzeStimulusResponse(varargin)
     end
     if process_data_forceplate
         cop_x_normalized_all = [];
-        lcop_x_normalized_all = [];
-        rcop_x_normalized_all = [];
-        fxl_normalized_all = [];
-        fzl_normalized_all = [];
-        myl_normalized_all = [];
-        fxr_normalized_all = [];
-        fzr_normalized_all = [];
-        myr_normalized_all = [];
+        f_x_normalized_all = [];
+        f_z_normalized_all = [];
+        m_y_normalized_all = [];
     end
     if process_data_emg
         lglutmed_emg_normalized_all = [];
@@ -336,6 +331,9 @@ function analyzeStimulusResponse(varargin)
                     force_plate_data_available = 0;
                 end
                 cop_x_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
+                f_x_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
+                f_z_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
+                m_y_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
             end
             if process_data_emg
                 load(makeFileName(date, subject_id, condition, i_trial, 'emgTrajectories'));
@@ -541,13 +539,22 @@ function analyzeStimulusResponse(varargin)
 
                         % extract
                         cop_x_extracted_stretch = total_forceplate_cop_Acw(start_index_forceplate : end_index_forceplate, 1);
+                        f_x_extracted_stretch = total_forceplate_wrench_Acw(start_index_forceplate : end_index_forceplate, 1);
+                        f_z_extracted_stretch = total_forceplate_wrench_Acw(start_index_forceplate : end_index_forceplate, 3);
+                        m_y_extracted_stretch = total_forceplate_wrench_Acw(start_index_forceplate : end_index_forceplate, 5);
 
                         % normalize
                         time_normalized_forceplate = linspace(time_extracted_forceplate(1), time_extracted_forceplate(end), number_of_time_steps_normalized);
                         cop_x_normalized_stretch = spline(time_extracted_forceplate, cop_x_extracted_stretch, time_normalized_forceplate);
+                        f_x_normalized_stretch = spline(time_extracted_forceplate, f_x_extracted_stretch, time_normalized_forceplate);
+                        f_z_normalized_stretch = spline(time_extracted_forceplate, f_z_extracted_stretch, time_normalized_forceplate);
+                        m_y_normalized_stretch = spline(time_extracted_forceplate, m_y_extracted_stretch, time_normalized_forceplate);
 
-                        % use stance foot heel as reference and store
+                        % use stance foot heel as spatial reference and store
                         cop_x_normalized_trial(:, i_stretch) = cop_x_normalized_stretch - stance_foot_heel_x_initial;
+                        f_x_normalized_trial(:, i_stretch) = f_x_normalized_stretch;
+                        f_z_normalized_trial(:, i_stretch) = f_z_normalized_stretch;
+                        m_y_normalized_trial(:, i_stretch) = m_y_normalized_stretch;
                     end
                 end    
             end
@@ -590,6 +597,9 @@ function analyzeStimulusResponse(varargin)
                 
             if process_data_forceplate
                 cop_x_normalized_all = [cop_x_normalized_all cop_x_normalized_trial];
+                f_x_normalized_all = [f_x_normalized_all f_x_normalized_trial];
+                f_z_normalized_all = [f_z_normalized_all f_z_normalized_trial];
+                m_y_normalized_all = [m_y_normalized_all m_y_normalized_trial];
             end
 
 
@@ -715,6 +725,9 @@ function analyzeStimulusResponse(varargin)
     if process_data_forceplate
         % calculate control means
         cop_x_control_means = zeros(number_of_time_steps_normalized, number_of_conditions_control);
+        f_x_control_means = zeros(number_of_time_steps_normalized, number_of_conditions_control);
+        f_z_control_means = zeros(number_of_time_steps_normalized, number_of_conditions_control);
+        m_y_control_means = zeros(number_of_time_steps_normalized, number_of_conditions_control);
         % removed these for now, as we're currently not using them. They're easy to add in later
 %         lcop_x_control_means = zeros(number_of_time_steps_normalized, number_of_conditions_control);
 %         rcop_x_control_means = zeros(number_of_time_steps_normalized, number_of_conditions_control);
@@ -728,6 +741,9 @@ function analyzeStimulusResponse(varargin)
         for i_condition = 1 : number_of_conditions_control
             condition_indicator = conditions_control_indicators(:, i_condition);
             cop_x_control_means(:, i_condition) = mean(cop_x_normalized_all(:, condition_indicator), 2);
+            f_x_control_means(:, i_condition) = mean(f_x_normalized_all(:, condition_indicator), 2);
+            f_z_control_means(:, i_condition) = mean(f_z_normalized_all(:, condition_indicator), 2);
+            m_y_control_means(:, i_condition) = mean(m_y_normalized_all(:, condition_indicator), 2);
 %             lcop_x_control_means(:, i_condition) = mean(lcop_x_normalized_all(:, condition_indicator), 2);
 %             rcop_x_control_means(:, i_condition) = mean(rcop_x_normalized_all(:, condition_indicator), 2);
 %             fxl_control_means(:, i_condition) = mean(fxl_normalized_all(:, condition_indicator), 2);
@@ -740,6 +756,9 @@ function analyzeStimulusResponse(varargin)
         
         % calculate stimulus responses
         cop_x_response = zeros(size(cop_x_normalized_all));
+        f_x_response = zeros(size(f_x_normalized_all));
+        f_z_response = zeros(size(f_z_normalized_all));
+        m_y_response = zeros(size(m_y_normalized_all));
 %         lcop_x_response = zeros(size(lcop_x_normalized_all));
 %         rcop_x_response = zeros(size(lcop_x_normalized_all));
 %         fxl_response = zeros(size(fxl_normalized_all));
@@ -751,6 +770,9 @@ function analyzeStimulusResponse(varargin)
         for i_condition = 1 : number_of_conditions_control
             condition_indicator = conditions_control_indicators(:, i_condition);
             cop_x_response(:, condition_indicator) = cop_x_normalized_all(:, condition_indicator) - repmat(cop_x_control_means(:, i_condition), 1, sum(condition_indicator));
+            f_x_response(:, condition_indicator) = f_x_normalized_all(:, condition_indicator) - repmat(f_x_control_means(:, i_condition), 1, sum(condition_indicator));
+            f_z_response(:, condition_indicator) = f_z_normalized_all(:, condition_indicator) - repmat(f_z_control_means(:, i_condition), 1, sum(condition_indicator));
+            m_y_response(:, condition_indicator) = m_y_normalized_all(:, condition_indicator) - repmat(m_y_control_means(:, i_condition), 1, sum(condition_indicator));
 %             fxl_response(:, condition_indicator) = fxl_normalized_all(:, condition_indicator) - repmat(fxl_control_means(:, i_condition), 1, sum(condition_indicator));
 %             fzl_response(:, condition_indicator) = fzl_normalized_all(:, condition_indicator) - repmat(fzl_control_means(:, i_condition), 1, sum(condition_indicator));
 %             myl_response(:, condition_indicator) = myl_normalized_all(:, condition_indicator) - repmat(myl_control_means(:, i_condition), 1, sum(condition_indicator));
@@ -763,6 +785,9 @@ function analyzeStimulusResponse(varargin)
         for i_condition = 1 : number_of_conditions_to_analyze
             condition_indicator = conditions_to_analyze_indicators(:, i_condition);
             cop_x_response(:, condition_indicator) = cop_x_normalized_all(:, condition_indicator) - repmat(cop_x_control_means(:, applicable_control_condition_indices(i_condition)), 1, sum(condition_indicator));
+            f_x_response(:, condition_indicator) = f_x_normalized_all(:, condition_indicator) - repmat(f_x_control_means(:, applicable_control_condition_indices(i_condition)), 1, sum(condition_indicator));
+            f_z_response(:, condition_indicator) = f_z_normalized_all(:, condition_indicator) - repmat(f_z_control_means(:, applicable_control_condition_indices(i_condition)), 1, sum(condition_indicator));
+            m_y_response(:, condition_indicator) = m_y_normalized_all(:, condition_indicator) - repmat(m_y_control_means(:, applicable_control_condition_indices(i_condition)), 1, sum(condition_indicator));
 %             fxl_response(:, condition_indicator) = fxl_normalized_all(:, condition_indicator) - repmat(fxl_control_means(:, applicable_control_condition_indices(i_condition)), 1, sum(condition_indicator));
 %             fzl_response(:, condition_indicator) = fzl_normalized_all(:, condition_indicator) - repmat(fzl_control_means(:, applicable_control_condition_indices(i_condition)), 1, sum(condition_indicator));
 %             myl_response(:, condition_indicator) = myl_normalized_all(:, condition_indicator) - repmat(myl_control_means(:, applicable_control_condition_indices(i_condition)), 1, sum(condition_indicator));
@@ -842,6 +867,8 @@ function analyzeStimulusResponse(varargin)
             'origin_trial_list_all', ...
             'origin_start_time_list_all', ...
             'origin_end_time_list_all', ...
+            'conditions_control', ...
+            'conditions_to_analyze', ...
             'condition_stance_foot_list_all', ...
             'condition_perturbation_list_all', ...
             'condition_delay_list_all', ...
@@ -891,7 +918,13 @@ function analyzeStimulusResponse(varargin)
               ( ...
                 ['analysis' filesep makeFileName(date, subject_id, 'resultsForceplate')], ...
                 'cop_x_normalized_all', ...
-                'cop_x_response' ...
+                'cop_x_response', ...
+                'f_x_normalized_all', ...
+                'f_x_response', ...
+                'f_z_normalized_all', ...
+                'f_z_response', ...
+                'm_y_normalized_all', ...
+                'm_y_response' ...
               );
         end
     end    

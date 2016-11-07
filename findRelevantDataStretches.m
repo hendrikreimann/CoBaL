@@ -15,11 +15,7 @@ function findRelevantDataStretches(varargin)
     [condition_list, trial_number_list] = parseTrialArguments(varargin{:});
 
     %% Choose Data Type
-    emg_present                     = 1;
-%     stimulus_type = 'gvs';
-    % stimulus_type = 'visual';
-%     stimulus_type = 'none';
-
+    emg_present                     = 0;
     remove_crossover_steps          = 0;
     visualize                       = 0;
 
@@ -30,6 +26,8 @@ function findRelevantDataStretches(varargin)
     %% prepare
     wait_times = [0 0.150 0.450];
     wait_time_labels = {'0ms', '150ms', '450ms'};
+    
+    optional_markers = {'LTHI', 'LTHIA', 'LTIB', 'LTIBA', 'RTHI', 'RTHIA', 'RTIB', 'RTIBA'};
 
 %     trials_to_process = 1 : 20;
     % trials_to_process = 5;
@@ -67,6 +65,15 @@ function findRelevantDataStretches(varargin)
             condition = condition_list{i_condition};
 
             load(['processed' filesep makeFileName(date, subject_id, condition, i_trial, 'markerTrajectories')]);
+            % determine indices for optional markers
+            optional_marker_indices = [];
+            for i_marker = 1 : length(optional_markers)
+                marker = find(strcmp(marker_headers, optional_markers{i_marker}));
+                marker_indices = reshape([(marker - 1) * 3 + 1; (marker - 1) * 3 + 2; (marker - 1) * 3 + 3], 1, length(marker)*3);
+                optional_marker_indices = [optional_marker_indices marker_indices];
+            end
+            essential_marker_indicator = ~ismember(1 : size(marker_trajectories, 2), optional_marker_indices);
+            
             
             % XXX this should be replaced with a system where the subject info file stores the available data for each trial
             labview_file_name = ['processed' filesep makeFileName(date, subject_id, condition, i_trial, 'labviewData')];
@@ -170,7 +177,7 @@ function findRelevantDataStretches(varargin)
 %                 plot(time_forceplate(left_touchdown_indices_forceplate), zeros(size(left_touchdown_indices_forceplate)), 'o')
 %                 plot(time_forceplate(right_touchdown_indices_forceplate), zeros(size(right_touchdown_indices_forceplate)), 'o')
                 plot(time_mocap(trigger_indices_mocap), zeros(size(trigger_indices_mocap)), 'x', 'Displayname', 'heelstrikes')
-                plot(time_labviewData, illusion_trajectory, 'Displayname', 'illusion')
+%                 plot(time_labviewData, illusion_trajectory, 'Displayname', 'illusion')
 %                 legend('stimulus state', 'left cop', 'right cop', 'left touchdown', 'right touchdown', 'trigger', 'stim start')
                 legend('toggle')
             end
@@ -268,7 +275,7 @@ function findRelevantDataStretches(varargin)
                 for i_stretch = 1 : number_of_stretches
                     [~, start_index_mocap] = min(abs(time_mocap - stretch_start_times(i_stretch)));
                     [~, end_index_mocap] = min(abs(time_mocap - stretch_end_times(i_stretch)));
-                    if any(any(isnan(marker_trajectories(start_index_mocap : end_index_mocap, :))))
+                    if any(any(isnan(marker_trajectories(start_index_mocap : end_index_mocap, essential_marker_indicator))))
                         removal_flags(i_stretch) = 1;
                     end
                 end
@@ -294,7 +301,7 @@ function findRelevantDataStretches(varargin)
                     'stretch_end_times' ...
                   )
 
-                disp(['Condition ' condition ', Trial ' num2str(i_trial) ' completed, saved as ' data_stretches_file_name]);                
+                disp(['Condition ' condition ', Trial ' num2str(i_trial) ' completed, found ' num2str(length(stretch_start_times)) ' relevant stretches, saved as ' data_stretches_file_name]);                
                 
                 
                 
@@ -839,7 +846,7 @@ function findRelevantDataStretches(varargin)
                     'closest_heelstrike_distance_times' ...
                   )
 
-                disp(['Condition ' condition ', Trial ' num2str(i_trial) ' completed, saved as ' data_stretches_file_name]);                
+                disp(['Condition ' condition ', Trial ' num2str(i_trial) ' completed, found ' num2str(length(stretch_start_times)) ' relevant stretches, saved as ' data_stretches_file_name]);                
                 
                 
             end            
