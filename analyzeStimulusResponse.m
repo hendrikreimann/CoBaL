@@ -115,6 +115,7 @@ function analyzeStimulusResponse(varargin)
     origin_start_time_list_all = [];
     origin_end_time_list_all = [];
     step_times_all = [];
+    pushoff_times_all = [];
     stim_start_time_relative_to_stretch_all = [];    
     
     if process_data_balance
@@ -202,6 +203,7 @@ function analyzeStimulusResponse(varargin)
             origin_start_time_list_trial = zeros(number_of_stretches_trial, 1);
             origin_end_time_list_trial = zeros(number_of_stretches_trial, 1);
             step_times_trial = zeros(number_of_stretches_trial, 1);
+            pushoff_times_trial = zeros(number_of_stretches_trial, 1);
             
             if process_data_balance
 
@@ -345,8 +347,10 @@ function analyzeStimulusResponse(varargin)
             for i_stretch = 1 : number_of_stretches_trial
                 % time
                 [~, start_index_mocap] = min(abs(time_mocap - stretch_start_times(i_stretch)));
+                [~, pushoff_index_mocap] = min(abs(time_mocap - stretch_pushoff_times(i_stretch)));
                 [~, end_index_mocap] = min(abs(time_mocap - stretch_end_times(i_stretch)));
                 step_times_trial(i_stretch) = time_mocap(end_index_mocap) - time_mocap(start_index_mocap);
+                pushoff_times_trial(i_stretch) = time_mocap(pushoff_index_mocap) - time_mocap(start_index_mocap);
             
                 % balance data
                 if process_data_balance
@@ -576,6 +580,7 @@ function analyzeStimulusResponse(varargin)
             origin_start_time_list_all = [origin_start_time_list_all; origin_start_time_list_trial];
             origin_end_time_list_all = [origin_end_time_list_all; origin_end_time_list_trial];
             step_times_all = [step_times_all; step_times_trial];
+            pushoff_times_all = [pushoff_times_all; pushoff_times_trial];
 
             if process_data_balance
                 step_width_all = [step_width_all step_width_trial];
@@ -613,8 +618,6 @@ function analyzeStimulusResponse(varargin)
             disp(['Condition ' condition ', Trial ' num2str(i_trial) ' done extracted ' num2str(length(step_times_trial)) ' stretches']);
         end
     end
-    step_time_mean = mean(step_times_all);
-    time_normalized = linspace(0, step_time_mean, number_of_time_steps_normalized);
     number_of_stretches = length(step_times_all);
     
     
@@ -870,7 +873,7 @@ function analyzeStimulusResponse(varargin)
         save ...
           ( ...
             ['analysis' filesep makeFileName(date, subject_id, 'resultsConditions')], ...
-            'time_normalized', ...
+            'number_of_time_steps_normalized', ...
             'origin_trial_list_all', ...
             'origin_start_time_list_all', ...
             'origin_end_time_list_all', ...
@@ -883,7 +886,8 @@ function analyzeStimulusResponse(varargin)
             'condition_experimental_list_all', ...
             'conditions_control_indicators', ...
             'conditions_to_analyze_indicators', ...
-            'step_times_all' ...
+            'step_times_all', ...
+            'pushoff_times_all' ...
           );
 
         if process_data_balance

@@ -5,17 +5,23 @@ plot_overview       = 1;
 
 show_legend         = 0;
 dictate_axes        = 1;
+mark_pushoff        = 1;
 
 save_figures        = 1;
+
+error_shades = 'cinv';
+% error_shades = 'std';
 
 % define subjects
 subjects = {'DXT', 'EFU', 'GHJ', 'RON', 'RRB', 'YMU'};
 % subjects = {'DXT', 'EFU', 'RON', 'RRB', 'YMU'};
 % subjects = {'DXT'};
 % subjects = {'RON'};
-% subjects = {'BRC', 'RTZ'};
+% subjects = {'BRC', 'RTZ', 'XDQ', 'XEA'};
 % subjects = {'BRC'};
 % subjects = {'RTZ'};
+% subjects = {'XDQ'};
+% subjects = {'XEA'};
 
 %% choose variables to plot
 % variable info contains the following columns
@@ -27,11 +33,11 @@ discrete_variable_info = {};
 % the cell array should have the following entries in each line: variable name, variable label, unit, file label for saving, forced axis scale, positive direction label, negative direction label
 % continuous_variable_info = [continuous_variable_info; {'lheel_x_pos_normalized_all', 'left heel pos, ml', 'heel pos (m)', 'lheelpos', 0, 'right', 'left'}];
 % continuous_variable_info = [continuous_variable_info; {'rheel_x_pos_normalized_all', 'right heel pos, ml', 'heel pos (m)', 'rheelpos', 0, 'right', 'left'}];
-% continuous_variable_info = [continuous_variable_info; {'trunk_angle_ml_normalized_all', 'trunk angle, ml', 'angle (deg)', 'trunkangleml', 0, 'right', 'left'}];
+% continuous_variable_info = [continuous_variable_info; {'trunk_angle_ml_normalized_all', 'trunk angle, ml', 'angle (deg)', 'trunkangleml', [-6 6], 'right', 'left'}];
 % continuous_variable_info = [continuous_variable_info; {'lleg_angle_ml_normalized_all', 'left leg angle, ml', 'angle (deg)', 'llegangleml', 0, 'right', 'left'}];
 % continuous_variable_info = [continuous_variable_info; {'rleg_angle_ml_normalized_all', 'right leg angle, ml', 'angle (deg)', 'rlegangleml', 0, 'right', 'left'}];
 
-% continuous_variable_info = [continuous_variable_info; {'lheel_x_pos_response', 'left heel pos response, ml', 'heel pos (m)', 'lheelposRsp', 0.02, 'right', 'left'}];
+continuous_variable_info = [continuous_variable_info; {'lheel_x_pos_response', 'left heel pos response, ml', 'heel pos (m)', 'lheelposRsp', [-0.02 0.02], 'right', 'left'}];
 % continuous_variable_info = [continuous_variable_info; {'rheel_x_pos_response', 'right heel pos response, ml', 'heel pos (m)', 'rheelposRsp', 0.02, 'right', 'left'}];
 % continuous_variable_info = [continuous_variable_info; {'trunk_angle_ml_response', 'trunk angle response, ml', 'angle (deg)', 'trunkanglemlRsp', 2, 'right', 'left'}];
 % continuous_variable_info = [continuous_variable_info; {'lleg_angle_ml_response', 'left leg angle response, ml', 'angle (deg)', 'lleganglemlRsp', 2, 'right', 'left'}];
@@ -39,7 +45,7 @@ discrete_variable_info = {};
 
 % forceplate
 % continuous_variable_info = [continuous_variable_info; {'cop_x_normalized_all', 'total CoP, ml', 'CoP (m)', 'copx', 0, 'right', 'left'}];
-continuous_variable_info = [continuous_variable_info; {'cop_x_response', 'total CoP response, ml', 'CoP (m)', 'copxRsp', 0.015, 'right', 'left'}];
+% continuous_variable_info = [continuous_variable_info; {'cop_x_response', 'total CoP response, ml', 'CoP (m)', 'copxRsp', 0.015, 'right', 'left'}];
 % continuous_variable_info = [continuous_variable_info; {'f_x_normalized_all', 'total force, ml', 'f (N)', 'fx', 100, '?', '?'}];
 % continuous_variable_info = [continuous_variable_info; {'f_x_response', 'total force response, ml', 'f (N)', 'fxRsp', 30, '?', '?'}];
 % continuous_variable_info = [continuous_variable_info; {'f_z_normalized_all', 'total vertical force', 'f (N)', 'fz', 0, '?', '?'}];
@@ -53,8 +59,8 @@ continuous_variable_info = [continuous_variable_info; {'cop_x_response', 'total 
 % continuous_variable_info = [continuous_variable_info; {'rcop_x_response', 'right foot CoP response, ml', 'CoP (m)', 'rcopxRsp', 0, 'right', 'left'}];
 
 % armswing
-% continuous_variable_info = [continuous_variable_info; {'linclination_normalized_all', 'left arm inclination angle', 'angle (deg)', 'linclination', 0, 'up', 'down'}];
-% continuous_variable_info = [continuous_variable_info; {'rinclination_normalized_all', 'right arm inclination angle', 'angle (deg)', 'rinclination', 0, 'up', 'down'}];
+% continuous_variable_info = [continuous_variable_info; {'linclination_normalized_all', 'left arm inclination angle', 'angle (deg)', 'linclination', [0 90], 'up', 'down'}];
+% continuous_variable_info = [continuous_variable_info; {'rinclination_normalized_all', 'right arm inclination angle', 'angle (deg)', 'rinclination', [0 90], 'up', 'down'}];
 
 % EMG
 % continuous_variable_info = [continuous_variable_info; {'lglutmed_normalized_all', 'left Gluteus Medius', 'EMG', 'lglutmed'}];
@@ -66,9 +72,11 @@ continuous_variable_info = [continuous_variable_info; {'cop_x_response', 'total 
 % continuous_variable_info = [continuous_variable_info; {'rgastroc_normalized_all', 'right Gastrocnemius Medialis', 'EMG', 'rgastroc'}];
 % continuous_variable_info = [continuous_variable_info; {'rperolng_normalized_all', 'right Peroneus Longus', 'EMG', 'rperolng'}];
 
-% discrete_variable_info = [discrete_variable_info; {'step_length_all', 'step length'}];
-% discrete_variable_info = [discrete_variable_info; {'step_width_all', 'step width'}];
-% discrete_variable_info = [discrete_variable_info; {'step_times_all', 'step times'}];
+% the cell array should have the following entries in each line: variable name, variable label, unit, file label for saving, forced axis scale, positive direction label, negative direction label
+% discrete_variable_info = [discrete_variable_info; {'step_length_all', 'step length', '(m)', 'steplength', [0.5 0.9], 'front', 'back'}];
+% discrete_variable_info = [discrete_variable_info; {'step_width_all', 'step width', '(m)', 'stepwidth', [0.0 0.25], 'right', 'left'}];
+% discrete_variable_info = [discrete_variable_info; {'step_times_all', 'step times', '(s)', 'steptimes', [0.41 0.69], '', ''}];
+% discrete_variable_info = [discrete_variable_info; {'step_speed_all', 'step speed', '(m/s)', 'stepspeed', [0.7 1.9], '', ''}];
 
 %% choose conditions to plot
 condition_labels = {'stance foot', 'perturbation', 'delay', 'index', 'experimental'};
@@ -183,13 +191,15 @@ while length(conditions_already_compared) < number_of_conditions_to_plot
 end
 
 %% collect data from all subjects
-continuous_variable_data = cell(size(continuous_variable_info, 1), 1);
-discrete_variable_data = cell(size(discrete_variable_info, 1), 1);
+step_times_data = [];
+pushoff_times_data = [];
 condition_stance_foot_data = {};
 condition_perturbation_data = {};
 condition_delay_data = {};
 condition_index_data = {};
 condition_experimental_data = {};
+continuous_variable_data = cell(size(continuous_variable_info, 1), 1);
+discrete_variable_data = cell(size(discrete_variable_info, 1), 1);
 
 for i_subject = 1 : length(subjects)
     % load subject data
@@ -199,6 +209,11 @@ for i_subject = 1 : length(subjects)
     load([subject_id filesep 'analysis' filesep date '_' subject_id '_resultsArmswing.mat']);
     load([subject_id filesep 'analysis' filesep date '_' subject_id '_resultsForceplate.mat']);
     
+    % time
+    step_times_data = [step_times_data; step_times_all];
+    pushoff_times_data = [pushoff_times_data; pushoff_times_all];
+    
+    % conditions
     condition_stance_foot_data = [condition_stance_foot_data; condition_stance_foot_list_all];
     condition_perturbation_data = [condition_perturbation_data; condition_perturbation_list_all];
     condition_delay_data = [condition_delay_data; condition_delay_list_all];
@@ -217,6 +232,9 @@ for i_subject = 1 : length(subjects)
 
 
 end
+step_time_mean = mean(step_times_all);
+pushoff_time_mean = mean(pushoff_times_all);
+time_normalized = linspace(0, step_time_mean, number_of_time_steps_normalized);
 
 %% do plots
 color_control = [0.3 0.1 1];
@@ -236,6 +254,8 @@ colors_comparison = ...
 %     [0 202 229] * 1/255; ...
 %   ]; % should have one row per condition in the comparison
 
+double_stance_color = [0 0 1];
+double_stance_alpha = 0.05;
 
 %% plot detailed
 if plot_detailed
@@ -410,21 +430,31 @@ if plot_overview
 
             % make condition labels for box plot
             condition_labels_for_boxplot = cell(length(points_to_plot), 1);
+            condition_indicator_comparison = false(length(points_to_plot), length(this_comparison));
             for i_condition = 1 : length(this_comparison)
+                % find correct condition indicator
+                condition_identifier = conditions_to_plot(this_comparison(i_condition), :);
+                stance_foot_indicator = strcmp(condition_stance_foot_data, condition_identifier{1});
+                perturbation_indicator = strcmp(condition_perturbation_data, condition_identifier{2});
+                delay_indicator = strcmp(condition_delay_data, condition_identifier{3});
+                index_indicator = strcmp(condition_index_data, condition_identifier{4});
+                experimental_indicator = strcmp(condition_experimental_data, condition_identifier{5});
+                this_condition_indicator = stance_foot_indicator & perturbation_indicator & delay_indicator & index_indicator & experimental_indicator;
+                condition_indicator_comparison(:, i_condition) = this_condition_indicator;
+                
                 % figure out condition label
-                condition_indicator = conditions_to_analyze_indicators(:, this_comparison(i_condition));
                 label_string = conditions_to_plot{comparison_indices{i_comparison}(i_condition), comparison_to_make};
                 % place condition label into label cell array
                 for i_point = 1 : length(condition_labels_for_boxplot)
-                    if condition_indicator(i_point)
+                    if this_condition_indicator(i_point)
                         condition_labels_for_boxplot{i_point} = label_string;
                     end
                 end
             end            
             % prune data points that we don't want to look at in this plot
-            conditions_for_this_comparison = conditions_to_analyze_indicators(:, this_comparison);
-            indices_for_this_comparison = any(conditions_for_this_comparison, 2);
-            conditions_pruned = conditions_for_this_comparison(indices_for_this_comparison, :);
+%             conditions_for_this_comparison = conditions_to_analyze_indicators(:, this_comparison);
+            indices_for_this_comparison = any(condition_indicator_comparison, 2);
+            conditions_pruned = condition_indicator_comparison(indices_for_this_comparison, :);
             points_to_plot_pruned = points_to_plot(indices_for_this_comparison);
             condition_labels_for_boxplot_pruned = condition_labels_for_boxplot(indices_for_this_comparison);
             
@@ -448,6 +478,14 @@ if plot_overview
                 end
             end
             title(title_string, 'interpreter', 'LaTeX'); set(gca, 'Fontsize', 12)            
+
+            if dictate_axes
+                set(gca, 'ylim', [discrete_variable_info{i_variable, 5}(1), discrete_variable_info{i_variable, 5}(2)]);
+            end
+            
+            xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
+            text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), [discrete_variable_info{i_variable, 6} ' $\rightarrow$'] , 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right', 'interpreter', 'LaTeX')
+            text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(1), ['$\leftarrow$ ' discrete_variable_info{i_variable, 7}], 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'left', 'interpreter', 'LaTeX')
             
             % save
             if save_figures
@@ -476,11 +514,6 @@ if plot_overview
             if use_control
                 stance_condition = conditions_to_plot(representant_condition_index, 1);
                 applicable_control_condition_indices = find(strcmp(conditions_control(:, 1), stance_condition));
-%                 if strcmp(conditions_to_plot(representant_condition_index, 1), 'STANCE_LEFT')
-%                     applicable_control_condition_indices = 1;
-%                 elseif strcmp(conditions_to_plot(representant_condition_index, 1), 'STANCE_RIGHT')
-%                     applicable_control_condition_indices = 2;
-%                 end
 
                 stance_foot_indicator = strcmp(condition_stance_foot_data, conditions_control(applicable_control_condition_indices, 1));
                 perturbation_indicator = strcmp(condition_perturbation_data, conditions_control(applicable_control_condition_indices, 2));
@@ -521,11 +554,16 @@ if plot_overview
                 experimental_indicator = strcmp(condition_experimental_data, condition_identifier{5});
                 this_condition_indicator = stance_foot_indicator & perturbation_indicator & delay_indicator & index_indicator & experimental_indicator;
                 
+                if strcmp(error_shades, 'cinv')
+                    error_curves = cinv(trajectories_to_plot(:, this_condition_indicator), 2);
+                elseif strcmp(error_shades, 'std')
+                    error_curves = std(trajectories_to_plot(:, this_condition_indicator), 1, 2);
+                end
                 current_plots = shadedErrorBar ...
                   ( ...
                     time_normalized, ...
                     mean(trajectories_to_plot(:, this_condition_indicator), 2), ...
-                    cinv(trajectories_to_plot(:, this_condition_indicator), 2), ...
+                    error_curves, ...
                     { ...
                       'color', colors_comparison(i_condition, :), ...
                       'linewidth', 3 ...
@@ -557,12 +595,28 @@ if plot_overview
             
             if dictate_axes
                 set(gca, 'xlim', [time_normalized(1), time_normalized(end)]);
-                set(gca, 'ylim', [-continuous_variable_info{i_variable, 5}, continuous_variable_info{i_variable, 5}]);
+                set(gca, 'ylim', [continuous_variable_info{i_variable, 5}(1), continuous_variable_info{i_variable, 5}(2)]);
             end
             
             xlimits = get(gca, 'xlim'); ylimits = get(gca, 'ylim');
             text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(2), [continuous_variable_info{i_variable, 6} ' $\rightarrow$'] , 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'right', 'interpreter', 'LaTeX')
             text(xlimits(1) - (xlimits(2)-xlimits(1))*0.12, ylimits(1), ['$\leftarrow$ ' continuous_variable_info{i_variable, 7}], 'rotation', 90, 'Fontsize', 24, 'horizontalalignment', 'left', 'interpreter', 'LaTeX')
+            
+            if mark_pushoff
+                pushoff_patch_x = [0 pushoff_time_mean pushoff_time_mean 0];
+                pushoff_patch_y = [ylimits(1) ylimits(1) ylimits(2) ylimits(2)];
+                double_stance_patch_vertices = [pushoff_patch_x'; pushoff_patch_y'];
+                patch_handle = ...
+                    patch ...
+                      ( ...
+                        pushoff_patch_x, ...
+                        pushoff_patch_y, ...
+                        double_stance_color, ...
+                        'EdgeColor', 'none', ...
+                        'FaceAlpha', double_stance_alpha ...
+                      ); 
+                uistack(patch_handle, 'bottom')
+            end
             
             % save
             if save_figures
