@@ -16,7 +16,8 @@ path_split = strsplit(current_path, filesep);
 subject_code = path_split{end};
 
 % import data
-potential_sources = {'devices', 'labview', 'marker', 'ascii'};
+potential_sources = {'devices', 'labview', 'marker', 'markers', 'ascii'};
+% potential_sources = {'marker', 'markers', 'ascii'};
 % potential_sources = {'ascii'};
 % potential_sources = {'devices'};
 % potential_sources = {'markers'};
@@ -146,7 +147,7 @@ for i_source = 1 : length(potential_sources)
                     number_of_header_lines = number_of_header_lines + number_of_samples + 6;
 
                 end
-                disp(['imported ' data_file_name])
+                disp(['imported ' source_dir filesep data_file_name])
 
 
 
@@ -178,7 +179,7 @@ for i_source = 1 : length(potential_sources)
                     'sampling_rate_mocap', ...
                     'marker_headers' ...
                   );
-                disp(['imported ' data_file_name ' and saved as ' matlab_data_file_name])
+                disp(['imported ' source_dir filesep data_file_name ' and saved as ' matlab_data_file_name])
             elseif strcmp(file_type, 'a')
                 % this is analog data from QTM
                 [imported_data, delimiter, nheaderlines] = importdata([source_dir filesep data_file_name], '\t', 14);
@@ -201,7 +202,7 @@ for i_source = 1 : length(potential_sources)
                     'sampling_rate_emg', ...
                     'emg_headers' ...
                   );
-                disp(['imported ' data_file_name ' and saved as ' matlab_data_file_name])
+                disp(['imported ' source_dir filesep data_file_name ' and saved as ' matlab_data_file_name])
                 
                 
 
@@ -232,7 +233,7 @@ for i_source = 1 : length(potential_sources)
                 % save
                 matlab_data_file_name = ['processed' filesep makeFileName(date, subject_id, trial_type, trial_number, file_type)];
                 save(matlab_data_file_name, '-struct', 'variables_to_save');
-                disp(['imported ' data_file_name ' and saved as ' matlab_data_file_name])
+                disp(['imported ' source_dir filesep data_file_name ' and saved as ' matlab_data_file_name])
             end
 
 

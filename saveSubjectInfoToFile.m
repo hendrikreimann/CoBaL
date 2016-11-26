@@ -1,13 +1,13 @@
-function saveSubjectInfoToFile(height, weight, gender)
+function saveSubjectInfoToFile(gender, height, weight)
     
     if nargin < 1
-        height = -1;
+        gender = 'unknown';
     end
     if nargin < 2
-        weight = -1;
+        height = -1;
     end
     if nargin < 3
-        gender = 'unknown';
+        weight = -1;
     end
     
 %     data_dir = dir(['raw' filesep '*_markerTrajectoriesRaw.mat']);

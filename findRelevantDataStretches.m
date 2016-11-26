@@ -220,7 +220,7 @@ function findRelevantDataStretches(varargin)
                         stretch_start_times(i_trigger, 1) = trigger_times(i_trigger);
                         stretch_end_time_index = find(right_touchdown_times > trigger_times(i_trigger), 1, 'first');
                         stretch_pushoff_time_index = find(right_pushoff_times > trigger_times(i_trigger), 1, 'first');
-                        if isempty(stretch_end_time_index)
+                        if isempty(stretch_end_time_index) || isempty(stretch_pushoff_time_index)
                             stretch_end_times(i_trigger, 1) = -1;
                             stretch_pushoff_times(i_trigger, 1) = -1;
                             removal_flags(i_trigger) = 1;
@@ -234,7 +234,7 @@ function findRelevantDataStretches(varargin)
                         stretch_start_times(i_trigger, 1) = trigger_times(i_trigger);
                         stretch_end_time_index = find(left_touchdown_times > trigger_times(i_trigger), 1, 'first');
                         stretch_pushoff_time_index = find(left_pushoff_times > trigger_times(i_trigger), 1, 'first');
-                        if isempty(stretch_end_time_index)
+                        if isempty(stretch_end_time_index) || isempty(stretch_pushoff_time_index)
                             stretch_end_times(i_trigger, 1) = -1;
                             stretch_pushoff_times(i_trigger, 1) = -1;
                             removal_flags(i_trigger) = 1;

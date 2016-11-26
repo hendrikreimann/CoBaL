@@ -1,9 +1,9 @@
 function preprocessRawData()
 
     visualize                   = 0;
-    process_emg                 = 0;
-    process_forceplate          = 0;
-    process_marker              = 0;
+    process_emg                 = 1;
+    process_forceplate          = 1;
+    process_marker              = 1;
     map_emg_sensors_manually    = 1;
     transform_to_belt_space     = 1;
     
@@ -324,7 +324,7 @@ function preprocessRawData()
 %                     end
                     
 %                     figure; axes; hold on
-                    plot(marker_trajectories(:, 101), 'linewidth', 2)
+%                     plot(marker_trajectories(:, 101), 'linewidth', 2)
 %                     plot(marker_trajectories_alt(:, 101), 'linewidth', 1)
 
 %                     % things do not make sense, play around

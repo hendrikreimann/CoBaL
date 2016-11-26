@@ -1,10 +1,5 @@
 function kinematic_tree = walkingModel(markerReference, markerHeaders, jointAxes, bodyMass, gender)
 
-% TODO: the link inertia matrices should be set up so that the principal
-% axes coincide with the actual segment axes, not the world axes, i.e. the
-% z-axis of the link frame should point in the same direction as line
-% between the two adjacent joints
-
 % TODO: the position of the markers should be part of the constructor
 
 % define measurements that I don't have right now
