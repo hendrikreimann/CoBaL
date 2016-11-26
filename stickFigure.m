@@ -8,21 +8,21 @@ classdef stickFigure < handle
         
         % data
         number_of_markers;
-        number_of_virtual_markers;
+%         number_of_virtual_markers;
         segment_com_plots;
         marker_plots;
-        virtual_marker_plots;
+%         virtual_marker_plots;
         marker_labels;
-        virtual_marker_labels;
+%         virtual_marker_labels;
         
         line_plots;
         line_marker_indices = [];
         
-        virtual_line_plots;
-        virtual_line_marker_indices = [];
+%         virtual_line_plots;
+%         virtual_line_marker_indices = [];
         
         marker_positions = [];
-        virtual_marker_positions = [];
+%         virtual_marker_positions = [];
         
         % colors
         marker_color = [1 1 1]*0.5;
@@ -34,13 +34,14 @@ classdef stickFigure < handle
         show_marker_labels = false;
     end 
     methods
-        function this = stickFigure(markerPositions, markerLabels, virtualMarkerPositions, virtualMarkerLabels, scene_bound, axesHandle)
-            if nargin < 5
+%         function this = stickFigure(markerPositions, markerLabels, virtualMarkerPositions, virtualMarkerLabels, scene_bound, axesHandle)
+        function this = stickFigure(markerPositions, markerLabels, scene_bound, axesHandle)
+            if nargin < 3
                 this.scene_bound = [-1 1; -1 1; -1 1];
             else
                 this.scene_bound = scene_bound;
             end
-            if nargin < 6
+            if nargin < 4
                 this.scene_figure = figure( 'Position', [500, 500, 600, 600], 'Name', 'scene' );
                 this.scene_axes = axes( 'Position', [0.1 0.1 0.8 0.8]);
             else
@@ -61,12 +62,12 @@ classdef stickFigure < handle
             for i_marker = 1 : this.number_of_markers
                 this.marker_plots{i_marker} = plot3(0, 0, 0, 'color', this.marker_color, 'markersize', 10, 'linewidth', 2, 'Marker', 'o');
             end
-            this.number_of_virtual_markers = length(virtualMarkerLabels);
-            this.virtual_marker_labels = virtualMarkerLabels;
-            this.virtual_marker_plots = cell(this.number_of_virtual_markers, 1);
-            for i_marker = 1 : this.number_of_virtual_markers
-                this.virtual_marker_plots{i_marker} = plot3(0, 0, 0, 'color', this.marker_color, 'markersize', 10, 'linewidth', 3, 'Marker', 'x');
-            end
+%             this.number_of_virtual_markers = length(virtualMarkerLabels);
+%             this.virtual_marker_labels = virtualMarkerLabels;
+%             this.virtual_marker_plots = cell(this.number_of_virtual_markers, 1);
+%             for i_marker = 1 : this.number_of_virtual_markers
+%                 this.virtual_marker_plots{i_marker} = plot3(0, 0, 0, 'color', this.marker_color, 'markersize', 10, 'linewidth', 3, 'Marker', 'x');
+%             end
             
             % groom
             set(gca,'xlim',[this.scene_bound(1, 1), this.scene_bound(1, 2)],'ylim',[this.scene_bound(2, 1), this.scene_bound(2, 2)], 'zlim',[this.scene_bound(3, 1), this.scene_bound(3, 2)]);
@@ -84,16 +85,18 @@ classdef stickFigure < handle
 %             colormap autumn
             alpha(.4)
             
-            this.update(markerPositions, virtualMarkerPositions);
+%             this.update(markerPositions, virtualMarkerPositions);
+            this.update(markerPositions);
         end
         
-        function update(this, marker_positions, virtual_marker_positions)
+%         function update(this, marker_positions, virtual_marker_positions)
+        function update(this, marker_positions)
             if nargin > 1
                 this.marker_positions = marker_positions;
             end
-            if nargin > 2
-                this.virtual_marker_positions = virtual_marker_positions;
-            end
+%             if nargin > 2
+%                 this.virtual_marker_positions = virtual_marker_positions;
+%             end
             
             % update marker positions
             for i_marker = 1 : this.number_of_markers
@@ -120,30 +123,30 @@ classdef stickFigure < handle
                   )
             end
             
-            % update virtual marker positions
-            for i_marker = 1 : this.number_of_virtual_markers
-                set ...
-                  ( ...
-                    this.virtual_marker_plots{i_marker}, ...
-                    'XData', this.virtual_marker_positions((i_marker-1)*3 + 1), ...
-                    'YData', this.virtual_marker_positions((i_marker-1)*3 + 2), ...
-                    'ZData', this.virtual_marker_positions((i_marker-1)*3 + 3) ...
-                  )
-            end
-            
-            % update virtual line positions
-            for i_line = 1 : length(this.virtual_line_plots)
-                from_marker_index = this.virtual_line_marker_indices(i_line, 1);
-                to_marker_index = this.virtual_line_marker_indices(i_line, 2);
-                
-                set ...
-                  ( ...
-                    this.virtual_line_plots(i_line), ...
-                    'Xdata', [this.virtual_marker_positions((from_marker_index-1)*3 + 1), this.virtual_marker_positions((to_marker_index-1)*3 + 1)], ...
-                    'Ydata', [this.virtual_marker_positions((from_marker_index-1)*3 + 2), this.virtual_marker_positions((to_marker_index-1)*3 + 2)], ...
-                    'Zdata', [this.virtual_marker_positions((from_marker_index-1)*3 + 3), this.virtual_marker_positions((to_marker_index-1)*3 + 3)] ...
-                  )
-            end
+%             % update virtual marker positions
+%             for i_marker = 1 : this.number_of_virtual_markers
+%                 set ...
+%                   ( ...
+%                     this.virtual_marker_plots{i_marker}, ...
+%                     'XData', this.virtual_marker_positions((i_marker-1)*3 + 1), ...
+%                     'YData', this.virtual_marker_positions((i_marker-1)*3 + 2), ...
+%                     'ZData', this.virtual_marker_positions((i_marker-1)*3 + 3) ...
+%                   )
+%             end
+%             
+%             % update virtual line positions
+%             for i_line = 1 : length(this.virtual_line_plots)
+%                 from_marker_index = this.virtual_line_marker_indices(i_line, 1);
+%                 to_marker_index = this.virtual_line_marker_indices(i_line, 2);
+%                 
+%                 set ...
+%                   ( ...
+%                     this.virtual_line_plots(i_line), ...
+%                     'Xdata', [this.virtual_marker_positions((from_marker_index-1)*3 + 1), this.virtual_marker_positions((to_marker_index-1)*3 + 1)], ...
+%                     'Ydata', [this.virtual_marker_positions((from_marker_index-1)*3 + 2), this.virtual_marker_positions((to_marker_index-1)*3 + 2)], ...
+%                     'Zdata', [this.virtual_marker_positions((from_marker_index-1)*3 + 3), this.virtual_marker_positions((to_marker_index-1)*3 + 3)] ...
+%                   )
+%             end
             
             
 %             for i_joint = 1 : this.kinematicTree.numberOfJoints
@@ -373,8 +376,8 @@ classdef stickFigure < handle
             elseif strcmp(marker_set, 'extended plug-in gait')
                 marker_line_width = 1;
                 marker_line_color = [1, 1, 1] * 0.7;
-                virtual_line_width = 5;
-                virtual_line_color = lightenColor([0, 0, 1], 0.3);
+                bone_line_width = 5;
+                bone_line_color = lightenColor([0, 0, 1], 0.3);
                 
                 % head
                 this.addLine('LFHD', 'RFHD', marker_line_width, marker_line_color);
@@ -437,45 +440,48 @@ classdef stickFigure < handle
                 this.addLine('RHEE', 'RTOE', marker_line_width, marker_line_color);
                 
                 % skeleton
-                this.addLine('CERVIXCOR', 'LUMBARCOR', virtual_line_width, virtual_line_color, 'virtual'); % spine
-                this.addLine('CERVIXCOR', 'LSHOULDERCOR', virtual_line_width, virtual_line_color, 'virtual'); % left shoulder
-                this.addLine('CERVIXCOR', 'RSHOULDERCOR', virtual_line_width, virtual_line_color, 'virtual'); % right shoulder
-                this.addLine('LUMBARCOR', 'LSHOULDERCOR', virtual_line_width, virtual_line_color, 'virtual'); % left torso
-                this.addLine('LUMBARCOR', 'RSHOULDERCOR', virtual_line_width, virtual_line_color, 'virtual'); % right torso
-                this.addLine('LSHOULDERCOR', 'LELBOWCOR', virtual_line_width, virtual_line_color, 'virtual'); % left upper arm
-                this.addLine('RSHOULDERCOR', 'RELBOWCOR', virtual_line_width, virtual_line_color, 'virtual'); % right upper arm
-                this.addLine('LELBOWCOR', 'LWRISTCOR', virtual_line_width, virtual_line_color, 'virtual'); % left lower arm
-                this.addLine('RELBOWCOR', 'RWRISTCOR', virtual_line_width, virtual_line_color, 'virtual'); % right lower arm
-                this.addLine('LUMBARCOR', 'LHIPCOR', virtual_line_width, virtual_line_color, 'virtual'); % left hip
-                this.addLine('LUMBARCOR', 'RHIPCOR', virtual_line_width, virtual_line_color, 'virtual'); % right hip
-                this.addLine('LHIPCOR', 'LKNEECOR', virtual_line_width, virtual_line_color, 'virtual'); % left thigh
-                this.addLine('RHIPCOR', 'RKNEECOR', virtual_line_width, virtual_line_color, 'virtual'); % right thigh
-                this.addLine('LKNEECOR', 'LANKLECOR', virtual_line_width, virtual_line_color, 'virtual'); % left shank
-                this.addLine('RKNEECOR', 'RANKLECOR', virtual_line_width, virtual_line_color, 'virtual'); % right shank
+                this.addLine('CERVIXCOR', 'LUMBARCOR', bone_line_width, bone_line_color); % spine
+                this.addLine('CERVIXCOR', 'LSHOULDERCOR', bone_line_width, bone_line_color); % left shoulder
+                this.addLine('CERVIXCOR', 'RSHOULDERCOR', bone_line_width, bone_line_color); % right shoulder
+                this.addLine('LUMBARCOR', 'LSHOULDERCOR', bone_line_width, bone_line_color); % left torso
+                this.addLine('LUMBARCOR', 'RSHOULDERCOR', bone_line_width, bone_line_color); % right torso
+                this.addLine('LSHOULDERCOR', 'LELBOWCOR', bone_line_width, bone_line_color); % left upper arm
+                this.addLine('RSHOULDERCOR', 'RELBOWCOR', bone_line_width, bone_line_color); % right upper arm
+                this.addLine('LELBOWCOR', 'LWRISTCOR', bone_line_width, bone_line_color); % left lower arm
+                this.addLine('RELBOWCOR', 'RWRISTCOR', bone_line_width, bone_line_color); % right lower arm
+                this.addLine('LUMBARCOR', 'LHIPCOR', bone_line_width, bone_line_color); % left hip
+                this.addLine('LUMBARCOR', 'RHIPCOR', bone_line_width, bone_line_color); % right hip
+                this.addLine('LHIPCOR', 'LKNEECOR', bone_line_width, bone_line_color); % left thigh
+                this.addLine('RHIPCOR', 'RKNEECOR', bone_line_width, bone_line_color); % right thigh
+                this.addLine('LKNEECOR', 'LANKLECOR', bone_line_width, bone_line_color); % left shank
+                this.addLine('RKNEECOR', 'RANKLECOR', bone_line_width, bone_line_color); % right shank
                 
                 
                 this.update();
             end
         end
-        function addLine(this, from_label, to_label, width, color, mode)
-            if nargin < 6
-                mode = 'default';
-            end
+        function addLine(this, from_label, to_label, width, color)
+%         function addLine(this, from_label, to_label, width, color, mode)
+%             if nargin < 6
+%                 mode = 'default';
+%             end
             if nargin < 5
                 color = [0, 0, 0];
             end
             if nargin < 4
                 width = 1;
             end
-            if strcmp(mode, 'default')
-                this.line_plots(end+1) = plot3([0 0], [0 0], [0 0], 'color', color, 'linewidth', width);
-                this.line_marker_indices(end+1, :) = [find(strcmp(this.marker_labels, from_label)), find(strcmp(this.marker_labels, to_label))];
-            elseif strcmp(mode, 'virtual')
-                this.virtual_line_plots(end+1) = plot3([0 0], [0 0], [0 0], 'color', color, 'linewidth', width);
-                this.virtual_line_marker_indices(end+1, :) = [find(strcmp(this.virtual_marker_labels, from_label)), find(strcmp(this.virtual_marker_labels, to_label))];
-            else
-                error('mode must be "default" or "virtual"')
-            end
+            this.line_plots(end+1) = plot3([0 0], [0 0], [0 0], 'color', color, 'linewidth', width);
+            this.line_marker_indices(end+1, :) = [find(strcmp(this.marker_labels, from_label)), find(strcmp(this.marker_labels, to_label))];
+%             if strcmp(mode, 'default')
+%                 this.line_plots(end+1) = plot3([0 0], [0 0], [0 0], 'color', color, 'linewidth', width);
+%                 this.line_marker_indices(end+1, :) = [find(strcmp(this.marker_labels, from_label)), find(strcmp(this.marker_labels, to_label))];
+%             elseif strcmp(mode, 'virtual')
+%                 this.virtual_line_plots(end+1) = plot3([0 0], [0 0], [0 0], 'color', color, 'linewidth', width);
+%                 this.virtual_line_marker_indices(end+1, :) = [find(strcmp(this.virtual_marker_labels, from_label)), find(strcmp(this.virtual_marker_labels, to_label))];
+%             else
+%                 error('mode must be "default" or "virtual"')
+%             end
         end
         function setMarkerColor(this, marker_index, color)
             set(this.marker_plots{marker_index}, 'color', color);

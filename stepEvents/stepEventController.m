@@ -106,8 +106,8 @@ classdef stepEventController < handle
         function updateSelectedTime(this)
             [~, index_mocap] = min(abs(this.trial_data.time_mocap - this.trial_data.selected_time));
             marker_data = this.trial_data.marker_positions(index_mocap, :);
-            virtual_marker_data = this.trial_data.virtual_marker_positions(index_mocap, :);
-            this.scene_figure.update(marker_data, virtual_marker_data);
+            joint_center_data = this.trial_data.joint_center_positions(index_mocap, :);
+            this.scene_figure.update([marker_data joint_center_data]);
             
             this.selected_time_edit.String = num2str(this.trial_data.selected_time);
         end
