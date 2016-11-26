@@ -19,8 +19,8 @@ classdef WalkingTrialData < handle
         % marker kinematics
         marker_positions = [];
         marker_headers = [];
-        virtual_marker_positions = [];
-        virtual_marker_headers = [];
+        joint_center_positions = [];
+        joint_center_headers = [];
         
         left_heel_y_pos = [];
         left_heel_y_vel = [];
@@ -102,7 +102,7 @@ classdef WalkingTrialData < handle
             
             if exist([this.data_directory filesep 'subjectModel.mat'], 'file')
                 loaded_subject_model = load([this.data_directory filesep 'subjectModel.mat']);
-                this.virtual_marker_headers = loaded_subject_model.virtual_marker_headers;
+                this.joint_center_headers = loaded_subject_model.joint_center_headers;
             end
         end
         function loadMarkerTrajectories(this)
@@ -115,7 +115,7 @@ classdef WalkingTrialData < handle
             com_file_name = [this.data_directory filesep 'processed' filesep makeFileName(this.date, this.subject_id, this.condition, this.trial_number, 'comTrajectories.mat')];
             if exist(com_file_name, 'file')
                 loaded_trajectories = load(com_file_name);
-                this.virtual_marker_positions = loaded_trajectories.virtual_marker_trajectories;
+                this.joint_center_positions = loaded_trajectories.joint_center_trajectories;
             end
             
             % time

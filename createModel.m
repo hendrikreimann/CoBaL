@@ -34,121 +34,6 @@ while any(isnan(marker_trajectories(i_time, :)))
 end
 marker_reference = marker_trajectories(i_time, :);
 
-%% define marker numbers and indices
-
-% % find marker numbers from identifiers
-% LFHD_marker = find(strcmp(marker_headers, 'LFHD'));
-% RFHD_marker = find(strcmp(marker_headers, 'RFHD'));
-% LBHD_marker = find(strcmp(marker_headers, 'LBHD'));
-% RBHD_marker = find(strcmp(marker_headers, 'RBHD'));
-% C7_marker = find(strcmp(marker_headers, 'C7'));
-% T10_marker = find(strcmp(marker_headers, 'T10'));
-% CLAV_marker = find(strcmp(marker_headers, 'CLAV'));
-% STRN_marker = find(strcmp(marker_headers, 'STRN'));
-% RBAK_marker = find(strcmp(marker_headers, 'RBAK'));
-% LSHO_marker = find(strcmp(marker_headers, 'LSHO'));
-% LELB_marker = find(strcmp(marker_headers, 'LELB'));
-% LWRA_marker = find(strcmp(marker_headers, 'LWRA'));
-% LWRB_marker = find(strcmp(marker_headers, 'LWRB'));
-% LFIN_marker = find(strcmp(marker_headers, 'LFIN'));
-% RSHO_marker = find(strcmp(marker_headers, 'RSHO'));
-% RELB_marker = find(strcmp(marker_headers, 'RELB'));
-% RWRA_marker = find(strcmp(marker_headers, 'RWRA'));
-% RWRB_marker = find(strcmp(marker_headers, 'RWRB'));
-% RFIN_marker = find(strcmp(marker_headers, 'RFIN'));
-% LASI_marker = find(strcmp(marker_headers, 'LASI'));
-% RASI_marker = find(strcmp(marker_headers, 'RASI'));
-% LPSI_marker = find(strcmp(marker_headers, 'LPSI'));
-% RPSI_marker = find(strcmp(marker_headers, 'RPSI'));
-% LTHI_marker = find(strcmp(marker_headers, 'LTHI'));
-% LTHIA_marker = find(strcmp(marker_headers, 'LTHIA'));
-% LKNE_marker = find(strcmp(marker_headers, 'LKNE'));
-% LTIB_marker = find(strcmp(marker_headers, 'LTIB'));
-% LTIBA_marker = find(strcmp(marker_headers, 'LTIBA'));
-% LANK_marker = find(strcmp(marker_headers, 'LANK'));
-% LHEE_marker = find(strcmp(marker_headers, 'LHEE'));
-% LTOE_marker = find(strcmp(marker_headers, 'LTOE'));
-% LTOEL_marker = find(strcmp(marker_headers, 'LTOEL'));
-% RTHI_marker = find(strcmp(marker_headers, 'RTHI'));
-% RTHIA_marker = find(strcmp(marker_headers, 'RTHIA'));
-% RKNE_marker = find(strcmp(marker_headers, 'RKNE'));
-% RTIB_marker = find(strcmp(marker_headers, 'RTIB'));
-% RTIBA_marker = find(strcmp(marker_headers, 'RTIBA'));
-% RANK_marker = find(strcmp(marker_headers, 'RANK'));
-% RHEE_marker = find(strcmp(marker_headers, 'RHEE'));
-% RTOE_marker = find(strcmp(marker_headers, 'RTOE'));
-% RTOEL_marker = find(strcmp(marker_headers, 'RTOEL'));
-
-
-% indices for single markers
-% LFHD_markers_indices = reshape([(LFHD_marker - 1) * 3 + 1; (LFHD_marker - 1) * 3 + 2; (LFHD_marker - 1) * 3 + 3], 1, length(LFHD_marker)*3);
-% RFHD_markers_indices = reshape([(RFHD_marker - 1) * 3 + 1; (RFHD_marker - 1) * 3 + 2; (RFHD_marker - 1) * 3 + 3], 1, length(RFHD_marker)*3);
-% LBHD_markers_indices = reshape([(LBHD_marker - 1) * 3 + 1; (LBHD_marker - 1) * 3 + 2; (LBHD_marker - 1) * 3 + 3], 1, length(LBHD_marker)*3);
-% RBHD_markers_indices = reshape([(RBHD_marker - 1) * 3 + 1; (RBHD_marker - 1) * 3 + 2; (RBHD_marker - 1) * 3 + 3], 1, length(RBHD_marker)*3);
-% C7_markers_indices = reshape([(C7_marker - 1) * 3 + 1; (C7_marker - 1) * 3 + 2; (C7_marker - 1) * 3 + 3], 1, length(C7_marker)*3);
-% T10_markers_indices = reshape([(T10_marker - 1) * 3 + 1; (T10_marker - 1) * 3 + 2; (T10_marker - 1) * 3 + 3], 1, length(T10_marker)*3);
-% CLAV_markers_indices = reshape([(CLAV_marker - 1) * 3 + 1; (CLAV_marker - 1) * 3 + 2; (CLAV_marker - 1) * 3 + 3], 1, length(CLAV_marker)*3);
-% STRN_markers_indices = reshape([(STRN_marker - 1) * 3 + 1; (STRN_marker - 1) * 3 + 2; (STRN_marker - 1) * 3 + 3], 1, length(STRN_marker)*3);
-% RBAK_markers_indices = reshape([(RBAK_marker - 1) * 3 + 1; (RBAK_marker - 1) * 3 + 2; (RBAK_marker - 1) * 3 + 3], 1, length(RBAK_marker)*3);
-% LSHO_markers_indices = reshape([(LSHO_marker - 1) * 3 + 1; (LSHO_marker - 1) * 3 + 2; (LSHO_marker - 1) * 3 + 3], 1, length(LSHO_marker)*3);
-% LELB_markers_indices = reshape([(LELB_marker - 1) * 3 + 1; (LELB_marker - 1) * 3 + 2; (LELB_marker - 1) * 3 + 3], 1, length(LELB_marker)*3);
-% LWRA_markers_indices = reshape([(LWRA_marker - 1) * 3 + 1; (LWRA_marker - 1) * 3 + 2; (LWRA_marker - 1) * 3 + 3], 1, length(LWRA_marker)*3);
-% LWRB_markers_indices = reshape([(LWRB_marker - 1) * 3 + 1; (LWRB_marker - 1) * 3 + 2; (LWRB_marker - 1) * 3 + 3], 1, length(LWRB_marker)*3);
-% LFIN_markers_indices = reshape([(LFIN_marker - 1) * 3 + 1; (LFIN_marker - 1) * 3 + 2; (LFIN_marker - 1) * 3 + 3], 1, length(LFIN_marker)*3);
-% RSHO_markers_indices = reshape([(RSHO_marker - 1) * 3 + 1; (RSHO_marker - 1) * 3 + 2; (RSHO_marker - 1) * 3 + 3], 1, length(RSHO_marker)*3);
-% RELB_markers_indices = reshape([(RELB_marker - 1) * 3 + 1; (RELB_marker - 1) * 3 + 2; (RELB_marker - 1) * 3 + 3], 1, length(RELB_marker)*3);
-% RWRA_markers_indices = reshape([(RWRA_marker - 1) * 3 + 1; (RWRA_marker - 1) * 3 + 2; (RWRA_marker - 1) * 3 + 3], 1, length(RWRA_marker)*3);
-% RWRB_markers_indices = reshape([(RWRB_marker - 1) * 3 + 1; (RWRB_marker - 1) * 3 + 2; (RWRB_marker - 1) * 3 + 3], 1, length(RWRB_marker)*3);
-% RFIN_markers_indices = reshape([(RFIN_marker - 1) * 3 + 1; (RFIN_marker - 1) * 3 + 2; (RFIN_marker - 1) * 3 + 3], 1, length(RFIN_marker)*3);
-% LASI_markers_indices = reshape([(LASI_marker - 1) * 3 + 1; (LASI_marker - 1) * 3 + 2; (LASI_marker - 1) * 3 + 3], 1, length(LASI_marker)*3);
-% RASI_markers_indices = reshape([(RASI_marker - 1) * 3 + 1; (RASI_marker - 1) * 3 + 2; (RASI_marker - 1) * 3 + 3], 1, length(RASI_marker)*3);
-% LPSI_markers_indices = reshape([(LPSI_marker - 1) * 3 + 1; (LPSI_marker - 1) * 3 + 2; (LPSI_marker - 1) * 3 + 3], 1, length(LPSI_marker)*3);
-% RPSI_markers_indices = reshape([(RPSI_marker - 1) * 3 + 1; (RPSI_marker - 1) * 3 + 2; (RPSI_marker - 1) * 3 + 3], 1, length(RPSI_marker)*3);
-% LTHI_markers_indices = reshape([(LTHI_marker - 1) * 3 + 1; (LTHI_marker - 1) * 3 + 2; (LTHI_marker - 1) * 3 + 3], 1, length(LTHI_marker)*3);
-% LTHIA_markers_indices = reshape([(LTHIA_marker - 1) * 3 + 1; (LTHIA_marker - 1) * 3 + 2; (LTHIA_marker - 1) * 3 + 3], 1, length(LTHIA_marker)*3);
-% LKNE_markers_indices = reshape([(LKNE_marker - 1) * 3 + 1; (LKNE_marker - 1) * 3 + 2; (LKNE_marker - 1) * 3 + 3], 1, length(LKNE_marker)*3);
-% LTIB_markers_indices = reshape([(LTIB_marker - 1) * 3 + 1; (LTIB_marker - 1) * 3 + 2; (LTIB_marker - 1) * 3 + 3], 1, length(LTIB_marker)*3);
-% LTIBA_markers_indices = reshape([(LTIBA_marker - 1) * 3 + 1; (LTIBA_marker - 1) * 3 + 2; (LTIBA_marker - 1) * 3 + 3], 1, length(LTIBA_marker)*3);
-% LANK_markers_indices = reshape([(LANK_marker - 1) * 3 + 1; (LANK_marker - 1) * 3 + 2; (LANK_marker - 1) * 3 + 3], 1, length(LANK_marker)*3);
-% LHEE_markers_indices = reshape([(LHEE_marker - 1) * 3 + 1; (LHEE_marker - 1) * 3 + 2; (LHEE_marker - 1) * 3 + 3], 1, length(LHEE_marker)*3);
-% LTOE_markers_indices = reshape([(LTOE_marker - 1) * 3 + 1; (LTOE_marker - 1) * 3 + 2; (LTOE_marker - 1) * 3 + 3], 1, length(LTOE_marker)*3);
-% LTOEL_markers_indices = reshape([(LTOEL_marker - 1) * 3 + 1; (LTOEL_marker - 1) * 3 + 2; (LTOEL_marker - 1) * 3 + 3], 1, length(LTOEL_marker)*3);
-% RTHI_markers_indices = reshape([(RTHI_marker - 1) * 3 + 1; (RTHI_marker - 1) * 3 + 2; (RTHI_marker - 1) * 3 + 3], 1, length(RTHI_marker)*3);
-% RTHIA_markers_indices = reshape([(RTHIA_marker - 1) * 3 + 1; (RTHIA_marker - 1) * 3 + 2; (RTHIA_marker - 1) * 3 + 3], 1, length(RTHIA_marker)*3);
-% RKNE_markers_indices = reshape([(RKNE_marker - 1) * 3 + 1; (RKNE_marker - 1) * 3 + 2; (RKNE_marker - 1) * 3 + 3], 1, length(RKNE_marker)*3);
-% RTIB_markers_indices = reshape([(RTIB_marker - 1) * 3 + 1; (RTIB_marker - 1) * 3 + 2; (RTIB_marker - 1) * 3 + 3], 1, length(RTIB_marker)*3);
-% RTIBA_markers_indices = reshape([(RTIBA_marker - 1) * 3 + 1; (RTIBA_marker - 1) * 3 + 2; (RTIBA_marker - 1) * 3 + 3], 1, length(RTIBA_marker)*3);
-% RANK_markers_indices = reshape([(RANK_marker - 1) * 3 + 1; (RANK_marker - 1) * 3 + 2; (RANK_marker - 1) * 3 + 3], 1, length(RANK_marker)*3);
-% RHEE_markers_indices = reshape([(RHEE_marker - 1) * 3 + 1; (RHEE_marker - 1) * 3 + 2; (RHEE_marker - 1) * 3 + 3], 1, length(RHEE_marker)*3);
-% RTOE_markers_indices = reshape([(RTOE_marker - 1) * 3 + 1; (RTOE_marker - 1) * 3 + 2; (RTOE_marker - 1) * 3 + 3], 1, length(RTOE_marker)*3);
-% RTOEL_markers_indices = reshape([(RTOEL_marker - 1) * 3 + 1; (RTOEL_marker - 1) * 3 + 2; (RTOEL_marker - 1) * 3 + 3], 1, length(RTOEL_marker)*3);
-
-% define markers by segment
-% head_markers = [LFHD_marker RFHD_marker LBHD_marker RBHD_marker];
-% trunk_markers = [C7_marker T10_marker CLAV_marker STRN_marker RBAK_marker];
-% pelvis_markers = [LASI_marker RASI_marker LPSI_marker RPSI_marker];
-% left_thigh_markers = [LTHI_marker LTHIA_marker LKNE_marker];
-% left_shank_markers = [LTIB_marker LTIBA_marker LANK_marker];
-% left_foot_markers = [LHEE_marker LTOE_marker LTOEL_marker];
-% right_thigh_markers = [RTHI_marker RTHIA_marker RKNE_marker];
-% right_shank_markers = [RTIB_marker RTIBA_marker RANK_marker];
-% right_foot_markers = [RHEE_marker RTOE_marker RTOEL_marker];
-
-% indices for groups
-% head_markers_indices = reshape([(head_markers - 1) * 3 + 1; (head_markers - 1) * 3 + 2; (head_markers - 1) * 3 + 3], 1, length(head_markers)*3);
-% trunk_markers_indices = reshape([(trunk_markers - 1) * 3 + 1; (trunk_markers - 1) * 3 + 2; (trunk_markers - 1) * 3 + 3], 1, length(trunk_markers)*3);
-% pelvis_markers_indices = reshape([(pelvis_markers - 1) * 3 + 1; (pelvis_markers - 1) * 3 + 2; (pelvis_markers - 1) * 3 + 3], 1, length(pelvis_markers)*3);
-% left_thigh_markers_indices = reshape([(left_thigh_markers - 1) * 3 + 1; (left_thigh_markers - 1) * 3 + 2; (left_thigh_markers - 1) * 3 + 3], 1, length(left_thigh_markers)*3);
-% left_shank_markers_indices = reshape([(left_shank_markers - 1) * 3 + 1; (left_shank_markers - 1) * 3 + 2; (left_shank_markers - 1) * 3 + 3], 1, length(left_shank_markers)*3);
-% left_foot_markers_indices = reshape([(left_foot_markers - 1) * 3 + 1; (left_foot_markers - 1) * 3 + 2; (left_foot_markers - 1) * 3 + 3], 1, length(left_foot_markers)*3);
-% right_thigh_markers_indices = reshape([(right_thigh_markers - 1) * 3 + 1; (right_thigh_markers - 1) * 3 + 2; (right_thigh_markers - 1) * 3 + 3], 1, length(right_thigh_markers)*3);
-% right_shank_markers_indices = reshape([(right_shank_markers - 1) * 3 + 1; (right_shank_markers - 1) * 3 + 2; (right_shank_markers - 1) * 3 + 3], 1, length(right_shank_markers)*3);
-% right_foot_markers_indices = reshape([(right_foot_markers - 1) * 3 + 1; (right_foot_markers - 1) * 3 + 2; (right_foot_markers - 1) * 3 + 3], 1, length(right_foot_markers)*3);
-% LASI_markers_indices = reshape([(LASI_marker - 1) * 3 + 1; (LASI_marker - 1) * 3 + 2; (LASI_marker - 1) * 3 + 3], 1, length(LASI_marker)*3);
-% RASI_markers_indices = reshape([(RASI_marker - 1) * 3 + 1; (RASI_marker - 1) * 3 + 2; (RASI_marker - 1) * 3 + 3], 1, length(RASI_marker)*3);
-% LPSIS_markers_indices = reshape([(LPSIS_marker - 1) * 3 + 1; (LPSIS_marker - 1) * 3 + 2; (LPSIS_marker - 1) * 3 + 3], 1, length(LPSIS_marker)*3);
-% RPSIS_markers_indices = reshape([(RPSIS_marker - 1) * 3 + 1; (RPSIS_marker - 1) * 3 + 2; (RPSIS_marker - 1) * 3 + 3], 1, length(RPSIS_marker)*3);
-
 %% extract marker reference positions
 
 % head
@@ -206,49 +91,6 @@ RHEE_reference = extractMarkerTrajectories(marker_reference, marker_headers, 'RH
 RTOE_reference = extractMarkerTrajectories(marker_reference, marker_headers, 'RTOE')';
 RTOEL_reference = extractMarkerTrajectories(marker_reference, marker_headers, 'RTOEL')';
 
-
-% LFHD_reference = marker_reference(LFHD_markers_indices)';
-% RFHD_reference = marker_reference(RFHD_markers_indices)';
-% LBHD_reference = marker_reference(LBHD_markers_indices)';
-% RBHD_reference = marker_reference(RBHD_markers_indices)';
-% C7_reference = marker_reference(C7_markers_indices)';
-% T10_reference = marker_reference(T10_markers_indices)';
-% CLAV_reference = marker_reference(CLAV_markers_indices)';
-% STRN_reference = marker_reference(STRN_markers_indices)';
-% RBAK_reference = marker_reference(RBAK_markers_indices)';
-% LSHO_reference = marker_reference(LSHO_markers_indices)';
-% LELB_reference = marker_reference(LELB_markers_indices)';
-% LWRA_reference = marker_reference(LWRA_markers_indices)';
-% LWRB_reference = marker_reference(LWRB_markers_indices)';
-% LFIN_reference = marker_reference(LFIN_markers_indices)';
-% RSHO_reference = marker_reference(RSHO_markers_indices)';
-% RELB_reference = marker_reference(RELB_markers_indices)';
-% RWRA_reference = marker_reference(RWRA_markers_indices)';
-% RWRB_reference = marker_reference(RWRB_markers_indices)';
-% RFIN_reference = marker_reference(RFIN_markers_indices)';
-% LASI_reference = marker_reference(LASI_markers_indices)';
-% RASI_reference = marker_reference(RASI_markers_indices)';
-% LPSI_reference = marker_reference(LPSI_markers_indices)';
-% RPSI_reference = marker_reference(RPSI_markers_indices)';
-% LTHIA_reference = marker_reference(LTHIA_markers_indices)';
-% LTHI_reference = marker_reference(LTHI_markers_indices)';
-% LKNE_reference = marker_reference(LKNE_markers_indices)';
-% LTIB_reference = marker_reference(LTIB_markers_indices)';
-% LTIBA_reference = marker_reference(LTIBA_markers_indices)';
-% LANK_reference = marker_reference(LANK_markers_indices)';
-% LHEE_reference = marker_reference(LHEE_markers_indices)';
-% LTOE_reference = marker_reference(LTOE_markers_indices)';
-% LTOEL_reference = marker_reference(LTOEL_markers_indices)';
-% RTHIA_reference = marker_reference(RTHIA_markers_indices)';
-% RTHI_reference = marker_reference(RTHI_markers_indices)';
-% RKNE_reference = marker_reference(RKNE_markers_indices)';
-% RTIB_reference = marker_reference(RTIB_markers_indices)';
-% RTIBA_reference = marker_reference(RTIBA_markers_indices)';
-% RANK_reference = marker_reference(RANK_markers_indices)';
-% RHEE_reference = marker_reference(RHEE_markers_indices)';
-% RTOE_reference = marker_reference(RTOE_markers_indices)';
-% RTOEL_reference = marker_reference(RTOEL_markers_indices)';
-
 % groups
 head_markers_reference = [LFHD_reference' RFHD_reference' LBHD_reference' RBHD_reference'];
 trunk_markers_reference = [C7_reference' T10_reference' CLAV_reference' STRN_reference' RBAK_reference'];
@@ -259,19 +101,6 @@ left_foot_markers_reference = [LHEE_reference' LTOE_reference' LTOEL_reference']
 right_thigh_markers_reference = [RTHI_reference' RTHIA_reference' RKNE_reference'];
 right_shank_markers_reference = [RTIB_reference' RTIBA_reference' RANK_reference'];
 right_foot_markers_reference = [RHEE_reference' RTOE_reference' RTOEL_reference'];
-
-
-% head_markers_reference = marker_reference(head_markers_indices);
-% trunk_markers_reference = marker_reference(trunk_markers_indices);
-% pelvis_markers_reference = marker_reference(pelvis_markers_indices);
-% left_thigh_markers_reference = marker_reference(left_thigh_markers_indices);
-% left_shank_markers_reference = marker_reference(left_shank_markers_indices);
-% left_foot_markers_reference = marker_reference(left_foot_markers_indices);
-% right_thigh_markers_reference = marker_reference(right_thigh_markers_indices);
-% right_shank_markers_reference = marker_reference(right_shank_markers_indices);
-% right_foot_markers_reference = marker_reference(right_foot_markers_indices);
-
-
 
 %% calculate anatomical points
 MASIS_reference = mean([LASI_reference RASI_reference], 2);
@@ -1214,8 +1043,8 @@ end
 
 %% set up marker coordinate systems (MCS)
 
-% define virtual markers
-virtual_marker_reference = ...
+% define joint center references
+joint_center_reference = ...
   [ ...
     cervix_cor', ...
     left_shoulder_cor', ...
@@ -1232,7 +1061,7 @@ virtual_marker_reference = ...
     left_ankle_cor', ...
     right_ankle_cor' ...
   ];
-virtual_marker_headers = ...
+joint_center_headers = ...
   { ...
     'CERVIXCOR', ...
     'LSHOULDERCOR', ...
@@ -1292,7 +1121,7 @@ markers_by_segment = ...
   };
 number_of_segments = size(markers_by_segment, 1);
 
-mcs_to_wcs_transformations = calculateMcsToWcsTransformations([marker_reference virtual_marker_reference], [marker_headers virtual_marker_headers], markers_by_segment);
+mcs_to_wcs_transformations = calculateMcsToWcsTransformations([marker_reference joint_center_reference], [marker_headers joint_center_headers], markers_by_segment);
 
 % calculate segment CoMs in marker coordinates
 segment_coms_wcs = ...
@@ -1324,13 +1153,12 @@ save ...
     'subjectModel', ...
     'marker_headers', ...
     'marker_reference', ...
-    'virtual_marker_headers', ...
-    'virtual_marker_reference', ...
+    'joint_center_headers', ...
+    'joint_center_reference', ...
     'segment_labels', ...
     'markers_by_segment', ...
     'segment_coms_mcs' ...
   );
-
 
 %% show visualization
 if show_visualization
@@ -1349,11 +1177,11 @@ if show_visualization
     end
     
     % show virtual markers
-    for i_marker = 1 : (length(virtual_marker_reference) / 3);
+    for i_marker = 1 : (length(joint_center_reference) / 3);
         plot3 ...
           ( ...
             stick_figure.sceneAxes, ...
-            virtual_marker_reference((i_marker-1)*3+1), virtual_marker_reference((i_marker-1)*3+2), virtual_marker_reference((i_marker-1)*3+3), ...
+            joint_center_reference((i_marker-1)*3+1), joint_center_reference((i_marker-1)*3+2), joint_center_reference((i_marker-1)*3+3), ...
             'd', ...
             'color', [1 1 1]*0.5, ...
             'linewidth', 2, ...

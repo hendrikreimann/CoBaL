@@ -1,31 +1,14 @@
-function virtual_marker_positions = ...
+function joint_center_positions = ...
     calculateVirtualMarkerPositions ...
       ( ...
         marker_reference, ...
         marker_positions, ...
         marker_headers, ...
-        virtual_marker_reference, ...
-        virtual_marker_headers ...
+        joint_center_reference, ...
+        joint_center_headers ...
       )
   
   
-% virtual_marker_headers = ...
-%   { ...
-%     'CERVIXCOR', ...
-%     'LSHOULDERCOR', ...
-%     'RSHOULDERCOR', ...
-%     'LELBOWCOR', ...
-%     'RELBOWCOR', ...
-%     'LWRISTCOR', ...
-%     'RWRISTCOR', ...
-%     'LUMBARCOR', ...
-%     'LHIPCOR', ...
-%     'RHIPCOR', ...
-%     'LKNEECOR', ...
-%     'RKNEECOR', ...
-%     'LANKLECOR', ...
-%     'RANKLECOR' ...
-%   };  
   
     
     % calculate transformations for segments that are fully determined by markers
@@ -59,13 +42,13 @@ function virtual_marker_positions = ...
     
     % cervix
     T_reference_wcs_to_head_mcs = transformations_reference{strcmp(segment_labels, 'head')}^(-1);
-    cervix_cor_reference_wcs = extractMarkerTrajectories(virtual_marker_reference, virtual_marker_headers, 'CERVIXCOR')';
+    cervix_cor_reference_wcs = extractMarkerTrajectories(joint_center_reference, joint_center_headers, 'CERVIXCOR')';
     cervix_cor_head_mcs = eye(3, 4) * T_reference_wcs_to_head_mcs * [cervix_cor_reference_wcs; 1];
     T_current_head_mcs_to_wcs = transformations_current{strcmp(segment_labels, 'head')};
     cervix_cor_current_wcs_from_head = eye(3, 4) * T_current_head_mcs_to_wcs * [cervix_cor_head_mcs; 1];
     
     T_reference_wcs_to_torso_mcs = transformations_reference{strcmp(segment_labels, 'torso')}^(-1);
-    cervix_cor_reference_wcs = extractMarkerTrajectories(virtual_marker_reference, virtual_marker_headers, 'CERVIXCOR')';
+    cervix_cor_reference_wcs = extractMarkerTrajectories(joint_center_reference, joint_center_headers, 'CERVIXCOR')';
     cervix_cor_torso_mcs = eye(3, 4) * T_reference_wcs_to_torso_mcs * [cervix_cor_reference_wcs; 1];
     T_current_torso_mcs_to_wcs = transformations_current{strcmp(segment_labels, 'torso')};
     cervix_cor_current_wcs_from_torso = eye(3, 4) * T_current_torso_mcs_to_wcs * [cervix_cor_torso_mcs; 1];
@@ -74,41 +57,41 @@ function virtual_marker_positions = ...
     
     % left shoulder
     T_reference_wcs_to_torso_mcs = transformations_reference{strcmp(segment_labels, 'torso')}^(-1);
-    lshoulder_cor_reference_wcs = extractMarkerTrajectories(virtual_marker_reference, virtual_marker_headers, 'LSHOULDERCOR')';
+    lshoulder_cor_reference_wcs = extractMarkerTrajectories(joint_center_reference, joint_center_headers, 'LSHOULDERCOR')';
     lshoulder_cor_torso_mcs = eye(3, 4) * T_reference_wcs_to_torso_mcs * [lshoulder_cor_reference_wcs; 1];
     T_current_torso_mcs_to_wcs = transformations_current{strcmp(segment_labels, 'torso')};
     lshoulder_cor_current_wcs = eye(3, 4) * T_current_torso_mcs_to_wcs * [lshoulder_cor_torso_mcs; 1];
     
     % right shoulder
     T_reference_wcs_to_torso_mcs = transformations_reference{strcmp(segment_labels, 'torso')}^(-1);
-    rshoulder_cor_reference_wcs = extractMarkerTrajectories(virtual_marker_reference, virtual_marker_headers, 'RSHOULDERCOR')';
+    rshoulder_cor_reference_wcs = extractMarkerTrajectories(joint_center_reference, joint_center_headers, 'RSHOULDERCOR')';
     rshoulder_cor_torso_mcs = eye(3, 4) * T_reference_wcs_to_torso_mcs * [rshoulder_cor_reference_wcs; 1];
     T_current_torso_mcs_to_wcs = transformations_current{strcmp(segment_labels, 'torso')};
     rshoulder_cor_current_wcs = eye(3, 4) * T_current_torso_mcs_to_wcs * [rshoulder_cor_torso_mcs; 1];
     
     % left wrist
     T_reference_wcs_to_hand_mcs = transformations_reference{strcmp(segment_labels, 'left hand')}^(-1);
-    lwrist_cor_reference_wcs = extractMarkerTrajectories(virtual_marker_reference, virtual_marker_headers, 'LWRISTCOR')';
+    lwrist_cor_reference_wcs = extractMarkerTrajectories(joint_center_reference, joint_center_headers, 'LWRISTCOR')';
     lwrist_cor_hand_mcs = eye(3, 4) * T_reference_wcs_to_hand_mcs * [lwrist_cor_reference_wcs; 1];
     T_current_hand_mcs_to_wcs = transformations_current{strcmp(segment_labels, 'left hand')};
     lwrist_cor_current_wcs = eye(3, 4) * T_current_hand_mcs_to_wcs * [lwrist_cor_hand_mcs; 1];
     
     % right wrist
     T_reference_wcs_to_hand_mcs = transformations_reference{strcmp(segment_labels, 'right hand')}^(-1);
-    rwrist_cor_reference_wcs = extractMarkerTrajectories(virtual_marker_reference, virtual_marker_headers, 'RWRISTCOR')';
+    rwrist_cor_reference_wcs = extractMarkerTrajectories(joint_center_reference, joint_center_headers, 'RWRISTCOR')';
     rwrist_cor_hand_mcs = eye(3, 4) * T_reference_wcs_to_hand_mcs * [rwrist_cor_reference_wcs; 1];
     T_current_hand_mcs_to_wcs = transformations_current{strcmp(segment_labels, 'right hand')};
     rwrist_cor_current_wcs = eye(3, 4) * T_current_hand_mcs_to_wcs * [rwrist_cor_hand_mcs; 1];
     
     % lumbar
     T_reference_wcs_to_pelvis_mcs = transformations_reference{strcmp(segment_labels, 'pelvis')}^(-1);
-    lumbar_cor_reference_wcs = extractMarkerTrajectories(virtual_marker_reference, virtual_marker_headers, 'LUMBARCOR')';
+    lumbar_cor_reference_wcs = extractMarkerTrajectories(joint_center_reference, joint_center_headers, 'LUMBARCOR')';
     lumbar_cor_pelvis_mcs = eye(3, 4) * T_reference_wcs_to_pelvis_mcs * [lumbar_cor_reference_wcs; 1];
     T_current_pelvis_mcs_to_wcs = transformations_current{strcmp(segment_labels, 'pelvis')};
     lumbar_cor_current_wcs_from_pelvis = eye(3, 4) * T_current_pelvis_mcs_to_wcs * [lumbar_cor_pelvis_mcs; 1];
     
     T_reference_wcs_to_torso_mcs = transformations_reference{strcmp(segment_labels, 'torso')}^(-1);
-    lumbar_cor_reference_wcs = extractMarkerTrajectories(virtual_marker_reference, virtual_marker_headers, 'LUMBARCOR')';
+    lumbar_cor_reference_wcs = extractMarkerTrajectories(joint_center_reference, joint_center_headers, 'LUMBARCOR')';
     lumbar_cor_torso_mcs = eye(3, 4) * T_reference_wcs_to_torso_mcs * [lumbar_cor_reference_wcs; 1];
     T_current_torso_mcs_to_wcs = transformations_current{strcmp(segment_labels, 'torso')};
     lumbar_cor_current_wcs_from_torso = eye(3, 4) * T_current_torso_mcs_to_wcs * [lumbar_cor_torso_mcs; 1];
@@ -117,37 +100,37 @@ function virtual_marker_positions = ...
     
     % left hip
     T_reference_wcs_to_pelvis_mcs = transformations_reference{strcmp(segment_labels, 'pelvis')}^(-1);
-    lhip_cor_reference_wcs = extractMarkerTrajectories(virtual_marker_reference, virtual_marker_headers, 'LHIPCOR')';
+    lhip_cor_reference_wcs = extractMarkerTrajectories(joint_center_reference, joint_center_headers, 'LHIPCOR')';
     lhip_cor_pelvis_mcs = eye(3, 4) * T_reference_wcs_to_pelvis_mcs * [lhip_cor_reference_wcs; 1];
     T_current_pelvis_mcs_to_wcs = transformations_current{strcmp(segment_labels, 'pelvis')};
     lhip_cor_current_wcs = eye(3, 4) * T_current_pelvis_mcs_to_wcs * [lhip_cor_pelvis_mcs; 1];
     
     % right hip
     T_reference_wcs_to_pelvis_mcs = transformations_reference{strcmp(segment_labels, 'pelvis')}^(-1);
-    rhip_cor_reference_wcs = extractMarkerTrajectories(virtual_marker_reference, virtual_marker_headers, 'RHIPCOR')';
+    rhip_cor_reference_wcs = extractMarkerTrajectories(joint_center_reference, joint_center_headers, 'RHIPCOR')';
     rhip_cor_pelvis_mcs = eye(3, 4) * T_reference_wcs_to_pelvis_mcs * [rhip_cor_reference_wcs; 1];
     T_current_pelvis_mcs_to_wcs = transformations_current{strcmp(segment_labels, 'pelvis')};
     rhip_cor_current_wcs = eye(3, 4) * T_current_pelvis_mcs_to_wcs * [rhip_cor_pelvis_mcs; 1];
         
     % left ankle
     T_reference_wcs_to_foot_mcs = transformations_reference{strcmp(segment_labels, 'left foot')}^(-1);
-    lankle_cor_reference_wcs = extractMarkerTrajectories(virtual_marker_reference, virtual_marker_headers, 'LANKLECOR')';
+    lankle_cor_reference_wcs = extractMarkerTrajectories(joint_center_reference, joint_center_headers, 'LANKLECOR')';
     lankle_cor_foot_mcs = eye(3, 4) * T_reference_wcs_to_foot_mcs * [lankle_cor_reference_wcs; 1];
     T_current_foot_mcs_to_wcs = transformations_current{strcmp(segment_labels, 'left foot')};
     lankle_cor_current_wcs = eye(3, 4) * T_current_foot_mcs_to_wcs * [lankle_cor_foot_mcs; 1];
     
     % right ankle
     T_reference_wcs_to_foot_mcs = transformations_reference{strcmp(segment_labels, 'right foot')}^(-1);
-    rankle_cor_reference_wcs = extractMarkerTrajectories(virtual_marker_reference, virtual_marker_headers, 'RANKLECOR')';
+    rankle_cor_reference_wcs = extractMarkerTrajectories(joint_center_reference, joint_center_headers, 'RANKLECOR')';
     rankle_cor_foot_mcs = eye(3, 4) * T_reference_wcs_to_foot_mcs * [rankle_cor_reference_wcs; 1];
     T_current_foot_mcs_to_wcs = transformations_current{strcmp(segment_labels, 'right foot')};
     rankle_cor_current_wcs = eye(3, 4) * T_current_foot_mcs_to_wcs * [rankle_cor_foot_mcs; 1];
     
     % left elbow
     LELB_reference = extractMarkerTrajectories(marker_reference, marker_headers, 'LELB')';
-    LSHOULDERCOR_reference = extractMarkerTrajectories(virtual_marker_reference, virtual_marker_headers, 'LSHOULDERCOR')';
-    LELBOWCOR_reference = extractMarkerTrajectories(virtual_marker_reference, virtual_marker_headers, 'LELBOWCOR')';
-    LWRISTCOR_reference = extractMarkerTrajectories(virtual_marker_reference, virtual_marker_headers, 'LWRISTCOR')';
+    LSHOULDERCOR_reference = extractMarkerTrajectories(joint_center_reference, joint_center_headers, 'LSHOULDERCOR')';
+    LELBOWCOR_reference = extractMarkerTrajectories(joint_center_reference, joint_center_headers, 'LELBOWCOR')';
+    LWRISTCOR_reference = extractMarkerTrajectories(joint_center_reference, joint_center_headers, 'LWRISTCOR')';
     LELB_current = extractMarkerTrajectories(marker_positions, marker_headers, 'LELB')';
     r_marker = norm(LELB_reference - LELBOWCOR_reference);
     r_shoulder = norm(LELB_reference - LSHOULDERCOR_reference);
@@ -156,9 +139,9 @@ function virtual_marker_positions = ...
     
     % right elbow
     RELB_reference = extractMarkerTrajectories(marker_reference, marker_headers, 'RELB')';
-    RSHOULDERCOR_reference = extractMarkerTrajectories(virtual_marker_reference, virtual_marker_headers, 'RSHOULDERCOR')';
-    RELBOWCOR_reference = extractMarkerTrajectories(virtual_marker_reference, virtual_marker_headers, 'RELBOWCOR')';
-    RWRISTCOR_reference = extractMarkerTrajectories(virtual_marker_reference, virtual_marker_headers, 'RWRISTCOR')';
+    RSHOULDERCOR_reference = extractMarkerTrajectories(joint_center_reference, joint_center_headers, 'RSHOULDERCOR')';
+    RELBOWCOR_reference = extractMarkerTrajectories(joint_center_reference, joint_center_headers, 'RELBOWCOR')';
+    RWRISTCOR_reference = extractMarkerTrajectories(joint_center_reference, joint_center_headers, 'RWRISTCOR')';
     RELB_current = extractMarkerTrajectories(marker_positions, marker_headers, 'RELB')';
     r_marker = norm(RELB_reference - RELBOWCOR_reference);
     r_shoulder = norm(RELB_reference - RSHOULDERCOR_reference);
@@ -167,9 +150,9 @@ function virtual_marker_positions = ...
 
 %     % left knee
 %     LKNE_reference = extractMarkerTrajectories(marker_reference, marker_headers, 'LKNE')';
-%     LHIPCOR_reference = extractMarkerTrajectories(virtual_marker_reference, virtual_marker_headers, 'LHIPCOR')';
-%     LKNEECOR_reference = extractMarkerTrajectories(virtual_marker_reference, virtual_marker_headers, 'LKNEECOR')';
-%     LANKLECOR_reference = extractMarkerTrajectories(virtual_marker_reference, virtual_marker_headers, 'LANKLECOR')';
+%     LHIPCOR_reference = extractMarkerTrajectories(joint_center_reference, joint_center_headers, 'LHIPCOR')';
+%     LKNEECOR_reference = extractMarkerTrajectories(joint_center_reference, joint_center_headers, 'LKNEECOR')';
+%     LANKLECOR_reference = extractMarkerTrajectories(joint_center_reference, joint_center_headers, 'LANKLECOR')';
 %     LKNE_current = extractMarkerTrajectories(marker_positions, marker_headers, 'LKNE')';
 %     r_marker = norm(LKNE_reference - LKNEECOR_reference);
 %     r_hip = norm(LKNE_reference - LHIPCOR_reference);
@@ -178,9 +161,9 @@ function virtual_marker_positions = ...
 %     
 %     % right knee
 %     RKNE_reference = extractMarkerTrajectories(marker_reference, marker_headers, 'RKNE')';
-%     RHIPCOR_reference = extractMarkerTrajectories(virtual_marker_reference, virtual_marker_headers, 'RHIPCOR')';
-%     RKNEECOR_reference = extractMarkerTrajectories(virtual_marker_reference, virtual_marker_headers, 'RKNEECOR')';
-%     RANKLECOR_reference = extractMarkerTrajectories(virtual_marker_reference, virtual_marker_headers, 'RANKLECOR')';
+%     RHIPCOR_reference = extractMarkerTrajectories(joint_center_reference, joint_center_headers, 'RHIPCOR')';
+%     RKNEECOR_reference = extractMarkerTrajectories(joint_center_reference, joint_center_headers, 'RKNEECOR')';
+%     RANKLECOR_reference = extractMarkerTrajectories(joint_center_reference, joint_center_headers, 'RANKLECOR')';
 %     RKNE_current = extractMarkerTrajectories(marker_positions, marker_headers, 'RKNE')';
 %     r_marker = norm(RKNE_reference - RKNEECOR_reference);
 %     r_hip = norm(RKNE_reference - RHIPCOR_reference);
@@ -196,7 +179,7 @@ function virtual_marker_positions = ...
     lknee_axis_direction = normVector(lankle_cor_current_wcs - LANK_current);
     LKNE_current = extractMarkerTrajectories(marker_positions, marker_headers, 'LKNE')';
     LKNE_reference = extractMarkerTrajectories(marker_reference, marker_headers, 'LKNE')';
-    LKNEECOR_reference = extractMarkerTrajectories(virtual_marker_reference, virtual_marker_headers, 'LKNEECOR')';
+    LKNEECOR_reference = extractMarkerTrajectories(joint_center_reference, joint_center_headers, 'LKNEECOR')';
     lknee_cor_to_marker = norm(LKNE_reference - LKNEECOR_reference);
     lknee_cor_current_wcs = LKNE_current + lknee_cor_to_marker * lknee_axis_direction;
     
@@ -205,14 +188,14 @@ function virtual_marker_positions = ...
     rknee_axis_direction = normVector(rankle_cor_current_wcs - RANK_current);
     RKNE_current = extractMarkerTrajectories(marker_positions, marker_headers, 'RKNE')';
     RKNE_reference = extractMarkerTrajectories(marker_reference, marker_headers, 'RKNE')';
-    RKNEECOR_reference = extractMarkerTrajectories(virtual_marker_reference, virtual_marker_headers, 'RKNEECOR')';
+    RKNEECOR_reference = extractMarkerTrajectories(joint_center_reference, joint_center_headers, 'RKNEECOR')';
     rknee_cor_to_marker = norm(RKNE_reference - RKNEECOR_reference);
     rknee_cor_current_wcs = RKNE_current + rknee_cor_to_marker * rknee_axis_direction;
     
     
     
     % combine results
-    virtual_marker_positions = ...
+    joint_center_positions = ...
       [ ...
         cervix_cor_current_wcs' ...
         lshoulder_cor_current_wcs' ...
