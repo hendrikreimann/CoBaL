@@ -107,7 +107,8 @@ classdef stepEventController < handle
             [~, index_mocap] = min(abs(this.trial_data.time_mocap - this.trial_data.selected_time));
             marker_data = this.trial_data.marker_positions(index_mocap, :);
             joint_center_data = this.trial_data.joint_center_positions(index_mocap, :);
-            this.scene_figure.update([marker_data joint_center_data]);
+            com_data = this.trial_data.com_positions(index_mocap, :);
+            this.scene_figure.update([marker_data joint_center_data com_data]);
             
             this.selected_time_edit.String = num2str(this.trial_data.selected_time);
         end
@@ -159,6 +160,8 @@ classdef stepEventController < handle
                     this.trial_data.stepSelectedTime('back')
                 elseif strcmp(eventdata.Modifier, 'shift')
                     this.trial_data.stepSelectedTime('back', 5)
+                elseif strcmp(eventdata.Modifier, 'alt')
+                    this.trial_data.stepSelectedTime('back', 25)
                 end
                 this.updateSelectedTime();
             elseif strcmp(eventdata.Key, 'rightarrow')
@@ -166,6 +169,8 @@ classdef stepEventController < handle
                     this.trial_data.stepSelectedTime('forward')
                 elseif strcmp(eventdata.Modifier, 'shift')
                     this.trial_data.stepSelectedTime('forward', 5)
+                elseif strcmp(eventdata.Modifier, 'alt')
+                    this.trial_data.stepSelectedTime('forward', 25)
                 end
                 this.updateSelectedTime();
             elseif strcmp(eventdata.Key, 'z') || strcmp(eventdata.Key, 'c')

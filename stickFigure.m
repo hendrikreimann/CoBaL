@@ -123,6 +123,7 @@ classdef stickFigure < handle
                   )
             end
             
+            if false
 %             % update virtual marker positions
 %             for i_marker = 1 : this.number_of_virtual_markers
 %                 set ...
@@ -288,7 +289,7 @@ classdef stickFigure < handle
 %                     set(this.marker_connection_plots(i_line), 'visible', 'off');
 %                 end
 %             end
-            
+            end
             
         end
         function setMiscellaneousPlotColor(this, index, color)
@@ -308,64 +309,112 @@ classdef stickFigure < handle
                 green = [0 1 0];
                 blue = [0 0 1];
                 
+                marker_marker_style = '*';
+                marker_marker_size = 3;
+                
+                joint_center_marker_style = 'd';
+                joint_center_marker_size = 9;
+                joint_center_color = 'c';
+                
+                com_marker_style = 'o';
+                com_marker_size = 8;
+                com_color = [1 0.5 0];
+                
+                
                 % head
-                this.setMarkerColor(find(strcmp(this.marker_labels, 'LFHD')), red);
-                this.setMarkerColor(find(strcmp(this.marker_labels, 'RFHD')), green);
-                this.setMarkerColor(find(strcmp(this.marker_labels, 'LBHD')), red);
-                this.setMarkerColor(find(strcmp(this.marker_labels, 'RBHD')), green);
+                set(this.marker_plots{find(strcmp(this.marker_labels, 'LFHD'))}, 'color', red, 'marker', marker_marker_style, 'markersize', marker_marker_size);
+                set(this.marker_plots{find(strcmp(this.marker_labels, 'RFHD'))}, 'color', green, 'marker', marker_marker_style, 'markersize', marker_marker_size);
+                set(this.marker_plots{find(strcmp(this.marker_labels, 'LBHD'))}, 'color', red, 'marker', marker_marker_style, 'markersize', marker_marker_size);
+                set(this.marker_plots{find(strcmp(this.marker_labels, 'RBHD'))}, 'color', green, 'marker', marker_marker_style, 'markersize', marker_marker_size);
                 
                 % torso
-                this.setMarkerColor(find(strcmp(this.marker_labels, 'C7')), blue);
-                this.setMarkerColor(find(strcmp(this.marker_labels, 'T10')), blue);
-                this.setMarkerColor(find(strcmp(this.marker_labels, 'RBAK')), blue);
-                this.setMarkerColor(find(strcmp(this.marker_labels, 'CLAV')), blue);
-                this.setMarkerColor(find(strcmp(this.marker_labels, 'STRN')), blue);
-                this.setMarkerColor(find(strcmp(this.marker_labels, 'LSHO')), red);
-                this.setMarkerColor(find(strcmp(this.marker_labels, 'RSHO')), green);
-                
+                set(this.marker_plots{find(strcmp(this.marker_labels, 'C7'))}, 'color', blue, 'marker', marker_marker_style, 'markersize', marker_marker_size);
+                set(this.marker_plots{find(strcmp(this.marker_labels, 'T10'))}, 'color', blue, 'marker', marker_marker_style, 'markersize', marker_marker_size);
+                set(this.marker_plots{find(strcmp(this.marker_labels, 'RBAK'))}, 'color', blue, 'marker', marker_marker_style, 'markersize', marker_marker_size);
+                set(this.marker_plots{find(strcmp(this.marker_labels, 'CLAV'))}, 'color', blue, 'marker', marker_marker_style, 'markersize', marker_marker_size);
+                set(this.marker_plots{find(strcmp(this.marker_labels, 'STRN'))}, 'color', blue, 'marker', marker_marker_style, 'markersize', marker_marker_size);
+                set(this.marker_plots{find(strcmp(this.marker_labels, 'LSHO'))}, 'color', red, 'marker', marker_marker_style, 'markersize', marker_marker_size);
+                set(this.marker_plots{find(strcmp(this.marker_labels, 'RSHO'))}, 'color', green, 'marker', marker_marker_style, 'markersize', marker_marker_size);
+
                 % left arm
-                this.setMarkerColor(find(strcmp(this.marker_labels, 'LUPA')), red);
-                this.setMarkerColor(find(strcmp(this.marker_labels, 'LELB')), red);
-                this.setMarkerColor(find(strcmp(this.marker_labels, 'LFRM')), red);
-                this.setMarkerColor(find(strcmp(this.marker_labels, 'LWRA')), red);
-                this.setMarkerColor(find(strcmp(this.marker_labels, 'LWRB')), red);
-                this.setMarkerColor(find(strcmp(this.marker_labels, 'LFIN')), red);
-                
+                set(this.marker_plots{find(strcmp(this.marker_labels, 'LUPA'))}, 'color', red, 'marker', marker_marker_style, 'markersize', marker_marker_size);
+                set(this.marker_plots{find(strcmp(this.marker_labels, 'LELB'))}, 'color', red, 'marker', marker_marker_style, 'markersize', marker_marker_size);
+                set(this.marker_plots{find(strcmp(this.marker_labels, 'LFRM'))}, 'color', red, 'marker', marker_marker_style, 'markersize', marker_marker_size);
+                set(this.marker_plots{find(strcmp(this.marker_labels, 'LWRA'))}, 'color', red, 'marker', marker_marker_style, 'markersize', marker_marker_size);
+                set(this.marker_plots{find(strcmp(this.marker_labels, 'LWRB'))}, 'color', red, 'marker', marker_marker_style, 'markersize', marker_marker_size);
+                set(this.marker_plots{find(strcmp(this.marker_labels, 'LFIN'))}, 'color', red, 'marker', marker_marker_style, 'markersize', marker_marker_size);
+
                 % right arm
-                this.setMarkerColor(find(strcmp(this.marker_labels, 'RUPA')), green);
-                this.setMarkerColor(find(strcmp(this.marker_labels, 'RELB')), green);
-                this.setMarkerColor(find(strcmp(this.marker_labels, 'RFRM')), green);
-                this.setMarkerColor(find(strcmp(this.marker_labels, 'RWRA')), green);
-                this.setMarkerColor(find(strcmp(this.marker_labels, 'RWRB')), green);
-                this.setMarkerColor(find(strcmp(this.marker_labels, 'RFIN')), green);
-                
+                set(this.marker_plots{find(strcmp(this.marker_labels, 'RUPA'))}, 'color', green, 'marker', marker_marker_style, 'markersize', marker_marker_size);
+                set(this.marker_plots{find(strcmp(this.marker_labels, 'RELB'))}, 'color', green, 'marker', marker_marker_style, 'markersize', marker_marker_size);
+                set(this.marker_plots{find(strcmp(this.marker_labels, 'RFRM'))}, 'color', green, 'marker', marker_marker_style, 'markersize', marker_marker_size);
+                set(this.marker_plots{find(strcmp(this.marker_labels, 'RWRA'))}, 'color', green, 'marker', marker_marker_style, 'markersize', marker_marker_size);
+                set(this.marker_plots{find(strcmp(this.marker_labels, 'RWRB'))}, 'color', green, 'marker', marker_marker_style, 'markersize', marker_marker_size);
+                set(this.marker_plots{find(strcmp(this.marker_labels, 'RFIN'))}, 'color', green, 'marker', marker_marker_style, 'markersize', marker_marker_size);
+
                 % pelvis
-                this.setMarkerColor(find(strcmp(this.marker_labels, 'LASI')), red);
-                this.setMarkerColor(find(strcmp(this.marker_labels, 'RASI')), green);
-                this.setMarkerColor(find(strcmp(this.marker_labels, 'LPSI')), red);
-                this.setMarkerColor(find(strcmp(this.marker_labels, 'RPSI')), green);
-                
+                set(this.marker_plots{find(strcmp(this.marker_labels, 'LASI'))}, 'color', red, 'marker', marker_marker_style, 'markersize', marker_marker_size);
+                set(this.marker_plots{find(strcmp(this.marker_labels, 'RASI'))}, 'color', green, 'marker', marker_marker_style, 'markersize', marker_marker_size);
+                set(this.marker_plots{find(strcmp(this.marker_labels, 'LPSI'))}, 'color', red, 'marker', marker_marker_style, 'markersize', marker_marker_size);
+                set(this.marker_plots{find(strcmp(this.marker_labels, 'RPSI'))}, 'color', green, 'marker', marker_marker_style, 'markersize', marker_marker_size);
+
                 % left leg
-                this.setMarkerColor(find(strcmp(this.marker_labels, 'LTHI')), red);
-                this.setMarkerColor(find(strcmp(this.marker_labels, 'LTHIA')), red);
-                this.setMarkerColor(find(strcmp(this.marker_labels, 'LKNE')), red);
-                this.setMarkerColor(find(strcmp(this.marker_labels, 'LTIB')), red);
-                this.setMarkerColor(find(strcmp(this.marker_labels, 'LTIBA')), red);
-                this.setMarkerColor(find(strcmp(this.marker_labels, 'LANK')), red);
-                this.setMarkerColor(find(strcmp(this.marker_labels, 'LHEE')), red);
-                this.setMarkerColor(find(strcmp(this.marker_labels, 'LTOE')), red);
-                this.setMarkerColor(find(strcmp(this.marker_labels, 'LTOEL')), red);
+                set(this.marker_plots{find(strcmp(this.marker_labels, 'LTHI'))}, 'color', red, 'marker', marker_marker_style, 'markersize', marker_marker_size);
+                set(this.marker_plots{find(strcmp(this.marker_labels, 'LTHIA'))}, 'color', red, 'marker', marker_marker_style, 'markersize', marker_marker_size);
+                set(this.marker_plots{find(strcmp(this.marker_labels, 'LKNE'))}, 'color', red, 'marker', marker_marker_style, 'markersize', marker_marker_size);
+                set(this.marker_plots{find(strcmp(this.marker_labels, 'LTIB'))}, 'color', red, 'marker', marker_marker_style, 'markersize', marker_marker_size);
+                set(this.marker_plots{find(strcmp(this.marker_labels, 'LTIBA'))}, 'color', red, 'marker', marker_marker_style, 'markersize', marker_marker_size);
+                set(this.marker_plots{find(strcmp(this.marker_labels, 'LANK'))}, 'color', red, 'marker', marker_marker_style, 'markersize', marker_marker_size);
+                set(this.marker_plots{find(strcmp(this.marker_labels, 'LHEE'))}, 'color', red, 'marker', marker_marker_style, 'markersize', marker_marker_size);
+                set(this.marker_plots{find(strcmp(this.marker_labels, 'LTOE'))}, 'color', red, 'marker', marker_marker_style, 'markersize', marker_marker_size);
+                set(this.marker_plots{find(strcmp(this.marker_labels, 'LTOEL'))}, 'color', red, 'marker', marker_marker_style, 'markersize', marker_marker_size);
                 
                 % right leg
-                this.setMarkerColor(find(strcmp(this.marker_labels, 'RTHI')), green);
-                this.setMarkerColor(find(strcmp(this.marker_labels, 'RTHIA')), green);
-                this.setMarkerColor(find(strcmp(this.marker_labels, 'RKNE')), green);
-                this.setMarkerColor(find(strcmp(this.marker_labels, 'RTIB')), green);
-                this.setMarkerColor(find(strcmp(this.marker_labels, 'RTIBA')), green);
-                this.setMarkerColor(find(strcmp(this.marker_labels, 'RANK')), green);
-                this.setMarkerColor(find(strcmp(this.marker_labels, 'RHEE')), green);
-                this.setMarkerColor(find(strcmp(this.marker_labels, 'RTOE')), green);
-                this.setMarkerColor(find(strcmp(this.marker_labels, 'RTOEL')), green);
+                set(this.marker_plots{find(strcmp(this.marker_labels, 'RTHI'))}, 'color', green, 'marker', marker_marker_style, 'markersize', marker_marker_size);
+                set(this.marker_plots{find(strcmp(this.marker_labels, 'RTHIA'))}, 'color', green, 'marker', marker_marker_style, 'markersize', marker_marker_size);
+                set(this.marker_plots{find(strcmp(this.marker_labels, 'RKNE'))}, 'color', green, 'marker', marker_marker_style, 'markersize', marker_marker_size);
+                set(this.marker_plots{find(strcmp(this.marker_labels, 'RTIB'))}, 'color', green, 'marker', marker_marker_style, 'markersize', marker_marker_size);
+                set(this.marker_plots{find(strcmp(this.marker_labels, 'RTIBA'))}, 'color', green, 'marker', marker_marker_style, 'markersize', marker_marker_size);
+                set(this.marker_plots{find(strcmp(this.marker_labels, 'RANK'))}, 'color', green, 'marker', marker_marker_style, 'markersize', marker_marker_size);
+                set(this.marker_plots{find(strcmp(this.marker_labels, 'RHEE'))}, 'color', green, 'marker', marker_marker_style, 'markersize', marker_marker_size);
+                set(this.marker_plots{find(strcmp(this.marker_labels, 'RTOE'))}, 'color', green, 'marker', marker_marker_style, 'markersize', marker_marker_size);
+                set(this.marker_plots{find(strcmp(this.marker_labels, 'RTOEL'))}, 'color', green, 'marker', marker_marker_style, 'markersize', marker_marker_size);
+                
+                % joint centers
+                set(this.marker_plots{find(strcmp(this.marker_labels, 'CERVIXCOR'))}, 'color', joint_center_color, 'marker', joint_center_marker_style, 'markersize', joint_center_marker_size);
+                set(this.marker_plots{find(strcmp(this.marker_labels, 'LSHOULDERCOR'))}, 'color', joint_center_color, 'marker', joint_center_marker_style, 'markersize', joint_center_marker_size);
+                set(this.marker_plots{find(strcmp(this.marker_labels, 'RSHOULDERCOR'))}, 'color', joint_center_color, 'marker', joint_center_marker_style, 'markersize', joint_center_marker_size);
+                set(this.marker_plots{find(strcmp(this.marker_labels, 'LELBOWCOR'))}, 'color', joint_center_color, 'marker', joint_center_marker_style, 'markersize', joint_center_marker_size);
+                set(this.marker_plots{find(strcmp(this.marker_labels, 'RELBOWCOR'))}, 'color', joint_center_color, 'marker', joint_center_marker_style, 'markersize', joint_center_marker_size);
+                set(this.marker_plots{find(strcmp(this.marker_labels, 'LWRISTCOR'))}, 'color', joint_center_color, 'marker', joint_center_marker_style, 'markersize', joint_center_marker_size);
+                set(this.marker_plots{find(strcmp(this.marker_labels, 'RWRISTCOR'))}, 'color', joint_center_color, 'marker', joint_center_marker_style, 'markersize', joint_center_marker_size);
+                set(this.marker_plots{find(strcmp(this.marker_labels, 'LUMBARCOR'))}, 'color', joint_center_color, 'marker', joint_center_marker_style, 'markersize', joint_center_marker_size);
+                set(this.marker_plots{find(strcmp(this.marker_labels, 'LHIPCOR'))}, 'color', joint_center_color, 'marker', joint_center_marker_style, 'markersize', joint_center_marker_size);
+                set(this.marker_plots{find(strcmp(this.marker_labels, 'RHIPCOR'))}, 'color', joint_center_color, 'marker', joint_center_marker_style, 'markersize', joint_center_marker_size);
+                set(this.marker_plots{find(strcmp(this.marker_labels, 'LKNEECOR'))}, 'color', joint_center_color, 'marker', joint_center_marker_style, 'markersize', joint_center_marker_size);
+                set(this.marker_plots{find(strcmp(this.marker_labels, 'RKNEECOR'))}, 'color', joint_center_color, 'marker', joint_center_marker_style, 'markersize', joint_center_marker_size);
+                set(this.marker_plots{find(strcmp(this.marker_labels, 'LANKLECOR'))}, 'color', joint_center_color, 'marker', joint_center_marker_style, 'markersize', joint_center_marker_size);
+                set(this.marker_plots{find(strcmp(this.marker_labels, 'RANKLECOR'))}, 'color', joint_center_color, 'marker', joint_center_marker_style, 'markersize', joint_center_marker_size);
+    
+                % segment CoMs
+                set(this.marker_plots{find(strcmp(this.marker_labels, 'HEADCOM'))}, 'color', lightenColor(com_color, 0.5), 'marker', com_marker_style, 'markersize', com_marker_size, 'markerfacecolor', lightenColor(com_color, 0.5));
+                set(this.marker_plots{find(strcmp(this.marker_labels, 'TORSOCOM'))}, 'color', lightenColor(com_color, 0.5), 'marker', com_marker_style, 'markersize', com_marker_size, 'markerfacecolor', lightenColor(com_color, 0.5));
+                set(this.marker_plots{find(strcmp(this.marker_labels, 'LUPPERARMCOM'))}, 'color', lightenColor(com_color, 0.5), 'marker', com_marker_style, 'markersize', com_marker_size, 'markerfacecolor', lightenColor(com_color, 0.5));
+                set(this.marker_plots{find(strcmp(this.marker_labels, 'RUPPERARMCOM'))}, 'color', lightenColor(com_color, 0.5), 'marker', com_marker_style, 'markersize', com_marker_size, 'markerfacecolor', lightenColor(com_color, 0.5));
+                set(this.marker_plots{find(strcmp(this.marker_labels, 'LFOREARMCOM'))}, 'color', lightenColor(com_color, 0.5), 'marker', com_marker_style, 'markersize', com_marker_size, 'markerfacecolor', lightenColor(com_color, 0.5));
+                set(this.marker_plots{find(strcmp(this.marker_labels, 'RFOREARMCOM'))}, 'color', lightenColor(com_color, 0.5), 'marker', com_marker_style, 'markersize', com_marker_size, 'markerfacecolor', lightenColor(com_color, 0.5));
+                set(this.marker_plots{find(strcmp(this.marker_labels, 'LHANDCOM'))}, 'color', lightenColor(com_color, 0.5), 'marker', com_marker_style, 'markersize', com_marker_size, 'markerfacecolor', lightenColor(com_color, 0.5));
+                set(this.marker_plots{find(strcmp(this.marker_labels, 'RHANDCOM'))}, 'color', lightenColor(com_color, 0.5), 'marker', com_marker_style, 'markersize', com_marker_size, 'markerfacecolor', lightenColor(com_color, 0.5));
+                set(this.marker_plots{find(strcmp(this.marker_labels, 'PELVISCOM'))}, 'color', lightenColor(com_color, 0.5), 'marker', com_marker_style, 'markersize', com_marker_size, 'markerfacecolor', lightenColor(com_color, 0.5));
+                set(this.marker_plots{find(strcmp(this.marker_labels, 'LTHIGHCOM'))}, 'color', lightenColor(com_color, 0.5), 'marker', com_marker_style, 'markersize', com_marker_size, 'markerfacecolor', lightenColor(com_color, 0.5));
+                set(this.marker_plots{find(strcmp(this.marker_labels, 'RTHIGHCOM'))}, 'color', lightenColor(com_color, 0.5), 'marker', com_marker_style, 'markersize', com_marker_size, 'markerfacecolor', lightenColor(com_color, 0.5));
+                set(this.marker_plots{find(strcmp(this.marker_labels, 'LSHANKCOM'))}, 'color', lightenColor(com_color, 0.5), 'marker', com_marker_style, 'markersize', com_marker_size, 'markerfacecolor', lightenColor(com_color, 0.5));
+                set(this.marker_plots{find(strcmp(this.marker_labels, 'RSHANKCOM'))}, 'color', lightenColor(com_color, 0.5), 'marker', com_marker_style, 'markersize', com_marker_size, 'markerfacecolor', lightenColor(com_color, 0.5));
+                set(this.marker_plots{find(strcmp(this.marker_labels, 'LFOOTCOM'))}, 'color', lightenColor(com_color, 0.5), 'marker', com_marker_style, 'markersize', com_marker_size, 'markerfacecolor', lightenColor(com_color, 0.5));
+                set(this.marker_plots{find(strcmp(this.marker_labels, 'RFOOTCOM'))}, 'color', lightenColor(com_color, 0.5), 'marker', com_marker_style, 'markersize', com_marker_size, 'markerfacecolor', lightenColor(com_color, 0.5));
+                
+                % body CoM
+                set(this.marker_plots{find(strcmp(this.marker_labels, 'BODYCOM'))}, 'color', com_color, 'marker', com_marker_style, 'markersize', round(com_marker_size*1.5), 'markerfacecolor', com_color);
             else
                 error('color scheme not recognized, options are "default", "extended plug-in gait".')
             end
@@ -485,6 +534,9 @@ classdef stickFigure < handle
         end
         function setMarkerColor(this, marker_index, color)
             set(this.marker_plots{marker_index}, 'color', color);
+        end
+        function setMarkerStyle(this, marker_index, style)
+            set(this.marker_plots{marker_index}, 'marker', style);
         end
         function color = getMarkerColor(this, joint_index, marker_index)
             if joint_index == 0
