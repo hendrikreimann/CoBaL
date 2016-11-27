@@ -72,10 +72,18 @@ function stepEventGui(varargin)
     heel_center_ap = mean([trial_data.left_heel_y_pos(1) trial_data.right_heel_y_pos(1)]);
     scene_bound = [-1 1; heel_center_ap+[-1 1]; -0.05 1.95];
 
-    marker_positions = [trial_data.marker_positions(1, :), trial_data.joint_center_positions(1, :), trial_data.com_positions(1, :)];
-    marker_headers = [trial_data.marker_headers, trial_data.joint_center_headers, trial_data.com_headers];
-
-    controller.scene_figure = stickFigure(marker_positions, marker_headers, scene_bound);
+    positions = trial_data.marker_positions(1, :);
+    headers = trial_data.marker_headers;
+    if ~isempty(trial_data.joint_center_positions)
+        positions = [positions trial_data.joint_center_positions(1, :)];
+        headers = [headers trial_data.joint_center_headers(1, :)];
+    end
+    if ~isempty(trial_data.joint_center_positions)
+        positions = [positions trial_data.com_positions(1, :)];
+        headers = [headers trial_data.com_headers(1, :)];
+    end
+    
+    controller.scene_figure = stickFigure(positions, headers, scene_bound);
     controller.scene_figure.setColors('extended plug-in gait');
     controller.scene_figure.addLines('extended plug-in gait');
     
