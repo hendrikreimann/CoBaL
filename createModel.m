@@ -1,14 +1,21 @@
 
+static_reference_type = 'casual';
+% static_reference_type = 'anatomic';
+% static_reference_type = 'motorcycle';
+% static_reference_type = 'ski';
+
 % hip_joint_center_estimation_method = 'SCoRE';
 hip_joint_center_estimation_method = 'Tylkowski';
 
-knee_joint_axis_estimation_method = 'SARA';
-% knee_joint_axis_estimation_method = 'markers';
+% knee_joint_axis_estimation_method = 'SARA';
+knee_joint_axis_estimation_method = 'markers';
 
 create_kinematic_tree                   = 1;
 show_visualization                      = 1;
 
-static_calibration_file_index = 1;
+static_reference_trial_type = 'walking';
+static_reference_file_index = 1;
+
 left_hip_calibration_file_index = 2;
 right_hip_calibration_file_index = 3;
 left_knee_calibration_file_index = 4;
@@ -16,16 +23,22 @@ right_knee_calibration_file_index = 5;
 
 load subjectInfo.mat;
 
-% define these ad hoc. TODO: estimate these from data
-knee_width = 0.08;
-ankle_width = 0.08;
-elbow_width = 0.07;
-head_thickness = 0.2;
+% if width measurements are not available, use best guess
+if knee_width == 0
+    knee_width = 0.07;
+end
+if ankle_width == 0
+    ankle_width = 0.07;
+end
+if elbow_width == 0
+    elbow_width = 0.06;
+end
+
 
 %% create static reference
 
 % load static reference file
-load(['processed' filesep makeFileName(date, subject_id, 'calibration', static_calibration_file_index, 'markerTrajectories')]);
+load(['processed' filesep makeFileName(date, subject_id, static_reference_trial_type, static_reference_file_index, 'markerTrajectories')]);
 
 % find first time step where all markers are available
 i_time = 1;
@@ -120,6 +133,7 @@ distal_direction = - proximal_direction;
 % calculate anatomical landmarks and apply marker and flesh offsets
 centroid_to_skin_correction = 0.0152; % in meters
 skin_to_bone_correction_ASIS = 0.01; % in meters
+skin_to_bone_correction_PSIS = 0.01; % in meters
 c7 = C7_reference + centroid_to_skin_correction * anterior_direction;
 suprasternale = CLAV_reference + centroid_to_skin_correction * posterior_direction;
 left_acromion = LSHO_reference + centroid_to_skin_correction * distal_direction;
@@ -134,6 +148,8 @@ right_acromion = RSHO_reference + centroid_to_skin_correction * distal_direction
 right_lateral_humeral_epicondyle = RELB_reference + centroid_to_skin_correction * distal_direction;
 LASIS = LASI_reference + (centroid_to_skin_correction + skin_to_bone_correction_ASIS) * posterior_direction;
 RASIS = RASI_reference + (centroid_to_skin_correction + skin_to_bone_correction_ASIS) * posterior_direction;
+LPSIS = LPSI_reference + (centroid_to_skin_correction + skin_to_bone_correction_PSIS) * anterior_direction;
+RPSIS = RPSI_reference + (centroid_to_skin_correction + skin_to_bone_correction_PSIS) * anterior_direction;
 left_lateral_femoral_epicondyle = LKNE_reference + centroid_to_skin_correction * right_direction;
 left_lateral_malleolus = LANK_reference + centroid_to_skin_correction * right_direction;
 left_calcaneus = LHEE_reference + centroid_to_skin_correction * anterior_direction;
@@ -142,7 +158,9 @@ right_lateral_femoral_epicondyle = RKNE_reference + centroid_to_skin_correction 
 right_lateral_malleolus = RANK_reference + centroid_to_skin_correction * left_direction;
 right_calcaneus = RHEE_reference + centroid_to_skin_correction * anterior_direction;
 right_toe_mid = RTOE_reference + centroid_to_skin_correction * distal_direction;
-head_vertex = mean([LFHD_reference RFHD_reference LBHD_reference RBHD_reference], 2) + head_thickness/2 * proximal_direction;
+head_width = norm(LFHD_reference - RFHD_reference);
+head_center_to_vertex = head_width; % this is an ad-hoc assumption that seems to work out well in some examples
+head_vertex = mean([LFHD_reference RFHD_reference LBHD_reference RBHD_reference], 2) + head_center_to_vertex * proximal_direction;
 sellion = mean([LFHD_reference RFHD_reference], 2);
 
 % calculate some distances
@@ -206,20 +224,40 @@ if strcmp(hip_joint_center_estimation_method, 'SCoRE')
 
 elseif strcmp(hip_joint_center_estimation_method, 'Tylkowski')
     
+%     hjc_correction_factor_lateral = 0.11; % Tylkowski, after Bell et al., 1990
+%     hjc_correction_factor_distal = 0.12; % Tylkowski, after Bell et al., 1990
+%     hjc_correction_factor_frontal = 0.21; % Tylkowski, after Bell et al., 1990
+%     % estimate hip CoRs
+%     left_hip_cor = LASIS ...
+%                     + hjc_correction_factor_lateral * inter_ASIS_distance * right_direction ...
+%                     + hjc_correction_factor_distal * inter_ASIS_distance * distal_direction ...
+%                     + hjc_correction_factor_frontal * inter_ASIS_distance * posterior_direction;
+%     right_hip_cor = RASIS ...
+%                     + hjc_correction_factor_lateral * inter_ASIS_distance * left_direction ...
+%                     + hjc_correction_factor_distal * inter_ASIS_distance * distal_direction ...
+%                     + hjc_correction_factor_frontal * inter_ASIS_distance * posterior_direction;    
+                
+% not sure where I got these values, but looking at the Bell 1990 paper again, the following seems to make more sense
 
-    hjc_correction_factor_lateral = 0.11; % Tylkowski, after Bell et al., 1990
-    hjc_correction_factor_distal = 0.12; % Tylkowski, after Bell et al., 1990
-    hjc_correction_factor_frontal = 0.21; % Tylkowski, after Bell et al., 1990
+    MASIS = mean([LASIS RASIS], 2);
+    MPSIS = mean([LPSIS RPSIS], 2);
+    z_pelvis = normVector(LASIS - RASIS); % medial-lateral, positive is left
+    x_pelvis = normVector(MPSIS - MASIS); % anterior-posterior, positive is backwards
+    y_pelvis = normVector(cross(z_pelvis, x_pelvis)); % proximal-distal, positive is up
+    
+    hjc_correction_factor_lateral = 0.14; % Tylkowski, after Bell et al., 1990
+    hjc_correction_factor_distal = 0.30; % Tylkowski, after Bell et al., 1990
+    hjc_correction_factor_anterior = 0.19; % Tylkowski, after Bell et al., 1990
 
     % estimate hip CoRs
     left_hip_cor = LASIS ...
-                    + hjc_correction_factor_lateral * inter_ASIS_distance * right_direction ...
-                    + hjc_correction_factor_distal * inter_ASIS_distance * distal_direction ...
-                    + hjc_correction_factor_frontal * inter_ASIS_distance * posterior_direction;
+                    - hjc_correction_factor_lateral * inter_ASIS_distance * z_pelvis ...
+                    - hjc_correction_factor_distal * inter_ASIS_distance * y_pelvis ...
+                    + hjc_correction_factor_anterior * inter_ASIS_distance * x_pelvis;
     right_hip_cor = RASIS ...
-                    + hjc_correction_factor_lateral * inter_ASIS_distance * left_direction ...
-                    + hjc_correction_factor_distal * inter_ASIS_distance * distal_direction ...
-                    + hjc_correction_factor_frontal * inter_ASIS_distance * posterior_direction;    
+                    + hjc_correction_factor_lateral * inter_ASIS_distance * z_pelvis ...
+                    - hjc_correction_factor_distal * inter_ASIS_distance * y_pelvis ...
+                    + hjc_correction_factor_anterior * inter_ASIS_distance * x_pelvis;    
 
 else
     error('hip joint center estimation method not recognized. Options are "SCoRE" or "Tylkowski".');
@@ -361,6 +399,8 @@ right_radioulnar_axis = - normVector(right_wrist_cor - right_elbow_cor);
 left_wrist_inversion_axis = cross(left_wrist_flexion_axis, left_radioulnar_axis);
 right_wrist_inversion_axis = cross(right_wrist_flexion_axis, right_radioulnar_axis);
 
+% TODO: some of these assumptions are not valid for all types of reference configurations
+
 %% define scaling factors
 if strcmp(gender, 'male')
     % mass
@@ -485,8 +525,8 @@ head_scs_x = cross(head_scs_y, head_scs_z);
 
 % left upper arm
 left_arm_scs_y = normVector(left_shoulder_cor - left_elbow_cor);
-left_arm_scs_z = normVector(cross(left_arm_scs_y, left_elbow_axis));
-left_arm_scs_x = cross(left_arm_scs_y, left_arm_scs_z);
+left_arm_scs_x = normVector(cross(left_arm_scs_y, left_elbow_axis));
+left_arm_scs_z = cross(left_arm_scs_y, left_arm_scs_z);
 
 % left lower arm
 left_forearm_scs_y = normVector(left_elbow_cor - left_wrist_cor);
@@ -500,8 +540,8 @@ left_hand_scs_z = normVector(cross(left_hand_scs_x, left_hand_scs_y));
 
 % right upper arm
 right_arm_scs_y = normVector(right_shoulder_cor - right_elbow_cor);
-right_arm_scs_z = normVector(cross(right_arm_scs_y, right_elbow_axis));
-right_arm_scs_x = cross(right_arm_scs_y, right_arm_scs_z);
+right_arm_scs_x = normVector(cross(right_arm_scs_y, right_elbow_axis));
+right_arm_scs_z = cross(right_arm_scs_y, right_arm_scs_z);
 
 % right lower arm
 right_forearm_scs_y = normVector(right_elbow_cor - right_wrist_cor);
@@ -984,7 +1024,8 @@ if create_kinematic_tree
     marker_color_list{strcmp(marker_headers, 'LSHO')} = red;
     marker_color_list{strcmp(marker_headers, 'LUPA')} = red;
     marker_color_list{strcmp(marker_headers, 'LELB')} = red;
-    marker_color_list{strcmp(marker_headers, 'LFRM')} = red;
+    marker_color_list{strcmp(marker_headers, 'LFRA')} = red;
+%     marker_color_list{strcmp(marker_headers, 'LFRM')} = red;
     marker_color_list{strcmp(marker_headers, 'LWRA')} = red;
     marker_color_list{strcmp(marker_headers, 'LWRB')} = red;
     marker_color_list{strcmp(marker_headers, 'LFIN')} = red;
@@ -992,7 +1033,8 @@ if create_kinematic_tree
     marker_color_list{strcmp(marker_headers, 'RSHO')} = green;
     marker_color_list{strcmp(marker_headers, 'RUPA')} = green;
     marker_color_list{strcmp(marker_headers, 'RELB')} = green;
-    marker_color_list{strcmp(marker_headers, 'RFRM')} = green;
+%     marker_color_list{strcmp(marker_headers, 'RFRM')} = green;
+    marker_color_list{strcmp(marker_headers, 'RFRA')} = green;
     marker_color_list{strcmp(marker_headers, 'RWRA')} = green;
     marker_color_list{strcmp(marker_headers, 'RWRB')} = green;
     marker_color_list{strcmp(marker_headers, 'RFIN')} = green;
@@ -1003,24 +1045,24 @@ if create_kinematic_tree
     marker_color_list{strcmp(marker_headers, 'RPSI')} = green;
 
     marker_color_list{strcmp(marker_headers, 'LTHI')} = red;
-    marker_color_list{strcmp(marker_headers, 'LTHIA')} = red;
+%     marker_color_list{strcmp(marker_headers, 'LTHIA')} = red;
     marker_color_list{strcmp(marker_headers, 'LKNE')} = red;
     marker_color_list{strcmp(marker_headers, 'LTIB')} = red;
-    marker_color_list{strcmp(marker_headers, 'LTIBA')} = red;
+%     marker_color_list{strcmp(marker_headers, 'LTIBA')} = red;
     marker_color_list{strcmp(marker_headers, 'LANK')} = red;
     marker_color_list{strcmp(marker_headers, 'LHEE')} = red;
     marker_color_list{strcmp(marker_headers, 'LTOE')} = red;
-    marker_color_list{strcmp(marker_headers, 'LTOEL')} = red;
+%     marker_color_list{strcmp(marker_headers, 'LTOEL')} = red;
 
     marker_color_list{strcmp(marker_headers, 'RTHI')} = green;
-    marker_color_list{strcmp(marker_headers, 'RTHIA')} = green;
+%     marker_color_list{strcmp(marker_headers, 'RTHIA')} = green;
     marker_color_list{strcmp(marker_headers, 'RKNE')} = green;
     marker_color_list{strcmp(marker_headers, 'RTIB')} = green;
-    marker_color_list{strcmp(marker_headers, 'RTIBA')} = green;
+%     marker_color_list{strcmp(marker_headers, 'RTIBA')} = green;
     marker_color_list{strcmp(marker_headers, 'RANK')} = green;
     marker_color_list{strcmp(marker_headers, 'RHEE')} = green;
     marker_color_list{strcmp(marker_headers, 'RTOE')} = green;
-    marker_color_list{strcmp(marker_headers, 'RTOEL')} = green;
+%     marker_color_list{strcmp(marker_headers, 'RTOEL')} = green;
 
     number_of_markers = length(markerSegments);
     for i_marker = 1 : number_of_markers
