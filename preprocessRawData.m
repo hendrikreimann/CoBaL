@@ -1,7 +1,7 @@
 function preprocessRawData()
 
     visualize                   = 0;
-    process_emg                 = 0;
+    process_emg                 = 1;
     process_forceplate          = 0;
     process_marker              = 0;
     map_emg_sensors_manually    = 1;
@@ -45,7 +45,7 @@ function preprocessRawData()
             emg_trajectories_filtered_highpass = filtfilt(b_high, a_high, emg_trajectories_filtered_lowpass);
             emg_trajectories_rectified = abs(emg_trajectories_filtered_highpass);
             emg_trajectories = filtfilt(b_final, a_final, emg_trajectories_rectified);
-
+            
             % rectify, then filter
         %     emg_trajectories_rectified = abs(emg_trajectories_raw);
         %     emg_trajectories_filtered_lowpass = filtfilt(b_low, a_low, emg_trajectories_rectified);
@@ -57,7 +57,10 @@ function preprocessRawData()
         %     rms_smooth_window_length_indices = rms_smooth_window_length * sampling_rate_emg;
         %     time_smoothed = rms_gbiomech(time_emg, rms_smooth_window_length_indices, 0, 0);
         %     rms_smoothed = rms_gbiomech(emg_trajectories_rectified(:, 1), rms_smooth_window_length_indices, 0, 0);
-
+            
+            % Determine max EMG reading for each muscle
+            emg_max_trajectories = max(emg_trajectories, [],1);
+            
             if map_emg_sensors_manually
                 lglutmed_sensor_index = 1;
                 ltibiant_sensor_index = 2;
@@ -84,6 +87,7 @@ function preprocessRawData()
               ( ...
                 save_file_name, ...
                 'emg_trajectories', ...
+                'emg_max_trajectories', ...
                 'time_emg', ...
                 'sampling_rate_emg', ...
                 'emg_headers' ...
@@ -100,7 +104,10 @@ function preprocessRawData()
         %         plot(time_emg, emg_trajectories_filtered_lowpass(:, i_channel), 'DisplayName', 'lowpass');
         %         plot(time_emg, emg_trajectories_filtered_highpass(:, i_channel), 'DisplayName', 'highpass');
                 plot(time_emg, emg_trajectories(:, i_channel), 'linewidth', 2, 'DisplayName', 'final');
+                plot([time_emg(1) time_emg(end)], [emg_max_trial(i_channel) emg_max_trial(i_channel)], 'r');
                 legend('toggle');
+                keyboard
+                distFig
             end    
 
 
