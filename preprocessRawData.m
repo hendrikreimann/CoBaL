@@ -2,8 +2,8 @@ function preprocessRawData()
 
     visualize                   = 0;
     process_emg                 = 1;
-    process_forceplate          = 0;
-    process_marker              = 0;
+    process_forceplate          = 1;
+    process_marker              = 1;
     map_emg_sensors_manually    = 1;
     transform_to_belt_space     = 1;
     
@@ -58,9 +58,6 @@ function preprocessRawData()
         %     time_smoothed = rms_gbiomech(time_emg, rms_smooth_window_length_indices, 0, 0);
         %     rms_smoothed = rms_gbiomech(emg_trajectories_rectified(:, 1), rms_smooth_window_length_indices, 0, 0);
             
-            % Determine max EMG reading for each muscle
-            emg_max_trajectories = max(emg_trajectories, [],1);
-            
             if map_emg_sensors_manually
                 lglutmed_sensor_index = 1;
                 ltibiant_sensor_index = 2;
@@ -87,7 +84,6 @@ function preprocessRawData()
               ( ...
                 save_file_name, ...
                 'emg_trajectories', ...
-                'emg_max_trajectories', ...
                 'time_emg', ...
                 'sampling_rate_emg', ...
                 'emg_headers' ...
@@ -106,8 +102,6 @@ function preprocessRawData()
                 plot(time_emg, emg_trajectories(:, i_channel), 'linewidth', 2, 'DisplayName', 'final');
                 plot([time_emg(1) time_emg(end)], [emg_max_trial(i_channel) emg_max_trial(i_channel)], 'r');
                 legend('toggle');
-                keyboard
-                distFig
             end    
 
 
@@ -392,14 +386,6 @@ function preprocessRawData()
     %             right_forceplate_cop_Acw(right_forceplate_low_load_indicator, :) = 0;
     %             total_forceplate_low_load_indicator = copx_trajectory == 0;
     %             total_forceplate_cop_Acw(total_forceplate_low_load_indicator, :) = 0;            
-
-
-
-
-
-
-
-
 
             end
         end

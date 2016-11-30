@@ -4,7 +4,8 @@ function analyzeStimulusResponse(varargin)
     save_data                           = 1;
     use_stance_foot_as_reference        = 0;
     use_mpsi_as_reference               = 1;
-    
+    normalize_emg_mean                  = 0;
+    normalize_emg_peak                  = 1;
     
     % setup analysis pattern - this should be done by editing a file
     process_data_balance                = 1;
@@ -353,8 +354,6 @@ function analyzeStimulusResponse(varargin)
                 if exist(emg_file_name)
                     load(emg_file_name);
                     emg_data_available = 1;
-                    
-                  
                 else
                     emg_data_available = 0;
                 end
@@ -367,14 +366,6 @@ function analyzeStimulusResponse(varargin)
                     rtibiant_trajectory = emg_trajectories(:, strcmp(emg_headers, 'RTIBIANT'));
                     rgastroc_trajectory = emg_trajectories(:, strcmp(emg_headers, 'RGASTROC'));
                     rperolng_trajectory = emg_trajectories(:, strcmp(emg_headers, 'RPEROLNG'));
-                    lglutmed_max_trial = emg_max_trajectories(:,strcmp(emg_headers, 'LGLUTMED'));
-                    ltibiant_max_trial = emg_max_trajectories(:, strcmp(emg_headers, 'LTIBIANT'));
-                    lgastroc_max_trial = emg_max_trajectories(:, strcmp(emg_headers, 'LGASTROC'));
-                    lperolng_max_trial = emg_max_trajectories(:, strcmp(emg_headers, 'LPEROLNG'));
-                    rglutmed_max_trial = emg_max_trajectories(:, strcmp(emg_headers, 'RGLUTMED'));
-                    rtibiant_max_trial = emg_max_trajectories(:, strcmp(emg_headers, 'RTIBIANT'));
-                    rgastroc_max_trial = emg_max_trajectories(:, strcmp(emg_headers, 'RGASTROC'));
-                    rperolng_max_trial = emg_max_trajectories(:, strcmp(emg_headers, 'RPEROLNG'));
                     lglutmed_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
                     ltibiant_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
                     lgastroc_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
@@ -677,8 +668,7 @@ function analyzeStimulusResponse(varargin)
                 trunk_angle_ml_normalized_all = [trunk_angle_ml_normalized_all trunk_angle_ml_normalized_trial];
                 lleg_angle_ml_normalized_all = [lleg_angle_ml_normalized_all lleg_angle_ml_normalized_trial];
                 rleg_angle_ml_normalized_all = [rleg_angle_ml_normalized_all rleg_angle_ml_normalized_trial];
-                
-                
+
             end
 
             if process_data_armswing
@@ -701,19 +691,8 @@ function analyzeStimulusResponse(varargin)
                 rglutmed_normalized_all = [rglutmed_normalized_all rglutmed_normalized_trial];
                 rtibiant_normalized_all = [rtibiant_normalized_all rtibiant_normalized_trial];
                 rgastroc_normalized_all = [rgastroc_normalized_all rgastroc_normalized_trial];
-                rperolng_normalized_all = [rperolng_normalized_all rperolng_normalized_trial];
-                lglutmed_max_all = [lglutmed_max_all lglutmed_max_trial];
-                ltibiant_max_all = [ltibiant_max_all ltibiant_max_trial];
-                lgastroc_max_all = [lgastroc_max_all lgastroc_max_trial];
-                lperolng_max_all = [lperolng_max_all lperolng_max_trial];
-                rglutmed_max_all = [rglutmed_max_all rglutmed_max_trial];
-                rtibiant_max_all = [rtibiant_max_all rtibiant_max_trial];
-                rgastroc_max_all = [rgastroc_max_all rgastroc_max_trial];
-                rperolng_max_all = [rperolng_max_all rperolng_max_trial];
-                
+                rperolng_normalized_all = [rperolng_normalized_all rperolng_normalized_trial];                
             end
-
-
             disp(['Condition ' condition ', Trial ' num2str(i_trial) ' done extracted ' num2str(length(step_times_trial)) ' stretches']);
         end
     end
@@ -777,6 +756,132 @@ function analyzeStimulusResponse(varargin)
     disp(['Number of stimulus stretches: ' num2str(sum(trials_per_condition_to_analyze))]);
     disp(['Number of unassigned stretches: ' num2str(number_of_stretches - sum(trials_per_condition_control) - sum(trials_per_condition_to_analyze))]);
 
+    %% Normalize EMG
+    if (normalize_emg_mean || normalize_emg_peak) && (process_data_emg)
+        if normalize_emg_mean && normalize_emg_peak
+            error('Choose only ONE normalization method at top menu')
+        end
+        % LOAD BASELINE and ASSIGN
+        i_trial = 1;
+        condition = 'emg';
+        load(['processed' filesep makeFileName(date, subject_id, condition, i_trial, 'emgTrajectories')]);
+        lglutmed_baseline_trajectory = emg_trajectories(:, strcmp(emg_headers, 'LGLUTMED'));
+        ltibiant_baseline_trajectory = emg_trajectories(:, strcmp(emg_headers, 'LTIBIANT'));
+        lgastroc_baseline_trajectory = emg_trajectories(:, strcmp(emg_headers, 'LGASTROC'));
+        lperolng_baseline_trajectory = emg_trajectories(:, strcmp(emg_headers, 'LPEROLNG'));
+        rglutmed_baseline_trajectory = emg_trajectories(:, strcmp(emg_headers, 'RGLUTMED'));
+        rtibiant_baseline_trajectory = emg_trajectories(:, strcmp(emg_headers, 'RTIBIANT'));
+        rgastroc_baseline_trajectory = emg_trajectories(:, strcmp(emg_headers, 'RGASTROC'));
+        rperolng_baseline_trajectory = emg_trajectories(:, strcmp(emg_headers, 'RPEROLNG'));
+        
+        % NORMALIZED EMG LOW
+        lglutmed_emg_low = mean(lglutmed_baseline_trajectory,1);
+        ltibiant_emg_low = mean(ltibiant_baseline_trajectory,1);
+        lgastroc_emg_low = mean(lgastroc_baseline_trajectory,1);
+        lperolng_emg_low = mean(lperolng_baseline_trajectory,1);
+        rglutmed_emg_low = mean(rglutmed_baseline_trajectory,1);
+        rtibiant_emg_low = mean(rtibiant_baseline_trajectory,1);
+        rgastroc_emg_low = mean(rgastroc_baseline_trajectory,1);
+        rperolng_emg_low = mean(rperolng_baseline_trajectory,1);
+        
+        % CONTROL MEAN LEFT AND RIGHT
+        % Need to find control indicator and stance foot setup and proper averaging across
+        % all time series
+        lglutmed_control_mean_stanceleft = mean(lglutmed_normalized_all(:,conditions_control_indicators(:,1)),2); 
+        ltibiant_control_mean_stanceleft = mean(ltibiant_normalized_all(:,conditions_control_indicators(:,1)),2);
+        lgastroc_control_mean_stanceleft = mean(lgastroc_normalized_all(:,conditions_control_indicators(:,1)),2);
+        lperolng_control_mean_stanceleft = mean(lperolng_normalized_all(:,conditions_control_indicators(:,1)),2);
+        rglutmed_control_mean_stanceleft = mean(rglutmed_normalized_all(:,conditions_control_indicators(:,1)),2);
+        rtibiant_control_mean_stanceleft = mean(rtibiant_normalized_all(:,conditions_control_indicators(:,1)),2);
+        rgastroc_control_mean_stanceleft = mean(rgastroc_normalized_all(:,conditions_control_indicators(:,1)),2);
+        rperolng_control_mean_stanceleft = mean(rperolng_normalized_all(:,conditions_control_indicators(:,1)),2);  
+
+        lglutmed_control_mean_stanceright = mean(lglutmed_normalized_all(:,conditions_control_indicators(:,2)),2); 
+        ltibiant_control_mean_stanceright = mean(ltibiant_normalized_all(:,conditions_control_indicators(:,2)),2);
+        lgastroc_control_mean_stanceright = mean(lgastroc_normalized_all(:,conditions_control_indicators(:,2)),2);
+        lperolng_control_mean_stanceright = mean(lperolng_normalized_all(:,conditions_control_indicators(:,2)),2);
+        rglutmed_control_mean_stanceright = mean(rglutmed_normalized_all(:,conditions_control_indicators(:,2)),2);
+        rtibiant_control_mean_stanceright = mean(rtibiant_normalized_all(:,conditions_control_indicators(:,2)),2);
+        rgastroc_control_mean_stanceright = mean(rgastroc_normalized_all(:,conditions_control_indicators(:,2)),2);
+        rperolng_control_mean_stanceright = mean(rperolng_normalized_all(:,conditions_control_indicators(:,2)),2);
+
+        if normalize_emg_mean
+            % NORMALIZED EMG HIGH LEFT AND RIGHT
+            % Average across time
+            lglutmed_emg_high_stanceleft = mean(lglutmed_control_mean_stanceleft,1);
+            ltibiant_emg_high_stanceleft = mean(ltibiant_control_mean_stanceleft,1);
+            lgastroc_emg_high_stanceleft = mean(lgastroc_control_mean_stanceleft,1);
+            lperolng_emg_high_stanceleft = mean(lperolng_control_mean_stanceleft,1);
+            rglutmed_emg_high_stanceleft = mean(rglutmed_control_mean_stanceleft,1);
+            rtibiant_emg_high_stanceleft = mean(rtibiant_control_mean_stanceleft,1);
+            rgastroc_emg_high_stanceleft = mean(rgastroc_control_mean_stanceleft,1);
+            rperolng_emg_high_stanceleft = mean(rperolng_control_mean_stanceleft,1);
+
+            lglutmed_emg_high_stanceright = mean(lglutmed_control_mean_stanceright,1);
+            ltibiant_emg_high_stanceright = mean(ltibiant_control_mean_stanceright,1);
+            lgastroc_emg_high_stanceright = mean(lgastroc_control_mean_stanceright,1);
+            lperolng_emg_high_stanceright = mean(lperolng_control_mean_stanceright,1);
+            rglutmed_emg_high_stanceright = mean(rglutmed_control_mean_stanceright,1);
+            rtibiant_emg_high_stanceright = mean(rtibiant_control_mean_stanceright,1);
+            rgastroc_emg_high_stanceright = mean(rgastroc_control_mean_stanceright,1);
+            rperolng_emg_high_stanceright = mean(rperolng_control_mean_stanceright,1);
+
+            % NORMALIZED EMG HIGH
+            % Avg two values for each muscle
+            lglutmed_emg_high = mean([lglutmed_emg_high_stanceleft, lglutmed_emg_high_stanceright]);
+            ltibiant_emg_high = mean([ltibiant_emg_high_stanceleft, ltibiant_emg_high_stanceright]);
+            lgastroc_emg_high = mean([lgastroc_emg_high_stanceleft, lgastroc_emg_high_stanceright]);
+            lperolng_emg_high = mean([lperolng_emg_high_stanceleft, lperolng_emg_high_stanceright]);
+            rglutmed_emg_high = mean([rglutmed_emg_high_stanceleft, rglutmed_emg_high_stanceright]);
+            rtibiant_emg_high = mean([rtibiant_emg_high_stanceleft, rtibiant_emg_high_stanceright]);
+            rgastroc_emg_high = mean([rgastroc_emg_high_stanceleft, rgastroc_emg_high_stanceright]);
+            rperolng_emg_high = mean([rperolng_emg_high_stanceleft, rperolng_emg_high_stanceright]);
+        end
+       
+        if normalize_emg_peak
+            % NORMALIZED EMG HIGH LEFT AND RIGHT
+            % Average across time
+            lglutmed_emg_high_stanceleft = max(lglutmed_control_mean_stanceleft);
+            ltibiant_emg_high_stanceleft = max(ltibiant_control_mean_stanceleft);
+            lgastroc_emg_high_stanceleft = max(lgastroc_control_mean_stanceleft);
+            lperolng_emg_high_stanceleft = max(lperolng_control_mean_stanceleft);
+            rglutmed_emg_high_stanceleft = max(rglutmed_control_mean_stanceleft);
+            rtibiant_emg_high_stanceleft = max(rtibiant_control_mean_stanceleft);
+            rgastroc_emg_high_stanceleft = max(rgastroc_control_mean_stanceleft);
+            rperolng_emg_high_stanceleft = max(rperolng_control_mean_stanceleft);
+
+            lglutmed_emg_high_stanceright = max(lglutmed_control_mean_stanceright);
+            ltibiant_emg_high_stanceright = max(ltibiant_control_mean_stanceright);
+            lgastroc_emg_high_stanceright = max(lgastroc_control_mean_stanceright);
+            lperolng_emg_high_stanceright = max(lperolng_control_mean_stanceright);
+            rglutmed_emg_high_stanceright = max(rglutmed_control_mean_stanceright);
+            rtibiant_emg_high_stanceright = max(rtibiant_control_mean_stanceright);
+            rgastroc_emg_high_stanceright = max(rgastroc_control_mean_stanceright);
+            rperolng_emg_high_stanceright = max(rperolng_control_mean_stanceright);
+
+            % NORMALIZED EMG HIGH
+            % Avg two values for each muscle
+            lglutmed_emg_high = max([lglutmed_emg_high_stanceleft, lglutmed_emg_high_stanceright]);
+            ltibiant_emg_high = max([ltibiant_emg_high_stanceleft, ltibiant_emg_high_stanceright]);
+            lgastroc_emg_high = max([lgastroc_emg_high_stanceleft, lgastroc_emg_high_stanceright]);
+            lperolng_emg_high = max([lperolng_emg_high_stanceleft, lperolng_emg_high_stanceright]);
+            rglutmed_emg_high = max([rglutmed_emg_high_stanceleft, rglutmed_emg_high_stanceright]);
+            rtibiant_emg_high = max([rtibiant_emg_high_stanceleft, rtibiant_emg_high_stanceright]);
+            rgastroc_emg_high = max([rgastroc_emg_high_stanceleft, rgastroc_emg_high_stanceright]);
+            rperolng_emg_high = max([rperolng_emg_high_stanceleft, rperolng_emg_high_stanceright]);
+
+        end
+            % RESCALE TRAJECTORIES
+            lglutmed_normalized_rescaled_all = ((lglutmed_normalized_all - lglutmed_emg_low)/(lglutmed_emg_high - lglutmed_emg_low));
+            ltibiant_normalized_rescaled_all = ((ltibiant_normalized_all - lglutmed_emg_low)/(ltibiant_emg_high - ltibiant_emg_low));
+            lgastroc_normalized_rescaled_all = ((lgastroc_normalized_all - lglutmed_emg_low)/(lgastroc_emg_high - lgastroc_emg_low));
+            lperolng_normalized_rescaled_all = ((lperolng_normalized_all - lglutmed_emg_low)/(lperolng_emg_high - lperolng_emg_low));
+            rglutmed_normalized_rescaled_all = ((rglutmed_normalized_all - lglutmed_emg_low)/(rglutmed_emg_high - rglutmed_emg_low));
+            rtibiant_normalized_rescaled_all = ((rtibiant_normalized_all - lglutmed_emg_low)/(rtibiant_emg_high - rtibiant_emg_low));
+            rgastroc_normalized_rescaled_all = ((rgastroc_normalized_all - lglutmed_emg_low)/(rgastroc_emg_high - rgastroc_emg_low));
+            rperolng_normalized_rescaled_all = ((rperolng_normalized_all - lglutmed_emg_low)/(rperolng_emg_high - rperolng_emg_low));
+    end
+    
     
     %% calculate responses
     if process_data_balance
@@ -912,16 +1017,6 @@ function analyzeStimulusResponse(varargin)
     end
     
     if process_data_emg
-        % calculate percent of max emg
-        lglutmed_normalized_all = lglutmed_normalized_all / max(lglutmed_max_all);
-        ltibiant_normalized_all = ltibiant_normalized_all / max(ltibiant_max_all);
-        lgastroc_normalized_all = lgastroc_normalized_all / max(lgastroc_max_all);
-        lperolng_normalized_all = lperolng_normalized_all / max(lperolng_max_all);
-        rglutmed_normalized_all = rglutmed_normalized_all / max(rglutmed_max_all);
-        rtibiant_normalized_all = rtibiant_normalized_all / max(rtibiant_max_all);
-        rgastroc_normalized_all = rgastroc_normalized_all / max(rgastroc_max_all);
-        rperolng_normalized_all = rperolng_normalized_all / max(rperolng_max_all);
-        
         % calculate control means
         lglutmed_control_means = zeros(number_of_time_steps_normalized, number_of_conditions_control);
         ltibiant_control_means = zeros(number_of_time_steps_normalized, number_of_conditions_control);
@@ -931,6 +1026,17 @@ function analyzeStimulusResponse(varargin)
         rtibiant_control_means = zeros(number_of_time_steps_normalized, number_of_conditions_control);
         rgastroc_control_means = zeros(number_of_time_steps_normalized, number_of_conditions_control);
         rperolng_control_means = zeros(number_of_time_steps_normalized, number_of_conditions_control);
+        
+        if normalize_emg_mean || normalize_emg_peak
+            lglutmed_control_rescaled_means = zeros(number_of_time_steps_normalized, number_of_conditions_control);
+            ltibiant_control_rescaled_means = zeros(number_of_time_steps_normalized, number_of_conditions_control);
+            lgastroc_control_rescaled_means = zeros(number_of_time_steps_normalized, number_of_conditions_control);
+            lperolng_control_rescaled_means = zeros(number_of_time_steps_normalized, number_of_conditions_control);
+            rglutmed_control_rescaled_means = zeros(number_of_time_steps_normalized, number_of_conditions_control);
+            rtibiant_control_rescaled_means = zeros(number_of_time_steps_normalized, number_of_conditions_control);
+            rgastroc_control_rescaled_means = zeros(number_of_time_steps_normalized, number_of_conditions_control);
+            rperolng_control_rescaled_means = zeros(number_of_time_steps_normalized, number_of_conditions_control);
+        end
         
         for i_condition = 1 : number_of_conditions_control
             condition_indicator = conditions_control_indicators(:, i_condition);
@@ -942,6 +1048,17 @@ function analyzeStimulusResponse(varargin)
             rtibiant_control_means(:, i_condition) = mean(rtibiant_normalized_all(:, condition_indicator), 2);
             rgastroc_control_means(:, i_condition) = mean(rgastroc_normalized_all(:, condition_indicator), 2);
             rperolng_control_means(:, i_condition) = mean(rperolng_normalized_all(:, condition_indicator), 2);
+            if normalize_emg_mean || normalize_emg_peak
+                condition_indicator = conditions_control_indicators(:, i_condition);
+                lglutmed_control_rescaled_means(:, i_condition) = mean(lglutmed_normalized_rescaled_all(:, condition_indicator), 2);
+                ltibiant_control_rescaled_means(:, i_condition) = mean(ltibiant_normalized_rescaled_all(:, condition_indicator), 2);
+                lgastroc_control_rescaled_means(:, i_condition) = mean(lgastroc_normalized_rescaled_all(:, condition_indicator), 2);
+                lperolng_control_rescaled_means(:, i_condition) = mean(lperolng_normalized_rescaled_all(:, condition_indicator), 2);
+                rglutmed_control_rescaled_means(:, i_condition) = mean(rglutmed_normalized_rescaled_all(:, condition_indicator), 2);
+                rtibiant_control_rescaled_means(:, i_condition) = mean(rtibiant_normalized_rescaled_all(:, condition_indicator), 2);
+                rgastroc_control_rescaled_means(:, i_condition) = mean(rgastroc_normalized_rescaled_all(:, condition_indicator), 2);
+                rperolng_control_rescaled_means(:, i_condition) = mean(rperolng_normalized_rescaled_all(:, condition_indicator), 2);
+            end
         end
         
         % calculate stimulus responses
@@ -953,20 +1070,42 @@ function analyzeStimulusResponse(varargin)
         rtibiant_response = zeros(size(rtibiant_normalized_all));
         rgastroc_response = zeros(size(rgastroc_normalized_all));
         rperolng_response = zeros(size(rperolng_normalized_all));
-        
-        % Which one to use??? 
-        
-        for i_condition = 1 : number_of_conditions_control
-            condition_indicator = conditions_control_indicators(:, i_condition);
-            lglutmed_response(:, condition_indicator) = lglutmed_normalized_all(:, condition_indicator) - repmat(lglutmed_control_means(:, i_condition), 1, sum(condition_indicator));
-            ltibiant_response(:, condition_indicator) = ltibiant_normalized_all(:, condition_indicator) - repmat(ltibiant_control_means(:, i_condition), 1, sum(condition_indicator));
-            lgastroc_response(:, condition_indicator) = lgastroc_normalized_all(:, condition_indicator) - repmat(lgastroc_control_means(:, i_condition), 1, sum(condition_indicator));
-            lperolng_response(:, condition_indicator) = lperolng_normalized_all(:, condition_indicator) - repmat(lperolng_control_means(:, i_condition), 1, sum(condition_indicator));
-            rglutmed_response(:, condition_indicator) = rglutmed_normalized_all(:, condition_indicator) - repmat(rglutmed_control_means(:, i_condition), 1, sum(condition_indicator));
-            rtibiant_response(:, condition_indicator) = rtibiant_normalized_all(:, condition_indicator) - repmat(rtibiant_control_means(:, i_condition), 1, sum(condition_indicator));
-            rgastroc_response(:, condition_indicator) = rgastroc_normalized_all(:, condition_indicator) - repmat(rgastroc_control_means(:, i_condition), 1, sum(condition_indicator));
-            rperolng_response(:, condition_indicator) = rperolng_normalized_all(:, condition_indicator) - repmat(rperolng_control_means(:, i_condition), 1, sum(condition_indicator));
+        if normalize_emg_mean || normalize_emg_peak
+            lglutmed_rescaled_response = zeros(size(lglutmed_normalized_all));
+            ltibiant_rescaled_response = zeros(size(ltibiant_normalized_all));
+            lgastroc_rescaled_response = zeros(size(lgastroc_normalized_all));
+            lperolng_rescaled_response = zeros(size(lperolng_normalized_all));
+            rglutmed_rescaled_response = zeros(size(rglutmed_normalized_all));
+            rtibiant_rescaled_response = zeros(size(rtibiant_normalized_all));
+            rgastroc_rescaled_response = zeros(size(rgastroc_normalized_all));
+            rperolng_rescaled_response = zeros(size(rperolng_normalized_all));
         end
+        
+        % Which one to use???
+        
+        for i_condition = 1 : number_of_conditions_to_analyze
+            condition_indicator = conditions_to_analyze_indicators(:, i_condition);
+            lglutmed_response(:, condition_indicator) = lglutmed_normalized_all(:, condition_indicator) - repmat(lglutmed_control_means(:,applicable_control_condition_indices(i_condition)), 1, sum(condition_indicator));
+            ltibiant_response(:, condition_indicator) = ltibiant_normalized_all(:, condition_indicator) - repmat(ltibiant_control_means(:,applicable_control_condition_indices(i_condition)), 1, sum(condition_indicator));
+            lgastroc_response(:, condition_indicator) = lgastroc_normalized_all(:, condition_indicator) - repmat(lgastroc_control_means(:,applicable_control_condition_indices(i_condition)), 1, sum(condition_indicator));
+            lperolng_response(:, condition_indicator) = lperolng_normalized_all(:, condition_indicator) - repmat(lperolng_control_means(:,applicable_control_condition_indices(i_condition)), 1, sum(condition_indicator));
+            rglutmed_response(:, condition_indicator) = rglutmed_normalized_all(:, condition_indicator) - repmat(rglutmed_control_means(:,applicable_control_condition_indices(i_condition)), 1, sum(condition_indicator));
+            rtibiant_response(:, condition_indicator) = rtibiant_normalized_all(:, condition_indicator) - repmat(rtibiant_control_means(:,applicable_control_condition_indices(i_condition)), 1, sum(condition_indicator));
+            rgastroc_response(:, condition_indicator) = rgastroc_normalized_all(:, condition_indicator) - repmat(rgastroc_control_means(:,applicable_control_condition_indices(i_condition)), 1, sum(condition_indicator));
+            rperolng_response(:, condition_indicator) = rperolng_normalized_all(:, condition_indicator) - repmat(rperolng_control_means(:,applicable_control_condition_indices(i_condition)), 1, sum(condition_indicator));
+            if normalize_emg_mean || normalize_emg_peak   
+                 condition_indicator = conditions_to_analyze_indicators(:, i_condition);
+                 lglutmed_rescaled_response(:, condition_indicator) = lglutmed_normalized_rescaled_all(:, condition_indicator) - repmat(lglutmed_control_rescaled_means(:,applicable_control_condition_indices(i_condition)), 1, sum(condition_indicator));
+                 ltibiant_rescaled_response(:, condition_indicator) = ltibiant_normalized_rescaled_all(:, condition_indicator) - repmat(ltibiant_control_rescaled_means(:,applicable_control_condition_indices(i_condition)), 1, sum(condition_indicator));
+                 lgastroc_rescaled_response(:, condition_indicator) = lgastroc_normalized_rescaled_all(:, condition_indicator) - repmat(lgastroc_control_rescaled_means(:,applicable_control_condition_indices(i_condition)), 1, sum(condition_indicator));
+                 lperolng_rescaled_response(:, condition_indicator) = lperolng_normalized_rescaled_all(:, condition_indicator) - repmat(lperolng_control_rescaled_means(:,applicable_control_condition_indices(i_condition)), 1, sum(condition_indicator));
+                 rglutmed_rescaled_response(:, condition_indicator) = rglutmed_normalized_rescaled_all(:, condition_indicator) - repmat(rglutmed_control_rescaled_means(:,applicable_control_condition_indices(i_condition)), 1, sum(condition_indicator));
+                 rtibiant_rescaled_response(:, condition_indicator) = rtibiant_normalized_rescaled_all(:, condition_indicator) - repmat(rtibiant_control_rescaled_means(:,applicable_control_condition_indices(i_condition)), 1, sum(condition_indicator));
+                 rgastroc_rescaled_response(:, condition_indicator) = rgastroc_normalized_rescaled_all(:, condition_indicator) - repmat(rgastroc_control_rescaled_means(:,applicable_control_condition_indices(i_condition)), 1, sum(condition_indicator));
+                 rperolng_rescaled_response(:, condition_indicator) = rperolng_normalized_rescaled_all(:, condition_indicator) - repmat(rperolng_control_rescaled_means(:,applicable_control_condition_indices(i_condition)), 1, sum(condition_indicator));
+            end
+        end
+    end
      
 %         for i_condition = 1 : number_of_conditions_to_analyze
 %             condition_indicator = conditions_to_analyze_indicators(:, i_condition);
@@ -980,26 +1119,7 @@ function analyzeStimulusResponse(varargin)
 %             rperolng_response(:, condition_indicator) = rperolng_normalized_all(:, condition_indicator) - repmat(rperolng_control_means(:, applicable_control_condition_indices(i_condition)), 1, sum(condition_indicator));
 %         end    
 
-% cant do this because response is already calculated... response = percent
-% of max difference between response and control
-        % calculate percent emg
-%         lglutmed_response = lglutmed_response / max(lglutmed_max_all);
-%         ltibiant_response = ltibiant_response / max(ltibiant_max_all);
-%         lgastroc_response = lgastroc_response / max(lgastroc_max_all);
-%         lperolng_response = lperolng_response / max(lperolng_max_all);
-%         rglutmed_response = rglutmed_response / max(rglutmed_max_all);
-%         rtibiant_response = rtibiant_response / max(rtibiant_max_all);
-%         rgastroc_resopnse = rgastroc_response / max(rgastroc_max_all);
-%         rperolng_response = rperolng_response / max(rperolng_max_all);
-%         lglutmed_control_means = lglutmed_control_means / max(lglutmed_max_all);  
-%         ltibiant_control_means = ltibiant_control_means / max(ltibiant_max_all);
-%         lgastroc_control_means = lgastroc_control_means / max(lgastroc_max_all);
-%         lperolng_control_means = lperolng_control_means / max(lperolng_max_all);
-%         rglutmed_control_means = rglutmed_control_means / max(rglutmed_max_all);
-%         rtibiant_control_means = rtibiant_control_means / max(rtibiant_max_all);
-%         rgastroc_control_means = rgastroc_control_means / max(rgastroc_max_all);
-%         rperolng_control_means = rperolng_control_means / max(rperolng_max_all);
-    end
+%     end
     
     
     %% save data
@@ -1085,6 +1205,14 @@ function analyzeStimulusResponse(varargin)
                 'rtibiant_normalized_all', ...
                 'rgastroc_normalized_all', ...
                 'rperolng_normalized_all', ...
+                'lglutmed_normalized_rescaled_all', ... 
+                'ltibiant_normalized_rescaled_all', ... 
+                'lgastroc_normalized_rescaled_all', ...
+                'lperolng_normalized_rescaled_all', ... 
+                'rglutmed_normalized_rescaled_all', ...
+                'rtibiant_normalized_rescaled_all', ...
+                'rgastroc_normalized_rescaled_all', ...
+                'rperolng_normalized_rescaled_all', ...
                 'lglutmed_response', ...
                 'ltibiant_response', ...
                 'lgastroc_response', ...
@@ -1092,7 +1220,15 @@ function analyzeStimulusResponse(varargin)
                 'rglutmed_response', ...
                 'rtibiant_response', ...
                 'rgastroc_response', ...
-                'rperolng_response' ...
+                'rperolng_response', ...
+                'lglutmed_rescaled_response', ...
+                'ltibiant_rescaled_response', ...
+                'lgastroc_rescaled_response', ...
+                'lperolng_rescaled_response', ...
+                'rglutmed_rescaled_response', ...
+                'rtibiant_rescaled_response', ...
+                'rgastroc_rescaled_response', ...
+                'rperolng_rescaled_response' ...
                 )
         end    
     end
