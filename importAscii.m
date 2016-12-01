@@ -19,9 +19,10 @@ subject_code = path_split{end};
 % import data
 potential_sources = {'devices', 'labview', 'marker', 'markers', 'ascii'};
 % potential_sources = {'marker', 'markers', 'ascii'};
-potential_sources = {'ascii'};
+% potential_sources = {'ascii'};
 % potential_sources = {'devices'};
 % potential_sources = {'markers'};
+% potential_sources = {'labview'};
 % potential_sources = {'neurocom'};
 for i_source = 1 : length(potential_sources)
     source_dir = [subject_code '_' potential_sources{i_source}];

@@ -77,6 +77,8 @@ function findRelevantDataStretches(varargin)
             
             % XXX this should be replaced with a system where the subject info file stores the available data for each trial
             labview_file_name = ['processed' filesep makeFileName(date, subject_id, condition, i_trial, 'labviewData')];
+% XXX
+% labview_file_name = ['processed' filesep makeFileName(date, subject_id, condition, i_trial, 'labviewTrajectories')];
             if exist([labview_file_name '.mat'], 'file')
                 load(labview_file_name);
             end                
@@ -99,10 +101,15 @@ function findRelevantDataStretches(varargin)
 
             % determine illusion
             if ~strcmp(stimulus_type, 'none')
+% XXX
+% time_labviewData = time_forceplate;
+                
                 illusion_trajectory = zeros(size(time_labviewData)); % 1 = RIGHT, -1 = LEFT
                 if strcmp(stimulus_type, 'gvs')
                     % use GVS_out_trajectory
                     for i_time = 1 : length(time_labviewData)
+% XXX
+% GVS_out_trajectory = gvs_out_trajectory;
                         if GVS_out_trajectory(i_time) > 0
                             % anode is on the right, cathode is on the left, illusory fall is towards the cathode, i.e. LEFT
                             illusion_trajectory(i_time) = -1;
@@ -128,10 +135,16 @@ function findRelevantDataStretches(varargin)
             
             % get CoP trajectories
             if force_plate_data_available
-                left_copx_trajectory = left_forceplate_cop_Acw(:, 1);
-                right_copx_trajectory = right_forceplate_cop_Acw(:, 1);
-                left_fz_trajectory = left_forceplate_wrench_Acw(:, 3);
-                right_fz_trajectory = right_forceplate_wrench_Acw(:, 3);
+% XXX
+% left_forceplate_cop_world = left_forceplate_cop_Acw;
+% right_forceplate_cop_world = right_forceplate_cop_Acw;
+% left_forceplate_wrench_world = left_forceplate_wrench_Acw;
+% right_forceplate_wrench_world = right_forceplate_wrench_Acw;
+
+                left_copx_trajectory = left_forceplate_cop_world(:, 1);
+                right_copx_trajectory = right_forceplate_cop_world(:, 1);
+                left_fz_trajectory = left_forceplate_wrench_world(:, 3);
+                right_fz_trajectory = right_forceplate_wrench_world(:, 3);
             end
             
             %% find triggers
@@ -146,6 +159,9 @@ function findRelevantDataStretches(varargin)
             else
                 % find the time steps where the stimulus state crosses a threshold
                 stimulus_threshold = 0.5;
+                
+% XXX
+% stimulus_state_trajectory = stimulus_foot_state;
                 trigger_indices_labview = find(diff(sign(stimulus_state_trajectory - stimulus_threshold)) > 0) + 1;
 
                 %
@@ -176,7 +192,7 @@ function findRelevantDataStretches(varargin)
                 end
 %                 plot(time_forceplate(left_touchdown_indices_forceplate), zeros(size(left_touchdown_indices_forceplate)), 'o')
 %                 plot(time_forceplate(right_touchdown_indices_forceplate), zeros(size(right_touchdown_indices_forceplate)), 'o')
-                plot(time_mocap(trigger_indices_mocap), zeros(size(trigger_indices_mocap)), 'x', 'Displayname', 'heelstrikes')
+                plot(time_mocap(trigger_indices_mocap), zeros(size(trigger_indices_mocap)), 'x', 'Displayname', 'triggers')
 %                 plot(time_labviewData, illusion_trajectory, 'Displayname', 'illusion')
 %                 legend('stimulus state', 'left cop', 'right cop', 'left touchdown', 'right touchdown', 'trigger', 'stim start')
                 legend('toggle')
@@ -410,8 +426,10 @@ function findRelevantDataStretches(varargin)
                         trigger_foot = 'right';
                         closest_heelstrike_distance_times(i_trigger) = time_difference_right;
                     elseif left_heelstrike_acceptable && right_heelstrike_acceptable
+                        trigger_foot = 'unclear';
                         removal_flags(i_trigger) = 1;
                     elseif ~left_heelstrike_acceptable && ~right_heelstrike_acceptable
+                        trigger_foot = 'unclear';
                         removal_flags(i_trigger) = 1;
                     end
                     
@@ -516,11 +534,24 @@ function findRelevantDataStretches(varargin)
                             right_foot_heelstrike_minus_1       = right_touchdown_times(index_right-1);
                             right_foot_heelstrike_0             = right_touchdown_times(index_right);
                             right_foot_heelstrike_plus_1        = right_touchdown_times(index_right+1);
+% XXX
+% if index_right+2 <= length(right_touchdown_times)
                             right_foot_heelstrike_plus_2        = right_touchdown_times(index_right+2);
+% else
+%     right_foot_heelstrike_plus_2 = 0;
+% end
+                            
                             right_foot_pushoff_minus_1          = min(right_pushoff_times(right_pushoff_times >= right_foot_heelstrike_minus_1));
                             right_foot_pushoff_0                = min(right_pushoff_times(right_pushoff_times >= right_foot_heelstrike_0));
                             right_foot_pushoff_plus_1           = min(right_pushoff_times(right_pushoff_times >= right_foot_heelstrike_plus_1));
                             right_foot_pushoff_plus_2           = min(right_pushoff_times(right_pushoff_times >= right_foot_heelstrike_plus_2));
+% XXX
+% if isempty(right_foot_pushoff_plus_1)
+%     right_foot_pushoff_plus_1 = 0;
+% end
+% if isempty(right_foot_pushoff_plus_2)
+%     right_foot_pushoff_plus_2 = 0;
+% end
 
                             left_foot_heelstrike_minus_1        = min(left_touchdown_times(left_touchdown_times >= right_foot_heelstrike_minus_1));
                             left_foot_heelstrike_0              = min(left_touchdown_times(left_touchdown_times >= right_foot_heelstrike_0));
@@ -529,7 +560,17 @@ function findRelevantDataStretches(varargin)
                             left_foot_pushoff_minus_1           = max(left_pushoff_times(left_pushoff_times <= right_foot_pushoff_minus_1));
                             left_foot_pushoff_0                 = max(left_pushoff_times(left_pushoff_times <= right_foot_pushoff_0));
                             left_foot_pushoff_plus_1            = max(left_pushoff_times(left_pushoff_times <= right_foot_pushoff_plus_1));
+% XXX
+% if isempty(left_foot_pushoff_plus_1)
+%     left_foot_pushoff_plus_1 = 0;
+% end
+                            
+% XXX                            
+% if index_right+2 <= length(right_touchdown_times)
                             left_foot_pushoff_plus_2            = max(left_pushoff_times(left_pushoff_times <= right_foot_pushoff_plus_2));
+% else
+%     left_foot_pushoff_plus_2 = 0;
+% end
 
 
                             % notify if events are not sorted properly
@@ -568,6 +609,24 @@ function findRelevantDataStretches(varargin)
                     else
                         trigger_foot = 'unclear';
                         disp(['Trial ' num2str(i_trial) ': something went wrong at time ' num2str(time_labviewData(trigger_indices_labview(i_trigger))) ' - trigger exactly between two heelstrikes']);
+                        left_foot_heelstrike_minus_1    = 0;
+                        left_foot_heelstrike_0          = 0;
+                        left_foot_heelstrike_plus_1     = 0;
+                        left_foot_heelstrike_plus_2     = 0;
+                        left_foot_pushoff_minus_1       = 0;
+                        left_foot_pushoff_0             = 0;
+                        left_foot_pushoff_plus_1        = 0;
+                        left_foot_pushoff_plus_2        = 0;
+
+                        right_foot_heelstrike_minus_1   = 0;
+                        right_foot_heelstrike_0         = 0;
+                        right_foot_heelstrike_plus_1    = 0;
+                        right_foot_heelstrike_plus_2    = 0;
+                        right_foot_pushoff_minus_1      = 0;
+                        right_foot_pushoff_0            = 0;
+                        right_foot_pushoff_plus_1       = 0;
+                        right_foot_pushoff_plus_2       = 0;
+
                         removal_flags(i_trigger) = 1;
                     end
 

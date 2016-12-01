@@ -20,11 +20,6 @@ function findStepEvents(varargin)
 
     show_forceplate         = 0;
 
-
-
-%     trials_to_process = 1 : 20;
-
-
     % Choose Identification method for each event and foot
     left_method_touchdown = 'left_heel_position_minima';
     % left_method_touchdown = 'left_toe_velocity_minima';

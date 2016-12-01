@@ -7,7 +7,7 @@ function analyzeStimulusResponse(varargin)
     process_data_balance                = 1;
     process_data_armswing               = 1;
     process_data_forceplate             = 1;
-    process_data_emg                    = 0;
+    process_data_emg                    = 1;
     process_data_angles                 = 0;
     process_data_torques                = 0;
     
@@ -26,30 +26,7 @@ function analyzeStimulusResponse(varargin)
     % this should be loaded from a file
 
 
-%     % for phase-dependent GVS
-%     conditions_control = ...
-%       {
-%         'LEFT', 'CONTROL', 'CONTROL', 'CONTROL'; ...
-%         'RIGHT', 'CONTROL', 'CONTROL', 'CONTROL'; ...
-%       };
-% 
-%     conditions_to_analyze = ...
-%       {
-%         'LEFT', 'POSITIVE', '0ms', 'TWO'; ...
-%         'LEFT', 'POSITIVE', '150ms', 'TWO'; ...
-%         'LEFT', 'POSITIVE', '450ms', 'TWO'; ...
-%         'LEFT', 'NEGATIVE', '0ms', 'TWO'; ...
-%         'LEFT', 'NEGATIVE', '150ms', 'TWO'; ...
-%         'LEFT', 'NEGATIVE', '450ms', 'TWO'; ...
-%         'RIGHT', 'POSITIVE', '0ms', 'ONE'; ...
-%         'RIGHT', 'POSITIVE', '150ms', 'ONE'; ...
-%         'RIGHT', 'POSITIVE', '450ms', 'ONE'; ...
-%         'RIGHT', 'NEGATIVE', '0ms', 'ONE'; ...
-%         'RIGHT', 'NEGATIVE', '150ms', 'ONE'; ...
-%         'RIGHT', 'NEGATIVE', '450ms', 'ONE'; ...
-%       };
-
-    % for vision
+    % for phase-dependent GVS
     conditions_control = ...
       {
         'STANCE_LEFT', 'CONTROL', 'CONTROL', 'CONTROL', 'walking'; ...
@@ -58,23 +35,58 @@ function analyzeStimulusResponse(varargin)
 
     conditions_to_analyze = ...
       {
-        'STANCE_LEFT', 'ILLUSION_RIGHT', '0ms', 'ONE', 'walking'; ...
-        'STANCE_LEFT', 'ILLUSION_LEFT', '0ms', 'ONE', 'walking'; ...
         'STANCE_RIGHT', 'ILLUSION_RIGHT', '0ms', 'ONE', 'walking'; ...
+        'STANCE_RIGHT', 'ILLUSION_RIGHT', '150ms', 'ONE', 'walking'; ...
+        'STANCE_RIGHT', 'ILLUSION_RIGHT', '450ms', 'ONE', 'walking'; ...
         'STANCE_RIGHT', 'ILLUSION_LEFT', '0ms', 'ONE', 'walking'; ...
+        'STANCE_RIGHT', 'ILLUSION_LEFT', '150ms', 'ONE', 'walking'; ...
+        'STANCE_RIGHT', 'ILLUSION_LEFT', '450ms', 'ONE', 'walking'; ...
         'STANCE_LEFT', 'ILLUSION_RIGHT', '0ms', 'TWO', 'walking'; ...
+        'STANCE_LEFT', 'ILLUSION_RIGHT', '150ms', 'TWO', 'walking'; ...
+        'STANCE_LEFT', 'ILLUSION_RIGHT', '450ms', 'TWO', 'walking'; ...
         'STANCE_LEFT', 'ILLUSION_LEFT', '0ms', 'TWO', 'walking'; ...
-        'STANCE_RIGHT', 'ILLUSION_RIGHT', '0ms', 'TWO', 'walking'; ...
-        'STANCE_RIGHT', 'ILLUSION_LEFT', '0ms', 'TWO', 'walking'; ...
-        'STANCE_LEFT', 'ILLUSION_RIGHT', '0ms', 'THREE', 'walking'; ...
-        'STANCE_LEFT', 'ILLUSION_LEFT', '0ms', 'THREE', 'walking'; ...
+        'STANCE_LEFT', 'ILLUSION_LEFT', '150ms', 'TWO', 'walking'; ...
+        'STANCE_LEFT', 'ILLUSION_LEFT', '450ms', 'TWO', 'walking'; ...
         'STANCE_RIGHT', 'ILLUSION_RIGHT', '0ms', 'THREE', 'walking'; ...
+        'STANCE_RIGHT', 'ILLUSION_RIGHT', '150ms', 'THREE', 'walking'; ...
+        'STANCE_RIGHT', 'ILLUSION_RIGHT', '450ms', 'THREE', 'walking'; ...
         'STANCE_RIGHT', 'ILLUSION_LEFT', '0ms', 'THREE', 'walking'; ...
+        'STANCE_RIGHT', 'ILLUSION_LEFT', '150ms', 'THREE', 'walking'; ...
+        'STANCE_RIGHT', 'ILLUSION_LEFT', '450ms', 'THREE', 'walking'; ...
         'STANCE_LEFT', 'ILLUSION_RIGHT', '0ms', 'FOUR', 'walking'; ...
+        'STANCE_LEFT', 'ILLUSION_RIGHT', '150ms', 'FOUR', 'walking'; ...
+        'STANCE_LEFT', 'ILLUSION_RIGHT', '450ms', 'FOUR', 'walking'; ...
         'STANCE_LEFT', 'ILLUSION_LEFT', '0ms', 'FOUR', 'walking'; ...
-        'STANCE_RIGHT', 'ILLUSION_RIGHT', '0ms', 'FOUR', 'walking'; ...
-        'STANCE_RIGHT', 'ILLUSION_LEFT', '0ms', 'FOUR', 'walking'; ...
+        'STANCE_LEFT', 'ILLUSION_LEFT', '150ms', 'FOUR', 'walking'; ...
+        'STANCE_LEFT', 'ILLUSION_LEFT', '450ms', 'FOUR', 'walking'; ...
       };
+
+%     % for vision
+%     conditions_control = ...
+%       {
+%         'STANCE_LEFT', 'CONTROL', 'CONTROL', 'CONTROL', 'walking'; ...
+%         'STANCE_RIGHT', 'CONTROL', 'CONTROL', 'CONTROL', 'walking'; ...
+%       };
+% 
+%     conditions_to_analyze = ...
+%       {
+%         'STANCE_LEFT', 'ILLUSION_RIGHT', '0ms', 'ONE', 'walking'; ...
+%         'STANCE_LEFT', 'ILLUSION_LEFT', '0ms', 'ONE', 'walking'; ...
+%         'STANCE_RIGHT', 'ILLUSION_RIGHT', '0ms', 'ONE', 'walking'; ...
+%         'STANCE_RIGHT', 'ILLUSION_LEFT', '0ms', 'ONE', 'walking'; ...
+%         'STANCE_LEFT', 'ILLUSION_RIGHT', '0ms', 'TWO', 'walking'; ...
+%         'STANCE_LEFT', 'ILLUSION_LEFT', '0ms', 'TWO', 'walking'; ...
+%         'STANCE_RIGHT', 'ILLUSION_RIGHT', '0ms', 'TWO', 'walking'; ...
+%         'STANCE_RIGHT', 'ILLUSION_LEFT', '0ms', 'TWO', 'walking'; ...
+%         'STANCE_LEFT', 'ILLUSION_RIGHT', '0ms', 'THREE', 'walking'; ...
+%         'STANCE_LEFT', 'ILLUSION_LEFT', '0ms', 'THREE', 'walking'; ...
+%         'STANCE_RIGHT', 'ILLUSION_RIGHT', '0ms', 'THREE', 'walking'; ...
+%         'STANCE_RIGHT', 'ILLUSION_LEFT', '0ms', 'THREE', 'walking'; ...
+%         'STANCE_LEFT', 'ILLUSION_RIGHT', '0ms', 'FOUR', 'walking'; ...
+%         'STANCE_LEFT', 'ILLUSION_LEFT', '0ms', 'FOUR', 'walking'; ...
+%         'STANCE_RIGHT', 'ILLUSION_RIGHT', '0ms', 'FOUR', 'walking'; ...
+%         'STANCE_RIGHT', 'ILLUSION_LEFT', '0ms', 'FOUR', 'walking'; ...
+%       };
     
     number_of_conditions_control = size(conditions_control, 1);
     number_of_conditions_to_analyze = size(conditions_to_analyze, 1);
@@ -187,12 +199,14 @@ function analyzeStimulusResponse(varargin)
         m_y_normalized_all = [];
     end
     if process_data_emg
-        lglutmed_emg_normalized_all = [];
-        ltibiant_emg_normalized_all = [];
-        lperolng_emg_normalized_all = [];
-        rglutmed_emg_normalized_all = [];
-        rtibiant_emg_normalized_all = [];
-        rperolng_emg_normalized_all = [];
+        lglutmed_normalized_all = [];
+        ltibiant_normalized_all = [];
+        lgastroc_normalized_all = [];
+        lperolng_normalized_all = [];
+        rglutmed_normalized_all = [];
+        rtibiant_normalized_all = [];
+        rgastroc_normalized_all = [];
+        rperolng_normalized_all = [];
     end
     
     for i_condition = 1 : length(condition_list)
@@ -350,6 +364,7 @@ function analyzeStimulusResponse(varargin)
                     force_plate_data_available = 1;
                 else
                     force_plate_data_available = 0;
+                    disp(['Warning: forceplate data not available for trial ' num2str(i_trial)]);
                 end
                 cop_x_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
                 cop_x_stancefoot_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
@@ -359,7 +374,27 @@ function analyzeStimulusResponse(varargin)
                 m_y_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
             end
             if process_data_emg
-                load(makeFileName(date, subject_id, condition, i_trial, 'emgTrajectories'));
+                emg_file_name = ['processed' filesep makeFileName(date, subject_id, condition, i_trial, 'emgTrajectories') '.mat'];
+                load(emg_file_name);
+                
+                lglutmed_trajectory = emg_trajectories(:, strcmp(emg_headers, 'LGLUTMED'));
+                ltibiant_trajectory = emg_trajectories(:, strcmp(emg_headers, 'LTIBIANT'));
+                lgastroc_trajectory = emg_trajectories(:, strcmp(emg_headers, 'LGASTROC'));
+                lperolng_trajectory = emg_trajectories(:, strcmp(emg_headers, 'LPEROLNG'));
+                rglutmed_trajectory = emg_trajectories(:, strcmp(emg_headers, 'RGLUTMED'));
+                rtibiant_trajectory = emg_trajectories(:, strcmp(emg_headers, 'RTIBIANT'));
+                rgastroc_trajectory = emg_trajectories(:, strcmp(emg_headers, 'RGASTROC'));
+                rperolng_trajectory = emg_trajectories(:, strcmp(emg_headers, 'RPEROLNG'));
+                
+                lglutmed_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
+                ltibiant_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
+                lgastroc_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
+                lperolng_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
+                rglutmed_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
+                rtibiant_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
+                rgastroc_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
+                rperolng_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
+
             end
             
             % go through each stretch to extract data, time-normalize it and store it in lists
@@ -569,10 +604,27 @@ function analyzeStimulusResponse(varargin)
                         time_extracted_forceplate = time_forceplate(start_index_forceplate : end_index_forceplate);
 
                         % extract
-                        cop_x_extracted_stretch = total_forceplate_cop_Acw(start_index_forceplate : end_index_forceplate, 1);
-                        f_x_extracted_stretch = total_forceplate_wrench_Acw(start_index_forceplate : end_index_forceplate, 1);
-                        f_z_extracted_stretch = total_forceplate_wrench_Acw(start_index_forceplate : end_index_forceplate, 3);
-                        m_y_extracted_stretch = total_forceplate_wrench_Acw(start_index_forceplate : end_index_forceplate, 5);
+% XXX                        
+% left_forceplate_cop_world = left_forceplate_cop_Acw;
+% right_forceplate_cop_world = right_forceplate_cop_Acw;
+% left_forceplate_wrench_world = left_forceplate_wrench_Acw;
+% right_forceplate_wrench_world = right_forceplate_wrench_Acw;
+% total_forceplate_wrench_world = left_forceplate_wrench_Acw + right_forceplate_wrench_Acw;
+% 
+% copx_trajectory = - total_forceplate_wrench_world(:, 5) ./ total_forceplate_wrench_world(:, 3);
+% copy_trajectory = total_forceplate_wrench_world(:, 4) ./ total_forceplate_wrench_world(:, 3);
+% total_forceplate_cop_world = [copx_trajectory copy_trajectory];
+% 
+% % re-zero CoP for low loads
+% fz_threshold = 60;
+% total_forceplate_low_load_indicator = (-total_forceplate_wrench_world(:, 3) < fz_threshold);
+% total_forceplate_cop_world(total_forceplate_low_load_indicator, :) = 0;
+
+                        
+                        cop_x_extracted_stretch = total_forceplate_cop_world(start_index_forceplate : end_index_forceplate, 1);
+                        f_x_extracted_stretch = total_forceplate_wrench_world(start_index_forceplate : end_index_forceplate, 1);
+                        f_z_extracted_stretch = total_forceplate_wrench_world(start_index_forceplate : end_index_forceplate, 3);
+                        m_y_extracted_stretch = total_forceplate_wrench_world(start_index_forceplate : end_index_forceplate, 5);
 
                         % normalize
                         time_normalized_forceplate = linspace(time_extracted_forceplate(1), time_extracted_forceplate(end), number_of_time_steps_normalized);
@@ -589,7 +641,46 @@ function analyzeStimulusResponse(varargin)
                         f_z_normalized_trial(:, i_stretch) = f_z_normalized_stretch;
                         m_y_normalized_trial(:, i_stretch) = m_y_normalized_stretch;
                     end
-                end    
+                end
+                
+                % emg data
+                if process_data_emg
+                    % define times
+                    [~, start_index_emg] = min(abs(time_emg - stretch_start_times(i_stretch)));
+                    [~, end_index_emg] = min(abs(time_emg - stretch_end_times(i_stretch)));
+                    time_extracted_emg = time_emg(start_index_emg : end_index_emg);
+                    
+                    % extract
+                    lglutmed_extracted_stretch = lglutmed_trajectory(start_index_emg : end_index_emg, 1);
+                    ltibiant_extracted_stretch = ltibiant_trajectory(start_index_emg : end_index_emg, 1);
+                    lgastroc_extracted_stretch = lgastroc_trajectory(start_index_emg : end_index_emg, 1);
+                    lperolng_extracted_stretch = lperolng_trajectory(start_index_emg : end_index_emg, 1);
+                    rglutmed_extracted_stretch = rglutmed_trajectory(start_index_emg : end_index_emg, 1);
+                    rtibiant_extracted_stretch = rtibiant_trajectory(start_index_emg : end_index_emg, 1);
+                    rgastroc_extracted_stretch = rgastroc_trajectory(start_index_emg : end_index_emg, 1);
+                    rperolng_extracted_stretch = rperolng_trajectory(start_index_emg : end_index_emg, 1);
+                    
+                    % normalize
+                    time_normalized_emg = linspace(time_extracted_emg(1), time_extracted_emg(end), number_of_time_steps_normalized);
+                    lglutmed_normalized_stretch = spline(time_extracted_emg, lglutmed_extracted_stretch, time_normalized_emg);
+                    ltibiant_normalized_stretch = spline(time_extracted_emg, ltibiant_extracted_stretch, time_normalized_emg);
+                    lgastroc_normalized_stretch = spline(time_extracted_emg, lgastroc_extracted_stretch, time_normalized_emg);
+                    lperolng_normalized_stretch = spline(time_extracted_emg, lperolng_extracted_stretch, time_normalized_emg);
+                    rglutmed_normalized_stretch = spline(time_extracted_emg, rglutmed_extracted_stretch, time_normalized_emg);
+                    rtibiant_normalized_stretch = spline(time_extracted_emg, rtibiant_extracted_stretch, time_normalized_emg);
+                    rgastroc_normalized_stretch = spline(time_extracted_emg, rgastroc_extracted_stretch, time_normalized_emg);
+                    rperolng_normalized_stretch = spline(time_extracted_emg, rperolng_extracted_stretch, time_normalized_emg);
+                    
+                    lglutmed_normalized_trial(:, i_stretch) = lglutmed_normalized_stretch;
+                    ltibiant_normalized_trial(:, i_stretch) = ltibiant_normalized_stretch;
+                    lgastroc_normalized_trial(:, i_stretch) = lgastroc_normalized_stretch;
+                    lperolng_normalized_trial(:, i_stretch) = lperolng_normalized_stretch;
+                    rglutmed_normalized_trial(:, i_stretch) = rglutmed_normalized_stretch;
+                    rtibiant_normalized_trial(:, i_stretch) = rtibiant_normalized_stretch;
+                    rgastroc_normalized_trial(:, i_stretch) = rgastroc_normalized_stretch;
+                    rperolng_normalized_trial(:, i_stretch) = rperolng_normalized_stretch;
+                    
+                end
             end
             
             % append trial containers to total containers
@@ -646,7 +737,17 @@ function analyzeStimulusResponse(varargin)
                 m_y_normalized_all = [m_y_normalized_all m_y_normalized_trial];
             end
 
-
+            if process_data_emg
+                lglutmed_normalized_all = [lglutmed_normalized_all lglutmed_normalized_trial];
+                ltibiant_normalized_all = [ltibiant_normalized_all ltibiant_normalized_trial];
+                lgastroc_normalized_all = [lgastroc_normalized_all lgastroc_normalized_trial];
+                lperolng_normalized_all = [lperolng_normalized_all lperolng_normalized_trial];
+                rglutmed_normalized_all = [rglutmed_normalized_all rglutmed_normalized_trial];
+                rtibiant_normalized_all = [rtibiant_normalized_all rtibiant_normalized_trial];
+                rgastroc_normalized_all = [rgastroc_normalized_all rgastroc_normalized_trial];
+                rperolng_normalized_all = [rperolng_normalized_all rperolng_normalized_trial];
+            end
+            
             disp(['Condition ' condition ', Trial ' num2str(i_trial) ' done extracted ' num2str(length(step_times_trial)) ' stretches']);
         end
     end
@@ -1039,6 +1140,22 @@ function analyzeStimulusResponse(varargin)
                 'm_y_response' ...
               );
         end
+        
+        if process_data_emg
+            save ...
+              ( ...
+                ['analysis' filesep makeFileName(date, subject_id, 'resultsEmg')], ...
+                'lglutmed_normalized_all', ...
+                'ltibiant_normalized_all', ...
+                'lgastroc_normalized_all', ...
+                'lperolng_normalized_all', ...
+                'rglutmed_normalized_all', ...
+                'rtibiant_normalized_all', ...
+                'rgastroc_normalized_all', ...
+                'rperolng_normalized_all' ...
+              );
+        end        
+        
     end    
     
     
@@ -1301,15 +1418,15 @@ function analyzeStimulusResponse(varargin)
                 
                 % extract
                 time_extracted_forceplate = time_forceplate(start_index_forceplate : end_index_forceplate);
-                cop_x_extracted_stretch = total_forceplate_cop_Acw(start_index_forceplate : end_index_forceplate, 1);
-                lcop_x_extracted_stretch = left_forceplate_cop_Acw(start_index_forceplate : end_index_forceplate, 1);
-                rcop_x_extracted_stretch = right_forceplate_cop_Acw(start_index_forceplate : end_index_forceplate, 1);
-                fxl_extracted_stretch = left_forceplate_wrench_Acw(start_index_forceplate : end_index_forceplate, 1);
-                fzl_extracted_stretch = left_forceplate_wrench_Acw(start_index_forceplate : end_index_forceplate, 3);
-                myl_extracted_stretch = left_forceplate_wrench_Acw(start_index_forceplate : end_index_forceplate, 5);
-                fxr_extracted_stretch = right_forceplate_wrench_Acw(start_index_forceplate : end_index_forceplate, 1);
-                fzr_extracted_stretch = right_forceplate_wrench_Acw(start_index_forceplate : end_index_forceplate, 3);
-                myr_extracted_stretch = right_forceplate_wrench_Acw(start_index_forceplate : end_index_forceplate, 5);
+                cop_x_extracted_stretch = total_forceplate_cop_world(start_index_forceplate : end_index_forceplate, 1);
+                lcop_x_extracted_stretch = left_forceplate_cop_world(start_index_forceplate : end_index_forceplate, 1);
+                rcop_x_extracted_stretch = right_forceplate_cop_world(start_index_forceplate : end_index_forceplate, 1);
+                fxl_extracted_stretch = left_forceplate_wrench_world(start_index_forceplate : end_index_forceplate, 1);
+                fzl_extracted_stretch = left_forceplate_wrench_world(start_index_forceplate : end_index_forceplate, 3);
+                myl_extracted_stretch = left_forceplate_wrench_world(start_index_forceplate : end_index_forceplate, 5);
+                fxr_extracted_stretch = right_forceplate_wrench_world(start_index_forceplate : end_index_forceplate, 1);
+                fzr_extracted_stretch = right_forceplate_wrench_world(start_index_forceplate : end_index_forceplate, 3);
+                myr_extracted_stretch = right_forceplate_wrench_world(start_index_forceplate : end_index_forceplate, 5);
                 
                 % normalize
                 time_normalized_forceplate = linspace(time_extracted_forceplate(1), time_extracted_forceplate(end), number_of_time_steps_normalized);
@@ -1471,6 +1588,9 @@ function analyzeStimulusResponse(varargin)
     number_of_stretches = length(step_times_all);
 
 
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% old stuff
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 %% calculate responses
@@ -1937,9 +2057,6 @@ if save_data
 end
     
 
-%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% old stuff
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% calculate_strategy_directions
 if calculate_strategy_directions

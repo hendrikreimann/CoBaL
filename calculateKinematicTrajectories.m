@@ -8,8 +8,6 @@ function calculateKinematicTrajectories(varargin)
         trials_to_process = trial_number_list{i_condition};
         for i_trial = trials_to_process
             % load data
-            tic
-            
             condition = condition_list{i_condition};
             load(['processed' filesep makeFileName(date, subject_id, condition, i_trial, 'markerTrajectories')]);
 
@@ -67,9 +65,8 @@ function calculateKinematicTrajectories(varargin)
                 'com_trajectories', ...
                 'com_labels' ...
               );
+            disp(['Condition ' condition ', Trial ' num2str(i_trial) ' completed, saved as ' com_file_name]);
 
-          toc
-          return
         end
     end
 end

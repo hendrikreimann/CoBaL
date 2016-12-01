@@ -7,13 +7,14 @@ static_reference_type = 'casual';
 % hip_joint_center_estimation_method = 'SCoRE';
 hip_joint_center_estimation_method = 'Tylkowski';
 
-% knee_joint_axis_estimation_method = 'SARA';
-knee_joint_axis_estimation_method = 'markers';
+knee_joint_axis_estimation_method = 'SARA';
+% knee_joint_axis_estimation_method = 'markers';
 
 create_kinematic_tree                   = 1;
 show_visualization                      = 1;
 
 static_reference_trial_type = 'walking';
+static_reference_trial_type = 'calibration';
 static_reference_file_index = 1;
 
 left_hip_calibration_file_index = 2;
@@ -25,13 +26,13 @@ load subjectInfo.mat;
 
 % if width measurements are not available, use best guess
 if knee_width == 0
-    knee_width = 0.07;
+    knee_width = 0.1;
 end
 if ankle_width == 0
     ankle_width = 0.07;
 end
 if elbow_width == 0
-    elbow_width = 0.06;
+    elbow_width = 0.07;
 end
 
 
@@ -526,7 +527,7 @@ head_scs_x = cross(head_scs_y, head_scs_z);
 % left upper arm
 left_arm_scs_y = normVector(left_shoulder_cor - left_elbow_cor);
 left_arm_scs_x = normVector(cross(left_arm_scs_y, left_elbow_axis));
-left_arm_scs_z = cross(left_arm_scs_y, left_arm_scs_z);
+left_arm_scs_z = cross(left_arm_scs_x, left_arm_scs_y);
 
 % left lower arm
 left_forearm_scs_y = normVector(left_elbow_cor - left_wrist_cor);
@@ -541,7 +542,7 @@ left_hand_scs_z = normVector(cross(left_hand_scs_x, left_hand_scs_y));
 % right upper arm
 right_arm_scs_y = normVector(right_shoulder_cor - right_elbow_cor);
 right_arm_scs_x = normVector(cross(right_arm_scs_y, right_elbow_axis));
-right_arm_scs_z = cross(right_arm_scs_y, right_arm_scs_z);
+right_arm_scs_z = cross(right_arm_scs_x, right_arm_scs_y);
 
 % right lower arm
 right_forearm_scs_y = normVector(right_elbow_cor - right_wrist_cor);
@@ -1024,8 +1025,8 @@ if create_kinematic_tree
     marker_color_list{strcmp(marker_headers, 'LSHO')} = red;
     marker_color_list{strcmp(marker_headers, 'LUPA')} = red;
     marker_color_list{strcmp(marker_headers, 'LELB')} = red;
-    marker_color_list{strcmp(marker_headers, 'LFRA')} = red;
-%     marker_color_list{strcmp(marker_headers, 'LFRM')} = red;
+%     marker_color_list{strcmp(marker_headers, 'LFRA')} = red;
+    marker_color_list{strcmp(marker_headers, 'LFRM')} = red;
     marker_color_list{strcmp(marker_headers, 'LWRA')} = red;
     marker_color_list{strcmp(marker_headers, 'LWRB')} = red;
     marker_color_list{strcmp(marker_headers, 'LFIN')} = red;
@@ -1033,8 +1034,8 @@ if create_kinematic_tree
     marker_color_list{strcmp(marker_headers, 'RSHO')} = green;
     marker_color_list{strcmp(marker_headers, 'RUPA')} = green;
     marker_color_list{strcmp(marker_headers, 'RELB')} = green;
-%     marker_color_list{strcmp(marker_headers, 'RFRM')} = green;
-    marker_color_list{strcmp(marker_headers, 'RFRA')} = green;
+    marker_color_list{strcmp(marker_headers, 'RFRM')} = green;
+%     marker_color_list{strcmp(marker_headers, 'RFRA')} = green;
     marker_color_list{strcmp(marker_headers, 'RWRA')} = green;
     marker_color_list{strcmp(marker_headers, 'RWRB')} = green;
     marker_color_list{strcmp(marker_headers, 'RFIN')} = green;
@@ -1045,24 +1046,24 @@ if create_kinematic_tree
     marker_color_list{strcmp(marker_headers, 'RPSI')} = green;
 
     marker_color_list{strcmp(marker_headers, 'LTHI')} = red;
-%     marker_color_list{strcmp(marker_headers, 'LTHIA')} = red;
+    marker_color_list{strcmp(marker_headers, 'LTHIA')} = red;
     marker_color_list{strcmp(marker_headers, 'LKNE')} = red;
     marker_color_list{strcmp(marker_headers, 'LTIB')} = red;
-%     marker_color_list{strcmp(marker_headers, 'LTIBA')} = red;
+    marker_color_list{strcmp(marker_headers, 'LTIBA')} = red;
     marker_color_list{strcmp(marker_headers, 'LANK')} = red;
     marker_color_list{strcmp(marker_headers, 'LHEE')} = red;
     marker_color_list{strcmp(marker_headers, 'LTOE')} = red;
-%     marker_color_list{strcmp(marker_headers, 'LTOEL')} = red;
+    marker_color_list{strcmp(marker_headers, 'LTOEL')} = red;
 
     marker_color_list{strcmp(marker_headers, 'RTHI')} = green;
-%     marker_color_list{strcmp(marker_headers, 'RTHIA')} = green;
+    marker_color_list{strcmp(marker_headers, 'RTHIA')} = green;
     marker_color_list{strcmp(marker_headers, 'RKNE')} = green;
     marker_color_list{strcmp(marker_headers, 'RTIB')} = green;
-%     marker_color_list{strcmp(marker_headers, 'RTIBA')} = green;
+    marker_color_list{strcmp(marker_headers, 'RTIBA')} = green;
     marker_color_list{strcmp(marker_headers, 'RANK')} = green;
     marker_color_list{strcmp(marker_headers, 'RHEE')} = green;
     marker_color_list{strcmp(marker_headers, 'RTOE')} = green;
-%     marker_color_list{strcmp(marker_headers, 'RTOEL')} = green;
+    marker_color_list{strcmp(marker_headers, 'RTOEL')} = green;
 
     number_of_markers = length(markerSegments);
     for i_marker = 1 : number_of_markers
