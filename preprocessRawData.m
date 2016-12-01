@@ -5,7 +5,7 @@ function preprocessRawData()
     process_forceplate          = 1;
     process_marker              = 1;
     map_emg_sensors_manually    = 1;
-    transform_to_belt_space     = 1;
+    transform_to_belt_space     = 0;
     
     conditions_to_transform_to_belt_space = {'baselineTM', 'feedback', 'postTM'};
     
@@ -125,12 +125,11 @@ function preprocessRawData()
             [date, subject_id, trial_type, trial_number, file_type] = getFileParameters(raw_forceplate_file_name);
             load(['raw' filesep raw_forceplate_file_name]);
             
-            % filter
+            % define filter
             filter_order_low = 4;
             cutoff_frequency_low = 50; % in Hz
             [b_lowpass, a_lowpass] = butter(filter_order_low, cutoff_frequency_low/(sampling_rate_forceplate/2), 'low');
             forceplate_trajectories_filtered = filtfilt(b_lowpass, a_lowpass, forceplate_trajectories_raw);
-
 
             % extract
             fxl_trajectory = forceplate_trajectories_filtered(:, 1);
@@ -159,73 +158,82 @@ function preprocessRawData()
             copxr_trajectory(fzr_trajectory < fz_threshold) = 0;
             copyr_trajectory(fzr_trajectory < fz_threshold) = 0;
 
-            % transform forceplate data to CoBaL world frame A_cw
-            left_forceplate_wrench_Acl = [fxl_trajectory fyl_trajectory fzl_trajectory mxl_trajectory myl_trajectory mzl_trajectory];
-            left_forceplate_cop_Acl = [copxl_trajectory copyl_trajectory zeros(size(copxl_trajectory))];
-            right_forceplate_wrench_Acr = [fxr_trajectory fyr_trajectory fzr_trajectory mxr_trajectory myr_trajectory mzr_trajectory];
-            right_forceplate_cop_Acr = [copxr_trajectory copyr_trajectory zeros(size(copxr_trajectory))];
+            if strcmp(data_source, 'nexus')
+                % transform forceplate data to CoBaL world frame A_cw
+                left_forceplate_wrench_Acl = [fxl_trajectory fyl_trajectory fzl_trajectory mxl_trajectory myl_trajectory mzl_trajectory];
+                left_forceplate_cop_Acl = [copxl_trajectory copyl_trajectory zeros(size(copxl_trajectory))];
+                right_forceplate_wrench_Acr = [fxr_trajectory fyr_trajectory fzr_trajectory mxr_trajectory myr_trajectory mzr_trajectory];
+                right_forceplate_cop_Acr = [copxr_trajectory copyr_trajectory zeros(size(copxr_trajectory))];
 
-            % define forceplate rotation and translation
-            Acr_to_Acw_rotation = [-1 0 0; 0 1 0; 0 0 -1];
-            Acr_to_Acw_translation = [0.5588; 0; 0];
-            Acr_to_Acw_trafo = [Acr_to_Acw_rotation Acr_to_Acw_translation; 0 0 0 1];
-            Acl_to_Acw_rotation = [-1 0 0; 0 1 0; 0 0 -1];
-            Acl_to_Acw_translation = [-0.5588; 0; 0];
-            Acl_to_Acw_trafo = [Acl_to_Acw_rotation Acl_to_Acw_translation; 0 0 0 1];
-            Acr_to_Acw_adjoint = rigidToAdjointTransformation(Acr_to_Acw_trafo);
-            Acl_to_Acw_adjoint = rigidToAdjointTransformation(Acl_to_Acw_trafo);
+                % define forceplate rotation and translation
+                Acr_to_world_rotation = [-1 0 0; 0 1 0; 0 0 -1];
+                Acr_to_world_translation = [0.5588; 0; 0];
+                Acr_to_world_trafo = [Acr_to_world_rotation Acr_to_world_translation; 0 0 0 1];
+                Acl_to_world_rotation = [-1 0 0; 0 1 0; 0 0 -1];
+                Acl_to_world_translation = [-0.5588; 0; 0];
+                Acl_to_world_trafo = [Acl_to_world_rotation Acl_to_world_translation; 0 0 0 1];
+                Acr_to_world_adjoint = rigidToAdjointTransformation(Acr_to_world_trafo);
+                Acl_to_world_adjoint = rigidToAdjointTransformation(Acl_to_world_trafo);
 
-            % transform
-            left_forceplate_wrench_Acw = (Acl_to_Acw_adjoint' * left_forceplate_wrench_Acl')';
-            left_forceplate_cop_Acw = (eye(2, 4) * Acl_to_Acw_trafo * [left_forceplate_cop_Acl ones(size(left_forceplate_cop_Acl, 1), 1)]')';
-            right_forceplate_wrench_Acw = (Acr_to_Acw_adjoint' * right_forceplate_wrench_Acr')';
-            right_forceplate_cop_Acw = (eye(2, 4) * Acr_to_Acw_trafo * [right_forceplate_cop_Acr ones(size(right_forceplate_cop_Acr, 1), 1)]')';
+                % transform
+                left_forceplate_wrench_world = (Acl_to_world_adjoint' * left_forceplate_wrench_Acl')';
+                left_forceplate_cop_world = (eye(2, 4) * Acl_to_world_trafo * [left_forceplate_cop_Acl ones(size(left_forceplate_cop_Acl, 1), 1)]')';
+                right_forceplate_wrench_world = (Acr_to_world_adjoint' * right_forceplate_wrench_Acr')';
+                right_forceplate_cop_world = (eye(2, 4) * Acr_to_world_trafo * [right_forceplate_cop_Acr ones(size(right_forceplate_cop_Acr, 1), 1)]')';
+            elseif strcmp(data_source, 'neurocom')
+                left_forceplate_wrench_world = [fxl_trajectory fyl_trajectory fzl_trajectory mxl_trajectory myl_trajectory mzl_trajectory];
+                left_forceplate_cop_world = [copxl_trajectory copyl_trajectory zeros(size(copxl_trajectory))];
+                right_forceplate_wrench_world = [fxr_trajectory fyr_trajectory fzr_trajectory mxr_trajectory myr_trajectory mzr_trajectory];
+                right_forceplate_cop_world = [copxr_trajectory copyr_trajectory zeros(size(copxr_trajectory))];
+            else
+                error(['data source "' data_source '" not recognized'])
+            end
 
             % calculate wrenches and CoP for complete plate
-            total_forceplate_wrench_Acw = left_forceplate_wrench_Acw + right_forceplate_wrench_Acw;
-            copx_trajectory = - total_forceplate_wrench_Acw(:, 5) ./ total_forceplate_wrench_Acw(:, 3);
-            copy_trajectory = total_forceplate_wrench_Acw(:, 4) ./ total_forceplate_wrench_Acw(:, 3);
-            total_forceplate_cop_Acw = [copx_trajectory copy_trajectory];
+            total_forceplate_wrench_world = left_forceplate_wrench_world + right_forceplate_wrench_world;
+            copx_trajectory = - total_forceplate_wrench_world(:, 5) ./ total_forceplate_wrench_world(:, 3);
+            copy_trajectory = total_forceplate_wrench_world(:, 4) ./ total_forceplate_wrench_world(:, 3);
+            total_forceplate_cop_world = [copx_trajectory copy_trajectory];
 
             % re-zero CoP for low loads
-            left_forceplate_low_load_indicator = copxl_trajectory == 0;
-            left_forceplate_cop_Acw(left_forceplate_low_load_indicator, :) = 0;
-            right_forceplate_low_load_indicator = copxr_trajectory == 0;
-            right_forceplate_cop_Acw(right_forceplate_low_load_indicator, :) = 0;
-            total_forceplate_low_load_indicator = copx_trajectory == 0;
-            total_forceplate_cop_Acw(total_forceplate_low_load_indicator, :) = 0;
+            left_forceplate_low_load_indicator = (fzl_trajectory < fz_threshold);
+            left_forceplate_cop_world(left_forceplate_low_load_indicator, :) = 0;
+            right_forceplate_low_load_indicator = (fzr_trajectory < fz_threshold);
+            right_forceplate_cop_world(right_forceplate_low_load_indicator, :) = 0;
+            total_forceplate_low_load_indicator = (left_forceplate_low_load_indicator & right_forceplate_low_load_indicator);
+            total_forceplate_cop_world(total_forceplate_low_load_indicator, :) = 0;
 
 
-        %     % visualize
-        %     figure; axes; hold on
-        %     plot(time_forceplate, total_forceplate_cop_Acw(:, 1));
-        %     plot(time_forceplate, left_forceplate_cop_Acw(:, 1));
-        %     plot(time_forceplate, right_forceplate_cop_Acw(:, 1));
-        %     legend('total', 'left', 'right')
-        % 
-        %     figure; axes; hold on
-        %     plot(time_forceplate, total_forceplate_cop_Acw(:, 2));
-        %     plot(time_forceplate, left_forceplate_cop_Acw(:, 2));
-        %     plot(time_forceplate, right_forceplate_cop_Acw(:, 2));
-        %     legend('total', 'left', 'right')    
-
-            % re-zero CoP for low loads
-            left_forceplate_low_load_indicator = copxl_trajectory == 0;
-            left_forceplate_cop_Acw(left_forceplate_low_load_indicator, :) = 0;
-            right_forceplate_low_load_indicator = copxr_trajectory == 0;
-            right_forceplate_cop_Acw(right_forceplate_low_load_indicator, :) = 0;
+%             % visualize
+%             figure; axes; hold on;
+%             plot(time_forceplate, total_forceplate_cop_world(:, 1), 'linewidth', 2, 'displayname', 'copx - total - calculated');
+%             plot(time_forceplate, left_forceplate_cop_world(:, 1), 'linewidth', 2, 'displayname', 'copx - left - calculated');
+%             plot(time_forceplate, right_forceplate_cop_world(:, 1), 'linewidth', 2, 'displayname', 'copx - right - calculated');
+%             plot(time_forceplate, forceplate_trajectories_filtered(:, 13), '--', 'linewidth', 2, 'displayname', 'copx - left - from plate');
+%             plot(time_forceplate, forceplate_trajectories_filtered(:, 15), '--', 'linewidth', 2, 'displayname', 'copx - right - from plate');
+%             plot(time_forceplate, forceplate_trajectories_filtered(:, 17), '--', 'linewidth', 2, 'displayname', 'copx - total - from plate');
+%             legend('toggle')
+%         
+%             figure; axes; hold on
+%             plot(time_forceplate, total_forceplate_cop_world(:, 2), 'linewidth', 2, 'displayname', 'copy - total - calculated');
+%             plot(time_forceplate, left_forceplate_cop_world(:, 2), 'linewidth', 2, 'displayname', 'copy - left - calculated');
+%             plot(time_forceplate, right_forceplate_cop_world(:, 2), 'linewidth', 2, 'displayname', 'copy - right - calculated');
+%             plot(time_forceplate, -forceplate_trajectories_filtered(:, 14), '--', 'linewidth', 2, 'displayname', 'copy - left - from plate - inverted');
+%             plot(time_forceplate, -forceplate_trajectories_filtered(:, 16), '--', 'linewidth', 2, 'displayname', 'copy - right - from plate - inverted');
+%             plot(time_forceplate, -forceplate_trajectories_filtered(:, 18), '--', 'linewidth', 2, 'displayname', 'copy - total - from plate - inverted');
+%             legend('toggle')
 
             % save
             save_file_name = ['processed' filesep makeFileName(date, subject_id, trial_type, trial_number, 'forceplateTrajectories.mat')];
             save ...
               ( ...
                 save_file_name, ...
-                'left_forceplate_wrench_Acw', ...
-                'left_forceplate_cop_Acw', ...
-                'right_forceplate_wrench_Acw', ...
-                'right_forceplate_cop_Acw', ...
-                'total_forceplate_wrench_Acw', ...
-                'total_forceplate_cop_Acw', ...
+                'left_forceplate_wrench_world', ...
+                'left_forceplate_cop_world', ...
+                'right_forceplate_wrench_world', ...
+                'right_forceplate_cop_world', ...
+                'total_forceplate_wrench_world', ...
+                'total_forceplate_cop_world', ...
                 'fxl_trajectory', ...
                 'fyl_trajectory', ...
                 'fzl_trajectory', ...
@@ -277,7 +285,6 @@ function preprocessRawData()
         end
     end
 
-    
     %% if transform to belt space
     if transform_to_belt_space
         [condition_list, trial_number_list] = parseTrialArguments();
@@ -310,35 +317,6 @@ function preprocessRawData()
                         marker_trajectories(:, (i_marker-1)*3+2) = marker_trajectories(:, (i_marker-1)*3+2) + belt_position_trajectory_mocap;
                     end
                     
-                    
-%                     % do the same thing, but move to mocap time first
-%                     belt_speed_trajectory = mean([belt_speed_left_trajectory belt_speed_right_trajectory], 2);
-%                     belt_speed_trajectory_mocap = spline(time_belts, belt_speed_trajectory, time_mocap)';
-%                     delta_t = 1/sampling_rate_mocap;
-%                     belt_position_trajectory_mocap = zeros(size(belt_speed_trajectory_mocap));
-%                     for i_time = 2 : length(belt_speed_trajectory_mocap)
-%                         belt_position_trajectory_mocap(i_time) = belt_position_trajectory_mocap(i_time-1) + delta_t * belt_speed_trajectory_mocap(i_time-1);
-%                     end
-%                     marker_trajectories_alt = marker_trajectories_original;
-%                     for i_marker = 1 : size(marker_headers, 2)
-%                         marker_trajectories_alt(:, (i_marker-1)*3+2) = marker_trajectories_alt(:, (i_marker-1)*3+2) + belt_position_trajectory_mocap;
-%                     end
-                    
-%                     figure; axes; hold on
-                    plot(marker_trajectories(:, 101), 'linewidth', 2)
-%                     plot(marker_trajectories_alt(:, 101), 'linewidth', 1)
-
-%                     % things do not make sense, play around
-%                     left_heel_y_marker_trajectory_raw = marker_trajectories_original(:, 101);
-%                     left_heel_y_marker_speed_raw = deriveByTime(left_heel_y_marker_trajectory_raw, delta_t);
-%                     
-%                     figure; axes; hold on
-% %                     plot(left_heel_y_marker_trajectory_raw, 'linewidth', 2)
-%                     plot(time_mocap, left_heel_y_marker_speed_raw, 'linewidth', 2)
-%                     plot(time_belts, -belt_speed_trajectory, 'linewidth', 2)
-
-
-
                     file_name_shifted = ['processed' filesep makeFileName(date, subject_id, condition, i_trial, 'markerTrajectories.mat')];
                     save ...
                       ( ...
@@ -362,14 +340,14 @@ function preprocessRawData()
     %             
     %             for i_time = 1 : length(time_forceplate)
     %                 % define forceplate rotation and translation
-    %                 Acw_to_Acb_rotation = [1 0 0; 0 1 0; 0 0 1];
-    %                 Acw_to_Acb_translation = [0.5588; 0; 0];
-    %                 Acw_to_Acb_trafo = [Acw_to_Acb_rotation Acw_to_Acb_translation; 0 0 0 1];
-    %                 Acw_to_Acb_adjoint = rigidToAdjointTransformation(Acw_to_Acb_trafo);
+    %                 world_to_Acb_rotation = [1 0 0; 0 1 0; 0 0 1];
+    %                 world_to_Acb_translation = [0.5588; 0; 0];
+    %                 world_to_Acb_trafo = [world_to_Acb_rotation world_to_Acb_translation; 0 0 0 1];
+    %                 world_to_Acb_adjoint = rigidToAdjointTransformation(world_to_Acb_trafo);
     % 
     %                 % transform
-    %                 left_forceplate_wrench_Acb = (Acw_to_Acb_adjoint' * left_forceplate_wrench_Acw')';
-    %                 right_forceplate_wrench_Acb = (Acw_to_Acb_adjoint' * right_forceplate_wrench_Acw')';
+    %                 left_forceplate_wrench_Acb = (world_to_Acb_adjoint' * left_forceplate_wrench_world')';
+    %                 right_forceplate_wrench_Acb = (world_to_Acb_adjoint' * right_forceplate_wrench_world')';
     % 
     %             end
     % 
@@ -381,11 +359,11 @@ function preprocessRawData()
     %                 
     %             % re-zero CoP for low loads
     %             left_forceplate_low_load_indicator = copxl_trajectory == 0;
-    %             left_forceplate_cop_Acw(left_forceplate_low_load_indicator, :) = 0;
+    %             left_forceplate_cop_world(left_forceplate_low_load_indicator, :) = 0;
     %             right_forceplate_low_load_indicator = copxr_trajectory == 0;
-    %             right_forceplate_cop_Acw(right_forceplate_low_load_indicator, :) = 0;
+    %             right_forceplate_cop_world(right_forceplate_low_load_indicator, :) = 0;
     %             total_forceplate_low_load_indicator = copx_trajectory == 0;
-    %             total_forceplate_cop_Acw(total_forceplate_low_load_indicator, :) = 0;            
+    %             total_forceplate_cop_world(total_forceplate_low_load_indicator, :) = 0;            
 
             end
         end

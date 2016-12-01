@@ -7,7 +7,7 @@ function [date, subject_id, trial_type, trial_number, file_type] = getFileParame
     date = elements{1};
     subject_id = elements{2};
     trial_type = elements{3};
-    trial_number = str2double(elements{4}(1:3));
+    trial_number = str2double(elements{4});
     if length(elements) > 4
         file_type = elements{5};
     else

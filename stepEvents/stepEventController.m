@@ -23,6 +23,9 @@ classdef stepEventController < handle
         figureSelectionBox;
         heel_pos_peak_width;
         toes_vel_peak_width;
+        selected_time_edit;
+        
+        scene_figure = [];
         
         color_selected = [1 0.5 0];
         color_normal = [0 0 0];
@@ -73,6 +76,12 @@ classdef stepEventController < handle
             this.previousTrialButton = uicontrol(files_panel, 'Style', 'pushbutton', 'Position', [5, figures_panel_height-100, 130, 60], 'Fontsize', 12, 'String', 'Previous Trial', 'callback', @this.loadPreviousTrial);
             this.nextTrialButton = uicontrol(files_panel, 'Style', 'pushbutton', 'Position', [140, figures_panel_height-100, 130, 60], 'Fontsize', 12, 'String', 'Next Trial', 'callback', @this.loadNextTrial);
             this.quitButton = uicontrol(files_panel, 'Style', 'pushbutton', 'Position', [275, figures_panel_height-100, 130, 60], 'Fontsize', 12, 'String', 'Quit', 'callback', @this.quit);
+            
+            % scene control
+            scene_panel_height = 60;
+            scene_panel = uipanel(this.control_figure, 'Title', 'Files', 'FontSize', 12, 'BackgroundColor', 'white', 'Units', 'pixels', 'Position', [5, figure_height-figures_panel_height-events_panel_height-files_panel_height-scene_panel_height-5, figure_width-10, scene_panel_height]);
+            uicontrol(scene_panel, 'Style', 'text', 'string', 'Selected time:', 'Position', [5, scene_panel_height-40, 190, 20], 'Fontsize', 10, 'HorizontalAlignment', 'left', 'BackgroundColor', 'white');
+            this.selected_time_edit = uicontrol(scene_panel, 'Style', 'edit', 'BackgroundColor', 'white', 'Position', [80, scene_panel_height-37, 40, 20], 'String', '0');
         end
         
         
@@ -84,13 +93,32 @@ classdef stepEventController < handle
             end
             this.event_data.selected_event_label = event_label;
             this.event_data.selected_event_time = event_time;
+            this.trial_data.selected_time = event_time;
             
             this.updateSelectedEventPlots();
+            this.updateSelectedTime();
         end
         function updateSelectedEventPlots(this)
             for i_figure = 1 : length(this.figureSelectionBox.String)
                 this.figureSelectionBox.UserData{i_figure}.updateSelectedEventPlot();
             end
+        end
+        function updateSelectedTime(this)
+            [~, index_mocap] = min(abs(this.trial_data.time_mocap - this.trial_data.selected_time));
+            marker_data = this.trial_data.marker_positions(index_mocap, :);
+            if ~isempty(this.trial_data.joint_center_positions)
+                joint_center_data = this.trial_data.joint_center_positions(index_mocap, :);
+            else 
+                joint_center_data = [];
+            end                
+            if ~isempty(this.trial_data.com_positions)
+                com_data = this.trial_data.com_positions(index_mocap, :);
+            else 
+                com_data = [];
+            end
+            this.scene_figure.update([marker_data joint_center_data com_data]);
+            
+            this.selected_time_edit.String = num2str(this.trial_data.selected_time);
         end
         function updateEventPlots(this)
             for i_figure = 1 : length(this.figureSelectionBox.String)
@@ -120,9 +148,11 @@ classdef stepEventController < handle
             if strcmp(eventdata.Key, 'a') && isempty(eventdata.Modifier)
                 this.event_data.selectPreviousEvent();
                 this.updateSelectedEventPlots();
+                this.updateSelectedTime();
             elseif strcmp(eventdata.Key, 'd') && isempty(eventdata.Modifier)
                 this.event_data.selectNextEvent();
                 this.updateSelectedEventPlots();
+                this.updateSelectedTime();
             elseif strcmp(eventdata.Key, 'w') && isempty(eventdata.Modifier)
                 this.updateTimeWindow('zoom in');
             elseif strcmp(eventdata.Key, 'x') && isempty(eventdata.Modifier)
@@ -133,6 +163,24 @@ classdef stepEventController < handle
                 this.updateTimeWindow('previous');
             elseif strcmp(eventdata.Key, 'e') && isempty(eventdata.Modifier)
                 this.updateTimeWindow('next');
+            elseif strcmp(eventdata.Key, 'leftarrow')
+                if isempty(eventdata.Modifier)
+                    this.trial_data.stepSelectedTime('back')
+                elseif strcmp(eventdata.Modifier, 'shift')
+                    this.trial_data.stepSelectedTime('back', 5)
+                elseif strcmp(eventdata.Modifier, 'alt')
+                    this.trial_data.stepSelectedTime('back', 25)
+                end
+                this.updateSelectedTime();
+            elseif strcmp(eventdata.Key, 'rightarrow')
+                if isempty(eventdata.Modifier)
+                    this.trial_data.stepSelectedTime('forward')
+                elseif strcmp(eventdata.Modifier, 'shift')
+                    this.trial_data.stepSelectedTime('forward', 5)
+                elseif strcmp(eventdata.Modifier, 'alt')
+                    this.trial_data.stepSelectedTime('forward', 25)
+                end
+                this.updateSelectedTime();
             elseif strcmp(eventdata.Key, 'z') || strcmp(eventdata.Key, 'c')
                 this.moveSelectedEvent(sender, eventdata);
             elseif strcmp(eventdata.Key, 'x') && strcmp(eventdata.Modifier, 'command')
@@ -142,6 +190,7 @@ classdef stepEventController < handle
                 this.event_data.updateEventTime(this.event_data.selected_event_label, this.event_data.selected_event_time, NaN);
                 this.updateEventPlots();
                 this.updateSelectedEventPlots();
+                this.updateSelectedTime();
             elseif strcmp(eventdata.Key, 'escape')
                 set(this.addLeftPushoffButton, 'ForegroundColor', [0 0 0]);
                 set(this.addLeftTouchdownButton, 'ForegroundColor', [0 0 0]);
@@ -155,17 +204,22 @@ classdef stepEventController < handle
             for i_figure = 1 : length(this.figureSelectionBox.String)
                 figure_settings{i_figure} = this.figureSelectionBox.UserData{i_figure}.getSetting();
             end
+            
+            scene_figure_setting = struct();
+            scene_figure_setting.position = this.scene_figure.scene_figure.Position;
+            
             control_figure_setting = struct();
             control_figure_setting.position = this.control_figure.Position;
 
             save_file = this.settings_file;
-            save(save_file, 'figure_settings', 'control_figure_setting');
+            save(save_file, 'figure_settings', 'control_figure_setting', 'scene_figure_setting');
         end
         function loadFigureSettings(this, sender, eventdata)
             load_file = this.settings_file;
 
             if exist(load_file, 'file')
-                load(load_file, 'figure_settings', 'control_figure_setting')
+%                 load(load_file, 'figure_settings', 'control_figure_setting')
+                load(load_file, 'figure_settings', 'control_figure_setting', 'scene_figure_setting')
                 for i_figure = 1 : length(figure_settings)
         %             if length(step_event_figures) < i_figure
         %                 step_event_figures{i_figure} = createStepEventFigure();
@@ -173,6 +227,7 @@ classdef stepEventController < handle
                     this.figureSelectionBox.UserData{i_figure}.applySettings(figure_settings{i_figure});
                 end
                 this.control_figure.Position = control_figure_setting.position;
+                this.scene_figure.scene_figure.Position = scene_figure_setting.position;
             end
         end
         function findEvents(this, sender, eventdata)
@@ -381,6 +436,13 @@ classdef stepEventController < handle
             this.updateTrialLabels;
         end
         function quit(this, sender, eventdata)
+            try
+                close(this.scene_figure.scene_figure);
+            catch exception
+                if ~strcmp(exception.identifier, 'MATLAB:close:InvalidFigureHandle')
+                    rethrow(exception)
+                end
+            end
             for i_figure = 1 : length(this.figureSelectionBox.String)
                 try
                     close(this.figureSelectionBox.UserData{i_figure}.main_figure);

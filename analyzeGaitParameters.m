@@ -34,6 +34,8 @@ function analyzeGaitParameters(varargin)
     number_of_conditions_to_analyze = size(conditions_to_analyze, 1);
 
     number_of_time_steps_normalized = 100;
+    perSecond_to_perMinute = 60;
+    second_to_minute = 1/60;
 
     %% extract data
     load('subjectInfo.mat', 'date', 'subject_id');
@@ -48,6 +50,8 @@ function analyzeGaitParameters(varargin)
     origin_start_time_list_all = [];
     origin_end_time_list_all = [];
     step_times_all = [];
+    pushoff_times_all = [];
+    cadence_all = [];
     if process_data_balance
         step_width_all = [];
         step_length_all = [];
@@ -142,7 +146,9 @@ function analyzeGaitParameters(varargin)
             origin_trial_list_trial = zeros(number_of_stretches_trial, 1);
             origin_start_time_list_trial = zeros(number_of_stretches_trial, 1);
             origin_end_time_list_trial = zeros(number_of_stretches_trial, 1);
-            step_times_trial = zeros(number_of_stretches_trial, 1);
+            step_times_trial = zeros(1, number_of_stretches_trial);
+            pushoff_times_trial = zeros(1, number_of_stretches_trial);
+            cadence_trial = zeros(1, number_of_stretches_trial);
 
             if process_data_balance
                 % define markers and indices
@@ -295,8 +301,11 @@ function analyzeGaitParameters(varargin)
             for i_stretch = 1 : number_of_stretches_trial
                 % time
                 [~, start_index_mocap] = min(abs(time_mocap - stretch_start_times(i_stretch)));
+                [~, pushoff_index_mocap] = min(abs(time_mocap - stretch_pushoff_times(i_stretch)));
                 [~, end_index_mocap] = min(abs(time_mocap - stretch_end_times(i_stretch)));
                 step_times_trial(i_stretch) = time_mocap(end_index_mocap) - time_mocap(start_index_mocap);
+                pushoff_times_trial(i_stretch) = time_mocap(pushoff_index_mocap) - time_mocap(start_index_mocap);
+                cadence_trial(i_stretch) = (step_times_trial(i_stretch) * second_to_minute)^(-1);
 
                 % balance data
                 if process_data_balance
@@ -354,10 +363,10 @@ function analyzeGaitParameters(varargin)
                   
                     % calculate step width and length
                     if strcmp(condition_stance_foot_list_trial{i_stretch}, 'STANCE_RIGHT')
-                        step_width_trial(i_stretch) = lheel_x_pos_extracted_stretch(end) - rheel_x_pos_extracted_stretch(1);
+                        step_width_trial(i_stretch) = abs(lheel_x_pos_extracted_stretch(end) - rheel_x_pos_extracted_stretch(1));
                         step_length_trial(i_stretch) = lheel_y_pos_extracted_stretch(end) - rheel_y_pos_extracted_stretch(1);
                     elseif strcmp(condition_stance_foot_list_trial{i_stretch}, 'STANCE_LEFT')
-                        step_width_trial(i_stretch) = rheel_x_pos_extracted_stretch(end) - lheel_x_pos_extracted_stretch(1);
+                        step_width_trial(i_stretch) = abs(rheel_x_pos_extracted_stretch(end) - lheel_x_pos_extracted_stretch(1));
                         step_length_trial(i_stretch) = rheel_y_pos_extracted_stretch(end) - lheel_y_pos_extracted_stretch(1);
                     end
 
@@ -515,7 +524,9 @@ function analyzeGaitParameters(varargin)
             origin_trial_list_all = [origin_trial_list_all; origin_trial_list_trial];
             origin_start_time_list_all = [origin_start_time_list_all; origin_start_time_list_trial];
             origin_end_time_list_all = [origin_end_time_list_all; origin_end_time_list_trial];
-            step_times_all = [step_times_all; step_times_trial];
+            step_times_all = [step_times_all step_times_trial];
+            pushoff_times_all = [pushoff_times_all pushoff_times_trial];
+            cadence_all = [cadence_all cadence_trial];
 
             if process_data_balance
                 step_width_all = [step_width_all step_width_trial];
@@ -533,7 +544,6 @@ function analyzeGaitParameters(varargin)
                 lleg_angle_ml_normalized_all = [lleg_angle_ml_normalized_all lleg_angle_ml_normalized_trial];
                 rleg_angle_ml_normalized_all = [rleg_angle_ml_normalized_all rleg_angle_ml_normalized_trial];
                 
-                step_speed_all = [step_speed_all step_speed_trial];
                 
             end
 
@@ -614,7 +624,7 @@ function analyzeGaitParameters(varargin)
         save ...
           ( ...
             ['analysis' filesep makeFileName(date, subject_id, 'resultsConditions')], ...
-            'time_normalized', ...
+            'number_of_time_steps_normalized', ...
             'origin_trial_list_all', ...
             'origin_start_time_list_all', ...
             'origin_end_time_list_all', ...
@@ -626,7 +636,9 @@ function analyzeGaitParameters(varargin)
             'conditions_to_analyze_indicators', ... % shouldn't be needed, just leave here for current version of plotGaitParameters to still work
             'condition_labels', ...
             'conditions_to_analyze', ...
-            'step_times_all' ...
+            'step_times_all', ...
+            'pushoff_times_all', ...
+            'cadence_all' ...
           );
 
         if process_data_balance

@@ -5,9 +5,9 @@ function [conditions_to_analyze, trials_to_analyze] = parseTrialArguments(vararg
     parser.KeepUnmatched = true;
     
     default_condition = 'all';
-    addParameter(parser, 'condition', default_condition, @ischar)
+    addParameter(parser, 'condition', default_condition)
     default_trials = 0;
-    addParameter(parser, 'trials', default_trials, @isnumeric)
+    addParameter(parser, 'trials', default_trials)
     
     
     parse(parser, varargin{:})
@@ -18,45 +18,64 @@ function [conditions_to_analyze, trials_to_analyze] = parseTrialArguments(vararg
     if strcmp(condition, 'all')
         conditions_to_analyze = condition_list;
     else
-        conditions_to_analyze = {condition};
+        if iscell(condition)
+            conditions_to_analyze = condition;
+        else 
+            conditions_to_analyze = {condition};
+        end
     end
     
+%     % check if a list was provided, or just a single entry
+%     if iscell(condition)
+%         if iscell(trials)
+%            
+%         else
+%             
+%         end
+%     end
+    
+    
+    
     % list of trials for each condition
-    if trials == 0;
-        % find list of available trials for this condition
-        trials_to_analyze = cell(size(conditions_to_analyze));
-        for i_condition = 1 : length(conditions_to_analyze)
-            condition_label = conditions_to_analyze{i_condition};
-            condition_index_in_complete_list = find(strcmp(condition_list, condition_label));
-            trials_to_analyze_in_this_condition = trial_number_list{condition_index_in_complete_list};
-            trials_to_analyze{i_condition} = trials_to_analyze_in_this_condition;
-        end        
-        
-%         trials_to_analyze = trial_number_list(strcmp(condition_list, condition));
+    if iscell(trials)
+        trials_to_analyze = trials;
     else
-        trials_to_analyze = {trials};
-        % was there one list of trials given for several conditions?
-        if length(conditions_to_analyze) > 1 && length(trials_to_analyze) == 1
-            requested_trials = trials_to_analyze{1};
+        if trials == 0;
+            % find list of available trials for this condition
             trials_to_analyze = cell(size(conditions_to_analyze));
             for i_condition = 1 : length(conditions_to_analyze)
                 condition_label = conditions_to_analyze{i_condition};
                 condition_index_in_complete_list = find(strcmp(condition_list, condition_label));
-                trials_to_analyze_in_this_condition = [];
-                available_trials_in_this_condition = trial_number_list{condition_index_in_complete_list};
-                
-                
-                % only choose trials that are not present in this condition
-                for i_trial = 1 : length(requested_trials)
-                    if ismember(requested_trials(i_trial), available_trials_in_this_condition)
-                        trials_to_analyze_in_this_condition = [trials_to_analyze_in_this_condition requested_trials(i_trial)];
-                    end
-                end
+                trials_to_analyze_in_this_condition = trial_number_list{condition_index_in_complete_list};
                 trials_to_analyze{i_condition} = trials_to_analyze_in_this_condition;
             end
+        else
+            trials_to_analyze = {trials};
         end
-        
     end
+        
+%         trials_to_analyze = trial_number_list(strcmp(condition_list, condition));
+    % was there one list of trials given for several conditions?
+    if length(conditions_to_analyze) > 1 && length(trials_to_analyze) == 1
+        requested_trials = trials_to_analyze{1};
+        trials_to_analyze = cell(size(conditions_to_analyze));
+        for i_condition = 1 : length(conditions_to_analyze)
+            condition_label = conditions_to_analyze{i_condition};
+            condition_index_in_complete_list = find(strcmp(condition_list, condition_label));
+            trials_to_analyze_in_this_condition = [];
+            available_trials_in_this_condition = trial_number_list{condition_index_in_complete_list};
+
+
+            % only choose trials that are not present in this condition
+            for i_trial = 1 : length(requested_trials)
+                if ismember(requested_trials(i_trial), available_trials_in_this_condition)
+                    trials_to_analyze_in_this_condition = [trials_to_analyze_in_this_condition requested_trials(i_trial)];
+                end
+            end
+            trials_to_analyze{i_condition} = trials_to_analyze_in_this_condition;
+        end
+    end
+        
     
     
     % exclude calibration

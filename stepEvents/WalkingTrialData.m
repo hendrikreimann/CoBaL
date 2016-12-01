@@ -14,8 +14,24 @@ classdef WalkingTrialData < handle
         time_mocap = [];
         time_forceplate = [];
         time_labview = [];
+        selected_time = [];
         
         % marker kinematics
+        marker_positions = [];
+        marker_headers = [];
+        joint_center_positions = [];
+        joint_center_headers = [];
+        com_positions = [];
+        com_headers = [];
+        
+        left_heel_y_pos = [];
+        left_heel_y_vel = [];
+        left_heel_y_acc = [];
+
+        right_heel_y_pos = [];
+        right_heel_y_vel = [];
+        right_heel_y_acc = [];
+
         left_heel_z_pos = [];
         left_heel_z_vel = [];
         left_heel_z_acc = [];
@@ -53,7 +69,11 @@ classdef WalkingTrialData < handle
             'left_heel_z_pos', 'left_heel_z_vel', 'left_heel_z_acc', ...
             'left_toes_z_pos', 'left_toes_z_vel', 'left_toes_z_acc', ...
             'right_heel_z_pos', 'right_heel_z_vel', 'right_heel_z_acc', ...
-            'right_toes_z_pos', 'right_toes_z_vel', 'right_toes_z_acc' ...
+            'right_toes_z_pos', 'right_toes_z_vel', 'right_toes_z_acc', ...
+            'left_heel_y_pos', 'left_heel_y_vel', 'left_heel_y_acc', ...
+            'left_toes_y_pos', 'left_toes_y_vel', 'left_toes_y_acc', ...
+            'right_heel_y_pos', 'right_heel_y_vel', 'right_heel_y_acc', ...
+            'right_toes_y_pos', 'right_toes_y_vel', 'right_toes_y_acc' ...
           };
         data_labels_forceplate = ...
           {
@@ -74,19 +94,39 @@ classdef WalkingTrialData < handle
             this.loadMarkerTrajectories();
             this.loadForceplateTrajectories();
 %             this.loadLabviewTrajectories();
+
+            this.selected_time = this.time_mocap(1);
         end
         function loadSubjectInfo(this)
             loaded_subject_info = load([this.data_directory filesep 'subjectInfo.mat']);
             this.date = loaded_subject_info.date;
             this.subject_id = loaded_subject_info.subject_id;
+            
+            if exist([this.data_directory filesep 'subjectModel.mat'], 'file')
+                loaded_subject_model = load([this.data_directory filesep 'subjectModel.mat']);
+                this.joint_center_headers = loaded_subject_model.joint_center_headers;
+            end
         end
         function loadMarkerTrajectories(this)
+            % load marker data
             loaded_marker_trajectories = load([this.data_directory filesep 'processed' filesep makeFileName(this.date, this.subject_id, this.condition, this.trial_number, 'markerTrajectories')]);
+            this.marker_positions = loaded_marker_trajectories.marker_trajectories;
+            this.marker_headers = loaded_marker_trajectories.marker_headers;
             
+            % load kinematic data
+            com_file_name = [this.data_directory filesep 'processed' filesep makeFileName(this.date, this.subject_id, this.condition, this.trial_number, 'kinematicTrajectories.mat')];
+            if exist(com_file_name, 'file')
+                loaded_trajectories = load(com_file_name);
+                this.joint_center_positions = loaded_trajectories.joint_center_trajectories;
+                this.com_positions = loaded_trajectories.com_trajectories;
+                this.com_headers = loaded_trajectories.com_labels;
+            end
+            
+            % time
             this.sampling_rate_mocap = loaded_marker_trajectories.sampling_rate_mocap;
             this.recording_time = loaded_marker_trajectories.time_mocap(end);
             time_mocap = loaded_marker_trajectories.time_mocap;
-
+           
             % extract data
             left_heel_marker = find(strcmp(loaded_marker_trajectories.marker_headers, 'LHEE'));
             left_toes_marker = find(strcmp(loaded_marker_trajectories.marker_headers, 'LTOE'));
@@ -100,6 +140,10 @@ classdef WalkingTrialData < handle
             left_toes_z_trajectory = loaded_marker_trajectories.marker_trajectories(:, left_toes_marker_indices(3));
             right_heel_z_trajectory = loaded_marker_trajectories.marker_trajectories(:, right_heel_marker_indices(3));
             right_toes_z_trajectory = loaded_marker_trajectories.marker_trajectories(:, right_toes_marker_indices(3));
+            left_heel_y_trajectory = loaded_marker_trajectories.marker_trajectories(:, left_heel_marker_indices(2));
+            left_toes_y_trajectory = loaded_marker_trajectories.marker_trajectories(:, left_toes_marker_indices(2));
+            right_heel_y_trajectory = loaded_marker_trajectories.marker_trajectories(:, right_heel_marker_indices(2));
+            right_toes_y_trajectory = loaded_marker_trajectories.marker_trajectories(:, right_toes_marker_indices(2));
 
             % calculate derivatives
             filter_order = 2;
@@ -113,6 +157,14 @@ classdef WalkingTrialData < handle
             right_toes_z_vel_trajectory = deriveByTime(nanfiltfilt(b, a, right_toes_z_trajectory), 1/this.sampling_rate_mocap);
             left_toes_z_acc_trajectory = deriveByTime(nanfiltfilt(b, a, left_toes_z_vel_trajectory), 1/this.sampling_rate_mocap);
             right_toes_z_acc_trajectory = deriveByTime(nanfiltfilt(b, a, right_toes_z_vel_trajectory), 1/this.sampling_rate_mocap);        
+            left_heel_y_vel_trajectory = deriveByTime(nanfiltfilt(b, a, left_heel_y_trajectory), 1/this.sampling_rate_mocap);
+            right_heel_y_vel_trajectory = deriveByTime(nanfiltfilt(b, a, right_heel_y_trajectory), 1/this.sampling_rate_mocap);
+            left_heel_y_acc_trajectory = deriveByTime(nanfiltfilt(b, a, left_heel_y_vel_trajectory), 1/this.sampling_rate_mocap);
+            right_heel_y_acc_trajectory = deriveByTime(nanfiltfilt(b, a, right_heel_y_vel_trajectory), 1/this.sampling_rate_mocap);
+            left_toes_y_vel_trajectory = deriveByTime(nanfiltfilt(b, a, left_toes_y_trajectory), 1/this.sampling_rate_mocap);
+            right_toes_y_vel_trajectory = deriveByTime(nanfiltfilt(b, a, right_toes_y_trajectory), 1/this.sampling_rate_mocap);
+            left_toes_y_acc_trajectory = deriveByTime(nanfiltfilt(b, a, left_toes_y_vel_trajectory), 1/this.sampling_rate_mocap);
+            right_toes_y_acc_trajectory = deriveByTime(nanfiltfilt(b, a, right_toes_y_vel_trajectory), 1/this.sampling_rate_mocap);        
 
             % package
             this.time_mocap = loaded_marker_trajectories.time_mocap;
@@ -132,9 +184,17 @@ classdef WalkingTrialData < handle
             this.right_toes_z_pos = right_toes_z_trajectory;
             this.right_toes_z_vel = right_toes_z_vel_trajectory;
             this.right_toes_z_acc = right_toes_z_acc_trajectory;        
+            
+            this.left_heel_y_pos = left_heel_y_trajectory;
+            this.left_heel_y_vel = left_heel_y_vel_trajectory;
+            this.left_heel_y_acc = left_heel_y_acc_trajectory;
+
+            this.right_heel_y_pos = right_heel_y_trajectory;
+            this.right_heel_y_vel = right_heel_y_vel_trajectory;
+            this.right_heel_y_acc = right_heel_y_acc_trajectory;
         end
         function loadForceplateTrajectories(this)
-            file_name_forceplate = [this.data_directory filesep 'processed' filesep makeFileName(this.date, this.subject_id, this.condition, this.trial_number, 'forceplateTrajectories')];
+            file_name_forceplate = [this.data_directory filesep 'processed' filesep makeFileName(this.date, this.subject_id, this.condition, this.trial_number, 'forceplateTrajectories.mat')];
             if exist(file_name_forceplate, 'file')
                 loaded_forceplate_trajectories = load(file_name_forceplate);
                 this.time_forceplate = loaded_forceplate_trajectories.time_forceplate;
@@ -185,12 +245,40 @@ classdef WalkingTrialData < handle
                 time = this.time_forceplate;
             elseif any(strcmp(data_label, this.data_labels_labview))
                 time = this.time_labview;
+            else
+                error('provided unknown data label');
             end
         end
         function data = getData(this, data_label)
             eval(['data = this.' data_label ';']);
         end
         
+        function stepSelectedTime(this, direction, stepsize)
+            if nargin < 3
+                stepsize = 1;
+            end
+            
+            % get current time step
+            [~, time_index_mocap] = min(abs(this.time_mocap - this.selected_time));
+            
+            if strcmp(direction, 'back')
+                new_time_index_mocap = time_index_mocap - stepsize;
+            elseif strcmp(direction, 'forward')
+                new_time_index_mocap = time_index_mocap + stepsize;
+            else
+                error('Direction must be either "back" or "forward"');
+            end
+            
+            % enforce limits
+            if new_time_index_mocap < 1
+                new_time_index_mocap = 1;
+            elseif new_time_index_mocap > length(this.time_mocap)
+                new_time_index_mocap = length(this.time_mocap);
+            end
+            
+            % set result
+            this.selected_time = this.time_mocap(new_time_index_mocap);
+        end
     end
 end
             
