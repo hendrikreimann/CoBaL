@@ -6,10 +6,10 @@ plot_episodes       = 1;
 include_control     = 0;
 
 show_legend         = 0;
-dictate_axes        = 1;
+dictate_axes        = 0;
 mark_pushoff        = 1;
 
-save_figures        = 1;
+save_figures        = 0;
 
 error_shades = 'cinv';
 % error_shades = 'std';
@@ -56,7 +56,7 @@ discrete_variable_info = {};
 % continuous_variable_info = [continuous_variable_info; {'cop_x_normalized_all', 'total CoP, ml', 'CoP (m)', 'copx', 0, 'right', 'left'}];
 % continuous_variable_info = [continuous_variable_info; {'cop_x_response', 'total CoP response, ml', 'CoP (m)', 'copxRsp', [-0.02 0.02], 'right', 'left'}];
 % continuous_variable_info = [continuous_variable_info; {'cop_x_stancefoot_response', 'total CoP response, ml, rel. to stance foot', 'CoP (m)', 'copxRspStancefoot', [-0.02 0.02], 'right', 'left'}];
-continuous_variable_info = [continuous_variable_info; {'cop_x_mpsis_response', 'total CoP response, ml, rel. to MPSIS', 'CoP (m)', 'copxRspMpsis', [-0.04 0.04], 'right', 'left'}];
+% continuous_variable_info = [continuous_variable_info; {'cop_x_mpsis_response', 'total CoP response, ml, rel. to MPSIS', 'CoP (m)', 'copxRspMpsis', [-0.04 0.04], 'right', 'left'}];
 % continuous_variable_info = [continuous_variable_info; {'f_x_normalized_all', 'total force, ml', 'f (N)', 'fx', [-120 120], '?', '?'}];
 % continuous_variable_info = [continuous_variable_info; {'f_x_response', 'total force response, ml', 'f (N)', 'fxRsp', [-30 30], '?', '?'}];
 % continuous_variable_info = [continuous_variable_info; {'f_z_normalized_all', 'total vertical force', 'f (N)', 'fz', 0, '?', '?'}];
@@ -74,34 +74,14 @@ continuous_variable_info = [continuous_variable_info; {'cop_x_mpsis_response', '
 % continuous_variable_info = [continuous_variable_info; {'rgastroc_normalized_all', 'right Gastrocnemius Medialis', 'EMG', 'rgastroc', [0 0], '+', '-'}];
 % continuous_variable_info = [continuous_variable_info; {'rperolng_normalized_all', 'right Peroneus Longus', 'EMG', 'rperolng', [0 0], '+', '-'}];
 
-
-% continuous_variable_info = [continuous_variable_info;
-% continuous_variable_info = [continuous_variable_info; {'lglutmed_normalized_rescaled_all', 'left Gluteus Medius', 'EMG', 'lglutmed', 0, '?', '?'}];
-% continuous_variable_info = [continuous_variable_info; {'ltibiant_normalized_rescaled_all', 'left Tibialis Anterior', 'EMG', 'ltibiant', 0,'?', '?'}];
-% continuous_variable_info = [continuous_variable_info; {'lgastroc_normalized_rescaled_all', 'left Gastrocnemius Medialis', 'EMG', 'lgastroc', 0, '?', '?'}];
-% continuous_variable_info = [continuous_variable_info; {'lperolng_normalized_rescaled_all', 'left Peroneus Longus', 'EMG', 'lperolng', 0, '?', '?'}];
-% continuous_variable_info = [continuous_variable_info; {'rglutmed_normalized_rescaled_all', 'right Gluteus Medius', 'EMG', 'rglutmed', 0, '?', '?'}];
-% continuous_variable_info = [continuous_variable_info; {'rtibiant_normalized_rescaled_all', 'right Tibialis Anterior', 'EMG', 'rtibiant', 0, '?', '?'}];
-% continuous_variable_info = [continuous_variable_info; {'rgastroc_normalized_rescaled_all', 'right Gastrocnemius Medialis', 'EMG', 'rgastroc', 0, '?', '?'}];
-% continuous_variable_info = [continuous_variable_info; {'rperolng_normalized_rescaled_all', 'right Peroneus Longus', 'EMG', 'rperolng', 0,'?', '?'}];
-
-% continuous_variable_info = [continuous_variable_info; {'lglutmed_response', 'left Gluteus Medius', 'EMG', 'lglutmedRsp', .05, '?', '?'}];
-% continuous_variable_info = [continuous_variable_info; {'ltibiant_response', 'left Tibialis Anterior', 'EMG', 'ltibiantRsp', .5,'?', '?'}];
-% continuous_variable_info = [continuous_variable_info; {'lgastroc_response', 'left Gastrocnemius Medialis', 'EMG', 'lgastrocRsp', .5,'?', '?'}];
-% continuous_variable_info = [continuous_variable_info; {'lperolng_response', 'left Peroneus Longus', 'EMG', 'lperolngRsp', .5,'?', '?'}];
-% continuous_variable_info = [continuous_variable_info; {'rglutmed_response', 'right Gluteus Medius', 'EMG', 'rglutmedRsp', .5, '?', '?'}];
-% continuous_variable_info = [continuous_variable_info; {'rtibiant_response', 'right Tibialis Anterior', 'EMG', 'rtibiantRsp', .5, '?', '?'}];
-% continuous_variable_info = [continuous_variable_info; {'rgastroc_response', 'right Gastrocnemius Medialis', 'EMG', 'rgastrocRsp', .5, '?', '?'}];
-% continuous_variable_info = [continuous_variable_info; {'rperolng_response', 'right Peroneus Longus', 'EMG', 'rperolngRsp', .5, '?', '?'}];
-
-% continuous_variable_info = [continuous_variable_info; {'lglutmed_rescaled_response', 'left Gluteus Medius', 'EMG', 'lglutmedRsp', .5, '?', '?'}];
-% continuous_variable_info = [continuous_variable_info; {'ltibiant_rescaled_response', 'left Tibialis Anterior', 'EMG', 'ltibiantRsp', 1,'?', '?'}];
-% continuous_variable_info = [continuous_variable_info; {'lgastroc_rescaled_response', 'left Gastrocnemius Medialis', 'EMG', 'lgastrocRsp', 1,'?', '?'}];
-continuous_variable_info = [continuous_variable_info; {'lperolng_rescaled_response', 'left Peroneus Longus', 'EMG', 'lperolngRsp', 1,'?', '?'}];
-% continuous_variable_info = [continuous_variable_info; {'rglutmed_rescaled_response', 'right Gluteus Medius', 'EMG', 'rglutmedRsp', 1, '?', '?'}];
-% continuous_variable_info = [continuous_variable_info; {'rtibiant_rescaled_response', 'right Tibialis Anterior', 'EMG', 'rtibiantRsp', 1, '?', '?'}];
-% continuous_variable_info = [continuous_variable_info; {'rgastroc_rescaled_response', 'right Gastrocnemius Medialis', 'EMG', 'rgastrocRsp', 1, '?', '?'}];
-continuous_variable_info = [continuous_variable_info; {'rperolng_rescaled_response', 'right Peroneus Longus', 'EMG', 'rperolngRsp', 1, '?', '?'}];
+continuous_variable_info = [continuous_variable_info; {'lglutmed_rescaled_response', 'left Gluteus Medius', 'EMG', 'lglutmedRsp', [0 0], '+', '-'}];
+continuous_variable_info = [continuous_variable_info; {'ltibiant_rescaled_response', 'left Tibialis Anterior', 'EMG', 'ltibiantRsp', [0 0], '+', '-'}];
+continuous_variable_info = [continuous_variable_info; {'lgastroc_rescaled_response', 'left Gastrocnemius Medialis', 'EMG', 'lgastrocRsp', [0 0], '+', '-'}];
+continuous_variable_info = [continuous_variable_info; {'lperolng_rescaled_response', 'left Peroneus Longus', 'EMG', 'lperolngRsp', [0 0], '+', '-'}];
+continuous_variable_info = [continuous_variable_info; {'rglutmed_rescaled_response', 'right Gluteus Medius', 'EMG', 'rglutmedRsp', [0 0], '+', '-'}];
+continuous_variable_info = [continuous_variable_info; {'rtibiant_rescaled_response', 'right Tibialis Anterior', 'EMG', 'rtibiantRsp', [0 0], '+', '-'}];
+continuous_variable_info = [continuous_variable_info; {'rgastroc_rescaled_response', 'right Gastrocnemius Medialis', 'EMG', 'rgastrocRsp', [0 0], '+', '-'}];
+continuous_variable_info = [continuous_variable_info; {'rperolng_rescaled_response', 'right Peroneus Longus', 'EMG', 'rperolngRsp', [0 0], '+', '-'}];
 
 
 
@@ -371,7 +351,7 @@ for i_subject = 1 : length(subjects)
     load([data_path 'analysis' filesep date '_' subject_id '_resultsBalance.mat']);
     load([data_path 'analysis' filesep date '_' subject_id '_resultsArmswing.mat']);
     load([data_path 'analysis' filesep date '_' subject_id '_resultsForceplate.mat']);
-%     load([data_path 'analysis' filesep date '_' subject_id '_resultsEmg.mat']);
+    load([data_path 'analysis' filesep date '_' subject_id '_resultsEmg.mat']);
     
     % time
     step_times_data = [step_times_data; step_times_all];
