@@ -57,7 +57,7 @@ function stepEventGui(varargin)
         scale_factor_toes = 1;
         scale_factor_fz = 1/2000;
         scale_factor_stimulus_state = 1/8;
-        offset_heel = - 0.0;
+        offset_heel = - 0.03;
         offset_toes = - 0.0;
     end
     
@@ -67,6 +67,25 @@ function stepEventGui(varargin)
     
     % init gui
     controller = stepEventController(trial_data, event_data);
+    
+    % show stick figure
+    heel_center_ap = mean([trial_data.left_heel_y_pos(1) trial_data.right_heel_y_pos(1)]);
+    scene_bound = [-1 1; heel_center_ap+[-1 1]; -0.05 1.95];
+
+    positions = trial_data.marker_positions(1, :);
+    headers = trial_data.marker_headers;
+    if ~isempty(trial_data.joint_center_positions)
+        positions = [positions trial_data.joint_center_positions(1, :)];
+        headers = [headers trial_data.joint_center_headers(1, :)];
+    end
+    if ~isempty(trial_data.joint_center_positions)
+        positions = [positions trial_data.com_positions(1, :)];
+        headers = [headers trial_data.com_headers(1, :)];
+    end
+    
+    controller.scene_figure = stickFigure(positions, headers, scene_bound);
+    controller.scene_figure.setColors('extended plug-in gait');
+    controller.scene_figure.addLines('extended plug-in gait');
     
     % create position figures
     step_event_figure = stepEventFigure('Positions Left', controller, trial_data, event_data);
@@ -78,6 +97,8 @@ function stepEventGui(varargin)
 %     step_event_figure.addEventPlot('left_fz', 'left_pushoff', color_left_pushoff, marker_left_pushoff);
 %     step_event_figure.addEventPlot('left_fz', 'left_touchdown', color_left_touchdown, marker_left_touchdown);
 %     step_event_figure.addDataPlot('stimulus_state', color_stimulus_state, scale_factor_stimulus_state);
+%     step_event_figure.addEventPlot('left_fz', 'left_pushoff', color_left_pushoff, marker_left_pushoff);
+%     step_event_figure.addEventPlot('left_fz', 'left_touchdown', color_left_touchdown, marker_left_touchdown);
     
     step_event_figure = stepEventFigure('Positions Right', controller, trial_data, event_data);
     step_event_figure.addDataPlot('right_heel_z_pos', color_right_heel, scale_factor_heel, offset_heel);
@@ -91,27 +112,35 @@ function stepEventGui(varargin)
 
     % create velocity figures
     step_event_figure = stepEventFigure('Velocities Left', controller, trial_data, event_data);
-%     step_event_figure.addDataPlot('left_heel_z_vel', color_left_heel);
+%     step_event_figure.addDataPlot('left_fz', color_left_fz, scale_factor_fz*5);
+    
+%     step_event_figure.addEventPlot('left_heel_y_vel', 'left_touchdown', color_left_touchdown, marker_left_touchdown);
+%     step_event_figure.addEventPlot('left_heel_z_vel', 'left_pushoff', color_left_pushoff, marker_left_pushoff);
+%     step_event_figure.addEventPlot('right_heel_y_vel', 'right_touchdown', color_right_touchdown, marker_right_touchdown);
+%     step_event_figure.addEventPlot('right_heel_z_vel', 'right_pushoff', color_right_pushoff, marker_right_pushoff);
+    
     step_event_figure.addDataPlot('left_toes_z_vel', color_left_toes);
     step_event_figure.addEventPlot('left_toes_z_vel', 'left_pushoff', color_left_pushoff, marker_left_pushoff);
-    step_event_figure.addEventPlot('left_toes_z_vel', 'left_touchdown', color_left_touchdown, marker_left_touchdown);
+%     step_event_figure.addEventPlot('left_toes_z_vel', 'left_touchdown', color_left_touchdown, marker_left_touchdown);
     
     step_event_figure = stepEventFigure('Velocities Right', controller, trial_data, event_data);
 %     step_event_figure.addDataPlot('right_heel_z_vel', color_right_heel);
     step_event_figure.addDataPlot('right_toes_z_vel', color_right_toes);
     step_event_figure.addEventPlot('right_toes_z_vel', 'right_pushoff', color_right_pushoff, marker_right_pushoff);
-    step_event_figure.addEventPlot('right_toes_z_vel', 'right_touchdown', color_right_touchdown, marker_right_touchdown);
+%     step_event_figure.addEventPlot('right_toes_z_vel', 'right_touchdown', color_right_touchdown, marker_right_touchdown);
     
     % create acceleration figure
     step_event_figure = stepEventFigure('Acceleration Left', controller, trial_data, event_data);
     step_event_figure.addDataPlot('left_heel_z_acc', color_left_heel);
-%     step_event_figure.addDataPlot('left_toes_z_acc', color_left_toes);
     step_event_figure.addEventPlot('left_heel_z_acc', 'left_touchdown', color_left_touchdown, marker_left_touchdown);
+%     step_event_figure.addDataPlot('left_toes_z_acc', color_left_toes);
+%     step_event_figure.addEventPlot('left_toes_z_acc', 'left_pushoff', color_left_pushoff, marker_left_pushoff);
     
     step_event_figure = stepEventFigure('Acceleration Right', controller, trial_data, event_data);
     step_event_figure.addDataPlot('right_heel_z_acc', color_right_heel);
-%     step_event_figure.addDataPlot('right_toes_z_acc', color_right_toes);
     step_event_figure.addEventPlot('right_heel_z_acc', 'right_touchdown', color_right_touchdown, marker_right_touchdown)
+%     step_event_figure.addDataPlot('right_toes_z_acc', color_right_toes);
+%     step_event_figure.addEventPlot('right_toes_z_acc', 'right_pushoff', color_right_pushoff, marker_right_pushoff);
     
     step_event_axes = zeros(size(controller.figureSelectionBox.String));
     for i_figure = 1 : length((controller.figureSelectionBox.String))

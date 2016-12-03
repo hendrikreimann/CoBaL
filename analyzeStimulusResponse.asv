@@ -196,7 +196,6 @@ function analyzeStimulusResponse(varargin)
         cop_x_normalized_all = [];
         cop_x_stancefoot_normalized_all = [];
         cop_x_mpsis_normalized_all = [];
-        cop_x_com_normalized_all = [];
         f_x_normalized_all = [];
         f_z_normalized_all = [];
         m_y_normalized_all = [];
@@ -1047,7 +1046,6 @@ function analyzeStimulusResponse(varargin)
         cop_x_control_means = zeros(number_of_time_steps_normalized, number_of_conditions_control);
         cop_x_stancefoot_control_means = zeros(number_of_time_steps_normalized, number_of_conditions_control);
         cop_x_mpsis_control_means = zeros(number_of_time_steps_normalized, number_of_conditions_control);
-        cop_x_com_control_means = zeros(number_of_time_steps_normalized, number_of_conditions_control);
         f_x_control_means = zeros(number_of_time_steps_normalized, number_of_conditions_control);
         f_z_control_means = zeros(number_of_time_steps_normalized, number_of_conditions_control);
         m_y_control_means = zeros(number_of_time_steps_normalized, number_of_conditions_control);
@@ -1084,7 +1082,6 @@ function analyzeStimulusResponse(varargin)
         cop_x_response = zeros(size(cop_x_normalized_all));
         cop_x_stancefoot_response = zeros(size(cop_x_normalized_all));
         cop_x_mpsis_response = zeros(size(cop_x_normalized_all));
-        cop_x_com_response = zeros(size(cop_x_normalized_all));
         f_x_response = zeros(size(f_x_normalized_all));
         f_z_response = zeros(size(f_z_normalized_all));
         m_y_response = zeros(size(m_y_normalized_all));
@@ -1119,7 +1116,7 @@ function analyzeStimulusResponse(varargin)
             cop_x_response(:, condition_indicator) = cop_x_normalized_all(:, condition_indicator) - repmat(cop_x_control_means(:, applicable_control_condition_indices(i_condition)), 1, sum(condition_indicator));
             cop_x_stancefoot_response(:, condition_indicator) = cop_x_stancefoot_normalized_all(:, condition_indicator) - repmat(cop_x_stancefoot_control_means(:, applicable_control_condition_indices(i_condition)), 1, sum(condition_indicator));
             cop_x_mpsis_response(:, condition_indicator) = cop_x_mpsis_normalized_all(:, condition_indicator) - repmat(cop_x_mpsis_control_means(:, applicable_control_condition_indices(i_condition)), 1, sum(condition_indicator));
-            cop_x_com_response(:, condition_indicator) = cop_x_com_normalized_all(:, condition_indicator) - repmat(cop_x_com_control_means(:, applicable_control_condition_indices(i_condition)), 1, sum(condition_indicator));
+            cop_x_cop_resonse(:, condition_indicator) = cop_x_com_normalized_all(:, condition_indicator) - repmat(cop_x_com_control_means(:, applicable_control_condition_indices(i_condition)), 1, sum(condition_indicators));
             f_x_response(:, condition_indicator) = f_x_normalized_all(:, condition_indicator) - repmat(f_x_control_means(:, applicable_control_condition_indices(i_condition)), 1, sum(condition_indicator));
             f_z_response(:, condition_indicator) = f_z_normalized_all(:, condition_indicator) - repmat(f_z_control_means(:, applicable_control_condition_indices(i_condition)), 1, sum(condition_indicator));
             m_y_response(:, condition_indicator) = m_y_normalized_all(:, condition_indicator) - repmat(m_y_control_means(:, applicable_control_condition_indices(i_condition)), 1, sum(condition_indicator));
@@ -1281,6 +1278,12 @@ function analyzeStimulusResponse(varargin)
                 'rheel_x_pos_stancefoot_normalized_trial', ...
                 'lheel_x_pos_mpsis_normalized_trial', ...
                 'rheel_x_pos_mpsis_normalized_trial', ...
+                'lheel_x_pos_com_normalized_trial', ...
+                'rheel_x_pos_com_normalized_trial', ...
+                'lheel_x_pos_com_normalized_all',...
+                'rheel_x_pos_com_normalized_all',...
+                'lheel_x_pos_com_response',...
+                'rheel_x_pos_com_response',...
                 'trunk_angle_ap_normalized_all', ...
                 'trunk_angle_ml_normalized_all', ...
                 'lleg_angle_ml_normalized_all', ...

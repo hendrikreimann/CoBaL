@@ -77,6 +77,8 @@ function findRelevantDataStretches(varargin)
             
             % XXX this should be replaced with a system where the subject info file stores the available data for each trial
             labview_file_name = ['processed' filesep makeFileName(date, subject_id, condition, i_trial, 'labviewData')];
+% XXX
+% labview_file_name = ['processed' filesep makeFileName(date, subject_id, condition, i_trial, 'labviewTrajectories')];
             if exist([labview_file_name '.mat'], 'file')
                 load(labview_file_name);
             end                
@@ -99,10 +101,15 @@ function findRelevantDataStretches(varargin)
 
             % determine illusion
             if ~strcmp(stimulus_type, 'none')
+% XXX
+% time_labviewData = time_forceplate;
+                
                 illusion_trajectory = zeros(size(time_labviewData)); % 1 = RIGHT, -1 = LEFT
                 if strcmp(stimulus_type, 'gvs')
                     % use GVS_out_trajectory
                     for i_time = 1 : length(time_labviewData)
+% XXX
+% GVS_out_trajectory = gvs_out_trajectory;
                         if GVS_out_trajectory(i_time) > 0
                             % anode is on the right, cathode is on the left, illusory fall is towards the cathode, i.e. LEFT
                             illusion_trajectory(i_time) = -1;
@@ -128,10 +135,16 @@ function findRelevantDataStretches(varargin)
             
             % get CoP trajectories
             if force_plate_data_available
-                left_copx_trajectory = left_forceplate_cop_Acw(:, 1);
-                right_copx_trajectory = right_forceplate_cop_Acw(:, 1);
-                left_fz_trajectory = left_forceplate_wrench_Acw(:, 3);
-                right_fz_trajectory = right_forceplate_wrench_Acw(:, 3);
+% XXX
+% left_forceplate_cop_world = left_forceplate_cop_Acw;
+% right_forceplate_cop_world = right_forceplate_cop_Acw;
+% left_forceplate_wrench_world = left_forceplate_wrench_Acw;
+% right_forceplate_wrench_world = right_forceplate_wrench_Acw;
+
+                left_copx_trajectory = left_forceplate_cop_world(:, 1);
+                right_copx_trajectory = right_forceplate_cop_world(:, 1);
+                left_fz_trajectory = left_forceplate_wrench_world(:, 3);
+                right_fz_trajectory = right_forceplate_wrench_world(:, 3);
             end
             
             %% find triggers
@@ -146,6 +159,9 @@ function findRelevantDataStretches(varargin)
             else
                 % find the time steps where the stimulus state crosses a threshold
                 stimulus_threshold = 0.5;
+                
+% XXX
+% stimulus_state_trajectory = stimulus_foot_state;
                 trigger_indices_labview = find(diff(sign(stimulus_state_trajectory - stimulus_threshold)) > 0) + 1;
 
                 %
@@ -176,7 +192,7 @@ function findRelevantDataStretches(varargin)
                 end
 %                 plot(time_forceplate(left_touchdown_indices_forceplate), zeros(size(left_touchdown_indices_forceplate)), 'o')
 %                 plot(time_forceplate(right_touchdown_indices_forceplate), zeros(size(right_touchdown_indices_forceplate)), 'o')
-                plot(time_mocap(trigger_indices_mocap), zeros(size(trigger_indices_mocap)), 'x', 'Displayname', 'heelstrikes')
+                plot(time_mocap(trigger_indices_mocap), zeros(size(trigger_indices_mocap)), 'x', 'Displayname', 'triggers')
 %                 plot(time_labviewData, illusion_trajectory, 'Displayname', 'illusion')
 %                 legend('stimulus state', 'left cop', 'right cop', 'left touchdown', 'right touchdown', 'trigger', 'stim start')
                 legend('toggle')
@@ -195,6 +211,7 @@ function findRelevantDataStretches(varargin)
             if strcmp(stimulus_type, 'none')
                 stretch_start_times = zeros(number_of_triggers, 1);
                 stretch_end_times = zeros(number_of_triggers, 1);
+                stretch_pushoff_times = zeros(number_of_triggers, 1);
                 closest_heelstrike_distance_times = zeros(number_of_triggers, 1);
                 condition_stance_foot_list = cell(number_of_triggers, 1);
                 condition_perturbation_list = cell(number_of_triggers, 1);
@@ -218,22 +235,28 @@ function findRelevantDataStretches(varargin)
                         condition_stance_foot_list{i_trigger, 1} = 'STANCE_LEFT';
                         stretch_start_times(i_trigger, 1) = trigger_times(i_trigger);
                         stretch_end_time_index = find(right_touchdown_times > trigger_times(i_trigger), 1, 'first');
-                        if isempty(stretch_end_time_index)
+                        stretch_pushoff_time_index = find(right_pushoff_times > trigger_times(i_trigger), 1, 'first');
+                        if isempty(stretch_end_time_index) || isempty(stretch_pushoff_time_index)
                             stretch_end_times(i_trigger, 1) = -1;
+                            stretch_pushoff_times(i_trigger, 1) = -1;
                             removal_flags(i_trigger) = 1;
                         else
                             stretch_end_times(i_trigger, 1) = right_touchdown_times(stretch_end_time_index);
+                            stretch_pushoff_times(i_trigger, 1) = right_pushoff_times(stretch_pushoff_time_index);
                         end
                     end    
                     if distance_to_trigger_right_time < distance_to_trigger_left_time
                         condition_stance_foot_list{i_trigger, 1} = 'STANCE_RIGHT';
                         stretch_start_times(i_trigger, 1) = trigger_times(i_trigger);
                         stretch_end_time_index = find(left_touchdown_times > trigger_times(i_trigger), 1, 'first');
-                        if isempty(stretch_end_time_index)
+                        stretch_pushoff_time_index = find(left_pushoff_times > trigger_times(i_trigger), 1, 'first');
+                        if isempty(stretch_end_time_index) || isempty(stretch_pushoff_time_index)
                             stretch_end_times(i_trigger, 1) = -1;
+                            stretch_pushoff_times(i_trigger, 1) = -1;
                             removal_flags(i_trigger) = 1;
                         else
                             stretch_end_times(i_trigger, 1) = left_touchdown_times(stretch_end_time_index);
+                            stretch_pushoff_times(i_trigger, 1) = left_pushoff_times(stretch_pushoff_time_index);
                         end
                     end                        
                     condition_experimental_list{i_trigger, 1} = condition;
@@ -245,13 +268,13 @@ function findRelevantDataStretches(varargin)
                 trigger_times = trigger_times(unflagged_indices);
                 stretch_start_times = stretch_start_times(unflagged_indices, :);
                 stretch_end_times = stretch_end_times(unflagged_indices, :);
+                stretch_pushoff_times = stretch_pushoff_times(unflagged_indices, :);
                 condition_stance_foot_list = condition_stance_foot_list(unflagged_indices, :);
                 condition_perturbation_list = condition_perturbation_list(unflagged_indices, :);
                 condition_delay_list = condition_delay_list(unflagged_indices, :);
                 condition_index_list = condition_index_list(unflagged_indices, :);
                 condition_experimental_list = condition_experimental_list(unflagged_indices, :);
                 closest_heelstrike_distance_times = closest_heelstrike_distance_times(unflagged_indices, :); 
-                
                 
                 if visualize
                     for i_trigger = 1 : length(stretch_start_times)
@@ -289,6 +312,7 @@ function findRelevantDataStretches(varargin)
                 trigger_times = trigger_times(unflagged_indices);
                 stretch_start_times = stretch_start_times(unflagged_indices, :);
                 stretch_end_times = stretch_end_times(unflagged_indices, :);
+                stretch_pushoff_times = stretch_pushoff_times(unflagged_indices, :);
                 condition_stance_foot_list = condition_stance_foot_list(unflagged_indices, :);
                 condition_perturbation_list = condition_perturbation_list(unflagged_indices, :);
                 condition_delay_list = condition_delay_list(unflagged_indices, :);
@@ -307,6 +331,7 @@ function findRelevantDataStretches(varargin)
                     'condition_index_list', ...
                     'condition_experimental_list', ...
                     'stretch_start_times', ...
+                    'stretch_pushoff_times', ...
                     'stretch_end_times' ...
                   )
 
@@ -323,6 +348,7 @@ function findRelevantDataStretches(varargin)
                 stim_start_indices_labview = [stim_start_indices_labview zeros(number_of_triggers, 5)]; %#ok<AGROW>
                 stretch_start_times = zeros(number_of_triggers, 6);
                 stretch_end_times = zeros(number_of_triggers, 6);
+                stretch_pushoff_times = zeros(number_of_triggers, 6);
                 closest_heelstrike_distance_times = zeros(number_of_triggers, 1);
                 condition_stance_foot_list = cell(number_of_triggers, 6);
                 condition_perturbation_list = cell(number_of_triggers, 6);
@@ -400,8 +426,10 @@ function findRelevantDataStretches(varargin)
                         trigger_foot = 'right';
                         closest_heelstrike_distance_times(i_trigger) = time_difference_right;
                     elseif left_heelstrike_acceptable && right_heelstrike_acceptable
+                        trigger_foot = 'unclear';
                         removal_flags(i_trigger) = 1;
                     elseif ~left_heelstrike_acceptable && ~right_heelstrike_acceptable
+                        trigger_foot = 'unclear';
                         removal_flags(i_trigger) = 1;
                     end
                     
@@ -506,11 +534,24 @@ function findRelevantDataStretches(varargin)
                             right_foot_heelstrike_minus_1       = right_touchdown_times(index_right-1);
                             right_foot_heelstrike_0             = right_touchdown_times(index_right);
                             right_foot_heelstrike_plus_1        = right_touchdown_times(index_right+1);
+% XXX
+% if index_right+2 <= length(right_touchdown_times)
                             right_foot_heelstrike_plus_2        = right_touchdown_times(index_right+2);
+% else
+%     right_foot_heelstrike_plus_2 = 0;
+% end
+                            
                             right_foot_pushoff_minus_1          = min(right_pushoff_times(right_pushoff_times >= right_foot_heelstrike_minus_1));
                             right_foot_pushoff_0                = min(right_pushoff_times(right_pushoff_times >= right_foot_heelstrike_0));
                             right_foot_pushoff_plus_1           = min(right_pushoff_times(right_pushoff_times >= right_foot_heelstrike_plus_1));
                             right_foot_pushoff_plus_2           = min(right_pushoff_times(right_pushoff_times >= right_foot_heelstrike_plus_2));
+% XXX
+% if isempty(right_foot_pushoff_plus_1)
+%     right_foot_pushoff_plus_1 = 0;
+% end
+% if isempty(right_foot_pushoff_plus_2)
+%     right_foot_pushoff_plus_2 = 0;
+% end
 
                             left_foot_heelstrike_minus_1        = min(left_touchdown_times(left_touchdown_times >= right_foot_heelstrike_minus_1));
                             left_foot_heelstrike_0              = min(left_touchdown_times(left_touchdown_times >= right_foot_heelstrike_0));
@@ -519,7 +560,17 @@ function findRelevantDataStretches(varargin)
                             left_foot_pushoff_minus_1           = max(left_pushoff_times(left_pushoff_times <= right_foot_pushoff_minus_1));
                             left_foot_pushoff_0                 = max(left_pushoff_times(left_pushoff_times <= right_foot_pushoff_0));
                             left_foot_pushoff_plus_1            = max(left_pushoff_times(left_pushoff_times <= right_foot_pushoff_plus_1));
+% XXX
+% if isempty(left_foot_pushoff_plus_1)
+%     left_foot_pushoff_plus_1 = 0;
+% end
+                            
+% XXX                            
+% if index_right+2 <= length(right_touchdown_times)
                             left_foot_pushoff_plus_2            = max(left_pushoff_times(left_pushoff_times <= right_foot_pushoff_plus_2));
+% else
+%     left_foot_pushoff_plus_2 = 0;
+% end
 
 
                             % notify if events are not sorted properly
@@ -558,6 +609,24 @@ function findRelevantDataStretches(varargin)
                     else
                         trigger_foot = 'unclear';
                         disp(['Trial ' num2str(i_trial) ': something went wrong at time ' num2str(time_labviewData(trigger_indices_labview(i_trigger))) ' - trigger exactly between two heelstrikes']);
+                        left_foot_heelstrike_minus_1    = 0;
+                        left_foot_heelstrike_0          = 0;
+                        left_foot_heelstrike_plus_1     = 0;
+                        left_foot_heelstrike_plus_2     = 0;
+                        left_foot_pushoff_minus_1       = 0;
+                        left_foot_pushoff_0             = 0;
+                        left_foot_pushoff_plus_1        = 0;
+                        left_foot_pushoff_plus_2        = 0;
+
+                        right_foot_heelstrike_minus_1   = 0;
+                        right_foot_heelstrike_0         = 0;
+                        right_foot_heelstrike_plus_1    = 0;
+                        right_foot_heelstrike_plus_2    = 0;
+                        right_foot_pushoff_minus_1      = 0;
+                        right_foot_pushoff_0            = 0;
+                        right_foot_pushoff_plus_1       = 0;
+                        right_foot_pushoff_plus_2       = 0;
+
                         removal_flags(i_trigger) = 1;
                     end
 
@@ -573,6 +642,14 @@ function findRelevantDataStretches(varargin)
                               isempty(right_foot_heelstrike_0) ...
                               isempty(right_foot_heelstrike_plus_1) ...
                               isempty(right_foot_heelstrike_plus_2) ...
+                              isempty(left_foot_pushoff_minus_1) ...
+                              isempty(left_foot_pushoff_0) ...
+                              isempty(left_foot_pushoff_plus_1) ...
+                              isempty(left_foot_pushoff_plus_2) ...
+                              isempty(right_foot_pushoff_minus_1) ...
+                              isempty(right_foot_pushoff_0) ...
+                              isempty(right_foot_pushoff_plus_1) ...
+                              isempty(right_foot_pushoff_plus_2) ...
                             ] ...
                           ) || removal_flags(i_trigger) == 1
                         % not all events are present
@@ -607,9 +684,12 @@ function findRelevantDataStretches(varargin)
                             condition_stance_foot_list{i_trigger, 6} = 'STANCE_LEFT';
 
                             if strcmp(stretches_to_analyze, 'single stance')
+                                % ACHTUNG: this is not up to date
+                                
                                 % this step
                                 stretch_start_times(i_trigger, 1) = left_foot_pushoff_0;
                                 stretch_end_times(i_trigger, 1) = left_foot_heelstrike_0;
+
                                 % post-stimulus steps
                                 stretch_start_times(i_trigger, 2) = right_foot_pushoff_0;
                                 stretch_end_times(i_trigger, 2) = right_foot_heelstrike_plus_1;
@@ -628,19 +708,27 @@ function findRelevantDataStretches(varargin)
                             elseif strcmp(stretches_to_analyze, 'full stride')
                                 % this step
                                 stretch_start_times(i_trigger, 1) = right_foot_heelstrike_0;
+                                stretch_pushoff_times(i_trigger, 1) = left_foot_pushoff_0;
                                 stretch_end_times(i_trigger, 1) = left_foot_heelstrike_0;
                                 % post-stimulus steps
                                 stretch_start_times(i_trigger, 2) = left_foot_heelstrike_0;
+                                stretch_pushoff_times(i_trigger, 2) = right_foot_pushoff_0;
                                 stretch_end_times(i_trigger, 2) = right_foot_heelstrike_plus_1;
 
                                 stretch_start_times(i_trigger, 3) = right_foot_heelstrike_plus_1;
+                                stretch_pushoff_times(i_trigger, 3) = left_foot_pushoff_plus_1;
                                 stretch_end_times(i_trigger, 3) = left_foot_heelstrike_plus_1;
+                                
                                 stretch_start_times(i_trigger, 4) = left_foot_heelstrike_plus_1;
+                                stretch_pushoff_times(i_trigger, 4) = right_foot_pushoff_plus_1;
                                 stretch_end_times(i_trigger, 4) = right_foot_heelstrike_plus_2;
                                 % use two previous steps as control
                                 stretch_start_times(i_trigger, 5) = right_foot_heelstrike_minus_1;
+                                stretch_pushoff_times(i_trigger, 5) = left_foot_pushoff_minus_1;
                                 stretch_end_times(i_trigger, 5) = left_foot_heelstrike_minus_1;
+                                
                                 stretch_start_times(i_trigger, 6) = left_foot_heelstrike_minus_1;
+                                stretch_pushoff_times(i_trigger, 6) = right_foot_pushoff_minus_1;
                                 stretch_end_times(i_trigger, 6) = right_foot_heelstrike_0;
                             end
 
@@ -691,18 +779,27 @@ function findRelevantDataStretches(varargin)
                             elseif strcmp(stretches_to_analyze, 'full stride')
                                 % this step
                                 stretch_start_times(i_trigger, 1) = left_foot_heelstrike_0;
+                                stretch_pushoff_times(i_trigger, 1) = right_foot_pushoff_0;
                                 stretch_end_times(i_trigger, 1) = right_foot_heelstrike_0;
                                 % post stimulus steps
                                 stretch_start_times(i_trigger, 2) = right_foot_heelstrike_0;
+                                stretch_pushoff_times(i_trigger, 2) = left_foot_pushoff_0;
                                 stretch_end_times(i_trigger, 2) = left_foot_heelstrike_plus_1;
+                                
                                 stretch_start_times(i_trigger, 3) = left_foot_heelstrike_plus_1;
+                                stretch_pushoff_times(i_trigger, 3) = right_foot_pushoff_plus_1;
                                 stretch_end_times(i_trigger, 3) = right_foot_heelstrike_plus_1;
+                                
                                 stretch_start_times(i_trigger, 4) = right_foot_heelstrike_plus_1;
+                                stretch_pushoff_times(i_trigger, 4) = left_foot_pushoff_plus_1;
                                 stretch_end_times(i_trigger, 4) = left_foot_heelstrike_plus_2;
                                 % use two previous steps as control
                                 stretch_start_times(i_trigger, 5) = left_foot_heelstrike_minus_1;
+                                stretch_pushoff_times(i_trigger, 5) = right_foot_pushoff_minus_1;
                                 stretch_end_times(i_trigger, 5) = right_foot_heelstrike_minus_1;
+                                
                                 stretch_start_times(i_trigger, 6) = right_foot_heelstrike_minus_1;
+                                stretch_pushoff_times(i_trigger, 6) = left_foot_pushoff_minus_1;
                                 stretch_end_times(i_trigger, 6) = left_foot_heelstrike_0;
                             end
 
@@ -733,6 +830,7 @@ function findRelevantDataStretches(varargin)
                 trigger_times = trigger_times(unflagged_indices);
                 stim_start_indices_labview = stim_start_indices_labview(unflagged_indices, :);
                 stretch_start_times = stretch_start_times(unflagged_indices, :);
+                stretch_pushoff_times = stretch_pushoff_times(unflagged_indices, :);
                 stretch_end_times = stretch_end_times(unflagged_indices, :);
                 condition_stance_foot_list = condition_stance_foot_list(unflagged_indices, :);
                 condition_perturbation_list = condition_perturbation_list(unflagged_indices, :);
@@ -743,70 +841,15 @@ function findRelevantDataStretches(varargin)
                 
                 % reorder
                 % XXX this should be replaced with a reshape
-                stretch_start_times = ...
-                  [ ...
-                    stretch_start_times(:, 1); ...
-                    stretch_start_times(:, 2); ...
-                    stretch_start_times(:, 3); ...
-                    stretch_start_times(:, 4); ...
-                    stretch_start_times(:, 5); ...
-                    stretch_start_times(:, 6); ...
-                  ];
-                stretch_end_times = ...
-                  [ ...
-                    stretch_end_times(:, 1); ...
-                    stretch_end_times(:, 2); ...
-                    stretch_end_times(:, 3); ...
-                    stretch_end_times(:, 4); ...
-                    stretch_end_times(:, 5); ...
-                    stretch_end_times(:, 6); ...
-                  ];
-                condition_stance_foot_list = ...
-                    [ ...
-                      condition_stance_foot_list(:, 1); ...
-                      condition_stance_foot_list(:, 2); ...
-                      condition_stance_foot_list(:, 3); ...
-                      condition_stance_foot_list(:, 4); ...
-                      condition_stance_foot_list(:, 5); ...
-                      condition_stance_foot_list(:, 6); ...
-                    ];
-                condition_perturbation_list = ...
-                    [ ...
-                      condition_perturbation_list(:, 1); ...
-                      condition_perturbation_list(:, 2); ...
-                      condition_perturbation_list(:, 3); ...
-                      condition_perturbation_list(:, 4); ...
-                      condition_perturbation_list(:, 5); ...
-                      condition_perturbation_list(:, 6); ...
-                    ];
-                condition_delay_list = ...
-                    [ ...
-                      condition_delay_list(:, 1); ...
-                      condition_delay_list(:, 2); ...
-                      condition_delay_list(:, 3); ...
-                      condition_delay_list(:, 4); ...
-                      condition_delay_list(:, 5); ...
-                      condition_delay_list(:, 6); ...
-                    ];
-                condition_index_list = ...
-                    [ ...
-                      condition_index_list(:, 1); ...
-                      condition_index_list(:, 2); ...
-                      condition_index_list(:, 3); ...
-                      condition_index_list(:, 4); ...
-                      condition_index_list(:, 5); ...
-                      condition_index_list(:, 6); ...
-                    ];
-                condition_experimental_list = ...
-                    [ ...
-                      condition_experimental_list(:, 1); ...
-                      condition_experimental_list(:, 2); ...
-                      condition_experimental_list(:, 3); ...
-                      condition_experimental_list(:, 4); ...
-                      condition_experimental_list(:, 5); ...
-                      condition_experimental_list(:, 6); ...
-                    ];
+                stretch_start_times = reshape(stretch_start_times, numel(stretch_start_times), 1);
+                stretch_pushoff_times = reshape(stretch_pushoff_times, numel(stretch_pushoff_times), 1);
+                stretch_end_times = reshape(stretch_end_times, numel(stretch_end_times), 1);
                 
+                condition_stance_foot_list = reshape(condition_stance_foot_list, numel(condition_stance_foot_list), 1);
+                condition_perturbation_list = reshape(condition_perturbation_list, numel(condition_perturbation_list), 1);
+                condition_delay_list = reshape(condition_delay_list, numel(condition_delay_list), 1);
+                condition_index_list = reshape(condition_index_list, numel(condition_index_list), 1);
+                condition_experimental_list = reshape(condition_experimental_list, numel(condition_experimental_list), 1);
                 
                 % we now have a neatly ordered list of stretches which we can prune
                 % check step times and flag outliers
@@ -832,6 +875,7 @@ function findRelevantDataStretches(varargin)
                 % remove flagged triggers
                 unflagged_indices = ~removal_flags;
                 stretch_start_times = stretch_start_times(unflagged_indices, :);
+                stretch_pushoff_times = stretch_pushoff_times(unflagged_indices, :);
                 stretch_end_times = stretch_end_times(unflagged_indices, :);
                 condition_stance_foot_list = condition_stance_foot_list(unflagged_indices, :);
                 condition_perturbation_list = condition_perturbation_list(unflagged_indices, :);
@@ -851,6 +895,7 @@ function findRelevantDataStretches(varargin)
                     'condition_experimental_list', ...
                     'trigger_times', ...
                     'stretch_start_times', ...
+                    'stretch_pushoff_times', ...
                     'stretch_end_times', ...
                     'closest_heelstrike_distance_times' ...
                   )
