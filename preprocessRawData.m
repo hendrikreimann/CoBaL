@@ -1,10 +1,10 @@
 function preprocessRawData()
 
     visualize                   = 0;
-    process_emg                 = 0;
+    process_emg                 = 1;
     process_forceplate          = 1;
     process_marker              = 1;
-    map_emg_sensors_manually    = 0;
+    map_emg_sensors_manually    = 1;
     transform_to_belt_space     = 0;
     
     conditions_to_transform_to_belt_space = {'baselineTM', 'feedback', 'postTM'};
