@@ -2,9 +2,10 @@ function analyzeStimulusResponse(varargin)
     [condition_list, trial_number_list] = parseTrialArguments(varargin{:});
     
     save_data                           = 1;
-    normalize_emg_mean                  = 0;
-    normalize_emg_peak                  = 1;
+    normalize_emg_mean                  = 1;
+    normalize_emg_peak                  = 0;
     
+    visualize_com                       = 0;
     % setup analysis pattern - this should be done by editing a file
     process_data_balance                = 1;
     process_data_armswing               = 1;
@@ -261,16 +262,16 @@ function analyzeStimulusResponse(varargin)
                 rpsi_marker = find(strcmp(marker_headers, 'RPSI'));
                 lheel_marker = find(strcmp(marker_headers, 'LHEE'));
                 rheel_marker = find(strcmp(marker_headers, 'RHEE'));
+                com_body = find(strcmp(com_labels, 'BODYCOM'));
 
                 c7_marker_indices = reshape([(c7_marker - 1) * 3 + 1; (c7_marker - 1) * 3 + 2; (c7_marker - 1) * 3 + 3], 1, length(c7_marker)*3);
                 lpsi_marker_indices = reshape([(lpsi_marker - 1) * 3 + 1; (lpsi_marker - 1) * 3 + 2; (lpsi_marker - 1) * 3 + 3], 1, length(lpsi_marker)*3);
                 rpsi_marker_indices = reshape([(rpsi_marker - 1) * 3 + 1; (rpsi_marker - 1) * 3 + 2; (rpsi_marker - 1) * 3 + 3], 1, length(rpsi_marker)*3);
                 lheel_marker_indices = reshape([(lheel_marker - 1) * 3 + 1; (lheel_marker - 1) * 3 + 2; (lheel_marker - 1) * 3 + 3], 1, length(lheel_marker)*3);
                 rheel_marker_indices = reshape([(rheel_marker - 1) * 3 + 1; (rheel_marker - 1) * 3 + 2; (rheel_marker - 1) * 3 + 3], 1, length(rheel_marker)*3);
-
+                com_body_indices = reshape([(com_body - 1) * 3 + 1; (com_body - 1) * 3 + 2; (com_body - 1) * 3 + 3], 1, length(com_body) *3);
+                
                 % rename relevant trajectories
-                com_x_pos_trajectory = com_trajectories(:, 1);
-                com_y_pos_trajectory = com_trajectories(:, 2);
                 c7_x_pos_trajectory = marker_trajectories(:, c7_marker_indices(1));
                 c7_y_pos_trajectory = marker_trajectories(:, c7_marker_indices(2));
                 c7_z_pos_trajectory = marker_trajectories(:, c7_marker_indices(3));
@@ -286,13 +287,14 @@ function analyzeStimulusResponse(varargin)
                 rheel_x_pos_trajectory = marker_trajectories(:, rheel_marker_indices(1));
                 rheel_y_pos_trajectory = marker_trajectories(:, rheel_marker_indices(2));
                 rheel_z_pos_trajectory = marker_trajectories(:, rheel_marker_indices(3));
+                com_x_pos_trajectory = com_trajectories(:, com_body_indices(1));
+                com_y_pos_trajectory = com_trajectories(:, com_body_indices(2));
+                com_z_pos_trajectory = com_trajectories(:, com_body_indices(3));
                 
                 % initialize containers
                 step_width_trial = zeros(1, number_of_stretches_trial);
                 step_length_trial = zeros(1, number_of_stretches_trial);
                 step_speed_trial = zeros(1, number_of_stretches_trial);
-                com_x_pos_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
-                com_y_pos_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
                 c7_x_pos_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
                 c7_y_pos_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
                 c7_z_pos_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
@@ -451,8 +453,6 @@ function analyzeStimulusResponse(varargin)
                     time_extracted_mocap = time_mocap(start_index_mocap : end_index_mocap);
                     
                     % extract
-                    com_x_pos_extracted_stretch = com_x_pos_trajectory(start_index_mocap : end_index_mocap);
-                    com_y_pos_extracted_stretch = com_y_pos_trajectory(start_index_mocap : end_index_mocap);
                     c7_x_pos_extracted_stretch = c7_x_pos_trajectory(start_index_mocap : end_index_mocap);
                     c7_y_pos_extracted_stretch = c7_y_pos_trajectory(start_index_mocap : end_index_mocap);
                     c7_z_pos_extracted_stretch = c7_z_pos_trajectory(start_index_mocap : end_index_mocap);
@@ -468,6 +468,8 @@ function analyzeStimulusResponse(varargin)
                     rheel_x_pos_extracted_stretch = rheel_x_pos_trajectory(start_index_mocap : end_index_mocap);
                     rheel_y_pos_extracted_stretch = rheel_y_pos_trajectory(start_index_mocap : end_index_mocap);
                     rheel_z_pos_extracted_stretch = rheel_z_pos_trajectory(start_index_mocap : end_index_mocap);
+                    com_x_pos_extracted_stretch = com_x_pos_trajectory(start_index_mocap : end_index_mocap);
+                    com_y_pos_extracted_stretch = com_y_pos_trajectory(start_index_mocap : end_index_mocap);
                     
                     % calculate vectors
                     mpsi_x_pos_extracted_stretch = (lpsi_x_pos_extracted_stretch + rpsi_x_pos_extracted_stretch) * 0.5;
@@ -520,7 +522,6 @@ function analyzeStimulusResponse(varargin)
 
                     % normalize mocap data in time
                     time_normalized_mocap = linspace(time_extracted_mocap(1), time_extracted_mocap(end), number_of_time_steps_normalized);
-                    com_x_pos_normalized_stretch = spline(time_extracted_mocap, com_x_pos_extracted_stretch, time_normalized_mocap);
                     lpsi_x_pos_normalized_stretch = spline(time_extracted_mocap, lpsi_x_pos_extracted_stretch, time_normalized_mocap);
                     lheel_x_pos_normalized_stretch = spline(time_extracted_mocap, lheel_x_pos_extracted_stretch, time_normalized_mocap);
                     lheel_y_pos_normalized_stretch = spline(time_extracted_mocap, lheel_y_pos_extracted_stretch, time_normalized_mocap);
@@ -529,6 +530,8 @@ function analyzeStimulusResponse(varargin)
                     rheel_y_pos_normalized_stretch = spline(time_extracted_mocap, rheel_y_pos_extracted_stretch, time_normalized_mocap);
                     mpsi_x_pos_normalized_stretch = spline(time_extracted_mocap, mpsi_x_pos_extracted_stretch, time_normalized_mocap);
                     mpsi_y_pos_normalized_stretch = spline(time_extracted_mocap, mpsi_y_pos_extracted_stretch, time_normalized_mocap);
+                    com_x_pos_normalized_stretch = spline(time_extracted_mocap, com_x_pos_extracted_stretch, time_normalized_mocap);
+                    com_y_pos_normalized_stretch = spline(time_extracted_mocap, com_y_pos_extracted_stretch, time_normalized_mocap);
 
                     trunk_angle_ap_normalized_stretch = spline(time_extracted_mocap, trunk_angle_ap_extracted_stretch, time_normalized_mocap);
                     trunk_angle_ml_normalized_stretch = spline(time_extracted_mocap, trunk_angle_ml_extracted_stretch, time_normalized_mocap);
@@ -551,6 +554,7 @@ function analyzeStimulusResponse(varargin)
                     lheel_x_pos_stancefoot_normalized_trial(:, i_stretch) = lheel_x_pos_normalized_stretch - stance_foot_heel_x_initial;
                     rheel_x_pos_stancefoot_normalized_trial(:, i_stretch) = rheel_x_pos_normalized_stretch - stance_foot_heel_x_initial;
                     lheel_x_pos_mpsis_normalized_trial(:, i_stretch) = lheel_x_pos_normalized_stretch - mpsi_x_pos_normalized_stretch;
+                    % rheel was being subtracted by mpsi_y...??
                     rheel_x_pos_mpsis_normalized_trial(:, i_stretch) = rheel_x_pos_normalized_stretch - mpsi_x_pos_normalized_stretch;
                     lheel_x_pos_com_normalized_trial(:, i_stretch) = lheel_x_pos_normalized_stretch - com_x_pos_normalized_stretch;
                     rheel_x_pos_com_normalized_trial(:, i_stretch) = rheel_x_pos_normalized_stretch - com_x_pos_normalized_stretch;
@@ -751,7 +755,7 @@ function analyzeStimulusResponse(varargin)
                 rheel_x_pos_mpsis_normalized_all = [rheel_x_pos_mpsis_normalized_all rheel_x_pos_mpsis_normalized_trial];
                 lheel_x_pos_com_normalized_all = [lheel_x_pos_com_normalized_all lheel_x_pos_com_normalized_trial];
                 rheel_x_pos_com_normalized_all = [rheel_x_pos_com_normalized_all rheel_x_pos_com_normalized_trial];
-
+                
                 trunk_angle_ap_normalized_all = [trunk_angle_ap_normalized_all trunk_angle_ap_normalized_trial];
                 trunk_angle_ml_normalized_all = [trunk_angle_ml_normalized_all trunk_angle_ml_normalized_trial];
                 lleg_angle_ml_normalized_all = [lleg_angle_ml_normalized_all lleg_angle_ml_normalized_trial];
@@ -1039,7 +1043,7 @@ function analyzeStimulusResponse(varargin)
             lheel_x_pos_stancefoot_control_means(:, i_condition) = mean(lheel_x_pos_stancefoot_normalized_all(:, condition_indicator), 2);
             rheel_x_pos_stancefoot_control_means(:, i_condition) = mean(rheel_x_pos_stancefoot_normalized_all(:, condition_indicator), 2);
             lheel_x_pos_mpsis_control_means(:, i_condition) = mean(lheel_x_pos_mpsis_normalized_all(:, condition_indicator), 2);
-            rheel_x_pos_mpsis_control_means(:, i_condition) = mean(rheel_x_pos_mpsis_normalized_all(:, condition_indicator), 2);
+            rheel_x_pos_mpsis_control_means(:, i_condition) = mean(rheel_x_pos_mpsis_normalized_all(:, condition_indicator), 2);  
             lheel_x_pos_com_control_means(:, i_condition) = mean(lheel_x_pos_com_normalized_all(:, condition_indicator), 2);
             rheel_x_pos_com_control_means(:, i_condition) = mean(rheel_x_pos_com_normalized_all(:, condition_indicator), 2);
             trunk_angle_ml_control_means(:, i_condition) = mean(trunk_angle_ml_normalized_all(:, condition_indicator), 2);
@@ -1085,7 +1089,7 @@ function analyzeStimulusResponse(varargin)
             lheel_x_pos_mpsis_response(:, condition_indicator) = lheel_x_pos_mpsis_normalized_all(:, condition_indicator) - repmat(lheel_x_pos_mpsis_control_means(:, i_condition), 1, sum(condition_indicator));
             rheel_x_pos_mpsis_response(:, condition_indicator) = rheel_x_pos_mpsis_normalized_all(:, condition_indicator) - repmat(rheel_x_pos_mpsis_control_means(:, i_condition), 1, sum(condition_indicator));
             lheel_x_pos_com_response(:, condition_indicator) = lheel_x_pos_com_normalized_all(:, condition_indicator) - repmat(lheel_x_pos_com_control_means(:, i_condition), 1, sum(condition_indicator));
-            rheel_x_pos_com_response(:, condition_indicator) = rheel_x_pos_com_normalized_all(:, condition_indicator) - repmat(rheel_x_pos_com_control_means(:, i_condition), 1, sum(condition_indicator));
+            rheel_x_pos_com_response(:, condition_indicator) = rheel_x_pos_com_normalized_all(:, condition_indicator) - repmat(rheel_x_pos_com_control_means(:, i_condition), 1, sum(condition_indicator));       
             trunk_angle_ml_response(:, condition_indicator) = trunk_angle_ml_normalized_all(:, condition_indicator) - repmat(trunk_angle_ml_control_means(:, i_condition), 1, sum(condition_indicator));
             lleg_angle_ml_response(:, condition_indicator) = lleg_angle_ml_normalized_all(:, condition_indicator) - repmat(lleg_angle_ml_control_means(:, i_condition), 1, sum(condition_indicator));
             rleg_angle_ml_response(:, condition_indicator) = rleg_angle_ml_normalized_all(:, condition_indicator) - repmat(rleg_angle_ml_control_means(:, i_condition), 1, sum(condition_indicator));
@@ -1368,12 +1372,12 @@ function analyzeStimulusResponse(varargin)
                 'rheel_x_pos_normalized_all', ...
                 'lheel_y_pos_normalized_all', ...
                 'rheel_y_pos_normalized_all', ...
-                'lheel_x_pos_stancefoot_normalized_trial', ...
-                'rheel_x_pos_stancefoot_normalized_trial', ...
-                'lheel_x_pos_mpsis_normalized_trial', ...
-                'rheel_x_pos_mpsis_normalized_trial', ...
-                'lheel_x_pos_com_normalized_trial', ...
-                'rheel_x_pos_com_normalized_trial', ...
+                'lheel_x_pos_stancefoot_normalized_all', ...
+                'rheel_x_pos_stancefoot_normalized_all', ...
+                'lheel_x_pos_mpsis_normalized_all', ...
+                'rheel_x_pos_mpsis_normalized_all', ...
+                'lheel_x_pos_com_normalized_all',...
+                'rheel_x_pos_com_normalized_all',...
                 'trunk_angle_ap_normalized_all', ...
                 'trunk_angle_ml_normalized_all', ...
                 'lleg_angle_ml_normalized_all', ...
