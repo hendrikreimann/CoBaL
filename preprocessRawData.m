@@ -67,7 +67,9 @@ function preprocessRawData()
                 rtibiant_sensor_index = 6;
                 rgastroc_sensor_index = 7;
                 rperolng_sensor_index = 8;
-
+                ltnsrflt_sensor_index = 9;
+                rtnsrflt_sensor_index = 10;
+                
                 emg_headers{lglutmed_sensor_index} = 'LGLUTMED';
                 emg_headers{ltibiant_sensor_index} = 'LTIBIANT';
                 emg_headers{lgastroc_sensor_index} = 'LGASTROC';
@@ -76,6 +78,8 @@ function preprocessRawData()
                 emg_headers{rtibiant_sensor_index} = 'RTIBIANT';
                 emg_headers{rgastroc_sensor_index} = 'RGASTROC';
                 emg_headers{rperolng_sensor_index} = 'RPEROLNG';
+                emg_headers{ltnsrflt_sensor_index} = 'LTNSRFLT';
+                emg_headers{rtnsrflt_sensor_index} = 'RTNSRFLT';
             end
 
             % save

@@ -137,6 +137,9 @@ function analyzeStimulusResponse(varargin)
         step_length_all = [];
         step_speed_all = [];
         
+        com_x_pos_normalized_all = [];
+        com_y_pos_normalized_all = [];
+        
         c7_x_pos_normalized_all = [];
         c7_y_pos_normalized_all = [];
         c7_z_pos_normalized_all = [];
@@ -157,10 +160,13 @@ function analyzeStimulusResponse(varargin)
         rheel_x_pos_stancefoot_normalized_all = [];
         lheel_x_pos_mpsis_normalized_all = [];
         rheel_x_pos_mpsis_normalized_all = [];
+        lheel_x_pos_com_normalized_all = [];
+        rheel_x_pos_com_normalized_all = [];
         
         foot_placement_world_all = [];
         foot_placement_stancefoot_all = [];
         foot_placement_mpsis_all = [];
+        foot_placement_com_all = [];
         
         % angles
         lleg_angle_ml_normalized_all = [];
@@ -197,6 +203,7 @@ function analyzeStimulusResponse(varargin)
         cop_x_normalized_all = [];
         cop_x_stancefoot_normalized_all = [];
         cop_x_mpsis_normalized_all = [];
+        cop_x_com_normalized_all = [];
         f_x_normalized_all = [];
         f_z_normalized_all = [];
         m_y_normalized_all = [];
@@ -210,6 +217,8 @@ function analyzeStimulusResponse(varargin)
         rtibiant_normalized_all = [];
         rgastroc_normalized_all = [];
         rperolng_normalized_all = [];
+        ltnsrflt_normalized_all = [];
+        rtnsrflt_normalized_all = [];
         lglutmed_max_all = [];
         ltibiant_max_all = [];
         lgastroc_max_all = [];
@@ -218,7 +227,8 @@ function analyzeStimulusResponse(varargin)
         rtibiant_max_all = [];
         rgastroc_max_all = [];
         rperolng_max_all = [];
-        
+        ltnsrflt_max_all = [];
+        rtnsrflt_max_all = [];
     end
     
     for i_condition = 1 : length(condition_list)
@@ -228,6 +238,7 @@ function analyzeStimulusResponse(varargin)
             condition = condition_list{i_condition};
             load(['analysis' filesep makeFileName(date, subject_id, condition, i_trial, 'relevantDataStretches')]);
             load(['processed' filesep makeFileName(date, subject_id, condition, i_trial, 'markerTrajectories')]);
+            load(['processed' filesep makeFileName(date, subject_id, condition, i_trial, 'kinematicTrajectories')]);
             number_of_stretches_trial = length(condition_stance_foot_list);
 
             condition_stance_foot_list_trial = condition_stance_foot_list;
@@ -258,6 +269,8 @@ function analyzeStimulusResponse(varargin)
                 rheel_marker_indices = reshape([(rheel_marker - 1) * 3 + 1; (rheel_marker - 1) * 3 + 2; (rheel_marker - 1) * 3 + 3], 1, length(rheel_marker)*3);
 
                 % rename relevant trajectories
+                com_x_pos_trajectory = com_trajectories(:, 1);
+                com_y_pos_trajectory = com_trajectories(:, 2);
                 c7_x_pos_trajectory = marker_trajectories(:, c7_marker_indices(1));
                 c7_y_pos_trajectory = marker_trajectories(:, c7_marker_indices(2));
                 c7_z_pos_trajectory = marker_trajectories(:, c7_marker_indices(3));
@@ -278,6 +291,8 @@ function analyzeStimulusResponse(varargin)
                 step_width_trial = zeros(1, number_of_stretches_trial);
                 step_length_trial = zeros(1, number_of_stretches_trial);
                 step_speed_trial = zeros(1, number_of_stretches_trial);
+                com_x_pos_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
+                com_y_pos_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
                 c7_x_pos_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
                 c7_y_pos_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
                 c7_z_pos_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
@@ -297,6 +312,8 @@ function analyzeStimulusResponse(varargin)
                 rheel_x_pos_stancefoot_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
                 lheel_x_pos_mpsis_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
                 rheel_x_pos_mpsis_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
+                lheel_x_pos_com_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
+                rheel_x_pos_com_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
                 lleg_angle_ml_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
                 rleg_angle_ml_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
                 trunk_angle_ap_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
@@ -304,6 +321,7 @@ function analyzeStimulusResponse(varargin)
                 foot_placement_world_trial = zeros(1, number_of_stretches_trial);
                 foot_placement_stancefoot_trial = zeros(1, number_of_stretches_trial);
                 foot_placement_mpsis_trial = zeros(1, number_of_stretches_trial);
+                foot_placement_com_trial = zeros(1, number_of_stretches_trial);
                 
             end                     
             if process_data_armswing
@@ -381,6 +399,7 @@ function analyzeStimulusResponse(varargin)
                 cop_x_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
                 cop_x_stancefoot_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
                 cop_x_mpsis_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
+                cop_x_com_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
                 f_x_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
                 f_z_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
                 m_y_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
@@ -402,6 +421,8 @@ function analyzeStimulusResponse(varargin)
                 rtibiant_trajectory = emg_trajectories(:, strcmp(emg_headers, 'RTIBIANT'));
                 rgastroc_trajectory = emg_trajectories(:, strcmp(emg_headers, 'RGASTROC'));
                 rperolng_trajectory = emg_trajectories(:, strcmp(emg_headers, 'RPEROLNG'));
+                ltnsrflt_trajectory = emg_trajectories(:, strcmp(emg_headers, 'LTNSRFLT'));
+                rtnsrflt_trajectory = emg_trajectories(:, strcmp(emg_headers, 'RTNSRFLT'));
                 lglutmed_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
                 ltibiant_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
                 lgastroc_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
@@ -410,7 +431,8 @@ function analyzeStimulusResponse(varargin)
                 rtibiant_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
                 rgastroc_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
                 rperolng_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
-
+                ltnsrflt_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
+                rtnsrflt_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
             end
             
             % go through each stretch to extract data, time-normalize it and store it in lists
@@ -429,6 +451,8 @@ function analyzeStimulusResponse(varargin)
                     time_extracted_mocap = time_mocap(start_index_mocap : end_index_mocap);
                     
                     % extract
+                    com_x_pos_extracted_stretch = com_x_pos_trajectory(start_index_mocap : end_index_mocap);
+                    com_y_pos_extracted_stretch = com_y_pos_trajectory(start_index_mocap : end_index_mocap);
                     c7_x_pos_extracted_stretch = c7_x_pos_trajectory(start_index_mocap : end_index_mocap);
                     c7_y_pos_extracted_stretch = c7_y_pos_trajectory(start_index_mocap : end_index_mocap);
                     c7_z_pos_extracted_stretch = c7_z_pos_trajectory(start_index_mocap : end_index_mocap);
@@ -484,16 +508,19 @@ function analyzeStimulusResponse(varargin)
                         foot_placement_world_trial(i_stretch) = lheel_x_pos_extracted_stretch(end);
                         foot_placement_stancefoot_trial(i_stretch) = lheel_x_pos_extracted_stretch(end) - rheel_x_pos_extracted_stretch(1);
                         foot_placement_mpsis_trial(i_stretch) = lheel_x_pos_extracted_stretch(end) - mpsi_x_pos_extracted_stretch(end);
+                        foot_placement_com_trial(i_stretch) = lheel_x_pos_extracted_stretch(end) - com_x_pos_extracted_stretch(end);
                     elseif strcmp(condition_stance_foot_list_trial{i_stretch}, 'STANCE_LEFT')
                         step_width_trial(i_stretch) = abs(rheel_x_pos_extracted_stretch(end) - lheel_x_pos_extracted_stretch(1));
                         step_length_trial(i_stretch) = rheel_y_pos_extracted_stretch(end) - lheel_y_pos_extracted_stretch(1);
                         foot_placement_world_trial(i_stretch) = rheel_x_pos_extracted_stretch(end);
                         foot_placement_stancefoot_trial(i_stretch) = rheel_x_pos_extracted_stretch(end) - lheel_x_pos_extracted_stretch(1);
                         foot_placement_mpsis_trial(i_stretch) = rheel_x_pos_extracted_stretch(end) - mpsi_x_pos_extracted_stretch(end);
+                        foot_placement_com_trial(i_stretch) = rheel_x_pos_extracted_stretch(end) - com_x_pos_extracted_stretch(end);
                     end
 
                     % normalize mocap data in time
                     time_normalized_mocap = linspace(time_extracted_mocap(1), time_extracted_mocap(end), number_of_time_steps_normalized);
+                    com_x_pos_normalized_stretch = spline(time_extracted_mocap, com_x_pos_extracted_stretch, time_normalized_mocap);
                     lpsi_x_pos_normalized_stretch = spline(time_extracted_mocap, lpsi_x_pos_extracted_stretch, time_normalized_mocap);
                     lheel_x_pos_normalized_stretch = spline(time_extracted_mocap, lheel_x_pos_extracted_stretch, time_normalized_mocap);
                     lheel_y_pos_normalized_stretch = spline(time_extracted_mocap, lheel_y_pos_extracted_stretch, time_normalized_mocap);
@@ -509,6 +536,7 @@ function analyzeStimulusResponse(varargin)
                     rleg_angle_ml_normalized_stretch = spline(time_extracted_mocap, rleg_angle_ml_extracted_stretch, time_normalized_mocap);
                     
                     % store
+                    com_x_pos_normalized_trial(:, i_stretch) = com_x_pos_normalized_stretch;
                     lpsi_x_pos_normalized_trial(:, i_stretch) = lpsi_x_pos_normalized_stretch;
                     rpsi_x_pos_normalized_trial(:, i_stretch) = rpsi_x_pos_normalized_stretch;
                     lheel_x_pos_normalized_trial(:, i_stretch) = lheel_x_pos_normalized_stretch;
@@ -523,7 +551,9 @@ function analyzeStimulusResponse(varargin)
                     lheel_x_pos_stancefoot_normalized_trial(:, i_stretch) = lheel_x_pos_normalized_stretch - stance_foot_heel_x_initial;
                     rheel_x_pos_stancefoot_normalized_trial(:, i_stretch) = rheel_x_pos_normalized_stretch - stance_foot_heel_x_initial;
                     lheel_x_pos_mpsis_normalized_trial(:, i_stretch) = lheel_x_pos_normalized_stretch - mpsi_x_pos_normalized_stretch;
-                    rheel_x_pos_mpsis_normalized_trial(:, i_stretch) = rheel_x_pos_normalized_stretch - mpsi_y_pos_normalized_stretch;
+                    rheel_x_pos_mpsis_normalized_trial(:, i_stretch) = rheel_x_pos_normalized_stretch - mpsi_x_pos_normalized_stretch;
+                    lheel_x_pos_com_normalized_trial(:, i_stretch) = lheel_x_pos_normalized_stretch - com_x_pos_normalized_stretch;
+                    rheel_x_pos_com_normalized_trial(:, i_stretch) = rheel_x_pos_normalized_stretch - com_x_pos_normalized_stretch;
 
                     % time and origin
                     origin_trial_list_trial(i_stretch) = i_trial;
@@ -636,6 +666,7 @@ function analyzeStimulusResponse(varargin)
                         cop_x_normalized_trial(:, i_stretch) = cop_x_normalized_stretch;
                         cop_x_stancefoot_normalized_trial(:, i_stretch) = cop_x_normalized_stretch - stance_foot_heel_x_initial;
                         cop_x_mpsis_normalized_trial(:, i_stretch) = cop_x_normalized_stretch - mpsi_x_pos_normalized_stretch;
+                        cop_x_com_normalized_trial(:, i_stretch) = cop_x_normalized_stretch - com_x_pos_normalized_stretch;
                         f_x_normalized_trial(:, i_stretch) = f_x_normalized_stretch;
                         f_z_normalized_trial(:, i_stretch) = f_z_normalized_stretch;
                         m_y_normalized_trial(:, i_stretch) = m_y_normalized_stretch;
@@ -657,6 +688,8 @@ function analyzeStimulusResponse(varargin)
                         rtibiant_extracted_stretch = rtibiant_trajectory(start_index_emg : end_index_emg, 1);
                         rgastroc_extracted_stretch = rgastroc_trajectory(start_index_emg : end_index_emg, 1);
                         rperolng_extracted_stretch = rperolng_trajectory(start_index_emg : end_index_emg, 1);
+                        ltnsrflt_extracted_stretch = ltnsrflt_trajectory(start_index_emg : end_index_emg, 1);
+                        rtnsrflt_extracted_stretch = rtnsrflt_trajectory(start_index_emg : end_index_emg, 1);
 
                         % normalize
                         time_normalized_emg = linspace(time_extracted_emg(1), time_extracted_emg(end), number_of_time_steps_normalized);
@@ -668,6 +701,8 @@ function analyzeStimulusResponse(varargin)
                         rtibiant_normalized_stretch = spline(time_extracted_emg, rtibiant_extracted_stretch, time_normalized_emg);
                         rgastroc_normalized_stretch = spline(time_extracted_emg, rgastroc_extracted_stretch, time_normalized_emg);
                         rperolng_normalized_stretch = spline(time_extracted_emg, rperolng_extracted_stretch, time_normalized_emg);
+                        ltnsrflt_normalized_stretch = spline(time_extracted_emg, ltnsrflt_extracted_stretch, time_normalized_emg);
+                        rtnsrflt_normalized_stretch = spline(time_extracted_emg, rtnsrflt_extracted_stretch, time_normalized_emg);
 
                         % store
                         lglutmed_normalized_trial(:, i_stretch) = lglutmed_normalized_stretch;
@@ -678,6 +713,8 @@ function analyzeStimulusResponse(varargin)
                         rtibiant_normalized_trial(:, i_stretch) = rtibiant_normalized_stretch;
                         rgastroc_normalized_trial(:, i_stretch) = rgastroc_normalized_stretch;
                         rperolng_normalized_trial(:, i_stretch) = rperolng_normalized_stretch;
+                        ltnsrflt_normalized_trial(:, i_stretch) = ltnsrflt_normalized_stretch;
+                        rtnsrflt_normalized_trial(:, i_stretch) = rtnsrflt_normalized_stretch;
                     end
                 end
             end
@@ -700,6 +737,7 @@ function analyzeStimulusResponse(varargin)
                 step_length_all = [step_length_all step_length_trial];
                 step_speed_all = [step_speed_all step_speed_trial];
                 
+                com_x_pos_normalized_all = [com_x_pos_normalized_all com_x_pos_normalized_trial];
                 lpsi_x_pos_normalized_all = [lpsi_x_pos_normalized_all lpsi_x_pos_normalized_trial];
                 rpsi_x_pos_normalized_all = [rpsi_x_pos_normalized_all rpsi_x_pos_normalized_trial];
                 lheel_x_pos_normalized_all = [lheel_x_pos_normalized_all lheel_x_pos_normalized_trial];
@@ -711,6 +749,8 @@ function analyzeStimulusResponse(varargin)
                 rheel_x_pos_stancefoot_normalized_all = [rheel_x_pos_stancefoot_normalized_all rheel_x_pos_stancefoot_normalized_trial];
                 lheel_x_pos_mpsis_normalized_all = [lheel_x_pos_mpsis_normalized_all lheel_x_pos_mpsis_normalized_trial];
                 rheel_x_pos_mpsis_normalized_all = [rheel_x_pos_mpsis_normalized_all rheel_x_pos_mpsis_normalized_trial];
+                lheel_x_pos_com_normalized_all = [lheel_x_pos_com_normalized_all lheel_x_pos_com_normalized_trial];
+                rheel_x_pos_com_normalized_all = [rheel_x_pos_com_normalized_all rheel_x_pos_com_normalized_trial];
 
                 trunk_angle_ap_normalized_all = [trunk_angle_ap_normalized_all trunk_angle_ap_normalized_trial];
                 trunk_angle_ml_normalized_all = [trunk_angle_ml_normalized_all trunk_angle_ml_normalized_trial];
@@ -720,6 +760,7 @@ function analyzeStimulusResponse(varargin)
                 foot_placement_world_all = [foot_placement_world_all foot_placement_world_trial];
                 foot_placement_stancefoot_all = [foot_placement_stancefoot_all foot_placement_stancefoot_trial];
                 foot_placement_mpsis_all = [foot_placement_mpsis_all foot_placement_mpsis_trial];
+                foot_placement_com_all = [foot_placement_com_all foot_placement_com_trial];
             end
 
             if process_data_armswing
@@ -731,6 +772,7 @@ function analyzeStimulusResponse(varargin)
                 cop_x_normalized_all = [cop_x_normalized_all cop_x_normalized_trial];
                 cop_x_stancefoot_normalized_all = [cop_x_stancefoot_normalized_all cop_x_stancefoot_normalized_trial];
                 cop_x_mpsis_normalized_all = [cop_x_mpsis_normalized_all cop_x_mpsis_normalized_trial];
+                cop_x_com_normalized_all = [cop_x_com_normalized_all cop_x_com_normalized_trial];
                 f_x_normalized_all = [f_x_normalized_all f_x_normalized_trial];
                 f_z_normalized_all = [f_z_normalized_all f_z_normalized_trial];
                 m_y_normalized_all = [m_y_normalized_all m_y_normalized_trial];
@@ -745,6 +787,8 @@ function analyzeStimulusResponse(varargin)
                 rtibiant_normalized_all = [rtibiant_normalized_all rtibiant_normalized_trial];
                 rgastroc_normalized_all = [rgastroc_normalized_all rgastroc_normalized_trial];
                 rperolng_normalized_all = [rperolng_normalized_all rperolng_normalized_trial];                
+                ltnsrflt_normalized_all = [ltnsrflt_normalized_all ltnsrflt_normalized_trial];                
+                rtnsrflt_normalized_all = [rtnsrflt_normalized_all rtnsrflt_normalized_trial];                
             end
             
             disp(['Condition ' condition ', Trial ' num2str(i_trial) ' done extracted ' num2str(length(step_times_trial)) ' stretches']);
@@ -825,6 +869,8 @@ function analyzeStimulusResponse(varargin)
         rtibiant_baseline_trajectory = emg_trajectories(:, strcmp(emg_headers, 'RTIBIANT'));
         rgastroc_baseline_trajectory = emg_trajectories(:, strcmp(emg_headers, 'RGASTROC'));
         rperolng_baseline_trajectory = emg_trajectories(:, strcmp(emg_headers, 'RPEROLNG'));
+        ltnsrflt_baseline_trajectory = emg_trajectories(:, strcmp(emg_headers, 'LTNSRFLT'));
+        rtnsrflt_baseline_trajectory = emg_trajectories(:, strcmp(emg_headers, 'RTNSRFLT'));
         
         % NORMALIZED EMG LOW
         lglutmed_emg_low = mean(lglutmed_baseline_trajectory,1);
@@ -835,6 +881,8 @@ function analyzeStimulusResponse(varargin)
         rtibiant_emg_low = mean(rtibiant_baseline_trajectory,1);
         rgastroc_emg_low = mean(rgastroc_baseline_trajectory,1);
         rperolng_emg_low = mean(rperolng_baseline_trajectory,1);
+        ltnsrflt_emg_low = mean(ltnsrflt_baseline_trajectory,1);
+        rtnsrflt_emg_low = mean(rtnsrflt_baseline_trajectory,1);
         
         % CONTROL MEAN LEFT AND RIGHT
         % Need to find control indicator and stance foot setup and proper averaging across
@@ -847,6 +895,8 @@ function analyzeStimulusResponse(varargin)
         rtibiant_control_mean_stanceleft = mean(rtibiant_normalized_all(:,conditions_control_indicators(:,1)),2);
         rgastroc_control_mean_stanceleft = mean(rgastroc_normalized_all(:,conditions_control_indicators(:,1)),2);
         rperolng_control_mean_stanceleft = mean(rperolng_normalized_all(:,conditions_control_indicators(:,1)),2);  
+        ltnsrflt_control_mean_stanceleft = mean(ltnsrflt_normalized_all(:,conditions_control_indicators(:,1)),2);  
+        rtnsrflt_control_mean_stanceleft = mean(rtnsrflt_normalized_all(:,conditions_control_indicators(:,1)),2);  
 
         lglutmed_control_mean_stanceright = mean(lglutmed_normalized_all(:,conditions_control_indicators(:,2)),2); 
         ltibiant_control_mean_stanceright = mean(ltibiant_normalized_all(:,conditions_control_indicators(:,2)),2);
@@ -856,6 +906,8 @@ function analyzeStimulusResponse(varargin)
         rtibiant_control_mean_stanceright = mean(rtibiant_normalized_all(:,conditions_control_indicators(:,2)),2);
         rgastroc_control_mean_stanceright = mean(rgastroc_normalized_all(:,conditions_control_indicators(:,2)),2);
         rperolng_control_mean_stanceright = mean(rperolng_normalized_all(:,conditions_control_indicators(:,2)),2);
+        ltnsrflt_control_mean_stanceright = mean(ltnsrflt_normalized_all(:,conditions_control_indicators(:,2)),2);
+        rtnsrflt_control_mean_stanceright = mean(rtnsrflt_normalized_all(:,conditions_control_indicators(:,2)),2);
 
         if normalize_emg_mean
             % NORMALIZED EMG HIGH LEFT AND RIGHT
@@ -868,6 +920,8 @@ function analyzeStimulusResponse(varargin)
             rtibiant_emg_high_stanceleft = mean(rtibiant_control_mean_stanceleft,1);
             rgastroc_emg_high_stanceleft = mean(rgastroc_control_mean_stanceleft,1);
             rperolng_emg_high_stanceleft = mean(rperolng_control_mean_stanceleft,1);
+            ltnsrflt_emg_high_stanceleft = mean(ltnsrflt_control_mean_stanceleft,1);
+            rtnsrflt_emg_high_stanceleft = mean(rtnsrflt_control_mean_stanceleft,1);
 
             lglutmed_emg_high_stanceright = mean(lglutmed_control_mean_stanceright,1);
             ltibiant_emg_high_stanceright = mean(ltibiant_control_mean_stanceright,1);
@@ -877,6 +931,8 @@ function analyzeStimulusResponse(varargin)
             rtibiant_emg_high_stanceright = mean(rtibiant_control_mean_stanceright,1);
             rgastroc_emg_high_stanceright = mean(rgastroc_control_mean_stanceright,1);
             rperolng_emg_high_stanceright = mean(rperolng_control_mean_stanceright,1);
+            ltnsrflt_emg_high_stanceright = mean(ltnsrflt_control_mean_stanceright,1);
+            rtnsrflt_emg_high_stanceright = mean(rtnsrflt_control_mean_stanceright,1);
 
             % NORMALIZED EMG HIGH
             % Avg two values for each muscle
@@ -888,6 +944,8 @@ function analyzeStimulusResponse(varargin)
             rtibiant_emg_high = mean([rtibiant_emg_high_stanceleft, rtibiant_emg_high_stanceright]);
             rgastroc_emg_high = mean([rgastroc_emg_high_stanceleft, rgastroc_emg_high_stanceright]);
             rperolng_emg_high = mean([rperolng_emg_high_stanceleft, rperolng_emg_high_stanceright]);
+            ltnsrflt_emg_high = mean([ltnsrflt_emg_high_stanceleft, ltnsrflt_emg_high_stanceright]);
+            rtnsrflt_emg_high = mean([rtnsrflt_emg_high_stanceleft, rtnsrflt_emg_high_stanceright]);
         end
        
         if normalize_emg_peak
@@ -901,6 +959,8 @@ function analyzeStimulusResponse(varargin)
             rtibiant_emg_high_stanceleft = max(rtibiant_control_mean_stanceleft);
             rgastroc_emg_high_stanceleft = max(rgastroc_control_mean_stanceleft);
             rperolng_emg_high_stanceleft = max(rperolng_control_mean_stanceleft);
+            ltnsrflt_emg_high_stanceleft = max(ltnsrflt_control_mean_stanceleft);
+            rtnsrflt_emg_high_stanceleft = max(rtnsrflt_control_mean_stanceleft);
 
             lglutmed_emg_high_stanceright = max(lglutmed_control_mean_stanceright);
             ltibiant_emg_high_stanceright = max(ltibiant_control_mean_stanceright);
@@ -910,6 +970,8 @@ function analyzeStimulusResponse(varargin)
             rtibiant_emg_high_stanceright = max(rtibiant_control_mean_stanceright);
             rgastroc_emg_high_stanceright = max(rgastroc_control_mean_stanceright);
             rperolng_emg_high_stanceright = max(rperolng_control_mean_stanceright);
+            ltnsrflt_emg_high_stanceright = max(ltnsrflt_control_mean_stanceright);
+            rtnsrflt_emg_high_stanceright = max(rtnsrflt_control_mean_stanceright);
 
             % NORMALIZED EMG HIGH
             % Avg two values for each muscle
@@ -921,17 +983,21 @@ function analyzeStimulusResponse(varargin)
             rtibiant_emg_high = max([rtibiant_emg_high_stanceleft, rtibiant_emg_high_stanceright]);
             rgastroc_emg_high = max([rgastroc_emg_high_stanceleft, rgastroc_emg_high_stanceright]);
             rperolng_emg_high = max([rperolng_emg_high_stanceleft, rperolng_emg_high_stanceright]);
+            ltnsrflt_emg_high = max([ltnsrflt_emg_high_stanceleft, ltnsrflt_emg_high_stanceright]);
+            rtnsrflt_emg_high = max([rtnsrflt_emg_high_stanceleft, rtnsrflt_emg_high_stanceright]);
 
         end
             % RESCALE TRAJECTORIES
             lglutmed_normalized_rescaled_all = ((lglutmed_normalized_all - lglutmed_emg_low)/(lglutmed_emg_high - lglutmed_emg_low));
-            ltibiant_normalized_rescaled_all = ((ltibiant_normalized_all - lglutmed_emg_low)/(ltibiant_emg_high - ltibiant_emg_low));
-            lgastroc_normalized_rescaled_all = ((lgastroc_normalized_all - lglutmed_emg_low)/(lgastroc_emg_high - lgastroc_emg_low));
-            lperolng_normalized_rescaled_all = ((lperolng_normalized_all - lglutmed_emg_low)/(lperolng_emg_high - lperolng_emg_low));
-            rglutmed_normalized_rescaled_all = ((rglutmed_normalized_all - lglutmed_emg_low)/(rglutmed_emg_high - rglutmed_emg_low));
-            rtibiant_normalized_rescaled_all = ((rtibiant_normalized_all - lglutmed_emg_low)/(rtibiant_emg_high - rtibiant_emg_low));
-            rgastroc_normalized_rescaled_all = ((rgastroc_normalized_all - lglutmed_emg_low)/(rgastroc_emg_high - rgastroc_emg_low));
-            rperolng_normalized_rescaled_all = ((rperolng_normalized_all - lglutmed_emg_low)/(rperolng_emg_high - rperolng_emg_low));
+            ltibiant_normalized_rescaled_all = ((ltibiant_normalized_all - ltibiant_emg_low)/(ltibiant_emg_high - ltibiant_emg_low));
+            lgastroc_normalized_rescaled_all = ((lgastroc_normalized_all - lgastroc_emg_low)/(lgastroc_emg_high - lgastroc_emg_low));
+            lperolng_normalized_rescaled_all = ((lperolng_normalized_all - lperolng_emg_low)/(lperolng_emg_high - lperolng_emg_low));
+            rglutmed_normalized_rescaled_all = ((rglutmed_normalized_all - rglutmed_emg_low)/(rglutmed_emg_high - rglutmed_emg_low));
+            rtibiant_normalized_rescaled_all = ((rtibiant_normalized_all - rtibiant_emg_low)/(rtibiant_emg_high - rtibiant_emg_low));
+            rgastroc_normalized_rescaled_all = ((rgastroc_normalized_all - rgastroc_emg_low)/(rgastroc_emg_high - rgastroc_emg_low));
+            rperolng_normalized_rescaled_all = ((rperolng_normalized_all - rperolng_emg_low)/(rperolng_emg_high - rperolng_emg_low));
+            ltnsrflt_normalized_rescaled_all = ((ltnsrflt_normalized_all - ltnsrflt_emg_low)/(ltnsrflt_emg_high - ltnsrflt_emg_low));
+            rtnsrflt_normalized_rescaled_all = ((rtnsrflt_normalized_all - rtnsrflt_emg_low)/(rtnsrflt_emg_high - rtnsrflt_emg_low));
     end
     
     
@@ -942,6 +1008,8 @@ function analyzeStimulusResponse(varargin)
         foot_placement_world_control_means = zeros(1, number_of_conditions_control);
         foot_placement_stancefoot_control_means = zeros(1, number_of_conditions_control);
         foot_placement_mpsis_control_means = zeros(1, number_of_conditions_control);
+        foot_placement_com_control_means = zeros(1, number_of_conditions_control);
+        com_x_pos_control_means = zeros(number_of_time_steps_normalized, number_of_conditions_control);
         lheel_x_pos_control_means = zeros(number_of_time_steps_normalized, number_of_conditions_control);
         rheel_x_pos_control_means = zeros(number_of_time_steps_normalized, number_of_conditions_control);
         lheel_y_pos_control_means = zeros(number_of_time_steps_normalized, number_of_conditions_control);
@@ -950,6 +1018,8 @@ function analyzeStimulusResponse(varargin)
         rheel_x_pos_stancefoot_control_means = zeros(number_of_time_steps_normalized, number_of_conditions_control);
         lheel_x_pos_mpsis_control_means = zeros(number_of_time_steps_normalized, number_of_conditions_control);
         rheel_x_pos_mpsis_control_means = zeros(number_of_time_steps_normalized, number_of_conditions_control);
+        lheel_x_pos_com_control_means = zeros(number_of_time_steps_normalized, number_of_conditions_control);
+        rheel_x_pos_com_control_means = zeros(number_of_time_steps_normalized, number_of_conditions_control);
         trunk_angle_ml_control_means = zeros(number_of_time_steps_normalized, number_of_conditions_control);
         lleg_angle_ml_control_means = zeros(number_of_time_steps_normalized, number_of_conditions_control);
         rleg_angle_ml_control_means = zeros(number_of_time_steps_normalized, number_of_conditions_control);
@@ -960,6 +1030,8 @@ function analyzeStimulusResponse(varargin)
             foot_placement_world_control_means(:, i_condition) = mean(foot_placement_world_all(:, condition_indicator), 2);
             foot_placement_stancefoot_control_means(:, i_condition) = mean(foot_placement_stancefoot_all(:, condition_indicator), 2);
             foot_placement_mpsis_control_means(:, i_condition) = mean(foot_placement_mpsis_all(:, condition_indicator), 2);
+            foot_placement_com_control_means(:, i_condition) = mean(foot_placement_com_all(:, condition_indicator), 2);
+            com_x_pos_control_means(:, i_condition) = mean(com_x_pos_normalized_all(:, condition_indicator), 2);
             lheel_x_pos_control_means(:, i_condition) = mean(lheel_x_pos_normalized_all(:, condition_indicator), 2);
             rheel_x_pos_control_means(:, i_condition) = mean(rheel_x_pos_normalized_all(:, condition_indicator), 2);
             lheel_y_pos_control_means(:, i_condition) = mean(lheel_y_pos_normalized_all(:, condition_indicator), 2);
@@ -968,6 +1040,8 @@ function analyzeStimulusResponse(varargin)
             rheel_x_pos_stancefoot_control_means(:, i_condition) = mean(rheel_x_pos_stancefoot_normalized_all(:, condition_indicator), 2);
             lheel_x_pos_mpsis_control_means(:, i_condition) = mean(lheel_x_pos_mpsis_normalized_all(:, condition_indicator), 2);
             rheel_x_pos_mpsis_control_means(:, i_condition) = mean(rheel_x_pos_mpsis_normalized_all(:, condition_indicator), 2);
+            lheel_x_pos_com_control_means(:, i_condition) = mean(lheel_x_pos_com_normalized_all(:, condition_indicator), 2);
+            rheel_x_pos_com_control_means(:, i_condition) = mean(rheel_x_pos_com_normalized_all(:, condition_indicator), 2);
             trunk_angle_ml_control_means(:, i_condition) = mean(trunk_angle_ml_normalized_all(:, condition_indicator), 2);
             lleg_angle_ml_control_means(:, i_condition) = mean(lleg_angle_ml_normalized_all(:, condition_indicator), 2);
             rleg_angle_ml_control_means(:, i_condition) = mean(rleg_angle_ml_normalized_all(:, condition_indicator), 2);
@@ -978,6 +1052,8 @@ function analyzeStimulusResponse(varargin)
         foot_placement_world_response = zeros(1, length(step_width_all));
         foot_placement_stancefoot_response = zeros(1, length(step_width_all));
         foot_placement_mpsis_response = zeros(1, length(step_width_all));
+        foot_placement_com_response = zeros(1, length(step_width_all));
+        com_x_pos_response = zeros(size(lheel_x_pos_normalized_all));
         lheel_x_pos_response = zeros(size(lheel_x_pos_normalized_all));
         rheel_x_pos_response = zeros(size(rheel_x_pos_normalized_all));
         lheel_y_pos_response = zeros(size(lheel_y_pos_normalized_all));
@@ -986,6 +1062,8 @@ function analyzeStimulusResponse(varargin)
         rheel_x_pos_stancefoot_response = zeros(size(rheel_x_pos_normalized_all));
         lheel_x_pos_mpsis_response = zeros(size(lheel_x_pos_normalized_all));
         rheel_x_pos_mpsis_response = zeros(size(rheel_x_pos_normalized_all));
+        lheel_x_pos_com_response = zeros(size(lheel_x_pos_normalized_all));
+        rheel_x_pos_com_response = zeros(size(rheel_x_pos_normalized_all));
         trunk_angle_ml_response = zeros(size(trunk_angle_ml_normalized_all));
         lleg_angle_ml_response = zeros(size(lleg_angle_ml_normalized_all));
         rleg_angle_ml_response = zeros(size(rleg_angle_ml_normalized_all));
@@ -996,6 +1074,8 @@ function analyzeStimulusResponse(varargin)
             foot_placement_world_response(condition_indicator) = foot_placement_world_all(condition_indicator) - foot_placement_world_control_means(:, i_condition);
             foot_placement_stancefoot_response(condition_indicator) = foot_placement_stancefoot_all(condition_indicator) - foot_placement_stancefoot_control_means(:, i_condition);
             foot_placement_mpsis_response(condition_indicator) = foot_placement_mpsis_all(condition_indicator) - foot_placement_mpsis_control_means(:, i_condition);
+            foot_placement_com_response(condition_indicator) = foot_placement_com_all(condition_indicator) - foot_placement_com_control_means(:, i_condition);
+            com_x_pos_response(:, condition_indicator) = com_x_pos_normalized_all(:, condition_indicator) - repmat(com_x_pos_control_means(:, i_condition), 1, sum(condition_indicator));
             lheel_x_pos_response(:, condition_indicator) = lheel_x_pos_normalized_all(:, condition_indicator) - repmat(lheel_x_pos_control_means(:, i_condition), 1, sum(condition_indicator));
             rheel_x_pos_response(:, condition_indicator) = rheel_x_pos_normalized_all(:, condition_indicator) - repmat(rheel_x_pos_control_means(:, i_condition), 1, sum(condition_indicator));
             lheel_y_pos_response(:, condition_indicator) = lheel_y_pos_normalized_all(:, condition_indicator) - repmat(lheel_y_pos_control_means(:, i_condition), 1, sum(condition_indicator));
@@ -1004,6 +1084,8 @@ function analyzeStimulusResponse(varargin)
             rheel_x_pos_stancefoot_response(:, condition_indicator) = rheel_x_pos_stancefoot_normalized_all(:, condition_indicator) - repmat(rheel_x_pos_stancefoot_control_means(:, i_condition), 1, sum(condition_indicator));
             lheel_x_pos_mpsis_response(:, condition_indicator) = lheel_x_pos_mpsis_normalized_all(:, condition_indicator) - repmat(lheel_x_pos_mpsis_control_means(:, i_condition), 1, sum(condition_indicator));
             rheel_x_pos_mpsis_response(:, condition_indicator) = rheel_x_pos_mpsis_normalized_all(:, condition_indicator) - repmat(rheel_x_pos_mpsis_control_means(:, i_condition), 1, sum(condition_indicator));
+            lheel_x_pos_com_response(:, condition_indicator) = lheel_x_pos_com_normalized_all(:, condition_indicator) - repmat(lheel_x_pos_com_control_means(:, i_condition), 1, sum(condition_indicator));
+            rheel_x_pos_com_response(:, condition_indicator) = rheel_x_pos_com_normalized_all(:, condition_indicator) - repmat(rheel_x_pos_com_control_means(:, i_condition), 1, sum(condition_indicator));
             trunk_angle_ml_response(:, condition_indicator) = trunk_angle_ml_normalized_all(:, condition_indicator) - repmat(trunk_angle_ml_control_means(:, i_condition), 1, sum(condition_indicator));
             lleg_angle_ml_response(:, condition_indicator) = lleg_angle_ml_normalized_all(:, condition_indicator) - repmat(lleg_angle_ml_control_means(:, i_condition), 1, sum(condition_indicator));
             rleg_angle_ml_response(:, condition_indicator) = rleg_angle_ml_normalized_all(:, condition_indicator) - repmat(rleg_angle_ml_control_means(:, i_condition), 1, sum(condition_indicator));
@@ -1014,6 +1096,8 @@ function analyzeStimulusResponse(varargin)
             foot_placement_world_response(condition_indicator) = foot_placement_world_all(condition_indicator) - foot_placement_world_control_means(:, applicable_control_condition_indices(i_condition));
             foot_placement_stancefoot_response(condition_indicator) = foot_placement_stancefoot_all(condition_indicator) - foot_placement_stancefoot_control_means(:, applicable_control_condition_indices(i_condition));
             foot_placement_mpsis_response(condition_indicator) = foot_placement_mpsis_all(condition_indicator) - foot_placement_mpsis_control_means(:, applicable_control_condition_indices(i_condition));
+            foot_placement_com_response(condition_indicator) = foot_placement_com_all(condition_indicator) - foot_placement_com_control_means(:, applicable_control_condition_indices(i_condition));
+            com_x_pos_response(:, condition_indicator) = com_x_pos_normalized_all(:, condition_indicator) - repmat(com_x_pos_control_means(:, applicable_control_condition_indices(i_condition)), 1, sum(condition_indicator));
             lheel_x_pos_response(:, condition_indicator) = lheel_x_pos_normalized_all(:, condition_indicator) - repmat(lheel_x_pos_control_means(:, applicable_control_condition_indices(i_condition)), 1, sum(condition_indicator));
             rheel_x_pos_response(:, condition_indicator) = rheel_x_pos_normalized_all(:, condition_indicator) - repmat(rheel_x_pos_control_means(:, applicable_control_condition_indices(i_condition)), 1, sum(condition_indicator));
             lheel_y_pos_response(:, condition_indicator) = lheel_y_pos_normalized_all(:, condition_indicator) - repmat(lheel_y_pos_control_means(:, applicable_control_condition_indices(i_condition)), 1, sum(condition_indicator));
@@ -1022,6 +1106,8 @@ function analyzeStimulusResponse(varargin)
             rheel_x_pos_stancefoot_response(:, condition_indicator) = rheel_x_pos_stancefoot_normalized_all(:, condition_indicator) - repmat(rheel_x_pos_stancefoot_control_means(:, applicable_control_condition_indices(i_condition)), 1, sum(condition_indicator));
             lheel_x_pos_mpsis_response(:, condition_indicator) = lheel_x_pos_mpsis_normalized_all(:, condition_indicator) - repmat(lheel_x_pos_mpsis_control_means(:, applicable_control_condition_indices(i_condition)), 1, sum(condition_indicator));
             rheel_x_pos_mpsis_response(:, condition_indicator) = rheel_x_pos_mpsis_normalized_all(:, condition_indicator) - repmat(rheel_x_pos_mpsis_control_means(:, applicable_control_condition_indices(i_condition)), 1, sum(condition_indicator));
+            lheel_x_pos_com_response(:, condition_indicator) = lheel_x_pos_com_normalized_all(:, condition_indicator) - repmat(lheel_x_pos_com_control_means(:, applicable_control_condition_indices(i_condition)), 1, sum(condition_indicator));
+            rheel_x_pos_com_response(:, condition_indicator) = rheel_x_pos_com_normalized_all(:, condition_indicator) - repmat(rheel_x_pos_com_control_means(:, applicable_control_condition_indices(i_condition)), 1, sum(condition_indicator));
             trunk_angle_ml_response(:, condition_indicator) = trunk_angle_ml_normalized_all(:, condition_indicator) - repmat(trunk_angle_ml_control_means(:, applicable_control_condition_indices(i_condition)), 1, sum(condition_indicator));
             lleg_angle_ml_response(:, condition_indicator) = lleg_angle_ml_normalized_all(:, condition_indicator) - repmat(lleg_angle_ml_control_means(:, applicable_control_condition_indices(i_condition)), 1, sum(condition_indicator));
             rleg_angle_ml_response(:, condition_indicator) = rleg_angle_ml_normalized_all(:, condition_indicator) - repmat(rleg_angle_ml_control_means(:, applicable_control_condition_indices(i_condition)), 1, sum(condition_indicator));
@@ -1034,6 +1120,7 @@ function analyzeStimulusResponse(varargin)
         cop_x_control_means = zeros(number_of_time_steps_normalized, number_of_conditions_control);
         cop_x_stancefoot_control_means = zeros(number_of_time_steps_normalized, number_of_conditions_control);
         cop_x_mpsis_control_means = zeros(number_of_time_steps_normalized, number_of_conditions_control);
+        cop_x_com_control_means = zeros(number_of_time_steps_normalized, number_of_conditions_control);
         f_x_control_means = zeros(number_of_time_steps_normalized, number_of_conditions_control);
         f_z_control_means = zeros(number_of_time_steps_normalized, number_of_conditions_control);
         m_y_control_means = zeros(number_of_time_steps_normalized, number_of_conditions_control);
@@ -1052,6 +1139,7 @@ function analyzeStimulusResponse(varargin)
             cop_x_control_means(:, i_condition) = mean(cop_x_normalized_all(:, condition_indicator), 2);
             cop_x_stancefoot_control_means(:, i_condition) = mean(cop_x_stancefoot_normalized_all(:, condition_indicator), 2);
             cop_x_mpsis_control_means(:, i_condition) = mean(cop_x_mpsis_normalized_all(:, condition_indicator), 2);
+            cop_x_com_control_means(:, i_condition) = mean(cop_x_com_normalized_all(:, condition_indicator), 2);
             f_x_control_means(:, i_condition) = mean(f_x_normalized_all(:, condition_indicator), 2);
             f_z_control_means(:, i_condition) = mean(f_z_normalized_all(:, condition_indicator), 2);
             m_y_control_means(:, i_condition) = mean(m_y_normalized_all(:, condition_indicator), 2);
@@ -1069,6 +1157,7 @@ function analyzeStimulusResponse(varargin)
         cop_x_response = zeros(size(cop_x_normalized_all));
         cop_x_stancefoot_response = zeros(size(cop_x_normalized_all));
         cop_x_mpsis_response = zeros(size(cop_x_normalized_all));
+        cop_x_com_response = zeros(size(cop_x_normalized_all));
         f_x_response = zeros(size(f_x_normalized_all));
         f_z_response = zeros(size(f_z_normalized_all));
         m_y_response = zeros(size(m_y_normalized_all));
@@ -1085,6 +1174,7 @@ function analyzeStimulusResponse(varargin)
             cop_x_response(:, condition_indicator) = cop_x_normalized_all(:, condition_indicator) - repmat(cop_x_control_means(:, i_condition), 1, sum(condition_indicator));
             cop_x_stancefoot_response(:, condition_indicator) = cop_x_stancefoot_normalized_all(:, condition_indicator) - repmat(cop_x_stancefoot_control_means(:, i_condition), 1, sum(condition_indicator));
             cop_x_mpsis_response(:, condition_indicator) = cop_x_mpsis_normalized_all(:, condition_indicator) - repmat(cop_x_mpsis_control_means(:, i_condition), 1, sum(condition_indicator));
+            cop_x_com_response(:, condition_indicator) = cop_x_com_normalized_all(:, condition_indicator) - repmat(cop_x_com_control_means(:, i_condition), 1, sum(condition_indicator));
             f_x_response(:, condition_indicator) = f_x_normalized_all(:, condition_indicator) - repmat(f_x_control_means(:, i_condition), 1, sum(condition_indicator));
             f_z_response(:, condition_indicator) = f_z_normalized_all(:, condition_indicator) - repmat(f_z_control_means(:, i_condition), 1, sum(condition_indicator));
             m_y_response(:, condition_indicator) = m_y_normalized_all(:, condition_indicator) - repmat(m_y_control_means(:, i_condition), 1, sum(condition_indicator));
@@ -1102,6 +1192,7 @@ function analyzeStimulusResponse(varargin)
             cop_x_response(:, condition_indicator) = cop_x_normalized_all(:, condition_indicator) - repmat(cop_x_control_means(:, applicable_control_condition_indices(i_condition)), 1, sum(condition_indicator));
             cop_x_stancefoot_response(:, condition_indicator) = cop_x_stancefoot_normalized_all(:, condition_indicator) - repmat(cop_x_stancefoot_control_means(:, applicable_control_condition_indices(i_condition)), 1, sum(condition_indicator));
             cop_x_mpsis_response(:, condition_indicator) = cop_x_mpsis_normalized_all(:, condition_indicator) - repmat(cop_x_mpsis_control_means(:, applicable_control_condition_indices(i_condition)), 1, sum(condition_indicator));
+            cop_x_com_response(:, condition_indicator) = cop_x_com_normalized_all(:, condition_indicator) - repmat(cop_x_com_control_means(:, applicable_control_condition_indices(i_condition)), 1, sum(condition_indicator));
             f_x_response(:, condition_indicator) = f_x_normalized_all(:, condition_indicator) - repmat(f_x_control_means(:, applicable_control_condition_indices(i_condition)), 1, sum(condition_indicator));
             f_z_response(:, condition_indicator) = f_z_normalized_all(:, condition_indicator) - repmat(f_z_control_means(:, applicable_control_condition_indices(i_condition)), 1, sum(condition_indicator));
             m_y_response(:, condition_indicator) = m_y_normalized_all(:, condition_indicator) - repmat(m_y_control_means(:, applicable_control_condition_indices(i_condition)), 1, sum(condition_indicator));
@@ -1127,6 +1218,8 @@ function analyzeStimulusResponse(varargin)
         rtibiant_control_means = zeros(number_of_time_steps_normalized, number_of_conditions_control);
         rgastroc_control_means = zeros(number_of_time_steps_normalized, number_of_conditions_control);
         rperolng_control_means = zeros(number_of_time_steps_normalized, number_of_conditions_control);
+        ltnsrflt_control_means = zeros(number_of_time_steps_normalized, number_of_conditions_control);
+        rtnsrflt_control_means = zeros(number_of_time_steps_normalized, number_of_conditions_control);
         
         if normalize_emg_mean || normalize_emg_peak
             lglutmed_control_rescaled_means = zeros(number_of_time_steps_normalized, number_of_conditions_control);
@@ -1137,6 +1230,8 @@ function analyzeStimulusResponse(varargin)
             rtibiant_control_rescaled_means = zeros(number_of_time_steps_normalized, number_of_conditions_control);
             rgastroc_control_rescaled_means = zeros(number_of_time_steps_normalized, number_of_conditions_control);
             rperolng_control_rescaled_means = zeros(number_of_time_steps_normalized, number_of_conditions_control);
+            ltnsrflt_control_rescaled_means = zeros(number_of_time_steps_normalized, number_of_conditions_control);
+            rtnsrflt_control_rescaled_means = zeros(number_of_time_steps_normalized, number_of_conditions_control);
         end
         
         for i_condition = 1 : number_of_conditions_control
@@ -1149,6 +1244,8 @@ function analyzeStimulusResponse(varargin)
             rtibiant_control_means(:, i_condition) = mean(rtibiant_normalized_all(:, condition_indicator), 2);
             rgastroc_control_means(:, i_condition) = mean(rgastroc_normalized_all(:, condition_indicator), 2);
             rperolng_control_means(:, i_condition) = mean(rperolng_normalized_all(:, condition_indicator), 2);
+            ltnsrflt_control_means(:, i_condition) = mean(ltnsrflt_normalized_all(:, condition_indicator), 2);
+            rtnsrflt_control_means(:, i_condition) = mean(rtnsrflt_normalized_all(:, condition_indicator), 2);
             if normalize_emg_mean || normalize_emg_peak
                 condition_indicator = conditions_control_indicators(:, i_condition);
                 lglutmed_control_rescaled_means(:, i_condition) = mean(lglutmed_normalized_rescaled_all(:, condition_indicator), 2);
@@ -1159,6 +1256,8 @@ function analyzeStimulusResponse(varargin)
                 rtibiant_control_rescaled_means(:, i_condition) = mean(rtibiant_normalized_rescaled_all(:, condition_indicator), 2);
                 rgastroc_control_rescaled_means(:, i_condition) = mean(rgastroc_normalized_rescaled_all(:, condition_indicator), 2);
                 rperolng_control_rescaled_means(:, i_condition) = mean(rperolng_normalized_rescaled_all(:, condition_indicator), 2);
+                ltnsrflt_control_rescaled_means(:, i_condition) = mean(ltnsrflt_normalized_rescaled_all(:, condition_indicator), 2);
+                rtnsrflt_control_rescaled_means(:, i_condition) = mean(rtnsrflt_normalized_rescaled_all(:, condition_indicator), 2);
             end
         end
         
@@ -1171,6 +1270,8 @@ function analyzeStimulusResponse(varargin)
         rtibiant_response = zeros(size(rtibiant_normalized_all));
         rgastroc_response = zeros(size(rgastroc_normalized_all));
         rperolng_response = zeros(size(rperolng_normalized_all));
+        ltnsrflt_response = zeros(size(ltnsrflt_normalized_all));
+        rtnsrflt_response = zeros(size(rtnsrflt_normalized_all));
         if normalize_emg_mean || normalize_emg_peak
             lglutmed_rescaled_response = zeros(size(lglutmed_normalized_all));
             ltibiant_rescaled_response = zeros(size(ltibiant_normalized_all));
@@ -1180,6 +1281,8 @@ function analyzeStimulusResponse(varargin)
             rtibiant_rescaled_response = zeros(size(rtibiant_normalized_all));
             rgastroc_rescaled_response = zeros(size(rgastroc_normalized_all));
             rperolng_rescaled_response = zeros(size(rperolng_normalized_all));
+            ltnsrflt_rescaled_response = zeros(size(ltnsrflt_normalized_all));
+            rtnsrflt_rescaled_response = zeros(size(rtnsrflt_normalized_all));
         end
         
         for i_condition = 1 : number_of_conditions_to_analyze
@@ -1192,6 +1295,8 @@ function analyzeStimulusResponse(varargin)
             rtibiant_response(:, condition_indicator) = rtibiant_normalized_all(:, condition_indicator) - repmat(rtibiant_control_means(:,applicable_control_condition_indices(i_condition)), 1, sum(condition_indicator));
             rgastroc_response(:, condition_indicator) = rgastroc_normalized_all(:, condition_indicator) - repmat(rgastroc_control_means(:,applicable_control_condition_indices(i_condition)), 1, sum(condition_indicator));
             rperolng_response(:, condition_indicator) = rperolng_normalized_all(:, condition_indicator) - repmat(rperolng_control_means(:,applicable_control_condition_indices(i_condition)), 1, sum(condition_indicator));
+            ltnsrflt_response(:, condition_indicator) = ltnsrflt_normalized_all(:, condition_indicator) - repmat(ltnsrflt_control_means(:,applicable_control_condition_indices(i_condition)), 1, sum(condition_indicator));
+            rtnsrflt_response(:, condition_indicator) = rtnsrflt_normalized_all(:, condition_indicator) - repmat(rtnsrflt_control_means(:,applicable_control_condition_indices(i_condition)), 1, sum(condition_indicator));
             if normalize_emg_mean || normalize_emg_peak   
                  condition_indicator = conditions_to_analyze_indicators(:, i_condition);
                  lglutmed_rescaled_response(:, condition_indicator) = lglutmed_normalized_rescaled_all(:, condition_indicator) - repmat(lglutmed_control_rescaled_means(:,applicable_control_condition_indices(i_condition)), 1, sum(condition_indicator));
@@ -1202,6 +1307,8 @@ function analyzeStimulusResponse(varargin)
                  rtibiant_rescaled_response(:, condition_indicator) = rtibiant_normalized_rescaled_all(:, condition_indicator) - repmat(rtibiant_control_rescaled_means(:,applicable_control_condition_indices(i_condition)), 1, sum(condition_indicator));
                  rgastroc_rescaled_response(:, condition_indicator) = rgastroc_normalized_rescaled_all(:, condition_indicator) - repmat(rgastroc_control_rescaled_means(:,applicable_control_condition_indices(i_condition)), 1, sum(condition_indicator));
                  rperolng_rescaled_response(:, condition_indicator) = rperolng_normalized_rescaled_all(:, condition_indicator) - repmat(rperolng_control_rescaled_means(:,applicable_control_condition_indices(i_condition)), 1, sum(condition_indicator));
+                 ltnsrflt_rescaled_response(:, condition_indicator) = ltnsrflt_normalized_rescaled_all(:, condition_indicator) - repmat(ltnsrflt_control_rescaled_means(:,applicable_control_condition_indices(i_condition)), 1, sum(condition_indicator));
+                 rtnsrflt_rescaled_response(:, condition_indicator) = rtnsrflt_normalized_rescaled_all(:, condition_indicator) - repmat(rtnsrflt_control_rescaled_means(:,applicable_control_condition_indices(i_condition)), 1, sum(condition_indicator));
             end
         end
     end
@@ -1255,6 +1362,8 @@ function analyzeStimulusResponse(varargin)
                 'foot_placement_world_all', ...
                 'foot_placement_stancefoot_all', ...
                 'foot_placement_mpsis_all', ...
+                'foot_placement_com_all', ...
+                'com_x_pos_normalized_all', ...
                 'lheel_x_pos_normalized_all', ...
                 'rheel_x_pos_normalized_all', ...
                 'lheel_y_pos_normalized_all', ...
@@ -1263,14 +1372,18 @@ function analyzeStimulusResponse(varargin)
                 'rheel_x_pos_stancefoot_normalized_trial', ...
                 'lheel_x_pos_mpsis_normalized_trial', ...
                 'rheel_x_pos_mpsis_normalized_trial', ...
+                'lheel_x_pos_com_normalized_trial', ...
+                'rheel_x_pos_com_normalized_trial', ...
                 'trunk_angle_ap_normalized_all', ...
                 'trunk_angle_ml_normalized_all', ...
                 'lleg_angle_ml_normalized_all', ...
                 'rleg_angle_ml_normalized_all', ...
                 'step_width_response', ...
+                'com_x_pos_response', ...
                 'foot_placement_world_response', ...
                 'foot_placement_stancefoot_response', ...
                 'foot_placement_mpsis_response', ...
+                'foot_placement_com_response', ...
                 'lheel_x_pos_response', ...
                 'rheel_x_pos_response', ...
                 'lheel_y_pos_response', ...
@@ -1279,6 +1392,8 @@ function analyzeStimulusResponse(varargin)
                 'rheel_x_pos_stancefoot_response', ...
                 'lheel_x_pos_mpsis_response', ...
                 'rheel_x_pos_mpsis_response', ...
+                'lheel_x_pos_com_response', ...
+                'rheel_x_pos_com_response', ...
                 'trunk_angle_ml_response', ...
                 'lleg_angle_ml_response', ...
                 'rleg_angle_ml_response' ...
@@ -1304,6 +1419,8 @@ function analyzeStimulusResponse(varargin)
                 'cop_x_stancefoot_response', ...
                 'cop_x_mpsis_normalized_all', ...
                 'cop_x_mpsis_response', ...
+                'cop_x_com_normalized_all', ...
+                'cop_x_com_response', ...
                 'f_x_normalized_all', ...
                 'f_x_response', ...
                 'f_z_normalized_all', ...
@@ -1325,6 +1442,18 @@ function analyzeStimulusResponse(varargin)
                 'rtibiant_normalized_all', ...
                 'rgastroc_normalized_all', ...
                 'rperolng_normalized_all', ...
+                'ltnsrflt_normalized_all', ...
+                'rtnsrflt_normalized_all', ...
+                'lglutmed_normalized_rescaled_all', ...
+                'ltibiant_normalized_rescaled_all', ...
+                'lgastroc_normalized_rescaled_all', ...
+                'lperolng_normalized_rescaled_all', ...
+                'rglutmed_normalized_rescaled_all', ...
+                'rtibiant_normalized_rescaled_all', ...
+                'rgastroc_normalized_rescaled_all', ...
+                'rperolng_normalized_rescaled_all', ...
+                'ltnsrflt_normalized_rescaled_all', ...
+                'rtnsrflt_normalized_rescaled_all', ...
                 'lglutmed_response', ...
                 'ltibiant_response', ...
                 'lgastroc_response', ...
@@ -1333,6 +1462,8 @@ function analyzeStimulusResponse(varargin)
                 'rtibiant_response', ...
                 'rgastroc_response', ...
                 'rperolng_response', ...
+                'ltnsrflt_response', ...
+                'rtnsrflt_response', ...
                 'lglutmed_rescaled_response', ...
                 'ltibiant_rescaled_response', ...
                 'lgastroc_rescaled_response', ...
@@ -1340,7 +1471,9 @@ function analyzeStimulusResponse(varargin)
                 'rglutmed_rescaled_response', ...
                 'rtibiant_rescaled_response', ...
                 'rgastroc_rescaled_response', ...
-                'rperolng_rescaled_response' ...
+                'rperolng_rescaled_response', ...
+                'ltnsrflt_rescaled_response', ...
+                'rtnsrflt_rescaled_response' ...
                 )
         end    
     end

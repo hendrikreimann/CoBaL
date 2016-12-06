@@ -22,7 +22,7 @@ potential_sources = {'devices', 'labview', 'marker', 'markers', 'ascii'};
 % potential_sources = {'ascii'};
 % potential_sources = {'devices'};
 % potential_sources = {'markers'};
-% potential_sources = {'labview'};
+potential_sources = {'labview'};
 % potential_sources = {'neurocom'};
 for i_source = 1 : length(potential_sources)
     source_dir = [subject_code '_' potential_sources{i_source}];
@@ -317,6 +317,15 @@ for i_source = 1 : length(potential_sources)
                     extract_string = ['variables_to_save.' variable_name ' = labview_trajectories(:, i_column);'];
                     eval(extract_string);
                 end
+                
+                % electrodes were inverted for subject STD (red was left, should be right), so correct this
+                if strcmp(subject_code, 'STD')
+                    figure; hold on;
+                    plot(variables_to_save.GVS_out_trajectory);
+                    variables_to_save.GVS_out_trajectory = -variables_to_save.GVS_out_trajectory;
+                    plot(variables_to_save.GVS_out_trajectory);
+                end
+                
 
                 % take special care of time, transform to seconds and rename according to file type
                 eval(['variables_to_save.time_' file_type ' = variables_to_save.time_trajectory * milliseconds_to_seconds;']);
