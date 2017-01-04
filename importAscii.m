@@ -19,11 +19,12 @@ subject_code = path_split{end};
 % import data
 potential_sources = {'devices', 'labview', 'marker', 'markers', 'ascii'};
 % potential_sources = {'marker', 'markers', 'ascii'};
-% potential_sources = {'ascii'};
+potential_sources = {'ascii'};
 % potential_sources = {'devices'};
 % potential_sources = {'markers'};
 % potential_sources = {'labview'};
 % potential_sources = {'neurocom'};
+% potential_sources = {'neurocom', 'ascii'};
 for i_source = 1 : length(potential_sources)
     source_dir = [subject_code '_' potential_sources{i_source}];
     if exist(source_dir, 'dir')
@@ -167,7 +168,7 @@ for i_source = 1 : length(potential_sources)
 
             elseif strcmp(file_type, 'qualisysData')
                 % this is marker data from QTM
-                [imported_data, delimiter, nheaderlines] = importdata([source_dir filesep data_file_name], '\t', 10);
+                [imported_data, delimiter, nheaderlines] = importdata([source_dir filesep data_file_name], '\t', 11);
                 
                 data_type = 'markers';
                 data_source = 'qtm';
