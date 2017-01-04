@@ -38,8 +38,10 @@ function transformations = calculateMcsToWcsTransformations(marker_positions, ma
         u1 = marker_positions_this_segment(2, :)' - p;
         u2 = marker_positions_this_segment(3, :)' - p;
         u3 = cross(u1, u2);
-        A = [u1 u2 u3];
         
+        R = orthonormalizeBasis([u1, u2, u3]);
+        
+        A = [u1 u2 u3];
         Q = zeros(3, number_of_markers_per_segment);
         R_qr = zeros(size(number_of_markers_per_segment, number_of_markers_per_segment));
         for i_col = 1 : number_of_markers_per_segment
@@ -51,9 +53,9 @@ function transformations = calculateMcsToWcsTransformations(marker_positions, ma
             R_qr(i_col, i_col) = norm(v);
             Q(:, i_col) = v/R_qr(i_col, i_col);
         end
-           
-        
         R = Q;
+        
+        
         transformations{i_segment} = [R p; [0 0 0 1]];
         
     end    

@@ -7,14 +7,14 @@ static_reference_type = 'casual';
 % hip_joint_center_estimation_method = 'SCoRE';
 hip_joint_center_estimation_method = 'Tylkowski';
 
-knee_joint_axis_estimation_method = 'SARA';
-% knee_joint_axis_estimation_method = 'markers';
+% knee_joint_axis_estimation_method = 'SARA';
+knee_joint_axis_estimation_method = 'markers';
 
 create_kinematic_tree                   = 1;
 show_visualization                      = 1;
 
 static_reference_trial_type = 'walking';
-static_reference_trial_type = 'calibration';
+% static_reference_trial_type = 'calibration';
 static_reference_file_index = 1;
 
 left_hip_calibration_file_index = 2;
@@ -124,11 +124,17 @@ MPSIS_reference = mean([LPSI_reference RPSI_reference], 2);
 e_1 = [1; 0; 0];
 e_2 = [0; 1; 0];
 e_3 = [0; 0; 1];
-anterior_direction = normVector(MASIS_reference - MPSIS_reference);
+right_direction_prime = normVector(RASI_reference - LASI_reference);
+anterior_direction_prime = normVector(MASIS_reference - MPSIS_reference);
+proximal_direction_prime = cross(right_direction_prime, anterior_direction_prime);
+
+body_direction_matrix = orthogonalizeBasis([right_direction_prime anterior_direction_prime proximal_direction_prime]);
+right_direction = body_direction_matrix(:, 1);
+anterior_direction = body_direction_matrix(:, 2);
+proximal_direction = body_direction_matrix(:, 3);
+
+left_direction = - right_direction;
 posterior_direction = - anterior_direction;
-left_direction = normVector(LASI_reference - RASI_reference);
-right_direction = - left_direction;
-proximal_direction = cross(right_direction, anterior_direction);
 distal_direction = - proximal_direction;
 
 % calculate anatomical landmarks and apply marker and flesh offsets
@@ -249,6 +255,11 @@ elseif strcmp(hip_joint_center_estimation_method, 'Tylkowski')
     hjc_correction_factor_lateral = 0.14; % Tylkowski, after Bell et al., 1990
     hjc_correction_factor_distal = 0.30; % Tylkowski, after Bell et al., 1990
     hjc_correction_factor_anterior = 0.19; % Tylkowski, after Bell et al., 1990
+    
+    % XXX playing around with this factor to see if it improves the problem with the kinematic chain leg markers being
+    % higher than the measured markers
+    hjc_correction_factor_anterior = 0.09; % Tylkowski, after Bell et al., 1990
+    % TODO: figure out a systematic way to do this, and also do it for some other joints
 
     % estimate hip CoRs
     left_hip_cor = LASIS ...
@@ -284,7 +295,7 @@ if strcmp(knee_joint_axis_estimation_method, 'SARA')
     
 %     left_thigh_markers_trajectory = knee_reference(:, left_thigh_markers_indices);
 %     left_shank_markers_trajectory = knee_reference(:, left_shank_markers_indices);
-    [left_knee_point, left_knee_cor_error, left_knee_aor] = estimateJointKinematics ...
+    [left_knee_point, left_knee_cor_error, left_knee_flexion_axis] = estimateJointKinematics ...
       ( ...
         left_thigh_markers_reference, ...
         left_shank_markers_reference, ...
@@ -310,7 +321,7 @@ if strcmp(knee_joint_axis_estimation_method, 'SARA')
     
 %     right_thigh_markers_trajectory = knee_reference(:, right_thigh_markers_indices);
 %     right_shank_markers_trajectory = knee_reference(:, right_shank_markers_indices);
-    [right_knee_point, right_knee_cor_error, right_knee_aor] = estimateJointKinematics ...
+    [right_knee_point, right_knee_cor_error, right_knee_flexion_axis] = estimateJointKinematics ...
       ( ...
         right_thigh_markers_reference, ...
         right_shank_markers_reference, ...
@@ -320,24 +331,27 @@ if strcmp(knee_joint_axis_estimation_method, 'SARA')
       );
 elseif strcmp(knee_joint_axis_estimation_method, 'markers')
     % assume that the knee axis of rotation is the vector between the knee markers
-    left_knee_aor = normVector(left_lateral_femoral_epicondyle - right_lateral_femoral_epicondyle);
-    right_knee_aor = normVector(left_lateral_femoral_epicondyle - right_lateral_femoral_epicondyle);
+    left_knee_flexion_axis = normVector(left_lateral_femoral_epicondyle - right_lateral_femoral_epicondyle);
+    right_knee_flexion_axis = normVector(left_lateral_femoral_epicondyle - right_lateral_femoral_epicondyle);
     
 else
     error('hip joint center estimation method not recognized. Options are "SARA" or "markers".');
 end
 % correct directions
-if dot(right_knee_aor, left_direction) < 0
-    right_knee_aor = -right_knee_aor;
+if dot(right_knee_flexion_axis, left_direction) < 0
+    right_knee_flexion_axis = -right_knee_flexion_axis;
 end
-if dot(left_knee_aor, left_direction) < 0
-    left_knee_aor = -left_knee_aor;
+if dot(left_knee_flexion_axis, left_direction) < 0
+    left_knee_flexion_axis = -left_knee_flexion_axis;
 end
 
 % estimate knee CoRs
 kjc_correction_factor = 0.5;
-left_knee_cor = left_lateral_femoral_epicondyle - kjc_correction_factor*knee_width*left_knee_aor;
-right_knee_cor = right_lateral_femoral_epicondyle + kjc_correction_factor*knee_width*right_knee_aor;
+left_knee_cor = left_lateral_femoral_epicondyle - kjc_correction_factor*knee_width*left_knee_flexion_axis;
+right_knee_cor = right_lateral_femoral_epicondyle + kjc_correction_factor*knee_width*right_knee_flexion_axis;
+
+
+
 
 %% calculate other joint centers and axes
 % define correction factors for joint centers
@@ -365,8 +379,8 @@ end
 thorax_width = norm(suprasternale - c7);
 
 % estimate ankle CoRs
-left_ankle_cor = left_lateral_malleolus - ajc_correction_factor * ankle_width * left_knee_aor;
-right_ankle_cor = right_lateral_malleolus + ajc_correction_factor * ankle_width * right_knee_aor;
+left_ankle_cor = left_lateral_malleolus - ajc_correction_factor * ankle_width * left_knee_flexion_axis;
+right_ankle_cor = right_lateral_malleolus + ajc_correction_factor * ankle_width * right_knee_flexion_axis;
 
 % estimate lumbar joint center
 pelvis_acs_origin = mean([LASIS RASIS], 2);
@@ -399,6 +413,50 @@ right_radioulnar_axis = - normVector(right_wrist_cor - right_elbow_cor);
 
 left_wrist_inversion_axis = cross(left_wrist_flexion_axis, left_radioulnar_axis);
 right_wrist_inversion_axis = cross(right_wrist_flexion_axis, right_radioulnar_axis);
+
+% define hip directions
+left_hip_internal_rotation_axis_prime = left_knee_cor - left_hip_cor;
+left_hip_direction_matrix_prime = orthogonalizeBasis([left_hip_internal_rotation_axis_prime, left_direction, cross(left_direction, left_hip_internal_rotation_axis_prime)]);
+left_hip_direction_matrix = [-left_hip_direction_matrix_prime(:, 2), -left_hip_direction_matrix_prime(:, 3), -left_hip_direction_matrix_prime(:, 1)];
+left_hip_flexion_axis = left_hip_direction_matrix(:, 1);
+left_hip_abduction_axis = left_hip_direction_matrix(:, 2);
+left_hip_internal_rotation_axis = -left_hip_direction_matrix(:, 3);
+
+right_hip_internal_rotation_axis_prime = right_knee_cor - right_hip_cor;
+right_hip_direction_matrix_prime = orthogonalizeBasis([right_hip_internal_rotation_axis_prime, right_direction, cross(right_direction, right_hip_internal_rotation_axis_prime)]);
+right_hip_direction_matrix = [-right_hip_direction_matrix_prime(:, 2), -right_hip_direction_matrix_prime(:, 3), -right_hip_direction_matrix_prime(:, 1)];
+right_hip_flexion_axis = right_hip_direction_matrix(:, 1);
+right_hip_abduction_axis = -right_hip_direction_matrix(:, 2);
+right_hip_internal_rotation_axis = right_hip_direction_matrix(:, 3);
+
+% define knee directions
+left_knee_internal_rotation_axis_prime = left_ankle_cor - left_knee_cor;
+left_knee_direction_matrix_prime = orthogonalizeBasis([left_knee_internal_rotation_axis_prime, left_knee_flexion_axis, cross(left_knee_flexion_axis, left_knee_internal_rotation_axis_prime)]);
+left_knee_direction_matrix = [-left_knee_direction_matrix_prime(:, 2), -left_knee_direction_matrix_prime(:, 3), -left_knee_direction_matrix_prime(:, 1)];
+left_knee_flexion_axis = -left_knee_direction_matrix(:, 1);
+left_knee_internal_rotation_axis = left_knee_direction_matrix(:, 3);
+
+right_knee_internal_rotation_axis_prime = right_ankle_cor - right_knee_cor;
+right_knee_direction_matrix_prime = orthogonalizeBasis([right_knee_internal_rotation_axis_prime, right_knee_flexion_axis, cross(right_knee_flexion_axis, right_knee_internal_rotation_axis_prime)]);
+right_knee_direction_matrix = [-right_knee_direction_matrix_prime(:, 2), -right_knee_direction_matrix_prime(:, 3), -right_knee_direction_matrix_prime(:, 1)];
+right_knee_flexion_axis = -right_knee_direction_matrix(:, 1);
+right_knee_internal_rotation_axis = -right_knee_direction_matrix(:, 3);
+
+% define ankle axes
+left_ankle_inversion_axis_prime = left_toe_mid - left_ankle_cor;
+left_ankle_direction_matrix_prime = orthogonalizeBasis([left_ankle_inversion_axis_prime, right_direction, cross(left_ankle_inversion_axis_prime, right_direction)]);
+left_ankle_direction_matrix = [left_ankle_direction_matrix_prime(:, 2), left_ankle_direction_matrix_prime(:, 1), -left_ankle_direction_matrix_prime(:, 3)];
+left_ankle_inversion_axis = left_ankle_direction_matrix(:, 2);
+left_ankle_dorsiflexion_axis = left_ankle_direction_matrix(:, 1);
+
+% define ankle axes
+right_ankle_inversion_axis_prime = right_toe_mid - right_ankle_cor;
+right_ankle_direction_matrix_prime = orthogonalizeBasis([right_ankle_inversion_axis_prime, right_direction, cross(right_ankle_inversion_axis_prime, right_direction)]);
+right_ankle_direction_matrix = [right_ankle_direction_matrix_prime(:, 2), right_ankle_direction_matrix_prime(:, 1), -right_ankle_direction_matrix_prime(:, 3)];
+right_ankle_inversion_axis = -right_ankle_direction_matrix(:, 2);
+right_ankle_dorsiflexion_axis = right_ankle_direction_matrix(:, 1);
+
+
 
 % TODO: some of these assumptions are not valid for all types of reference configurations
 
@@ -486,12 +544,12 @@ pelvis_scs_x = cross(pelvis_scs_y, pelvis_scs_z);
 
 % left thigh
 left_thigh_scs_y = normVector(left_hip_cor - left_knee_cor);
-left_thigh_scs_x = normVector(cross(left_knee_aor, left_thigh_scs_y));
+left_thigh_scs_x = normVector(cross(left_knee_flexion_axis, left_thigh_scs_y));
 left_thigh_scs_z = cross(left_thigh_scs_x, left_thigh_scs_y);
 
 % left leg
 left_leg_scs_y = normVector(left_knee_cor - left_ankle_cor);
-left_leg_scs_x = normVector(cross(left_knee_aor, left_leg_scs_y));
+left_leg_scs_x = normVector(cross(left_knee_flexion_axis, left_leg_scs_y));
 left_leg_scs_z = cross(left_leg_scs_x, left_leg_scs_y);
 
 % left foot
@@ -501,12 +559,12 @@ left_foot_scs_z = cross(left_foot_scs_x, left_foot_scs_y);
 
  % right thigh
 right_thigh_scs_y = normVector(right_hip_cor - right_knee_cor);
-right_thigh_scs_x = normVector(cross(right_knee_aor, right_thigh_scs_y));
+right_thigh_scs_x = normVector(cross(right_knee_flexion_axis, right_thigh_scs_y));
 right_thigh_scs_z = cross(right_thigh_scs_x, right_thigh_scs_y);
 
 % right leg
 right_leg_scs_y = normVector(right_knee_cor - right_ankle_cor);
-right_leg_scs_x = normVector(cross(right_knee_aor, right_leg_scs_y));
+right_leg_scs_x = normVector(cross(right_knee_flexion_axis, right_leg_scs_y));
 right_leg_scs_z = cross(right_leg_scs_x, right_leg_scs_y);
 
 % right foot
@@ -809,281 +867,6 @@ left_hand_I_xz = -(hand_rxz_scaling_factor*left_hand_segment_length)^2 * hand_se
 left_hand_I_yz = -(hand_ryz_scaling_factor*left_hand_segment_length)^2 * hand_segment_mass;
 left_hand_inertia_tensor = [left_hand_I_xx left_hand_I_xy left_hand_I_xz; left_hand_I_xy left_hand_I_yy left_hand_I_yz; left_hand_I_xz left_hand_I_yz left_hand_I_zz];
 
-%% assemble kinematic tree
-if create_kinematic_tree
-    % adjust end-effector positions for foot extension in z-direction
-    right_heel = right_ankle_cor; right_heel(3) = right_toe_mid(3);
-    left_heel = left_ankle_cor; left_heel(3) = left_toe_mid(3);
-
-
-    joint_positions = ...
-    { ...
-        pelvis_com, pelvis_com, pelvis_com, pelvis_com, pelvis_com, pelvis_com, ...
-        left_hip_cor, left_hip_cor, left_hip_cor, left_knee_cor, left_ankle_cor, left_ankle_cor, ...
-        right_hip_cor, right_hip_cor, right_hip_cor, right_knee_cor, right_ankle_cor, right_ankle_cor, ...
-        lumbar_cor, lumbar_cor, lumbar_cor, cervix_cor, cervix_cor, cervix_cor, ...
-        left_shoulder_cor, left_shoulder_cor, left_shoulder_cor, left_elbow_cor, left_elbow_cor, left_wrist_cor, left_wrist_cor ...
-        right_shoulder_cor, right_shoulder_cor, right_shoulder_cor, right_elbow_cor, right_elbow_cor, right_wrist_cor, right_wrist_cor ...
-    };
-
-    joint_axes = ...
-    { ...
-        e_1, e_2, e_3, e_1, e_2, e_3, ...       % pelvis free body DoFs
-        right_direction, anterior_direction, proximal_direction, left_knee_aor, left_direction, posterior_direction, ...   % left leg
-        right_direction, posterior_direction, distal_direction, right_knee_aor, left_direction, anterior_direction,...   % right leg
-        left_direction, posterior_direction, proximal_direction, left_direction, posterior_direction, proximal_direction, ...       % trunk and neck
-        anterior_direction, right_direction, distal_direction, left_elbow_axis, left_radioulnar_axis, left_wrist_flexion_axis, left_wrist_inversion_axis, ... % left arm
-        posterior_direction, right_direction, proximal_direction, right_elbow_axis, right_radioulnar_axis, right_wrist_flexion_axis, right_wrist_inversion_axis, ... % right arm
-    };
-
-
-    joint_types = ...
-      [ ...
-        2 2 2 1 1 1 ... % virtual dofs
-        1 1 1 1 1 1 ... % left leg
-        1 1 1 1 1 1 ... % right leg
-        1 1 1 1 1 1 ... % l5 and neck
-        1 1 1 1 1 1 1 ... % left arm
-        1 1 1 1 1 1 1 ... % right arm
-      ]; % 1 = rotational, 2 = prismatic
-
-    % link setup
-    link_com_positions =  ...
-    { ...
-        pelvis_com, pelvis_com, pelvis_com, pelvis_com, pelvis_com, pelvis_com, ...
-        left_thigh_com, left_thigh_com, left_thigh_com, left_leg_com, left_foot_com, left_foot_com, ...
-        right_thigh_com, right_thigh_com, right_thigh_com, right_leg_com, right_foot_com, right_foot_com, ...
-        torso_com, torso_com, torso_com, head_com, head_com, head_com ...
-        left_arm_com, left_arm_com, left_arm_com, left_forearm_com, left_forearm_com, left_hand_com, left_hand_com, ...
-        right_arm_com, right_arm_com, right_arm_com, right_forearm_com, right_forearm_com, right_hand_com, right_hand_com ...
-    };
-
-    link_orientations = ...
-      {
-        eye(3); eye(3); eye(3); eye(3); eye(3); [pelvis_scs_x pelvis_scs_y pelvis_scs_z]; ...
-        eye(3); eye(3); [left_thigh_scs_x left_thigh_scs_y left_thigh_scs_z]; [left_leg_scs_x left_leg_scs_y left_leg_scs_z]; eye(3); [left_foot_scs_x left_foot_scs_y left_foot_scs_z]; ...
-        eye(3); eye(3); [right_thigh_scs_x right_thigh_scs_y right_thigh_scs_z]; [right_leg_scs_x right_leg_scs_y right_leg_scs_z]; eye(3); [right_foot_scs_x right_foot_scs_y right_foot_scs_z]; ...
-        eye(3); eye(3); [torso_scs_x torso_scs_y torso_scs_z]; eye(3); eye(3); [head_scs_x head_scs_y head_scs_z]; ...
-        eye(3); eye(3); [left_arm_scs_x left_arm_scs_y left_arm_scs_z]; eye(3); [left_forearm_scs_x left_forearm_scs_y left_forearm_scs_z]; eye(3); [left_hand_scs_x left_hand_scs_y left_hand_scs_z]; ...
-        eye(3); eye(3); [right_arm_scs_x right_arm_scs_y right_arm_scs_z]; eye(3); [right_forearm_scs_x right_forearm_scs_y right_forearm_scs_z]; eye(3); [right_hand_scs_x right_hand_scs_y right_hand_scs_z]; ...
-      };
-
-    generalized_inertia_matrix_pelvis           = [pelvis_segment_mass*eye(3) zeros(3); zeros(3) pelvis_inertia_tensor];
-    generalized_inertia_matrix_left_thigh       = [thigh_segment_mass*eye(3) zeros(3); zeros(3) left_thigh_inertia_tensor];
-    generalized_inertia_matrix_left_shank       = [leg_segment_mass*eye(3) zeros(3); zeros(3) left_leg_inertia_tensor];
-    generalized_inertia_matrix_left_foot        = [foot_segment_mass*eye(3) zeros(3); zeros(3) left_foot_inertia_tensor];
-    generalized_inertia_matrix_right_thigh      = [thigh_segment_mass*eye(3) zeros(3); zeros(3) right_thigh_inertia_tensor];
-    generalized_inertia_matrix_right_shank      = [leg_segment_mass*eye(3) zeros(3); zeros(3) right_leg_inertia_tensor];
-    generalized_inertia_matrix_right_foot       = [foot_segment_mass*eye(3) zeros(3); zeros(3) right_foot_inertia_tensor];
-    generalized_inertia_matrix_torso            = [torso_segment_mass*eye(3) zeros(3); zeros(3) torso_inertia_tensor];
-    generalized_inertia_matrix_head             = [head_segment_mass*eye(3) zeros(3); zeros(3) head_inertia_tensor];
-    generalized_inertia_matrix_left_arm         = [arm_segment_mass*eye(3) zeros(3); zeros(3) left_arm_inertia_tensor];
-    generalized_inertia_matrix_left_forearm     = [forearm_segment_mass*eye(3) zeros(3); zeros(3) left_forearm_inertia_tensor];
-    generalized_inertia_matrix_left_hand        = [hand_segment_mass*eye(3) zeros(3); zeros(3) left_hand_inertia_tensor];
-    generalized_inertia_matrix_right_arm        = [arm_segment_mass*eye(3) zeros(3); zeros(3) right_arm_inertia_tensor];
-    generalized_inertia_matrix_right_forearm    = [forearm_segment_mass*eye(3) zeros(3); zeros(3) right_forearm_inertia_tensor];
-    generalized_inertia_matrix_right_hand       = [hand_segment_mass*eye(3) zeros(3); zeros(3) right_hand_inertia_tensor];
-
-    generalized_link_inertia_matrices = ...
-      { ...
-        zeros(6, 6), zeros(6, 6), zeros(6, 6), zeros(6, 6), zeros(6, 6), generalized_inertia_matrix_pelvis, ...
-        zeros(6, 6), zeros(6, 6), generalized_inertia_matrix_left_thigh, generalized_inertia_matrix_left_shank, zeros(6, 6), generalized_inertia_matrix_left_foot, ...
-        zeros(6, 6), zeros(6, 6), generalized_inertia_matrix_right_thigh, generalized_inertia_matrix_right_shank, zeros(6, 6), generalized_inertia_matrix_right_foot, ...
-        zeros(6, 6), zeros(6, 6), generalized_inertia_matrix_torso, zeros(6, 6), zeros(6, 6), generalized_inertia_matrix_head ...
-        zeros(6, 6), zeros(6, 6), generalized_inertia_matrix_left_arm, zeros(6, 6), generalized_inertia_matrix_left_forearm, zeros(6, 6), generalized_inertia_matrix_left_hand, ...
-        zeros(6, 6), zeros(6, 6), generalized_inertia_matrix_right_arm, zeros(6, 6), generalized_inertia_matrix_right_forearm, zeros(6, 6), generalized_inertia_matrix_right_hand, ...
-      };
-
-    end_effector_transformations = ...
-      { ...
-        [left_foot_scs_x left_foot_scs_y left_foot_scs_z left_heel; 0 0 0 1], ...
-        [left_foot_scs_x left_foot_scs_y left_foot_scs_z left_toe_mid; 0 0 0 1], ...
-        [left_foot_scs_x left_foot_scs_y left_foot_scs_z left_ankle_cor; 0 0 0 1], ...
-        [right_foot_scs_x right_foot_scs_y right_foot_scs_z right_heel; 0 0 0 1], ...
-        [right_foot_scs_x right_foot_scs_y right_foot_scs_z right_toe_mid; 0 0 0 1], ...
-        [right_foot_scs_x right_foot_scs_y right_foot_scs_z right_ankle_cor; 0 0 0 1], ...
-        [eye(3), head_vertex; 0 0 0 1], ...
-        [eye(3), left_wrist_cor + [0; 0.05; 0]; 0 0 0 1], ...
-        [eye(3), right_wrist_cor + [0; 0.05; 0]; 0 0 0 1], ...
-      };
-
-    branch_matrix = ...
-      [ ...
-        1 1 1 1 1 1    1 1 1 1 1 1   0 0 0 0 0 0   0 0 0   0 0 0   0 0 0 0 0 0 0   0 0 0 0 0 0 0; ... % left leg until heel
-        1 1 1 1 1 1    1 1 1 1 1 1   0 0 0 0 0 0   0 0 0   0 0 0   0 0 0 0 0 0 0   0 0 0 0 0 0 0; ... % left leg until toes
-        1 1 1 1 1 1    1 1 1 1 1 1   0 0 0 0 0 0   0 0 0   0 0 0   0 0 0 0 0 0 0   0 0 0 0 0 0 0; ... % left leg until ankle
-        1 1 1 1 1 1    0 0 0 0 0 0   1 1 1 1 1 1   0 0 0   0 0 0   0 0 0 0 0 0 0   0 0 0 0 0 0 0; ... % right leg until heel
-        1 1 1 1 1 1    0 0 0 0 0 0   1 1 1 1 1 1   0 0 0   0 0 0   0 0 0 0 0 0 0   0 0 0 0 0 0 0; ... % right leg until toes
-        1 1 1 1 1 1    0 0 0 0 0 0   1 1 1 1 1 1   0 0 0   0 0 0   0 0 0 0 0 0 0   0 0 0 0 0 0 0; ... % right leg until ankle
-        1 1 1 1 1 1    0 0 0 0 0 0   0 0 0 0 0 0   1 1 1   1 1 1   0 0 0 0 0 0 0   0 0 0 0 0 0 0; ... % head
-        1 1 1 1 1 1    0 0 0 0 0 0   0 0 0 0 0 0   1 1 1   0 0 0   1 1 1 1 1 1 1   0 0 0 0 0 0 0; ... % left arm
-        1 1 1 1 1 1    0 0 0 0 0 0   0 0 0 0 0 0   1 1 1   0 0 0   0 0 0 0 0 0 0   1 1 1 1 1 1 1; ... % right arm
-      ]; % each row is a branch, listing the joints that move the end-effector of that branch
-
-    kinematic_tree = GeneralKinematicTree ...
-    ( ...
-      joint_positions, ...
-      joint_axes, ...
-      joint_types, ...
-      branch_matrix, ...
-      end_effector_transformations, ...
-      link_com_positions, ...
-      link_orientations, ...
-      generalized_link_inertia_matrices ...
-    );
-
-    % adjust the main axes of the toe frames
-    kinematic_tree.referenceJointTransformations{12}(1:3, 1:3) = [left_foot_scs_x left_foot_scs_y left_foot_scs_z];
-    kinematic_tree.referenceJointTransformations{18}(1:3, 1:3) = [right_foot_scs_x right_foot_scs_y right_foot_scs_z];
-
-    % update
-    kinematic_tree.updateInternals();
-
-    kinematic_tree.jointLabels = ...
-      { ...
-        'pelvis, x-translation', 'pelvis, y-translation', 'pelvis, z-translation', 'pelvis, x-rotation', 'pelvis, y-rotation', 'pelvis, z-rotation', ...
-        'left hip flexion/extension', 'left hip ab/adduction', 'left hip external/internal rotation', 'left knee flexion/extension', 'left ankle plantar/dorsiflexion', 'left ankle inversion/eversion', ...
-        'right hip flexion/extension', 'right hip ab/adduction', 'right hip external/internal rotation', 'right knee flexion/extension', 'right ankle plantar/dorsiflexion', 'right ankle inversion/eversion', ...
-        'lumbar joint - forward/backward bending', 'lumbar joint - sideways bending (left/right)', 'lumbar joint - internal rotation (left/right)', ...
-        'cervical joint - forward/backward bending', 'cervical joint - sideways bending (left/right)', 'cervical joint - internal rotation (left/right)', ...
-        'left shoulder ab/adduction', 'left shoulder flexion/extension', 'left shoulder in/external rotation', 'left elbow flexion/extension', 'left pronation/supination', 'left wrist flexion/extension', 'left wrist radial/ulnar deviation', ...
-        'right shoulder ab/adduction', 'right shoulder flexion/extension', 'right shoulder in/external rotation', 'right elbow flexion/extension', 'right pronation/supination', 'right wrist flexion/extension', 'right radial/ulnar deviation', ...
-      };
-    kinematic_tree.markerLabels = marker_headers;
-
-    % define markers
-    red = [1 0 0];
-    green = [0 1 0];
-    blue = [0 0 1];
-    yellow = [1 0.9 0];
-
-    markerSegments = zeros(1, length(marker_headers));
-    markerSegments(strcmp(marker_headers, 'LFHD')) = 24;
-    markerSegments(strcmp(marker_headers, 'RFHD')) = 24;
-    markerSegments(strcmp(marker_headers, 'LBHD')) = 24;
-    markerSegments(strcmp(marker_headers, 'RBHD')) = 24;
-
-    markerSegments(strcmp(marker_headers, 'C7')) = 21;
-    markerSegments(strcmp(marker_headers, 'T10')) = 21;
-    markerSegments(strcmp(marker_headers, 'CLAV')) = 21;
-    markerSegments(strcmp(marker_headers, 'STRN')) = 21;
-    markerSegments(strcmp(marker_headers, 'RBAK')) = 21;
-
-    markerSegments(strcmp(marker_headers, 'LSHO')) = 21;
-    markerSegments(strcmp(marker_headers, 'LUPA')) = 27;
-    markerSegments(strcmp(marker_headers, 'LELB')) = 27;
-    markerSegments(strcmp(marker_headers, 'LFRM')) = 29;
-    markerSegments(strcmp(marker_headers, 'LWRA')) = 29;
-    markerSegments(strcmp(marker_headers, 'LWRB')) = 29;
-    markerSegments(strcmp(marker_headers, 'LFIN')) = 31;
-
-    markerSegments(strcmp(marker_headers, 'RSHO')) = 21;
-    markerSegments(strcmp(marker_headers, 'RUPA')) = 34;
-    markerSegments(strcmp(marker_headers, 'RELB')) = 34;
-    markerSegments(strcmp(marker_headers, 'RFRM')) = 36;
-    markerSegments(strcmp(marker_headers, 'RWRA')) = 36;
-    markerSegments(strcmp(marker_headers, 'RWRB')) = 36;
-    markerSegments(strcmp(marker_headers, 'RFIN')) = 38;
-
-    markerSegments(strcmp(marker_headers, 'LASI')) = 6;
-    markerSegments(strcmp(marker_headers, 'RASI')) = 6;
-    markerSegments(strcmp(marker_headers, 'LPSI')) = 6;
-    markerSegments(strcmp(marker_headers, 'RPSI')) = 6;
-
-    markerSegments(strcmp(marker_headers, 'LTHI')) = 9;
-    markerSegments(strcmp(marker_headers, 'LTHIA')) = 9;
-    markerSegments(strcmp(marker_headers, 'LKNE')) = 9;
-    markerSegments(strcmp(marker_headers, 'LTIB')) = 10;
-    markerSegments(strcmp(marker_headers, 'LTIBA')) = 10;
-    markerSegments(strcmp(marker_headers, 'LANK')) = 10;
-    markerSegments(strcmp(marker_headers, 'LHEE')) = 12;
-    markerSegments(strcmp(marker_headers, 'LTOE')) = 12;
-    markerSegments(strcmp(marker_headers, 'LTOEL')) = 12;
-
-    markerSegments(strcmp(marker_headers, 'RTHI')) = 15;
-    markerSegments(strcmp(marker_headers, 'RTHIA')) = 15;
-    markerSegments(strcmp(marker_headers, 'RKNE')) = 15;
-    markerSegments(strcmp(marker_headers, 'RTIB')) = 16;
-    markerSegments(strcmp(marker_headers, 'RTIBA')) = 16;
-    markerSegments(strcmp(marker_headers, 'RANK')) = 16;
-    markerSegments(strcmp(marker_headers, 'RHEE')) = 18;
-    markerSegments(strcmp(marker_headers, 'RTOE')) = 18;
-    markerSegments(strcmp(marker_headers, 'RTOEL')) = 18;
-
-    marker_color_list = cell(1, length(marker_headers));
-    marker_color_list{strcmp(marker_headers, 'LFHD')} = red;
-    marker_color_list{strcmp(marker_headers, 'RFHD')} = green;
-    marker_color_list{strcmp(marker_headers, 'LBHD')} = red;
-    marker_color_list{strcmp(marker_headers, 'RBHD')} = green;
-
-    marker_color_list{strcmp(marker_headers, 'C7')} = blue;
-    marker_color_list{strcmp(marker_headers, 'T10')} = blue;
-    marker_color_list{strcmp(marker_headers, 'CLAV')} = blue;
-    marker_color_list{strcmp(marker_headers, 'STRN')} = blue;
-    marker_color_list{strcmp(marker_headers, 'RBAK')} = blue;
-
-    marker_color_list{strcmp(marker_headers, 'LSHO')} = red;
-    marker_color_list{strcmp(marker_headers, 'LUPA')} = red;
-    marker_color_list{strcmp(marker_headers, 'LELB')} = red;
-%     marker_color_list{strcmp(marker_headers, 'LFRA')} = red;
-    marker_color_list{strcmp(marker_headers, 'LFRM')} = red;
-    marker_color_list{strcmp(marker_headers, 'LWRA')} = red;
-    marker_color_list{strcmp(marker_headers, 'LWRB')} = red;
-    marker_color_list{strcmp(marker_headers, 'LFIN')} = red;
-
-    marker_color_list{strcmp(marker_headers, 'RSHO')} = green;
-    marker_color_list{strcmp(marker_headers, 'RUPA')} = green;
-    marker_color_list{strcmp(marker_headers, 'RELB')} = green;
-    marker_color_list{strcmp(marker_headers, 'RFRM')} = green;
-%     marker_color_list{strcmp(marker_headers, 'RFRA')} = green;
-    marker_color_list{strcmp(marker_headers, 'RWRA')} = green;
-    marker_color_list{strcmp(marker_headers, 'RWRB')} = green;
-    marker_color_list{strcmp(marker_headers, 'RFIN')} = green;
-
-    marker_color_list{strcmp(marker_headers, 'LASI')} = red;
-    marker_color_list{strcmp(marker_headers, 'RASI')} = green;
-    marker_color_list{strcmp(marker_headers, 'LPSI')} = red;
-    marker_color_list{strcmp(marker_headers, 'RPSI')} = green;
-
-    marker_color_list{strcmp(marker_headers, 'LTHI')} = red;
-    marker_color_list{strcmp(marker_headers, 'LTHIA')} = red;
-    marker_color_list{strcmp(marker_headers, 'LKNE')} = red;
-    marker_color_list{strcmp(marker_headers, 'LTIB')} = red;
-    marker_color_list{strcmp(marker_headers, 'LTIBA')} = red;
-    marker_color_list{strcmp(marker_headers, 'LANK')} = red;
-    marker_color_list{strcmp(marker_headers, 'LHEE')} = red;
-    marker_color_list{strcmp(marker_headers, 'LTOE')} = red;
-    marker_color_list{strcmp(marker_headers, 'LTOEL')} = red;
-
-    marker_color_list{strcmp(marker_headers, 'RTHI')} = green;
-    marker_color_list{strcmp(marker_headers, 'RTHIA')} = green;
-    marker_color_list{strcmp(marker_headers, 'RKNE')} = green;
-    marker_color_list{strcmp(marker_headers, 'RTIB')} = green;
-    marker_color_list{strcmp(marker_headers, 'RTIBA')} = green;
-    marker_color_list{strcmp(marker_headers, 'RANK')} = green;
-    marker_color_list{strcmp(marker_headers, 'RHEE')} = green;
-    marker_color_list{strcmp(marker_headers, 'RTOE')} = green;
-    marker_color_list{strcmp(marker_headers, 'RTOEL')} = green;
-
-    number_of_markers = length(markerSegments);
-    for i_marker = 1 : number_of_markers
-        kinematic_tree.addMarker(markerSegments(i_marker), marker_reference((i_marker-1)*3+1 : (i_marker-1)*3+3)', marker_color_list{i_marker});
-    end
-
-    % kinematic_tree.addMarkerConnectionLineBody(1:3);
-    % kinematic_tree.addMarkerConnectionLineBody(4:7);
-    % kinematic_tree.addMarkerConnectionLineBody(8:10);
-    % kinematic_tree.addMarkerConnectionLineBody(11:13);
-    % kinematic_tree.addMarkerConnectionLineBody(14:16);
-    % kinematic_tree.addMarkerConnectionLineBody(17:19);
-    % kinematic_tree.addMarkerConnectionLineBody(21:23);
-    % kinematic_tree.addMarkerConnectionLineBody(24:26);
-    % kinematic_tree.addMarkerConnectionLineBody(27:29);
-    % kinematic_tree.addMarkerConnectionLineBody(29:30);
-
-    kinematic_tree.updateInternals();
-end
-
 %% set up marker coordinate systems (MCS)
 
 % define joint center references
@@ -1143,27 +926,11 @@ segment_labels = ...
     'RFOOT' ...
   };
 
-markers_by_segment = ...
-  {
-    'RFHD', 'LFHD', 'RBHD'; ...                     % head
-    'C7', 'CLAV', 'T10'; ...                        % torso
-    'LSHOULDERCOR', 'LELBOWCOR', 'LELB'; ...        % left upper arm
-    'RSHOULDERCOR', 'RELBOWCOR', 'RELB'; ...        % right upper arm
-    'LELB', 'LWRA', 'LWRB'; ...                     % left forearm
-    'RELB', 'RWRA', 'RWRB'; ...                     % right forearm
-    'LWRA', 'LWRB', 'LFIN'; ...                     % left hand
-    'RWRA', 'RWRB', 'RFIN'; ...                     % right hand
-    'RASI', 'LASI', 'RPSI'; ...                     % pelvis
-    'LHIPCOR', 'LKNEECOR', 'LKNE'; ...              % left thigh
-    'RHIPCOR', 'RKNEECOR', 'RKNE'; ...              % right thigh
-    'LKNEECOR', 'LKNE', 'LANK'; ...                 % left shank
-    'RKNEECOR', 'RKNE', 'RANK'; ...                 % right shank
-    'LANK', 'LHEE', 'LTOE'; ...                     % left foot
-    'RANK', 'RHEE', 'RTOE'; ...                     % right foot
-  };
-number_of_segments = size(markers_by_segment, 1);
+number_of_segments = length(segment_labels);
 
-mcs_to_wcs_transformations = calculateMcsToWcsTransformations([marker_reference joint_center_reference], [marker_headers joint_center_headers], markers_by_segment);
+% mcs_to_wcs_transformations = calculateMcsToWcsTransformations([marker_reference joint_center_reference], [marker_headers joint_center_headers], markers_by_segment);
+mcs_to_wcs_transformations = calculateMcsToWcsTransformations_detailed([marker_reference joint_center_reference], [marker_headers joint_center_headers], segment_labels);
+pelvis_transformation_current = mcs_to_wcs_transformations{strcmp(segment_labels, 'PELVIS')};
 
 % assemble segment masses
 segment_masses = ...
@@ -1206,6 +973,288 @@ segment_coms_wcs = ...
     right_foot_com; ...
   };
 segment_coms_mcs = cell(size(segment_coms_wcs));
+
+%% assemble kinematic tree
+if create_kinematic_tree
+    
+    % calculate pelvis base point as center between the two hip CoRs
+%     pelvis_base_point = [left_hip_cor + right_hip_cor] / 2;
+    pelvis_base_point = mean([LASI_reference RASI_reference LPSI_reference RPSI_reference], 2);
+    
+    % adjust end-effector positions for foot extension in z-direction
+    right_heel = right_ankle_cor; right_heel(3) = right_toe_mid(3);
+    left_heel = left_ankle_cor; left_heel(3) = left_toe_mid(3);
+
+    joint_positions = ...
+    { ...
+        pelvis_base_point, pelvis_base_point, pelvis_base_point, pelvis_base_point, pelvis_base_point, pelvis_base_point, ...
+        left_hip_cor, left_hip_cor, left_hip_cor, left_knee_cor, left_knee_cor, left_ankle_cor, left_ankle_cor, ...
+        right_hip_cor, right_hip_cor, right_hip_cor, right_knee_cor, right_knee_cor, right_ankle_cor, right_ankle_cor, ...
+        lumbar_cor, lumbar_cor, lumbar_cor, cervix_cor, cervix_cor, cervix_cor, ...
+        left_shoulder_cor, left_shoulder_cor, left_shoulder_cor, left_elbow_cor, left_elbow_cor, left_wrist_cor, left_wrist_cor ...
+        right_shoulder_cor, right_shoulder_cor, right_shoulder_cor, right_elbow_cor, right_elbow_cor, right_wrist_cor, right_wrist_cor ...
+    };
+
+    joint_axes = ...
+    { ...
+        e_1, e_2, e_3, e_3, e_1, e_2, ...       % pelvis free body DoFs
+        left_hip_flexion_axis, left_hip_abduction_axis, left_hip_internal_rotation_axis, left_knee_flexion_axis, left_knee_internal_rotation_axis, left_ankle_dorsiflexion_axis, left_ankle_inversion_axis, ...   % left leg
+        right_hip_flexion_axis, right_hip_abduction_axis, right_hip_internal_rotation_axis, right_knee_flexion_axis, right_knee_internal_rotation_axis, right_ankle_dorsiflexion_axis, right_ankle_inversion_axis,...   % right leg
+        left_direction, posterior_direction, proximal_direction, left_direction, posterior_direction, proximal_direction, ...       % trunk and neck
+        anterior_direction, right_direction, distal_direction, left_elbow_axis, left_radioulnar_axis, left_wrist_flexion_axis, left_wrist_inversion_axis, ... % left arm
+        posterior_direction, right_direction, proximal_direction, right_elbow_axis, right_radioulnar_axis, right_wrist_flexion_axis, right_wrist_inversion_axis, ... % right arm
+    };
+
+    joint_types = ...
+      [ ...
+        2 2 2 1 1 1 ... % virtual dofs
+        1 1 1 1 1 1 1 ... % left leg
+        1 1 1 1 1 1 1 ... % right leg
+        1 1 1 1 1 1 ... % l5 and neck
+        1 1 1 1 1 1 1 ... % left arm
+        1 1 1 1 1 1 1 ... % right arm
+      ]; % 1 = rotational, 2 = prismatic
+
+    % link setup
+    link_com_positions =  ...
+    { ...
+        pelvis_com, pelvis_com, pelvis_com, pelvis_com, pelvis_com, pelvis_com, ...
+        left_thigh_com, left_thigh_com, left_thigh_com, left_leg_com, left_leg_com, left_foot_com, left_foot_com, ...
+        right_thigh_com, right_thigh_com, right_thigh_com, right_leg_com, right_leg_com, right_foot_com, right_foot_com, ...
+        torso_com, torso_com, torso_com, head_com, head_com, head_com ...
+        left_arm_com, left_arm_com, left_arm_com, left_forearm_com, left_forearm_com, left_hand_com, left_hand_com, ...
+        right_arm_com, right_arm_com, right_arm_com, right_forearm_com, right_forearm_com, right_hand_com, right_hand_com ...
+    };
+
+    link_orientations = ...
+      {
+        eye(3); eye(3); eye(3); eye(3); eye(3); [pelvis_scs_x pelvis_scs_y pelvis_scs_z]; ...
+        eye(3); eye(3); [left_thigh_scs_x left_thigh_scs_y left_thigh_scs_z]; eye(3); [left_leg_scs_x left_leg_scs_y left_leg_scs_z]; eye(3); [left_foot_scs_x left_foot_scs_y left_foot_scs_z]; ...
+        eye(3); eye(3); [right_thigh_scs_x right_thigh_scs_y right_thigh_scs_z]; eye(3); [right_leg_scs_x right_leg_scs_y right_leg_scs_z]; eye(3); [right_foot_scs_x right_foot_scs_y right_foot_scs_z]; ...
+        eye(3); eye(3); [torso_scs_x torso_scs_y torso_scs_z]; eye(3); eye(3); [head_scs_x head_scs_y head_scs_z]; ...
+        eye(3); eye(3); [left_arm_scs_x left_arm_scs_y left_arm_scs_z]; eye(3); [left_forearm_scs_x left_forearm_scs_y left_forearm_scs_z]; eye(3); [left_hand_scs_x left_hand_scs_y left_hand_scs_z]; ...
+        eye(3); eye(3); [right_arm_scs_x right_arm_scs_y right_arm_scs_z]; eye(3); [right_forearm_scs_x right_forearm_scs_y right_forearm_scs_z]; eye(3); [right_hand_scs_x right_hand_scs_y right_hand_scs_z]; ...
+      };
+
+    generalized_inertia_matrix_pelvis           = [pelvis_segment_mass*eye(3) zeros(3); zeros(3) pelvis_inertia_tensor];
+    generalized_inertia_matrix_left_thigh       = [thigh_segment_mass*eye(3) zeros(3); zeros(3) left_thigh_inertia_tensor];
+    generalized_inertia_matrix_left_shank       = [leg_segment_mass*eye(3) zeros(3); zeros(3) left_leg_inertia_tensor];
+    generalized_inertia_matrix_left_foot        = [foot_segment_mass*eye(3) zeros(3); zeros(3) left_foot_inertia_tensor];
+    generalized_inertia_matrix_right_thigh      = [thigh_segment_mass*eye(3) zeros(3); zeros(3) right_thigh_inertia_tensor];
+    generalized_inertia_matrix_right_shank      = [leg_segment_mass*eye(3) zeros(3); zeros(3) right_leg_inertia_tensor];
+    generalized_inertia_matrix_right_foot       = [foot_segment_mass*eye(3) zeros(3); zeros(3) right_foot_inertia_tensor];
+    generalized_inertia_matrix_torso            = [torso_segment_mass*eye(3) zeros(3); zeros(3) torso_inertia_tensor];
+    generalized_inertia_matrix_head             = [head_segment_mass*eye(3) zeros(3); zeros(3) head_inertia_tensor];
+    generalized_inertia_matrix_left_arm         = [arm_segment_mass*eye(3) zeros(3); zeros(3) left_arm_inertia_tensor];
+    generalized_inertia_matrix_left_forearm     = [forearm_segment_mass*eye(3) zeros(3); zeros(3) left_forearm_inertia_tensor];
+    generalized_inertia_matrix_left_hand        = [hand_segment_mass*eye(3) zeros(3); zeros(3) left_hand_inertia_tensor];
+    generalized_inertia_matrix_right_arm        = [arm_segment_mass*eye(3) zeros(3); zeros(3) right_arm_inertia_tensor];
+    generalized_inertia_matrix_right_forearm    = [forearm_segment_mass*eye(3) zeros(3); zeros(3) right_forearm_inertia_tensor];
+    generalized_inertia_matrix_right_hand       = [hand_segment_mass*eye(3) zeros(3); zeros(3) right_hand_inertia_tensor];
+
+    generalized_link_inertia_matrices = ...
+      { ...
+        zeros(6, 6), zeros(6, 6), zeros(6, 6), zeros(6, 6), zeros(6, 6), generalized_inertia_matrix_pelvis, ...
+        zeros(6, 6), zeros(6, 6), generalized_inertia_matrix_left_thigh, zeros(6, 6), generalized_inertia_matrix_left_shank, zeros(6, 6), generalized_inertia_matrix_left_foot, ...
+        zeros(6, 6), zeros(6, 6), generalized_inertia_matrix_right_thigh, zeros(6, 6), generalized_inertia_matrix_right_shank, zeros(6, 6), generalized_inertia_matrix_right_foot, ...
+        zeros(6, 6), zeros(6, 6), generalized_inertia_matrix_torso, zeros(6, 6), zeros(6, 6), generalized_inertia_matrix_head ...
+        zeros(6, 6), zeros(6, 6), generalized_inertia_matrix_left_arm, zeros(6, 6), generalized_inertia_matrix_left_forearm, zeros(6, 6), generalized_inertia_matrix_left_hand, ...
+        zeros(6, 6), zeros(6, 6), generalized_inertia_matrix_right_arm, zeros(6, 6), generalized_inertia_matrix_right_forearm, zeros(6, 6), generalized_inertia_matrix_right_hand, ...
+      };
+
+    end_effector_transformations = ...
+      { ...
+        [left_foot_scs_x left_foot_scs_y left_foot_scs_z left_heel; 0 0 0 1], ...
+        [left_foot_scs_x left_foot_scs_y left_foot_scs_z left_toe_mid; 0 0 0 1], ...
+        [left_foot_scs_x left_foot_scs_y left_foot_scs_z left_ankle_cor; 0 0 0 1], ...
+        [right_foot_scs_x right_foot_scs_y right_foot_scs_z right_heel; 0 0 0 1], ...
+        [right_foot_scs_x right_foot_scs_y right_foot_scs_z right_toe_mid; 0 0 0 1], ...
+        [right_foot_scs_x right_foot_scs_y right_foot_scs_z right_ankle_cor; 0 0 0 1], ...
+        [eye(3), head_vertex; 0 0 0 1], ...
+        [eye(3), left_wrist_cor + [0; 0.05; 0]; 0 0 0 1], ...
+        [eye(3), right_wrist_cor + [0; 0.05; 0]; 0 0 0 1], ...
+        pelvis_transformation_current, ...
+      };
+
+    branch_matrix = ...
+      [ ...
+        1 1 1 1 1 1    1 1 1 1 1 1 1   0 0 0 0 0 0 0   0 0 0   0 0 0   0 0 0 0 0 0 0   0 0 0 0 0 0 0; ... % left leg until heel
+        1 1 1 1 1 1    1 1 1 1 1 1 1   0 0 0 0 0 0 0   0 0 0   0 0 0   0 0 0 0 0 0 0   0 0 0 0 0 0 0; ... % left leg until toes
+        1 1 1 1 1 1    1 1 1 1 1 1 1   0 0 0 0 0 0 0   0 0 0   0 0 0   0 0 0 0 0 0 0   0 0 0 0 0 0 0; ... % left leg until ankle
+        1 1 1 1 1 1    0 0 0 0 0 0 0   1 1 1 1 1 1 1   0 0 0   0 0 0   0 0 0 0 0 0 0   0 0 0 0 0 0 0; ... % right leg until heel
+        1 1 1 1 1 1    0 0 0 0 0 0 0   1 1 1 1 1 1 1   0 0 0   0 0 0   0 0 0 0 0 0 0   0 0 0 0 0 0 0; ... % right leg until toes
+        1 1 1 1 1 1    0 0 0 0 0 0 0   1 1 1 1 1 1 1   0 0 0   0 0 0   0 0 0 0 0 0 0   0 0 0 0 0 0 0; ... % right leg until ankle
+        1 1 1 1 1 1    0 0 0 0 0 0 0   0 0 0 0 0 0 0   1 1 1   1 1 1   0 0 0 0 0 0 0   0 0 0 0 0 0 0; ... % head
+        1 1 1 1 1 1    0 0 0 0 0 0 0   0 0 0 0 0 0 0   1 1 1   0 0 0   1 1 1 1 1 1 1   0 0 0 0 0 0 0; ... % left arm
+        1 1 1 1 1 1    0 0 0 0 0 0 0   0 0 0 0 0 0 0   1 1 1   0 0 0   0 0 0 0 0 0 0   1 1 1 1 1 1 1; ... % right arm
+        1 1 1 1 1 1    0 0 0 0 0 0 0   0 0 0 0 0 0 0   0 0 0   0 0 0   0 0 0 0 0 0 0   0 0 0 0 0 0 0; ... % pelvis
+      ]; % each row is a branch, listing the joints that move the end-effector of that branch
+
+    kinematic_tree = GeneralKinematicTree ...
+    ( ...
+      joint_positions, ...
+      joint_axes, ...
+      joint_types, ...
+      branch_matrix, ...
+      end_effector_transformations, ...
+      link_com_positions, ...
+      link_orientations, ...
+      generalized_link_inertia_matrices ...
+    );
+
+    % adjust the main axes of the toe frames
+    kinematic_tree.referenceJointTransformations{12}(1:3, 1:3) = [left_foot_scs_x left_foot_scs_y left_foot_scs_z];
+    kinematic_tree.referenceJointTransformations{18}(1:3, 1:3) = [right_foot_scs_x right_foot_scs_y right_foot_scs_z];
+
+    % update
+    kinematic_tree.updateInternals();
+
+    kinematic_tree.jointLabels = ...
+      { ...
+        'pelvis, x-translation', 'pelvis, y-translation', 'pelvis, z-translation', 'pelvis, z-rotation', 'pelvis, x-rotation', 'pelvis, y-rotation', ...
+        'left hip flexion/extension', 'left hip ab/adduction', 'left hip internal/external rotation', 'left knee flexion/extension', 'left knee external/internal rotation', 'left ankle dorsi/plantarflexion', 'left ankle inversion/eversion', ...
+        'right hip flexion/extension', 'right hip ab/adduction', 'right hip internal/external rotation', 'right knee flexion/extension', 'right knee external/internal rotation', 'right ankle dorsi/plantarflexion', 'right ankle inversion/eversion', ...
+        'lumbar joint - forward/backward bending', 'lumbar joint - sideways bending (left/right)', 'lumbar joint - internal rotation (left/right)', ...
+        'cervical joint - forward/backward bending', 'cervical joint - sideways bending (left/right)', 'cervical joint - internal rotation (left/right)', ...
+        'left shoulder ab/adduction', 'left shoulder flexion/extension', 'left shoulder in/external rotation', 'left elbow flexion/extension', 'left pronation/supination', 'left wrist flexion/extension', 'left wrist radial/ulnar deviation', ...
+        'right shoulder ab/adduction', 'right shoulder flexion/extension', 'right shoulder in/external rotation', 'right elbow flexion/extension', 'right pronation/supination', 'right wrist flexion/extension', 'right radial/ulnar deviation', ...
+      };
+    kinematic_tree.markerLabels = marker_headers;
+
+    % define markers
+    red = [1 0 0];
+    green = [0 1 0];
+    blue = [0 0 1];
+    yellow = [1 0.9 0];
+
+    markerSegments = zeros(1, length(marker_headers));
+    markerSegments(strcmp(marker_headers, 'LFHD')) = 26;
+    markerSegments(strcmp(marker_headers, 'RFHD')) = 26;
+    markerSegments(strcmp(marker_headers, 'LBHD')) = 26;
+    markerSegments(strcmp(marker_headers, 'RBHD')) = 26;
+
+    markerSegments(strcmp(marker_headers, 'C7')) = 23;
+    markerSegments(strcmp(marker_headers, 'T10')) = 23;
+    markerSegments(strcmp(marker_headers, 'CLAV')) = 23;
+    markerSegments(strcmp(marker_headers, 'STRN')) = 23;
+    markerSegments(strcmp(marker_headers, 'RBAK')) = 23;
+
+    markerSegments(strcmp(marker_headers, 'LSHO')) = 23;
+    markerSegments(strcmp(marker_headers, 'LUPA')) = 29;
+    markerSegments(strcmp(marker_headers, 'LELB')) = 29;
+    markerSegments(strcmp(marker_headers, 'LFRM')) = 31;
+    markerSegments(strcmp(marker_headers, 'LWRA')) = 31;
+    markerSegments(strcmp(marker_headers, 'LWRB')) = 31;
+    markerSegments(strcmp(marker_headers, 'LFIN')) = 33;
+
+    markerSegments(strcmp(marker_headers, 'RSHO')) = 23;
+    markerSegments(strcmp(marker_headers, 'RUPA')) = 36;
+    markerSegments(strcmp(marker_headers, 'RELB')) = 36;
+    markerSegments(strcmp(marker_headers, 'RFRM')) = 38;
+    markerSegments(strcmp(marker_headers, 'RWRA')) = 38;
+    markerSegments(strcmp(marker_headers, 'RWRB')) = 38;
+    markerSegments(strcmp(marker_headers, 'RFIN')) = 40;
+
+    markerSegments(strcmp(marker_headers, 'LASI')) = 6;
+    markerSegments(strcmp(marker_headers, 'RASI')) = 6;
+    markerSegments(strcmp(marker_headers, 'LPSI')) = 6;
+    markerSegments(strcmp(marker_headers, 'RPSI')) = 6;
+
+    markerSegments(strcmp(marker_headers, 'LTHI')) = 9;
+    markerSegments(strcmp(marker_headers, 'LTHIA')) = 9;
+    markerSegments(strcmp(marker_headers, 'LKNE')) = 9;
+    markerSegments(strcmp(marker_headers, 'LTIB')) = 10;
+    markerSegments(strcmp(marker_headers, 'LTIBA')) = 10;
+    markerSegments(strcmp(marker_headers, 'LANK')) = 10;
+    markerSegments(strcmp(marker_headers, 'LHEE')) = 13;
+    markerSegments(strcmp(marker_headers, 'LTOE')) = 13;
+    markerSegments(strcmp(marker_headers, 'LTOEL')) = 13;
+
+    markerSegments(strcmp(marker_headers, 'RTHI')) = 16;
+    markerSegments(strcmp(marker_headers, 'RTHIA')) = 16;
+    markerSegments(strcmp(marker_headers, 'RKNE')) = 16;
+    markerSegments(strcmp(marker_headers, 'RTIB')) = 17;
+    markerSegments(strcmp(marker_headers, 'RTIBA')) = 17;
+    markerSegments(strcmp(marker_headers, 'RANK')) = 17;
+    markerSegments(strcmp(marker_headers, 'RHEE')) = 19;
+    markerSegments(strcmp(marker_headers, 'RTOE')) = 19;
+    markerSegments(strcmp(marker_headers, 'RTOEL')) = 19;
+
+    marker_color_list = cell(1, length(marker_headers));
+    marker_color_list{strcmp(marker_headers, 'LFHD')} = red;
+    marker_color_list{strcmp(marker_headers, 'RFHD')} = green;
+    marker_color_list{strcmp(marker_headers, 'LBHD')} = red;
+    marker_color_list{strcmp(marker_headers, 'RBHD')} = green;
+
+    marker_color_list{strcmp(marker_headers, 'C7')} = blue;
+    marker_color_list{strcmp(marker_headers, 'T10')} = blue;
+    marker_color_list{strcmp(marker_headers, 'CLAV')} = blue;
+    marker_color_list{strcmp(marker_headers, 'STRN')} = blue;
+    marker_color_list{strcmp(marker_headers, 'RBAK')} = blue;
+
+    marker_color_list{strcmp(marker_headers, 'LSHO')} = red;
+    marker_color_list{strcmp(marker_headers, 'LUPA')} = red;
+    marker_color_list{strcmp(marker_headers, 'LELB')} = red;
+    marker_color_list{strcmp(marker_headers, 'LFRA')} = red;
+%     marker_color_list{strcmp(marker_headers, 'LFRM')} = red;
+    marker_color_list{strcmp(marker_headers, 'LWRA')} = red;
+    marker_color_list{strcmp(marker_headers, 'LWRB')} = red;
+    marker_color_list{strcmp(marker_headers, 'LFIN')} = red;
+
+    marker_color_list{strcmp(marker_headers, 'RSHO')} = green;
+    marker_color_list{strcmp(marker_headers, 'RUPA')} = green;
+    marker_color_list{strcmp(marker_headers, 'RELB')} = green;
+    marker_color_list{strcmp(marker_headers, 'RFRA')} = green;
+%     marker_color_list{strcmp(marker_headers, 'RFRM')} = green;
+    marker_color_list{strcmp(marker_headers, 'RWRA')} = green;
+    marker_color_list{strcmp(marker_headers, 'RWRB')} = green;
+    marker_color_list{strcmp(marker_headers, 'RFIN')} = green;
+
+    marker_color_list{strcmp(marker_headers, 'LASI')} = red;
+    marker_color_list{strcmp(marker_headers, 'RASI')} = green;
+    marker_color_list{strcmp(marker_headers, 'LPSI')} = red;
+    marker_color_list{strcmp(marker_headers, 'RPSI')} = green;
+
+    marker_color_list{strcmp(marker_headers, 'LTHI')} = red;
+%     marker_color_list{strcmp(marker_headers, 'LTHIA')} = red;
+    marker_color_list{strcmp(marker_headers, 'LKNE')} = red;
+    marker_color_list{strcmp(marker_headers, 'LTIB')} = red;
+%     marker_color_list{strcmp(marker_headers, 'LTIBA')} = red;
+    marker_color_list{strcmp(marker_headers, 'LANK')} = red;
+    marker_color_list{strcmp(marker_headers, 'LHEE')} = red;
+    marker_color_list{strcmp(marker_headers, 'LTOE')} = red;
+%     marker_color_list{strcmp(marker_headers, 'LTOEL')} = red;
+
+    marker_color_list{strcmp(marker_headers, 'RTHI')} = green;
+%     marker_color_list{strcmp(marker_headers, 'RTHIA')} = green;
+    marker_color_list{strcmp(marker_headers, 'RKNE')} = green;
+    marker_color_list{strcmp(marker_headers, 'RTIB')} = green;
+%     marker_color_list{strcmp(marker_headers, 'RTIBA')} = green;
+    marker_color_list{strcmp(marker_headers, 'RANK')} = green;
+    marker_color_list{strcmp(marker_headers, 'RHEE')} = green;
+    marker_color_list{strcmp(marker_headers, 'RTOE')} = green;
+%     marker_color_list{strcmp(marker_headers, 'RTOEL')} = green;
+
+    number_of_markers = length(markerSegments);
+    for i_marker = 1 : number_of_markers
+        kinematic_tree.addMarker(markerSegments(i_marker), marker_reference((i_marker-1)*3+1 : (i_marker-1)*3+3)', marker_color_list{i_marker});
+    end
+
+    % kinematic_tree.addMarkerConnectionLineBody(1:3);
+    % kinematic_tree.addMarkerConnectionLineBody(4:7);
+    % kinematic_tree.addMarkerConnectionLineBody(8:10);
+    % kinematic_tree.addMarkerConnectionLineBody(11:13);
+    % kinematic_tree.addMarkerConnectionLineBody(14:16);
+    % kinematic_tree.addMarkerConnectionLineBody(17:19);
+    % kinematic_tree.addMarkerConnectionLineBody(21:23);
+    % kinematic_tree.addMarkerConnectionLineBody(24:26);
+    % kinematic_tree.addMarkerConnectionLineBody(27:29);
+    % kinematic_tree.addMarkerConnectionLineBody(29:30);
+
+    kinematic_tree.updateInternals();
+end
+
+%% save
 for i_segment = 1 : number_of_segments
     segment_com_wcs = [segment_coms_wcs{i_segment}; 1];
     T_wcs_to_mcs = mcs_to_wcs_transformations{i_segment}^(-1);
@@ -1214,14 +1263,21 @@ end
 save ...
   ( ...
     'subjectModel', ...
+    'kinematic_tree', ...
     'marker_headers', ...
     'marker_reference', ...
     'joint_center_headers', ...
     'joint_center_reference', ...
     'segment_labels', ...
     'segment_masses', ...
-    'markers_by_segment', ...
-    'segment_coms_mcs' ...
+    'segment_coms_mcs', ...
+    'body_direction_matrix', ...
+    'left_hip_direction_matrix', ...
+    'right_hip_direction_matrix', ...
+    'left_knee_direction_matrix', ...
+    'right_knee_direction_matrix', ...
+    'left_ankle_direction_matrix', ...
+    'right_ankle_direction_matrix' ...
   );
 
 %% show visualization

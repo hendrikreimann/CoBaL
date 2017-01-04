@@ -153,79 +153,85 @@ function hinge_joint_center = findHingeJointCenter(point_on_link_one, point_on_l
     end
     R = Q;
     T_new_to_world = ([R p; [0 0 0 1]]); % T transforms from world coordinates into my new frame
-    T_world_to_new = T_new_to_world^(-1); % T transforms from world coordinates into my new frame
-
-    C_prime = eye(3, 4) * T_world_to_new * [C; 1];
-    M_prime = eye(3, 4) * T_world_to_new * [M; 1];
-    A_prime = eye(3, 4) * T_world_to_new * [A; 1];
-    
-    r_M = point_on_axis_to_center_distance;
-    
-    h = triangleHeight(norm(M-C), r_C, r_M);
-    
-    % find H
-    CH_norm = sqrt(r_C^2 - h^2);
-    if r_C^2 - h^2 < 0
-        warning('distance between joint center candidates and marker is larger than possible')
-    end
-    H_from_C = C_prime + CH_norm * normVector(M_prime-C_prime);
-    MH_norm = sqrt(r_M^2 - h^2);
-    if r_M^2 - h^2 < 0
-        warning('distance between joint center candidates and marker is larger than possible')
-    end
-    H_from_M = M_prime + MH_norm * normVector(C_prime-M_prime);
-    H_prime = mean([H_from_C H_from_M], 2);
-    
-    E_1_prime = [H_prime(1); h; 0];
-    E_2_prime = [H_prime(1); -h; 0];
-    
-    E_1 = eye(3, 4) * T_new_to_world * [E_1_prime; 1];
-    E_2 = eye(3, 4) * T_new_to_world * [E_2_prime; 1];
-    
-    
-    % do E_1 and E_2 actually lie on the appropriate spheres?
-    r_A;
-    r_B;
-    r_M;
-    
-    r_A_check_1 = norm(A - E_1);
-    r_A_check_2 = norm(A - E_2);
-    r_B_check_1 = norm(B - E_1);
-    r_B_check_2 = norm(B - E_2);
-    r_M_check_1 = norm(M - E_1);
-    r_M_check_2 = norm(M - E_2);
-    
-    % test relationships
-    BC = C - B;
-    CE_1 = E_1 - C;
-    CE_2 = E_2 - C;
-    E_1M = M - E_1;
-    E_2M = M - E_2;
-    check_1 = dot(cross(BC, CE_1), E_1M); % this should always be > 0
-    check_2 = dot(cross(BC, CE_2), E_2M); % this should always be < 0
-    
-    % now figure out which point to choose
-    % we have two options, depending on where the marker is located relative to the plane spanned by A, B and E
-    % C is the point on the line segment AB closest to E
-    % if the cross product BC x CE points in the general direction of M, choose the upper triangle, i.e. E_1
-    % if the cross product BC x CE points away from of M, choose the lower triangle, i.e. E_1
-    
-    % for the left arm with A = shoulder, B = wrist and E = elbow, M = lateral humeral epicondyle, this should be negative
-    % for the right arm with A = shoulder, B = wrist and E = elbow, M = lateral humeral epicondyle, this should be positive
-    
-    % for the left leg with A = hip, B = ankle and E = knee, M = lateral femoral epicondyle, this should be positive
-    % for the right leg with A = hip, B = ankle and E = knee, M = lateral femoral epicondyle, this should be negative
-    
-    % note: this does not work satisfactorily for small angles in the hinge joint when the joint centers are not estimated accurately
-    
-    if strcmp(direction, 'positive')
-        hinge_joint_center = E_1;
-    elseif strcmp(direction, 'negative')
-        hinge_joint_center = E_2;
+    if any(any(isnan(T_new_to_world)))
+        hinge_joint_center = zeros(3, 1) * NaN;
     else
-        error('direction must be "positive" or "negative"');
-    end
+        
+        T_world_to_new = T_new_to_world^(-1); % T transforms from world coordinates into my new frame
 
+
+
+        C_prime = eye(3, 4) * T_world_to_new * [C; 1];
+        M_prime = eye(3, 4) * T_world_to_new * [M; 1];
+        A_prime = eye(3, 4) * T_world_to_new * [A; 1];
+
+        r_M = point_on_axis_to_center_distance;
+
+        h = triangleHeight(norm(M-C), r_C, r_M);
+
+        % find H
+        CH_norm = sqrt(r_C^2 - h^2);
+        if r_C^2 - h^2 < 0
+            warning('distance between joint center candidates and marker is larger than possible')
+        end
+        H_from_C = C_prime + CH_norm * normVector(M_prime-C_prime);
+        MH_norm = sqrt(r_M^2 - h^2);
+        if r_M^2 - h^2 < 0
+            warning('distance between joint center candidates and marker is larger than possible')
+        end
+        H_from_M = M_prime + MH_norm * normVector(C_prime-M_prime);
+        H_prime = mean([H_from_C H_from_M], 2);
+
+        E_1_prime = [H_prime(1); h; 0];
+        E_2_prime = [H_prime(1); -h; 0];
+
+        E_1 = eye(3, 4) * T_new_to_world * [E_1_prime; 1];
+        E_2 = eye(3, 4) * T_new_to_world * [E_2_prime; 1];
+
+
+        % do E_1 and E_2 actually lie on the appropriate spheres?
+        r_A;
+        r_B;
+        r_M;
+
+        r_A_check_1 = norm(A - E_1);
+        r_A_check_2 = norm(A - E_2);
+        r_B_check_1 = norm(B - E_1);
+        r_B_check_2 = norm(B - E_2);
+        r_M_check_1 = norm(M - E_1);
+        r_M_check_2 = norm(M - E_2);
+
+        % test relationships
+        BC = C - B;
+        CE_1 = E_1 - C;
+        CE_2 = E_2 - C;
+        E_1M = M - E_1;
+        E_2M = M - E_2;
+        check_1 = dot(cross(BC, CE_1), E_1M); % this should always be > 0
+        check_2 = dot(cross(BC, CE_2), E_2M); % this should always be < 0
+
+        % now figure out which point to choose
+        % we have two options, depending on where the marker is located relative to the plane spanned by A, B and E
+        % C is the point on the line segment AB closest to E
+        % if the cross product BC x CE points in the general direction of M, choose the upper triangle, i.e. E_1
+        % if the cross product BC x CE points away from of M, choose the lower triangle, i.e. E_1
+
+        % for the left arm with A = shoulder, B = wrist and E = elbow, M = lateral humeral epicondyle, this should be negative
+        % for the right arm with A = shoulder, B = wrist and E = elbow, M = lateral humeral epicondyle, this should be positive
+
+        % for the left leg with A = hip, B = ankle and E = knee, M = lateral femoral epicondyle, this should be positive
+        % for the right leg with A = hip, B = ankle and E = knee, M = lateral femoral epicondyle, this should be negative
+
+        % note: this does not work satisfactorily for small angles in the hinge joint when the joint centers are not estimated accurately
+
+        if strcmp(direction, 'positive')
+            hinge_joint_center = E_1;
+        elseif strcmp(direction, 'negative')
+            hinge_joint_center = E_2;
+        else
+            error('direction must be "positive" or "negative"');
+        end
+    end
 end
 
 
