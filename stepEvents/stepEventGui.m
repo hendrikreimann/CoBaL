@@ -64,13 +64,15 @@ function stepEventGui(varargin)
     %% load data
     trial_data = WalkingTrialData(pwd, condition, trial_to_process);
     event_data = WalkingEventData(trial_data);
+    load('subjectModel.mat');
     
     % init gui
     controller = stepEventController(trial_data, event_data);
     
     % show stick figure
     heel_center_ap = mean([trial_data.left_heel_y_pos(1) trial_data.right_heel_y_pos(1)]);
-    scene_bound = [-1 1; heel_center_ap+[-1 1]; -0.05 1.95];
+    scene_bound = [-1 1; heel_center_ap+[-1 1]; -0.05 1.95]; % treadmill in CoBaL
+    scene_bound = [-1 1; heel_center_ap+[-0.2 4]; -0.05 1.95]; % walkway in VEPO
 
     positions = trial_data.marker_positions(1, :);
     headers = trial_data.marker_headers;
@@ -86,12 +88,27 @@ function stepEventGui(varargin)
     controller.scene_figure = stickFigure(positions, headers, scene_bound);
     controller.scene_figure.setColors('extended plug-in gait');
     controller.scene_figure.addLines('extended plug-in gait');
+%     controller.kinematic_tree_controller = KinematicTreeController(kinematic_tree, scene_bound, 'ellipsoid');
+
+    positions = trial_data.marker_positions(1, :);
+    headers = trial_data.marker_headers;
+    if ~isempty(trial_data.joint_center_positions)
+        positions = [positions trial_data.joint_center_positions(1, :)];
+        headers = [headers trial_data.joint_center_headers(1, :)];
+    end
+    controller.kinematic_tree_controller = KinematicTreeController(kinematic_tree, scene_bound, 'none', positions);
+    
+    % link perspectives of the stick figures
+%     Link = linkprop([controller.kinematic_tree_controller.sceneAxes controller.scene_figure.scene_axes], {'CameraUpVector', 'CameraPosition', 'CameraTarget'}); 
+    Link = linkprop([controller.kinematic_tree_controller.sceneAxes controller.scene_figure.scene_axes], {'CameraUpVector', 'CameraPosition', 'CameraTarget', 'CameraViewAngle'}); 
+    setappdata(gcf, 'StoreTheLink', Link);
     
     % create position figures
     step_event_figure = stepEventFigure('Positions Left', controller, trial_data, event_data);
     step_event_figure.addDataPlot('left_heel_z_pos', color_left_heel, scale_factor_heel, offset_heel);
     step_event_figure.addDataPlot('left_toes_z_pos', color_left_toes, scale_factor_toes, offset_toes);
 %     step_event_figure.addDataPlot('left_fz', color_left_fz, scale_factor_fz);
+    step_event_figure.addDataPlot('right_fz', color_right_fz, scale_factor_fz);
     step_event_figure.addEventPlot('left_heel_z_pos', 'left_touchdown', color_left_touchdown, marker_left_touchdown);
     step_event_figure.addEventPlot('left_toes_z_pos', 'left_pushoff', color_left_pushoff, marker_left_pushoff);
 %     step_event_figure.addEventPlot('left_fz', 'left_pushoff', color_left_pushoff, marker_left_pushoff);
@@ -104,6 +121,7 @@ function stepEventGui(varargin)
     step_event_figure.addDataPlot('right_heel_z_pos', color_right_heel, scale_factor_heel, offset_heel);
     step_event_figure.addDataPlot('right_toes_z_pos', color_right_toes, scale_factor_toes, offset_toes);
 %     step_event_figure.addDataPlot('right_fz', color_right_fz, scale_factor_fz);
+    step_event_figure.addDataPlot('left_fz', color_left_fz, scale_factor_fz);
     step_event_figure.addEventPlot('right_heel_z_pos', 'right_touchdown', color_right_touchdown, marker_right_touchdown);
     step_event_figure.addEventPlot('right_toes_z_pos', 'right_pushoff', color_right_pushoff, marker_right_pushoff);
 %     step_event_figure.addEventPlot('right_fz', 'right_pushoff', color_right_pushoff, marker_right_pushoff);
@@ -153,7 +171,14 @@ function stepEventGui(varargin)
     
     
 %     controller.findEvents();
-    controller.setSelectedEvent();
+
+    % select event (first left touchdown is default
+
+    event_label = 'left_touchdown';
+    event_label = 'left_pushoff';
+    event_times = controller.event_data.getEventTimes(event_label);
+    event_time = event_times(1);
+    controller.setSelectedEvent(event_label, event_time);
 
 
 

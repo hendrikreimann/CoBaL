@@ -27,6 +27,8 @@ classdef stepEventController < handle
         
         scene_figure = [];
         
+        kinematic_tree_controller = [];
+        
         color_selected = [1 0.5 0];
         color_normal = [0 0 0];
         
@@ -104,19 +106,49 @@ classdef stepEventController < handle
             end
         end
         function updateSelectedTime(this)
+            % determine index to display
             [~, index_mocap] = min(abs(this.trial_data.time_mocap - this.trial_data.selected_time));
+            
+            % update step event figures
+            for i_figure = 1 : length(this.figureSelectionBox.String)
+                this.figureSelectionBox.UserData{i_figure}.updateSelectedTimePlot();
+            end
+            
+            % extract marker data
             marker_data = this.trial_data.marker_positions(index_mocap, :);
+            
+            % extract joint center data
             if ~isempty(this.trial_data.joint_center_positions)
                 joint_center_data = this.trial_data.joint_center_positions(index_mocap, :);
             else 
                 joint_center_data = [];
             end                
+            
+            % extract CoM data
             if ~isempty(this.trial_data.com_positions)
                 com_data = this.trial_data.com_positions(index_mocap, :);
             else 
                 com_data = [];
             end
+            
+            % extract joint angle data and update
+            if ~isempty(this.trial_data.joint_angles)
+                joint_angle_data = this.trial_data.joint_angles(index_mocap, :);
+            else 
+                joint_angle_data = [];
+            end
+            
+            % update scene figure
             this.scene_figure.update([marker_data joint_center_data com_data]);
+            
+            % update kinematic chain stick figure
+            if ~isempty(this.kinematic_tree_controller)
+                this.kinematic_tree_controller.kinematicTree.jointAngles = joint_angle_data';
+                this.kinematic_tree_controller.kinematicTree.updateConfiguration();
+                this.kinematic_tree_controller.update();
+                
+                this.kinematic_tree_controller.updateRecordedMarkerPlots([marker_data joint_center_data]);
+            end
             
             this.selected_time_edit.String = num2str(this.trial_data.selected_time);
         end
@@ -210,16 +242,19 @@ classdef stepEventController < handle
             
             control_figure_setting = struct();
             control_figure_setting.position = this.control_figure.Position;
+            
+            kinematic_tree_figure_setting = struct();
+            kinematic_tree_figure_setting.position = this.kinematic_tree_controller.sceneFigure.Position;
 
             save_file = this.settings_file;
-            save(save_file, 'figure_settings', 'control_figure_setting', 'scene_figure_setting');
+            save(save_file, 'figure_settings', 'control_figure_setting', 'scene_figure_setting', 'kinematic_tree_figure_setting');
         end
         function loadFigureSettings(this, sender, eventdata)
             load_file = this.settings_file;
 
             if exist(load_file, 'file')
 %                 load(load_file, 'figure_settings', 'control_figure_setting')
-                load(load_file, 'figure_settings', 'control_figure_setting', 'scene_figure_setting')
+                load(load_file, 'figure_settings', 'control_figure_setting', 'scene_figure_setting', 'kinematic_tree_figure_setting')
                 for i_figure = 1 : length(figure_settings)
         %             if length(step_event_figures) < i_figure
         %                 step_event_figures{i_figure} = createStepEventFigure();
@@ -228,6 +263,7 @@ classdef stepEventController < handle
                 end
                 this.control_figure.Position = control_figure_setting.position;
                 this.scene_figure.scene_figure.Position = scene_figure_setting.position;
+                this.kinematic_tree_controller.sceneFigure.Position = kinematic_tree_figure_setting.position;
             end
         end
         function findEvents(this, sender, eventdata)
@@ -434,6 +470,10 @@ classdef stepEventController < handle
             this.event_data.selectNextEvent;
             this.updateSelectedEventPlots;
             this.updateTrialLabels;
+            
+            
+            
+            this.updateSelectedTime
         end
         function quit(this, sender, eventdata)
             try

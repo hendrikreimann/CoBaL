@@ -10,6 +10,7 @@ classdef stepEventFigure < handle;
         data_plots;
         event_plots;
         selected_event_plot;
+        selected_time_plot;
         data_plot_offsets;
         data_plot_scale_factors;
 
@@ -23,6 +24,7 @@ classdef stepEventFigure < handle;
             title(figureTitle);
             hold on;
             this.selected_event_plot = plot(0, 0, 'o', 'markersize', 15, 'linewidth', 3, 'color', [1 0.5 0], 'visible', 'off');
+            this.selected_time_plot = plot(0, 0, '+', 'markersize', 25, 'linewidth', 1, 'color', [1 1 1]*0.7);
 
             % register with controller
             if strcmp(controller.figureSelectionBox.String, '<no figure>')
@@ -210,7 +212,9 @@ classdef stepEventFigure < handle;
             end
             set(this.selected_event_plot, 'xdata', selected_event_plot_x_data, 'ydata', selected_event_plot_y_data);
             set(this.selected_event_plot, 'visible', 'on');
-            
+        end
+        function updateSelectedTimePlot(this)
+            set(this.selected_time_plot, 'xdata', this.trial_data.selected_time);
         end
     end
     

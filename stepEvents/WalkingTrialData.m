@@ -23,6 +23,7 @@ classdef WalkingTrialData < handle
         joint_center_headers = [];
         com_positions = [];
         com_headers = [];
+        joint_angles = [];
         
         left_heel_y_pos = [];
         left_heel_y_vel = [];
@@ -120,6 +121,7 @@ classdef WalkingTrialData < handle
                 this.joint_center_positions = loaded_trajectories.joint_center_trajectories;
                 this.com_positions = loaded_trajectories.com_trajectories;
                 this.com_headers = loaded_trajectories.com_labels;
+                this.joint_angles = loaded_trajectories.joint_angle_trajectories;
             end
             
             % time
