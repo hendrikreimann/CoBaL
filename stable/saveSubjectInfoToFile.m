@@ -20,11 +20,12 @@ function saveSubjectInfoToFile
     subject_data_file = ['..' filesep 'subjects.csv'];
     
     
-    number_of_header_lines = 1;
+    number_of_header_lines = 2;
     format = '%s';
     fid = fopen(subject_data_file);
 
     header_string = fgetl(fid);
+    unit_string = fgetl(fid);
     data_raw = textscan(fid, format);
     fclose(fid);
 

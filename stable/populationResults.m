@@ -1,13 +1,13 @@
 % show population results
 
-plot_detailed       = 0;
+plot_detailed       = 1;
 plot_overview       = 0;
-plot_episodes       = 1;
+plot_episodes       = 0;
 include_control     = 0;
 
-show_legend         = 0;
-dictate_axes        = 0;
-mark_pushoff        = 1;
+show_legend         = 1;
+dictate_axes        = 1;
+mark_pushoff        = 0;
 
 save_figures        = 0;
 
@@ -38,6 +38,7 @@ subjects = {'DXT'};
 
 subjects = {'GGU', 'XYC', 'LDZ', 'STD'};
 
+subjects = {'C'};
 
 %% choose variables to plot
 % variable info contains the following columns
@@ -47,14 +48,15 @@ discrete_variable_info = {};
 
 % markers
 % the cell array should have the following entries in each line: variable name, variable label, unit, file label for saving, forced axis scale, positive direction label, negative direction label
-% continuous_variable_info = [continuous_variable_info; {'lheel_x_pos_normalized_all', 'left heel pos, ml', 'heel pos (m)', 'lheelpos', 0, 'right', 'left'}];
+% continuous_variable_info = [continuous_variable_info; {'lheel_x_pos_normalized_all', 'left heel pos, ml', 'heel pos (m)', 'lheelpos', [-0.2 0.2], 'right', 'left'}];
 % continuous_variable_info = [continuous_variable_info; {'rheel_x_pos_normalized_all', 'right heel pos, ml', 'heel pos (m)', 'rheelpos', 0, 'right', 'left'}];
 % continuous_variable_info = [continuous_variable_info; {'lheel_x_pos_com_normalized_all', 'left heel pos, ml', 'heel pos (m)', 'lheelpos', 0, 'right', 'left'}];
 % continuous_variable_info = [continuous_variable_info; {'rheel_x_pos_com_normalized_all', 'right heel pos, ml', 'heel pos (m)', 'rheelpos', 0, 'right', 'left'}];
 
-% continuous_variable_info = [continuous_variable_info; {'trunk_angle_ml_normalized_all', 'trunk angle, ml', 'angle (deg)', 'trunkangleml', [-2.5 2.5], 'right', 'left'}];
+% continuous_variable_info = [continuous_variable_info; {'trunk_angle_ml_normalized_all', 'trunk angle, ml', 'angle (deg)', 'trunkangleml', [-10 16], 'right', 'left'}];
 % continuous_variable_info = [continuous_variable_info; {'lleg_angle_ml_normalized_all', 'left leg angle, ml', 'angle (deg)', 'llegangleml', 0, 'right', 'left'}];
 % continuous_variable_info = [continuous_variable_info; {'rleg_angle_ml_normalized_all', 'right leg angle, ml', 'angle (deg)', 'rlegangleml', 0, 'right', 'left'}];
+continuous_variable_info = [continuous_variable_info; {'trunk_angle_ap_normalized_all', 'trunk angle, ap', 'angle (deg)', 'trunkangleml', [-5 25], 'right', 'left'}];
 % continuous_variable_info = [continuous_variable_info; {'com_x_pos_normalized_all', 'CoM, ml', 'com (m)', 'comml', [-5 5], 'left', 'right'}];
 
 % continuous_variable_info = [continuous_variable_info; {'lheel_x_pos_response', 'left heel pos response, ml', 'heel pos (m)', 'lheelposRsp', [-0.05 0.05], 'right', 'left'}];
@@ -67,13 +69,13 @@ discrete_variable_info = {};
 % continuous_variable_info = [continuous_variable_info; {'trunk_angle_ml_response', 'trunk angle response, ml', 'angle (deg)', 'trunkanglemlRsp', [-5 5], 'cw', 'c-cw'}];
 % continuous_variable_info = [continuous_variable_info; {'lleg_angle_ml_response', 'left leg angle response, ml', 'angle (deg)', 'lleganglemlRsp', [-5 5], 'cw', 'c-cw'}];
 % continuous_variable_info = [continuous_variable_info; {'rleg_angle_ml_response', 'right leg angle response, ml', 'angle (deg)', 'rleganglemlRsp', [-5 5], 'cw', 'c-cw'}];
-continuous_variable_info = [continuous_variable_info; {'com_x_pos_response', 'CoM response, ml', 'com (m)', 'commlRsp', [-0.1 0.1], 'left', 'right'}];
+% continuous_variable_info = [continuous_variable_info; {'com_x_pos_response', 'CoM response, ml', 'com (m)', 'commlRsp', [-0.1 0.1], 'left', 'right'}];
 
 % forceplate
 % continuous_variable_info = [continuous_variable_info; {'cop_x_normalized_all', 'total CoP, ml', 'CoP (m)', 'copx', 0, 'right', 'left'}];
 % continuous_variable_info = [continuous_variable_info; {'cop_x_response', 'total CoP response, ml', 'CoP (m)', 'copxRsp', [-0.02 0.02], 'right', 'left'}];
 % continuous_variable_info = [continuous_variable_info; {'cop_x_stancefoot_response', 'total CoP response, ml, rel. to stance foot', 'CoP (m)', 'copxRspStancefoot', [-0.02 0.02], 'right', 'left'}];
-% continuous_variable_info = [continuous_variable_info; {'cop_x_mpsis_response', 'total CoP response, ml, rel. to MPSIS', 'CoP (m)', 'copxRspMpsis', [-0.04 0.04], 'right', 'left'}];
+% continuous_variable_info = [continuous_variable_info; {'cop_x_mpsis_response', 'total CoP response, ml, rel. to MPSIS', 'CoP (m)', 'copxRspMpsis', [-0.004 0.008], 'right', 'left'}];
 % continuous_variable_info = [continuous_variable_info; {'cop_x_com_response', 'total CoP response, ml, rel. to CoM', 'CoP (m)', 'copxRspMpsis', [-0.09 0.09], 'right', 'left'}];
 % continuous_variable_info = [continuous_variable_info; {'f_x_normalized_all', 'total force, ml', 'f (N)', 'fx', [-120 120], '?', '?'}];
 % continuous_variable_info = [continuous_variable_info; {'f_x_response', 'total force response, ml', 'f (N)', 'fxRsp', [-30 30], '?', '?'}];
@@ -94,10 +96,10 @@ continuous_variable_info = [continuous_variable_info; {'com_x_pos_response', 'Co
 % continuous_variable_info = [continuous_variable_info; {'rperolng_normalized_all', 'right Peroneus Longus', 'EMG', 'rperolng', [0 0], '+', '-'}];
 % continuous_variable_info = [continuous_variable_info; {'rtnsrflt_normalized_all', 'right TFL', 'EMG', 'rtnsrflt', [0 0], '+', '-'}];
 
-continuous_variable_info = [continuous_variable_info; {'lglutmed_rescaled_response', 'left Gluteus Medius', 'EMG', 'lglutmedRescaledRsp', [-2.5 2.5], '+', '-'}];
-continuous_variable_info = [continuous_variable_info; {'ltibiant_rescaled_response', 'left Tibialis Anterior', 'EMG', 'ltibiantRescaledRsp', [-2.5 2.5], '+', '-'}];
-continuous_variable_info = [continuous_variable_info; {'lgastroc_rescaled_response', 'left Gastrocnemius Medialis', 'EMG', 'lgastrocRescaledRsp', [-2.5 2.5], '+', '-'}];
-continuous_variable_info = [continuous_variable_info; {'lperolng_rescaled_response', 'left Peroneus Longus', 'EMG', 'lperolngRescaledRsp', [-2.5 2.5], '+', '-'}];
+% continuous_variable_info = [continuous_variable_info; {'lglutmed_rescaled_response', 'left Gluteus Medius', 'EMG', 'lglutmedRescaledRsp', [-2.5 2.5], '+', '-'}];
+% continuous_variable_info = [continuous_variable_info; {'ltibiant_rescaled_response', 'left Tibialis Anterior', 'EMG', 'ltibiantRescaledRsp', [-2.5 2.5], '+', '-'}];
+% continuous_variable_info = [continuous_variable_info; {'lgastroc_rescaled_response', 'left Gastrocnemius Medialis', 'EMG', 'lgastrocRescaledRsp', [-2.5 2.5], '+', '-'}];
+% continuous_variable_info = [continuous_variable_info; {'lperolng_rescaled_response', 'left Peroneus Longus', 'EMG', 'lperolngRescaledRsp', [-2.5 2.5], '+', '-'}];
 % continuous_variable_info = [continuous_variable_info; {'rglutmed_rescaled_response', 'right Gluteus Medius', 'EMG', 'rglutmedRescaledRsp', [-2.5 2.5], '+', '-'}];
 % continuous_variable_info = [continuous_variable_info; {'rtibiant_rescaled_response', 'right Tibialis Anterior', 'EMG', 'rtibiantRescaledRsp', [-2.5 2.5], '+', '-'}];
 % continuous_variable_info = [continuous_variable_info; {'rgastroc_rescaled_response', 'right Gastrocnemius Medialis', 'EMG', 'rgastrocRescaledRsp',[-2.5 2.5], '+', '-'}];
@@ -187,7 +189,8 @@ conditions_to_plot = ...
     'STANCE_LEFT', 'ILLUSION_LEFT', '150ms', 'FOUR', 'walking'; ...
     'STANCE_LEFT', 'ILLUSION_LEFT', '450ms', 'FOUR', 'walking'; ...
   };
-comparison_to_make = 2; % perturbation only
+% comparison_to_make = 2; % perturbation only
+comparison_to_make = 3; % delay only
 
 
 
@@ -260,7 +263,7 @@ comparison_to_make = 2; % perturbation only
 %     'STANCE_LEFT', 'ILLUSION_LEFT', '0ms', 'FOUR'; ...
 %   };
 
-
+% % for ArmSense
 % conditions_control = {};
 % conditions_to_plot = ...
 %   {
@@ -284,6 +287,22 @@ comparison_to_make = 2; % perturbation only
 %     'STANCE_LEFT', 'CONTROL', 'CONTROL', 'CONTROL', 'postOG'; ...
 %   };
 % comparison_to_make = 5; % experimental
+
+% for Obstacle
+conditions_control = {};
+conditions_to_plot = ...
+  {
+    'STANCE_BOTH', 'CONTROL', 'CONTROL', 'ONE', 'NEAR'; ...
+    'STANCE_LEFT', 'CONTROL', 'CONTROL', 'TWO', 'NEAR'; ...
+    'STANCE_RIGHT', 'CONTROL', 'CONTROL', 'THREE', 'NEAR'; ...
+    'STANCE_BOTH', 'CONTROL', 'CONTROL', 'ONE', 'FAR'; ...
+    'STANCE_LEFT', 'CONTROL', 'CONTROL', 'TWO', 'FAR'; ...
+    'STANCE_RIGHT', 'CONTROL', 'CONTROL', 'THREE', 'FAR'; ...
+    'STANCE_BOTH', 'CONTROL', 'CONTROL', 'ONE', 'NO'; ...
+    'STANCE_LEFT', 'CONTROL', 'CONTROL', 'TWO', 'NO'; ...
+    'STANCE_RIGHT', 'CONTROL', 'CONTROL', 'THREE', 'NO'; ...
+  };
+comparison_to_make = 5; % experimental
 
 number_of_conditions_control = size(conditions_control, 1);
 number_of_conditions_to_plot = size(conditions_to_plot, 1);
@@ -413,7 +432,7 @@ for i_subject = 1 : length(subjects)
     load([data_path 'analysis' filesep date '_' subject_id '_resultsBalance.mat']);
 %     load([data_path 'analysis' filesep date '_' subject_id '_resultsArmswing.mat']);
     load([data_path 'analysis' filesep date '_' subject_id '_resultsForceplate.mat']);
-    load([data_path 'analysis' filesep date '_' subject_id '_resultsEmg.mat']);
+%     load([data_path 'analysis' filesep date '_' subject_id '_resultsEmg.mat']);
     
     % time
     step_times_data = [step_times_data step_times_all];
@@ -448,8 +467,22 @@ colors_comparison = ...
   [ ...
     [1 0.3 0.1] * 0.7; ...
     [0.3 1 0.1] * 0.7; ...
-    [0.3 0.1 1] * 1.0; ...
+    [0.3 0.1 1] * 0.7; ...
   ]; % should have one row per condition in the comparison
+
+colors_comparison = ...
+  [ ...
+    [1 0.3 0.1] * 0.7; ...
+    [0.3 1 0.1] * 0.7; ...
+    lightenColor([0.3 0.1 1], 0.1); ...
+  ]; % should have one row per condition in the comparison
+
+% colors_comparison = ...
+%   [ ...
+%     [241 90 34] * 1/255; ...
+%     [0 166 81] * 1/255; ...
+%     [0 173 220] * 1/255; ...
+%   ]; % should have one row per condition in the comparison
 
 % colors_comparison = ...
 %   [ ...
@@ -460,7 +493,7 @@ colors_comparison = ...
 %     [0 202 229] * 1/255; ...
 %   ]; % should have one row per condition in the comparison
 
-double_stance_color = [0 0 1];
+double_stance_color = [0 0 0];
 double_stance_alpha = 0.05;
 
 %% plot detailed
@@ -538,34 +571,40 @@ if plot_detailed
         for i_comparison = 1 : length(comparison_indices);
             % find correct condition indicator for control
             this_comparison = comparison_indices{i_comparison};
-            representant_condition_index = this_comparison(1);
-            if strcmp(conditions_to_plot(representant_condition_index, 1), 'STANCE_LEFT')
-                applicable_control_condition_indices = 1;
-            elseif strcmp(conditions_to_plot(representant_condition_index, 1), 'STANCE_RIGHT')
-                applicable_control_condition_indices = 2;
-            end
-            stance_foot_indicator = strcmp(condition_stance_foot_data, conditions_control(applicable_control_condition_indices, 1));
-            perturbation_indicator = strcmp(condition_perturbation_data, conditions_control(applicable_control_condition_indices, 2));
-            delay_indicator = strcmp(condition_delay_data, conditions_control(applicable_control_condition_indices, 3));
-            index_indicator = strcmp(condition_index_data, conditions_control(applicable_control_condition_indices, 4));
-            this_condition_indicator = stance_foot_indicator & perturbation_indicator & delay_indicator & index_indicator;
-
+            
             figure; axes; hold on;
-            % plot control
-            plot ...
-              ( ...
-                time_normalized, trajectories_to_plot(:, this_condition_indicator), ...
-                'HandleVisibility', 'off', ...
-                'color', lightenColor(color_control, 0.5) ...
-              );
-            control_mean_plot = plot ...
-              ( ...
-                time_normalized, mean(trajectories_to_plot(:, this_condition_indicator), 2), ...
-                'DisplayName', 'control', ...
-                'linewidth', 5, ...
-                'color', color_control ...
-              );
-          
+            if ~isempty(conditions_control)
+                % find correct condition indicator for control
+                this_comparison = comparison_indices{i_comparison};
+                representant_condition_index = this_comparison(1);
+                if strcmp(conditions_to_plot(representant_condition_index, 1), 'STANCE_LEFT')
+                    applicable_control_condition_indices = 1;
+                elseif strcmp(conditions_to_plot(representant_condition_index, 1), 'STANCE_RIGHT')
+                    applicable_control_condition_indices = 2;
+                end
+                stance_foot_indicator = strcmp(condition_stance_foot_data, conditions_control(applicable_control_condition_indices, 1));
+                perturbation_indicator = strcmp(condition_perturbation_data, conditions_control(applicable_control_condition_indices, 2));
+                delay_indicator = strcmp(condition_delay_data, conditions_control(applicable_control_condition_indices, 3));
+                index_indicator = strcmp(condition_index_data, conditions_control(applicable_control_condition_indices, 4));
+                experimental_indicator = strcmp(condition_experimental_data, conditions_control(applicable_control_condition_indices, 5));
+                this_condition_indicator = stance_foot_indicator & perturbation_indicator & delay_indicator & index_indicator & experimental_indicator;
+
+                % plot control
+                plot ...
+                  ( ...
+                    time_normalized, trajectories_to_plot(:, this_condition_indicator), ...
+                    'HandleVisibility', 'off', ...
+                    'color', lightenColor(color_control, 0.5) ...
+                  );
+                control_mean_plot = plot ...
+                  ( ...
+                    time_normalized, mean(trajectories_to_plot(:, this_condition_indicator), 2), ...
+                    'DisplayName', 'control', ...
+                    'linewidth', 5, ...
+                    'color', color_control ...
+                  );
+            end
+            
             % plot stimulus
             condition_mean_plots = zeros(1, length(this_comparison));
             for i_condition = 1 : length(this_comparison)
@@ -575,7 +614,8 @@ if plot_detailed
                 perturbation_indicator = strcmp(condition_perturbation_data, condition_identifier{2});
                 delay_indicator = strcmp(condition_delay_data, condition_identifier{3});
                 index_indicator = strcmp(condition_index_data, condition_identifier{4});
-                this_condition_indicator = stance_foot_indicator & perturbation_indicator & delay_indicator & index_indicator;
+                experimental_indicator = strcmp(condition_experimental_data, condition_identifier{5});
+                this_condition_indicator = stance_foot_indicator & perturbation_indicator & delay_indicator & index_indicator & experimental_indicator;
                 plot ...
                   ( ...
                     time_normalized, trajectories_to_plot(:, this_condition_indicator), ...
@@ -594,7 +634,9 @@ if plot_detailed
             end
 
             % reorder
-            uistack(control_mean_plot, 'top');
+            if ~isempty(conditions_control)
+                uistack(control_mean_plot, 'top');
+            end
             for i_condition = 1 : length(this_comparison)
                 uistack(condition_mean_plots(i_condition), 'top');
             end
@@ -950,21 +992,33 @@ if plot_episodes
                     elseif strcmp(error_shades, 'std')
                         error_curves = std(trajectories_to_plot(:, this_condition_indicator), 1, 2);
                     end
-                    current_plots = shadedErrorBar ...
+%                     current_plots = shadedErrorBar ...
+%                       ( ...
+%                         time_episode, ...
+%                         mean(trajectories_to_plot(:, this_condition_indicator), 2), ...
+%                         error_curves, ...
+%                         { ...
+%                           'color', colors_comparison(i_condition, :), ...
+%                           'linewidth', 6 ...
+%                         }, ...
+%                         1 ...
+%                       );
+                    current_plots = plot ...
                       ( ...
                         time_episode, ...
                         mean(trajectories_to_plot(:, this_condition_indicator), 2), ...
-                        error_curves, ...
-                        { ...
-                          'color', colors_comparison(i_condition, :), ...
-                          'linewidth', 6 ...
-                        }, ...
-                        1 ...
+                        'color', colors_comparison(i_condition, :), ...
+                        'linewidth', 6 ...
                       );
                 end
             end            
 
-            % annotate
+            % plot zero
+            zero_line = plot([0 time_normalized(end) * 4], [0 0], 'color', [1 1 1]*0.7)
+            uistack(zero_line, 'bottom')
+
+            
+            % annotate % TODO: fix the title
             if show_legend
                 this_legend = legend(legend_handles, legend_data);
             end
@@ -987,8 +1041,8 @@ if plot_episodes
             ylabel(continuous_variable_info{i_variable, 3});
             
             if dictate_axes
-                set(gca, 'xlim', [0 400]);
-                set(gca, 'xlim', [0 time_normalized(end) * 4]);
+%                 set(gca, 'xlim', [0 time_normalized(end) * 4]);
+                set(gca, 'xlim', [0 1.2]); % for grant figure
                 set(gca, 'ylim', [continuous_variable_info{i_variable, 5}(1), continuous_variable_info{i_variable, 5}(2)]);
             end
             

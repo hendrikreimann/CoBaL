@@ -17,22 +17,39 @@ function analyzeGaitParameters(varargin)
     wait_times = [0 0.150 0.450];
     wait_time_labels = {'0ms', '150ms', '450ms'};
 
+%     % ArmSense
+%     condition_labels = {'stance foot', 'experimental'};
+%     conditions_to_analyze = ...
+%       {
+%         'STANCE_LEFT', 'baselineOG'; ...
+%         'STANCE_RIGHT', 'baselineOG'; ...
+%         'STANCE_LEFT', 'baselineTM'; ...
+%         'STANCE_RIGHT', 'baselineTM'; ...
+%         'STANCE_LEFT', 'feedback'; ...
+%         'STANCE_RIGHT', 'feedback'; ...
+%         'STANCE_LEFT', 'postTM'; ...
+%         'STANCE_RIGHT', 'postTM'; ...
+%         'STANCE_LEFT', 'postOG'; ...
+%         'STANCE_RIGHT', 'postOG'; ...
+%       };
+%     number_of_conditions_to_analyze = size(conditions_to_analyze, 1);
+
+    % Obstacle
     condition_labels = {'stance foot', 'experimental'};
     conditions_to_analyze = ...
       {
-        'STANCE_LEFT', 'baselineOG'; ...
-        'STANCE_RIGHT', 'baselineOG'; ...
-        'STANCE_LEFT', 'baselineTM'; ...
-        'STANCE_RIGHT', 'baselineTM'; ...
-        'STANCE_LEFT', 'feedback'; ...
-        'STANCE_RIGHT', 'feedback'; ...
-        'STANCE_LEFT', 'postTM'; ...
-        'STANCE_RIGHT', 'postTM'; ...
-        'STANCE_LEFT', 'postOG'; ...
-        'STANCE_RIGHT', 'postOG'; ...
+        'STANCE_LEFT', 'NEAR'; ...
+        'STANCE_RIGHT', 'NEAR'; ...
+        'STANCE_BOTH', 'NEAR'; ...
+        'STANCE_LEFT', 'FAR'; ...
+        'STANCE_RIGHT', 'FAR'; ...
+        'STANCE_BOTH', 'FAR'; ...
+        'STANCE_LEFT', 'NO'; ...
+        'STANCE_RIGHT', 'NO'; ...
+        'STANCE_BOTH', 'NO'; ...
       };
     number_of_conditions_to_analyze = size(conditions_to_analyze, 1);
-
+    
     number_of_time_steps_normalized = 100;
     perSecond_to_perMinute = 60;
     second_to_minute = 1/60;
@@ -66,12 +83,20 @@ function analyzeGaitParameters(varargin)
         rpsi_x_pos_normalized_all = [];
         rpsi_y_pos_normalized_all = [];
         rpsi_z_pos_normalized_all = [];
+        
         lheel_x_pos_normalized_all = [];
         lheel_y_pos_normalized_all = [];
         lheel_z_pos_normalized_all = [];
         rheel_x_pos_normalized_all = [];
         rheel_y_pos_normalized_all = [];
         rheel_z_pos_normalized_all = [];
+        
+        lheel_x_pos_stancefoot_normalized_all = [];
+        rheel_x_pos_stancefoot_normalized_all = [];
+        lheel_x_pos_mpsis_normalized_all = [];
+        rheel_x_pos_mpsis_normalized_all = [];
+        lheel_x_pos_com_normalized_all = [];
+        rheel_x_pos_com_normalized_all = [];
         
         % angles
         lleg_angle_ml_normalized_all = [];
@@ -136,6 +161,7 @@ function analyzeGaitParameters(varargin)
             condition = condition_list{i_condition};
             load(['analysis' filesep makeFileName(date, subject_id, condition, i_trial, 'relevantDataStretches')]);
             load(['processed' filesep makeFileName(date, subject_id, condition, i_trial, 'markerTrajectories')]);
+            load(['processed' filesep makeFileName(date, subject_id, condition, i_trial, 'kinematicTrajectories')]);
             number_of_stretches_trial = length(condition_stance_foot_list);
 
             condition_stance_foot_list_trial = condition_stance_foot_list;
@@ -150,6 +176,7 @@ function analyzeGaitParameters(varargin)
             pushoff_times_trial = zeros(1, number_of_stretches_trial);
             cadence_trial = zeros(1, number_of_stretches_trial);
 
+            % calculate dependent variables and initialize containers
             if process_data_balance
                 % define markers and indices
                 c7_marker = find(strcmp(marker_headers, 'C7'));
@@ -157,12 +184,14 @@ function analyzeGaitParameters(varargin)
                 rpsi_marker = find(strcmp(marker_headers, 'RPSI'));
                 lheel_marker = find(strcmp(marker_headers, 'LHEE'));
                 rheel_marker = find(strcmp(marker_headers, 'RHEE'));
+                com_body = find(strcmp(com_labels, 'BODYCOM'));
 
                 c7_marker_indices = reshape([(c7_marker - 1) * 3 + 1; (c7_marker - 1) * 3 + 2; (c7_marker - 1) * 3 + 3], 1, length(c7_marker)*3);
                 lpsi_marker_indices = reshape([(lpsi_marker - 1) * 3 + 1; (lpsi_marker - 1) * 3 + 2; (lpsi_marker - 1) * 3 + 3], 1, length(lpsi_marker)*3);
                 rpsi_marker_indices = reshape([(rpsi_marker - 1) * 3 + 1; (rpsi_marker - 1) * 3 + 2; (rpsi_marker - 1) * 3 + 3], 1, length(rpsi_marker)*3);
                 lheel_marker_indices = reshape([(lheel_marker - 1) * 3 + 1; (lheel_marker - 1) * 3 + 2; (lheel_marker - 1) * 3 + 3], 1, length(lheel_marker)*3);
                 rheel_marker_indices = reshape([(rheel_marker - 1) * 3 + 1; (rheel_marker - 1) * 3 + 2; (rheel_marker - 1) * 3 + 3], 1, length(rheel_marker)*3);
+                com_body_indices = reshape([(com_body - 1) * 3 + 1; (com_body - 1) * 3 + 2; (com_body - 1) * 3 + 3], 1, length(com_body) *3);
 
                 % rename relevant trajectories
                 c7_x_pos_trajectory = marker_trajectories(:, c7_marker_indices(1));
@@ -180,6 +209,9 @@ function analyzeGaitParameters(varargin)
                 rheel_x_pos_trajectory = marker_trajectories(:, rheel_marker_indices(1));
                 rheel_y_pos_trajectory = marker_trajectories(:, rheel_marker_indices(2));
                 rheel_z_pos_trajectory = marker_trajectories(:, rheel_marker_indices(3));
+                com_x_pos_trajectory = com_trajectories(:, com_body_indices(1));
+                com_y_pos_trajectory = com_trajectories(:, com_body_indices(2));
+                com_z_pos_trajectory = com_trajectories(:, com_body_indices(3));
                 
                 % initialize containers
                 step_width_trial = zeros(1, number_of_stretches_trial);
@@ -200,6 +232,12 @@ function analyzeGaitParameters(varargin)
                 rheel_x_pos_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
                 rheel_y_pos_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
                 rheel_z_pos_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
+                lheel_x_pos_stancefoot_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
+                rheel_x_pos_stancefoot_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
+                lheel_x_pos_mpsis_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
+                rheel_x_pos_mpsis_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
+                lheel_x_pos_com_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
+                rheel_x_pos_com_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
                 lleg_angle_ml_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
                 rleg_angle_ml_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
                 trunk_angle_ap_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial);
@@ -293,9 +331,6 @@ function analyzeGaitParameters(varargin)
                 joint_velocities_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial, number_of_joints);
                 joint_accelerations_normalized_trial = zeros(number_of_time_steps_normalized, number_of_stretches_trial, number_of_joints);
             end    
-            if process_data_torques
-                load(makeFileName(date, subject_id, 'walking', i_trial, 'inverseDynamics_hingeConstraints'));
-            end    
 
             % go through each stretch to extract data, time-normalize it and store it in lists
             for i_stretch = 1 : number_of_stretches_trial
@@ -328,20 +363,22 @@ function analyzeGaitParameters(varargin)
                     rheel_x_pos_extracted_stretch = rheel_x_pos_trajectory(start_index_mocap : end_index_mocap);
                     rheel_y_pos_extracted_stretch = rheel_y_pos_trajectory(start_index_mocap : end_index_mocap);
                     rheel_z_pos_extracted_stretch = rheel_z_pos_trajectory(start_index_mocap : end_index_mocap);
+                    com_x_pos_extracted_stretch = com_x_pos_trajectory(start_index_mocap : end_index_mocap);
+                    com_y_pos_extracted_stretch = com_y_pos_trajectory(start_index_mocap : end_index_mocap);
                     
                     % calculate vectors
-                    mpsi_x_pos = (lpsi_x_pos_extracted_stretch + rpsi_x_pos_extracted_stretch) * 0.5;
-                    mpsi_y_pos = (lpsi_y_pos_extracted_stretch + rpsi_y_pos_extracted_stretch) * 0.5;
-                    mpsi_z_pos = (lpsi_z_pos_extracted_stretch + rpsi_z_pos_extracted_stretch) * 0.5;
-                    lleg_vector_x = mpsi_x_pos - lheel_x_pos_extracted_stretch;
-                    lleg_vector_y = mpsi_y_pos - lheel_y_pos_extracted_stretch;
-                    lleg_vector_z = mpsi_z_pos - lheel_z_pos_extracted_stretch;
-                    rleg_vector_x = mpsi_x_pos - rheel_x_pos_extracted_stretch;
-                    rleg_vector_y = mpsi_y_pos - rheel_y_pos_extracted_stretch;
-                    rleg_vector_z = mpsi_z_pos - rheel_z_pos_extracted_stretch;
-                    trunk_vector_x = c7_x_pos_extracted_stretch - mpsi_x_pos;
-                    trunk_vector_y = c7_y_pos_extracted_stretch - mpsi_y_pos;
-                    trunk_vector_z = c7_z_pos_extracted_stretch - mpsi_z_pos;
+                    mpsi_x_pos_extracted_stretch = (lpsi_x_pos_extracted_stretch + rpsi_x_pos_extracted_stretch) * 0.5;
+                    mpsi_y_pos_extracted_stretch = (lpsi_y_pos_extracted_stretch + rpsi_y_pos_extracted_stretch) * 0.5;
+                    mpsi_z_pos_extracted_stretch = (lpsi_z_pos_extracted_stretch + rpsi_z_pos_extracted_stretch) * 0.5;
+                    lleg_vector_x = mpsi_x_pos_extracted_stretch - lheel_x_pos_extracted_stretch;
+                    lleg_vector_y = mpsi_y_pos_extracted_stretch - lheel_y_pos_extracted_stretch;
+                    lleg_vector_z = mpsi_z_pos_extracted_stretch - lheel_z_pos_extracted_stretch;
+                    rleg_vector_x = mpsi_x_pos_extracted_stretch - rheel_x_pos_extracted_stretch;
+                    rleg_vector_y = mpsi_y_pos_extracted_stretch - rheel_y_pos_extracted_stretch;
+                    rleg_vector_z = mpsi_z_pos_extracted_stretch - rheel_z_pos_extracted_stretch;
+                    trunk_vector_x = c7_x_pos_extracted_stretch - mpsi_x_pos_extracted_stretch;
+                    trunk_vector_y = c7_y_pos_extracted_stretch - mpsi_y_pos_extracted_stretch;
+                    trunk_vector_z = c7_z_pos_extracted_stretch - mpsi_z_pos_extracted_stretch;
 
                     % calculate angles
                     trunk_angle_ap_extracted_stretch = rad2deg(atan2(trunk_vector_y, trunk_vector_z));
@@ -357,8 +394,11 @@ function analyzeGaitParameters(varargin)
                     elseif strcmp(condition_stance_foot_list_trial{i_stretch}, 'STANCE_LEFT')
                         stance_foot_heel_x_initial = lheel_x_pos_extracted_stretch(1);
                         stance_foot_heel_y_initial = lheel_y_pos_extracted_stretch(1);
+                    elseif strcmp(condition_stance_foot_list_trial{i_stretch}, 'STANCE_BOTH')
+                        stance_foot_heel_x_initial = 0;
+                        stance_foot_heel_y_initial = 0;
                     else
-                        error('stance condition should be either "STANCE_LEFT or STANCE_RIGHT"');
+                        error('stance condition should be either "STANCE_LEFT", "STANCE_RIGHT" or "STANCE_BOTH"');
                     end
                   
                     % calculate step width and length
@@ -368,6 +408,9 @@ function analyzeGaitParameters(varargin)
                     elseif strcmp(condition_stance_foot_list_trial{i_stretch}, 'STANCE_LEFT')
                         step_width_trial(i_stretch) = abs(rheel_x_pos_extracted_stretch(end) - lheel_x_pos_extracted_stretch(1));
                         step_length_trial(i_stretch) = rheel_y_pos_extracted_stretch(end) - lheel_y_pos_extracted_stretch(1);
+                    elseif strcmp(condition_stance_foot_list_trial{i_stretch}, 'STANCE_LEFT')
+                        step_width_trial(i_stretch) = 0;
+                        step_length_trial(i_stretch) = 0;
                     end
 
                     % normalize mocap data in time
@@ -378,31 +421,35 @@ function analyzeGaitParameters(varargin)
                     rpsi_x_pos_normalized_stretch = spline(time_extracted_mocap, rpsi_x_pos_extracted_stretch, time_normalized_mocap);
                     rheel_x_pos_normalized_stretch = spline(time_extracted_mocap, rheel_x_pos_extracted_stretch, time_normalized_mocap);
                     rheel_y_pos_normalized_stretch = spline(time_extracted_mocap, rheel_y_pos_extracted_stretch, time_normalized_mocap);
-
+                    mpsi_x_pos_normalized_stretch = spline(time_extracted_mocap, mpsi_x_pos_extracted_stretch, time_normalized_mocap);
+                    mpsi_y_pos_normalized_stretch = spline(time_extracted_mocap, mpsi_y_pos_extracted_stretch, time_normalized_mocap);
+                    com_x_pos_normalized_stretch = spline(time_extracted_mocap, com_x_pos_extracted_stretch, time_normalized_mocap);
+                    com_y_pos_normalized_stretch = spline(time_extracted_mocap, com_y_pos_extracted_stretch, time_normalized_mocap);
+                    
                     trunk_angle_ap_normalized_stretch = spline(time_extracted_mocap, trunk_angle_ap_extracted_stretch, time_normalized_mocap);
                     trunk_angle_ml_normalized_stretch = spline(time_extracted_mocap, trunk_angle_ml_extracted_stretch, time_normalized_mocap);
                     lleg_angle_ml_normalized_stretch = spline(time_extracted_mocap, lleg_angle_ml_extracted_stretch, time_normalized_mocap);
                     rleg_angle_ml_normalized_stretch = spline(time_extracted_mocap, rleg_angle_ml_extracted_stretch, time_normalized_mocap);
                     
-                    if use_stance_foot_as_reference
-                        reference_x = stance_foot_heel_x_initial;
-                        reference_y = stance_foot_heel_y_initial;
-                    else
-                        reference_x = 0;
-                        reference_y = 0;
-                    end
-
-                    % use stance foot heel as reference and store
-                    lpsi_x_pos_normalized_trial(:, i_stretch) = lpsi_x_pos_normalized_stretch - reference_x;
-                    rpsi_x_pos_normalized_trial(:, i_stretch) = rpsi_x_pos_normalized_stretch - reference_x;
-                    lheel_x_pos_normalized_trial(:, i_stretch) = lheel_x_pos_normalized_stretch - reference_x;
-                    rheel_x_pos_normalized_trial(:, i_stretch) = rheel_x_pos_normalized_stretch - reference_x;
-                    lheel_y_pos_normalized_trial(:, i_stretch) = lheel_y_pos_normalized_stretch - reference_y;
-                    rheel_y_pos_normalized_trial(:, i_stretch) = rheel_y_pos_normalized_stretch - reference_y;
+                    % store
+                    com_x_pos_normalized_trial(:, i_stretch) = com_x_pos_normalized_stretch;
+                    lpsi_x_pos_normalized_trial(:, i_stretch) = lpsi_x_pos_normalized_stretch;
+                    rpsi_x_pos_normalized_trial(:, i_stretch) = rpsi_x_pos_normalized_stretch;
+                    lheel_x_pos_normalized_trial(:, i_stretch) = lheel_x_pos_normalized_stretch;
+                    rheel_x_pos_normalized_trial(:, i_stretch) = rheel_x_pos_normalized_stretch;
+                    lheel_y_pos_normalized_trial(:, i_stretch) = lheel_y_pos_normalized_stretch;
+                    rheel_y_pos_normalized_trial(:, i_stretch) = rheel_y_pos_normalized_stretch;
                     trunk_angle_ap_normalized_trial(:, i_stretch) = trunk_angle_ap_normalized_stretch;
                     trunk_angle_ml_normalized_trial(:, i_stretch) = trunk_angle_ml_normalized_stretch;
                     lleg_angle_ml_normalized_trial(:, i_stretch) = lleg_angle_ml_normalized_stretch;
                     rleg_angle_ml_normalized_trial(:, i_stretch) = rleg_angle_ml_normalized_stretch;
+                    
+                    lheel_x_pos_stancefoot_normalized_trial(:, i_stretch) = lheel_x_pos_normalized_stretch - stance_foot_heel_x_initial;
+                    rheel_x_pos_stancefoot_normalized_trial(:, i_stretch) = rheel_x_pos_normalized_stretch - stance_foot_heel_x_initial;
+                    lheel_x_pos_mpsis_normalized_trial(:, i_stretch) = lheel_x_pos_normalized_stretch - mpsi_x_pos_normalized_stretch;
+                    rheel_x_pos_mpsis_normalized_trial(:, i_stretch) = rheel_x_pos_normalized_stretch - mpsi_x_pos_normalized_stretch;
+                    lheel_x_pos_com_normalized_trial(:, i_stretch) = lheel_x_pos_normalized_stretch - com_x_pos_normalized_stretch;
+                    rheel_x_pos_com_normalized_trial(:, i_stretch) = rheel_x_pos_normalized_stretch - com_x_pos_normalized_stretch;
 
                     % time and origin
                     origin_trial_list_trial(i_stretch) = i_trial;
@@ -476,8 +523,11 @@ function analyzeGaitParameters(varargin)
                     elseif strcmp(condition_stance_foot_list_trial{i_stretch}, 'STANCE_LEFT')
                         stance_foot_heel_x_initial = lheel_x_pos_extracted_stretch(1);
                         stance_foot_heel_y_initial = lheel_y_pos_extracted_stretch(1);
+                    elseif strcmp(condition_stance_foot_list_trial{i_stretch}, 'STANCE_BOTH')
+                        stance_foot_heel_x_initial = 0;
+                        stance_foot_heel_y_initial = 0;
                     else
-                        error('stance condition should be either "STANCE_LEFT or STANCE_RIGHT"');
+                        error('stance condition should be either "STANCE_LEFT", "STANCE_RIGHT" or "STANCE_BOTH"');
                     end
                   
                     % normalize data in time
@@ -539,6 +589,13 @@ function analyzeGaitParameters(varargin)
                 lheel_y_pos_normalized_all = [lheel_y_pos_normalized_all lheel_y_pos_normalized_trial];
                 rheel_y_pos_normalized_all = [rheel_y_pos_normalized_all rheel_y_pos_normalized_trial];
 
+                lheel_x_pos_stancefoot_normalized_all = [lheel_x_pos_stancefoot_normalized_all lheel_x_pos_stancefoot_normalized_trial];
+                rheel_x_pos_stancefoot_normalized_all = [rheel_x_pos_stancefoot_normalized_all rheel_x_pos_stancefoot_normalized_trial];
+                lheel_x_pos_mpsis_normalized_all = [lheel_x_pos_mpsis_normalized_all lheel_x_pos_mpsis_normalized_trial];
+                rheel_x_pos_mpsis_normalized_all = [rheel_x_pos_mpsis_normalized_all rheel_x_pos_mpsis_normalized_trial];
+                lheel_x_pos_com_normalized_all = [lheel_x_pos_com_normalized_all lheel_x_pos_com_normalized_trial];
+                rheel_x_pos_com_normalized_all = [rheel_x_pos_com_normalized_all rheel_x_pos_com_normalized_trial];
+                
                 trunk_angle_ap_normalized_all = [trunk_angle_ap_normalized_all trunk_angle_ap_normalized_trial];
                 trunk_angle_ml_normalized_all = [trunk_angle_ml_normalized_all trunk_angle_ml_normalized_trial];
                 lleg_angle_ml_normalized_all = [lleg_angle_ml_normalized_all lleg_angle_ml_normalized_trial];
@@ -651,6 +708,12 @@ function analyzeGaitParameters(varargin)
                 'rheel_x_pos_normalized_all', ...
                 'lheel_y_pos_normalized_all', ...
                 'rheel_y_pos_normalized_all', ...
+                'lheel_x_pos_stancefoot_normalized_all', ...
+                'rheel_x_pos_stancefoot_normalized_all', ...
+                'lheel_x_pos_mpsis_normalized_all', ...
+                'rheel_x_pos_mpsis_normalized_all', ...
+                'lheel_x_pos_com_normalized_all',...
+                'rheel_x_pos_com_normalized_all',...
                 'trunk_angle_ap_normalized_all', ...
                 'trunk_angle_ml_normalized_all', ...
                 'lleg_angle_ml_normalized_all', ...

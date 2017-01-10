@@ -491,7 +491,6 @@ function analyzeStimulusResponse(varargin)
                     lleg_angle_ml_extracted_stretch = rad2deg(atan2(lleg_vector_x, lleg_vector_z));
                     rleg_angle_ml_extracted_stretch = rad2deg(atan2(rleg_vector_x, rleg_vector_z));
                     
-                    
                     % define stance foot heel as spatial point of reference
                     if strcmp(condition_stance_foot_list_trial{i_stretch}, 'STANCE_RIGHT')
                         stance_foot_heel_x_initial = rheel_x_pos_extracted_stretch(1);
@@ -554,7 +553,6 @@ function analyzeStimulusResponse(varargin)
                     lheel_x_pos_stancefoot_normalized_trial(:, i_stretch) = lheel_x_pos_normalized_stretch - stance_foot_heel_x_initial;
                     rheel_x_pos_stancefoot_normalized_trial(:, i_stretch) = rheel_x_pos_normalized_stretch - stance_foot_heel_x_initial;
                     lheel_x_pos_mpsis_normalized_trial(:, i_stretch) = lheel_x_pos_normalized_stretch - mpsi_x_pos_normalized_stretch;
-                    % rheel was being subtracted by mpsi_y...??
                     rheel_x_pos_mpsis_normalized_trial(:, i_stretch) = rheel_x_pos_normalized_stretch - mpsi_x_pos_normalized_stretch;
                     lheel_x_pos_com_normalized_trial(:, i_stretch) = lheel_x_pos_normalized_stretch - com_x_pos_normalized_stretch;
                     rheel_x_pos_com_normalized_trial(:, i_stretch) = rheel_x_pos_normalized_stretch - com_x_pos_normalized_stretch;
