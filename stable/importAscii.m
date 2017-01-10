@@ -17,10 +17,10 @@ path_split = strsplit(current_path, filesep);
 subject_code = path_split{end};
 
 % import data
-potential_sources = {'devices', 'labview', 'marker', 'markers', 'ascii'};
+potential_sources = {'device', 'devices', 'labview', 'marker', 'markers', 'ascii'};
 % potential_sources = {'marker', 'markers', 'ascii'};
-potential_sources = {'ascii'};
-% potential_sources = {'devices'};
+% potential_sources = {'ascii'};
+potential_sources = {'devices'};
 % potential_sources = {'markers'};
 % potential_sources = {'labview'};
 % potential_sources = {'neurocom'};
@@ -84,6 +84,10 @@ for i_source = 1 : length(potential_sources)
                                 emg_trajectories_raw = imported_data.data(:, 3:end);
                                 sampling_rate_emg = str2num(imported_data.textdata{number_of_header_lines_returned-3, 1});
                                 time_emg = (1 : number_of_samples) / sampling_rate_emg;
+                                % prune header
+                                for i_column = 1 : length(emg_headers)
+                                    emg_headers{i_column} = strrep(emg_headers{i_column}, 'Delsys Trigno EMG 1.2 - Sensor ', 'EMG');
+                                end
 
                                 % save emg data
                                 matlab_data_file_name = ['raw' filesep makeFileName(date, subject_id, trial_type, trial_number, 'emgTrajectoriesRaw.mat')];
@@ -168,7 +172,7 @@ for i_source = 1 : length(potential_sources)
 
             elseif strcmp(file_type, 'qualisysData')
                 % this is marker data from QTM
-                [imported_data, delimiter, nheaderlines] = importdata([source_dir filesep data_file_name], '\t', 11);
+                [imported_data, delimiter, nheaderlines] = importdata([source_dir filesep data_file_name], '\t', 10);
                 
                 data_type = 'markers';
                 data_source = 'qtm';
@@ -199,11 +203,17 @@ for i_source = 1 : length(potential_sources)
                 disp(['imported ' source_dir filesep data_file_name ' and saved as ' matlab_data_file_name])
             elseif strcmp(file_type, 'a')
                 % this is analog data from QTM
-                [imported_data, delimiter, nheaderlines] = importdata([source_dir filesep data_file_name], '\t', 14);
+                [imported_data, delimiter, nheaderlines] = importdata([source_dir filesep data_file_name], '\t', 13);
                 
                 data_type = 'emg';
                 data_source = 'qtm';
-                emg_headers = imported_data.colheaders(3 : end);
+                emg_headers_field = imported_data.textdata{9};
+                emg_headers_strings = strsplit(emg_headers_field);
+                emg_headers = emg_headers_strings(2 : end);
+                for i_column = 1 : length(emg_headers)
+                    emg_headers{i_column} = strrep(emg_headers{i_column}, 'CH', 'EMG');
+                end
+                
                 emg_trajectories_raw = imported_data.data(:, 3:end);
                 sampling_rate_field = imported_data.textdata{3, 1};
                 sampling_rate_strings = strsplit(sampling_rate_field);

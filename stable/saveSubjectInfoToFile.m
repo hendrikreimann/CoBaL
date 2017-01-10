@@ -58,6 +58,16 @@ function saveSubjectInfoToFile
     ankle_width = str2num(data_cell{subject_row, ankle_width_col});
     elbow_width = str2num(data_cell{subject_row, elbow_width_col});
     
+    % find entries mapping EMG headers to muscle codes
+    emg_sensor_map = {};
+    for i_column = 1 : length(header)
+        if strcmp(header{i_column}(1:end-1), 'EMG')
+            muscle_code = data_cell{subject_row, i_column};
+            emg_sensor_map = [emg_sensor_map, {header{i_column}; muscle_code}];
+        end
+    end
+    
+    % get parameters
     data_dir = dir(['raw' filesep '*.mat']);
     clear file_name_list;
     [file_name_list{1:length(data_dir)}] = deal(data_dir.name);
@@ -82,9 +92,8 @@ function saveSubjectInfoToFile
             trial_number_list{condition_index} = unique(trial_number_list{condition_index});
         end
     end
-
     
-    
+    % save to file
     save ...
       ( ...
         'subjectInfo', ...
@@ -96,6 +105,7 @@ function saveSubjectInfoToFile
         'elbow_width', ...
         'date', ...
         'subject_id', ...
+        'emg_sensor_map', ...
         'condition_list', ...
         'trial_number_list' ...
       );

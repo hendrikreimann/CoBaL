@@ -4,7 +4,7 @@ function preprocessRawData()
     process_emg                 = 1;
     process_forceplate          = 1;
     process_marker              = 1;
-    map_emg_sensors_manually    = 1;
+    map_emg_sensors_manually    = 0;
     transform_to_belt_space     = 0;
     
     conditions_to_transform_to_belt_space = {'baselineTM', 'feedback', 'postTM'};
@@ -46,18 +46,7 @@ function preprocessRawData()
             emg_trajectories_rectified = abs(emg_trajectories_filtered_highpass);
             emg_trajectories = filtfilt(b_final, a_final, emg_trajectories_rectified);
             
-            % rectify, then filter
-        %     emg_trajectories_rectified = abs(emg_trajectories_raw);
-        %     emg_trajectories_filtered_lowpass = filtfilt(b_low, a_low, emg_trajectories_rectified);
-        %     emg_trajectories_filtered_highpass = filtfilt(b_high, a_high, emg_trajectories_filtered_lowpass);
-        %     emg_trajectories = filtfilt(b_final, a_final, emg_trajectories_filtered_highpass);
-
-            % rectify, then smooth
-        %     emg_trajectories_rectified = abs(emg_trajectories_raw);
-        %     rms_smooth_window_length_indices = rms_smooth_window_length * sampling_rate_emg;
-        %     time_smoothed = rms_gbiomech(time_emg, rms_smooth_window_length_indices, 0, 0);
-        %     rms_smoothed = rms_gbiomech(emg_trajectories_rectified(:, 1), rms_smooth_window_length_indices, 0, 0);
-            
+            emg_labels = cell(size(emg_headers));
             if map_emg_sensors_manually
                 lglutmed_sensor_index = 1;
                 ltibiant_sensor_index = 2;
@@ -70,16 +59,25 @@ function preprocessRawData()
                 ltnsrflt_sensor_index = 9;
                 rtnsrflt_sensor_index = 10;
                 
-                emg_headers{lglutmed_sensor_index} = 'LGLUTMED';
-                emg_headers{ltibiant_sensor_index} = 'LTIBIANT';
-                emg_headers{lgastroc_sensor_index} = 'LGASTROC';
-                emg_headers{lperolng_sensor_index} = 'LPEROLNG';
-                emg_headers{rglutmed_sensor_index} = 'RGLUTMED';
-                emg_headers{rtibiant_sensor_index} = 'RTIBIANT';
-                emg_headers{rgastroc_sensor_index} = 'RGASTROC';
-                emg_headers{rperolng_sensor_index} = 'RPEROLNG';
-                emg_headers{ltnsrflt_sensor_index} = 'LTNSRFLT';
-                emg_headers{rtnsrflt_sensor_index} = 'RTNSRFLT';
+                emg_labels{lglutmed_sensor_index} = 'LGLUTMED';
+                emg_labels{ltibiant_sensor_index} = 'LTIBIANT';
+                emg_labels{lgastroc_sensor_index} = 'LGASTROC';
+                emg_labels{lperolng_sensor_index} = 'LPEROLNG';
+                emg_labels{rglutmed_sensor_index} = 'RGLUTMED';
+                emg_labels{rtibiant_sensor_index} = 'RTIBIANT';
+                emg_labels{rgastroc_sensor_index} = 'RGASTROC';
+                emg_labels{rperolng_sensor_index} = 'RPEROLNG';
+                emg_labels{ltnsrflt_sensor_index} = 'LTNSRFLT';
+                emg_labels{rtnsrflt_sensor_index} = 'RTNSRFLT';
+            else
+                for i_label = 1 : size(emg_headers, 2)
+                    % find entry in emg_sensor_map
+                    match_column = find(strcmp(emg_headers{i_label}, emg_sensor_map(1, :)));
+                    
+                    if ~isempty(match_column)
+                        emg_labels(i_label) = emg_sensor_map(2, match_column);
+                    end
+                end
             end
 
             % save
@@ -90,7 +88,7 @@ function preprocessRawData()
                 'emg_trajectories', ...
                 'time_emg', ...
                 'sampling_rate_emg', ...
-                'emg_headers' ...
+                'emg_labels' ...
               );
             disp(['filtered and saved as ' save_file_name])
 
