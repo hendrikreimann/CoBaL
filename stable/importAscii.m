@@ -1,3 +1,19 @@
+%     This file is part of the CoBaL code base
+%     Copyright (C) 2017 Hendrik Reimann <hendrikreimann@gmail.com>
+% 
+%     This program is free software: you can redistribute it and/or modify
+%     it under the terms of the GNU General Public License as published by
+%     the Free Software Foundation, either version 3 of the License, or
+%     (at your option) any later version.
+% 
+%     This program is distributed in the hope that it will be useful,
+%     but WITHOUT ANY WARRANTY; without even the implied warranty of
+%     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%     GNU General Public License for more details.
+% 
+%     You should have received a copy of the GNU General Public License
+%     along with this program.  If not, see <http://www.gnu.org/licenses/>.% compare the kinematic tree against the kinematic chain
+
 % transform raw data from .csv or .tsv into matlab data
 
 % set parameters
@@ -19,8 +35,8 @@ subject_code = path_split{end};
 % import data
 potential_sources = {'device', 'devices', 'labview', 'marker', 'markers', 'ascii'};
 % potential_sources = {'marker', 'markers', 'ascii'};
-% potential_sources = {'ascii'};
-potential_sources = {'devices'};
+potential_sources = {'ascii'};
+% potential_sources = {'devices'};
 % potential_sources = {'markers'};
 % potential_sources = {'labview'};
 % potential_sources = {'neurocom'};

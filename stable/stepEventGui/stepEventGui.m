@@ -1,3 +1,19 @@
+%     This file is part of the CoBaL code base
+%     Copyright (C) 2017 Hendrik Reimann <hendrikreimann@gmail.com>
+% 
+%     This program is free software: you can redistribute it and/or modify
+%     it under the terms of the GNU General Public License as published by
+%     the Free Software Foundation, either version 3 of the License, or
+%     (at your option) any later version.
+% 
+%     This program is distributed in the hope that it will be useful,
+%     but WITHOUT ANY WARRANTY; without even the implied warranty of
+%     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%     GNU General Public License for more details.
+% 
+%     You should have received a copy of the GNU General Public License
+%     along with this program.  If not, see <http://www.gnu.org/licenses/>.% compare the kinematic tree against the kinematic chain
+
 function stepEventGui(varargin)
     [condition_list, trial_number_list] = parseTrialArguments(varargin{:});
     condition = condition_list{1};
@@ -108,7 +124,7 @@ function stepEventGui(varargin)
     step_event_figure.addDataPlot('left_heel_z_pos', color_left_heel, scale_factor_heel, offset_heel);
     step_event_figure.addDataPlot('left_toes_z_pos', color_left_toes, scale_factor_toes, offset_toes);
 %     step_event_figure.addDataPlot('left_fz', color_left_fz, scale_factor_fz);
-    step_event_figure.addDataPlot('right_fz', color_right_fz, scale_factor_fz);
+%     step_event_figure.addDataPlot('right_fz', color_right_fz, scale_factor_fz);
     step_event_figure.addEventPlot('left_heel_z_pos', 'left_touchdown', color_left_touchdown, marker_left_touchdown);
     step_event_figure.addEventPlot('left_toes_z_pos', 'left_pushoff', color_left_pushoff, marker_left_pushoff);
 %     step_event_figure.addEventPlot('left_fz', 'left_pushoff', color_left_pushoff, marker_left_pushoff);
@@ -121,7 +137,7 @@ function stepEventGui(varargin)
     step_event_figure.addDataPlot('right_heel_z_pos', color_right_heel, scale_factor_heel, offset_heel);
     step_event_figure.addDataPlot('right_toes_z_pos', color_right_toes, scale_factor_toes, offset_toes);
 %     step_event_figure.addDataPlot('right_fz', color_right_fz, scale_factor_fz);
-    step_event_figure.addDataPlot('left_fz', color_left_fz, scale_factor_fz);
+%     step_event_figure.addDataPlot('left_fz', color_left_fz, scale_factor_fz);
     step_event_figure.addEventPlot('right_heel_z_pos', 'right_touchdown', color_right_touchdown, marker_right_touchdown);
     step_event_figure.addEventPlot('right_toes_z_pos', 'right_pushoff', color_right_pushoff, marker_right_pushoff);
 %     step_event_figure.addEventPlot('right_fz', 'right_pushoff', color_right_pushoff, marker_right_pushoff);

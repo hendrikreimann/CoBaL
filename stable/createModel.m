@@ -1,8 +1,24 @@
+%     This file is part of the CoBaL code base
+%     Copyright (C) 2017 Hendrik Reimann <hendrikreimann@gmail.com>
+% 
+%     This program is free software: you can redistribute it and/or modify
+%     it under the terms of the GNU General Public License as published by
+%     the Free Software Foundation, either version 3 of the License, or
+%     (at your option) any later version.
+% 
+%     This program is distributed in the hope that it will be useful,
+%     but WITHOUT ANY WARRANTY; without even the implied warranty of
+%     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%     GNU General Public License for more details.
+% 
+%     You should have received a copy of the GNU General Public License
+%     along with this program.  If not, see <http://www.gnu.org/licenses/>.% compare the kinematic tree against the kinematic chain
 
-static_reference_type = 'casual';
+
+% static_reference_type = 'casual';
 % static_reference_type = 'anatomic';
 % static_reference_type = 'motorcycle';
-% static_reference_type = 'ski';
+static_reference_type = 'ski';
 
 % hip_joint_center_estimation_method = 'SCoRE';
 hip_joint_center_estimation_method = 'Tylkowski';
@@ -13,8 +29,8 @@ knee_joint_axis_estimation_method = 'markers';
 create_kinematic_tree                   = 1;
 show_visualization                      = 1;
 
-static_reference_trial_type = 'walking';
-% static_reference_trial_type = 'calibration';
+% static_reference_trial_type = 'walking';
+static_reference_trial_type = 'calibration';
 static_reference_file_index = 1;
 
 left_hip_calibration_file_index = 2;
