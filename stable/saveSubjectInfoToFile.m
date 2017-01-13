@@ -34,9 +34,17 @@ function saveSubjectInfoToFile
 
     % try to open subject list from root and extract subject data
     subject_data_file = ['..' filesep 'subjects.csv'];
+    if ~exist(subject_data_file, 'file')
+        fileID = fopen(subject_data_file, 'w');
+        fprintf(fileID,'ID,gender,height,weight,knee width,ankle width,elbow width,EMG1,EMG2,EMG3,EMG4,EMG5,EMG6,EMG7,EMG8\n');
+        fprintf(fileID,',,m,kg,m,m,m\n');
+        fprintf(fileID,'XYZ,0,0,0,0,0,0,LGLUTMED,LDELTANT,LGASTROC,LPEROLNG,RGLUTMED,RDELTANT,RGASTROC,RPEROLNG\n');
+        fclose(fileID);
+        
+        disp('Failed to load "subjects.csv", a sample file has been created. Please edit it with your subject information or copy the correct file.')
+        return
+    end
     
-    
-    number_of_header_lines = 2;
     format = '%s';
     fid = fopen(subject_data_file);
 
