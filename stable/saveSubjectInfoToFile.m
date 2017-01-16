@@ -85,7 +85,7 @@ function saveSubjectInfoToFile
     % find entries mapping EMG headers to muscle codes
     emg_sensor_map = {};
     for i_column = 1 : length(header)
-        if strcmp(header{i_column}(1:end-1), 'EMG')
+        if length(header{i_column}) >=3 && strcmp(header{i_column}(1:3), 'EMG')
             muscle_code = data_cell{subject_row, i_column};
             emg_sensor_map = [emg_sensor_map, {header{i_column}; muscle_code}];
         end

@@ -86,11 +86,12 @@ function preprocessRawData(varargin)
                 emg_trajectories_filtered_highpass = filtfilt(b_high, a_high, emg_trajectories_filtered_lowpass);
                 emg_trajectories_rectified = abs(emg_trajectories_filtered_highpass);
                 emg_trajectories = filtfilt(b_final, a_final, emg_trajectories_rectified);
-
-                emg_labels = cell(size(emg_headers));
-                for i_label = 1 : size(emg_headers, 2)
+                
+                emg_labels_from_source = emg_labels;
+                emg_labels = cell(size(emg_labels_from_source));
+                for i_label = 1 : size(emg_labels_from_source, 2)
                     % find entry in emg_sensor_map
-                    match_column = find(strcmp(emg_headers{i_label}, emg_sensor_map(1, :)));
+                    match_column = find(strcmp(emg_labels_from_source{i_label}, emg_sensor_map(1, :)));
 
                     if ~isempty(match_column)
                         emg_labels(i_label) = emg_sensor_map(2, match_column);
@@ -98,15 +99,17 @@ function preprocessRawData(varargin)
                 end
 
                 % save
-                save_file_name = ['processed' filesep makeFileName(date, subject_id, trial_type, trial_number, 'emgTrajectories.mat')];
+                save_folder = 'processed';
+                save_file_name = makeFileName(date, subject_id, trial_type, trial_number, 'emgTrajectories.mat');
                 save ...
                   ( ...
-                    save_file_name, ...
+                    [save_folder filesep save_file_name], ...
                     'emg_trajectories', ...
                     'time_emg', ...
                     'sampling_rate_emg', ...
                     'emg_labels' ...
                   );
+                addAvailableVariable('emg_trajectories', 'time_emg', 'emg_labels', save_folder, save_file_name);
                 disp(['filtered and saved as ' save_file_name])
 
                 % visualize
@@ -125,12 +128,6 @@ function preprocessRawData(varargin)
 
             end
         end
-
-
-
-
-
-
     end
     
     %% forceplate data
@@ -250,10 +247,11 @@ function preprocessRawData(varargin)
         %             legend('toggle')
 
                 % save
-                save_file_name = ['processed' filesep makeFileName(date, subject_id, trial_type, trial_number, 'forceplateTrajectories.mat')];
+                save_folder = 'processed';
+                save_file_name = makeFileName(date, subject_id, trial_type, trial_number, 'forceplateTrajectories.mat');
                 save ...
                   ( ...
-                    save_file_name, ...
+                    [save_folder filesep save_file_name], ...
                     'left_forceplate_wrench_world', ...
                     'left_forceplate_cop_world', ...
                     'right_forceplate_wrench_world', ...
@@ -279,7 +277,29 @@ function preprocessRawData(varargin)
                     'time_forceplate', ...
                     'sampling_rate_forceplate' ...
                   );
-                disp(['processed ' raw_forceplate_file_name ' and saved as ' save_file_name])        
+                addAvailableVariable('left_forceplate_wrench_world', 'time_forceplate', 'left_forceplate_wrench_world', save_folder, save_file_name);
+                addAvailableVariable('left_forceplate_cop_world', 'time_forceplate', 'left_forceplate_cop_world', save_folder, save_file_name);
+                addAvailableVariable('right_forceplate_wrench_world', 'time_forceplate', 'right_forceplate_wrench_world', save_folder, save_file_name);
+                addAvailableVariable('right_forceplate_cop_world', 'time_forceplate', 'right_forceplate_cop_world', save_folder, save_file_name);
+                addAvailableVariable('total_forceplate_wrench_world', 'time_forceplate', 'total_forceplate_wrench_world', save_folder, save_file_name);
+                addAvailableVariable('total_forceplate_cop_world', 'time_forceplate', 'total_forceplate_cop_world', save_folder, save_file_name);
+                addAvailableVariable('fxl_trajectory', 'time_forceplate', 'fxl_trajectory', save_folder, save_file_name);
+                addAvailableVariable('fyl_trajectory', 'time_forceplate', 'fyl_trajectory', save_folder, save_file_name);
+                addAvailableVariable('fzl_trajectory', 'time_forceplate', 'fzl_trajectory', save_folder, save_file_name);
+                addAvailableVariable('mxl_trajectory', 'time_forceplate', 'mxl_trajectory', save_folder, save_file_name);
+                addAvailableVariable('myl_trajectory', 'time_forceplate', 'myl_trajectory', save_folder, save_file_name);
+                addAvailableVariable('mzl_trajectory', 'time_forceplate', 'mzl_trajectory', save_folder, save_file_name);
+                addAvailableVariable('copxl_trajectory', 'time_forceplate', 'copxl_trajectory', save_folder, save_file_name);
+                addAvailableVariable('copyl_trajectory', 'time_forceplate', 'copyl_trajectory', save_folder, save_file_name);
+                addAvailableVariable('fxr_trajectory', 'time_forceplate', 'fxr_trajectory', save_folder, save_file_name);
+                addAvailableVariable('fyr_trajectory', 'time_forceplate', 'fyr_trajectory', save_folder, save_file_name);
+                addAvailableVariable('fzr_trajectory', 'time_forceplate', 'fzr_trajectory', save_folder, save_file_name);
+                addAvailableVariable('mxr_trajectory', 'time_forceplate', 'mxr_trajectory', save_folder, save_file_name);
+                addAvailableVariable('myr_trajectory', 'time_forceplate', 'myr_trajectory', save_folder, save_file_name);
+                addAvailableVariable('mzr_trajectory', 'time_forceplate', 'mzr_trajectory', save_folder, save_file_name);
+                addAvailableVariable('copxr_trajectory', 'time_forceplate', 'copxr_trajectory', save_folder, save_file_name);
+                addAvailableVariable('copyr_trajectory', 'time_forceplate', 'copyr_trajectory', save_folder, save_file_name);
+                disp(['processed ' raw_forceplate_file_name ' and saved as ' [save_folder filesep save_file_name]])        
             end
         end
     end
@@ -301,17 +321,20 @@ function preprocessRawData(varargin)
                 load(['raw' filesep raw_marker_file_name]);
 
                 % we're currently not doing anything, here
+                marker_trajectories = marker_trajectories_raw;
                 
                 % save
-                save_file_name = ['processed' filesep makeFileName(date, subject_id, trial_type, trial_number, 'markerTrajectories.mat')];
+                save_folder = 'processed';
+                save_file_name = makeFileName(date, subject_id, trial_type, trial_number, 'markerTrajectories.mat');
                 save ...
                   ( ...
-                    save_file_name, ...
+                    [save_folder filesep save_file_name], ...
                     'marker_trajectories', ...
                     'time_mocap', ...
                     'sampling_rate_mocap', ...
-                    'marker_headers' ...
+                    'marker_labels' ...
                   );
+                addAvailableVariable('marker_trajectories', 'time_mocap', 'marker_labels', save_folder, save_file_name);
                 disp(['processed ' raw_marker_file_name ' and saved as ' save_file_name])        
             end
         end
@@ -344,21 +367,23 @@ function preprocessRawData(varargin)
                 % apply shift to marker trajectories
                 file_name_raw = ['raw' filesep makeFileName(date, subject_id, this_condition, i_trial, 'markerTrajectoriesRaw.mat')];
                 load(file_name_raw);
-%                     marker_trajectories_original = marker_trajectories;
+                marker_trajectories = marker_trajectories_raw;
                 belt_position_trajectory_mocap = spline(time_belts, belt_position_trajectory_plcData, time_mocap)';
                 for i_marker = 1 : size(marker_headers, 2)
                     marker_trajectories(:, (i_marker-1)*3+2) = marker_trajectories(:, (i_marker-1)*3+2) + belt_position_trajectory_mocap;
                 end
-
-                file_name_shifted = ['processed' filesep makeFileName(date, subject_id, this_condition, i_trial, 'markerTrajectories.mat')];
+              
+                save_folder = 'processed';
+                save_file_name = makeFileName(date, subject_id, trial_type, trial_number, 'markerTrajectories.mat');
                 save ...
                   ( ...
-                    file_name_shifted, ...
+                    [save_folder filesep save_file_name], ...
                     'marker_trajectories', ...
                     'time_mocap', ...
                     'sampling_rate_mocap', ...
-                    'marker_headers' ...
+                    'marker_labels' ...
                   );
+                addAvailableVariable('marker_trajectories', 'time_mocap', 'marker_labels', save_folder, save_file_name);
                 disp(['Transformed marker data in ' file_name_raw ' to belt space and saved to ' file_name_shifted])                    
             end
 

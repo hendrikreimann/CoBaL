@@ -60,12 +60,24 @@ function settings = loadSettingsFile(filename)
             variable_value_cell = strsplit(variable_value_string, ',');
             if length(variable_value_cell) == 1
                 variable_value = variable_value_cell{1};
+                
+                % try to transform to a single double
                 if ~isempty(str2num(variable_value))
                     variable_value = str2num(variable_value);
                 end
-
             else
                 variable_value = variable_value_cell;
+                
+                % try to transform to a double array
+                variable_value_array = zeros(size(variable_value)) * NaN;
+                for i_entry = 1 : length(variable_value)
+                    if ~isempty(str2num(variable_value{i_entry}))
+                        variable_value_array(i_entry) = str2num(variable_value{i_entry});
+                    end
+                end
+                if ~any(isnan(variable_value_array))
+                    variable_value = variable_value_array;
+                end
             end
 
 

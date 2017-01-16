@@ -42,30 +42,21 @@ function importAscii(varargin)
     centimeter_to_meter = 1e-2;
     milliseconds_to_seconds = 1e-3;
 
-    % figure out folders
+    % create folders if necessary
     if ~exist('raw', 'dir')
         mkdir('raw')
     end
     if ~exist('processed', 'dir')
         mkdir('processed')
     end
+    if ~exist('analysis', 'dir')
+        mkdir('analysis')
+    end
     current_path = pwd;
     path_split = strsplit(current_path, filesep);
     subject_code = path_split{end};
 
     %% import data
-    
-    % potential_sources = {'marker', 'markers', 'ascii'};
-    % potential_sources = {'ascii'};
-    % potential_sources = {'devices'};
-    % potential_sources = {'markers'};
-    % potential_sources = {'labview'};
-    % potential_sources = {'neurocom'};
-    % potential_sources = {'neurocom', 'ascii'};
-
-    % comment/uncomment these to exclude some sources, mostly to cut down processing time when re-processing only certain
-    % files
-
     for i_source = 1 : length(sources)
         source_dir = [subject_code '_' sources{i_source}];
         if exist(source_dir, 'dir')
@@ -121,45 +112,57 @@ function importAscii(varargin)
                                 % deal with devices data
                                 if strcmp(data_group{2}(1 : 17), 'Delsys Trigno EMG')
                                     data_type = 'emg';
-                                    emg_headers = data_group(2 : end-1);
+                                    emg_labels = data_group(2 : end-1);
                                     emg_trajectories_raw = imported_data.data(:, 3:end);
                                     sampling_rate_emg = str2num(imported_data.textdata{number_of_header_lines_returned-3, 1});
                                     time_emg = (1 : number_of_samples) / sampling_rate_emg;
+                                    if isrow(time_emg)
+                                        time_emg = time_emg';
+                                    end
                                     % prune header
-                                    for i_column = 1 : length(emg_headers)
-                                        emg_headers{i_column} = strrep(emg_headers{i_column}, 'Delsys Trigno EMG 1.2 - Sensor ', 'EMG');
+                                    for i_column = 1 : length(emg_labels)
+                                        emg_labels{i_column} = strrep(emg_labels{i_column}, 'Delsys Trigno EMG 1.2 - Sensor ', 'EMG');
                                     end
 
                                     % save emg data
-                                    matlab_data_file_name = ['raw' filesep makeFileName(date, subject_id, trial_type, trial_number, 'emgTrajectoriesRaw.mat')];
+                                    save_folder = 'raw';
+                                    save_file_name = makeFileName(date, subject_id, trial_type, trial_number, 'emgTrajectoriesRaw.mat');
                                     save ...
                                       ( ...
-                                        matlab_data_file_name, ...
+                                        [save_folder filesep save_file_name], ...
                                         'emg_trajectories_raw', ...
                                         'time_emg', ...
                                         'sampling_rate_emg', ...
                                         'data_source', ...
-                                        'emg_headers' ...
+                                        'emg_labels' ...
                                       );
+                                    addAvailableVariable('emg_trajectories_raw', 'time_emg', 'emg_labels', save_folder, save_file_name);
+                                  
+                                  
 
                                 elseif strcmp(data_group{2}(1 : 6), 'Bertec')
                                     data_type = 'forceplate';
                                     forceplate_trajectories_raw = imported_data.data(:, 3:end);
-                                    forceplate_headers = data_headers(3 : end);
+                                    forceplate_labels = data_headers(3 : end);
                                     sampling_rate_forceplate = str2num(imported_data.textdata{number_of_header_lines_returned-3, 1});
                                     time_forceplate = (1 : number_of_samples) / sampling_rate_forceplate;
+                                    if isrow(time_forceplate)
+                                        time_forceplate = time_forceplate';
+                                    end
 
                                     % save forceplate data
-                                    matlab_data_file_name = ['raw' filesep makeFileName(date, subject_id, trial_type, trial_number, 'forceplateTrajectoriesRaw.mat')];
+                                    save_folder = 'raw';
+                                    save_file_name = makeFileName(date, subject_id, trial_type, trial_number, 'forceplateTrajectoriesRaw.mat');
                                     save ...
                                       ( ...
-                                        matlab_data_file_name, ...
+                                        [save_folder filesep save_file_name], ...
                                         'forceplate_trajectories_raw', ...
-                                        'forceplate_headers', ...
+                                        'forceplate_labels', ...
                                         'data_source', ...
                                         'time_forceplate', ...
                                         'sampling_rate_forceplate' ...
                                       );
+                                    addAvailableVariable('forceplate_trajectories_raw', 'time_forceplate', 'forceplate_labels', save_folder, save_file_name);
                                 else
                                     error(['data not recognized: file "' data_file_name])
                                 end
@@ -170,33 +173,34 @@ function importAscii(varargin)
                                 data_type = 'markers';
 
                                 % deal with marker data
-                                marker_trajectories = imported_data.data(:, 3:end) * millimeter_to_meter;
-                                marker_headers_with_subject = data_group(2 : end-1);
+                                marker_trajectories_raw = imported_data.data(:, 3:end) * millimeter_to_meter;
+                                marker_labels_with_subject = data_group(2 : end-1);
                                 sampling_rate_mocap = str2num(imported_data.textdata{number_of_header_lines_returned-3, 1});
                                 time_mocap = (1 : number_of_samples) / sampling_rate_mocap;
+                                if isrow(time_mocap)
+                                    time_mocap = time_mocap';
+                                end
 
                                 % remove subject name from header strings
-                                marker_headers = cell(size(marker_headers_with_subject));
-                                for i_marker = 1 : length(marker_headers_with_subject)
-                                    marker_header = strsplit(marker_headers_with_subject{i_marker}, ':');
-                                    marker_headers{i_marker} = marker_header{2};
+                                marker_labels = cell(size(marker_labels_with_subject));
+                                for i_marker = 1 : length(marker_labels_with_subject)
+                                    marker_header = strsplit(marker_labels_with_subject{i_marker}, ':');
+                                    marker_labels{i_marker} = marker_header{2};
                                 end
 
                                 % save
-            %                     matlab_data_file_name = [data_file_name(1 : end-4) '_markerTrajectoriesRaw.mat'];
-                                matlab_data_file_name = ['raw' filesep makeFileName(date, subject_id, trial_type, trial_number, 'markerTrajectoriesRaw.mat')];
+                                save_folder = 'raw';
+                                save_file_name = makeFileName(date, subject_id, trial_type, trial_number, 'markerTrajectoriesRaw.mat');
                                 save ...
                                   ( ...
-                                    matlab_data_file_name, ...
-                                    'marker_trajectories', ...
+                                    [save_folder filesep save_file_name], ...
+                                    'marker_trajectories_raw', ...
                                     'time_mocap', ...
                                     'data_source', ...
                                     'sampling_rate_mocap', ...
-                                    'marker_headers' ...
+                                    'marker_labels' ...
                                   );
-
-
-
+                                addAvailableVariable('marker_trajectories_raw', 'time_mocap', 'marker_labels', save_folder, save_file_name);
                             else 
                                 error(['unkown data type: ' data_class]); 
                             end
@@ -223,30 +227,35 @@ function importAscii(varargin)
 
                     data_type = 'markers';
                     data_source = 'qtm';
-                    marker_headers_field = imported_data.textdata{10};
-                    marker_headers_strings = strsplit(marker_headers_field);
-                    marker_headers = marker_headers_strings(2 : end);
+                    marker_labels_field = imported_data.textdata{10};
+                    marker_labels_strings = strsplit(marker_labels_field);
+                    marker_labels = marker_labels_strings(2 : end);
 
-                    marker_trajectories = imported_data.data(:, 3:end) * millimeter_to_meter;
+                    marker_trajectories_raw = imported_data.data(:, 3:end) * millimeter_to_meter;
                     sampling_rate_field = imported_data.textdata{4, 1};
                     sampling_rate_strings = strsplit(sampling_rate_field);
                     sampling_rate_mocap = str2num(sampling_rate_strings{2});
                     time_mocap = imported_data.data(:, 2);
+                    if isrow(time_mocap)
+                        time_mocap = time_mocap';
+                    end
 
                     % set gaps to NaN instead of 0, which seems to be the incredibly annoying default output of QTM
-                    marker_trajectories(marker_trajectories==0) = NaN;
+                    marker_trajectories_raw(marker_trajectories_raw==0) = NaN;
 
                     % save marker data
-                    matlab_data_file_name = ['raw' filesep makeFileName(date, subject_id, trial_type, trial_number, 'markerTrajectoriesRaw.mat')];
+                    save_folder = 'raw';
+                    save_file_name = makeFileName(date, subject_id, trial_type, trial_number, 'markerTrajectoriesRaw.mat');
                     save ...
                       ( ...
-                        matlab_data_file_name, ...
-                        'marker_trajectories', ...
+                        [save_folder filesep save_file_name], ...
+                        'marker_trajectories_raw', ...
                         'time_mocap', ...
                         'data_source', ...
                         'sampling_rate_mocap', ...
-                        'marker_headers' ...
+                        'marker_labels' ...
                       );
+                    addAvailableVariable('marker_trajectories_raw', 'time_mocap', 'marker_labels', save_folder, save_file_name);
                     disp(['imported ' source_dir filesep data_file_name ' and saved as ' matlab_data_file_name])
                 elseif strcmp(file_type, 'a')
                     % this is analog data from QTM
@@ -254,11 +263,11 @@ function importAscii(varargin)
 
                     data_type = 'emg';
                     data_source = 'qtm';
-                    emg_headers_field = imported_data.textdata{9};
-                    emg_headers_strings = strsplit(emg_headers_field);
-                    emg_headers = emg_headers_strings(2 : end);
-                    for i_column = 1 : length(emg_headers)
-                        emg_headers{i_column} = strrep(emg_headers{i_column}, 'CH', 'EMG');
+                    emg_labels_field = imported_data.textdata{9};
+                    emg_labels_strings = strsplit(emg_labels_field);
+                    emg_labels = emg_labels_strings(2 : end);
+                    for i_column = 1 : length(emg_labels)
+                        emg_labels{i_column} = strrep(emg_labels{i_column}, 'CH', 'EMG');
                     end
 
                     emg_trajectories_raw = imported_data.data(:, 3:end);
@@ -266,18 +275,23 @@ function importAscii(varargin)
                     sampling_rate_strings = strsplit(sampling_rate_field);
                     sampling_rate_emg = str2num(sampling_rate_strings{2});
                     time_emg = imported_data.data(:, 2);
+                    if isrow(time_emg)
+                        time_emg = time_emg';
+                    end
 
                     % save emg data
-                    matlab_data_file_name = ['raw' filesep makeFileName(date, subject_id, trial_type, trial_number, 'emgTrajectoriesRaw.mat')];
+                    save_folder = 'raw';
+                    save_file_name = makeFileName(date, subject_id, trial_type, trial_number, 'emgTrajectoriesRaw.mat');
                     save ...
                       ( ...
-                        matlab_data_file_name, ...
+                        [save_folder filesep save_file_name], ...
                         'emg_trajectories_raw', ...
                         'time_emg', ...
                         'data_source', ...
                         'sampling_rate_emg', ...
-                        'emg_headers' ...
+                        'emg_labels' ...
                       );
+                    addAvailableVariable('emg_trajectories_raw', 'time_emg', 'emg_labels', save_folder, save_file_name);
                     disp(['imported ' source_dir filesep data_file_name ' and saved as ' matlab_data_file_name])
 
                 elseif strcmp(file_type, 'neurocomData')
@@ -306,6 +320,9 @@ function importAscii(varargin)
 
                     % extract and format time
                     time_forceplate = force_plate_data_cell{1} * 1/sampling_rate_forceplate;
+                    if isrow(time_forceplate)
+                        time_forceplate = time_forceplate';
+                    end
 
                     % extract and format data
                     forceplate_trajectories_raw = ...
@@ -332,28 +349,27 @@ function importAscii(varargin)
 
                     % extract and format header
                     line_split = strsplit(header{label_line_number}, ' ');
-                    forceplate_headers = cell(1, 18);
+                    forceplate_labels = cell(1, 18);
                     for i_col = 2 : 19
                         cell_split = strsplit(line_split{i_col}, '.');
-                        forceplate_headers{i_col-1} = cell_split{2};
+                        forceplate_labels{i_col-1} = cell_split{2};
                     end
 
                     % save forceplate data
-                    matlab_data_file_name = ['raw' filesep makeFileName(date, subject_id, trial_type, trial_number, 'forceplateTrajectoriesRaw.mat')];
+                    save_folder = 'raw';
+                    matlab_data_file_name = [save_folder filesep makeFileName(date, subject_id, trial_type, trial_number, 'forceplateTrajectoriesRaw.mat')];
                     save ...
                       ( ...
                         matlab_data_file_name, ...
                         'forceplate_trajectories_raw', ...
-                        'forceplate_headers', ...
+                        'forceplate_labels', ...
                         'time_forceplate', ...
                         'data_source', ...
                         'sampling_rate_forceplate' ...
                       );
+                    addAvailableVariable('forceplate_trajectories_raw', 'time_forceplate', 'forceplate_labels', matlab_data_file_name, save_folder);
+                    
                     disp(['imported ' source_dir filesep data_file_name])
-
-
-
-
 
 
                 elseif strcmp(file_type, 'unknown')
@@ -370,10 +386,12 @@ function importAscii(varargin)
 
                     % extract data into properly named variables
                     variables_to_save = struct();
+                    variables_to_save_list = {};
                     for i_column = 1 : number_of_data_columns
                         variable_name = [strrep(labview_header{i_column}, ' ', '_'), '_trajectory'];
                         extract_string = ['variables_to_save.' variable_name ' = labview_trajectories(:, i_column);'];
                         eval(extract_string);
+                        variables_to_save_list = [variables_to_save_list; variable_name];
                     end
 
                     % electrodes were inverted for subject STD (red was left, should be right), so correct this
@@ -384,18 +402,27 @@ function importAscii(varargin)
                         plot(variables_to_save.GVS_out_trajectory);
                     end
 
-
                     % take special care of time, transform to seconds and rename according to file type
+                    if isrow(variables_to_save.time_trajectory)
+                        variables_to_save.time_trajectory = variables_to_save.time_trajectory';
+                    end
                     eval(['variables_to_save.time_' file_type ' = variables_to_save.time_trajectory * milliseconds_to_seconds;']);
                     variables_to_save = rmfield(variables_to_save, 'time_trajectory');
+                    variables_to_save_list(strcmp(variables_to_save_list, 'time_trajectory')) = [];
 
                     % add data source
                     variables_to_save.data_source = 'labview'; % not tested yet
 
                     % save
-                    matlab_data_file_name = ['processed' filesep makeFileName(date, subject_id, trial_type, trial_number, file_type)];
-                    save(matlab_data_file_name, '-struct', 'variables_to_save');
-                    disp(['imported ' source_dir filesep data_file_name ' and saved as ' matlab_data_file_name])
+                    save_folder = 'processed';
+                    save_file_name = makeFileName(date, subject_id, trial_type, trial_number, file_type);
+                    save([save_folder filesep save_file_name], '-struct', 'variables_to_save');
+                    
+                    for i_variable = 1 : length(variables_to_save_list)
+                        addAvailableVariable(variables_to_save_list{i_variable}, 'time_trajectory', variables_to_save_list{i_variable}, save_folder, save_file_name);
+                    end
+                    
+                    disp(['imported ' source_dir filesep data_file_name ' and saved as ' save_folder filesep save_file_name])
                 end
 
 
