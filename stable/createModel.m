@@ -12,7 +12,7 @@
 %     GNU General Public License for more details.
 % 
 %     You should have received a copy of the GNU General Public License
-%     along with this program.  If not, see <http://www.gnu.org/licenses/>.% compare the kinematic tree against the kinematic chain
+%     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 % this function creates a model of the subject
 
@@ -37,7 +37,7 @@ function createModel(varargin)
     parse(parser, varargin{:})
     visualize = parser.Results.visualize;
     
-    settings = loadStudySettings();
+    settings = loadSettingsFile('subjectSettings.txt');
 
     % TODO: change stuff depending upon the static reference type
 
@@ -300,7 +300,7 @@ function createModel(varargin)
     %% estimate knee joint centers and axes
     if strcmp(settings.knee_joint_axis_estimation_method, 'SARA')
         % find left knee CoR
-        left_knee_reference_file_name = ['processed' filesep makeFileName(date, subject_id, 'calibration', left_knee_calibration_file_index, 'markerTrajectories')];
+        left_knee_reference_file_name = ['processed' filesep makeFileName(date, subject_id, 'calibration', settings.left_knee_calibration_file_index, 'markerTrajectories')];
         disp(['Left knee reference file name: ' left_knee_reference_file_name]);
         load(left_knee_reference_file_name);
         knee_reference = marker_trajectories;
@@ -325,7 +325,7 @@ function createModel(varargin)
           );
 
         % find right knee CoR
-        right_knee_reference_file_name = ['processed' filesep makeFileName(date, subject_id, 'calibration', right_knee_calibration_file_index, 'markerTrajectories')];
+        right_knee_reference_file_name = ['processed' filesep makeFileName(date, subject_id, 'calibration', settings.right_knee_calibration_file_index, 'markerTrajectories')];
         disp(['Right knee reference file name: ' right_knee_reference_file_name]);
         load(right_knee_reference_file_name);
         knee_reference = marker_trajectories;

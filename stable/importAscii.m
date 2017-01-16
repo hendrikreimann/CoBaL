@@ -12,7 +12,7 @@
 %     GNU General Public License for more details.
 % 
 %     You should have received a copy of the GNU General Public License
-%     along with this program.  If not, see <http://www.gnu.org/licenses/>.% compare the kinematic tree against the kinematic chain
+%     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 % this script transform raw data from ascii into matlab format
 
@@ -213,7 +213,13 @@ function importAscii(varargin)
 
                 elseif strcmp(file_type, 'qualisysData')
                     % this is marker data from QTM
-                    [imported_data, delimiter, nheaderlines] = importdata([source_dir filesep data_file_name], '\t', 10);
+                    
+                    number_of_header_lines = 10;
+%                     number_of_header_lines = 11;
+                    % TODO: the number of header lines here is 10 or 11, depending upon some export settings in QTM. Add
+                    % something here to determine that automatically.
+                    [imported_data, delimiter, nheaderlines] = importdata([source_dir filesep data_file_name], '\t', number_of_header_lines);
+                    
 
                     data_type = 'markers';
                     data_source = 'qtm';

@@ -12,9 +12,9 @@
 %     GNU General Public License for more details.
 % 
 %     You should have received a copy of the GNU General Public License
-%     along with this program.  If not, see <http://www.gnu.org/licenses/>.% compare the kinematic tree against the kinematic chain
+%     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-function [conditions_to_analyze, trials_to_analyze] = parseTrialArguments(varargin)
+function [conditions_to_analyze, trials_to_analyze, calibration_trials, emg_trials] = parseTrialArguments(varargin)
     load('subjectInfo.mat', 'condition_list', 'trial_number_list');
 
     parser = inputParser;
@@ -81,10 +81,12 @@ function [conditions_to_analyze, trials_to_analyze] = parseTrialArguments(vararg
     end
         
     % exclude calibration
+    calibration_trials = trials_to_analyze(strcmp(conditions_to_analyze, 'calibration'));
     trials_to_analyze(strcmp(conditions_to_analyze, 'calibration')) = [];
     conditions_to_analyze(strcmp(conditions_to_analyze, 'calibration')) = [];
 
     % exclude emg
+    emg_trials = trials_to_analyze(strcmp(conditions_to_analyze, 'emg'));
     trials_to_analyze(strcmp(conditions_to_analyze, 'emg')) = [];
     conditions_to_analyze(strcmp(conditions_to_analyze, 'emg')) = [];
 end

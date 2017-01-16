@@ -19,24 +19,22 @@
 %     GNU General Public License for more details.
 % 
 %     You should have received a copy of the GNU General Public License
-%     along with this program.  If not, see <http://www.gnu.org/licenses/>.% compare the kinematic tree against the kinematic chain
+%     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-function settings = loadStudySettings()
+function settings = loadSettingsFile(filename)
     settings = struct();
 
     % open file
-    study_settings_file = ['..' filesep 'studySettings.txt'];
-    if ~exist(study_settings_file, 'file')
-        fileID = fopen(study_settings_file, 'w');
+    if ~exist(filename, 'file')
+        fileID = fopen(filename, 'w');
         fprintf(fileID,'example settings file, edit this later\n');
         fclose(fileID);
         
-        disp('Failed to load "studySettings.txt", a sample file has been created. Please edit it with your study information or copy the correct file.')
-        return
+        error('Failed to load "studySettings.txt", a sample file has been created. Please edit it with your study information or copy the correct file.')
     end
 
-    fileID = fopen(study_settings_file, 'r');
+    fileID = fopen(filename, 'r');
     
     % for now, just read line by line and assume each one is a variable. Later I should add something like
     % readSettingsBlock()
@@ -54,18 +52,26 @@ function settings = loadStudySettings()
     for i_line = 1 : length(text_cell)
         text_line = text_cell{i_line};
         % parse this line
-        line_split = strsplit(text_line, ':');
-        variable_name = strrep(line_split{1}, ' ', '_');;
-        variable_value_string = strrep(line_split{2}, ' ', '');
-        variable_value_cell = strsplit(variable_value_string, ',');
-        if length(variable_value_cell) == 1
-            variable_value = variable_value_cell{1};
-        else
-            variable_value = variable_value_cell;
-        end
+        if length(text_line) >= 2 & ~strcmp(text_line(1:2), '//')
         
-        evalstring = ['settings.' variable_name ' = variable_value;'];
-        eval(evalstring);
+            line_split = strsplit(text_line, ':');
+            variable_name = strrep(line_split{1}, ' ', '_');
+            variable_value_string = strrep(line_split{2}, ' ', '');
+            variable_value_cell = strsplit(variable_value_string, ',');
+            if length(variable_value_cell) == 1
+                variable_value = variable_value_cell{1};
+                if ~isempty(str2num(variable_value))
+                    variable_value = str2num(variable_value);
+                end
+
+            else
+                variable_value = variable_value_cell;
+            end
+
+
+            evalstring = ['settings.' variable_name ' = variable_value;'];
+            eval(evalstring);
+        end
     end 
     
 end

@@ -15,16 +15,17 @@
 %     along with this program.  If not, see <http://www.gnu.org/licenses/>.% compare the kinematic tree against the kinematic chain
 
 function stepEventGui(varargin)
+
+    % parse arguments
     [condition_list, trial_number_list] = parseTrialArguments(varargin{:});
+    parser = inputParser;
+    parser.KeepUnmatched = true;
+    addParameter(parser, 'color_scheme', 'intra')
+    parse(parser, varargin{:})
+    color_scheme = parser.Results.color_scheme;
+
     condition = condition_list{1};
     trial_to_process = trial_number_list{1}(1);
-    
-    if nargin < 3
-        color_scheme = 'intra';
-    else
-        color_scheme = varargin{3};
-    end
-
     
     %% set plot stuff
     if strcmp(color_scheme, 'side')
@@ -81,15 +82,18 @@ function stepEventGui(varargin)
     trial_data = WalkingTrialData(pwd, condition, trial_to_process);
     event_data = WalkingEventData(trial_data);
     load('subjectModel.mat');
+    study_settings = loadSettingsFile(['..' filesep 'studySettings.txt']);
     
     % init gui
     controller = stepEventController(trial_data, event_data);
     
     % show stick figure
-    heel_center_ap = mean([trial_data.left_heel_y_pos(1) trial_data.right_heel_y_pos(1)]);
-    scene_bound = [-1 1; heel_center_ap+[-1 1]; -0.05 1.95]; % treadmill in CoBaL
-    scene_bound = [-1 1; heel_center_ap+[-0.2 4]; -0.05 1.95]; % walkway in VEPO
-
+    scene_bound = ...
+      [ ...
+        study_settings.scene_bound_x_min study_settings.scene_bound_x_max; ...
+        study_settings.scene_bound_y_min study_settings.scene_bound_y_max; ...
+        study_settings.scene_bound_z_min study_settings.scene_bound_z_max ...
+      ];
     positions = trial_data.marker_positions(1, :);
     headers = trial_data.marker_headers;
     if ~isempty(trial_data.joint_center_positions)

@@ -12,7 +12,22 @@
 %     GNU General Public License for more details.
 % 
 %     You should have received a copy of the GNU General Public License
-%     along with this program.  If not, see <http://www.gnu.org/licenses/>.% compare the kinematic tree against the kinematic chain
+%     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+% this function calculates kinematic variables from the marker data
+
+% input: 
+% subjectInfo.mat
+% subjectModel.mat
+% markerTrajectories
+%
+% output:
+% file kinematicTrajectories.mat, containing
+% - joint_center_trajectories
+% - com_trajectories
+% - com_labels
+% - joint_angle_trajectories
+
 
 function calculateKinematicTrajectories(varargin)
     [condition_list, trial_number_list] = parseTrialArguments(varargin{:});
@@ -100,16 +115,16 @@ function calculateKinematicTrajectories(varargin)
 %                       );
             end
             
-            com_file_name = ['processed' filesep makeFileName(date, subject_id, condition, i_trial, 'kinematicTrajectories')];
+            kinematic_trajectories_file_name = ['processed' filesep makeFileName(date, subject_id, condition, i_trial, 'kinematicTrajectories')];
             save ...
               ( ...
-                com_file_name, ...
+                kinematic_trajectories_file_name, ...
                 'joint_center_trajectories', ...
                 'com_trajectories', ...
                 'com_labels', ...
                 'joint_angle_trajectories' ...
               );
-            disp(['Condition ' condition ', Trial ' num2str(i_trial) ' completed, saved as ' com_file_name]);
+            disp(['Condition ' condition ', Trial ' num2str(i_trial) ' completed, saved as ' kinematic_trajectories_file_name]);
 
         end
     end
