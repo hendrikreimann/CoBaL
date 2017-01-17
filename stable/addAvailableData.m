@@ -21,8 +21,8 @@
 % file: identifier of the file in which this information is saved
 % folder: folder containing the file
 
-function addAvailableVariable(name, time, labels, folder, file_name)
-    [date, subject_id, trial_type, trial_number, file_type] = getFileParameters(file_name);
+function addAvailableData(name, time, sampling_rate, labels, folder, file_name)
+    [date, subject_id, trial_type, trial_number] = getFileParameters(file_name);
     
     % load list of already available variables if existing
     available_variables = {};
@@ -33,14 +33,12 @@ function addAvailableVariable(name, time, labels, folder, file_name)
     end
 
     % add new entry
-    new_entry = {name, time, labels, folder, file_name};
+    new_entry = {name, time, sampling_rate, labels, folder, file_name};
     if any(any(strcmp(name, available_variables)))
         available_variables(strcmp(name, available_variables(:, 1)), :) = new_entry;
     else
         available_variables(end+1, :) = new_entry;
     end
-    
-    % TODO: check if this entry already exists
     
     % save
     save(['analysis' filesep variable_file_name], 'available_variables');

@@ -41,23 +41,6 @@ function createModel(varargin)
 
     % TODO: change stuff depending upon the static reference type
 
-
-    % hip_joint_center_estimation_method = 'SCoRE';
-%     hip_joint_center_estimation_method = 'Tylkowski';
-
-    % knee_joint_axis_estimation_method = 'SARA';
-%     knee_joint_axis_estimation_method = 'markers';
-
-
-    % static_reference_trial_type = 'walking';
-%     static_reference_trial_type = 'calibration';
-%     static_reference_file_index = 1;
-% 
-%     left_hip_calibration_file_index = 2;
-%     right_hip_calibration_file_index = 3;
-%     left_knee_calibration_file_index = 4;
-%     right_knee_calibration_file_index = 5;
-
     load('subjectInfo.mat', 'date', 'subject_id', 'knee_width', 'ankle_width', 'elbow_width');
 
     % if width measurements are not available, use best guess
@@ -92,59 +75,59 @@ function createModel(varargin)
     % TODO: check what happens if some of these markers are not there
     
     % head
-    LFHD_reference = extractMarkerTrajectories(marker_reference, marker_headers, 'LFHD')';
-    RFHD_reference = extractMarkerTrajectories(marker_reference, marker_headers, 'RFHD')';
-    LBHD_reference = extractMarkerTrajectories(marker_reference, marker_headers, 'LBHD')';
-    RBHD_reference = extractMarkerTrajectories(marker_reference, marker_headers, 'RBHD')';
+    LFHD_reference = extractMarkerTrajectories(marker_reference, marker_labels, 'LFHD')';
+    RFHD_reference = extractMarkerTrajectories(marker_reference, marker_labels, 'RFHD')';
+    LBHD_reference = extractMarkerTrajectories(marker_reference, marker_labels, 'LBHD')';
+    RBHD_reference = extractMarkerTrajectories(marker_reference, marker_labels, 'RBHD')';
 
     % torso
-    C7_reference = extractMarkerTrajectories(marker_reference, marker_headers, 'C7')';
-    T10_reference = extractMarkerTrajectories(marker_reference, marker_headers, 'T10')';
-    CLAV_reference = extractMarkerTrajectories(marker_reference, marker_headers, 'CLAV')';
-    STRN_reference = extractMarkerTrajectories(marker_reference, marker_headers, 'STRN')';
-    RBAK_reference = extractMarkerTrajectories(marker_reference, marker_headers, 'RBAK')';
+    C7_reference = extractMarkerTrajectories(marker_reference, marker_labels, 'C7')';
+    T10_reference = extractMarkerTrajectories(marker_reference, marker_labels, 'T10')';
+    CLAV_reference = extractMarkerTrajectories(marker_reference, marker_labels, 'CLAV')';
+    STRN_reference = extractMarkerTrajectories(marker_reference, marker_labels, 'STRN')';
+    RBAK_reference = extractMarkerTrajectories(marker_reference, marker_labels, 'RBAK')';
 
     % left arm
-    LSHO_reference = extractMarkerTrajectories(marker_reference, marker_headers, 'LSHO')';
-    LELB_reference = extractMarkerTrajectories(marker_reference, marker_headers, 'LELB')';
-    LWRA_reference = extractMarkerTrajectories(marker_reference, marker_headers, 'LWRA')';
-    LWRB_reference = extractMarkerTrajectories(marker_reference, marker_headers, 'LWRB')';
-    LFIN_reference = extractMarkerTrajectories(marker_reference, marker_headers, 'LFIN')';
+    LSHO_reference = extractMarkerTrajectories(marker_reference, marker_labels, 'LSHO')';
+    LELB_reference = extractMarkerTrajectories(marker_reference, marker_labels, 'LELB')';
+    LWRA_reference = extractMarkerTrajectories(marker_reference, marker_labels, 'LWRA')';
+    LWRB_reference = extractMarkerTrajectories(marker_reference, marker_labels, 'LWRB')';
+    LFIN_reference = extractMarkerTrajectories(marker_reference, marker_labels, 'LFIN')';
 
     % right arm
-    RSHO_reference = extractMarkerTrajectories(marker_reference, marker_headers, 'RSHO')';
-    RELB_reference = extractMarkerTrajectories(marker_reference, marker_headers, 'RELB')';
-    RWRA_reference = extractMarkerTrajectories(marker_reference, marker_headers, 'RWRA')';
-    RWRB_reference = extractMarkerTrajectories(marker_reference, marker_headers, 'RWRB')';
-    RFIN_reference = extractMarkerTrajectories(marker_reference, marker_headers, 'RFIN')';
+    RSHO_reference = extractMarkerTrajectories(marker_reference, marker_labels, 'RSHO')';
+    RELB_reference = extractMarkerTrajectories(marker_reference, marker_labels, 'RELB')';
+    RWRA_reference = extractMarkerTrajectories(marker_reference, marker_labels, 'RWRA')';
+    RWRB_reference = extractMarkerTrajectories(marker_reference, marker_labels, 'RWRB')';
+    RFIN_reference = extractMarkerTrajectories(marker_reference, marker_labels, 'RFIN')';
 
     % pelvis
-    LASI_reference = extractMarkerTrajectories(marker_reference, marker_headers, 'LASI')';
-    RASI_reference = extractMarkerTrajectories(marker_reference, marker_headers, 'RASI')';
-    LPSI_reference = extractMarkerTrajectories(marker_reference, marker_headers, 'LPSI')';
-    RPSI_reference = extractMarkerTrajectories(marker_reference, marker_headers, 'RPSI')';
+    LASI_reference = extractMarkerTrajectories(marker_reference, marker_labels, 'LASI')';
+    RASI_reference = extractMarkerTrajectories(marker_reference, marker_labels, 'RASI')';
+    LPSI_reference = extractMarkerTrajectories(marker_reference, marker_labels, 'LPSI')';
+    RPSI_reference = extractMarkerTrajectories(marker_reference, marker_labels, 'RPSI')';
 
     % left leg
-    LTHI_reference = extractMarkerTrajectories(marker_reference, marker_headers, 'LTHI')';
-    LTHIA_reference = extractMarkerTrajectories(marker_reference, marker_headers, 'LTHIA')';
-    LKNE_reference = extractMarkerTrajectories(marker_reference, marker_headers, 'LKNE')';
-    LTIB_reference = extractMarkerTrajectories(marker_reference, marker_headers, 'LTIB')';
-    LTIBA_reference = extractMarkerTrajectories(marker_reference, marker_headers, 'LTIBA')';
-    LANK_reference = extractMarkerTrajectories(marker_reference, marker_headers, 'LANK')';
-    LHEE_reference = extractMarkerTrajectories(marker_reference, marker_headers, 'LHEE')';
-    LTOE_reference = extractMarkerTrajectories(marker_reference, marker_headers, 'LTOE')';
-    LTOEL_reference = extractMarkerTrajectories(marker_reference, marker_headers, 'LTOEL')';
+    LTHI_reference = extractMarkerTrajectories(marker_reference, marker_labels, 'LTHI')';
+    LTHIA_reference = extractMarkerTrajectories(marker_reference, marker_labels, 'LTHIA')';
+    LKNE_reference = extractMarkerTrajectories(marker_reference, marker_labels, 'LKNE')';
+    LTIB_reference = extractMarkerTrajectories(marker_reference, marker_labels, 'LTIB')';
+    LTIBA_reference = extractMarkerTrajectories(marker_reference, marker_labels, 'LTIBA')';
+    LANK_reference = extractMarkerTrajectories(marker_reference, marker_labels, 'LANK')';
+    LHEE_reference = extractMarkerTrajectories(marker_reference, marker_labels, 'LHEE')';
+    LTOE_reference = extractMarkerTrajectories(marker_reference, marker_labels, 'LTOE')';
+    LTOEL_reference = extractMarkerTrajectories(marker_reference, marker_labels, 'LTOEL')';
 
     % left leg
-    RTHI_reference = extractMarkerTrajectories(marker_reference, marker_headers, 'RTHI')';
-    RTHIA_reference = extractMarkerTrajectories(marker_reference, marker_headers, 'RTHIA')';
-    RKNE_reference = extractMarkerTrajectories(marker_reference, marker_headers, 'RKNE')';
-    RTIB_reference = extractMarkerTrajectories(marker_reference, marker_headers, 'RTIB')';
-    RTIBA_reference = extractMarkerTrajectories(marker_reference, marker_headers, 'RTIBA')';
-    RANK_reference = extractMarkerTrajectories(marker_reference, marker_headers, 'RANK')';
-    RHEE_reference = extractMarkerTrajectories(marker_reference, marker_headers, 'RHEE')';
-    RTOE_reference = extractMarkerTrajectories(marker_reference, marker_headers, 'RTOE')';
-    RTOEL_reference = extractMarkerTrajectories(marker_reference, marker_headers, 'RTOEL')';
+    RTHI_reference = extractMarkerTrajectories(marker_reference, marker_labels, 'RTHI')';
+    RTHIA_reference = extractMarkerTrajectories(marker_reference, marker_labels, 'RTHIA')';
+    RKNE_reference = extractMarkerTrajectories(marker_reference, marker_labels, 'RKNE')';
+    RTIB_reference = extractMarkerTrajectories(marker_reference, marker_labels, 'RTIB')';
+    RTIBA_reference = extractMarkerTrajectories(marker_reference, marker_labels, 'RTIBA')';
+    RANK_reference = extractMarkerTrajectories(marker_reference, marker_labels, 'RANK')';
+    RHEE_reference = extractMarkerTrajectories(marker_reference, marker_labels, 'RHEE')';
+    RTOE_reference = extractMarkerTrajectories(marker_reference, marker_labels, 'RTOE')';
+    RTOEL_reference = extractMarkerTrajectories(marker_reference, marker_labels, 'RTOEL')';
 
     % groups
     head_markers_reference = [LFHD_reference' RFHD_reference' LBHD_reference' RBHD_reference'];
@@ -224,13 +207,13 @@ function createModel(varargin)
         load(left_hip_reference_file_name);
         hip_reference = marker_trajectories;
 
-        LASI_trajectory = extractMarkerTrajectories(hip_reference, marker_headers, 'LASI')';
-        RASI_trajectory = extractMarkerTrajectories(hip_reference, marker_headers, 'RASI')';
-        LPSI_trajectory = extractMarkerTrajectories(hip_reference, marker_headers, 'LPSI')';
-        RPSI_trajectory = extractMarkerTrajectories(hip_reference, marker_headers, 'RPSI')';
-        LTHI_trajectory = extractMarkerTrajectories(hip_reference, marker_headers, 'LTHI')';
-        LTHIA_trajectory = extractMarkerTrajectories(hip_reference, marker_headers, 'LTHIA')';
-        LKNE_trajectory = extractMarkerTrajectories(hip_reference, marker_headers, 'LKNE')';
+        LASI_trajectory = extractMarkerTrajectories(hip_reference, marker_labels, 'LASI')';
+        RASI_trajectory = extractMarkerTrajectories(hip_reference, marker_labels, 'RASI')';
+        LPSI_trajectory = extractMarkerTrajectories(hip_reference, marker_labels, 'LPSI')';
+        RPSI_trajectory = extractMarkerTrajectories(hip_reference, marker_labels, 'RPSI')';
+        LTHI_trajectory = extractMarkerTrajectories(hip_reference, marker_labels, 'LTHI')';
+        LTHIA_trajectory = extractMarkerTrajectories(hip_reference, marker_labels, 'LTHIA')';
+        LKNE_trajectory = extractMarkerTrajectories(hip_reference, marker_labels, 'LKNE')';
         pelvis_markers_trajectory = [LASI_trajectory' RASI_trajectory' LPSI_trajectory' RPSI_trajectory'];
         left_thigh_markers_trajectory = [LTHI_trajectory' LTHIA_trajectory' LKNE_trajectory'];
 
@@ -248,13 +231,13 @@ function createModel(varargin)
         load(right_hip_reference_file_name);
         hip_reference = marker_trajectories;
 
-        LASI_trajectory = extractMarkerTrajectories(hip_reference, marker_headers, 'LASI')';
-        RASI_trajectory = extractMarkerTrajectories(hip_reference, marker_headers, 'RASI')';
-        LPSI_trajectory = extractMarkerTrajectories(hip_reference, marker_headers, 'LPSI')';
-        RPSI_trajectory = extractMarkerTrajectories(hip_reference, marker_headers, 'RPSI')';
-        RTHI_trajectory = extractMarkerTrajectories(hip_reference, marker_headers, 'RTHI')';
-        RTHIA_trajectory = extractMarkerTrajectories(hip_reference, marker_headers, 'RTHIA')';
-        RKNE_trajectory = extractMarkerTrajectories(hip_reference, marker_headers, 'RKNE')';
+        LASI_trajectory = extractMarkerTrajectories(hip_reference, marker_labels, 'LASI')';
+        RASI_trajectory = extractMarkerTrajectories(hip_reference, marker_labels, 'RASI')';
+        LPSI_trajectory = extractMarkerTrajectories(hip_reference, marker_labels, 'LPSI')';
+        RPSI_trajectory = extractMarkerTrajectories(hip_reference, marker_labels, 'RPSI')';
+        RTHI_trajectory = extractMarkerTrajectories(hip_reference, marker_labels, 'RTHI')';
+        RTHIA_trajectory = extractMarkerTrajectories(hip_reference, marker_labels, 'RTHIA')';
+        RKNE_trajectory = extractMarkerTrajectories(hip_reference, marker_labels, 'RKNE')';
         pelvis_markers_trajectory = [LASI_trajectory' RASI_trajectory' LPSI_trajectory' RPSI_trajectory'];
         right_thigh_markers_trajectory = [RTHI_trajectory' RTHIA_trajectory' RKNE_trajectory'];
         right_hip_cor = estimateJointKinematics ...
@@ -305,12 +288,12 @@ function createModel(varargin)
         load(left_knee_reference_file_name);
         knee_reference = marker_trajectories;
 
-        LTHI_trajectory = extractMarkerTrajectories(knee_reference, marker_headers, 'LTHI')';
-        LTHIA_trajectory = extractMarkerTrajectories(knee_reference, marker_headers, 'LTHIA')';
-        LKNE_trajectory = extractMarkerTrajectories(knee_reference, marker_headers, 'LKNE')';
-        LTIB_trajectory = extractMarkerTrajectories(knee_reference, marker_headers, 'LTIB')';
-        LTIBA_trajectory = extractMarkerTrajectories(knee_reference, marker_headers, 'LTIBA')';
-        LANK_trajectory = extractMarkerTrajectories(knee_reference, marker_headers, 'LANK')';
+        LTHI_trajectory = extractMarkerTrajectories(knee_reference, marker_labels, 'LTHI')';
+        LTHIA_trajectory = extractMarkerTrajectories(knee_reference, marker_labels, 'LTHIA')';
+        LKNE_trajectory = extractMarkerTrajectories(knee_reference, marker_labels, 'LKNE')';
+        LTIB_trajectory = extractMarkerTrajectories(knee_reference, marker_labels, 'LTIB')';
+        LTIBA_trajectory = extractMarkerTrajectories(knee_reference, marker_labels, 'LTIBA')';
+        LANK_trajectory = extractMarkerTrajectories(knee_reference, marker_labels, 'LANK')';
         left_thigh_markers_trajectory = [LTHI_trajectory' LTHIA_trajectory' LKNE_trajectory'];
         left_shank_markers_trajectory = [LTIB_trajectory' LTIBA_trajectory' LANK_trajectory'];
 
@@ -330,12 +313,12 @@ function createModel(varargin)
         load(right_knee_reference_file_name);
         knee_reference = marker_trajectories;
 
-        RTHI_trajectory = extractMarkerTrajectories(knee_reference, marker_headers, 'RTHI')';
-        RTHIA_trajectory = extractMarkerTrajectories(knee_reference, marker_headers, 'RTHIA')';
-        RKNE_trajectory = extractMarkerTrajectories(knee_reference, marker_headers, 'RKNE')';
-        RTIB_trajectory = extractMarkerTrajectories(knee_reference, marker_headers, 'RTIB')';
-        RTIBA_trajectory = extractMarkerTrajectories(knee_reference, marker_headers, 'RTIBA')';
-        RANK_trajectory = extractMarkerTrajectories(knee_reference, marker_headers, 'RANK')';
+        RTHI_trajectory = extractMarkerTrajectories(knee_reference, marker_labels, 'RTHI')';
+        RTHIA_trajectory = extractMarkerTrajectories(knee_reference, marker_labels, 'RTHIA')';
+        RKNE_trajectory = extractMarkerTrajectories(knee_reference, marker_labels, 'RKNE')';
+        RTIB_trajectory = extractMarkerTrajectories(knee_reference, marker_labels, 'RTIB')';
+        RTIBA_trajectory = extractMarkerTrajectories(knee_reference, marker_labels, 'RTIBA')';
+        RANK_trajectory = extractMarkerTrajectories(knee_reference, marker_labels, 'RANK')';
         right_thigh_markers_trajectory = [RTHI_trajectory' RTHIA_trajectory' RKNE_trajectory'];
         right_shank_markers_trajectory = [RTIB_trajectory' RTIBA_trajectory' RANK_trajectory'];
 
@@ -946,8 +929,8 @@ function createModel(varargin)
 
     number_of_segments = length(segment_labels);
 
-    % mcs_to_wcs_transformations = calculateMcsToWcsTransformations([marker_reference joint_center_reference], [marker_headers joint_center_headers], markers_by_segment);
-    mcs_to_wcs_transformations = calculateMcsToWcsTransformations_detailed([marker_reference joint_center_reference], [marker_headers joint_center_headers], segment_labels);
+    % mcs_to_wcs_transformations = calculateMcsToWcsTransformations([marker_reference joint_center_reference], [marker_labels joint_center_headers], markers_by_segment);
+    mcs_to_wcs_transformations = calculateMcsToWcsTransformations_detailed([marker_reference joint_center_reference], [marker_labels joint_center_headers], segment_labels);
     pelvis_transformation_current = mcs_to_wcs_transformations{strcmp(segment_labels, 'PELVIS')};
 
     % assemble segment masses
@@ -1136,7 +1119,7 @@ function createModel(varargin)
         'left shoulder ab/adduction', 'left shoulder flexion/extension', 'left shoulder in/external rotation', 'left elbow flexion/extension', 'left pronation/supination', 'left wrist flexion/extension', 'left wrist radial/ulnar deviation', ...
         'right shoulder ab/adduction', 'right shoulder flexion/extension', 'right shoulder in/external rotation', 'right elbow flexion/extension', 'right pronation/supination', 'right wrist flexion/extension', 'right radial/ulnar deviation', ...
       };
-    kinematic_tree.markerLabels = marker_headers;
+    kinematic_tree.markerLabels = marker_labels;
 
     % define markers
     red = [1 0 0];
@@ -1144,113 +1127,113 @@ function createModel(varargin)
     blue = [0 0 1];
     yellow = [1 0.9 0];
 
-    markerSegments = zeros(1, length(marker_headers));
-    markerSegments(strcmp(marker_headers, 'LFHD')) = 26;
-    markerSegments(strcmp(marker_headers, 'RFHD')) = 26;
-    markerSegments(strcmp(marker_headers, 'LBHD')) = 26;
-    markerSegments(strcmp(marker_headers, 'RBHD')) = 26;
+    markerSegments = zeros(1, length(marker_labels));
+    markerSegments(strcmp(marker_labels, 'LFHD')) = 26;
+    markerSegments(strcmp(marker_labels, 'RFHD')) = 26;
+    markerSegments(strcmp(marker_labels, 'LBHD')) = 26;
+    markerSegments(strcmp(marker_labels, 'RBHD')) = 26;
 
-    markerSegments(strcmp(marker_headers, 'C7')) = 23;
-    markerSegments(strcmp(marker_headers, 'T10')) = 23;
-    markerSegments(strcmp(marker_headers, 'CLAV')) = 23;
-    markerSegments(strcmp(marker_headers, 'STRN')) = 23;
-    markerSegments(strcmp(marker_headers, 'RBAK')) = 23;
+    markerSegments(strcmp(marker_labels, 'C7')) = 23;
+    markerSegments(strcmp(marker_labels, 'T10')) = 23;
+    markerSegments(strcmp(marker_labels, 'CLAV')) = 23;
+    markerSegments(strcmp(marker_labels, 'STRN')) = 23;
+    markerSegments(strcmp(marker_labels, 'RBAK')) = 23;
 
-    markerSegments(strcmp(marker_headers, 'LSHO')) = 23;
-    markerSegments(strcmp(marker_headers, 'LUPA')) = 29;
-    markerSegments(strcmp(marker_headers, 'LELB')) = 29;
-    markerSegments(strcmp(marker_headers, 'LFRM')) = 31;
-    markerSegments(strcmp(marker_headers, 'LWRA')) = 31;
-    markerSegments(strcmp(marker_headers, 'LWRB')) = 31;
-    markerSegments(strcmp(marker_headers, 'LFIN')) = 33;
+    markerSegments(strcmp(marker_labels, 'LSHO')) = 23;
+    markerSegments(strcmp(marker_labels, 'LUPA')) = 29;
+    markerSegments(strcmp(marker_labels, 'LELB')) = 29;
+    markerSegments(strcmp(marker_labels, 'LFRM')) = 31;
+    markerSegments(strcmp(marker_labels, 'LWRA')) = 31;
+    markerSegments(strcmp(marker_labels, 'LWRB')) = 31;
+    markerSegments(strcmp(marker_labels, 'LFIN')) = 33;
 
-    markerSegments(strcmp(marker_headers, 'RSHO')) = 23;
-    markerSegments(strcmp(marker_headers, 'RUPA')) = 36;
-    markerSegments(strcmp(marker_headers, 'RELB')) = 36;
-    markerSegments(strcmp(marker_headers, 'RFRM')) = 38;
-    markerSegments(strcmp(marker_headers, 'RWRA')) = 38;
-    markerSegments(strcmp(marker_headers, 'RWRB')) = 38;
-    markerSegments(strcmp(marker_headers, 'RFIN')) = 40;
+    markerSegments(strcmp(marker_labels, 'RSHO')) = 23;
+    markerSegments(strcmp(marker_labels, 'RUPA')) = 36;
+    markerSegments(strcmp(marker_labels, 'RELB')) = 36;
+    markerSegments(strcmp(marker_labels, 'RFRM')) = 38;
+    markerSegments(strcmp(marker_labels, 'RWRA')) = 38;
+    markerSegments(strcmp(marker_labels, 'RWRB')) = 38;
+    markerSegments(strcmp(marker_labels, 'RFIN')) = 40;
 
-    markerSegments(strcmp(marker_headers, 'LASI')) = 6;
-    markerSegments(strcmp(marker_headers, 'RASI')) = 6;
-    markerSegments(strcmp(marker_headers, 'LPSI')) = 6;
-    markerSegments(strcmp(marker_headers, 'RPSI')) = 6;
+    markerSegments(strcmp(marker_labels, 'LASI')) = 6;
+    markerSegments(strcmp(marker_labels, 'RASI')) = 6;
+    markerSegments(strcmp(marker_labels, 'LPSI')) = 6;
+    markerSegments(strcmp(marker_labels, 'RPSI')) = 6;
 
-    markerSegments(strcmp(marker_headers, 'LTHI')) = 9;
-    markerSegments(strcmp(marker_headers, 'LTHIA')) = 9;
-    markerSegments(strcmp(marker_headers, 'LKNE')) = 9;
-    markerSegments(strcmp(marker_headers, 'LTIB')) = 10;
-    markerSegments(strcmp(marker_headers, 'LTIBA')) = 10;
-    markerSegments(strcmp(marker_headers, 'LANK')) = 10;
-    markerSegments(strcmp(marker_headers, 'LHEE')) = 13;
-    markerSegments(strcmp(marker_headers, 'LTOE')) = 13;
-    markerSegments(strcmp(marker_headers, 'LTOEL')) = 13;
+    markerSegments(strcmp(marker_labels, 'LTHI')) = 9;
+    markerSegments(strcmp(marker_labels, 'LTHIA')) = 9;
+    markerSegments(strcmp(marker_labels, 'LKNE')) = 9;
+    markerSegments(strcmp(marker_labels, 'LTIB')) = 10;
+    markerSegments(strcmp(marker_labels, 'LTIBA')) = 10;
+    markerSegments(strcmp(marker_labels, 'LANK')) = 10;
+    markerSegments(strcmp(marker_labels, 'LHEE')) = 13;
+    markerSegments(strcmp(marker_labels, 'LTOE')) = 13;
+    markerSegments(strcmp(marker_labels, 'LTOEL')) = 13;
 
-    markerSegments(strcmp(marker_headers, 'RTHI')) = 16;
-    markerSegments(strcmp(marker_headers, 'RTHIA')) = 16;
-    markerSegments(strcmp(marker_headers, 'RKNE')) = 16;
-    markerSegments(strcmp(marker_headers, 'RTIB')) = 17;
-    markerSegments(strcmp(marker_headers, 'RTIBA')) = 17;
-    markerSegments(strcmp(marker_headers, 'RANK')) = 17;
-    markerSegments(strcmp(marker_headers, 'RHEE')) = 19;
-    markerSegments(strcmp(marker_headers, 'RTOE')) = 19;
-    markerSegments(strcmp(marker_headers, 'RTOEL')) = 19;
+    markerSegments(strcmp(marker_labels, 'RTHI')) = 16;
+    markerSegments(strcmp(marker_labels, 'RTHIA')) = 16;
+    markerSegments(strcmp(marker_labels, 'RKNE')) = 16;
+    markerSegments(strcmp(marker_labels, 'RTIB')) = 17;
+    markerSegments(strcmp(marker_labels, 'RTIBA')) = 17;
+    markerSegments(strcmp(marker_labels, 'RANK')) = 17;
+    markerSegments(strcmp(marker_labels, 'RHEE')) = 19;
+    markerSegments(strcmp(marker_labels, 'RTOE')) = 19;
+    markerSegments(strcmp(marker_labels, 'RTOEL')) = 19;
 
-    marker_color_list = cell(1, length(marker_headers));
-    marker_color_list{strcmp(marker_headers, 'LFHD')} = red;
-    marker_color_list{strcmp(marker_headers, 'RFHD')} = green;
-    marker_color_list{strcmp(marker_headers, 'LBHD')} = red;
-    marker_color_list{strcmp(marker_headers, 'RBHD')} = green;
+    marker_color_list = cell(1, length(marker_labels));
+    marker_color_list{strcmp(marker_labels, 'LFHD')} = red;
+    marker_color_list{strcmp(marker_labels, 'RFHD')} = green;
+    marker_color_list{strcmp(marker_labels, 'LBHD')} = red;
+    marker_color_list{strcmp(marker_labels, 'RBHD')} = green;
 
-    marker_color_list{strcmp(marker_headers, 'C7')} = blue;
-    marker_color_list{strcmp(marker_headers, 'T10')} = blue;
-    marker_color_list{strcmp(marker_headers, 'CLAV')} = blue;
-    marker_color_list{strcmp(marker_headers, 'STRN')} = blue;
-    marker_color_list{strcmp(marker_headers, 'RBAK')} = blue;
+    marker_color_list{strcmp(marker_labels, 'C7')} = blue;
+    marker_color_list{strcmp(marker_labels, 'T10')} = blue;
+    marker_color_list{strcmp(marker_labels, 'CLAV')} = blue;
+    marker_color_list{strcmp(marker_labels, 'STRN')} = blue;
+    marker_color_list{strcmp(marker_labels, 'RBAK')} = blue;
 
-    marker_color_list{strcmp(marker_headers, 'LSHO')} = red;
-    marker_color_list{strcmp(marker_headers, 'LUPA')} = red;
-    marker_color_list{strcmp(marker_headers, 'LELB')} = red;
-%     marker_color_list{strcmp(marker_headers, 'LFRA')} = red;
-    marker_color_list{strcmp(marker_headers, 'LFRM')} = red;
-    marker_color_list{strcmp(marker_headers, 'LWRA')} = red;
-    marker_color_list{strcmp(marker_headers, 'LWRB')} = red;
-    marker_color_list{strcmp(marker_headers, 'LFIN')} = red;
+    marker_color_list{strcmp(marker_labels, 'LSHO')} = red;
+    marker_color_list{strcmp(marker_labels, 'LUPA')} = red;
+    marker_color_list{strcmp(marker_labels, 'LELB')} = red;
+%     marker_color_list{strcmp(marker_labels, 'LFRA')} = red;
+    marker_color_list{strcmp(marker_labels, 'LFRM')} = red;
+    marker_color_list{strcmp(marker_labels, 'LWRA')} = red;
+    marker_color_list{strcmp(marker_labels, 'LWRB')} = red;
+    marker_color_list{strcmp(marker_labels, 'LFIN')} = red;
 
-    marker_color_list{strcmp(marker_headers, 'RSHO')} = green;
-    marker_color_list{strcmp(marker_headers, 'RUPA')} = green;
-    marker_color_list{strcmp(marker_headers, 'RELB')} = green;
-%     marker_color_list{strcmp(marker_headers, 'RFRA')} = green;
-    marker_color_list{strcmp(marker_headers, 'RFRM')} = green;
-    marker_color_list{strcmp(marker_headers, 'RWRA')} = green;
-    marker_color_list{strcmp(marker_headers, 'RWRB')} = green;
-    marker_color_list{strcmp(marker_headers, 'RFIN')} = green;
+    marker_color_list{strcmp(marker_labels, 'RSHO')} = green;
+    marker_color_list{strcmp(marker_labels, 'RUPA')} = green;
+    marker_color_list{strcmp(marker_labels, 'RELB')} = green;
+%     marker_color_list{strcmp(marker_labels, 'RFRA')} = green;
+    marker_color_list{strcmp(marker_labels, 'RFRM')} = green;
+    marker_color_list{strcmp(marker_labels, 'RWRA')} = green;
+    marker_color_list{strcmp(marker_labels, 'RWRB')} = green;
+    marker_color_list{strcmp(marker_labels, 'RFIN')} = green;
 
-    marker_color_list{strcmp(marker_headers, 'LASI')} = red;
-    marker_color_list{strcmp(marker_headers, 'RASI')} = green;
-    marker_color_list{strcmp(marker_headers, 'LPSI')} = red;
-    marker_color_list{strcmp(marker_headers, 'RPSI')} = green;
+    marker_color_list{strcmp(marker_labels, 'LASI')} = red;
+    marker_color_list{strcmp(marker_labels, 'RASI')} = green;
+    marker_color_list{strcmp(marker_labels, 'LPSI')} = red;
+    marker_color_list{strcmp(marker_labels, 'RPSI')} = green;
 
-    marker_color_list{strcmp(marker_headers, 'LTHI')} = red;
-    marker_color_list{strcmp(marker_headers, 'LTHIA')} = red;
-    marker_color_list{strcmp(marker_headers, 'LKNE')} = red;
-    marker_color_list{strcmp(marker_headers, 'LTIB')} = red;
-    marker_color_list{strcmp(marker_headers, 'LTIBA')} = red;
-    marker_color_list{strcmp(marker_headers, 'LANK')} = red;
-    marker_color_list{strcmp(marker_headers, 'LHEE')} = red;
-    marker_color_list{strcmp(marker_headers, 'LTOE')} = red;
-    marker_color_list{strcmp(marker_headers, 'LTOEL')} = red;
+    marker_color_list{strcmp(marker_labels, 'LTHI')} = red;
+    marker_color_list{strcmp(marker_labels, 'LTHIA')} = red;
+    marker_color_list{strcmp(marker_labels, 'LKNE')} = red;
+    marker_color_list{strcmp(marker_labels, 'LTIB')} = red;
+    marker_color_list{strcmp(marker_labels, 'LTIBA')} = red;
+    marker_color_list{strcmp(marker_labels, 'LANK')} = red;
+    marker_color_list{strcmp(marker_labels, 'LHEE')} = red;
+    marker_color_list{strcmp(marker_labels, 'LTOE')} = red;
+    marker_color_list{strcmp(marker_labels, 'LTOEL')} = red;
 
-    marker_color_list{strcmp(marker_headers, 'RTHI')} = green;
-    marker_color_list{strcmp(marker_headers, 'RTHIA')} = green;
-    marker_color_list{strcmp(marker_headers, 'RKNE')} = green;
-    marker_color_list{strcmp(marker_headers, 'RTIB')} = green;
-    marker_color_list{strcmp(marker_headers, 'RTIBA')} = green;
-    marker_color_list{strcmp(marker_headers, 'RANK')} = green;
-    marker_color_list{strcmp(marker_headers, 'RHEE')} = green;
-    marker_color_list{strcmp(marker_headers, 'RTOE')} = green;
-    marker_color_list{strcmp(marker_headers, 'RTOEL')} = green;
+    marker_color_list{strcmp(marker_labels, 'RTHI')} = green;
+    marker_color_list{strcmp(marker_labels, 'RTHIA')} = green;
+    marker_color_list{strcmp(marker_labels, 'RKNE')} = green;
+    marker_color_list{strcmp(marker_labels, 'RTIB')} = green;
+    marker_color_list{strcmp(marker_labels, 'RTIBA')} = green;
+    marker_color_list{strcmp(marker_labels, 'RANK')} = green;
+    marker_color_list{strcmp(marker_labels, 'RHEE')} = green;
+    marker_color_list{strcmp(marker_labels, 'RTOE')} = green;
+    marker_color_list{strcmp(marker_labels, 'RTOEL')} = green;
 
     % TODO: deal with cases where some of these don't exist or are misnamed
     
@@ -1271,7 +1254,7 @@ function createModel(varargin)
       ( ...
         'subjectModel', ...
         'kinematic_tree', ...
-        'marker_headers', ...
+        'marker_labels', ...
         'marker_reference', ...
         'joint_center_headers', ...
         'joint_center_reference', ...

@@ -136,7 +136,7 @@ function importAscii(varargin)
                                         'data_source', ...
                                         'emg_labels' ...
                                       );
-                                    addAvailableVariable('emg_trajectories_raw', 'time_emg', 'emg_labels', save_folder, save_file_name);
+                                    addAvailableData('emg_trajectories_raw', 'time_emg', 'sampling_rate_emg', 'emg_labels', save_folder, save_file_name);
                                   
                                   
 
@@ -162,7 +162,7 @@ function importAscii(varargin)
                                         'time_forceplate', ...
                                         'sampling_rate_forceplate' ...
                                       );
-                                    addAvailableVariable('forceplate_trajectories_raw', 'time_forceplate', 'forceplate_labels', save_folder, save_file_name);
+                                    addAvailableData('forceplate_trajectories_raw', 'time_forceplate', 'sampling_rate_forceplate', 'forceplate_labels', save_folder, save_file_name);
                                 else
                                     error(['data not recognized: file "' data_file_name])
                                 end
@@ -200,7 +200,7 @@ function importAscii(varargin)
                                     'sampling_rate_mocap', ...
                                     'marker_labels' ...
                                   );
-                                addAvailableVariable('marker_trajectories_raw', 'time_mocap', 'marker_labels', save_folder, save_file_name);
+                                addAvailableData('marker_trajectories_raw', 'time_mocap', 'sampling_rate_mocap', 'marker_labels', save_folder, save_file_name);
                             else 
                                 error(['unkown data type: ' data_class]); 
                             end
@@ -255,7 +255,7 @@ function importAscii(varargin)
                         'sampling_rate_mocap', ...
                         'marker_labels' ...
                       );
-                    addAvailableVariable('marker_trajectories_raw', 'time_mocap', 'marker_labels', save_folder, save_file_name);
+                    addAvailableData('marker_trajectories_raw', 'time_mocap', 'sampling_rate_mocap', 'marker_labels', save_folder, save_file_name);
                     disp(['imported ' source_dir filesep data_file_name ' and saved as ' matlab_data_file_name])
                 elseif strcmp(file_type, 'a')
                     % this is analog data from QTM
@@ -291,7 +291,7 @@ function importAscii(varargin)
                         'sampling_rate_emg', ...
                         'emg_labels' ...
                       );
-                    addAvailableVariable('emg_trajectories_raw', 'time_emg', 'emg_labels', save_folder, save_file_name);
+                    addAvailableData('emg_trajectories_raw', 'time_emg', 'sampling_rate_emg', 'emg_labels', save_folder, save_file_name);
                     disp(['imported ' source_dir filesep data_file_name ' and saved as ' matlab_data_file_name])
 
                 elseif strcmp(file_type, 'neurocomData')
@@ -367,7 +367,7 @@ function importAscii(varargin)
                         'data_source', ...
                         'sampling_rate_forceplate' ...
                       );
-                    addAvailableVariable('forceplate_trajectories_raw', 'time_forceplate', 'forceplate_labels', matlab_data_file_name, save_folder);
+                    addAvailableData('forceplate_trajectories_raw', 'time_forceplate', 'sampling_rate_forceplate', 'forceplate_labels', matlab_data_file_name, save_folder);
                     
                     disp(['imported ' source_dir filesep data_file_name])
 
@@ -412,6 +412,9 @@ function importAscii(varargin)
 
                     % add data source
                     variables_to_save.data_source = 'labview'; % not tested yet
+                    
+                    % add sampling rate
+                    variables_to_save.sampling_rate = NaN;
 
                     % save
                     save_folder = 'processed';
@@ -419,7 +422,7 @@ function importAscii(varargin)
                     save([save_folder filesep save_file_name], '-struct', 'variables_to_save');
                     
                     for i_variable = 1 : length(variables_to_save_list)
-                        addAvailableVariable(variables_to_save_list{i_variable}, 'time_trajectory', variables_to_save_list{i_variable}, save_folder, save_file_name);
+                        addAvailableData(variables_to_save_list{i_variable}, 'time_trajectory', 'sampling_rate', variables_to_save_list{i_variable}, save_folder, save_file_name);
                     end
                     
                     disp(['imported ' source_dir filesep data_file_name ' and saved as ' save_folder filesep save_file_name])
