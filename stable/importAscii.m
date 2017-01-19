@@ -406,7 +406,7 @@ function importAscii(varargin)
                     if isrow(variables_to_save.time_trajectory)
                         variables_to_save.time_trajectory = variables_to_save.time_trajectory';
                     end
-                    eval(['variables_to_save.time_' file_type ' = variables_to_save.time_trajectory * milliseconds_to_seconds;']);
+                    eval(['variables_to_save.time = variables_to_save.time_trajectory * milliseconds_to_seconds;']);
                     variables_to_save = rmfield(variables_to_save, 'time_trajectory');
                     variables_to_save_list(strcmp(variables_to_save_list, 'time_trajectory')) = [];
 
@@ -422,7 +422,9 @@ function importAscii(varargin)
                     save([save_folder filesep save_file_name], '-struct', 'variables_to_save');
                     
                     for i_variable = 1 : length(variables_to_save_list)
-                        addAvailableData(variables_to_save_list{i_variable}, 'time_trajectory', 'sampling_rate', variables_to_save_list{i_variable}, save_folder, save_file_name);
+                        if ~checkDataAvailability(date, subject_id, trial_type, trial_number, variables_to_save_list{i_variable})
+                            addAvailableData(variables_to_save_list{i_variable}, 'time', 'sampling_rate', variables_to_save_list{i_variable}, save_folder, save_file_name);
+                        end
                     end
                     
                     disp(['imported ' source_dir filesep data_file_name ' and saved as ' save_folder filesep save_file_name])

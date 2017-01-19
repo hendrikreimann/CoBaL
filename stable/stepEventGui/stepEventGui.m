@@ -95,12 +95,14 @@ function stepEventGui(varargin)
         study_settings.scene_bound_z_min study_settings.scene_bound_z_max ...
       ];
     positions = trial_data.marker_positions(1, :);
-    headers = trial_data.marker_headers;
-    if ~isempty(trial_data.joint_center_positions)
+    headers = trial_data.marker_labels;
+%     if ~isempty(trial_data.joint_center_positions)
+    if trial_data.kinematic_data_available
         positions = [positions trial_data.joint_center_positions(1, :)];
         headers = [headers trial_data.joint_center_headers(1, :)];
     end
-    if ~isempty(trial_data.joint_center_positions)
+%     if ~isempty(trial_data.joint_center_positions)
+    if trial_data.com_data_available
         positions = [positions trial_data.com_positions(1, :)];
         headers = [headers trial_data.com_headers(1, :)];
     end
@@ -108,20 +110,21 @@ function stepEventGui(varargin)
     controller.scene_figure = stickFigure(positions, headers, scene_bound);
     controller.scene_figure.setColors('extended plug-in gait');
     controller.scene_figure.addLines('extended plug-in gait');
-%     controller.kinematic_tree_controller = KinematicTreeController(kinematic_tree, scene_bound, 'ellipsoid');
 
-    positions = trial_data.marker_positions(1, :);
-    headers = trial_data.marker_headers;
-    if ~isempty(trial_data.joint_center_positions)
-        positions = [positions trial_data.joint_center_positions(1, :)];
-        headers = [headers trial_data.joint_center_headers(1, :)];
+    if trial_data.joint_angle_data_available
+        positions = trial_data.marker_positions(1, :);
+        headers = trial_data.marker_labels;
+        if ~isempty(trial_data.joint_center_positions)
+            positions = [positions trial_data.joint_center_positions(1, :)];
+            headers = [headers trial_data.joint_center_headers(1, :)];
+        end
+        controller.kinematic_tree_controller = KinematicTreeController(kinematic_tree, scene_bound, 'none', positions);
+        Link = linkprop([controller.kinematic_tree_controller.sceneAxes controller.scene_figure.scene_axes], {'CameraUpVector', 'CameraPosition', 'CameraTarget', 'CameraViewAngle'}); 
+        setappdata(gcf, 'StoreTheLink', Link);
     end
-    controller.kinematic_tree_controller = KinematicTreeController(kinematic_tree, scene_bound, 'none', positions);
     
     % link perspectives of the stick figures
 %     Link = linkprop([controller.kinematic_tree_controller.sceneAxes controller.scene_figure.scene_axes], {'CameraUpVector', 'CameraPosition', 'CameraTarget'}); 
-    Link = linkprop([controller.kinematic_tree_controller.sceneAxes controller.scene_figure.scene_axes], {'CameraUpVector', 'CameraPosition', 'CameraTarget', 'CameraViewAngle'}); 
-    setappdata(gcf, 'StoreTheLink', Link);
     
     % create position figures
     step_event_figure = stepEventFigure('Positions Left', controller, trial_data, event_data);

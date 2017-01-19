@@ -23,18 +23,22 @@ classdef WalkingTrialData < handle
         recording_time = 0;
         date = [];
         subject_id = [];
-        sampling_rate_mocap = -1;
+        sampling_rate_marker = -1;
         sampling_rate_forceplate = -1;
+        kinematic_data_available = 0;
+        com_data_available = 0;
+        joint_angle_data_available = 0;
+        forceplate_data_available = 0;
         
         % time
-        time_mocap = [];
+        time_marker = [];
         time_forceplate = [];
         time_labview = [];
         selected_time = [];
         
         % marker kinematics
         marker_positions = [];
-        marker_headers = [];
+        marker_labels = [];
         joint_center_positions = [];
         joint_center_headers = [];
         com_positions = [];
@@ -112,7 +116,7 @@ classdef WalkingTrialData < handle
             this.loadForceplateTrajectories();
 %             this.loadLabviewTrajectories();
 
-            this.selected_time = this.time_mocap(1);
+            this.selected_time = this.time_marker(1);
         end
         function loadSubjectInfo(this)
             loaded_subject_info = load([this.data_directory filesep 'subjectInfo.mat']);
@@ -126,66 +130,85 @@ classdef WalkingTrialData < handle
         end
         function loadMarkerTrajectories(this)
             % load marker data
-            loaded_marker_trajectories = load([this.data_directory filesep 'processed' filesep makeFileName(this.date, this.subject_id, this.condition, this.trial_number, 'markerTrajectories')]);
-            this.marker_positions = loaded_marker_trajectories.marker_trajectories;
-            this.marker_headers = loaded_marker_trajectories.marker_headers;
+%             loaded_marker_trajectories = load([this.data_directory filesep 'processed' filesep makeFileName(this.date, this.subject_id, this.condition, this.trial_number, 'markerTrajectories')]);
+%             this.marker_positions = loaded_marker_trajectories.marker_trajectories;
+%             this.marker_labels = loaded_marker_trajectories.marker_labels;
+%            
+%             % time
+%             this.sampling_rate_marker = loaded_marker_trajectories.sampling_rate_marker;
+%             this.recording_time = loaded_marker_trajectories.time_mocap(end);
+%             time_mocap = loaded_marker_trajectories.time_mocap;
+% 
+%             com_file_name = [this.data_directory filesep 'processed' filesep makeFileName(this.date, this.subject_id, this.condition, this.trial_number, 'kinematicTrajectories.mat')];
+%             if exist(com_file_name, 'file')
+%                 loaded_trajectories = load(com_file_name);
+%                 this.joint_center_positions = loaded_trajectories.joint_center_trajectories;
+%                 this.com_positions = loaded_trajectories.com_trajectories;
+%                 this.com_headers = loaded_trajectories.com_labels;
+%                 this.joint_angles = loaded_trajectories.joint_angle_trajectories;
+%             end
+
+            [marker_trajectories, time_marker, sampling_rate_marker, marker_labels] = loadData(this.date, this.subject_id, this.condition, this.trial_number, 'marker_trajectories');
+            this.marker_positions = marker_trajectories;
+            this.time_marker = time_marker;
+            this.sampling_rate_marker = sampling_rate_marker;
+            this.marker_labels = marker_labels;
             
             % load kinematic data
-            com_file_name = [this.data_directory filesep 'processed' filesep makeFileName(this.date, this.subject_id, this.condition, this.trial_number, 'kinematicTrajectories.mat')];
-            if exist(com_file_name, 'file')
-                loaded_trajectories = load(com_file_name);
-                this.joint_center_positions = loaded_trajectories.joint_center_trajectories;
-                this.com_positions = loaded_trajectories.com_trajectories;
-                this.com_headers = loaded_trajectories.com_labels;
-                this.joint_angles = loaded_trajectories.joint_angle_trajectories;
-            end
+            [joint_center_trajectories, ~, ~, joint_center_labels, this.kinematic_data_available] = loadData(this.date, this.subject_id, this.condition, this.trial_number, 'joint_center_trajectories', 'optional');
+            this.joint_center_positions = joint_center_trajectories;
+            [com_trajectories, ~, ~, com_labels, this.com_data_available] = loadData(this.date, this.subject_id, this.condition, this.trial_number, 'com_trajectories', 'optional');
+            this.com_positions = com_trajectories;
+            [joint_angle_trajectories, ~, ~, joint_angle_labels, this.joint_angle_data_available] = loadData(this.date, this.subject_id, this.condition, this.trial_number, 'joint_angle_trajectories', 'optional');
+            this.joint_angles = joint_angle_trajectories;
+            
             
             % time
-            this.sampling_rate_mocap = loaded_marker_trajectories.sampling_rate_mocap;
-            this.recording_time = loaded_marker_trajectories.time_mocap(end);
-            time_mocap = loaded_marker_trajectories.time_mocap;
+            this.recording_time = time_marker(end);
+            
+            
            
             % extract data
-            left_heel_marker = find(strcmp(loaded_marker_trajectories.marker_headers, 'LHEE'));
-            left_toes_marker = find(strcmp(loaded_marker_trajectories.marker_headers, 'LTOE'));
-            right_heel_marker = find(strcmp(loaded_marker_trajectories.marker_headers, 'RHEE'));
-            right_toes_marker = find(strcmp(loaded_marker_trajectories.marker_headers, 'RTOE'));
+            left_heel_marker = find(strcmp(marker_labels, 'LHEE'));
+            left_toes_marker = find(strcmp(marker_labels, 'LTOE'));
+            right_heel_marker = find(strcmp(marker_labels, 'RHEE'));
+            right_toes_marker = find(strcmp(marker_labels, 'RTOE'));
             left_heel_marker_indices = reshape([(left_heel_marker - 1) * 3 + 1; (left_heel_marker - 1) * 3 + 2; (left_heel_marker - 1) * 3 + 3], 1, length(left_heel_marker)*3);
             left_toes_marker_indices = reshape([(left_toes_marker - 1) * 3 + 1; (left_toes_marker - 1) * 3 + 2; (left_toes_marker - 1) * 3 + 3], 1, length(left_toes_marker)*3);
             right_heel_marker_indices = reshape([(right_heel_marker - 1) * 3 + 1; (right_heel_marker - 1) * 3 + 2; (right_heel_marker - 1) * 3 + 3], 1, length(right_heel_marker)*3);
             right_toes_marker_indices = reshape([(right_toes_marker - 1) * 3 + 1; (right_toes_marker - 1) * 3 + 2; (right_toes_marker - 1) * 3 + 3], 1, length(right_toes_marker)*3);
-            left_heel_z_trajectory = loaded_marker_trajectories.marker_trajectories(:, left_heel_marker_indices(3));
-            left_toes_z_trajectory = loaded_marker_trajectories.marker_trajectories(:, left_toes_marker_indices(3));
-            right_heel_z_trajectory = loaded_marker_trajectories.marker_trajectories(:, right_heel_marker_indices(3));
-            right_toes_z_trajectory = loaded_marker_trajectories.marker_trajectories(:, right_toes_marker_indices(3));
-            left_heel_y_trajectory = loaded_marker_trajectories.marker_trajectories(:, left_heel_marker_indices(2));
-            left_toes_y_trajectory = loaded_marker_trajectories.marker_trajectories(:, left_toes_marker_indices(2));
-            right_heel_y_trajectory = loaded_marker_trajectories.marker_trajectories(:, right_heel_marker_indices(2));
-            right_toes_y_trajectory = loaded_marker_trajectories.marker_trajectories(:, right_toes_marker_indices(2));
+            left_heel_z_trajectory = marker_trajectories(:, left_heel_marker_indices(3));
+            left_toes_z_trajectory = marker_trajectories(:, left_toes_marker_indices(3));
+            right_heel_z_trajectory = marker_trajectories(:, right_heel_marker_indices(3));
+            right_toes_z_trajectory = marker_trajectories(:, right_toes_marker_indices(3));
+            left_heel_y_trajectory = marker_trajectories(:, left_heel_marker_indices(2));
+            left_toes_y_trajectory = marker_trajectories(:, left_toes_marker_indices(2));
+            right_heel_y_trajectory = marker_trajectories(:, right_heel_marker_indices(2));
+            right_toes_y_trajectory = marker_trajectories(:, right_toes_marker_indices(2));
 
             % calculate derivatives
             filter_order = 2;
             cutoff_frequency = 20; % cutoff frequency, in Hz
-            [b, a] = butter(filter_order, cutoff_frequency/(this.sampling_rate_mocap/2));	% set filter parameters for butterworth filter: 2=order of filter;
-            left_heel_z_vel_trajectory = deriveByTime(nanfiltfilt(b, a, left_heel_z_trajectory), 1/this.sampling_rate_mocap);
-            right_heel_z_vel_trajectory = deriveByTime(nanfiltfilt(b, a, right_heel_z_trajectory), 1/this.sampling_rate_mocap);
-            left_heel_z_acc_trajectory = deriveByTime(nanfiltfilt(b, a, left_heel_z_vel_trajectory), 1/this.sampling_rate_mocap);
-            right_heel_z_acc_trajectory = deriveByTime(nanfiltfilt(b, a, right_heel_z_vel_trajectory), 1/this.sampling_rate_mocap);
-            left_toes_z_vel_trajectory = deriveByTime(nanfiltfilt(b, a, left_toes_z_trajectory), 1/this.sampling_rate_mocap);
-            right_toes_z_vel_trajectory = deriveByTime(nanfiltfilt(b, a, right_toes_z_trajectory), 1/this.sampling_rate_mocap);
-            left_toes_z_acc_trajectory = deriveByTime(nanfiltfilt(b, a, left_toes_z_vel_trajectory), 1/this.sampling_rate_mocap);
-            right_toes_z_acc_trajectory = deriveByTime(nanfiltfilt(b, a, right_toes_z_vel_trajectory), 1/this.sampling_rate_mocap);        
-            left_heel_y_vel_trajectory = deriveByTime(nanfiltfilt(b, a, left_heel_y_trajectory), 1/this.sampling_rate_mocap);
-            right_heel_y_vel_trajectory = deriveByTime(nanfiltfilt(b, a, right_heel_y_trajectory), 1/this.sampling_rate_mocap);
-            left_heel_y_acc_trajectory = deriveByTime(nanfiltfilt(b, a, left_heel_y_vel_trajectory), 1/this.sampling_rate_mocap);
-            right_heel_y_acc_trajectory = deriveByTime(nanfiltfilt(b, a, right_heel_y_vel_trajectory), 1/this.sampling_rate_mocap);
-            left_toes_y_vel_trajectory = deriveByTime(nanfiltfilt(b, a, left_toes_y_trajectory), 1/this.sampling_rate_mocap);
-            right_toes_y_vel_trajectory = deriveByTime(nanfiltfilt(b, a, right_toes_y_trajectory), 1/this.sampling_rate_mocap);
-            left_toes_y_acc_trajectory = deriveByTime(nanfiltfilt(b, a, left_toes_y_vel_trajectory), 1/this.sampling_rate_mocap);
-            right_toes_y_acc_trajectory = deriveByTime(nanfiltfilt(b, a, right_toes_y_vel_trajectory), 1/this.sampling_rate_mocap);        
+            [b, a] = butter(filter_order, cutoff_frequency/(this.sampling_rate_marker/2));	% set filter parameters for butterworth filter: 2=order of filter;
+            left_heel_z_vel_trajectory = deriveByTime(nanfiltfilt(b, a, left_heel_z_trajectory), 1/this.sampling_rate_marker);
+            right_heel_z_vel_trajectory = deriveByTime(nanfiltfilt(b, a, right_heel_z_trajectory), 1/this.sampling_rate_marker);
+            left_heel_z_acc_trajectory = deriveByTime(nanfiltfilt(b, a, left_heel_z_vel_trajectory), 1/this.sampling_rate_marker);
+            right_heel_z_acc_trajectory = deriveByTime(nanfiltfilt(b, a, right_heel_z_vel_trajectory), 1/this.sampling_rate_marker);
+            left_toes_z_vel_trajectory = deriveByTime(nanfiltfilt(b, a, left_toes_z_trajectory), 1/this.sampling_rate_marker);
+            right_toes_z_vel_trajectory = deriveByTime(nanfiltfilt(b, a, right_toes_z_trajectory), 1/this.sampling_rate_marker);
+            left_toes_z_acc_trajectory = deriveByTime(nanfiltfilt(b, a, left_toes_z_vel_trajectory), 1/this.sampling_rate_marker);
+            right_toes_z_acc_trajectory = deriveByTime(nanfiltfilt(b, a, right_toes_z_vel_trajectory), 1/this.sampling_rate_marker);        
+            left_heel_y_vel_trajectory = deriveByTime(nanfiltfilt(b, a, left_heel_y_trajectory), 1/this.sampling_rate_marker);
+            right_heel_y_vel_trajectory = deriveByTime(nanfiltfilt(b, a, right_heel_y_trajectory), 1/this.sampling_rate_marker);
+            left_heel_y_acc_trajectory = deriveByTime(nanfiltfilt(b, a, left_heel_y_vel_trajectory), 1/this.sampling_rate_marker);
+            right_heel_y_acc_trajectory = deriveByTime(nanfiltfilt(b, a, right_heel_y_vel_trajectory), 1/this.sampling_rate_marker);
+            left_toes_y_vel_trajectory = deriveByTime(nanfiltfilt(b, a, left_toes_y_trajectory), 1/this.sampling_rate_marker);
+            right_toes_y_vel_trajectory = deriveByTime(nanfiltfilt(b, a, right_toes_y_trajectory), 1/this.sampling_rate_marker);
+            left_toes_y_acc_trajectory = deriveByTime(nanfiltfilt(b, a, left_toes_y_vel_trajectory), 1/this.sampling_rate_marker);
+            right_toes_y_acc_trajectory = deriveByTime(nanfiltfilt(b, a, right_toes_y_vel_trajectory), 1/this.sampling_rate_marker);        
 
             % package
-            this.time_mocap = loaded_marker_trajectories.time_mocap;
+%             this.sampling_rate_marker = loaded_marker_trajectories.sampling_rate_marker;
 
             this.left_heel_z_pos = left_heel_z_trajectory;
             this.left_heel_z_vel = left_heel_z_vel_trajectory;
@@ -258,7 +281,7 @@ classdef WalkingTrialData < handle
         
         function time = getTime(this, data_label)
             if any(strcmp(data_label, this.data_labels_mocap))
-                time = this.time_mocap;
+                time = this.time_marker;
             elseif any(strcmp(data_label, this.data_labels_forceplate))
                 time = this.time_forceplate;
             elseif any(strcmp(data_label, this.data_labels_labview))
@@ -277,7 +300,7 @@ classdef WalkingTrialData < handle
             end
             
             % get current time step
-            [~, time_index_mocap] = min(abs(this.time_mocap - this.selected_time));
+            [~, time_index_mocap] = min(abs(this.time_marker - this.selected_time));
             
             if strcmp(direction, 'back')
                 new_time_index_mocap = time_index_mocap - stepsize;
@@ -290,12 +313,12 @@ classdef WalkingTrialData < handle
             % enforce limits
             if new_time_index_mocap < 1
                 new_time_index_mocap = 1;
-            elseif new_time_index_mocap > length(this.time_mocap)
-                new_time_index_mocap = length(this.time_mocap);
+            elseif new_time_index_mocap > length(this.time_marker)
+                new_time_index_mocap = length(this.time_marker);
             end
             
             % set result
-            this.selected_time = this.time_mocap(new_time_index_mocap);
+            this.selected_time = this.time_marker(new_time_index_mocap);
         end
     end
 end

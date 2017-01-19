@@ -17,6 +17,8 @@
 % input
 % name: name of the variable containing the data
 
+% TODO: this should be merged into the WalkingData object
+
 function [data, time, sampling_rate, labels, success] = loadData(date, subject_id, trial_type, trial_number, data_name, optional)
     if nargin < 6
         optional = 'required';
@@ -30,7 +32,7 @@ function [data, time, sampling_rate, labels, success] = loadData(date, subject_i
     if ~any(any(strcmp(data_name, available_variables)))
         if ~strcmp(optional, 'optional')
             % data is not optional, throw error
-            error(['Required data "' data_name '"not available.'])
+            error(['Required data "' data_name '" not available.'])
         end
         data = [];
         time = [];

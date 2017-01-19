@@ -123,7 +123,7 @@ classdef stepEventController < handle
         end
         function updateSelectedTime(this)
             % determine index to display
-            [~, index_mocap] = min(abs(this.trial_data.time_mocap - this.trial_data.selected_time));
+            [~, index_mocap] = min(abs(this.trial_data.time_marker - this.trial_data.selected_time));
             
             % update step event figures
             for i_figure = 1 : length(this.figureSelectionBox.String)
@@ -279,7 +279,9 @@ classdef stepEventController < handle
                 end
                 this.control_figure.Position = control_figure_setting.position;
                 this.scene_figure.scene_figure.Position = scene_figure_setting.position;
-                this.kinematic_tree_controller.sceneFigure.Position = kinematic_tree_figure_setting.position;
+                if ~isempty(this.kinematic_tree_controller)
+                    this.kinematic_tree_controller.sceneFigure.Position = kinematic_tree_figure_setting.position;
+                end
             end
         end
         function findEvents(this, sender, eventdata)

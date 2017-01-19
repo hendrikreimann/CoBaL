@@ -43,53 +43,99 @@ function settings = loadSettingsFile(filename)
     text_line = fgetl(fileID);
     text_cell = {};
     while ischar(text_line)
-        text_cell = [text_cell, text_line];
+        text_cell = [text_cell; text_line];
         text_line = fgetl(fileID);
     end
     fclose(fileID);
     
-    % store in struct
-    for i_line = 1 : length(text_cell)
-        text_line = text_cell{i_line};
-        % parse this line
-        if length(text_line) >= 2 & ~strcmp(text_line(1:2), '//')
-        
-            line_split = strsplit(text_line, ':');
-            variable_name = strrep(line_split{1}, ' ', '_');
-            variable_value_string = strrep(line_split{2}, ' ', '');
-            variable_value_cell = strsplit(variable_value_string, ',');
-            if length(variable_value_cell) == 1
-                variable_value = variable_value_cell{1};
-                
-                % try to transform to a single double
-                if ~isempty(str2num(variable_value))
-                    variable_value = str2num(variable_value);
-                end
-            else
-                variable_value = variable_value_cell;
-                
-                % try to transform to a double array
-                variable_value_array = zeros(size(variable_value)) * NaN;
-                for i_entry = 1 : length(variable_value)
-                    if ~isempty(str2num(variable_value{i_entry}))
-                        variable_value_array(i_entry) = str2num(variable_value{i_entry});
-                    end
-                end
-                if ~any(isnan(variable_value_array))
-                    variable_value = variable_value_array;
-                end
-            end
-
-
-            evalstring = ['settings.' variable_name ' = variable_value;'];
-            eval(evalstring);
-        end
-    end 
-    
+    % extract data and store in settings struct
+    while ~isempty(text_cell)
+        [text_cell, settings] = parseNextBlock(text_cell, settings);
+    end
 end
 
 
+function [text_cell, settings] = parseNextBlock(text_cell, settings)
+    % get first line of remaining text
+    text_line = text_cell{1};
+    
+    if isempty(text_line)
+        % empty line, remove line
+        text_cell = text_cell(2:end);
+        return
+    end
+    
+    if ~any(text_line ~= ' ')
+        % only spaces, remove line
+        text_cell = text_cell(2:end);
+        return
+    end
+    
+    if length(text_line) >= 2 && strcmp(text_line(1:2), '//')
+        % comment, remove line
+        text_cell = text_cell(2:end);
+        return
+    end
 
+    if (length(text_cell) > 1) && (text_cell{2}(1) == '{')
+        % this is the beginning of a block
+        line_split = strsplit(text_line, ':');
+        variable_name = strrep(line_split{1}, ' ', '_');
+        
+        % get data
+        block_end_line_index = find(strcmp(text_cell, '}'), 1, 'first');
+        variable_data_lines = text_cell(3 : block_end_line_index-1);
+        variable_value = {};
+        for i_line = 1 : length(variable_data_lines)
+            this_line_text = strrep(variable_data_lines{i_line}, ' ', '');
+            this_line_cell = strsplit(this_line_text, ',');
+            variable_value(i_line, :) = this_line_cell;
+        end
+        
+        % 
+        evalstring = ['settings.' variable_name ' = variable_value;'];
+        eval(evalstring);
+        
+        % remove parsed line
+        text_cell = text_cell(block_end_line_index+1:end);
+        
+        return
+    end
+    
+    % parse first line as a single entry=
+    line_split = strsplit(text_line, ':');
+    variable_name = strrep(line_split{1}, ' ', '_');
+    variable_value_string = strrep(line_split{2}, ' ', '');
+    variable_value_cell = strsplit(variable_value_string, ',');
+    if length(variable_value_cell) == 1
+        variable_value = variable_value_cell{1};
+
+        % try to transform to a single double
+        if ~isempty(str2num(variable_value))
+            variable_value = str2num(variable_value);
+        end
+    else
+        variable_value = variable_value_cell;
+
+        % try to transform to a double array
+        variable_value_array = zeros(size(variable_value)) * NaN;
+        for i_entry = 1 : length(variable_value)
+            if ~isempty(str2num(variable_value{i_entry}))
+                variable_value_array(i_entry) = str2num(variable_value{i_entry});
+            end
+        end
+        if ~any(isnan(variable_value_array))
+            variable_value = variable_value_array;
+        end
+    end
+    
+    % add to settings
+    evalstring = ['settings.' variable_name ' = variable_value;'];
+    eval(evalstring);
+    
+    % remove parsed line
+    text_cell = text_cell(2:end);
+end
 
 
 

@@ -12,157 +12,135 @@
 %     GNU General Public License for more details.
 % 
 %     You should have received a copy of the GNU General Public License
-%     along with this program.  If not, see <http://www.gnu.org/licenses/>.% compare the kinematic tree against the kinematic chain
+%     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 % This script finds the stretches of data relevant to the experimental paradigm.
+
+% We determine the start and end times of the relevant stretches and store them as a list, accompanied by a list of
+% condition indicators. There are five condition types: stance_foot, perturbation, delay, index and experimental. Each
+% condition type has an indicator variable that is of the same length as the list of stretch start/end times. For each
+% pair of start/end-times, the condition indicator will be 1 if the data stretch between these two points is of this
+% condition, and 0 otherwise.
+
+% The condition types are:
+% stance_foot: this is the foot that is in stance throughout the whole stretch, will be STANCE_LEFT, STANCE_RIGHT or STANCE_BOTH
+% perturbation: direction of the perturbation in stimulus paradigms, will be ILLUSION_LEFT, ILLUSION_RIGHT or CONTROL (should be ILLUSION_NONE instead of CONTROL)
+% delay: delay between trigger and stimulus in stimulus paradigms, options are specified in studySettings.txt
+% index: number of steps after the stimulus in stimulus paradigms, will be STEP_ONE, STEP_TWO, STEP_THREE, STEP_FOUR or CONTROL
+% experimental: condition affecting a whole trial instead of stretches of time within a trial. This will be loaded from
+%               conditions.mat if available, otherwise it will be set to the trial_type as determined from the file name.
+
+% input: 
+% - subjectInfo.mat
+% - optional: conditions.mat
+%
+% output:
+% file relevantDataStretches.mat, containing
+% - condition_stance_foot_list
+% - condition_perturbation_list
+% - condition_delay_list
+% - condition_index_list
+% - condition_experimental_list
+% - stretch_pushoff_times
+% - stretch_start_times
+% - stretch_end_times
+                    
 function findRelevantDataStretches(varargin)
     % parse arguments
     parser = inputParser;
     parser.KeepUnmatched = true;
-    
     default_stimulus_type = 'none';
     valid_stimulus_types = {'none', 'gvs', 'visual', 'obstacle'};
     check_stimulus_type = @(x) any(validatestring(x,valid_stimulus_types));
     addParameter(parser, 'stimulus', default_stimulus_type, check_stimulus_type)
-    
+    addParameter(parser, 'visualize', false)
     parse(parser, varargin{:})
     stimulus_type = parser.Results.stimulus;
-    
+    visualize = parser.Results.visualize;
     [condition_list, trial_number_list] = parseTrialArguments(varargin{:});
 
-    %% Choose Data Type
-    emg_present                     = 0;
-    visualize                       = 0;
-
-    
     % stretches_to_analyze = 'single stance';
     stretches_to_analyze = 'full stride';
 
     %% prepare
-    wait_times = [0 0.150 0.450];
-    wait_time_labels = {'0ms', '150ms', '450ms'};
-    
-    optional_markers = {'LTHI', 'LTHIA', 'LTIB', 'LTIBA', 'RTHI', 'RTHIA', 'RTIB', 'RTIBA'};
+    load('subjectInfo.mat', 'date', 'subject_id');
+    study_settings = loadSettingsFile(['..' filesep 'studySettings.txt']);
 
-%     trials_to_process = 1 : 20;
-    % trials_to_process = 5;
-
-%     total_positive_steps = [];
-%     total_negative_steps = [];
-%     total_perturbation_condition_list = [];
-%     total_step_condition_list = [];
-
-%     swing_foot_fz_zero_threshold = 20; % threshold for counting a vertical force reading as zero, in Nm
-    swing_foot_nonzero_stretch_length_threshold_time = 0.05; % the force plate should register non-zero for at less than this long
     time_to_nearest_heelstrike_before_trigger_threshold = 0.10; % a heelstrike should happen less than this long after a trigger
     time_to_nearest_heelstrike_after_trigger_threshold = 0.3; % a heelstrike should happen less than this long after a trigger
-    
-    
-    duration_prelude = 0.4; % duration that should have zero vertical force prior to a heelstrike, to identify crossover
-
-    colors = parula(6);
 
 
     %% extract data
-    load('subjectInfo.mat', 'date', 'subject_id');
-    stretch_length_indices_forceplate = [];
-    condition_stance_foot_list = {};
-    condition_perturbation_list = {};
-    condition_delay_list = {};
-    condition_index_list = {};
-    stim_start_time_relative_to_stretch = [];
-
-    if exist('conditions.mat', 'file')
+    if strcmp(study_settings.experimental_condition_source, 'conditions_file')
         load('conditions.mat');
-    end                
-    
+    end    
     
     for i_condition = 1 : length(condition_list)
         trials_to_process = trial_number_list{i_condition};
         for i_trial = trials_to_process
-        
             %% load data
             condition = condition_list{i_condition};
-
-            load(['processed' filesep makeFileName(date, subject_id, condition, i_trial, 'markerTrajectories')]);
+            load(['analysis' filesep makeFileName(date, subject_id, condition, i_trial, 'stepEvents')]);
+            
+            % marker data
+            [marker_trajectories, time_marker, ~, marker_labels] = loadData(date, subject_id, condition, i_trial, 'marker_trajectories');
+            
+            % forceplate data
+            [left_forceplate_cop_world_trajectory, time_left_forceplate, ~, ~, left_forceplate_available] = loadData(date, subject_id, condition, i_trial, 'left_forceplate_cop_world', 'optional');
+            [right_forceplate_cop_world_trajectory, time_right_forceplate, ~, ~, right_forceplate_available] = loadData(date, subject_id, condition, i_trial, 'right_forceplate_cop_world', 'optional');
+            if left_forceplate_available && right_forceplate_available
+                left_copx_trajectory = left_forceplate_cop_world_trajectory(:, 1);
+                right_copx_trajectory = right_forceplate_cop_world_trajectory(:, 1);
+                
+                if any(strcmp(condition, study_settings.trial_types_with_inverted_forceplate_sides))
+                    % this was for the VEPO lab, where the sides are inverted
+                    left_copx_trajectory = right_forceplate_cop_world_trajectory(:, 3);
+                    right_copx_trajectory = left_forceplate_cop_world_trajectory(:, 3);
+                end
+            end
+            
+            % stimulus data
+            if strcmp(stimulus_type, 'gvs')
+                GVS_out_trajectory = loadData(date, subject_id, condition, i_trial, 'GVS_out_trajectory');
+                [stimulus_state_trajectory, time_stimulus] = loadData(date, subject_id, condition, i_trial, 'stimulus_state_trajectory');
+            end
+            
             % determine indices for optional markers
             optional_marker_indices = [];
-            for i_marker = 1 : length(optional_markers)
-                marker = find(strcmp(marker_headers, optional_markers{i_marker}));
+            for i_marker = 1 : length(study_settings.optional_markers)
+                marker = find(strcmp(marker_labels, study_settings.optional_markers{i_marker}));
                 marker_indices = reshape([(marker - 1) * 3 + 1; (marker - 1) * 3 + 2; (marker - 1) * 3 + 3], 1, length(marker)*3);
                 optional_marker_indices = [optional_marker_indices marker_indices];
             end
             essential_marker_indicator = ~ismember(1 : size(marker_trajectories, 2), optional_marker_indices);
             
-            
-            % XXX this should be replaced with a system where the subject info file stores the available data for each trial
-            labview_file_name = ['processed' filesep makeFileName(date, subject_id, condition, i_trial, 'labviewData')];
-% XXX
-% labview_file_name = ['processed' filesep makeFileName(date, subject_id, condition, i_trial, 'labviewTrajectories')];
-            if exist([labview_file_name '.mat'], 'file')
-                load(labview_file_name);
-            end                
-            forceplate_file_name = ['processed' filesep makeFileName(date, subject_id, condition, i_trial, 'forceplateTrajectories')];
-            if exist([forceplate_file_name '.mat'], 'file')
-                load(forceplate_file_name);
-                if isnan(sampling_rate_forceplate)
-                    sampling_rate_forceplate = 1 / median(diff(time_forceplate));
-                end
-                number_of_prelude_time_steps = ceil(duration_prelude * sampling_rate_forceplate);
-                swing_foot_nonzero_stretch_length_threshold_indices = ceil(swing_foot_nonzero_stretch_length_threshold_time * sampling_rate_forceplate);
-                force_plate_data_available = 1;
-            else
-                force_plate_data_available = 0;
-            end
-            load(['analysis' filesep makeFileName(date, subject_id, condition, i_trial, 'stepEvents')]);
-            if emg_present
-                load(['processed' filesep makeFileName(date, subject_id, condition, i_trial, 'emgTrajectories')]);
-            end
-
             % determine illusion
-            if strcmp(stimulus_type, 'visual') || strcmp(stimulus_type, 'gvs')
-% XXX
-% time_labviewData = time_forceplate;
-                
-                illusion_trajectory = zeros(size(time_labviewData)); % 1 = RIGHT, -1 = LEFT
-                if strcmp(stimulus_type, 'gvs')
-                    % use GVS_out_trajectory
-                    for i_time = 1 : length(time_labviewData)
-% XXX
-% GVS_out_trajectory = gvs_out_trajectory;
-                        if GVS_out_trajectory(i_time) > 0
-                            % anode is on the right, cathode is on the left, illusory fall is towards the cathode, i.e. LEFT
-                            illusion_trajectory(i_time) = -1;
-                        end
-                        if GVS_out_trajectory(i_time) < 0
-                            % anode is on the left, cathode is on the right, illusory fall is towards the cathode, i.e. RIGHT
-                            illusion_trajectory(i_time) = 1;
-                        end
+            if strcmp(stimulus_type, 'gvs')
+                illusion_trajectory = zeros(size(time_stimulus)); % 1 = RIGHT, -1 = LEFT
+                % use GVS_out_trajectory as illusion
+                for i_time = 1 : length(time_stimulus)
+                    if GVS_out_trajectory(i_time) > 0
+                        % anode is on the right, cathode is on the left, illusory fall is towards the cathode, i.e. LEFT
+                        illusion_trajectory(i_time) = -1;
                     end
-                elseif strcmp(stimulus_type, 'visual')
-                    for i_time = 1 : length(time_labviewData)
-                        if visual_scene_ml_translation__trajectory(i_time) > 0
-                            % angle change is positive, horizon rotates counter-clockwise, illusion is to the RIGHT
-                            illusion_trajectory(i_time) = 1;
-                        end
-                        if visual_scene_ml_translation__trajectory(i_time) < 0
-                            % angle change is negative, horizon rotates clockwise, illusion is to the LEFT
-                            illusion_trajectory(i_time) = -1;
-                        end
+                    if GVS_out_trajectory(i_time) < 0
+                        % anode is on the left, cathode is on the right, illusory fall is towards the cathode, i.e. RIGHT
+                        illusion_trajectory(i_time) = 1;
                     end
                 end
             end
-            
-            % get CoP trajectories
-            if force_plate_data_available
-% XXX
-% left_forceplate_cop_world = left_forceplate_cop_Acw;
-% right_forceplate_cop_world = right_forceplate_cop_Acw;
-% left_forceplate_wrench_world = left_forceplate_wrench_Acw;
-% right_forceplate_wrench_world = right_forceplate_wrench_Acw;
-
-                left_copx_trajectory = left_forceplate_cop_world(:, 1);
-                right_copx_trajectory = right_forceplate_cop_world(:, 1);
+            if strcmp(stimulus_type, 'visual')
+                illusion_trajectory = zeros(size(time_stimulus)); % 1 = RIGHT, -1 = LEFT
+                for i_time = 1 : length(time_stimulus)
+                    if visual_scene_ml_translation__trajectory(i_time) > 0
+                        % angle change is positive, horizon rotates counter-clockwise, illusion is to the RIGHT
+                        illusion_trajectory(i_time) = 1;
+                    end
+                    if visual_scene_ml_translation__trajectory(i_time) < 0
+                        % angle change is negative, horizon rotates clockwise, illusion is to the LEFT
+                        illusion_trajectory(i_time) = -1;
+                    end
+                end
             end
             
             %% find triggers
@@ -177,9 +155,6 @@ function findRelevantDataStretches(varargin)
             elseif strcmp(stimulus_type, 'visual') || strcmp(stimulus_type, 'gvs')
                 % find the time steps where the stimulus state crosses a threshold
                 stimulus_threshold = 0.5;
-                
-% XXX
-% stimulus_state_trajectory = stimulus_foot_state;
                 trigger_indices_labview = find(diff(sign(stimulus_state_trajectory - stimulus_threshold)) > 0) + 1;
 
                 %
@@ -187,7 +162,7 @@ function findRelevantDataStretches(varargin)
                 stim_start_indices_labview = find(diff(sign(abs(illusion_trajectory) - epsilon)) > 0) + 1;
                 trigger_indices_labview = trigger_indices_labview(1 : length(stim_start_indices_labview)); % in case a stim is triggered, but not recorded
                 
-                trigger_times = time_labviewData(trigger_indices_labview);
+                trigger_times = time_stimulus(trigger_indices_labview);
             elseif strcmp(stimulus_type, 'obstacle')
                 trigger_times = [];
             end
@@ -195,26 +170,26 @@ function findRelevantDataStretches(varargin)
             % calculate indices
             trigger_indices_mocap = zeros(size(trigger_times));
             for i_index = 1 : length(trigger_times)
-                [~, index_mocap] = min(abs(time_mocap - trigger_times(i_index)));
+                [~, index_mocap] = min(abs(time_marker - trigger_times(i_index)));
                 trigger_indices_mocap(i_index) = index_mocap;
             end
 
             % visualize triggers
             if visualize
-                if force_plate_data_available
-                    left_cop_x_trajectory_relevant = left_copx_trajectory; left_cop_x_trajectory_relevant(left_cop_x_trajectory_relevant==0) = NaN;
-                    right_cop_x_trajectory_relevant = right_copx_trajectory; right_cop_x_trajectory_relevant(right_cop_x_trajectory_relevant==0) = NaN;
-                end
+
                 figure; axes; hold on
-%                 plot(time_labviewData, stimulus_state_trajectory*0.02);
-                if force_plate_data_available
-                    plot(time_forceplate, left_cop_x_trajectory_relevant, 'linewidth', 2, 'Displayname', 'cop left');
-                    plot(time_forceplate, right_cop_x_trajectory_relevant, 'linewidth', 2, 'Displayname', 'cop right');
+%                 plot(time_stimulus, stimulus_state_trajectory*0.02);
+                if left_forceplate_available
+                    left_cop_x_trajectory_relevant = left_copx_trajectory; left_cop_x_trajectory_relevant(left_cop_x_trajectory_relevant==0) = NaN;
+                    plot(time_left_forceplate, left_cop_x_trajectory_relevant, 'linewidth', 2, 'Displayname', 'cop left');
                 end
-%                 plot(time_forceplate(left_touchdown_indices_forceplate), zeros(size(left_touchdown_indices_forceplate)), 'o')
-%                 plot(time_forceplate(right_touchdown_indices_forceplate), zeros(size(right_touchdown_indices_forceplate)), 'o')
-                plot(time_mocap(trigger_indices_mocap), zeros(size(trigger_indices_mocap)), 'x', 'Displayname', 'triggers')
-%                 plot(time_labviewData, illusion_trajectory, 'Displayname', 'illusion')
+                
+                if right_forceplate_available
+                    right_cop_x_trajectory_relevant = right_copx_trajectory; right_cop_x_trajectory_relevant(right_cop_x_trajectory_relevant==0) = NaN;
+                    plot(time_right_forceplate, right_cop_x_trajectory_relevant, 'linewidth', 2, 'Displayname', 'cop right');
+                end
+                plot(time_marker(trigger_indices_mocap), zeros(size(trigger_indices_mocap)), 'x', 'Displayname', 'triggers')
+%                 plot(time_stimulus, illusion_trajectory, 'Displayname', 'illusion')
 %                 legend('stimulus state', 'left cop', 'right cop', 'left touchdown', 'right touchdown', 'trigger', 'stim start')
                 legend('toggle')
             end
@@ -320,8 +295,8 @@ function findRelevantDataStretches(varargin)
                 
                 % check data availability and flag stretches with gaps
                 for i_stretch = 1 : number_of_stretches
-                    [~, start_index_mocap] = min(abs(time_mocap - stretch_start_times(i_stretch)));
-                    [~, end_index_mocap] = min(abs(time_mocap - stretch_end_times(i_stretch)));
+                    [~, start_index_mocap] = min(abs(time_marker - stretch_start_times(i_stretch)));
+                    [~, end_index_mocap] = min(abs(time_marker - stretch_end_times(i_stretch)));
                     if any(any(isnan(marker_trajectories(start_index_mocap : end_index_mocap, essential_marker_indicator))))
                         removal_flags(i_stretch) = 1;
                     end
@@ -362,6 +337,129 @@ function findRelevantDataStretches(varargin)
                 
                 
             end  
+            if strcmp(stimulus_type, 'obstacle')
+                stretch_start_times = zeros(3, 1);
+                stretch_end_times = zeros(3, 1);
+                stretch_pushoff_times = zeros(3, 1);
+                
+                condition_stance_foot_list = cell(3, 1);
+                condition_perturbation_list = cell(3, 1);
+                condition_delay_list = cell(3, 1);
+                condition_index_list = cell(3, 1);
+                condition_experimental_list = cell(3, 1);
+                
+                if ismember(i_trial, no_obstacle)
+                    condition_experimental = 'NO';
+                elseif ismember(i_trial, near_obstacle)
+                    condition_experimental = 'NEAR';
+                elseif ismember(i_trial, far_obstacle)
+                    condition_experimental = 'FAR';
+                else
+                    error(['No condition specified for trial no. ' num2str(i_trial)]);
+                end
+                
+                % second stretch goes from first right pushoff to first right heelstrike
+                stretch_start_times(2, 1) = right_pushoff_times(1);
+                stretch_end_times(2, 1) = right_touchdown_times(1);
+                condition_perturbation_list{2, 1} = 'CONTROL';
+                condition_delay_list{2, 1} = 'CONTROL';
+                condition_index_list{2, 1} = 'TWO';
+                condition_experimental_list{2, 1} = condition_experimental;
+                condition_stance_foot_list{2, 1} = 'STANCE_LEFT';
+                
+                % third stretch goes from first right heelstrike to first left heelstrike
+                stretch_start_times(3, 1) = right_touchdown_times(1);
+                stretch_end_times(3, 1) = left_touchdown_times(1);
+                condition_perturbation_list{3, 1} = 'CONTROL';
+                condition_delay_list{3, 1} = 'CONTROL';
+                condition_index_list{3, 1} = 'THREE';
+                condition_experimental_list{3, 1} = condition_experimental;
+                condition_stance_foot_list{3, 1} = 'STANCE_RIGHT';
+                
+                % first stretch goes from first right pushoff minus 1 second to first right pushoff
+                stretch_start_times(1, 1) = right_pushoff_times(1) - 1;
+                stretch_end_times(1, 1) = right_pushoff_times(1);
+                condition_perturbation_list{1, 1} = 'CONTROL';
+                condition_delay_list{1, 1} = 'CONTROL';
+                condition_index_list{1, 1} = 'ONE';
+                condition_experimental_list{1, 1} = condition_experimental;
+                condition_stance_foot_list{1, 1} = 'STANCE_BOTH';
+                
+%                 % remove flagged triggers
+%                 unflagged_indices = ~removal_flags;
+%                 trigger_times = trigger_times(unflagged_indices);
+%                 stretch_start_times = stretch_start_times(unflagged_indices, :);
+%                 stretch_end_times = stretch_end_times(unflagged_indices, :);
+%                 stretch_pushoff_times = stretch_pushoff_times(unflagged_indices, :);
+%                 condition_stance_foot_list = condition_stance_foot_list(unflagged_indices, :);
+%                 condition_perturbation_list = condition_perturbation_list(unflagged_indices, :);
+%                 condition_delay_list = condition_delay_list(unflagged_indices, :);
+%                 condition_index_list = condition_index_list(unflagged_indices, :);
+%                 condition_experimental_list = condition_experimental_list(unflagged_indices, :);
+%                 closest_heelstrike_distance_times = closest_heelstrike_distance_times(unflagged_indices, :); 
+                
+                if visualize
+                    for i_trigger = 1 : length(stretch_start_times)
+                        if strcmp(condition_stance_foot_list(i_trigger), 'STANCE_LEFT')
+                            stretch_indicator_height = 0.01;
+                        else
+                            stretch_indicator_height = -0.01;
+                        end
+                            
+                        plot([stretch_start_times(i_trigger) stretch_end_times(i_trigger)], [1 1]*stretch_indicator_height, 'linewidth', 3);
+                    end
+                end
+                
+%                 % check step times and flag outliers
+%                 number_of_stretches = length(stretch_start_times);
+%                 stretch_times = stretch_end_times - stretch_start_times;
+%                 stretch_time_outlier_limits = median(stretch_times) * [0.8 1.2];
+%                 
+%                 removal_flags = zeros(number_of_stretches, 1);
+%                 removal_flags(stretch_times < stretch_time_outlier_limits(1)) = 1;
+%                 removal_flags(stretch_times > stretch_time_outlier_limits(2)) = 1;
+                
+%                 % check data availability and flag stretches with gaps
+%                 for i_stretch = 1 : number_of_stretches
+%                     [~, start_index_mocap] = min(abs(time_marker - stretch_start_times(i_stretch)));
+%                     [~, end_index_mocap] = min(abs(time_marker - stretch_end_times(i_stretch)));
+%                     if any(any(isnan(marker_trajectories(start_index_mocap : end_index_mocap, essential_marker_indicator))))
+%                         removal_flags(i_stretch) = 1;
+%                     end
+%                 end
+                
+                
+%                 % remove flagged triggers
+%                 unflagged_indices = ~removal_flags;
+%                 trigger_times = trigger_times(unflagged_indices);
+%                 stretch_start_times = stretch_start_times(unflagged_indices, :);
+%                 stretch_end_times = stretch_end_times(unflagged_indices, :);
+%                 stretch_pushoff_times = stretch_pushoff_times(unflagged_indices, :);
+%                 condition_stance_foot_list = condition_stance_foot_list(unflagged_indices, :);
+%                 condition_perturbation_list = condition_perturbation_list(unflagged_indices, :);
+%                 condition_delay_list = condition_delay_list(unflagged_indices, :);
+%                 condition_index_list = condition_index_list(unflagged_indices, :);
+%                 condition_experimental_list = condition_experimental_list(unflagged_indices, :);
+%                 closest_heelstrike_distance_times = closest_heelstrike_distance_times(unflagged_indices, :);
+                
+                % save data
+                data_stretches_file_name = ['analysis' filesep makeFileName(date, subject_id, condition, i_trial, 'relevantDataStretches')];
+                save ...
+                  ( ...
+                    data_stretches_file_name, ...
+                    'condition_stance_foot_list', ...
+                    'condition_perturbation_list', ...
+                    'condition_delay_list', ...
+                    'condition_index_list', ...
+                    'condition_experimental_list', ...
+                    'stretch_pushoff_times', ...
+                    'stretch_start_times', ...
+                    'stretch_end_times' ...
+                  )
+
+                disp(['Condition ' condition ', Trial ' num2str(i_trial) ' completed, found ' num2str(length(stretch_start_times)) ' relevant stretches, saved as ' data_stretches_file_name]);                
+
+            end
             if strcmp(stimulus_type, 'visual') || strcmp(stimulus_type, 'gvs')
                 % for each trigger, extract conditions and relevant step events
                 number_of_triggers = length(trigger_indices_mocap);
@@ -390,18 +488,18 @@ function findRelevantDataStretches(varargin)
                         condition_perturbation_list{i_trigger, 3} = 'ILLUSION_LEFT';
                         condition_perturbation_list{i_trigger, 4} = 'ILLUSION_LEFT';
                     else
-        %                 disp(['Trial ' num2str(i_trial) ': something went wrong at time ' num2str(time_labviewData(trigger_indices_labview(i_trigger))) ' - no stim']);
+        %                 disp(['Trial ' num2str(i_trial) ': something went wrong at time ' num2str(time_stimulus(trigger_indices_labview(i_trigger))) ' - no stim']);
                     end
                     condition_perturbation_list{i_trigger, 5} = 'CONTROL';
                     condition_perturbation_list{i_trigger, 6} = 'CONTROL';
                 
                     % delay condition
-                    wait_time_stim = time_labviewData(stim_start_indices_labview(i_trigger)) - time_labviewData(trigger_indices_labview(i_trigger));
-                    [~, wait_condition_index] = min(abs(wait_times - wait_time_stim));
-                    condition_delay_list{i_trigger, 1} = wait_time_labels{wait_condition_index};
-                    condition_delay_list{i_trigger, 2} = wait_time_labels{wait_condition_index};
-                    condition_delay_list{i_trigger, 3} = wait_time_labels{wait_condition_index};
-                    condition_delay_list{i_trigger, 4} = wait_time_labels{wait_condition_index};
+                    wait_time_stim = time_stimulus(stim_start_indices_labview(i_trigger)) - time_stimulus(trigger_indices_labview(i_trigger));
+                    [~, wait_condition_index] = min(abs(study_settings.delay_times - wait_time_stim));
+                    condition_delay_list{i_trigger, 1} = num2str(study_settings.delay_times(wait_condition_index));
+                    condition_delay_list{i_trigger, 2} = num2str(study_settings.delay_times(wait_condition_index));
+                    condition_delay_list{i_trigger, 3} = num2str(study_settings.delay_times(wait_condition_index));
+                    condition_delay_list{i_trigger, 4} = num2str(study_settings.delay_times(wait_condition_index));
                     condition_delay_list{i_trigger, 5} = 'CONTROL';
                     condition_delay_list{i_trigger, 6} = 'CONTROL';
                     
@@ -459,7 +557,7 @@ function findRelevantDataStretches(varargin)
                     % confirm that the trigger happened less than 100ms (or whatever time's set) before the actual heelstrike
 %                     if closest_heelstrike_distance_time > time_to_nearest_heelstrike_before_trigger_threshold
 %                         removal_flags(i_trigger) = 1;
-%         %                 disp(['Trial ' num2str(i_trial) ': something went wrong at time ' num2str(time_labviewData(trigger_indices_labview(i_trigger))) ' - trigger not in sync with heelstrike']);
+%         %                 disp(['Trial ' num2str(i_trial) ': something went wrong at time ' num2str(time_stimulus(trigger_indices_labview(i_trigger))) ' - trigger not in sync with heelstrike']);
 %                     end
 
                     if strcmp(trigger_foot, 'left')
@@ -521,7 +619,7 @@ function findRelevantDataStretches(varargin)
                                       left_foot_pushoff_plus_2 ...
                                     ] ...
                                   );
-                                disp(['Trial ' num2str(i_trial) ': Problem with order of events, please check trigger at ' num2str(time_labviewData(trigger_indices_labview(i_trigger)))]);
+                                disp(['Trial ' num2str(i_trial) ': Problem with order of events, please check trigger at ' num2str(time_stimulus(trigger_indices_labview(i_trigger)))]);
                             end
                             % check check
                             if visualize
@@ -555,24 +653,12 @@ function findRelevantDataStretches(varargin)
                             right_foot_heelstrike_minus_1       = right_touchdown_times(index_right-1);
                             right_foot_heelstrike_0             = right_touchdown_times(index_right);
                             right_foot_heelstrike_plus_1        = right_touchdown_times(index_right+1);
-% XXX
-% if index_right+2 <= length(right_touchdown_times)
                             right_foot_heelstrike_plus_2        = right_touchdown_times(index_right+2);
-% else
-%     right_foot_heelstrike_plus_2 = 0;
-% end
                             
                             right_foot_pushoff_minus_1          = min(right_pushoff_times(right_pushoff_times >= right_foot_heelstrike_minus_1));
                             right_foot_pushoff_0                = min(right_pushoff_times(right_pushoff_times >= right_foot_heelstrike_0));
                             right_foot_pushoff_plus_1           = min(right_pushoff_times(right_pushoff_times >= right_foot_heelstrike_plus_1));
                             right_foot_pushoff_plus_2           = min(right_pushoff_times(right_pushoff_times >= right_foot_heelstrike_plus_2));
-% XXX
-% if isempty(right_foot_pushoff_plus_1)
-%     right_foot_pushoff_plus_1 = 0;
-% end
-% if isempty(right_foot_pushoff_plus_2)
-%     right_foot_pushoff_plus_2 = 0;
-% end
 
                             left_foot_heelstrike_minus_1        = min(left_touchdown_times(left_touchdown_times >= right_foot_heelstrike_minus_1));
                             left_foot_heelstrike_0              = min(left_touchdown_times(left_touchdown_times >= right_foot_heelstrike_0));
@@ -581,18 +667,7 @@ function findRelevantDataStretches(varargin)
                             left_foot_pushoff_minus_1           = max(left_pushoff_times(left_pushoff_times <= right_foot_pushoff_minus_1));
                             left_foot_pushoff_0                 = max(left_pushoff_times(left_pushoff_times <= right_foot_pushoff_0));
                             left_foot_pushoff_plus_1            = max(left_pushoff_times(left_pushoff_times <= right_foot_pushoff_plus_1));
-% XXX
-% if isempty(left_foot_pushoff_plus_1)
-%     left_foot_pushoff_plus_1 = 0;
-% end
-                            
-% XXX                            
-% if index_right+2 <= length(right_touchdown_times)
                             left_foot_pushoff_plus_2            = max(left_pushoff_times(left_pushoff_times <= right_foot_pushoff_plus_2));
-% else
-%     left_foot_pushoff_plus_2 = 0;
-% end
-
 
                             % notify if events are not sorted properly
                             if ~issorted ...
@@ -616,7 +691,7 @@ function findRelevantDataStretches(varargin)
                                       right_foot_pushoff_plus_2 ...
                                     ] ...
                                   );
-                              disp(['Trial ' num2str(i_trial) ': Problem with order of events, please check trigger at ' num2str(time_labviewData(trigger_indices_labview(i_trigger)))]);
+                              disp(['Trial ' num2str(i_trial) ': Problem with order of events, please check trigger at ' num2str(time_stimulus(trigger_indices_labview(i_trigger)))]);
 
                             end
 
@@ -629,7 +704,7 @@ function findRelevantDataStretches(varargin)
                         end            
                     else
                         trigger_foot = 'unclear';
-                        disp(['Trial ' num2str(i_trial) ': something went wrong at time ' num2str(time_labviewData(trigger_indices_labview(i_trigger))) ' - trigger exactly between two heelstrikes']);
+                        disp(['Trial ' num2str(i_trial) ': something went wrong at time ' num2str(time_stimulus(trigger_indices_labview(i_trigger))) ' - trigger exactly between two heelstrikes']);
                         left_foot_heelstrike_minus_1    = 0;
                         left_foot_heelstrike_0          = 0;
                         left_foot_heelstrike_plus_1     = 0;
@@ -884,8 +959,8 @@ function findRelevantDataStretches(varargin)
 
                 % check data availability and flag stretches with gaps
 %                 for i_stretch = 1 : number_of_stretches
-%                     [~, start_index_mocap] = min(abs(time_mocap - stretch_start_times(i_stretch)));
-%                     [~, end_index_mocap] = min(abs(time_mocap - stretch_end_times(i_stretch)));
+%                     [~, start_index_mocap] = min(abs(time_marker - stretch_start_times(i_stretch)));
+%                     [~, end_index_mocap] = min(abs(time_marker - stretch_end_times(i_stretch)));
 %                     if any(any(isnan(marker_trajectories(start_index_mocap : end_index_mocap, :))))
 %                         removal_flags(i_stretch) = 1;
 %                     end
@@ -925,129 +1000,6 @@ function findRelevantDataStretches(varargin)
                 
                 
             end            
-            if strcmp(stimulus_type, 'obstacle')
-                stretch_start_times = zeros(3, 1);
-                stretch_end_times = zeros(3, 1);
-                stretch_pushoff_times = zeros(3, 1);
-                
-                condition_stance_foot_list = cell(3, 1);
-                condition_perturbation_list = cell(3, 1);
-                condition_delay_list = cell(3, 1);
-                condition_index_list = cell(3, 1);
-                condition_experimental_list = cell(3, 1);
-                
-                if ismember(i_trial, no_obstacle)
-                    condition_experimental = 'NO';
-                elseif ismember(i_trial, near_obstacle)
-                    condition_experimental = 'NEAR';
-                elseif ismember(i_trial, far_obstacle)
-                    condition_experimental = 'FAR';
-                else
-                    error(['No condition specified for trial no. ' num2str(i_trial)]);
-                end
-                
-                % second stretch goes from first right pushoff to first right heelstrike
-                stretch_start_times(2, 1) = right_pushoff_times(1);
-                stretch_end_times(2, 1) = right_touchdown_times(1);
-                condition_perturbation_list{2, 1} = 'CONTROL';
-                condition_delay_list{2, 1} = 'CONTROL';
-                condition_index_list{2, 1} = 'TWO';
-                condition_experimental_list{2, 1} = condition_experimental;
-                condition_stance_foot_list{2, 1} = 'STANCE_LEFT';
-                
-                % third stretch goes from first right heelstrike to first left heelstrike
-                stretch_start_times(3, 1) = right_touchdown_times(1);
-                stretch_end_times(3, 1) = left_touchdown_times(1);
-                condition_perturbation_list{3, 1} = 'CONTROL';
-                condition_delay_list{3, 1} = 'CONTROL';
-                condition_index_list{3, 1} = 'THREE';
-                condition_experimental_list{3, 1} = condition_experimental;
-                condition_stance_foot_list{3, 1} = 'STANCE_RIGHT';
-                
-                % first stretch goes from first right pushoff minus 1 second to first right pushoff
-                stretch_start_times(1, 1) = right_pushoff_times(1) - 1;
-                stretch_end_times(1, 1) = right_pushoff_times(1);
-                condition_perturbation_list{1, 1} = 'CONTROL';
-                condition_delay_list{1, 1} = 'CONTROL';
-                condition_index_list{1, 1} = 'ONE';
-                condition_experimental_list{1, 1} = condition_experimental;
-                condition_stance_foot_list{1, 1} = 'STANCE_BOTH';
-                
-%                 % remove flagged triggers
-%                 unflagged_indices = ~removal_flags;
-%                 trigger_times = trigger_times(unflagged_indices);
-%                 stretch_start_times = stretch_start_times(unflagged_indices, :);
-%                 stretch_end_times = stretch_end_times(unflagged_indices, :);
-%                 stretch_pushoff_times = stretch_pushoff_times(unflagged_indices, :);
-%                 condition_stance_foot_list = condition_stance_foot_list(unflagged_indices, :);
-%                 condition_perturbation_list = condition_perturbation_list(unflagged_indices, :);
-%                 condition_delay_list = condition_delay_list(unflagged_indices, :);
-%                 condition_index_list = condition_index_list(unflagged_indices, :);
-%                 condition_experimental_list = condition_experimental_list(unflagged_indices, :);
-%                 closest_heelstrike_distance_times = closest_heelstrike_distance_times(unflagged_indices, :); 
-                
-                if visualize
-                    for i_trigger = 1 : length(stretch_start_times)
-                        if strcmp(condition_stance_foot_list(i_trigger), 'STANCE_LEFT')
-                            stretch_indicator_height = 0.01;
-                        else
-                            stretch_indicator_height = -0.01;
-                        end
-                            
-                        plot([stretch_start_times(i_trigger) stretch_end_times(i_trigger)], [1 1]*stretch_indicator_height, 'linewidth', 3);
-                    end
-                end
-                
-%                 % check step times and flag outliers
-%                 number_of_stretches = length(stretch_start_times);
-%                 stretch_times = stretch_end_times - stretch_start_times;
-%                 stretch_time_outlier_limits = median(stretch_times) * [0.8 1.2];
-%                 
-%                 removal_flags = zeros(number_of_stretches, 1);
-%                 removal_flags(stretch_times < stretch_time_outlier_limits(1)) = 1;
-%                 removal_flags(stretch_times > stretch_time_outlier_limits(2)) = 1;
-                
-%                 % check data availability and flag stretches with gaps
-%                 for i_stretch = 1 : number_of_stretches
-%                     [~, start_index_mocap] = min(abs(time_mocap - stretch_start_times(i_stretch)));
-%                     [~, end_index_mocap] = min(abs(time_mocap - stretch_end_times(i_stretch)));
-%                     if any(any(isnan(marker_trajectories(start_index_mocap : end_index_mocap, essential_marker_indicator))))
-%                         removal_flags(i_stretch) = 1;
-%                     end
-%                 end
-                
-                
-%                 % remove flagged triggers
-%                 unflagged_indices = ~removal_flags;
-%                 trigger_times = trigger_times(unflagged_indices);
-%                 stretch_start_times = stretch_start_times(unflagged_indices, :);
-%                 stretch_end_times = stretch_end_times(unflagged_indices, :);
-%                 stretch_pushoff_times = stretch_pushoff_times(unflagged_indices, :);
-%                 condition_stance_foot_list = condition_stance_foot_list(unflagged_indices, :);
-%                 condition_perturbation_list = condition_perturbation_list(unflagged_indices, :);
-%                 condition_delay_list = condition_delay_list(unflagged_indices, :);
-%                 condition_index_list = condition_index_list(unflagged_indices, :);
-%                 condition_experimental_list = condition_experimental_list(unflagged_indices, :);
-%                 closest_heelstrike_distance_times = closest_heelstrike_distance_times(unflagged_indices, :);
-                
-                % save data
-                data_stretches_file_name = ['analysis' filesep makeFileName(date, subject_id, condition, i_trial, 'relevantDataStretches')];
-                save ...
-                  ( ...
-                    data_stretches_file_name, ...
-                    'condition_stance_foot_list', ...
-                    'condition_perturbation_list', ...
-                    'condition_delay_list', ...
-                    'condition_index_list', ...
-                    'condition_experimental_list', ...
-                    'stretch_pushoff_times', ...
-                    'stretch_start_times', ...
-                    'stretch_end_times' ...
-                  )
-
-                disp(['Condition ' condition ', Trial ' num2str(i_trial) ' completed, found ' num2str(length(stretch_start_times)) ' relevant stretches, saved as ' data_stretches_file_name]);                
-
-            end
 
 
 
