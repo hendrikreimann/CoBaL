@@ -24,10 +24,10 @@ function analyzeData(varargin)
     load('subjectInfo.mat', 'date', 'subject_id');
     study_settings = loadSettingsFile(['..' filesep 'studySettings.txt']);
     data_custodian = WalkingDataCustodian();
-    number_of_required_variables = length(data_custodian.required_variable_names);
+    number_of_stretch_variables = length(data_custodian.stretch_variable_names);
     
     % make containers to hold the data
-    data_subject = cell(number_of_required_variables, 1);
+    data_subject = cell(number_of_stretch_variables, 1);
     condition_stance_foot_list_subject = {};
     condition_perturbation_list_subject = {};
     condition_delay_list_subject = {};
@@ -40,26 +40,12 @@ function analyzeData(varargin)
         trials_to_process = trial_number_list{i_condition};
         for i_trial = trials_to_process
             % load and prepare data
-            data_trial = cell(number_of_required_variables, 1);
             data_custodian.prepareData(condition, i_trial);
             load(['analysis' filesep makeFileName(date, subject_id, condition, i_trial, 'relevantDataStretches')]);
-            number_of_stretches = length(condition_stance_foot_list_trial);
-            
-            % extract and normalize data from stretches
-            for i_stretch = 1 : number_of_stretches
-                % time
-                this_stretch_start_time = stretch_start_times(i_stretch);
-                this_stretch_end_time = stretch_end_times(i_stretch);
-                
-                for i_variable = 1 : number_of_required_variables
-                    time_normalized_data = data_custodian.getTimeNormalizedData(data_custodian.required_variable_names{i_variable}, this_stretch_start_time, this_stretch_end_time);
-                    data_trial{i_variable} = [data_trial{i_variable} time_normalized_data];
-                end
-                
-            end
+            data_trial = data_custodian.calculateStretchVariables(stretch_start_times, stretch_end_times);
             
             % append the data and condition lists from this trial to the total lists
-            for i_variable = 1 : number_of_required_variables
+            for i_variable = 1 : number_of_stretch_variables
                 data_subject{i_variable} = [data_subject{i_variable} data_trial{i_variable}];
             end
             condition_stance_foot_list_subject = [condition_stance_foot_list_subject; condition_stance_foot_list_trial];
@@ -127,7 +113,7 @@ function analyzeData(varargin)
     
     % save data
     variable_data_subject = data_subject;
-    variable_names_subject = data_custodian.required_variable_names;
+    variable_names_subject = data_custodian.stretch_variable_names;
     
     results_file_name = ['analysis' filesep makeFileName(date, subject_id, 'results')];
     save ...
