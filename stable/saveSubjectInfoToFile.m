@@ -17,16 +17,6 @@
 % function saveSubjectInfoToFile(gender, height, weight)
 function saveSubjectInfoToFile
     
-%     if nargin < 1
-%         gender = 'unknown';
-%     end
-%     if nargin < 2
-%         height = -1;
-%     end
-%     if nargin < 3
-%         weight = -1;
-%     end
-    
     % get subject code
     current_path = pwd;
     path_split = strsplit(current_path, filesep);

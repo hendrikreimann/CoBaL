@@ -1,10 +1,3 @@
-% this script loads the settings file and returns a struct
-% input: 
-% file studySettings.txt in study root folder (one up from subject folder)
-%
-% output: 
-% struct containing the loaded settings
-
 %     This file is part of the CoBaL code base
 %     Copyright (C) 2017 Hendrik Reimann <hendrikreimann@gmail.com>
 % 
@@ -21,6 +14,13 @@
 %     You should have received a copy of the GNU General Public License
 %     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+% this script loads the settings file and returns a struct
+% input: 
+% file studySettings.txt in study root folder (one up from subject folder)
+%
+% output: 
+% struct containing the loaded settings
+
 
 function settings = loadSettingsFile(filename)
     settings = struct();
@@ -31,7 +31,7 @@ function settings = loadSettingsFile(filename)
         fprintf(fileID,'example settings file, edit this later\n');
         fclose(fileID);
         
-        error('Failed to load "studySettings.txt", a sample file has been created. Please edit it with your study information or copy the correct file.')
+        error(['Failed to load "' filename '", a sample file has been created. Please edit it with your study information or copy the correct file.'])
     end
 
     fileID = fopen(filename, 'r');
@@ -87,12 +87,29 @@ function [text_cell, settings] = parseNextBlock(text_cell, settings)
         variable_data_lines = text_cell(3 : block_end_line_index-1);
         variable_value = {};
         for i_line = 1 : length(variable_data_lines)
-            this_line_text = strrep(variable_data_lines{i_line}, ' ', '');
+            this_line_text = variable_data_lines{i_line};
+            while length(this_line_text) > 0 && this_line_text(1) == ' '
+                this_line_text(1) = [];
+            end
+            this_line_text = strrep(this_line_text, ', ', ',');
             this_line_cell = strsplit(this_line_text, ',');
             variable_value(i_line, :) = this_line_cell;
         end
+                
+        % try to transform this into a double array
+        variable_array = zeros(size(variable_value)) * NaN;
+        for i_row = 1 : size(variable_value, 1)
+            for i_col = 1 : size(variable_value, 2)
+                if ~isempty(str2num(variable_value{i_row, i_col}))
+                    variable_array(i_row, i_col) = str2num(variable_value{i_row, i_col});
+                end
+            end
+        end
+        if ~any(isnan(variable_array))
+            variable_value = variable_array;
+        end
         
-        % 
+        % store in struct
         evalstring = ['settings.' variable_name ' = variable_value;'];
         eval(evalstring);
         
@@ -105,7 +122,11 @@ function [text_cell, settings] = parseNextBlock(text_cell, settings)
     % parse first line as a single entry=
     line_split = strsplit(text_line, ':');
     variable_name = strrep(line_split{1}, ' ', '_');
-    variable_value_string = strrep(line_split{2}, ' ', '');
+    variable_value_string = line_split{2};
+    while length(variable_value_string) > 0 && variable_value_string(1) == ' '
+        variable_value_string(1) = [];
+    end
+    variable_value_string = strrep(variable_value_string, ', ', ',');
     variable_value_cell = strsplit(variable_value_string, ',');
     if length(variable_value_cell) == 1
         variable_value = variable_value_cell{1};

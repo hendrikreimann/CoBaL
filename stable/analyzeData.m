@@ -21,19 +21,18 @@
 
 function analyzeData(varargin)
     [condition_list, trial_number_list] = parseTrialArguments(varargin{:});
-    study_settings = loadSettingsFile(['..' filesep 'studySettings.txt']);
     load('subjectInfo.mat', 'date', 'subject_id');
-%     data_custodian = WalkingDataCustodian(date, subject_id, study_settings.variables_to_analyze);
+    study_settings = loadSettingsFile(['..' filesep 'studySettings.txt']);
     data_custodian = WalkingDataCustodian();
     number_of_required_variables = length(data_custodian.required_variable_names);
     
     % make containers to hold the data
-    data_total = cell(number_of_required_variables, 1);
-    condition_stance_foot_list_total = {};
-    condition_perturbation_list_total = {};
-    condition_delay_list_total = {};
-    condition_index_list_total = {};
-    condition_experimental_list_total = {};
+    data_subject = cell(number_of_required_variables, 1);
+    condition_stance_foot_list_subject = {};
+    condition_perturbation_list_subject = {};
+    condition_delay_list_subject = {};
+    condition_index_list_subject = {};
+    condition_experimental_list_subject = {};
     
     % analyze and store data
     for i_condition = 1 : length(condition_list)
@@ -44,7 +43,7 @@ function analyzeData(varargin)
             data_trial = cell(number_of_required_variables, 1);
             data_custodian.prepareData(condition, i_trial);
             load(['analysis' filesep makeFileName(date, subject_id, condition, i_trial, 'relevantDataStretches')]);
-            number_of_stretches = length(condition_stance_foot_list);
+            number_of_stretches = length(condition_stance_foot_list_trial);
             
             % extract and normalize data from stretches
             for i_stretch = 1 : number_of_stretches
@@ -61,36 +60,86 @@ function analyzeData(varargin)
             
             % append the data and condition lists from this trial to the total lists
             for i_variable = 1 : number_of_required_variables
-                data_total{i_variable} = [data_total{i_variable} data_trial{i_variable}];
+                data_subject{i_variable} = [data_subject{i_variable} data_trial{i_variable}];
             end
-            condition_stance_foot_list_total = [condition_stance_foot_list_total; condition_stance_foot_list];
-            condition_perturbation_list_total = [condition_perturbation_list_total; condition_perturbation_list];
-            condition_delay_list_total = [condition_delay_list_total; condition_delay_list];
-            condition_index_list_total = [condition_index_list_total; condition_index_list];
-            condition_experimental_list_total = [condition_experimental_list_total; condition_experimental_list];
+            condition_stance_foot_list_subject = [condition_stance_foot_list_subject; condition_stance_foot_list_trial];
+            condition_perturbation_list_subject = [condition_perturbation_list_subject; condition_perturbation_list_trial];
+            condition_delay_list_subject = [condition_delay_list_subject; condition_delay_list_trial];
+            condition_index_list_subject = [condition_index_list_subject; condition_index_list_trial];
+            condition_experimental_list_subject = [condition_experimental_list_subject; condition_experimental_list_trial];
         end
     end
     
+    % calculate some subject-level data and report
+    number_of_stretches_subject = length(condition_stance_foot_list_subject);
+    
+    % extract indicators for control
+    number_of_conditions_control = size(study_settings.conditions_control, 1);
+    conditions_control_indicators = false(number_of_stretches_subject, number_of_conditions_control);
+    for i_condition = 1 : number_of_conditions_control
+        stance_foot_indicator = strcmp(condition_stance_foot_list_subject, study_settings.conditions_control(i_condition, 1));
+        perturbation_indicator = strcmp(condition_perturbation_list_subject, study_settings.conditions_control(i_condition, 2));
+        delay_indicator = strcmp(condition_delay_list_subject, study_settings.conditions_control(i_condition, 3));
+        index_indicator = strcmp(condition_index_list_subject, study_settings.conditions_control(i_condition, 4));
+        experimental_indicator = strcmp(condition_experimental_list_subject, study_settings.conditions_control(i_condition, 5));
+
+        this_condition_indicator = stance_foot_indicator & perturbation_indicator & delay_indicator & index_indicator & experimental_indicator;
+        conditions_control_indicators(:, i_condition) = this_condition_indicator;
+    end
+    
+    % report control
+    trials_per_condition_control = sum(conditions_control_indicators)';
+    conditions_control_with_number = study_settings.conditions_control;
+    for i_condition = 1 : number_of_conditions_control
+        conditions_control_with_number{i_condition, size(study_settings.conditions_control, 2)+1} = num2str(trials_per_condition_control(i_condition));
+    end
+    conditions_control_with_labels = [study_settings.condition_labels 'number of stretches'; conditions_control_with_number];
+    disp('Control conditions:')
+    disp(conditions_control_with_labels);
+
+    % extract indicators for conditions to analyze
+    number_of_conditions_to_analyze = size(study_settings.conditions_to_analyze, 1);
+    conditions_to_analyze_indicators = false(number_of_stretches_subject, number_of_conditions_to_analyze);
+    for i_condition = 1 : number_of_conditions_to_analyze
+        stance_foot_indicator = strcmp(condition_stance_foot_list_subject, study_settings.conditions_to_analyze(i_condition, 1));
+        perturbation_indicator = strcmp(condition_perturbation_list_subject, study_settings.conditions_to_analyze(i_condition, 2));
+        delay_indicator = strcmp(condition_delay_list_subject, study_settings.conditions_to_analyze(i_condition, 3));
+        index_indicator = strcmp(condition_index_list_subject, study_settings.conditions_to_analyze(i_condition, 4));
+        experimental_indicator = strcmp(condition_experimental_list_subject, study_settings.conditions_to_analyze(i_condition, 5));
+
+        this_condition_indicator = stance_foot_indicator & perturbation_indicator & delay_indicator & index_indicator & experimental_indicator;
+        conditions_to_analyze_indicators(:, i_condition) = this_condition_indicator;
+    end
+    
+    % report conditions to analyze
+    trials_per_condition_to_analyze = sum(conditions_to_analyze_indicators)';
+    conditions_to_analyze_with_number = study_settings.conditions_to_analyze;
+    for i_condition = 1 : number_of_conditions_to_analyze
+        conditions_to_analyze_with_number{i_condition, size(study_settings.conditions_to_analyze, 2)+1} = num2str(trials_per_condition_to_analyze(i_condition));
+    end
+    conditions_to_analyze_with_labels = [study_settings.condition_labels 'number of stretches'; conditions_to_analyze_with_number];
+    disp('Conditions to analyze:')
+    disp(conditions_to_analyze_with_labels);
+    
+    disp(['Number of control stretches: ' num2str(sum(trials_per_condition_control))]);
+    disp(['Number of stimulus stretches: ' num2str(sum(trials_per_condition_to_analyze))]);
+    disp(['Number of unassigned stretches: ' num2str(number_of_stretches_subject - sum(trials_per_condition_control) - sum(trials_per_condition_to_analyze))]);
+    
     % save data
-    condition_stance_foot_list = condition_stance_foot_list_total;
-    condition_perturbation_list = condition_perturbation_list_total;
-    condition_delay_list = condition_delay_list_total;
-    condition_index_list = condition_index_list_total;
-    condition_experimental_list = condition_experimental_list_total;
-    variable_data = data_total;
-    variable_names = data_custodian.required_variable_names;
+    variable_data_subject = data_subject;
+    variable_names_subject = data_custodian.required_variable_names;
     
     results_file_name = ['analysis' filesep makeFileName(date, subject_id, 'results')];
     save ...
       ( ...
         results_file_name, ...
-        'variable_data', ...
-        'variable_names', ...
-        'condition_stance_foot_list', ...
-        'condition_perturbation_list', ...
-        'condition_delay_list', ...
-        'condition_index_list', ...
-        'condition_experimental_list' ...
+        'variable_data_subject', ...
+        'variable_names_subject', ...
+        'condition_stance_foot_list_subject', ...
+        'condition_perturbation_list_subject', ...
+        'condition_delay_list_subject', ...
+        'condition_index_list_subject', ...
+        'condition_experimental_list_subject' ...
       )
 end
 

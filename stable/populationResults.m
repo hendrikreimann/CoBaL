@@ -22,7 +22,7 @@ plot_episodes       = 0;
 include_control     = 0;
 
 show_legend         = 1;
-dictate_axes        = 1;
+dictate_axes        = 0;
 mark_pushoff        = 0;
 
 save_figures        = 0;
@@ -55,6 +55,7 @@ subjects = {'DXT'};
 subjects = {'GGU', 'XYC', 'LDZ', 'STD'};
 
 subjects = {'C'};
+subjects = {'DDPilot'};
 
 %% choose variables to plot
 % variable info contains the following columns
@@ -64,7 +65,7 @@ discrete_variable_info = {};
 
 % markers
 % the cell array should have the following entries in each line: variable name, variable label, unit, file label for saving, forced axis scale, positive direction label, negative direction label
-% continuous_variable_info = [continuous_variable_info; {'lheel_x_pos_normalized_all', 'left heel pos, ml', 'heel pos (m)', 'lheelpos', [-0.2 0.2], 'right', 'left'}];
+continuous_variable_info = [continuous_variable_info; {'lheel_x_pos_normalized_all', 'left heel pos, ml', 'heel pos (m)', 'lheelpos', [-0.2 0.2], 'right', 'left'}];
 % continuous_variable_info = [continuous_variable_info; {'rheel_x_pos_normalized_all', 'right heel pos, ml', 'heel pos (m)', 'rheelpos', 0, 'right', 'left'}];
 % continuous_variable_info = [continuous_variable_info; {'lheel_x_pos_com_normalized_all', 'left heel pos, ml', 'heel pos (m)', 'lheelpos', 0, 'right', 'left'}];
 % continuous_variable_info = [continuous_variable_info; {'rheel_x_pos_com_normalized_all', 'right heel pos, ml', 'heel pos (m)', 'rheelpos', 0, 'right', 'left'}];
@@ -72,7 +73,7 @@ discrete_variable_info = {};
 % continuous_variable_info = [continuous_variable_info; {'trunk_angle_ml_normalized_all', 'trunk angle, ml', 'angle (deg)', 'trunkangleml', [-10 16], 'right', 'left'}];
 % continuous_variable_info = [continuous_variable_info; {'lleg_angle_ml_normalized_all', 'left leg angle, ml', 'angle (deg)', 'llegangleml', 0, 'right', 'left'}];
 % continuous_variable_info = [continuous_variable_info; {'rleg_angle_ml_normalized_all', 'right leg angle, ml', 'angle (deg)', 'rlegangleml', 0, 'right', 'left'}];
-continuous_variable_info = [continuous_variable_info; {'trunk_angle_ap_normalized_all', 'trunk angle, ap', 'angle (deg)', 'trunkangleml', [-5 25], 'right', 'left'}];
+% continuous_variable_info = [continuous_variable_info; {'trunk_angle_ap_normalized_all', 'trunk angle, ap', 'angle (deg)', 'trunkangleml', [-5 25], 'right', 'left'}];
 % continuous_variable_info = [continuous_variable_info; {'com_x_pos_normalized_all', 'CoM, ml', 'com (m)', 'comml', [-5 5], 'left', 'right'}];
 
 % continuous_variable_info = [continuous_variable_info; {'lheel_x_pos_response', 'left heel pos response, ml', 'heel pos (m)', 'lheelposRsp', [-0.05 0.05], 'right', 'left'}];
@@ -305,20 +306,36 @@ comparison_to_make = 3; % delay only
 % comparison_to_make = 5; % experimental
 
 % for Obstacle
+% conditions_control = {};
+% conditions_to_plot = ...
+%   {
+%     'STANCE_BOTH', 'CONTROL', 'CONTROL', 'ONE', 'NEAR'; ...
+%     'STANCE_LEFT', 'CONTROL', 'CONTROL', 'TWO', 'NEAR'; ...
+%     'STANCE_RIGHT', 'CONTROL', 'CONTROL', 'THREE', 'NEAR'; ...
+%     'STANCE_BOTH', 'CONTROL', 'CONTROL', 'ONE', 'FAR'; ...
+%     'STANCE_LEFT', 'CONTROL', 'CONTROL', 'TWO', 'FAR'; ...
+%     'STANCE_RIGHT', 'CONTROL', 'CONTROL', 'THREE', 'FAR'; ...
+%     'STANCE_BOTH', 'CONTROL', 'CONTROL', 'ONE', 'NO'; ...
+%     'STANCE_LEFT', 'CONTROL', 'CONTROL', 'TWO', 'NO'; ...
+%     'STANCE_RIGHT', 'CONTROL', 'CONTROL', 'THREE', 'NO'; ...
+%   };
+% comparison_to_make = 5; % experimental
+
+% for subconcussion pilot
 conditions_control = {};
 conditions_to_plot = ...
   {
-    'STANCE_BOTH', 'CONTROL', 'CONTROL', 'ONE', 'NEAR'; ...
-    'STANCE_LEFT', 'CONTROL', 'CONTROL', 'TWO', 'NEAR'; ...
-    'STANCE_RIGHT', 'CONTROL', 'CONTROL', 'THREE', 'NEAR'; ...
-    'STANCE_BOTH', 'CONTROL', 'CONTROL', 'ONE', 'FAR'; ...
-    'STANCE_LEFT', 'CONTROL', 'CONTROL', 'TWO', 'FAR'; ...
-    'STANCE_RIGHT', 'CONTROL', 'CONTROL', 'THREE', 'FAR'; ...
-    'STANCE_BOTH', 'CONTROL', 'CONTROL', 'ONE', 'NO'; ...
-    'STANCE_LEFT', 'CONTROL', 'CONTROL', 'TWO', 'NO'; ...
-    'STANCE_RIGHT', 'CONTROL', 'CONTROL', 'THREE', 'NO'; ...
+    'STANCE_LEFT', 'CONTROL', 'CONTROL', 'CONTROL', 'MP'; ...
+    'STANCE_RIGHT', 'CONTROL', 'CONTROL', 'CONTROL', 'MP'; ...
+    'STANCE_LEFT', 'CONTROL', 'CONTROL', 'CONTROL', 'None'; ...
+    'STANCE_RIGHT', 'CONTROL', 'CONTROL', 'CONTROL', 'None'; ...
   };
 comparison_to_make = 5; % experimental
+
+
+
+
+
 
 number_of_conditions_control = size(conditions_control, 1);
 number_of_conditions_to_plot = size(conditions_to_plot, 1);
@@ -581,7 +598,7 @@ if plot_detailed
     
     
     
-    
+    % continuous variables
     for i_variable = 1 : size(continuous_variable_info, 1)
         trajectories_to_plot = continuous_variable_data{i_variable, 1};
         for i_comparison = 1 : length(comparison_indices);
