@@ -250,6 +250,12 @@ function plotResults(varargin)
                           );
                     end
                 end
+                if strcmp(study_settings.plot_mode, 'overview')
+                    box_plot_data = boxplot(target_axes_handle, data_to_plot_this_condition, 'widths', 0.8);
+                    setBoxAbscissa(box_plot_data, 0);
+                    setBoxColors(box_plot_data, study_settings.color_control);
+                    
+                end
                 if isContinuousVariable(i_variable, variable_data_all)
                     if strcmp(study_settings.plot_mode, 'detailed')
                         % individual trajectories
@@ -313,7 +319,15 @@ function plotResults(varargin)
                             'facecolor', lightenColor(study_settings.colors_comparison(i_condition, :), 0.5) ...
                           );
                     end
-                    
+                    if strcmp(study_settings.plot_mode, 'overview')
+                        box_plot_data = boxplot(target_axes_handle, data_to_plot_this_condition, 'widths', 0.8);
+                        setBoxAbscissa(box_plot_data, i_condition);
+                        setBoxColors(box_plot_data, study_settings.colors_comparison(i_condition, :));
+                        set(target_axes_handle, 'xlim', [-0.5 length(comparison_indices{i_comparison})+0.5]);
+                        if dictate_axes
+                            set(target_axes_handle, 'ylim', [str2double(study_settings.variables_to_plot{i_variable, 5}), str2double(study_settings.variables_to_plot{i_variable, 6})]);
+                        end
+                    end
                 end
                 if isContinuousVariable(i_variable, variable_data_all)
                     if strcmp(study_settings.plot_mode, 'detailed')
@@ -486,5 +500,34 @@ function continuous = isContinuousVariable(variable_index, variable_data)
     end
 end
 
+function setBoxColors(box_plot_data, color)
+    % median line
+    set(box_plot_data(6), 'color', 'k')
+
+    % box
+    patch_handle = ...
+        patch ...
+          ( ...
+            get(box_plot_data(5), 'XData'), ...
+            get(box_plot_data(5), 'YData'), ...
+            color, ...
+            'parent', get(box_plot_data(1), 'parent'), ...
+            'EdgeColor', 'none' ...
+          ); 
+    uistack(patch_handle, 'bottom')
+    
+    % outliers
+    set(box_plot_data(7), 'MarkerEdgeColor', [1; 1; 1] * 0.7);
+
+    % remove box edges
+    set(box_plot_data(5), 'color', 'none');
+end
+
+function setBoxAbscissa(box_plot_data, abscissa)
+    for i_plot = 1 : length(box_plot_data)
+        set(box_plot_data(i_plot), 'xdata', get(box_plot_data(i_plot), 'xdata') - 1 + abscissa);
+    end
+
+end
 
 
