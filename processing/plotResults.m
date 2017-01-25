@@ -135,7 +135,22 @@ function plotResults(varargin)
                         lower_bound = min(variable_data_all{i_variable});
                         upper_bound = max(variable_data_all{i_variable});
                     end
-                    abscissae_cell{i_comparison, i_variable} = linspace(lower_bound, upper_bound, study_settings.number_of_bins_in_histogram);
+                    if strcmp(study_settings.plot_mode, 'detailed')
+                        abscissae_cell{i_comparison, i_variable} = linspace(lower_bound, upper_bound, study_settings.number_of_bins_in_histogram);
+                    end
+                    if strcmp(study_settings.plot_mode, 'overview')
+                        % what's my comparison here?
+                        this_comparison = comparison_indices{i_comparison};
+                        
+                        % for overview, I need the ones for stimulus to be at 1 and 2, but the one for control to be at 0
+                        % 0
+                        
+                        % what goes here needs to take into account whether we have a control condition or not
+                        % and how wide the boxes are supposed to be.
+                        % this is fairly complex, do that later
+                        % for now, the plotting doesn't actually use the abscissae datat yet for this case
+                        
+                    end
                 end
                 if isContinuousVariable(i_variable, variable_data_all)
                     abscissae_cell{i_comparison, i_variable} = 1 : 100;
@@ -254,14 +269,6 @@ function plotResults(varargin)
                     end
                 end
                 if strcmp(study_settings.plot_mode, 'overview')
-%                     box_plot_data = boxplot(target_axes_handle, data_to_plot_this_condition, 'widths', 0.8);
-                    
-%                     fake_data = [randn(100, 1); 3; 3.3];
-%                     box_plot_data = boxplot(target_axes_handle, fake_data, 'widths', 0.8);
-                    
-%                     setBoxAbscissa(box_plot_data, 0);
-%                     setBoxColors(box_plot_data, study_settings.color_control);
-                    
                     singleBoxPlot(target_axes_handle, 0, data_to_plot_this_condition, study_settings.color_control)
                 end
                 if isContinuousVariable(i_variable, variable_data_all)
@@ -328,9 +335,6 @@ function plotResults(varargin)
                           );
                     end
                     if strcmp(study_settings.plot_mode, 'overview')
-%                         box_plot_data = boxplot(target_axes_handle, data_to_plot_this_condition, 'widths', 0.8);
-%                         setBoxAbscissa(box_plot_data, i_condition);
-%                         setBoxColors(box_plot_data, study_settings.colors_comparison(i_condition, :));
                         singleBoxPlot(target_axes_handle, i_condition, data_to_plot_this_condition, study_settings.colors_comparison(i_condition, :))
                     end
                 end
@@ -545,34 +549,6 @@ function singleBoxPlot(target_axes_handle, abscissa, data, color)
     plot(target_axes_handle, abscissa * ones(size(outliers)), outliers, '+', 'color', [1; 1; 1] * 0.7);
 end
 
-% function setBoxColors(box_plot_data, color)
-%     % median line
-%     set(box_plot_data(6), 'color', 'k')
-% 
-%     % box
-%     patch_handle = ...
-%         patch ...
-%           ( ...
-%             get(box_plot_data(5), 'XData'), ...
-%             get(box_plot_data(5), 'YData'), ...
-%             color, ...
-%             'parent', get(box_plot_data(1), 'parent'), ...
-%             'EdgeColor', 'none' ...
-%           ); 
-%     uistack(patch_handle, 'bottom')
-%     
-%     % outliers
-%     set(box_plot_data(7), 'MarkerEdgeColor', [1; 1; 1] * 0.7);
-% 
-%     % remove box edges
-%     set(box_plot_data(5), 'color', 'none');
-% end
 
-% function setBoxAbscissa(box_plot_data, abscissa)
-%     for i_plot = 1 : length(box_plot_data)
-%         set(box_plot_data(i_plot), 'xdata', get(box_plot_data(i_plot), 'xdata') - 1 + abscissa);
-%     end
-% 
-% end
 
 

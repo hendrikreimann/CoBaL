@@ -43,7 +43,7 @@ function settings = loadSettingsFile(filename)
     text_line = fgetl(fileID);
     text_cell = {};
     while ischar(text_line)
-        text_cell = [text_cell; text_line];
+        text_cell = [text_cell; text_line]; %#ok<AGROW>
         text_line = fgetl(fileID);
     end
     fclose(fileID);
@@ -88,12 +88,12 @@ function [text_cell, settings] = parseNextBlock(text_cell, settings)
         variable_value = {};
         for i_line = 1 : length(variable_data_lines)
             this_line_text = variable_data_lines{i_line};
-            while length(this_line_text) > 0 && this_line_text(1) == ' '
+            while ~isempty(this_line_text) && this_line_text(1) == ' '
                 this_line_text(1) = [];
             end
             this_line_text = strrep(this_line_text, ', ', ',');
             this_line_cell = strsplit(this_line_text, ',');
-            variable_value(i_line, :) = this_line_cell;
+            variable_value(i_line, :) = this_line_cell; %#ok<AGROW>
         end
                 
         % try to transform this into a double array
@@ -101,12 +101,12 @@ function [text_cell, settings] = parseNextBlock(text_cell, settings)
         for i_row = 1 : size(variable_value, 1)
             for i_col = 1 : size(variable_value, 2)
                 if all(ismember(variable_value{i_row, i_col}, '0123456789+-.eEdD'))
-                    variable_array(i_row, i_col) = str2num(variable_value{i_row, i_col});
+                    variable_array(i_row, i_col) = str2num(variable_value{i_row, i_col}); %#ok<ST2NM>
                 end
             end
         end
         if ~any(isnan(variable_array))
-            variable_value = variable_array;
+            variable_value = variable_array; %#ok<NASGU>
         end
         
         % store in struct
@@ -123,7 +123,7 @@ function [text_cell, settings] = parseNextBlock(text_cell, settings)
     line_split = strsplit(text_line, ':');
     variable_name = strrep(line_split{1}, ' ', '_');
     variable_value_string = line_split{2};
-    while length(variable_value_string) > 0 && variable_value_string(1) == ' '
+    while ~isempty(variable_value_string) && variable_value_string(1) == ' '
         variable_value_string(1) = [];
     end
     variable_value_string = strrep(variable_value_string, ', ', ',');
@@ -132,8 +132,8 @@ function [text_cell, settings] = parseNextBlock(text_cell, settings)
         variable_value = variable_value_cell{1};
 
         % try to transform to a single double
-        if ~isempty(str2num(variable_value))
-            variable_value = str2num(variable_value);
+        if ~isempty(str2num(variable_value)) %#ok<ST2NM>
+            variable_value = str2num(variable_value); %#ok<ST2NM,NASGU>
         end
     else
         variable_value = variable_value_cell;
@@ -141,12 +141,12 @@ function [text_cell, settings] = parseNextBlock(text_cell, settings)
         % try to transform to a double array
         variable_value_array = zeros(size(variable_value)) * NaN;
         for i_entry = 1 : length(variable_value)
-            if ~isempty(str2num(variable_value{i_entry}))
-                variable_value_array(i_entry) = str2num(variable_value{i_entry});
+            if ~isempty(str2num(variable_value{i_entry})) %#ok<ST2NM>
+                variable_value_array(i_entry) = str2num(variable_value{i_entry}); %#ok<ST2NM>
             end
         end
         if ~any(isnan(variable_value_array))
-            variable_value = variable_value_array;
+            variable_value = variable_value_array; %#ok<NASGU>
         end
     end
     
