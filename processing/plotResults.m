@@ -327,8 +327,8 @@ function plotResults(varargin)
                 delay_indicator = strcmp(condition_delay_list_all, condition_identifier{3});
                 index_indicator = strcmp(condition_index_list_all, condition_identifier{4});
                 experimental_indicator = strcmp(condition_experimental_list_all, condition_identifier{5});
-                stimulus_indicator = strcmp(condition_stimulus_list_all, applicable_control_condition_labels{6});
-                day_indicator = strcmp(condition_day_list_all, applicable_control_condition_labels{7});
+                stimulus_indicator = strcmp(condition_stimulus_list_all, condition_identifier{6});
+                day_indicator = strcmp(condition_day_list_all, condition_identifier{7});
                 this_condition_indicator = stance_foot_indicator & perturbation_indicator & delay_indicator & index_indicator & experimental_indicator & stimulus_indicator & day_indicator;
                 data_to_plot_this_condition = data_to_plot(:, this_condition_indicator);
                 if isDiscreteVariable(i_variable, variable_data_all)
@@ -343,7 +343,9 @@ function plotResults(varargin)
                           );
                     end
                     if strcmp(study_settings.plot_mode, 'overview')
-                        singleBoxPlot(target_axes_handle, i_condition, data_to_plot_this_condition, study_settings.colors_comparison(i_condition, :))
+                        if ~any(isnan(data_to_plot_this_condition))
+                            singleBoxPlot(target_axes_handle, i_condition, data_to_plot_this_condition, study_settings.colors_comparison(i_condition, :))
+                        end
                     end
                 end
                 if isContinuousVariable(i_variable, variable_data_all)

@@ -42,5 +42,5 @@ function condition = loadConditionFromFile(filename, condition_label, trial_numb
         condition_cell(i_trial, :) = line_split(2:end);
     end
     
-    condition = condition_cell(trial_list == trial_number, strcmp(condition_header, condition_label));
+    condition = condition_cell{trial_list == trial_number, strcmp(condition_header, condition_label)};
 end

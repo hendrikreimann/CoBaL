@@ -72,11 +72,6 @@ function findRelevantDataStretches(varargin)
 
     time_to_nearest_heelstrike_before_trigger_threshold = 0.10; % a heelstrike should happen less than this long after a trigger
     time_to_nearest_heelstrike_after_trigger_threshold = 0.3; % a heelstrike should happen less than this long after a trigger
-
-%     %% extract data
-%     if strcmp(study_settings.experimental_condition_source, 'conditions_file')
-%         [some, output] = loadConditionsFile('conditions.txt');
-%     end    
     
     
     

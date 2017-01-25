@@ -230,7 +230,7 @@ classdef WalkingDataCustodian < handle
                             stretch_data = rheel_y_pos(end) - lheel_y_pos(end);
                         end
                         if strcmp(condition_stance_foot_list{i_stretch}, 'STANCE_BOTH')
-                            stretch_data = 0;
+                            stretch_data = NaN;
                         end
                     end
                     
