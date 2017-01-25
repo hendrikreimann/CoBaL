@@ -218,8 +218,18 @@ function importAscii(varargin)
                 elseif strcmp(file_type, 'qualisysData')
                     % this is marker data from QTM
                     
-                    number_of_header_lines = 10;
-%                     number_of_header_lines = 11;
+                    % determine number of header lines - is the 11th line part of the header, or part of the data?
+                    fileID = fopen([source_dir filesep data_file_name], 'r');
+                    for i_line = 1 : 11
+                        text_line = fgetl(fileID);
+                    end
+                    fclose(fileID);
+                    if length(text_line)>=5 && strcmp(text_line(1:5), 'Frame')
+                        number_of_header_lines = 11;
+                    else
+                        number_of_header_lines = 10;
+                    end
+                    
                     % TODO: the number of header lines here is 10 or 11, depending upon some export settings in QTM. Add
                     % something here to determine that automatically.
                     [imported_data, delimiter, nheaderlines] = importdata([source_dir filesep data_file_name], '\t', number_of_header_lines);
@@ -256,7 +266,7 @@ function importAscii(varargin)
                         'marker_labels' ...
                       );
                     addAvailableData('marker_trajectories_raw', 'time_mocap', 'sampling_rate_mocap', 'marker_labels', save_folder, save_file_name);
-                    disp(['imported ' source_dir filesep data_file_name ' and saved as ' matlab_data_file_name])
+                    disp(['imported ' source_dir filesep data_file_name ' and saved as ' save_file_name])
                 elseif strcmp(file_type, 'a')
                     % this is analog data from QTM
                     [imported_data, delimiter, nheaderlines] = importdata([source_dir filesep data_file_name], '\t', 13);
@@ -292,7 +302,7 @@ function importAscii(varargin)
                         'emg_labels' ...
                       );
                     addAvailableData('emg_trajectories_raw', 'time_emg', 'sampling_rate_emg', 'emg_labels', save_folder, save_file_name);
-                    disp(['imported ' source_dir filesep data_file_name ' and saved as ' matlab_data_file_name])
+                    disp(['imported ' source_dir filesep data_file_name ' and saved as ' save_file_name])
 
                 elseif strcmp(file_type, 'neurocomData')
                     % this is data from the neurocom forceplate
