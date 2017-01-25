@@ -30,7 +30,7 @@ function importAscii(varargin)
 
     parser = inputParser;
     parser.KeepUnmatched = true;
-    sources_default = {'device', 'devices', 'labview', 'marker', 'markers', 'ascii'};    
+    sources_default = {'device', 'devices', 'labview', 'marker', 'markers', 'ascii', 'neurocom'};    
     addParameter(parser, 'sources', sources_default)
     parse(parser, varargin{:})
     sources = parser.Results.sources;
@@ -367,17 +367,17 @@ function importAscii(varargin)
 
                     % save forceplate data
                     save_folder = 'raw';
-                    matlab_data_file_name = [save_folder filesep makeFileName(date, subject_id, trial_type, trial_number, 'forceplateTrajectoriesRaw.mat')];
+                    save_file_name = makeFileName(date, subject_id, trial_type, trial_number, 'forceplateTrajectoriesRaw.mat');
                     save ...
                       ( ...
-                        matlab_data_file_name, ...
+                        [save_folder filesep save_file_name], ...
                         'forceplate_trajectories_raw', ...
                         'forceplate_labels', ...
                         'time_forceplate', ...
                         'data_source', ...
                         'sampling_rate_forceplate' ...
                       );
-                    addAvailableData('forceplate_trajectories_raw', 'time_forceplate', 'sampling_rate_forceplate', 'forceplate_labels', matlab_data_file_name, save_folder);
+                    addAvailableData('emg_trajectories_raw', 'time_emg', 'sampling_rate_emg', 'emg_labels', save_folder, save_file_name);
                     
                     disp(['imported ' source_dir filesep data_file_name])
 

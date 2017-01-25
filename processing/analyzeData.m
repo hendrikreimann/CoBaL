@@ -33,6 +33,8 @@ function analyzeData(varargin)
     condition_delay_list_subject = {};
     condition_index_list_subject = {};
     condition_experimental_list_subject = {};
+    condition_stimulus_list_subject = {};
+    condition_day_list_subject = {};
     
     % analyze and store data
     for i_condition = 1 : length(condition_list)
@@ -53,6 +55,8 @@ function analyzeData(varargin)
             condition_delay_list_subject = [condition_delay_list_subject; condition_delay_list_trial];
             condition_index_list_subject = [condition_index_list_subject; condition_index_list_trial];
             condition_experimental_list_subject = [condition_experimental_list_subject; condition_experimental_list_trial];
+            condition_stimulus_list_subject = [condition_stimulus_list_subject; condition_stimulus_list_trial];
+            condition_day_list_subject = [condition_day_list_subject; condition_day_list_trial];
         end
     end
     
@@ -68,8 +72,10 @@ function analyzeData(varargin)
         delay_indicator = strcmp(condition_delay_list_subject, study_settings.conditions_control(i_condition, 3));
         index_indicator = strcmp(condition_index_list_subject, study_settings.conditions_control(i_condition, 4));
         experimental_indicator = strcmp(condition_experimental_list_subject, study_settings.conditions_control(i_condition, 5));
+        stimulus_indicator = strcmp(condition_stimulus_list_subject, study_settings.conditions_control(i_condition, 6));
+        day_indicator = strcmp(condition_day_list_subject, study_settings.conditions_control(i_condition, 7));
 
-        this_condition_indicator = stance_foot_indicator & perturbation_indicator & delay_indicator & index_indicator & experimental_indicator;
+        this_condition_indicator = stance_foot_indicator & perturbation_indicator & delay_indicator & index_indicator & experimental_indicator & stimulus_indicator & day_indicator;
         conditions_control_indicators(:, i_condition) = this_condition_indicator;
     end
     
@@ -92,8 +98,10 @@ function analyzeData(varargin)
         delay_indicator = strcmp(condition_delay_list_subject, study_settings.conditions_to_analyze(i_condition, 3));
         index_indicator = strcmp(condition_index_list_subject, study_settings.conditions_to_analyze(i_condition, 4));
         experimental_indicator = strcmp(condition_experimental_list_subject, study_settings.conditions_to_analyze(i_condition, 5));
+        stimulus_indicator = strcmp(condition_stimulus_list_subject, study_settings.conditions_to_analyze(i_condition, 6));
+        day_indicator = strcmp(condition_day_list_subject, study_settings.conditions_to_analyze(i_condition, 7));
 
-        this_condition_indicator = stance_foot_indicator & perturbation_indicator & delay_indicator & index_indicator & experimental_indicator;
+        this_condition_indicator = stance_foot_indicator & perturbation_indicator & delay_indicator & index_indicator & experimental_indicator & stimulus_indicator & day_indicator;
         conditions_to_analyze_indicators(:, i_condition) = this_condition_indicator;
     end
     
@@ -125,7 +133,9 @@ function analyzeData(varargin)
         'condition_perturbation_list_subject', ...
         'condition_delay_list_subject', ...
         'condition_index_list_subject', ...
-        'condition_experimental_list_subject' ...
+        'condition_experimental_list_subject', ...
+        'condition_stimulus_list_subject', ...
+        'condition_day_list_subject' ...
       )
 end
 

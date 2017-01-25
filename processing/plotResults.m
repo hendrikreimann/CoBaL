@@ -77,6 +77,8 @@ function plotResults(varargin)
     condition_delay_list_all = {};
     condition_index_list_all = {};
     condition_experimental_list_all = {};
+    condition_stimulus_list_all = {};
+    condition_day_list_all = {};
     variable_data_all = cell(number_of_variables_to_plot, 1);
 
     for i_subject = 1 : length(subjects)
@@ -98,6 +100,8 @@ function plotResults(varargin)
         condition_delay_list_all = [condition_delay_list_all; condition_delay_list_subject]; %#ok<AGROW>
         condition_index_list_all = [condition_index_list_all; condition_index_list_subject]; %#ok<AGROW>
         condition_experimental_list_all = [condition_experimental_list_all; condition_experimental_list_subject]; %#ok<AGROW>
+        condition_stimulus_list_all = [condition_stimulus_list_all; condition_stimulus_list_subject]; %#ok<AGROW>
+        condition_day_list_all = [condition_day_list_all; condition_day_list_subject]; %#ok<AGROW>
         for i_variable = 1 : number_of_variables_to_plot
             % load and extract data
             this_variable_name = study_settings.variables_to_plot{i_variable, 1};
@@ -253,7 +257,9 @@ function plotResults(varargin)
                 delay_indicator = strcmp(condition_delay_list_all, applicable_control_condition_labels{3});
                 index_indicator = strcmp(condition_index_list_all, applicable_control_condition_labels{4});
                 experimental_indicator = strcmp(condition_experimental_list_all, applicable_control_condition_labels{5});
-                this_condition_indicator = stance_foot_indicator & perturbation_indicator & delay_indicator & index_indicator & experimental_indicator;
+                stimulus_indicator = strcmp(condition_stimulus_list_all, applicable_control_condition_labels{6});
+                day_indicator = strcmp(condition_day_list_all, applicable_control_condition_labels{7});
+                this_condition_indicator = stance_foot_indicator & perturbation_indicator & delay_indicator & index_indicator & experimental_indicator & stimulus_indicator & day_indicator;
                 data_to_plot_this_condition = data_to_plot(:, this_condition_indicator);
                 
                 if isDiscreteVariable(i_variable, variable_data_all)
@@ -321,7 +327,9 @@ function plotResults(varargin)
                 delay_indicator = strcmp(condition_delay_list_all, condition_identifier{3});
                 index_indicator = strcmp(condition_index_list_all, condition_identifier{4});
                 experimental_indicator = strcmp(condition_experimental_list_all, condition_identifier{5});
-                this_condition_indicator = stance_foot_indicator & perturbation_indicator & delay_indicator & index_indicator & experimental_indicator;
+                stimulus_indicator = strcmp(condition_stimulus_list_all, applicable_control_condition_labels{6});
+                day_indicator = strcmp(condition_day_list_all, applicable_control_condition_labels{7});
+                this_condition_indicator = stance_foot_indicator & perturbation_indicator & delay_indicator & index_indicator & experimental_indicator & stimulus_indicator & day_indicator;
                 data_to_plot_this_condition = data_to_plot(:, this_condition_indicator);
                 if isDiscreteVariable(i_variable, variable_data_all)
                     if strcmp(study_settings.plot_mode, 'detailed')
@@ -517,12 +525,6 @@ function singleBoxPlot(target_axes_handle, abscissa, data, color)
     data_median = median(data);
     data_quartile_1 = prctile(data, 25);
     data_quartile_3 = prctile(data, 75);
-    
-    data_percentile_9 = prctile(data, 9);
-    data_percentile_91 = prctile(data, 91);
-    data_mean = mean(data);
-    data_std = std(data);
-    
     data_iqr = iqr(data);
     data_upper_inner_fence = data_quartile_3 + 1.5*data_iqr;
     data_lower_inner_fence = data_quartile_1 - 1.5*data_iqr;

@@ -17,18 +17,18 @@
 % This script finds the stretches of data relevant to the experimental paradigm.
 
 % We determine the start and end times of the relevant stretches and store them as a list, accompanied by a list of
-% condition indicators. There are five condition types: stance_foot, perturbation, delay, index and experimental. Each
-% condition type has an indicator variable that is of the same length as the list of stretch start/end times. For each
-% pair of start/end-times, the condition indicator will be 1 if the data stretch between these two points is of this
-% condition, and 0 otherwise.
+% condition indicators. There are eight condition types. Each condition type has a list variable that is of the 
+% same length as the list of stretch start/end times and gives the condition label for this stretch.
 
 % The condition types are:
-% stance_foot: this is the foot that is in stance throughout the whole stretch, will be STANCE_LEFT, STANCE_RIGHT or STANCE_BOTH
-% perturbation: direction of the perturbation in stimulus paradigms, will be ILLUSION_LEFT, ILLUSION_RIGHT or CONTROL (should be ILLUSION_NONE instead of CONTROL)
-% delay: delay between trigger and stimulus in stimulus paradigms, options are specified in studySettings.txt
-% index: number of steps after the stimulus in stimulus paradigms, will be STEP_ONE, STEP_TWO, STEP_THREE, STEP_FOUR or CONTROL
-% experimental: condition affecting a whole trial instead of stretches of time within a trial. This will be loaded from
-%               conditions.mat if available, otherwise it will be set to the trial_type as determined from the file name.
+% stance_foot:      this is the foot that is in stance throughout the whole stretch, will be STANCE_LEFT, STANCE_RIGHT or STANCE_BOTH
+% perturbation:     direction of the perturbation in stimulus paradigms, will be ILLUSION_LEFT, ILLUSION_RIGHT or CONTROL (should be ILLUSION_NONE instead of CONTROL)
+% delay:            delay between trigger and stimulus in stimulus paradigms, options are specified in studySettings.txt
+% index:            number of steps after the stimulus in stimulus paradigms, will be STEP_ONE, STEP_TWO, STEP_THREE, STEP_FOUR or CONTROL
+% experimental:     condition affecting a whole trial instead of stretches of time within a trial. This will be loaded from
+%                   conditions.mat if available, otherwise it will be set to the trial_type as determined from the file name.
+% stimulus:         the type of stimulus used to generate the perturbation, e.g. STIM_GVS, STIM_VISUAL, STIM_NONE
+% day:              the day of the data collection, e.g. DAY_PRE, DAY_POST_0, DAY_POST_24H, DAY_POST_1W
 
 % input: 
 % - subjectInfo.mat
@@ -41,6 +41,8 @@
 % - condition_delay_list
 % - condition_index_list
 % - condition_experimental_list
+% - condition_stimulus_list
+% - condition_day_list
 % - stretch_pushoff_times
 % - stretch_start_times
 % - stretch_end_times
@@ -49,50 +51,81 @@ function findRelevantDataStretches(varargin)
     % parse arguments
     parser = inputParser;
     parser.KeepUnmatched = true;
-    default_stimulus_type = 'none';
-    valid_stimulus_types = {'none', 'gvs', 'visual', 'obstacle'};
-    check_stimulus_type = @(x) any(validatestring(x,valid_stimulus_types));
-    addParameter(parser, 'stimulus', default_stimulus_type, check_stimulus_type)
+%     default_stimulus_type = 'none';
+%     valid_stimulus_types = {'none', 'GVS', 'VISUAL', 'obstacle'};
+%     check_stimulus_type = @(x) any(validatestring(x,valid_stimulus_types));
+%     addParameter(parser, 'stimulus', default_stimulus_type, check_stimulus_type)
     addParameter(parser, 'visualize', false)
     parse(parser, varargin{:})
-    stimulus_type = parser.Results.stimulus;
+%     stimulus_type = parser.Results.stimulus;
     visualize = parser.Results.visualize;
     [condition_list, trial_number_list] = parseTrialArguments(varargin{:});
 
+    
     % stretches_to_analyze = 'single stance';
     stretches_to_analyze = 'full stride';
 
     %% prepare
     load('subjectInfo.mat', 'date', 'subject_id');
     study_settings = loadSettingsFile(['..' filesep 'studySettings.txt']);
+    
 
     time_to_nearest_heelstrike_before_trigger_threshold = 0.10; % a heelstrike should happen less than this long after a trigger
     time_to_nearest_heelstrike_after_trigger_threshold = 0.3; % a heelstrike should happen less than this long after a trigger
 
-
-    %% extract data
-    if strcmp(study_settings.experimental_condition_source, 'conditions_file')
-        load('conditions.mat');
-    end    
+%     %% extract data
+%     if strcmp(study_settings.experimental_condition_source, 'conditions_file')
+%         [some, output] = loadConditionsFile('conditions.txt');
+%     end    
+    
+    
     
     for i_condition = 1 : length(condition_list)
         trials_to_process = trial_number_list{i_condition};
         for i_trial = trials_to_process
             %% load data
-            condition = condition_list{i_condition};
-            load(['analysis' filesep makeFileName(date, subject_id, condition, i_trial, 'stepEvents')]);
+            load(['analysis' filesep makeFileName(date, subject_id, condition_list{i_condition}, i_trial, 'stepEvents')]);
+            
+            % determine experimental condition
+            condition_experimental = study_settings.experimental_condition;
+            if strcmp(condition_experimental, 'load_from_conditions_file')
+                condition_experimental = loadConditionFromFile('conditions.csv', 'experimental', i_trial);
+            end
+            if strcmp(condition_experimental, 'determine_from_file_name')
+                condition_experimental = condition_list{i_condition};
+            end
+            
+            % determine stimulus type
+            condition_stimulus = study_settings.stimulus_condition;
+            if strcmp(condition_stimulus, 'load_from_conditions_file')
+                condition_stimulus = loadConditionFromFile('conditions.csv', 'stimulus', i_trial);
+            end
+            if strcmp(condition_stimulus, 'determine_from_file_name')
+                condition_stimulus = condition_list{i_condition};
+            end
+            
+            % determine day
+            condition_day = study_settings.day_condition;
+            if strcmp(condition_day, 'load_from_conditions_file')
+                condition_day = loadConditionFromFile('conditions.csv', 'day', i_trial);
+            end
+            if strcmp(condition_day, 'determine_from_file_name')
+                condition_day = condition_list{i_condition};
+            end
+            
+            
             
             % marker data
-            [marker_trajectories, time_marker, ~, marker_labels] = loadData(date, subject_id, condition, i_trial, 'marker_trajectories');
+            [marker_trajectories, time_marker, ~, marker_labels] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'marker_trajectories');
             
             % forceplate data
-            [left_forceplate_cop_world_trajectory, time_left_forceplate, ~, ~, left_forceplate_available] = loadData(date, subject_id, condition, i_trial, 'left_forceplate_cop_world', 'optional');
-            [right_forceplate_cop_world_trajectory, time_right_forceplate, ~, ~, right_forceplate_available] = loadData(date, subject_id, condition, i_trial, 'right_forceplate_cop_world', 'optional');
+            [left_forceplate_cop_world_trajectory, time_left_forceplate, ~, ~, left_forceplate_available] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'left_forceplate_cop_world', 'optional');
+            [right_forceplate_cop_world_trajectory, time_right_forceplate, ~, ~, right_forceplate_available] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'right_forceplate_cop_world', 'optional');
             if left_forceplate_available && right_forceplate_available
                 left_copx_trajectory = left_forceplate_cop_world_trajectory(:, 1);
                 right_copx_trajectory = right_forceplate_cop_world_trajectory(:, 1);
                 
-                if any(strcmp(condition, study_settings.trial_types_with_inverted_forceplate_sides))
+                if any(strcmp(condition_list{i_condition}, study_settings.trial_types_with_inverted_forceplate_sides))
                     % this was for the VEPO lab, where the sides are inverted
                     left_copx_trajectory = right_forceplate_cop_world_trajectory(:, 3);
                     right_copx_trajectory = left_forceplate_cop_world_trajectory(:, 3);
@@ -100,9 +133,9 @@ function findRelevantDataStretches(varargin)
             end
             
             % stimulus data
-            if strcmp(stimulus_type, 'gvs')
-                GVS_out_trajectory = loadData(date, subject_id, condition, i_trial, 'GVS_out_trajectory');
-                [stimulus_state_trajectory, time_stimulus] = loadData(date, subject_id, condition, i_trial, 'stimulus_state_trajectory');
+            if strcmp(condition_stimulus, 'GVS')
+                GVS_out_trajectory = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'GVS_out_trajectory');
+                [stimulus_state_trajectory, time_stimulus] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'stimulus_state_trajectory');
             end
             
             % determine indices for optional markers
@@ -115,7 +148,7 @@ function findRelevantDataStretches(varargin)
             essential_marker_indicator = ~ismember(1 : size(marker_trajectories, 2), optional_marker_indices);
             
             % determine illusion
-            if strcmp(stimulus_type, 'gvs')
+            if strcmp(condition_stimulus, 'GVS')
                 illusion_trajectory = zeros(size(time_stimulus)); % 1 = RIGHT, -1 = LEFT
                 % use GVS_out_trajectory as illusion
                 for i_time = 1 : length(time_stimulus)
@@ -129,7 +162,7 @@ function findRelevantDataStretches(varargin)
                     end
                 end
             end
-            if strcmp(stimulus_type, 'visual')
+            if strcmp(condition_stimulus, 'VISUAL')
                 illusion_trajectory = zeros(size(time_stimulus)); % 1 = RIGHT, -1 = LEFT
                 for i_time = 1 : length(time_stimulus)
                     if visual_scene_ml_translation__trajectory(i_time) > 0
@@ -149,10 +182,11 @@ function findRelevantDataStretches(varargin)
             % a perturbation. For unperturbed walking, this is any heelstrike.
             % The result is trigger_indices_labview.
             %
-            if strcmp(stimulus_type, 'none')
+            if strcmp(condition_stimulus, 'NONE')
                 % use all touchdown events as triggers
                 trigger_times = [left_touchdown_times; right_touchdown_times];
-            elseif strcmp(stimulus_type, 'visual') || strcmp(stimulus_type, 'gvs')
+            end
+            if strcmp(condition_stimulus, 'VISUAL') || strcmp(condition_stimulus, 'GVS')
                 % find the time steps where the stimulus state crosses a threshold
                 stimulus_threshold = 0.5;
                 trigger_indices_labview = find(diff(sign(stimulus_state_trajectory - stimulus_threshold)) > 0) + 1;
@@ -163,7 +197,8 @@ function findRelevantDataStretches(varargin)
                 trigger_indices_labview = trigger_indices_labview(1 : length(stim_start_indices_labview)); % in case a stim is triggered, but not recorded
                 
                 trigger_times = time_stimulus(trigger_indices_labview);
-            elseif strcmp(stimulus_type, 'obstacle')
+            end
+            if strcmp(condition_stimulus, 'OBSTACLE')
                 trigger_times = [];
             end
             
@@ -204,7 +239,7 @@ function findRelevantDataStretches(varargin)
 
             number_of_triggers = length(trigger_times);
             removal_flags = zeros(number_of_triggers, 1);
-            if strcmp(stimulus_type, 'none')
+            if strcmp(condition_stimulus, 'NONE')
                 stretch_start_times = zeros(number_of_triggers, 1);
                 stretch_end_times = zeros(number_of_triggers, 1);
                 stretch_pushoff_times = zeros(number_of_triggers, 1);
@@ -317,7 +352,7 @@ function findRelevantDataStretches(varargin)
                 closest_heelstrike_distance_times = closest_heelstrike_distance_times(unflagged_indices, :);
                 
                 % save data
-                data_stretches_file_name = ['analysis' filesep makeFileName(date, subject_id, condition, i_trial, 'relevantDataStretches')];
+                data_stretches_file_name = ['analysis' filesep makeFileName(date, subject_id, condition_list{i_condition}, i_trial, 'relevantDataStretches')];
                 save ...
                   ( ...
                     data_stretches_file_name, ...
@@ -337,7 +372,7 @@ function findRelevantDataStretches(varargin)
                 
                 
             end  
-            if strcmp(stimulus_type, 'obstacle')
+            if strcmp(condition_stimulus, 'OBSTACLE')
                 stretch_start_times = zeros(3, 1);
                 stretch_end_times = zeros(3, 1);
                 stretch_pushoff_times = zeros(3, 1);
@@ -347,43 +382,51 @@ function findRelevantDataStretches(varargin)
                 condition_delay_list_trial = cell(3, 1);
                 condition_index_list_trial = cell(3, 1);
                 condition_experimental_list_trial = cell(3, 1);
+                condition_stimulus_list_trial = cell(3, 1);
+                condition_day_list_trial = cell(3, 1);
                 
-                if ismember(i_trial, no_obstacle)
-                    condition_experimental = 'NO';
-                elseif ismember(i_trial, near_obstacle)
-                    condition_experimental = 'NEAR';
-                elseif ismember(i_trial, far_obstacle)
-                    condition_experimental = 'FAR';
-                else
-                    error(['No condition specified for trial no. ' num2str(i_trial)]);
-                end
+%                 if ismember(i_trial, no_obstacle)
+%                     condition_experimental = 'NO';
+%                 elseif ismember(i_trial, near_obstacle)
+%                     condition_experimental = 'NEAR';
+%                 elseif ismember(i_trial, far_obstacle)
+%                     condition_experimental = 'FAR';
+%                 else
+%                     error(['No condition specified for trial no. ' num2str(i_trial)]);
+%                 end
                 
                 % second stretch goes from first right pushoff to first right heelstrike
                 stretch_start_times(2, 1) = right_pushoff_times(1);
                 stretch_end_times(2, 1) = right_touchdown_times(1);
-                condition_perturbation_list_trial{2, 1} = 'CONTROL';
-                condition_delay_list_trial{2, 1} = 'CONTROL';
+                condition_perturbation_list_trial{2, 1} = 'N/A';
+                condition_delay_list_trial{2, 1} = 'N/A';
                 condition_index_list_trial{2, 1} = 'TWO';
                 condition_experimental_list_trial{2, 1} = condition_experimental;
                 condition_stance_foot_list_trial{2, 1} = 'STANCE_LEFT';
+                condition_stimulus_list_trial{2, 1} = condition_stimulus;
+                condition_day_list_trial{2, 1} = condition_day;
                 
                 % third stretch goes from first right heelstrike to first left heelstrike
                 stretch_start_times(3, 1) = right_touchdown_times(1);
                 stretch_end_times(3, 1) = left_touchdown_times(1);
-                condition_perturbation_list_trial{3, 1} = 'CONTROL';
-                condition_delay_list_trial{3, 1} = 'CONTROL';
+                condition_perturbation_list_trial{3, 1} = 'N/A';
+                condition_delay_list_trial{3, 1} = 'N/A';
                 condition_index_list_trial{3, 1} = 'THREE';
                 condition_experimental_list_trial{3, 1} = condition_experimental;
                 condition_stance_foot_list_trial{3, 1} = 'STANCE_RIGHT';
+                condition_stimulus_list_trial{3, 1} = condition_stimulus;
+                condition_day_list_trial{3, 1} = condition_day;
                 
                 % first stretch goes from first right pushoff minus 1 second to first right pushoff
                 stretch_start_times(1, 1) = right_pushoff_times(1) - 1;
                 stretch_end_times(1, 1) = right_pushoff_times(1);
-                condition_perturbation_list_trial{1, 1} = 'CONTROL';
-                condition_delay_list_trial{1, 1} = 'CONTROL';
+                condition_perturbation_list_trial{1, 1} = 'N/A';
+                condition_delay_list_trial{1, 1} = 'N/A';
                 condition_index_list_trial{1, 1} = 'ONE';
                 condition_experimental_list_trial{1, 1} = condition_experimental;
                 condition_stance_foot_list_trial{1, 1} = 'STANCE_BOTH';
+                condition_stimulus_list_trial{1, 1} = condition_stimulus;
+                condition_day_list_trial{1, 1} = condition_day;
                 
 %                 % remove flagged triggers
 %                 unflagged_indices = ~removal_flags;
@@ -443,7 +486,7 @@ function findRelevantDataStretches(varargin)
 %                 closest_heelstrike_distance_times = closest_heelstrike_distance_times(unflagged_indices, :);
                 
                 % save data
-                data_stretches_file_name = ['analysis' filesep makeFileName(date, subject_id, condition, i_trial, 'relevantDataStretches')];
+                data_stretches_file_name = ['analysis' filesep makeFileName(date, subject_id, condition_list{i_condition}, i_trial, 'relevantDataStretches')];
                 save ...
                   ( ...
                     data_stretches_file_name, ...
@@ -452,15 +495,17 @@ function findRelevantDataStretches(varargin)
                     'condition_delay_list_trial', ...
                     'condition_index_list_trial', ...
                     'condition_experimental_list_trial', ...
+                    'condition_stimulus_list_trial', ...
+                    'condition_day_list_trial', ...
                     'stretch_pushoff_times', ...
                     'stretch_start_times', ...
                     'stretch_end_times' ...
                   )
 
-                disp(['Condition ' condition ', Trial ' num2str(i_trial) ' completed, found ' num2str(length(stretch_start_times)) ' relevant stretches, saved as ' data_stretches_file_name]);                
+                disp(['Condition ' condition_list{i_condition} ', Trial ' num2str(i_trial) ' completed, found ' num2str(length(stretch_start_times)) ' relevant stretches, saved as ' data_stretches_file_name]);                
 
             end
-            if strcmp(stimulus_type, 'visual') || strcmp(stimulus_type, 'gvs')
+            if strcmp(condition_stimulus, 'VISUAL') || strcmp(condition_stimulus, 'GVS')
                 % for each trigger, extract conditions and relevant step events
                 number_of_triggers = length(trigger_indices_mocap);
                 removal_flags = zeros(number_of_triggers, 1);
@@ -474,6 +519,8 @@ function findRelevantDataStretches(varargin)
                 condition_delay_list_trial = cell(number_of_triggers, 6);
                 condition_index_list_trial = cell(number_of_triggers, 6);
                 condition_experimental_list_trial = cell(number_of_triggers, 6);
+                condition_stimulus_list_trial = cell(number_of_triggers, 6);
+                condition_day_list_trial = cell(number_of_triggers, 6);
                 
                 for i_trigger = 1 : number_of_triggers
                    % perturbation condition
@@ -505,13 +552,29 @@ function findRelevantDataStretches(varargin)
                     condition_delay_list_trial{i_trigger, 6} = 'CONTROL';
                     
                     % experimental condition
-                    condition_experimental_list_trial{i_trigger, 1} = condition;
-                    condition_experimental_list_trial{i_trigger, 2} = condition;
-                    condition_experimental_list_trial{i_trigger, 3} = condition;
-                    condition_experimental_list_trial{i_trigger, 4} = condition;
-                    condition_experimental_list_trial{i_trigger, 5} = condition;
-                    condition_experimental_list_trial{i_trigger, 6} = condition;
-                
+                    condition_experimental_list_trial{i_trigger, 1} = condition_list{i_condition};
+                    condition_experimental_list_trial{i_trigger, 2} = condition_list{i_condition};
+                    condition_experimental_list_trial{i_trigger, 3} = condition_list{i_condition};
+                    condition_experimental_list_trial{i_trigger, 4} = condition_list{i_condition};
+                    condition_experimental_list_trial{i_trigger, 5} = condition_list{i_condition};
+                    condition_experimental_list_trial{i_trigger, 6} = condition_list{i_condition};
+                    
+                    % stimulus condition
+                    condition_stimulus_list_trial{i_trigger, 1} = condition_stimulus;
+                    condition_stimulus_list_trial{i_trigger, 2} = condition_stimulus;
+                    condition_stimulus_list_trial{i_trigger, 3} = condition_stimulus;
+                    condition_stimulus_list_trial{i_trigger, 4} = condition_stimulus;
+                    condition_stimulus_list_trial{i_trigger, 5} = condition_stimulus;
+                    condition_stimulus_list_trial{i_trigger, 6} = condition_stimulus;
+                    
+                    % day condition
+                    condition_day_list_trial{i_trigger, 1} = condition_day;
+                    condition_day_list_trial{i_trigger, 2} = condition_day;
+                    condition_day_list_trial{i_trigger, 3} = condition_day;
+                    condition_day_list_trial{i_trigger, 4} = condition_day;
+                    condition_day_list_trial{i_trigger, 5} = condition_day;
+                    condition_day_list_trial{i_trigger, 6} = condition_day;
+                    
                     % get closest heelstrike
                     [~, index_left] = min(abs(left_touchdown_times - trigger_times(i_trigger)));
                     [~, index_right] = min(abs(right_touchdown_times - trigger_times(i_trigger)));
@@ -934,6 +997,8 @@ function findRelevantDataStretches(varargin)
                 condition_delay_list_trial = condition_delay_list_trial(unflagged_indices, :);
                 condition_index_list_trial = condition_index_list_trial(unflagged_indices, :);
                 condition_experimental_list_trial = condition_experimental_list_trial(unflagged_indices, :); % XXX needs to be updated
+                condition_stimulus_list_trial = condition_stimulus_list_trial(unflagged_indices, :); % XXX needs to be updated
+                condition_day_list_trial = condition_day_list_trial(unflagged_indices, :); % XXX needs to be updated
                 closest_heelstrike_distance_times = closest_heelstrike_distance_times(unflagged_indices, :);
                 
                 % reorder
@@ -947,6 +1012,8 @@ function findRelevantDataStretches(varargin)
                 condition_delay_list_trial = reshape(condition_delay_list_trial, numel(condition_delay_list_trial), 1);
                 condition_index_list_trial = reshape(condition_index_list_trial, numel(condition_index_list_trial), 1);
                 condition_experimental_list_trial = reshape(condition_experimental_list_trial, numel(condition_experimental_list_trial), 1);
+                condition_stimulus_list_trial = reshape(condition_stimulus_list_trial, numel(condition_stimulus_list_trial), 1);
+                condition_day_list_trial = reshape(condition_day_list_trial, numel(condition_day_list_trial), 1);
                 
                 % we now have a neatly ordered list of stretches which we can prune
                 % check step times and flag outliers
@@ -979,9 +1046,11 @@ function findRelevantDataStretches(varargin)
                 condition_delay_list_trial = condition_delay_list_trial(unflagged_indices, :);
                 condition_index_list_trial = condition_index_list_trial(unflagged_indices, :);
                 condition_experimental_list_trial = condition_experimental_list_trial(unflagged_indices, :);
+                condition_stimulus_list_trial = condition_stimulus_list_trial(unflagged_indices, :);
+                condition_day_list_trial = condition_day_list_trial(unflagged_indices, :);
                                 
                 % save data
-                data_stretches_file_name = ['analysis' filesep makeFileName(date, subject_id, condition, i_trial, 'relevantDataStretches')];
+                data_stretches_file_name = ['analysis' filesep makeFileName(date, subject_id, condition_list{i_condition}, i_trial, 'relevantDataStretches')];
                 save ...
                   ( ...
                     data_stretches_file_name, ...
@@ -990,6 +1059,8 @@ function findRelevantDataStretches(varargin)
                     'condition_delay_list_trial', ...
                     'condition_index_list_trial', ...
                     'condition_experimental_list_trial', ...
+                    'condition_stimulus_list_trial', ...
+                    'condition_day_list_trial', ...
                     'trigger_times', ...
                     'stretch_start_times', ...
                     'stretch_pushoff_times', ...
@@ -997,7 +1068,7 @@ function findRelevantDataStretches(varargin)
                     'closest_heelstrike_distance_times' ...
                   )
 
-                disp(['Condition ' condition ', Trial ' num2str(i_trial) ' completed, found ' num2str(length(stretch_start_times)) ' relevant stretches, saved as ' data_stretches_file_name]);                
+                disp(['Condition ' condition_list{i_condition} ', Trial ' num2str(i_trial) ' completed, found ' num2str(length(stretch_start_times)) ' relevant stretches, saved as ' data_stretches_file_name]);                
                 
                 
             end            
