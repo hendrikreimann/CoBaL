@@ -1122,124 +1122,18 @@ function createModel(varargin)
     kinematic_tree.markerLabels = marker_labels;
 
     % define markers
-    red = [1 0 0];
-    green = [0 1 0];
-    blue = [0 0 1];
-    yellow = [1 0.9 0];
+    marker_segment_list = createMarkerSegmentList(marker_labels);
+    marker_color_list = createMarkerColorList(marker_labels);
 
-    markerSegments = zeros(1, length(marker_labels));
-    markerSegments(strcmp(marker_labels, 'LFHD')) = 26;
-    markerSegments(strcmp(marker_labels, 'RFHD')) = 26;
-    markerSegments(strcmp(marker_labels, 'LBHD')) = 26;
-    markerSegments(strcmp(marker_labels, 'RBHD')) = 26;
 
-    markerSegments(strcmp(marker_labels, 'C7')) = 23;
-    markerSegments(strcmp(marker_labels, 'T10')) = 23;
-    markerSegments(strcmp(marker_labels, 'CLAV')) = 23;
-    markerSegments(strcmp(marker_labels, 'STRN')) = 23;
-    markerSegments(strcmp(marker_labels, 'RBAK')) = 23;
 
-    markerSegments(strcmp(marker_labels, 'LSHO')) = 23;
-    markerSegments(strcmp(marker_labels, 'LUPA')) = 29;
-    markerSegments(strcmp(marker_labels, 'LELB')) = 29;
-    markerSegments(strcmp(marker_labels, 'LFRM')) = 31;
-    markerSegments(strcmp(marker_labels, 'LWRA')) = 31;
-    markerSegments(strcmp(marker_labels, 'LWRB')) = 31;
-    markerSegments(strcmp(marker_labels, 'LFIN')) = 33;
 
-    markerSegments(strcmp(marker_labels, 'RSHO')) = 23;
-    markerSegments(strcmp(marker_labels, 'RUPA')) = 36;
-    markerSegments(strcmp(marker_labels, 'RELB')) = 36;
-    markerSegments(strcmp(marker_labels, 'RFRM')) = 38;
-    markerSegments(strcmp(marker_labels, 'RWRA')) = 38;
-    markerSegments(strcmp(marker_labels, 'RWRB')) = 38;
-    markerSegments(strcmp(marker_labels, 'RFIN')) = 40;
-
-    markerSegments(strcmp(marker_labels, 'LASI')) = 6;
-    markerSegments(strcmp(marker_labels, 'RASI')) = 6;
-    markerSegments(strcmp(marker_labels, 'LPSI')) = 6;
-    markerSegments(strcmp(marker_labels, 'RPSI')) = 6;
-
-    markerSegments(strcmp(marker_labels, 'LTHI')) = 9;
-    markerSegments(strcmp(marker_labels, 'LTHIA')) = 9;
-    markerSegments(strcmp(marker_labels, 'LKNE')) = 9;
-    markerSegments(strcmp(marker_labels, 'LTIB')) = 10;
-    markerSegments(strcmp(marker_labels, 'LTIBA')) = 10;
-    markerSegments(strcmp(marker_labels, 'LANK')) = 10;
-    markerSegments(strcmp(marker_labels, 'LHEE')) = 13;
-    markerSegments(strcmp(marker_labels, 'LTOE')) = 13;
-    markerSegments(strcmp(marker_labels, 'LTOEL')) = 13;
-
-    markerSegments(strcmp(marker_labels, 'RTHI')) = 16;
-    markerSegments(strcmp(marker_labels, 'RTHIA')) = 16;
-    markerSegments(strcmp(marker_labels, 'RKNE')) = 16;
-    markerSegments(strcmp(marker_labels, 'RTIB')) = 17;
-    markerSegments(strcmp(marker_labels, 'RTIBA')) = 17;
-    markerSegments(strcmp(marker_labels, 'RANK')) = 17;
-    markerSegments(strcmp(marker_labels, 'RHEE')) = 19;
-    markerSegments(strcmp(marker_labels, 'RTOE')) = 19;
-    markerSegments(strcmp(marker_labels, 'RTOEL')) = 19;
-
-    marker_color_list = cell(1, length(marker_labels));
-    marker_color_list{strcmp(marker_labels, 'LFHD')} = red;
-    marker_color_list{strcmp(marker_labels, 'RFHD')} = green;
-    marker_color_list{strcmp(marker_labels, 'LBHD')} = red;
-    marker_color_list{strcmp(marker_labels, 'RBHD')} = green;
-
-    marker_color_list{strcmp(marker_labels, 'C7')} = blue;
-    marker_color_list{strcmp(marker_labels, 'T10')} = blue;
-    marker_color_list{strcmp(marker_labels, 'CLAV')} = blue;
-    marker_color_list{strcmp(marker_labels, 'STRN')} = blue;
-    marker_color_list{strcmp(marker_labels, 'RBAK')} = blue;
-
-    marker_color_list{strcmp(marker_labels, 'LSHO')} = red;
-    marker_color_list{strcmp(marker_labels, 'LUPA')} = red;
-    marker_color_list{strcmp(marker_labels, 'LELB')} = red;
-%     marker_color_list{strcmp(marker_labels, 'LFRA')} = red;
-    marker_color_list{strcmp(marker_labels, 'LFRM')} = red;
-    marker_color_list{strcmp(marker_labels, 'LWRA')} = red;
-    marker_color_list{strcmp(marker_labels, 'LWRB')} = red;
-    marker_color_list{strcmp(marker_labels, 'LFIN')} = red;
-
-    marker_color_list{strcmp(marker_labels, 'RSHO')} = green;
-    marker_color_list{strcmp(marker_labels, 'RUPA')} = green;
-    marker_color_list{strcmp(marker_labels, 'RELB')} = green;
-%     marker_color_list{strcmp(marker_labels, 'RFRA')} = green;
-    marker_color_list{strcmp(marker_labels, 'RFRM')} = green;
-    marker_color_list{strcmp(marker_labels, 'RWRA')} = green;
-    marker_color_list{strcmp(marker_labels, 'RWRB')} = green;
-    marker_color_list{strcmp(marker_labels, 'RFIN')} = green;
-
-    marker_color_list{strcmp(marker_labels, 'LASI')} = red;
-    marker_color_list{strcmp(marker_labels, 'RASI')} = green;
-    marker_color_list{strcmp(marker_labels, 'LPSI')} = red;
-    marker_color_list{strcmp(marker_labels, 'RPSI')} = green;
-
-    marker_color_list{strcmp(marker_labels, 'LTHI')} = red;
-    marker_color_list{strcmp(marker_labels, 'LTHIA')} = red;
-    marker_color_list{strcmp(marker_labels, 'LKNE')} = red;
-    marker_color_list{strcmp(marker_labels, 'LTIB')} = red;
-    marker_color_list{strcmp(marker_labels, 'LTIBA')} = red;
-    marker_color_list{strcmp(marker_labels, 'LANK')} = red;
-    marker_color_list{strcmp(marker_labels, 'LHEE')} = red;
-    marker_color_list{strcmp(marker_labels, 'LTOE')} = red;
-    marker_color_list{strcmp(marker_labels, 'LTOEL')} = red;
-
-    marker_color_list{strcmp(marker_labels, 'RTHI')} = green;
-    marker_color_list{strcmp(marker_labels, 'RTHIA')} = green;
-    marker_color_list{strcmp(marker_labels, 'RKNE')} = green;
-    marker_color_list{strcmp(marker_labels, 'RTIB')} = green;
-    marker_color_list{strcmp(marker_labels, 'RTIBA')} = green;
-    marker_color_list{strcmp(marker_labels, 'RANK')} = green;
-    marker_color_list{strcmp(marker_labels, 'RHEE')} = green;
-    marker_color_list{strcmp(marker_labels, 'RTOE')} = green;
-    marker_color_list{strcmp(marker_labels, 'RTOEL')} = green;
 
     % TODO: deal with cases where some of these don't exist or are misnamed
     
-    number_of_markers = length(markerSegments);
+    number_of_markers = length(marker_segment_list);
     for i_marker = 1 : number_of_markers
-        kinematic_tree.addMarker(markerSegments(i_marker), marker_reference((i_marker-1)*3+1 : (i_marker-1)*3+3)', marker_color_list{i_marker});
+        kinematic_tree.addMarker(marker_segment_list(i_marker), marker_reference((i_marker-1)*3+1 : (i_marker-1)*3+3)', marker_color_list{i_marker});
     end
 
     kinematic_tree.updateInternals();
@@ -1303,17 +1197,130 @@ function createModel(varargin)
 end
 
 
+function marker_segments = createMarkerSegmentList(marker_labels)
+    marker_segments = zeros(1, length(marker_labels));
+    marker_segments(strcmp(marker_labels, 'LFHD')) = 26;
+    marker_segments(strcmp(marker_labels, 'RFHD')) = 26;
+    marker_segments(strcmp(marker_labels, 'LBHD')) = 26;
+    marker_segments(strcmp(marker_labels, 'RBHD')) = 26;
 
+    marker_segments(strcmp(marker_labels, 'C7')) = 23;
+    marker_segments(strcmp(marker_labels, 'T10')) = 23;
+    marker_segments(strcmp(marker_labels, 'CLAV')) = 23;
+    marker_segments(strcmp(marker_labels, 'STRN')) = 23;
+    marker_segments(strcmp(marker_labels, 'RBAK')) = 23;
 
+    marker_segments(strcmp(marker_labels, 'LSHO')) = 23;
+    marker_segments(strcmp(marker_labels, 'LUPA')) = 29;
+    marker_segments(strcmp(marker_labels, 'LELB')) = 29;
+    marker_segments(strcmp(marker_labels, 'LFRM')) = 31;
+    marker_segments(strcmp(marker_labels, 'LWRA')) = 31;
+    marker_segments(strcmp(marker_labels, 'LWRB')) = 31;
+    marker_segments(strcmp(marker_labels, 'LFIN')) = 33;
 
+    marker_segments(strcmp(marker_labels, 'RSHO')) = 23;
+    marker_segments(strcmp(marker_labels, 'RUPA')) = 36;
+    marker_segments(strcmp(marker_labels, 'RELB')) = 36;
+    marker_segments(strcmp(marker_labels, 'RFRM')) = 38;
+    marker_segments(strcmp(marker_labels, 'RWRA')) = 38;
+    marker_segments(strcmp(marker_labels, 'RWRB')) = 38;
+    marker_segments(strcmp(marker_labels, 'RFIN')) = 40;
 
+    marker_segments(strcmp(marker_labels, 'LASI')) = 6;
+    marker_segments(strcmp(marker_labels, 'RASI')) = 6;
+    marker_segments(strcmp(marker_labels, 'LPSI')) = 6;
+    marker_segments(strcmp(marker_labels, 'RPSI')) = 6;
 
+    marker_segments(strcmp(marker_labels, 'LTHI')) = 9;
+    marker_segments(strcmp(marker_labels, 'LTHIA')) = 9;
+    marker_segments(strcmp(marker_labels, 'LKNE')) = 9;
+    marker_segments(strcmp(marker_labels, 'LTIB')) = 10;
+    marker_segments(strcmp(marker_labels, 'LTIBA')) = 10;
+    marker_segments(strcmp(marker_labels, 'LANK')) = 10;
+    marker_segments(strcmp(marker_labels, 'LHEE')) = 13;
+    marker_segments(strcmp(marker_labels, 'LTOE')) = 13;
+    marker_segments(strcmp(marker_labels, 'LTOEL')) = 13;
 
+    marker_segments(strcmp(marker_labels, 'RTHI')) = 16;
+    marker_segments(strcmp(marker_labels, 'RTHIA')) = 16;
+    marker_segments(strcmp(marker_labels, 'RKNE')) = 16;
+    marker_segments(strcmp(marker_labels, 'RTIB')) = 17;
+    marker_segments(strcmp(marker_labels, 'RTIBA')) = 17;
+    marker_segments(strcmp(marker_labels, 'RANK')) = 17;
+    marker_segments(strcmp(marker_labels, 'RHEE')) = 19;
+    marker_segments(strcmp(marker_labels, 'RTOE')) = 19;
+    marker_segments(strcmp(marker_labels, 'RTOEL')) = 19;
 
+end
 
+function marker_color_list = createMarkerColorList(marker_labels)
+    red = [1 0 0];
+    green = [0 1 0];
+    blue = [0 0 1];
+    yellow = [1 0.9 0];
 
+    marker_color_array = zeros(length(marker_labels), 3) * 0.3;
+    if any(strcmp(marker_labels, 'LFHD')) marker_color_array(strcmp(marker_labels, 'LFHD'), :) = red; end
+    if any(strcmp(marker_labels, 'RFHD')) marker_color_array(strcmp(marker_labels, 'RFHD'), :) = green; end
+    if any(strcmp(marker_labels, 'LBHD')) marker_color_array(strcmp(marker_labels, 'LBHD'), :) = red; end
+    if any(strcmp(marker_labels, 'RBHD')) marker_color_array(strcmp(marker_labels, 'RBHD'), :) = green; end
 
+    if any(strcmp(marker_labels, 'C7')) marker_color_array(strcmp(marker_labels, 'C7'), :) = blue; end
+    if any(strcmp(marker_labels, 'T10')) marker_color_array(strcmp(marker_labels, 'T10'), :) = blue; end
+    if any(strcmp(marker_labels, 'CLAV')) marker_color_array(strcmp(marker_labels, 'CLAV'), :) = blue; end
+    if any(strcmp(marker_labels, 'STRN')) marker_color_array(strcmp(marker_labels, 'STRN'), :) = blue; end
+    if any(strcmp(marker_labels, 'RBAK')) marker_color_array(strcmp(marker_labels, 'RBAK'), :) = blue; end
 
+    if any(strcmp(marker_labels, 'LSHO')) marker_color_array(strcmp(marker_labels, 'LSHO'), :) = red; end
+    if any(strcmp(marker_labels, 'LUPA')) marker_color_array(strcmp(marker_labels, 'LUPA'), :) = red; end
+    if any(strcmp(marker_labels, 'LELB')) marker_color_array(strcmp(marker_labels, 'LELB'), :) = red; end
+    if any(strcmp(marker_labels, 'LFRA')) marker_color_array(strcmp(marker_labels, 'LFRA'), :) = red; end
+    if any(strcmp(marker_labels, 'LFRM')) marker_color_array(strcmp(marker_labels, 'LFRM'), :) = red; end
+    if any(strcmp(marker_labels, 'LWRA')) marker_color_array(strcmp(marker_labels, 'LWRA'), :) = red; end
+    if any(strcmp(marker_labels, 'LWRB')) marker_color_array(strcmp(marker_labels, 'LWRB'), :) = red; end
+    if any(strcmp(marker_labels, 'LFIN')) marker_color_array(strcmp(marker_labels, 'LFIN'), :) = red; end
+
+    if any(strcmp(marker_labels, 'RSHO')) marker_color_array(strcmp(marker_labels, 'RSHO'), :) = green; end
+    if any(strcmp(marker_labels, 'RUPA')) marker_color_array(strcmp(marker_labels, 'RUPA'), :) = green; end
+    if any(strcmp(marker_labels, 'RELB')) marker_color_array(strcmp(marker_labels, 'RELB'), :) = green; end
+    if any(strcmp(marker_labels, 'RFRA')) marker_color_array(strcmp(marker_labels, 'RFRA'), :) = green; end
+    if any(strcmp(marker_labels, 'RFRM')) marker_color_array(strcmp(marker_labels, 'RFRM'), :) = green; end
+    if any(strcmp(marker_labels, 'RWRA')) marker_color_array(strcmp(marker_labels, 'RWRA'), :) = green; end
+    if any(strcmp(marker_labels, 'RWRB')) marker_color_array(strcmp(marker_labels, 'RWRB'), :) = green; end
+    if any(strcmp(marker_labels, 'RFIN')) marker_color_array(strcmp(marker_labels, 'RFIN'), :) = green; end
+
+    if any(strcmp(marker_labels, 'LASI')) marker_color_array(strcmp(marker_labels, 'LASI'), :) = red; end
+    if any(strcmp(marker_labels, 'RASI')) marker_color_array(strcmp(marker_labels, 'RASI'), :) = green; end
+    if any(strcmp(marker_labels, 'LPSI')) marker_color_array(strcmp(marker_labels, 'LPSI'), :) = red; end
+    if any(strcmp(marker_labels, 'RPSI')) marker_color_array(strcmp(marker_labels, 'RPSI'), :) = green; end
+
+    if any(strcmp(marker_labels, 'LTHI')) marker_color_array(strcmp(marker_labels, 'LTHI'), :) = red; end
+    if any(strcmp(marker_labels, 'LTHIA')) marker_color_array(strcmp(marker_labels, 'LTHIA'), :) = red; end
+    if any(strcmp(marker_labels, 'LKNE')) marker_color_array(strcmp(marker_labels, 'LKNE'), :) = red; end
+    if any(strcmp(marker_labels, 'LTIB')) marker_color_array(strcmp(marker_labels, 'LTIB'), :) = red; end
+    if any(strcmp(marker_labels, 'LTIBA')) marker_color_array(strcmp(marker_labels, 'LTIBA'), :) = red; end
+    if any(strcmp(marker_labels, 'LANK')) marker_color_array(strcmp(marker_labels, 'LANK'), :) = red; end
+    if any(strcmp(marker_labels, 'LHEE')) marker_color_array(strcmp(marker_labels, 'LHEE'), :) = red; end
+    if any(strcmp(marker_labels, 'LTOE')) marker_color_array(strcmp(marker_labels, 'LTOE'), :) = red; end
+    if any(strcmp(marker_labels, 'LTOEL')) marker_color_array(strcmp(marker_labels, 'LTOEL'), :) = red; end
+
+    if any(strcmp(marker_labels, 'RTHI')) marker_color_array(strcmp(marker_labels, 'RTHI'), :) = green; end
+    if any(strcmp(marker_labels, 'RTHIA')) marker_color_array(strcmp(marker_labels, 'RTHIA'), :) = green; end
+    if any(strcmp(marker_labels, 'RKNE')) marker_color_array(strcmp(marker_labels, 'RKNE'), :) = green; end
+    if any(strcmp(marker_labels, 'RTIB')) marker_color_array(strcmp(marker_labels, 'RTIB'), :) = green; end
+    if any(strcmp(marker_labels, 'RTIBA')) marker_color_array(strcmp(marker_labels, 'RTIBA'), :) = green; end
+    if any(strcmp(marker_labels, 'RANK')) marker_color_array(strcmp(marker_labels, 'RANK'), :) = green; end
+    if any(strcmp(marker_labels, 'RHEE')) marker_color_array(strcmp(marker_labels, 'RHEE'), :) = green; end
+    if any(strcmp(marker_labels, 'RTOE')) marker_color_array(strcmp(marker_labels, 'RTOE'), :) = green; end
+    if any(strcmp(marker_labels, 'RTOEL')) marker_color_array(strcmp(marker_labels, 'RTOEL'), :) = green; end
+
+    % export to list
+    marker_color_list = cell(1, length(marker_labels));
+    for i_marker = 1 : length(marker_labels)
+        marker_color_list{i_marker} = marker_color_array(i_marker, :);
+    end
+
+end
 
 
 
