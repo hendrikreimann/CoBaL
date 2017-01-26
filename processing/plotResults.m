@@ -65,10 +65,12 @@ function plotResults(varargin)
         subjects = {subjects};
     end
     
-    comparison_indices = determineComparisons(study_settings);
+    [comparison_indices, conditions_per_comparison_max] = determineComparisons(study_settings);
     number_of_comparisons = length(comparison_indices);
     episode_indices = determineEpisodes(study_settings, comparison_indices);
     number_of_episodes = length(episode_indices);
+    
+    
     
     %% collect data from all subjects
     number_of_variables_to_plot = size(study_settings.variables_to_plot, 1);
@@ -143,17 +145,11 @@ function plotResults(varargin)
                         abscissae_cell{i_comparison, i_variable} = linspace(lower_bound, upper_bound, study_settings.number_of_bins_in_histogram);
                     end
                     if strcmp(study_settings.plot_mode, 'overview')
-                        % what's my comparison here?
                         this_comparison = comparison_indices{i_comparison};
-                        
-                        % for overview, I need the ones for stimulus to be at 1 and 2, but the one for control to be at 0
-                        % 0
-                        
-                        % what goes here needs to take into account whether we have a control condition or not
-                        % and how wide the boxes are supposed to be.
-                        % this is fairly complex, do that later
-                        % for now, the plotting doesn't actually use the abscissae datat yet for this case
-                        
+                        abscissae_control = 0;
+                        abscissae_stimulus = 1 : length(this_comparison);
+                        abscissae = {abscissae_control, abscissae_stimulus};
+                        abscissae_cell{i_comparison, i_variable} = abscissae;
                     end
                 end
                 if isContinuousVariable(i_variable, variable_data_all)
@@ -164,9 +160,16 @@ function plotResults(varargin)
                 if dictate_axes
     %                 set(gca, 'xlim', [time_normalized(1), time_normalized(end)]);
                     set(gca, 'ylim', [str2double(study_settings.variables_to_plot{i_variable, 5}), str2double(study_settings.variables_to_plot{i_variable, 6})]);
-                    if strcmp(study_settings.plot_mode, 'overview')
-                        set(gca, 'xlim', [-0.5 length(comparison_indices{i_comparison})+0.5]);
+                end
+                if strcmp(study_settings.plot_mode, 'overview')
+                    xtick = abscissae_cell{i_comparison, i_variable}{2};
+                    if ~isempty(study_settings.conditions_control)
+                        xtick = [abscissae_cell{i_comparison, i_variable}{1} xtick]; %#ok<AGROW>
                     end
+%                     set(gca, 'xlim', [-0.5 length(comparison_indices{i_comparison})+0.5]);
+%                     set(gca, 'xtick', 0 : length(comparison_indices{i_comparison}));
+                    set(gca, 'xlim', [-0.5 + min(xtick) 0.5 + max(xtick(end))]);
+                    set(gca, 'xtick', xtick);
                 end
 
                 % determine title
@@ -191,22 +194,39 @@ function plotResults(varargin)
                 this_episode = episode_indices{i_episode};
 
                 % store handles and determine abscissa data for all comparisons in this episode
+                xtick = [];
                 for i_comparison = 1 : length(this_episode)
                     comparison_variable_to_axes_index_map(this_episode(i_comparison)) = i_episode;
-
+                    
                     % determine which step this is
                     this_comparison = this_episode(i_comparison);
                     conditions_in_this_comparison = comparison_indices{this_comparison};
                     example_condition = conditions_in_this_comparison(1);
                     condition_identifier = study_settings.conditions_to_plot(example_condition, :);
+                    gap_between_steps = 1;
                     if strcmp(condition_identifier{4}, 'ONE')
-                        abscissae_cell{this_episode(i_comparison), i_variable} = 1 : 100;
+                        step_index = 1;
                     elseif strcmp(condition_identifier{4}, 'TWO')
-                        abscissae_cell{this_episode(i_comparison), i_variable} = 101 : 200;
+                        step_index = 2;
                     elseif strcmp(condition_identifier{4}, 'THREE')
-                        abscissae_cell{this_episode(i_comparison), i_variable} = 201 : 300;
+                        step_index = 3;
                     elseif strcmp(condition_identifier{4}, 'FOUR')
-                        abscissae_cell{this_episode(i_comparison), i_variable} = 301 : 400;
+                        step_index = 4;
+                    end
+                    if isDiscreteVariable(i_variable, variable_data_all)
+                        this_comparison = comparison_indices{i_comparison};
+                        abscissae_control = (conditions_per_comparison_max + gap_between_steps) * step_index;
+                        abscissae_stimulus = (1 : length(this_comparison)) + (conditions_per_comparison_max + gap_between_steps) * step_index;
+                        abscissae = {abscissae_control, abscissae_stimulus};
+                        abscissae_cell{this_episode(i_comparison), i_variable} = abscissae;
+                        
+                        if ~isempty(study_settings.conditions_control)
+                            xtick = [xtick abscissae{1}];
+                        end
+                        xtick = [xtick abscissae{2}];
+                    end
+                    if isContinuousVariable(i_variable, variable_data_all)
+                        abscissae_cell{this_episode(i_comparison), i_variable} = (1 : 100) + (step_index-1)*100;
                     end
                 end
                 
@@ -215,6 +235,10 @@ function plotResults(varargin)
     %                 set(gca, 'xlim', [time_normalized(1), time_normalized(end)]);
                     set(gca, 'ylim', [str2double(study_settings.variables_to_plot{i_variable, 5}), str2double(study_settings.variables_to_plot{i_variable, 6})]);
                 end
+                
+                set(gca, 'xlim', [-0.5 + min(xtick) 0.5 + max(xtick(end))]);
+                set(gca, 'xtick', xtick);
+                set(gca, 'XTickLabelRotation', 60);
 
                 % determine title
                 title_string = study_settings.variables_to_plot{i_variable, 2};
@@ -270,12 +294,13 @@ function plotResults(varargin)
                             data_to_plot_this_condition, ...
                             'binEdges', target_abscissa, ...
                             'edgecolor', study_settings.color_control, ...
-                            'facecolor', lightenColor(study_settings.color_control, 0.5) ...
+                            'facecolor', lightenColor(study_settings.color_control, 0.5), ...
+                            'DisplayName', 'CONTROL' ...
                           );
                     end
-                end
-                if strcmp(study_settings.plot_mode, 'overview')
-                    singleBoxPlot(target_axes_handle, 0, data_to_plot_this_condition, study_settings.color_control)
+                    if strcmp(study_settings.plot_mode, 'overview') || strcmp(study_settings.plot_mode, 'episodes')
+                        singleBoxPlot(target_axes_handle, target_abscissa{1}, data_to_plot_this_condition, study_settings.color_control, 'CONTROL')
+                    end
                 end
                 if isContinuousVariable(i_variable, variable_data_all)
                     if strcmp(study_settings.plot_mode, 'detailed')
@@ -313,6 +338,10 @@ function plotResults(varargin)
                             1, ...
                             target_axes_handle ...
                           );
+                        set(plot_handles.edge, 'HandleVisibility', 'off');
+                        set(plot_handles.patch, 'HandleVisibility', 'off');
+                        set(plot_handles.mainLine, 'DisplayName', 'CONTROL');
+                      
                         top_level_plots = [top_level_plots plot_handles.mainLine]; %#ok<AGROW>
                     end
                 end
@@ -320,6 +349,8 @@ function plotResults(varargin)
             
             % plot stimulus
             for i_condition = 1 : length(conditions_this_comparison)
+                label_string = strrep(study_settings.conditions_to_plot{comparison_indices{i_comparison}(i_condition), study_settings.comparison_to_make}, '_', ' ');
+                
                 % find correct condition indicator
                 condition_identifier = study_settings.conditions_to_plot(conditions_this_comparison(i_condition), :);
                 stance_foot_indicator = strcmp(condition_stance_foot_list_all, condition_identifier{1});
@@ -339,12 +370,13 @@ function plotResults(varargin)
                             data_to_plot_this_condition, ...
                             target_abscissa, ...
                             'edgecolor', study_settings.colors_comparison(i_condition, :), ...
-                            'facecolor', lightenColor(study_settings.colors_comparison(i_condition, :), 0.5) ...
+                            'facecolor', lightenColor(study_settings.colors_comparison(i_condition, :), 0.5), ...
+                            'DisplayName', label_string ...
                           );
                     end
-                    if strcmp(study_settings.plot_mode, 'overview')
+                    if strcmp(study_settings.plot_mode, 'overview') || strcmp(study_settings.plot_mode, 'episodes')
                         if ~any(isnan(data_to_plot_this_condition))
-                            singleBoxPlot(target_axes_handle, i_condition, data_to_plot_this_condition, study_settings.colors_comparison(i_condition, :))
+                            singleBoxPlot(target_axes_handle, target_abscissa{2}(i_condition), data_to_plot_this_condition, study_settings.colors_comparison(i_condition, :), label_string)
                         end
                     end
                 end
@@ -358,7 +390,6 @@ function plotResults(varargin)
                             'HandleVisibility', 'off', ...
                             'color', lightenColor(study_settings.colors_comparison(i_condition, :), 0.5) ...
                           );
-                        label_string = strrep(study_settings.conditions_to_plot{comparison_indices{i_comparison}(i_condition), study_settings.comparison_to_make}, '_', ' ');
                         condition_mean_plot = plot ...
                           ( ...
                             target_axes_handle, ...
@@ -384,6 +415,10 @@ function plotResults(varargin)
                             target_axes_handle ...
                           );
                         top_level_plots = [top_level_plots plot_handles.mainLine]; %#ok<AGROW>
+                        set(plot_handles.edge, 'HandleVisibility', 'off');
+                        set(plot_handles.patch, 'HandleVisibility', 'off');
+                        set(plot_handles.mainLine, 'DisplayName', label_string);
+                        
                     end
                 end
             end
@@ -394,24 +429,23 @@ function plotResults(varargin)
             end
             
             % toggle legend
-            if show_legend
-                legend(target_axes_handle, 'toggle')
+            if show_legend && ~(isDiscreteVariable(i_variable, variable_data_all) && (strcmp(study_settings.plot_mode, 'overview') || strcmp(study_settings.plot_mode, 'episodes')))
+                legend(target_axes_handle, 'show')
             end
         end
     end
-    
-    
     
 end
 
 %% helper functions
 
-function comparison_indices = determineComparisons(study_settings)
-    
-    % determine comparisons
+function [comparison_indices, conditions_per_comparison_max] = determineComparisons(study_settings)
+    % initialize
     number_of_conditions_to_plot = size(study_settings.conditions_to_plot, 1);
     comparison_indices = {};
     conditions_already_compared = [];
+    conditions_per_comparison_max = 0;
+    
     % here, we go through all conditions_to_plot and group up those that go into one comparison, i.e. one figure
     while length(conditions_already_compared) < number_of_conditions_to_plot
         % start with the first available condition
@@ -440,8 +474,14 @@ function comparison_indices = determineComparisons(study_settings)
         end
         comparison_indices = [comparison_indices; this_comparison]; %#ok<AGROW>
         conditions_already_compared = [conditions_already_compared this_comparison]; %#ok<AGROW>
+        
+        if conditions_per_comparison_max < length(this_comparison)
+            conditions_per_comparison_max = length(this_comparison);
+        end
     end    
-
+    if ~isempty(study_settings.conditions_control)
+        conditions_per_comparison_max = conditions_per_comparison_max + 1;
+    end
 end
 
 function episode_indices = determineEpisodes(study_settings, comparison_indices)
@@ -519,7 +559,7 @@ function continuous = isContinuousVariable(variable_index, variable_data)
     end
 end
 
-function singleBoxPlot(target_axes_handle, abscissa, data, color)
+function singleBoxPlot(target_axes_handle, abscissa, data, color, label)
     % set some parameters, these should be name-value pair arguments later
     width = 0.8;
     
@@ -543,14 +583,21 @@ function singleBoxPlot(target_axes_handle, abscissa, data, color)
         box_y_data, ...
         color, ...
         'parent', target_axes_handle, ...
-        'EdgeColor', 'none' ...
+        'EdgeColor', 'none', ...
+        'HandleVisibility', 'off' ...
       );
-    plot(target_axes_handle, abscissa + width*[-0.5 0.5], [data_median data_median], 'color', 'k'); % median
-    plot(target_axes_handle, [abscissa abscissa], [data_quartile_3 data_upper_adjacent], 'k--'); % upper range
-    plot(target_axes_handle, [abscissa abscissa], [data_lower_adjacent data_quartile_1], 'k--'); % lower range
-    plot(target_axes_handle, abscissa+width*[-0.25 0.25], [data_lower_adjacent data_lower_adjacent], 'k-'); % max
-    plot(target_axes_handle, abscissa+width*[-0.25 0.25], [data_upper_adjacent data_upper_adjacent], 'k-'); % min
-    plot(target_axes_handle, abscissa * ones(size(outliers)), outliers, '+', 'color', [1; 1; 1] * 0.7);
+    plot(target_axes_handle, abscissa + width*[-0.5 0.5], [data_median data_median], 'color', 'k', 'HandleVisibility', 'off'); % median
+    plot(target_axes_handle, [abscissa abscissa], [data_quartile_3 data_upper_adjacent], 'k--', 'HandleVisibility', 'off'); % upper range
+    plot(target_axes_handle, [abscissa abscissa], [data_lower_adjacent data_quartile_1], 'k--', 'HandleVisibility', 'off'); % lower range
+    plot(target_axes_handle, abscissa+width*[-0.25 0.25], [data_lower_adjacent data_lower_adjacent], 'k-', 'HandleVisibility', 'off'); % max
+    plot(target_axes_handle, abscissa+width*[-0.25 0.25], [data_upper_adjacent data_upper_adjacent], 'k-', 'HandleVisibility', 'off'); % min
+    plot(target_axes_handle, abscissa * ones(size(outliers)), outliers, '+', 'color', [1; 1; 1] * 0.7, 'HandleVisibility', 'off');
+    
+    % labels
+    xtick = get(target_axes_handle, 'xtick');
+    xticklabels = get(target_axes_handle, 'xticklabel');
+    xticklabels{xtick == abscissa} = label;
+    set(target_axes_handle, 'xticklabel', xticklabels);
 end
 
 
