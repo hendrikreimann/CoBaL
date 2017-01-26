@@ -244,12 +244,17 @@ function findRelevantDataStretches(varargin)
                 condition_delay_list_trial = cell(number_of_triggers, 1);
                 condition_index_list_trial = cell(number_of_triggers, 1);
                 condition_experimental_list_trial = cell(number_of_triggers, 1);
+                condition_stimulus_list_trial = cell(number_of_triggers, 1);
+                condition_day_list_trial = cell(number_of_triggers, 1);
                 
                 for i_trigger = 1 : number_of_triggers
-                    condition_perturbation_list_trial{i_trigger, 1} = 'CONTROL';
-                    condition_delay_list_trial{i_trigger, 1} = 'CONTROL';
-                    condition_index_list_trial{i_trigger, 1} = 'CONTROL';
-                    condition_experimental_list_trial{i_trigger, 1} = condition;
+                    condition_perturbation_list_trial{i_trigger, 1} = 'N/A';
+                    condition_delay_list_trial{i_trigger, 1} = 'N/A';
+                    condition_index_list_trial{i_trigger, 1} = 'N/A';
+                    condition_experimental_list_trial{i_trigger, 1} = condition_experimental;
+                    condition_stimulus_list_trial{i_trigger, 1} = condition_stimulus;
+                    condition_day_list_trial{i_trigger, 1} = condition_day;
+                    
                 
                     % find out which heelstrike triggered
                     % XXX change this to use the interval, same as in the stimulus case
@@ -284,8 +289,7 @@ function findRelevantDataStretches(varargin)
                             stretch_end_times(i_trigger, 1) = left_touchdown_times(stretch_end_time_index);
                             stretch_pushoff_times(i_trigger, 1) = left_pushoff_times(stretch_pushoff_time_index);
                         end
-                    end                        
-                    condition_experimental_list_trial{i_trigger, 1} = condition;
+                    end
                    
                 end
                 
@@ -300,6 +304,8 @@ function findRelevantDataStretches(varargin)
                 condition_delay_list_trial = condition_delay_list_trial(unflagged_indices, :);
                 condition_index_list_trial = condition_index_list_trial(unflagged_indices, :);
                 condition_experimental_list_trial = condition_experimental_list_trial(unflagged_indices, :);
+                condition_stimulus_list_trial = condition_stimulus_list_trial(unflagged_indices, :);
+                condition_day_list_trial = condition_day_list_trial(unflagged_indices, :);
                 closest_heelstrike_distance_times = closest_heelstrike_distance_times(unflagged_indices, :); 
                 
                 if visualize
@@ -344,6 +350,8 @@ function findRelevantDataStretches(varargin)
                 condition_delay_list_trial = condition_delay_list_trial(unflagged_indices, :);
                 condition_index_list_trial = condition_index_list_trial(unflagged_indices, :);
                 condition_experimental_list_trial = condition_experimental_list_trial(unflagged_indices, :);
+                condition_stimulus_list_trial = condition_stimulus_list_trial(unflagged_indices, :);
+                condition_day_list_trial = condition_day_list_trial(unflagged_indices, :);
                 closest_heelstrike_distance_times = closest_heelstrike_distance_times(unflagged_indices, :);
                 
                 % save data
@@ -356,12 +364,14 @@ function findRelevantDataStretches(varargin)
                     'condition_delay_list_trial', ...
                     'condition_index_list_trial', ...
                     'condition_experimental_list_trial', ...
+                    'condition_stimulus_list_trial', ...
+                    'condition_day_list_trial', ...
                     'stretch_start_times', ...
                     'stretch_pushoff_times', ...
                     'stretch_end_times' ...
                   )
 
-                disp(['Condition ' condition ', Trial ' num2str(i_trial) ' completed, found ' num2str(length(stretch_start_times)) ' relevant stretches, saved as ' data_stretches_file_name]);                
+                disp(['Condition ' condition_list{i_condition} ', Trial ' num2str(i_trial) ' completed, found ' num2str(length(stretch_start_times)) ' relevant stretches, saved as ' data_stretches_file_name]);                
                 
                 
                 

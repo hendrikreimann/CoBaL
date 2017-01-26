@@ -121,6 +121,14 @@ classdef WalkingDataCustodian < handle
                 this.addStretchVariable('rheel_y_pos')
                 this.addStretchVariable('step_length')
             end
+            if this.isVariableToAnalyze('step_width')
+                this.addBasicVariable('marker_trajectories')
+                this.addBasicVariable('lheel_x_pos')
+                this.addBasicVariable('rheel_x_pos')
+                this.addStretchVariable('lheel_x_pos')
+                this.addStretchVariable('rheel_x_pos')
+                this.addStretchVariable('step_width')
+            end
         end
         
         % interface
@@ -214,12 +222,7 @@ classdef WalkingDataCustodian < handle
                         stretch_data = this.getTimeNormalizedData(variable_name, this_stretch_start_time, this_stretch_end_time);
                     end
                 
-%                     if strcmp(variable_name, 'lheel_x_pos')
-%                         stretch_data = this.getTimeNormalizedData(this.stretch_variable_names{i_variable}, this_stretch_start_time, this_stretch_end_time);
-%                     end
-%                     if strcmp(variable_name, 'rheel_x_pos')
-%                         stretch_data = this.getTimeNormalizedData(this.stretch_variable_names{i_variable}, this_stretch_start_time, this_stretch_end_time);
-%                     end
+                    % calculate stretch variables that are not basic variables
                     if strcmp(variable_name, 'step_length')
                         lheel_y_pos = this.getTimeNormalizedData('lheel_y_pos', this_stretch_start_time, this_stretch_end_time);
                         rheel_y_pos = this.getTimeNormalizedData('rheel_y_pos', this_stretch_start_time, this_stretch_end_time);
@@ -228,6 +231,19 @@ classdef WalkingDataCustodian < handle
                         end
                         if strcmp(condition_stance_foot_list{i_stretch}, 'STANCE_LEFT')
                             stretch_data = rheel_y_pos(end) - lheel_y_pos(end);
+                        end
+                        if strcmp(condition_stance_foot_list{i_stretch}, 'STANCE_BOTH')
+                            stretch_data = NaN;
+                        end
+                    end
+                    if strcmp(variable_name, 'step_width')
+                        lheel_x_pos = this.getTimeNormalizedData('lheel_x_pos', this_stretch_start_time, this_stretch_end_time);
+                        rheel_x_pos = this.getTimeNormalizedData('rheel_x_pos', this_stretch_start_time, this_stretch_end_time);
+                        if strcmp(condition_stance_foot_list{i_stretch}, 'STANCE_RIGHT')
+                            stretch_data = abs(lheel_x_pos(end) - rheel_x_pos(1));
+                        end
+                        if strcmp(condition_stance_foot_list{i_stretch}, 'STANCE_LEFT')
+                            stretch_data = abs(rheel_x_pos(end) - lheel_x_pos(1));
                         end
                         if strcmp(condition_stance_foot_list{i_stretch}, 'STANCE_BOTH')
                             stretch_data = NaN;
