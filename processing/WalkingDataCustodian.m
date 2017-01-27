@@ -31,7 +31,7 @@
 % 2. <apply stretches and normalize in time>
 % 3. calculate stretch variables
 
-% to add a new variable, you need to do two things:
+% to add a new variable, you need to do the following things:
 %
 % 1. Provide information about all variables this new one depends upon. Go to the determineVariables function and add a
 % new conditional statement "if this.isVariableToAnalyze('<your new variable name>') ... end". Within the
@@ -40,12 +40,12 @@
 % i.e. don't call "this.addBasicVariable('lheel_y_pos')" before "this.addBasicVariable('marker_trajectories')", because 
 % lheel_y_pos depends upon the marker_trajectories.
 %
-% 2A. If the variable you want to add is a basic variable, but is not already available, i.e. one of the outputs of the
+% 2. If you added a new basic variable, but is not already available, i.e. one of the outputs of the
 % preprocess scripts, you need to specify how to calculate it. Go to prepareBasicVariables and add a new conditional
 % statement "if strcmp(variable_name, '<your new variable name>')". Within the statement, calculate your new
 % variable, then add it to the variable_data. Also add the corresponding time vector to the time_data.
 %
-% 2B. If the variable you want to add is a stretch variable, you need to specify how to calculate it. Go to 
+% 3. If the variable you want to add is a stretch variable, you need to specify how to calculate it. Go to 
 % calculateStretchVariables and add a new conditional statement "if strcmp(variable_name, '<your new variable name>')".
 % Within the statement, calculate the value of your new variable for a single stretch, depending upon
 % this_stretch_start_time and this_stretch_end_time. Assign that value to the variable "stretch_data".
@@ -129,6 +129,38 @@ classdef WalkingDataCustodian < handle
                 this.addStretchVariable('rheel_x_pos')
                 this.addStretchVariable('step_width')
             end
+            if this.isVariableToAnalyze('step_time')
+                this.addStretchVariable('step_time')
+            end
+            if this.isVariableToAnalyze('cadence')
+                this.addStretchVariable('step_time')
+                this.addStretchVariable('cadence')
+            end
+            if this.isVariableToAnalyze('velocity')
+                this.addBasicVariable('marker_trajectories')
+                this.addBasicVariable('lheel_y_pos')
+                this.addBasicVariable('rheel_y_pos')
+                this.addStretchVariable('lheel_y_pos')
+                this.addStretchVariable('rheel_y_pos')
+                this.addStretchVariable('step_length')
+                this.addStretchVariable('step_time')
+                this.addStretchVariable('velocity')
+            end
+            if this.isVariableToAnalyze('trunk_angle_ap')
+                this.addBasicVariable('marker_trajectories')
+                this.addBasicVariable('trunk_angle_ap')
+                this.addStretchVariable('trunk_angle_ap')
+            end            
+            if this.isVariableToAnalyze('trunk_angle_ml')
+                this.addBasicVariable('marker_trajectories')
+                this.addBasicVariable('trunk_angle_ml')
+                this.addStretchVariable('trunk_angle_ml')
+            end            
+            if this.isVariableToAnalyze('copr_ap')
+                this.addBasicVariable('marker_trajectories')
+                this.addBasicVariable('trunk_angle_ml')
+                this.addStretchVariable('trunk_angle_ml')
+            end            
         end
         
         % interface
@@ -172,32 +204,58 @@ classdef WalkingDataCustodian < handle
                 % calculate variables that can't be loaded
                 if strcmp(variable_name, 'lheel_x_pos')
                     LHEE_trajectory = extractMarkerTrajectories(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LHEE');
-                    variable_data = LHEE_trajectory(:, 1);
-                    variable_time = this.time_data.marker_trajectories;
-                    this.basic_variable_data.lheel_x_pos = variable_data;
-                    this.time_data.lheel_x_pos = variable_time;
+                    this.basic_variable_data.lheel_x_pos = LHEE_trajectory(:, 1);
+                    this.time_data.lheel_x_pos = this.time_data.marker_trajectories;
                 end
                 if strcmp(variable_name, 'rheel_x_pos')
                     RHEE_trajectory = extractMarkerTrajectories(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RHEE');
-                    variable_data = RHEE_trajectory(:, 1);
-                    variable_time = this.time_data.marker_trajectories;
-                    this.basic_variable_data.rheel_x_pos = variable_data;
-                    this.time_data.rheel_x_pos = variable_time;
+                    this.basic_variable_data.rheel_x_pos = RHEE_trajectory(:, 1);
+                    this.time_data.rheel_x_pos = this.time_data.marker_trajectories;
                 end
                 if strcmp(variable_name, 'lheel_y_pos')
                     LHEE_trajectory = extractMarkerTrajectories(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LHEE');
-                    variable_data = LHEE_trajectory(:, 2);
-                    variable_time = this.time_data.marker_trajectories;
-                    this.basic_variable_data.lheel_y_pos = variable_data;
-                    this.time_data.lheel_y_pos = variable_time;
+                    this.basic_variable_data.lheel_y_pos = LHEE_trajectory(:, 2);
+                    this.time_data.lheel_y_pos = this.time_data.marker_trajectories;
                 end
                 if strcmp(variable_name, 'rheel_y_pos')
                     RHEE_trajectory = extractMarkerTrajectories(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RHEE');
-                    variable_data = RHEE_trajectory(:, 2);
-                    variable_time = this.time_data.marker_trajectories;
-                    this.basic_variable_data.rheel_y_pos = variable_data;
-                    this.time_data.rheel_y_pos = variable_time;
+                    this.basic_variable_data.rheel_y_pos = RHEE_trajectory(:, 2);
+                    this.time_data.rheel_y_pos = this.time_data.marker_trajectories;
                 end
+                
+                if strcmp(variable_name, 'mpsis_x_pos')
+                    LPSI_trajectory = extractMarkerTrajectories(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LPSI');
+                    RPSI_trajectory = extractMarkerTrajectories(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RPSI');
+                    MPSI_trajectory = (LPSI_trajectory + RPSI_trajectory) * 0.5;
+                    this.basic_variable_data.mpsis_x_pos = MPSI_trajectory(:, 2);
+                    this.time_data.mpsis_x_pos = this.time_data.marker_trajectories;
+                end
+                if strcmp(variable_name, 'c7_x_pos')
+                    c7_trajectory = extractMarkerTrajectories(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'C7');
+                    this.basic_variable_data.c7_x_pos = c7_trajectory(:, 2);
+                    this.time_data.c7_x_pos = this.time_data.marker_trajectories;
+                end
+                if strcmp(variable_name, 'trunk_angle_ap')
+                    c7_trajectory = extractMarkerTrajectories(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'C7');
+                    LPSI_trajectory = extractMarkerTrajectories(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LPSI');
+                    RPSI_trajectory = extractMarkerTrajectories(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RPSI');
+                    MPSI_trajectory = (LPSI_trajectory + RPSI_trajectory) * 0.5;
+                    trunk_vector_y = c7_trajectory(:, 2) - MPSI_trajectory(:, 2);
+                    trunk_vector_z = c7_trajectory(:, 3) - MPSI_trajectory(:, 3);
+                    this.basic_variable_data.trunk_angle_ap = rad2deg(atan2(trunk_vector_y, trunk_vector_z));
+                    this.time_data.trunk_angle_ap = this.time_data.marker_trajectories;
+                end
+                if strcmp(variable_name, 'trunk_angle_ml')
+                    c7_trajectory = extractMarkerTrajectories(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'C7');
+                    LPSI_trajectory = extractMarkerTrajectories(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LPSI');
+                    RPSI_trajectory = extractMarkerTrajectories(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RPSI');
+                    MPSI_trajectory = (LPSI_trajectory + RPSI_trajectory) * 0.5;
+                    trunk_vector_x = c7_trajectory(:, 1) - MPSI_trajectory(:, 1);
+                    trunk_vector_z = c7_trajectory(:, 3) - MPSI_trajectory(:, 3);
+                    this.basic_variable_data.trunk_angle_ml = rad2deg(atan2(trunk_vector_x, trunk_vector_z));
+                    this.time_data.trunk_angle_ml = this.time_data.marker_trajectories;
+                end
+                
                 
             end
         end
@@ -249,6 +307,20 @@ classdef WalkingDataCustodian < handle
                             stretch_data = NaN;
                         end
                     end
+                    if strcmp(variable_name, 'step_time')
+                        stretch_data = this_stretch_end_time - this_stretch_start_time;
+                    end
+                    if strcmp(variable_name, 'cadence')
+                        second_to_minute = 1/60;
+                        step_time = stretch_variables{strcmp(this.stretch_variable_names, 'step_time')}(i_stretch);
+                        stretch_data = (step_time * second_to_minute)^(-1);
+                    end
+                    if strcmp(variable_name, 'velocity')
+                        step_time = stretch_variables{strcmp(this.stretch_variable_names, 'step_time')}(i_stretch);
+                        step_length = stretch_variables{strcmp(this.stretch_variable_names, 'step_length')}(i_stretch);
+                        stretch_data = step_length / step_time;
+                    end
+                    
                     
                     % store in cell
                     stretch_variables{i_variable} = [stretch_variables{i_variable} stretch_data];

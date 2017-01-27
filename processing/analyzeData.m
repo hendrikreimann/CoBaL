@@ -50,13 +50,13 @@ function analyzeData(varargin)
             for i_variable = 1 : number_of_stretch_variables
                 data_subject{i_variable} = [data_subject{i_variable} data_trial{i_variable}];
             end
-            condition_stance_foot_list_subject = [condition_stance_foot_list_subject; condition_stance_foot_list_trial];
-            condition_perturbation_list_subject = [condition_perturbation_list_subject; condition_perturbation_list_trial];
-            condition_delay_list_subject = [condition_delay_list_subject; condition_delay_list_trial];
-            condition_index_list_subject = [condition_index_list_subject; condition_index_list_trial];
-            condition_experimental_list_subject = [condition_experimental_list_subject; condition_experimental_list_trial];
-            condition_stimulus_list_subject = [condition_stimulus_list_subject; condition_stimulus_list_trial];
-            condition_day_list_subject = [condition_day_list_subject; condition_day_list_trial];
+            condition_stance_foot_list_subject = [condition_stance_foot_list_subject; condition_stance_foot_list_trial]; %#ok<AGROW>
+            condition_perturbation_list_subject = [condition_perturbation_list_subject; condition_perturbation_list_trial]; %#ok<AGROW>
+            condition_delay_list_subject = [condition_delay_list_subject; condition_delay_list_trial]; %#ok<AGROW>
+            condition_index_list_subject = [condition_index_list_subject; condition_index_list_trial]; %#ok<AGROW>
+            condition_experimental_list_subject = [condition_experimental_list_subject; condition_experimental_list_trial]; %#ok<AGROW>
+            condition_stimulus_list_subject = [condition_stimulus_list_subject; condition_stimulus_list_trial]; %#ok<AGROW>
+            condition_day_list_subject = [condition_day_list_subject; condition_day_list_trial]; %#ok<AGROW>
         end
     end
     
@@ -120,8 +120,8 @@ function analyzeData(varargin)
     disp(['Number of unassigned stretches: ' num2str(number_of_stretches_subject - sum(trials_per_condition_control) - sum(trials_per_condition_to_analyze))]);
     
     % save data
-    variable_data_subject = data_subject;
-    variable_names_subject = data_custodian.stretch_variable_names;
+    variable_data_subject = data_subject; %#ok<NASGU>
+    variable_names_subject = data_custodian.stretch_variable_names; %#ok<NASGU>
     
     results_file_name = ['analysis' filesep makeFileName(date, subject_id, 'results')];
     save ...
