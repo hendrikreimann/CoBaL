@@ -161,7 +161,7 @@ function plotResults(varargin)
     %                 set(gca, 'xlim', [time_normalized(1), time_normalized(end)]);
                     set(gca, 'ylim', [str2double(study_settings.variables_to_plot{i_variable, 5}), str2double(study_settings.variables_to_plot{i_variable, 6})]);
                 end
-                if strcmp(study_settings.plot_mode, 'overview')
+                if isDiscreteVariable(i_variable, variable_data_all) && strcmp(study_settings.plot_mode, 'overview')
                     xtick = abscissae_cell{i_comparison, i_variable}{2};
                     if ~isempty(study_settings.conditions_control)
                         xtick = [abscissae_cell{i_comparison, i_variable}{1} xtick]; %#ok<AGROW>
@@ -235,10 +235,11 @@ function plotResults(varargin)
     %                 set(gca, 'xlim', [time_normalized(1), time_normalized(end)]);
                     set(gca, 'ylim', [str2double(study_settings.variables_to_plot{i_variable, 5}), str2double(study_settings.variables_to_plot{i_variable, 6})]);
                 end
-                
-                set(gca, 'xlim', [-0.5 + min(xtick) 0.5 + max(xtick(end))]);
-                set(gca, 'xtick', xtick);
-                set(gca, 'XTickLabelRotation', 60);
+                if isDiscreteVariable(i_variable, variable_data_all)
+                    set(gca, 'xlim', [-0.5 + min(xtick) 0.5 + max(xtick(end))]);
+                    set(gca, 'xtick', xtick);
+                    set(gca, 'XTickLabelRotation', 60);
+                end
 
                 % determine title
                 title_string = study_settings.variables_to_plot{i_variable, 2};
@@ -527,12 +528,18 @@ function episode_indices = determineEpisodes(study_settings, comparison_indices)
                         elseif strcmp(example_condition_in_this_comparison_labels(condition_column_index), 'FOUR') && strcmp(example_condition_in_this_comparison_labels(condition_column_stancefoot), 'STANCE_LEFT')
                             comparison_indices_in_this_episode = [comparison_indices_in_this_episode, j_comparison]; %#ok<AGROW>
                         end
-                    elseif strcmp(example_condition_in_base_comparison_labels(condition_column_stancefoot), 'STANCE_LEFT')
+                    end
+                    if strcmp(example_condition_in_base_comparison_labels(condition_column_stancefoot), 'STANCE_LEFT')
                         if strcmp(example_condition_in_this_comparison_labels(condition_column_index), 'TWO') && strcmp(example_condition_in_this_comparison_labels(condition_column_stancefoot), 'STANCE_RIGHT')
                             comparison_indices_in_this_episode = [comparison_indices_in_this_episode, j_comparison]; %#ok<AGROW>
                         elseif strcmp(example_condition_in_this_comparison_labels(condition_column_index), 'THREE') && strcmp(example_condition_in_this_comparison_labels(condition_column_stancefoot), 'STANCE_LEFT')
                             comparison_indices_in_this_episode = [comparison_indices_in_this_episode, j_comparison]; %#ok<AGROW>
                         elseif strcmp(example_condition_in_this_comparison_labels(condition_column_index), 'FOUR') && strcmp(example_condition_in_this_comparison_labels(condition_column_stancefoot), 'STANCE_RIGHT')
+                            comparison_indices_in_this_episode = [comparison_indices_in_this_episode, j_comparison]; %#ok<AGROW>
+                        end
+                    end
+                    if strcmp(example_condition_in_base_comparison_labels(condition_column_stancefoot), 'STANCE_BOTH')
+                        if strcmp(example_condition_in_this_comparison_labels(condition_column_index), 'TWO') && strcmp(example_condition_in_this_comparison_labels(condition_column_stancefoot), 'STANCE_LEFT')
                             comparison_indices_in_this_episode = [comparison_indices_in_this_episode, j_comparison]; %#ok<AGROW>
                         end
                     end

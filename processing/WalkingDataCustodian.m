@@ -156,11 +156,36 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('trunk_angle_ml')
                 this.addStretchVariable('trunk_angle_ml')
             end            
+            if this.isVariableToAnalyze('copl_ap')
+                this.addBasicVariable('left_foot_cop_world')
+                this.addBasicVariable('copl_ap')
+                this.addStretchVariable('copl_ap')
+            end
+            if this.isVariableToAnalyze('copl_ml')
+                this.addBasicVariable('left_foot_cop_world')
+                this.addBasicVariable('copl_ml')
+                this.addStretchVariable('copl_ml')
+            end
             if this.isVariableToAnalyze('copr_ap')
-                this.addBasicVariable('marker_trajectories')
-                this.addBasicVariable('trunk_angle_ml')
-                this.addStretchVariable('trunk_angle_ml')
-            end            
+                this.addBasicVariable('right_foot_cop_world')
+                this.addBasicVariable('copr_ap')
+                this.addStretchVariable('copr_ap')
+            end
+            if this.isVariableToAnalyze('copr_ml')
+                this.addBasicVariable('right_foot_cop_world')
+                this.addBasicVariable('copr_ml')
+                this.addStretchVariable('copr_ml')
+            end
+            if this.isVariableToAnalyze('cop_ap')
+                this.addBasicVariable('total_forceplate_cop_world')
+                this.addBasicVariable('cop_ap')
+                this.addStretchVariable('cop_ap')
+            end
+            if this.isVariableToAnalyze('cop_ml')
+                this.addBasicVariable('total_forceplate_cop_world')
+                this.addBasicVariable('cop_ml')
+                this.addStretchVariable('cop_ml')
+            end
         end
         
         % interface
@@ -222,7 +247,6 @@ classdef WalkingDataCustodian < handle
                     this.basic_variable_data.rheel_y_pos = RHEE_trajectory(:, 2);
                     this.time_data.rheel_y_pos = this.time_data.marker_trajectories;
                 end
-                
                 if strcmp(variable_name, 'mpsis_x_pos')
                     LPSI_trajectory = extractMarkerTrajectories(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LPSI');
                     RPSI_trajectory = extractMarkerTrajectories(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RPSI');
@@ -254,6 +278,36 @@ classdef WalkingDataCustodian < handle
                     trunk_vector_z = c7_trajectory(:, 3) - MPSI_trajectory(:, 3);
                     this.basic_variable_data.trunk_angle_ml = rad2deg(atan2(trunk_vector_x, trunk_vector_z));
                     this.time_data.trunk_angle_ml = this.time_data.marker_trajectories;
+                end
+                if strcmp(variable_name, 'copl_ap')
+                    left_foot_cop_world = this.getBasicVariableData('left_foot_cop_world');
+                    this.basic_variable_data.copl_ap = left_foot_cop_world(:, 1);
+                    this.time_data.copl_ap = this.time_data.left_foot_cop_world;
+                end
+                if strcmp(variable_name, 'copl_ml')
+                    left_foot_cop_world = this.getBasicVariableData('left_foot_cop_world');
+                    this.basic_variable_data.copl_ml = left_foot_cop_world(:, 2);
+                    this.time_data.copl_ml = this.time_data.left_foot_cop_world;
+                end
+                if strcmp(variable_name, 'copr_ap')
+                    right_foot_cop_world = this.getBasicVariableData('right_foot_cop_world');
+                    this.basic_variable_data.copr_ap = right_foot_cop_world(:, 1);
+                    this.time_data.copr_ap = this.time_data.right_foot_cop_world;
+                end
+                if strcmp(variable_name, 'copr_ml')
+                    right_foot_cop_world = this.getBasicVariableData('right_foot_cop_world');
+                    this.basic_variable_data.copr_ml = right_foot_cop_world(:, 2);
+                    this.time_data.copr_ml = this.time_data.right_foot_cop_world;
+                end
+                if strcmp(variable_name, 'cop_ap')
+                    total_forceplate_cop_world = this.getBasicVariableData('total_forceplate_cop_world');
+                    this.basic_variable_data.cop_ap = total_forceplate_cop_world(:, 1);
+                    this.time_data.cop_ap = this.time_data.total_forceplate_cop_world;
+                end
+                if strcmp(variable_name, 'cop_ml')
+                    total_forceplate_cop_world = this.getBasicVariableData('total_forceplate_cop_world');
+                    this.basic_variable_data.cop_ml = total_forceplate_cop_world(:, 2);
+                    this.time_data.cop_ml = this.time_data.total_forceplate_cop_world;
                 end
                 
                 

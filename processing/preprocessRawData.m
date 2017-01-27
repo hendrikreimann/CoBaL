@@ -144,8 +144,7 @@ function preprocessRawData(varargin)
             % condition is set to be processed, now check trial number
             trial_number_list_this_condition = trial_number_list{strcmp(trial_type, condition_list)};
             if ismember(trial_number, trial_number_list_this_condition)
-        
-        
+                % load raw data
                 load(['raw' filesep raw_forceplate_file_name]);
 
                 % define filter
@@ -168,63 +167,189 @@ function preprocessRawData(varargin)
                 myr_trajectory = forceplate_trajectories_filtered(:, 11);
                 mzr_trajectory = forceplate_trajectories_filtered(:, 12);
 
-                % calculate CoP
-                copxl_trajectory = - myl_trajectory ./ fzl_trajectory;
-                copyl_trajectory = mxl_trajectory ./ fzl_trajectory;
-                copxr_trajectory = - myr_trajectory ./ fzr_trajectory;
-                copyr_trajectory = mxr_trajectory ./ fzr_trajectory;
-
-                % zero CoP for no contact times
+%                 % calculate CoP
+%                 copxl_trajectory = - myl_trajectory ./ fzl_trajectory;
+%                 copyl_trajectory = mxl_trajectory ./ fzl_trajectory;
+%                 copxr_trajectory = - myr_trajectory ./ fzr_trajectory;
+%                 copyr_trajectory = mxr_trajectory ./ fzr_trajectory;
+% 
+%                 % zero CoP for no contact times
                 fz_threshold = 60;
-                copxl_trajectory(fzl_trajectory < fz_threshold) = 0;
-                copyl_trajectory(fzl_trajectory < fz_threshold) = 0;
-                copxr_trajectory(fzr_trajectory < fz_threshold) = 0;
-                copyr_trajectory(fzr_trajectory < fz_threshold) = 0;
+%                 copxl_trajectory(fzl_trajectory < fz_threshold) = 0;
+%                 copyl_trajectory(fzl_trajectory < fz_threshold) = 0;
+%                 copxr_trajectory(fzr_trajectory < fz_threshold) = 0;
+%                 copyr_trajectory(fzr_trajectory < fz_threshold) = 0;
 
                 if strcmp(data_source, 'nexus')
                     % transform forceplate data to CoBaL world frame A_cw
                     left_forceplate_wrench_Acl = [fxl_trajectory fyl_trajectory fzl_trajectory mxl_trajectory myl_trajectory mzl_trajectory];
-                    left_forceplate_cop_Acl = [copxl_trajectory copyl_trajectory zeros(size(copxl_trajectory))];
+%                     left_forceplate_cop_Acl = [copxl_trajectory copyl_trajectory zeros(size(copxl_trajectory))];
                     right_forceplate_wrench_Acr = [fxr_trajectory fyr_trajectory fzr_trajectory mxr_trajectory myr_trajectory mzr_trajectory];
-                    right_forceplate_cop_Acr = [copxr_trajectory copyr_trajectory zeros(size(copxr_trajectory))];
+%                     right_forceplate_cop_Acr = [copxr_trajectory copyr_trajectory zeros(size(copxr_trajectory))];
 
                     % define forceplate rotation and translation
                     Acr_to_world_rotation = [-1 0 0; 0 1 0; 0 0 -1];
-                    Acr_to_world_translation = [0.5588; 0; 0];
+                    Acr_to_world_translation = [0.5588; 0; 0]; % origin of Acw in Acr frame
                     Acr_to_world_trafo = [Acr_to_world_rotation Acr_to_world_translation; 0 0 0 1];
                     Acl_to_world_rotation = [-1 0 0; 0 1 0; 0 0 -1];
-                    Acl_to_world_translation = [-0.5588; 0; 0];
+                    Acl_to_world_translation = [-0.5588; 0; 0]; % origin of Acw in Acl frame
                     Acl_to_world_trafo = [Acl_to_world_rotation Acl_to_world_translation; 0 0 0 1];
                     Acr_to_world_adjoint = rigidToAdjointTransformation(Acr_to_world_trafo);
                     Acl_to_world_adjoint = rigidToAdjointTransformation(Acl_to_world_trafo);
 
                     % transform
                     left_forceplate_wrench_world = (Acl_to_world_adjoint' * left_forceplate_wrench_Acl')';
-                    left_forceplate_cop_world = (eye(2, 4) * Acl_to_world_trafo * [left_forceplate_cop_Acl ones(size(left_forceplate_cop_Acl, 1), 1)]')';
+%                     left_forceplate_cop_world = (eye(2, 4) * Acl_to_world_trafo * [left_forceplate_cop_Acl ones(size(left_forceplate_cop_Acl, 1), 1)]')';
                     right_forceplate_wrench_world = (Acr_to_world_adjoint' * right_forceplate_wrench_Acr')';
-                    right_forceplate_cop_world = (eye(2, 4) * Acr_to_world_trafo * [right_forceplate_cop_Acr ones(size(right_forceplate_cop_Acr, 1), 1)]')';
+%                     right_forceplate_cop_world = (eye(2, 4) * Acr_to_world_trafo * [right_forceplate_cop_Acr ones(size(right_forceplate_cop_Acr, 1), 1)]')';
                 elseif strcmp(data_source, 'neurocom')
-                    left_forceplate_wrench_world = [fxl_trajectory fyl_trajectory fzl_trajectory mxl_trajectory myl_trajectory mzl_trajectory];
-                    left_forceplate_cop_world = [copxl_trajectory copyl_trajectory zeros(size(copxl_trajectory))];
-                    right_forceplate_wrench_world = [fxr_trajectory fyr_trajectory fzr_trajectory mxr_trajectory myr_trajectory mzr_trajectory];
-                    right_forceplate_cop_world = [copxr_trajectory copyr_trajectory zeros(size(copxr_trajectory))];
+                    % transform forceplate data to VEPO world frame A_vw
+                    left_forceplate_wrench_Anl = [fxl_trajectory fyl_trajectory fzl_trajectory mxl_trajectory myl_trajectory mzl_trajectory];
+%                     left_forceplate_cop_Anl = [copxl_trajectory copyl_trajectory zeros(size(copxl_trajectory))];
+                    right_forceplate_wrench_Anr = [fxr_trajectory fyr_trajectory fzr_trajectory mxr_trajectory myr_trajectory mzr_trajectory];
+%                     right_forceplate_cop_Anr = [copxr_trajectory copyr_trajectory zeros(size(copxr_trajectory))];
+                    
+                    % define forceplate rotation and translation
+                    inchToMeter = 0.0254;
+                    
+                    Anl_to_world_rotation = [-1 0 0; 0 1 0; 0 0 -1];
+                    Anl_to_world_translation = [5; -10; 0] * inchToMeter;
+%                     Anl_to_world_translation = [5; 10; 0] * 0;
+                    Anl_to_world_trafo = [Anl_to_world_rotation Anl_to_world_translation; 0 0 0 1];
+                    Anl_to_world_adjoint = rigidToAdjointTransformation(Anl_to_world_trafo);
+                    
+                    Anr_to_world_rotation = [-1 0 0; 0 1 0; 0 0 -1];
+                    Anr_to_world_translation = [-5; -10; 0] * inchToMeter;
+                    Anr_to_world_trafo = [Anr_to_world_rotation Anr_to_world_translation; 0 0 0 1];
+                    Anr_to_world_adjoint = rigidToAdjointTransformation(Anr_to_world_trafo);
+                    
+                    % transform
+                    left_forceplate_wrench_world = (Anl_to_world_adjoint' * left_forceplate_wrench_Anl')';
+%                     left_forceplate_cop_world = (eye(2, 4) * Anl_to_world_trafo * [left_forceplate_cop_Anl ones(size(left_forceplate_cop_Anl, 1), 1)]')';
+                    right_forceplate_wrench_world = (Anr_to_world_adjoint' * right_forceplate_wrench_Anr')';
+%                     right_forceplate_cop_world = (eye(2, 4) * Anr_to_world_trafo * [right_forceplate_cop_Anr ones(size(right_forceplate_cop_Anr, 1), 1)]')';
+                    
                 else
                     error(['data source "' data_source '" not recognized'])
                 end
 
-                % calculate wrenches and CoP for complete plate
+                % calculate wrench for complete plate
                 total_forceplate_wrench_world = left_forceplate_wrench_world + right_forceplate_wrench_world;
-                copx_trajectory = - total_forceplate_wrench_world(:, 5) ./ total_forceplate_wrench_world(:, 3);
-                copy_trajectory = total_forceplate_wrench_world(:, 4) ./ total_forceplate_wrench_world(:, 3);
-                total_forceplate_cop_world = [copx_trajectory copy_trajectory];
-
+                
+                % calculate CoP
+                copxl_raw = - myl_trajectory ./ fzl_trajectory;
+                copyl_raw = mxl_trajectory ./ fzl_trajectory;
+                copxr_raw = - myr_trajectory ./ fzr_trajectory;
+                copyr_raw = mxr_trajectory ./ fzr_trajectory;
+                
+                
+                copxl_world = - left_forceplate_wrench_world(:, 5) ./ left_forceplate_wrench_world(:, 3);
+                copyl_world = left_forceplate_wrench_world(:, 4) ./ left_forceplate_wrench_world(:, 3);
+                copxr_world = - right_forceplate_wrench_world(:, 5) ./ right_forceplate_wrench_world(:, 3);
+                copyr_world = right_forceplate_wrench_world(:, 4) ./ right_forceplate_wrench_world(:, 3);
+                copx_world = - total_forceplate_wrench_world(:, 5) ./ total_forceplate_wrench_world(:, 3);
+                copy_world = total_forceplate_wrench_world(:, 4) ./ total_forceplate_wrench_world(:, 3);
+%                 copxr_world = - left_forceplate_wrench_world(:, 5) ./ left_forceplate_wrench_world(:, 3);
+%                 copyr_world = left_forceplate_wrench_world(:, 4) ./ left_forceplate_wrench_world(:, 3);
+%                 copx_world = - left_forceplate_wrench_world(:, 5) ./ left_forceplate_wrench_world(:, 3);
+%                 copy_world = left_forceplate_wrench_world(:, 4) ./ left_forceplate_wrench_world(:, 3);
+                
                 % re-zero CoP for low loads
                 left_forceplate_low_load_indicator = (fzl_trajectory < fz_threshold);
-                left_forceplate_cop_world(left_forceplate_low_load_indicator, :) = 0;
+                copxl_raw(left_forceplate_low_load_indicator, :) = 0;
+                copyl_raw(left_forceplate_low_load_indicator, :) = 0;
+                copxl_world(left_forceplate_low_load_indicator, :) = 0;
+                copyl_world(left_forceplate_low_load_indicator, :) = 0;
+                
                 right_forceplate_low_load_indicator = (fzr_trajectory < fz_threshold);
-                right_forceplate_cop_world(right_forceplate_low_load_indicator, :) = 0;
+                copxr_raw(right_forceplate_low_load_indicator, :) = 0;
+                copyr_raw(right_forceplate_low_load_indicator, :) = 0;
+                copxr_world(right_forceplate_low_load_indicator, :) = 0;
+                copyr_world(right_forceplate_low_load_indicator, :) = 0;
+                
                 total_forceplate_low_load_indicator = (left_forceplate_low_load_indicator & right_forceplate_low_load_indicator);
-                total_forceplate_cop_world(total_forceplate_low_load_indicator, :) = 0;
+                copx_world(total_forceplate_low_load_indicator, :) = 0;
+                copy_world(total_forceplate_low_load_indicator, :) = 0;
+                
+                left_forceplate_cop_world = [copxl_world copyl_world];
+                right_forceplate_cop_world = [copxr_world copyr_world];
+                total_forceplate_cop_world = [copx_world copy_world];
+                
+                
+%                 copx_trajectory = - total_forceplate_wrench_world(:, 5) ./ total_forceplate_wrench_world(:, 3);
+%                 copy_trajectory = total_forceplate_wrench_world(:, 4) ./ total_forceplate_wrench_world(:, 3);
+%                 total_forceplate_cop_world = [copx_trajectory copy_trajectory];
+
+%                 % re-zero CoP for low loads
+%                 left_forceplate_low_load_indicator = (fzl_trajectory < fz_threshold);
+%                 left_forceplate_cop_world(left_forceplate_low_load_indicator, :) = 0;
+%                 right_forceplate_low_load_indicator = (fzr_trajectory < fz_threshold);
+%                 right_forceplate_cop_world(right_forceplate_low_load_indicator, :) = 0;
+%                 total_forceplate_low_load_indicator = (left_forceplate_low_load_indicator & right_forceplate_low_load_indicator);
+%                 total_forceplate_cop_world(total_forceplate_low_load_indicator, :) = 0;
+                
+                
+%                     figure; hold on
+%                     plot(mxl_trajectory, 'linewidth', 3);
+%                     plot(myl_trajectory, 'linewidth', 3);
+%                 
+%                     figure; hold on
+%                     plot(copxl_raw, 'linewidth', 3);
+%                     plot(copyl_raw, 'linewidth', 3);
+%                     
+%                     figure; hold on
+%                     plot(mxr_trajectory, 'linewidth', 3);
+%                     plot(myr_trajectory, 'linewidth', 3);
+%                 
+%                     figure; hold on
+%                     plot(copxr_raw, 'linewidth', 3);
+%                     plot(copyr_raw, 'linewidth', 3);
+                
+%                     figure; hold on
+%                     plot(left_forceplate_wrench_world(:, 4), 'linewidth', 3);
+%                     plot(left_forceplate_wrench_world(:, 5), 'linewidth', 3);
+%                 
+%                     figure; hold on
+%                     plot(copxl_world, 'linewidth', 3);
+%                     plot(copyl_world, 'linewidth', 3);
+%                 
+%                     figure; hold on
+%                     plot(right_forceplate_wrench_world(:, 4), 'linewidth', 3);
+%                     plot(right_forceplate_wrench_world(:, 5), 'linewidth', 3);
+%                 
+%                     figure; hold on
+%                     plot(copxr_world, 'linewidth', 3);
+%                     plot(copyr_world, 'linewidth', 3);
+                
+%                     figure; hold on
+%                     plot(total_forceplate_wrench_world(:, 4), 'linewidth', 3);
+%                     plot(total_forceplate_wrench_world(:, 5), 'linewidth', 3);
+%                 
+%                     figure; hold on
+%                     plot(copx_world, 'linewidth', 3);
+%                     plot(copy_world, 'linewidth', 3);
+                
+%                     figure; hold on
+%                     plot(right_forceplate_cop_world(:, 1), 'linewidth', 3);
+%                     plot(right_forceplate_cop_world(:, 2), 'linewidth', 3);
+%                 
+%                     figure; hold on
+%                     plot(total_forceplate_cop_world(:, 1), 'linewidth', 3);
+%                     plot(total_forceplate_cop_world(:, 2), 'linewidth', 3);
+                
+                % define wrench and CoP trajectories for feet instead of forceplate sides
+                if strcmp(data_source, 'nexus')
+                    left_foot_cop_world = left_forceplate_cop_world;
+                    left_foot_wrench_world = left_forceplate_wrench_world;
+                    right_foot_cop_world = right_forceplate_cop_world;
+                    right_foot_wrench_world = right_forceplate_wrench_world;
+                end
+                if strcmp(data_source, 'neurocom')
+                    left_foot_cop_world = right_forceplate_cop_world;
+                    left_foot_wrench_world = right_forceplate_wrench_world;
+                    right_foot_cop_world = left_forceplate_cop_world;
+                    right_foot_wrench_world = left_forceplate_wrench_world;
+                end
 
 
         %             % visualize
@@ -256,6 +381,10 @@ function preprocessRawData(varargin)
                     'left_forceplate_cop_world', ...
                     'right_forceplate_wrench_world', ...
                     'right_forceplate_cop_world', ...
+                    'left_foot_wrench_world', ...
+                    'left_foot_cop_world', ...
+                    'right_foot_wrench_world', ...
+                    'right_foot_cop_world', ...
                     'total_forceplate_wrench_world', ...
                     'total_forceplate_cop_world', ...
                     'fxl_trajectory', ...
@@ -264,16 +393,12 @@ function preprocessRawData(varargin)
                     'mxl_trajectory', ...
                     'myl_trajectory', ...
                     'mzl_trajectory', ...
-                    'copxl_trajectory', ...
-                    'copyl_trajectory', ...
                     'fxr_trajectory', ...
                     'fyr_trajectory', ...
                     'fzr_trajectory', ...
                     'mxr_trajectory', ...
                     'myr_trajectory', ...
                     'mzr_trajectory', ...
-                    'copxr_trajectory', ...
-                    'copyr_trajectory', ...
                     'time_forceplate', ...
                     'sampling_rate_forceplate' ...
                   );
@@ -281,24 +406,28 @@ function preprocessRawData(varargin)
                 addAvailableData('left_forceplate_cop_world', 'time_forceplate', 'sampling_rate_forceplate', 'left_forceplate_cop_world', save_folder, save_file_name);
                 addAvailableData('right_forceplate_wrench_world', 'time_forceplate', 'sampling_rate_forceplate', 'right_forceplate_wrench_world', save_folder, save_file_name);
                 addAvailableData('right_forceplate_cop_world', 'time_forceplate', 'sampling_rate_forceplate', 'right_forceplate_cop_world', save_folder, save_file_name);
+
+                addAvailableData('left_foot_wrench_world', 'time_forceplate', 'sampling_rate_forceplate', 'left_foot_wrench_world', save_folder, save_file_name);
+                addAvailableData('left_foot_cop_world', 'time_forceplate', 'sampling_rate_forceplate', 'left_foot_cop_world', save_folder, save_file_name);
+                addAvailableData('right_foot_wrench_world', 'time_forceplate', 'sampling_rate_forceplate', 'right_foot_wrench_world', save_folder, save_file_name);
+                addAvailableData('right_foot_cop_world', 'time_forceplate', 'sampling_rate_forceplate', 'right_foot_cop_world', save_folder, save_file_name);
+
                 addAvailableData('total_forceplate_wrench_world', 'time_forceplate', 'sampling_rate_forceplate', 'total_forceplate_wrench_world', save_folder, save_file_name);
                 addAvailableData('total_forceplate_cop_world', 'time_forceplate', 'sampling_rate_forceplate', 'total_forceplate_cop_world', save_folder, save_file_name);
+                
                 addAvailableData('fxl_trajectory', 'time_forceplate', 'sampling_rate_forceplate', 'fxl_trajectory', save_folder, save_file_name);
                 addAvailableData('fyl_trajectory', 'time_forceplate', 'sampling_rate_forceplate', 'fyl_trajectory', save_folder, save_file_name);
                 addAvailableData('fzl_trajectory', 'time_forceplate', 'sampling_rate_forceplate', 'fzl_trajectory', save_folder, save_file_name);
                 addAvailableData('mxl_trajectory', 'time_forceplate', 'sampling_rate_forceplate', 'mxl_trajectory', save_folder, save_file_name);
                 addAvailableData('myl_trajectory', 'time_forceplate', 'sampling_rate_forceplate', 'myl_trajectory', save_folder, save_file_name);
                 addAvailableData('mzl_trajectory', 'time_forceplate', 'sampling_rate_forceplate', 'mzl_trajectory', save_folder, save_file_name);
-                addAvailableData('copxl_trajectory', 'time_forceplate', 'sampling_rate_forceplate', 'copxl_trajectory', save_folder, save_file_name);
-                addAvailableData('copyl_trajectory', 'time_forceplate', 'sampling_rate_forceplate', 'copyl_trajectory', save_folder, save_file_name);
+                
                 addAvailableData('fxr_trajectory', 'time_forceplate', 'sampling_rate_forceplate', 'fxr_trajectory', save_folder, save_file_name);
                 addAvailableData('fyr_trajectory', 'time_forceplate', 'sampling_rate_forceplate', 'fyr_trajectory', save_folder, save_file_name);
                 addAvailableData('fzr_trajectory', 'time_forceplate', 'sampling_rate_forceplate', 'fzr_trajectory', save_folder, save_file_name);
                 addAvailableData('mxr_trajectory', 'time_forceplate', 'sampling_rate_forceplate', 'mxr_trajectory', save_folder, save_file_name);
                 addAvailableData('myr_trajectory', 'time_forceplate', 'sampling_rate_forceplate', 'myr_trajectory', save_folder, save_file_name);
                 addAvailableData('mzr_trajectory', 'time_forceplate', 'sampling_rate_forceplate', 'mzr_trajectory', save_folder, save_file_name);
-                addAvailableData('copxr_trajectory', 'time_forceplate', 'sampling_rate_forceplate', 'copxr_trajectory', save_folder, save_file_name);
-                addAvailableData('copyr_trajectory', 'time_forceplate', 'sampling_rate_forceplate', 'copyr_trajectory', save_folder, save_file_name);
                 disp(['processed ' raw_forceplate_file_name ' and saved as ' [save_folder filesep save_file_name]])        
             end
         end
