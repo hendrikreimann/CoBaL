@@ -37,7 +37,7 @@ function createModel(varargin)
     parse(parser, varargin{:})
     visualize = parser.Results.visualize;
     
-    settings = loadSettingsFile('subjectSettings.txt');
+    subject_settings = loadSettingsFile('subjectSettings.txt');
 
     % TODO: change stuff depending upon the static reference type
 
@@ -61,7 +61,7 @@ function createModel(varargin)
     %% create static reference
 
     % load static reference file
-    load(['processed' filesep makeFileName(date, subject_id, settings.static_reference_trial_type, settings.static_reference_trial_number, 'markerTrajectories')]);
+    load(['processed' filesep makeFileName(date, subject_id, subject_settings.static_reference_trial_type, subject_settings.static_reference_trial_number, 'markerTrajectories')]);
 
     % find first time step where all markers are available
     i_time = 1;
@@ -71,8 +71,6 @@ function createModel(varargin)
     marker_reference = marker_trajectories(i_time, :);
 
     %% extract marker reference positions
-
-    % TODO: check what happens if some of these markers are not there
     
     % head
     LFHD_reference = extractMarkerTrajectories(marker_reference, marker_labels, 'LFHD')';
@@ -160,8 +158,12 @@ function createModel(varargin)
     left_direction = - right_direction;
     posterior_direction = - anterior_direction;
     distal_direction = - proximal_direction;
+    
+    up_direction = proximal_direction;
+    down_direction = distal_direction;
 
     % calculate anatomical landmarks and apply marker and flesh offsets
+    % TODO: some of these corrections depend upon the type of reference (ski, motorcycle, casual, anatomical)
     centroid_to_skin_correction = 0.0152; % in meters
     skin_to_bone_correction_ASIS = 0.01; % in meters
     skin_to_bone_correction_PSIS = 0.01; % in meters
@@ -169,12 +171,35 @@ function createModel(varargin)
     suprasternale = CLAV_reference + centroid_to_skin_correction * posterior_direction;
     left_acromion = LSHO_reference + centroid_to_skin_correction * distal_direction;
     left_lateral_humeral_epicondyle = LELB_reference + centroid_to_skin_correction * distal_direction;
-    left_inner_wrist = LWRA_reference + centroid_to_skin_correction * right_direction;
-    left_outer_wrist = LWRB_reference + centroid_to_skin_correction * left_direction;
-    left_hand = LFIN_reference + centroid_to_skin_correction * distal_direction;
-    right_inner_wrist = RWRA_reference + centroid_to_skin_correction * left_direction;
-    right_outer_wrist = RWRB_reference + centroid_to_skin_correction * right_direction;
-    right_hand = RFIN_reference + centroid_to_skin_correction * distal_direction;
+    
+    if strcmp(subject_settings.static_reference_posture, 'ski')
+        left_inner_wrist = LWRA_reference + centroid_to_skin_correction * down_direction;
+        left_outer_wrist = LWRB_reference + centroid_to_skin_correction * up_direction;
+        left_hand = LFIN_reference + centroid_to_skin_correction * right_direction;
+        right_inner_wrist = RWRA_reference + centroid_to_skin_correction * down_direction;
+        right_outer_wrist = RWRB_reference + centroid_to_skin_correction * up_direction;
+        right_hand = RFIN_reference + centroid_to_skin_correction * left_direction;
+    end
+    if strcmp(subject_settings.static_reference_posture, 'casual')
+        left_wrist_marker_direction = normVector(LWRB_reference - LWRA_reference);
+        left_inner_wrist = LWRA_reference + centroid_to_skin_correction * left_wrist_marker_direction;
+        left_outer_wrist = LWRB_reference - centroid_to_skin_correction * left_wrist_marker_direction;
+        left_hand = LFIN_reference;% + centroid_to_skin_correction * right_direction;
+        right_wrist_marker_direction = normVector(RWRB_reference - RWRA_reference);
+        right_inner_wrist = RWRA_reference + centroid_to_skin_correction * right_wrist_marker_direction;
+        right_outer_wrist = RWRB_reference - centroid_to_skin_correction * right_wrist_marker_direction;
+        right_hand = RFIN_reference;% + centroid_to_skin_correction * left_direction;
+    end
+    if strcmp(subject_settings.static_reference_posture, 'motorcycle')
+        % TODO: not tested yet
+        left_inner_wrist = LWRA_reference + centroid_to_skin_correction * left_direction;
+        left_outer_wrist = LWRB_reference + centroid_to_skin_correction * right_direction;
+        left_hand = LFIN_reference + centroid_to_skin_correction * down_direction;
+        right_inner_wrist = RWRA_reference + centroid_to_skin_correction * right_direction;
+        right_outer_wrist = RWRB_reference + centroid_to_skin_correction * left_direction;
+        right_hand = RFIN_reference + centroid_to_skin_correction * down_direction;
+    end
+    
     right_acromion = RSHO_reference + centroid_to_skin_correction * distal_direction;
     right_lateral_humeral_epicondyle = RELB_reference + centroid_to_skin_correction * distal_direction;
     LASIS = LASI_reference + (centroid_to_skin_correction + skin_to_bone_correction_ASIS) * posterior_direction;
@@ -198,7 +223,7 @@ function createModel(varargin)
     inter_ASIS_distance = norm(LASIS - RASIS);
 
     %% estimate hip joint centers
-    if strcmp(settings.hip_joint_center_estimation_method, 'SCoRE')
+    if strcmp(subject_settings.hip_joint_center_estimation_method, 'SCoRE')
         pelvis_center_reference = mean(reshape(pelvis_markers_reference, 3, size(pelvis_markers_reference, 2)/3), 2);
 
         % find left hip CoR
@@ -249,7 +274,7 @@ function createModel(varargin)
           );
 
 
-    elseif strcmp(settings.hip_joint_center_estimation_method, 'Tylkowski')
+    elseif strcmp(subject_settings.hip_joint_center_estimation_method, 'Tylkowski')
 
         MASIS = mean([LASIS RASIS], 2);
         MPSIS = mean([LPSIS RPSIS], 2);
@@ -281,9 +306,9 @@ function createModel(varargin)
     end
 
     %% estimate knee joint centers and axes
-    if strcmp(settings.knee_joint_axis_estimation_method, 'SARA')
+    if strcmp(subject_settings.knee_joint_axis_estimation_method, 'SARA')
         % find left knee CoR
-        left_knee_reference_file_name = ['processed' filesep makeFileName(date, subject_id, 'calibration', settings.left_knee_calibration_file_index, 'markerTrajectories')];
+        left_knee_reference_file_name = ['processed' filesep makeFileName(date, subject_id, 'calibration', subject_settings.left_knee_calibration_file_index, 'markerTrajectories')];
         disp(['Left knee reference file name: ' left_knee_reference_file_name]);
         load(left_knee_reference_file_name);
         knee_reference = marker_trajectories;
@@ -308,7 +333,7 @@ function createModel(varargin)
           );
 
         % find right knee CoR
-        right_knee_reference_file_name = ['processed' filesep makeFileName(date, subject_id, 'calibration', settings.right_knee_calibration_file_index, 'markerTrajectories')];
+        right_knee_reference_file_name = ['processed' filesep makeFileName(date, subject_id, 'calibration', subject_settings.right_knee_calibration_file_index, 'markerTrajectories')];
         disp(['Right knee reference file name: ' right_knee_reference_file_name]);
         load(right_knee_reference_file_name);
         knee_reference = marker_trajectories;
@@ -330,7 +355,7 @@ function createModel(varargin)
             right_shank_markers_trajectory, ...
             1 ...
           );
-    elseif strcmp(settings.knee_joint_axis_estimation_method, 'markers')
+    elseif strcmp(subject_settings.knee_joint_axis_estimation_method, 'markers')
         % assume that the knee axis of rotation is the vector between the knee markers
         left_knee_flexion_axis = normVector(left_lateral_femoral_epicondyle - right_lateral_femoral_epicondyle);
         right_knee_flexion_axis = normVector(left_lateral_femoral_epicondyle - right_lateral_femoral_epicondyle);
@@ -404,12 +429,21 @@ function createModel(varargin)
     right_wrist_flexion_axis = normVector(right_inner_wrist - right_outer_wrist);
 
     % estimate elbow axes and joint centers
-    left_elbow_cor = left_lateral_humeral_epicondyle + ejc_correction_factor*elbow_width*right_direction;
-    left_elbow_axis = right_direction;
+    if strcmp(subject_settings.static_reference_posture, 'ski') || strcmp(subject_settings.static_reference_posture, 'casual')
+        left_elbow_cor = left_lateral_humeral_epicondyle + ejc_correction_factor*elbow_width*right_direction;
+        left_elbow_axis = right_direction;
+        right_elbow_cor = right_lateral_humeral_epicondyle - ejc_correction_factor*elbow_width*right_direction;
+        right_elbow_axis = right_direction;
+    end
+    if strcmp(subject_settings.static_reference_posture, 'motorcycle')
+        % TODO: not tested yet
+        left_elbow_cor = left_lateral_humeral_epicondyle + ejc_correction_factor*elbow_width*distal_direction;
+        left_elbow_axis = distal_direction;
+        right_elbow_cor = right_lateral_humeral_epicondyle + ejc_correction_factor*elbow_width*distal_direction;
+        right_elbow_axis = proximal_direction;
+    end
     left_radioulnar_axis = normVector(left_wrist_cor - left_elbow_cor);
 
-    right_elbow_cor = right_lateral_humeral_epicondyle - ejc_correction_factor*elbow_width*right_direction;
-    right_elbow_axis = right_direction;
     right_radioulnar_axis = - normVector(right_wrist_cor - right_elbow_cor);
 
     left_wrist_inversion_axis = cross(left_wrist_flexion_axis, left_radioulnar_axis);
@@ -462,6 +496,8 @@ function createModel(varargin)
     % TODO: some of these assumptions are not valid for all types of reference configurations
 
     %% define scaling factors
+    % according to R. Dumas , L. Cheze, J.-P. Verriest: "Adjustments to McConville et al. and Young et al. body
+    % segment inertial parameters", Journal of Biomechanics 40 (2007) 543?553
     if strcmp(gender, 'male')
         % mass
         head_mass_scaling_factor      = 0.067;
@@ -526,8 +562,11 @@ function createModel(varargin)
         % Explore later!
         torso_rxx_scaling_factor = 0.27;        torso_ryy_scaling_factor = 0.25;        torso_rzz_scaling_factor = 0.28;    torso_rxy_scaling_factor = 0.18;        torso_rxz_scaling_factor = 0.02;        torso_ryz_scaling_factor = 0.04*1i;
 
-        arm_rxx_scaling_factor     = 0.33;  arm_ryy_scaling_factor     = 0.17;  arm_rzz_scaling_factor     = 0.33;  arm_rxy_scaling_factor     = 0.03;      arm_rxz_scaling_factor     = 0.05*1i;   arm_ryz_scaling_factor     = 0.14;
-        forearm_rxx_scaling_factor = 0.26;  forearm_ryy_scaling_factor = 0.14;  forearm_rzz_scaling_factor = 0.25;  forearm_rxy_scaling_factor = 0.10;      forearm_rxz_scaling_factor = 0.04;      forearm_ryz_scaling_factor = 0.14*1i;
+%         arm_rxx_scaling_factor     = 0.33;  arm_ryy_scaling_factor     = 0.17;  arm_rzz_scaling_factor     = 0.33;  arm_rxy_scaling_factor     = 0.03;      arm_rxz_scaling_factor     = 0.05*1i;   arm_ryz_scaling_factor     = 0.14;
+%         forearm_rxx_scaling_factor = 0.26;  forearm_ryy_scaling_factor = 0.14;  forearm_rzz_scaling_factor = 0.25;  forearm_rxy_scaling_factor = 0.10;      forearm_rxz_scaling_factor = 0.04;      forearm_ryz_scaling_factor = 0.14*1i;
+        % ACHTUNG: used the values for males here because the values for females give rather weird looking results
+        arm_rxx_scaling_factor     = 0.31;  arm_ryy_scaling_factor     = 0.14;  arm_rzz_scaling_factor     = 0.32;  arm_rxy_scaling_factor     = 0.06;      arm_rxz_scaling_factor     = 0.05;      arm_ryz_scaling_factor     = 0.02;
+        forearm_rxx_scaling_factor = 0.28;  forearm_ryy_scaling_factor = 0.11;  forearm_rzz_scaling_factor = 0.27;  forearm_rxy_scaling_factor = 0.03;      forearm_rxz_scaling_factor = 0.02;      forearm_ryz_scaling_factor = 0.08*1i;
         hand_rxx_scaling_factor    = 0.63;  hand_ryy_scaling_factor    = 0.43;  hand_rzz_scaling_factor    = 0.56;  hand_rxy_scaling_factor    = 0.29;      hand_rxz_scaling_factor    = 0.23;      hand_ryz_scaling_factor    = 0.28*1i;
 
         pelvis_rxx_scaling_factor = 0.91;       pelvis_ryy_scaling_factor = 1.00;       pelvis_rzz_scaling_factor = 0.79;   pelvis_rxy_scaling_factor = 0.34*1i;    pelvis_rxz_scaling_factor = 0.01*1i;    pelvis_ryz_scaling_factor = 0.01*1i;
@@ -597,7 +636,7 @@ function createModel(varargin)
     left_hand_scs_y = normVector(left_inner_wrist - left_hand);
     left_hand_scs_x = cross(left_hand_scs_y, left_wrist_flexion_axis);
     left_hand_scs_z = normVector(cross(left_hand_scs_x, left_hand_scs_y));
-
+    
     % right upper arm
     right_arm_scs_y = normVector(right_shoulder_cor - right_elbow_cor);
     right_arm_scs_x = normVector(cross(right_arm_scs_y, right_elbow_axis));
@@ -1071,8 +1110,8 @@ function createModel(varargin)
         [right_foot_scs_x right_foot_scs_y right_foot_scs_z right_toe_mid; 0 0 0 1], ...
         [right_foot_scs_x right_foot_scs_y right_foot_scs_z right_ankle_cor; 0 0 0 1], ...
         [eye(3), head_vertex; 0 0 0 1], ...
-        [eye(3), left_wrist_cor + [0; 0.05; 0]; 0 0 0 1], ...
-        [eye(3), right_wrist_cor + [0; 0.05; 0]; 0 0 0 1], ...
+        [eye(3), left_hand; 0 0 0 1], ...
+        [eye(3), right_hand; 0 0 0 1], ...
         pelvis_transformation_current, ...
       };
 
