@@ -53,7 +53,7 @@ function calculateKinematicTrajectories(varargin)
             
             % calculate
             joint_center_trajectories = zeros(number_of_time_steps, length(joint_center_headers)*3);
-            joint_center_labels = cell(1, 16); % TODO: fix this
+            joint_center_labels = joint_center_headers; % TODO: fix this
             com_trajectories = zeros(number_of_time_steps, length(com_labels)*3);
             joint_angle_trajectories = zeros(number_of_time_steps, number_of_joint_angles);
             for i_time = 1 : number_of_time_steps
@@ -133,7 +133,7 @@ function calculateKinematicTrajectories(varargin)
               );
             disp(['Condition ' condition ', Trial ' num2str(i_trial) ' completed, saved as ' save_folder filesep save_file_name]);
 
-            addAvailableData('joint_center_trajectories', 'time_mocap', 'sampling_rate_mocap', 'joint_center_trajectories', save_folder, save_file_name);
+            addAvailableData('joint_center_trajectories', 'time_mocap', 'sampling_rate_mocap', 'joint_center_labels', save_folder, save_file_name);
             addAvailableData('com_trajectories', 'time_mocap', 'sampling_rate_mocap', 'com_labels', save_folder, save_file_name);
             addAvailableData('joint_angle_trajectories', 'time_mocap', 'sampling_rate_mocap', 'joint_angle_trajectories', save_folder, save_file_name);
         end
