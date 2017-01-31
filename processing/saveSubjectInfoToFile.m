@@ -19,11 +19,19 @@ function saveSubjectInfoToFile
     % get subject code
     current_path = pwd;
     path_split = strsplit(current_path, filesep);
-    subject_code = path_split{end};
 
-    % try to open subject list from root and extract subject data
-    subject_data_file = ['..' filesep 'subjects.csv'];
-    if ~exist(subject_data_file, 'file')
+    % open subject list from root and extract subject data
+    subject_data_file = '';
+    if exist(['..' filesep 'subjects.csv'], 'file')
+        subject_data_file = ['..' filesep 'subjects.csv'];
+        subject_code = path_split{end};
+    end    
+    if exist(['..' filesep '..' filesep 'subjects.csv'], 'file')
+        subject_data_file = ['..' filesep '..' filesep 'subjects.csv'];
+        subject_code = path_split{end-1};
+    end
+    if isempty(subject_data_file)
+        subject_data_file = ['..' filesep 'subjects.csv'];
         fileID = fopen(subject_data_file, 'w');
         fprintf(fileID,'ID,gender,height,weight,knee width,ankle width,elbow width,EMG1,EMG2,EMG3,EMG4,EMG5,EMG6,EMG7,EMG8\n');
         fprintf(fileID,',,m,kg,m,m,m\n');
@@ -44,18 +52,11 @@ function saveSubjectInfoToFile
 
     % find header info
     header = strsplit(header_string, ',');
-%     id_col = find(strcmp(header, 'ID'));
-%     gender_col = find(strcmp(header, 'gender'));
-%     height_col = find(strcmp(header, 'height'));
-%     weight_col = find(strcmp(header, 'weight'));
-%     knee_width_col = find(strcmp(header, 'knee width'));
-%     ankle_width_col = find(strcmp(header, 'ankle width'));
-%     elbow_width_col = find(strcmp(header, 'elbow width'));
     
     % find line for this subject
     data_lines = data_raw{1};
     data_cell = {};
-    for i_line = 1 : length(data_lines)
+    for i_line = 1 : size(data_lines, 1)
         line_split = strsplit(data_lines{i_line}, ',');
         data_cell = [data_cell; line_split]; %#ok<AGROW>
     end

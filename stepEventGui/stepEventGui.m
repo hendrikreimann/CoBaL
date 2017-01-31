@@ -99,12 +99,12 @@ function stepEventGui(varargin)
 %     if ~isempty(trial_data.joint_center_positions)
     if trial_data.kinematic_data_available
         positions = [positions trial_data.joint_center_positions(1, :)];
-        headers = [headers trial_data.joint_center_headers(1, :)];
+        headers = [headers trial_data.joint_center_labels(1, :)];
     end
 %     if ~isempty(trial_data.joint_center_positions)
     if trial_data.com_data_available
         positions = [positions trial_data.com_positions(1, :)];
-        headers = [headers trial_data.com_headers(1, :)];
+        headers = [headers trial_data.com_labels(1, :)];
     end
     
     controller.scene_figure = stickFigure(positions, headers, scene_bound);
@@ -116,7 +116,7 @@ function stepEventGui(varargin)
         headers = trial_data.marker_labels;
         if ~isempty(trial_data.joint_center_positions)
             positions = [positions trial_data.joint_center_positions(1, :)];
-            headers = [headers trial_data.joint_center_headers(1, :)];
+            headers = [headers trial_data.joint_center_labels(1, :)];
         end
         controller.kinematic_tree_controller = KinematicTreeController(kinematic_tree, scene_bound, 'none', positions);
         Link = linkprop([controller.kinematic_tree_controller.sceneAxes controller.scene_figure.scene_axes], {'CameraUpVector', 'CameraPosition', 'CameraTarget', 'CameraViewAngle'}); 

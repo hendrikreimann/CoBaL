@@ -45,9 +45,15 @@ function preprocessRawData(varargin)
     end
     
     % load settings
-    study_settings_file = ['..' filesep 'studySettings.txt'];
+    study_settings_file = '';
+    if exist(['..' filesep 'studySettings.txt'], 'file')
+        study_settings_file = ['..' filesep 'studySettings.txt'];
+    end    
+    if exist(['..' filesep '..' filesep 'studySettings.txt'], 'file')
+        study_settings_file = ['..' filesep '..' filesep 'studySettings.txt'];
+    end
     settings = loadSettingsFile(study_settings_file);
-
+    
     %% emg
     data_dir = dir(['raw' filesep '*_emgTrajectoriesRaw.mat']);
     clear file_name_list;

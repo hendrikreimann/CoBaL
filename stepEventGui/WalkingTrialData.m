@@ -40,9 +40,9 @@ classdef WalkingTrialData < handle
         marker_positions = [];
         marker_labels = [];
         joint_center_positions = [];
-        joint_center_headers = [];
+        joint_center_labels = [];
         com_positions = [];
-        com_headers = [];
+        com_labels = [];
         joint_angles = [];
         
         left_heel_y_pos = [];
@@ -125,7 +125,7 @@ classdef WalkingTrialData < handle
             
             if exist([this.data_directory filesep 'subjectModel.mat'], 'file')
                 loaded_subject_model = load([this.data_directory filesep 'subjectModel.mat']);
-                this.joint_center_headers = loaded_subject_model.joint_center_headers;
+                this.joint_center_labels = loaded_subject_model.joint_center_headers;
             end
         end
         function loadMarkerTrajectories(this)
@@ -144,7 +144,7 @@ classdef WalkingTrialData < handle
 %                 loaded_trajectories = load(com_file_name);
 %                 this.joint_center_positions = loaded_trajectories.joint_center_trajectories;
 %                 this.com_positions = loaded_trajectories.com_trajectories;
-%                 this.com_headers = loaded_trajectories.com_labels;
+%                 this.com_labels = loaded_trajectories.com_labels;
 %                 this.joint_angles = loaded_trajectories.joint_angle_trajectories;
 %             end
 
@@ -157,8 +157,10 @@ classdef WalkingTrialData < handle
             % load kinematic data
             [joint_center_trajectories, ~, ~, joint_center_labels, this.kinematic_data_available] = loadData(this.date, this.subject_id, this.condition, this.trial_number, 'joint_center_trajectories', 'optional');
             this.joint_center_positions = joint_center_trajectories;
+            this.joint_center_labels = joint_center_labels;
             [com_trajectories, ~, ~, com_labels, this.com_data_available] = loadData(this.date, this.subject_id, this.condition, this.trial_number, 'com_trajectories', 'optional');
             this.com_positions = com_trajectories;
+            this.com_labels = com_labels;
             [joint_angle_trajectories, ~, ~, joint_angle_labels, this.joint_angle_data_available] = loadData(this.date, this.subject_id, this.condition, this.trial_number, 'joint_angle_trajectories', 'optional');
             this.joint_angles = joint_angle_trajectories;
             

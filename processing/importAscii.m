@@ -58,7 +58,7 @@ function importAscii(varargin)
 
     %% import data
     for i_source = 1 : length(sources)
-        source_dir = [subject_code '_' sources{i_source}];
+        source_dir = sources{i_source};
         if exist(source_dir, 'dir')
             % get list of files to import from this directory
             clear file_name_list_tsv;

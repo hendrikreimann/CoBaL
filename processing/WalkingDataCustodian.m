@@ -186,6 +186,11 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('cop_ml')
                 this.addStretchVariable('cop_ml')
             end
+            if this.isVariableToAnalyze('larm_incl')
+                this.addBasicVariable('marker_trajectories')
+                this.addBasicVariable('larm_incl')
+                this.addStretchVariable('larm_incl')
+            end            
         end
         
         % interface
@@ -308,6 +313,19 @@ classdef WalkingDataCustodian < handle
                     total_forceplate_cop_world = this.getBasicVariableData('total_forceplate_cop_world');
                     this.basic_variable_data.cop_ml = total_forceplate_cop_world(:, 2);
                     this.time_data.cop_ml = this.time_data.total_forceplate_cop_world;
+                end
+                if strcmp(variable_name, 'larm_incl')
+                    LELB_trajectory = extractMarkerTrajectories(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LELB');
+                    LWRA_trajectory = extractMarkerTrajectories(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LWRA');
+                    LWRB_trajectory = extractMarkerTrajectories(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LWRB');
+                    left_wrist_center_trajectory = (LWRA_trajectory + LWRB_trajectory) * 0.5;
+                    left_arm_vector_trajectory = LELB_trajectory - left_wrist_center_trajectory;
+                    
+                    left_arm_vector_projected = left_arm_vector_trajectory(:, 1:2);
+                    left_arm_vector_projected_length = (sum(left_arm_vector_projected.^2, 2)).^0.5;
+                    larm_incl = rad2deg(atan2(left_arm_vector_projected_length, left_arm_vector_trajectory(:, 3)));
+                    this.basic_variable_data.larm_incl = rad2deg(atan2(left_arm_vector_projected_length, left_arm_vector_trajectory(:, 3)));
+                    this.time_data.larm_incl = this.time_data.marker_trajectories;
                 end
                 
                 
