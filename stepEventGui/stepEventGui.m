@@ -96,12 +96,10 @@ function stepEventGui(varargin)
       ];
     positions = trial_data.marker_positions(1, :);
     headers = trial_data.marker_labels;
-%     if ~isempty(trial_data.joint_center_positions)
     if trial_data.kinematic_data_available
         positions = [positions trial_data.joint_center_positions(1, :)];
         headers = [headers trial_data.joint_center_labels(1, :)];
     end
-%     if ~isempty(trial_data.joint_center_positions)
     if trial_data.com_data_available
         positions = [positions trial_data.com_positions(1, :)];
         headers = [headers trial_data.com_labels(1, :)];
@@ -130,7 +128,8 @@ function stepEventGui(varargin)
     step_event_figure = stepEventFigure('Positions Left', controller, trial_data, event_data);
     step_event_figure.addDataPlot('left_heel_z_pos', color_left_heel, scale_factor_heel, offset_heel);
     step_event_figure.addDataPlot('left_toes_z_pos', color_left_toes, scale_factor_toes, offset_toes);
-%     step_event_figure.addDataPlot('left_fz', color_left_fz, scale_factor_fz);
+    
+%     step_event_figure.addDataPlot('left_foot_fz', color_left_fz, scale_factor_fz);
 %     step_event_figure.addDataPlot('right_fz', color_right_fz, scale_factor_fz);
     step_event_figure.addEventPlot('left_heel_z_pos', 'left_touchdown', color_left_touchdown, marker_left_touchdown);
     step_event_figure.addEventPlot('left_toes_z_pos', 'left_pushoff', color_left_pushoff, marker_left_pushoff);

@@ -694,8 +694,6 @@ if plot_detailed
     end
 end
 
-
-
 %% plot overview
 if plot_overview
 

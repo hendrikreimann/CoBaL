@@ -40,16 +40,31 @@ function plotResults(varargin)
     end
 
     %% determine subjects
-    if isempty(subjects)
-        % nothing passed, so load from file
-        subject_data_file = ['..' filesep 'subjects.csv'];
+    subject_list_determined = false;
+    if ~isempty(subjects)
+        subject_list_determined = true;
+    end
+    if ~subject_list_determined && exist('subjectInfo.mat', 'file')
+        % no list passed, but current folder is a subject folder, so plot this subject
+        load subjectInfo.mat
+        subjects = {subject_id};
+        subject_list_determined = true;
+    end
+    if ~subject_list_determined && (exist(['..' filesep 'subjects.csv'], 'file') || exist(['..' filesep '..' filesep 'subjects.csv'], 'file'))
+        % no list passed, there's a subject list one or two levels up, load from there
+        if exist(['..' filesep 'subjects.csv'], 'file')
+            subject_data_file = ['..' filesep 'subjects.csv'];
+        end
+        if exist(['..' filesep '..' filesep 'subjects.csv'], 'file')
+            subject_data_file = ['..' filesep '..' filesep 'subjects.csv'];
+        end
         format = '%s';
         fid = fopen(subject_data_file);
         fgetl(fid);
         fgetl(fid);
         data_raw = textscan(fid, format);
         fclose(fid);
-        
+
         % transform to cell
         data_lines = data_raw{1};
         data_cell = {};
@@ -57,7 +72,7 @@ function plotResults(varargin)
             line_split = strsplit(data_lines{i_line}, ',');
             data_cell = [data_cell; line_split]; %#ok<AGROW>
         end
-        
+
         subjects = data_cell(:, 1);
     end
     if ischar(subjects)
