@@ -36,11 +36,17 @@ function analyzeData(varargin)
     condition_stimulus_list_subject = {};
     condition_day_list_subject = {};
     
+    % make containers to store origin information for the stretches
+    origin_trial_list_subject = [];
+    origin_start_time_list_subject = [];
+    origin_end_time_list_subject = [];
+    
     % analyze and store data
     for i_condition = 1 : length(condition_list)
         condition = condition_list{i_condition};
         trials_to_process = trial_number_list{i_condition};
         for i_trial = trials_to_process
+%             disp(['i_trial = ' num2str(i_trial)])
             % load and prepare data
             data_custodian.prepareBasicVariables(condition, i_trial);
             load(['analysis' filesep makeFileName(date, subject_id, condition, i_trial, 'relevantDataStretches')]);
@@ -57,6 +63,10 @@ function analyzeData(varargin)
             condition_experimental_list_subject = [condition_experimental_list_subject; condition_experimental_list_trial]; %#ok<AGROW>
             condition_stimulus_list_subject = [condition_stimulus_list_subject; condition_stimulus_list_trial]; %#ok<AGROW>
             condition_day_list_subject = [condition_day_list_subject; condition_day_list_trial]; %#ok<AGROW>
+            
+            origin_trial_list_subject = [origin_trial_list_subject; ones(size(stretch_start_times)) * i_trial]; %#ok<AGROW>
+            origin_start_time_list_subject = [origin_start_time_list_subject; stretch_start_times]; %#ok<AGROW>
+            origin_end_time_list_subject = [origin_end_time_list_subject; stretch_end_times]; %#ok<AGROW>
         end
     end
     
@@ -135,7 +145,10 @@ function analyzeData(varargin)
         'condition_index_list_subject', ...
         'condition_experimental_list_subject', ...
         'condition_stimulus_list_subject', ...
-        'condition_day_list_subject' ...
+        'condition_day_list_subject', ...
+        'origin_trial_list_subject', ...
+        'origin_start_time_list_subject', ...
+        'origin_end_time_list_subject' ...
       )
 end
 

@@ -378,27 +378,17 @@ function findRelevantDataStretches(varargin)
                 
             end  
             if strcmp(condition_stimulus, 'OBSTACLE')
-                stretch_start_times = zeros(3, 1);
-                stretch_end_times = zeros(3, 1);
-                stretch_pushoff_times = zeros(3, 1);
+                stretch_start_times = zeros(2, 1);
+                stretch_end_times = zeros(2, 1);
+                stretch_pushoff_times = zeros(2, 1);
                 
-                condition_stance_foot_list_trial = cell(3, 1);
-                condition_perturbation_list_trial = cell(3, 1);
-                condition_delay_list_trial = cell(3, 1);
-                condition_index_list_trial = cell(3, 1);
-                condition_experimental_list_trial = cell(3, 1);
-                condition_stimulus_list_trial = cell(3, 1);
-                condition_day_list_trial = cell(3, 1);
-                
-%                 if ismember(i_trial, no_obstacle)
-%                     condition_experimental = 'NO';
-%                 elseif ismember(i_trial, near_obstacle)
-%                     condition_experimental = 'NEAR';
-%                 elseif ismember(i_trial, far_obstacle)
-%                     condition_experimental = 'FAR';
-%                 else
-%                     error(['No condition specified for trial no. ' num2str(i_trial)]);
-%                 end
+                condition_stance_foot_list_trial = cell(2, 1);
+                condition_perturbation_list_trial = cell(2, 1);
+                condition_delay_list_trial = cell(2, 1);
+                condition_index_list_trial = cell(2, 1);
+                condition_experimental_list_trial = cell(2, 1);
+                condition_stimulus_list_trial = cell(2, 1);
+                condition_day_list_trial = cell(2, 1);
                 
                 % second stretch goes from first right pushoff to first right heelstrike
                 stretch_start_times(2, 1) = right_pushoff_times(1);
@@ -411,16 +401,16 @@ function findRelevantDataStretches(varargin)
                 condition_stimulus_list_trial{2, 1} = condition_stimulus;
                 condition_day_list_trial{2, 1} = condition_day;
                 
-                % third stretch goes from first right heelstrike to first left heelstrike
-                stretch_start_times(3, 1) = right_touchdown_times(1);
-                stretch_end_times(3, 1) = left_touchdown_times(1);
-                condition_perturbation_list_trial{3, 1} = 'N/A';
-                condition_delay_list_trial{3, 1} = 'N/A';
-                condition_index_list_trial{3, 1} = 'THREE';
-                condition_experimental_list_trial{3, 1} = condition_experimental;
-                condition_stance_foot_list_trial{3, 1} = 'STANCE_RIGHT';
-                condition_stimulus_list_trial{3, 1} = condition_stimulus;
-                condition_day_list_trial{3, 1} = condition_day;
+%                 % third stretch goes from first right heelstrike to first left heelstrike
+%                 stretch_start_times(3, 1) = right_touchdown_times(1);
+%                 stretch_end_times(3, 1) = left_touchdown_times(1);
+%                 condition_perturbation_list_trial{3, 1} = 'N/A';
+%                 condition_delay_list_trial{3, 1} = 'N/A';
+%                 condition_index_list_trial{3, 1} = 'THREE';
+%                 condition_experimental_list_trial{3, 1} = condition_experimental;
+%                 condition_stance_foot_list_trial{3, 1} = 'STANCE_RIGHT';
+%                 condition_stimulus_list_trial{3, 1} = condition_stimulus;
+%                 condition_day_list_trial{3, 1} = condition_day;
                 
                 % first stretch goes from first right pushoff minus 1 second to first right pushoff
                 stretch_start_times(1, 1) = right_pushoff_times(1) - 1;

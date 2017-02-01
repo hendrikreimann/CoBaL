@@ -130,7 +130,7 @@ function stepEventGui(varargin)
     step_event_figure.addDataPlot('left_toes_z_pos', color_left_toes, scale_factor_toes, offset_toes);
     
 %     step_event_figure.addDataPlot('left_foot_fz', color_left_fz, scale_factor_fz);
-%     step_event_figure.addDataPlot('right_fz', color_right_fz, scale_factor_fz);
+    step_event_figure.addDataPlot('right_fz', color_right_fz, scale_factor_fz);
     step_event_figure.addEventPlot('left_heel_z_pos', 'left_touchdown', color_left_touchdown, marker_left_touchdown);
     step_event_figure.addEventPlot('left_toes_z_pos', 'left_pushoff', color_left_pushoff, marker_left_pushoff);
 %     step_event_figure.addEventPlot('left_fz', 'left_pushoff', color_left_pushoff, marker_left_pushoff);
@@ -143,7 +143,7 @@ function stepEventGui(varargin)
     step_event_figure.addDataPlot('right_heel_z_pos', color_right_heel, scale_factor_heel, offset_heel);
     step_event_figure.addDataPlot('right_toes_z_pos', color_right_toes, scale_factor_toes, offset_toes);
 %     step_event_figure.addDataPlot('right_fz', color_right_fz, scale_factor_fz);
-%     step_event_figure.addDataPlot('left_fz', color_left_fz, scale_factor_fz);
+    step_event_figure.addDataPlot('left_fz', color_left_fz, scale_factor_fz);
     step_event_figure.addEventPlot('right_heel_z_pos', 'right_touchdown', color_right_touchdown, marker_right_touchdown);
     step_event_figure.addEventPlot('right_toes_z_pos', 'right_pushoff', color_right_pushoff, marker_right_pushoff);
 %     step_event_figure.addEventPlot('right_fz', 'right_pushoff', color_right_pushoff, marker_right_pushoff);

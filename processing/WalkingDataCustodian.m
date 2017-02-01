@@ -412,8 +412,12 @@ classdef WalkingDataCustodian < handle
             data_extracted = variable_data(start_index : end_index);
                 
             % normalize data in time
-            time_normalized = linspace(time_extracted(1), time_extracted(end), this.number_of_time_steps_normalized)';
-            data_normalized = spline(time_extracted, data_extracted, time_normalized);
+            if ~isempty(time_extracted)
+                time_normalized = linspace(time_extracted(1), time_extracted(end), this.number_of_time_steps_normalized)';
+                data_normalized = spline(time_extracted, data_extracted, time_normalized);
+            else
+                data_normalized = zeros(this.number_of_time_steps_normalized, 1) * NaN;
+            end
         end
     end
 end

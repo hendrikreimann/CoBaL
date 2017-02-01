@@ -251,7 +251,8 @@ function importAscii(varargin)
                     end
 
                     % set gaps to NaN instead of 0, which seems to be the incredibly annoying default output of QTM
-                    marker_trajectories_raw(marker_trajectories_raw==0) = NaN;
+%                     marker_trajectories_raw(marker_trajectories_raw==0) = NaN;
+                    % can't do this, because that sets some legitimate data points to 0 as well
 
                     % save marker data
                     save_folder = 'raw';
