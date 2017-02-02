@@ -47,8 +47,14 @@ function findStepEvents(varargin)
 
     % load settings
     subject_settings = loadSettingsFile('subjectSettings.txt');
-    study_settings = loadSettingsFile(['..' filesep 'studySettings.txt']);
-    
+    study_settings_file = '';
+    if exist(['..' filesep 'studySettings.txt'], 'file')
+        study_settings_file = ['..' filesep 'studySettings.txt'];
+    end    
+    if exist(['..' filesep '..' filesep 'studySettings.txt'], 'file')
+        study_settings_file = ['..' filesep '..' filesep 'studySettings.txt'];
+    end
+    study_settings = loadSettingsFile(study_settings_file);
     
 %     show_forceplate         = 1;
 

@@ -73,7 +73,15 @@ classdef WalkingDataCustodian < handle
         function this = WalkingDataCustodian()
             % load this information from the subjects.mat and studySettings.txt files
             load('subjectInfo.mat', 'date', 'subject_id');
-            study_settings = loadSettingsFile(['..' filesep 'studySettings.txt']);
+            % load settings
+            study_settings_file = '';
+            if exist(['..' filesep 'studySettings.txt'], 'file')
+                study_settings_file = ['..' filesep 'studySettings.txt'];
+            end    
+            if exist(['..' filesep '..' filesep 'studySettings.txt'], 'file')
+                study_settings_file = ['..' filesep '..' filesep 'studySettings.txt'];
+            end
+            study_settings = loadSettingsFile(study_settings_file);
             
             this.date = date;
             this.subject_id = subject_id;

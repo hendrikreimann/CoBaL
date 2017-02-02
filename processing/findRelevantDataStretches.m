@@ -67,8 +67,24 @@ function findRelevantDataStretches(varargin)
 
     %% prepare
     load('subjectInfo.mat', 'date', 'subject_id');
-    study_settings = loadSettingsFile(['..' filesep 'studySettings.txt']);
+    % load settings
+    study_settings_file = '';
+    if exist(['..' filesep 'studySettings.txt'], 'file')
+        study_settings_file = ['..' filesep 'studySettings.txt'];
+    end    
+    if exist(['..' filesep '..' filesep 'studySettings.txt'], 'file')
+        study_settings_file = ['..' filesep '..' filesep 'studySettings.txt'];
+    end
+    study_settings = loadSettingsFile(study_settings_file);
     
+    conditions_file_name = [];
+    if exist('conditions.csv', 'file')
+        conditions_file_name = 'conditions.csv';
+    end
+    if exist(makeFileName(date, subject_id, 'conditions.csv'), 'file')
+        conditions_file_name = makeFileName(date, subject_id, 'conditions.csv');
+    end
+
 
     time_to_nearest_heelstrike_before_trigger_threshold = 0.10; % a heelstrike should happen less than this long after a trigger
     time_to_nearest_heelstrike_after_trigger_threshold = 0.3; % a heelstrike should happen less than this long after a trigger
@@ -84,7 +100,7 @@ function findRelevantDataStretches(varargin)
             % determine experimental condition
             condition_experimental = study_settings.experimental_condition;
             if strcmp(condition_experimental, 'load_from_conditions_file')
-                condition_experimental = loadConditionFromFile('conditions.csv', 'experimental', i_trial);
+                condition_experimental = loadConditionFromFile(conditions_file_name, 'experimental', i_trial);
             end
             if strcmp(condition_experimental, 'determine_from_file_name')
                 condition_experimental = condition_list{i_condition};
@@ -93,7 +109,7 @@ function findRelevantDataStretches(varargin)
             % determine stimulus type
             condition_stimulus = study_settings.stimulus_condition;
             if strcmp(condition_stimulus, 'load_from_conditions_file')
-                condition_stimulus = loadConditionFromFile('conditions.csv', 'stimulus', i_trial);
+                condition_stimulus = loadConditionFromFile(conditions_file_name, 'stimulus', i_trial);
             end
             if strcmp(condition_stimulus, 'determine_from_file_name')
                 condition_stimulus = condition_list{i_condition};
@@ -102,7 +118,7 @@ function findRelevantDataStretches(varargin)
             % determine day
             condition_day = study_settings.day_condition;
             if strcmp(condition_day, 'load_from_conditions_file')
-                condition_day = loadConditionFromFile('conditions.csv', 'day', i_trial);
+                condition_day = loadConditionFromFile(conditions_file_name, 'day', i_trial);
             end
             if strcmp(condition_day, 'determine_from_file_name')
                 condition_day = condition_list{i_condition};
@@ -130,6 +146,10 @@ function findRelevantDataStretches(varargin)
             % stimulus data
             if strcmp(condition_stimulus, 'GVS')
                 GVS_out_trajectory = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'GVS_out_trajectory');
+                [stimulus_state_trajectory, time_stimulus] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'stimulus_state_trajectory');
+            end
+            if strcmp(condition_stimulus, 'VISUAL')
+                visual_scene_ml_translation__trajectory = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'visual_scene_ml_translation__trajectory');
                 [stimulus_state_trajectory, time_stimulus] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'stimulus_state_trajectory');
             end
             
@@ -538,21 +558,27 @@ function findRelevantDataStretches(varargin)
                     % delay condition
                     wait_time_stim = time_stimulus(stim_start_indices_labview(i_trigger)) - time_stimulus(trigger_indices_labview(i_trigger));
                     [~, wait_condition_index] = min(abs(study_settings.delay_times - wait_time_stim));
-                    delay_condition_label = study_settings.delay_time_labels{wait_condition_index};
+                    if iscell(study_settings.delay_time_labels)
+                        delay_condition_label = study_settings.delay_time_labels{wait_condition_index};
+                        condition_delay_list_trial{i_trigger, 5} = 'CONTROL';
+                        condition_delay_list_trial{i_trigger, 6} = 'CONTROL';
+                    else
+                        delay_condition_label = study_settings.delay_time_labels;
+                        condition_delay_list_trial{i_trigger, 5} = delay_condition_label;
+                        condition_delay_list_trial{i_trigger, 6} = delay_condition_label;
+                    end
                     condition_delay_list_trial{i_trigger, 1} = delay_condition_label;
                     condition_delay_list_trial{i_trigger, 2} = delay_condition_label;
                     condition_delay_list_trial{i_trigger, 3} = delay_condition_label;
                     condition_delay_list_trial{i_trigger, 4} = delay_condition_label;
-                    condition_delay_list_trial{i_trigger, 5} = 'CONTROL';
-                    condition_delay_list_trial{i_trigger, 6} = 'CONTROL';
                     
                     % experimental condition
-                    condition_experimental_list_trial{i_trigger, 1} = condition_list{i_condition};
-                    condition_experimental_list_trial{i_trigger, 2} = condition_list{i_condition};
-                    condition_experimental_list_trial{i_trigger, 3} = condition_list{i_condition};
-                    condition_experimental_list_trial{i_trigger, 4} = condition_list{i_condition};
-                    condition_experimental_list_trial{i_trigger, 5} = condition_list{i_condition};
-                    condition_experimental_list_trial{i_trigger, 6} = condition_list{i_condition};
+                    condition_experimental_list_trial{i_trigger, 1} = condition_experimental;
+                    condition_experimental_list_trial{i_trigger, 2} = condition_experimental;
+                    condition_experimental_list_trial{i_trigger, 3} = condition_experimental;
+                    condition_experimental_list_trial{i_trigger, 4} = condition_experimental;
+                    condition_experimental_list_trial{i_trigger, 5} = condition_experimental;
+                    condition_experimental_list_trial{i_trigger, 6} = condition_experimental;
                     
                     % stimulus condition
                     condition_stimulus_list_trial{i_trigger, 1} = condition_stimulus;

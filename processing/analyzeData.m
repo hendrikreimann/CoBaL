@@ -22,7 +22,15 @@
 function analyzeData(varargin)
     [condition_list, trial_number_list] = parseTrialArguments(varargin{:});
     load('subjectInfo.mat', 'date', 'subject_id');
-    study_settings = loadSettingsFile(['..' filesep 'studySettings.txt']);
+    % load settings
+    study_settings_file = '';
+    if exist(['..' filesep 'studySettings.txt'], 'file')
+        study_settings_file = ['..' filesep 'studySettings.txt'];
+    end    
+    if exist(['..' filesep '..' filesep 'studySettings.txt'], 'file')
+        study_settings_file = ['..' filesep '..' filesep 'studySettings.txt'];
+    end
+    study_settings = loadSettingsFile(study_settings_file);
     data_custodian = WalkingDataCustodian();
     number_of_stretch_variables = length(data_custodian.stretch_variable_names);
     
@@ -89,16 +97,6 @@ function analyzeData(varargin)
         conditions_control_indicators(:, i_condition) = this_condition_indicator;
     end
     
-    % report control
-    trials_per_condition_control = sum(conditions_control_indicators)';
-    conditions_control_with_number = study_settings.conditions_control;
-    for i_condition = 1 : number_of_conditions_control
-        conditions_control_with_number{i_condition, size(study_settings.conditions_control, 2)+1} = num2str(trials_per_condition_control(i_condition));
-    end
-    conditions_control_with_labels = [study_settings.condition_labels 'number of stretches'; conditions_control_with_number];
-    disp('Control conditions:')
-    disp(conditions_control_with_labels);
-
     % extract indicators for conditions to analyze
     number_of_conditions_to_analyze = size(study_settings.conditions_to_analyze, 1);
     conditions_to_analyze_indicators = false(number_of_stretches_subject, number_of_conditions_to_analyze);
@@ -115,6 +113,34 @@ function analyzeData(varargin)
         conditions_to_analyze_indicators(:, i_condition) = this_condition_indicator;
     end
     
+    % check the unassigned stretches
+    assigned_stretch_indicator = sum([conditions_to_analyze_indicators conditions_control_indicators], 2);
+    unassigned_stretch_indicator = ~assigned_stretch_indicator;
+    unassigned_stretch_indices = find(unassigned_stretch_indicator);
+    unassigned_stretch_labels_all = cell(length(unassigned_stretch_indices), length(study_settings.condition_labels));
+    for i_stretch = 1 : length(unassigned_stretch_indices)
+        unassigned_stretch_labels_all(i_stretch, 1) = condition_stance_foot_list_subject(unassigned_stretch_indices(i_stretch));
+        unassigned_stretch_labels_all(i_stretch, 2) = condition_perturbation_list_subject(unassigned_stretch_indices(i_stretch));
+        unassigned_stretch_labels_all(i_stretch, 3) = condition_delay_list_subject(unassigned_stretch_indices(i_stretch));
+        unassigned_stretch_labels_all(i_stretch, 4) = condition_index_list_subject(unassigned_stretch_indices(i_stretch));
+        unassigned_stretch_labels_all(i_stretch, 5) = condition_experimental_list_subject(unassigned_stretch_indices(i_stretch));
+        unassigned_stretch_labels_all(i_stretch, 6) = condition_stimulus_list_subject(unassigned_stretch_indices(i_stretch));
+        unassigned_stretch_labels_all(i_stretch, 7) = condition_day_list_subject(unassigned_stretch_indices(i_stretch));
+    end
+    wd = unassigned_stretch_labels_all;
+    [~, idx] = unique(strcat(wd(:,1), wd(:,2), wd(:,3), wd(:,4), wd(:,5), wd(:,6), wd(:,7)));
+    unassigned_stretch_labels = wd(idx,:);
+
+    % report control
+    trials_per_condition_control = sum(conditions_control_indicators)';
+    conditions_control_with_number = study_settings.conditions_control;
+    for i_condition = 1 : number_of_conditions_control
+        conditions_control_with_number{i_condition, size(study_settings.conditions_control, 2)+1} = num2str(trials_per_condition_control(i_condition));
+    end
+    conditions_control_with_labels = [study_settings.condition_labels 'number of stretches'; conditions_control_with_number];
+    disp('Control conditions:')
+    disp(conditions_control_with_labels);
+
     % report conditions to analyze
     trials_per_condition_to_analyze = sum(conditions_to_analyze_indicators)';
     conditions_to_analyze_with_number = study_settings.conditions_to_analyze;
@@ -125,9 +151,13 @@ function analyzeData(varargin)
     disp('Conditions to analyze:')
     disp(conditions_to_analyze_with_labels);
     
+    disp('Stretches with these conditions were found but not analyzed:')
+    disp([study_settings.condition_labels; unassigned_stretch_labels])
+    
     disp(['Number of control stretches: ' num2str(sum(trials_per_condition_control))]);
     disp(['Number of stimulus stretches: ' num2str(sum(trials_per_condition_to_analyze))]);
-    disp(['Number of unassigned stretches: ' num2str(number_of_stretches_subject - sum(trials_per_condition_control) - sum(trials_per_condition_to_analyze))]);
+    disp(['Number of un-analyzed stretches: ' num2str(number_of_stretches_subject - sum(trials_per_condition_control) - sum(trials_per_condition_to_analyze))]);
+    
     
     % save data
     variable_data_subject = data_subject; %#ok<NASGU>
