@@ -294,32 +294,32 @@ classdef WalkingDataCustodian < handle
                 end
                 if strcmp(variable_name, 'copl_ap')
                     left_foot_cop_world = this.getBasicVariableData('left_foot_cop_world');
-                    this.basic_variable_data.copl_ap = left_foot_cop_world(:, 1);
+                    this.basic_variable_data.copl_ap = left_foot_cop_world(:, 2);
                     this.time_data.copl_ap = this.time_data.left_foot_cop_world;
                 end
                 if strcmp(variable_name, 'copl_ml')
                     left_foot_cop_world = this.getBasicVariableData('left_foot_cop_world');
-                    this.basic_variable_data.copl_ml = left_foot_cop_world(:, 2);
+                    this.basic_variable_data.copl_ml = left_foot_cop_world(:, 1);
                     this.time_data.copl_ml = this.time_data.left_foot_cop_world;
                 end
                 if strcmp(variable_name, 'copr_ap')
                     right_foot_cop_world = this.getBasicVariableData('right_foot_cop_world');
-                    this.basic_variable_data.copr_ap = right_foot_cop_world(:, 1);
+                    this.basic_variable_data.copr_ap = right_foot_cop_world(:, 2);
                     this.time_data.copr_ap = this.time_data.right_foot_cop_world;
                 end
                 if strcmp(variable_name, 'copr_ml')
                     right_foot_cop_world = this.getBasicVariableData('right_foot_cop_world');
-                    this.basic_variable_data.copr_ml = right_foot_cop_world(:, 2);
+                    this.basic_variable_data.copr_ml = right_foot_cop_world(:, 1);
                     this.time_data.copr_ml = this.time_data.right_foot_cop_world;
                 end
                 if strcmp(variable_name, 'cop_ap')
                     total_forceplate_cop_world = this.getBasicVariableData('total_forceplate_cop_world');
-                    this.basic_variable_data.cop_ap = total_forceplate_cop_world(:, 1);
+                    this.basic_variable_data.cop_ap = total_forceplate_cop_world(:, 2);
                     this.time_data.cop_ap = this.time_data.total_forceplate_cop_world;
                 end
                 if strcmp(variable_name, 'cop_ml')
                     total_forceplate_cop_world = this.getBasicVariableData('total_forceplate_cop_world');
-                    this.basic_variable_data.cop_ml = total_forceplate_cop_world(:, 2);
+                    this.basic_variable_data.cop_ml = total_forceplate_cop_world(:, 1);
                     this.time_data.cop_ml = this.time_data.total_forceplate_cop_world;
                 end
                 if strcmp(variable_name, 'larm_incl')
