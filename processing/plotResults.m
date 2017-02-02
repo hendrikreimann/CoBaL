@@ -32,60 +32,27 @@ function plotResults(varargin)
     show_legend = parser.Results.show_legend;
 
     % load study settings
+    study_settings_file = '';
     if exist('studySettings.txt', 'file')
-        % study settings not found here, so we're in a subject folder, load from level above
-        study_settings = loadSettingsFile('studySettings.txt');
-    else
-        study_settings = loadSettingsFile(['..' filesep 'studySettings.txt']);
+        study_settings_file = 'studySettings.txt';
+    end    
+    if exist(['..' filesep 'studySettings.txt'], 'file')
+        study_settings_file = ['..' filesep 'studySettings.txt'];
+    end    
+    if exist(['..' filesep '..' filesep 'studySettings.txt'], 'file')
+        study_settings_file = ['..' filesep '..' filesep 'studySettings.txt'];
     end
-
-    %% determine subjects
-    subject_list_determined = false;
-    if ~isempty(subjects)
-        subject_list_determined = true;
-    end
-    if ~subject_list_determined && exist('subjectInfo.mat', 'file')
-        % no list passed, but current folder is a subject folder, so plot this subject
-        load subjectInfo.mat
-        subjects = {subject_id};
-        subject_list_determined = true;
-    end
-    if ~subject_list_determined && (exist(['..' filesep 'subjects.csv'], 'file') || exist(['..' filesep '..' filesep 'subjects.csv'], 'file'))
-        % no list passed, there's a subject list one or two levels up, load from there
-        if exist(['..' filesep 'subjects.csv'], 'file')
-            subject_data_file = ['..' filesep 'subjects.csv'];
-        end
-        if exist(['..' filesep '..' filesep 'subjects.csv'], 'file')
-            subject_data_file = ['..' filesep '..' filesep 'subjects.csv'];
-        end
-        format = '%s';
-        fid = fopen(subject_data_file);
-        fgetl(fid);
-        fgetl(fid);
-        data_raw = textscan(fid, format);
-        fclose(fid);
-
-        % transform to cell
-        data_lines = data_raw{1};
-        data_cell = {};
-        for i_line = 1 : length(data_lines)
-            line_split = strsplit(data_lines{i_line}, ',');
-            data_cell = [data_cell; line_split]; %#ok<AGROW>
-        end
-
-        subjects = data_cell(:, 1);
-    end
-    if ischar(subjects)
-        % single string (i.e. char array) was passed, make a cell out of this
-        subjects = {subjects};
-    end
+    study_settings = loadSettingsFile(study_settings_file);
     
+
+    %% determine subjects and data folders
+    [data_folder_list, subject_list] = determineDataStructure(subjects);
     [comparison_indices, conditions_per_comparison_max] = determineComparisons(study_settings);
     number_of_comparisons = length(comparison_indices);
     episode_indices = determineEpisodes(study_settings, comparison_indices);
     number_of_episodes = length(episode_indices);
     
-    %% collect data from all subjects
+    %% collect data from all data folders
     number_of_variables_to_plot = size(study_settings.variables_to_plot, 1);
     condition_stance_foot_list_all = {};
     condition_perturbation_list_all = {};
@@ -99,18 +66,11 @@ function plotResults(varargin)
     origin_end_time_list_all = [];
     variable_data_all = cell(number_of_variables_to_plot, 1);
 
-    for i_subject = 1 : length(subjects)
-        % load subject data
-        path = strsplit(pwd, filesep);
-        if strcmp(path(end), subjects{i_subject})
-            % we're already in the subject folder, so just load from here
-            data_path = '';
-        else
-            % we're in the study root, so load from subject folder
-            data_path = [subjects{i_subject} filesep];
-        end
-        load([data_path 'subjectInfo.mat'], 'date', 'subject_id');
-        load([data_path 'analysis' filesep date '_' subject_id '_results.mat']);
+    for i_folder = 1 : length(data_folder_list)
+        % load data
+        data_path = data_folder_list{i_folder};
+        load([data_path filesep 'subjectInfo.mat'], 'date', 'subject_id');
+        load([data_path filesep 'analysis' filesep date '_' subject_id '_results.mat']);
 
         % append data from this subject to containers for all subjects
         condition_stance_foot_list_all = [condition_stance_foot_list_all; condition_stance_foot_list_subject]; %#ok<AGROW>
@@ -132,8 +92,6 @@ function plotResults(varargin)
             % store
             variable_data_all{i_variable} = [variable_data_all{i_variable} this_variable_data];
         end
-
-
     end
     
     %% create figures and determine abscissae for each comparison
@@ -306,63 +264,65 @@ function plotResults(varargin)
                 this_condition_indicator = stance_foot_indicator & perturbation_indicator & delay_indicator & index_indicator & experimental_indicator & stimulus_indicator & day_indicator;
                 data_to_plot_this_condition = data_to_plot(:, this_condition_indicator);
                 
-                if isDiscreteVariable(i_variable, variable_data_all)
-                    if strcmp(study_settings.plot_mode, 'detailed')
-                        histogram ...
-                          ( ...
-                            target_axes_handle, ...
-                            data_to_plot_this_condition, ...
-                            'binEdges', target_abscissa, ...
-                            'edgecolor', study_settings.color_control, ...
-                            'facecolor', lightenColor(study_settings.color_control, 0.5), ...
-                            'DisplayName', 'CONTROL' ...
-                          );
+                if ~isempty(data_to_plot_this_condition)
+                    if isDiscreteVariable(i_variable, variable_data_all)
+                        if strcmp(study_settings.plot_mode, 'detailed')
+                            histogram ...
+                              ( ...
+                                target_axes_handle, ...
+                                data_to_plot_this_condition, ...
+                                'binEdges', target_abscissa, ...
+                                'edgecolor', study_settings.color_control, ...
+                                'facecolor', lightenColor(study_settings.color_control, 0.5), ...
+                                'DisplayName', 'CONTROL' ...
+                              );
+                        end
+                        if strcmp(study_settings.plot_mode, 'overview') || strcmp(study_settings.plot_mode, 'episodes')
+                            singleBoxPlot(target_axes_handle, target_abscissa{1}, data_to_plot_this_condition, study_settings.color_control, 'CONTROL')
+                        end
                     end
-                    if strcmp(study_settings.plot_mode, 'overview') || strcmp(study_settings.plot_mode, 'episodes')
-                        singleBoxPlot(target_axes_handle, target_abscissa{1}, data_to_plot_this_condition, study_settings.color_control, 'CONTROL')
-                    end
-                end
-                if isContinuousVariable(i_variable, variable_data_all)
-                    if strcmp(study_settings.plot_mode, 'detailed')
-                        % individual trajectories
-                        plot ...
-                          ( ...
-                            target_axes_handle, ...
-                            target_abscissa, ...
-                            data_to_plot_this_condition, ...
-                            'HandleVisibility', 'off', ...
-                            'color', lightenColor(study_settings.color_control, 0.5) ...
-                          );
-                        % condition average
-                        control_mean_plot = plot ...
-                          ( ...
-                            target_axes_handle, ...
-                            target_abscissa, ...
-                            mean(data_to_plot_this_condition, 2), ...
-                            'DisplayName', 'CONTROL', ...
-                            'linewidth', 5, ...
-                            'color', study_settings.color_control ...
-                          );
-                        top_level_plots = [top_level_plots control_mean_plot]; %#ok<AGROW>
-                    end
-                    if strcmp(study_settings.plot_mode, 'overview') || strcmp(study_settings.plot_mode, 'episodes')
-                        plot_handles = shadedErrorBar ...
-                          ( ...
-                            target_abscissa, ...
-                            mean(data_to_plot_this_condition, 2), ...
-                            cinv(data_to_plot_this_condition, 2), ...
-                            { ...
-                              'color', study_settings.color_control, ...
-                              'linewidth', 6 ...
-                            }, ...
-                            1, ...
-                            target_axes_handle ...
-                          );
-                        set(plot_handles.edge, 'HandleVisibility', 'off');
-                        set(plot_handles.patch, 'HandleVisibility', 'off');
-                        set(plot_handles.mainLine, 'DisplayName', 'CONTROL');
-                      
-                        top_level_plots = [top_level_plots plot_handles.mainLine]; %#ok<AGROW>
+                    if isContinuousVariable(i_variable, variable_data_all)
+                        if strcmp(study_settings.plot_mode, 'detailed')
+                            % individual trajectories
+                            plot ...
+                              ( ...
+                                target_axes_handle, ...
+                                target_abscissa, ...
+                                data_to_plot_this_condition, ...
+                                'HandleVisibility', 'off', ...
+                                'color', lightenColor(study_settings.color_control, 0.5) ...
+                              );
+                            % condition average
+                            control_mean_plot = plot ...
+                              ( ...
+                                target_axes_handle, ...
+                                target_abscissa, ...
+                                mean(data_to_plot_this_condition, 2), ...
+                                'DisplayName', 'CONTROL', ...
+                                'linewidth', 5, ...
+                                'color', study_settings.color_control ...
+                              );
+                            top_level_plots = [top_level_plots control_mean_plot]; %#ok<AGROW>
+                        end
+                        if strcmp(study_settings.plot_mode, 'overview') || strcmp(study_settings.plot_mode, 'episodes')
+                            plot_handles = shadedErrorBar ...
+                              ( ...
+                                target_abscissa, ...
+                                mean(data_to_plot_this_condition, 2), ...
+                                cinv(data_to_plot_this_condition, 2), ...
+                                { ...
+                                  'color', study_settings.color_control, ...
+                                  'linewidth', 6 ...
+                                }, ...
+                                1, ...
+                                target_axes_handle ...
+                              );
+                            set(plot_handles.edge, 'HandleVisibility', 'off');
+                            set(plot_handles.patch, 'HandleVisibility', 'off');
+                            set(plot_handles.mainLine, 'DisplayName', 'CONTROL');
+
+                            top_level_plots = [top_level_plots plot_handles.mainLine]; %#ok<AGROW>
+                        end
                     end
                 end
             end
@@ -453,6 +413,189 @@ function plotResults(varargin)
 end
 
 %% helper functions
+
+function [data_folder_list, subject_list] = determineDataStructure(subjects)
+    % determine subject list and current folder type
+    if exist('subjectSettings.txt', 'file')
+        % data folders contain subjectSettings.txt files
+        current_folder_type = 'data';
+    else
+        % we're not in a data folder
+        if exist('studySettings.txt', 'file')
+            % study folders contain studySettings.txt files
+            current_folder_type = 'study';
+        else
+            % we're neither in a data folder nor in a study folder
+            if exist(['..' filesep 'studySettings.txt'], 'file')
+                % but one level above is a study folder, so we must be in a subject folder containing data folders
+                current_folder_type = 'subject';
+            else
+                error('Something is wrong with the folder structure. Current folder does not appear to be a study, subject or data folder.')
+            end
+        end
+    end
+    
+    % determine data folders
+    if strcmp(current_folder_type, 'data')
+        path_split = strsplit(pwd, filesep);
+        subject_list = path_split(end-1);
+        data_folder_list = {pwd};
+    end
+    if strcmp(current_folder_type, 'subject')
+        % get list of everything in the current directory
+        things_in_current_folder = dir;
+        % get a logical vector that tells which is a directory
+        dir_flags = [things_in_current_folder.isdir];
+        % extract only those that are directories.
+        dir_name = {things_in_current_folder.name};
+        folder_list = dir_name(dir_flags);
+        % remove pointers to upper level directories
+        folder_list(1:2) = [];
+        
+        % store data folders in lists
+        number_of_data_folders = length(folder_list);
+        path_split = strsplit(pwd, filesep);
+        subject = path_split{end};
+        subject_list = cell(number_of_data_folders, 1);
+        data_folder_list = cell(number_of_data_folders, 1);
+        for i_folder = 1 : number_of_data_folders
+            subject_list{i_folder} = subject;
+            data_folder_list{i_folder} = [pwd filesep folder_list{i_folder}];
+        end
+    end
+    if strcmp(current_folder_type, 'study')
+        % if no list was passed, load from subjects.csv
+        if isempty(subjects)
+            % no list passed, but current folder is a data folder, so plot this data
+            subject_data_file = 'subjects.csv';
+            format = '%s';
+            fid = fopen(subject_data_file);
+            fgetl(fid);
+            fgetl(fid);
+            data_raw = textscan(fid, format);
+            fclose(fid);
+
+            % transform to cell
+            data_lines = data_raw{1};
+            data_cell = {};
+            for i_line = 1 : length(data_lines)
+                line_split = strsplit(data_lines{i_line}, ',');
+                data_cell = [data_cell; line_split]; %#ok<AGROW>
+            end
+
+            subjects = data_cell(:, 1);
+        end            
+        
+        % check each subject folder for data folders
+        subject_list = {};
+        data_folder_list = {};
+        for i_subject = 1 : length(subjects)
+            subject_path = [pwd filesep subjects{i_subject}];
+            if exist([subject_path filesep 'subjectSettings.txt'], 'file')
+                % subject folder is also a data folder
+                subject_list = [subject_list; subjects{i_subject}];
+                data_folder_list = [data_folder_list; subject_path];
+            else
+                % subject folder contains data folders
+                things_in_subject_folder = dir(subject_path);
+                % get a logical vector that tells which is a directory
+                dir_flags = [things_in_subject_folder.isdir];
+                % extract only those that are directories.
+                dir_name = {things_in_subject_folder.name};
+                folder_list = dir_name(dir_flags);
+                % remove pointers to upper level directories
+                folder_list(1:2) = [];
+
+                % store data folders in lists
+                number_of_data_folders = length(folder_list);
+                path_split = strsplit(subject_path, filesep);
+                subject = path_split{end};
+                subject_list = cell(number_of_data_folders, 1);
+                data_folder_list = cell(number_of_data_folders, 1);
+                for i_folder = 1 : number_of_data_folders
+                    subject_list{i_folder} = subject;
+                    data_folder_list{i_folder} = [subject_path filesep folder_list{i_folder}];
+                end                
+            end
+        end
+    end
+    
+    
+    
+    
+    % old way to determine subjects, delete later
+%     if strcmp(path_split(end), subjects{i_subject})
+%         % we're already in the subject folder, so just load from here
+%         data_path = '';
+%     end
+%     if true % TODO: change this when determineDataStructure has worked
+%         % we're in the study root, so load from subject folder
+%         data_path = [subjects{i_subject} filesep];
+%     end
+%     load([data_path 'subjectInfo.mat'], 'date', 'subject_id');
+%     load([data_path 'analysis' filesep date '_' subject_id '_results.mat']);
+% 
+% 
+% 
+%     % determine subject list
+%     subject_list_determined = false;
+%     if ~isempty(subjects)
+%         subject_list_determined = true;
+%     end
+%     if ~subject_list_determined && exist('subjectInfo.mat', 'file')
+%         % no list passed, but current folder is a data folder, so plot this data
+%         subject_data_file = 'subjects.csv';
+%         format = '%s';
+%         fid = fopen(subject_data_file);
+%         fgetl(fid);
+%         fgetl(fid);
+%         data_raw = textscan(fid, format);
+%         fclose(fid);
+% 
+%         % transform to cell
+%         data_lines = data_raw{1};
+%         data_cell = {};
+%         for i_line = 1 : length(data_lines)
+%             line_split = strsplit(data_lines{i_line}, ',');
+%             data_cell = [data_cell; line_split]; %#ok<AGROW>
+%         end
+% 
+%         subjects = data_cell(:, 1);
+%     end
+%     
+%     
+%     
+%     if ~subject_list_determined && (exist(['..' filesep 'subjects.csv'], 'file') || exist(['..' filesep '..' filesep 'subjects.csv'], 'file'))
+%         % no list passed, there's a subject list one or two levels up, load from there
+%         if exist(['..' filesep 'subjects.csv'], 'file')
+%             subject_data_file = ['..' filesep 'subjects.csv'];
+%         end
+%         if exist(['..' filesep '..' filesep 'subjects.csv'], 'file')
+%             subject_data_file = ['..' filesep '..' filesep 'subjects.csv'];
+%         end
+%         format = '%s';
+%         fid = fopen(subject_data_file);
+%         fgetl(fid);
+%         fgetl(fid);
+%         data_raw = textscan(fid, format);
+%         fclose(fid);
+% 
+%         % transform to cell
+%         data_lines = data_raw{1};
+%         data_cell = {};
+%         for i_line = 1 : length(data_lines)
+%             line_split = strsplit(data_lines{i_line}, ',');
+%             data_cell = [data_cell; line_split]; %#ok<AGROW>
+%         end
+% 
+%         subjects = data_cell(:, 1);
+%     end
+%     if ischar(subjects)
+%         % single string (i.e. char array) was passed, make a cell out of this
+%         subjects = {subjects};
+%     end
+
+end
 
 function [comparison_indices, conditions_per_comparison_max] = determineComparisons(study_settings)
     % initialize
