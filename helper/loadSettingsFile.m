@@ -48,6 +48,24 @@ function settings = loadSettingsFile(filename)
     end
     fclose(fileID);
     
+    % prune lines
+    lines_to_prune = false(size(text_cell, 1), 1);
+    for i_line = 1 : size(text_cell, 1)
+        this_line = text_cell{i_line};
+        
+        % remove comments
+        if length(this_line) > 1 && strcmp(this_line(1:2), '//')
+            lines_to_prune(i_line) = true;
+        end
+        
+        % remove lines consisting only of white space
+        if all(ismember(this_line, ' ') | double(this_line) == 9)
+            lines_to_prune(i_line) = true;
+        end
+        
+    end
+    text_cell(lines_to_prune) = [];
+    
     % extract data and store in settings struct
     while ~isempty(text_cell)
         [text_cell, settings] = parseNextBlock(text_cell, settings);
@@ -59,23 +77,23 @@ function [text_cell, settings] = parseNextBlock(text_cell, settings)
     % get first line of remaining text
     text_line = text_cell{1};
     
-    if isempty(text_line)
-        % empty line, remove line
-        text_cell = text_cell(2:end);
-        return
-    end
+%     if isempty(text_line)
+%         % empty line, remove line
+%         text_cell = text_cell(2:end);
+%         return
+%     end
     
-    if ~any(text_line ~= ' ')
-        % only spaces, remove line
-        text_cell = text_cell(2:end);
-        return
-    end
+%     if ~any(text_line ~= ' ')
+%         % only spaces, remove line
+%         text_cell = text_cell(2:end);
+%         return
+%     end
     
-    if length(text_line) >= 2 && strcmp(text_line(1:2), '//')
-        % comment, remove line
-        text_cell = text_cell(2:end);
-        return
-    end
+%     if length(text_line) >= 2 && strcmp(text_line(1:2), '//')
+%         % comment, remove line
+%         text_cell = text_cell(2:end);
+%         return
+%     end
 
     if (length(text_cell) > 1) && (text_cell{2}(1) == '{')
         % this is the beginning of a block
