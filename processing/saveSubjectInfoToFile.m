@@ -105,6 +105,52 @@ function saveSubjectInfoToFile
         end
     end
     
+    % if we have a conditions file, remove the trials not listed there
+    conditions_file_name = [];
+    if exist('conditions.csv', 'file')
+        conditions_file_name = 'conditions.csv';
+    end
+    if exist(makeFileName(date, subject_id, 'conditions.csv'), 'file')
+        conditions_file_name = makeFileName(date, subject_id, 'conditions.csv');
+    end
+    if ~isempty(conditions_file_name)
+        % read file
+        fileID = fopen(conditions_file_name, 'r');
+        header_line = fgetl(fileID);
+        text_cell = {};
+        text_line = fgetl(fileID);
+        while ischar(text_line)
+            text_cell = [text_cell; text_line]; %#ok<AGROW>
+            text_line = fgetl(fileID);
+        end
+        fclose(fileID);
+
+        % transform to arrays
+        header = strsplit(strrep(header_line, ' ', ''), ',');
+        condition_header = header(2 : end);
+        number_of_trials = size(text_cell, 1);
+        number_of_conditions = size(header, 2) - 1;
+        trials_from_condition_file_list = zeros(number_of_trials, 1) * NaN;
+        condition_cell = cell(number_of_trials, number_of_conditions);
+        for i_trial = 1 : number_of_trials
+            text_line = text_cell{i_trial};
+            line_split = strsplit(text_line, ',');
+            trials_from_condition_file_list(i_trial) = str2num(line_split{1});
+            condition_cell(i_trial, :) = line_split(2:end);
+        end
+        
+        walking_condition_index = find(strcmp(condition_list, 'walking'));
+        if ~isempty(walking_condition_index)
+            trial_number_list_walking = trial_number_list{walking_condition_index};
+            matches = ismember(trial_number_list_walking, trials_from_condition_file_list);
+            matching_indices = find(matches);
+            trial_number_list_walking_pruned = trial_number_list_walking(matching_indices);
+            trial_number_list{walking_condition_index} = trial_number_list_walking_pruned;
+        end
+        
+    end
+    
+    
     % save to file
     save ...
       ( ...

@@ -21,7 +21,7 @@ function transformations = calculateMcsToWcsTransformations_detailed(marker_posi
     transformations = cell(length(segment_labels), 1);
     for i_segment = 1 : length(segment_labels)
         this_segment_label = segment_labels{i_segment};
-        
+
         if strcmp(this_segment_label, 'PELVIS')
             LASI = extractMarkerTrajectories(marker_positions, marker_headers, 'LASI')';
             RASI = extractMarkerTrajectories(marker_positions, marker_headers, 'RASI')';
@@ -37,7 +37,6 @@ function transformations = calculateMcsToWcsTransformations_detailed(marker_posi
             MPSIS_to_MASIS = MASIS - MPSIS;
             
             positions_this_segment = [pelvis_base_point, pelvis_base_point+pelvis_left_to_right, pelvis_base_point+MPSIS_to_MASIS]';
-            number_of_markers_this_segment = 3;
             
         else % define three markers and use these to define the basis
             if strcmp(this_segment_label, 'HEAD')
