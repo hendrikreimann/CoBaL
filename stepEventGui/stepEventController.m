@@ -117,7 +117,7 @@ classdef stepEventController < handle
             this.updateSelectedTime();
         end
         function updateSelectedEventPlots(this)
-            for i_figure = 1 : length(this.figureSelectionBox.String)
+            for i_figure = 1 : size(this.figureSelectionBox.String, 1)
                 this.figureSelectionBox.UserData{i_figure}.updateSelectedEventPlot();
             end
         end
@@ -126,7 +126,7 @@ classdef stepEventController < handle
             [~, index_mocap] = min(abs(this.trial_data.time_marker - this.trial_data.selected_time));
             
             % update step event figures
-            for i_figure = 1 : length(this.figureSelectionBox.String)
+            for i_figure = 1 : size(this.figureSelectionBox.String, 1)
                 this.figureSelectionBox.UserData{i_figure}.updateSelectedTimePlot();
             end
             
@@ -169,17 +169,17 @@ classdef stepEventController < handle
             this.selected_time_edit.String = num2str(this.trial_data.selected_time);
         end
         function updateEventPlots(this)
-            for i_figure = 1 : length(this.figureSelectionBox.String)
+            for i_figure = 1 : size(this.figureSelectionBox.String, 1)
                 this.figureSelectionBox.UserData{i_figure}.updateEventPlots();
             end
         end
         function updateDataPlots(this)
-            for i_figure = 1 : length(this.figureSelectionBox.String)
+            for i_figure = 1 : size(this.figureSelectionBox.String, 1)
                 this.figureSelectionBox.UserData{i_figure}.updateDataPlots();
             end
         end
         function updateStretchPatches(this)
-            for i_figure = 1 : length(this.figureSelectionBox.String)
+            for i_figure = 1 : size(this.figureSelectionBox.String, 1)
                 this.figureSelectionBox.UserData{i_figure}.updateStretchPatches();
             end
         end            
@@ -254,7 +254,7 @@ classdef stepEventController < handle
         end
         function saveFigureSettings(this, sender, eventdata)
             figure_settings = cell(1, length(this.figureSelectionBox));
-            for i_figure = 1 : length(this.figureSelectionBox.String)
+            for i_figure = 1 : size(this.figureSelectionBox.String, 1)
                 figure_settings{i_figure} = this.figureSelectionBox.UserData{i_figure}.getSetting();
             end
             
@@ -340,7 +340,7 @@ classdef stepEventController < handle
                     if get(this.lockAddEventsButton, 'ForegroundColor') == this.color_normal
                         set(this.addEventButtons(i_button), 'ForegroundColor', this.color_normal);
                         % change mouse cursors to normal
-                        for i_figure = 1 : length(this.figureSelectionBox.String)
+                        for i_figure = 1 : size(this.figureSelectionBox.String, 1)
                             set(this.figureSelectionBox.UserData{i_figure}.main_figure, 'Pointer', 'arrow');
                         end
                     end
@@ -359,13 +359,13 @@ classdef stepEventController < handle
                 set(sender, 'ForegroundColor', this.color_selected);
                 
                 % change mouse cursors to crosshair
-                for i_figure = 1 : length(this.figureSelectionBox.String)
+                for i_figure = 1 : size(this.figureSelectionBox.String, 1)
                     set(this.figureSelectionBox.UserData{i_figure}.main_figure, 'Pointer', 'crosshair');
                 end
             elseif get(sender, 'ForegroundColor') == this.color_selected
                 set(sender, 'ForegroundColor', this.color_normal);
                 % change mouse cursors to normal
-                for i_figure = 1 : length(this.figureSelectionBox.String)
+                for i_figure = 1 : size(this.figureSelectionBox.String, 1)
                     set(this.figureSelectionBox.UserData{i_figure}.main_figure, 'Pointer', 'arrow');
                 end
             end
@@ -508,7 +508,7 @@ classdef stepEventController < handle
                     rethrow(exception)
                 end
             end
-            for i_figure = 1 : length(this.figureSelectionBox.String)
+            for i_figure = 1 : size(this.figureSelectionBox.String, 1)
                 try
                     close(this.figureSelectionBox.UserData{i_figure}.main_figure);
                 catch exception
