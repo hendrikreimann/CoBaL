@@ -23,6 +23,11 @@ classdef WalkingEventData < handle
         right_pushoff;
         right_touchdown;
         
+        left_arm_swing_onset_times;
+        right_arm_swing_onset_times;
+        left_leg_swing_onset_times;
+        right_leg_swing_onset_times;
+        
         selected_event_label;
         selected_event_time;
         
@@ -42,6 +47,20 @@ classdef WalkingEventData < handle
             this.left_touchdown = loaded_event_data.left_touchdown_times;
             this.right_pushoff = loaded_event_data.right_pushoff_times;
             this.right_touchdown = loaded_event_data.right_touchdown_times;
+            
+            if isfield(loaded_event_data, 'left_arm_swing_onset_times')
+                this.left_arm_swing_onset_times = loaded_event_data.left_arm_swing_onset_times;
+            end
+            if isfield(loaded_event_data, 'right_arm_swing_onset_times')
+                this.right_arm_swing_onset_times = loaded_event_data.right_arm_swing_onset_times;
+            end
+            if isfield(loaded_event_data, 'left_leg_swing_onset_times')
+                this.left_leg_swing_onset_times = loaded_event_data.left_leg_swing_onset_times;
+            end
+            if isfield(loaded_event_data, 'right_leg_swing_onset_times')
+                this.right_leg_swing_onset_times = loaded_event_data.right_leg_swing_onset_times;
+            end
+            
             this.removeDuplicates();
         end
         function loadStretches(this)

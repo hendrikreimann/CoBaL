@@ -100,7 +100,7 @@ function [text_cell, settings] = parseNextBlock(text_cell, settings)
         variable_array = zeros(size(variable_value)) * NaN;
         for i_row = 1 : size(variable_value, 1)
             for i_col = 1 : size(variable_value, 2)
-                if all(ismember(variable_value{i_row, i_col}, '0123456789+-.eEdD'))
+                if all(ismember(variable_value{i_row, i_col}, '0123456789-.'))
                     variable_array(i_row, i_col) = str2num(variable_value{i_row, i_col}); %#ok<ST2NM>
                 end
             end
