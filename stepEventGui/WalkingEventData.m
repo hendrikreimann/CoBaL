@@ -34,6 +34,7 @@ classdef WalkingEventData < handle
         function this = WalkingEventData(trialData)
             this.trial_data = trialData;
             this.loadEvents();
+            this.loadStretches();
         end
         function loadEvents(this)
             loaded_event_data = load([this.trial_data.data_directory filesep 'analysis' filesep makeFileName(this.trial_data.date, this.trial_data.subject_id, this.trial_data.condition, this.trial_data.trial_number, 'stepEvents')]);
@@ -41,12 +42,12 @@ classdef WalkingEventData < handle
             this.left_touchdown = loaded_event_data.left_touchdown_times;
             this.right_pushoff = loaded_event_data.right_pushoff_times;
             this.right_touchdown = loaded_event_data.right_touchdown_times;
-            
+            this.removeDuplicates();
+        end
+        function loadStretches(this)
             loaded_stretch_data = load([this.trial_data.data_directory filesep 'analysis' filesep makeFileName(this.trial_data.date, this.trial_data.subject_id, this.trial_data.condition, this.trial_data.trial_number, 'relevantDataStretches')]);
             this.stretch_start_times = loaded_stretch_data.stretch_start_times;
             this.stretch_end_times = loaded_stretch_data.stretch_end_times;
-            
-            this.removeDuplicates();
         end
         function saveEvents(this, sender, eventdata)
             % prepare data

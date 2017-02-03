@@ -29,6 +29,9 @@ classdef stepEventController < handle
         saveEventsButton;
         addEventButtons;
         lockAddEventsButton
+        findStretchesButton;
+        saveStretchesButton;
+        automateStretchFindingButton;
         previousTrialButton
         nextTrialButton
         quitButton
@@ -37,8 +40,6 @@ classdef stepEventController < handle
         trial_number_label
         
         figureSelectionBox;
-        heel_pos_peak_width;
-        toes_vel_peak_width;
         selected_time_edit;
         
         scene_figure = [];
@@ -68,7 +69,7 @@ classdef stepEventController < handle
             this.loadFigureSettingsButton = uicontrol(figures_panel, 'Style', 'pushbutton', 'Position', [140, figures_panel_height-100, 130, 60], 'Fontsize', 12, 'String', 'Load Figure Settings', 'callback', @this.loadFigureSettings);
 
             % event controls
-            events_panel_height = 180;
+            events_panel_height = 200;
             events_panel = uipanel(this.control_figure, 'Title', 'Events Control', 'FontSize', 12, 'BackgroundColor', 'white', 'Units', 'pixels', 'Position', [5, figure_height-figures_panel_height-events_panel_height-5, figure_width-10, events_panel_height]);
             this.findEventsButton = uicontrol(events_panel, 'Style', 'pushbutton', 'Position', [5, events_panel_height-75, 130, 60], 'Fontsize', 12, 'String', 'Find Events', 'callback', @this.findEvents);
             this.saveEventsButton = uicontrol(events_panel, 'Style', 'pushbutton', 'Position', [140, events_panel_height-75, 130, 60], 'Fontsize', 12, 'String', 'Save Events', 'callback', @event_data.saveEvents);
@@ -79,10 +80,9 @@ classdef stepEventController < handle
             this.addEventButtons(3) = uicontrol(events_panel, 'Style', 'pushbutton', 'Position', [205, events_panel_height-135, 100, 60], 'Fontsize', 12, 'String', '<html><center>Add Right<br></center>Pushoff', 'callback', @this.addEventButtonPressed, 'UserData', 'right_pushoff');
             this.addEventButtons(4)= uicontrol(events_panel, 'Style', 'pushbutton', 'Position', [305, events_panel_height-135, 100, 60], 'Fontsize', 12, 'String', '<html><center>Add Right<br></center>Touchdown', 'callback', @this.addEventButtonPressed, 'UserData', 'right_touchdown');
 
-            uicontrol(events_panel, 'Style', 'text', 'string', 'Heel pos peak prominence (m):', 'Position', [5, events_panel_height-160, 190, 20], 'Fontsize', 10, 'HorizontalAlignment', 'left', 'BackgroundColor', 'white');
-            this.heel_pos_peak_width = uicontrol(events_panel, 'Style', 'edit', 'BackgroundColor', 'white', 'Position', [150, events_panel_height-157, 40, 20], 'String', '0.05');
-            uicontrol(events_panel, 'Style', 'text', 'string', 'Toes vel peak prominence (m):', 'Position', [5, events_panel_height-180, 190, 20], 'Fontsize', 10, 'HorizontalAlignment', 'left', 'BackgroundColor', 'white');
-            this.toes_vel_peak_width = uicontrol(events_panel, 'Style', 'edit', 'BackgroundColor', 'white', 'Position', [150, events_panel_height-177, 40, 20], 'String', '0.05');
+            this.findStretchesButton = uicontrol(events_panel, 'Style', 'pushbutton', 'Position', [5, events_panel_height-195, 130, 60], 'Fontsize', 12, 'String', 'Find Stretches', 'callback', @this.findStretches);
+            this.saveStretchesButton = uicontrol(events_panel, 'Style', 'pushbutton', 'Position', [140, events_panel_height-195, 130, 60], 'Fontsize', 12, 'String', 'Save Stretches', 'callback', @this.saveStretches);
+            this.automateStretchFindingButton = uicontrol(events_panel, 'Style', 'pushbutton', 'Position', [275, events_panel_height-195, 130, 60], 'Fontsize', 12, 'String', 'Auto Save', 'callback', @this.automateStretchFinding);
             
             % figure control
             files_panel_height = 95;
@@ -202,21 +202,28 @@ classdef stepEventController < handle
                 this.event_data.selectPreviousEvent();
                 this.updateSelectedEventPlots();
                 this.updateSelectedTime();
-            elseif strcmp(eventdata.Key, 'd') && isempty(eventdata.Modifier)
+            end
+            if strcmp(eventdata.Key, 'd') && isempty(eventdata.Modifier)
                 this.event_data.selectNextEvent();
                 this.updateSelectedEventPlots();
                 this.updateSelectedTime();
-            elseif strcmp(eventdata.Key, 'w') && isempty(eventdata.Modifier)
+            end
+            if strcmp(eventdata.Key, 'w') && isempty(eventdata.Modifier)
                 this.updateTimeWindow('zoom in');
-            elseif strcmp(eventdata.Key, 'x') && isempty(eventdata.Modifier)
+            end
+            if strcmp(eventdata.Key, 'x') && isempty(eventdata.Modifier)
                 this.updateTimeWindow('zoom out');
-            elseif strcmp(eventdata.Key, 's') && isempty(eventdata.Modifier)
+            end
+            if strcmp(eventdata.Key, 's') && isempty(eventdata.Modifier)
                 this.updateTimeWindow('center');
-            elseif strcmp(eventdata.Key, 'q') && isempty(eventdata.Modifier)
+            end
+            if strcmp(eventdata.Key, 'q') && isempty(eventdata.Modifier)
                 this.updateTimeWindow('previous');
-            elseif strcmp(eventdata.Key, 'e') && isempty(eventdata.Modifier)
+            end
+            if strcmp(eventdata.Key, 'e') && isempty(eventdata.Modifier)
                 this.updateTimeWindow('next');
-            elseif strcmp(eventdata.Key, 'leftarrow')
+            end
+            if strcmp(eventdata.Key, 'leftarrow')
                 if isempty(eventdata.Modifier)
                     this.trial_data.stepSelectedTime('back')
                 elseif strcmp(eventdata.Modifier, 'shift')
@@ -225,7 +232,8 @@ classdef stepEventController < handle
                     this.trial_data.stepSelectedTime('back', 25)
                 end
                 this.updateSelectedTime();
-            elseif strcmp(eventdata.Key, 'rightarrow')
+            end
+            if strcmp(eventdata.Key, 'rightarrow')
                 if isempty(eventdata.Modifier)
                     this.trial_data.stepSelectedTime('forward')
                 elseif strcmp(eventdata.Modifier, 'shift')
@@ -234,17 +242,27 @@ classdef stepEventController < handle
                     this.trial_data.stepSelectedTime('forward', 25)
                 end
                 this.updateSelectedTime();
-            elseif strcmp(eventdata.Key, 'z') || strcmp(eventdata.Key, 'c')
+            end
+            if strcmp(eventdata.Key, 'z') || strcmp(eventdata.Key, 'c')
                 this.moveSelectedEvent(sender, eventdata);
-            elseif strcmp(eventdata.Key, 'x') && strcmp(eventdata.Modifier, 'command')
+            end
+            if strcmp(eventdata.Key, 'x') && strcmp(eventdata.Modifier, 'command')
                 % this won't work on windows systems, adapt that!
                 this.quit();
-            elseif strcmp(eventdata.Key, 'delete') || strcmp(eventdata.Key, 'backspace')
+            end
+            if strcmp(eventdata.Key, 'delete') || strcmp(eventdata.Key, 'backspace')
                 this.event_data.updateEventTime(this.event_data.selected_event_label, this.event_data.selected_event_time, NaN);
                 this.updateEventPlots();
                 this.updateSelectedEventPlots();
                 this.updateSelectedTime();
-            elseif strcmp(eventdata.Key, 'escape')
+                
+                if get(this.automateStretchFindingButton, 'ForegroundColor') == this.color_selected
+                    % automatic processing requested
+                    this.event_data.saveEvents;
+                    this.findStretches(sender, eventdata);
+                end            
+            end  
+            if strcmp(eventdata.Key, 'escape')
                 set(this.addLeftPushoffButton, 'ForegroundColor', [0 0 0]);
                 set(this.addLeftTouchdownButton, 'ForegroundColor', [0 0 0]);
                 set(this.addRightPushoffButton, 'ForegroundColor', [0 0 0]);
@@ -290,45 +308,52 @@ classdef stepEventController < handle
             end
         end
         function findEvents(this, sender, eventdata)
-            % this should eventually be moved to WalkingEventData
+            % find events
+            findStepEvents('condition', this.trial_data.condition, 'trials', this.trial_data.trial_number);
             
-            % left touchdown
-            [~, left_touchdown_indices_mocap] = findpeaks(-this.trial_data.getData('left_heel_z_pos'), 'MinPeakProminence', str2num(this.heel_pos_peak_width.String));
-            time = this.trial_data.getTime('left_heel_z_pos');
-            left_touchdown_times = time(left_touchdown_indices_mocap);
-            this.event_data.setEventTimes(left_touchdown_times, 'left_touchdown');
+            % load results from events file
+            this.event_data.loadEvents;
 
-            % left pushoff
-            [~, left_pushoff_indices_mocap] = findpeaks(this.trial_data.getData('left_toes_z_vel'), 'MinPeakProminence', str2num(this.toes_vel_peak_width.String));
-            time = this.trial_data.getTime('left_toes_z_vel');
-            left_pushoff_times = time(left_pushoff_indices_mocap);
-            this.event_data.setEventTimes(left_pushoff_times, 'left_pushoff');
-
-            % right touchdown
-            [~, right_touchdown_indices_mocap] = findpeaks(-this.trial_data.getData('right_heel_z_pos'), 'MinPeakProminence', str2num(this.heel_pos_peak_width.String));
-            time = this.trial_data.getTime('right_heel_z_pos');
-            right_touchdown_times = time(right_touchdown_indices_mocap);
-            this.event_data.setEventTimes(right_touchdown_times, 'right_touchdown');
-
-            % right pushoff
-            [~, right_pushoff_indices_mocap] = findpeaks(this.trial_data.getData('right_toes_z_vel'), 'MinPeakProminence', str2num(this.toes_vel_peak_width.String));
-            time = this.trial_data.getTime('right_toes_z_vel');
-            right_pushoff_times = time(right_pushoff_indices_mocap);
-            this.event_data.setEventTimes(right_pushoff_times, 'right_pushoff');
-
+            % update plots
+            this.updateEventPlots;
+            this.event_data.selectNextEvent;
+            this.updateSelectedEventPlots;
+            this.updateSelectedTime
+            
             this.updateEventPlots();
-
-
+            
+            if get(this.automateStretchFindingButton, 'ForegroundColor') == this.color_selected
+                % automatic processing requested
+                this.findStretches(sender, eventdata);
+            end            
         end
         
-        function deleteEvent(this, sender, eventdata)
-            % this should eventually be moved to WalkingEventData
+        function findStretches(this, sender, eventdata)
+            % find stretches
+            findRelevantDataStretches('condition', this.trial_data.condition, 'trials', this.trial_data.trial_number);
             
-            selected_event_time_current = this.selected_event_time;
+            % load results from stretch file
+            this.event_data.loadStretches;
             
-            this.selected_event_time = this.event_data.updateEventTime(this.selected_event_label, selected_event_time_current, NaN);
+            % update plots
+            this.updateStretchPatches;
+        end
+        function saveStretches(this, sender, eventdata)
             
         end
+        function automateStretchFinding(this, sender, eventdata)
+            if get(sender, 'ForegroundColor') == this.color_normal
+                set(sender, 'ForegroundColor', this.color_selected);
+                
+                % process changes that have been made but might not have been saved
+                this.event_data.saveEvents;
+                this.findStretches(sender, eventdata)
+            else
+                set(sender, 'ForegroundColor', this.color_normal);
+            end
+            
+        end
+        
         function addEvent(this, event_time)
             for i_button = 1 : length(this.addEventButtons)
                 if get(this.addEventButtons(i_button), 'ForegroundColor') == this.color_selected
@@ -346,7 +371,11 @@ classdef stepEventController < handle
                     end
                 end
             end
-            
+            if get(this.automateStretchFindingButton, 'ForegroundColor') == this.color_selected
+                % automatic processing requested
+                this.event_data.saveEvents;
+                this.findStretches();
+            end            
         end
         function addEventButtonPressed(this, sender, eventdata)
             % check if this button was pressed
@@ -461,6 +490,7 @@ classdef stepEventController < handle
             this.trial_data.loadMarkerTrajectories;
             this.trial_data.loadForceplateTrajectories;
             this.event_data.loadEvents;
+            this.event_data.loadStretches;
             
             this.updateDataPlots;
             this.updateEventPlots;
@@ -488,7 +518,8 @@ classdef stepEventController < handle
             this.trial_data.loadMarkerTrajectories;
             this.trial_data.loadForceplateTrajectories;
             this.event_data.loadEvents;
-            
+            this.event_data.loadStretches;
+
             this.updateDataPlots;
             this.updateEventPlots;
             this.updateStretchPatches;

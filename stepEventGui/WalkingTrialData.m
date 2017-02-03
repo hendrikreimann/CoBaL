@@ -83,6 +83,20 @@ classdef WalkingTrialData < handle
         right_my = [];
         right_mz = [];
         
+        
+        left_foot_fx = [];
+        left_foot_fy = [];
+        left_foot_fz = [];
+        left_foot_mx = [];
+        left_foot_my = [];
+        left_foot_mz = [];
+        
+        right_foot_fx = [];
+        right_foot_fy = [];
+        right_foot_fz = [];
+        right_foot_mx = [];
+        right_foot_my = [];
+        right_foot_mz = [];
         stimulus_state = [];
         
         data_labels_mocap = ...
@@ -100,6 +114,8 @@ classdef WalkingTrialData < handle
           {
             'left_fx', 'left_fy', 'left_fz', 'left_mx', 'left_my', 'left_mz', ...
             'right_fx', 'right_fy', 'right_fz', 'right_mx', 'right_my', 'right_mz' ...
+            'left_foot_fx', 'left_foot_fy', 'left_foot_fz', 'left_foot_mx', 'left_foot_my', 'left_foot_mz', ...
+            'right_foot_fx', 'right_foot_fy', 'right_foot_fz', 'right_foot_mx', 'right_foot_my', 'right_foot_mz' ...
           }
         data_labels_labview = ...
           {
@@ -129,25 +145,6 @@ classdef WalkingTrialData < handle
             end
         end
         function loadMarkerTrajectories(this)
-            % load marker data
-%             loaded_marker_trajectories = load([this.data_directory filesep 'processed' filesep makeFileName(this.date, this.subject_id, this.condition, this.trial_number, 'markerTrajectories')]);
-%             this.marker_positions = loaded_marker_trajectories.marker_trajectories;
-%             this.marker_labels = loaded_marker_trajectories.marker_labels;
-%            
-%             % time
-%             this.sampling_rate_marker = loaded_marker_trajectories.sampling_rate_marker;
-%             this.recording_time = loaded_marker_trajectories.time_mocap(end);
-%             time_mocap = loaded_marker_trajectories.time_mocap;
-% 
-%             com_file_name = [this.data_directory filesep 'processed' filesep makeFileName(this.date, this.subject_id, this.condition, this.trial_number, 'kinematicTrajectories.mat')];
-%             if exist(com_file_name, 'file')
-%                 loaded_trajectories = load(com_file_name);
-%                 this.joint_center_positions = loaded_trajectories.joint_center_trajectories;
-%                 this.com_positions = loaded_trajectories.com_trajectories;
-%                 this.com_labels = loaded_trajectories.com_labels;
-%                 this.joint_angles = loaded_trajectories.joint_angle_trajectories;
-%             end
-
             [marker_trajectories, time_marker, sampling_rate_marker, marker_labels] = loadData(this.date, this.subject_id, this.condition, this.trial_number, 'marker_trajectories');
             this.marker_positions = marker_trajectories;
             this.time_marker = time_marker;
@@ -254,6 +251,20 @@ classdef WalkingTrialData < handle
                 this.right_mx = loaded_forceplate_trajectories.mxr_trajectory;
                 this.right_my = loaded_forceplate_trajectories.myr_trajectory;
                 this.right_mz = loaded_forceplate_trajectories.mzr_trajectory;
+                
+                this.left_foot_fx = loaded_forceplate_trajectories.left_foot_wrench_world(:, 1);
+                this.left_foot_fy = loaded_forceplate_trajectories.left_foot_wrench_world(:, 2);
+                this.left_foot_fz = loaded_forceplate_trajectories.left_foot_wrench_world(:, 3);
+                this.left_foot_mx = loaded_forceplate_trajectories.left_foot_wrench_world(:, 4);
+                this.left_foot_my = loaded_forceplate_trajectories.left_foot_wrench_world(:, 5);
+                this.left_foot_mz = loaded_forceplate_trajectories.left_foot_wrench_world(:, 6);
+                this.right_foot_fx = loaded_forceplate_trajectories.right_foot_wrench_world(:, 1);
+                this.right_foot_fy = loaded_forceplate_trajectories.right_foot_wrench_world(:, 2);
+                this.right_foot_fz = loaded_forceplate_trajectories.right_foot_wrench_world(:, 3);
+                this.right_foot_mx = loaded_forceplate_trajectories.right_foot_wrench_world(:, 4);
+                this.right_foot_my = loaded_forceplate_trajectories.right_foot_wrench_world(:, 5);
+                this.right_foot_mz = loaded_forceplate_trajectories.right_foot_wrench_world(:, 6);
+                
             else
                 this.time_forceplate = [];
 
@@ -270,16 +281,22 @@ classdef WalkingTrialData < handle
                 this.right_my = [];
                 this.right_mz = [];
                 
+                this.left_foot_fx = [];
+                this.left_foot_fy = [];
+                this.left_foot_fz = [];
+                this.left_foot_mx = [];
+                this.left_foot_my = [];
+                this.left_foot_mz = [];
+                this.right_foot_fx = [];
+                this.right_foot_fy = [];
+                this.right_foot_fz = [];
+                this.right_foot_mx = [];
+                this.right_foot_my = [];
+                this.right_foot_mz = [];
             end
             
             
         end
-%         function loadLabviewTrajectories(this)
-%             loaded_labview_trajectories = load([this.data_directory filesep makeFileName(this.date, this.subject_id, this.condition, this.trial_number, 'labviewTrajectories')]);
-%             
-%             this.time_labview = loaded_labview_trajectories.time_labview;
-%             this.stimulus_state = loaded_labview_trajectories.stimulus_state_trajectory;
-%         end
         
         function time = getTime(this, data_label)
             if any(strcmp(data_label, this.data_labels_mocap))

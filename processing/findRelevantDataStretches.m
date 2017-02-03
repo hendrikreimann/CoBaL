@@ -391,8 +391,8 @@ function findRelevantDataStretches(varargin)
                     'stretch_end_times' ...
                   )
 
-                disp(['Condition ' condition_list{i_condition} ', Trial ' num2str(i_trial) ' completed, found ' num2str(length(stretch_start_times)) ' relevant stretches, saved as ' data_stretches_file_name]);                
-                
+                disp(['Finding Relevant Data Stretches: condition ' condition_list{i_condition} ', Trial ' num2str(i_trial) ' completed, found ' num2str(length(stretch_start_times)) ' relevant stretches, saved as ' data_stretches_file_name]);                
+               
                 
                 
                 
@@ -517,7 +517,7 @@ function findRelevantDataStretches(varargin)
                     'stretch_end_times' ...
                   )
 
-                disp(['Condition ' condition_list{i_condition} ', Trial ' num2str(i_trial) ' completed, found ' num2str(length(stretch_start_times)) ' relevant stretches, saved as ' data_stretches_file_name]);                
+                disp(['Finding Relevant Data Stretches: condition ' condition_list{i_condition} ', Trial ' num2str(i_trial) ' completed, found ' num2str(length(stretch_start_times)) ' relevant stretches, saved as ' data_stretches_file_name]);                
 
             end
             if strcmp(condition_stimulus, 'VISUAL') || strcmp(condition_stimulus, 'GVS')
@@ -1089,7 +1089,7 @@ function findRelevantDataStretches(varargin)
                     'closest_heelstrike_distance_times' ...
                   )
 
-                disp(['Condition ' condition_list{i_condition} ', Trial ' num2str(i_trial) ' completed, found ' num2str(length(stretch_start_times)) ' relevant stretches, saved as ' data_stretches_file_name]);                
+                disp(['Finding Relevant Data Stretches: condition ' condition_list{i_condition} ', Trial ' num2str(i_trial) ' completed, found ' num2str(length(stretch_start_times)) ' relevant stretches, saved as ' data_stretches_file_name]);                
                 
                 
             end            

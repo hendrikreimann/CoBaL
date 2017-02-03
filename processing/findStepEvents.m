@@ -315,8 +315,10 @@ function findStepEvents(varargin)
                 right_fz_trajectory_marker = spline(time_right_forceplate, right_fz_trajectory, time_marker);
             end
             if visualize
+                step_event_figures = zeros(1, 4);
+                
                 % left position
-                figure; axes_left = axes; hold on; title('left foot marker positions')
+                step_event_figures(1) = figure; axes_left = axes; hold on; title('left foot marker positions')
                 plot(time_marker, LHEE_z_trajectory, 'linewidth', 1, 'displayname', 'left heel vertical');
                 plot(time_marker, LTOE_z_trajectory, 'linewidth', 1, 'displayname', 'left toes vertical');
                 plot(time_marker(left_touchdown_indices_mocap), LHEE_z_trajectory(left_touchdown_indices_mocap), 'v', 'linewidth', 2, 'color', color_heelstrike, 'displayname', 'left touchdown');
@@ -332,7 +334,7 @@ function findStepEvents(varargin)
                 legend('toggle');
 
                 % left derivatives
-                figure; axes_left_derivatives = axes; hold on;  title('left foot marker derivatives (scaled for qualitative overview)')
+                step_event_figures(2) = figure; axes_left_derivatives = axes; hold on;  title('left foot marker derivatives (scaled for qualitative overview)')
                 plot(time_marker, LHEE_z_acc_trajectory*acc_scaler, 'linewidth', 1, 'displayname', 'left heel acceleration vertical');
                 plot(time_marker, LTOE_z_vel_trajectory*vel_scaler, 'linewidth', 1, 'displayname', 'left toes velocity vertical');
                 plot(time_marker(left_touchdown_indices_mocap), LHEE_z_acc_trajectory(left_touchdown_indices_mocap)*acc_scaler, 'v', 'linewidth', 2, 'color', color_heelstrike, 'displayname', 'left touchdown');
@@ -347,7 +349,7 @@ function findStepEvents(varargin)
                 legend('toggle');
 
                 % right position
-                figure; axes_right = axes; hold on; title('right foot marker positions')
+                step_event_figures(3) = figure; axes_right = axes; hold on; title('right foot marker positions')
                 plot(time_marker, RHEE_z_trajectory, 'linewidth', 1, 'displayname', 'right heel vertical');
                 plot(time_marker, RTOE_z_trajectory, 'linewidth', 1, 'displayname', 'right toes vertical');
                 plot(time_marker(right_touchdown_indices_mocap), RHEE_z_trajectory(right_touchdown_indices_mocap), 'v', 'linewidth', 2, 'color', color_heelstrike, 'displayname', 'right touchdown');
@@ -362,7 +364,7 @@ function findStepEvents(varargin)
                 legend('toggle');
 
                 % right derivatives
-                figure; axes_right_derivatives = axes; hold on;  title('right foot marker derivatives (scaled for qualitative overview)')
+                step_event_figures(4) = figure; axes_right_derivatives = axes; hold on;  title('right foot marker derivatives (scaled for qualitative overview)')
                 plot(time_marker, RHEE_z_acc_trajectory*acc_scaler, 'linewidth', 1, 'displayname', 'right heel acceleration vertical');
                 plot(time_marker, RTOE_z_vel_trajectory*vel_scaler, 'linewidth', 1, 'displayname', 'right toes velocity vertical');
                 plot(time_marker(right_touchdown_indices_mocap), RHEE_z_acc_trajectory(right_touchdown_indices_mocap)*acc_scaler, 'v', 'linewidth', 2, 'color', color_heelstrike, 'displayname', 'right touchdown');
@@ -377,6 +379,8 @@ function findStepEvents(varargin)
                 legend('toggle');
 
                 linkaxes([axes_left axes_left_derivatives axes_right axes_right_derivatives], 'x')
+                
+                distFig('rows', 2)
             end
 
             % change event variables to column vectors if necessary
@@ -408,11 +412,8 @@ function findStepEvents(varargin)
                 'right_leg_swing_onset_times' ...
               );
 
-            disp(['Condition ' condition ', Trial ' num2str(i_trial) ' completed, saved as ' step_events_file_name]);
+            disp(['Finding Step Events: condition ' condition ', Trial ' num2str(i_trial) ' completed, saved as ' step_events_file_name]);
         end
-    end
-    if ~isempty(findobj('type','figure'))
-        distFig('rows', 2)
     end
 end
 
