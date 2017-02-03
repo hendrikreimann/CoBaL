@@ -77,24 +77,6 @@ function [text_cell, settings] = parseNextBlock(text_cell, settings)
     % get first line of remaining text
     text_line = text_cell{1};
     
-%     if isempty(text_line)
-%         % empty line, remove line
-%         text_cell = text_cell(2:end);
-%         return
-%     end
-    
-%     if ~any(text_line ~= ' ')
-%         % only spaces, remove line
-%         text_cell = text_cell(2:end);
-%         return
-%     end
-    
-%     if length(text_line) >= 2 && strcmp(text_line(1:2), '//')
-%         % comment, remove line
-%         text_cell = text_cell(2:end);
-%         return
-%     end
-
     if (length(text_cell) > 1) && (text_cell{2}(1) == '{')
         % this is the beginning of a block
         line_split = strsplit(text_line, ':');

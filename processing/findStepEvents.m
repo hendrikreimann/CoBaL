@@ -83,10 +83,26 @@ function findStepEvents(varargin)
             LHEE_z_trajectory = LHEE_trajectory(:, 3);
             LTOE_trajectory = extractMarkerTrajectories(marker_trajectories, marker_labels, 'LTOE');
             LTOE_z_trajectory = LTOE_trajectory(:, 3);
+            
             RHEE_trajectory = extractMarkerTrajectories(marker_trajectories, marker_labels, 'RHEE');
             RHEE_z_trajectory = RHEE_trajectory(:, 3);
             RTOE_trajectory = extractMarkerTrajectories(marker_trajectories, marker_labels, 'RTOE');
             RTOE_z_trajectory = RTOE_trajectory(:, 3);
+            
+            LELB_trajectory = extractMarkerTrajectories(marker_trajectories, marker_labels, 'LELB');
+            LWRA_trajectory = extractMarkerTrajectories(marker_trajectories, marker_labels, 'LWRA');
+            LWRB_trajectory = extractMarkerTrajectories(marker_trajectories, marker_labels, 'LWRB');
+            RELB_trajectory = extractMarkerTrajectories(marker_trajectories, marker_labels, 'RELB');
+            RWRA_trajectory = extractMarkerTrajectories(marker_trajectories, marker_labels, 'RWRA');
+            RWRB_trajectory = extractMarkerTrajectories(marker_trajectories, marker_labels, 'RWRB');
+            
+            LANK_trajectory = extractMarkerTrajectories(marker_trajectories, marker_labels, 'LANK');
+            LPSI_trajectory = extractMarkerTrajectories(marker_trajectories, marker_labels, 'LPSI');
+            LASI_trajectory = extractMarkerTrajectories(marker_trajectories, marker_labels, 'LASI');
+            RANK_trajectory = extractMarkerTrajectories(marker_trajectories, marker_labels, 'RANK');
+            RPSI_trajectory = extractMarkerTrajectories(marker_trajectories, marker_labels, 'RPSI');
+            RASI_trajectory = extractMarkerTrajectories(marker_trajectories, marker_labels, 'RASI');
+            
             
             % calculate derivatives
             filter_order = 2;
@@ -249,9 +265,44 @@ function findStepEvents(varargin)
                 right_pushoff_indices_mocap(i_index) = index_mocap;
             end
 
+            %% find events for angles
+            % calculate vectors
+            left_wrist_center_trajectory = (LWRA_trajectory + LWRB_trajectory) * 0.5;
+            left_arm_vector_trajectory = LELB_trajectory - left_wrist_center_trajectory;
+            left_pelvis_center_trajectory = (LPSI_trajectory + LASI_trajectory) * 0.5;
+            left_leg_vector_trajectory = left_pelvis_center_trajectory - LANK_trajectory;
+            right_wrist_center_trajectory = (RWRA_trajectory + RWRB_trajectory) * 0.5;
+            right_arm_vector_trajectory = RELB_trajectory - right_wrist_center_trajectory;
+            right_pelvis_center_trajectory = (RPSI_trajectory + RASI_trajectory) * 0.5;
+            right_leg_vector_trajectory = right_pelvis_center_trajectory - RANK_trajectory;
+
+            % calculate angles
+            larm_angle = rad2deg(atan2(-left_arm_vector_trajectory(:, 2), left_arm_vector_trajectory(:, 3)));
+            rarm_angle = rad2deg(atan2(-right_arm_vector_trajectory(:, 2), right_arm_vector_trajectory(:, 3)));
+            lleg_angle = rad2deg(atan2(-left_leg_vector_trajectory(:, 2), left_leg_vector_trajectory(:, 3)));
+            rleg_angle = rad2deg(atan2(-right_leg_vector_trajectory(:, 2), right_leg_vector_trajectory(:, 3)));
+            
+            % find negative peaks
+            [~, left_arm_swing_onset_indices] = findpeaks(-larm_angle, 'MinPeakProminence', subject_settings.left_armswing_peak_prominence_threshold, 'MinPeakDistance', subject_settings.left_armswing_peak_distance_threshold * sampling_rate_marker);
+            [~, right_arm_swing_onset_indices] = findpeaks(-rarm_angle, 'MinPeakProminence', subject_settings.right_armswing_peak_prominence_threshold, 'MinPeakDistance', subject_settings.right_armswing_peak_distance_threshold * sampling_rate_marker);
+            [~, left_leg_swing_onset_indices] = findpeaks(-lleg_angle, 'MinPeakProminence', subject_settings.left_legswing_peak_prominence_threshold, 'MinPeakDistance', subject_settings.left_legswing_peak_distance_threshold * sampling_rate_marker);
+            [~, right_leg_swing_onset_indices] = findpeaks(-rleg_angle, 'MinPeakProminence', subject_settings.right_legswing_peak_prominence_threshold, 'MinPeakDistance', subject_settings.right_legswing_peak_distance_threshold * sampling_rate_marker);
+            
+            left_arm_swing_onset_times = time_marker(left_arm_swing_onset_indices);
+            right_arm_swing_onset_times = time_marker(right_arm_swing_onset_indices);
+            left_leg_swing_onset_times = time_marker(left_leg_swing_onset_indices);
+            right_leg_swing_onset_times = time_marker(right_leg_swing_onset_indices);
+            
+            % normalize
+%             larm_angle_normalized = normalizePeriodicVariable(larm_angle, left_arm_peak_locations);
+%             rarm_angle_normalized = normalizePeriodicVariable(rarm_angle, right_arm_peak_locations);
+%             lleg_angle_normalized = normalizePeriodicVariable(lleg_angle, left_leg_peak_locations);
+%             rleg_angle_normalized = normalizePeriodicVariable(rleg_angle, right_leg_peak_locations);
+            
             %% visualize
             color_heelstrike = [1 0 0];
             color_pushoff = [0 1 0];
+            color_peak = [0.5, 0.2, 1];
 
             force_scaler = 2e-4;
             vel_scaler = 1;
@@ -270,6 +321,7 @@ function findStepEvents(varargin)
                 plot(time_marker, LTOE_z_trajectory, 'linewidth', 1, 'displayname', 'left toes vertical');
                 plot(time_marker(left_touchdown_indices_mocap), LHEE_z_trajectory(left_touchdown_indices_mocap), 'v', 'linewidth', 2, 'color', color_heelstrike, 'displayname', 'left touchdown');
                 plot(time_marker(left_pushoff_indices_mocap), LTOE_z_trajectory(left_pushoff_indices_mocap), '^', 'linewidth', 2, 'color', color_pushoff, 'displayname', 'left pushoff');
+                plot(time_marker(left_leg_swing_onset_indices), LTOE_z_trajectory(left_leg_swing_onset_indices), '+', 'linewidth', 2, 'color', color_peak, 'displayname', 'left leg angle peaks');
                 if left_forceplate_available
                     plot(time_left_forceplate, left_fz_trajectory*force_scaler, 'displayname', 'left forceplate')
                     h = plot(time_marker(left_touchdown_indices_mocap), left_fz_trajectory_marker(left_touchdown_indices_mocap)*force_scaler, 'v', 'linewidth', 2, 'color', color_heelstrike);
@@ -349,7 +401,11 @@ function findStepEvents(varargin)
                 'left_pushoff_times', ...
                 'left_touchdown_times', ...
                 'right_pushoff_times', ...
-                'right_touchdown_times' ...
+                'right_touchdown_times', ...
+                'left_arm_swing_onset_times', ...
+                'right_arm_swing_onset_times', ...
+                'left_leg_swing_onset_times', ...
+                'right_leg_swing_onset_times' ...
               );
 
             disp(['Condition ' condition ', Trial ' num2str(i_trial) ' completed, saved as ' step_events_file_name]);
