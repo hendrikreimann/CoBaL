@@ -68,14 +68,20 @@ function findStepEvents(varargin)
             [marker_trajectories, time_marker, sampling_rate_marker, marker_labels] = loadData(date, subject_id, condition, i_trial, 'marker_trajectories');
             [left_forceplate_wrench_world_trajectory, time_left_forceplate, ~, ~, left_forceplate_available] = loadData(date, subject_id, condition, i_trial, 'left_forceplate_wrench_world', 'optional');
             [right_forceplate_wrench_world_trajectory, time_right_forceplate, ~, ~, right_forceplate_available] = loadData(date, subject_id, condition, i_trial, 'right_forceplate_wrench_world', 'optional');
+            [left_foot_wrench_world, time_left_forceplate, ~, ~, left_forceplate_available] = loadData(date, subject_id, condition, i_trial, 'left_foot_wrench_world', 'optional');
+            [right_foot_wrench_world, time_right_forceplate, ~, ~, right_forceplate_available] = loadData(date, subject_id, condition, i_trial, 'right_foot_wrench_world', 'optional');
             if left_forceplate_available && right_forceplate_available
-                left_fz_trajectory = left_forceplate_wrench_world_trajectory(:, 3);
-                right_fz_trajectory = right_forceplate_wrench_world_trajectory(:, 3);
-                if any(strcmp(condition, study_settings.trial_types_with_inverted_forceplate_sides))
-                    % in case subject was standing with the left leg on the right forceplate
-                    left_fz_trajectory = right_forceplate_wrench_world_trajectory(:, 3);
-                    right_fz_trajectory = left_forceplate_wrench_world_trajectory(:, 3);
-                end
+                left_fz_trajectory = left_foot_wrench_world(:, 3);
+                right_fz_trajectory = right_foot_wrench_world(:, 3);
+                
+                
+%                 left_fz_trajectory = left_forceplate_wrench_world_trajectory(:, 3);
+%                 right_fz_trajectory = right_forceplate_wrench_world_trajectory(:, 3);
+%                 if any(strcmp(condition, study_settings.trial_types_with_inverted_forceplate_sides))
+%                     % in case subject was standing with the left leg on the right forceplate
+%                     left_fz_trajectory = right_forceplate_wrench_world_trajectory(:, 3);
+%                     right_fz_trajectory = left_forceplate_wrench_world_trajectory(:, 3);
+%                 end
             end
             
             % extract data
@@ -174,7 +180,7 @@ function findStepEvents(varargin)
                 left_pushoff_times = [left_pushoff_times; time_marker(left_pushoff_indices_mocap)];
             end
             if any(strcmp(subject_settings.left_pushoff_method, 'forceplate_threshold'))
-                left_pushoff_diff_forceplate = diff(sign(left_fz_trajectory - subject_settings.forceplate_load_threshold));
+                left_pushoff_diff_forceplate = diff(sign(abs(left_fz_trajectory) - subject_settings.forceplate_load_threshold));
                 left_pushoff_times = [left_pushoff_times; time_left_forceplate(left_pushoff_diff_forceplate~=0)];
             end
             
@@ -239,7 +245,7 @@ function findStepEvents(varargin)
                 right_pushoff_times = [right_pushoff_times; time_marker(right_pushoff_indices_mocap)];
             end
             if any(strcmp(subject_settings.right_pushoff_method, 'forceplate_threshold'))
-                right_pushoff_diff_forceplate = diff(sign(right_fz_trajectory - subject_settings.forceplate_load_threshold));
+                right_pushoff_diff_forceplate = diff(sign(abs(right_fz_trajectory) - subject_settings.forceplate_load_threshold));
                 right_pushoff_times = [right_pushoff_times; time_right_forceplate(right_pushoff_diff_forceplate~=0)];
             end
 
@@ -274,7 +280,6 @@ function findStepEvents(varargin)
             % add new variables to be saved
             variables_to_save.right_pushoff_times = right_pushoff_times;
             variables_to_save.right_touchdown_times = right_touchdown_times;
-
 
             %% find events for angles
             if any(strcmp(study_settings.variables_to_analyze(:, 1), 'larm_phase'))
