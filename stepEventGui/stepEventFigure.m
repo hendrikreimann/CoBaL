@@ -25,12 +25,16 @@ classdef stepEventFigure < handle;
         
         data_plots;
         event_plots;
+        stretch_patches;
         selected_event_plot;
         selected_time_plot;
         data_plot_offsets;
         data_plot_scale_factors;
 
         time_extension_steps = [0.1 0.2 0.5 1 2 5 10 20 40 60 120];
+        
+        patch_color = [0 0 0];
+        patch_alpha = 0.05;
     end
     methods
         function this = stepEventFigure(figureTitle, controller, trialData, eventData)
@@ -171,7 +175,6 @@ classdef stepEventFigure < handle;
             [distance, point_index] = min(distance_squared);
         end
         
-        
         function setting_struct = getSetting(this)
             setting_struct = struct();
             setting_struct.title = this.main_axes.Title.String;
@@ -210,8 +213,33 @@ classdef stepEventFigure < handle;
                 time_data = this.trial_data.getTime(data_label);
                 trajectory_data = (this.trial_data.getData(data_label) + offset) * scale_factor;
                 
-                
                 set(data_plot_handle, 'xdata', time_data, 'ydata', trajectory_data);
+            end
+        end
+        function updateStretchPatches(this)
+            % delete old stretch plots
+            delete(this.stretch_patches);
+            this.stretch_patches = [];
+            
+            ylimits = get(this.main_axes, 'ylim');
+            for i_stretch = 1 : length(this.event_data.stretch_start_times)
+                stretch_start = this.event_data.stretch_start_times(i_stretch);
+                stretch_end = this.event_data.stretch_end_times(i_stretch);
+                
+                patch_x = [stretch_start stretch_end stretch_end stretch_start];
+                patch_y = [ylimits(1) ylimits(1) ylimits(2) ylimits(2)];
+                patch_handle = ...
+                    patch ...
+                      ( ...
+                        patch_x, ...
+                        patch_y, ...
+                        this.patch_color, ...
+                        'parent', this.main_axes, ...
+                        'EdgeColor', 'none', ...
+                        'FaceAlpha', this.patch_alpha ...
+                      ); 
+                uistack(patch_handle, 'bottom')
+                this.stretch_patches = [this.stretch_patches, patch_handle];
             end
         end
         function updateSelectedEventPlot(this)

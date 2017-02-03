@@ -26,6 +26,9 @@ classdef WalkingEventData < handle
         selected_event_label;
         selected_event_time;
         
+        stretch_start_times;
+        stretch_end_times;
+        
     end
     methods
         function this = WalkingEventData(trialData)
@@ -39,6 +42,10 @@ classdef WalkingEventData < handle
             this.right_pushoff = loaded_event_data.right_pushoff_times;
             this.right_touchdown = loaded_event_data.right_touchdown_times;
             
+            loaded_stretch_data = load([this.trial_data.data_directory filesep 'analysis' filesep makeFileName(this.trial_data.date, this.trial_data.subject_id, this.trial_data.condition, this.trial_data.trial_number, 'relevantDataStretches')]);
+            this.stretch_start_times = loaded_stretch_data.stretch_start_times;
+            this.stretch_end_times = loaded_stretch_data.stretch_end_times;
+            
             this.removeDuplicates();
         end
         function saveEvents(this, sender, eventdata)
@@ -48,68 +55,6 @@ classdef WalkingEventData < handle
             left_touchdown_times = this.left_touchdown;
             right_pushoff_times = this.right_pushoff;
             right_touchdown_times = this.right_touchdown;
-            
-%             % find corresponding indices - mocap
-%             left_pushoff_indices_mocap = zeros(size(this.left_pushoff));
-%             for i_event = 1 : length(this.left_pushoff)
-%                 [~, left_pushoff_indices_mocap(i_event)] = min(abs(this.trial_data.time_mocap - this.left_pushoff(i_event)));
-%             end
-%             left_touchdown_indices_mocap = zeros(size(this.left_touchdown));
-%             for i_event = 1 : length(this.left_touchdown)
-%                 [~, left_touchdown_indices_mocap(i_event)] = min(abs(this.trial_data.time_mocap - this.left_touchdown(i_event)));
-%             end
-%             right_pushoff_indices_mocap = zeros(size(this.right_pushoff));
-%             for i_event = 1 : length(this.right_pushoff)
-%                 [~, right_pushoff_indices_mocap(i_event)] = min(abs(this.trial_data.time_mocap - this.right_pushoff(i_event)));
-%             end
-%             right_touchdown_indices_mocap = zeros(size(this.right_touchdown));
-%             for i_event = 1 : length(this.right_touchdown)
-%                 [~, right_touchdown_indices_mocap(i_event)] = min(abs(this.trial_data.time_mocap - this.right_touchdown(i_event)));
-%             end
-% 
-%             % find corresponding indices - forceplate
-%             left_pushoff_indices_forceplate = zeros(size(this.left_pushoff));
-%             for i_event = 1 : length(this.left_pushoff)
-%                 [~, left_pushoff_indices_forceplate(i_event)] = min(abs(this.trial_data.time_forceplate - this.left_pushoff(i_event)));
-%             end
-%             left_touchdown_indices_forceplate = zeros(size(this.left_touchdown));
-%             for i_event = 1 : length(this.left_touchdown)
-%                 [~, left_touchdown_indices_forceplate(i_event)] = min(abs(this.trial_data.time_forceplate - this.left_touchdown(i_event)));
-%             end
-%             right_pushoff_indices_forceplate = zeros(size(this.right_pushoff));
-%             for i_event = 1 : length(this.right_pushoff)
-%                 [~, right_pushoff_indices_forceplate(i_event)] = min(abs(this.trial_data.time_forceplate - this.right_pushoff(i_event)));
-%             end
-%             right_touchdown_indices_forceplate = zeros(size(this.right_touchdown));
-%             for i_event = 1 : length(this.right_touchdown)
-%                 [~, right_touchdown_indices_forceplate(i_event)] = min(abs(this.trial_data.time_forceplate - this.right_touchdown(i_event)));
-%             end
-            
-%             % find corresponding indices - labview
-%             left_pushoff_indices_labview = zeros(size(this.left_pushoff));
-%             for i_event = 1 : length(this.left_pushoff)
-%                 [~, left_pushoff_indices_labview(i_event)] = min(abs(this.trial_data.time_labview - this.left_pushoff(i_event)));
-%             end
-%             left_touchdown_indices_labview = zeros(size(this.left_touchdown));
-%             for i_event = 1 : length(this.left_touchdown)
-%                 [~, left_touchdown_indices_labview(i_event)] = min(abs(this.trial_data.time_labview - this.left_touchdown(i_event)));
-%             end
-%             right_pushoff_indices_labview = zeros(size(this.right_pushoff));
-%             for i_event = 1 : length(this.right_pushoff)
-%                 [~, right_pushoff_indices_labview(i_event)] = min(abs(this.trial_data.time_labview - this.right_pushoff(i_event)));
-%             end
-%             right_touchdown_indices_labview = zeros(size(this.right_touchdown));
-%             for i_event = 1 : length(this.right_touchdown)
-%                 [~, right_touchdown_indices_labview(i_event)] = min(abs(this.trial_data.time_labview - this.right_touchdown(i_event)));
-%             end
-            
-            % form contact indicators
-%             left_contact_indicators_mocap = formContactIndicatorTrajectory(left_pushoff_indices_mocap, left_touchdown_indices_mocap, length(this.trial_data.time_mocap));
-%             right_contact_indicators_mocap = formContactIndicatorTrajectory(right_pushoff_indices_mocap, right_touchdown_indices_mocap, length(this.trial_data.time_mocap));
-%             left_contact_indicators_forceplate = formContactIndicatorTrajectory(left_pushoff_indices_forceplate, left_touchdown_indices_forceplate, length(this.trial_data.time_forceplate));
-%             right_contact_indicators_forceplate = formContactIndicatorTrajectory(right_pushoff_indices_forceplate, right_touchdown_indices_forceplate, length(this.trial_data.time_forceplate));
-%             left_contact_indicators_labview = formContactIndicatorTrajectory(left_pushoff_indices_labview, left_touchdown_indices_labview, length(this.trial_data.time_labview));
-%             right_contact_indicators_labview = formContactIndicatorTrajectory(right_pushoff_indices_labview, right_touchdown_indices_labview, length(this.trial_data.time_labview));
 
             step_events_file_name = makeFileName(this.trial_data.date, this.trial_data.subject_id, this.trial_data.condition, this.trial_data.trial_number, 'stepEvents');
             save ...

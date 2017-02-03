@@ -178,6 +178,11 @@ classdef stepEventController < handle
                 this.figureSelectionBox.UserData{i_figure}.updateDataPlots();
             end
         end
+        function updateStretchPatches(this)
+            for i_figure = 1 : length(this.figureSelectionBox.String)
+                this.figureSelectionBox.UserData{i_figure}.updateStretchPatches();
+            end
+        end            
         function updateTrialLabels(this)
             this.condition_label.String = this.trial_data.condition;
             this.trial_number_label.String = num2str(this.trial_data.trial_number);
@@ -459,6 +464,7 @@ classdef stepEventController < handle
             
             this.updateDataPlots;
             this.updateEventPlots;
+            this.updateStretchPatches;
             this.event_data.selectNextEvent;
             this.updateSelectedEventPlots;
             this.updateTrialLabels;
@@ -485,6 +491,7 @@ classdef stepEventController < handle
             
             this.updateDataPlots;
             this.updateEventPlots;
+            this.updateStretchPatches;
             this.event_data.selectNextEvent;
             this.updateSelectedEventPlots;
             this.updateTrialLabels;
