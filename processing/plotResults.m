@@ -80,9 +80,9 @@ function plotResults(varargin)
         condition_experimental_list_all = [condition_experimental_list_all; condition_experimental_list_subject]; %#ok<AGROW>
         condition_stimulus_list_all = [condition_stimulus_list_all; condition_stimulus_list_subject]; %#ok<AGROW>
         condition_day_list_all = [condition_day_list_all; condition_day_list_subject]; %#ok<AGROW>
-        origin_trial_list_all = [origin_trial_list_all; origin_trial_list_subject];
-        origin_start_time_list_all = [origin_start_time_list_all; origin_start_time_list_subject];
-        origin_end_time_list_all = [origin_end_time_list_all; origin_end_time_list_subject];
+        origin_trial_list_all = [origin_trial_list_all; origin_trial_list_subject]; %#ok<AGROW>
+        origin_start_time_list_all = [origin_start_time_list_all; origin_start_time_list_subject]; %#ok<AGROW>
+        origin_end_time_list_all = [origin_end_time_list_all; origin_end_time_list_subject]; %#ok<AGROW>
         for i_variable = 1 : number_of_variables_to_plot
             % load and extract data
             this_variable_name = study_settings.variables_to_plot{i_variable, 1};

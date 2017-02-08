@@ -65,6 +65,10 @@ classdef WalkingDataCustodian < handle
         basic_variable_labels;
         stretch_variable_data;
         time_data;
+        
+        subject_settings;
+        emg_normalization_values;
+        emg_normalization_labels;
     end
     
     methods
@@ -73,6 +77,7 @@ classdef WalkingDataCustodian < handle
         function this = WalkingDataCustodian()
             % load this information from the subjects.mat and studySettings.txt files
             load('subjectInfo.mat', 'date', 'subject_id');
+            this.subject_settings = loadSettingsFile('subjectSettings.txt');
             % load settings
             study_settings_file = '';
             if exist(['..' filesep 'studySettings.txt'], 'file')
@@ -82,6 +87,12 @@ classdef WalkingDataCustodian < handle
                 study_settings_file = ['..' filesep '..' filesep 'studySettings.txt'];
             end
             study_settings = loadSettingsFile(study_settings_file);
+            emg_normalization_file_name = ['analysis' filesep makeFileName(date, subject_id, 'emgNormalization.mat')];
+            if exist(emg_normalization_file_name, 'file')
+                emg_normalization_data = load(emg_normalization_file_name);
+                this.emg_normalization_values = emg_normalization_data.emg_normalization_values;
+                this.emg_normalization_labels = emg_normalization_data.emg_variables;
+            end
             
             this.date = date;
             this.subject_id = subject_id;
@@ -194,11 +205,169 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('cop_ml')
                 this.addStretchVariable('cop_ml')
             end
-            if this.isVariableToAnalyze('larm_incl')
+            if this.isVariableToAnalyze('left_arm_angle')
                 this.addBasicVariable('marker_trajectories')
-                this.addBasicVariable('larm_incl')
-                this.addStretchVariable('larm_incl')
-            end            
+                this.addBasicVariable('left_arm_angle')
+                this.addStretchVariable('left_arm_angle')
+            end
+            if this.isVariableToAnalyze('right_arm_angle')
+                this.addBasicVariable('marker_trajectories')
+                this.addBasicVariable('right_arm_angle')
+                this.addStretchVariable('right_arm_angle')
+            end
+            if this.isVariableToAnalyze('left_leg_angle')
+                this.addBasicVariable('marker_trajectories')
+                this.addBasicVariable('left_leg_angle')
+                this.addStretchVariable('left_leg_angle')
+            end
+            if this.isVariableToAnalyze('right_leg_angle')
+                this.addBasicVariable('marker_trajectories')
+                this.addBasicVariable('right_leg_angle')
+                this.addStretchVariable('right_leg_angle')
+            end
+            if this.isVariableToAnalyze('left_arm_phase')
+                this.addBasicVariable('marker_trajectories')
+                this.addBasicVariable('left_arm_angle')
+                this.addBasicVariable('left_arm_phase')
+                this.addStretchVariable('left_arm_angle')
+                this.addStretchVariable('left_arm_phase')
+            end
+            if this.isVariableToAnalyze('right_arm_phase')
+                this.addBasicVariable('marker_trajectories')
+                this.addBasicVariable('right_arm_angle')
+                this.addBasicVariable('right_arm_phase')
+                this.addStretchVariable('right_arm_angle')
+                this.addStretchVariable('right_arm_phase')
+            end
+            if this.isVariableToAnalyze('left_leg_phase')
+                this.addBasicVariable('marker_trajectories')
+                this.addBasicVariable('left_leg_angle')
+                this.addBasicVariable('left_leg_phase')
+                this.addStretchVariable('left_leg_angle')
+                this.addStretchVariable('left_leg_phase')
+            end
+            if this.isVariableToAnalyze('right_leg_phase')
+                this.addBasicVariable('marker_trajectories')
+                this.addBasicVariable('right_leg_angle')
+                this.addBasicVariable('right_leg_phase')
+                this.addStretchVariable('right_leg_angle')
+                this.addStretchVariable('right_leg_phase')
+            end
+            if this.isVariableToAnalyze('left_arm_right_leg_relative_phase')
+                this.addBasicVariable('marker_trajectories')
+                this.addBasicVariable('left_arm_angle')
+                this.addBasicVariable('left_arm_phase')
+                this.addBasicVariable('right_leg_angle')
+                this.addBasicVariable('right_leg_phase')
+                this.addBasicVariable('left_arm_right_leg_relative_phase')
+                this.addStretchVariable('left_arm_angle')
+                this.addStretchVariable('left_arm_phase')
+                this.addStretchVariable('right_leg_angle')
+                this.addStretchVariable('right_leg_phase')
+                this.addStretchVariable('left_arm_right_leg_relative_phase')
+            end
+            if this.isVariableToAnalyze('right_arm_left_leg_relative_phase')
+                this.addBasicVariable('marker_trajectories')
+                this.addBasicVariable('right_arm_angle')
+                this.addBasicVariable('right_arm_phase')
+                this.addBasicVariable('left_leg_angle')
+                this.addBasicVariable('left_leg_phase')
+                this.addBasicVariable('right_arm_left_leg_relative_phase')
+                this.addStretchVariable('right_arm_angle')
+                this.addStretchVariable('right_arm_phase')
+                this.addStretchVariable('left_leg_angle')
+                this.addStretchVariable('left_leg_phase')
+                this.addStretchVariable('right_arm_left_leg_relative_phase')
+            end
+            if this.isVariableToAnalyze('left_glut_med')
+                this.addBasicVariable('emg_trajectories')
+                this.addBasicVariable('left_glut_med')
+                this.addStretchVariable('left_glut_med')
+            end
+            if this.isVariableToAnalyze('left_delt_ant')
+                this.addBasicVariable('emg_trajectories')
+                this.addBasicVariable('left_delt_ant')
+                this.addStretchVariable('left_delt_ant')
+            end
+            if this.isVariableToAnalyze('left_gastroc_med')
+                this.addBasicVariable('emg_trajectories')
+                this.addBasicVariable('left_gastroc_med')
+                this.addStretchVariable('left_gastroc_med')
+            end
+            if this.isVariableToAnalyze('left_pero_lng')
+                this.addBasicVariable('emg_trajectories')
+                this.addBasicVariable('left_pero_lng')
+                this.addStretchVariable('left_pero_lng')
+            end
+            if this.isVariableToAnalyze('right_glut_med')
+                this.addBasicVariable('emg_trajectories')
+                this.addBasicVariable('right_glut_med')
+                this.addStretchVariable('right_glut_med')
+            end
+            if this.isVariableToAnalyze('right_delt_ant')
+                this.addBasicVariable('emg_trajectories')
+                this.addBasicVariable('right_delt_ant')
+                this.addStretchVariable('right_delt_ant')
+            end
+            if this.isVariableToAnalyze('right_gastroc_med')
+                this.addBasicVariable('emg_trajectories')
+                this.addBasicVariable('right_gastroc_med')
+                this.addStretchVariable('right_gastroc_med')
+            end
+            if this.isVariableToAnalyze('right_pero_lng')
+                this.addBasicVariable('emg_trajectories')
+                this.addBasicVariable('right_pero_lng')
+                this.addStretchVariable('right_pero_lng')
+            end
+            if this.isVariableToAnalyze('left_glut_med_rescaled')
+                this.addBasicVariable('emg_trajectories')
+                this.addBasicVariable('left_glut_med')
+                this.addStretchVariable('left_glut_med')
+                this.addStretchVariable('left_glut_med_rescaled')
+            end
+            if this.isVariableToAnalyze('left_delt_ant_rescaled')
+                this.addBasicVariable('emg_trajectories')
+                this.addBasicVariable('left_delt_ant')
+                this.addStretchVariable('left_delt_ant')
+                this.addStretchVariable('left_delt_ant_rescaled')
+            end
+            if this.isVariableToAnalyze('left_gastroc_rescaled')
+                this.addBasicVariable('emg_trajectories')
+                this.addBasicVariable('left_gastroc')
+                this.addStretchVariable('left_gastroc')
+                this.addStretchVariable('left_gastroc_rescaled')
+            end
+            if this.isVariableToAnalyze('left_pero_lng_rescaled')
+                this.addBasicVariable('emg_trajectories')
+                this.addBasicVariable('left_pero_lng')
+                this.addStretchVariable('left_pero_lng')
+                this.addStretchVariable('left_pero_lng_rescaled')
+            end
+            if this.isVariableToAnalyze('right_glut_med_rescaled')
+                this.addBasicVariable('emg_trajectories')
+                this.addBasicVariable('right_glut_med')
+                this.addStretchVariable('right_glut_med')
+                this.addStretchVariable('right_glut_med_rescaled')
+            end
+            if this.isVariableToAnalyze('right_delt_ant_rescaled')
+                this.addBasicVariable('emg_trajectories')
+                this.addBasicVariable('right_delt_ant')
+                this.addStretchVariable('right_delt_ant')
+                this.addStretchVariable('right_delt_ant_rescaled')
+            end
+            if this.isVariableToAnalyze('right_gastroc_rescaled')
+                this.addBasicVariable('emg_trajectories')
+                this.addBasicVariable('right_gastroc')
+                this.addStretchVariable('right_gastroc')
+                this.addStretchVariable('right_gastroc_rescaled')
+            end
+            if this.isVariableToAnalyze('right_pero_lng_rescaled')
+                this.addBasicVariable('emg_trajectories')
+                this.addBasicVariable('right_pero_lng')
+                this.addStretchVariable('right_pero_lng')
+                this.addStretchVariable('right_pero_lng_rescaled')
+            end
+  
         end
         
         % interface
@@ -215,7 +384,11 @@ classdef WalkingDataCustodian < handle
             eval(['variable_data = this.basic_variable_data.' variable_name ';']);
         end
         
-        function prepareBasicVariables(this, condition, trial)
+        function prepareBasicVariables(this, condition, trial, variables_to_prepare)
+            if nargin < 4
+                variables_to_prepare = this.basic_variable_names;
+            end
+            
             % clear out old data
             this.basic_variable_data = struct;
             this.basic_variable_labels = struct;
@@ -226,8 +399,8 @@ classdef WalkingDataCustodian < handle
             load(['analysis' filesep makeFileName(this.date, this.subject_id, condition, trial, 'availableVariables')]);
             
             % load basic variables
-            for i_variable = 1 : length(this.basic_variable_names)
-                variable_name = this.basic_variable_names{i_variable};
+            for i_variable = 1 : length(variables_to_prepare)
+                variable_name = variables_to_prepare{i_variable};
                 
                 % try loading
                 [data, time, sampling_rate, labels, success] = loadData(this.date, this.subject_id, condition, trial, variable_name, 'optional'); %#ok<ASGLU>
@@ -322,30 +495,71 @@ classdef WalkingDataCustodian < handle
                     this.basic_variable_data.cop_ml = total_forceplate_cop_world(:, 1);
                     this.time_data.cop_ml = this.time_data.total_forceplate_cop_world;
                 end
-                if strcmp(variable_name, 'larm_incl')
-                    LELB_trajectory = extractMarkerTrajectories(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LELB');
-                    LWRA_trajectory = extractMarkerTrajectories(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LWRA');
-                    LWRB_trajectory = extractMarkerTrajectories(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LWRB');
-                    left_wrist_center_trajectory = (LWRA_trajectory + LWRB_trajectory) * 0.5;
-                    left_arm_vector_trajectory = LELB_trajectory - left_wrist_center_trajectory;
+                if strcmp(variable_name, 'left_arm_right_leg_relative_phase')
+                    left_arm_phase = this.getBasicVariableData('left_arm_phase');
+                    right_leg_phase = this.getBasicVariableData('right_leg_phase');
                     
-                    left_arm_vector_projected = left_arm_vector_trajectory(:, 1:2);
-                    left_arm_vector_projected_length = (sum(left_arm_vector_projected.^2, 2)).^0.5;
-                    larm_incl = rad2deg(atan2(left_arm_vector_projected_length, left_arm_vector_trajectory(:, 3)));
-                    this.basic_variable_data.larm_incl = rad2deg(atan2(left_arm_vector_projected_length, left_arm_vector_trajectory(:, 3)));
-                    this.time_data.larm_incl = this.time_data.marker_trajectories;
+                    left_arm_right_leg_relative_phase = normalizeAngle(left_arm_phase - right_leg_phase);
+                    
+                    % store
+                    this.basic_variable_data.left_arm_right_leg_relative_phase = left_arm_right_leg_relative_phase;
+                    this.time_data.left_arm_right_leg_relative_phase = this.time_data.marker_trajectories;
+                end             
+                if strcmp(variable_name, 'right_arm_left_leg_relative_phase')
+                    right_arm_phase = this.getBasicVariableData('right_arm_phase');
+                    left_leg_phase = this.getBasicVariableData('left_leg_phase');
+                    
+                    right_arm_left_leg_relative_phase = normalizeAngle(right_arm_phase - left_leg_phase);
+                    
+                    % store
+                    this.basic_variable_data.right_arm_left_leg_relative_phase = right_arm_left_leg_relative_phase;
+                    this.time_data.right_arm_left_leg_relative_phase = this.time_data.marker_trajectories;
+                end             
+                if strcmp(variable_name, 'left_glut_med')
+                    this.basic_variable_data.left_glut_med = this.basic_variable_data.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'left_glut_med'));
+                    this.time_data.left_glut_med = this.time_data.emg_trajectories;
                 end
-                
-                
+                if strcmp(variable_name, 'left_delt_ant')
+                    this.basic_variable_data.left_delt_ant = this.basic_variable_data.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'left_delt_ant'));
+                    this.time_data.left_delt_ant = this.time_data.emg_trajectories;
+                end
+                if strcmp(variable_name, 'left_gastroc_med')
+                    this.basic_variable_data.left_gastroc_med = this.basic_variable_data.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'left_gastroc_med'));
+                    this.time_data.left_gastroc_med = this.time_data.emg_trajectories;
+                end
+                if strcmp(variable_name, 'left_pero_lng')
+                    this.basic_variable_data.left_pero_lng = this.basic_variable_data.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'left_pero_lng'));
+                    this.time_data.left_pero_lng = this.time_data.emg_trajectories;
+                end
+                if strcmp(variable_name, 'right_glut_med')
+                    this.basic_variable_data.right_glut_med = this.basic_variable_data.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'right_glut_med'));
+                    this.time_data.right_glut_med = this.time_data.emg_trajectories;
+                end
+                if strcmp(variable_name, 'right_delt_ant')
+                    this.basic_variable_data.right_delt_ant = this.basic_variable_data.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'right_delt_ant'));
+                    this.time_data.right_delt_ant = this.time_data.emg_trajectories;
+                end
+                if strcmp(variable_name, 'right_gastroc_med')
+                    this.basic_variable_data.right_gastroc_med = this.basic_variable_data.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'right_gastroc_med'));
+                    this.time_data.right_gastroc_med = this.time_data.emg_trajectories;
+                end
+                if strcmp(variable_name, 'right_pero_lng')
+                    this.basic_variable_data.right_pero_lng = this.basic_variable_data.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'right_pero_lng'));
+                    this.time_data.right_pero_lng = this.time_data.emg_trajectories;
+                end
             end
         end
-        function stretch_variables = calculateStretchVariables(this, stretch_start_times, stretch_end_times, condition_stance_foot_list)
-            number_of_stretch_variables = length(this.stretch_variable_names);
+        function stretch_variables = calculateStretchVariables(this, stretch_start_times, stretch_end_times, condition_stance_foot_list, variables_to_calculate)
+            if nargin < 5
+                variables_to_calculate = this.stretch_variable_names;
+            end
+            
+            number_of_stretch_variables = length(variables_to_calculate);
             number_of_stretches = length(stretch_start_times);
             stretch_variables = cell(number_of_stretch_variables, 1);
             
             for i_variable = 1 : number_of_stretch_variables
-                variable_name = this.stretch_variable_names{i_variable};
+                variable_name = variables_to_calculate{i_variable};
                 
                 % extract and normalize data from stretches
                 for i_stretch = 1 : number_of_stretches
@@ -400,7 +614,46 @@ classdef WalkingDataCustodian < handle
                         step_length = stretch_variables{strcmp(this.stretch_variable_names, 'step_length')}(i_stretch);
                         stretch_data = step_length / step_time;
                     end
-                    
+                    if strcmp(variable_name, 'left_glut_med_rescaled')
+                        left_glut_med = this.getTimeNormalizedData('left_glut_med', this_stretch_start_time, this_stretch_end_time);
+                        normalization_value = this.emg_normalization_values(strcmp(this.emg_normalization_labels, 'left_glut_med'));
+                        stretch_data = left_glut_med * 1 / normalization_value;
+                    end
+                    if strcmp(variable_name, 'left_delt_ant_rescaled')
+                        left_delt_ant = this.getTimeNormalizedData('left_delt_ant', this_stretch_start_time, this_stretch_end_time);
+                        normalization_value = this.emg_normalization_values(strcmp(this.emg_normalization_labels, 'left_delt_ant'));
+                        stretch_data = left_delt_ant * 1 / normalization_value;
+                    end
+                    if strcmp(variable_name, 'left_gastroct_rescaled')
+                        left_gastroct = this.getTimeNormalizedData('left_gastroct', this_stretch_start_time, this_stretch_end_time);
+                        normalization_value = this.emg_normalization_values(strcmp(this.emg_normalization_labels, 'left_gastroct'));
+                        stretch_data = left_gastroct * 1 / normalization_value;
+                    end
+                    if strcmp(variable_name, 'left_pero_lng_rescaled')
+                        left_pero_lng = this.getTimeNormalizedData('left_pero_lng', this_stretch_start_time, this_stretch_end_time);
+                        normalization_value = this.emg_normalization_values(strcmp(this.emg_normalization_labels, 'left_pero_lng'));
+                        stretch_data = left_pero_lng * 1 / normalization_value;
+                    end
+                    if strcmp(variable_name, 'right_glut_med_rescaled')
+                        right_glut_med = this.getTimeNormalizedData('right_glut_med', this_stretch_start_time, this_stretch_end_time);
+                        normalization_value = this.emg_normalization_values(strcmp(this.emg_normalization_labels, 'right_glut_med'));
+                        stretch_data = right_glut_med * 1 / normalization_value;
+                    end
+                    if strcmp(variable_name, 'right_delt_ant_rescaled')
+                        right_delt_ant = this.getTimeNormalizedData('right_delt_ant', this_stretch_start_time, this_stretch_end_time);
+                        normalization_value = this.emg_normalization_values(strcmp(this.emg_normalization_labels, 'right_delt_ant'));
+                        stretch_data = right_delt_ant * 1 / normalization_value;
+                    end
+                    if strcmp(variable_name, 'right_gastroct_rescaled')
+                        right_gastroct = this.getTimeNormalizedData('right_gastroct', this_stretch_start_time, this_stretch_end_time);
+                        normalization_value = this.emg_normalization_values(strcmp(this.emg_normalization_labels, 'right_gastroct'));
+                        stretch_data = right_gastroct * 1 / normalization_value;
+                    end
+                    if strcmp(variable_name, 'right_pero_lng_rescaled')
+                        right_pero_lng = this.getTimeNormalizedData('right_pero_lng', this_stretch_start_time, this_stretch_end_time);
+                        normalization_value = this.emg_normalization_values(strcmp(this.emg_normalization_labels, 'right_pero_lng'));
+                        stretch_data = right_pero_lng * 1 / normalization_value;
+                    end
                     
                     % store in cell
                     stretch_variables{i_variable} = [stretch_variables{i_variable} stretch_data];

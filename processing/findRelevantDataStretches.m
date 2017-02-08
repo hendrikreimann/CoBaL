@@ -85,6 +85,7 @@ function findRelevantDataStretches(varargin)
         conditions_file_name = makeFileName(date, subject_id, 'conditions.csv');
     end
 
+    subject_settings = loadSettingsFile('subjectSettings.txt');
 
     time_to_nearest_heelstrike_before_trigger_threshold = 0.10; % a heelstrike should happen less than this long after a trigger
     time_to_nearest_heelstrike_after_trigger_threshold = 0.3; % a heelstrike should happen less than this long after a trigger
@@ -127,7 +128,7 @@ function findRelevantDataStretches(varargin)
             
             
             % marker data
-            [marker_trajectories, time_marker, ~, marker_labels] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'marker_trajectories');
+            [marker_trajectories, time_marker, sampling_rate_marker, marker_labels] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'marker_trajectories');
             
             % forceplate data
             [left_forceplate_cop_world_trajectory, time_left_forceplate, ~, ~, left_forceplate_available] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'left_forceplate_cop_world', 'optional');
@@ -254,6 +255,7 @@ function findRelevantDataStretches(varargin)
 
             number_of_triggers = length(trigger_times);
             removal_flags = zeros(number_of_triggers, 1);
+            event_variables_to_save = struct;
             if strcmp(condition_stimulus, 'NONE')
                 stretch_start_times = zeros(number_of_triggers, 1);
                 stretch_end_times = zeros(number_of_triggers, 1);
@@ -340,58 +342,71 @@ function findRelevantDataStretches(varargin)
                     end
                 end
                 
-                % check step times and flag outliers
-                number_of_stretches = length(stretch_start_times);
-                stretch_times = stretch_end_times - stretch_start_times;
-                stretch_time_outlier_limits = median(stretch_times) * [0.8 1.2];
+%                 % check step times and flag outliers
+%                 number_of_stretches = length(stretch_start_times);
+%                 stretch_times = stretch_end_times - stretch_start_times;
+%                 stretch_time_outlier_limits = median(stretch_times) * [0.8 1.2];
+%                 
+%                 removal_flags = zeros(number_of_stretches, 1);
+%                 removal_flags(stretch_times < stretch_time_outlier_limits(1)) = 1;
+%                 removal_flags(stretch_times > stretch_time_outlier_limits(2)) = 1;
+%                 
+%                 % check data availability and flag stretches with gaps
+%                 for i_stretch = 1 : number_of_stretches
+%                     [~, start_index_mocap] = min(abs(time_marker - stretch_start_times(i_stretch)));
+%                     [~, end_index_mocap] = min(abs(time_marker - stretch_end_times(i_stretch)));
+%                     if any(any(isnan(marker_trajectories(start_index_mocap : end_index_mocap, essential_marker_indicator))))
+%                         removal_flags(i_stretch) = 1;
+%                     end
+%                 end
+%                 
+%                 
+%                 % remove flagged triggers
+%                 unflagged_indices = ~removal_flags;
+%                 trigger_times = trigger_times(unflagged_indices);
+%                 stretch_start_times = stretch_start_times(unflagged_indices, :);
+%                 stretch_end_times = stretch_end_times(unflagged_indices, :);
+%                 stretch_pushoff_times = stretch_pushoff_times(unflagged_indices, :);
+%                 condition_stance_foot_list_trial = condition_stance_foot_list_trial(unflagged_indices, :);
+%                 condition_perturbation_list_trial = condition_perturbation_list_trial(unflagged_indices, :);
+%                 condition_delay_list_trial = condition_delay_list_trial(unflagged_indices, :);
+%                 condition_index_list_trial = condition_index_list_trial(unflagged_indices, :);
+%                 condition_experimental_list_trial = condition_experimental_list_trial(unflagged_indices, :);
+%                 condition_stimulus_list_trial = condition_stimulus_list_trial(unflagged_indices, :);
+%                 condition_day_list_trial = condition_day_list_trial(unflagged_indices, :);
+%                 closest_heelstrike_distance_times = closest_heelstrike_distance_times(unflagged_indices, :);
                 
-                removal_flags = zeros(number_of_stretches, 1);
-                removal_flags(stretch_times < stretch_time_outlier_limits(1)) = 1;
-                removal_flags(stretch_times > stretch_time_outlier_limits(2)) = 1;
+                % add new variables to be saved
+                event_variables_to_save.condition_stance_foot_list_trial = condition_stance_foot_list_trial;
+                event_variables_to_save.condition_perturbation_list_trial = condition_perturbation_list_trial;
+                event_variables_to_save.condition_delay_list_trial = condition_delay_list_trial;
+                event_variables_to_save.condition_index_list_trial = condition_index_list_trial;
+                event_variables_to_save.condition_experimental_list_trial = condition_experimental_list_trial;
+                event_variables_to_save.condition_stimulus_list_trial = condition_stimulus_list_trial;
+                event_variables_to_save.condition_day_list_trial = condition_day_list_trial;
+                event_variables_to_save.stretch_start_times = stretch_start_times;
+                event_variables_to_save.stretch_pushoff_times = stretch_pushoff_times;
+                event_variables_to_save.stretch_end_times = stretch_end_times;
                 
-                % check data availability and flag stretches with gaps
-                for i_stretch = 1 : number_of_stretches
-                    [~, start_index_mocap] = min(abs(time_marker - stretch_start_times(i_stretch)));
-                    [~, end_index_mocap] = min(abs(time_marker - stretch_end_times(i_stretch)));
-                    if any(any(isnan(marker_trajectories(start_index_mocap : end_index_mocap, essential_marker_indicator))))
-                        removal_flags(i_stretch) = 1;
-                    end
-                end
                 
-                
-                % remove flagged triggers
-                unflagged_indices = ~removal_flags;
-                trigger_times = trigger_times(unflagged_indices);
-                stretch_start_times = stretch_start_times(unflagged_indices, :);
-                stretch_end_times = stretch_end_times(unflagged_indices, :);
-                stretch_pushoff_times = stretch_pushoff_times(unflagged_indices, :);
-                condition_stance_foot_list_trial = condition_stance_foot_list_trial(unflagged_indices, :);
-                condition_perturbation_list_trial = condition_perturbation_list_trial(unflagged_indices, :);
-                condition_delay_list_trial = condition_delay_list_trial(unflagged_indices, :);
-                condition_index_list_trial = condition_index_list_trial(unflagged_indices, :);
-                condition_experimental_list_trial = condition_experimental_list_trial(unflagged_indices, :);
-                condition_stimulus_list_trial = condition_stimulus_list_trial(unflagged_indices, :);
-                condition_day_list_trial = condition_day_list_trial(unflagged_indices, :);
-                closest_heelstrike_distance_times = closest_heelstrike_distance_times(unflagged_indices, :);
-                
-                % save data
-                data_stretches_file_name = ['analysis' filesep makeFileName(date, subject_id, condition_list{i_condition}, i_trial, 'relevantDataStretches')];
-                save ...
-                  ( ...
-                    data_stretches_file_name, ...
-                    'condition_stance_foot_list_trial', ...
-                    'condition_perturbation_list_trial', ...
-                    'condition_delay_list_trial', ...
-                    'condition_index_list_trial', ...
-                    'condition_experimental_list_trial', ...
-                    'condition_stimulus_list_trial', ...
-                    'condition_day_list_trial', ...
-                    'stretch_start_times', ...
-                    'stretch_pushoff_times', ...
-                    'stretch_end_times' ...
-                  )
-
-                disp(['Finding Relevant Data Stretches: condition ' condition_list{i_condition} ', Trial ' num2str(i_trial) ' completed, found ' num2str(length(stretch_start_times)) ' relevant stretches, saved as ' data_stretches_file_name]);                
+%                 % save data
+%                 data_stretches_file_name = ['analysis' filesep makeFileName(date, subject_id, condition_list{i_condition}, i_trial, 'relevantDataStretches')];
+%                 save ...
+%                   ( ...
+%                     data_stretches_file_name, ...
+%                     'condition_stance_foot_list_trial', ...
+%                     'condition_perturbation_list_trial', ...
+%                     'condition_delay_list_trial', ...
+%                     'condition_index_list_trial', ...
+%                     'condition_experimental_list_trial', ...
+%                     'condition_stimulus_list_trial', ...
+%                     'condition_day_list_trial', ...
+%                     'stretch_start_times', ...
+%                     'stretch_pushoff_times', ...
+%                     'stretch_end_times' ...
+%                   )
+% 
+%                 disp(['Finding Relevant Data Stretches: condition ' condition_list{i_condition} ', Trial ' num2str(i_trial) ' completed, found ' num2str(length(stretch_start_times)) ' relevant stretches, saved as ' data_stretches_file_name]);                
                
                 
                 
@@ -500,24 +515,37 @@ function findRelevantDataStretches(varargin)
 %                 condition_experimental_list = condition_experimental_list(unflagged_indices, :);
 %                 closest_heelstrike_distance_times = closest_heelstrike_distance_times(unflagged_indices, :);
                 
-                % save data
-                data_stretches_file_name = ['analysis' filesep makeFileName(date, subject_id, condition_list{i_condition}, i_trial, 'relevantDataStretches')];
-                save ...
-                  ( ...
-                    data_stretches_file_name, ...
-                    'condition_stance_foot_list_trial', ...
-                    'condition_perturbation_list_trial', ...
-                    'condition_delay_list_trial', ...
-                    'condition_index_list_trial', ...
-                    'condition_experimental_list_trial', ...
-                    'condition_stimulus_list_trial', ...
-                    'condition_day_list_trial', ...
-                    'stretch_pushoff_times', ...
-                    'stretch_start_times', ...
-                    'stretch_end_times' ...
-                  )
 
-                disp(['Finding Relevant Data Stretches: condition ' condition_list{i_condition} ', Trial ' num2str(i_trial) ' completed, found ' num2str(length(stretch_start_times)) ' relevant stretches, saved as ' data_stretches_file_name]);                
+                % add new variables to be saved
+                event_variables_to_save.condition_stance_foot_list_trial = condition_stance_foot_list_trial;
+                event_variables_to_save.condition_perturbation_list_trial = condition_perturbation_list_trial;
+                event_variables_to_save.condition_delay_list_trial = condition_delay_list_trial;
+                event_variables_to_save.condition_index_list_trial = condition_index_list_trial;
+                event_variables_to_save.condition_experimental_list_trial = condition_experimental_list_trial;
+                event_variables_to_save.condition_stimulus_list_trial = condition_stimulus_list_trial;
+                event_variables_to_save.condition_day_list_trial = condition_day_list_trial;
+                event_variables_to_save.stretch_start_times = stretch_start_times;
+                event_variables_to_save.stretch_pushoff_times = stretch_pushoff_times;
+                event_variables_to_save.stretch_end_times = stretch_end_times;
+
+%                 % save data
+%                 data_stretches_file_name = ['analysis' filesep makeFileName(date, subject_id, condition_list{i_condition}, i_trial, 'relevantDataStretches')];
+%                 save ...
+%                   ( ...
+%                     data_stretches_file_name, ...
+%                     'condition_stance_foot_list_trial', ...
+%                     'condition_perturbation_list_trial', ...
+%                     'condition_delay_list_trial', ...
+%                     'condition_index_list_trial', ...
+%                     'condition_experimental_list_trial', ...
+%                     'condition_stimulus_list_trial', ...
+%                     'condition_day_list_trial', ...
+%                     'stretch_pushoff_times', ...
+%                     'stretch_start_times', ...
+%                     'stretch_end_times' ...
+%                   )
+% 
+%                 disp(['Finding Relevant Data Stretches: condition ' condition_list{i_condition} ', Trial ' num2str(i_trial) ' completed, found ' num2str(length(stretch_start_times)) ' relevant stretches, saved as ' data_stretches_file_name]);                
 
             end
             if strcmp(condition_stimulus, 'VISUAL') || strcmp(condition_stimulus, 'GVS')
@@ -1069,33 +1097,247 @@ function findRelevantDataStretches(varargin)
                 condition_experimental_list_trial = condition_experimental_list_trial(unflagged_indices, :);
                 condition_stimulus_list_trial = condition_stimulus_list_trial(unflagged_indices, :);
                 condition_day_list_trial = condition_day_list_trial(unflagged_indices, :);
-                                
-                % save data
-                data_stretches_file_name = ['analysis' filesep makeFileName(date, subject_id, condition_list{i_condition}, i_trial, 'relevantDataStretches')];
-                save ...
-                  ( ...
-                    data_stretches_file_name, ...
-                    'condition_stance_foot_list_trial', ...
-                    'condition_perturbation_list_trial', ...
-                    'condition_delay_list_trial', ...
-                    'condition_index_list_trial', ...
-                    'condition_experimental_list_trial', ...
-                    'condition_stimulus_list_trial', ...
-                    'condition_day_list_trial', ...
-                    'trigger_times', ...
-                    'stretch_start_times', ...
-                    'stretch_pushoff_times', ...
-                    'stretch_end_times', ...
-                    'closest_heelstrike_distance_times' ...
-                  )
 
-                disp(['Finding Relevant Data Stretches: condition ' condition_list{i_condition} ', Trial ' num2str(i_trial) ' completed, found ' num2str(length(stretch_start_times)) ' relevant stretches, saved as ' data_stretches_file_name]);                
+                
+                % add new variables to be saved
+                event_variables_to_save.condition_stance_foot_list_trial = condition_stance_foot_list_trial;
+                event_variables_to_save.condition_perturbation_list_trial = condition_perturbation_list_trial;
+                event_variables_to_save.condition_delay_list_trial = condition_delay_list_trial;
+                event_variables_to_save.condition_index_list_trial = condition_index_list_trial;
+                event_variables_to_save.condition_experimental_list_trial = condition_experimental_list_trial;
+                event_variables_to_save.condition_stimulus_list_trial = condition_stimulus_list_trial;
+                event_variables_to_save.condition_day_list_trial = condition_day_list_trial;
+                event_variables_to_save.stretch_start_times = stretch_start_times;
+                event_variables_to_save.stretch_pushoff_times = stretch_pushoff_times;
+                event_variables_to_save.stretch_end_times = stretch_end_times;
+%                 event_variables_to_save.trigger_times = trigger_times;
+%                 event_variables_to_save.closest_heelstrike_distance_times = closest_heelstrike_distance_times;
+                
+%                 % save data
+%                 data_stretches_file_name = ['analysis' filesep makeFileName(date, subject_id, condition_list{i_condition}, i_trial, 'relevantDataStretches')];
+%                 save ...
+%                   ( ...
+%                     data_stretches_file_name, ...
+%                     'condition_stance_foot_list_trial', ...
+%                     'condition_perturbation_list_trial', ...
+%                     'condition_delay_list_trial', ...
+%                     'condition_index_list_trial', ...
+%                     'condition_experimental_list_trial', ...
+%                     'condition_stimulus_list_trial', ...
+%                     'condition_day_list_trial', ...
+%                     'trigger_times', ...
+%                     'stretch_start_times', ...
+%                     'stretch_pushoff_times', ...
+%                     'stretch_end_times', ...
+%                     'closest_heelstrike_distance_times' ...
+%                   )
+% 
+%                 disp(['Finding Relevant Data Stretches: condition ' condition_list{i_condition} ', Trial ' num2str(i_trial) ' completed, found ' num2str(length(stretch_start_times)) ' relevant stretches, saved as ' data_stretches_file_name]);                
                 
                 
             end            
 
+            %% remove stretches where important variables are missing
+            %
+            % calculate variables that depend upon the step events to be identified correctly
+            variables_to_save = struct;
+            variables_to_prune_for = {};
+            save_folder = 'processed';
+            save_file_name = makeFileName(date, subject_id, condition_list{i_condition}, i_trial, 'kinematicTrajectories.mat');
+            if any(strcmp(study_settings.variables_to_analyze(:, 1), 'left_arm_phase'))
+                LELB_trajectory = extractMarkerTrajectories(marker_trajectories, marker_labels, 'LELB');
+                LWRA_trajectory = extractMarkerTrajectories(marker_trajectories, marker_labels, 'LWRA');
+                LWRB_trajectory = extractMarkerTrajectories(marker_trajectories, marker_labels, 'LWRB');
+                
+                % calculate vectors
+                left_wrist_center_trajectory = (LWRA_trajectory + LWRB_trajectory) * 0.5;
+                left_arm_vector_trajectory = LELB_trajectory - left_wrist_center_trajectory;
+
+                % calculate angles
+                left_arm_angle = rad2deg(atan2(-left_arm_vector_trajectory(:, 2), left_arm_vector_trajectory(:, 3)));
+
+                % find negative peaks
+                [~, left_arm_peak_locations] = findpeaks(-left_arm_angle, 'MinPeakProminence', subject_settings.left_armswing_peak_prominence_threshold, 'MinPeakDistance', subject_settings.left_armswing_peak_distance_threshold * sampling_rate_marker);
+                
+                % normalize
+                [larm_angle_normalized, larm_angle_dot_normalized] = normalizePeriodicVariable(left_arm_angle, time_marker, left_arm_peak_locations);
+
+                % calculate phase
+                left_arm_phase = atan2(larm_angle_dot_normalized, larm_angle_normalized);
+                
+%                 % XXX plot some stuff to check
+%                 figure; hold on
+%                 plot(left_arm_phase)
+%                 plot(left_arm_phase_atan2)
+%                 
+                
+                % add new variables to be saved
+                variables_to_save.left_arm_angle = left_arm_angle;
+                variables_to_save.left_arm_phase = left_arm_phase;
+                variables_to_save.sampling_rate_marker = sampling_rate_marker;
+                variables_to_save.time_marker = time_marker;
+                saveDataToFile([save_folder filesep save_file_name], variables_to_save);
+                addAvailableData('left_arm_angle', 'time_marker', 'sampling_rate_marker', '', save_folder, save_file_name);
+                addAvailableData('left_arm_phase', 'time_marker', 'sampling_rate_marker', '', save_folder, save_file_name);
+                variables_to_prune_for = [variables_to_prune_for; 'left_arm_angle']; %#ok<AGROW>
+                variables_to_prune_for = [variables_to_prune_for; 'left_arm_phase']; %#ok<AGROW>
+            end
+            if any(strcmp(study_settings.variables_to_analyze(:, 1), 'right_arm_phase'))
+                RELB_trajectory = extractMarkerTrajectories(marker_trajectories, marker_labels, 'RELB');
+                RWRA_trajectory = extractMarkerTrajectories(marker_trajectories, marker_labels, 'RWRA');
+                RWRB_trajectory = extractMarkerTrajectories(marker_trajectories, marker_labels, 'RWRB');
+                
+                % calculate vectors
+                right_wrist_center_trajectory = (RWRA_trajectory + RWRB_trajectory) * 0.5;
+                right_arm_vector_trajectory = RELB_trajectory - right_wrist_center_trajectory;
+                
+                % calculate angles
+                right_arm_angle = rad2deg(atan2(-right_arm_vector_trajectory(:, 2), right_arm_vector_trajectory(:, 3)));
+
+                % find negative peaks
+                [~, right_arm_peak_locations] = findpeaks(-right_arm_angle, 'MinPeakProminence', subject_settings.right_armswing_peak_prominence_threshold, 'MinPeakDistance', subject_settings.right_armswing_peak_distance_threshold * sampling_rate_marker);
+                
+                % normalize
+                [larm_angle_normalized, larm_angle_dot_normalized] = normalizePeriodicVariable(right_arm_angle, time_marker, right_arm_peak_locations);
+
+                % calculate phase
+                right_arm_phase = atan2(larm_angle_dot_normalized, larm_angle_normalized);
+                
+                % add new variables to be saved
+                variables_to_save.right_arm_angle = right_arm_angle;
+                variables_to_save.right_arm_phase = right_arm_phase;
+                saveDataToFile([save_folder filesep save_file_name], variables_to_save);
+                addAvailableData('right_arm_angle', 'time_marker', 'sampling_rate_marker', '', save_folder, save_file_name);
+                addAvailableData('right_arm_phase', 'time_marker', 'sampling_rate_marker', '', save_folder, save_file_name);
+                variables_to_prune_for = [variables_to_prune_for; 'right_arm_angle']; %#ok<AGROW>
+                variables_to_prune_for = [variables_to_prune_for; 'right_arm_phase']; %#ok<AGROW>
+            end
+            if any(strcmp(study_settings.variables_to_analyze(:, 1), 'left_leg_phase'))
+                LANK_trajectory = extractMarkerTrajectories(marker_trajectories, marker_labels, 'LANK');
+                LPSI_trajectory = extractMarkerTrajectories(marker_trajectories, marker_labels, 'LPSI');
+                LASI_trajectory = extractMarkerTrajectories(marker_trajectories, marker_labels, 'LASI');
+                
+                % calculate vectors
+                left_pelvis_center_trajectory = (LPSI_trajectory + LASI_trajectory) * 0.5;
+                left_leg_vector_trajectory = left_pelvis_center_trajectory - LANK_trajectory;
+                
+                % calculate angles
+                left_leg_angle = rad2deg(atan2(-left_leg_vector_trajectory(:, 2), left_leg_vector_trajectory(:, 3)));
+
+                % find negative peaks
+                [~, left_leg_peak_locations] = findpeaks(-left_leg_angle, 'MinPeakProminence', subject_settings.left_legswing_peak_prominence_threshold, 'MinPeakDistance', subject_settings.left_legswing_peak_distance_threshold * sampling_rate_marker);
+                
+                % normalize
+                [lleg_angle_normalized, lleg_angle_dot_normalized] = normalizePeriodicVariable(left_leg_angle, time_marker, left_leg_peak_locations);
+
+                % calculate phase
+                left_leg_phase = atan2(lleg_angle_dot_normalized, lleg_angle_normalized);
+                
+                % add new variables to be saved
+                variables_to_save.left_leg_angle = left_leg_angle;
+                variables_to_save.left_leg_phase = left_leg_phase;
+                saveDataToFile([save_folder filesep save_file_name], variables_to_save);
+                addAvailableData('left_leg_angle', 'time_marker', 'sampling_rate_marker', '', save_folder, save_file_name);
+                addAvailableData('left_leg_phase', 'time_marker', 'sampling_rate_marker', '', save_folder, save_file_name);
+                variables_to_prune_for = [variables_to_prune_for; 'left_leg_angle']; %#ok<AGROW>
+                variables_to_prune_for = [variables_to_prune_for; 'left_leg_phase']; %#ok<AGROW>
+            end
+            if any(strcmp(study_settings.variables_to_analyze(:, 1), 'right_leg_phase'))
+                RANK_trajectory = extractMarkerTrajectories(marker_trajectories, marker_labels, 'RANK');
+                RPSI_trajectory = extractMarkerTrajectories(marker_trajectories, marker_labels, 'RPSI');
+                RASI_trajectory = extractMarkerTrajectories(marker_trajectories, marker_labels, 'RASI');
+                
+                % calculate vectors
+                right_pelvis_center_trajectory = (RPSI_trajectory + RASI_trajectory) * 0.5;
+                right_leg_vector_trajectory = right_pelvis_center_trajectory - RANK_trajectory;
+                
+                % calculate angles
+                right_leg_angle = rad2deg(atan2(-right_leg_vector_trajectory(:, 2), right_leg_vector_trajectory(:, 3)));
+
+                % find negative peaks
+                [~, right_leg_peak_locations] = findpeaks(-right_leg_angle, 'MinPeakProminence', subject_settings.right_legswing_peak_prominence_threshold, 'MinPeakDistance', subject_settings.right_legswing_peak_distance_threshold * sampling_rate_marker);
+                
+                % normalize
+                [lleg_angle_normalized, lleg_angle_dot_normalized] = normalizePeriodicVariable(right_leg_angle, time_marker, right_leg_peak_locations);
+
+                % calculate phase
+                right_leg_phase = atan2(lleg_angle_dot_normalized, lleg_angle_normalized);
+                
+                % add new variables to be saved
+                variables_to_save.right_leg_angle = right_leg_angle;
+                variables_to_save.right_leg_phase = right_leg_phase;
+                saveDataToFile([save_folder filesep save_file_name], variables_to_save);
+                addAvailableData('right_leg_angle', 'time_marker', 'sampling_rate_marker', '', save_folder, save_file_name);
+                addAvailableData('right_leg_phase', 'time_marker', 'sampling_rate_marker', '', save_folder, save_file_name);
+                variables_to_prune_for = [variables_to_prune_for; 'right_leg_angle']; %#ok<AGROW>
+                variables_to_prune_for = [variables_to_prune_for; 'right_leg_phase']; %#ok<AGROW>
+            end
+            
+            
+            
+            
+            
+            
+            
+            
+            % prune
+            number_of_stretches = length(stretch_start_times);
+            removal_flags = zeros(number_of_stretches, 1);
+            
+            % take care of steps with very large or small step time
+            stretch_times = stretch_end_times - stretch_start_times;
+            stretch_time_outlier_limits = median(stretch_times) * [0.8 1.2];
+            removal_flags(stretch_times < stretch_time_outlier_limits(1)) = 1;
+            removal_flags(stretch_times > stretch_time_outlier_limits(2)) = 1;
+
+            % check data availability for markers and flag stretches with gaps
+            for i_stretch = 1 : number_of_stretches
+                [~, start_index_mocap] = min(abs(time_marker - stretch_start_times(i_stretch)));
+                [~, end_index_mocap] = min(abs(time_marker - stretch_end_times(i_stretch)));
+                if any(any(isnan(marker_trajectories(start_index_mocap : end_index_mocap, essential_marker_indicator))))
+                    removal_flags(i_stretch) = 1;
+                end
+            end
+            
+            % check data availability for variables just calculated here
+            for i_variable = 1 : length(variables_to_prune_for)
+                [data, time] = loadData(date, subject_id, condition_list{i_condition}, i_trial, variables_to_prune_for{i_variable});
+                
+                for i_stretch = 1 : number_of_stretches
+                    [~, start_index] = min(abs(time - stretch_start_times(i_stretch)));
+                    [~, end_index] = min(abs(time - stretch_end_times(i_stretch)));
+                    if any(isnan(data(start_index : end_index)))
+                        removal_flags(i_stretch) = 1;
+                    end
+                end
+                
+                
+            end
 
 
+            % remove flagged triggers
+            unflagged_indices = ~removal_flags;
+            event_variables_to_save_names = fieldnames(event_variables_to_save);
+            for i_variable = 1 : length(event_variables_to_save_names)
+                this_variable_name = event_variables_to_save_names{i_variable};
+                
+                evalstring = ['this_variable_data = event_variables_to_save.' this_variable_name ';'];
+                eval(evalstring);
+                this_variable_data = this_variable_data(unflagged_indices, :);
+                
+                evalstring = ['event_variables_to_save.' this_variable_name ' = this_variable_data;'];
+                eval(evalstring);
+            end
+            
+            
+            
+            %% save
+            %
+            stretches_file_name = ['analysis' filesep makeFileName(date, subject_id, condition_list{i_condition}, i_trial, 'relevantDataStretches')];
+            save(stretches_file_name, '-struct', 'event_variables_to_save');
+            
+            
+            disp(['Finding Relevant Data Stretches: condition ' condition_list{i_condition} ', Trial ' num2str(i_trial) ' completed, found ' num2str(length(stretch_start_times)) ' relevant stretches, saved as ' stretches_file_name]);                
         end
 
     end

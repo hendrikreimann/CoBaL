@@ -12,7 +12,7 @@
 %     GNU General Public License for more details.
 % 
 %     You should have received a copy of the GNU General Public License
-%     along with this program.  If not, see <http://www.gnu.org/licenses/>.% compare the kinematic tree against the kinematic chain
+%     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 classdef stepEventFigure < handle;
     properties
@@ -222,9 +222,26 @@ classdef stepEventFigure < handle;
             this.stretch_patches = [];
             
             ylimits = get(this.main_axes, 'ylim');
-            for i_stretch = 1 : length(this.event_data.stretch_start_times)
-                stretch_start = this.event_data.stretch_start_times(i_stretch);
-                stretch_end = this.event_data.stretch_end_times(i_stretch);
+            
+            % determine blocks of stretches
+            stretch_start_times = this.event_data.stretch_start_times;
+            stretch_end_times = this.event_data.stretch_end_times;
+            [block_start_times, sort_indices] = sort(stretch_start_times);
+            block_end_times = stretch_end_times(sort_indices);
+            
+            index = 2;
+            while index <= length(block_end_times);
+                while index <= length(block_end_times) && (block_start_times(index) == block_end_times(index - 1))
+                    block_start_times(index) = [];
+                    block_end_times(index-1) = [];
+                end
+                index = index + 1;
+            end            
+            
+            
+            for i_block = 1 : length(block_start_times)
+                stretch_start = block_start_times(i_block);
+                stretch_end = block_end_times(i_block);
                 
                 patch_x = [stretch_start stretch_end stretch_end stretch_start];
                 patch_y = [ylimits(1) ylimits(1) ylimits(2) ylimits(2)];
@@ -235,7 +252,7 @@ classdef stepEventFigure < handle;
                         patch_y, ...
                         this.patch_color, ...
                         'parent', this.main_axes, ...
-                        'EdgeColor', 'none', ...
+                        'EdgeColor', lightenColor(this.patch_color, 0.8), ...
                         'FaceAlpha', this.patch_alpha ...
                       ); 
                 uistack(patch_handle, 'bottom')

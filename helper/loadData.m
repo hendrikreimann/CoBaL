@@ -55,6 +55,10 @@ function [data, time, sampling_rate, labels, success] = loadData(date, subject_i
     eval(['data = loaded_data.' data_name ';'])
     eval(['time = loaded_data.' data_time ';'])
     eval(['sampling_rate = loaded_data.' data_sampling_rate ';'])
-    eval(['labels = loaded_data.' data_labels ';'])
+    if isempty(data_labels)
+        labels = data_name;
+    else
+        eval(['labels = loaded_data.' data_labels ';'])
+    end
     success = true;
 end

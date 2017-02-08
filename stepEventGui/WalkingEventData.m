@@ -71,20 +71,37 @@ classdef WalkingEventData < handle
         function saveEvents(this, sender, eventdata)
             % prepare data
             this.removeDuplicates();
-            left_pushoff_times = this.left_pushoff;
-            left_touchdown_times = this.left_touchdown;
-            right_pushoff_times = this.right_pushoff;
-            right_touchdown_times = this.right_touchdown;
+            variables_to_save = struct;
+            
+            variables_to_save.left_pushoff_times = this.left_pushoff;
+            variables_to_save.left_touchdown_times = this.left_touchdown;
+            variables_to_save.right_pushoff_times = this.right_pushoff;
+            variables_to_save.right_touchdown_times = this.right_touchdown;
+            if ~isempty(this.left_arm_swing_onset_times);
+                variables_to_save.left_arm_swing_onset_times = this.left_arm_swing_onset_times;
+            end
+            if ~isempty(this.right_arm_swing_onset_times);
+                variables_to_save.right_arm_swing_onset_times = this.right_arm_swing_onset_times;
+            end
+            if ~isempty(this.left_leg_swing_onset_times);
+                variables_to_save.left_leg_swing_onset_times = this.left_leg_swing_onset_times;
+            end
+            if ~isempty(this.right_leg_swing_onset_times);
+                variables_to_save.right_leg_swing_onset_times = this.right_leg_swing_onset_times;
+            end
+            
+            step_events_file_name = [this.trial_data.data_directory filesep 'analysis' filesep makeFileName(this.trial_data.date, this.trial_data.subject_id, this.trial_data.condition, this.trial_data.trial_number, 'stepEvents')];
+            save(step_events_file_name, '-struct', 'variables_to_save');
 
-            step_events_file_name = makeFileName(this.trial_data.date, this.trial_data.subject_id, this.trial_data.condition, this.trial_data.trial_number, 'stepEvents');
-            save ...
-              ( ...
-                [this.trial_data.data_directory filesep 'analysis' filesep step_events_file_name], ...
-                'left_pushoff_times', ...
-                'left_touchdown_times', ...
-                'right_pushoff_times', ...
-                'right_touchdown_times' ...
-              );
+%             step_events_file_name = makeFileName(this.trial_data.date, this.trial_data.subject_id, this.trial_data.condition, this.trial_data.trial_number, 'stepEvents');
+%             save ...
+%               ( ...
+%                 [this.trial_data.data_directory filesep 'analysis' filesep step_events_file_name], ...
+%                 'left_pushoff_times', ...
+%                 'left_touchdown_times', ...
+%                 'right_pushoff_times', ...
+%                 'right_touchdown_times' ...
+%               );
             disp(['Step events saved as "' step_events_file_name '"']);
         end
         
@@ -166,26 +183,28 @@ classdef WalkingEventData < handle
             this.trial_data.selected_time = this.selected_event_time;
         end
         function next_event_label = getNextEventTypeLabel(this, current_event_type_label)
+            next_event_label = 'left_pushoff';
             if strcmp(current_event_type_label, 'left_touchdown')
                 next_event_label = 'left_pushoff';
-            elseif strcmp(current_event_type_label, 'left_pushoff')
+            end
+            if strcmp(current_event_type_label, 'left_pushoff')
                 next_event_label = 'right_touchdown';
-            elseif strcmp(current_event_type_label, 'right_touchdown')
+            end
+            if strcmp(current_event_type_label, 'right_touchdown')
                 next_event_label = 'right_pushoff';
-            elseif strcmp(current_event_type_label, 'right_pushoff')
-                next_event_label = 'left_touchdown';
             end
                 
 
         end
         function previous_event_label = getPreviousEventTypeLabel(this, current_event_type_label)
+            next_event_label = 'left_pushoff';
             if strcmp(current_event_type_label, 'right_pushoff')
                 previous_event_label = 'right_touchdown';
-            elseif strcmp(current_event_type_label, 'right_touchdown')
-                previous_event_label = 'left_pushoff';
-            elseif strcmp(current_event_type_label, 'left_pushoff')
+            end
+            if strcmp(current_event_type_label, 'left_pushoff')
                 previous_event_label = 'left_touchdown';
-            elseif strcmp(current_event_type_label, 'left_touchdown')
+            end
+            if strcmp(current_event_type_label, 'left_touchdown')
                 previous_event_label = 'right_pushoff';
             end
         end

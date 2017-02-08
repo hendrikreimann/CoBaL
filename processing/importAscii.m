@@ -41,6 +41,7 @@ function importAscii(varargin)
     millimeter_to_meter = 1e-3;
     centimeter_to_meter = 1e-2;
     milliseconds_to_seconds = 1e-3;
+    qtm_emg_scale = 1;
 
     % create folders if necessary
     if ~exist('raw', 'dir')
@@ -281,7 +282,7 @@ function importAscii(varargin)
                         emg_labels{i_column} = strrep(emg_labels{i_column}, 'CH', 'EMG');
                     end
 
-                    emg_trajectories_raw = imported_data.data(:, 3:end);
+                    emg_trajectories_raw = imported_data.data(:, 3:end) * qtm_emg_scale;
                     sampling_rate_field = imported_data.textdata{3, 1};
                     sampling_rate_strings = strsplit(sampling_rate_field);
                     sampling_rate_emg = str2num(sampling_rate_strings{2});

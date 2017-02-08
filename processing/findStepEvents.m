@@ -12,7 +12,7 @@
 %     GNU General Public License for more details.
 % 
 %     You should have received a copy of the GNU General Public License
-%     along with this program.  If not, see <http://www.gnu.org/licenses/>.% compare the kinematic tree against the kinematic chain
+%     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 % this function finds the heelstrike and pushoff events
 
@@ -56,9 +56,6 @@ function findStepEvents(varargin)
     end
     study_settings = loadSettingsFile(study_settings_file);
     
-%     show_forceplate         = 1;
-
-    
     for i_condition = 1 : length(condition_list)
         trials_to_process = trial_number_list{i_condition};
         for i_trial = trials_to_process
@@ -66,22 +63,11 @@ function findStepEvents(varargin)
             % load data
             condition = condition_list{i_condition};
             [marker_trajectories, time_marker, sampling_rate_marker, marker_labels] = loadData(date, subject_id, condition, i_trial, 'marker_trajectories');
-            [left_forceplate_wrench_world_trajectory, time_left_forceplate, ~, ~, left_forceplate_available] = loadData(date, subject_id, condition, i_trial, 'left_forceplate_wrench_world', 'optional');
-            [right_forceplate_wrench_world_trajectory, time_right_forceplate, ~, ~, right_forceplate_available] = loadData(date, subject_id, condition, i_trial, 'right_forceplate_wrench_world', 'optional');
             [left_foot_wrench_world, time_left_forceplate, ~, ~, left_forceplate_available] = loadData(date, subject_id, condition, i_trial, 'left_foot_wrench_world', 'optional');
             [right_foot_wrench_world, time_right_forceplate, ~, ~, right_forceplate_available] = loadData(date, subject_id, condition, i_trial, 'right_foot_wrench_world', 'optional');
             if left_forceplate_available && right_forceplate_available
                 left_fz_trajectory = left_foot_wrench_world(:, 3);
                 right_fz_trajectory = right_foot_wrench_world(:, 3);
-                
-                
-%                 left_fz_trajectory = left_forceplate_wrench_world_trajectory(:, 3);
-%                 right_fz_trajectory = right_forceplate_wrench_world_trajectory(:, 3);
-%                 if any(strcmp(condition, study_settings.trial_types_with_inverted_forceplate_sides))
-%                     % in case subject was standing with the left leg on the right forceplate
-%                     left_fz_trajectory = right_forceplate_wrench_world_trajectory(:, 3);
-%                     right_fz_trajectory = left_forceplate_wrench_world_trajectory(:, 3);
-%                 end
             end
             
             % extract data
@@ -282,7 +268,8 @@ function findStepEvents(varargin)
             variables_to_save.right_touchdown_times = right_touchdown_times;
 
             %% find events for angles
-            if any(strcmp(study_settings.variables_to_analyze(:, 1), 'larm_phase'))
+            % TODO: change conditionals to use a WalkingDataCustodian
+            if any(strcmp(study_settings.variables_to_analyze(:, 1), 'left_arm_phase')) || any(strcmp(study_settings.variables_to_analyze(:, 1), 'left_arm_right_leg_relative_phase'))
                 % calculate vectors
                 left_wrist_center_trajectory = (LWRA_trajectory + LWRB_trajectory) * 0.5;
                 left_arm_vector_trajectory = LELB_trajectory - left_wrist_center_trajectory;
@@ -297,7 +284,7 @@ function findStepEvents(varargin)
                 % add new variables to be saved
                 variables_to_save.left_arm_swing_onset_times = left_arm_swing_onset_times;
             end
-            if any(strcmp(study_settings.variables_to_analyze(:, 1), 'rarm_phase'))
+            if any(strcmp(study_settings.variables_to_analyze(:, 1), 'right_arm_phase')) || any(strcmp(study_settings.variables_to_analyze(:, 1), 'right_arm_left_leg_relative_phase'))
                 % calculate vectors
                 right_wrist_center_trajectory = (RWRA_trajectory + RWRB_trajectory) * 0.5;
                 right_arm_vector_trajectory = RELB_trajectory - right_wrist_center_trajectory;
@@ -312,7 +299,7 @@ function findStepEvents(varargin)
                 % add new variables to be saved
                 variables_to_save.right_arm_swing_onset_times = right_arm_swing_onset_times;
             end
-            if any(strcmp(study_settings.variables_to_analyze(:, 1), 'lleg_phase'))
+            if any(strcmp(study_settings.variables_to_analyze(:, 1), 'left_leg_phase')) || any(strcmp(study_settings.variables_to_analyze(:, 1), 'left_arm_right_leg_relative_phase'))
                 % calculate vectors
                 left_pelvis_center_trajectory = (LPSI_trajectory + LASI_trajectory) * 0.5;
                 left_leg_vector_trajectory = left_pelvis_center_trajectory - LANK_trajectory;
@@ -327,7 +314,7 @@ function findStepEvents(varargin)
                 % add new variables to be saved
                 variables_to_save.left_leg_swing_onset_times = left_leg_swing_onset_times;
             end
-            if any(strcmp(study_settings.variables_to_analyze(:, 1), 'rleg_phase'))
+            if any(strcmp(study_settings.variables_to_analyze(:, 1), 'right_leg_phase')) || any(strcmp(study_settings.variables_to_analyze(:, 1), 'right_arm_left_leg_relative_phase'))
                 % calculate vectors
                 right_pelvis_center_trajectory = (RPSI_trajectory + RASI_trajectory) * 0.5;
                 right_leg_vector_trajectory = right_pelvis_center_trajectory - RANK_trajectory;

@@ -18,8 +18,8 @@
 % rename all the neurocom files in the current directory to the naming scheme used by CoBaL
 
 % hard-code information here
-date = '20160722';
-subject_id = 'C';
+date = '20160311';
+subject_id = 'IC';
 trial_type = 'walking';
 
 % prepare folder

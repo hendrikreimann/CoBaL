@@ -48,8 +48,6 @@ classdef stepEventController < handle
         
         color_selected = [1 0.5 0];
         color_normal = [0 0 0];
-        
-        settings_file = '/Users/reimajbi/Library/Application Support/stepEventFinder/figureSettings.mat';
     end
     methods
         function this = stepEventController(trial_data, event_data)
@@ -271,6 +269,7 @@ classdef stepEventController < handle
             end
         end
         function saveFigureSettings(this, sender, eventdata)
+            
             figure_settings = cell(1, length(this.figureSelectionBox));
             for i_figure = 1 : size(this.figureSelectionBox.String, 1)
                 figure_settings{i_figure} = this.figureSelectionBox.UserData{i_figure}.getSetting();
@@ -283,17 +282,18 @@ classdef stepEventController < handle
             control_figure_setting.position = this.control_figure.Position;
             
             kinematic_tree_figure_setting = struct();
-            kinematic_tree_figure_setting.position = this.kinematic_tree_controller.sceneFigure.Position;
-
-            save_file = this.settings_file;
-            save(save_file, 'figure_settings', 'control_figure_setting', 'scene_figure_setting', 'kinematic_tree_figure_setting');
+            if ~isempty(this.kinematic_tree_controller)
+                kinematic_tree_figure_setting.position = this.kinematic_tree_controller.sceneFigure.Position;
+            end
+            settings_file = [getUserSettingsPath filesep 'eventGuiFigureSettings.mat'];
+            save(settings_file, 'figure_settings', 'control_figure_setting', 'scene_figure_setting', 'kinematic_tree_figure_setting');
         end
         function loadFigureSettings(this, sender, eventdata)
-            load_file = this.settings_file;
+%             settings_file = '/Users/reimajbi/Library/Application Support/stepEventFinder/figureSettings.mat';
+            settings_file = [getUserSettingsPath filesep 'eventGuiFigureSettings.mat'];
 
-            if exist(load_file, 'file')
-%                 load(load_file, 'figure_settings', 'control_figure_setting')
-                load(load_file, 'figure_settings', 'control_figure_setting', 'scene_figure_setting', 'kinematic_tree_figure_setting')
+            if exist(settings_file, 'file')
+                load(settings_file, 'figure_settings', 'control_figure_setting', 'scene_figure_setting', 'kinematic_tree_figure_setting')
                 for i_figure = 1 : length(figure_settings)
         %             if length(step_event_figures) < i_figure
         %                 step_event_figures{i_figure} = createStepEventFigure();

@@ -1005,17 +1005,18 @@ function analyzeStimulusResponse(varargin)
             rtnsrflt_emg_high = max([rtnsrflt_emg_high_stanceleft, rtnsrflt_emg_high_stanceright]);
 
         end
-            % RESCALE TRAJECTORIES
-            lglutmed_normalized_rescaled_all = ((lglutmed_normalized_all - lglutmed_emg_low)/(lglutmed_emg_high - lglutmed_emg_low));
-            ltibiant_normalized_rescaled_all = ((ltibiant_normalized_all - ltibiant_emg_low)/(ltibiant_emg_high - ltibiant_emg_low));
-            lgastroc_normalized_rescaled_all = ((lgastroc_normalized_all - lgastroc_emg_low)/(lgastroc_emg_high - lgastroc_emg_low));
-            lperolng_normalized_rescaled_all = ((lperolng_normalized_all - lperolng_emg_low)/(lperolng_emg_high - lperolng_emg_low));
-            rglutmed_normalized_rescaled_all = ((rglutmed_normalized_all - rglutmed_emg_low)/(rglutmed_emg_high - rglutmed_emg_low));
-            rtibiant_normalized_rescaled_all = ((rtibiant_normalized_all - rtibiant_emg_low)/(rtibiant_emg_high - rtibiant_emg_low));
-            rgastroc_normalized_rescaled_all = ((rgastroc_normalized_all - rgastroc_emg_low)/(rgastroc_emg_high - rgastroc_emg_low));
-            rperolng_normalized_rescaled_all = ((rperolng_normalized_all - rperolng_emg_low)/(rperolng_emg_high - rperolng_emg_low));
-            ltnsrflt_normalized_rescaled_all = ((ltnsrflt_normalized_all - ltnsrflt_emg_low)/(ltnsrflt_emg_high - ltnsrflt_emg_low));
-            rtnsrflt_normalized_rescaled_all = ((rtnsrflt_normalized_all - rtnsrflt_emg_low)/(rtnsrflt_emg_high - rtnsrflt_emg_low));
+        
+        % RESCALE TRAJECTORIES
+        lglutmed_normalized_rescaled_all = ((lglutmed_normalized_all - lglutmed_emg_low)/(lglutmed_emg_high - lglutmed_emg_low));
+        ltibiant_normalized_rescaled_all = ((ltibiant_normalized_all - ltibiant_emg_low)/(ltibiant_emg_high - ltibiant_emg_low));
+        lgastroc_normalized_rescaled_all = ((lgastroc_normalized_all - lgastroc_emg_low)/(lgastroc_emg_high - lgastroc_emg_low));
+        lperolng_normalized_rescaled_all = ((lperolng_normalized_all - lperolng_emg_low)/(lperolng_emg_high - lperolng_emg_low));
+        rglutmed_normalized_rescaled_all = ((rglutmed_normalized_all - rglutmed_emg_low)/(rglutmed_emg_high - rglutmed_emg_low));
+        rtibiant_normalized_rescaled_all = ((rtibiant_normalized_all - rtibiant_emg_low)/(rtibiant_emg_high - rtibiant_emg_low));
+        rgastroc_normalized_rescaled_all = ((rgastroc_normalized_all - rgastroc_emg_low)/(rgastroc_emg_high - rgastroc_emg_low));
+        rperolng_normalized_rescaled_all = ((rperolng_normalized_all - rperolng_emg_low)/(rperolng_emg_high - rperolng_emg_low));
+        ltnsrflt_normalized_rescaled_all = ((ltnsrflt_normalized_all - ltnsrflt_emg_low)/(ltnsrflt_emg_high - ltnsrflt_emg_low));
+        rtnsrflt_normalized_rescaled_all = ((rtnsrflt_normalized_all - rtnsrflt_emg_low)/(rtnsrflt_emg_high - rtnsrflt_emg_low));
     end
     
     
