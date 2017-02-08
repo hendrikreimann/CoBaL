@@ -367,6 +367,22 @@ classdef WalkingDataCustodian < handle
                 this.addStretchVariable('right_pero_lng')
                 this.addStretchVariable('right_pero_lng_rescaled')
             end
+            if this.isVariableToAnalyze('body_com_x')
+                this.addBasicVariable('com_trajectories')
+                this.addBasicVariable('body_com_x')
+                this.addStretchVariable('body_com_x')
+            end
+            if this.isVariableToAnalyze('body_com_y')
+                this.addBasicVariable('com_trajectories')
+                this.addBasicVariable('body_com_y')
+                this.addStretchVariable('body_com_y')
+            end
+            if this.isVariableToAnalyze('body_com_z')
+                this.addBasicVariable('com_trajectories')
+                this.addBasicVariable('body_com_z')
+                this.addStretchVariable('body_com_z')
+            end
+            
   
         end
         
@@ -546,6 +562,21 @@ classdef WalkingDataCustodian < handle
                 if strcmp(variable_name, 'right_pero_lng')
                     this.basic_variable_data.right_pero_lng = this.basic_variable_data.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'right_pero_lng'));
                     this.time_data.right_pero_lng = this.time_data.emg_trajectories;
+                end
+                if strcmp(variable_name, 'body_com_x')
+                    body_com_trajectory = extractMarkerTrajectories(this.basic_variable_data.com_trajectories, this.basic_variable_labels.com_trajectories, 'BODYCOM');
+                    this.basic_variable_data.body_com_x = body_com_trajectory(:, 1);
+                    this.time_data.body_com_x = this.time_data.com_trajectories;
+                end
+                if strcmp(variable_name, 'body_com_y')
+                    body_com_trajectory = extractMarkerTrajectories(this.basic_variable_data.com_trajectories, this.basic_variable_labels.com_trajectories, 'BODYCOM');
+                    this.basic_variable_data.body_com_y = body_com_trajectory(:, 2);
+                    this.time_data.body_com_y = this.time_data.com_trajectories;
+                end
+                if strcmp(variable_name, 'body_com_z')
+                    body_com_trajectory = extractMarkerTrajectories(this.basic_variable_data.com_trajectories, this.basic_variable_labels.com_trajectories, 'BODYCOM');
+                    this.basic_variable_data.body_com_z = body_com_trajectory(:, 3);
+                    this.time_data.body_com_z = this.time_data.com_trajectories;
                 end
             end
         end
