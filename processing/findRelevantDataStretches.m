@@ -1283,11 +1283,13 @@ function findRelevantDataStretches(varargin)
             removal_flags = zeros(number_of_stretches, 1);
             
             % take care of steps with very large or small step time
-            stretch_times = stretch_end_times - stretch_start_times;
-            stretch_time_outlier_limits = median(stretch_times) * [0.5 2.0];
-            removal_flags(stretch_times < stretch_time_outlier_limits(1)) = 1;
-            removal_flags(stretch_times > stretch_time_outlier_limits(2)) = 1;
-
+            if study_settings.prune_step_time_outliers
+                stretch_times = stretch_end_times - stretch_start_times;
+                stretch_time_outlier_limits = median(stretch_times) * [0.5 2.0];
+                removal_flags(stretch_times < stretch_time_outlier_limits(1)) = 1;
+                removal_flags(stretch_times > stretch_time_outlier_limits(2)) = 1;
+            end
+            
             % check data availability for markers and flag stretches with gaps
             for i_stretch = 1 : number_of_stretches
                 [~, start_index_mocap] = min(abs(time_marker - stretch_start_times(i_stretch)));
