@@ -16,7 +16,7 @@
 
 function path = getUserSettingsPath
     if ispc
-        path = [getenv('HOMEDRIVE') getenv('HOMEPATH') filesep 'Libraries' filesep 'Documents' filesep 'CobalSettings'];
+        path = [getenv('HOMEDRIVE') getenv('HOMEPATH') filesep 'My Documents' filesep 'CobalSettings'];
     else
         path = [getenv('HOME') filesep 'Documents' filesep 'CobalSettings'];
     end
