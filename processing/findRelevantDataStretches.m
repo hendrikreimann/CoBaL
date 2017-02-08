@@ -1272,11 +1272,9 @@ function findRelevantDataStretches(varargin)
                 variables_to_prune_for = [variables_to_prune_for; 'right_leg_angle']; %#ok<AGROW>
                 variables_to_prune_for = [variables_to_prune_for; 'right_leg_phase']; %#ok<AGROW>
             end
-            
-            
-            
-            
-            
+            if any(strcmp(study_settings.variables_to_analyze(:, 1), 'body_com_x')) || any(strcmp(study_settings.variables_to_analyze(:, 1), 'body_com_y')) || any(strcmp(study_settings.variables_to_analyze(:, 1), 'body_com_z'))
+                variables_to_prune_for = [variables_to_prune_for; 'com_trajectories']; %#ok<AGROW>
+            end
             
             
             
@@ -1286,7 +1284,7 @@ function findRelevantDataStretches(varargin)
             
             % take care of steps with very large or small step time
             stretch_times = stretch_end_times - stretch_start_times;
-            stretch_time_outlier_limits = median(stretch_times) * [0.8 1.2];
+            stretch_time_outlier_limits = median(stretch_times) * [0.5 2.0];
             removal_flags(stretch_times < stretch_time_outlier_limits(1)) = 1;
             removal_flags(stretch_times > stretch_time_outlier_limits(2)) = 1;
 
