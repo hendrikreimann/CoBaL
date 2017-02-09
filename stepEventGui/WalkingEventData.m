@@ -23,10 +23,12 @@ classdef WalkingEventData < handle
         right_pushoff;
         right_touchdown;
         
-        left_arm_swing_onset_times;
-        right_arm_swing_onset_times;
-        left_leg_swing_onset_times;
-        right_leg_swing_onset_times;
+        left_arm_swing_onset;
+        right_arm_swing_onset;
+        left_leg_swing_onset;
+        right_leg_swing_onset;
+        
+        ignore;
         
         selected_event_label;
         selected_event_time;
@@ -49,16 +51,19 @@ classdef WalkingEventData < handle
             this.right_touchdown = loaded_event_data.right_touchdown_times;
             
             if isfield(loaded_event_data, 'left_arm_swing_onset_times')
-                this.left_arm_swing_onset_times = loaded_event_data.left_arm_swing_onset_times;
+                this.left_arm_swing_onset = loaded_event_data.left_arm_swing_onset_times;
             end
             if isfield(loaded_event_data, 'right_arm_swing_onset_times')
-                this.right_arm_swing_onset_times = loaded_event_data.right_arm_swing_onset_times;
+                this.right_arm_swing_onset = loaded_event_data.right_arm_swing_onset_times;
             end
             if isfield(loaded_event_data, 'left_leg_swing_onset_times')
-                this.left_leg_swing_onset_times = loaded_event_data.left_leg_swing_onset_times;
+                this.left_leg_swing_onset = loaded_event_data.left_leg_swing_onset_times;
             end
             if isfield(loaded_event_data, 'right_leg_swing_onset_times')
-                this.right_leg_swing_onset_times = loaded_event_data.right_leg_swing_onset_times;
+                this.right_leg_swing_onset = loaded_event_data.right_leg_swing_onset_times;
+            end
+            if isfield(loaded_event_data, 'ignore_times')
+                this.ignore = loaded_event_data.ignore_times;
             end
             
             this.removeDuplicates();
@@ -77,31 +82,26 @@ classdef WalkingEventData < handle
             variables_to_save.left_touchdown_times = this.left_touchdown;
             variables_to_save.right_pushoff_times = this.right_pushoff;
             variables_to_save.right_touchdown_times = this.right_touchdown;
-            if ~isempty(this.left_arm_swing_onset_times);
-                variables_to_save.left_arm_swing_onset_times = this.left_arm_swing_onset_times;
+            if ~isempty(this.left_arm_swing_onset);
+                variables_to_save.left_arm_swing_onset = this.left_arm_swing_onset;
             end
-            if ~isempty(this.right_arm_swing_onset_times);
-                variables_to_save.right_arm_swing_onset_times = this.right_arm_swing_onset_times;
+            if ~isempty(this.right_arm_swing_onset);
+                variables_to_save.right_arm_swing_onset = this.right_arm_swing_onset;
             end
-            if ~isempty(this.left_leg_swing_onset_times);
-                variables_to_save.left_leg_swing_onset_times = this.left_leg_swing_onset_times;
+            if ~isempty(this.left_leg_swing_onset);
+                variables_to_save.left_leg_swing_onset = this.left_leg_swing_onset;
             end
-            if ~isempty(this.right_leg_swing_onset_times);
-                variables_to_save.right_leg_swing_onset_times = this.right_leg_swing_onset_times;
+            if ~isempty(this.right_leg_swing_onset);
+                variables_to_save.right_leg_swing_onset = this.right_leg_swing_onset;
+            end
+            if ~isempty(this.ignore);
+                variables_to_save.ignore_times = this.ignore;
             end
             
             step_events_file_name = [this.trial_data.data_directory filesep 'analysis' filesep makeFileName(this.trial_data.date, this.trial_data.subject_id, this.trial_data.condition, this.trial_data.trial_number, 'stepEvents')];
-            save(step_events_file_name, '-struct', 'variables_to_save');
+            saveDataToFile(step_events_file_name, variables_to_save);
 
-%             step_events_file_name = makeFileName(this.trial_data.date, this.trial_data.subject_id, this.trial_data.condition, this.trial_data.trial_number, 'stepEvents');
-%             save ...
-%               ( ...
-%                 [this.trial_data.data_directory filesep 'analysis' filesep step_events_file_name], ...
-%                 'left_pushoff_times', ...
-%                 'left_touchdown_times', ...
-%                 'right_pushoff_times', ...
-%                 'right_touchdown_times' ...
-%               );
+
             disp(['Step events saved as "' step_events_file_name '"']);
         end
         
@@ -116,7 +116,7 @@ classdef WalkingEventData < handle
             this.selected_event_time = event_time;
             this.selected_event_label = event_label;
         end
-        function event_times = getEventTimes(this, event_label)
+        function event_times = getEventTimes(this, event_label) %#ok<INUSL,STOUT>
             eval(['event_times = this.' event_label ';']);
         end
         function event_index = getEventIndex(this, event_label, event_time)

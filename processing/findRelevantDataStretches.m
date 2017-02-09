@@ -96,6 +96,7 @@ function findRelevantDataStretches(varargin)
         trials_to_process = trial_number_list{i_condition};
         for i_trial = trials_to_process
             %% load data
+            ignore_times = [];
             load(['analysis' filesep makeFileName(date, subject_id, condition_list{i_condition}, i_trial, 'stepEvents')]);
             
             % determine experimental condition
@@ -272,7 +273,6 @@ function findRelevantDataStretches(varargin)
                 for i_trigger = 1 : number_of_triggers
                     condition_perturbation_list_trial{i_trigger, 1} = 'N/A';
                     condition_delay_list_trial{i_trigger, 1} = 'N/A';
-                    condition_index_list_trial{i_trigger, 1} = 'N/A';
                     condition_experimental_list_trial{i_trigger, 1} = condition_experimental;
                     condition_stimulus_list_trial{i_trigger, 1} = condition_stimulus;
                     condition_day_list_trial{i_trigger, 1} = condition_day;
@@ -286,6 +286,7 @@ function findRelevantDataStretches(varargin)
                     
                     if distance_to_trigger_left_time < distance_to_trigger_right_time
                         condition_stance_foot_list_trial{i_trigger, 1} = 'STANCE_LEFT';
+                        condition_index_list_trial{i_trigger, 1} = 'ONE';
                         stretch_start_times(i_trigger, 1) = trigger_times(i_trigger);
                         stretch_end_time_index = find(right_touchdown_times > trigger_times(i_trigger), 1, 'first');
                         stretch_pushoff_time_index = find(right_pushoff_times > trigger_times(i_trigger), 1, 'first');
@@ -300,6 +301,7 @@ function findRelevantDataStretches(varargin)
                     end    
                     if distance_to_trigger_right_time < distance_to_trigger_left_time
                         condition_stance_foot_list_trial{i_trigger, 1} = 'STANCE_RIGHT';
+                        condition_index_list_trial{i_trigger, 1} = 'TWO';
                         stretch_start_times(i_trigger, 1) = trigger_times(i_trigger);
                         stretch_end_time_index = find(left_touchdown_times > trigger_times(i_trigger), 1, 'first');
                         stretch_pushoff_time_index = find(left_pushoff_times > trigger_times(i_trigger), 1, 'first');
@@ -1310,10 +1312,20 @@ function findRelevantDataStretches(varargin)
                         removal_flags(i_stretch) = 1;
                     end
                 end
-                
-                
             end
 
+            % check ignore markers
+            for i_stretch = 1 : number_of_stretches
+                if ~isempty(ignore_times)
+                    for i_ignore = 1 : length(ignore_times)
+                        if stretch_start_times(i_stretch) < ignore_times(i_ignore) && ignore_times(i_ignore) < stretch_end_times(i_stretch)
+                            removal_flags(i_stretch) = 1;
+                        end
+                    end
+                end
+                
+            end
+            
 
             % remove flagged triggers
             unflagged_indices = ~removal_flags;
@@ -1334,8 +1346,8 @@ function findRelevantDataStretches(varargin)
             %% save
             %
             stretches_file_name = ['analysis' filesep makeFileName(date, subject_id, condition_list{i_condition}, i_trial, 'relevantDataStretches')];
-            save(stretches_file_name, '-struct', 'event_variables_to_save');
-            
+%             save(stretches_file_name, '-struct', 'event_variables_to_save');
+            saveDataToFile(stretches_file_name, event_variables_to_save);
             
             disp(['Finding Relevant Data Stretches: condition ' condition_list{i_condition} ', Trial ' num2str(i_trial) ' completed, found ' num2str(length(stretch_start_times)) ' relevant stretches, saved as ' stretches_file_name]);                
         end

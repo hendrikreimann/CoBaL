@@ -78,7 +78,7 @@ function [data_normalized, time_derivative_normalized] = normalizePeriodicVariab
 %         plot(peak_index_upswing : length(velocity_upswing), velocity_upswing_decel_normalized);
 %         plot(length(velocity_upswing) + (1 : peak_index_downswing) - 1, velocity_downswing_accel_normalized);
 %         plot(length(velocity_upswing) + (peak_index_downswing : length(velocity_downswing)) - 1, velocity_downswing_decel_normalized);
-        
+%         
 %         plot(time_stretch, velocity_stretch_normalized); hold on
     end
     

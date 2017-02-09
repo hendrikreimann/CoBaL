@@ -21,8 +21,12 @@ function available = checkDataAvailability(date, subject_id, trial_type, trial_n
     available = false;
     
     % load list of available variables
-    info_file_name = makeFileName(date, subject_id, trial_type, trial_number, 'availableVariables.mat');
-    load(['analysis' filesep info_file_name], 'available_variables');
+    info_file_name = ['analysis' filesep makeFileName(date, subject_id, trial_type, trial_number, 'availableVariables.mat')];
+    if ~exist(info_file_name, 'file')
+        available = false;
+        return
+    end
+    load(info_file_name, 'available_variables');
     
     % check availability
     if size(available_variables, 2) > 0 && any(strcmp(data_name, available_variables(:, 1)))

@@ -283,68 +283,6 @@ function preprocessRawData(varargin)
                 right_forceplate_cop_world = [copxr_world copyr_world];
                 total_forceplate_cop_world = [copx_world copy_world];
                 
-                
-%                 copx_trajectory = - total_forceplate_wrench_world(:, 5) ./ total_forceplate_wrench_world(:, 3);
-%                 copy_trajectory = total_forceplate_wrench_world(:, 4) ./ total_forceplate_wrench_world(:, 3);
-%                 total_forceplate_cop_world = [copx_trajectory copy_trajectory];
-
-%                 % re-zero CoP for low loads
-%                 left_forceplate_low_load_indicator = (fzl_trajectory < fz_threshold);
-%                 left_forceplate_cop_world(left_forceplate_low_load_indicator, :) = 0;
-%                 right_forceplate_low_load_indicator = (fzr_trajectory < fz_threshold);
-%                 right_forceplate_cop_world(right_forceplate_low_load_indicator, :) = 0;
-%                 total_forceplate_low_load_indicator = (left_forceplate_low_load_indicator & right_forceplate_low_load_indicator);
-%                 total_forceplate_cop_world(total_forceplate_low_load_indicator, :) = 0;
-                
-                
-%                     figure; hold on
-%                     plot(mxl_trajectory, 'linewidth', 3);
-%                     plot(myl_trajectory, 'linewidth', 3);
-%                 
-%                     figure; hold on
-%                     plot(copxl_raw, 'linewidth', 3);
-%                     plot(copyl_raw, 'linewidth', 3);
-%                     
-%                     figure; hold on
-%                     plot(mxr_trajectory, 'linewidth', 3);
-%                     plot(myr_trajectory, 'linewidth', 3);
-%                 
-%                     figure; hold on
-%                     plot(copxr_raw, 'linewidth', 3);
-%                     plot(copyr_raw, 'linewidth', 3);
-                
-%                     figure; hold on
-%                     plot(left_forceplate_wrench_world(:, 4), 'linewidth', 3);
-%                     plot(left_forceplate_wrench_world(:, 5), 'linewidth', 3);
-%                 
-%                     figure; hold on
-%                     plot(copxl_world, 'linewidth', 3);
-%                     plot(copyl_world, 'linewidth', 3);
-%                 
-%                     figure; hold on
-%                     plot(right_forceplate_wrench_world(:, 4), 'linewidth', 3);
-%                     plot(right_forceplate_wrench_world(:, 5), 'linewidth', 3);
-%                 
-%                     figure; hold on
-%                     plot(copxr_world, 'linewidth', 3);
-%                     plot(copyr_world, 'linewidth', 3);
-                
-%                     figure; hold on
-%                     plot(total_forceplate_wrench_world(:, 4), 'linewidth', 3);
-%                     plot(total_forceplate_wrench_world(:, 5), 'linewidth', 3);
-%                 
-%                     figure; hold on
-%                     plot(copx_world, 'linewidth', 3);
-%                     plot(copy_world, 'linewidth', 3);
-                
-%                     figure; hold on
-%                     plot(right_forceplate_cop_world(:, 1), 'linewidth', 3);
-%                     plot(right_forceplate_cop_world(:, 2), 'linewidth', 3);
-%                 
-%                     figure; hold on
-%                     plot(total_forceplate_cop_world(:, 1), 'linewidth', 3);
-%                     plot(total_forceplate_cop_world(:, 2), 'linewidth', 3);
-                
                 % define wrench and CoP trajectories for feet instead of forceplate sides
                 if strcmp(data_source, 'nexus')
                     left_foot_cop_world = left_forceplate_cop_world;
@@ -358,26 +296,6 @@ function preprocessRawData(varargin)
                     right_foot_cop_world = left_forceplate_cop_world;
                     right_foot_wrench_world = left_forceplate_wrench_world;
                 end
-
-
-        %             % visualize
-        %             figure; axes; hold on;
-        %             plot(time_forceplate, total_forceplate_cop_world(:, 1), 'linewidth', 2, 'displayname', 'copx - total - calculated');
-        %             plot(time_forceplate, left_forceplate_cop_world(:, 1), 'linewidth', 2, 'displayname', 'copx - left - calculated');
-        %             plot(time_forceplate, right_forceplate_cop_world(:, 1), 'linewidth', 2, 'displayname', 'copx - right - calculated');
-        %             plot(time_forceplate, forceplate_trajectories_filtered(:, 13), '--', 'linewidth', 2, 'displayname', 'copx - left - from plate');
-        %             plot(time_forceplate, forceplate_trajectories_filtered(:, 15), '--', 'linewidth', 2, 'displayname', 'copx - right - from plate');
-        %             plot(time_forceplate, forceplate_trajectories_filtered(:, 17), '--', 'linewidth', 2, 'displayname', 'copx - total - from plate');
-        %             legend('toggle')
-        %         
-        %             figure; axes; hold on
-        %             plot(time_forceplate, total_forceplate_cop_world(:, 2), 'linewidth', 2, 'displayname', 'copy - total - calculated');
-        %             plot(time_forceplate, left_forceplate_cop_world(:, 2), 'linewidth', 2, 'displayname', 'copy - left - calculated');
-        %             plot(time_forceplate, right_forceplate_cop_world(:, 2), 'linewidth', 2, 'displayname', 'copy - right - calculated');
-        %             plot(time_forceplate, -forceplate_trajectories_filtered(:, 14), '--', 'linewidth', 2, 'displayname', 'copy - left - from plate - inverted');
-        %             plot(time_forceplate, -forceplate_trajectories_filtered(:, 16), '--', 'linewidth', 2, 'displayname', 'copy - right - from plate - inverted');
-        %             plot(time_forceplate, -forceplate_trajectories_filtered(:, 18), '--', 'linewidth', 2, 'displayname', 'copy - total - from plate - inverted');
-        %             legend('toggle')
 
                 % save
                 save_folder = 'processed';
@@ -456,9 +374,17 @@ function preprocessRawData(varargin)
             trial_number_list_this_condition = trial_number_list{strcmp(trial_type, condition_list)};
             if ismember(trial_number, trial_number_list_this_condition)
                 load(['raw' filesep raw_marker_file_name]);
-
-                % we're currently not doing anything, here
-                marker_trajectories = marker_trajectories_raw;
+                
+                if study_settings.filter_marker_data
+                    filter_order = 4;
+                    cutoff_frequency = study_settings.marker_data_cutoff_frequency; % in Hz
+                    [b_marker, a_marker] = butter(filter_order, cutoff_frequency/(sampling_rate_mocap/2));
+                    marker_trajectories = nanfiltfilt(b_marker, a_marker, marker_trajectories_raw);
+                else
+                    marker_trajectories = marker_trajectories_raw;
+                end
+                
+                
                 
                 % save
                 save_folder = 'processed';

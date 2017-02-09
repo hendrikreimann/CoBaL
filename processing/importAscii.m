@@ -30,7 +30,7 @@ function importAscii(varargin)
 
     parser = inputParser;
     parser.KeepUnmatched = true;
-    sources_default = {'device', 'devices', 'labview', 'marker', 'markers', 'ascii', 'neurocom'};    
+    sources_default = {'marker', 'markers', 'ascii', 'neurocom', 'device', 'devices', 'labview'};
     addParameter(parser, 'sources', sources_default)
     parse(parser, varargin{:})
     sources = parser.Results.sources;

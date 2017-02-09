@@ -439,7 +439,8 @@ function findStepEvents(varargin)
 
             %% save
             step_events_file_name = ['analysis' filesep makeFileName(date, subject_id, condition, i_trial, 'stepEvents')];
-            save(step_events_file_name, '-struct', 'variables_to_save');
+%             save(step_events_file_name, '-struct', 'variables_to_save');
+            saveDataToFile(stretches_file_name, variables_to_save);
 
             disp(['Finding Step Events: condition ' condition ', Trial ' num2str(i_trial) ' completed, saved as ' step_events_file_name]);
         end

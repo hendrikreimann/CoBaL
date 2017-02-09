@@ -331,11 +331,11 @@ classdef WalkingDataCustodian < handle
                 this.addStretchVariable('left_delt_ant')
                 this.addStretchVariable('left_delt_ant_rescaled')
             end
-            if this.isVariableToAnalyze('left_gastroc_rescaled')
+            if this.isVariableToAnalyze('left_gastroc_med_rescaled')
                 this.addBasicVariable('emg_trajectories')
-                this.addBasicVariable('left_gastroc')
-                this.addStretchVariable('left_gastroc')
-                this.addStretchVariable('left_gastroc_rescaled')
+                this.addBasicVariable('left_gastroc_med')
+                this.addStretchVariable('left_gastroc_med')
+                this.addStretchVariable('left_gastroc_med_rescaled')
             end
             if this.isVariableToAnalyze('left_pero_lng_rescaled')
                 this.addBasicVariable('emg_trajectories')
@@ -355,11 +355,11 @@ classdef WalkingDataCustodian < handle
                 this.addStretchVariable('right_delt_ant')
                 this.addStretchVariable('right_delt_ant_rescaled')
             end
-            if this.isVariableToAnalyze('right_gastroc_rescaled')
+            if this.isVariableToAnalyze('right_gastroc_med_rescaled')
                 this.addBasicVariable('emg_trajectories')
-                this.addBasicVariable('right_gastroc')
-                this.addStretchVariable('right_gastroc')
-                this.addStretchVariable('right_gastroc_rescaled')
+                this.addBasicVariable('right_gastroc_med')
+                this.addStretchVariable('right_gastroc_med')
+                this.addStretchVariable('right_gastroc_med_rescaled')
             end
             if this.isVariableToAnalyze('right_pero_lng_rescaled')
                 this.addBasicVariable('emg_trajectories')
@@ -655,10 +655,10 @@ classdef WalkingDataCustodian < handle
                         normalization_value = this.emg_normalization_values(strcmp(this.emg_normalization_labels, 'left_delt_ant'));
                         stretch_data = left_delt_ant * 1 / normalization_value;
                     end
-                    if strcmp(variable_name, 'left_gastroct_rescaled')
-                        left_gastroct = this.getTimeNormalizedData('left_gastroct', this_stretch_start_time, this_stretch_end_time);
-                        normalization_value = this.emg_normalization_values(strcmp(this.emg_normalization_labels, 'left_gastroct'));
-                        stretch_data = left_gastroct * 1 / normalization_value;
+                    if strcmp(variable_name, 'left_gastroc_med_rescaled')
+                        left_gastroc_med = this.getTimeNormalizedData('left_gastroc_med', this_stretch_start_time, this_stretch_end_time);
+                        normalization_value = this.emg_normalization_values(strcmp(this.emg_normalization_labels, 'left_gastroc_med'));
+                        stretch_data = left_gastroc_med * 1 / normalization_value;
                     end
                     if strcmp(variable_name, 'left_pero_lng_rescaled')
                         left_pero_lng = this.getTimeNormalizedData('left_pero_lng', this_stretch_start_time, this_stretch_end_time);
@@ -675,10 +675,10 @@ classdef WalkingDataCustodian < handle
                         normalization_value = this.emg_normalization_values(strcmp(this.emg_normalization_labels, 'right_delt_ant'));
                         stretch_data = right_delt_ant * 1 / normalization_value;
                     end
-                    if strcmp(variable_name, 'right_gastroct_rescaled')
-                        right_gastroct = this.getTimeNormalizedData('right_gastroct', this_stretch_start_time, this_stretch_end_time);
-                        normalization_value = this.emg_normalization_values(strcmp(this.emg_normalization_labels, 'right_gastroct'));
-                        stretch_data = right_gastroct * 1 / normalization_value;
+                    if strcmp(variable_name, 'right_gastroc_med_rescaled')
+                        right_gastroc_med = this.getTimeNormalizedData('right_gastroc_med', this_stretch_start_time, this_stretch_end_time);
+                        normalization_value = this.emg_normalization_values(strcmp(this.emg_normalization_labels, 'right_gastroc_med'));
+                        stretch_data = right_gastroc_med * 1 / normalization_value;
                     end
                     if strcmp(variable_name, 'right_pero_lng_rescaled')
                         right_pero_lng = this.getTimeNormalizedData('right_pero_lng', this_stretch_start_time, this_stretch_end_time);

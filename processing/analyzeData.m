@@ -76,6 +76,7 @@ function analyzeData(varargin)
             origin_start_time_list_subject = [origin_start_time_list_subject; stretch_start_times]; %#ok<AGROW>
             origin_end_time_list_subject = [origin_end_time_list_subject; stretch_end_times]; %#ok<AGROW>
         end
+        disp(['Finished condition "' condition '".'])
     end
     
     % calculate some subject-level data and report

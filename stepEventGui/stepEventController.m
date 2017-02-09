@@ -28,6 +28,7 @@ classdef stepEventController < handle
         findEventsButton;
         saveEventsButton;
         addEventButtons;
+        addIgnoreMarkerButton;
         lockAddEventsButton
         findStretchesButton;
         saveStretchesButton;
@@ -67,7 +68,7 @@ classdef stepEventController < handle
             this.loadFigureSettingsButton = uicontrol(figures_panel, 'Style', 'pushbutton', 'Position', [140, figures_panel_height-100, 130, 60], 'Fontsize', 12, 'String', 'Load Figure Settings', 'callback', @this.loadFigureSettings);
 
             % event controls
-            events_panel_height = 200;
+            events_panel_height = 260;
             events_panel = uipanel(this.control_figure, 'Title', 'Events Control', 'FontSize', 12, 'BackgroundColor', 'white', 'Units', 'pixels', 'Position', [5, figure_height-figures_panel_height-events_panel_height-5, figure_width-10, events_panel_height]);
             this.findEventsButton = uicontrol(events_panel, 'Style', 'pushbutton', 'Position', [5, events_panel_height-75, 130, 60], 'Fontsize', 12, 'String', 'Find Events', 'callback', @this.findEvents);
             this.saveEventsButton = uicontrol(events_panel, 'Style', 'pushbutton', 'Position', [140, events_panel_height-75, 130, 60], 'Fontsize', 12, 'String', 'Save Events', 'callback', @event_data.saveEvents);
@@ -78,9 +79,11 @@ classdef stepEventController < handle
             this.addEventButtons(3) = uicontrol(events_panel, 'Style', 'pushbutton', 'Position', [205, events_panel_height-135, 100, 60], 'Fontsize', 12, 'String', '<html><center>Add Right<br></center>Pushoff', 'callback', @this.addEventButtonPressed, 'UserData', 'right_pushoff');
             this.addEventButtons(4)= uicontrol(events_panel, 'Style', 'pushbutton', 'Position', [305, events_panel_height-135, 100, 60], 'Fontsize', 12, 'String', '<html><center>Add Right<br></center>Touchdown', 'callback', @this.addEventButtonPressed, 'UserData', 'right_touchdown');
 
-            this.findStretchesButton = uicontrol(events_panel, 'Style', 'pushbutton', 'Position', [5, events_panel_height-195, 130, 60], 'Fontsize', 12, 'String', 'Find Stretches', 'callback', @this.findStretches);
-            this.saveStretchesButton = uicontrol(events_panel, 'Style', 'pushbutton', 'Position', [140, events_panel_height-195, 130, 60], 'Fontsize', 12, 'String', 'Save Stretches', 'callback', @this.saveStretches);
-            this.automateStretchFindingButton = uicontrol(events_panel, 'Style', 'pushbutton', 'Position', [275, events_panel_height-195, 130, 60], 'Fontsize', 12, 'String', 'Auto Save', 'callback', @this.automateStretchFinding);
+            this.addEventButtons(5) = uicontrol(events_panel, 'Style', 'pushbutton', 'Position', [5, events_panel_height-195, 130, 60], 'Fontsize', 12, 'String', 'Add Ignore Marker', 'callback', @this.addEventButtonPressed, 'UserData', 'ignore');
+            
+            this.findStretchesButton = uicontrol(events_panel, 'Style', 'pushbutton', 'Position', [5, events_panel_height-255, 130, 60], 'Fontsize', 12, 'String', 'Find Stretches', 'callback', @this.findStretches);
+            this.saveStretchesButton = uicontrol(events_panel, 'Style', 'pushbutton', 'Position', [140, events_panel_height-255, 130, 60], 'Fontsize', 12, 'String', 'Save Stretches', 'callback', @this.saveStretches);
+            this.automateStretchFindingButton = uicontrol(events_panel, 'Style', 'pushbutton', 'Position', [275, events_panel_height-255, 130, 60], 'Fontsize', 12, 'String', 'Auto Save', 'callback', @this.automateStretchFinding);
             
             % figure control
             files_panel_height = 95;
@@ -244,7 +247,7 @@ classdef stepEventController < handle
             if strcmp(eventdata.Key, 'z') || strcmp(eventdata.Key, 'c')
                 this.moveSelectedEvent(sender, eventdata);
             end
-            if strcmp(eventdata.Key, 'x') && strcmp(eventdata.Modifier, 'command')
+            if strcmp(eventdata.Modifier, 'command') & strcmp(eventdata.Key, 'x')
                 % this won't work on windows systems, adapt that!
                 this.quit();
             end
@@ -302,7 +305,7 @@ classdef stepEventController < handle
                 end
                 this.control_figure.Position = control_figure_setting.position;
                 this.scene_figure.scene_figure.Position = scene_figure_setting.position;
-                if ~isempty(this.kinematic_tree_controller)
+                if ~isempty(this.kinematic_tree_controller) && any(strcmp(fieldnames(kinematic_tree_figure_setting), 'position'))
                     this.kinematic_tree_controller.sceneFigure.Position = kinematic_tree_figure_setting.position;
                 end
             end
@@ -339,7 +342,7 @@ classdef stepEventController < handle
             this.updateStretchPatches;
         end
         function saveStretches(this, sender, eventdata)
-            
+            disp('Pushing the "saveStretches" button does nothing, will be removed')
         end
         function automateStretchFinding(this, sender, eventdata)
             if get(sender, 'ForegroundColor') == this.color_normal
@@ -467,8 +470,10 @@ classdef stepEventController < handle
             if new_x_lim(2) > this.trial_data.recording_time
                 new_x_lim = new_x_lim - (new_x_lim(2) - this.trial_data.recording_time);
             end
-            set(this.figureSelectionBox.UserData{1}.main_axes, 'xlim', new_x_lim);
             
+            for i_figure = 1 : size(this.figureSelectionBox.String, 1)
+                set(this.figureSelectionBox.UserData{i_figure}.main_axes, 'xlim', new_x_lim);
+            end        
         end
         
         function loadPreviousTrial(this, sender, eventdata)

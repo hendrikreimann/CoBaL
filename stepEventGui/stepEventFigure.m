@@ -28,6 +28,7 @@ classdef stepEventFigure < handle;
         stretch_patches;
         selected_event_plot;
         selected_time_plot;
+        ignore_marker_plot;
         data_plot_offsets;
         data_plot_scale_factors;
 
@@ -44,7 +45,8 @@ classdef stepEventFigure < handle;
             title(figureTitle);
             hold on;
             this.selected_event_plot = plot(0, 0, 'o', 'markersize', 15, 'linewidth', 3, 'color', [1 0.5 0], 'visible', 'off');
-            this.selected_time_plot = plot(0, 0, '+', 'markersize', 25, 'linewidth', 1, 'color', [1 1 1]*0.7);
+            this.selected_time_plot = plot(0, 0, '+', 'markersize', 25, 'linewidth', 1, 'color', [1 1 1]*0.7, 'ButtonDownFcn', @this.stepEventFigureClicked);
+            this.ignore_marker_plot = plot(0, 0, 'x', 'markersize', 25, 'linewidth', 2, 'color', [1 0 0.5]*0.7, 'ButtonDownFcn', @this.stepEventFigureClicked);
 
             % register with controller
             if strcmp(controller.figureSelectionBox.String, '<no figure>')
@@ -132,19 +134,26 @@ classdef stepEventFigure < handle;
         end
         function [event_label, event_time, distance] = getClosestEvent(this, point_pixel)
             % determine closest event for each type
-            candidate_distances = zeros(1, length(this.event_plots));
-            candidate_event_indices = zeros(1, length(this.event_plots));
+            candidate_distances = zeros(1, length(this.event_plots)+1);
+            candidate_event_indices = zeros(1, length(this.event_plots)+1);
             for i_type = 1 : length(this.event_plots)
                 [candidate_distances(i_type), candidate_event_indices(i_type)] = this.calculatePointToCurvePixelDistance(this.event_plots{i_type}, point_pixel);
             end
+            [candidate_distances(length(this.event_plots)+1), candidate_event_indices(length(this.event_plots)+1)] = this.calculatePointToCurvePixelDistance(this.ignore_marker_plot, point_pixel);
             
             % find the one with minimal distance among these candidates
             [distance, type_index] = min(candidate_distances);
-            event_label = this.event_plots{type_index}.UserData{2};
-            event_index = candidate_event_indices(type_index);
-            event_times = this.event_data.getEventTimes(event_label);
-            event_time = event_times(event_index);
-            
+            if type_index == length(this.event_plots)+1
+                event_label = 'ignore';
+                event_index = candidate_event_indices(length(this.event_plots)+1);
+                event_times = this.event_data.getEventTimes(event_label);
+                event_time = event_times(event_index);
+            else
+                event_label = this.event_plots{type_index}.UserData{2};
+                event_index = candidate_event_indices(type_index);
+                event_times = this.event_data.getEventTimes(event_label);
+                event_time = event_times(event_index);
+            end            
         end
         function point_time = getClosestDataPoint(this, point_pixel)
             candidate_distances = zeros(1, length(this.data_plots));
@@ -173,6 +182,11 @@ classdef stepEventFigure < handle;
             difference_vectors = curve_data_pixel - repmat(point_pixel', 1, size(curve_data_pixel, 2));
             distance_squared = sum((difference_vectors.^2), 1);
             [distance, point_index] = min(distance_squared);
+            
+            if isempty(distance)
+                distance = inf;
+                point_index = -1;
+            end
         end
         
         function setting_struct = getSetting(this)
@@ -201,6 +215,7 @@ classdef stepEventFigure < handle;
                 event_data = interp1(time, data, event_time);
                 set(this.event_plots{i_plot}, 'xdata', event_time, 'ydata', event_data);
             end
+            this.updateIgnoreMarkerPlot();
         end
         function updateDataPlots(this)
             for i_plot = 1 : length(this.data_plots)
@@ -253,11 +268,16 @@ classdef stepEventFigure < handle;
                         this.patch_color, ...
                         'parent', this.main_axes, ...
                         'EdgeColor', lightenColor(this.patch_color, 0.8), ...
-                        'FaceAlpha', this.patch_alpha ...
+                        'FaceAlpha', this.patch_alpha, ...
+                        'ButtonDownFcn', @this.stepEventFigureClicked ...
                       ); 
                 uistack(patch_handle, 'bottom')
                 this.stretch_patches = [this.stretch_patches, patch_handle];
             end
+        end
+        function updateIgnoreMarkerPlot(this)
+            event_time = this.event_data.getEventTimes('ignore');
+            set(this.ignore_marker_plot, 'xdata', event_time, 'ydata', zeros(size(event_time)));
         end
         function updateSelectedEventPlot(this)
             % go through all event plots and check whether they are of the selected event
@@ -270,6 +290,12 @@ classdef stepEventFigure < handle;
                     y_data_point = interp1(this.event_plots{i_plot}.UserData{1}.XData, this.event_plots{i_plot}.UserData{1}.YData, this.controller.event_data.selected_event_time);
                     selected_event_plot_y_data = [selected_event_plot_y_data y_data_point];
                 end
+            end
+            if strcmp(this.controller.event_data.selected_event_label, 'ignore')
+                % event type of this one and the selected is a match
+                selected_event_plot_x_data = [selected_event_plot_x_data this.controller.event_data.selected_event_time];
+                y_data_point = 0;
+                selected_event_plot_y_data = [selected_event_plot_y_data y_data_point];
             end
             set(this.selected_event_plot, 'xdata', selected_event_plot_x_data, 'ydata', selected_event_plot_y_data);
             set(this.selected_event_plot, 'visible', 'on');
