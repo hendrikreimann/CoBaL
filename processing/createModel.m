@@ -215,8 +215,9 @@ function createModel(varargin)
     right_calcaneus = RHEE_reference + centroid_to_skin_correction * anterior_direction;
     right_toe_mid = RTOE_reference + centroid_to_skin_correction * distal_direction;
     head_width = norm(LFHD_reference - RFHD_reference);
-    head_center_to_vertex = head_width; % this is an ad-hoc assumption that seems to work out well in some examples
-    head_vertex = mean([LFHD_reference RFHD_reference LBHD_reference RBHD_reference], 2) + head_center_to_vertex * proximal_direction;
+    head_center_to_vertex = head_width / 2; % this is an ad-hoc assumption that seems to work out well in some examples
+    head_center = mean([LFHD_reference RFHD_reference LBHD_reference RBHD_reference], 2);
+    head_vertex = head_center + head_center_to_vertex * proximal_direction;
     sellion = mean([LFHD_reference RFHD_reference], 2);
 
     % calculate some distances
@@ -491,7 +492,24 @@ function createModel(varargin)
     right_ankle_inversion_axis = -right_ankle_direction_matrix(:, 2);
     right_ankle_dorsiflexion_axis = right_ankle_direction_matrix(:, 1);
 
+    % define lumbar directions
+    lumbar_internal_rotation_axis_prime = cervix_cor - lumbar_cor;
+    lumbar_direction_matrix_prime = orthogonalizeBasis([lumbar_internal_rotation_axis_prime, left_direction, cross(left_direction, lumbar_internal_rotation_axis_prime)]);
+    lumbar_direction_matrix = [-lumbar_direction_matrix_prime(:, 2), lumbar_direction_matrix_prime(:, 3), lumbar_direction_matrix_prime(:, 1)];
+    lumbar_flexion_axis = -lumbar_direction_matrix(:, 1);
+    lumbar_abduction_axis = lumbar_direction_matrix(:, 2);
+    lumbar_internal_rotation_axis = -lumbar_direction_matrix(:, 3);
 
+    % define cervix directions
+    cervix_internal_rotation_axis_prime = head_center - cervix_cor;
+    cervix_direction_matrix_prime = orthogonalizeBasis([cervix_internal_rotation_axis_prime, left_direction, cross(left_direction, cervix_internal_rotation_axis_prime)]);
+    cervix_direction_matrix = [-cervix_direction_matrix_prime(:, 2), cervix_direction_matrix_prime(:, 3), cervix_direction_matrix_prime(:, 1)];
+    cervix_flexion_axis = -cervix_direction_matrix(:, 1);
+    cervix_abduction_axis = cervix_direction_matrix(:, 2);
+    cervix_internal_rotation_axis = -cervix_direction_matrix(:, 3);
+
+    
+    
 
     % TODO: some of these assumptions are not valid for all types of reference configurations
 
@@ -1046,7 +1064,7 @@ function createModel(varargin)
         e_1, e_2, e_3, e_3, e_1, e_2, ...       % pelvis free body DoFs
         left_hip_flexion_axis, left_hip_abduction_axis, left_hip_internal_rotation_axis, left_knee_flexion_axis, left_knee_internal_rotation_axis, left_ankle_dorsiflexion_axis, left_ankle_inversion_axis, ...   % left leg
         right_hip_flexion_axis, right_hip_abduction_axis, right_hip_internal_rotation_axis, right_knee_flexion_axis, right_knee_internal_rotation_axis, right_ankle_dorsiflexion_axis, right_ankle_inversion_axis,...   % right leg
-        left_direction, posterior_direction, proximal_direction, left_direction, posterior_direction, proximal_direction, ...       % trunk and neck
+        lumbar_flexion_axis, lumbar_abduction_axis, lumbar_internal_rotation_axis, cervix_flexion_axis, cervix_abduction_axis, cervix_internal_rotation_axis, ...       % trunk and neck
         anterior_direction, right_direction, distal_direction, left_elbow_axis, left_radioulnar_axis, left_wrist_flexion_axis, left_wrist_inversion_axis, ... % left arm
         posterior_direction, right_direction, proximal_direction, right_elbow_axis, right_radioulnar_axis, right_wrist_flexion_axis, right_wrist_inversion_axis, ... % right arm
     };
@@ -1160,8 +1178,8 @@ function createModel(varargin)
         'pelvis, x-translation', 'pelvis, y-translation', 'pelvis, z-translation', 'pelvis, z-rotation', 'pelvis, x-rotation', 'pelvis, y-rotation', ...
         'left hip flexion/extension', 'left hip ab/adduction', 'left hip internal/external rotation', 'left knee flexion/extension', 'left knee external/internal rotation', 'left ankle dorsi/plantarflexion', 'left ankle inversion/eversion', ...
         'right hip flexion/extension', 'right hip ab/adduction', 'right hip internal/external rotation', 'right knee flexion/extension', 'right knee external/internal rotation', 'right ankle dorsi/plantarflexion', 'right ankle inversion/eversion', ...
-        'lumbar joint - forward/backward bending', 'lumbar joint - sideways bending (left/right)', 'lumbar joint - internal rotation (left/right)', ...
-        'cervical joint - forward/backward bending', 'cervical joint - sideways bending (left/right)', 'cervical joint - internal rotation (left/right)', ...
+        'lumbar joint - forward/backward bending', 'lumbar joint - sideways bending (right/left)', 'lumbar joint - internal rotation (right/left)', ...
+        'cervical joint - forward/backward bending', 'cervical joint - sideways bending (right/left)', 'cervical joint - internal rotation (right/left)', ...
         'left shoulder ab/adduction', 'left shoulder flexion/extension', 'left shoulder in/external rotation', 'left elbow flexion/extension', 'left pronation/supination', 'left wrist flexion/extension', 'left wrist radial/ulnar deviation', ...
         'right shoulder ab/adduction', 'right shoulder flexion/extension', 'right shoulder in/external rotation', 'right elbow flexion/extension', 'right pronation/supination', 'right wrist flexion/extension', 'right radial/ulnar deviation', ...
       };
@@ -1207,7 +1225,9 @@ function createModel(varargin)
         'left_knee_direction_matrix', ...
         'right_knee_direction_matrix', ...
         'left_ankle_direction_matrix', ...
-        'right_ankle_direction_matrix' ...
+        'right_ankle_direction_matrix', ...
+        'lumbar_direction_matrix', ...
+        'cervix_direction_matrix' ...
       );
 
     %% show visualization
