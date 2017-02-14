@@ -15,7 +15,7 @@
 %     along with this program.  If not, see <http://www.gnu.org/licenses/>.% compare the kinematic tree against the kinematic chain
 
 
-function transformations = calculateMcsToWcsTransformations_detailed(marker_positions, marker_headers, segment_labels)
+function transformations = calculateMcsToWcsTransformations_new(marker_positions, marker_headers, segment_labels)
 
     
     transformations = cell(length(segment_labels), 1);
@@ -57,18 +57,20 @@ function transformations = calculateMcsToWcsTransformations_detailed(marker_posi
                 this_segment_markers = {'RWRA', 'RWRB', 'RFIN'};
                 
             elseif strcmp(this_segment_label, 'LTHIGH')
-                this_segment_markers = {'LHIPCOR', 'LKNEECOR', 'LKNE'};
-                
+                this_segment_markers = {'LTHI', 'LHIPCOR', 'LKNE'};
             elseif strcmp(this_segment_label, 'RTHIGH')
-                this_segment_markers = {'RHIPCOR', 'RKNEECOR', 'RKNE'};
+                this_segment_markers = {'RTHI', 'RHIPCOR', 'RKNE'};
+                
             elseif strcmp(this_segment_label, 'LSHANK')
                 this_segment_markers = {'LKNEECOR', 'LKNE', 'LANK'};
             elseif strcmp(this_segment_label, 'RSHANK')
                 this_segment_markers = {'RKNEECOR', 'RKNE', 'RANK'};
             elseif strcmp(this_segment_label, 'LFOOT')
-                this_segment_markers = {'LANK', 'LHEE', 'LTOE'};
+%                 this_segment_markers = {'LANK', 'LHEE', 'LTOE'};
+                this_segment_markers = {'LHEE', 'LTOE', 'LTOEL'};
             elseif strcmp(this_segment_label, 'RFOOT')
-                this_segment_markers = {'RANK', 'RHEE', 'RTOE'};
+%                 this_segment_markers = {'RANK', 'RHEE', 'RTOE'};
+                this_segment_markers = {'RHEE', 'RTOE', 'RTOEL'};
             end                
             
             % find marker numbers

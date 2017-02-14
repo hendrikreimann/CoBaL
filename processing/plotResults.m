@@ -26,6 +26,7 @@ function plotResults(varargin)
     addParameter(parser, 'subjects', [])
     addParameter(parser, 'dictate_axes', false)
     addParameter(parser, 'show_legend', false)
+    addParameter(parser, 'save', false)
     parse(parser, varargin{:})
     subjects = parser.Results.subjects;
     dictate_axes = parser.Results.dictate_axes;
@@ -131,6 +132,7 @@ function plotResults(varargin)
                 end
                 if isContinuousVariable(i_variable, variable_data_all)
                     abscissae_cell{i_comparison, i_variable} = 1 : 100;
+                    abscissae_cell{i_comparison, i_variable} = linspace(0, 100, study_settings.number_of_time_steps_normalized);
                 end
                 
                 % set axes properties
@@ -157,16 +159,20 @@ function plotResults(varargin)
                     end
                 end
                 title(title_string); set(gca, 'Fontsize', 12)
+                
+                
             end
         end
     end
     if strcmp(study_settings.plot_mode, 'episodes')
         % make one figure per episode and variable
+        figure_handles = zeros(number_of_episodes, number_of_variables_to_plot);
         axes_handles = zeros(number_of_episodes, number_of_variables_to_plot);
         for i_variable = 1 : number_of_variables_to_plot
             for i_episode = 1 : number_of_episodes
                 % make figure and axes and store handles
-                figure; new_axes = axes; hold on;
+                new_figure = figure; new_axes = axes; hold on;
+                figure_handles(i_episode, i_variable) = new_figure;
                 axes_handles(i_episode, i_variable) = new_axes;
                 this_episode = episode_indices{i_episode};
 
@@ -203,7 +209,7 @@ function plotResults(varargin)
                         xtick = [xtick abscissae{2}];
                     end
                     if isContinuousVariable(i_variable, variable_data_all)
-                        abscissae_cell{this_episode(i_comparison), i_variable} = (1 : 100) + (step_index-1)*100;
+                        abscissae_cell{this_episode(i_comparison), i_variable} = (linspace(0, 100, study_settings.number_of_time_steps_normalized)) + (step_index-1)*100;
                     end
                 end
                 
@@ -218,14 +224,21 @@ function plotResults(varargin)
                     set(gca, 'XTickLabelRotation', 60);
                 end
 
-                % determine title
+                % determine title and filename
                 title_string = study_settings.variables_to_plot{i_variable, 2};
+                filename_string = study_settings.variables_to_plot{i_variable, 4};
                 for i_label = 1 : length(study_settings.condition_labels);
-                    if (i_label ~= study_settings.comparison_to_make) && (i_label ~= 4)
-                        title_string = [title_string ' - ' strrep(study_settings.conditions_to_plot{comparison_indices{i_comparison}(1), i_label}, '_', ' ')]; %#ok<AGROW>
+                    if (i_label ~= study_settings.comparison_to_make) && (i_label ~= 1) && (i_label ~= 4) && (i_label ~= 6)
+                        this_condition_label = strrep(study_settings.conditions_to_plot{comparison_indices{i_comparison}(1), i_label}, '_', ' ');
+                        if ~strcmp(this_condition_label, 'N/A')
+                            title_string = [title_string ' - ' this_condition_label]; %#ok<AGROW>
+                            filename_string = [filename_string '_' this_condition_label];
+                        end
                     end
                 end
                 title(title_string); set(gca, 'Fontsize', 12)
+                set(gcf, 'UserData', filename_string)
+                
                 
             end
         end
@@ -278,7 +291,7 @@ function plotResults(varargin)
                               );
                         end
                         if strcmp(study_settings.plot_mode, 'overview') || strcmp(study_settings.plot_mode, 'episodes')
-                            singleBoxPlot(target_axes_handle, target_abscissa{1}, data_to_plot_this_condition, study_settings.color_control, 'CONTROL')
+                            singleBoxPlot(target_axes_handle, target_abscissa{1}, data_to_plot_this_condition, study_settings.color_control, 'CONTROL', false)
                         end
                     end
                     if isContinuousVariable(i_variable, variable_data_all)
@@ -357,7 +370,7 @@ function plotResults(varargin)
                     end
                     if strcmp(study_settings.plot_mode, 'overview') || strcmp(study_settings.plot_mode, 'episodes')
                         if ~any(isnan(data_to_plot_this_condition))
-                            singleBoxPlot(target_axes_handle, target_abscissa{2}(i_condition), data_to_plot_this_condition, study_settings.colors_comparison(i_condition, :), label_string)
+                            singleBoxPlot(target_axes_handle, target_abscissa{2}(i_condition), data_to_plot_this_condition, study_settings.colors_comparison(i_condition, :), label_string, false)
                         end
                     end
                 end
@@ -393,7 +406,9 @@ function plotResults(varargin)
                         set(plot_handles.edge, 'HandleVisibility', 'off');
                         set(plot_handles.patch, 'HandleVisibility', 'off');
                         set(plot_handles.mainLine, 'DisplayName', label_string);
-                        
+                        if ~strcmp(condition_identifier{4}, 'ONE')
+                            set(plot_handles.mainLine, 'HandleVisibility', 'off');
+                        end
                     end
                 end
             end
@@ -410,6 +425,44 @@ function plotResults(varargin)
         end
     end
     
+    %% save figures
+    if parser.Results.save
+        % figure out folders
+        if ~exist('figures', 'dir')
+            mkdir('figures')
+        end
+        if ~exist(['figures' filesep 'withLabels'], 'dir')
+            mkdir(['figures' filesep 'withLabels'])
+        end
+        if ~exist(['figures' filesep 'noLabels'], 'dir')
+            mkdir(['figures' filesep 'noLabels'])
+        end
+        for i_figure = 1 : length(figure_handles)
+            % save with labels
+            legend(axes_handles(i_figure), 'show');
+            filename = ['figures' filesep 'withLabels' filesep get(figure_handles(i_figure), 'UserData')];
+            saveas(figure_handles(i_figure), filename, 'epsc2')
+            
+            % save without labels
+%             zero_plot = plot(get(axes_handles(i_figure), 'xlimits'), [0 0], 'color', [0.7 0.7 0.7]);
+%             uistack(zero_plot, 'bottom')
+%             set(postext, 'visible', 'off');
+%             set(negtext, 'visible', 'off');
+            set(get(axes_handles(i_figure), 'xaxis'), 'visible', 'off');
+            set(get(axes_handles(i_figure), 'yaxis'), 'visible', 'off');
+            set(get(axes_handles(i_figure), 'xlabel'), 'visible', 'off');
+            set(get(axes_handles(i_figure), 'ylabel'), 'visible', 'off');
+            set(get(axes_handles(i_figure), 'title'), 'visible', 'off');
+            set(axes_handles(i_figure), 'xticklabel', '');
+            set(axes_handles(i_figure), 'yticklabel', '');
+            set(axes_handles(i_figure), 'position', [0 0 1 1]);
+            legend(axes_handles(i_figure), 'hide');
+            filename = ['figures' filesep 'noLabels' filesep get(figure_handles(i_figure), 'UserData')];
+            saveas(figure_handles(i_figure), filename, 'epsc2')
+
+            close(figure_handles(i_figure))            
+        end
+    end
 end
 
 %% helper functions
@@ -519,81 +572,7 @@ function [data_folder_list, subject_list] = determineDataStructure(subjects)
             end
         end
     end
-    
-    
-    
-    
-    % old way to determine subjects, delete later
-%     if strcmp(path_split(end), subjects{i_subject})
-%         % we're already in the subject folder, so just load from here
-%         data_path = '';
-%     end
-%     if true % TODO: change this when determineDataStructure has worked
-%         % we're in the study root, so load from subject folder
-%         data_path = [subjects{i_subject} filesep];
-%     end
-%     load([data_path 'subjectInfo.mat'], 'date', 'subject_id');
-%     load([data_path 'analysis' filesep date '_' subject_id '_results.mat']);
-% 
-% 
-% 
-%     % determine subject list
-%     subject_list_determined = false;
-%     if ~isempty(subjects)
-%         subject_list_determined = true;
-%     end
-%     if ~subject_list_determined && exist('subjectInfo.mat', 'file')
-%         % no list passed, but current folder is a data folder, so plot this data
-%         subject_data_file = 'subjects.csv';
-%         format = '%s';
-%         fid = fopen(subject_data_file);
-%         fgetl(fid);
-%         fgetl(fid);
-%         data_raw = textscan(fid, format);
-%         fclose(fid);
-% 
-%         % transform to cell
-%         data_lines = data_raw{1};
-%         data_cell = {};
-%         for i_line = 1 : length(data_lines)
-%             line_split = strsplit(data_lines{i_line}, ',');
-%             data_cell = [data_cell; line_split]; %#ok<AGROW>
-%         end
-% 
-%         subjects = data_cell(:, 1);
-%     end
-%     
-%     
-%     
-%     if ~subject_list_determined && (exist(['..' filesep 'subjects.csv'], 'file') || exist(['..' filesep '..' filesep 'subjects.csv'], 'file'))
-%         % no list passed, there's a subject list one or two levels up, load from there
-%         if exist(['..' filesep 'subjects.csv'], 'file')
-%             subject_data_file = ['..' filesep 'subjects.csv'];
-%         end
-%         if exist(['..' filesep '..' filesep 'subjects.csv'], 'file')
-%             subject_data_file = ['..' filesep '..' filesep 'subjects.csv'];
-%         end
-%         format = '%s';
-%         fid = fopen(subject_data_file);
-%         fgetl(fid);
-%         fgetl(fid);
-%         data_raw = textscan(fid, format);
-%         fclose(fid);
-% 
-%         % transform to cell
-%         data_lines = data_raw{1};
-%         data_cell = {};
-%         for i_line = 1 : length(data_lines)
-%             line_split = strsplit(data_lines{i_line}, ',');
-%             data_cell = [data_cell; line_split]; %#ok<AGROW>
-%         end
-% 
-%         subjects = data_cell(:, 1);
-%     end
-%     if ischar(subjects)
-%         % single string (i.e. char array) was passed, make a cell out of this
-%         subjects = {subjects};
-%     end
+
 
 end
 
@@ -723,7 +702,11 @@ function continuous = isContinuousVariable(variable_index, variable_data)
     end
 end
 
-function singleBoxPlot(target_axes_handle, abscissa, data, color, label)
+function singleBoxPlot(target_axes_handle, abscissa, data, color, label, show_outliers)
+    if nargin < 6
+        show_outliers = true;
+    end
+
     % set some parameters, these should be name-value pair arguments later
     width = 0.8;
     
@@ -755,7 +738,9 @@ function singleBoxPlot(target_axes_handle, abscissa, data, color, label)
     plot(target_axes_handle, [abscissa abscissa], [data_lower_adjacent data_quartile_1], 'k--', 'HandleVisibility', 'off'); % lower range
     plot(target_axes_handle, abscissa+width*[-0.25 0.25], [data_lower_adjacent data_lower_adjacent], 'k-', 'HandleVisibility', 'off'); % max
     plot(target_axes_handle, abscissa+width*[-0.25 0.25], [data_upper_adjacent data_upper_adjacent], 'k-', 'HandleVisibility', 'off'); % min
-    plot(target_axes_handle, abscissa * ones(size(outliers)), outliers, '+', 'color', [1; 1; 1] * 0.7, 'HandleVisibility', 'off');
+    if show_outliers
+        plot(target_axes_handle, abscissa * ones(size(outliers)), outliers, '+', 'color', [1; 1; 1] * 0.7, 'HandleVisibility', 'off');
+    end
     
     % labels
     xtick = get(target_axes_handle, 'xtick');

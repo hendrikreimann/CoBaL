@@ -925,7 +925,9 @@ function createModel(varargin)
         left_knee_cor', ...
         right_knee_cor', ...
         left_ankle_cor', ...
-        right_ankle_cor' ...
+        right_ankle_cor', ...
+        left_toe_mid', ...
+        right_toe_mid' ...
       ];
 
     joint_center_headers = ...
@@ -944,6 +946,8 @@ function createModel(varargin)
         'RKNEECOR', ...
         'LANKLECOR', ...
         'RANKLECOR' ...
+        'LTOESEEF', ...
+        'RTOESEEF' ...
       };
 
     % specify markers that define segments
@@ -969,7 +973,10 @@ function createModel(varargin)
     number_of_segments = length(segment_labels);
 
     % mcs_to_wcs_transformations = calculateMcsToWcsTransformations([marker_reference joint_center_reference], [marker_labels joint_center_headers], markers_by_segment);
-    mcs_to_wcs_transformations = calculateMcsToWcsTransformations_detailed([marker_reference joint_center_reference], [marker_labels joint_center_headers], segment_labels);
+    mcs_to_wcs_transformations_old = calculateMcsToWcsTransformations_detailed([marker_reference joint_center_reference], [marker_labels joint_center_headers], segment_labels);
+    mcs_to_wcs_transformations = calculateMcsToWcsTransformations_new([marker_reference joint_center_reference], [marker_labels joint_center_headers], segment_labels);
+    % TODO: this should be _new instead of _detailed, although it doesn't really seem to matter, i.e. it's not right in principle, but in this specific case 
+    % the results seem to be the same
     pelvis_transformation_current = mcs_to_wcs_transformations{strcmp(segment_labels, 'PELVIS')};
 
     % assemble segment masses
@@ -1273,9 +1280,9 @@ function marker_segments = createMarkerSegmentList(marker_labels)
     marker_segments(strcmp(marker_labels, 'LTHI')) = 9;
     marker_segments(strcmp(marker_labels, 'LTHIA')) = 9;
     marker_segments(strcmp(marker_labels, 'LKNE')) = 9;
-    marker_segments(strcmp(marker_labels, 'LTIB')) = 10;
-    marker_segments(strcmp(marker_labels, 'LTIBA')) = 10;
-    marker_segments(strcmp(marker_labels, 'LANK')) = 10;
+    marker_segments(strcmp(marker_labels, 'LTIB')) = 11;
+    marker_segments(strcmp(marker_labels, 'LTIBA')) = 11;
+    marker_segments(strcmp(marker_labels, 'LANK')) = 11;
     marker_segments(strcmp(marker_labels, 'LHEE')) = 13;
     marker_segments(strcmp(marker_labels, 'LTOE')) = 13;
     marker_segments(strcmp(marker_labels, 'LTOEL')) = 13;
@@ -1283,12 +1290,12 @@ function marker_segments = createMarkerSegmentList(marker_labels)
     marker_segments(strcmp(marker_labels, 'RTHI')) = 16;
     marker_segments(strcmp(marker_labels, 'RTHIA')) = 16;
     marker_segments(strcmp(marker_labels, 'RKNE')) = 16;
-    marker_segments(strcmp(marker_labels, 'RTIB')) = 17;
-    marker_segments(strcmp(marker_labels, 'RTIBA')) = 17;
-    marker_segments(strcmp(marker_labels, 'RANK')) = 17;
-    marker_segments(strcmp(marker_labels, 'RHEE')) = 19;
-    marker_segments(strcmp(marker_labels, 'RTOE')) = 19;
-    marker_segments(strcmp(marker_labels, 'RTOEL')) = 19;
+    marker_segments(strcmp(marker_labels, 'RTIB')) = 18;
+    marker_segments(strcmp(marker_labels, 'RTIBA')) = 18;
+    marker_segments(strcmp(marker_labels, 'RANK')) = 18;
+    marker_segments(strcmp(marker_labels, 'RHEE')) = 20;
+    marker_segments(strcmp(marker_labels, 'RTOE')) = 20;
+    marker_segments(strcmp(marker_labels, 'RTOEL')) = 20;
 
 end
 

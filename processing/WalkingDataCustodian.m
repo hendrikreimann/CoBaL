@@ -155,7 +155,7 @@ classdef WalkingDataCustodian < handle
                 this.addStretchVariable('step_time')
                 this.addStretchVariable('cadence')
             end
-            if this.isVariableToAnalyze('velocity')
+            if this.isVariableToAnalyze('`')
                 this.addBasicVariable('marker_trajectories')
                 this.addBasicVariable('lheel_y_pos')
                 this.addBasicVariable('rheel_y_pos')
@@ -278,6 +278,18 @@ classdef WalkingDataCustodian < handle
                 this.addStretchVariable('left_leg_angle')
                 this.addStretchVariable('left_leg_phase')
                 this.addStretchVariable('right_arm_left_leg_relative_phase')
+            end
+            if this.isVariableToAnalyze('left_arm_phase_at_heelstrike')
+                this.addBasicVariable('marker_trajectories')
+                this.addBasicVariable('left_arm_angle')
+                this.addBasicVariable('left_arm_phase')
+                this.addStretchVariable('left_arm_phase_at_heelstrike')
+            end
+            if this.isVariableToAnalyze('right_arm_phase_at_heelstrike')
+                this.addBasicVariable('marker_trajectories')
+                this.addBasicVariable('right_arm_angle')
+                this.addBasicVariable('right_arm_phase')
+                this.addStretchVariable('right_arm_phase_at_heelstrike')
             end
             if this.isVariableToAnalyze('left_glut_med')
                 this.addBasicVariable('emg_trajectories')
@@ -645,6 +657,91 @@ classdef WalkingDataCustodian < handle
                         step_length = stretch_variables{strcmp(this.stretch_variable_names, 'step_length')}(i_stretch);
                         stretch_data = step_length / step_time;
                     end
+                    if strcmp(variable_name, 'left_arm_phase') || strcmp(variable_name, 'right_arm_phase') || strcmp(variable_name, 'left_leg_phase') || strcmp(variable_name, 'right_leg_phase')
+                        % extract data
+                        variable_time = this.getTimeData(variable_name);
+                        variable_data = this.getBasicVariableData(variable_name);
+                        [~, start_index] = min(abs(variable_time - this_stretch_start_time));
+                        [~, end_index] = min(abs(variable_time - this_stretch_end_time));
+                        time_extracted = variable_time(start_index : end_index);
+                        data_extracted = variable_data(start_index : end_index);
+                        
+                        % make sure there's no leaf change within this data stretch
+                        data_extracted_groomed = data_extracted;
+                        for i_time = 2 : length(time_extracted)
+                            if abs(data_extracted_groomed(i_time) - data_extracted_groomed(i_time-1)) > 5
+                                % normalize
+                                while data_extracted_groomed(i_time) - data_extracted_groomed(i_time-1) <= -pi
+                                    data_extracted_groomed(i_time) = data_extracted_groomed(i_time) + 2*pi;
+                                end
+                                while data_extracted_groomed(i_time) - data_extracted_groomed(i_time-1) > pi
+                                    data_extracted_groomed(i_time) = data_extracted_groomed(i_time) - 2*pi;
+                                end
+                                
+                                
+                            end
+                        end
+                        
+                        % normalize time
+                        time_normalized = linspace(time_extracted(1), time_extracted(end), this.number_of_time_steps_normalized)';
+                        data_normalized = spline(time_extracted, data_extracted_groomed, time_normalized);
+                        
+                        % re-normalize angle
+                        stretch_data = normalizeAngle(data_normalized);
+                    end
+                    if strcmp(variable_name, 'left_arm_phase_at_heelstrike')
+                        left_arm_phase = stretch_variables{strcmp(variables_to_calculate, 'left_arm_phase')}(:, i_stretch);
+                        stretch_data = left_arm_phase(1);
+                        
+                        % normalize angle, but take care that the leaf change is not too close to this value
+                        if strcmp(condition_stance_foot_list{i_stretch}, 'STANCE_RIGHT')
+                            stretch_data = normalizeAngle(stretch_data, 0);
+                        end
+                        if strcmp(condition_stance_foot_list{i_stretch}, 'STANCE_LEFT')
+                            stretch_data = normalizeAngle(stretch_data, pi);
+                        end
+                        if strcmp(condition_stance_foot_list{i_stretch}, 'STANCE_BOTH')
+                            stretch_data = NaN;
+                        end
+                        
+                        
+                        
+                        
+%                         if abs(stretch_data - 0) < abs(abs(stretch_data) - pi)
+%                             % angle is closer to 0 than to +-pi, so normalize to +-pi
+%                             stretch_data = normalizeAngle(stretch_data, pi);
+%                         end
+%                         if abs(stretch_data - 0) >= abs(abs(stretch_data) - pi)
+%                             % angle is closer to +-pi than to 0, so normalize to 0
+%                             stretch_data = normalizeAngle(stretch_data, 0);
+%                         end
+                    end
+                    if strcmp(variable_name, 'right_arm_phase_at_heelstrike')
+                        right_arm_phase = stretch_variables{strcmp(variables_to_calculate, 'right_arm_phase')}(:, i_stretch);
+                        stretch_data = right_arm_phase(1);
+                        
+                        % normalize angle, but take care that the leaf change is not too close to this value
+                        if strcmp(condition_stance_foot_list{i_stretch}, 'STANCE_RIGHT')
+                            stretch_data = normalizeAngle(stretch_data, pi);
+                        end
+                        if strcmp(condition_stance_foot_list{i_stretch}, 'STANCE_LEFT')
+                            stretch_data = normalizeAngle(stretch_data, 0);
+                        end
+                        if strcmp(condition_stance_foot_list{i_stretch}, 'STANCE_BOTH')
+                            stretch_data = NaN;
+                        end
+%                         if abs(stretch_data - 0) < abs(abs(stretch_data) - pi)
+%                             % angle is closer to 0 than to +-pi, so normalize to +-pi
+%                             stretch_data = normalizeAngle(stretch_data, pi);
+%                         end
+%                         if abs(stretch_data - 0) >= abs(abs(stretch_data) - pi)
+%                             % angle is closer to +-pi than to 0, so normalize to 0
+%                             stretch_data = normalizeAngle(stretch_data, 0);
+%                         end
+                    end
+                    
+                    
+                    
                     if strcmp(variable_name, 'left_glut_med_rescaled')
                         left_glut_med = this.getTimeNormalizedData('left_glut_med', this_stretch_start_time, this_stretch_end_time);
                         normalization_value = this.emg_normalization_values(strcmp(this.emg_normalization_labels, 'left_glut_med'));

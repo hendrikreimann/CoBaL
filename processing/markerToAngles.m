@@ -12,7 +12,7 @@
 %     GNU General Public License for more details.
 % 
 %     You should have received a copy of the GNU General Public License
-%     along with this program.  If not, see <http://www.gnu.org/licenses/>.% compare the kinematic tree against the kinematic chain
+%     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
 
@@ -21,7 +21,7 @@ function joint_angles = ...
       ( ...
         marker_reference, ...
         marker_current, ...
-        marker_headers, ...
+        marker_labels, ...
         joint_center_reference, ...
         joint_center_current, ...
         joint_center_headers, ...
@@ -45,44 +45,209 @@ function joint_angles = ...
     right_ankle_direction_matrix_inverse = right_ankle_direction_matrix^(-1);
     
     % extract positions
-    LASI_current = extractMarkerTrajectories(marker_current, marker_headers, 'LASI')';
-    LPSI_current = extractMarkerTrajectories(marker_current, marker_headers, 'LPSI')';
-    LKNE_current = extractMarkerTrajectories(marker_current, marker_headers, 'LKNE')';
-    LTOE_current = extractMarkerTrajectories(marker_current, marker_headers, 'LTOE')';
-    LTOEL_current = extractMarkerTrajectories(marker_current, marker_headers, 'LTOEL')';
-    RASI_current = extractMarkerTrajectories(marker_current, marker_headers, 'RASI')';
-    RPSI_current = extractMarkerTrajectories(marker_current, marker_headers, 'RPSI')';
-    RKNE_current = extractMarkerTrajectories(marker_current, marker_headers, 'RKNE')';
-    RTOE_current = extractMarkerTrajectories(marker_current, marker_headers, 'RTOE')';
-    RTOEL_current = extractMarkerTrajectories(marker_current, marker_headers, 'RTOEL')';
+    LASI_current = extractMarkerTrajectories(marker_current, marker_labels, 'LASI')';
+    LPSI_current = extractMarkerTrajectories(marker_current, marker_labels, 'LPSI')';
+    LKNE_current = extractMarkerTrajectories(marker_current, marker_labels, 'LKNE')';
+    LANK_current = extractMarkerTrajectories(marker_current, marker_labels, 'LANK')';
+    LTOE_current = extractMarkerTrajectories(marker_current, marker_labels, 'LTOE')';
+    LTOEL_current = extractMarkerTrajectories(marker_current, marker_labels, 'LTOEL')';
+    RASI_current = extractMarkerTrajectories(marker_current, marker_labels, 'RASI')';
+    RPSI_current = extractMarkerTrajectories(marker_current, marker_labels, 'RPSI')';
+    RKNE_current = extractMarkerTrajectories(marker_current, marker_labels, 'RKNE')';
+    RANK_current = extractMarkerTrajectories(marker_current, marker_labels, 'RANK')';
+    RTOE_current = extractMarkerTrajectories(marker_current, marker_labels, 'RTOE')';
+    RTOEL_current = extractMarkerTrajectories(marker_current, marker_labels, 'RTOEL')';
     left_hip_cor_current = extractMarkerTrajectories(joint_center_current, joint_center_headers, 'LHIPCOR')';
     left_knee_cor_current = extractMarkerTrajectories(joint_center_current, joint_center_headers, 'LKNEECOR')';
     left_ankle_cor_current = extractMarkerTrajectories(joint_center_current, joint_center_headers, 'LANKLECOR')';
+    left_toes_eef_current = extractMarkerTrajectories(joint_center_current, joint_center_headers, 'LTOESEEF')';
     right_hip_cor_current = extractMarkerTrajectories(joint_center_current, joint_center_headers, 'RHIPCOR')';
     right_knee_cor_current = extractMarkerTrajectories(joint_center_current, joint_center_headers, 'RKNEECOR')';
     right_ankle_cor_current = extractMarkerTrajectories(joint_center_current, joint_center_headers, 'RANKLECOR')';
+    right_toes_eef_current = extractMarkerTrajectories(joint_center_current, joint_center_headers, 'RTOESEEF')';
     lumbar_cor_current = extractMarkerTrajectories(joint_center_current, joint_center_headers, 'LUMBARCOR')';
     cervix_cor_current = extractMarkerTrajectories(joint_center_current, joint_center_headers, 'CERVIXCOR')';
 
-    LASI_reference = extractMarkerTrajectories(marker_reference, marker_headers, 'LASI')';
-    LPSI_reference = extractMarkerTrajectories(marker_reference, marker_headers, 'LPSI')';
-    LKNE_reference = extractMarkerTrajectories(marker_reference, marker_headers, 'LKNE')';
-    LTOE_reference = extractMarkerTrajectories(marker_reference, marker_headers, 'LTOE')';
-    LTOEL_reference = extractMarkerTrajectories(marker_reference, marker_headers, 'LTOEL')';
-    RASI_reference = extractMarkerTrajectories(marker_reference, marker_headers, 'RASI')';
-    RPSI_reference = extractMarkerTrajectories(marker_reference, marker_headers, 'RPSI')';
-    RKNE_reference = extractMarkerTrajectories(marker_reference, marker_headers, 'RKNE')';
-    RTOE_reference = extractMarkerTrajectories(marker_reference, marker_headers, 'RTOE')';
-    RTOEL_reference = extractMarkerTrajectories(marker_reference, marker_headers, 'RTOEL')';
+    LASI_reference = extractMarkerTrajectories(marker_reference, marker_labels, 'LASI')';
+    LPSI_reference = extractMarkerTrajectories(marker_reference, marker_labels, 'LPSI')';
+    LKNE_reference = extractMarkerTrajectories(marker_reference, marker_labels, 'LKNE')';
+    LANK_reference = extractMarkerTrajectories(marker_reference, marker_labels, 'LANK')';
+    LTOE_reference = extractMarkerTrajectories(marker_reference, marker_labels, 'LTOE')';
+    LTOEL_reference = extractMarkerTrajectories(marker_reference, marker_labels, 'LTOEL')';
+    RASI_reference = extractMarkerTrajectories(marker_reference, marker_labels, 'RASI')';
+    RPSI_reference = extractMarkerTrajectories(marker_reference, marker_labels, 'RPSI')';
+    RKNE_reference = extractMarkerTrajectories(marker_reference, marker_labels, 'RKNE')';
+    RANK_reference = extractMarkerTrajectories(marker_reference, marker_labels, 'RANK')';
+    RTOE_reference = extractMarkerTrajectories(marker_reference, marker_labels, 'RTOE')';
+    RTOEL_reference = extractMarkerTrajectories(marker_reference, marker_labels, 'RTOEL')';
     left_hip_cor_reference = extractMarkerTrajectories(joint_center_reference, joint_center_headers, 'LHIPCOR')';
     left_knee_cor_reference = extractMarkerTrajectories(joint_center_reference, joint_center_headers, 'LKNEECOR')';
     left_ankle_cor_reference = extractMarkerTrajectories(joint_center_reference, joint_center_headers, 'LANKLECOR')';
+    left_toes_eef_reference = extractMarkerTrajectories(joint_center_reference, joint_center_headers, 'LTOESEEF')';
     right_hip_cor_reference = extractMarkerTrajectories(joint_center_reference, joint_center_headers, 'RHIPCOR')';
     right_knee_cor_reference = extractMarkerTrajectories(joint_center_reference, joint_center_headers, 'RKNEECOR')';
     right_ankle_cor_reference = extractMarkerTrajectories(joint_center_reference, joint_center_headers, 'RANKLECOR')';
+    right_toes_eef_reference = extractMarkerTrajectories(joint_center_reference, joint_center_headers, 'RTOESEEF')';
     lumbar_cor_reference = extractMarkerTrajectories(joint_center_reference, joint_center_headers, 'LUMBARCOR')';
     cervix_cor_reference = extractMarkerTrajectories(joint_center_reference, joint_center_headers, 'CERVIXCOR')';
     
+    % pelvis angles
+    pelvis_transformation_current_cell = calculateMcsToWcsTransformations_detailed(marker_current, marker_labels, {'PELVIS'});    
+    pelvis_transformation_current = pelvis_transformation_current_cell{1};
+    pelvis_translation_current = pelvis_transformation_current(1:3, 4);
+
+    pelvis_transformation_reference_cell = calculateMcsToWcsTransformations_detailed(marker_reference, marker_labels, {'PELVIS'});
+    pelvis_transformation_reference = pelvis_transformation_reference_cell{1};
+    pelvis_translation_reference = pelvis_transformation_reference(1:3, 4);
+    pelvis_translation_reference_to_current = pelvis_translation_current - pelvis_translation_reference;
+
+    pelvis_joint_transformation = pelvis_transformation_current * pelvis_transformation_reference^(-1);
+    pelvis_joint_rotation = pelvis_joint_transformation(1:3, 1:3);
+    pelvis_rotation_angles = eulerAnglesFromRotationMatrixZXY(pelvis_joint_rotation); % these are the correct values
+    
+    joint_angles(1:3) = pelvis_translation_reference_to_current;
+    joint_angles(4:6) = pelvis_rotation_angles;
+    
+    % calculate left hip flexion-extension
+    left_hip_cor_to_left_knee_cor_current_world = left_knee_cor_current - left_hip_cor_current;
+    R_world_to_7 = left_hip_direction_matrix_inverse * pelvis_joint_rotation^(-1);
+    left_hip_cor_to_left_knee_cor_current_7 = R_world_to_7 * left_hip_cor_to_left_knee_cor_current_world;
+    theta_7 = atan2(left_hip_cor_to_left_knee_cor_current_7(2), -left_hip_cor_to_left_knee_cor_current_7(3));
+    joint_angles(7) = theta_7;
+    
+    % left hip ab-adduction
+    R_7 = expAxis(left_hip_direction_matrix(:, 1), joint_angles(7));
+    R_world_to_8 = left_hip_direction_matrix_inverse * R_7^(-1) * pelvis_joint_rotation^(-1);
+    left_hip_cor_to_left_knee_cor_current_8 = R_world_to_8 * left_hip_cor_to_left_knee_cor_current_world;
+    theta_8 = atan2(-left_hip_cor_to_left_knee_cor_current_8(1), -left_hip_cor_to_left_knee_cor_current_8(3));
+    joint_angles(8) = theta_8;
+    
+    % left hip internal/external rotation - from knee marker
+    left_knee_cor_to_LKNE_current_world = LKNE_current - left_knee_cor_current;
+    R_8 = expAxis(left_hip_direction_matrix(:, 2), joint_angles(8));
+    R_world_to_9 = left_hip_direction_matrix_inverse * R_8^(-1) * R_7^(-1) * pelvis_joint_rotation^(-1);
+    left_knee_cor_to_LKNE_current_9 = R_world_to_9 * left_knee_cor_to_LKNE_current_world;
+    angle_now = atan2(left_knee_cor_to_LKNE_current_9(2), -left_knee_cor_to_LKNE_current_9(1));
+    left_knee_cor_to_LKNE_reference_world = LKNE_reference - left_knee_cor_reference;
+    left_knee_cor_to_LKNE_reference_hip = left_hip_direction_matrix_inverse * left_knee_cor_to_LKNE_reference_world;
+    angle_reference = atan2(left_knee_cor_to_LKNE_reference_hip(2), -left_knee_cor_to_LKNE_reference_hip(1));
+    joint_angles(9) = angle_now - angle_reference;
+    
+    % left knee flexion
+    left_knee_cor_to_left_ankle_cor_current_world = left_ankle_cor_current - left_knee_cor_current;
+    R_9 = expAxis(-left_hip_direction_matrix(:, 3), joint_angles(9));
+    left_hip_joint_rotation = R_7 * R_8 * R_9;
+    R_world_to_10 = left_knee_direction_matrix_inverse * left_hip_joint_rotation^(-1) * pelvis_joint_rotation^(-1);
+    left_knee_cor_to_left_ankle_cor_current_10 = R_world_to_10 * left_knee_cor_to_left_ankle_cor_current_world;
+    theta_10 = atan2(-left_knee_cor_to_left_ankle_cor_current_10(2), -left_knee_cor_to_left_ankle_cor_current_10(3));
+    joint_angles(10) = theta_10;
+    
+    % left knee internal rotation - from ankle marker
+    left_ankle_cor_to_LANK_current_world = LANK_current - left_ankle_cor_current;
+    R_10 = expAxis(-left_knee_direction_matrix(:, 1), joint_angles(10));
+    R_world_to_11 = left_knee_direction_matrix_inverse * R_10^(-1) * left_hip_joint_rotation^(-1) * pelvis_joint_rotation^(-1);
+    left_ankle_cor_to_LANK_current_11 = R_world_to_11 * left_ankle_cor_to_LANK_current_world;
+    angle_now = atan2(-left_ankle_cor_to_LANK_current_11(2), -left_ankle_cor_to_LANK_current_11(1));
+    left_ankle_cor_to_LANK_reference_world = LANK_reference - left_ankle_cor_reference;
+    left_ankle_cor_to_LANK_reference_knee = left_knee_direction_matrix_inverse * left_ankle_cor_to_LANK_reference_world;
+    angle_reference = atan2(-left_ankle_cor_to_LANK_reference_knee(2), -left_ankle_cor_to_LANK_reference_knee(1));
+    theta_11 = angle_now - angle_reference;
+    joint_angles(11) = theta_11;
+    
+    % left ankle plantar-dorsiflexion
+    left_ankle_cor_to_left_toes_eef_current_world = left_toes_eef_current - left_ankle_cor_current;
+    R_11 = expAxis(left_knee_direction_matrix(:, 3), joint_angles(11));
+    left_knee_joint_rotation = R_10 * R_11;
+    R_world_to_12 = left_ankle_direction_matrix_inverse * left_knee_joint_rotation^(-1) * left_hip_joint_rotation^(-1) * pelvis_joint_rotation^(-1);
+    left_ankle_cor_to_left_toes_eef_current_12 = R_world_to_12 * left_ankle_cor_to_left_toes_eef_current_world;
+    theta_12 = atan2(left_ankle_cor_to_left_toes_eef_current_12(3), left_ankle_cor_to_left_toes_eef_current_12(2));
+    joint_angles(12) = theta_12;
+   
+    % left ankle in-eversion - from toes markers
+    left_toes_eef_to_LTOEL_current_world = LTOEL_current - left_toes_eef_current;
+    R_12 = expAxis(left_ankle_direction_matrix(:, 1), joint_angles(12));
+    R_world_to_13 = left_ankle_direction_matrix_inverse * R_12^(-1) * left_knee_joint_rotation^(-1) * left_hip_joint_rotation^(-1) * pelvis_joint_rotation^(-1);
+    left_toes_eef_to_LTOEL_current_13 = R_world_to_13 * left_toes_eef_to_LTOEL_current_world;
+    angle_now = atan2(left_toes_eef_to_LTOEL_current_13(3), -left_toes_eef_to_LTOEL_current_13(1));
+    left_toes_eef_to_LTOEL_reference_world = LTOEL_reference - left_toes_eef_reference;
+    left_toes_eef_to_LTOEL_reference_ankle = left_ankle_direction_matrix_inverse * left_toes_eef_to_LTOEL_reference_world;
+    angle_reference = atan2(left_toes_eef_to_LTOEL_reference_ankle(3), -left_toes_eef_to_LTOEL_reference_ankle(1));
+    theta_13 = angle_now - angle_reference;
+    joint_angles(13) = theta_13;
+    
+    
+    
+    % seems to work up to here - that is, for the whole left leg
+    
+    
+
+    
+    
+    
+    
+    
+    % compare matrices
+    load('/Users/reimajbi/Box Sync/inverseKinematics/BRC/processed/00000000_XXX_simulation_001_markerTrajectories.mat')
+    load('subjectModel.mat')
+    knee_cor_reference = kinematic_tree.jointPositions{10};
+    kinematic_tree.jointAngles = joint_angle_trajectories_simulated(1, :)';
+    kinematic_tree.updateConfiguration;
+    
+%     left_knee_cor_current
+%     left_knee_cor_ground_truth = kinematic_tree.jointPositions{10}
+%     left_ankle_cor_current
+%     left_ankle_cor_ground_truth = kinematic_tree.jointPositions{12}
+%     left_toes_eef_current
+%     left_toes_eef_current_ground_truth = kinematic_tree.endEffectorPositions{2}
+    
+    pelvis_transformation_from_simulation = kinematic_tree.productsOfExponentials{6};
+    lthigh_transformation_from_simulation = kinematic_tree.productsOfExponentials{9};
+    exp1 = kinematic_tree.twistExponentials{1};
+    exp2 = kinematic_tree.twistExponentials{2};
+    exp3 = kinematic_tree.twistExponentials{3};
+    exp4 = kinematic_tree.twistExponentials{4};
+    exp5 = kinematic_tree.twistExponentials{5};
+    exp6 = kinematic_tree.twistExponentials{6};
+    exp7 = kinematic_tree.twistExponentials{7};
+%     R_7
+%     exp8 = kinematic_tree.twistExponentials{8}
+%     R_8
+%     exp9 = kinematic_tree.twistExponentials{9}
+%     R_9
+%     exp10 = kinematic_tree.twistExponentials{10}
+%     R_10
+%     exp11 = kinematic_tree.twistExponentials{11}
+%     R_11
+%     exp12 = kinematic_tree.twistExponentials{12}
+%     R_12
+
+    % NOTE: these should only be equal for the first time step, because I hard-coded time-step = 1
+% disp('----------------------------------------------------------------------')    
+    return
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    %% obsolete
     
     % calculate pelvis translation and rotation
     pelvis_transformation_current_cell = calculateMcsToWcsTransformations_detailed(marker_current, marker_headers, {'PELVIS'});    
@@ -244,9 +409,10 @@ function joint_angles = ...
     kinematic_tree.updateConfiguration;
     ankle_joint_moved = kinematic_tree.jointTransformations{13}(1:3, 4);
     LTOE_moved = eye(3, 4) * kinematic_tree.productsOfExponentials{13} * kinematic_tree.markerReferencePositions{13}(:, 2);
-    left_ankle_cor_to_LTOE_moved_world_from_tree = LTOE_moved - ankle_joint_moved
-    left_ankle_cor_to_LTOE_moved_world_from_tree_2 = kinematic_tree.productsOfExponentials{13}(1:3, 1:3) * left_ankle_cor_to_LTOE_reference_world
-    left_ankle_cor_to_LTOE_moved_world = R_pelvis * R_left_hip * R_10 * left_ankle_cor_to_LTOE_reference_world
+    
+    left_ankle_cor_to_LTOE_moved_world_from_tree = LTOE_moved - ankle_joint_moved;
+    left_ankle_cor_to_LTOE_moved_world_from_tree_2 = kinematic_tree.productsOfExponentials{13}(1:3, 1:3) * left_ankle_cor_to_LTOE_reference_world;
+    left_ankle_cor_to_LTOE_moved_world = R_pelvis * R_left_hip * R_10 * left_ankle_cor_to_LTOE_reference_world;
 
     return
     

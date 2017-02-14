@@ -1165,7 +1165,7 @@ function findRelevantDataStretches(varargin)
                 [larm_angle_normalized, larm_angle_dot_normalized] = normalizePeriodicVariable(left_arm_angle, time_marker, left_arm_peak_locations);
 
                 % calculate phase
-                left_arm_phase = atan2(larm_angle_dot_normalized, larm_angle_normalized);
+                left_arm_phase = atan2(larm_angle_dot_normalized, -larm_angle_normalized);
                 
 %                 % XXX plot some stuff to check
 %                 figure; hold on
@@ -1203,7 +1203,7 @@ function findRelevantDataStretches(varargin)
                 [larm_angle_normalized, larm_angle_dot_normalized] = normalizePeriodicVariable(right_arm_angle, time_marker, right_arm_peak_locations);
 
                 % calculate phase
-                right_arm_phase = atan2(larm_angle_dot_normalized, larm_angle_normalized);
+                right_arm_phase = atan2(larm_angle_dot_normalized, -larm_angle_normalized);
                 
                 % add new variables to be saved
                 variables_to_save.right_arm_angle = right_arm_angle;
@@ -1233,7 +1233,7 @@ function findRelevantDataStretches(varargin)
                 [lleg_angle_normalized, lleg_angle_dot_normalized] = normalizePeriodicVariable(left_leg_angle, time_marker, left_leg_peak_locations);
 
                 % calculate phase
-                left_leg_phase = atan2(lleg_angle_dot_normalized, lleg_angle_normalized);
+                left_leg_phase = atan2(-lleg_angle_dot_normalized, lleg_angle_normalized);
                 
                 % add new variables to be saved
                 variables_to_save.left_leg_angle = left_leg_angle;
@@ -1263,7 +1263,7 @@ function findRelevantDataStretches(varargin)
                 [lleg_angle_normalized, lleg_angle_dot_normalized] = normalizePeriodicVariable(right_leg_angle, time_marker, right_leg_peak_locations);
 
                 % calculate phase
-                right_leg_phase = atan2(lleg_angle_dot_normalized, lleg_angle_normalized);
+                right_leg_phase = atan2(lleg_angle_dot_normalized, -lleg_angle_normalized);
                 
                 % add new variables to be saved
                 variables_to_save.right_leg_angle = right_leg_angle;

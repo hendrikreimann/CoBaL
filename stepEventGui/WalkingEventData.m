@@ -23,12 +23,12 @@ classdef WalkingEventData < handle
         right_pushoff;
         right_touchdown;
         
-        left_arm_swing_onset;
-        right_arm_swing_onset;
-        left_leg_swing_onset;
-        right_leg_swing_onset;
+        left_arm_swing_onset_times;
+        right_arm_swing_onset_times;
+        left_leg_swing_onset_times;
+        right_leg_swing_onset_times;
         
-        ignore;
+        ignore_times;
         
         selected_event_label;
         selected_event_time;
@@ -51,19 +51,21 @@ classdef WalkingEventData < handle
             this.right_touchdown = loaded_event_data.right_touchdown_times;
             
             if isfield(loaded_event_data, 'left_arm_swing_onset_times')
-                this.left_arm_swing_onset = loaded_event_data.left_arm_swing_onset_times;
+                this.left_arm_swing_onset_times = loaded_event_data.left_arm_swing_onset_times;
             end
             if isfield(loaded_event_data, 'right_arm_swing_onset_times')
-                this.right_arm_swing_onset = loaded_event_data.right_arm_swing_onset_times;
+                this.right_arm_swing_onset_times = loaded_event_data.right_arm_swing_onset_times;
             end
             if isfield(loaded_event_data, 'left_leg_swing_onset_times')
-                this.left_leg_swing_onset = loaded_event_data.left_leg_swing_onset_times;
+                this.left_leg_swing_onset_times = loaded_event_data.left_leg_swing_onset_times;
             end
             if isfield(loaded_event_data, 'right_leg_swing_onset_times')
-                this.right_leg_swing_onset = loaded_event_data.right_leg_swing_onset_times;
+                this.right_leg_swing_onset_times = loaded_event_data.right_leg_swing_onset_times;
             end
             if isfield(loaded_event_data, 'ignore_times')
-                this.ignore = loaded_event_data.ignore_times;
+                this.ignore_times = loaded_event_data.ignore_times;
+            else
+                this.ignore_times = [];
             end
             
             this.removeDuplicates();
@@ -82,20 +84,20 @@ classdef WalkingEventData < handle
             variables_to_save.left_touchdown_times = this.left_touchdown;
             variables_to_save.right_pushoff_times = this.right_pushoff;
             variables_to_save.right_touchdown_times = this.right_touchdown;
-            if ~isempty(this.left_arm_swing_onset);
-                variables_to_save.left_arm_swing_onset = this.left_arm_swing_onset;
+            if ~isempty(this.left_arm_swing_onset_times);
+                variables_to_save.left_arm_swing_onset_times = this.left_arm_swing_onset_times;
             end
-            if ~isempty(this.right_arm_swing_onset);
-                variables_to_save.right_arm_swing_onset = this.right_arm_swing_onset;
+            if ~isempty(this.right_arm_swing_onset_times);
+                variables_to_save.right_arm_swing_onset_times = this.right_arm_swing_onset_times;
             end
-            if ~isempty(this.left_leg_swing_onset);
-                variables_to_save.left_leg_swing_onset = this.left_leg_swing_onset;
+            if ~isempty(this.left_leg_swing_onset_times);
+                variables_to_save.left_leg_swing_onset_times = this.left_leg_swing_onset_times;
             end
-            if ~isempty(this.right_leg_swing_onset);
-                variables_to_save.right_leg_swing_onset = this.right_leg_swing_onset;
+            if ~isempty(this.right_leg_swing_onset_times);
+                variables_to_save.right_leg_swing_onset_times = this.right_leg_swing_onset_times;
             end
-            if ~isempty(this.ignore);
-                variables_to_save.ignore_times = this.ignore;
+            if ~isempty(this.ignore_times);
+                variables_to_save.ignore_times = this.ignore_times;
             end
             
             step_events_file_name = [this.trial_data.data_directory filesep 'analysis' filesep makeFileName(this.trial_data.date, this.trial_data.subject_id, this.trial_data.condition, this.trial_data.trial_number, 'stepEvents')];

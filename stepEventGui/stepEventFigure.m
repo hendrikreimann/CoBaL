@@ -144,7 +144,7 @@ classdef stepEventFigure < handle;
             % find the one with minimal distance among these candidates
             [distance, type_index] = min(candidate_distances);
             if type_index == length(this.event_plots)+1
-                event_label = 'ignore';
+                event_label = 'ignore_times';
                 event_index = candidate_event_indices(length(this.event_plots)+1);
                 event_times = this.event_data.getEventTimes(event_label);
                 event_time = event_times(event_index);
@@ -276,7 +276,7 @@ classdef stepEventFigure < handle;
             end
         end
         function updateIgnoreMarkerPlot(this)
-            event_time = this.event_data.getEventTimes('ignore');
+            event_time = this.event_data.getEventTimes('ignore_times');
             set(this.ignore_marker_plot, 'xdata', event_time, 'ydata', zeros(size(event_time)));
         end
         function updateSelectedEventPlot(this)
@@ -291,7 +291,7 @@ classdef stepEventFigure < handle;
                     selected_event_plot_y_data = [selected_event_plot_y_data y_data_point];
                 end
             end
-            if strcmp(this.controller.event_data.selected_event_label, 'ignore')
+            if strcmp(this.controller.event_data.selected_event_label, 'ignore_times')
                 % event type of this one and the selected is a match
                 selected_event_plot_x_data = [selected_event_plot_x_data this.controller.event_data.selected_event_time];
                 y_data_point = 0;

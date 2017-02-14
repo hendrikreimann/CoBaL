@@ -30,7 +30,55 @@ function hinge_joint_center = findHingeJointCenter(point_on_link_one, point_on_l
     % for the right arm, given by shoulder, wrist, lateral epicondyle, this should be "positive"
     % for the left arm, given by shoulder, wrist, lateral epicondyle, this should be "negative"
 
+    % notes from 12.2.2017
+    % the following should be possible in theory
+    % 1. define axes of rotation for the hip where the z-axis lies along the hipcor --> kneemarker direction
+    % 2. find angles for xy-rotation in this frame so that the knee marker fits the data
+    % 3. find angles for z-rotation in this frame and knee flexion to fit the ankle joint center
+    %    problem: I don't know the knee flexion axis - does this matter?
+    % 4. this should allow me to calculate the knee joint center position
     
+    try_this_method = false;
+    if try_this_method
+        A = point_on_link_one;
+        B = point_on_link_two;
+        M = point_on_axis;
+        
+        % define axes of rotation
+        omega_3 = normVector(point_on_link_one - point_on_axis);
+        omega_1_prime = [1; 0; 0];
+        omega_2_prime = [0; 1; 0];
+        hip_rotation_basis_prime = orthogonalizeBasis([omega_3 omega_1_prime omega_2_prime]);
+        omega_1 = hip_rotation_basis_prime(:, 2);
+        omega_2 = hip_rotation_basis_prime(:, 3);
+        omega_3 = hip_rotation_basis_prime(:, 1);
+        hip_rotation_basis = [omega_1 omega_2 omega_3];
+        
+        % find angles for rotation between these two frames
+        hip_angles = eulerAnglesFromRotationMatrixZXY(hip_rotation_basis);
+        
+        
+        % calculate left hip flexion-extension
+        left_hip_cor_to_left_knee_cor_current_world = left_knee_cor_current - left_hip_cor_current;
+        R_world_to_7 = left_hip_direction_matrix_inverse * pelvis_joint_rotation^(-1);
+        left_hip_cor_to_left_knee_cor_current_7 = R_world_to_7 * left_hip_cor_to_left_knee_cor_current_world;
+        theta_7 = atan2(left_hip_cor_to_left_knee_cor_current_7(2), -left_hip_cor_to_left_knee_cor_current_7(3))
+        joint_angles(7) = theta_7;
+
+        % left hip ab-adduction
+        R_7 = expAxis(left_hip_direction_matrix(:, 1), joint_angles(7));
+        R_world_to_8 = left_hip_direction_matrix_inverse * R_7^(-1) * pelvis_joint_rotation^(-1);
+        left_hip_cor_to_left_knee_cor_current_8 = R_world_to_8 * left_hip_cor_to_left_knee_cor_current_world;
+        theta_8 = atan2(-left_hip_cor_to_left_knee_cor_current_8(1), -left_hip_cor_to_left_knee_cor_current_8(3));
+        joint_angles(8) = theta_8;
+        
+        
+    end
+    
+    % but the following should also work
+    % 1. the position of hip and ankle joint centers should already be sufficient to give me the hip and knee flexion angles
+    % not really, because I don't have a reference. All I can get is the knee flexion angle. Does that help me already?
+    % and no, I can't even get the knee angle, just 'some' angle, so forget this
     
     
     A = point_on_link_one;
@@ -136,6 +184,10 @@ function hinge_joint_center = findHingeJointCenter(point_on_link_one, point_on_l
     % find r_C, given the sides of the triangle a, b, c
     r_C = triangleHeight(norm(B-A), r_A, r_B);
     
+    alpha = asin(r_C / r_A)
+    beta = asin(r_C / r_B)
+    gamma = pi - alpha - beta
+    
     % find C
     AC_norm = sqrt(r_A^2 - r_C^2);
     if r_A^2 - r_C^2 < 0
@@ -201,8 +253,8 @@ function hinge_joint_center = findHingeJointCenter(point_on_link_one, point_on_l
         E_1_prime = [H_prime(1); h; 0];
         E_2_prime = [H_prime(1); -h; 0];
 
-        E_1 = eye(3, 4) * T_new_to_world * [E_1_prime; 1];
-        E_2 = eye(3, 4) * T_new_to_world * [E_2_prime; 1];
+        E_1 = eye(3, 4) * T_new_to_world * [E_1_prime; 1]
+        E_2 = eye(3, 4) * T_new_to_world * [E_2_prime; 1]
 
 
         % do E_1 and E_2 actually lie on the appropriate spheres?
