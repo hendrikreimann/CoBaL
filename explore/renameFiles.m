@@ -15,41 +15,24 @@
 %     along with this program.  If not, see <http://www.gnu.org/licenses/>.% compare the kinematic tree against the kinematic chain
 
 
-
-% prepare folder
-if ~exist('misnamed', 'dir')
-    mkdir('misnamed')
-end
+new_code = 'ZRUI';
 
 % find files
 clear file_name_list;
-data_dir = dir('*.txt');
+data_dir = dir;
 [file_name_list{1:length(data_dir)}] = deal(data_dir.name);
 
-number_of_header_lines = 26;
-trial_number_line = 25;
-for i_file = 1 : length(file_name_list)
+for i_file = 4 : length(file_name_list)
     data_file_name = file_name_list{i_file};
     
-    % read string with trial number information
-    fid = fopen(data_file_name);
-    for i_line = 1 : 25
-        line_string = fgetl(fid);
+    file_name_split = strsplit(data_file_name, '_');
+    file_name_split{3} = new_code;
+    new_file_name = [file_name_split{1} '_' file_name_split{2} '_' new_code];
+    for i_step = 4 : length(file_name_split)
+        new_file_name = [new_file_name '_' file_name_split{i_step}];
     end
-    fclose(fid);
     
-    % extract trial number
-    line_split = strsplit(line_string, ' ');
-    trial_number = str2num(line_split{end});
-
-    % save file
-    new_file_name = makeFileName(date, subject_id, trial_type, trial_number, 'neurocomData.txt');
-    while exist([filesep new_file_name], 'file')
-        disp([new_file_name ' already exists, adding ".new"']);
-        new_file_name = [new_file_name '.new'];
-    end
-    movefile(data_file_name, ['misnamed' filesep data_file_name])
-    copyfile(['misnamed' filesep data_file_name], new_file_name)
+    movefile(data_file_name, new_file_name)
 end
 
 

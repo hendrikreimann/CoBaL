@@ -155,7 +155,7 @@ classdef WalkingDataCustodian < handle
                 this.addStretchVariable('step_time')
                 this.addStretchVariable('cadence')
             end
-            if this.isVariableToAnalyze('`')
+            if this.isVariableToAnalyze('velocity')
                 this.addBasicVariable('marker_trajectories')
                 this.addBasicVariable('lheel_y_pos')
                 this.addBasicVariable('rheel_y_pos')

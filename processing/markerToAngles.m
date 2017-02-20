@@ -25,15 +25,8 @@ function joint_angles = ...
         joint_center_reference, ...
         joint_center_current, ...
         joint_center_headers, ...
-        body_direction_matrix, ...
-        left_hip_direction_matrix, ...
-        right_hip_direction_matrix, ...
-        left_knee_direction_matrix, ...
-        right_knee_direction_matrix, ...
-        left_ankle_direction_matrix, ...
-        right_ankle_direction_matrix, ...
-        lumbar_direction_matrix, ...
-        cervix_direction_matrix ...
+        direction_matrices, ...
+        direction_matrix_labels ...
       )
     
     % get matrices for comparison
@@ -48,7 +41,7 @@ function joint_angles = ...
 %     left_toes_eef_current_ground_truth = kinematic_tree.endEffectorPositions{2}
     lumbar_cor_ground_truth = kinematic_tree.jointPositions{23};
     cervix_cor_ground_truth = kinematic_tree.jointPositions{26};
-    
+
     pelvis_transformation_from_simulation = kinematic_tree.productsOfExponentials{6};
     lthigh_transformation_from_simulation = kinematic_tree.productsOfExponentials{9};
     exp1 = kinematic_tree.twistExponentials{1};
@@ -77,9 +70,40 @@ function joint_angles = ...
     exp24 = kinematic_tree.twistExponentials{24};
     exp25 = kinematic_tree.twistExponentials{25};
     exp26 = kinematic_tree.twistExponentials{26};
+    exp27 = kinematic_tree.twistExponentials{27};
+    exp28 = kinematic_tree.twistExponentials{28};
+    exp29 = kinematic_tree.twistExponentials{29};
+    exp30 = kinematic_tree.twistExponentials{30};
+    exp31 = kinematic_tree.twistExponentials{31};
+    exp32 = kinematic_tree.twistExponentials{32};
+    exp33 = kinematic_tree.twistExponentials{33};
+    exp34 = kinematic_tree.twistExponentials{34};
+    exp35 = kinematic_tree.twistExponentials{35};
+    exp36 = kinematic_tree.twistExponentials{36};
+    exp37 = kinematic_tree.twistExponentials{37};
+    exp38 = kinematic_tree.twistExponentials{38};
+    exp39 = kinematic_tree.twistExponentials{39};
+    exp40 = kinematic_tree.twistExponentials{40};
   
   
     %% preparations
+    
+    body_direction_matrix = direction_matrices{strcmp(direction_matrix_labels, 'body')};
+    left_hip_direction_matrix = direction_matrices{strcmp(direction_matrix_labels, 'left_hip')};
+    right_hip_direction_matrix = direction_matrices{strcmp(direction_matrix_labels, 'right_hip')};
+    left_knee_direction_matrix = direction_matrices{strcmp(direction_matrix_labels, 'left_knee')};
+    right_knee_direction_matrix = direction_matrices{strcmp(direction_matrix_labels, 'right_knee')};
+    left_ankle_direction_matrix = direction_matrices{strcmp(direction_matrix_labels, 'left_ankle')};
+    right_ankle_direction_matrix = direction_matrices{strcmp(direction_matrix_labels, 'right_ankle')};
+    lumbar_direction_matrix = direction_matrices{strcmp(direction_matrix_labels, 'lumbar')};
+    cervix_direction_matrix = direction_matrices{strcmp(direction_matrix_labels, 'cervix')};
+    left_shoulder_direction_matrix = direction_matrices{strcmp(direction_matrix_labels, 'left_shoulder')};
+    right_shoulder_direction_matrix = direction_matrices{strcmp(direction_matrix_labels, 'right_shoulder')};
+    left_elbow_direction_matrix = direction_matrices{strcmp(direction_matrix_labels, 'left_elbow')};
+    right_elbow_direction_matrix = direction_matrices{strcmp(direction_matrix_labels, 'right_elbow')};
+    left_wrist_direction_matrix = direction_matrices{strcmp(direction_matrix_labels, 'left_wrist')};
+    right_wrist_direction_matrix = direction_matrices{strcmp(direction_matrix_labels, 'right_wrist')};
+    
     joint_angles = zeros(40, 1);
     
     body_direction_matrix_inverse = body_direction_matrix^(-1);
@@ -91,6 +115,12 @@ function joint_angles = ...
     right_ankle_direction_matrix_inverse = right_ankle_direction_matrix^(-1);
     lumbar_direction_matrix_inverse = lumbar_direction_matrix^(-1);
     cervix_direction_matrix_inverse = cervix_direction_matrix^(-1);
+    left_shoulder_direction_matrix_inverse = left_shoulder_direction_matrix^(-1);
+    left_elbow_direction_matrix_inverse = left_elbow_direction_matrix^(-1);
+    left_wrist_direction_matrix_inverse = left_wrist_direction_matrix^(-1);
+    right_shoulder_direction_matrix_inverse = right_shoulder_direction_matrix^(-1);
+    right_elbow_direction_matrix_inverse = right_elbow_direction_matrix^(-1);
+    right_wrist_direction_matrix_inverse = right_wrist_direction_matrix^(-1);
     
     % extract positions
     LASI_current = extractMarkerTrajectories(marker_current, marker_labels, 'LASI')';
@@ -102,6 +132,9 @@ function joint_angles = ...
     LSHO_current = extractMarkerTrajectories(marker_current, marker_labels, 'LSHO')';
     LFHD_current = extractMarkerTrajectories(marker_current, marker_labels, 'LFHD')';
     LBHD_current = extractMarkerTrajectories(marker_current, marker_labels, 'LBHD')';
+    LELB_current = extractMarkerTrajectories(marker_current, marker_labels, 'LELB')';
+    LWRB_current = extractMarkerTrajectories(marker_current, marker_labels, 'LWRB')';
+    LFIN_current = extractMarkerTrajectories(marker_current, marker_labels, 'LFIN')';
     RASI_current = extractMarkerTrajectories(marker_current, marker_labels, 'RASI')';
     RPSI_current = extractMarkerTrajectories(marker_current, marker_labels, 'RPSI')';
     RKNE_current = extractMarkerTrajectories(marker_current, marker_labels, 'RKNE')';
@@ -111,14 +144,23 @@ function joint_angles = ...
     RSHO_current = extractMarkerTrajectories(marker_current, marker_labels, 'RSHO')';
     RFHD_current = extractMarkerTrajectories(marker_current, marker_labels, 'RFHD')';
     RBHD_current = extractMarkerTrajectories(marker_current, marker_labels, 'RBHD')';
+    RELB_current = extractMarkerTrajectories(marker_current, marker_labels, 'RELB')';
+    RWRB_current = extractMarkerTrajectories(marker_current, marker_labels, 'RWRB')';
+    RFIN_current = extractMarkerTrajectories(marker_current, marker_labels, 'RFIN')';
     left_hip_cor_current = extractMarkerTrajectories(joint_center_current, joint_center_headers, 'LHIPCOR')';
     left_knee_cor_current = extractMarkerTrajectories(joint_center_current, joint_center_headers, 'LKNEECOR')';
     left_ankle_cor_current = extractMarkerTrajectories(joint_center_current, joint_center_headers, 'LANKLECOR')';
     left_toes_eef_current = extractMarkerTrajectories(joint_center_current, joint_center_headers, 'LTOESEEF')';
+    left_shoulder_cor_current = extractMarkerTrajectories(joint_center_current, joint_center_headers, 'LSHOULDERCOR')';
+    left_elbow_cor_current = extractMarkerTrajectories(joint_center_current, joint_center_headers, 'LELBOWCOR')';
+    left_wrist_cor_current = extractMarkerTrajectories(joint_center_current, joint_center_headers, 'LWRISTCOR')';
     right_hip_cor_current = extractMarkerTrajectories(joint_center_current, joint_center_headers, 'RHIPCOR')';
     right_knee_cor_current = extractMarkerTrajectories(joint_center_current, joint_center_headers, 'RKNEECOR')';
     right_ankle_cor_current = extractMarkerTrajectories(joint_center_current, joint_center_headers, 'RANKLECOR')';
     right_toes_eef_current = extractMarkerTrajectories(joint_center_current, joint_center_headers, 'RTOESEEF')';
+    right_shoulder_cor_current = extractMarkerTrajectories(joint_center_current, joint_center_headers, 'RSHOULDERCOR')';
+    right_elbow_cor_current = extractMarkerTrajectories(joint_center_current, joint_center_headers, 'RELBOWCOR')';
+    right_wrist_cor_current = extractMarkerTrajectories(joint_center_current, joint_center_headers, 'RWRISTCOR')';
     lumbar_cor_current = extractMarkerTrajectories(joint_center_current, joint_center_headers, 'LUMBARCOR')';
     cervix_cor_current = extractMarkerTrajectories(joint_center_current, joint_center_headers, 'CERVIXCOR')';
     head_center_current = mean([LFHD_current RFHD_current LBHD_current RBHD_current], 2);
@@ -133,6 +175,9 @@ function joint_angles = ...
     LSHO_reference = extractMarkerTrajectories(marker_reference, marker_labels, 'LSHO')';
     LFHD_reference = extractMarkerTrajectories(marker_reference, marker_labels, 'LFHD')';
     LBHD_reference = extractMarkerTrajectories(marker_reference, marker_labels, 'LBHD')';
+    LELB_reference = extractMarkerTrajectories(marker_reference, marker_labels, 'LELB')';
+    LWRB_reference = extractMarkerTrajectories(marker_reference, marker_labels, 'LWRB')';
+    LFIN_reference = extractMarkerTrajectories(marker_reference, marker_labels, 'LFIN')';
     RASI_reference = extractMarkerTrajectories(marker_reference, marker_labels, 'RASI')';
     RPSI_reference = extractMarkerTrajectories(marker_reference, marker_labels, 'RPSI')';
     RKNE_reference = extractMarkerTrajectories(marker_reference, marker_labels, 'RKNE')';
@@ -142,14 +187,23 @@ function joint_angles = ...
     RSHO_reference = extractMarkerTrajectories(marker_reference, marker_labels, 'RSHO')';
     RFHD_reference = extractMarkerTrajectories(marker_reference, marker_labels, 'RFHD')';
     RBHD_reference = extractMarkerTrajectories(marker_reference, marker_labels, 'RBHD')';
+    RELB_reference = extractMarkerTrajectories(marker_reference, marker_labels, 'RELB')';
+    RWRB_reference = extractMarkerTrajectories(marker_reference, marker_labels, 'RWRB')';
+    RFIN_reference = extractMarkerTrajectories(marker_reference, marker_labels, 'RFIN')';
     left_hip_cor_reference = extractMarkerTrajectories(joint_center_reference, joint_center_headers, 'LHIPCOR')';
     left_knee_cor_reference = extractMarkerTrajectories(joint_center_reference, joint_center_headers, 'LKNEECOR')';
     left_ankle_cor_reference = extractMarkerTrajectories(joint_center_reference, joint_center_headers, 'LANKLECOR')';
     left_toes_eef_reference = extractMarkerTrajectories(joint_center_reference, joint_center_headers, 'LTOESEEF')';
+    left_shoulder_cor_reference = extractMarkerTrajectories(joint_center_reference, joint_center_headers, 'LSHOULDERCOR')';
+    left_elbow_cor_reference = extractMarkerTrajectories(joint_center_reference, joint_center_headers, 'LELBOWCOR')';
+    left_wrist_cor_reference = extractMarkerTrajectories(joint_center_reference, joint_center_headers, 'LWRISTCOR')';
     right_hip_cor_reference = extractMarkerTrajectories(joint_center_reference, joint_center_headers, 'RHIPCOR')';
     right_knee_cor_reference = extractMarkerTrajectories(joint_center_reference, joint_center_headers, 'RKNEECOR')';
     right_ankle_cor_reference = extractMarkerTrajectories(joint_center_reference, joint_center_headers, 'RANKLECOR')';
     right_toes_eef_reference = extractMarkerTrajectories(joint_center_reference, joint_center_headers, 'RTOESEEF')';
+    right_shoulder_cor_reference = extractMarkerTrajectories(joint_center_reference, joint_center_headers, 'RSHOULDERCOR')';
+    right_elbow_cor_reference = extractMarkerTrajectories(joint_center_reference, joint_center_headers, 'RELBOWCOR')';
+    right_wrist_cor_reference = extractMarkerTrajectories(joint_center_reference, joint_center_headers, 'RWRISTCOR')';
     lumbar_cor_reference = extractMarkerTrajectories(joint_center_reference, joint_center_headers, 'LUMBARCOR')';
     cervix_cor_reference = extractMarkerTrajectories(joint_center_reference, joint_center_headers, 'CERVIXCOR')';
     head_center_reference = mean([LFHD_reference RFHD_reference LBHD_reference RBHD_reference], 2);
@@ -309,13 +363,6 @@ function joint_angles = ...
     angle_reference = atan2(right_toes_eef_to_RTOEL_reference_ankle(3), right_toes_eef_to_RTOEL_reference_ankle(1));
     theta_20 = angle_now - angle_reference;
     joint_angles(20) = theta_20;    
-
-    
-    
-    
-    
-    
-
     
     %% lumbar
     
@@ -347,7 +394,6 @@ function joint_angles = ...
     R_23 = expAxis(-lumbar_direction_matrix(:, 3), joint_angles(23));
     lumbar_joint_rotation = R_21 * R_22 * R_23;
     
-    
     %% cervix
     
     % calculate cervix flexion-extension
@@ -374,6 +420,76 @@ function joint_angles = ...
     head_center_to_forehead_center_reference_cervix = cervix_direction_matrix_inverse * head_center_to_forehead_center_reference_world;
     angle_reference = atan2(head_center_to_forehead_center_reference_cervix(2), -head_center_to_forehead_center_reference_cervix(1));
     joint_angles(26) = angle_now - angle_reference;    
+    
+    %% left arm
+    % calculate left shoulder flexion-extension
+    left_shoulder_cor_to_left_elbow_cor_current_world = left_elbow_cor_current - left_shoulder_cor_current;
+    R_world_to_27 = left_shoulder_direction_matrix_inverse * lumbar_joint_rotation^(-1) * pelvis_joint_rotation^(-1);
+    left_shoulder_cor_to_left_elbow_cor_current_27 = R_world_to_27 * left_shoulder_cor_to_left_elbow_cor_current_world;
+    theta_27 = atan2(left_shoulder_cor_to_left_elbow_cor_current_27(2), -left_shoulder_cor_to_left_elbow_cor_current_27(3));
+    joint_angles(27) = theta_27;
+    
+    % left shoulder ab-adduction
+    R_27 = expAxis(left_shoulder_direction_matrix(:, 1), joint_angles(27));
+    R_world_to_28 = left_shoulder_direction_matrix_inverse * R_27^(-1) * lumbar_joint_rotation^(-1) * pelvis_joint_rotation^(-1);
+    left_shoulder_cor_to_left_elbow_cor_current_28 = R_world_to_28 * left_shoulder_cor_to_left_elbow_cor_current_world;
+    theta_28 = atan2(-left_shoulder_cor_to_left_elbow_cor_current_28(1), -left_shoulder_cor_to_left_elbow_cor_current_28(3));
+    joint_angles(28) = theta_28;
+    
+    % left shoulder internal/external rotation - from elbow marker
+    left_elbow_cor_to_LELB_current_world = LELB_current - left_elbow_cor_current;
+    R_28 = expAxis(left_shoulder_direction_matrix(:, 2), joint_angles(28));
+    R_world_to_29 = left_shoulder_direction_matrix_inverse * R_28^(-1) * R_27^(-1) * lumbar_joint_rotation^(-1) * pelvis_joint_rotation^(-1);
+    left_elbow_cor_to_LELB_current_29 = R_world_to_29 * left_elbow_cor_to_LELB_current_world;
+    angle_now = atan2(left_elbow_cor_to_LELB_current_29(2), -left_elbow_cor_to_LELB_current_29(1));
+    left_elbow_cor_to_LELB_reference_world = LELB_reference - left_elbow_cor_reference;
+    left_elbow_cor_to_LELB_reference_shoulder = left_shoulder_direction_matrix_inverse * left_elbow_cor_to_LELB_reference_world;
+    angle_reference = atan2(left_elbow_cor_to_LELB_reference_shoulder(2), -left_elbow_cor_to_LELB_reference_shoulder(1));
+    joint_angles(29) = angle_now - angle_reference;
+    
+    % left elbow flexion
+    left_elbow_cor_to_left_wrist_cor_current_world = left_wrist_cor_current - left_elbow_cor_current;
+    R_29 = expAxis(-left_shoulder_direction_matrix(:, 3), joint_angles(29));
+    left_shoulder_joint_rotation = R_27 * R_28 * R_29;
+    R_world_to_30 = left_elbow_direction_matrix_inverse * left_shoulder_joint_rotation^(-1) * lumbar_joint_rotation^(-1) * pelvis_joint_rotation^(-1);
+    left_elbow_cor_to_left_wrist_cor_current_30 = R_world_to_30 * left_elbow_cor_to_left_wrist_cor_current_world;
+    theta_30 = atan2(left_elbow_cor_to_left_wrist_cor_current_30(3), left_elbow_cor_to_left_wrist_cor_current_30(2));
+    joint_angles(30) = theta_30;
+    
+    % left elbow internal rotation - from wrist marker
+    left_wrist_cor_to_LWRB_current_world = LWRB_current - left_wrist_cor_current;
+    R_30 = expAxis(left_elbow_direction_matrix(:, 1), joint_angles(30));
+    R_world_to_31 = left_elbow_direction_matrix_inverse * R_30^(-1) * left_shoulder_joint_rotation^(-1) * lumbar_joint_rotation^(-1) * pelvis_joint_rotation^(-1);
+    left_wrist_cor_to_LWRB_current_31 = R_world_to_31 * left_wrist_cor_to_LWRB_current_world;
+    angle_now = atan2(-left_wrist_cor_to_LWRB_current_31(1), -left_wrist_cor_to_LWRB_current_31(3));
+    left_wrist_cor_to_LWRB_reference_world = LWRB_reference - left_wrist_cor_reference;
+    left_wrist_cor_to_LWRB_reference_elbow = left_elbow_direction_matrix_inverse * left_wrist_cor_to_LWRB_reference_world;
+    angle_reference = atan2(-left_wrist_cor_to_LWRB_reference_elbow(1), -left_wrist_cor_to_LWRB_reference_elbow(3));
+    theta_31 = angle_now - angle_reference;
+    joint_angles(31) = theta_31;
+    
+    % left wrist plantar-dorsiflexion
+    left_wrist_cor_to_left_toes_eef_current_world = left_toes_eef_current - left_wrist_cor_current;
+    R_31 = expAxis(left_elbow_direction_matrix(:, 2), joint_angles(31));
+    left_elbow_joint_rotation = R_30 * R_31;
+    R_world_to_32 = left_wrist_direction_matrix_inverse * left_elbow_joint_rotation^(-1) * left_shoulder_joint_rotation^(-1) * lumbar_joint_rotation^(-1) * pelvis_joint_rotation^(-1);
+    left_wrist_cor_to_left_toes_eef_current_32 = R_world_to_32 * left_wrist_cor_to_left_toes_eef_current_world;
+    theta_32 = atan2(left_wrist_cor_to_left_toes_eef_current_32(3), left_wrist_cor_to_left_toes_eef_current_32(2));
+%     joint_angles(32) = theta_32;
+   
+    % left wrist in-eversion - from toes markers
+    left_toes_eef_to_LTOEL_current_world = LTOEL_current - left_toes_eef_current;
+    R_32 = expAxis(left_wrist_direction_matrix(:, 1), joint_angles(32));
+    R_world_to_33 = left_wrist_direction_matrix_inverse * R_32^(-1) * left_elbow_joint_rotation^(-1) * left_shoulder_joint_rotation^(-1) * lumbar_joint_rotation^(-1) * pelvis_joint_rotation^(-1);
+    left_toes_eef_to_LTOEL_current_33 = R_world_to_33 * left_toes_eef_to_LTOEL_current_world;
+    angle_now = atan2(left_toes_eef_to_LTOEL_current_33(3), -left_toes_eef_to_LTOEL_current_33(1));
+    left_toes_eef_to_LTOEL_reference_world = LTOEL_reference - left_toes_eef_reference;
+    left_toes_eef_to_LTOEL_reference_wrist = left_wrist_direction_matrix_inverse * left_toes_eef_to_LTOEL_reference_world;
+    angle_reference = atan2(left_toes_eef_to_LTOEL_reference_wrist(3), -left_toes_eef_to_LTOEL_reference_wrist(1));
+    theta_33 = angle_now - angle_reference;
+%     joint_angles(33) = theta_33;
+    
+    
     
     
     

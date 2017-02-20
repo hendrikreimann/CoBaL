@@ -48,14 +48,13 @@ function transformations = calculateMcsToWcsTransformations_new(marker_positions
             elseif strcmp(this_segment_label, 'RUPPERARM')
                 this_segment_markers = {'RSHOULDERCOR', 'RELBOWCOR', 'RELB'};
             elseif strcmp(this_segment_label, 'LFOREARM')
-                this_segment_markers = {'LELB', 'LWRA', 'LWRB'};
+                this_segment_markers = {'LFRM', 'LWRA', 'LWRB'};
             elseif strcmp(this_segment_label, 'RFOREARM')
-                this_segment_markers = {'RELB', 'RWRA', 'RWRB'};
+                this_segment_markers = {'RFRM', 'RWRA', 'RWRB'};
             elseif strcmp(this_segment_label, 'LHAND')
                 this_segment_markers = {'LWRA', 'LWRB', 'LFIN'};
             elseif strcmp(this_segment_label, 'RHAND')
                 this_segment_markers = {'RWRA', 'RWRB', 'RFIN'};
-                
             elseif strcmp(this_segment_label, 'LTHIGH')
                 this_segment_markers = {'LTHI', 'LHIPCOR', 'LKNE'};
             elseif strcmp(this_segment_label, 'RTHIGH')
