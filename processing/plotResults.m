@@ -43,7 +43,7 @@ function plotResults(varargin)
     if exist(['..' filesep '..' filesep 'studySettings.txt'], 'file')
         study_settings_file = ['..' filesep '..' filesep 'studySettings.txt'];
     end
-    study_settings = loadSettingsFile(study_settings_file);
+    study_settings = SettingsCustodian(study_settings_file);
     
 
     %% determine subjects and data folders
@@ -54,7 +54,8 @@ function plotResults(varargin)
     number_of_episodes = length(episode_indices);
     
     %% collect data from all data folders
-    number_of_variables_to_plot = size(study_settings.variables_to_plot, 1);
+    variables_to_plot = study_settings.get('variables_to_plot');
+    number_of_variables_to_plot = size(variables_to_plot, 1);
     condition_stance_foot_list_all = {};
     condition_perturbation_list_all = {};
     condition_delay_list_all = {};
@@ -66,7 +67,8 @@ function plotResults(varargin)
     origin_start_time_list_all = [];
     origin_end_time_list_all = [];
     variable_data_all = cell(number_of_variables_to_plot, 1);
-
+    step_time_data = [];
+    
     for i_folder = 1 : length(data_folder_list)
         % load data
         data_path = data_folder_list{i_folder};
@@ -86,12 +88,17 @@ function plotResults(varargin)
         origin_end_time_list_all = [origin_end_time_list_all; origin_end_time_list_subject]; %#ok<AGROW>
         for i_variable = 1 : number_of_variables_to_plot
             % load and extract data
-            this_variable_name = study_settings.variables_to_plot{i_variable, 1};
+            this_variable_name = variables_to_plot{i_variable, 1};
             index_in_saved_data = find(strcmp(variable_names_subject, this_variable_name), 1, 'first');
             this_variable_data = variable_data_subject{index_in_saved_data}; %#ok<USENS>
             
             % store
             variable_data_all{i_variable} = [variable_data_all{i_variable} this_variable_data];
+        end
+        if strcmp(study_settings.get('time_plot_style'), 'scaled_to_comparison_mean') || strcmp(study_settings.get('time_plot_style'), 'scaled_to_condition_mean')
+            index_in_saved_data = find(strcmp(variable_names_subject, 'step_time'), 1, 'first');
+            this_step_time_data = variable_data_subject{index_in_saved_data};
+            step_time_data = [step_time_data this_step_time_data];
         end
     end
     
@@ -99,7 +106,12 @@ function plotResults(varargin)
     comparison_variable_to_axes_index_map = zeros(number_of_comparisons, 1);
     abscissae_cell = cell(number_of_comparisons, number_of_variables_to_plot);
     
-    if strcmp(study_settings.plot_mode, 'detailed') || strcmp(study_settings.plot_mode, 'overview')
+    plot_mode = study_settings.get('plot_mode');
+    variables_to_plot = study_settings.get('variables_to_plot');
+    conditions_to_plot = study_settings.get('conditions_to_plot');    
+    conditions_control = study_settings.get('conditions_control');
+    
+    if strcmp(plot_mode, 'detailed') || strcmp(plot_mode, 'overview')
         % make one figure per comparison and variable
         axes_handles = zeros(number_of_comparisons, number_of_variables_to_plot);
         for i_variable = 1 : number_of_variables_to_plot
@@ -110,39 +122,68 @@ function plotResults(varargin)
                 % store handles and determine abscissa data
                 axes_handles(i_comparison, i_variable) = new_axes;
                 comparison_variable_to_axes_index_map(i_comparison) = i_comparison;
+                    
                 if isDiscreteVariable(i_variable, variable_data_all)
                     % abscissae gives the bin edges here
                     if dictate_axes
-                        lower_bound = str2double(study_settings.variables_to_plot{i_variable, 5});
-                        upper_bound = str2double(study_settings.variables_to_plot{i_variable, 6});
+                        lower_bound = str2double(variables_to_plot{i_variable, 5});
+                        upper_bound = str2double(variables_to_plot{i_variable, 6});
                     else
                         lower_bound = min(variable_data_all{i_variable});
                         upper_bound = max(variable_data_all{i_variable});
                     end
-                    if strcmp(study_settings.plot_mode, 'detailed')
-                        abscissae_cell{i_comparison, i_variable} = linspace(lower_bound, upper_bound, study_settings.number_of_bins_in_histogram);
+                    if strcmp(plot_mode, 'detailed')
+                        abscissae_cell{i_comparison, i_variable}(i_condition, :) = linspace(lower_bound, upper_bound, study_settings.get('number_of_bins_in_histogram'));
                     end
-                    if strcmp(study_settings.plot_mode, 'overview')
+                    if strcmp(plot_mode, 'overview')
                         this_comparison = comparison_indices{i_comparison};
                         abscissae_control = 0;
                         abscissae_stimulus = 1 : length(this_comparison);
                         abscissae = {abscissae_control, abscissae_stimulus};
-                        abscissae_cell{i_comparison, i_variable} = abscissae;
+                        abscissae_cell{i_comparison, i_variable}(i_condition, :) = abscissae;
                     end
                 end
                 if isContinuousVariable(i_variable, variable_data_all)
-                    abscissae_cell{i_comparison, i_variable} = 1 : 100;
-                    abscissae_cell{i_comparison, i_variable} = linspace(0, 100, study_settings.number_of_time_steps_normalized);
+                    abscissa_unscaled = linspace(0, 100, study_settings.get('number_of_time_steps_normalized'));
+
+                    % scale abscissae
+                    conditions_this_comparison = comparison_indices{i_comparison};
+                    step_time_means_this_comparison = zeros(size(conditions_this_comparison));
+                    for i_condition = 1 : length(conditions_this_comparison)
+                        % find correct condition indicator
+                        condition_identifier = conditions_to_plot(conditions_this_comparison(i_condition), :);
+                        stance_foot_indicator = strcmp(condition_stance_foot_list_all, condition_identifier{1});
+                        perturbation_indicator = strcmp(condition_perturbation_list_all, condition_identifier{2});
+                        delay_indicator = strcmp(condition_delay_list_all, condition_identifier{3});
+                        index_indicator = strcmp(condition_index_list_all, condition_identifier{4});
+                        experimental_indicator = strcmp(condition_experimental_list_all, condition_identifier{5});
+                        stimulus_indicator = strcmp(condition_stimulus_list_all, condition_identifier{6});
+                        day_indicator = strcmp(condition_day_list_all, condition_identifier{7});
+                        this_condition_indicator = stance_foot_indicator & perturbation_indicator & delay_indicator & index_indicator & experimental_indicator & stimulus_indicator & day_indicator;
+                        step_time_data_this_condition = step_time_data(:, this_condition_indicator);
+                        step_time_means_this_comparison(i_condition) = mean(step_time_data_this_condition);
+                    end
+                    for i_condition = 1 : length(conditions_this_comparison)
+                        if strcmp(study_settings.get('time_plot_style'), 'scaled_to_comparison_mean')
+                            abscissa_scaled = abscissa_unscaled * mean(step_time_means_this_comparison) / 100;
+                            abscissae_cell{i_comparison, i_variable}(i_condition, :) = abscissa_scaled;
+                        elseif strcmp(study_settings.get('time_plot_style'), 'scaled_to_condition_mean')
+                            abscissa_scaled = abscissa_unscaled * step_time_means_this_comparison(i_condition) / 100;
+                            abscissae_cell{i_comparison, i_variable}(i_condition, :) = abscissa_scaled;
+                        else
+                            abscissae_cell{i_comparison, i_variable}(i_condition, :) = abscissa_unscaled;
+                        end
+                    end                    
                 end
                 
                 % set axes properties
                 if dictate_axes
     %                 set(gca, 'xlim', [time_normalized(1), time_normalized(end)]);
-                    set(gca, 'ylim', [str2double(study_settings.variables_to_plot{i_variable, 5}), str2double(study_settings.variables_to_plot{i_variable, 6})]);
+                    set(gca, 'ylim', [str2double(variables_to_plot{i_variable, 5}), str2double(variables_to_plot{i_variable, 6})]);
                 end
-                if isDiscreteVariable(i_variable, variable_data_all) && strcmp(study_settings.plot_mode, 'overview')
+                if isDiscreteVariable(i_variable, variable_data_all) && strcmp(plot_mode, 'overview')
                     xtick = abscissae_cell{i_comparison, i_variable}{2};
-                    if ~isempty(study_settings.conditions_control)
+                    if ~isempty(conditions_control)
                         xtick = [abscissae_cell{i_comparison, i_variable}{1} xtick]; %#ok<AGROW>
                     end
 %                     set(gca, 'xlim', [-0.5 length(comparison_indices{i_comparison})+0.5]);
@@ -152,10 +193,10 @@ function plotResults(varargin)
                 end
 
                 % determine title
-                title_string = study_settings.variables_to_plot{i_variable, 2};
-                for i_label = 1 : length(study_settings.condition_labels);
-                    if i_label ~= study_settings.comparison_to_make
-                        title_string = [title_string ' - ' strrep(study_settings.conditions_to_plot{comparison_indices{i_comparison}(1), i_label}, '_', ' ')]; %#ok<AGROW>
+                title_string = variables_to_plot{i_variable, 2};
+                for i_label = 1 : length(study_settings.get('condition_labels'));
+                    if i_label ~= study_settings.get('comparison_to_make')
+                        title_string = [title_string ' - ' strrep(conditions_to_plot{comparison_indices{i_comparison}(1), i_label}, '_', ' ')]; %#ok<AGROW>
                     end
                 end
                 title(title_string); set(gca, 'Fontsize', 12)
@@ -164,7 +205,8 @@ function plotResults(varargin)
             end
         end
     end
-    if strcmp(study_settings.plot_mode, 'episodes')
+    if strcmp(plot_mode, 'episodes')
+        abscissae_cell_unscaled = cell(size(abscissae_cell));
         % make one figure per episode and variable
         figure_handles = zeros(number_of_episodes, number_of_variables_to_plot);
         axes_handles = zeros(number_of_episodes, number_of_variables_to_plot);
@@ -183,9 +225,9 @@ function plotResults(varargin)
                     
                     % determine which step this is
                     this_comparison = this_episode(i_comparison);
-                    conditions_in_this_comparison = comparison_indices{this_comparison};
-                    example_condition = conditions_in_this_comparison(1);
-                    condition_identifier = study_settings.conditions_to_plot(example_condition, :);
+                    conditions_this_comparison = comparison_indices{this_comparison};
+                    example_condition = conditions_this_comparison(1);
+                    condition_identifier = conditions_to_plot(example_condition, :);
                     gap_between_steps = 1;
                     if strcmp(condition_identifier{4}, 'ONE')
                         step_index = 1;
@@ -203,20 +245,21 @@ function plotResults(varargin)
                         abscissae = {abscissae_control, abscissae_stimulus};
                         abscissae_cell{this_episode(i_comparison), i_variable} = abscissae;
                         
-                        if ~isempty(study_settings.conditions_control)
+                        if ~isempty(conditions_control)
                             xtick = [xtick abscissae{1}];
                         end
                         xtick = [xtick abscissae{2}];
                     end
                     if isContinuousVariable(i_variable, variable_data_all)
-                        abscissae_cell{this_episode(i_comparison), i_variable} = (linspace(0, 100, study_settings.number_of_time_steps_normalized)) + (step_index-1)*100;
+%                         abscissae_cell{this_episode(i_comparison), i_variable} = (linspace(0, 100, study_settings.get('number_of_time_steps_normalized'))) + (step_index-1)*100;
+                        abscissae_cell_unscaled{this_episode(i_comparison), i_variable} = (linspace(0, 100, study_settings.get('number_of_time_steps_normalized')));
                     end
                 end
                 
                 % set axes properties
                 if dictate_axes
     %                 set(gca, 'xlim', [time_normalized(1), time_normalized(end)]);
-                    set(gca, 'ylim', [str2double(study_settings.variables_to_plot{i_variable, 5}), str2double(study_settings.variables_to_plot{i_variable, 6})]);
+                    set(gca, 'ylim', [str2double(variables_to_plot{i_variable, 5}), str2double(variables_to_plot{i_variable, 6})]);
                 end
                 if isDiscreteVariable(i_variable, variable_data_all)
                     set(gca, 'xlim', [-0.5 + min(xtick) 0.5 + max(xtick(end))]);
@@ -225,11 +268,11 @@ function plotResults(varargin)
                 end
 
                 % determine title and filename
-                title_string = study_settings.variables_to_plot{i_variable, 2};
-                filename_string = study_settings.variables_to_plot{i_variable, 4};
-                for i_label = 1 : length(study_settings.condition_labels);
-                    if (i_label ~= study_settings.comparison_to_make) && (i_label ~= 1) && (i_label ~= 4) && (i_label ~= 6)
-                        this_condition_label = strrep(study_settings.conditions_to_plot{comparison_indices{i_comparison}(1), i_label}, '_', ' ');
+                title_string = variables_to_plot{i_variable, 2};
+                filename_string = variables_to_plot{i_variable, 4};
+                for i_label = 1 : length(study_settings.get('condition_labels'));
+                    if (i_label ~= study_settings.get('comparison_to_make')) && (i_label ~= 1) && (i_label ~= 4) && (i_label ~= 6)
+                        this_condition_label = strrep(conditions_to_plot{comparison_indices{i_comparison}(1), i_label}, '_', ' ');
                         if ~strcmp(this_condition_label, 'N/A')
                             title_string = [title_string ' - ' this_condition_label]; %#ok<AGROW>
                             filename_string = [filename_string '_' this_condition_label];
@@ -243,26 +286,163 @@ function plotResults(varargin)
             end
         end
         
+        % calculate average step times and scale abscissa
+        for i_variable = 1 : number_of_variables_to_plot
+            for i_episode = 1 : number_of_episodes
+                this_episode = episode_indices{i_episode};
+                for i_comparison = 1 : length(this_episode)
+                    
+                    % determine which step this is
+                    this_comparison = this_episode(i_comparison);
+                    conditions_this_comparison = comparison_indices{this_comparison};
+                    step_time_means_this_comparison = zeros(size(conditions_this_comparison));
+                    for i_condition = 1 : length(conditions_this_comparison)
+                        % find correct condition indicator
+                        condition_identifier = conditions_to_plot(conditions_this_comparison(i_condition), :);
+                        stance_foot_indicator = strcmp(condition_stance_foot_list_all, condition_identifier{1});
+                        perturbation_indicator = strcmp(condition_perturbation_list_all, condition_identifier{2});
+                        delay_indicator = strcmp(condition_delay_list_all, condition_identifier{3});
+                        index_indicator = strcmp(condition_index_list_all, condition_identifier{4});
+                        experimental_indicator = strcmp(condition_experimental_list_all, condition_identifier{5});
+                        stimulus_indicator = strcmp(condition_stimulus_list_all, condition_identifier{6});
+                        day_indicator = strcmp(condition_day_list_all, condition_identifier{7});
+                        this_condition_indicator = stance_foot_indicator & perturbation_indicator & delay_indicator & index_indicator & experimental_indicator & stimulus_indicator & day_indicator;
+                        step_time_data_this_condition = step_time_data(:, this_condition_indicator);
+                        
+                        % calculate average step time
+                        step_time_means_this_comparison(i_condition) = mean(step_time_data_this_condition);
+                    end
+                    
+                    % scale abscissa
+                    abscissa_unscaled = abscissae_cell_unscaled{this_episode(i_comparison), i_variable};
+                    for i_condition = 1 : length(conditions_this_comparison)
+                        if strcmp(study_settings.get('time_plot_style'), 'scaled_to_comparison_mean')
+                            abscissa_scaled = abscissa_unscaled * mean(step_time_means_this_comparison) / 100;
+                            abscissae_cell{i_comparison, i_variable}(i_condition, :) = abscissa_scaled;
+                        elseif strcmp(study_settings.get('time_plot_style'), 'scaled_to_condition_mean')
+                            abscissa_scaled = abscissa_unscaled * step_time_means_this_comparison(i_condition) / 100;
+                            abscissae_cell{i_comparison, i_variable}(i_condition, :) = abscissa_scaled;
+                        else
+                            abscissae_cell{i_comparison, i_variable}(i_condition, :) = abscissa_unscaled;
+                        end
+                    end                    
+                    
+                end
+            end
+        end
+        
+        % determine abscissa offsets
+        for i_step = 2 : 4
+            for i_variable = 1 : number_of_variables_to_plot
+                for i_episode = 1 : number_of_episodes
+                    this_episode = episode_indices{i_episode};
+                    for i_comparison = 1 : length(this_episode)
+
+                        % determine which step this is
+                        this_comparison = this_episode(i_comparison);
+                        conditions_this_comparison = comparison_indices{this_comparison};
+                        for i_condition = 1 : length(conditions_this_comparison)
+                            % determine step index
+                            condition_identifier = conditions_to_plot(conditions_this_comparison(i_condition), :);
+                            if strcmp(condition_identifier{4}, 'ONE')
+                                step_index = 1;
+                            elseif strcmp(condition_identifier{4}, 'TWO')
+                                step_index = 2;
+                                previous_step_label = 'ONE';
+                            elseif strcmp(condition_identifier{4}, 'THREE')
+                                step_index = 3;
+                                previous_step_label = 'TWO';
+                            elseif strcmp(condition_identifier{4}, 'FOUR')
+                                step_index = 4;
+                                previous_step_label = 'THREE';
+                            end
+                            
+                            if step_index == i_step
+                                % find condition index for previous step in same condition
+                                previous_step_condition_index = [];
+                                previous_step_comparison_index = [];
+                                for j_comparison = 1 : length(this_episode)
+                                    candidate_comparison = this_episode(j_comparison);
+                                    conditions_candidate_comparison = comparison_indices{candidate_comparison};
+                                
+                                    for j_condition = 1 : length(conditions_candidate_comparison)
+                                        candidate_condition_identifier = conditions_to_plot(conditions_candidate_comparison(j_condition), :);
+
+
+                                        if strcmp(condition_identifier{2}, candidate_condition_identifier{2}) ...
+                                        && strcmp(condition_identifier{3}, candidate_condition_identifier{3}) ...
+                                        && strcmp(previous_step_label, candidate_condition_identifier{4}) ...
+                                        && strcmp(condition_identifier{5}, candidate_condition_identifier{5}) ...
+                                        && strcmp(condition_identifier{6}, candidate_condition_identifier{6}) ...
+                                        && strcmp(condition_identifier{7}, candidate_condition_identifier{7})
+                                            previous_step_comparison_index = j_comparison;
+                                            previous_step_condition_index = j_condition;
+                                        end
+                                    end
+                                end
+                                
+                                % find out where abscissa for previous step ends
+                                previous_step_last_data_point = abscissae_cell{previous_step_comparison_index, i_variable}(previous_step_condition_index, end);
+                                abscissae_cell{i_comparison, i_variable}(i_condition, :) = abscissae_cell{i_comparison, i_variable}(i_condition, :) + previous_step_last_data_point;
+                                
+                                
+                            end
+                            
+                        end
+                    end
+                end
+            end
+        end
+                    
+        
+%                 conditions_this_comparison = comparison_indices{i_comparison};
+%                 step_time_means_this_comparison = zeros(size(conditions_this_comparison));
+%                 for i_condition = 1 : length(conditions_this_comparison)
+%                     % find correct condition indicator
+%                     condition_identifier = conditions_to_plot(conditions_this_comparison(i_condition), :);
+%                     stance_foot_indicator = strcmp(condition_stance_foot_list_all, condition_identifier{1});
+%                     perturbation_indicator = strcmp(condition_perturbation_list_all, condition_identifier{2});
+%                     delay_indicator = strcmp(condition_delay_list_all, condition_identifier{3});
+%                     index_indicator = strcmp(condition_index_list_all, condition_identifier{4});
+%                     experimental_indicator = strcmp(condition_experimental_list_all, condition_identifier{5});
+%                     stimulus_indicator = strcmp(condition_stimulus_list_all, condition_identifier{6});
+%                     day_indicator = strcmp(condition_day_list_all, condition_identifier{7});
+%                     this_condition_indicator = stance_foot_indicator & perturbation_indicator & delay_indicator & index_indicator & experimental_indicator & stimulus_indicator & day_indicator;
+%                     step_time_data_this_condition = step_time_data(:, this_condition_indicator);
+%                     step_time_means_this_comparison(i_condition) = mean(step_time_data_this_condition);
+%                 end
+%                 for i_condition = 1 : length(conditions_this_comparison)
+%                     if strcmp(study_settings.get('time_plot_style'), 'scaled_to_comparison_mean')
+%                         abscissa_scaled = abscissa_unscaled * mean(step_time_means_this_comparison) / 100;
+%                         abscissae_cell{i_comparison, i_variable}(i_condition, :) = abscissa_scaled;
+%                     elseif strcmp(study_settings.get('time_plot_style'), 'scaled_to_condition_mean')
+%                         abscissa_scaled = abscissa_unscaled * step_time_means_this_comparison(i_condition) / 100;
+%                         abscissae_cell{i_comparison, i_variable}(i_condition, :) = abscissa_scaled;
+%                     else
+%                         abscissae_cell{i_comparison, i_variable}(i_condition, :) = abscissa_unscaled;
+%                     end
+%                 end                    
+        
         
     end
     
     %% plot data
     for i_variable = 1 : number_of_variables_to_plot
         data_to_plot = variable_data_all{i_variable, 1};
+        colors_comparison = study_settings.get('colors_comparison');
         for i_comparison = 1 : length(comparison_indices);
             % find correct condition indicator for control
             conditions_this_comparison = comparison_indices{i_comparison};
             top_level_plots = [];
             target_axes_handle = axes_handles(comparison_variable_to_axes_index_map(i_comparison), i_variable);
-            target_abscissa = abscissae_cell{i_comparison, i_variable};
             
             % plot control
-            if ~isempty(study_settings.conditions_control)
+            if ~isempty(conditions_control)
                 % determine which control condition applies here
                 representant_condition_index = conditions_this_comparison(1);
-                this_condition_stance_foot = study_settings.conditions_to_plot(representant_condition_index, 1);
-                applicable_control_condition_index = find(strcmp(study_settings.conditions_control, this_condition_stance_foot), 1, 'first');
-                applicable_control_condition_labels = study_settings.conditions_control(applicable_control_condition_index, :);
+                this_condition_stance_foot = conditions_to_plot(representant_condition_index, 1);
+                applicable_control_condition_index = find(strcmp(conditions_control, this_condition_stance_foot), 1, 'first');
+                applicable_control_condition_labels = conditions_control(applicable_control_condition_index, :);
                 % NOTE: so far the applicable control conditions is determined only by stance foot. A general solution 
                 % is not needed at this time, but can be added later if desired
                 
@@ -279,7 +459,7 @@ function plotResults(varargin)
                 
                 if ~isempty(data_to_plot_this_condition)
                     if isDiscreteVariable(i_variable, variable_data_all)
-                        if strcmp(study_settings.plot_mode, 'detailed')
+                        if strcmp(plot_mode, 'detailed')
                             histogram ...
                               ( ...
                                 target_axes_handle, ...
@@ -290,12 +470,12 @@ function plotResults(varargin)
                                 'DisplayName', 'CONTROL' ...
                               );
                         end
-                        if strcmp(study_settings.plot_mode, 'overview') || strcmp(study_settings.plot_mode, 'episodes')
+                        if strcmp(plot_mode, 'overview') || strcmp(plot_mode, 'episodes')
                             singleBoxPlot(target_axes_handle, target_abscissa{1}, data_to_plot_this_condition, study_settings.color_control, 'CONTROL', false)
                         end
                     end
                     if isContinuousVariable(i_variable, variable_data_all)
-                        if strcmp(study_settings.plot_mode, 'detailed')
+                        if strcmp(plot_mode, 'detailed')
                             % individual trajectories
                             plot ...
                               ( ...
@@ -317,7 +497,7 @@ function plotResults(varargin)
                               );
                             top_level_plots = [top_level_plots control_mean_plot]; %#ok<AGROW>
                         end
-                        if strcmp(study_settings.plot_mode, 'overview') || strcmp(study_settings.plot_mode, 'episodes')
+                        if strcmp(plot_mode, 'overview') || strcmp(plot_mode, 'episodes')
                             plot_handles = shadedErrorBar ...
                               ( ...
                                 target_abscissa, ...
@@ -342,10 +522,12 @@ function plotResults(varargin)
             
             % plot stimulus
             for i_condition = 1 : length(conditions_this_comparison)
-                label_string = strrep(study_settings.conditions_to_plot{comparison_indices{i_comparison}(i_condition), study_settings.comparison_to_make}, '_', ' ');
+                target_abscissa = abscissae_cell{i_comparison, i_variable}(i_condition, :);
+%                 target_abscissa = abscissae_cell{i_comparison, i_variable};
+                label_string = strrep(conditions_to_plot{comparison_indices{i_comparison}(i_condition), study_settings.get('comparison_to_make')}, '_', ' ');
                 
                 % find correct condition indicator
-                condition_identifier = study_settings.conditions_to_plot(conditions_this_comparison(i_condition), :);
+                condition_identifier = conditions_to_plot(conditions_this_comparison(i_condition), :);
                 stance_foot_indicator = strcmp(condition_stance_foot_list_all, condition_identifier{1});
                 perturbation_indicator = strcmp(condition_perturbation_list_all, condition_identifier{2});
                 delay_indicator = strcmp(condition_delay_list_all, condition_identifier{3});
@@ -357,25 +539,25 @@ function plotResults(varargin)
                 data_to_plot_this_condition = data_to_plot(:, this_condition_indicator);
                 origin_trial_list_this_condition = origin_trial_list_all(this_condition_indicator);
                 if isDiscreteVariable(i_variable, variable_data_all)
-                    if strcmp(study_settings.plot_mode, 'detailed')
+                    if strcmp(plot_mode, 'detailed')
                         histogram ...
                           ( ...
                             target_axes_handle, ...
                             data_to_plot_this_condition, ...
                             target_abscissa, ...
-                            'edgecolor', study_settings.colors_comparison(i_condition, :), ...
-                            'facecolor', lightenColor(study_settings.colors_comparison(i_condition, :), 0.5), ...
+                            'edgecolor', colors_comparison(i_condition, :), ...
+                            'facecolor', lightenColor(colors_comparison(i_condition, :), 0.5), ...
                             'DisplayName', label_string ...
                           );
                     end
-                    if strcmp(study_settings.plot_mode, 'overview') || strcmp(study_settings.plot_mode, 'episodes')
+                    if strcmp(plot_mode, 'overview') || strcmp(plot_mode, 'episodes')
                         if ~any(isnan(data_to_plot_this_condition))
-                            singleBoxPlot(target_axes_handle, target_abscissa{2}(i_condition), data_to_plot_this_condition, study_settings.colors_comparison(i_condition, :), label_string, false)
+                            singleBoxPlot(target_axes_handle, target_abscissa{2}(i_condition), data_to_plot_this_condition, colors_comparison(i_condition, :), label_string, false)
                         end
                     end
                 end
                 if isContinuousVariable(i_variable, variable_data_all)
-                    if strcmp(study_settings.plot_mode, 'detailed')
+                    if strcmp(plot_mode, 'detailed')
                         for i_stretch = 1 : size(data_to_plot_this_condition, 2)
                             origin_trial_data = ones(size(target_abscissa)) * origin_trial_list_this_condition(i_stretch);
                             plot3 ...
@@ -385,18 +567,18 @@ function plotResults(varargin)
                                 data_to_plot_this_condition(:, i_stretch), ...
                                 origin_trial_data, ...
                                 'HandleVisibility', 'off', ...
-                                'color', lightenColor(study_settings.colors_comparison(i_condition, :), 0.5) ...
+                                'color', lightenColor(colors_comparison(i_condition, :), 0.5) ...
                               );
                         end
                     end
-                    if strcmp(study_settings.plot_mode, 'overview') || strcmp(study_settings.plot_mode, 'episodes')
+                    if strcmp(plot_mode, 'overview') || strcmp(plot_mode, 'episodes')
                         plot_handles = shadedErrorBar ...
                           ( ...
                             target_abscissa, ...
                             mean(data_to_plot_this_condition, 2), ...
                             cinv(data_to_plot_this_condition, 2), ...
                             { ...
-                              'color', study_settings.colors_comparison(i_condition, :), ...
+                              'color', colors_comparison(i_condition, :), ...
                               'linewidth', 6 ...
                             }, ...
                             1, ...
@@ -419,7 +601,7 @@ function plotResults(varargin)
             end
             
             % toggle legend
-            if show_legend && ~(isDiscreteVariable(i_variable, variable_data_all) && (strcmp(study_settings.plot_mode, 'overview') || strcmp(study_settings.plot_mode, 'episodes')))
+            if show_legend && ~(isDiscreteVariable(i_variable, variable_data_all) && (strcmp(plot_mode, 'overview') || strcmp(plot_mode, 'episodes')))
                 legend(target_axes_handle, 'show')
             end
         end
@@ -578,7 +760,8 @@ end
 
 function [comparison_indices, conditions_per_comparison_max] = determineComparisons(study_settings)
     % initialize
-    number_of_conditions_to_plot = size(study_settings.conditions_to_plot, 1);
+    conditions_to_plot = study_settings.get('conditions_to_plot');
+    number_of_conditions_to_plot = size(conditions_to_plot, 1);
     comparison_indices = {};
     conditions_already_compared = [];
     conditions_per_comparison_max = 0;
@@ -596,14 +779,14 @@ function [comparison_indices, conditions_per_comparison_max] = determineComparis
         for j_condition = 1 : number_of_conditions_to_plot
             if i_condition ~= j_condition
                 % check which conditions labels agree between these two conditions
-                comparison_table = zeros(1, length(study_settings.condition_labels)); % this is a table indicating equality between the two conditions in questions
-                for i_label = 1 : length(study_settings.condition_labels)
-                    comparison_table(i_label) = strcmp(study_settings.conditions_to_plot{i_condition, i_label}, study_settings.conditions_to_plot{j_condition, i_label});
+                comparison_table = zeros(1, length(study_settings.get('condition_labels'))); % this is a table indicating equality between the two conditions in questions
+                for i_label = 1 : length(study_settings.get('condition_labels'))
+                    comparison_table(i_label) = strcmp(conditions_to_plot{i_condition, i_label}, conditions_to_plot{j_condition, i_label});
                 end
 
                 % look at the relevant entries of the comparison table
                 comparison_table_relevant = comparison_table;
-                comparison_table_relevant(study_settings.comparison_to_make) = [];
+                comparison_table_relevant(study_settings.get('comparison_to_make')) = [];
                 if all(comparison_table_relevant)
                     this_comparison = [this_comparison, j_condition]; %#ok<AGROW>
                 end
@@ -616,15 +799,16 @@ function [comparison_indices, conditions_per_comparison_max] = determineComparis
             conditions_per_comparison_max = length(this_comparison);
         end
     end    
-    if ~isempty(study_settings.conditions_control)
+    if ~isempty(study_settings.get('conditions_control'))
         conditions_per_comparison_max = conditions_per_comparison_max + 1;
     end
 end
 
 function episode_indices = determineEpisodes(study_settings, comparison_indices)
-    condition_column_index = find(strcmp(study_settings.condition_labels, 'index'));
-    condition_column_stancefoot = find(strcmp(study_settings.condition_labels, 'stance foot'));
-%     episode_first_stretch_indices = find(strcmp(study_settings.conditions_to_plot(:, 4), 'ONE'));
+    conditions_to_plot = study_settings.get('conditions_to_plot');
+    condition_column_index = find(strcmp(study_settings.get('condition_labels'), 'index'));
+    condition_column_stancefoot = find(strcmp(study_settings.get('condition_labels'), 'stance foot'));
+%     episode_first_stretch_indices = find(strcmp(study_settings.get('conditions_to_plot(:, 4), 'ONE'));
     episode_indices = {};
     comparisons_already_used = [];
     number_of_comparisons = length(comparison_indices);
@@ -639,21 +823,21 @@ function episode_indices = determineEpisodes(study_settings, comparison_indices)
         % search for comparisons that differ from this one in only the step number
         base_comparison = comparison_indices{i_comparison};
         example_condition_in_base_comparison = base_comparison(1);
-        example_condition_in_base_comparison_labels = study_settings.conditions_to_plot(example_condition_in_base_comparison, :);
+        example_condition_in_base_comparison_labels = conditions_to_plot(example_condition_in_base_comparison, :);
         for j_comparison = 1 : number_of_comparisons
             if i_comparison ~= j_comparison
                 this_comparison = comparison_indices{j_comparison};
                 example_condition_in_this_comparison = this_comparison(1);
-                example_condition_in_this_comparison_labels = study_settings.conditions_to_plot(example_condition_in_this_comparison, :);
+                example_condition_in_this_comparison_labels = conditions_to_plot(example_condition_in_this_comparison, :);
                 % check which conditions labels agree between these two conditions
-                comparison_table = zeros(1, length(study_settings.condition_labels)); % this is a table indicating equality between the two conditions in questions
-                for i_label = 1 : length(study_settings.condition_labels)
+                comparison_table = zeros(1, length(study_settings.get('condition_labels'))); % this is a table indicating equality between the two conditions in questions
+                for i_label = 1 : length(study_settings.get('condition_labels'))
                     comparison_table(i_label) = strcmp(example_condition_in_base_comparison_labels{i_label}, example_condition_in_this_comparison_labels{i_label});
                 end
 
                 % look at the relevant entries of the comparison table
                 comparison_table_relevant = comparison_table;
-                comparison_table_relevant([condition_column_stancefoot condition_column_index study_settings.comparison_to_make]) = [];
+                comparison_table_relevant([condition_column_stancefoot condition_column_index study_settings.get('comparison_to_make')]) = [];
                 if all(comparison_table_relevant)
                     % check if the stance foot is alternating
                     if strcmp(example_condition_in_base_comparison_labels(condition_column_stancefoot), 'STANCE_RIGHT')
