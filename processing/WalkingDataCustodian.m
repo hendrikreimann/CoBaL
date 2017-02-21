@@ -200,6 +200,24 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('cop_ap')
                 this.addStretchVariable('cop_ap')
             end
+            if this.isVariableToAnalyze('body_com_to_cop_x')
+                this.addBasicVariable('total_forceplate_cop_world')
+                this.addBasicVariable('cop_ml')
+                this.addStretchVariable('cop_ml')
+                this.addBasicVariable('com_trajectories')
+                this.addBasicVariable('body_com_x')
+                this.addStretchVariable('body_com_x')
+                this.addStretchVariable('body_com_to_cop_x')
+            end
+            if this.isVariableToAnalyze('body_com_to_cop_y')
+                this.addBasicVariable('total_forceplate_cop_world')
+                this.addBasicVariable('cop_ap')
+                this.addStretchVariable('cop_ap')
+                this.addBasicVariable('com_trajectories')
+                this.addBasicVariable('body_com_y')
+                this.addStretchVariable('body_com_y')
+                this.addStretchVariable('body_com_to_cop_y')
+            end
             if this.isVariableToAnalyze('cop_ml')
                 this.addBasicVariable('total_forceplate_cop_world')
                 this.addBasicVariable('cop_ml')
@@ -703,18 +721,6 @@ classdef WalkingDataCustodian < handle
                         if strcmp(condition_stance_foot_list{i_stretch}, 'STANCE_BOTH')
                             stretch_data = NaN;
                         end
-                        
-                        
-                        
-                        
-%                         if abs(stretch_data - 0) < abs(abs(stretch_data) - pi)
-%                             % angle is closer to 0 than to +-pi, so normalize to +-pi
-%                             stretch_data = normalizeAngle(stretch_data, pi);
-%                         end
-%                         if abs(stretch_data - 0) >= abs(abs(stretch_data) - pi)
-%                             % angle is closer to +-pi than to 0, so normalize to 0
-%                             stretch_data = normalizeAngle(stretch_data, 0);
-%                         end
                     end
                     if strcmp(variable_name, 'right_arm_phase_at_heelstrike')
                         right_arm_phase = stretch_variables{strcmp(variables_to_calculate, 'right_arm_phase')}(:, i_stretch);
@@ -730,17 +736,19 @@ classdef WalkingDataCustodian < handle
                         if strcmp(condition_stance_foot_list{i_stretch}, 'STANCE_BOTH')
                             stretch_data = NaN;
                         end
-%                         if abs(stretch_data - 0) < abs(abs(stretch_data) - pi)
-%                             % angle is closer to 0 than to +-pi, so normalize to +-pi
-%                             stretch_data = normalizeAngle(stretch_data, pi);
-%                         end
-%                         if abs(stretch_data - 0) >= abs(abs(stretch_data) - pi)
-%                             % angle is closer to +-pi than to 0, so normalize to 0
-%                             stretch_data = normalizeAngle(stretch_data, 0);
-%                         end
                     end
                     
                     
+                    if strcmp(variable_name, 'body_com_to_cop_x')
+                        body_com_x = stretch_variables{strcmp(this.stretch_variable_names, 'body_com_x')}(:, i_stretch);
+                        cop_ml = stretch_variables{strcmp(this.stretch_variable_names, 'cop_ml')}(:, i_stretch);
+                        stretch_data = cop_ml - body_com_x;
+                    end
+                    if strcmp(variable_name, 'body_com_to_cop_y')
+                        body_com_y = stretch_variables{strcmp(this.stretch_variable_names, 'body_com_y')}(:, i_stretch);
+                        cop_ap = stretch_variables{strcmp(this.stretch_variable_names, 'cop_ap')}(:, i_stretch);
+                        stretch_data = cop_ap - body_com_y;
+                    end
                     
                     if strcmp(variable_name, 'left_glut_med_rescaled')
                         left_glut_med = this.getTimeNormalizedData('left_glut_med', this_stretch_start_time, this_stretch_end_time);
