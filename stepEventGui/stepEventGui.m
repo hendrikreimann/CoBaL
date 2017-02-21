@@ -41,7 +41,7 @@ function stepEventGui(varargin)
     if exist(['..' filesep '..' filesep 'studySettings.txt'], 'file')
         study_settings_file = ['..' filesep '..' filesep 'studySettings.txt'];
     end
-    study_settings = loadSettingsFile(study_settings_file);
+    study_settings = SettingsCustodian(study_settings_file);
     
     gui_settings_file = '';
     if exist(['..' filesep 'eventGuiSettings.txt'], 'file')
@@ -50,7 +50,7 @@ function stepEventGui(varargin)
     if exist(['..' filesep '..' filesep 'eventGuiSettings.txt'], 'file')
         gui_settings_file = ['..' filesep '..' filesep 'eventGuiSettings.txt'];
     end
-    gui_settings = loadSettingsFile(gui_settings_file);
+    gui_settings = SettingsCustodian(gui_settings_file);
     
     % init gui
     controller = stepEventController(trial_data, event_data);
@@ -58,9 +58,9 @@ function stepEventGui(varargin)
     % show stick figure
     scene_bound = ...
       [ ...
-        study_settings.scene_bound_x_min study_settings.scene_bound_x_max; ...
-        study_settings.scene_bound_y_min study_settings.scene_bound_y_max; ...
-        study_settings.scene_bound_z_min study_settings.scene_bound_z_max ...
+        study_settings.get('scene_bound_x_min') study_settings.get('scene_bound_x_max'); ...
+        study_settings.get('scene_bound_y_min') study_settings.get('scene_bound_y_max'); ...
+        study_settings.get('scene_bound_z_min') study_settings.get('scene_bound_z_max') ...
       ];
     positions = trial_data.marker_positions(1, :);
     headers = trial_data.marker_labels;
@@ -98,7 +98,7 @@ function stepEventGui(varargin)
         % create a figure with these settings
         new_figure = stepEventFigure(figure_list{i_figure, 2}, controller, trial_data, event_data);
         
-        plot_list = getfield(gui_settings, figure_list{i_figure, 1});
+        plot_list = gui_settings.get(figure_list{i_figure, 1});
         for i_plot = 1 : size(plot_list, 1)
             if strcmp(plot_list{i_plot, 1}, 'data')
                 variable_label = plot_list{i_plot, 2};
@@ -147,7 +147,7 @@ function stepEventGui(varargin)
 end
 
 function figures_list = getFiguresListFromSettings(settings)
-    field_names = fieldnames(settings);
+    field_names = settings.getAllSettingsNames;
     figures_list = {};
     for i_field = 1 : length(field_names)
         this_field_name = field_names{i_field};

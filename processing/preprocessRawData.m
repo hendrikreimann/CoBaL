@@ -52,8 +52,10 @@ function preprocessRawData(varargin)
     if exist(['..' filesep '..' filesep 'studySettings.txt'], 'file')
         study_settings_file = ['..' filesep '..' filesep 'studySettings.txt'];
     end
-    study_settings = loadSettingsFile(study_settings_file);
-    subject_settings = loadSettingsFile('subjectSettings.txt');
+%     study_settings = loadSettingsFile(study_settings_file);
+%     subject_settings = loadSettingsFile('subjectSettings.txt');
+    study_settings = SettingsCustodian(study_settings_file);
+    subject_settings = SettingsCustodian('subjectSettings.txt');
     
     %% emg
     data_dir = dir(['raw' filesep '*_emgTrajectoriesRaw.mat']);
@@ -104,7 +106,7 @@ function preprocessRawData(varargin)
 %                         emg_labels(i_label) = emg_sensor_map(2, match_column);
 %                     end
 %                 end
-                emg_labels = subject_settings.emg_labels;
+                emg_labels = subject_settings.get('emg_labels');
 
                 % save
                 save_folder = 'processed';
@@ -375,9 +377,9 @@ function preprocessRawData(varargin)
             if ismember(trial_number, trial_number_list_this_condition)
                 load(['raw' filesep raw_marker_file_name]);
                 
-                if study_settings.filter_marker_data
+                if study_settings.get('filter_marker_data')
                     filter_order = 4;
-                    cutoff_frequency = study_settings.marker_data_cutoff_frequency; % in Hz
+                    cutoff_frequency = study_settings.get('marker_data_cutoff_frequency'); % in Hz
                     [b_marker, a_marker] = butter(filter_order, cutoff_frequency/(sampling_rate_mocap/2));
                     marker_trajectories = nanfiltfilt(b_marker, a_marker, marker_trajectories_raw);
                 else
@@ -409,7 +411,7 @@ function preprocessRawData(varargin)
         for i_trial = trials_to_process
             % load data
             this_condition = condition_list{i_condition};
-            if any(strcmp(study_settings.conditions_to_transform_to_belt_space, this_condition))
+            if any(strcmp(study_settings.get('conditions_to_transform_to_belt_space'), this_condition))
                 % extract data for new structure
                 if exist(['processed' filesep makeFileName(date, subject_id, trial_type, i_trial, 'plcData')], 'file')
                     load(['processed' filesep makeFileName(date, subject_id, trial_type, i_trial, 'plcData')])

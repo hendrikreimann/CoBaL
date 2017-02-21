@@ -30,7 +30,7 @@ function analyzeData(varargin)
     if exist(['..' filesep '..' filesep 'studySettings.txt'], 'file')
         study_settings_file = ['..' filesep '..' filesep 'studySettings.txt'];
     end
-    study_settings = loadSettingsFile(study_settings_file);
+    study_settings = SettingsCustodian(study_settings_file);
     data_custodian = WalkingDataCustodian();
     number_of_stretch_variables = length(data_custodian.stretch_variable_names);
     
@@ -83,32 +83,34 @@ function analyzeData(varargin)
     number_of_stretches_subject = length(condition_stance_foot_list_subject);
     
     % extract indicators for control
-    number_of_conditions_control = size(study_settings.conditions_control, 1);
+    conditions_control = study_settings.get('conditions_control');
+    number_of_conditions_control = size(study_settings.get('conditions_control'), 1);
     conditions_control_indicators = false(number_of_stretches_subject, number_of_conditions_control);
     for i_condition = 1 : number_of_conditions_control
-        stance_foot_indicator = strcmp(condition_stance_foot_list_subject, study_settings.conditions_control(i_condition, 1));
-        perturbation_indicator = strcmp(condition_perturbation_list_subject, study_settings.conditions_control(i_condition, 2));
-        delay_indicator = strcmp(condition_delay_list_subject, study_settings.conditions_control(i_condition, 3));
-        index_indicator = strcmp(condition_index_list_subject, study_settings.conditions_control(i_condition, 4));
-        experimental_indicator = strcmp(condition_experimental_list_subject, study_settings.conditions_control(i_condition, 5));
-        stimulus_indicator = strcmp(condition_stimulus_list_subject, study_settings.conditions_control(i_condition, 6));
-        day_indicator = strcmp(condition_day_list_subject, study_settings.conditions_control(i_condition, 7));
+        stance_foot_indicator = strcmp(condition_stance_foot_list_subject, conditions_control(i_condition, 1));
+        perturbation_indicator = strcmp(condition_perturbation_list_subject, conditions_control(i_condition, 2));
+        delay_indicator = strcmp(condition_delay_list_subject, conditions_control(i_condition, 3));
+        index_indicator = strcmp(condition_index_list_subject, conditions_control(i_condition, 4));
+        experimental_indicator = strcmp(condition_experimental_list_subject, conditions_control(i_condition, 5));
+        stimulus_indicator = strcmp(condition_stimulus_list_subject, conditions_control(i_condition, 6));
+        day_indicator = strcmp(condition_day_list_subject, conditions_control(i_condition, 7));
 
         this_condition_indicator = stance_foot_indicator & perturbation_indicator & delay_indicator & index_indicator & experimental_indicator & stimulus_indicator & day_indicator;
         conditions_control_indicators(:, i_condition) = this_condition_indicator;
     end
     
     % extract indicators for conditions to analyze
-    number_of_conditions_to_analyze = size(study_settings.conditions_to_analyze, 1);
+    conditions_to_analyze = study_settings.get('conditions_to_analyze');
+    number_of_conditions_to_analyze = size(conditions_to_analyze, 1);
     conditions_to_analyze_indicators = false(number_of_stretches_subject, number_of_conditions_to_analyze);
     for i_condition = 1 : number_of_conditions_to_analyze
-        stance_foot_indicator = strcmp(condition_stance_foot_list_subject, study_settings.conditions_to_analyze(i_condition, 1));
-        perturbation_indicator = strcmp(condition_perturbation_list_subject, study_settings.conditions_to_analyze(i_condition, 2));
-        delay_indicator = strcmp(condition_delay_list_subject, study_settings.conditions_to_analyze(i_condition, 3));
-        index_indicator = strcmp(condition_index_list_subject, study_settings.conditions_to_analyze(i_condition, 4));
-        experimental_indicator = strcmp(condition_experimental_list_subject, study_settings.conditions_to_analyze(i_condition, 5));
-        stimulus_indicator = strcmp(condition_stimulus_list_subject, study_settings.conditions_to_analyze(i_condition, 6));
-        day_indicator = strcmp(condition_day_list_subject, study_settings.conditions_to_analyze(i_condition, 7));
+        stance_foot_indicator = strcmp(condition_stance_foot_list_subject, conditions_to_analyze(i_condition, 1));
+        perturbation_indicator = strcmp(condition_perturbation_list_subject, conditions_to_analyze(i_condition, 2));
+        delay_indicator = strcmp(condition_delay_list_subject, conditions_to_analyze(i_condition, 3));
+        index_indicator = strcmp(condition_index_list_subject, conditions_to_analyze(i_condition, 4));
+        experimental_indicator = strcmp(condition_experimental_list_subject, conditions_to_analyze(i_condition, 5));
+        stimulus_indicator = strcmp(condition_stimulus_list_subject, conditions_to_analyze(i_condition, 6));
+        day_indicator = strcmp(condition_day_list_subject, conditions_to_analyze(i_condition, 7));
 
         this_condition_indicator = stance_foot_indicator & perturbation_indicator & delay_indicator & index_indicator & experimental_indicator & stimulus_indicator & day_indicator;
         conditions_to_analyze_indicators(:, i_condition) = this_condition_indicator;
@@ -118,7 +120,7 @@ function analyzeData(varargin)
     assigned_stretch_indicator = sum([conditions_to_analyze_indicators conditions_control_indicators], 2);
     unassigned_stretch_indicator = ~assigned_stretch_indicator;
     unassigned_stretch_indices = find(unassigned_stretch_indicator);
-    unassigned_stretch_labels_all = cell(length(unassigned_stretch_indices), length(study_settings.condition_labels));
+    unassigned_stretch_labels_all = cell(length(unassigned_stretch_indices), length(study_settings.get('condition_labels')));
     for i_stretch = 1 : length(unassigned_stretch_indices)
         unassigned_stretch_labels_all(i_stretch, 1) = condition_stance_foot_list_subject(unassigned_stretch_indices(i_stretch));
         unassigned_stretch_labels_all(i_stretch, 2) = condition_perturbation_list_subject(unassigned_stretch_indices(i_stretch));
@@ -134,26 +136,26 @@ function analyzeData(varargin)
 
     % report control
     trials_per_condition_control = sum(conditions_control_indicators)';
-    conditions_control_with_number = study_settings.conditions_control;
+    conditions_control_with_number = conditions_control;
     for i_condition = 1 : number_of_conditions_control
-        conditions_control_with_number{i_condition, size(study_settings.conditions_control, 2)+1} = num2str(trials_per_condition_control(i_condition));
+        conditions_control_with_number{i_condition, size(conditions_control, 2)+1} = num2str(trials_per_condition_control(i_condition));
     end
-    conditions_control_with_labels = [study_settings.condition_labels 'number of stretches'; conditions_control_with_number];
+    conditions_control_with_labels = [study_settings.get('condition_labels') 'number of stretches'; conditions_control_with_number];
     disp('Control conditions:')
     disp(conditions_control_with_labels);
 
     % report conditions to analyze
     trials_per_condition_to_analyze = sum(conditions_to_analyze_indicators)';
-    conditions_to_analyze_with_number = study_settings.conditions_to_analyze;
+    conditions_to_analyze_with_number = conditions_to_analyze;
     for i_condition = 1 : number_of_conditions_to_analyze
-        conditions_to_analyze_with_number{i_condition, size(study_settings.conditions_to_analyze, 2)+1} = num2str(trials_per_condition_to_analyze(i_condition));
+        conditions_to_analyze_with_number{i_condition, size(conditions_to_analyze, 2)+1} = num2str(trials_per_condition_to_analyze(i_condition));
     end
-    conditions_to_analyze_with_labels = [study_settings.condition_labels 'number of stretches'; conditions_to_analyze_with_number];
+    conditions_to_analyze_with_labels = [study_settings.get('condition_labels') 'number of stretches'; conditions_to_analyze_with_number];
     disp('Conditions to analyze:')
     disp(conditions_to_analyze_with_labels);
     
     disp('Stretches with these conditions were found but not analyzed:')
-    disp([study_settings.condition_labels; unassigned_stretch_labels])
+    disp([study_settings.get('condition_labels'); unassigned_stretch_labels])
     
     disp(['Number of control stretches: ' num2str(sum(trials_per_condition_control))]);
     disp(['Number of stimulus stretches: ' num2str(sum(trials_per_condition_to_analyze))]);

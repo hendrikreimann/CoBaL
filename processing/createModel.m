@@ -37,7 +37,8 @@ function createModel(varargin)
     parse(parser, varargin{:})
     visualize = parser.Results.visualize;
     
-    subject_settings = loadSettingsFile('subjectSettings.txt');
+%     subject_settings = loadSettingsFile('subjectSettings.txt');
+    subject_settings = SettingsCustodian('subjectSettings.txt');
 
     % TODO: change stuff depending upon the static reference type
 
@@ -61,7 +62,7 @@ function createModel(varargin)
     %% create static reference
 
     % load static reference file
-    load(['processed' filesep makeFileName(date, subject_id, subject_settings.static_reference_trial_type, subject_settings.static_reference_trial_number, 'markerTrajectories')]);
+    load(['processed' filesep makeFileName(date, subject_id, subject_settings.get('static_reference_trial_type'), subject_settings.get('static_reference_trial_number'), 'markerTrajectories')]);
 
     % find first time step where all markers are available
     i_time = 1;
@@ -172,7 +173,7 @@ function createModel(varargin)
     left_acromion = LSHO_reference + centroid_to_skin_correction * distal_direction;
     left_lateral_humeral_epicondyle = LELB_reference + centroid_to_skin_correction * distal_direction;
     
-    if strcmp(subject_settings.static_reference_posture, 'ski')
+    if strcmp(subject_settings.get('static_reference_posture'), 'ski')
         left_inner_wrist = LWRA_reference + centroid_to_skin_correction * down_direction;
         left_outer_wrist = LWRB_reference + centroid_to_skin_correction * up_direction;
         left_hand = LFIN_reference + centroid_to_skin_correction * right_direction;
@@ -180,7 +181,7 @@ function createModel(varargin)
         right_outer_wrist = RWRB_reference + centroid_to_skin_correction * up_direction;
         right_hand = RFIN_reference + centroid_to_skin_correction * left_direction;
     end
-    if strcmp(subject_settings.static_reference_posture, 'casual')
+    if strcmp(subject_settings.get('static_reference_posture'), 'casual')
         left_wrist_marker_direction = normVector(LWRB_reference - LWRA_reference);
         left_inner_wrist = LWRA_reference + centroid_to_skin_correction * left_wrist_marker_direction;
         left_outer_wrist = LWRB_reference - centroid_to_skin_correction * left_wrist_marker_direction;
@@ -190,7 +191,7 @@ function createModel(varargin)
         right_outer_wrist = RWRB_reference - centroid_to_skin_correction * right_wrist_marker_direction;
         right_hand = RFIN_reference;% + centroid_to_skin_correction * left_direction;
     end
-    if strcmp(subject_settings.static_reference_posture, 'motorcycle')
+    if strcmp(subject_settings.get('static_reference_posture'), 'motorcycle')
         % TODO: not tested yet
         left_inner_wrist = LWRA_reference + centroid_to_skin_correction * left_direction;
         left_outer_wrist = LWRB_reference + centroid_to_skin_correction * right_direction;
@@ -224,7 +225,7 @@ function createModel(varargin)
     inter_ASIS_distance = norm(LASIS - RASIS);
 
     %% estimate hip joint centers
-    if strcmp(subject_settings.hip_joint_center_estimation_method, 'SCoRE')
+    if strcmp(subject_settings.get('hip_joint_center_estimation_method'), 'SCoRE')
         pelvis_center_reference = mean(reshape(pelvis_markers_reference, 3, size(pelvis_markers_reference, 2)/3), 2);
 
         % find left hip CoR
@@ -275,7 +276,7 @@ function createModel(varargin)
           );
 
 
-    elseif strcmp(subject_settings.hip_joint_center_estimation_method, 'Tylkowski')
+    elseif strcmp(subject_settings.get('hip_joint_center_estimation_method'), 'Tylkowski')
 
         MASIS = mean([LASIS RASIS], 2);
         MPSIS = mean([LPSIS RPSIS], 2);
@@ -307,9 +308,9 @@ function createModel(varargin)
     end
 
     %% estimate knee joint centers and axes
-    if strcmp(subject_settings.knee_joint_axis_estimation_method, 'SARA')
+    if strcmp(subject_settings.get('knee_joint_axis_estimation_method'), 'SARA')
         % find left knee CoR
-        left_knee_reference_file_name = ['processed' filesep makeFileName(date, subject_id, 'calibration', subject_settings.left_knee_calibration_file_index, 'markerTrajectories')];
+        left_knee_reference_file_name = ['processed' filesep makeFileName(date, subject_id, 'calibration', subject_settings.get('left_knee_calibration_file_index'), 'markerTrajectories')];
         disp(['Left knee reference file name: ' left_knee_reference_file_name]);
         load(left_knee_reference_file_name);
         knee_reference = marker_trajectories;
@@ -334,7 +335,7 @@ function createModel(varargin)
           );
 
         % find right knee CoR
-        right_knee_reference_file_name = ['processed' filesep makeFileName(date, subject_id, 'calibration', subject_settings.right_knee_calibration_file_index, 'markerTrajectories')];
+        right_knee_reference_file_name = ['processed' filesep makeFileName(date, subject_id, 'calibration', subject_settings.get('right_knee_calibration_file_index'), 'markerTrajectories')];
         disp(['Right knee reference file name: ' right_knee_reference_file_name]);
         load(right_knee_reference_file_name);
         knee_reference = marker_trajectories;
@@ -356,7 +357,7 @@ function createModel(varargin)
             right_shank_markers_trajectory, ...
             1 ...
           );
-    elseif strcmp(subject_settings.knee_joint_axis_estimation_method, 'markers')
+    elseif strcmp(subject_settings.get('knee_joint_axis_estimation_method'), 'markers')
         % assume that the knee axis of rotation is the vector between the knee markers
         left_knee_flexion_axis = normVector(left_lateral_femoral_epicondyle - right_lateral_femoral_epicondyle);
         right_knee_flexion_axis = normVector(left_lateral_femoral_epicondyle - right_lateral_femoral_epicondyle);
@@ -430,13 +431,13 @@ function createModel(varargin)
     right_wrist_flexion_axis = normVector(right_inner_wrist - right_outer_wrist);
 
     % estimate elbow axes and joint centers
-    if strcmp(subject_settings.static_reference_posture, 'ski') || strcmp(subject_settings.static_reference_posture, 'casual')
+    if strcmp(subject_settings.get('static_reference_posture'), 'ski') || strcmp(subject_settings.get('static_reference_posture'), 'casual')
         left_elbow_cor = left_lateral_humeral_epicondyle + ejc_correction_factor*elbow_width*right_direction;
         left_elbow_axis = right_direction;
         right_elbow_cor = right_lateral_humeral_epicondyle - ejc_correction_factor*elbow_width*right_direction;
         right_elbow_axis = right_direction;
     end
-    if strcmp(subject_settings.static_reference_posture, 'motorcycle')
+    if strcmp(subject_settings.get('static_reference_posture'), 'motorcycle')
         % TODO: not tested yet
         left_elbow_cor = left_lateral_humeral_epicondyle + ejc_correction_factor*elbow_width*distal_direction;
         left_elbow_axis = distal_direction;

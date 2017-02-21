@@ -46,7 +46,7 @@ function findStepEvents(varargin)
     load('subjectInfo.mat', 'date', 'subject_id');
 
     % load settings
-    subject_settings = loadSettingsFile('subjectSettings.txt');
+    subject_settings = SettingsCustodian('subjectSettings.txt');
     study_settings_file = '';
     if exist(['..' filesep 'studySettings.txt'], 'file')
         study_settings_file = ['..' filesep 'studySettings.txt'];
@@ -54,7 +54,7 @@ function findStepEvents(varargin)
     if exist(['..' filesep '..' filesep 'studySettings.txt'], 'file')
         study_settings_file = ['..' filesep '..' filesep 'studySettings.txt'];
     end
-    study_settings = loadSettingsFile(study_settings_file);
+    study_settings = SettingsCustodian(study_settings_file);
     
     for i_condition = 1 : length(condition_list)
         trials_to_process = trial_number_list{i_condition};
@@ -111,32 +111,32 @@ function findStepEvents(varargin)
 
             %% find events for left foot
             left_touchdown_times = [];
-            if any(strcmp(subject_settings.left_touchdown_method, 'heel_position_minima'))
+            if any(strcmp(subject_settings.get('left_touchdown_method'), 'heel_position_minima'))
                 % find touch down indices as negative peaks of the heel marker z-position
-                [~, left_heel_peak_locations] = findpeaks(-LHEE_z_trajectory, 'MinPeakProminence', subject_settings.left_touchdown_peak_prominence_threshold, 'MinPeakDistance', subject_settings.left_touchdown_peak_distance_threshold * sampling_rate_marker);
+                [~, left_heel_peak_locations] = findpeaks(-LHEE_z_trajectory, 'MinPeakProminence', subject_settings.get('left_touchdown_peak_prominence_threshold'), 'MinPeakDistance', subject_settings.get('left_touchdown_peak_distance_threshold') * sampling_rate_marker);
                 left_touchdown_indices_mocap = left_heel_peak_locations';
                 left_touchdown_times = [left_touchdown_times; time_marker(left_touchdown_indices_mocap)];
             end
-            if any(strcmp(subject_settings.left_touchdown_method, 'toe_position_minima'))
+            if any(strcmp(subject_settings.get('left_touchdown_method'), 'toe_position_minima'))
                 % find touch down indices as negative peaks of the heel marker z-position
-                [~, left_toe_peak_locations] = findpeaks(-LTOE_z_trajectory, 'MinPeakProminence', subject_settings.left_touchdown_peak_prominence_threshold, 'MinPeakDistance', subject_settings.left_touchdown_peak_distance_threshold * sampling_rate_marker);
+                [~, left_toe_peak_locations] = findpeaks(-LTOE_z_trajectory, 'MinPeakProminence', subject_settings.get('left_touchdown_peak_prominence_threshold'), 'MinPeakDistance', subject_settings.get('left_touchdown_peak_distance_threshold') * sampling_rate_marker);
                 left_touchdown_indices_mocap = left_toe_peak_locations';
                 left_touchdown_times = [left_touchdown_times; time_marker(left_touchdown_indices_mocap)];
             end
-            if any(strcmp(subject_settings.left_touchdown_method, 'toe_velocity_minima'))
-                [~, left_toe_peak_locations] = findpeaks(-LTOE_z_vel_trajectory, 'MinPeakProminence', subject_settings.left_touchdown_peak_prominence_threshold, 'MinPeakDistance', subject_settings.left_touchdown_peak_distance_threshold * sampling_rate_marker);
+            if any(strcmp(subject_settings.get('left_touchdown_method'), 'toe_velocity_minima'))
+                [~, left_toe_peak_locations] = findpeaks(-LTOE_z_vel_trajectory, 'MinPeakProminence', subject_settings.get('left_touchdown_peak_prominence_threshold'), 'MinPeakDistance', subject_settings.get('left_touchdown_peak_distance_threshold') * sampling_rate_marker);
                 left_touchdown_indices_mocap = left_toe_peak_locations';
                 left_touchdown_times = [left_touchdown_times; time_marker(left_touchdown_indices_mocap)];
             end
-            if any(strcmp(subject_settings.left_touchdown_method, 'first_acceleration_peak_after_mid_swing'))
+            if any(strcmp(subject_settings.get('left_touchdown_method'), 'first_acceleration_peak_after_mid_swing'))
                 % left_touchdown_peak_distance_threshold: 0.8
                 % left touchdown peak prominence threshold: 5
                 
                 % find mid-swing as peaks of heel position
-                [~, left_heel_midswing_locations] = findpeaks(LHEE_z_trajectory, 'MinPeakDistance', subject_settings.left_touchdown_peak_distance_threshold * sampling_rate_marker);
+                [~, left_heel_midswing_locations] = findpeaks(LHEE_z_trajectory, 'MinPeakDistance', subject_settings.get('left_touchdown_peak_distance_threshold') * sampling_rate_marker);
                 
                 % find acceleration peaks
-                [~, left_heel_acc_peak_locations] = findpeaks(LHEE_z_acc_trajectory, 'MinPeakProminence', subject_settings.left_touchdown_peak_prominence_threshold);
+                [~, left_heel_acc_peak_locations] = findpeaks(LHEE_z_acc_trajectory, 'MinPeakProminence', subject_settings.get('left_touchdown_peak_prominence_threshold'));
 
                 % identify acceleration peaks as touchdowns
                 left_touchdown_indices_mocap = zeros(size(left_heel_midswing_locations));
@@ -151,9 +151,9 @@ function findStepEvents(varargin)
             end
 
             left_pushoff_times = [];
-            if any(strcmp(subject_settings.left_pushoff_method, 'first_velocity_peak_after_touchdown'))
+            if any(strcmp(subject_settings.get('left_pushoff_method'), 'first_velocity_peak_after_touchdown'))
                 % for pushoff, find the first significant toes z-velocity peak after each touchdown
-                [~, left_toes_vel_peak_locations] = findpeaks(LTOE_z_vel_trajectory, 'MinPeakProminence', subject_settings.left_pushoff_peak_prominence_threshold);
+                [~, left_toes_vel_peak_locations] = findpeaks(LTOE_z_vel_trajectory, 'MinPeakProminence', subject_settings.get('left_pushoff_peak_prominence_threshold'));
                 left_toes_vel_peak_locations = left_toes_vel_peak_locations';
                 left_pushoff_indices_mocap = zeros(size(left_touchdown_indices_mocap));
                 for i_touchdown = 1 : length(left_touchdown_indices_mocap)
@@ -165,8 +165,8 @@ function findStepEvents(varargin)
                 left_pushoff_indices_mocap(left_pushoff_indices_mocap==0) = [];
                 left_pushoff_times = [left_pushoff_times; time_marker(left_pushoff_indices_mocap)];
             end
-            if any(strcmp(subject_settings.left_pushoff_method, 'forceplate_threshold'))
-                left_pushoff_diff_forceplate = diff(sign(abs(left_fz_trajectory) - subject_settings.forceplate_load_threshold));
+            if any(strcmp(subject_settings.get('left_pushoff_method'), 'forceplate_threshold'))
+                left_pushoff_diff_forceplate = diff(sign(abs(left_fz_trajectory) - subject_settings.get('forceplate_load_threshold')));
                 left_pushoff_times = [left_pushoff_times; time_left_forceplate(left_pushoff_diff_forceplate~=0)];
             end
             
@@ -176,32 +176,32 @@ function findStepEvents(varargin)
 
             %% find events for right foot
             right_touchdown_times = [];
-            if any(strcmp(subject_settings.right_touchdown_method, 'heel_position_minima'))
+            if any(strcmp(subject_settings.get('right_touchdown_method'), 'heel_position_minima'))
                 % find touch down indices as negative peaks of the heel marker z-position
-                [~, right_heel_peak_locations] = findpeaks(-RHEE_z_trajectory, 'MinPeakProminence', subject_settings.right_touchdown_peak_prominence_threshold, 'MinPeakDistance', subject_settings.right_touchdown_peak_distance_threshold);
+                [~, right_heel_peak_locations] = findpeaks(-RHEE_z_trajectory, 'MinPeakProminence', subject_settings.get('right_touchdown_peak_prominence_threshold'), 'MinPeakDistance', subject_settings.get('right_touchdown_peak_distance_threshold'));
                 right_touchdown_indices_mocap = right_heel_peak_locations';
                 right_touchdown_times = [right_touchdown_times; time_marker(right_touchdown_indices_mocap)];
             end
-            if any(strcmp(subject_settings.right_touchdown_method, 'toe_position_minima'))
+            if any(strcmp(subject_settings.get('right_touchdown_method'), 'toe_position_minima'))
                 % find touch down indices as negative peaks of the heel marker z-position
-                [~, right_toe_peak_locations] = findpeaks(-RTOE_z_trajectory, 'MinPeakProminence', subject_settings.right_touchdown_peak_prominence_threshold, 'MinPeakDistance', subject_settings.right_touchdown_peak_distance_threshold);
+                [~, right_toe_peak_locations] = findpeaks(-RTOE_z_trajectory, 'MinPeakProminence', subject_settings.get('right_touchdown_peak_prominence_threshold'), 'MinPeakDistance', subject_settings.get('right_touchdown_peak_distance_threshold'));
                 right_touchdown_indices_mocap = right_toe_peak_locations';
                 right_touchdown_times = [right_touchdown_times; time_marker(right_touchdown_indices_mocap)];
             end
-            if any(strcmp(subject_settings.right_touchdown_method, 'toe_velocity_minima'))
-                [~, right_toe_peak_locations] = findpeaks(-RTOE_z_vel_trajectory, 'MinPeakProminence', subject_settings.right_touchdown_peak_prominence_threshold, 'MinPeakDistance', subject_settings.right_touchdown_peak_distance_threshold * sampling_rate_marker);
+            if any(strcmp(subject_settings.get('right_touchdown_method'), 'toe_velocity_minima'))
+                [~, right_toe_peak_locations] = findpeaks(-RTOE_z_vel_trajectory, 'MinPeakProminence', subject_settings.get('right_touchdown_peak_prominence_threshold'), 'MinPeakDistance', subject_settings.get('right_touchdown_peak_distance_threshold') * sampling_rate_marker);
                 right_touchdown_indices_mocap = right_toe_peak_locations';
                 right_touchdown_times = [right_touchdown_times; time_marker(right_touchdown_indices_mocap)];
             end
-            if any(strcmp(subject_settings.right_touchdown_method, 'first_acceleration_peak_after_mid_swing'))
+            if any(strcmp(subject_settings.get('right_touchdown_method'), 'first_acceleration_peak_after_mid_swing'))
                 % right_touchdown_peak_distance_threshold: 0.8
                 % right touchdown peak prominence threshold: 5
                 
                 % find mid-swing as peaks of heel position
-                [~, right_heel_midswing_locations] = findpeaks(RHEE_z_trajectory, 'MinPeakDistance', subject_settings.right_touchdown_peak_distance_threshold * sampling_rate_marker);
+                [~, right_heel_midswing_locations] = findpeaks(RHEE_z_trajectory, 'MinPeakDistance', subject_settings.get('right_touchdown_peak_distance_threshold') * sampling_rate_marker);
                 
                 % find acceleration peaks
-                [~, right_heel_acc_peak_locations] = findpeaks(RHEE_z_acc_trajectory, 'MinPeakProminence', subject_settings.right_touchdown_peak_prominence_threshold);
+                [~, right_heel_acc_peak_locations] = findpeaks(RHEE_z_acc_trajectory, 'MinPeakProminence', subject_settings.get('right_touchdown_peak_prominence_threshold'));
 
                 % identify acceleration peaks as touchdowns
                 right_touchdown_indices_mocap = zeros(size(right_heel_midswing_locations));
@@ -216,9 +216,9 @@ function findStepEvents(varargin)
             end
   
             right_pushoff_times = []; 
-            if any(strcmp(subject_settings.right_pushoff_method, 'first_velocity_peak_after_touchdown'))
+            if any(strcmp(subject_settings.get('right_pushoff_method'), 'first_velocity_peak_after_touchdown'))
                 % for pushoff, find the first significant toes z-velocity peak after each touchdown
-                [~, right_toes_vel_peak_locations] = findpeaks(RTOE_z_vel_trajectory, 'MinPeakProminence', subject_settings.right_pushoff_peak_prominence_threshold);
+                [~, right_toes_vel_peak_locations] = findpeaks(RTOE_z_vel_trajectory, 'MinPeakProminence', subject_settings.get('right_pushoff_peak_prominence_threshold'));
                 right_toes_vel_peak_locations = right_toes_vel_peak_locations';
                 right_pushoff_indices_mocap = zeros(size(right_touchdown_indices_mocap));
                 for i_touchdown = 1 : length(right_touchdown_indices_mocap)
@@ -230,8 +230,8 @@ function findStepEvents(varargin)
                 right_pushoff_indices_mocap(right_pushoff_indices_mocap==0) = [];
                 right_pushoff_times = [right_pushoff_times; time_marker(right_pushoff_indices_mocap)];
             end
-            if any(strcmp(subject_settings.right_pushoff_method, 'forceplate_threshold'))
-                right_pushoff_diff_forceplate = diff(sign(abs(right_fz_trajectory) - subject_settings.forceplate_load_threshold));
+            if any(strcmp(subject_settings.get('right_pushoff_method'), 'forceplate_threshold'))
+                right_pushoff_diff_forceplate = diff(sign(abs(right_fz_trajectory) - subject_settings.get('forceplate_load_threshold')));
                 right_pushoff_times = [right_pushoff_times; time_right_forceplate(right_pushoff_diff_forceplate~=0)];
             end
 
@@ -269,7 +269,8 @@ function findStepEvents(varargin)
 
             %% find events for angles
             % TODO: change conditionals to use a WalkingDataCustodian
-            if any(strcmp(study_settings.variables_to_analyze(:, 1), 'left_arm_phase')) || any(strcmp(study_settings.variables_to_analyze(:, 1), 'left_arm_right_leg_relative_phase'))
+            variables_to_analyze = study_settings.get('variables_to_analyze');
+            if any(strcmp(variables_to_analyze(:, 1), 'left_arm_phase')) || any(strcmp(variables_to_analyze(:, 1), 'left_arm_right_leg_relative_phase'))
                 % calculate vectors
                 left_wrist_center_trajectory = (LWRA_trajectory + LWRB_trajectory) * 0.5;
                 left_arm_vector_trajectory = LELB_trajectory - left_wrist_center_trajectory;
@@ -278,13 +279,13 @@ function findStepEvents(varargin)
                 larm_angle = rad2deg(atan2(-left_arm_vector_trajectory(:, 2), left_arm_vector_trajectory(:, 3)));
 
                 % find negative peaks
-                [~, left_arm_swing_onset_indices] = findpeaks(-larm_angle, 'MinPeakProminence', subject_settings.left_armswing_peak_prominence_threshold, 'MinPeakDistance', subject_settings.left_armswing_peak_distance_threshold * sampling_rate_marker);
+                [~, left_arm_swing_onset_indices] = findpeaks(-larm_angle, 'MinPeakProminence', subject_settings.get('left_armswing_peak_prominence_threshold'), 'MinPeakDistance', subject_settings.get('left_armswing_peak_distance_threshold') * sampling_rate_marker);
                 left_arm_swing_onset_times = time_marker(left_arm_swing_onset_indices);
 
                 % add new variables to be saved
                 variables_to_save.left_arm_swing_onset_times = left_arm_swing_onset_times;
             end
-            if any(strcmp(study_settings.variables_to_analyze(:, 1), 'right_arm_phase')) || any(strcmp(study_settings.variables_to_analyze(:, 1), 'right_arm_left_leg_relative_phase'))
+            if any(strcmp(variables_to_analyze(:, 1), 'right_arm_phase')) || any(strcmp(variables_to_analyze(:, 1), 'right_arm_left_leg_relative_phase'))
                 % calculate vectors
                 right_wrist_center_trajectory = (RWRA_trajectory + RWRB_trajectory) * 0.5;
                 right_arm_vector_trajectory = RELB_trajectory - right_wrist_center_trajectory;
@@ -293,13 +294,13 @@ function findStepEvents(varargin)
                 rarm_angle = rad2deg(atan2(-right_arm_vector_trajectory(:, 2), right_arm_vector_trajectory(:, 3)));
 
                 % find negative peaks
-                [~, right_arm_swing_onset_indices] = findpeaks(-rarm_angle, 'MinPeakProminence', subject_settings.right_armswing_peak_prominence_threshold, 'MinPeakDistance', subject_settings.right_armswing_peak_distance_threshold * sampling_rate_marker);
+                [~, right_arm_swing_onset_indices] = findpeaks(-rarm_angle, 'MinPeakProminence', subject_settings.get('right_armswing_peak_prominence_threshold'), 'MinPeakDistance', subject_settings.get('right_armswing_peak_distance_threshold') * sampling_rate_marker);
                 right_arm_swing_onset_times = time_marker(right_arm_swing_onset_indices);
 
                 % add new variables to be saved
                 variables_to_save.right_arm_swing_onset_times = right_arm_swing_onset_times;
             end
-            if any(strcmp(study_settings.variables_to_analyze(:, 1), 'left_leg_phase')) || any(strcmp(study_settings.variables_to_analyze(:, 1), 'left_arm_right_leg_relative_phase'))
+            if any(strcmp(variables_to_analyze(:, 1), 'left_leg_phase')) || any(strcmp(variables_to_analyze(:, 1), 'left_arm_right_leg_relative_phase'))
                 % calculate vectors
                 left_pelvis_center_trajectory = (LPSI_trajectory + LASI_trajectory) * 0.5;
                 left_leg_vector_trajectory = left_pelvis_center_trajectory - LANK_trajectory;
@@ -308,13 +309,13 @@ function findStepEvents(varargin)
                 lleg_angle = rad2deg(atan2(-left_leg_vector_trajectory(:, 2), left_leg_vector_trajectory(:, 3)));
 
                 % find negative peaks
-                [~, left_leg_swing_onset_indices] = findpeaks(-lleg_angle, 'MinPeakProminence', subject_settings.left_legswing_peak_prominence_threshold, 'MinPeakDistance', subject_settings.left_legswing_peak_distance_threshold * sampling_rate_marker);
+                [~, left_leg_swing_onset_indices] = findpeaks(-lleg_angle, 'MinPeakProminence', subject_settings.get('left_legswing_peak_prominence_threshold'), 'MinPeakDistance', subject_settings.get('left_legswing_peak_distance_threshold') * sampling_rate_marker);
                 left_leg_swing_onset_times = time_marker(left_leg_swing_onset_indices);
 
                 % add new variables to be saved
                 variables_to_save.left_leg_swing_onset_times = left_leg_swing_onset_times;
             end
-            if any(strcmp(study_settings.variables_to_analyze(:, 1), 'right_leg_phase')) || any(strcmp(study_settings.variables_to_analyze(:, 1), 'right_arm_left_leg_relative_phase'))
+            if any(strcmp(variables_to_analyze(:, 1), 'right_leg_phase')) || any(strcmp(variables_to_analyze(:, 1), 'right_arm_left_leg_relative_phase'))
                 % calculate vectors
                 right_pelvis_center_trajectory = (RPSI_trajectory + RASI_trajectory) * 0.5;
                 right_leg_vector_trajectory = right_pelvis_center_trajectory - RANK_trajectory;
@@ -323,7 +324,7 @@ function findStepEvents(varargin)
                 rleg_angle = rad2deg(atan2(-right_leg_vector_trajectory(:, 2), right_leg_vector_trajectory(:, 3)));
 
                 % find negative peaks
-                [~, right_leg_swing_onset_indices] = findpeaks(-rleg_angle, 'MinPeakProminence', subject_settings.right_legswing_peak_prominence_threshold, 'MinPeakDistance', subject_settings.right_legswing_peak_distance_threshold * sampling_rate_marker);
+                [~, right_leg_swing_onset_indices] = findpeaks(-rleg_angle, 'MinPeakProminence', subject_settings.get('right_legswing_peak_prominence_threshold'), 'MinPeakDistance', subject_settings.get('right_legswing_peak_distance_threshold') * sampling_rate_marker);
                 right_leg_swing_onset_times = time_marker(right_leg_swing_onset_indices);
 
                 % add new variables to be saved
