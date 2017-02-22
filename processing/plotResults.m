@@ -414,9 +414,9 @@ function plotResults(varargin)
         end
         
         % determine abscissa offsets
-        if isContinuousVariable(i_variable, variable_data_all)
-            for i_step = 2 : 4
-                for i_variable = 1 : number_of_variables_to_plot
+        for i_step = 2 : 4
+            for i_variable = 1 : number_of_variables_to_plot
+                if isContinuousVariable(i_variable, variable_data_all)
                     for i_episode = 1 : number_of_episodes
                         this_episode = episode_indices{i_episode};
                         for i_comparison = 1 : length(this_episode)
