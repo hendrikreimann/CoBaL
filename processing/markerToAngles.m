@@ -478,15 +478,75 @@ function joint_angles = ...
     left_wrist_cor_to_LFIN_current_32 = R_world_to_32 * left_wrist_cor_to_LFIN_current_world;
     left_wrist_cor_to_LFIN_reference_world = LFIN_reference - left_wrist_cor_reference;
     left_wrist_cor_to_LFIN_reference_wrist = left_wrist_direction_matrix_inverse * left_wrist_cor_to_LFIN_reference_world;
-    
     angle_now = atan2(left_wrist_cor_to_LFIN_current_32(1), left_wrist_cor_to_LFIN_current_32(2));
     angle_reference = atan2(left_wrist_cor_to_LFIN_reference_wrist(1), left_wrist_cor_to_LFIN_reference_wrist(2));
     theta_32 = angle_now - angle_reference;
     joint_angles(32) = theta_32;
     
     
+    %% right arm
+    % calculate right shoulder flexion-extension
+    right_shoulder_cor_to_right_elbow_cor_current_world = right_elbow_cor_current - right_shoulder_cor_current;
+    R_world_to_33 = right_shoulder_direction_matrix_inverse * lumbar_joint_rotation^(-1) * pelvis_joint_rotation^(-1);
+    right_shoulder_cor_to_right_elbow_cor_current_33 = R_world_to_33 * right_shoulder_cor_to_right_elbow_cor_current_world;
+    theta_33 = atan2(right_shoulder_cor_to_right_elbow_cor_current_33(2), -right_shoulder_cor_to_right_elbow_cor_current_33(3));
+    joint_angles(33) = theta_33;
+    
+    % right shoulder ab-adduction
+    R_33 = expAxis(right_shoulder_direction_matrix(:, 1), joint_angles(33));
+    R_world_to_34 = right_shoulder_direction_matrix_inverse * R_33^(-1) * lumbar_joint_rotation^(-1) * pelvis_joint_rotation^(-1);
+    right_shoulder_cor_to_right_elbow_cor_current_34 = R_world_to_34 * right_shoulder_cor_to_right_elbow_cor_current_world;
+    theta_34 = atan2(right_shoulder_cor_to_right_elbow_cor_current_34(1), -right_shoulder_cor_to_right_elbow_cor_current_34(3));
+    joint_angles(34) = theta_34;
+    
+    % right shoulder internal/external rotation - from elbow marker
+    right_elbow_cor_to_RELB_current_world = RELB_current - right_elbow_cor_current;
+    R_34 = expAxis(-right_shoulder_direction_matrix(:, 2), joint_angles(34));
+    R_world_to_35 = right_shoulder_direction_matrix_inverse * R_34^(-1) * R_33^(-1) * lumbar_joint_rotation^(-1) * pelvis_joint_rotation^(-1);
+    right_elbow_cor_to_RELB_current_35 = R_world_to_35 * right_elbow_cor_to_RELB_current_world;
+    angle_now = atan2(right_elbow_cor_to_RELB_current_35(2), right_elbow_cor_to_RELB_current_35(1));
+    right_elbow_cor_to_RELB_reference_world = RELB_reference - right_elbow_cor_reference;
+    right_elbow_cor_to_RELB_reference_shoulder = right_shoulder_direction_matrix_inverse * right_elbow_cor_to_RELB_reference_world;
+    angle_reference = atan2(right_elbow_cor_to_RELB_reference_shoulder(2), right_elbow_cor_to_RELB_reference_shoulder(1));
+    joint_angles(35) = angle_now - angle_reference;
+    
+    % right elbow flexion
+    right_elbow_cor_to_right_wrist_cor_current_world = right_wrist_cor_current - right_elbow_cor_current;
+    R_35 = expAxis(right_shoulder_direction_matrix(:, 3), joint_angles(35));
+    right_shoulder_joint_rotation = R_33 * R_34 * R_35;
+    R_world_to_36 = right_elbow_direction_matrix_inverse * right_shoulder_joint_rotation^(-1) * lumbar_joint_rotation^(-1) * pelvis_joint_rotation^(-1);
+    right_elbow_cor_to_right_wrist_cor_current_36 = R_world_to_36 * right_elbow_cor_to_right_wrist_cor_current_world;
+    theta_36 = atan2(right_elbow_cor_to_right_wrist_cor_current_36(3), right_elbow_cor_to_right_wrist_cor_current_36(2));
+    joint_angles(36) = theta_36;
+    
+    % right elbow internal rotation - from wrist marker
+    right_wrist_cor_to_RWRB_current_world = RWRB_current - right_wrist_cor_current;
+    R_36 = expAxis(right_elbow_direction_matrix(:, 1), joint_angles(36));
+    R_world_to_37 = right_elbow_direction_matrix_inverse * R_36^(-1) * right_shoulder_joint_rotation^(-1) * lumbar_joint_rotation^(-1) * pelvis_joint_rotation^(-1);
+    right_wrist_cor_to_RWRB_current_37 = R_world_to_37 * right_wrist_cor_to_RWRB_current_world;
+    angle_now = atan2(right_wrist_cor_to_RWRB_current_37(1), -right_wrist_cor_to_RWRB_current_37(3));
+    right_wrist_cor_to_RWRB_reference_world = RWRB_reference - right_wrist_cor_reference;
+    right_wrist_cor_to_RWRB_reference_elbow = right_elbow_direction_matrix_inverse * right_wrist_cor_to_RWRB_reference_world;
+    angle_reference = atan2(right_wrist_cor_to_RWRB_reference_elbow(1), -right_wrist_cor_to_RWRB_reference_elbow(3));
+    theta_37 = angle_now - angle_reference;
+    joint_angles(37) = theta_37;
+
+    % right wrist flexion and radial-ulnar deviation angles - from finger marker
+    right_wrist_cor_to_RFIN_current_world = RFIN_current - right_wrist_cor_current;
+    R_37 = expAxis(-right_elbow_direction_matrix(:, 2), joint_angles(37));
+    right_elbow_joint_rotation = R_36 * R_37;
+    R_world_to_38 = right_wrist_direction_matrix_inverse * right_elbow_joint_rotation^(-1) * right_shoulder_joint_rotation^(-1) * lumbar_joint_rotation^(-1) * pelvis_joint_rotation^(-1);
+    right_wrist_cor_to_RFIN_current_38 = R_world_to_38 * right_wrist_cor_to_RFIN_current_world;
+    right_wrist_cor_to_RFIN_reference_world = RFIN_reference - right_wrist_cor_reference;
+    right_wrist_cor_to_RFIN_reference_wrist = right_wrist_direction_matrix_inverse * right_wrist_cor_to_RFIN_reference_world;
+    angle_now = atan2(-right_wrist_cor_to_RFIN_current_38(1), right_wrist_cor_to_RFIN_current_38(2));
+    angle_reference = atan2(-right_wrist_cor_to_RFIN_reference_wrist(1), right_wrist_cor_to_RFIN_reference_wrist(2));
+    theta_38 = angle_now - angle_reference;
+    joint_angles(38) = theta_38;    
     
     
+%     R_37
+%     exp37
     
     
     return
