@@ -184,7 +184,8 @@ function preprocessRawData(varargin)
 %                 copyr_trajectory = mxr_trajectory ./ fzr_trajectory;
 % 
 %                 % zero CoP for no contact times
-                fz_threshold = 60;
+%                 fz_threshold = 60;
+                fz_threshold = subject_settings.get('forceplate_load_threshold');
 %                 copxl_trajectory(fzl_trajectory < fz_threshold) = 0;
 %                 copyl_trajectory(fzl_trajectory < fz_threshold) = 0;
 %                 copxr_trajectory(fzr_trajectory < fz_threshold) = 0;
