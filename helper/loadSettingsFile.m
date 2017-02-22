@@ -119,7 +119,7 @@ function [text_cell, settings] = parseNextBlock(text_cell, settings)
         return
     end
     
-    % parse first line as a single entry=
+    % parse first line as a single entry
     line_split = strsplit(text_line, ':');
     variable_name = strrep(line_split{1}, ' ', '_');
     variable_value_string = line_split{2};
