@@ -964,8 +964,8 @@ function singleBoxPlot(target_axes_handle, abscissa, data, color, label, show_ou
     data_iqr = iqr(data);
     data_upper_inner_fence = data_quartile_3 + 1.5*data_iqr;
     data_lower_inner_fence = data_quartile_1 - 1.5*data_iqr;
-    data_upper_adjacent = max(data(data<data_upper_inner_fence));
-    data_lower_adjacent = min(data(data>data_lower_inner_fence));
+    data_upper_adjacent = max(data(data<=data_upper_inner_fence));
+    data_lower_adjacent = min(data(data>=data_lower_inner_fence));
     outliers = data(data>data_upper_inner_fence | data<data_lower_inner_fence);
     
     % plot
