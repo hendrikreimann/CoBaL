@@ -26,30 +26,53 @@ time_mocap = time_step : time_step : total_time;
 
 % define joint angle trajectories
 %     0.1; 0.2; 0.3; 0.4; 0.5; 0.6; % pelvis free body DoFs
-%     0.1; 0.2; 0.3; 0.4; 0.5; 0.6; 0.7; ... % left leg
+%     0.0; 0.0; 0.0; 0.0; 0.0; 0.0; % pelvis free body DoFs
+%     0.0; 0.0; 0.0; 0.0; 0.0; 0.0; 0.0; ... % left leg
+%     0.11; 0.21; 0.31; 0.41; 0.51; 0.61; 0.71; ... % left leg
+%     0.12; 0.22; 0.32; 0.42; 0.52; 0.62; 0.72; ... % right leg
 %     0.0; 0.0; 0.0; 0.0; 0.0; 0.0; % pelvis free body DoFs
 %     0.0; 0.0; 0.0; 0.0; 0.0; 0.0; 0.5; ... % left leg
 %     0.0; 0.0; 0.0; 0.0; 0.0; 0.0; % lumbar and cervical
+%     0.13; 0.23; 0.33; 0.43; 0.53; 0.63; % lumbar and cervical
 %     0.14; 0.24; 0.34; 0.44; 0.54; 0.64; 0.74; ... % left arm
+%     0.0; 0.0; 0.0; 0.0; 0.0; 0.0; 0.0; ... left arm
+% theta_init = ...
+%   [ ...
+%     0.1; 0.2; 0.3; 0.4; 0.5; 0.6; % pelvis free body DoFs
+%     0.0; 0.0; 0.0; 0.0; 0.0; 0.0; 0.0; ... % left leg
+%     0.0; 0.0; 0.0; 0.0; 0.0; 0.0; 0.0; ... % right leg
+%     0.0; 0.0; 0.0; 0.0; 0.0; 0.0; % lumbar and cervical
+%     0.14; 0.24; 0.34; 0.44; 0.54; 0.64; ... left arm
+%     0; 0; 0; 0; 0; 0; ... right arm
+%   ];
 theta_init = ...
   [ ...
-    0.0; 0.0; 0.0; 0.0; 0.0; 0.0; % pelvis free body DoFs
+    0.1; 0.2; 0.3; 0.4; 0.5; 0.6; % pelvis free body DoFs
     0.11; 0.21; 0.31; 0.41; 0.51; 0.61; 0.71; ... % left leg
     0.12; 0.22; 0.32; 0.42; 0.52; 0.62; 0.72; ... % right leg
     0.13; 0.23; 0.33; 0.43; 0.53; 0.63; % lumbar and cervical
-    0.0; 0.0; 0.0; 0.0; 0.0; 0.0; 0.0; ... % left arm
-    0; 0; 0; 0; 0; 0; 0; ... right arm
+    0.14; 0.24; 0.34; 0.44; 0.54; 0.64; ... % left arm
+    0; 0; 0; 0; 0; 0; ... right arm
   ];
 
 %     0.1; 0.2; 0.3; 0.5; 0.0; 0.0; 0.0; ... % left leg
+% theta_direction_1 = ...
+%   [ ...
+%     0.0; 0.0; 0.0; 0.0; 0.0; 0.0; % pelvis free body DoFs
+%     0.0; 0.0; 0.0; 0.0; 0.0; 0.0; 0.0; ... % left leg
+%     0.0; 0.0; 0.0; 0.0; 0.0; 0.0; 0.0; ... % right leg
+%     0.0; 0.0; 0.0; 0.0; 0.0; 0.0; % lumbar and cervical
+%     0.0; 0.0; 0.0; 0.0; 0.0; 0.0; ... left arm
+%     0; 0; 0; 0; 0; 0; ... right arm
+%   ];
 theta_direction_1 = ...
   [ ...
     0.1; 0.2; 0.3; 0.4; 0.5; 0.6; % pelvis free body DoFs
     0.11; 0.21; 0.31; 0.41; 0.51; 0.61; 0.71; ... % left leg
     0.12; 0.22; 0.32; 0.42; 0.52; 0.62; 0.72; ... % right leg
     0.13; 0.23; 0.33; 0.43; 0.53; 0.63; % lumbar and cervical
-    0.14; 0.24; 0.34; 0.44; 0.54; 0.64; 0; ... left arm
-    0; 0; 0; 0; 0; 0; 0; ... right arm
+    0.14; 0.24; 0.34; 0.44; 0.54; 0.64; ... % left arm
+    0; 0; 0; 0; 0; 0; ... right arm
   ];
 
 % theta_init = rand(size(theta_init));

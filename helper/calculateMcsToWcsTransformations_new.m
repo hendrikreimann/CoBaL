@@ -52,9 +52,9 @@ function transformations = calculateMcsToWcsTransformations_new(marker_positions
             elseif strcmp(this_segment_label, 'RFOREARM')
                 this_segment_markers = {'RFRM', 'RWRA', 'RWRB'};
             elseif strcmp(this_segment_label, 'LHAND')
-                this_segment_markers = {'LWRA', 'LWRB', 'LFIN'};
+                this_segment_markers = {'LWRB', 'LWRA', 'LFIN'}; % this is not good because these markers are not actually on a rigid body. Check later if I can change that
             elseif strcmp(this_segment_label, 'RHAND')
-                this_segment_markers = {'RWRA', 'RWRB', 'RFIN'};
+                this_segment_markers = {'RWRB', 'RWRA', 'RFIN'};
             elseif strcmp(this_segment_label, 'LTHIGH')
                 this_segment_markers = {'LTHI', 'LHIPCOR', 'LKNE'};
             elseif strcmp(this_segment_label, 'RTHIGH')

@@ -92,6 +92,7 @@ function calculateKinematicTrajectories(varargin)
                 left_elbow_cor_ground_truth = kinematic_tree.jointPositions{31};
                 left_wrist_cor_ground_truth = kinematic_tree.jointPositions{33};
                 left_hand_eef_ground_truth = kinematic_tree.endEffectorPositions{8};
+                right_hand_eef_ground_truth = kinematic_tree.endEffectorPositions{9};
                 
                 joint_angles_ground_truth = joint_angle_trajectories_simulated(i_time, :)';
                 hip_flexion_ground_truth = joint_angles_ground_truth(7);
@@ -108,34 +109,56 @@ function calculateKinematicTrajectories(varargin)
 %                 left_elbow_cor_ground_truth
 %                 left_wrist_cor_current = extractMarkerTrajectories(joint_center_current, joint_center_headers, 'LWRISTCOR')'
 %                 left_wrist_cor_ground_truth
-                left_hand_eef_current = extractMarkerTrajectories(joint_center_current, joint_center_headers, 'LHANDEEF')'
-                left_hand_eef_ground_truth
+%                 left_hand_eef_current = extractMarkerTrajectories(joint_center_current, joint_center_headers, 'LHANDEEF')'
+%                 left_hand_eef_ground_truth
 
+%                 right_hand_eef_current = extractMarkerTrajectories(joint_center_current, joint_center_headers, 'RHANDEEF')'
+%                 right_hand_eef_ground_truth
+                
                 % TODO: this should be equal, but for some reason it's not
                 % change the way that joint_centers_current is calculated, where exactly do the headers come from? How
                 % is determined what this function returns?
+                % this is not equal because the finger marker and the wrist markers are NOT on a rigid body, which is
+                % what's implicitly assumed here. Use the finger marker directly instead
                 
                 % calculate segment centers of mass
-                number_of_segments = length(segment_coms_mcs);
-%                 mcs_to_wcs_transformations = calculateMcsToWcsTransformations([marker_current joint_center_current], [marker_labels joint_center_headers], markers_by_segment);
-                mcs_to_wcs_transformations = calculateMcsToWcsTransformations_detailed([marker_current joint_center_current], [marker_labels joint_center_headers], segment_labels);
-                segment_coms_wcs = cell(number_of_segments, 1);
+                
+                % TODO: this was using the segment_com_mcs as loaded from file. I now save the segment_com_wcs in reference, so I
+                % have to transform that into segment_com_mcs first. The rationale for that is that I have to decide
+                % only here which markers I use, and don't run into danger of confusing that.
+                
+                segment_coms_wcs_reference = segment_coms_wcs;
+                number_of_segments = length(segment_coms_wcs_reference);
+                mcs_to_wcs_transformations_reference = calculateMcsToWcsTransformations_detailed([marker_reference joint_center_reference], [marker_labels joint_center_headers], segment_labels);
+                mcs_to_wcs_transformations_current = calculateMcsToWcsTransformations_detailed([marker_current joint_center_current], [marker_labels joint_center_headers], segment_labels);
+                segment_coms_wcs_current = cell(number_of_segments, 1);
                 for i_segment = 1 : number_of_segments
-                    segment_com_mcs = [segment_coms_mcs{i_segment}; 1];
-                    T_mcs_to_wcs = mcs_to_wcs_transformations{i_segment};
-                    segment_coms_wcs{i_segment} = eye(3, 4) * T_mcs_to_wcs * segment_com_mcs;
+                    segment_com_wcs_reference = [segment_coms_wcs_reference{i_segment}; 1];
+                    T_mcs_to_wcs_reference = mcs_to_wcs_transformations_reference{i_segment};
+                    T_mcs_to_wcs_current = mcs_to_wcs_transformations_current{i_segment};
+                    segment_com_mcs = T_mcs_to_wcs_reference^(-1) * segment_com_wcs_reference;
+                    segment_coms_wcs_current{i_segment} = eye(3, 4) * T_mcs_to_wcs_current * segment_com_mcs;
                 end
+%                 number_of_segments = length(segment_coms_mcs);
+% %                 mcs_to_wcs_transformations = calculateMcsToWcsTransformations([marker_current joint_center_current], [marker_labels joint_center_headers], markers_by_segment);
+%                 mcs_to_wcs_transformations = calculateMcsToWcsTransformations_detailed([marker_current joint_center_current], [marker_labels joint_center_headers], segment_labels);
+%                 segment_coms_wcs = cell(number_of_segments, 1);
+%                 for i_segment = 1 : number_of_segments
+%                     segment_com_mcs = [segment_coms_mcs{i_segment}; 1];
+%                     T_mcs_to_wcs = mcs_to_wcs_transformations{i_segment};
+%                     segment_coms_wcs{i_segment} = eye(3, 4) * T_mcs_to_wcs * segment_com_mcs;
+%                 end
                 
                 % calculate whole body center of mass
                 body_com = [0; 0; 0];
                 for i_segment = 1 : number_of_segments
-                    body_com = body_com + segment_masses(i_segment) * segment_coms_wcs{i_segment};
+                    body_com = body_com + segment_masses(i_segment) * segment_coms_wcs_current{i_segment};
                 end
                 body_com = body_com * 1 / sum(segment_masses);
                 
                 % export centers of mass
                 for i_segment = 1 : number_of_segments
-                    com_trajectories(i_time, (i_segment-1)*3+1 : (i_segment-1)*3+3) = segment_coms_wcs{i_segment};
+                    com_trajectories(i_time, (i_segment-1)*3+1 : (i_segment-1)*3+3) = segment_coms_wcs_current{i_segment};
                 end
                 com_trajectories(i_time, number_of_segments*3+1 : number_of_segments*3+3) = body_com;
                 

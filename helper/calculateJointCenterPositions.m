@@ -160,6 +160,8 @@ function joint_center_positions = ...
     rtoes_eef_foot_mcs = eye(3, 4) * T_reference_wcs_to_foot_mcs * [rtoes_eef_reference_wcs; 1];
     T_current_foot_mcs_to_wcs = transformations_current{strcmp(segment_labels, 'RFOOT')};
     rtoes_eef_current_wcs = eye(3, 4) * T_current_foot_mcs_to_wcs * [rtoes_eef_foot_mcs; 1];
+
+    
     
     % left hand eef
     T_reference_wcs_to_hand_mcs = transformations_reference{strcmp(segment_labels, 'LHAND')}^(-1);
@@ -174,6 +176,7 @@ function joint_center_positions = ...
     rhand_eef_hand_mcs = eye(3, 4) * T_reference_wcs_to_hand_mcs * [rhand_eef_reference_wcs; 1];
     T_current_hand_mcs_to_wcs = transformations_current{strcmp(segment_labels, 'RHAND')};
     rhand_eef_current_wcs = eye(3, 4) * T_current_hand_mcs_to_wcs * [rhand_eef_hand_mcs; 1];
+    
     
     % left elbow
     T_reference_wcs_to_forearm_mcs = transformations_reference{strcmp(segment_labels, 'LFOREARM')}^(-1);
