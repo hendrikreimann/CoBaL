@@ -85,12 +85,10 @@ function stepEventGui(varargin)
             headers = [headers trial_data.joint_center_labels(1, :)];
         end
         controller.kinematic_tree_controller = KinematicTreeController(kinematic_tree, scene_bound, 'none', positions);
+        % link perspectives of the stick figures
         Link = linkprop([controller.kinematic_tree_controller.sceneAxes controller.scene_figure.scene_axes], {'CameraUpVector', 'CameraPosition', 'CameraTarget', 'CameraViewAngle'}); 
         setappdata(gcf, 'StoreTheLink', Link);
     end
-    
-    % link perspectives of the stick figures
-%     Link = linkprop([controller.kinematic_tree_controller.sceneAxes controller.scene_figure.scene_axes], {'CameraUpVector', 'CameraPosition', 'CameraTarget'}); 
     
     % get list of figures from settings
     figure_list = getFiguresListFromSettings(gui_settings);
@@ -102,17 +100,19 @@ function stepEventGui(varargin)
         for i_plot = 1 : size(plot_list, 1)
             if strcmp(plot_list{i_plot, 1}, 'data')
                 variable_label = plot_list{i_plot, 2};
-                scale_factor = str2num(plot_list{i_plot, 3});
-                offset = str2num(plot_list{i_plot, 4});
-                color = [str2num(plot_list{i_plot, 5}) str2num(plot_list{i_plot, 6}) str2num(plot_list{i_plot, 7})];
-                new_figure.addDataPlot(variable_label, color, scale_factor, offset);
+                legend_label = plot_list{i_plot, 3};
+                scale_factor = str2num(plot_list{i_plot, 4});
+                offset = str2num(plot_list{i_plot, 5});
+                color = [str2num(plot_list{i_plot, 6}) str2num(plot_list{i_plot, 7}) str2num(plot_list{i_plot, 8})];
+                new_figure.addDataPlot(variable_label, legend_label, color, scale_factor, offset);
             end
             if strcmp(plot_list{i_plot, 1}, 'event')
                 event_label = plot_list{i_plot, 2};
                 variable_label = plot_list{i_plot, 3};
-                marker = plot_list{i_plot, 4};
-                color = [str2num(plot_list{i_plot, 5}) str2num(plot_list{i_plot, 6}) str2num(plot_list{i_plot, 7})];
-                new_figure.addEventPlot(variable_label, event_label, color, marker);
+                legend_label = plot_list{i_plot, 4};
+                marker = plot_list{i_plot, 5};
+                color = [str2num(plot_list{i_plot, 6}) str2num(plot_list{i_plot, 7}) str2num(plot_list{i_plot, 8})];
+                new_figure.addEventPlot(variable_label, event_label, legend_label, color, marker);
             end
                 
         end

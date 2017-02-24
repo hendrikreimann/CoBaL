@@ -25,6 +25,7 @@ classdef stepEventController < handle
         control_figure;
         saveFigureSettingsButton;
         loadFigureSettingsButton;
+        toggleLegendsButton;
         findEventsButton;
         saveEventsButton;
         addEventButtons;
@@ -66,6 +67,7 @@ classdef stepEventController < handle
 
             this.saveFigureSettingsButton = uicontrol(figures_panel, 'Style', 'pushbutton', 'Position', [5, figures_panel_height-100, 130, 60], 'Fontsize', 12, 'String', 'Save Figure Settings', 'callback', @this.saveFigureSettings);
             this.loadFigureSettingsButton = uicontrol(figures_panel, 'Style', 'pushbutton', 'Position', [140, figures_panel_height-100, 130, 60], 'Fontsize', 12, 'String', 'Load Figure Settings', 'callback', @this.loadFigureSettings);
+            this.toggleLegendsButton = uicontrol(figures_panel, 'Style', 'pushbutton', 'Position', [275, figures_panel_height-100, 130, 60], 'Fontsize', 12, 'String', 'Toggle Legends', 'callback', @this.toggleLegends);
 
             % event controls
             events_panel_height = 260;
@@ -83,7 +85,7 @@ classdef stepEventController < handle
             
             this.findStretchesButton = uicontrol(events_panel, 'Style', 'pushbutton', 'Position', [5, events_panel_height-255, 130, 60], 'Fontsize', 12, 'String', 'Find Stretches', 'callback', @this.findStretches);
             this.saveStretchesButton = uicontrol(events_panel, 'Style', 'pushbutton', 'Position', [140, events_panel_height-255, 130, 60], 'Fontsize', 12, 'String', 'Save Stretches', 'callback', @this.saveStretches);
-            this.automateStretchFindingButton = uicontrol(events_panel, 'Style', 'pushbutton', 'Position', [275, events_panel_height-255, 130, 60], 'Fontsize', 12, 'String', 'Auto Save', 'callback', @this.automateStretchFinding);
+            this.automateStretchFindingButton = uicontrol(events_panel, 'Style', 'pushbutton', 'Position', [275, events_panel_height-255, 130, 60], 'Fontsize', 12, 'String', 'Auto Save', 'callback', @this.automateStretchFinding, 'ForegroundColor', this.color_selected);
             
             % figure control
             files_panel_height = 95;
@@ -102,7 +104,6 @@ classdef stepEventController < handle
             uicontrol(scene_panel, 'Style', 'text', 'string', 'Selected time:', 'Position', [5, scene_panel_height-40, 190, 20], 'Fontsize', 10, 'HorizontalAlignment', 'left', 'BackgroundColor', 'white');
             this.selected_time_edit = uicontrol(scene_panel, 'Style', 'edit', 'BackgroundColor', 'white', 'Position', [80, scene_panel_height-37, 40, 20], 'String', '0');
         end
-        
         
         function setSelectedEvent(this, event_label, event_time)
             if nargin == 1
@@ -224,6 +225,12 @@ classdef stepEventController < handle
             if strcmp(eventdata.Key, 'e') && isempty(eventdata.Modifier)
                 this.updateTimeWindow('next');
             end
+            if strcmp(eventdata.Key, 'r') && isempty(eventdata.Modifier)
+                this.loadPreviousTrial(sender, eventdata)
+            end
+            if strcmp(eventdata.Key, 't') && isempty(eventdata.Modifier)
+                this.loadNextTrial(sender, eventdata)
+            end
             if strcmp(eventdata.Key, 'leftarrow')
                 if isempty(eventdata.Modifier)
                     this.trial_data.stepSelectedTime('back')
@@ -247,10 +254,6 @@ classdef stepEventController < handle
             if strcmp(eventdata.Key, 'z') || strcmp(eventdata.Key, 'c')
                 this.moveSelectedEvent(sender, eventdata);
             end
-            if strcmp(eventdata.Modifier, 'command') & strcmp(eventdata.Key, 'x')
-                % this won't work on windows systems, adapt that!
-                this.quit();
-            end
             if strcmp(eventdata.Key, 'delete') || strcmp(eventdata.Key, 'backspace')
                 this.event_data.updateEventTime(this.event_data.selected_event_label, this.event_data.selected_event_time, NaN);
                 this.updateEventPlots();
@@ -271,7 +274,7 @@ classdef stepEventController < handle
                 
             end
         end
-        function saveFigureSettings(this, sender, eventdata)
+        function saveFigureSettings(this, sender, eventdata) %#ok<INUSD>
             
             figure_settings = cell(1, length(this.figureSelectionBox));
             for i_figure = 1 : size(this.figureSelectionBox.String, 1)
@@ -279,25 +282,24 @@ classdef stepEventController < handle
             end
             
             scene_figure_setting = struct();
-            scene_figure_setting.position = this.scene_figure.scene_figure.Position;
+            scene_figure_setting.position = this.scene_figure.scene_figure.Position; %#ok<STRNU>
             
             control_figure_setting = struct();
-            control_figure_setting.position = this.control_figure.Position;
+            control_figure_setting.position = this.control_figure.Position; %#ok<STRNU>
             
             kinematic_tree_figure_setting = struct();
             if ~isempty(this.kinematic_tree_controller)
-                kinematic_tree_figure_setting.position = this.kinematic_tree_controller.sceneFigure.Position;
+                kinematic_tree_figure_setting.position = this.kinematic_tree_controller.sceneFigure.Position; %#ok<STRNU>
             end
             settings_file = [getUserSettingsPath filesep 'eventGuiFigureSettings.mat'];
             save(settings_file, 'figure_settings', 'control_figure_setting', 'scene_figure_setting', 'kinematic_tree_figure_setting');
         end
-        function loadFigureSettings(this, sender, eventdata)
-%             settings_file = '/Users/reimajbi/Library/Application Support/stepEventFinder/figureSettings.mat';
+        function loadFigureSettings(this, sender, eventdata) %#ok<INUSD>
             settings_file = [getUserSettingsPath filesep 'eventGuiFigureSettings.mat'];
 
             if exist(settings_file, 'file')
                 load(settings_file, 'figure_settings', 'control_figure_setting', 'scene_figure_setting', 'kinematic_tree_figure_setting')
-                for i_figure = 1 : length(figure_settings)
+                for i_figure = 1 : length(figure_settings) %#ok<USENS>
         %             if length(step_event_figures) < i_figure
         %                 step_event_figures{i_figure} = createStepEventFigure();
         %             end
@@ -310,6 +312,12 @@ classdef stepEventController < handle
                 end
             end
         end
+        function toggleLegends(this, sender, eventdata) %#ok<INUSD>
+            for i_figure = 1 : size(this.figureSelectionBox.String, 1)
+                this.figureSelectionBox.UserData{i_figure}.toggleLegend;
+            end
+        end
+        
         function findEvents(this, sender, eventdata)
             % find events
             findStepEvents('condition', this.trial_data.condition, 'trials', this.trial_data.trial_number);
@@ -331,7 +339,7 @@ classdef stepEventController < handle
             end            
         end
         
-        function findStretches(this, sender, eventdata)
+        function findStretches(this, sender, eventdata) %#ok<INUSD>
             % find stretches
             findRelevantDataStretches('condition', this.trial_data.condition, 'trials', this.trial_data.trial_number);
             
@@ -341,7 +349,7 @@ classdef stepEventController < handle
             % update plots
             this.updateStretchPatches;
         end
-        function saveStretches(this, sender, eventdata)
+        function saveStretches(this, sender, eventdata) %#ok<INUSD>
             disp('Pushing the "saveStretches" button does nothing, will be removed')
         end
         function automateStretchFinding(this, sender, eventdata)
@@ -380,7 +388,7 @@ classdef stepEventController < handle
                 this.findStretches();
             end            
         end
-        function addEventButtonPressed(this, sender, eventdata)
+        function addEventButtonPressed(this, sender, eventdata) %#ok<INUSD>
             % check if this button was pressed
             if get(sender, 'ForegroundColor') == this.color_normal
                 % set all buttons to normal
@@ -402,7 +410,7 @@ classdef stepEventController < handle
                 end
             end
         end
-        function lockAddEvents(this, sender, eventdata)
+        function lockAddEvents(this, sender, eventdata) %#ok<INUSD>
             if get(sender, 'ForegroundColor') == this.color_normal
                 set(sender, 'ForegroundColor', this.color_selected);
             else
@@ -410,7 +418,7 @@ classdef stepEventController < handle
             end
             
         end
-        function moveSelectedEvent(this, sender, eventdata)
+        function moveSelectedEvent(this, sender, eventdata) %#ok<INUSL>
             % this should eventually be moved to WalkingEventData
             
             selected_event_time_current = this.event_data.selected_event_time;
@@ -476,7 +484,7 @@ classdef stepEventController < handle
             end        
         end
         
-        function loadPreviousTrial(this, sender, eventdata)
+        function loadPreviousTrial(this, sender, eventdata) %#ok<INUSD>
             current_condition = this.trial_data.condition;
             current_trial_number = this.trial_data.trial_number;
             
@@ -504,7 +512,7 @@ classdef stepEventController < handle
             this.updateSelectedEventPlots;
             this.updateTrialLabels;
         end
-        function loadNextTrial(this, sender, eventdata)
+        function loadNextTrial(this, sender, eventdata) %#ok<INUSD>
             current_condition = this.trial_data.condition;
             current_trial_number = this.trial_data.trial_number;
             
@@ -536,7 +544,7 @@ classdef stepEventController < handle
             
             this.updateSelectedTime
         end
-        function quit(this, sender, eventdata)
+        function quit(this, sender, eventdata) %#ok<INUSD>
             try
                 close(this.scene_figure.scene_figure);
             catch exception

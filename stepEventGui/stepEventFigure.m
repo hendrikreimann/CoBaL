@@ -31,6 +31,7 @@ classdef stepEventFigure < handle;
         ignore_marker_plot;
         data_plot_offsets;
         data_plot_scale_factors;
+        has_legend_entries = false;
 
         time_extension_steps = [0.1 0.2 0.5 1 2 5 10 20 40 60 120];
         
@@ -44,9 +45,9 @@ classdef stepEventFigure < handle;
             this.main_axes = axes('ButtonDownFcn', @this.stepEventFigureClicked);
             title(figureTitle);
             hold on;
-            this.selected_event_plot = plot(0, 0, 'o', 'markersize', 15, 'linewidth', 3, 'color', [1 0.5 0], 'visible', 'off');
-            this.selected_time_plot = plot(0, 0, '+', 'markersize', 25, 'linewidth', 1, 'color', [1 1 1]*0.7, 'ButtonDownFcn', @this.stepEventFigureClicked);
-            this.ignore_marker_plot = plot(0, 0, 'x', 'markersize', 25, 'linewidth', 2, 'color', [1 0 0.5]*0.7, 'ButtonDownFcn', @this.stepEventFigureClicked);
+            this.selected_event_plot = plot(0, 0, 'o', 'markersize', 15, 'linewidth', 3, 'color', [1 0.5 0], 'visible', 'off', 'HandleVisibility', 'off');
+            this.selected_time_plot = plot(0, 0, '+', 'markersize', 25, 'linewidth', 1, 'color', [1 1 1]*0.7, 'ButtonDownFcn', @this.stepEventFigureClicked, 'HandleVisibility', 'off');
+            this.ignore_marker_plot = plot(0, 0, 'x', 'markersize', 25, 'linewidth', 2, 'color', [1 0 0.5]*0.7, 'ButtonDownFcn', @this.stepEventFigureClicked, 'HandleVisibility', 'off');
 
             % register with controller
             if strcmp(controller.figureSelectionBox.String, '<no figure>')
@@ -63,7 +64,7 @@ classdef stepEventFigure < handle;
             this.event_data = eventData;
             
         end
-        function addDataPlot(this, data_label, color, scale_factor, offset)
+        function addDataPlot(this, data_label, legend_label, color, scale_factor, offset)
             if nargin < 3
                 color = rand(1, 3);
             end
@@ -80,6 +81,12 @@ classdef stepEventFigure < handle;
                 'color', color, ...
                 'ButtonDownFcn', @this.stepEventFigureClicked ...
               );
+            if strcmp(legend_label, '~')
+                set(new_plot, 'HandleVisibility', 'off')
+            else
+                set(new_plot, 'DisplayName', strrep(legend_label, '_', ' '))
+                this.has_legend_entries = true;
+            end
             new_plot.UserData = data_label;
             this.data_plots{length(this.data_plots)+1} = new_plot;
             
@@ -87,7 +94,7 @@ classdef stepEventFigure < handle;
             this.data_plot_scale_factors(length(this.data_plot_scale_factors)+1) = scale_factor;
             
         end
-        function addEventPlot(this, data_label, event_label, color, marker)
+        function addEventPlot(this, data_label, event_label, legend_label, color, marker)
             if nargin < 3
                 color = rand(1, 3);
             end
@@ -105,6 +112,12 @@ classdef stepEventFigure < handle;
                 'marker', marker, ...
                 'ButtonDownFcn', @this.stepEventFigureClicked ...
               );
+            if strcmp(legend_label, '~')
+                set(new_plot, 'HandleVisibility', 'off')
+            else
+                set(new_plot, 'DisplayName', strrep(legend_label, '_', ' '))
+                this.has_legend_entries = true;
+            end
             new_plot.UserData = {data_plot_handle, event_label};
             this.event_plots{length(this.event_plots)+1} = new_plot;
             
@@ -188,6 +201,11 @@ classdef stepEventFigure < handle;
                 point_index = -1;
             end
         end
+        function toggleLegend(this)
+            if this.has_legend_entries
+                legend(this.main_axes, 'toggle')
+            end
+        end
         
         function setting_struct = getSetting(this)
             setting_struct = struct();
@@ -269,6 +287,7 @@ classdef stepEventFigure < handle;
                         'parent', this.main_axes, ...
                         'EdgeColor', lightenColor(this.patch_color, 0.8), ...
                         'FaceAlpha', this.patch_alpha, ...
+                        'HandleVisibility', 'off', ...
                         'ButtonDownFcn', @this.stepEventFigureClicked ...
                       ); 
                 uistack(patch_handle, 'bottom')
