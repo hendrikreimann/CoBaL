@@ -67,6 +67,7 @@ classdef WalkingDataCustodian < handle
         time_data;
         
         subject_settings;
+        study_settings;
         emg_normalization_values;
         emg_normalization_labels;
     end
@@ -86,7 +87,7 @@ classdef WalkingDataCustodian < handle
             if exist(['..' filesep '..' filesep 'studySettings.txt'], 'file')
                 study_settings_file = ['..' filesep '..' filesep 'studySettings.txt'];
             end
-            study_settings = loadSettingsFile(study_settings_file);
+            this.study_settings = loadSettingsFile(study_settings_file);
             emg_normalization_file_name = ['analysis' filesep makeFileName(date, subject_id, 'emgNormalization.mat')];
             if exist(emg_normalization_file_name, 'file')
                 emg_normalization_data = load(emg_normalization_file_name);
@@ -96,8 +97,8 @@ classdef WalkingDataCustodian < handle
             
             this.date = date;
             this.subject_id = subject_id;
-            this.variables_to_analyze = study_settings.variables_to_analyze;
-            this.number_of_time_steps_normalized = study_settings.number_of_time_steps_normalized;
+            this.variables_to_analyze = this.study_settings.variables_to_analyze;
+            this.number_of_time_steps_normalized = this.study_settings.number_of_time_steps_normalized;
             
             this.determineVariables();
         end
@@ -205,6 +206,32 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('cop_ml')
                 this.addStretchVariable('cop_ml')
             end
+            if this.isVariableToAnalyze('cop_ap_vel')
+                this.addBasicVariable('total_forceplate_cop_world')
+                this.addBasicVariable('cop_ap')
+                this.addBasicVariable('cop_ap_vel')
+                this.addStretchVariable('cop_ap_vel')
+            end
+            if this.isVariableToAnalyze('cop_ap_acc')
+                this.addBasicVariable('total_forceplate_cop_world')
+                this.addBasicVariable('cop_ap')
+                this.addBasicVariable('cop_ap_vel')
+                this.addBasicVariable('cop_ap_acc')
+                this.addStretchVariable('cop_ap_acc')
+            end
+            if this.isVariableToAnalyze('cop_ml_vel')
+                this.addBasicVariable('total_forceplate_cop_world')
+                this.addBasicVariable('cop_ml')
+                this.addBasicVariable('cop_ml_vel')
+                this.addStretchVariable('cop_ml_vel')
+            end
+            if this.isVariableToAnalyze('cop_ml_acc')
+                this.addBasicVariable('total_forceplate_cop_world')
+                this.addBasicVariable('cop_ml')
+                this.addBasicVariable('cop_ml_vel')
+                this.addBasicVariable('cop_ml_acc')
+                this.addStretchVariable('cop_ml_acc')
+            end
             if this.isVariableToAnalyze('fxl')
                 this.addBasicVariable('left_foot_wrench_world')
                 this.addBasicVariable('fxl')
@@ -264,6 +291,36 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('right_foot_wrench_world')
                 this.addBasicVariable('mzr')
                 this.addStretchVariable('mzr')
+            end
+            if this.isVariableToAnalyze('fx')
+                this.addBasicVariable('total_forceplate_wrench_world')
+                this.addBasicVariable('fx')
+                this.addStretchVariable('fx')
+            end
+            if this.isVariableToAnalyze('fy')
+                this.addBasicVariable('total_forceplate_wrench_world')
+                this.addBasicVariable('fy')
+                this.addStretchVariable('fy')
+            end
+            if this.isVariableToAnalyze('fz')
+                this.addBasicVariable('total_forceplate_wrench_world')
+                this.addBasicVariable('fz')
+                this.addStretchVariable('fz')
+            end
+            if this.isVariableToAnalyze('mx')
+                this.addBasicVariable('total_forceplate_wrench_world')
+                this.addBasicVariable('mx')
+                this.addStretchVariable('mx')
+            end
+            if this.isVariableToAnalyze('my')
+                this.addBasicVariable('total_forceplate_wrench_world')
+                this.addBasicVariable('my')
+                this.addStretchVariable('my')
+            end
+            if this.isVariableToAnalyze('mz')
+                this.addBasicVariable('total_forceplate_wrench_world')
+                this.addBasicVariable('mz')
+                this.addStretchVariable('mz')
             end
             if this.isVariableToAnalyze('body_com_to_cop_x')
                 this.addBasicVariable('total_forceplate_cop_world')
@@ -472,6 +529,24 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('body_com_z')
                 this.addStretchVariable('body_com_z')
             end
+            if this.isVariableToAnalyze('body_com_x_vel')
+                this.addBasicVariable('com_trajectories')
+                this.addBasicVariable('body_com_x')
+                this.addBasicVariable('body_com_x_vel')
+                this.addStretchVariable('body_com_x_vel')
+            end
+            if this.isVariableToAnalyze('body_com_y_vel')
+                this.addBasicVariable('com_trajectories')
+                this.addBasicVariable('body_com_y')
+                this.addBasicVariable('body_com_y_vel')
+                this.addStretchVariable('body_com_y_vel')
+            end
+            if this.isVariableToAnalyze('body_com_z_vel')
+                this.addBasicVariable('com_trajectories')
+                this.addBasicVariable('body_com_z')
+                this.addBasicVariable('body_com_z_vel')
+                this.addStretchVariable('body_com_z_vel')
+            end
             
   
         end
@@ -601,6 +676,58 @@ classdef WalkingDataCustodian < handle
                     this.basic_variable_data.cop_ml = total_forceplate_cop_world(:, 1);
                     this.time_data.cop_ml = this.time_data.total_forceplate_cop_world;
                 end
+                if strcmp(variable_name, 'cop_ap_vel')
+                    cop_ap = this.getBasicVariableData('cop_ap');
+                    cop_ap(cop_ap==0) = NaN;
+                    time = this.getTimeData('cop_ap');
+                    filter_order = this.study_settings.force_plate_derivative_filter_order;
+                    cutoff_frequency = this.study_settings.force_plate_derivative_filter_cutoff;
+                    sampling_rate = 1/median(diff(time));
+                    [b, a] = butter(filter_order, cutoff_frequency/(sampling_rate/2));	% set filter parameters for butterworth filter: 2=order of filter;
+                    cop_ap_vel = deriveByTime(nanfiltfilt(b, a, cop_ap), 1/sampling_rate);
+                    cop_ap_vel(isnan(cop_ap_vel)) = 0;
+                    this.basic_variable_data.cop_ap_vel = cop_ap_vel;
+                    this.time_data.cop_ap_vel = time;
+                end
+                if strcmp(variable_name, 'cop_ap_acc')
+                    cop_ap_vel = this.getBasicVariableData('cop_ap_vel');
+                    cop_ap_vel(cop_ap_vel==0) = NaN;
+                    time = this.getTimeData('cop_ap_vel');
+                    filter_order = this.study_settings.force_plate_derivative_filter_order;
+                    cutoff_frequency = this.study_settings.force_plate_derivative_filter_cutoff;
+                    sampling_rate = 1/median(diff(time));
+                    [b, a] = butter(filter_order, cutoff_frequency/(sampling_rate/2));	% set filter parameters for butterworth filter: 2=order of filter;
+                    cop_ap_acc = deriveByTime(nanfiltfilt(b, a, cop_ap_vel), 1/sampling_rate);
+                    cop_ap_acc(isnan(cop_ap_acc)) = 0;
+                    this.basic_variable_data.cop_ap_acc = cop_ap_acc;
+                    this.time_data.cop_ap_acc = time;
+                end
+                if strcmp(variable_name, 'cop_ml_vel')
+                    cop_ml = this.getBasicVariableData('cop_ml');
+                    cop_ml(cop_ml==0) = NaN;
+                    time = this.getTimeData('cop_ml');
+                    filter_order = this.study_settings.force_plate_derivative_filter_order;
+                    cutoff_frequency = this.study_settings.force_plate_derivative_filter_cutoff;
+                    sampling_rate = 1/median(diff(time));
+                    [b, a] = butter(filter_order, cutoff_frequency/(sampling_rate/2));	% set filter parameters for butterworth filter: 2=order of filter;
+                    cop_ml_vel = deriveByTime(nanfiltfilt(b, a, cop_ml), 1/sampling_rate);
+                    cop_ml_vel(isnan(cop_ml_vel)) = 0;
+                    this.basic_variable_data.cop_ml_vel = cop_ml_vel;
+                    this.time_data.cop_ml_vel = time;
+                end
+                if strcmp(variable_name, 'cop_ml_acc')
+                    cop_ml_vel = this.getBasicVariableData('cop_ml_vel');
+                    cop_ml_vel(cop_ml_vel==0) = NaN;
+                    time = this.getTimeData('cop_ml_vel');
+                    filter_order = this.study_settings.force_plate_derivative_filter_order;
+                    cutoff_frequency = this.study_settings.force_plate_derivative_filter_cutoff;
+                    sampling_rate = 1/median(diff(time));
+                    [b, a] = butter(filter_order, cutoff_frequency/(sampling_rate/2));	% set filter parameters for butterworth filter: 2=order of filter;
+                    cop_ml_acc = deriveByTime(nanfiltfilt(b, a, cop_ml_vel), 1/sampling_rate);
+                    cop_ml_acc(isnan(cop_ml_acc)) = 0;
+                    this.basic_variable_data.cop_ml_acc = cop_ml_acc;
+                    this.time_data.cop_ml_acc = time;
+                end
                 if strcmp(variable_name, 'fxl')
                     left_foot_wrench_world = this.getBasicVariableData('left_foot_wrench_world');
                     this.basic_variable_data.fxl = left_foot_wrench_world(:, 1);
@@ -631,7 +758,6 @@ classdef WalkingDataCustodian < handle
                     this.basic_variable_data.mzl = left_foot_wrench_world(:, 6);
                     this.time_data.mzl = this.time_data.left_foot_wrench_world;
                 end
-
                 if strcmp(variable_name, 'fxr')
                     right_foot_wrench_world = this.getBasicVariableData('right_foot_wrench_world');
                     this.basic_variable_data.fxr = right_foot_wrench_world(:, 1);
@@ -662,7 +788,36 @@ classdef WalkingDataCustodian < handle
                     this.basic_variable_data.mzr = right_foot_wrench_world(:, 6);
                     this.time_data.mzr = this.time_data.right_foot_wrench_world;
                 end
-                
+                if strcmp(variable_name, 'fx')
+                    total_forceplate_wrench_world = this.getBasicVariableData('total_forceplate_wrench_world');
+                    this.basic_variable_data.fx = total_forceplate_wrench_world(:, 1);
+                    this.time_data.fx = this.time_data.total_forceplate_wrench_world;
+                end
+                if strcmp(variable_name, 'fy')
+                    total_forceplate_wrench_world = this.getBasicVariableData('total_forceplate_wrench_world');
+                    this.basic_variable_data.fy = total_forceplate_wrench_world(:, 2);
+                    this.time_data.fy = this.time_data.total_forceplate_wrench_world;
+                end
+                if strcmp(variable_name, 'fz')
+                    total_forceplate_wrench_world = this.getBasicVariableData('total_forceplate_wrench_world');
+                    this.basic_variable_data.fz = total_forceplate_wrench_world(:, 3);
+                    this.time_data.fz = this.time_data.total_forceplate_wrench_world;
+                end
+                if strcmp(variable_name, 'mx')
+                    total_forceplate_wrench_world = this.getBasicVariableData('total_forceplate_wrench_world');
+                    this.basic_variable_data.mx = total_forceplate_wrench_world(:, 4);
+                    this.time_data.mx = this.time_data.total_forceplate_wrench_world;
+                end
+                if strcmp(variable_name, 'my')
+                    total_forceplate_wrench_world = this.getBasicVariableData('total_forceplate_wrench_world');
+                    this.basic_variable_data.my = total_forceplate_wrench_world(:, 5);
+                    this.time_data.my = this.time_data.total_forceplate_wrench_world;
+                end
+                if strcmp(variable_name, 'mz')
+                    total_forceplate_wrench_world = this.getBasicVariableData('total_forceplate_wrench_world');
+                    this.basic_variable_data.mz = total_forceplate_wrench_world(:, 6);
+                    this.time_data.mz = this.time_data.total_forceplate_wrench_world;
+                end
                 if strcmp(variable_name, 'left_arm_right_leg_relative_phase')
                     left_arm_phase = this.getBasicVariableData('left_arm_phase');
                     right_leg_phase = this.getBasicVariableData('right_leg_phase');
@@ -729,6 +884,30 @@ classdef WalkingDataCustodian < handle
                     body_com_trajectory = extractMarkerTrajectories(this.basic_variable_data.com_trajectories, this.basic_variable_labels.com_trajectories, 'BODYCOM');
                     this.basic_variable_data.body_com_z = body_com_trajectory(:, 3);
                     this.time_data.body_com_z = this.time_data.com_trajectories;
+                end
+                if strcmp(variable_name, 'body_com_x_vel')
+                    body_com_x = this.getBasicVariableData('body_com_x');
+                    time = this.getTimeData('body_com_x');
+                    sampling_rate = 1/median(diff(time));
+                    body_com_x_vel = deriveByTime(nanfiltfilt(b, a, body_com_x), 1/sampling_rate);
+                    this.basic_variable_data.body_com_x_vel = body_com_x_vel;
+                    this.time_data.body_com_x_vel = time;
+                end
+                if strcmp(variable_name, 'body_com_y_vel')
+                    body_com_y = this.getBasicVariableData('body_com_y');
+                    time = this.getTimeData('body_com_y');
+                    sampling_rate = 1/median(diff(time));
+                    body_com_y_vel = deriveByTime(nanfiltfilt(b, a, body_com_y), 1/sampling_rate);
+                    this.basic_variable_data.body_com_y_vel = body_com_y_vel;
+                    this.time_data.body_com_y_vel = time;
+                end
+                if strcmp(variable_name, 'body_com_z_vel')
+                    body_com_z = this.getBasicVariableData('body_com_z');
+                    time = this.getTimeData('body_com_z');
+                    sampling_rate = 1/median(diff(time));
+                    body_com_z_vel = deriveByTime(nanfiltfilt(b, a, body_com_z), 1/sampling_rate);
+                    this.basic_variable_data.body_com_z_vel = body_com_z_vel;
+                    this.time_data.body_com_x_vel = time;
                 end
             end
         end
@@ -859,8 +1038,6 @@ classdef WalkingDataCustodian < handle
                             stretch_data = NaN;
                         end
                     end
-                    
-                    
                     if strcmp(variable_name, 'body_com_to_cop_x')
                         body_com_x = stretch_variables{strcmp(this.stretch_variable_names, 'body_com_x')}(:, i_stretch);
                         cop_ml = stretch_variables{strcmp(this.stretch_variable_names, 'cop_ml')}(:, i_stretch);
@@ -871,7 +1048,9 @@ classdef WalkingDataCustodian < handle
                         cop_ap = stretch_variables{strcmp(this.stretch_variable_names, 'cop_ap')}(:, i_stretch);
                         stretch_data = cop_ap - body_com_y;
                     end
-                    
+                    if strcmp(variable_name, 'cop_ap_vel')
+                        
+                    end
                     if strcmp(variable_name, 'left_glut_med_rescaled')
                         left_glut_med = this.getTimeNormalizedData('left_glut_med', this_stretch_start_time, this_stretch_end_time);
                         normalization_value = this.emg_normalization_values(strcmp(this.emg_normalization_labels, 'left_glut_med'));
