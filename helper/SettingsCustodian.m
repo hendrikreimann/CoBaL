@@ -26,11 +26,24 @@ classdef SettingsCustodian < handle
             
         end
         function data = get(this, property_name)
+            % set to default
+            data = this.getDefaultSetting(property_name);
+            
+            % try reading from settings file
             if isfield(this.settings_struct, property_name)
                 eval(['data = this.settings_struct.' property_name ';']);
-            else
-                data = [];
             end
+        end
+        
+        function default_data = getDefaultSetting(this, property_name)
+            % general default is empty set
+            default_data = [];
+            
+            % apply specific default values
+            if strcmp(property_name, 'data_stretch_padding')
+                default_data = 0;
+            end
+            
         end
     
         function settings_names = getAllSettingsNames(this)
