@@ -32,6 +32,12 @@
 
 function optimizeKinematicTrajectories(varargin)
     [condition_list, trial_number_list] = parseTrialArguments(varargin{:});
+    parser = inputParser;
+    parser.KeepUnmatched = true;
+    addParameter(parser, 'use_parallel', false)
+    parse(parser, varargin{:})
+    use_parallel = parser.Results.use_parallel;
+    
     
     % load settings
     study_settings_file = '';
@@ -60,7 +66,7 @@ function optimizeKinematicTrajectories(varargin)
         
     end
     
-    %% create limb plants
+    %% create limb kinematic_trees
 
     % extract reference positions
     kinematic_tree.jointAngles = zeros(kinematic_tree.numberOfJoints, 1);
@@ -198,69 +204,69 @@ function optimizeKinematicTrajectories(varargin)
     end
 
     % add markers to left leg tree
-    last_left_hip_joint_index_in_limb_plant = left_hip_joints(end) - (left_leg_joints(1) - 1);
+    last_left_hip_joint_index_in_limb_kinematic_tree = left_hip_joints(end) - (left_leg_joints(1) - 1);
     for i_marker = 1 : size(kinematic_tree.markerReferencePositions{left_hip_joints(end)}, 2)
-        left_leg_chain.addMarker(last_left_hip_joint_index_in_limb_plant, kinematic_tree.markerReferencePositions{left_hip_joints(end)}(1:3, i_marker), kinematic_tree.getMarkerVisualizationColor(left_hip_joints(end), i_marker));
+        left_leg_chain.addMarker(last_left_hip_joint_index_in_limb_kinematic_tree, kinematic_tree.markerReferencePositions{left_hip_joints(end)}(1:3, i_marker), kinematic_tree.getMarkerVisualizationColor(left_hip_joints(end), i_marker));
     end
-    last_left_knee_joint_index_in_limb_plant = left_knee_joints(end) - (left_leg_joints(1) - 1);
+    last_left_knee_joint_index_in_limb_kinematic_tree = left_knee_joints(end) - (left_leg_joints(1) - 1);
     for i_marker = 1 : size(kinematic_tree.markerReferencePositions{left_knee_joints(end)}, 2)
-        left_leg_chain.addMarker(last_left_knee_joint_index_in_limb_plant, kinematic_tree.markerReferencePositions{left_knee_joints(end)}(1:3, i_marker), kinematic_tree.getMarkerVisualizationColor(left_knee_joints(end), i_marker));
+        left_leg_chain.addMarker(last_left_knee_joint_index_in_limb_kinematic_tree, kinematic_tree.markerReferencePositions{left_knee_joints(end)}(1:3, i_marker), kinematic_tree.getMarkerVisualizationColor(left_knee_joints(end), i_marker));
     end
-    last_left_ankle_joint_index_in_limb_plant = left_ankle_joints(end) - (left_leg_joints(1) - 1);
+    last_left_ankle_joint_index_in_limb_kinematic_tree = left_ankle_joints(end) - (left_leg_joints(1) - 1);
     for i_marker = 1 : size(kinematic_tree.markerReferencePositions{left_ankle_joints(end)}, 2)
-        left_leg_chain.addMarker(last_left_ankle_joint_index_in_limb_plant, kinematic_tree.markerReferencePositions{left_ankle_joints(end)}(1:3, i_marker), kinematic_tree.getMarkerVisualizationColor(left_ankle_joints(end), i_marker));
+        left_leg_chain.addMarker(last_left_ankle_joint_index_in_limb_kinematic_tree, kinematic_tree.markerReferencePositions{left_ankle_joints(end)}(1:3, i_marker), kinematic_tree.getMarkerVisualizationColor(left_ankle_joints(end), i_marker));
     end
     
     % add markers to right leg tree
-    last_right_hip_joint_index_in_limb_plant = right_hip_joints(end) - (right_leg_joints(1) - 1);
+    last_right_hip_joint_index_in_limb_kinematic_tree = right_hip_joints(end) - (right_leg_joints(1) - 1);
     for i_marker = 1 : size(kinematic_tree.markerReferencePositions{right_hip_joints(end)}, 2)
-        right_leg_chain.addMarker(last_right_hip_joint_index_in_limb_plant, kinematic_tree.markerReferencePositions{right_hip_joints(end)}(1:3, i_marker), kinematic_tree.getMarkerVisualizationColor(right_hip_joints(end), i_marker));
+        right_leg_chain.addMarker(last_right_hip_joint_index_in_limb_kinematic_tree, kinematic_tree.markerReferencePositions{right_hip_joints(end)}(1:3, i_marker), kinematic_tree.getMarkerVisualizationColor(right_hip_joints(end), i_marker));
     end
-    last_right_knee_joint_index_in_limb_plant = right_knee_joints(end) - (right_leg_joints(1) - 1);
+    last_right_knee_joint_index_in_limb_kinematic_tree = right_knee_joints(end) - (right_leg_joints(1) - 1);
     for i_marker = 1 : size(kinematic_tree.markerReferencePositions{right_knee_joints(end)}, 2)
-        right_leg_chain.addMarker(last_right_knee_joint_index_in_limb_plant, kinematic_tree.markerReferencePositions{right_knee_joints(end)}(1:3, i_marker), kinematic_tree.getMarkerVisualizationColor(right_knee_joints(end), i_marker));
+        right_leg_chain.addMarker(last_right_knee_joint_index_in_limb_kinematic_tree, kinematic_tree.markerReferencePositions{right_knee_joints(end)}(1:3, i_marker), kinematic_tree.getMarkerVisualizationColor(right_knee_joints(end), i_marker));
     end
-    last_right_ankle_joint_index_in_limb_plant = right_ankle_joints(end) - (right_leg_joints(1) - 1);
+    last_right_ankle_joint_index_in_limb_kinematic_tree = right_ankle_joints(end) - (right_leg_joints(1) - 1);
     for i_marker = 1 : size(kinematic_tree.markerReferencePositions{right_ankle_joints(end)}, 2)
-        right_leg_chain.addMarker(last_right_ankle_joint_index_in_limb_plant, kinematic_tree.markerReferencePositions{right_ankle_joints(end)}(1:3, i_marker), kinematic_tree.getMarkerVisualizationColor(right_ankle_joints(end), i_marker));
+        right_leg_chain.addMarker(last_right_ankle_joint_index_in_limb_kinematic_tree, kinematic_tree.markerReferencePositions{right_ankle_joints(end)}(1:3, i_marker), kinematic_tree.getMarkerVisualizationColor(right_ankle_joints(end), i_marker));
     end
     
     % add markers to torso tree
-    last_lumbar_joint_index_in_limb_plant = lumbar_joints(end) - (torso_joints(1) - 1);
+    last_lumbar_joint_index_in_limb_kinematic_tree = lumbar_joints(end) - (torso_joints(1) - 1);
     for i_marker = 1 : size(kinematic_tree.markerReferencePositions{lumbar_joints(end)}, 2)
-        torso_chain.addMarker(last_lumbar_joint_index_in_limb_plant, kinematic_tree.markerReferencePositions{lumbar_joints(end)}(1:3, i_marker), kinematic_tree.getMarkerVisualizationColor(lumbar_joints(end), i_marker));
+        torso_chain.addMarker(last_lumbar_joint_index_in_limb_kinematic_tree, kinematic_tree.markerReferencePositions{lumbar_joints(end)}(1:3, i_marker), kinematic_tree.getMarkerVisualizationColor(lumbar_joints(end), i_marker));
     end
-    last_cervix_joint_index_in_limb_plant = cervix_joints(end) - (torso_joints(1) - 1);
+    last_cervix_joint_index_in_limb_kinematic_tree = cervix_joints(end) - (torso_joints(1) - 1);
     for i_marker = 1 : size(kinematic_tree.markerReferencePositions{cervix_joints(end)}, 2)
-        torso_chain.addMarker(last_cervix_joint_index_in_limb_plant, kinematic_tree.markerReferencePositions{cervix_joints(end)}(1:3, i_marker), kinematic_tree.getMarkerVisualizationColor(cervix_joints(end), i_marker));
+        torso_chain.addMarker(last_cervix_joint_index_in_limb_kinematic_tree, kinematic_tree.markerReferencePositions{cervix_joints(end)}(1:3, i_marker), kinematic_tree.getMarkerVisualizationColor(cervix_joints(end), i_marker));
     end
     
     % add markers to left arm tree
-    last_left_shoulder_joint_index_in_limb_plant = left_shoulder_joints(end) - (left_arm_joints(1) - 1);
+    last_left_shoulder_joint_index_in_limb_kinematic_tree = left_shoulder_joints(end) - (left_arm_joints(1) - 1);
     for i_marker = 1 : size(kinematic_tree.markerReferencePositions{left_shoulder_joints(end)}, 2)
-        left_arm_chain.addMarker(last_left_shoulder_joint_index_in_limb_plant, kinematic_tree.markerReferencePositions{left_shoulder_joints(end)}(1:3, i_marker), kinematic_tree.getMarkerVisualizationColor(left_shoulder_joints(end), i_marker));
+        left_arm_chain.addMarker(last_left_shoulder_joint_index_in_limb_kinematic_tree, kinematic_tree.markerReferencePositions{left_shoulder_joints(end)}(1:3, i_marker), kinematic_tree.getMarkerVisualizationColor(left_shoulder_joints(end), i_marker));
     end
-    last_left_elbow_joint_index_in_limb_plant = left_elbow_joints(end) - (left_arm_joints(1) - 1);
+    last_left_elbow_joint_index_in_limb_kinematic_tree = left_elbow_joints(end) - (left_arm_joints(1) - 1);
     for i_marker = 1 : size(kinematic_tree.markerReferencePositions{left_elbow_joints(end)}, 2)
-        left_arm_chain.addMarker(last_left_elbow_joint_index_in_limb_plant, kinematic_tree.markerReferencePositions{left_elbow_joints(end)}(1:3, i_marker), kinematic_tree.getMarkerVisualizationColor(left_elbow_joints(end), i_marker));
+        left_arm_chain.addMarker(last_left_elbow_joint_index_in_limb_kinematic_tree, kinematic_tree.markerReferencePositions{left_elbow_joints(end)}(1:3, i_marker), kinematic_tree.getMarkerVisualizationColor(left_elbow_joints(end), i_marker));
     end
-    last_left_wrist_joint_index_in_limb_plant = left_wrist_joints(end) - (left_arm_joints(1) - 1);
+    last_left_wrist_joint_index_in_limb_kinematic_tree = left_wrist_joints(end) - (left_arm_joints(1) - 1);
     for i_marker = 1 : size(kinematic_tree.markerReferencePositions{left_wrist_joints(end)}, 2)
-        left_arm_chain.addMarker(last_left_wrist_joint_index_in_limb_plant, kinematic_tree.markerReferencePositions{left_wrist_joints(end)}(1:3, i_marker), kinematic_tree.getMarkerVisualizationColor(left_wrist_joints(end), i_marker));
+        left_arm_chain.addMarker(last_left_wrist_joint_index_in_limb_kinematic_tree, kinematic_tree.markerReferencePositions{left_wrist_joints(end)}(1:3, i_marker), kinematic_tree.getMarkerVisualizationColor(left_wrist_joints(end), i_marker));
     end
     
     % add markers to right arm tree
-    last_right_shoulder_joint_index_in_limb_plant = right_shoulder_joints(end) - (right_arm_joints(1) - 1);
+    last_right_shoulder_joint_index_in_limb_kinematic_tree = right_shoulder_joints(end) - (right_arm_joints(1) - 1);
     for i_marker = 1 : size(kinematic_tree.markerReferencePositions{right_shoulder_joints(end)}, 2)
-        right_arm_chain.addMarker(last_right_shoulder_joint_index_in_limb_plant, kinematic_tree.markerReferencePositions{right_shoulder_joints(end)}(1:3, i_marker), kinematic_tree.getMarkerVisualizationColor(right_shoulder_joints(end), i_marker));
+        right_arm_chain.addMarker(last_right_shoulder_joint_index_in_limb_kinematic_tree, kinematic_tree.markerReferencePositions{right_shoulder_joints(end)}(1:3, i_marker), kinematic_tree.getMarkerVisualizationColor(right_shoulder_joints(end), i_marker));
     end
-    last_right_elbow_joint_index_in_limb_plant = right_elbow_joints(end) - (right_arm_joints(1) - 1);
+    last_right_elbow_joint_index_in_limb_kinematic_tree = right_elbow_joints(end) - (right_arm_joints(1) - 1);
     for i_marker = 1 : size(kinematic_tree.markerReferencePositions{right_elbow_joints(end)}, 2)
-        right_arm_chain.addMarker(last_right_elbow_joint_index_in_limb_plant, kinematic_tree.markerReferencePositions{right_elbow_joints(end)}(1:3, i_marker), kinematic_tree.getMarkerVisualizationColor(right_elbow_joints(end), i_marker));
+        right_arm_chain.addMarker(last_right_elbow_joint_index_in_limb_kinematic_tree, kinematic_tree.markerReferencePositions{right_elbow_joints(end)}(1:3, i_marker), kinematic_tree.getMarkerVisualizationColor(right_elbow_joints(end), i_marker));
     end
-    last_right_wrist_joint_index_in_limb_plant = right_wrist_joints(end) - (right_arm_joints(1) - 1);
+    last_right_wrist_joint_index_in_limb_kinematic_tree = right_wrist_joints(end) - (right_arm_joints(1) - 1);
     for i_marker = 1 : size(kinematic_tree.markerReferencePositions{right_wrist_joints(end)}, 2)
-        right_arm_chain.addMarker(last_right_wrist_joint_index_in_limb_plant, kinematic_tree.markerReferencePositions{right_wrist_joints(end)}(1:3, i_marker), kinematic_tree.getMarkerVisualizationColor(right_wrist_joints(end), i_marker));
+        right_arm_chain.addMarker(last_right_wrist_joint_index_in_limb_kinematic_tree, kinematic_tree.markerReferencePositions{right_wrist_joints(end)}(1:3, i_marker), kinematic_tree.getMarkerVisualizationColor(right_wrist_joints(end), i_marker));
     end
     
     
@@ -314,7 +320,7 @@ function optimizeKinematicTrajectories(varargin)
 %     left_leg_chain.updateConfiguration();
 %     torso_chain.updateConfiguration();
 % 
-%     right_thigh_marker_positions_from_right_leg = right_leg_chain.markerPositions{last_right_hip_joint_index_in_limb_plant};
+%     right_thigh_marker_positions_from_right_leg = right_leg_chain.markerPositions{last_right_hip_joint_index_in_limb_kinematic_tree};
 %     right_thigh_marker_positions_from_full = kinematic_tree.markerPositions{right_hip_joints(end)};
 %     pelvis_to_world_poe = pelvis_chain.productsOfExponentials{pelvis_joints(end)};
 %     right_thigh_marker_positions_from_right_leg_transformed = pelvis_to_world_poe * right_thigh_marker_positions_from_right_leg; % should be equal to right_thigh_marker_positions_from_full
@@ -333,31 +339,76 @@ function optimizeKinematicTrajectories(varargin)
             
             number_of_time_steps = size(marker_trajectories, 1);
 
+            % determine time steps to optimize
+            time_steps_to_optimize = 1 : number_of_time_steps;
+            time_steps_to_optimize = 1 : 20;
+            
+            time_steps_to_optimize = determineTimeStepsToOptimize(date, subject_id, condition, i_trial, study_settings.get('data_stretch_padding'));
+
             % optimize
             joint_angle_trajectories_calculated = joint_angle_trajectories;
-            
-            
             joint_angle_trajectories_optimized = zeros(size(joint_angle_trajectories_calculated));
-            
             weight_matrix = ones(1, size(marker_trajectories, 2)/3); % TODO: make this a setting
             
             tic
-            time_steps_to_optimize = 1 : number_of_time_steps;
-%             time_steps_to_optimize = 1 : 2;
-            joint_angle_trajectories_optimized(time_steps_to_optimize, :) = ...
-            optimizeJointAngles ...
-            ( ...
-              kinematic_tree, ...
-              pelvis_chain, ...
-              left_leg_chain, ...
-              right_leg_chain, ...
-              torso_chain, ...
-              left_arm_chain, ...
-              right_arm_chain, ...
-              marker_trajectories(time_steps_to_optimize, :), ...
-              joint_angle_trajectories_calculated(time_steps_to_optimize, :), ...
-              weight_matrix ...
-            );
+            if use_parallel
+                joint_angle_trajectories_optimized_pool = zeros(size(joint_angle_trajectories_optimized));
+                number_of_time_steps_to_optimize = length(time_steps_to_optimize);
+
+                % get or open pool of workers
+                poolobject = gcp;
+                number_of_labs = poolobject.NumWorkers;
+
+                spmd
+                    % create a copy of the kinematic_tree for each worker
+                    kinematic_tree_pool = kinematic_tree.copy;
+                    pelvis_chain_pool = pelvis_chain.copy;
+                    left_leg_chain_pool = left_leg_chain.copy;
+                    right_leg_chain_pool = right_leg_chain.copy;
+                    torso_chain_pool = torso_chain.copy;
+                    left_arm_chain_pool = left_arm_chain.copy;
+                    right_arm_chain_pool = right_arm_chain.copy;
+
+                    time_steps_to_optimize_lab = time_steps_to_optimize(labindex : numlabs : number_of_time_steps_to_optimize);
+
+                    joint_angle_trajectories_optimized_pool(time_steps_to_optimize_lab, :) = ...
+                    optimizeJointAngles ...
+                    ( ...
+                      kinematic_tree_pool, ...
+                      pelvis_chain_pool, ...
+                      left_leg_chain_pool, ...
+                      right_leg_chain_pool, ...
+                      torso_chain_pool, ...
+                      left_arm_chain_pool, ...
+                      right_arm_chain_pool, ...
+                      marker_trajectories(time_steps_to_optimize_lab, :), ...
+                      joint_angle_trajectories_calculated(time_steps_to_optimize, :), ...
+                      weight_matrix ...
+                    );        
+                end
+
+                % reassemble
+                for i_lab = 1 : number_of_labs
+                    joint_angle_trajectories_optimized_lab = joint_angle_trajectories_optimized_pool{i_lab};
+                    joint_angle_trajectories_optimized(time_steps_to_optimize(i_lab : number_of_labs : number_of_time_steps_to_optimize), :) = joint_angle_trajectories_optimized_lab(time_steps_to_optimize(i_lab : number_of_labs : number_of_time_steps_to_optimize), :);
+                end                  
+                
+            else
+                joint_angle_trajectories_optimized(time_steps_to_optimize, :) = ...
+                optimizeJointAngles ...
+                ( ...
+                  kinematic_tree, ...
+                  pelvis_chain, ...
+                  left_leg_chain, ...
+                  right_leg_chain, ...
+                  torso_chain, ...
+                  left_arm_chain, ...
+                  right_arm_chain, ...
+                  marker_trajectories(time_steps_to_optimize, :), ...
+                  joint_angle_trajectories_calculated(time_steps_to_optimize, :), ...
+                  weight_matrix ...
+                );
+            end
             toc
                 
             % calculate CoM
@@ -390,11 +441,11 @@ function optimizeKinematicTrajectories(varargin)
             % save
             variables_to_save = struct;
             variables_to_save.joint_angle_trajectories_calculated = joint_angle_trajectories_calculated;
-            variables_to_save.joint_angle_trajectories_optimized = joint_angle_trajectories_optimized;
+            variables_to_save.joint_angle_trajectories = joint_angle_trajectories_optimized;
             variables_to_save.joint_center_trajectories_calculated = joint_center_trajectories_calculated;
-            variables_to_save.joint_center_trajectories_optimized = joint_center_trajectories_optimized;
+            variables_to_save.joint_center_trajectories = joint_center_trajectories_optimized;
             variables_to_save.com_trajectories_calculated = com_trajectories_calculated;
-            variables_to_save.com_trajectories_optimized = com_trajectories_optimized;
+            variables_to_save.com_trajectories = com_trajectories_optimized;
             
             save_folder = 'processed';
             save_file_name = makeFileName(date, subject_id, condition, i_trial, 'kinematicTrajectories.mat');
@@ -402,11 +453,43 @@ function optimizeKinematicTrajectories(varargin)
             disp(['Condition ' condition ', Trial ' num2str(i_trial) ' completed, saved as ' save_folder filesep save_file_name]);
 
             addAvailableData('joint_center_trajectories_calculated', 'time_mocap', 'sampling_rate_mocap', 'joint_center_labels', save_folder, save_file_name);
-            addAvailableData('joint_center_trajectories_optimized', 'time_mocap', 'sampling_rate_mocap', 'joint_center_labels', save_folder, save_file_name);
             addAvailableData('com_trajectories_calculated', 'time_mocap', 'sampling_rate_mocap', 'com_labels', save_folder, save_file_name);
-            addAvailableData('com_trajectories_optimized', 'time_mocap', 'sampling_rate_mocap', 'com_labels', save_folder, save_file_name);
             addAvailableData('joint_angle_trajectories_calculated', 'time_mocap', 'sampling_rate_mocap', 'joint_angle_trajectories_calculated', save_folder, save_file_name);
-            addAvailableData('joint_angle_trajectories_optimized', 'time_mocap', 'sampling_rate_mocap', 'joint_angle_trajectories_optimized', save_folder, save_file_name);
         end
     end
 end
+
+function time_steps_to_optimize = determineTimeStepsToOptimize(date, subject_id, condition, trial_number, padding)
+    load(['processed' filesep makeFileName(date, subject_id, condition, trial_number, 'markerTrajectories')]);
+    load(['analysis' filesep makeFileName(date, subject_id, condition, trial_number, 'relevantDataStretches')]);
+    
+    time_steps_to_optimize_indicator = false(length(time_mocap), 1);
+    for i_stretch = 1 : length(stretch_start_times)
+        % get unpadded stretches as indices
+        this_stretch_start_time = stretch_start_times(i_stretch);
+        this_stretch_end_time = stretch_end_times(i_stretch);
+        [~, this_stretch_start_index_mocap] = min(abs(this_stretch_start_time - time_mocap));
+        [~, this_stretch_end_index_mocap] = min(abs(this_stretch_end_time - time_mocap));
+        
+        % add padding 
+        this_stretch_start_index_mocap_padded = max([this_stretch_start_index_mocap - padding, 1]);
+        this_stretch_end_index_mocap_padded = min([this_stretch_end_index_mocap + padding, length(time_mocap)]);
+        
+        % flip indicators
+        time_steps_to_optimize_indicator(this_stretch_start_index_mocap_padded : this_stretch_end_index_mocap_padded) = true;
+    end
+    
+    time_steps_to_optimize = find(time_steps_to_optimize_indicator);
+end
+
+
+
+
+
+
+
+
+
+
+
+
