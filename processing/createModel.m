@@ -378,9 +378,6 @@ function createModel(varargin)
     left_knee_cor = left_lateral_femoral_epicondyle - kjc_correction_factor*knee_width*left_knee_flexion_axis;
     right_knee_cor = right_lateral_femoral_epicondyle + kjc_correction_factor*knee_width*right_knee_flexion_axis;
 
-
-
-
     %% calculate other joint centers and axes
     % define correction factors for joint centers
     ajc_correction_factor = 0.5;
@@ -1029,11 +1026,7 @@ function createModel(varargin)
 
     number_of_segments = length(segment_labels);
 
-    % mcs_to_wcs_transformations = calculateMcsToWcsTransformations([marker_reference joint_center_reference], [marker_labels joint_center_headers], markers_by_segment);
-%     mcs_to_wcs_transformations_old = calculateMcsToWcsTransformations_detailed([marker_reference joint_center_reference], [marker_labels joint_center_headers], segment_labels);
     mcs_to_wcs_transformations = calculateMcsToWcsTransformations_new([marker_reference joint_center_reference], [marker_labels joint_center_headers], segment_labels);
-    % TODO: this should be _new instead of _detailed, although it doesn't really seem to matter, i.e. it's not right in principle, but in this specific case 
-    % the results seem to be the same
     pelvis_transformation_current = mcs_to_wcs_transformations{strcmp(segment_labels, 'PELVIS')};
 
     % assemble segment masses
@@ -1222,18 +1215,86 @@ function createModel(varargin)
         'left shoulder flexion/extension', 'left shoulder ab/adduction', 'left shoulder in/external rotation', 'left elbow flexion/extension', 'left pronation/supination', 'left wrist flexion/extension', ...
         'right shoulder flexion/extension', 'right shoulder ab/adduction', 'right shoulder in/external rotation', 'right elbow flexion/extension', 'right pronation/supination', 'right wrist flexion/extension', ...
       };
+    kinematic_tree.endEffectorLabels = ...
+      { ...
+        'left heel', ...
+        'left toes', ...
+        'left ankle', ...
+        'right heel', ...
+        'right toes', ...
+        'right ankle', ...
+        'head', ...
+        'left hand', ...
+        'right hand', ...
+        'pelvis' ...
+      };
     kinematic_tree.markerLabels = marker_labels;
 
-    % define markers
-    marker_segment_list = createMarkerSegmentList(marker_labels);
-    marker_color_list = createMarkerColorList(marker_labels);
+    % add segment labels and joint centers
+    kinematic_tree.addSegmentLabel('HEAD', 26);
+    kinematic_tree.addSegmentLabel('TORSO', 23);
+    kinematic_tree.addSegmentLabel('LUPPERARM', 29);
+    kinematic_tree.addSegmentLabel('RUPPERARM', 35);
+    kinematic_tree.addSegmentLabel('LFOREARM', 31);
+    kinematic_tree.addSegmentLabel('RFOREARM', 37);
+    kinematic_tree.addSegmentLabel('LHAND', 32);
+    kinematic_tree.addSegmentLabel('RHAND', 38);
+    kinematic_tree.addSegmentLabel('PELVIS', 6);
+    kinematic_tree.addSegmentLabel('LTHIGH', 9);
+    kinematic_tree.addSegmentLabel('RTHIGH', 16);
+    kinematic_tree.addSegmentLabel('LSHANK', 11);
+    kinematic_tree.addSegmentLabel('RSHANK', 18);
+    kinematic_tree.addSegmentLabel('LFOOT', 13);
+    kinematic_tree.addSegmentLabel('RFOOT', 20);
+    
+    kinematic_tree.addPointOfInterest('CERVIXCOR', cervix_cor, 26);
+    kinematic_tree.addPointOfInterest('LSHOULDERCOR', left_shoulder_cor, 26);
+    kinematic_tree.addPointOfInterest('RSHOULDERCOR', right_shoulder_cor, 26);
+    kinematic_tree.addPointOfInterest('LELBOWCOR', left_elbow_cor, 26);
+    kinematic_tree.addPointOfInterest('RELBOWCOR', right_elbow_cor, 26);
+    kinematic_tree.addPointOfInterest('LWRISTCOR', left_wrist_cor, 26);
+    kinematic_tree.addPointOfInterest('RWRISTCOR', right_wrist_cor, 26);
+    kinematic_tree.addPointOfInterest('LUMBARCOR', lumbar_cor, 26);
+    kinematic_tree.addPointOfInterest('LHIPCOR', left_hip_cor, 26);
+    kinematic_tree.addPointOfInterest('RHIPCOR', right_hip_cor, 26);
+    kinematic_tree.addPointOfInterest('LKNEECOR', left_knee_cor, 26);
+    kinematic_tree.addPointOfInterest('RKNEECOR', right_knee_cor, 26);
+    kinematic_tree.addPointOfInterest('LANKLECOR', left_ankle_cor, 26);
+    kinematic_tree.addPointOfInterest('RANKLECOR', right_ankle_cor, 26);
+    kinematic_tree.addPointOfInterest('LTOESEEF', left_toe_mid, 26);
+    kinematic_tree.addPointOfInterest('RTOESEEF', right_toe_mid, 26);
+    kinematic_tree.addPointOfInterest('LHANDEEF', left_hand_mid, 26);
+    kinematic_tree.addPointOfInterest('RHANDEEF', right_hand_mid, 26);
+    
+    % define joint groups
+    kinematic_tree.addJointGroup('pelvis', 1:6);
+    kinematic_tree.addJointGroup('left leg', 7:13);
+    kinematic_tree.addJointGroup('right leg', 14:20);
+    kinematic_tree.addJointGroup('torso', 21:26);
+    kinematic_tree.addJointGroup('left arm', 27:32);
+    kinematic_tree.addJointGroup('right arm', 33:38);
 
-
-
+    kinematic_tree.addJointGroup('left hip', 7:9);
+    kinematic_tree.addJointGroup('left knee', 10:11);
+    kinematic_tree.addJointGroup('left ankle', 12:13);
+    kinematic_tree.addJointGroup('right hip', 14:16);
+    kinematic_tree.addJointGroup('right knee', 17:18);
+    kinematic_tree.addJointGroup('right ankle', 19:20);
+    kinematic_tree.addJointGroup('lumbar', 21:23);
+    kinematic_tree.addJointGroup('cervix', 24:26);
+    kinematic_tree.addJointGroup('left shoulder', 27:29);
+    kinematic_tree.addJointGroup('left elbow', 30:31);
+    kinematic_tree.addJointGroup('left wrist', 32);
+    kinematic_tree.addJointGroup('right shoulder', 33:35);
+    kinematic_tree.addJointGroup('right elbow', 36:37);
+    kinematic_tree.addJointGroup('right wrist', 38);
 
 
     % TODO: deal with cases where some of these don't exist or are misnamed
     
+    % define markers
+    marker_segment_list = createMarkerSegmentList(marker_labels);
+    marker_color_list = createMarkerColorList(marker_labels);
     number_of_markers = length(marker_segment_list);
     for i_marker = 1 : number_of_markers
         kinematic_tree.addMarker(marker_segment_list(i_marker), marker_reference((i_marker-1)*3+1 : (i_marker-1)*3+3)', marker_color_list{i_marker});
@@ -1311,6 +1372,7 @@ function createModel(varargin)
         hip_center = (right_hip_cor + left_hip_cor) * 0.5;
         scene_bound = repmat(hip_center, 1, 2) + 2*[-0.5 0.5; -0.5 0.5; -1 1];
         stick_figure = KinematicTreeController(kinematic_tree, scene_bound, 'ellipsoid');
+%         stick_figure = KinematicTreeController(kinematic_tree, scene_bound, 'none');
 
         % show segment CoMs
         for i_segment = 1 : number_of_segments

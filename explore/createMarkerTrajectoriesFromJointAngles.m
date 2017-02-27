@@ -21,7 +21,7 @@ load('subjectModel.mat')
 
 % time
 time_step = 0.01;
-total_time = 0.1;
+total_time = 0.5;
 time_mocap = time_step : time_step : total_time;
 
 % define joint angle trajectories
@@ -146,6 +146,10 @@ for i_time = 1 : length(time_mocap)
     marker_positions = kinematic_tree.exportMarkerPositions;
     marker_trajectories(i_time, :) = marker_positions;
 end
+
+% add noise
+noise_strength = 0.002;
+marker_trajectories = marker_trajectories + randn(size(marker_trajectories)) * noise_strength;
 
 joint_angle_trajectories_simulated = joint_angle_trajectories;
 
