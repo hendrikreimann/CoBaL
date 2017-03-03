@@ -235,52 +235,6 @@ classdef WalkingTrialData < handle
             this.right_heel_y_acc = right_heel_y_acc_trajectory;
             
             % angles
-%             LELB_trajectory = extractMarkerTrajectories(this.marker_positions, this.marker_labels, 'LELB');
-%             LWRA_trajectory = extractMarkerTrajectories(this.marker_positions, this.marker_labels, 'LWRA');
-%             LWRB_trajectory = extractMarkerTrajectories(this.marker_positions, this.marker_labels, 'LWRB');
-%             RELB_trajectory = extractMarkerTrajectories(this.marker_positions, this.marker_labels, 'RELB');
-%             RWRA_trajectory = extractMarkerTrajectories(this.marker_positions, this.marker_labels, 'RWRA');
-%             RWRB_trajectory = extractMarkerTrajectories(this.marker_positions, this.marker_labels, 'RWRB');
-%             LANK_trajectory = extractMarkerTrajectories(this.marker_positions, this.marker_labels, 'LANK');
-%             LPSI_trajectory = extractMarkerTrajectories(this.marker_positions, this.marker_labels, 'LPSI');
-%             LASI_trajectory = extractMarkerTrajectories(this.marker_positions, this.marker_labels, 'LASI');
-%             RANK_trajectory = extractMarkerTrajectories(this.marker_positions, this.marker_labels, 'RANK');
-%             RPSI_trajectory = extractMarkerTrajectories(this.marker_positions, this.marker_labels, 'RPSI');
-%             RASI_trajectory = extractMarkerTrajectories(this.marker_positions, this.marker_labels, 'RASI');
-%             left_wrist_center_trajectory = (LWRA_trajectory + LWRB_trajectory) * 0.5;
-%             left_arm_vector_trajectory = LELB_trajectory - left_wrist_center_trajectory;
-%             this.left_arm_angle = rad2deg(atan2(-left_arm_vector_trajectory(:, 2), left_arm_vector_trajectory(:, 3)));
-%             right_wrist_center_trajectory = (RWRA_trajectory + RWRB_trajectory) * 0.5;
-%             right_arm_vector_trajectory = RELB_trajectory - right_wrist_center_trajectory;
-%             this.right_arm_angle = rad2deg(atan2(-right_arm_vector_trajectory(:, 2), right_arm_vector_trajectory(:, 3)));
-%             left_pelvis_center_trajectory = (LPSI_trajectory + LASI_trajectory) * 0.5;
-%             left_leg_vector_trajectory = left_pelvis_center_trajectory - LANK_trajectory;
-%             this.left_leg_angle = rad2deg(atan2(-left_leg_vector_trajectory(:, 2), left_leg_vector_trajectory(:, 3)));
-%             right_pelvis_center_trajectory = (RPSI_trajectory + RASI_trajectory) * 0.5;
-%             right_leg_vector_trajectory = right_pelvis_center_trajectory - RANK_trajectory;
-%             this.right_leg_angle = rad2deg(atan2(-right_leg_vector_trajectory(:, 2), right_leg_vector_trajectory(:, 3)));
-%             
-%             % phases
-%             
-%             % find negative peaks
-%             [~, left_arm_peak_locations] = findpeaks(-this.left_arm_angle, 'MinPeakProminence', this.subject_settings.left_armswing_peak_prominence_threshold, 'MinPeakDistance', this.subject_settings.left_armswing_peak_distance_threshold * this.sampling_rate_marker);
-%             [~, right_arm_peak_locations] = findpeaks(-this.right_arm_angle, 'MinPeakProminence', this.subject_settings.right_armswing_peak_prominence_threshold, 'MinPeakDistance', this.subject_settings.right_armswing_peak_distance_threshold * this.sampling_rate_marker);
-%             [~, left_leg_peak_locations] = findpeaks(-this.left_leg_angle, 'MinPeakProminence', this.subject_settings.left_legswing_peak_prominence_threshold, 'MinPeakDistance', this.subject_settings.left_legswing_peak_distance_threshold * this.sampling_rate_marker);
-%             [~, right_leg_peak_locations] = findpeaks(-this.right_leg_angle, 'MinPeakProminence', this.subject_settings.right_legswing_peak_prominence_threshold, 'MinPeakDistance', this.subject_settings.right_legswing_peak_distance_threshold * this.sampling_rate_marker);
-%             
-%             % normalize
-%             [larm_angle_normalized, larm_angle_dot_normalized] = normalizePeriodicVariable(this.left_arm_angle, this.time_marker, left_arm_peak_locations);
-%             [rarm_angle_normalized, rarm_angle_dot_normalized] = normalizePeriodicVariable(this.right_arm_angle, this.time_marker, right_arm_peak_locations);
-%             [lleg_angle_normalized, lleg_angle_dot_normalized] = normalizePeriodicVariable(this.left_leg_angle, this.time_marker, left_leg_peak_locations);
-%             [rleg_angle_normalized, rleg_angle_dot_normalized] = normalizePeriodicVariable(this.right_leg_angle, this.time_marker, right_leg_peak_locations);
-%             
-%             % calculate phase
-%             this.left_arm_phase = atan(larm_angle_dot_normalized ./ larm_angle_normalized);
-%             this.right_arm_phase = atan(rarm_angle_dot_normalized ./ rarm_angle_normalized);
-%             this.left_leg_phase = atan(lleg_angle_dot_normalized ./ lleg_angle_normalized);
-%             this.right_leg_phase = atan(rleg_angle_dot_normalized ./ rleg_angle_normalized);
-            
-            % angles
             this.left_arm_angle = loadData(this.date, this.subject_id, this.condition, this.trial_number, 'left_arm_angle', 'optional');
             this.right_arm_angle = loadData(this.date, this.subject_id, this.condition, this.trial_number, 'right_arm_angle', 'optional');
             this.left_leg_angle = loadData(this.date, this.subject_id, this.condition, this.trial_number, 'left_leg_angle', 'optional');
@@ -289,7 +243,9 @@ classdef WalkingTrialData < handle
             this.right_arm_phase = loadData(this.date, this.subject_id, this.condition, this.trial_number, 'right_arm_phase', 'optional');
             this.left_leg_phase = loadData(this.date, this.subject_id, this.condition, this.trial_number, 'left_leg_phase', 'optional');
             this.right_leg_phase = loadData(this.date, this.subject_id, this.condition, this.trial_number, 'right_leg_phase', 'optional');
-
+            
+            % joint angles
+            joint_angle_trajectories = loadData(this.date, this.subject_id, this.condition, this.trial_number, 'joint_angle_trajectories', 'optional');
         end
         function loadForceplateTrajectories(this)
             file_name_forceplate = [this.data_directory filesep 'processed' filesep makeFileName(this.date, this.subject_id, this.condition, this.trial_number, 'forceplateTrajectories.mat')];

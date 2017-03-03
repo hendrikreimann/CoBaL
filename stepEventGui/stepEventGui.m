@@ -52,10 +52,10 @@ function stepEventGui(varargin)
     end
     gui_settings = SettingsCustodian(gui_settings_file);
     
-    % init gui
+    %% init gui
     controller = stepEventController(trial_data, event_data);
     
-    % show stick figure
+    %% show stick figure and kinematic tree
     scene_bound = ...
       [ ...
         study_settings.get('scene_bound_x_min') study_settings.get('scene_bound_x_max'); ...
@@ -90,6 +90,7 @@ function stepEventGui(varargin)
         setappdata(gcf, 'StoreTheLink', Link);
     end
     
+    %% trajectory figures
     % get list of figures from settings
     figure_list = getFiguresListFromSettings(gui_settings);
     for i_figure = 1 : size(figure_list, 1)

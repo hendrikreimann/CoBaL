@@ -298,17 +298,27 @@ classdef stepEventController < handle
             settings_file = [getUserSettingsPath filesep 'eventGuiFigureSettings.mat'];
 
             if exist(settings_file, 'file')
+                % load settings
                 load(settings_file, 'figure_settings', 'control_figure_setting', 'scene_figure_setting', 'kinematic_tree_figure_setting')
-                for i_figure = 1 : length(figure_settings) %#ok<USENS>
-        %             if length(step_event_figures) < i_figure
-        %                 step_event_figures{i_figure} = createStepEventFigure();
-        %             end
-                    this.figureSelectionBox.UserData{i_figure}.applySettings(figure_settings{i_figure});
-                end
+                
+                % apply for controller and stick figure
                 this.control_figure.Position = control_figure_setting.position;
                 this.scene_figure.scene_figure.Position = scene_figure_setting.position;
                 if ~isempty(this.kinematic_tree_controller) && any(strcmp(fieldnames(kinematic_tree_figure_setting), 'position'))
                     this.kinematic_tree_controller.sceneFigure.Position = kinematic_tree_figure_setting.position;
+                end
+                
+                % apply for trajectory figure
+                for i_figure = 1 : length(figure_settings) %#ok<USENS>
+                    this_figure_settings = figure_settings{i_figure};
+                    this_figure_title = this_figure_settings.title;
+                    
+                    % cycle through available figures and look for a match
+                    for j_figure = 1 : length(this.figureSelectionBox.UserData)
+                        if strcmp(this.figureSelectionBox.UserData{j_figure}.title, this_figure_title)
+                            this.figureSelectionBox.UserData{j_figure}.applySettings(this_figure_settings);
+                        end
+                    end
                 end
             end
         end
