@@ -27,6 +27,7 @@ function plotResults(varargin)
     addParameter(parser, 'dictate_axes', false)
     addParameter(parser, 'show_legend', false)
     addParameter(parser, 'save', false)
+    addParameter(parser, 'format', 'epsc')
     parse(parser, varargin{:})
     subjects = parser.Results.subjects;
     dictate_axes = parser.Results.dictate_axes;
@@ -694,7 +695,7 @@ function plotResults(varargin)
             % save with labels
             legend(axes_handles(i_figure), 'show');
             filename = ['figures' filesep 'withLabels' filesep get(figure_handles(i_figure), 'UserData')];
-            saveas(figure_handles(i_figure), filename, 'epsc2')
+            saveas(figure_handles(i_figure), filename, parser.Results.format)
             
             % save without labels
 %             zero_plot = plot(get(axes_handles(i_figure), 'xlimits'), [0 0], 'color', [0.7 0.7 0.7]);
@@ -711,7 +712,7 @@ function plotResults(varargin)
             set(axes_handles(i_figure), 'position', [0 0 1 1]);
             legend(axes_handles(i_figure), 'hide');
             filename = ['figures' filesep 'noLabels' filesep get(figure_handles(i_figure), 'UserData')];
-            saveas(figure_handles(i_figure), filename, 'epsc2')
+                saveas(figure_handles(i_figure), filename, parser.Results.format)
 
             close(figure_handles(i_figure))            
         end
