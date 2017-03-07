@@ -57,6 +57,7 @@ function calculateKinematicTrajectories(varargin)
             com_trajectories = zeros(number_of_time_steps, length(com_labels)*3);
             joint_angle_trajectories = zeros(number_of_time_steps, number_of_joint_angles);
             for i_time = 1 : number_of_time_steps
+%             for i_time = 1 : 200
 
                 % calculate joint center positions
                 marker_current = marker_trajectories(i_time, :);
@@ -118,6 +119,16 @@ function calculateKinematicTrajectories(varargin)
             variables_to_save.joint_center_trajectories = joint_center_trajectories;
             variables_to_save.joint_center_labels = joint_center_labels;
             variables_to_save.joint_angle_trajectories = joint_angle_trajectories;
+            variables_to_save.joint_labels = ...
+              { ...
+                'pelvis, x-translation', 'pelvis, y-translation', 'pelvis, z-translation', 'pelvis, z-rotation', 'pelvis, x-rotation', 'pelvis, y-rotation', ...
+                'left hip flexion/extension', 'left hip ab/adduction', 'left hip internal/external rotation', 'left knee flexion/extension', 'left knee external/internal rotation', 'left ankle dorsi/plantarflexion', 'left ankle inversion/eversion', ...
+                'right hip flexion/extension', 'right hip ab/adduction', 'right hip internal/external rotation', 'right knee flexion/extension', 'right knee external/internal rotation', 'right ankle dorsi/plantarflexion', 'right ankle inversion/eversion', ...
+                'lumbar joint - forward/backward bending', 'lumbar joint - sideways bending (right/left)', 'lumbar joint - internal rotation (right/left)', ...
+                'cervical joint - forward/backward bending', 'cervical joint - sideways bending (right/left)', 'cervical joint - internal rotation (right/left)', ...
+                'left shoulder flexion/extension', 'left shoulder ab/adduction', 'left shoulder in/external rotation', 'left elbow flexion/extension', 'left pronation/supination', 'left wrist flexion/extension', ...
+                'right shoulder flexion/extension', 'right shoulder ab/adduction', 'right shoulder in/external rotation', 'right elbow flexion/extension', 'right pronation/supination', 'right wrist flexion/extension', ...
+              };
             variables_to_save.com_trajectories = com_trajectories;
             variables_to_save.com_labels = com_labels;
             variables_to_save.time_mocap = time_mocap;
@@ -130,7 +141,7 @@ function calculateKinematicTrajectories(varargin)
 
             addAvailableData('joint_center_trajectories', 'time_mocap', 'sampling_rate_mocap', 'joint_center_labels', save_folder, save_file_name);
             addAvailableData('com_trajectories', 'time_mocap', 'sampling_rate_mocap', 'com_labels', save_folder, save_file_name);
-            addAvailableData('joint_angle_trajectories', 'time_mocap', 'sampling_rate_mocap', 'joint_angle_trajectories', save_folder, save_file_name);
+            addAvailableData('joint_angle_trajectories', 'time_mocap', 'sampling_rate_mocap', 'joint_labels', save_folder, save_file_name);
         end
     end
 end
