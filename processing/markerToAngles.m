@@ -30,58 +30,58 @@ function joint_angles = ...
       )
     
     % get matrices for comparison
-    load('/Users/reimajbi/Box Sync/inverseKinematics/BRC/processed/00000000_XXX_simulation_001_markerTrajectories.mat')
-    load('subjectModel.mat')
-    knee_cor_reference = kinematic_tree.jointPositions{10};
-    kinematic_tree.jointAngles = joint_angle_trajectories_simulated(1, :)';
-    kinematic_tree.updateConfiguration;
+%     load('/Users/reimajbi/Box Sync/inverseKinematics/BRC/processed/00000000_XXX_simulation_001_markerTrajectories.mat')
+%     load('subjectModel.mat')
+%     knee_cor_reference = kinematic_tree.jointPositions{10};
+%     kinematic_tree.jointAngles = joint_angle_trajectories_simulated(1, :)';
+%     kinematic_tree.updateConfiguration;
     
 %     left_knee_cor_ground_truth = kinematic_tree.jointPositions{10}
 %     left_ankle_cor_ground_truth = kinematic_tree.jointPositions{12}
 %     left_toes_eef_current_ground_truth = kinematic_tree.endEffectorPositions{2}
-    lumbar_cor_ground_truth = kinematic_tree.jointPositions{23};
-    cervix_cor_ground_truth = kinematic_tree.jointPositions{26};
-
-    pelvis_transformation_from_simulation = kinematic_tree.productsOfExponentials{6};
-    lthigh_transformation_from_simulation = kinematic_tree.productsOfExponentials{9};
-    exp1 = kinematic_tree.twistExponentials{1};
-    exp2 = kinematic_tree.twistExponentials{2};
-    exp3 = kinematic_tree.twistExponentials{3};
-    exp4 = kinematic_tree.twistExponentials{4};
-    exp5 = kinematic_tree.twistExponentials{5};
-    exp6 = kinematic_tree.twistExponentials{6};
-    exp7 = kinematic_tree.twistExponentials{7};
-    exp8 = kinematic_tree.twistExponentials{8};
-    exp9 = kinematic_tree.twistExponentials{9};
-    exp10 = kinematic_tree.twistExponentials{10};
-    exp11 = kinematic_tree.twistExponentials{11};
-    exp12 = kinematic_tree.twistExponentials{12};
-    exp13 = kinematic_tree.twistExponentials{13};
-    exp14 = kinematic_tree.twistExponentials{14};
-    exp15 = kinematic_tree.twistExponentials{15};
-    exp16 = kinematic_tree.twistExponentials{16};
-    exp17 = kinematic_tree.twistExponentials{17};
-    exp18 = kinematic_tree.twistExponentials{18};
-    exp19 = kinematic_tree.twistExponentials{19};
-    exp20 = kinematic_tree.twistExponentials{20};
-    exp21 = kinematic_tree.twistExponentials{21};
-    exp22 = kinematic_tree.twistExponentials{22};
-    exp23 = kinematic_tree.twistExponentials{23};
-    exp24 = kinematic_tree.twistExponentials{24};
-    exp25 = kinematic_tree.twistExponentials{25};
-    exp26 = kinematic_tree.twistExponentials{26};
-    exp27 = kinematic_tree.twistExponentials{27};
-    exp28 = kinematic_tree.twistExponentials{28};
-    exp29 = kinematic_tree.twistExponentials{29};
-    exp30 = kinematic_tree.twistExponentials{30};
-    exp31 = kinematic_tree.twistExponentials{31};
-    exp32 = kinematic_tree.twistExponentials{32};
-    exp33 = kinematic_tree.twistExponentials{33};
-    exp34 = kinematic_tree.twistExponentials{34};
-    exp35 = kinematic_tree.twistExponentials{35};
-    exp36 = kinematic_tree.twistExponentials{36};
-    exp37 = kinematic_tree.twistExponentials{37};
-    exp38 = kinematic_tree.twistExponentials{38};
+%     lumbar_cor_ground_truth = kinematic_tree.jointPositions{23};
+%     cervix_cor_ground_truth = kinematic_tree.jointPositions{26};
+% 
+%     pelvis_transformation_from_simulation = kinematic_tree.productsOfExponentials{6};
+%     lthigh_transformation_from_simulation = kinematic_tree.productsOfExponentials{9};
+%     exp1 = kinematic_tree.twistExponentials{1};
+%     exp2 = kinematic_tree.twistExponentials{2};
+%     exp3 = kinematic_tree.twistExponentials{3};
+%     exp4 = kinematic_tree.twistExponentials{4};
+%     exp5 = kinematic_tree.twistExponentials{5};
+%     exp6 = kinematic_tree.twistExponentials{6};
+%     exp7 = kinematic_tree.twistExponentials{7};
+%     exp8 = kinematic_tree.twistExponentials{8};
+%     exp9 = kinematic_tree.twistExponentials{9};
+%     exp10 = kinematic_tree.twistExponentials{10};
+%     exp11 = kinematic_tree.twistExponentials{11};
+%     exp12 = kinematic_tree.twistExponentials{12};
+%     exp13 = kinematic_tree.twistExponentials{13};
+%     exp14 = kinematic_tree.twistExponentials{14};
+%     exp15 = kinematic_tree.twistExponentials{15};
+%     exp16 = kinematic_tree.twistExponentials{16};
+%     exp17 = kinematic_tree.twistExponentials{17};
+%     exp18 = kinematic_tree.twistExponentials{18};
+%     exp19 = kinematic_tree.twistExponentials{19};
+%     exp20 = kinematic_tree.twistExponentials{20};
+%     exp21 = kinematic_tree.twistExponentials{21};
+%     exp22 = kinematic_tree.twistExponentials{22};
+%     exp23 = kinematic_tree.twistExponentials{23};
+%     exp24 = kinematic_tree.twistExponentials{24};
+%     exp25 = kinematic_tree.twistExponentials{25};
+%     exp26 = kinematic_tree.twistExponentials{26};
+%     exp27 = kinematic_tree.twistExponentials{27};
+%     exp28 = kinematic_tree.twistExponentials{28};
+%     exp29 = kinematic_tree.twistExponentials{29};
+%     exp30 = kinematic_tree.twistExponentials{30};
+%     exp31 = kinematic_tree.twistExponentials{31};
+%     exp32 = kinematic_tree.twistExponentials{32};
+%     exp33 = kinematic_tree.twistExponentials{33};
+%     exp34 = kinematic_tree.twistExponentials{34};
+%     exp35 = kinematic_tree.twistExponentials{35};
+%     exp36 = kinematic_tree.twistExponentials{36};
+%     exp37 = kinematic_tree.twistExponentials{37};
+%     exp38 = kinematic_tree.twistExponentials{38};
   
   
     %% preparations

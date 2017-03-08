@@ -16,6 +16,8 @@
 
 classdef stepEventFigure < handle;
     properties
+        title;
+        
         main_figure;
         main_axes;
         
@@ -43,6 +45,7 @@ classdef stepEventFigure < handle;
             % create figures and plots
             this.main_figure = figure('KeyPressFcn', @controller.processKeyPress);
             this.main_axes = axes('ButtonDownFcn', @this.stepEventFigureClicked);
+            this.title = figureTitle;
             title(figureTitle);
             hold on;
             this.selected_event_plot = plot(0, 0, 'o', 'markersize', 15, 'linewidth', 3, 'color', [1 0.5 0], 'visible', 'off', 'HandleVisibility', 'off');

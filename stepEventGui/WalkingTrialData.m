@@ -109,6 +109,45 @@ classdef WalkingTrialData < handle
         right_arm_phase = [];
         left_leg_phase = [];
         right_leg_phase = [];
+
+        pelvis_x_trans = [];
+        pelvis_y_trans = [];
+        pelvis_z_trans = [];
+        pelvis_z_rot = [];
+        pelvis_x_rot = [];
+        pelvis_y_rot = [];
+        left_hip_flex = [];
+        left_hip_abd = [];
+        left_hip_introt = [];
+        left_knee_flex = [];
+        left_knee_extrot = [];
+        left_ankle_dorflex = [];
+        left_ankle_invers = [];
+        right_hip_flex = [];
+        right_hip_abd = [];
+        right_hip_introt = [];
+        right_knee_flex = [];
+        right_knee_extrot = [];
+        right_ankle_dorflex = [];
+        right_ankle_invers = [];
+        lumbar_joint_pitch = [];
+        lumbar_joint_roll = [];
+        lumbar_joint_yaw = [];
+        cervical_joint_pitch = [];
+        cervical_joint_roll = [];
+        cervical_joint_yaw = [];
+        left_shoulder_flex = [];
+        left_shoulder_abd = [];
+        left_shoulder_introt = [];
+        left_elbow_flex = [];
+        left_elbow_pronat = [];
+        left_wrist_flex = [];
+        right_shoulder_flex = [];
+        right_shoulder_abd = [];
+        right_shoulder_introt = [];
+        right_elbow_flex = [];
+        right_elbow_pronat = [];
+        right_wrist_flex = [];        
         
         data_labels_mocap = ...
           { ...
@@ -121,7 +160,14 @@ classdef WalkingTrialData < handle
             'right_heel_y_pos', 'right_heel_y_vel', 'right_heel_y_acc', ...
             'right_toes_y_pos', 'right_toes_y_vel', 'right_toes_y_acc', ...
             'left_arm_angle', 'right_arm_angle', 'left_leg_angle', 'right_leg_angle', ...
-            'left_arm_phase', 'right_arm_phase', 'left_leg_phase', 'right_leg_phase' ...
+            'left_arm_phase', 'right_arm_phase', 'left_leg_phase', 'right_leg_phase', ...
+            'pelvis_x_trans', 'pelvis_y_trans', 'pelvis_z_trans', 'pelvis_z_rot', 'pelvis_x_rot', 'pelvis_y_rot', ...
+            'left_hip_flex', 'left_hip_abd', 'left_hip_introt', 'left_knee_flex', 'left_knee_extrot', 'left_ankle_dorflex', 'left_ankle_invers', ...
+            'right_hip_flex', 'right_hip_abd', 'right_hip_introt', 'right_knee_flex', 'right_knee_extrot', 'right_ankle_dorflex', 'right_ankle_invers', ...
+            'lumbar_joint_pitch', 'lumbar_joint_roll', 'lumbar_joint_yaw', ...
+            'cervical_joint_pitch', 'cervical_joint_roll', 'cervical_joint_yaw', ...
+            'left_shoulder_flex', 'left_shoulder_abd', 'left_shoulder_introt', 'left_elbow_flex', 'left_elbow_pronat', 'left_wrist_flex', ...
+            'right_shoulder_flex', 'right_shoulder_abd', 'right_shoulder_introt', 'right_elbow_flex', 'right_elbow_pronat', 'right_wrist_flex', ...
           };
         data_labels_forceplate = ...
           {
@@ -235,52 +281,6 @@ classdef WalkingTrialData < handle
             this.right_heel_y_acc = right_heel_y_acc_trajectory;
             
             % angles
-%             LELB_trajectory = extractMarkerTrajectories(this.marker_positions, this.marker_labels, 'LELB');
-%             LWRA_trajectory = extractMarkerTrajectories(this.marker_positions, this.marker_labels, 'LWRA');
-%             LWRB_trajectory = extractMarkerTrajectories(this.marker_positions, this.marker_labels, 'LWRB');
-%             RELB_trajectory = extractMarkerTrajectories(this.marker_positions, this.marker_labels, 'RELB');
-%             RWRA_trajectory = extractMarkerTrajectories(this.marker_positions, this.marker_labels, 'RWRA');
-%             RWRB_trajectory = extractMarkerTrajectories(this.marker_positions, this.marker_labels, 'RWRB');
-%             LANK_trajectory = extractMarkerTrajectories(this.marker_positions, this.marker_labels, 'LANK');
-%             LPSI_trajectory = extractMarkerTrajectories(this.marker_positions, this.marker_labels, 'LPSI');
-%             LASI_trajectory = extractMarkerTrajectories(this.marker_positions, this.marker_labels, 'LASI');
-%             RANK_trajectory = extractMarkerTrajectories(this.marker_positions, this.marker_labels, 'RANK');
-%             RPSI_trajectory = extractMarkerTrajectories(this.marker_positions, this.marker_labels, 'RPSI');
-%             RASI_trajectory = extractMarkerTrajectories(this.marker_positions, this.marker_labels, 'RASI');
-%             left_wrist_center_trajectory = (LWRA_trajectory + LWRB_trajectory) * 0.5;
-%             left_arm_vector_trajectory = LELB_trajectory - left_wrist_center_trajectory;
-%             this.left_arm_angle = rad2deg(atan2(-left_arm_vector_trajectory(:, 2), left_arm_vector_trajectory(:, 3)));
-%             right_wrist_center_trajectory = (RWRA_trajectory + RWRB_trajectory) * 0.5;
-%             right_arm_vector_trajectory = RELB_trajectory - right_wrist_center_trajectory;
-%             this.right_arm_angle = rad2deg(atan2(-right_arm_vector_trajectory(:, 2), right_arm_vector_trajectory(:, 3)));
-%             left_pelvis_center_trajectory = (LPSI_trajectory + LASI_trajectory) * 0.5;
-%             left_leg_vector_trajectory = left_pelvis_center_trajectory - LANK_trajectory;
-%             this.left_leg_angle = rad2deg(atan2(-left_leg_vector_trajectory(:, 2), left_leg_vector_trajectory(:, 3)));
-%             right_pelvis_center_trajectory = (RPSI_trajectory + RASI_trajectory) * 0.5;
-%             right_leg_vector_trajectory = right_pelvis_center_trajectory - RANK_trajectory;
-%             this.right_leg_angle = rad2deg(atan2(-right_leg_vector_trajectory(:, 2), right_leg_vector_trajectory(:, 3)));
-%             
-%             % phases
-%             
-%             % find negative peaks
-%             [~, left_arm_peak_locations] = findpeaks(-this.left_arm_angle, 'MinPeakProminence', this.subject_settings.left_armswing_peak_prominence_threshold, 'MinPeakDistance', this.subject_settings.left_armswing_peak_distance_threshold * this.sampling_rate_marker);
-%             [~, right_arm_peak_locations] = findpeaks(-this.right_arm_angle, 'MinPeakProminence', this.subject_settings.right_armswing_peak_prominence_threshold, 'MinPeakDistance', this.subject_settings.right_armswing_peak_distance_threshold * this.sampling_rate_marker);
-%             [~, left_leg_peak_locations] = findpeaks(-this.left_leg_angle, 'MinPeakProminence', this.subject_settings.left_legswing_peak_prominence_threshold, 'MinPeakDistance', this.subject_settings.left_legswing_peak_distance_threshold * this.sampling_rate_marker);
-%             [~, right_leg_peak_locations] = findpeaks(-this.right_leg_angle, 'MinPeakProminence', this.subject_settings.right_legswing_peak_prominence_threshold, 'MinPeakDistance', this.subject_settings.right_legswing_peak_distance_threshold * this.sampling_rate_marker);
-%             
-%             % normalize
-%             [larm_angle_normalized, larm_angle_dot_normalized] = normalizePeriodicVariable(this.left_arm_angle, this.time_marker, left_arm_peak_locations);
-%             [rarm_angle_normalized, rarm_angle_dot_normalized] = normalizePeriodicVariable(this.right_arm_angle, this.time_marker, right_arm_peak_locations);
-%             [lleg_angle_normalized, lleg_angle_dot_normalized] = normalizePeriodicVariable(this.left_leg_angle, this.time_marker, left_leg_peak_locations);
-%             [rleg_angle_normalized, rleg_angle_dot_normalized] = normalizePeriodicVariable(this.right_leg_angle, this.time_marker, right_leg_peak_locations);
-%             
-%             % calculate phase
-%             this.left_arm_phase = atan(larm_angle_dot_normalized ./ larm_angle_normalized);
-%             this.right_arm_phase = atan(rarm_angle_dot_normalized ./ rarm_angle_normalized);
-%             this.left_leg_phase = atan(lleg_angle_dot_normalized ./ lleg_angle_normalized);
-%             this.right_leg_phase = atan(rleg_angle_dot_normalized ./ rleg_angle_normalized);
-            
-            % angles
             this.left_arm_angle = loadData(this.date, this.subject_id, this.condition, this.trial_number, 'left_arm_angle', 'optional');
             this.right_arm_angle = loadData(this.date, this.subject_id, this.condition, this.trial_number, 'right_arm_angle', 'optional');
             this.left_leg_angle = loadData(this.date, this.subject_id, this.condition, this.trial_number, 'left_leg_angle', 'optional');
@@ -289,7 +289,51 @@ classdef WalkingTrialData < handle
             this.right_arm_phase = loadData(this.date, this.subject_id, this.condition, this.trial_number, 'right_arm_phase', 'optional');
             this.left_leg_phase = loadData(this.date, this.subject_id, this.condition, this.trial_number, 'left_leg_phase', 'optional');
             this.right_leg_phase = loadData(this.date, this.subject_id, this.condition, this.trial_number, 'right_leg_phase', 'optional');
-
+            
+            % joint angles
+            [joint_angle_trajectories, ~, ~, joint_angle_labels, success] = loadData(this.date, this.subject_id, this.condition, this.trial_number, 'joint_angle_trajectories', 'optional');
+            if success
+                this.pelvis_x_trans = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'pelvis, x-translation'));
+                this.pelvis_y_trans = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'pelvis, y-translation'));
+                this.pelvis_z_trans = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'pelvis, z-translation'));
+                this.pelvis_z_rot = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'pelvis, z-rotation'));
+                this.pelvis_x_rot = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'pelvis, x-rotation'));
+                this.pelvis_y_rot = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'pelvis, y-rotation'));
+                this.left_hip_flex = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'left hip flexion/extension'));
+                this.left_hip_abd = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'left hip ab/adduction'));
+                this.left_hip_introt = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'left hip internal/external rotation'));
+                this.left_knee_flex = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'left knee flexion/extension'));
+                this.left_knee_extrot = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'left knee external/internal rotation'));
+                this.left_ankle_dorflex = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'left ankle dorsi/plantarflexion'));
+                this.left_ankle_invers = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'left ankle inversion/eversion'));
+                this.right_hip_flex = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'right hip flexion/extension'));
+                this.right_hip_abd = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'right hip ab/adduction'));
+                this.right_hip_introt = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'right hip internal/external rotation'));
+                this.right_knee_flex = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'right knee flexion/extension'));
+                this.right_knee_extrot = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'right knee external/internal rotation'));
+                this.right_ankle_dorflex = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'right ankle dorsi/plantarflexion'));
+                this.right_ankle_invers = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'right ankle inversion/eversion'));
+                this.lumbar_joint_pitch = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'lumbar joint - forward/backward bending'));
+                this.lumbar_joint_roll = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'lumbar joint - sideways bending (right/left)'));
+                this.lumbar_joint_yaw = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'lumbar joint - internal rotation (right/left)'));
+                this.cervical_joint_pitch = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'cervical joint - forward/backward bending'));
+                this.cervical_joint_roll = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'cervical joint - sideways bending (right/left)'));
+                this.cervical_joint_yaw = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'cervical joint - internal rotation (right/left)'));
+                this.left_shoulder_flex = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'left shoulder flexion/extension'));
+                this.left_shoulder_abd = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'left shoulder ab/adduction'));
+                this.left_shoulder_introt = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'left shoulder in/external rotation'));
+                this.left_elbow_flex = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'left elbow flexion/extension'));
+                this.left_elbow_pronat = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'left pronation/supination'));
+                this.left_wrist_flex = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'left wrist flexion/extension'));
+                this.right_shoulder_flex = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'right shoulder flexion/extension'));
+                this.right_shoulder_abd = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'right shoulder ab/adduction'));
+                this.right_shoulder_introt = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'right shoulder in/external rotation'));
+                this.right_elbow_flex = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'right elbow flexion/extension'));
+                this.right_elbow_pronat = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'right pronation/supination'));
+                this.right_wrist_flex = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'right wrist flexion/extension'));
+            end
+            
+            
         end
         function loadForceplateTrajectories(this)
             file_name_forceplate = [this.data_directory filesep 'processed' filesep makeFileName(this.date, this.subject_id, this.condition, this.trial_number, 'forceplateTrajectories.mat')];
