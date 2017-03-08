@@ -344,8 +344,8 @@ function optimizeKinematicTrajectories(varargin)
 %             time_steps_to_optimize = 1 : 20;
 %             time_steps_to_optimize = 1 : 200;
             
-%             time_steps_to_optimize = determineTimeStepsToOptimize(date, subject_id, condition, i_trial, study_settings.get('data_stretch_padding'));
-%             time_steps_to_optimize = determineTimeStepsToOptimize(date, subject_id, condition, i_trial, 0);
+%             time_steps_to_optimize = determineTimeStepsToProcess(date, subject_id, condition, i_trial, study_settings.get('data_stretch_padding'));
+%             time_steps_to_optimize = determineTimeStepsToProcess(date, subject_id, condition, i_trial, 0);
 
             % optimize
             joint_angle_trajectories_calculated = joint_angle_trajectories;
@@ -497,32 +497,32 @@ function optimizeKinematicTrajectories(varargin)
     end
 end
 
-function time_steps_to_optimize = determineTimeStepsToOptimize(date, subject_id, condition, trial_number, padding)
-    load(['processed' filesep makeFileName(date, subject_id, condition, trial_number, 'markerTrajectories')]);
-    load(['analysis' filesep makeFileName(date, subject_id, condition, trial_number, 'relevantDataStretches')]);
-    
-    time_steps_to_optimize_indicator = false(length(time_mocap), 1);
-    for i_stretch = 1 : length(stretch_start_times)
-        % get unpadded stretches as indices
-        this_stretch_start_time = stretch_start_times(i_stretch);
-        this_stretch_end_time = stretch_end_times(i_stretch);
-        [~, this_stretch_start_index_mocap] = min(abs(this_stretch_start_time - time_mocap));
-        [~, this_stretch_end_index_mocap] = min(abs(this_stretch_end_time - time_mocap));
-        
-        % add padding 
-        this_stretch_start_index_mocap_padded = max([this_stretch_start_index_mocap - padding, 1]);
-        this_stretch_end_index_mocap_padded = min([this_stretch_end_index_mocap + padding, length(time_mocap)]);
-        
-        % flip indicators
-        time_steps_to_optimize_indicator(this_stretch_start_index_mocap_padded : this_stretch_end_index_mocap_padded) = true;
-    end
-    
-    time_steps_to_optimize = find(time_steps_to_optimize_indicator);
-    
-    if iscolumn(time_steps_to_optimize)
-        time_steps_to_optimize = time_steps_to_optimize';
-    end
-end
+% function time_steps_to_optimize = determineTimeStepsToProcess(date, subject_id, condition, trial_number, padding)
+%     load(['processed' filesep makeFileName(date, subject_id, condition, trial_number, 'markerTrajectories')]);
+%     load(['analysis' filesep makeFileName(date, subject_id, condition, trial_number, 'relevantDataStretches')]);
+%     
+%     time_steps_to_optimize_indicator = false(length(time_mocap), 1);
+%     for i_stretch = 1 : length(stretch_start_times)
+%         % get unpadded stretches as indices
+%         this_stretch_start_time = stretch_start_times(i_stretch);
+%         this_stretch_end_time = stretch_end_times(i_stretch);
+%         [~, this_stretch_start_index_mocap] = min(abs(this_stretch_start_time - time_mocap));
+%         [~, this_stretch_end_index_mocap] = min(abs(this_stretch_end_time - time_mocap));
+%         
+%         % add padding 
+%         this_stretch_start_index_mocap_padded = max([this_stretch_start_index_mocap - padding, 1]);
+%         this_stretch_end_index_mocap_padded = min([this_stretch_end_index_mocap + padding, length(time_mocap)]);
+%         
+%         % flip indicators
+%         time_steps_to_optimize_indicator(this_stretch_start_index_mocap_padded : this_stretch_end_index_mocap_padded) = true;
+%     end
+%     
+%     time_steps_to_optimize = find(time_steps_to_optimize_indicator);
+%     
+%     if iscolumn(time_steps_to_optimize)
+%         time_steps_to_optimize = time_steps_to_optimize';
+%     end
+% end
 
 
 
