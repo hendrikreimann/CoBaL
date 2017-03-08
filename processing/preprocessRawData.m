@@ -401,7 +401,7 @@ function preprocessRawData(varargin)
                     'marker_labels' ...
                   );
                 addAvailableData('marker_trajectories', 'time_mocap', 'sampling_rate_mocap', 'marker_labels', save_folder, save_file_name);
-                disp(['processed ' raw_marker_file_name ' and saved as ' save_file_name])        
+                disp(['processed ' raw_marker_file_name ' and saved as ' save_file_name])
             end
         end
     end
