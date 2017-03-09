@@ -29,7 +29,7 @@ fprintf(file_id, 'addpath ~/KinematicChain\n');
 fprintf(file_id, 'addpath ~/ScrewGeometry\n');
 %fprintf(file_id, 'calculateKinematicTrajectories\n');
 fprintf(file_id, 'parpool(32)\n');
-fprintf(file_id, 'optimizeKinematicTrajectories\n');
+fprintf(file_id, 'optimizeKinematicTrajectories(''use_parallel'', true)\n');
 fclose(file_id);
 
 % copy command file to compute

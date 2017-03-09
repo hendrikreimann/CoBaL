@@ -1,4 +1,18 @@
-%% Alpha Testing for Armsense
+%     This file is part of the CoBaL code base
+%     Copyright (C) 2017 Hendrik Reimann <hendrikreimann@gmail.com>
+% 
+%     This program is free software: you can redistribute it and/or modify
+%     it under the terms of the GNU General Public License as published by
+%     the Free Software Foundation, either version 3 of the License, or
+%     (at your option) any later version.
+% 
+%     This program is distributed in the hope that it will be useful,
+%     but WITHOUT ANY WARRANTY; without even the implied warranty of
+%     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%     GNU General Public License for more details.
+% 
+%     You should have received a copy of the GNU General Public License
+%     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
 function mocapArmsenseComparison_AlphaOnly_AllTrials(varargin)
@@ -7,15 +21,9 @@ function mocapArmsenseComparison_AlphaOnly_AllTrials(varargin)
     parser = inputParser;
     parser.KeepUnmatched = true;
     addParameter(parser, 'visualize', false)
-    addParameter(parser, 'sides_to_analyze', {'Left','Right'})
-    addParameter(parser, 'anatomical_methods', {'Forearm'})
     addParameter(parser, 'alpha', 1 : 5)
     parse(parser, varargin{:})
     visualize = parser.Results.visualize;
-    sides_to_analyze = parser.Results.sides_to_analyze;
-    anatomical_methods = parser.Results.anatomical_methods;
-
-    
     
     load('subjectInfo.mat', 'date', 'subject_id');
 
@@ -112,8 +120,8 @@ function mocapArmsenseComparison_AlphaOnly_AllTrials(varargin)
                 end
                 
                 % calculate inclination angles
-                inclination_angle_armsense_left_trajectories(:, i_alpha) = asin(sum(vertical_sensor_left_trajectory(:, [1 3]).^2, 2).^(0.5));
-                inclination_angle_armsense_right_trajectories(:, i_alpha) = asin(sum(vertical_sensor_right_trajectory(:, [1 3]).^2, 2).^(0.5));
+                inclination_angle_armsense_left_trajectories(:, i_alpha) = rad2deg(asin(sum(vertical_sensor_left_trajectory(:, [1 3]).^2, 2).^(0.5)));
+                inclination_angle_armsense_right_trajectories(:, i_alpha) = rad2deg(asin(sum(vertical_sensor_right_trajectory(:, [1 3]).^2, 2).^(0.5)));
             end
             
             % calculate arm trajectories from mocap data
@@ -125,8 +133,8 @@ function mocapArmsenseComparison_AlphaOnly_AllTrials(varargin)
             right_arm_vector_trajectory = normVector(RWRB_trajectory' - RELB_trajectory')';
             
             % calculate inclination angles
-            inclination_angle_mocap_left_trajectory = asin(sum(left_arm_vector_trajectory(:, 1:2).^2, 2).^(0.5));
-            inclination_angle_mocap_right_trajectory = asin(sum(right_arm_vector_trajectory(:, 1:2).^2, 2).^(0.5));
+            inclination_angle_mocap_left_trajectory = rad2deg(asin(sum(left_arm_vector_trajectory(:, 1:2).^2, 2).^(0.5)));
+            inclination_angle_mocap_right_trajectory = rad2deg(asin(sum(right_arm_vector_trajectory(:, 1:2).^2, 2).^(0.5)));
             
             % visualize
             if visualize
