@@ -72,11 +72,11 @@ function analyzeAlpha(varargin)
                 y_mc_left_deviation_squared_sum = sum(y_mc_left_mean_free_trajectory.^2);
                 y_as_left_mean_free_trajectory = y_as_left - y_left_mean_trajectory;
                 y_as_left_deviation_squared_sum = sum(y_as_left_mean_free_trajectory.^2);
-                numerator_left = (y_mc_left_deviation_squared_sum + y_as_left_deviation_squared_sum) / (number_of_time_steps_left) * (number_of_signals_left - 1);
+                numerator_left = (y_mc_left_deviation_squared_sum + y_as_left_deviation_squared_sum) / (number_of_time_steps_left * (number_of_signals_left - 1));
                 
                 y_mc_left_grand_mean_free_trajectory = y_mc_left - y_left_grand_mean;
                 y_mc_left_grand_deviation_squared_sum = sum(y_mc_left_grand_mean_free_trajectory.^2);
-                y_as_left_grand_mean_free_trajectory = y_as_left - y_left_mean_trajectory;
+                y_as_left_grand_mean_free_trajectory = y_as_left - y_left_grand_mean;
                 y_as_left_grand_deviation_squared_sum = sum(y_as_left_grand_mean_free_trajectory.^2);
                 denominator_left = (y_mc_left_grand_deviation_squared_sum + y_as_left_grand_deviation_squared_sum) / (number_of_time_steps_left * number_of_signals_left - 1);
                 
@@ -94,15 +94,32 @@ function analyzeAlpha(varargin)
                 y_mc_right_deviation_squared_sum = sum(y_mc_right_mean_free_trajectory.^2);
                 y_as_right_mean_free_trajectory = y_as_right - y_right_mean_trajectory;
                 y_as_right_deviation_squared_sum = sum(y_as_right_mean_free_trajectory.^2);
-                numerator_right = (y_mc_right_deviation_squared_sum + y_as_right_deviation_squared_sum) / (number_of_time_steps_right) * (number_of_signals_right - 1);
+                numerator_right = (y_mc_right_deviation_squared_sum + y_as_right_deviation_squared_sum) / (number_of_time_steps_right * (number_of_signals_right - 1));
                 
                 y_mc_right_grand_mean_free_trajectory = y_mc_right - y_right_grand_mean;
                 y_mc_right_grand_deviation_squared_sum = sum(y_mc_right_grand_mean_free_trajectory.^2);
-                y_as_right_grand_mean_free_trajectory = y_as_right - y_right_mean_trajectory;
+                y_as_right_grand_mean_free_trajectory = y_as_right - y_right_grand_mean;
                 y_as_right_grand_deviation_squared_sum = sum(y_as_right_grand_mean_free_trajectory.^2);
                 denominator_right = (y_mc_right_grand_deviation_squared_sum + y_as_right_grand_deviation_squared_sum) / (number_of_time_steps_right * number_of_signals_right - 1);
                 
                 coefficients_of_multiple_correlation_right(i_alpha, i_trial) = sqrt(1 - numerator_right/denominator_right);
+                
+                
+                % alternative calculation
+                y_left_jt = [inclination_angle_mocap_left_trajectory'; inclination_angle_armsense_left_trajectories(:, i_alpha)'];
+                N = size(y_left_jt, 1);
+                T = size(y_left_jt, 2);
+                numerator_left = sum(sum((y_left_jt - repmat(mean(y_left_jt, 1), N, 1)).^2, 2), 1) / (T * (N - 1));
+                denominator_left = sum(sum((y_left_jt - mean(mean(y_left_jt, 1))).^2, 2), 1) / (T * N - 1);
+                coefficients_of_multiple_correlation_left(i_alpha, i_trial) = sqrt(1 - numerator_left/denominator_left);
+                
+                y_right_jt = [inclination_angle_mocap_right_trajectory'; inclination_angle_armsense_right_trajectories(:, i_alpha)'];
+                N = size(y_right_jt, 1);
+                T = size(y_right_jt, 2);
+                numerator_right = sum(sum((y_right_jt - repmat(mean(y_right_jt, 1), N, 1)).^2, 2), 1) / (T * (N - 1));
+                denominator_right = sum(sum((y_right_jt - mean(mean(y_right_jt, 1))).^2, 2), 1) / (T * N - 1);
+                coefficients_of_multiple_correlation_right(i_alpha, i_trial) = sqrt(1 - numerator_right/denominator_right);
+                
             end
         end
     end
