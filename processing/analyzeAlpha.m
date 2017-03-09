@@ -34,6 +34,8 @@ function analyzeAlpha(varargin)
         trials_to_process = trial_number_list{i_condition};
         root_mean_square_errors_left = zeros(1, length(trials_to_process));
         root_mean_square_errors_right = zeros(1, length(trials_to_process));
+        coefficients_of_multiple_correlation_left = zeros(1, length(trials_to_process));
+        coefficients_of_multiple_correlation_right = zeros(1, length(trials_to_process));
         for i_trial = trials_to_process
             %% prepare
             % load data
@@ -49,15 +51,58 @@ function analyzeAlpha(varargin)
                 error('Alpha values are different between trials, aborting.')
             end
             
-            % calculate root mean square
             for i_alpha = 1 : length(alpha_labels)
+                % calculate error
                 error_left = inclination_angle_mocap_left_trajectory - inclination_angle_armsense_left_trajectories(:, i_alpha);
-                rms_left = mean(error_left.^2).^0.5;
-                root_mean_square_errors_left(i_alpha, i_trial) = rms_left;
-                
                 error_right = inclination_angle_mocap_right_trajectory - inclination_angle_armsense_right_trajectories(:, i_alpha);
-                rms_right = mean(error_right.^2).^0.5;
-                root_mean_square_errors_right(i_alpha, i_trial) = rms_right;
+                
+                % root mean square error
+                root_mean_square_errors_left(i_alpha, i_trial) = mean(error_left.^2).^0.5;
+                root_mean_square_errors_right(i_alpha, i_trial) = mean(error_right.^2).^0.5;
+                
+                % coefficient of correlation left
+                number_of_time_steps_left = length(inclination_angle_mocap_left_trajectory);
+                number_of_signals_left = 2;
+                y_mc_left = inclination_angle_mocap_left_trajectory;
+                y_as_left = inclination_angle_armsense_left_trajectories(:, i_alpha);
+                y_left_mean_trajectory = (y_mc_left + y_as_left) / 2;
+                y_left_grand_mean = mean(y_left_mean_trajectory);
+                
+                y_mc_left_mean_free_trajectory = y_mc_left - y_left_mean_trajectory;
+                y_mc_left_deviation_squared_sum = sum(y_mc_left_mean_free_trajectory.^2);
+                y_as_left_mean_free_trajectory = y_as_left - y_left_mean_trajectory;
+                y_as_left_deviation_squared_sum = sum(y_as_left_mean_free_trajectory.^2);
+                numerator_left = (y_mc_left_deviation_squared_sum + y_as_left_deviation_squared_sum) / (number_of_time_steps_left) * (number_of_signals_left - 1);
+                
+                y_mc_left_grand_mean_free_trajectory = y_mc_left - y_left_grand_mean;
+                y_mc_left_grand_deviation_squared_sum = sum(y_mc_left_grand_mean_free_trajectory.^2);
+                y_as_left_grand_mean_free_trajectory = y_as_left - y_left_mean_trajectory;
+                y_as_left_grand_deviation_squared_sum = sum(y_as_left_grand_mean_free_trajectory.^2);
+                denominator_left = (y_mc_left_grand_deviation_squared_sum + y_as_left_grand_deviation_squared_sum) / (number_of_time_steps_left * number_of_signals_left - 1);
+                
+                coefficients_of_multiple_correlation_left(i_alpha, i_trial) = sqrt(1 - numerator_left/denominator_left);
+
+                % coefficient of correlation right
+                number_of_time_steps_right = length(inclination_angle_mocap_right_trajectory);
+                number_of_signals_right = 2;
+                y_mc_right = inclination_angle_mocap_right_trajectory;
+                y_as_right = inclination_angle_armsense_right_trajectories(:, i_alpha);
+                y_right_mean_trajectory = (y_mc_right + y_as_right) / 2;
+                y_right_grand_mean = mean(y_right_mean_trajectory);
+                
+                y_mc_right_mean_free_trajectory = y_mc_right - y_right_mean_trajectory;
+                y_mc_right_deviation_squared_sum = sum(y_mc_right_mean_free_trajectory.^2);
+                y_as_right_mean_free_trajectory = y_as_right - y_right_mean_trajectory;
+                y_as_right_deviation_squared_sum = sum(y_as_right_mean_free_trajectory.^2);
+                numerator_right = (y_mc_right_deviation_squared_sum + y_as_right_deviation_squared_sum) / (number_of_time_steps_right) * (number_of_signals_right - 1);
+                
+                y_mc_right_grand_mean_free_trajectory = y_mc_right - y_right_grand_mean;
+                y_mc_right_grand_deviation_squared_sum = sum(y_mc_right_grand_mean_free_trajectory.^2);
+                y_as_right_grand_mean_free_trajectory = y_as_right - y_right_mean_trajectory;
+                y_as_right_grand_deviation_squared_sum = sum(y_as_right_grand_mean_free_trajectory.^2);
+                denominator_right = (y_mc_right_grand_deviation_squared_sum + y_as_right_grand_deviation_squared_sum) / (number_of_time_steps_right * number_of_signals_right - 1);
+                
+                coefficients_of_multiple_correlation_right(i_alpha, i_trial) = sqrt(1 - numerator_right/denominator_right);
             end
         end
     end
@@ -65,11 +110,19 @@ function analyzeAlpha(varargin)
     % average
     mean_root_mean_square_error_left = mean(root_mean_square_errors_left, 2);
     mean_root_mean_square_error_right = mean(root_mean_square_errors_right, 2);
+    mean_coefficient_of_multiple_correlation_left = mean(coefficients_of_multiple_correlation_left, 2);
+    mean_coefficient_of_multiple_correlation_right = mean(coefficients_of_multiple_correlation_right, 2);
     
     % visualize
-    figure; axes; hold on
+    figure; axes; hold on; title('RMS')
     plot(mean_root_mean_square_error_left, 'x-', 'displayname', 'left')
     plot(mean_root_mean_square_error_right, 'x-', 'displayname', 'right')
+    legend('show')
+    
+    % visualize
+    figure; axes; hold on; title('CMC')
+    plot(mean_coefficient_of_multiple_correlation_left, 'x-', 'displayname', 'left')
+    plot(mean_coefficient_of_multiple_correlation_right, 'x-', 'displayname', 'right')
     legend('show')
     
     
