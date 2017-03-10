@@ -328,11 +328,11 @@ function optimizeKinematicTrajectories(varargin)
 % 
 % 
     
-    %% optimize
+    %% process
     for i_condition = 1 : length(condition_list)
         trials_to_process = trial_number_list{i_condition};
         for i_trial = trials_to_process
-            % load data
+            %% load data
             condition = condition_list{i_condition};
             load(['processed' filesep makeFileName(date, subject_id, condition, i_trial, 'markerTrajectories')]);
             load(['processed' filesep makeFileName(date, subject_id, condition, i_trial, 'kinematicTrajectories')]);
@@ -347,7 +347,7 @@ function optimizeKinematicTrajectories(varargin)
 %             time_steps_to_optimize = determineTimeStepsToProcess(date, subject_id, condition, i_trial, study_settings.get('data_stretch_padding'));
 %             time_steps_to_optimize = determineTimeStepsToProcess(date, subject_id, condition, i_trial, 0);
 
-            % optimize
+            %% optimize
             joint_angle_trajectories_calculated = joint_angle_trajectories;
             joint_angle_trajectories_optimized = zeros(size(joint_angle_trajectories_calculated)) * NaN;
             weight_matrix = ones(1, size(marker_trajectories, 2)/3); % TODO: make this a setting
@@ -424,7 +424,7 @@ function optimizeKinematicTrajectories(varargin)
             fprintf([' - finished\n'])
             toc
                 
-            % get joint centers and CoM from the kinematic tree
+            %% get joint centers and CoM from the kinematic tree
 %             fprintf([datestr(datetime,'yyyy-mm-dd HH:MM:SS') ' - Calculating joint centers and CoM... \n'])
             fprintf([' - Calculating joint centers and CoM... \n'])
             joint_center_trajectories_calculated = joint_center_trajectories;
@@ -471,7 +471,7 @@ function optimizeKinematicTrajectories(varargin)
             end
             fprintf('finished\n')
             
-            % save
+            %% save
             variables_to_save = struct;
             variables_to_save.joint_labels = kinematic_tree.jointLabels;
             variables_to_save.joint_angle_trajectories = joint_angle_trajectories_optimized;

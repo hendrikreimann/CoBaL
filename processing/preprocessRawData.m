@@ -429,7 +429,6 @@ function preprocessRawData(varargin)
                     belt_position_trajectory_plcData(i_time) = belt_position_trajectory_plcData(i_time-1) + delta_t(i_time-1) * belt_speed_trajectory(i_time-1);
                 end
 
-
                 % apply shift to marker trajectories
                 file_name_raw = ['raw' filesep makeFileName(date, subject_id, this_condition, i_trial, 'markerTrajectoriesRaw.mat')];
                 load(file_name_raw);

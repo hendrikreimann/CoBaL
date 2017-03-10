@@ -171,7 +171,6 @@ function mocapArmsenseComparison_AlphaOnly_AllTrials(varargin)
             addAvailableData('inclination_angle_armsense_left_trajectories', 'time_marker', 'sampling_rate_marker', 'alpha_labels', save_folder, save_file_name);
             addAvailableData('inclination_angle_armsense_right_trajectories', 'time_marker', 'sampling_rate_marker', 'alpha_labels', save_folder, save_file_name);
             
-
             disp(['Calculating inclination angles: condition ' condition ', Trial ' num2str(i_trial) ' completed, saved as ' save_file_name]);
 
 

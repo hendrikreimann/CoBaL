@@ -35,8 +35,10 @@ function optimizeKinematicTrajectories(varargin)
     parser = inputParser;
     parser.KeepUnmatched = true;
     addParameter(parser, 'use_parallel', false)
+    addParameter(parser, 'constraint', 'point')
     parse(parser, varargin{:})
     use_parallel = parser.Results.use_parallel;
+    constraint = parser.Results.constraint;
     
     
     % load settings
@@ -54,15 +56,23 @@ function optimizeKinematicTrajectories(varargin)
     
     number_of_joints = kinematic_tree.numberOfJoints; %#ok<NODEF>
     
+    if use_parallel
+        % get or open pool of workers
+        poolobject = gcp;
+        number_of_labs = poolobject.NumWorkers;
+    end
+    
     %% optimize
     for i_condition = 1 : length(condition_list)
         trials_to_process = trial_number_list{i_condition};
         for i_trial = trials_to_process
-            % load data
+            %% load data
             condition = condition_list{i_condition};
             load(['processed' filesep makeFileName(date, subject_id, condition, i_trial, 'markerTrajectories')]);
             load(['processed' filesep makeFileName(date, subject_id, condition, i_trial, 'kinematicTrajectories')]);
             load(['analysis' filesep makeFileName(date, subject_id, condition, i_trial, 'stepEvents')]);
+            [left_forceplate_wrench_world_trajectory, time_forceplate] = loadData(date, subject_id, condition, i_trial, 'left_forceplate_wrench_world');
+            right_forceplate_wrench_world_trajectory = loadData(date, subject_id, condition, i_trial, 'right_forceplate_wrench_world');
             
             number_of_time_steps = size(marker_trajectories, 1);
 
@@ -80,7 +90,100 @@ function optimizeKinematicTrajectories(varargin)
             left_foot_constraint_number_trajectory = determineConstraintNumbers(time_marker, left_touchdown_times, left_fullstance_times, left_pushoff_times);
             right_foot_constraint_number_trajectory = determineConstraintNumbers(time_marker, right_touchdown_times, right_fullstance_times, right_pushoff_times);
 
-            % 
+            %% calculate belt space transformation
+            [belt_speed_left_trajectory, time_belts] = loadData(date, subject_id, condition, i_trial, 'belt_speed_left_trajectory');
+            belt_speed_right_trajectory = loadData(date, subject_id, condition, i_trial, 'belt_speed_right_trajectory');
+            belt_speed_trajectory_belts = mean([belt_speed_left_trajectory belt_speed_right_trajectory], 2);
+            
+            belt_speed_trajectory_mocap = spline(time_belts, belt_speed_trajectory_belts, time_mocap)';
+            delta_t = 1 / sampling_rate_mocap;
+            belt_position_trajectory_mocap = zeros(size(belt_speed_trajectory_mocap));
+            for i_time = 2 : length(belt_speed_trajectory_mocap)
+                belt_position_trajectory_mocap(i_time) = belt_position_trajectory_mocap(i_time-1) + delta_t * belt_speed_trajectory_mocap(i_time-1);
+            end
+            
+            % transform joint angles and ground reaction wrenches into belt space
+            joint_angle_trajectories_belt = joint_angle_trajectories;
+            joint_angle_trajectories_belt(:, 2) = joint_angle_trajectories_belt(:, 2) + belt_position_trajectory_mocap';
+            
+            belt_position_trajectory_forceplate = spline(time_mocap, belt_position_trajectory_mocap, time_forceplate)';
+            left_forceplate_wrench_belt_trajectory = zeros(size(left_forceplate_wrench_world_trajectory));
+            right_forceplate_wrench_belt_trajectory = zeros(size(right_forceplate_wrench_world_trajectory));
+            for i_time = 1 : length(time_forceplate)
+                left_forceplate_wrench_world = left_forceplate_wrench_world_trajectory(i_time, :)';
+                right_forceplate_wrench_world = right_forceplate_wrench_world_trajectory(i_time, :)';
+                
+                % define forceplate rotation and translation
+                world_to_Awb_rotation = [1 0 0; 0 1 0; 0 0 1];
+                world_to_Awb_translation = [0; -belt_position_trajectory_forceplate(i_time); 0];
+                world_to_Awb_trafo = [world_to_Awb_rotation world_to_Awb_translation; 0 0 0 1];
+                world_to_Awb_adjoint = rigidToAdjointTransformation(world_to_Awb_trafo);
+
+                % transform
+                left_forceplate_wrench_belt = (world_to_Awb_adjoint' * left_forceplate_wrench_world);
+                right_forceplate_wrench_belt = (world_to_Awb_adjoint' * right_forceplate_wrench_world);
+                
+                left_forceplate_wrench_belt_trajectory(i_time, :) = left_forceplate_wrench_belt;
+                right_forceplate_wrench_belt_trajectory(i_time, :) = right_forceplate_wrench_belt;
+            end            
+            
+%             figure; axes; hold on
+%             plot(left_forceplate_wrench_world_trajectory(:, 1:3), 'linewidth', 3);
+%             plot(left_forceplate_wrench_belt_trajectory(:, 1:3));
+% 
+%             figure; axes; hold on
+%             plot(left_forceplate_wrench_world_trajectory(:, 4), 'linewidth', 3);
+%             plot(left_forceplate_wrench_belt_trajectory(:, 4));
+%             
+%             figure; axes; hold on
+%             plot(left_forceplate_wrench_world_trajectory(:, 5), 'linewidth', 3);
+%             plot(left_forceplate_wrench_belt_trajectory(:, 5));
+%             
+%             figure; axes; hold on
+%             plot(left_forceplate_wrench_world_trajectory(:, 6), 'linewidth', 3);
+%             plot(left_forceplate_wrench_belt_trajectory(:, 6));
+            
+            %% derive joint angle trajectories by time
+            if study_settings.get('filter_joint_angle_data')
+                filter_order = 4;
+                cutoff_frequency = study_settings.get('joint_angle_data_cutoff_frequency'); % in Hz
+                [b_joint_angle, a_joint_angle] = butter(filter_order, cutoff_frequency/(sampling_rate_mocap/2));
+                joint_angle_trajectories_belt = nanfiltfilt(b_joint_angle, a_joint_angle, joint_angle_trajectories_belt);
+            end
+            joint_velocity_trajectories_belt = deriveByTime(joint_angle_trajectories_belt, time_mocap);
+            if study_settings.get('filter_joint_velocity_data')
+                filter_order = 4;
+                cutoff_frequency = study_settings.get('joint_velocity_data_cutoff_frequency'); % in Hz
+                [b_joint_velocity, a_joint_velocity] = butter(filter_order, cutoff_frequency/(sampling_rate_mocap/2));
+                joint_velocity_trajectories_belt = nanfiltfilt(b_joint_velocity, a_joint_velocity, joint_velocity_trajectories_belt);
+            end
+            joint_acceleration_trajectories_belt = deriveByTime(joint_velocity_trajectories_belt, time_mocap);
+            
+%             figure; axes; hold on
+%             plot(joint_velocity_trajectories_belt(:, 1:3))
+%             
+%             figure; axes; hold on
+%             plot(joint_velocity_trajectories_belt(:, 4:6))
+%             
+%             figure; axes; hold on
+%             plot(joint_velocity_trajectories_belt(:, 7:9))
+%             
+%             figure; axes; hold on
+%             plot(joint_velocity_trajectories_belt(:, 10:13))
+
+%             figure; axes; hold on
+%             plot(joint_acceleration_trajectories_belt(:, 1:3))
+%             
+%             figure; axes; hold on
+%             plot(joint_acceleration_trajectories_belt(:, 4:6))
+%             
+%             figure; axes; hold on
+%             plot(joint_acceleration_trajectories_belt(:, 7:9))
+%             
+%             figure; axes; hold on
+%             plot(joint_acceleration_trajectories_belt(:, 10:13))
+
+            %% calculate dynamic matrices
             number_of_time_steps = size(joint_angle_trajectories_belt, 1);
             inertia_matrix_trajectory = cell(number_of_time_steps, 1);
             coriolis_matrix_trajectory = cell(number_of_time_steps, 1);
@@ -92,9 +195,7 @@ function optimizeKinematicTrajectories(varargin)
             number_of_left_foot_constraints = zeros(number_of_time_steps, 1);
             number_of_right_foot_constraints = zeros(number_of_time_steps, 1);
                 
-                
-
-
+            tic
             if use_parallel
                 inertia_matrix_trajectory_pool = cell(size(inertia_matrix_trajectory));
                 coriolis_matrix_trajectory_pool = cell(size(coriolis_matrix_trajectory));
@@ -102,9 +203,10 @@ function optimizeKinematicTrajectories(varargin)
                 constraint_matrix_trajectory_pool = cell(size(constraint_matrix_trajectory));
                 constraint_matrix_dot_trajectory_pool = cell(size(constraint_matrix_dot_trajectory));
                 number_of_lambdas_pool = zeros(number_of_time_steps, 1);
+                plant = kinematic_tree;
                 spmd
                     plant_pool = plant.copy;
-                    for i_time = data_points(1)+labindex-1 : numlabs : data_points(end)
+                    for i_time = time_steps_to_process(1)+labindex-1 : numlabs : time_steps_to_process(end)
                         if any(isnan(joint_angle_trajectories_belt(i_time, :)))
                             inertia_matrix_trajectory_pool{i_time} = NaN;
                             coriolis_matrix_trajectory_pool{i_time} = NaN;
@@ -125,7 +227,7 @@ function optimizeKinematicTrajectories(varargin)
                             coriolis_matrix_trajectory_pool{i_time} = plant_pool.coriolisMatrix;
                             gravitation_matrix_trajectory_pool{i_time} = plant_pool.gravitationalTorqueMatrix;
 
-                            if use_point_constraints
+                            if strcmp(constraint, 'point')
                                 [constraint_matrix_trajectory_pool{i_time}, constraint_matrix_dot_trajectory_pool{i_time}] = ...
                                     createConstraintMatrix_pointConstraints ...
                                       ( ...
@@ -134,7 +236,7 @@ function optimizeKinematicTrajectories(varargin)
                                         right_foot_constraint_number_trajectory(i_time) ...
                                       );
                             end
-                            if use_hinge_constraints
+                            if strcmp(constraint, 'hinge')
                                 [ ...
                                   constraint_matrix_trajectory_pool{i_time}, ...
                                   constraint_matrix_dot_trajectory_pool{i_time}, ...
@@ -148,7 +250,7 @@ function optimizeKinematicTrajectories(varargin)
                                     right_foot_constraint_number_trajectory(i_time) ...
                                   );
                             end
-                            if use_body_velocity_constraints
+                            if strcmp(constraint, 'body_velocity')
                                 [constraint_matrix_trajectory_pool{i_time}, constraint_matrix_dot_trajectory_pool{i_time}] = ...
                                     createConstraintMatrix_bodyVelocityConstraints ...
                                       ( ...
@@ -172,22 +274,22 @@ function optimizeKinematicTrajectories(varargin)
                 % reassemble
                 for i_lab = 1 : number_of_labs
                     inertia_matrix_trajectory_lab = inertia_matrix_trajectory_pool{i_lab};
-                    inertia_matrix_trajectory(data_points(1)+i_lab-1 : number_of_labs : data_points(end)) = inertia_matrix_trajectory_lab(data_points(1)+i_lab-1 : number_of_labs : data_points(end));
+                    inertia_matrix_trajectory(time_steps_to_process(1)+i_lab-1 : number_of_labs : time_steps_to_process(end)) = inertia_matrix_trajectory_lab(time_steps_to_process(1)+i_lab-1 : number_of_labs : time_steps_to_process(end));
                     coriolis_matrix_trajectory_lab = coriolis_matrix_trajectory_pool{i_lab};
-                    coriolis_matrix_trajectory(data_points(1)+i_lab-1 : number_of_labs : data_points(end)) = coriolis_matrix_trajectory_lab(data_points(1)+i_lab-1 : number_of_labs : data_points(end));
+                    coriolis_matrix_trajectory(time_steps_to_process(1)+i_lab-1 : number_of_labs : time_steps_to_process(end)) = coriolis_matrix_trajectory_lab(time_steps_to_process(1)+i_lab-1 : number_of_labs : time_steps_to_process(end));
                     gravitation_matrix_trajectory_lab = gravitation_matrix_trajectory_pool{i_lab};
-                    gravitation_matrix_trajectory(data_points(1)+i_lab-1 : number_of_labs : data_points(end)) = gravitation_matrix_trajectory_lab(data_points(1)+i_lab-1 : number_of_labs : data_points(end));
+                    gravitation_matrix_trajectory(time_steps_to_process(1)+i_lab-1 : number_of_labs : time_steps_to_process(end)) = gravitation_matrix_trajectory_lab(time_steps_to_process(1)+i_lab-1 : number_of_labs : time_steps_to_process(end));
 
                     constraint_matrix_trajectory_lab = constraint_matrix_trajectory_pool{i_lab};
-                    constraint_matrix_trajectory(data_points(1)+i_lab-1 : number_of_labs : data_points(end), :) = constraint_matrix_trajectory_lab(data_points(1)+i_lab-1 : number_of_labs : data_points(end), :);
+                    constraint_matrix_trajectory(time_steps_to_process(1)+i_lab-1 : number_of_labs : time_steps_to_process(end), :) = constraint_matrix_trajectory_lab(time_steps_to_process(1)+i_lab-1 : number_of_labs : time_steps_to_process(end), :);
                     constraint_matrix_dot_trajectory_lab = constraint_matrix_dot_trajectory_pool{i_lab};
-                    constraint_matrix_dot_trajectory(data_points(1)+i_lab-1 : number_of_labs : data_points(end), :) = constraint_matrix_dot_trajectory_lab(data_points(1)+i_lab-1 : number_of_labs : data_points(end), :);
+                    constraint_matrix_dot_trajectory(time_steps_to_process(1)+i_lab-1 : number_of_labs : time_steps_to_process(end), :) = constraint_matrix_dot_trajectory_lab(time_steps_to_process(1)+i_lab-1 : number_of_labs : time_steps_to_process(end), :);
 
                     number_of_lambdas_lab = number_of_lambdas_pool{i_lab};
-                    number_of_lambdas(data_points(1)+i_lab-1 : number_of_labs : data_points(end), :) = number_of_lambdas_lab(data_points(1)+i_lab-1 : number_of_labs : data_points(end), :);
+                    number_of_lambdas(time_steps_to_process(1)+i_lab-1 : number_of_labs : time_steps_to_process(end), :) = number_of_lambdas_lab(time_steps_to_process(1)+i_lab-1 : number_of_labs : time_steps_to_process(end), :);
                 end
             else
-                for i_time = data_points
+                for i_time = time_steps_to_process
                     if any(isnan(joint_angle_trajectories_belt(i_time, :)))
                         inertia_matrix_trajectory{i_time} = NaN;
                         coriolis_matrix_trajectory{i_time} = NaN;
@@ -196,26 +298,26 @@ function optimizeKinematicTrajectories(varargin)
                         constraint_matrix_dot_trajectory{i_time} = NaN;
                     else
                         % update model
-                        plant.jointAngles = joint_angle_trajectories_belt(i_time, :)';
-                        plant.jointVelocities = joint_velocity_trajectories_belt(i_time, :)';
-                        plant.jointAccelerations = joint_acceleration_trajectories_belt(i_time, :)';
-                        plant.updateInternals;
+                        kinematic_tree.jointAngles = joint_angle_trajectories_belt(i_time, :)';
+                        kinematic_tree.jointVelocities = joint_velocity_trajectories_belt(i_time, :)';
+                        kinematic_tree.jointAccelerations = joint_acceleration_trajectories_belt(i_time, :)';
+                        kinematic_tree.updateInternals;
                         
                         % save dynamic matrices
-                        inertia_matrix_trajectory{i_time} = plant.inertiaMatrix;
-                        coriolis_matrix_trajectory{i_time} = plant.coriolisMatrix;
-                        gravitation_matrix_trajectory{i_time} = plant.gravitationalTorqueMatrix;
+                        inertia_matrix_trajectory{i_time} = kinematic_tree.inertiaMatrix;
+                        coriolis_matrix_trajectory{i_time} = kinematic_tree.coriolisMatrix;
+                        gravitation_matrix_trajectory{i_time} = kinematic_tree.gravitationalTorqueMatrix;
 
-                        if use_point_constraints
+                        if strcmp(constraint, 'point')
                             [constraint_matrix_trajectory{i_time}, constraint_matrix_dot_trajectory{i_time}] = ...
                                 createConstraintMatrix_pointConstraints ...
                                   ( ...
-                                    plant, ...
+                                    kinematic_tree, ...
                                     left_foot_constraint_number_trajectory(i_time), ...
                                     right_foot_constraint_number_trajectory(i_time) ...
                                   );
                         end
-                        if use_hinge_constraints
+                        if strcmp(constraint, 'hinge')
                             [ ...
                               constraint_matrix_trajectory{i_time}, ...
                               constraint_matrix_dot_trajectory{i_time}, ...
@@ -224,16 +326,16 @@ function optimizeKinematicTrajectories(varargin)
                             ] = ...
                             createConstraintMatrix_hingeConstraints ...
                               ( ...
-                                plant, ...
+                                kinematic_tree, ...
                                 left_foot_constraint_number_trajectory(i_time), ...
                                 right_foot_constraint_number_trajectory(i_time) ...
                               );
                         end
-                        if use_body_velocity_constraints
+                        if strcmp(constraint, 'body_velocity')
                             [constraint_matrix_trajectory{i_time}, constraint_matrix_dot_trajectory{i_time}] = ...
                                 createConstraintMatrix_bodyVelocityConstraints ...
                                   ( ...
-                                    plant, ...
+                                    kinematic_tree, ...
                                     left_foot_constraint_number_trajectory(i_time), ...
                                     right_foot_constraint_number_trajectory(i_time), ...
                                     phi_left_trajectory(i_time), ...
@@ -246,11 +348,11 @@ function optimizeKinematicTrajectories(varargin)
                                     V_body_right_fits_pushoff ...
                                   );
                         end
-                        if use_rollover_constraints
+                        if strcmp(constraint, 'rollover')
                             [constraint_matrix_trajectory{i_time}, constraint_matrix_dot_trajectory{i_time}] = ...
                                 createConstraintMatrix_rolloverConstraints ...
                                   ( ...
-                                    plant, ...
+                                    kinematic_tree, ...
                                     rollover_shapes, ...
                                     left_foot_constraint_number_trajectory(i_time), ...
                                     right_foot_constraint_number_trajectory(i_time), ...
@@ -266,14 +368,14 @@ function optimizeKinematicTrajectories(varargin)
                     end
                     % give progress feedback
                     display_step = 1;
-                    last_time_step = data_points(end);
+                    last_time_step = time_steps_to_process(end);
                     if (i_time / display_step) == floor(i_time / display_step)
                         disp([num2str(i_time) '(' num2str(last_time_step) ')']);
                     end
                 end
             end
             fprintf(' done\n');
-            
+            toc
             
     
         end

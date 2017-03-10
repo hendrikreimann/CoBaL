@@ -22,10 +22,10 @@ function [A, ADot] = createConstraintMatrix_pointConstraints ...
   )
 
     % left foot
-    left_heel_body_jacobian = plant.bodyJacobians{1};
-    left_heel_body_jacobian_dot = plant.bodyJacobianTemporalDerivatives{1};
-    left_toes_body_jacobian = plant.bodyJacobians{2};
-    left_toes_body_jacobian_dot = plant.bodyJacobianTemporalDerivatives{2};
+    left_heel_body_jacobian = plant.bodyJacobians{plant.getEndEffectorIndex('left heel')};
+    left_heel_body_jacobian_dot = plant.bodyJacobianTemporalDerivatives{plant.getEndEffectorIndex('left heel')};
+    left_toes_body_jacobian = plant.bodyJacobians{plant.getEndEffectorIndex('LTOESEEF')};
+    left_toes_body_jacobian_dot = plant.bodyJacobianTemporalDerivatives{plant.getEndEffectorIndex('LTOESEEF')};
     if left_foot_constraint == 0
         % left foot is in swing
         left_foot_constraint = [];
@@ -43,10 +43,10 @@ function [A, ADot] = createConstraintMatrix_pointConstraints ...
     end
     
     % right foot
-    right_heel_body_jacobian = plant.bodyJacobians{4};
-    right_heel_body_jacobian_dot = plant.bodyJacobianTemporalDerivatives{4};
-    right_toes_body_jacobian = plant.bodyJacobians{5};
-    right_toes_body_jacobian_dot = plant.bodyJacobianTemporalDerivatives{5};
+    right_heel_body_jacobian = plant.bodyJacobians{plant.getEndEffectorIndex('right heel')};
+    right_heel_body_jacobian_dot = plant.bodyJacobianTemporalDerivatives{plant.getEndEffectorIndex('right heel')};
+    right_toes_body_jacobian = plant.bodyJacobians{plant.getEndEffectorIndex('RTOESEEF')};
+    right_toes_body_jacobian_dot = plant.bodyJacobianTemporalDerivatives{plant.getEndEffectorIndex('RTOESEEF')};
     
     if right_foot_constraint == 0
         % right foot is in swing

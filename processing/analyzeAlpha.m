@@ -131,15 +131,28 @@ function analyzeAlpha(varargin)
     mean_coefficient_of_multiple_correlation_right = mean(coefficients_of_multiple_correlation_right, 2);
     
     % visualize
+    alpha_values = zeros(size(alpha_labels));
+    for i_alpha = 1 : length(alpha_values)
+        alpha_values(i_alpha) = str2double(alpha_labels{i_alpha});
+    end
+    
     figure; axes; hold on; title('RMS')
-    plot(mean_root_mean_square_error_left, 'x-', 'displayname', 'left')
-    plot(mean_root_mean_square_error_right, 'x-', 'displayname', 'right')
+    plot(alpha_values, mean_root_mean_square_error_left, 'x-', 'displayname', 'left')
+    plot(alpha_values, mean_root_mean_square_error_right, 'x-', 'displayname', 'right')
+    set(gca, 'xtick', alpha_values)
+    set(gca, 'xticklabels', alpha_labels)
+    xlabel('alpha')
+    ylabel('RMS')
     legend('show')
     
     % visualize
     figure; axes; hold on; title('CMC')
-    plot(mean_coefficient_of_multiple_correlation_left, 'x-', 'displayname', 'left')
-    plot(mean_coefficient_of_multiple_correlation_right, 'x-', 'displayname', 'right')
+    plot(alpha_values, mean_coefficient_of_multiple_correlation_left, 'x-', 'displayname', 'left')
+    plot(alpha_values, mean_coefficient_of_multiple_correlation_right, 'x-', 'displayname', 'right')
+    set(gca, 'xtick', alpha_values)
+    set(gca, 'xticklabels', alpha_labels)
+    xlabel('alpha')
+    ylabel('CMC')
     legend('show')
     
     
