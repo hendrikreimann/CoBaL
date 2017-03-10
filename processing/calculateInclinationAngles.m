@@ -21,7 +21,7 @@ function mocapArmsenseComparison_AlphaOnly_AllTrials(varargin)
     parser = inputParser;
     parser.KeepUnmatched = true;
     addParameter(parser, 'visualize', false)
-    addParameter(parser, 'alpha', 1 : 5)
+    addParameter(parser, 'alpha', 1 : 8)
     parse(parser, varargin{:})
     visualize = parser.Results.visualize;
     

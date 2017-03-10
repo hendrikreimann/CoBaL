@@ -22,7 +22,7 @@ function analyzeAlpha(varargin)
     parser = inputParser;
     parser.KeepUnmatched = true;
     addParameter(parser, 'visualize', false)
-    addParameter(parser, 'alpha', 1 : 5)
+    addParameter(parser, 'alpha', 1 : 8)
     parse(parser, varargin{:})
     visualize = parser.Results.visualize;
     
@@ -50,6 +50,26 @@ function analyzeAlpha(varargin)
             if ~isequal(alpha_labels, alpha_labels_left) || ~isequal(alpha_labels, alpha_labels_right)
                 error('Alpha values are different between trials, aborting.')
             end
+            
+            % find peaks for average 
+            [maxPeaks_left, maxPeaks_left_indices] = findpeaks(inclination_angle_mocap_left_trajectory,'MinPeakHeight',40);
+            [maxPeaks_right, maxPeaks_right_indices] = findpeaks(inclination_angle_mocap_right_trajectory,'MinPeakHeight',40);
+            [minPeaks_left, minPeaks_left_indices] = findpeaks(-inclination_angle_mocap_left_trajectory);
+            [minPeaks_right, minPeaks_right_indices] = findpeaks(-inclination_angle_mocap_right_trajectory);
+            minPeaks_left = abs(minPeaks_left);
+            minPeaks_right = abs(minPeaks_right);
+            trialaveraged_mocap_peak_amplitude_left(i_trial) = mean(maxPeaks_left) - mean(minPeaks_left);
+            trialaveraged_mocap_peak_amplitude_right(i_trial) = mean(maxPeaks_right) - mean(minPeaks_right);
+            
+%             figure; hold on;
+%             plot(inclination_angle_mocap_left_trajectory,'-')
+%             plot(maxPeaks_left_indices,maxPeaks_left,'*')
+%             plot(minPeaks_left_indices,minPeaks_left,'*')
+%             plot(inclination_angle_mocap_right_trajectory,'-')
+%             plot(maxPeaks_right_indices,maxPeaks_right,'*')
+%             plot(minPeaks_right_indices,minPeaks_right,'*')
+%             hold off;
+%             close all;
             
             for i_alpha = 1 : length(alpha_labels)
                 % calculate error
@@ -127,8 +147,17 @@ function analyzeAlpha(varargin)
     % average
     mean_root_mean_square_error_left = mean(root_mean_square_errors_left, 2);
     mean_root_mean_square_error_right = mean(root_mean_square_errors_right, 2);
+    mean_mocap_peak_amplitude_left = mean(trialaveraged_mocap_peak_amplitude_left);
+    mean_mocap_peak_amplitude_right = mean(trialaveraged_mocap_peak_amplitude_right);
+    percent_error_left = (mean_root_mean_square_error_left/mean_mocap_peak_amplitude_left)*100;
+    percent_error_right = (mean_root_mean_square_error_right/mean_mocap_peak_amplitude_right)*100;
+    std_root_mean_square_error_left = std(root_mean_square_errors_left,0, 2);
+    std_root_mean_square_error_right = std(root_mean_square_errors_right,0, 2);
     mean_coefficient_of_multiple_correlation_left = mean(coefficients_of_multiple_correlation_left, 2);
     mean_coefficient_of_multiple_correlation_right = mean(coefficients_of_multiple_correlation_right, 2);
+    std_coefficient_of_multiple_correlation_left = std(coefficients_of_multiple_correlation_left,0,2);
+    std_coefficient_of_multiple_correlation_right = std(coefficients_of_multiple_correlation_right,0,2);
+  
     
     % visualize
     alpha_values = zeros(size(alpha_labels));
@@ -137,23 +166,37 @@ function analyzeAlpha(varargin)
     end
     
     figure; axes; hold on; title('RMS')
-    plot(alpha_values, mean_root_mean_square_error_left, 'x-', 'displayname', 'left')
-    plot(alpha_values, mean_root_mean_square_error_right, 'x-', 'displayname', 'right')
+    errorbar(alpha_values, mean_root_mean_square_error_left, std_root_mean_square_error_left, 'o-', 'displayname', 'left')
+    errorbar(alpha_values, mean_root_mean_square_error_right, std_root_mean_square_error_right, 'o-', 'displayname', 'right')
     set(gca, 'xtick', alpha_values)
     set(gca, 'xticklabels', alpha_labels)
     xlabel('alpha')
-    ylabel('RMS')
+    ylabel('RMS (deg)')
     legend('show')
     
+    figure; axes; hold on; title('% Error')
+    plot(alpha_values, percent_error_left, 'x-', 'displayname', 'left')
+    plot(alpha_values, percent_error_right, 'x-', 'displayname', 'right')
+    xlabel('Alpha')
+    ylabel('% Error (Relative to Avg Mocap Amplitude)')
+    legend('show')
+
+
     % visualize
     figure; axes; hold on; title('CMC')
-    plot(alpha_values, mean_coefficient_of_multiple_correlation_left, 'x-', 'displayname', 'left')
-    plot(alpha_values, mean_coefficient_of_multiple_correlation_right, 'x-', 'displayname', 'right')
+    errorbar(alpha_values, mean_coefficient_of_multiple_correlation_left, std_coefficient_of_multiple_correlation_left, 'o-', 'displayname', 'left')
+    errorbar(alpha_values, mean_coefficient_of_multiple_correlation_right, std_coefficient_of_multiple_correlation_right, 'o-', 'displayname', 'right')
     set(gca, 'xtick', alpha_values)
     set(gca, 'xticklabels', alpha_labels)
     xlabel('alpha')
     ylabel('CMC')
     legend('show')
+    
+    distFig
+    %     figure; axes; hold on; title('CMC')
+%     plot(mean_coefficient_of_multiple_correlation_left, 'x-', 'displayname', 'left')
+%     plot(mean_coefficient_of_multiple_correlation_right, 'x-', 'displayname', 'right')
+%     legend('show')
     
     
 end
