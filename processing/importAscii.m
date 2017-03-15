@@ -94,6 +94,7 @@ function importAscii(varargin)
                     end
                 end
 
+                %% nexus
                 if strcmp(file_type, 'nexus')
                     import_more_data = true;
                     number_of_header_lines = 5;
@@ -216,6 +217,7 @@ function importAscii(varargin)
                     end
                     disp(['imported ' source_dir filesep data_file_name])
 
+                %% qualisys
                 elseif strcmp(file_type, 'qualisysData')
                     % this is marker data from QTM
                     
@@ -269,6 +271,8 @@ function importAscii(varargin)
                       );
                     addAvailableData('marker_trajectories_raw', 'time_mocap', 'sampling_rate_mocap', 'marker_labels', save_folder, save_file_name);
                     disp(['imported ' source_dir filesep data_file_name ' and saved as ' save_file_name])
+                    
+                %% qualisys analog
                 elseif strcmp(file_type, 'a')
                     % this is analog data from QTM
                     [imported_data, delimiter, nheaderlines] = importdata([source_dir filesep data_file_name], '\t', 13);
@@ -306,6 +310,7 @@ function importAscii(varargin)
                     addAvailableData('emg_trajectories_raw', 'time_emg', 'sampling_rate_emg', 'emg_labels', save_folder, save_file_name);
                     disp(['imported ' source_dir filesep data_file_name ' and saved as ' save_file_name])
 
+                %% neurocom
                 elseif strcmp(file_type, 'neurocomData')
                     % this is data from the neurocom forceplate
                     data_source = 'neurocom';
@@ -383,9 +388,11 @@ function importAscii(varargin)
                     
                     disp(['imported ' source_dir filesep data_file_name])
 
-
+                %% unknown
                 elseif strcmp(file_type, 'unknown')
                     disp(['FAILED to import ' data_file_name])
+                    
+                %% labview
                 else
                     % assume this is labview data
                     [imported_data, delimiter, nheaderlines] = importdata([source_dir filesep data_file_name], ',', 3);
@@ -419,6 +426,7 @@ function importAscii(varargin)
                         variables_to_save.time_trajectory = variables_to_save.time_trajectory';
                     end
                     eval(['variables_to_save.time = variables_to_save.time_trajectory * milliseconds_to_seconds;']);
+                    variables_to_save.time = variables_to_save.time - variables_to_save.time(1);
                     variables_to_save = rmfield(variables_to_save, 'time_trajectory');
                     variables_to_save_list(strcmp(variables_to_save_list, 'time_trajectory')) = [];
 

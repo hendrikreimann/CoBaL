@@ -192,11 +192,6 @@ function analyzeAlpha(varargin)
     ylabel('CMC')
     legend('show')
     
-    distFig
-    %     figure; axes; hold on; title('CMC')
-%     plot(mean_coefficient_of_multiple_correlation_left, 'x-', 'displayname', 'left')
-%     plot(mean_coefficient_of_multiple_correlation_right, 'x-', 'displayname', 'right')
-%     legend('show')
     
     
 end

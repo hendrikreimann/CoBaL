@@ -20,6 +20,11 @@ function [A, ADot] = createConstraintMatrix_pointConstraints ...
     left_foot_constraint, ...
     right_foot_constraint ...
   )
+    if any(isnan([left_foot_constraint, right_foot_constraint]))
+        A = NaN;
+        ADot = NaN;
+        return
+    end
 
     % left foot
     left_heel_body_jacobian = plant.bodyJacobians{plant.getEndEffectorIndex('left heel')};
