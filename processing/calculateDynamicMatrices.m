@@ -69,7 +69,7 @@ function calculateDynamicMatrices(varargin)
 
             % determine time steps to optimize
             time_steps_to_process = 1 : number_of_time_steps;
-%             time_steps_to_process = 301 : 302;
+            time_steps_to_process = 1001 : 2000;
             
 %             time_steps_to_process = determineTimeStepsToOptimize(date, subject_id, condition, i_trial, study_settings.get('data_stretch_padding'));
 %             time_steps_to_process = determineTimeStepsToOptimize(date, subject_id, condition, i_trial, 0);
@@ -385,6 +385,7 @@ function calculateDynamicMatrices(varargin)
             variables_to_save.constraint_matrix_dot_trajectory = constraint_matrix_dot_trajectory;
             variables_to_save.left_foot_constraint_number_trajectory = left_foot_constraint_number_trajectory;
             variables_to_save.right_foot_constraint_number_trajectory = right_foot_constraint_number_trajectory;
+            variables_to_save.belt_position_trajectory_mocap = belt_position_trajectory_mocap';
             
             save_folder = 'processed';
             save_file_name = makeFileName(date, subject_id, condition, i_trial, 'dynamicTrajectories.mat');
@@ -394,12 +395,16 @@ function calculateDynamicMatrices(varargin)
             addAvailableData('joint_angle_trajectories_belt', 'time_mocap', 'sampling_rate_mocap', 'joint_labels', save_folder, save_file_name);
             addAvailableData('joint_velocity_trajectories_belt', 'time_mocap', 'sampling_rate_mocap', 'joint_labels', save_folder, save_file_name);
             addAvailableData('joint_acceleration_trajectories_belt', 'time_mocap', 'sampling_rate_mocap', 'joint_labels', save_folder, save_file_name);
+            addAvailableData('belt_position_trajectory_mocap', 'time_mocap', 'sampling_rate_mocap', '', save_folder, save_file_name);
 
             addAvailableData('inertia_matrix_trajectory', 'time_mocap', 'sampling_rate_mocap', '', save_folder, save_file_name);
             addAvailableData('coriolis_matrix_trajectory', 'time_mocap', 'sampling_rate_mocap', '', save_folder, save_file_name);
             addAvailableData('gravitation_matrix_trajectory', 'time_mocap', 'sampling_rate_mocap', '', save_folder, save_file_name);
             addAvailableData('constraint_matrix_trajectory', 'time_mocap', 'sampling_rate_mocap', '', save_folder, save_file_name);
             addAvailableData('constraint_matrix_dot_trajectory', 'time_mocap', 'sampling_rate_mocap', '', save_folder, save_file_name);
+            
+            
+            
             
         end
     end

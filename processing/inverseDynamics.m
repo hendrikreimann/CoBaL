@@ -70,7 +70,7 @@ function inverseDynamics(varargin)
 
             % determine time steps to optimize
             time_steps_to_process = 1 : number_of_time_steps;
-%             time_steps_to_process = 1000 : 2000;
+            time_steps_to_process = 1001 : 2000;
             
 %             time_steps_to_optimize = determineTimeStepsToOptimize(date, subject_id, condition, i_trial, study_settings.get('data_stretch_padding'));
 %             time_steps_to_optimize = determineTimeStepsToOptimize(date, subject_id, condition, i_trial, 0);
@@ -670,6 +670,8 @@ function inverseDynamics(varargin)
                         constraint_torque_trajectories_left(i_time, :) = A' * lambda_left;
                         lambda_trajectories{i_time} = lambda;
                         joint_torque_trajectories(i_time, :) = T;
+                        
+                        
 
 %                         induced_accelerations_applied_trajectories(i_time, :) = induced_acceleration_applied;
 %                         induced_accelerations_gravity_trajectories(i_time, :) = induced_acceleration_gravity;
@@ -690,14 +692,19 @@ function inverseDynamics(varargin)
             variables_to_save = struct;
             
             variables_to_save.joint_torque_trajectories_belt = joint_torque_trajectories;
-%             variables_to_save.number_of_lambdas = number_of_lambdas;
-
+            variables_to_save.constraint_torque_trajectories_all = constraint_torque_trajectories_all;
+            variables_to_save.constraint_torque_trajectories_left = constraint_torque_trajectories_left;
+            variables_to_save.constraint_torque_trajectories_right = constraint_torque_trajectories_right;
+            
             save_folder = 'processed';
             save_file_name = makeFileName(date, subject_id, condition, i_trial, 'dynamicTrajectories.mat');
             saveDataToFile([save_folder filesep save_file_name], variables_to_save);
             disp(['Condition ' condition ', Trial ' num2str(i_trial) ' completed, saved as ' save_folder filesep save_file_name]);
             
             addAvailableData('joint_torque_trajectories_belt', 'time_mocap', 'sampling_rate_mocap', 'joint_labels', save_folder, save_file_name);
+            addAvailableData('constraint_torque_trajectories_all', 'time_mocap', 'sampling_rate_mocap', '', save_folder, save_file_name);
+            addAvailableData('constraint_torque_trajectories_left', 'time_mocap', 'sampling_rate_mocap', '', save_folder, save_file_name);
+            addAvailableData('constraint_torque_trajectories_right', 'time_mocap', 'sampling_rate_mocap', '', save_folder, save_file_name);
     
         end
     end
