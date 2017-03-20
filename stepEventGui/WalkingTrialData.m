@@ -12,7 +12,7 @@
 %     GNU General Public License for more details.
 % 
 %     You should have received a copy of the GNU General Public License
-%     along with this program.  If not, see <http://www.gnu.org/licenses/>.% compare the kinematic tree against the kinematic chain
+%     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 classdef WalkingTrialData < handle
     properties
@@ -231,9 +231,7 @@ classdef WalkingTrialData < handle
             right_heel_z_trajectory = this.marker_positions(:, right_heel_marker_indices(3));
             right_toes_z_trajectory = this.marker_positions(:, right_toes_marker_indices(3));
             left_heel_y_trajectory = this.marker_positions(:, left_heel_marker_indices(2));
-            left_toes_y_trajectory = this.marker_positions(:, left_toes_marker_indices(2));
             right_heel_y_trajectory = this.marker_positions(:, right_heel_marker_indices(2));
-            right_toes_y_trajectory = this.marker_positions(:, right_toes_marker_indices(2));
 
             % calculate derivatives
             filter_order = 2;
@@ -251,10 +249,6 @@ classdef WalkingTrialData < handle
             right_heel_y_vel_trajectory = deriveByTime(nanfiltfilt(b, a, right_heel_y_trajectory), 1/this.sampling_rate_marker);
             left_heel_y_acc_trajectory = deriveByTime(nanfiltfilt(b, a, left_heel_y_vel_trajectory), 1/this.sampling_rate_marker);
             right_heel_y_acc_trajectory = deriveByTime(nanfiltfilt(b, a, right_heel_y_vel_trajectory), 1/this.sampling_rate_marker);
-            left_toes_y_vel_trajectory = deriveByTime(nanfiltfilt(b, a, left_toes_y_trajectory), 1/this.sampling_rate_marker);
-            right_toes_y_vel_trajectory = deriveByTime(nanfiltfilt(b, a, right_toes_y_trajectory), 1/this.sampling_rate_marker);
-            left_toes_y_acc_trajectory = deriveByTime(nanfiltfilt(b, a, left_toes_y_vel_trajectory), 1/this.sampling_rate_marker);
-            right_toes_y_acc_trajectory = deriveByTime(nanfiltfilt(b, a, right_toes_y_vel_trajectory), 1/this.sampling_rate_marker);        
 
             this.left_heel_z_pos = left_heel_z_trajectory;
             this.left_heel_z_vel = left_heel_z_vel_trajectory;
@@ -411,7 +405,7 @@ classdef WalkingTrialData < handle
                 error('provided unknown data label');
             end
         end
-        function data = getData(this, data_label)
+        function data = getData(this, data_label) %#ok<STOUT,INUSL>
             eval(['data = this.' data_label ';']);
         end
         

@@ -75,7 +75,7 @@ classdef WalkingEventData < handle
             this.stretch_start_times = loaded_stretch_data.stretch_start_times;
             this.stretch_end_times = loaded_stretch_data.stretch_end_times;
         end
-        function saveEvents(this, sender, eventdata)
+        function saveEvents(this, sender, eventdata) %#ok<INUSD>
             % prepare data
             this.removeDuplicates();
             variables_to_save = struct;
@@ -107,7 +107,7 @@ classdef WalkingEventData < handle
             disp(['Step events saved as "' step_events_file_name '"']);
         end
         
-        function setEventTimes(this, event_times, event_label)
+        function setEventTimes(this, event_times, event_label) %#ok<INUSL>
             eval(['this.' event_label ' = event_times;']);
         end
         function addEventTime(this, event_time, event_label)
@@ -184,7 +184,7 @@ classdef WalkingEventData < handle
             end
             this.trial_data.selected_time = this.selected_event_time;
         end
-        function next_event_label = getNextEventTypeLabel(this, current_event_type_label)
+        function next_event_label = getNextEventTypeLabel(this, current_event_type_label) %#ok<INUSL>
             next_event_label = 'left_pushoff';
             if strcmp(current_event_type_label, 'left_touchdown')
                 next_event_label = 'left_pushoff';
@@ -198,8 +198,8 @@ classdef WalkingEventData < handle
                 
 
         end
-        function previous_event_label = getPreviousEventTypeLabel(this, current_event_type_label)
-            next_event_label = 'left_pushoff';
+        function previous_event_label = getPreviousEventTypeLabel(this, current_event_type_label) %#ok<INUSL>
+            previous_event_label = 'left_pushoff';
             if strcmp(current_event_type_label, 'right_pushoff')
                 previous_event_label = 'right_touchdown';
             end

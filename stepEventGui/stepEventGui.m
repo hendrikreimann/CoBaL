@@ -12,7 +12,7 @@
 %     GNU General Public License for more details.
 % 
 %     You should have received a copy of the GNU General Public License
-%     along with this program.  If not, see <http://www.gnu.org/licenses/>.% compare the kinematic tree against the kinematic chain
+%     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 function stepEventGui(varargin)
 
@@ -20,9 +20,7 @@ function stepEventGui(varargin)
     [condition_list, trial_number_list] = parseTrialArguments(varargin{:});
     parser = inputParser;
     parser.KeepUnmatched = true;
-    addParameter(parser, 'color_scheme', 'intra')
     parse(parser, varargin{:})
-    color_scheme = parser.Results.color_scheme;
 
     condition = condition_list{1};
     trial_to_process = trial_number_list{1}(1);
@@ -55,7 +53,7 @@ function stepEventGui(varargin)
     %% init gui
     controller = stepEventController(trial_data, event_data);
     
-    %% show stick figure and kinematic tree
+    %% stick figure and kinematic tree figure
     scene_bound = ...
       [ ...
         study_settings.get('scene_bound_x_min') study_settings.get('scene_bound_x_max'); ...
@@ -121,14 +119,14 @@ function stepEventGui(varargin)
         
     end
     
+    %% initialize figures
     % load settings
     controller.loadFigureSettings();
     controller.updateStretchPatches();
     
     % select event (first left touchdown is default
-
-%     event_label = 'left_touchdown';
     event_label = 'left_pushoff';
+%     event_label = 'left_touchdown';
     event_times = controller.event_data.getEventTimes(event_label);
     if isempty(event_times)
         event_time = 0;
@@ -137,16 +135,9 @@ function stepEventGui(varargin)
     end
     controller.setSelectedEvent(event_label, event_time);
 
-
-
-
-
-
-
-
-
 end
 
+%% nested function
 function figures_list = getFiguresListFromSettings(settings)
     field_names = settings.getAllSettingsNames;
     figures_list = {};

@@ -45,7 +45,6 @@ classdef stepEventController < handle
         selected_time_edit;
         
         scene_figure = [];
-        
         kinematic_tree_controller = [];
         
         color_selected = [1 0.5 0];
@@ -100,7 +99,7 @@ classdef stepEventController < handle
             
             % scene control
             scene_panel_height = 60;
-            scene_panel = uipanel(this.control_figure, 'Title', 'Files', 'FontSize', 12, 'BackgroundColor', 'white', 'Units', 'pixels', 'Position', [5, figure_height-figures_panel_height-events_panel_height-files_panel_height-scene_panel_height-5, figure_width-10, scene_panel_height]);
+            scene_panel = uipanel(this.control_figure, 'Title', 'Selection', 'FontSize', 12, 'BackgroundColor', 'white', 'Units', 'pixels', 'Position', [5, figure_height-figures_panel_height-events_panel_height-files_panel_height-scene_panel_height-5, figure_width-10, scene_panel_height]);
             uicontrol(scene_panel, 'Style', 'text', 'string', 'Selected time:', 'Position', [5, scene_panel_height-40, 190, 20], 'Fontsize', 10, 'HorizontalAlignment', 'left', 'BackgroundColor', 'white');
             this.selected_time_edit = uicontrol(scene_panel, 'Style', 'edit', 'BackgroundColor', 'white', 'Position', [80, scene_panel_height-37, 40, 20], 'String', '0');
         end
@@ -275,22 +274,27 @@ classdef stepEventController < handle
             end
         end
         function saveFigureSettings(this, sender, eventdata) %#ok<INUSD>
-            
+            % get figure settings from trajectory figures
             figure_settings = cell(1, length(this.figureSelectionBox));
             for i_figure = 1 : size(this.figureSelectionBox.String, 1)
                 figure_settings{i_figure} = this.figureSelectionBox.UserData{i_figure}.getSetting();
             end
             
+            % get figure settings from scene figure
             scene_figure_setting = struct();
             scene_figure_setting.position = this.scene_figure.scene_figure.Position; %#ok<STRNU>
             
+            % get figure settings from control figure
             control_figure_setting = struct();
             control_figure_setting.position = this.control_figure.Position; %#ok<STRNU>
             
+            % get figure settings from kinematic tree figure
             kinematic_tree_figure_setting = struct();
             if ~isempty(this.kinematic_tree_controller)
                 kinematic_tree_figure_setting.position = this.kinematic_tree_controller.sceneFigure.Position; %#ok<STRNU>
             end
+            
+            % save settings to file
             settings_file = [getUserSettingsPath filesep 'eventGuiFigureSettings.mat'];
             save(settings_file, 'figure_settings', 'control_figure_setting', 'scene_figure_setting', 'kinematic_tree_figure_setting');
         end
