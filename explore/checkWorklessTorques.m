@@ -1,17 +1,75 @@
+%     This file is part of the KinematicChain library
+%     Copyright (C) 2017 Hendrik Reimann <hendrikreimann@gmail.com>
+% 
+%     This program is free software: you can redistribute it and/or modify
+%     it under the terms of the GNU General Public License as published by
+%     the Free Software Foundation, either version 3 of the License, or
+%     (at your option) any later version.
+% 
+%     This program is distributed in the hope that it will be useful,
+%     but WITHOUT ANY WARRANTY; without even the implied warranty of
+%     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%     GNU General Public License for more details.
+% 
+%     You should have received a copy of the GNU General Public License
+%     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-% load('subjectModel.mat')
-% kinematic_tree.updateInternals;
+% check out constraints
 
-number_of_joints = kinematic_tree.numberOfJoints;
-k_v = 6;
+real_joint_left_pos = [-2; 0; 2];
+real_joint_right_pos = [2; 0; 2];
+real_joint_left_axis_tree = [0; 1; 0];
+real_joint_right_axis = [0; 1; 0];
+virtual_joint_tree_pos = [0; 0; 2];
+virtual_joint_one_axis = [1; 0; 0];
+virtual_joint_two_axis = [0; 0; 1];
+virtual_joint_three_axis = [0; 1; 0];
+center_link_position = [0; 0; 0;];
+left_link_position = [-2; 0; 0;];
+right_link_position = [2; 0; 0;];
+
+joint_positions_tree = {virtual_joint_tree_pos, virtual_joint_tree_pos, virtual_joint_tree_pos, real_joint_left_pos, real_joint_right_pos};
+joint_axes_tree = {virtual_joint_one_axis, virtual_joint_two_axis, virtual_joint_three_axis, real_joint_left_axis_tree, real_joint_right_axis};
+end_effectors_tree_pos = {[-1; 0; 0]; [3; 0; 0];};
+link_positions_tree = {virtual_joint_tree_pos, virtual_joint_tree_pos, center_link_position, left_link_position, right_link_position};
+link_masses_tree = [0 0 2 1 1];
+link_moments_of_inertia_tree = [0 0 0; 0 0 0; 5 5 5; 1 1 1; 1 1 1] * 0.1;
+branch_matrix_tree = ...
+  [ ...
+    1 1 1 1 0; ...
+    1 1 1 0 1; ...
+  ];
+
+
+link_orientations = {eye(3), eye(3), eye(3), eye(3), eye(3)};
+joint_types = [2 2 1 1 1];
+
+kinematic_tree = GeneralKinematicTree ...
+( ...
+  joint_positions_tree, ...
+  joint_axes_tree, ...
+  joint_types, ...
+  branch_matrix_tree, ...
+  end_effectors_tree_pos, ...
+  link_positions_tree, ...
+  link_orientations, ...
+  link_masses_tree, ...
+  link_moments_of_inertia_tree ...
+);
+
+
+
+%% check out instantaneous torques 
 M = kinematic_tree.inertiaMatrix;
 C = kinematic_tree.coriolisMatrix;
 N = kinematic_tree.gravitationalTorqueMatrix;
-A = [kinematic_tree.bodyJacobians{3}; kinematic_tree.bodyJacobians{6}];
-A_dot = [kinematic_tree.bodyJacobianTemporalDerivatives{3}; kinematic_tree.bodyJacobianTemporalDerivatives{6}];
+A = [kinematic_tree.endEffectorJacobians{1}([1 3], :); kinematic_tree.endEffectorJacobians{2}([1 3], :)];
+A_dot = [kinematic_tree.endEffectorJacobianTemporalDerivatives{1}([1 3], :); kinematic_tree.endEffectorJacobianTemporalDerivatives{2}([1 3], :)];
 P = eye(kinematic_tree.numberOfJoints) - A' * (A * M^(-1) * A')^(-1) * A * M^(-1);
+k_v = 3;
+number_of_joints = kinematic_tree.numberOfJoints;
 
-% find applied torques that result in zero acceleration
+
 theta_dot = kinematic_tree.jointVelocities;
 desired_joint_accelerations = zeros(size(kinematic_tree.jointAngles));
 b_acc = (M*desired_joint_accelerations + P*C*theta_dot + P*N + A'*(A*M^(-1)*A')^(-1)*(A_dot * theta_dot));
@@ -35,9 +93,9 @@ accelerations_check = kinematic_tree.jointAccelerations;
 
 % check for workless torques
 k_constraints_full = rank(A);
-[~, ~, W_constraints] = svd(A);                 % use singular value decomposition to get the basis
-B_constraints = W_constraints(:, 1:k_constraints_full);                         % E_rng contains the base vectors of the range space - the torque combinations that do no work
-C_constraints = W_constraints(:, k_constraints_full+1:end);                     % E_nul contains the base vectors of the null space - the torque combinations that do work
+[~, ~, W_constraints] = svd(A);                                             % use singular value decomposition to get the basis
+B_constraints = W_constraints(:, 1:k_constraints_full);                     % E_rng contains the base vectors of the range space - the torque combinations that do no work
+C_constraints = W_constraints(:, k_constraints_full+1:end);                 % E_nul contains the base vectors of the null space - the torque combinations that do work
 P_constraint_full = B_constraints*B_constraints';                           % K_rng projects onto the range space
 P_constraint_free = C_constraints*C_constraints';                           % K_nul projects onto the null space
 T_workpure = P_constraint_free * T;
@@ -58,6 +116,7 @@ P_workless = C_w*C_w';                                                      % P_
 T_workpure = P_workpure * T;
 T_workless = P_workless * T;
 T_check = T_workpure + T_workless;
+
 
 ground_reaction_wrench = calculateInstantaneousGroundReactionWrench(kinematic_tree, kinematic_tree.constraintTorques, eye(4));
 
@@ -113,7 +172,7 @@ lambda = (A*M^(-1)*A')^(-1) ...
 kinematic_tree.externalTorques = T_workpure_2;
 kinematic_tree.constraintTorques = A'*lambda;
 kinematic_tree.calculateAccelerationsFromExternalTorques;
-accelerations_check_2 = kinematic_tree.jointAccelerations;
+accelerations_check = kinematic_tree.jointAccelerations;
 
 
 %% solution three - contact constraints, no workless torques
@@ -143,7 +202,7 @@ lambda = (A*M^(-1)*A')^(-1) ...
 kinematic_tree.externalTorques = T_3;
 kinematic_tree.constraintTorques = A'*lambda;
 kinematic_tree.calculateAccelerationsFromExternalTorques;
-accelerations_check_3 = kinematic_tree.jointAccelerations;
+accelerations_check = kinematic_tree.jointAccelerations;
 
 % check for workless torques
 k_constraints_full = rank(A);
@@ -177,7 +236,7 @@ lambda = (A*M^(-1)*A')^(-1) ...
 kinematic_tree.externalTorques = T_workpure_3;
 kinematic_tree.constraintTorques = A'*lambda;
 kinematic_tree.calculateAccelerationsFromExternalTorques;
-accelerations_check_3 = kinematic_tree.jointAccelerations;
+accelerations_check = kinematic_tree.jointAccelerations;
 
 
 %% solution four - contact constraints, no torques in the free DoFs and no workless torques
@@ -241,21 +300,18 @@ T_workpure_4 = P_workpure * T_4;
 T_workless_4 = P_workless * T_4;
 T_check_4 = T_workpure_4 + T_workless_4;
 
+
 % check what happens if I remove workless torques
 lambda = (A*M^(-1)*A')^(-1) ...
     * (A*M^(-1)*(T_workpure_4 - C*theta_dot - N) + A_dot*theta_dot);
 kinematic_tree.externalTorques = T_workpure_4;
 kinematic_tree.constraintTorques = A'*lambda;
 kinematic_tree.calculateAccelerationsFromExternalTorques;
-accelerations_check_4 = kinematic_tree.jointAccelerations;
+accelerations_check = kinematic_tree.jointAccelerations;
 
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% solution 4 is the correct one, it seems
-% - the resulting acceleration is the desired one (accelerations_check_4 = b_acc)
-% - there are no torques in the free body DoFs (T_4(1:6) = 0)
-% - there are no workless torques (T_workless_4 = 0)
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% I was here before the weekend
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 return
 
 
@@ -264,73 +320,77 @@ return
 
 
 
-%% old stuff, copied from somewhere else but not needed anymore I believe
+% do a longer simulation
+
+scene_bound = 3.5*[-1 1; -1 1; -1 1];
+
+stick_figure_tree = KinematicTreeStickFigure(kinematic_tree, scene_bound);
+% stick_figure_tree = KinematicTreeStickFigure(kinematic_tree, scene_bound);
+% stick_figure_tree.showLinkMassEllipsoids = true;
+position = get(stick_figure_tree.sceneFigure, 'Position');
+position(1) = position(1) + position(3);
+set(stick_figure_tree.sceneFigure, 'Position', position);
+
+stick_figure_tree.setLinkPlotsLinewidth(5);
+stick_figure_tree.setLinkPlotsColor([1 0.7 0]);
+stick_figure_tree.update();
+
+kinematic_tree.externalTorques = [0; 0; 0; 2; 0] * 1;
+time_step = 0.005;
+counter = 0;
+total_time = 10;
+time = time_step : time_step : total_time;
+number_of_time_steps = length(time);
+
+joint_angles_tree = zeros(number_of_time_steps, 5);
+joint_velocities_tree = zeros(number_of_time_steps, 5);
+joint_accelerations_tree = zeros(number_of_time_steps, 5);
+joint_torques_tree = zeros(number_of_time_steps, 5);
+contact_forces_tree = zeros(number_of_time_steps, 4);
+for i_time = 1 : length(time);
+    % apply constraints
+    A_tree = [kinematic_tree.endEffectorJacobians{1}([1 3], :); kinematic_tree.endEffectorJacobians{2}([1 3], :)];
+    A_treeDot = [kinematic_tree.endEffectorJacobianTemporalDerivatives{1}([1 3], :); kinematic_tree.endEffectorJacobianTemporalDerivatives{2}([1 3], :)];
+    M_tree = kinematic_tree.inertiaMatrix;
+    lambda_tree = (A_tree*M_tree^(-1)*A_tree')^(-1) ...
+        * (A_tree*M_tree^(-1)*(kinematic_tree.externalTorques - kinematic_tree.coriolisMatrix*kinematic_tree.jointVelocities - kinematic_tree.gravitationalTorqueMatrix) + A_treeDot*kinematic_tree.jointVelocities);
+    kinematic_tree.constraintTorques = A_tree'*lambda_tree;
+    constraint_torques_tree = A_tree'*lambda_tree;
+    
+    % make Euler step
+    kinematic_tree.calculateAccelerationsFromExternalTorques;
+    theta_two_dot = kinematic_tree.jointAccelerations;
+    kinematic_tree.jointVelocities = kinematic_tree.jointVelocities + time_step*kinematic_tree.jointAccelerations;
+    kinematic_tree.jointAngles = kinematic_tree.jointAngles + time_step*kinematic_tree.jointVelocities + time_step^2*kinematic_tree.jointAccelerations;
+    kinematic_tree.updateInternals;
+    
+    % store data
+    joint_angles_tree(i_time, :) = kinematic_tree.jointAngles;
+    joint_velocities_tree(i_time, :) = kinematic_tree.jointVelocities;
+    joint_accelerations_tree(i_time, :) = kinematic_tree.jointAccelerations;
+    joint_torques_tree(i_time, :) = kinematic_tree.externalTorques;
+    contact_forces_tree(i_time, :) = lambda_tree;
+
+    counter = counter+1;
+    if counter == 5
+        counter = 0;
+        stick_figure_tree.update;
+        drawnow;
+    end
+end
+
+figure; axes; hold on; title('joint angles');
+plot(time, joint_angles_tree(:, 1), 'r:', 'linewidth', 2, 'displayname', 'tree 1');
+plot(time, joint_angles_tree(:, 2), 'g:', 'linewidth', 2, 'displayname', 'tree 2');
+plot(time, joint_angles_tree(:, 3), 'b:', 'linewidth', 2, 'displayname', 'tree 3');
+plot(time, joint_angles_tree(:, 4), 'c:', 'linewidth', 2, 'displayname', 'tree 4');
+plot(time, joint_angles_tree(:, 5), 'm:', 'linewidth', 2, 'displayname', 'tree 5');
+legend('toggle')
 
 
-% remove the workless part from the applied torques
-external_torques = kinematic_tree.externalTorques;
-k_constraints_full = rank(A);
-[~, ~, W_constraints] = svd(A);                 % use singular value decomposition to get the basis
-B_constraints = W_constraints(:, 1:k_constraints_full);                         % E_rng contains the base vectors of the range space - the torque combinations that do no work
-C_constraints = W_constraints(:, k_constraints_full+1:end);                     % E_nul contains the base vectors of the null space - the torque combinations that do work
-P_constraint_full = B_constraints*B_constraints';                           % K_rng projects onto the range space
-P_constraint_free = C_constraints*C_constraints';                           % K_nul projects onto the null space
-external_torques_workpure = P_constraint_free * external_torques;
-external_torques_workless = P_constraint_full * external_torques;
-external_torques_check = external_torques_workpure + external_torques_workless;
-
-B_virtualspace = [eye(6); zeros(kinematic_tree.numberOfJoints - 6, 6)];             % E_joint contains the base vectors of the joint torque space
-span_virtualspace_or_constraint_free = [B_virtualspace C_constraints];
-k_virtualspace_or_constraint_free = rank(span_virtualspace_or_constraint_free);
-span_virtualspace_or_constraint_full = [B_virtualspace B_constraints];
-k_virtualspace_or_constraint_full = rank(span_virtualspace_or_constraint_full);
-
-B_jointspace = [zeros(6, 6); eye(18, 6)];             % E_joint contains the base vectors of the joint torque space
-span_jointspace_or_constraint_free = [B_jointspace C_constraints];
-k_jointspace_or_constraint_free = rank(span_virtualspace_or_constraint_free);
-span_jointspace_or_constraint_full = [B_jointspace B_constraints];
-k_jointspace_or_constraint_full = rank(span_virtualspace_or_constraint_full);
-
-[~, d, W_virtualspace_or_constraint_free] = svd(span_virtualspace_or_constraint_free');
-B_virtualspace_or_constraint_free = W_virtualspace_or_constraint_free(:, 1:k_virtualspace_or_constraint_free);
-C_virtualspace_or_constraint_free = W_virtualspace_or_constraint_free(:, k_virtualspace_or_constraint_free+1:end);
-
-constraints_check = P_constraint_full * C_virtualspace_or_constraint_free; % should not be 0 if C_... pushes against the constraints
-work_check = P_constraint_free * C_virtualspace_or_constraint_free; % should not be 0 if C_... does some work
-B_jointspace_and_constraint_full = C_virtualspace_or_constraint_free; % this is the direction of joint space that does no work
-
-% remove the part that does no work from the joint torques
-projector = eye(24, 24) - (B_jointspace_and_constraint_full*B_jointspace_and_constraint_full');
-external_torques_new = external_torques - (B_jointspace_and_constraint_full*B_jointspace_and_constraint_full')*external_torques;
-
-
-
-kinematic_tree.externalTorques = external_torques_new;
-
-
-
-
-
-
-
-
-
-
-
-
-% check
-%         lambda_reconstructed = inverseDynamicsDataPoint(kinematic_tree, A, ADot, virtual_joints);
-
-
-
-
-accelerations_check = kinematic_tree.jointAccelerations;
-kinematic_tree.jointVelocities = kinematic_tree.jointVelocities + time_step*kinematic_tree.jointAccelerations;
-kinematic_tree.jointAngles = kinematic_tree.jointAngles + time_step*kinematic_tree.jointVelocities + time_step^2*kinematic_tree.jointAccelerations;
-kinematic_tree.updateInternals;
-
-
-
-
+figure; axes; hold on; title('contact forces');
+plot(time, contact_forces_tree(:, 1), 'r:', 'linewidth', 1, 'displayname', 'tree 1');
+plot(time, contact_forces_tree(:, 2), 'g:', 'linewidth', 1, 'displayname', 'tree 1');
+plot(time, contact_forces_tree(:, 3), 'b:', 'linewidth', 1, 'displayname', 'tree 1');
 
 
