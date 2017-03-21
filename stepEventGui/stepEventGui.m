@@ -16,7 +16,7 @@
 
 function stepEventGui(varargin)
 
-    % parse arguments
+    %% parse arguments
     [condition_list, trial_number_list] = parseTrialArguments(varargin{:});
     parser = inputParser;
     parser.KeepUnmatched = true;
@@ -24,7 +24,6 @@ function stepEventGui(varargin)
 
     condition = condition_list{1};
     trial_to_process = trial_number_list{1}(1);
-    
     
     %% load data
     trial_data = WalkingTrialData(pwd, condition, trial_to_process);

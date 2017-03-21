@@ -31,7 +31,6 @@ function calculateDynamicMatrices(varargin)
     use_parallel = parser.Results.use_parallel;
     constraint = parser.Results.constraint;
     
-    
     % load settings
     study_settings_file = '';
     if exist(['..' filesep 'studySettings.txt'], 'file')
@@ -258,7 +257,7 @@ function calculateDynamicMatrices(varargin)
                                         V_body_right_fits_pushoff...
                                       );
                             end
-                           number_of_lambdas_pool(i_time) = size(constraint_matrix_trajectory_pool{i_time}, 1);
+                            number_of_lambdas_pool(i_time) = size(constraint_matrix_trajectory_pool{i_time}, 1);
                         end
                     end
                 end
