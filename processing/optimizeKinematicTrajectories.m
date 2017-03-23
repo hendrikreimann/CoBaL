@@ -55,7 +55,7 @@ function optimizeKinematicTrajectories(varargin)
     number_of_joints = kinematic_tree.numberOfJoints; %#ok<NODEF>
     
     %% determine weights
-    weight_matrix = ones(1, length(kinematic_tree.markerLabels)); % TODO: make this a setting
+    weight_matrix = ones(1, length(kinematic_tree.markerLabels));
     marker_weight_table = study_settings.get('marker_weights');
     for i_weight = 1 : size(marker_weight_table, 1)
         this_weight_marker_label = marker_weight_table{i_weight, 1};
@@ -63,7 +63,6 @@ function optimizeKinematicTrajectories(varargin)
         
         this_weight_marker_index = find(strcmp(kinematic_tree.markerLabels, this_weight_marker_label), 1, 'first');
         weight_matrix(this_weight_marker_index) = this_weight;
-        
     end
     
     %% create limb kinematic_trees
@@ -337,12 +336,19 @@ function optimizeKinematicTrajectories(varargin)
             load(['processed' filesep makeFileName(date, subject_id, condition, i_trial, 'markerTrajectories')]);
             load(['processed' filesep makeFileName(date, subject_id, condition, i_trial, 'kinematicTrajectories')]);
             
+            % modify marker trajectories: set LTHIA marker to NaN to check if treatment of weightless markers is working properly
+            LTHIA_number = find(strcmp(marker_labels, 'LTHIA'));
+            LTHIA_indices = (LTHIA_number-1)*3 + (1:3);
+            marker_trajectories(:, LTHIA_indices) = NaN;
+            joint_angle_trajectories(:, 7) = NaN;
+            
             number_of_time_steps = size(marker_trajectories, 1);
 
             % determine time steps to optimize
             time_steps_to_optimize = 1 : number_of_time_steps;
 %             time_steps_to_optimize = 1 : 20;
-%             time_steps_to_optimize = 1 : 200;
+            time_steps_to_optimize = 29999 : 30000;
+%             time_steps_to_optimize = 30000;
             
 %             time_steps_to_optimize = determineTimeStepsToProcess(date, subject_id, condition, i_trial, study_settings.get('data_stretch_padding'));
 %             time_steps_to_optimize = determineTimeStepsToProcess(date, subject_id, condition, i_trial, 0);
@@ -350,8 +356,6 @@ function optimizeKinematicTrajectories(varargin)
             %% optimize
             joint_angle_trajectories_calculated = joint_angle_trajectories;
             joint_angle_trajectories_optimized = zeros(size(joint_angle_trajectories_calculated)) * NaN;
-            weight_matrix = ones(1, size(marker_trajectories, 2)/3); % TODO: make this a setting
-            
             
             % TODO: check what is used as initial condition, what happens if this contains NaNs? Maybe that's the
             % problem with the padding?
@@ -431,44 +435,126 @@ function optimizeKinematicTrajectories(varargin)
             joint_center_trajectories_optimized = zeros(number_of_time_steps, length(joint_center_headers)*3);
             com_trajectories_calculated = com_trajectories;
             com_trajectories_optimized = zeros(number_of_time_steps, length(com_labels)*3);
-            for i_time = time_steps_to_optimize
-                % set kinematic tree configuration
-                theta = joint_angle_trajectories_optimized(i_time, :)';
-                kinematic_tree.jointAngles = theta;
-                kinematic_tree.updateKinematics;
-                
-                % calculate joint center positions
-                for i_center = 1 : length(joint_center_headers)
-                    this_joint_label = joint_center_headers{i_center};
-                    
-                    % try as joint
-                    joint_indices = kinematic_tree.getJointGroup(this_joint_label);
-                    if ~isempty(joint_indices)
-                        joint_position = kinematic_tree.jointTransformations{joint_indices(end)}(1:3, 4);
-                        joint_center_trajectories_optimized(i_time, (i_center-1)*3 + [1 2 3]) = joint_position;
+            
+            if use_parallel
+                % make variables accessible to workers by declaring them
+                joint_center_headers_pool = joint_center_headers;
+                joint_center_trajectories_optimized_pool = zeros(size(joint_center_trajectories_optimized));
+                com_trajectories_optimized_pool = zeros(size(com_trajectories_optimized));
+                com_labels_pool = com_labels;
+                spmd
+                    kinematic_tree_pool = kinematic_tree.copy;
+                    for i_time = time_steps_to_optimize(1)+labindex-1 : numlabs : time_steps_to_optimize(end)
+                        if any(any(isnan(joint_center_trajectories_optimized_pool(i_time, :))))
+                            joint_center_trajectories_optimized_pool(i_time, :) = NaN;
+                            com_trajectories_optimized_pool(i_time, :) = NaN;
+                        else
+                        
+                        
+                            % set kinematic tree configuration
+                            theta = joint_center_trajectories_optimized_pool(i_time, :)';
+                            kinematic_tree_pool.jointAngles = theta;
+                            kinematic_tree_pool.updateKinematics;
+
+                            % calculate joint center positions
+                            for i_center = 1 : length(joint_center_headers_pool)
+                                this_joint_label = joint_center_headers_pool{i_center};
+
+                                % try as joint
+                                joint_indices = kinematic_tree_pool.getJointGroup(this_joint_label);
+                                if ~isempty(joint_indices)
+                                    joint_position = kinematic_tree_pool.jointTransformations{joint_indices(end)}(1:3, 4);
+                                    joint_center_trajectories_optimized_pool(i_time, (i_center-1)*3 + [1 2 3]) = joint_position;
+                                end
+
+                                % try as end-effector
+                                point_indices = kinematic_tree_pool.getEndEffectorIndex(this_joint_label);
+                                if ~isempty(point_indices)
+                                    point_position = kinematic_tree_pool.endEffectorPositions{point_indices(end)};
+                                    joint_center_trajectories_optimized_pool(i_time, (i_center-1)*3 + [1 2 3]) = point_position;
+                                end
+                            end
+
+                            % get segment CoMs
+                            for i_segment = 1 : length(com_labels_pool) - 1
+                                segment_label = com_labels_pool{i_segment}(1 : end-3);
+                                joint_index = getSegmentJointIndex(kinematic_tree_pool, segment_label);
+                                segment_com = kinematic_tree_pool.linkTransformations{joint_index}(1:3, 4);
+                                com_trajectories_optimized_pool(i_time, (i_segment-1)*3 + [1 2 3]) = segment_com;
+                            end
+                            com_trajectories_optimized_pool(i_time, end-2 : end) = kinematic_tree_pool.calculateCenterOfMassPosition;                        
+                        end
                     end
+                end
+                % reassemble
+                for i_lab = 1 : number_of_labs
+                    joint_center_trajectories_optimized_lab = joint_center_trajectories_optimized_pool{i_lab};
+                    joint_center_trajectories_optimized(time_steps_to_optimize(i_lab : number_of_labs : number_of_time_steps_to_optimize), :) = joint_center_trajectories_optimized_lab(time_steps_to_optimize(i_lab : number_of_labs : number_of_time_steps_to_optimize), :);
+                    com_trajectories_optimized_lab = com_trajectories_optimized_pool{i_lab};
+                    com_trajectories_optimized(time_steps_to_optimize(i_lab : number_of_labs : number_of_time_steps_to_optimize), :) = com_trajectories_optimized_lab(time_steps_to_optimize(i_lab : number_of_labs : number_of_time_steps_to_optimize), :);
+                end                
+            else
+                for i_time = time_steps_to_optimize
+                    if any(any(isnan(joint_angle_trajectories_optimized(i_time, :))))
+                        joint_center_trajectories_optimized(i_time, :) = NaN;
+                        com_trajectories_optimized(i_time, :) = NaN;
+                    else
                     
-                    % try as end-effector
-                    point_indices = kinematic_tree.getEndEffectorIndex(this_joint_label);
-                    if ~isempty(point_indices)
-                        point_position = kinematic_tree.endEffectorPositions{point_indices(end)};
-                        joint_center_trajectories_optimized(i_time, (i_center-1)*3 + [1 2 3]) = point_position;
+                    
+                        % set kinematic tree configuration
+                        theta = joint_angle_trajectories_optimized(i_time, :)';
+                        kinematic_tree.jointAngles = theta;
+                        kinematic_tree.updateKinematics;
+
+                        % calculate joint center positions
+                        for i_center = 1 : length(joint_center_headers)
+                            this_joint_label = joint_center_headers{i_center};
+
+                            % try as joint
+                            joint_indices = kinematic_tree.getJointGroup(this_joint_label);
+                            if ~isempty(joint_indices)
+                                joint_position = kinematic_tree.jointTransformations{joint_indices(end)}(1:3, 4);
+                                joint_center_trajectories_optimized(i_time, (i_center-1)*3 + [1 2 3]) = joint_position;
+                            end
+
+                            % try as end-effector
+                            point_indices = kinematic_tree.getEndEffectorIndex(this_joint_label);
+                            if ~isempty(point_indices)
+                                point_position = kinematic_tree.endEffectorPositions{point_indices(end)};
+                                joint_center_trajectories_optimized(i_time, (i_center-1)*3 + [1 2 3]) = point_position;
+                            end
+
+
+        %                     joint_center = kinematic_tree.getPointOfInterestPosition(joint_center_headers{i_center});
+        %                     joint_center_trajectories_optimized(i_time, (i_center-1)*3 + [1 2 3]) = joint_center;
+                        end
+
+                        % get segment CoMs
+                        for i_segment = 1 : length(com_labels) - 1
+                            segment_label = com_labels{i_segment}(1 : end-3);
+                            joint_index = getSegmentJointIndex(kinematic_tree, segment_label);
+                            segment_com = kinematic_tree.linkTransformations{joint_index}(1:3, 4);
+                            com_trajectories_optimized(i_time, (i_segment-1)*3 + [1 2 3]) = segment_com;
+                        end
+                        com_trajectories_optimized(i_time, end-2 : end) = kinematic_tree.calculateCenterOfMassPosition;
                     end
-                    
-                    
-%                     joint_center = kinematic_tree.getPointOfInterestPosition(joint_center_headers{i_center});
-%                     joint_center_trajectories_optimized(i_time, (i_center-1)*3 + [1 2 3]) = joint_center;
-                end
-                
-                % get segment CoMs
-                for i_segment = 1 : length(com_labels) - 1
-                    segment_label = com_labels{i_segment}(1 : end-3);
-                    joint_index = getSegmentJointIndex(kinematic_tree, segment_label);
-                    segment_com = kinematic_tree.linkTransformations{joint_index}(1:3, 4);
-                    com_trajectories_optimized(i_time, (i_segment-1)*3 + [1 2 3]) = segment_com;
-                end
-                com_trajectories_optimized(i_time, end-2 : end) = kinematic_tree.calculateCenterOfMassPosition;
+                end                
             end
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+
             fprintf('finished\n')
             
             %% save
@@ -500,34 +586,6 @@ function optimizeKinematicTrajectories(varargin)
         end
     end
 end
-
-% function time_steps_to_optimize = determineTimeStepsToProcess(date, subject_id, condition, trial_number, padding)
-%     load(['processed' filesep makeFileName(date, subject_id, condition, trial_number, 'markerTrajectories')]);
-%     load(['analysis' filesep makeFileName(date, subject_id, condition, trial_number, 'relevantDataStretches')]);
-%     
-%     time_steps_to_optimize_indicator = false(length(time_mocap), 1);
-%     for i_stretch = 1 : length(stretch_start_times)
-%         % get unpadded stretches as indices
-%         this_stretch_start_time = stretch_start_times(i_stretch);
-%         this_stretch_end_time = stretch_end_times(i_stretch);
-%         [~, this_stretch_start_index_mocap] = min(abs(this_stretch_start_time - time_mocap));
-%         [~, this_stretch_end_index_mocap] = min(abs(this_stretch_end_time - time_mocap));
-%         
-%         % add padding 
-%         this_stretch_start_index_mocap_padded = max([this_stretch_start_index_mocap - padding, 1]);
-%         this_stretch_end_index_mocap_padded = min([this_stretch_end_index_mocap + padding, length(time_mocap)]);
-%         
-%         % flip indicators
-%         time_steps_to_optimize_indicator(this_stretch_start_index_mocap_padded : this_stretch_end_index_mocap_padded) = true;
-%     end
-%     
-%     time_steps_to_optimize = find(time_steps_to_optimize_indicator);
-%     
-%     if iscolumn(time_steps_to_optimize)
-%         time_steps_to_optimize = time_steps_to_optimize';
-%     end
-% end
-
 
 
 

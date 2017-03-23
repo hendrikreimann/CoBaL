@@ -40,6 +40,15 @@ function calculateKinematicTrajectories(varargin)
     
     load('subjectInfo.mat', 'date', 'subject_id');
     load('subjectModel.mat');
+    study_settings_file = '';
+    if exist(['..' filesep 'studySettings.txt'], 'file')
+        study_settings_file = ['..' filesep 'studySettings.txt'];
+    end    
+    if exist(['..' filesep '..' filesep 'studySettings.txt'], 'file')
+        study_settings_file = ['..' filesep '..' filesep 'studySettings.txt'];
+    end
+    study_settings = SettingsCustodian(study_settings_file);
+    
     
     number_of_joint_angles = kinematic_tree.numberOfJoints;
     
@@ -62,10 +71,22 @@ function calculateKinematicTrajectories(varargin)
             load(['processed' filesep makeFileName(date, subject_id, condition, i_trial, 'markerTrajectories')]);
             number_of_time_steps = size(marker_trajectories, 1); %#ok<NODEF>
             time_steps_to_process = 1 : number_of_time_steps;
+%             time_steps_to_process = 29999 : 30000;
+            
             com_labels = [segment_labels 'BODY'];
             for i_label = 1 : length(com_labels)
                 com_labels{i_label} = [com_labels{i_label} 'COM'];
             end
+            
+            % determine indices for optional markers
+            optional_marker_indices = [];
+            optional_marker_list = study_settings.get('optional_markers');
+            for i_marker = 1 : length(optional_marker_list)
+                marker = find(strcmp(marker_labels, optional_marker_list{i_marker}));
+                marker_indices = reshape([(marker - 1) * 3 + 1; (marker - 1) * 3 + 2; (marker - 1) * 3 + 3], 1, length(marker)*3);
+                optional_marker_indices = [optional_marker_indices marker_indices];
+            end
+            essential_marker_indicator = ~ismember(1 : size(marker_trajectories, 2), optional_marker_indices);
             
             % calculate
             joint_center_trajectories = zeros(number_of_time_steps, length(joint_center_headers)*3);
@@ -89,59 +110,66 @@ function calculateKinematicTrajectories(varargin)
                 direction_matrix_labels_pool = direction_matrix_labels;
                 spmd
                     for i_time = time_steps_to_process(1)+labindex-1 : numlabs : time_steps_to_process(end)
-                        % calculate joint center positions
+                        % check for missing markers
                         marker_current = marker_trajectories(i_time, :);
-                        joint_center_current = ...
-                            calculateJointCenterPositions ...
-                              ( ...
-                                marker_reference_pool, ...
-                                marker_current, ...
-                                marker_labels_pool, ...
-                                joint_center_reference_pool, ...
-                                joint_center_labels_pool ...
-                              );
-                        joint_center_trajectories_pool(i_time, :) = joint_center_current;                    
-                        
-                        % calculate segment centers of mass
-                        segment_coms_wcs_reference = segment_coms_wcs_pool;
-                        number_of_segments = length(segment_coms_wcs_reference);
-                        mcs_to_wcs_transformations_reference = calculateMcsToWcsTransformations_detailed([marker_reference_pool joint_center_reference_pool], [marker_labels_pool joint_center_labels_pool], segment_labels_pool);
-                        mcs_to_wcs_transformations_current = calculateMcsToWcsTransformations_detailed([marker_current joint_center_current], [marker_labels_pool joint_center_labels_pool], segment_labels_pool);
-                        segment_coms_wcs_current = cell(number_of_segments, 1);
-                        for i_segment = 1 : number_of_segments
-                            segment_com_wcs_reference = [segment_coms_wcs_reference{i_segment}; 1];
-                            T_mcs_to_wcs_reference = mcs_to_wcs_transformations_reference{i_segment};
-                            T_mcs_to_wcs_current = mcs_to_wcs_transformations_current{i_segment};
-                            segment_com_mcs = T_mcs_to_wcs_reference^(-1) * segment_com_wcs_reference;
-                            segment_coms_wcs_current{i_segment} = eye(3, 4) * T_mcs_to_wcs_current * segment_com_mcs;
-                        end
+                        if any(isnan(marker_current))
+                            joint_center_trajectories_pool(i_time, :) = NaN;
+                            com_trajectories_pool(i_time, :) = NaN;
+                            joint_angle_trajectories_pool(i_time, :) = NaN;
+                        else
+                            % calculate joint center positions
+                            joint_center_current = ...
+                                calculateJointCenterPositions ...
+                                  ( ...
+                                    marker_reference_pool, ...
+                                    marker_current, ...
+                                    marker_labels_pool, ...
+                                    joint_center_reference_pool, ...
+                                    joint_center_labels_pool ...
+                                  );
+                            joint_center_trajectories_pool(i_time, :) = joint_center_current;                    
 
-                        % calculate whole body center of mass
-                        body_com = [0; 0; 0];
-                        for i_segment = 1 : number_of_segments
-                            body_com = body_com + segment_masses_pool(i_segment) * segment_coms_wcs_current{i_segment};
-                        end
-                        body_com = body_com * 1 / sum(segment_masses_pool);
+                            % calculate segment centers of mass
+                            segment_coms_wcs_reference = segment_coms_wcs_pool;
+                            number_of_segments = length(segment_coms_wcs_reference);
+                            mcs_to_wcs_transformations_reference = calculateMcsToWcsTransformations_detailed([marker_reference_pool joint_center_reference_pool], [marker_labels_pool joint_center_labels_pool], segment_labels_pool);
+                            mcs_to_wcs_transformations_current = calculateMcsToWcsTransformations_detailed([marker_current joint_center_current], [marker_labels_pool joint_center_labels_pool], segment_labels_pool);
+                            segment_coms_wcs_current = cell(number_of_segments, 1);
+                            for i_segment = 1 : number_of_segments
+                                segment_com_wcs_reference = [segment_coms_wcs_reference{i_segment}; 1];
+                                T_mcs_to_wcs_reference = mcs_to_wcs_transformations_reference{i_segment};
+                                T_mcs_to_wcs_current = mcs_to_wcs_transformations_current{i_segment};
+                                segment_com_mcs = T_mcs_to_wcs_reference^(-1) * segment_com_wcs_reference;
+                                segment_coms_wcs_current{i_segment} = eye(3, 4) * T_mcs_to_wcs_current * segment_com_mcs;
+                            end
 
-                        % export centers of mass
-                        for i_segment = 1 : number_of_segments
-                            com_trajectories_pool(i_time, (i_segment-1)*3+1 : (i_segment-1)*3+3) = segment_coms_wcs_current{i_segment};
-                        end
-                        com_trajectories_pool(i_time, number_of_segments*3+1 : number_of_segments*3+3) = body_com;
+                            % calculate whole body center of mass
+                            body_com = [0; 0; 0];
+                            for i_segment = 1 : number_of_segments
+                                body_com = body_com + segment_masses_pool(i_segment) * segment_coms_wcs_current{i_segment};
+                            end
+                            body_com = body_com * 1 / sum(segment_masses_pool);
 
-                        % calculate joint angles
-                        joint_angle_trajectories_pool(i_time, :) = ...
-                            markerToAngles ...
-                              ( ...
-                                marker_reference_pool, ...
-                                marker_current, ...
-                                marker_labels_pool, ...
-                                joint_center_reference_pool, ...
-                                joint_center_current, ...
-                                joint_center_labels_pool, ...
-                                direction_matrices_pool, ...
-                                direction_matrix_labels_pool ...
-                              );                        
+                            % export centers of mass
+                            for i_segment = 1 : number_of_segments
+                                com_trajectories_pool(i_time, (i_segment-1)*3+1 : (i_segment-1)*3+3) = segment_coms_wcs_current{i_segment};
+                            end
+                            com_trajectories_pool(i_time, number_of_segments*3+1 : number_of_segments*3+3) = body_com;
+
+                            % calculate joint angles
+                            joint_angle_trajectories_pool(i_time, :) = ...
+                                markerToAngles ...
+                                  ( ...
+                                    marker_reference_pool, ...
+                                    marker_current, ...
+                                    marker_labels_pool, ...
+                                    joint_center_reference_pool, ...
+                                    joint_center_current, ...
+                                    joint_center_labels_pool, ...
+                                    direction_matrices_pool, ...
+                                    direction_matrix_labels_pool ...
+                                  );    
+                        end
                     end
                 end
                 % reassemble
@@ -160,60 +188,77 @@ function calculateKinematicTrajectories(varargin)
             end
             if ~use_parallel
                 for i_time = time_steps_to_process
+                    % check for missing markers
+                    if any(any(isnan(marker_trajectories(i_time, essential_marker_indicator))))
+                        joint_center_trajectories(i_time, :) = NaN;
+                        com_trajectories(i_time, :) = NaN;
+                        joint_angle_trajectories(i_time, :) = NaN;
+                    else
+                        % calculate joint center positions
+                        marker_current = marker_trajectories(i_time, :);
+                        joint_center_current = ...
+                            calculateJointCenterPositions ...
+                              ( ...
+                                marker_reference, ...
+                                marker_current, ...
+                                marker_labels, ...
+                                joint_center_reference, ...
+                                joint_center_headers ...
+                              );
+                        joint_center_trajectories(i_time, :) = joint_center_current;
 
-                    % calculate joint center positions
-                    marker_current = marker_trajectories(i_time, :);
-                    joint_center_current = ...
-                        calculateJointCenterPositions ...
-                          ( ...
-                            marker_reference, ...
-                            marker_current, ...
-                            marker_labels, ...
-                            joint_center_reference, ...
-                            joint_center_headers ...
-                          );
-                    joint_center_trajectories(i_time, :) = joint_center_current;
+                        % calculate segment centers of mass
+                        segment_coms_wcs_reference = segment_coms_wcs;
+                        number_of_segments = length(segment_coms_wcs_reference);
+                        mcs_to_wcs_transformations_reference = calculateMcsToWcsTransformations_detailed([marker_reference joint_center_reference], [marker_labels joint_center_headers], segment_labels);
+                        mcs_to_wcs_transformations_current = calculateMcsToWcsTransformations_detailed([marker_current joint_center_current], [marker_labels joint_center_headers], segment_labels);
+                        segment_coms_wcs_current = cell(number_of_segments, 1);
+                        for i_segment = 1 : number_of_segments
+                            segment_com_wcs_reference = [segment_coms_wcs_reference{i_segment}; 1];
+                            T_mcs_to_wcs_reference = mcs_to_wcs_transformations_reference{i_segment};
+                            T_mcs_to_wcs_current = mcs_to_wcs_transformations_current{i_segment};
+                            segment_com_mcs = T_mcs_to_wcs_reference^(-1) * segment_com_wcs_reference;
+                            segment_coms_wcs_current{i_segment} = eye(3, 4) * T_mcs_to_wcs_current * segment_com_mcs;
+                        end
 
-                    % calculate segment centers of mass
-                    segment_coms_wcs_reference = segment_coms_wcs;
-                    number_of_segments = length(segment_coms_wcs_reference);
-                    mcs_to_wcs_transformations_reference = calculateMcsToWcsTransformations_detailed([marker_reference joint_center_reference], [marker_labels joint_center_headers], segment_labels);
-                    mcs_to_wcs_transformations_current = calculateMcsToWcsTransformations_detailed([marker_current joint_center_current], [marker_labels joint_center_headers], segment_labels);
-                    segment_coms_wcs_current = cell(number_of_segments, 1);
-                    for i_segment = 1 : number_of_segments
-                        segment_com_wcs_reference = [segment_coms_wcs_reference{i_segment}; 1];
-                        T_mcs_to_wcs_reference = mcs_to_wcs_transformations_reference{i_segment};
-                        T_mcs_to_wcs_current = mcs_to_wcs_transformations_current{i_segment};
-                        segment_com_mcs = T_mcs_to_wcs_reference^(-1) * segment_com_wcs_reference;
-                        segment_coms_wcs_current{i_segment} = eye(3, 4) * T_mcs_to_wcs_current * segment_com_mcs;
+                        % calculate whole body center of mass
+                        body_com = [0; 0; 0];
+                        for i_segment = 1 : number_of_segments
+                            body_com = body_com + segment_masses(i_segment) * segment_coms_wcs_current{i_segment};
+                        end
+                        body_com = body_com * 1 / sum(segment_masses);
+
+                        % export centers of mass
+                        for i_segment = 1 : number_of_segments
+                            com_trajectories(i_time, (i_segment-1)*3+1 : (i_segment-1)*3+3) = segment_coms_wcs_current{i_segment};
+                        end
+                        com_trajectories(i_time, number_of_segments*3+1 : number_of_segments*3+3) = body_com;
+
+                        % calculate joint angles
+                        joint_angle_trajectories(i_time, :) = ...
+                            markerToAngles ...
+                              ( ...
+                                marker_reference, ...
+                                marker_current, ...
+                                marker_labels, ...
+                                joint_center_reference, ...
+                                joint_center_current, ...
+                                joint_center_headers, ...
+                                direction_matrices, ...
+                                direction_matrix_labels ...
+                              );
+
+                        % give progress feedback
+                        display_step = 1;
+                        last_time_step = time_steps_to_process(end);
+                        if (i_time / display_step) == floor(i_time / display_step)
+                            disp([num2str(i_time) '(' num2str(last_time_step) ')']);
+                        end                        
                     end
+                    
+                    
+                    
 
-                    % calculate whole body center of mass
-                    body_com = [0; 0; 0];
-                    for i_segment = 1 : number_of_segments
-                        body_com = body_com + segment_masses(i_segment) * segment_coms_wcs_current{i_segment};
-                    end
-                    body_com = body_com * 1 / sum(segment_masses);
-
-                    % export centers of mass
-                    for i_segment = 1 : number_of_segments
-                        com_trajectories(i_time, (i_segment-1)*3+1 : (i_segment-1)*3+3) = segment_coms_wcs_current{i_segment};
-                    end
-                    com_trajectories(i_time, number_of_segments*3+1 : number_of_segments*3+3) = body_com;
-
-                    % calculate joint angles
-                    joint_angle_trajectories(i_time, :) = ...
-                        markerToAngles ...
-                          ( ...
-                            marker_reference, ...
-                            marker_current, ...
-                            marker_labels, ...
-                            joint_center_reference, ...
-                            joint_center_current, ...
-                            joint_center_headers, ...
-                            direction_matrices, ...
-                            direction_matrix_labels ...
-                          );
                 end                
             end
             

@@ -68,7 +68,7 @@ function calculateDynamicMatrices(varargin)
 
             % determine time steps to optimize
             time_steps_to_process = 1 : number_of_time_steps;
-            time_steps_to_process = 1001 : 2000;
+%             time_steps_to_process = 1001 : 2000;
             
 %             time_steps_to_process = determineTimeStepsToOptimize(date, subject_id, condition, i_trial, study_settings.get('data_stretch_padding'));
 %             time_steps_to_process = determineTimeStepsToOptimize(date, subject_id, condition, i_trial, 0);
@@ -77,8 +77,8 @@ function calculateDynamicMatrices(varargin)
             fprintf([datestr(datetime,'yyyy-mm-dd HH:MM:SS') ' - Calculating dynamic matrices... \n'])
             
             % determine constraint numbers
-            left_foot_constraint_number_trajectory = determineConstraintNumbers(time_marker, left_touchdown_times, left_fullstance_times, left_pushoff_times);
-            right_foot_constraint_number_trajectory = determineConstraintNumbers(time_marker, right_touchdown_times, right_fullstance_times, right_pushoff_times);
+            left_foot_constraint_number_trajectory = determineConstraintNumbers(time_mocap, left_touchdown_times, left_fullstance_times, left_pushoff_times);
+            right_foot_constraint_number_trajectory = determineConstraintNumbers(time_mocap, right_touchdown_times, right_fullstance_times, right_pushoff_times);
             
             %% calculate belt space transformation
             [belt_speed_left_trajectory, time_belts] = loadData(date, subject_id, condition, i_trial, 'belt_speed_left_trajectory');
@@ -280,6 +280,8 @@ function calculateDynamicMatrices(varargin)
                 end
             else
                 for i_time = time_steps_to_process
+%                     disp(['time step = ' num2str(i_time)])
+                    
                     if any(isnan(joint_angle_trajectories_belt(i_time, :)))
                         inertia_matrix_trajectory{i_time} = NaN;
                         coriolis_matrix_trajectory{i_time} = NaN;

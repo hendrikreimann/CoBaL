@@ -123,28 +123,57 @@ function optimizedJointAngles = optimizeJointAngles ...
     weight_matrix_by_indices = reshape(repmat(weight_matrix, 3, 1), 1, length(weight_matrix)*3);
 
     for i_time = 1 : number_of_time_steps
+        %
+        
         theta_0 = joint_angle_trajectories(i_time, :)';
 %         theta_0 = zeros(complete_tree.numberOfJoints, 1);
+
+
         current_marker_positions_measured = markerTrajectories(i_time, :);
         current_marker_positions_relevant = current_marker_positions_measured(weight_matrix_by_indices~=0);
 
-        if any(isnan(current_marker_positions_relevant)) % check whether NaNs are present
+        % check whether NaNs are present in relevant marker positions or joint angle initial values
+        if any(isnan(current_marker_positions_relevant)) || any(isnan(theta_0(pelvis_joints)))
             theta_opt = zeros(size(theta_0)) * NaN;
         else % if not, optimize
-
+            % pick initial values for limb chains. Use calculated angles if not containing any NaNs, otherwise use
+            % zeros. Those NaNs are there because markes that we needed for the calculation were missing, but we don't
+            % need those for the optimization (if we did, we'd have exited in the previous conditional).
+            theta_left_leg_init = theta_0(left_leg_joints);
+            if any(isnan(theta_left_leg_init))
+                theta_left_leg_init = zeros(size(theta_left_leg_init));
+            end
+            theta_right_leg_init = theta_0(right_leg_joints);
+            if any(isnan(theta_right_leg_init))
+                theta_right_leg_init = zeros(size(theta_right_leg_init));
+            end
+            theta_trunk_and_head_init = theta_0(torso_joints);
+            if any(isnan(theta_trunk_and_head_init))
+                theta_trunk_and_head_init = zeros(size(theta_trunk_and_head_init));
+            end
+            theta_left_arm_init = theta_0(left_arm_joints);
+            if any(isnan(theta_left_arm_init))
+                theta_left_arm_init = zeros(size(theta_left_arm_init));
+            end
+            theta_right_arm_init = theta_0(right_arm_joints);
+            if any(isnan(theta_right_arm_init))
+                theta_right_arm_init = zeros(size(theta_right_arm_init));
+            end
+            
+            
             % use modular plant
             theta_virtual = fminunc(@objfun_virtual_modular, theta_0(pelvis_joints), options);
 
             pelvis_chain.jointAngles = theta_virtual;
             pelvis_chain.updateConfiguration();
             pelvis_to_world_poe = pelvis_chain.productsOfExponentials{6};
-            theta_left_leg = fminunc(@objfun_left_leg_modular, theta_0(left_leg_joints), options);
-            theta_right_leg = fminunc(@objfun_right_leg_modular, theta_0(right_leg_joints), options);
-            theta_trunk_and_head = fminunc(@objfun_trunk_modular, theta_0(torso_joints), options);
+            theta_left_leg = fminunc(@objfun_left_leg_modular, theta_left_leg_init, options);
+            theta_right_leg = fminunc(@objfun_right_leg_modular, theta_right_leg_init, options);
+            theta_trunk_and_head = fminunc(@objfun_trunk_modular, theta_trunk_and_head_init, options);
 
             trunk_to_world_poe = pelvis_chain.productsOfExponentials{6} * torso_chain.productsOfExponentials{3};
-            theta_left_arm = fminunc(@objfun_left_arm_modular, theta_0(left_arm_joints), options);
-            theta_right_arm = fminunc(@objfun_right_arm_modular, theta_0(right_arm_joints), options);
+            theta_left_arm = fminunc(@objfun_left_arm_modular, theta_left_arm_init, options);
+            theta_right_arm = fminunc(@objfun_right_arm_modular, theta_right_arm_init, options);
 
             theta_opt = [theta_virtual' theta_left_leg' theta_right_leg' theta_trunk_and_head' theta_left_arm' theta_right_arm'];
 
@@ -169,6 +198,9 @@ function optimizedJointAngles = optimizeJointAngles ...
             error_vector = marker_position_measured - marker_position_reconstr;
             marker_reconstruction_error(i_marker) = norm(error_vector * weight_matrix(pelvis_markers(i_marker)));
         end
+
+        % remove weightless markers
+        marker_reconstruction_error(weight_matrix(pelvis_markers)==0) = [];
 
         % calculate sum of squares
         f = sum(marker_reconstruction_error.^2);
@@ -195,6 +227,9 @@ function optimizedJointAngles = optimizeJointAngles ...
             marker_reconstruction_error(i_marker) = norm(error_vector * weight_matrix(right_leg_markers(i_marker)));
         end
 
+        % remove weightless markers
+        marker_reconstruction_error(weight_matrix(right_leg_markers)==0) = [];
+
         % calculate sum of squares
         f = sum(marker_reconstruction_error.^2);
     end
@@ -205,7 +240,7 @@ function optimizedJointAngles = optimizeJointAngles ...
         current_marker_positions_reconstr = left_leg_chain.exportMarkerPositions();
 
         % calculate reconstruction error
-        marker_reconstruction_error = zeros(1, number_of_markers);
+        marker_reconstruction_error = zeros(1, length(left_leg_markers_modular));
         for i_marker = 1 : length(left_leg_markers_modular)
             marker_indices = 3*(left_leg_markers(i_marker)-1)+1 : 3*(left_leg_markers(i_marker)-1)+3;
             marker_indices_modular = 3*(left_leg_markers_modular(i_marker)-1)+1 : 3*(left_leg_markers_modular(i_marker)-1)+3;
@@ -219,6 +254,9 @@ function optimizedJointAngles = optimizeJointAngles ...
             error_vector = marker_position_measured - marker_position_reconstr_world;
             marker_reconstruction_error(i_marker) = norm(error_vector * weight_matrix(left_leg_markers(i_marker)));
         end
+        
+        % remove weightless markers
+        marker_reconstruction_error(weight_matrix(left_leg_markers)==0) = [];
 
         % calculate sum of squares
         f = sum(marker_reconstruction_error.^2);
@@ -245,6 +283,9 @@ function optimizedJointAngles = optimizeJointAngles ...
             marker_reconstruction_error(i_marker) = norm(error_vector * weight_matrix(trunk_and_head_markers(i_marker)));
         end
 
+        % remove weightless markers
+        marker_reconstruction_error(weight_matrix(trunk_and_head_markers)==0) = [];
+
         % calculate sum of squares
         f = sum(marker_reconstruction_error.^2);
     end
@@ -270,6 +311,9 @@ function optimizedJointAngles = optimizeJointAngles ...
             marker_reconstruction_error(i_marker) = norm(error_vector * weight_matrix(right_arm_markers(i_marker)));
         end
 
+        % remove weightless markers
+        marker_reconstruction_error(weight_matrix(right_arm_markers)==0) = [];
+
         % calculate sum of squares
         f = sum(marker_reconstruction_error.^2);
     end
@@ -294,6 +338,9 @@ function optimizedJointAngles = optimizeJointAngles ...
             error_vector = marker_position_measured - marker_position_reconstr_world;
             marker_reconstruction_error(i_marker) = norm(error_vector * weight_matrix(left_arm_markers(i_marker)));
         end
+
+        % remove weightless markers
+        marker_reconstruction_error(weight_matrix(left_arm_markers)==0) = [];
 
         % calculate sum of squares
         f = sum(marker_reconstruction_error.^2);
