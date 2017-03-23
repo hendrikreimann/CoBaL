@@ -100,11 +100,16 @@ function inverseDynamics(varargin)
 %             leftover_acceleration_trajectories = zeros(number_of_time_steps, number_of_joints);
 
             if use_parallel
-%                 constraint_torque_trajectories_all_pool = zeros(number_of_time_steps, number_of_joints);
-%                 constraint_torque_trajectories_right_pool = zeros(number_of_time_steps, number_of_joints);
-%                 constraint_torque_trajectories_left_pool = zeros(number_of_time_steps, number_of_joints);
-%                 lambda_trajectories_pool = cell(number_of_time_steps, 1);
-%                 joint_torque_trajectories_pool = zeros(number_of_time_steps, number_of_joints);
+                constraint_torque_trajectories_all_pool = zeros(number_of_time_steps, number_of_joints);
+                constraint_torque_trajectories_right_pool = zeros(number_of_time_steps, number_of_joints);
+                constraint_torque_trajectories_left_pool = zeros(number_of_time_steps, number_of_joints);
+                lambda_trajectories_pool = cell(number_of_time_steps, 1);
+                joint_torque_trajectories_pool = zeros(number_of_time_steps, number_of_joints);
+                % make variables accessible to workers by declaring them
+                left_foot_constraint_number_trajectory_pool = left_foot_constraint_number_trajectory;
+                right_foot_constraint_number_trajectory_pool = right_foot_constraint_number_trajectory;
+                kinematic_tree_pool = kinematic_tree.copy;
+
 % %                 induced_accelerations_applied_trajectories_pool = zeros(number_of_time_steps, number_of_joints);
 % %                 induced_accelerations_gravity_trajectories_pool = zeros(number_of_time_steps, number_of_joints);
 % %                 induced_accelerations_movement_trajectories_pool = zeros(number_of_time_steps, number_of_joints);
@@ -113,202 +118,118 @@ function inverseDynamics(varargin)
 % %                 violating_acceleration_trajectories_pool = zeros(number_of_time_steps, number_of_joints);
 % %                 explained_acceleration_trajectories_pool = zeros(number_of_time_steps, number_of_joints);
 % %                 leftover_acceleration_trajectories_pool = zeros(number_of_time_steps, number_of_joints);
-%                 spmd
-%                     for i_time = time_steps_to_process(1)+labindex-1 : numlabs : time_steps_to_process(end)
-%                         if any(isnan(joint_angle_trajectories_belt(i_time, :)))
-%                             constraint_torque_trajectories_all_pool(i_time, :) = NaN;
-%                             constraint_torque_trajectories_right_pool(i_time, :) = NaN;
-%                             constraint_torque_trajectories_left_pool(i_time, :) = NaN;
-%                             lambda_trajectories_pool{i_time} = NaN;
-%                             joint_torque_trajectories_pool(i_time, :) = NaN;
+                spmd
+                    for i_time = time_steps_to_process(1)+labindex-1 : numlabs : time_steps_to_process(end)
+                        if any(isnan(joint_angle_trajectories_belt(i_time, :)))
+                            constraint_torque_trajectories_all_pool(i_time, :) = NaN;
+                            constraint_torque_trajectories_right_pool(i_time, :) = NaN;
+                            constraint_torque_trajectories_left_pool(i_time, :) = NaN;
+                            lambda_trajectories_pool{i_time} = NaN;
+                            joint_torque_trajectories_pool(i_time, :) = NaN;
 %                             induced_accelerations_applied_trajectories_pool(i_time, :) = NaN;
 %                             induced_accelerations_gravity_trajectories_pool(i_time, :) = NaN;
 %                             induced_accelerations_movement_trajectories_pool(i_time, :) = NaN;
 %                             induced_accelerations_applied_single_trajectories_pool(i_time, :, :) = NaN;
 %                             violating_velocity_trajectories_pool(i_time, :, :) = NaN;
 %                             violating_acceleration_trajectories_pool(i_time, :, :) = NaN;
-% %                             explained_acceleration_trajectories_pool(i_time, :, :) = NaN;
-% %                             leftover_acceleration_trajectories_pool(i_time, :, :) = NaN;
-%                         else
-%                             M = inertia_matrix_trajectory{i_time};
-%                             C = coriolis_matrix_trajectory{i_time};
-%                             N = gravitation_matrix_trajectory{i_time};
-%                             theta_dot = joint_velocity_trajectories_belt(i_time, :)';
-%                             theta_two_dot = joint_acceleration_trajectories_belt(i_time, :)';
-% 
-%                             % calculate constraint forces
-% %                             active_constraint = find(constraint_indicator_trajectories(i_time, :));
-% 
-%                             A = constraint_matrix_trajectory{i_time};
-%                             A_dot = constraint_matrix_dot_trajectory{i_time};
-% 
-%                             k_c = rank(A);
-%                             k_v = length(virtual_joints);
-%                             [~, ~, V_c] = svd(A);
-%                             C_c = V_c(:, k_c+1:end);
-%                             B_v = [eye(k_v); zeros(number_of_joints - k_v, k_v)];
-%                             k_w = rank([B_v C_c]);
-%                             [~, ~, V_w] = svd([B_v C_c]');
-%                             C_w = V_w(:, k_w+1:end);
-%                             D = [B_v C_w];
-%                             if rank(A) > 0
-%                                 P = eye(kinematic_tree.numberOfJoints) - A' * (A * M^(-1) * A')^(-1) * A * M^(-1);
-%                                 Q = M*theta_two_dot + P*C*theta_dot + P*N - A'*(A*M^(-1)*A')^(-1)*(A * theta_two_dot);
-%                             else
-%                                 P = eye(kinematic_tree.numberOfJoints);
-%                                 Q = M*theta_two_dot + C*theta_dot + N;
-%                             end
-%                             E = [P; D'];
-% 
-%                             H = A'*(A*M^(-1)*A')^(-1)*A;
-%                             T = pinv(E) * [Q; zeros(size(D, 2), 1)];
-%                             if rank(A) == 0
-%                                 lambda = 0;
-%                             else
-%                                 lambda = (A*M^(-1)*A')^(-1) *  A*M^(-1)*(T - C*theta_dot - N) - (A*M^(-1)*A')^(-1)*A*theta_two_dot;
-%                                 test_left_side = M*theta_two_dot + C*theta_dot + N + A'*lambda;
-%                                 lambda_T = (A*M^(-1)*A')^(-1) *  A*M^(-1) * T;
-%                                 lambda_C = - (A*M^(-1)*A')^(-1) *  A*M^(-1) * C*theta_dot;
-%                                 lambda_N = - (A*M^(-1)*A')^(-1) *  A*M^(-1) * N;
-%                             end
-% 
-% 
-%                             % calculate induced accelerations
-%                             if rank(A) == 0
-%                                 induced_acceleration_applied = M^(-1)*T;
-%                                 induced_acceleration_gravity = - M^(-1)*N;
-%                                 induced_acceleration_movement = - M^(-1)*C*theta_dot;
-%                                 induced_accelerations_applied_single = zeros(number_of_joints);
-%                                 for i_joint = 1 : number_of_joints
-%                                     T_tilde_i = T;
-%                                     T_tilde_i(i_joint) = 0;
-%                                     T_bar_i = T - T_tilde_i;
-%                                     accelerations_induced_by_T_bar_i = M^(-1)*T_bar_i;
-%                                     induced_accelerations_applied_single(:, i_joint) = accelerations_induced_by_T_bar_i;
-%                                 end
-%                                 induced_accelerations_applied_single_check = sum(induced_accelerations_applied_single, 2);
-%                             else
-%                                 induced_acceleration_applied = M^(-1)*(T - A'*lambda_T);
-%                                 induced_acceleration_gravity = - M^(-1)*(N + A'*lambda_N);
-%                                 induced_acceleration_movement = - M^(-1)*(C*theta_dot + A'*lambda_C);
-%                                 induced_accelerations_applied_single = zeros(number_of_joints);
-%                                 % calculate lambdas corresponding to each joint torque
-%                                 for i_joint = 1 : number_of_joints
-%                                     T_tilde_i = T;
-%                                     T_tilde_i(i_joint) = 0;
-%                                     T_bar_i = T - T_tilde_i;
-%                                     lambda_T_bar_i = (A*M^(-1)*A')^(-1) *  A*M^(-1) * T_bar_i;
-%                                     accelerations_induced_by_T_bar_i = M^(-1)*(T_bar_i - A'*lambda_T_bar_i);
-%                                     induced_accelerations_applied_single(:, i_joint) = accelerations_induced_by_T_bar_i;
-%                                 end
-%                                 induced_accelerations_applied_single_check = sum(induced_accelerations_applied_single, 2);
-% 
-%                             end
-%                             
-%                             % calculate in how far the velocities are violated by the constraints
-%                             B_c = V_c(:, 1:k_c); % B_c spans the orthogonal complement of the null space of A (those velocities that are ONLY violating the constraints)
-%                             P_b = B_c*B_c';
-%                             violating_velocity_trajectories_pool(i_time, :, :) = P_b * theta_dot;
-%                             violating_acceleration_trajectories_pool(i_time, :) = P_b * theta_two_dot;
-%                             explained_acceleration = M^(-1)*(T - C*theta_dot - N - A'*lambda);
-% %                             explained_acceleration_trajectories_pool(i_time, :) = explained_acceleration;
-% %                             leftover_acceleration_trajectories_pool(i_time, :) = theta_two_dot - explained_acceleration;
-% 
-%                             if use_body_velocity_constraints
-%                                 if left_foot_constraint_number_trajectory(i_time) == 0
-%                                     number_of_left_foot_constraints = 0;
-%                                 elseif left_foot_constraint_number_trajectory(i_time) == 1
-%                                     number_of_left_foot_constraints = 4;
-%                                 elseif left_foot_constraint_number_trajectory(i_time) == 2
-%                                     number_of_left_foot_constraints = 4;
-%                                 else
-%                                     error('Left foot constraint number must be an integer between 0 and 2')
-%                                 end
-% 
-%                                 if right_foot_constraint_number_trajectory(i_time) == 0
-%                                     number_of_right_foot_constraints = 0;
-%                                 elseif right_foot_constraint_number_trajectory(i_time) == 1
-%                                     number_of_right_foot_constraints = 4;
-%                                 elseif right_foot_constraint_number_trajectory(i_time) == 2
-%                                     number_of_right_foot_constraints = 4;
-%                                 else
-%                                     error('Right foot constraint number must be an integer between 0 and 2')
-%                                 end
-%                             end
-%                             if use_hinge_constraints
-%                                 if left_foot_constraint_number_trajectory(i_time) == 0
-%                                     number_of_left_foot_constraints = 0;
-%                                 elseif left_foot_constraint_number_trajectory(i_time) == 1
-%                                     number_of_left_foot_constraints = 5;
-%                                 elseif left_foot_constraint_number_trajectory(i_time) == 2
-%                                     number_of_left_foot_constraints = 5;
-%                                 else
-%                                     error('Left foot constraint number must be an integer between 0 and 2')
-%                                 end
-% 
-%                                 if right_foot_constraint_number_trajectory(i_time) == 0
-%                                     number_of_right_foot_constraints = 0;
-%                                 elseif right_foot_constraint_number_trajectory(i_time) == 1
-%                                     number_of_right_foot_constraints = 5;
-%                                 elseif right_foot_constraint_number_trajectory(i_time) == 2
-%                                     number_of_right_foot_constraints = 5;
-%                                 else
-%                                     error('Right foot constraint number must be an integer between 0 and 2')
-%                                 end
-%                                 
-%                             end
-%                             if use_point_constraints
-%                                 if left_foot_constraint_number_trajectory(i_time) == 0
-%                                     number_of_left_foot_constraints = 0;
-%                                 elseif left_foot_constraint_number_trajectory(i_time) == 1
-%                                     number_of_left_foot_constraints = 3;
-%                                 elseif left_foot_constraint_number_trajectory(i_time) == 2
-%                                     number_of_left_foot_constraints = 3;
-%                                 else
-%                                     error('Left foot constraint number must be an integer between 0 and 2')
-%                                 end
-% 
-%                                 if right_foot_constraint_number_trajectory(i_time) == 0
-%                                     number_of_right_foot_constraints = 0;
-%                                 elseif right_foot_constraint_number_trajectory(i_time) == 1
-%                                     number_of_right_foot_constraints = 3;
-%                                 elseif right_foot_constraint_number_trajectory(i_time) == 2
-%                                     number_of_right_foot_constraints = 3;
-%                                 else
-%                                     error('Right foot constraint number must be an integer between 0 and 2')
-%                                 end
-%                             end
-%                             if number_of_right_foot_constraints + number_of_left_foot_constraints == 0
-%                                 lambda_right = 0;
-%                                 lambda_left = 0;
-%                             else
-%                                 lambda_right = [lambda(1:number_of_right_foot_constraints); zeros(number_of_left_foot_constraints, 1)];
-%                                 lambda_left = [zeros(number_of_right_foot_constraints, 1); lambda(number_of_right_foot_constraints+1 : number_of_right_foot_constraints+number_of_left_foot_constraints);];
-%                             end
-% 
-% 
-% 
-%                             % save to lists
-%                             constraint_torque_trajectories_all_pool(i_time, :) = A' * lambda;
-%                             constraint_torque_trajectories_right_pool(i_time, :) = A' * lambda_right;
-%                             constraint_torque_trajectories_left_pool(i_time, :) = A' * lambda_left;
-%                             lambda_trajectories_pool{i_time} = lambda;
-%                             joint_torque_trajectories_pool(i_time, :) = T;
+%                             explained_acceleration_trajectories_pool(i_time, :, :) = NaN;
+%                             leftover_acceleration_trajectories_pool(i_time, :, :) = NaN;
+                        else
+                            M = inertia_matrix_trajectory{i_time};
+                            C = coriolis_matrix_trajectory{i_time};
+                            N = gravitation_matrix_trajectory{i_time};
+                            theta_dot = joint_velocity_trajectories_belt(i_time, :)';
+                            theta_two_dot = joint_acceleration_trajectories_belt(i_time, :)';
+                            
+                            % get constraint matrices
+                            A = constraint_matrix_trajectory{i_time};
+                            A_dot = constraint_matrix_dot_trajectory{i_time};
+
+                            P = eye(kinematic_tree_pool.numberOfJoints) - A' * (A * M^(-1) * A')^(-1) * A * M^(-1);
+
+                            H_2 = P;
+                            b_2 = (M*theta_two_dot + P*C*theta_dot + P*N + A'*(A*M^(-1)*A')^(-1)*(A_dot * theta_dot));
+
+                            % no virtual torques
+                            k_v = length(virtual_joints);
+                            B = [eye(k_v) zeros(k_v, number_of_joints - k_v)];
+
+                            % no workless torques
+                            k_c = rank(A);
+                            [~, ~, V_c] = svd(A);
+                            C_c = V_c(:, k_c+1:end); % C_c spans the null space of A
+                            k_w = rank([B' C_c]);
+                            [~, ~, V_w] = svd([B' C_c]');
+                            C_w = V_w(:, k_w+1:end);                        
+
+
+                            % combine
+                            H = ...
+                              [ ...
+                                H_2; ...
+                                B; ...
+                                C_w'; ...
+                              ];
+                            b = ...
+                              [ ...
+                                b_2; ...
+                                zeros(k_v, 1); ...
+                                zeros(number_of_joints - k_w, 1); ...
+                              ];
+
+                            T = pinv(H) * b;
+                            lambda = (A*M^(-1)*A')^(-1) *  A*M^(-1)*(T - C*theta_dot - N) + (A*M^(-1)*A')^(-1)*A_dot*theta_dot; % corrected here
+                            
+                            if strcmp(constraint, 'point')
+                                if left_foot_constraint_number_trajectory_pool(i_time) == 0
+                                    number_of_left_foot_constraints = 0;
+                                elseif left_foot_constraint_number_trajectory_pool(i_time) == 1
+                                    number_of_left_foot_constraints = 3;
+                                elseif left_foot_constraint_number_trajectory_pool(i_time) == 2
+                                    number_of_left_foot_constraints = 3;
+                                else
+                                    error('Left foot constraint number must be an integer between 0 and 2')
+                                end
+
+                                if right_foot_constraint_number_trajectory_pool(i_time) == 0
+                                    number_of_right_foot_constraints = 0;
+                                elseif right_foot_constraint_number_trajectory_pool(i_time) == 1
+                                    number_of_right_foot_constraints = 3;
+                                elseif right_foot_constraint_number_trajectory_pool(i_time) == 2
+                                    number_of_right_foot_constraints = 3;
+                                else
+                                    error('Right foot constraint number must be an integer between 0 and 2')
+                                end
+                            end
+                            if number_of_left_foot_constraints + number_of_right_foot_constraints == 0
+                                lambda_right = 0;
+                                lambda_left = 0;
+                            else
+                                lambda_left = [lambda(1:number_of_left_foot_constraints); zeros(number_of_right_foot_constraints, 1)];
+                                lambda_right = [zeros(number_of_left_foot_constraints, 1); lambda(number_of_left_foot_constraints+1 : end);];
+                            end
+
+                            % save to lists
+                            constraint_torque_trajectories_all_pool(i_time, :) = A' * lambda;
+                            constraint_torque_trajectories_right_pool(i_time, :) = A' * lambda_right;
+                            constraint_torque_trajectories_left_pool(i_time, :) = A' * lambda_left;
+                            lambda_trajectories_pool{i_time} = lambda;
+                            joint_torque_trajectories_pool(i_time, :) = T;
 %                             induced_accelerations_applied_trajectories_pool(i_time, :) = induced_acceleration_applied;
 %                             induced_accelerations_gravity_trajectories_pool(i_time, :) = induced_acceleration_gravity;
 %                             induced_accelerations_movement_trajectories_pool(i_time, :) = induced_acceleration_movement;
 %                             induced_accelerations_applied_single_trajectories_pool(i_time, :, :) = induced_accelerations_applied_single;
 % 
-%                         end
-%                     end
-%                 end
-%                 % reassemble
-%                 for i_lab = 1 : number_of_labs
-%                     constraint_torque_trajectories_all_lab = constraint_torque_trajectories_all_pool{i_lab};
-%                     constraint_torque_trajectories_right_lab = constraint_torque_trajectories_right_pool{i_lab};
-%                     constraint_torque_trajectories_left_lab = constraint_torque_trajectories_left_pool{i_lab};
-%                     lambda_trajectories_lab = lambda_trajectories_pool{i_lab};
-%                     joint_torque_trajectories_lab = joint_torque_trajectories_pool{i_lab};
+                        end
+                    end
+                end
+                % reassemble
+                for i_lab = 1 : number_of_labs
+                    constraint_torque_trajectories_all_lab = constraint_torque_trajectories_all_pool{i_lab};
+                    constraint_torque_trajectories_right_lab = constraint_torque_trajectories_right_pool{i_lab};
+                    constraint_torque_trajectories_left_lab = constraint_torque_trajectories_left_pool{i_lab};
+                    lambda_trajectories_lab = lambda_trajectories_pool{i_lab};
+                    joint_torque_trajectories_lab = joint_torque_trajectories_pool{i_lab};
 % %                     right_ground_reaction_wrench_trajectory_origin_lab = right_ground_reaction_wrench_trajectory_origin_pool{i_lab};
 % %                     left_ground_reaction_wrench_trajectory_origin_lab = left_ground_reaction_wrench_trajectory_origin_pool{i_lab};
 %                     induced_accelerations_applied_trajectories_lab = induced_accelerations_applied_trajectories_pool{i_lab};
@@ -320,16 +241,16 @@ function inverseDynamics(varargin)
 % %                     explained_acceleration_trajectories_lab = explained_acceleration_trajectories_pool{i_lab};
 % %                     leftover_acceleration_trajectories_lab = leftover_acceleration_trajectories_pool{i_lab};
 % 
-%                     constraint_torque_trajectories_all(time_steps_to_process(1)+i_lab-1 : number_of_labs : time_steps_to_process(end), :) ...
-%                         = constraint_torque_trajectories_all_lab(time_steps_to_process(1)+i_lab-1 : number_of_labs : time_steps_to_process(end), :);
-%                     constraint_torque_trajectories_right(time_steps_to_process(1)+i_lab-1 : number_of_labs : time_steps_to_process(end), :) ...
-%                         = constraint_torque_trajectories_right_lab(time_steps_to_process(1)+i_lab-1 : number_of_labs : time_steps_to_process(end), :);
-%                     constraint_torque_trajectories_left(time_steps_to_process(1)+i_lab-1 : number_of_labs : time_steps_to_process(end), :) ...
-%                         = constraint_torque_trajectories_left_lab(time_steps_to_process(1)+i_lab-1 : number_of_labs : time_steps_to_process(end), :);
-%                     lambda_trajectories(time_steps_to_process(1)+i_lab-1 : number_of_labs : time_steps_to_process(end), :) ...
-%                         = lambda_trajectories_lab(time_steps_to_process(1)+i_lab-1 : number_of_labs : time_steps_to_process(end), :);
-%                     joint_torque_trajectories(time_steps_to_process(1)+i_lab-1 : number_of_labs : time_steps_to_process(end), :) ...
-%                         = joint_torque_trajectories_lab(time_steps_to_process(1)+i_lab-1 : number_of_labs : time_steps_to_process(end), :);
+                    constraint_torque_trajectories_all(time_steps_to_process(1)+i_lab-1 : number_of_labs : time_steps_to_process(end), :) ...
+                        = constraint_torque_trajectories_all_lab(time_steps_to_process(1)+i_lab-1 : number_of_labs : time_steps_to_process(end), :);
+                    constraint_torque_trajectories_right(time_steps_to_process(1)+i_lab-1 : number_of_labs : time_steps_to_process(end), :) ...
+                        = constraint_torque_trajectories_right_lab(time_steps_to_process(1)+i_lab-1 : number_of_labs : time_steps_to_process(end), :);
+                    constraint_torque_trajectories_left(time_steps_to_process(1)+i_lab-1 : number_of_labs : time_steps_to_process(end), :) ...
+                        = constraint_torque_trajectories_left_lab(time_steps_to_process(1)+i_lab-1 : number_of_labs : time_steps_to_process(end), :);
+                    lambda_trajectories(time_steps_to_process(1)+i_lab-1 : number_of_labs : time_steps_to_process(end), :) ...
+                        = lambda_trajectories_lab(time_steps_to_process(1)+i_lab-1 : number_of_labs : time_steps_to_process(end), :);
+                    joint_torque_trajectories(time_steps_to_process(1)+i_lab-1 : number_of_labs : time_steps_to_process(end), :) ...
+                        = joint_torque_trajectories_lab(time_steps_to_process(1)+i_lab-1 : number_of_labs : time_steps_to_process(end), :);
 %                     induced_accelerations_applied_trajectories(time_steps_to_process(1)+i_lab-1 : number_of_labs : time_steps_to_process(end), :) ...
 %                         = induced_accelerations_applied_trajectories_lab(time_steps_to_process(1)+i_lab-1 : number_of_labs : time_steps_to_process(end), :);
 %                     induced_accelerations_gravity_trajectories(time_steps_to_process(1)+i_lab-1 : number_of_labs : time_steps_to_process(end), :) ...
@@ -346,7 +267,7 @@ function inverseDynamics(varargin)
 % %                         = explained_acceleration_trajectories_lab(time_steps_to_process(1)+i_lab-1 : number_of_labs : time_steps_to_process(end), :);
 % %                     leftover_acceleration_trajectories(time_steps_to_process(1)+i_lab-1 : number_of_labs : time_steps_to_process(end), :) ...
 % %                         = leftover_acceleration_trajectories_lab(time_steps_to_process(1)+i_lab-1 : number_of_labs : time_steps_to_process(end), :);
-%                 end
+                end
             else
                 for i_time = time_steps_to_process
                     if any(isnan(joint_angle_trajectories_belt(i_time, :))) | any(isnan(constraint_matrix_trajectory{i_time}))
@@ -425,6 +346,7 @@ function inverseDynamics(varargin)
                         
 
                         % this gets the same results as the old version
+
                         H_2 = P;
                         b_2 = (M*theta_two_dot + P*C*theta_dot + P*N + A'*(A*M^(-1)*A')^(-1)*(A_dot * theta_dot));
 
@@ -635,6 +557,137 @@ function inverseDynamics(varargin)
 %                                 error('Right foot constraint number must be an integer between 0 and 2')
 %                             end
 %                         end
+
+                        % new version, adapted from exploreConstrainedMovement script
+                        b_acc = (M*theta_two_dot + P*C*theta_dot + P*N + A'*(A*M^(-1)*A')^(-1)*(A_dot * theta_dot)); % same as b_2 above)
+                        
+                        %% solution two - contact constraints and no torques in the free DoFs
+                        H = ...
+                          [ ...
+                            P; ...
+                            eye(k_v, number_of_joints); ...
+                          ];
+                        b = ...
+                          [ ...
+                            b_acc; ...
+                            zeros(k_v, 1); ...
+                          ];
+
+                        T_2 = pinv(H) * b;
+                        lambda = (A*M^(-1)*A')^(-1) ...
+                            * (A*M^(-1)*(T_2 - C*theta_dot - N) + A_dot*theta_dot);
+                        kinematic_tree.externalTorques = T_2;
+                        kinematic_tree.constraintTorques = A'*lambda;
+                        kinematic_tree.calculateAccelerationsFromExternalTorques;
+                        accelerations_check = kinematic_tree.jointAccelerations;
+
+                        % check for workless torques
+                        k_constraints_full = rank(A);
+                        [~, ~, W_constraints] = svd(A);                                             % use singular value decomposition to get the basis
+                        B_constraints = W_constraints(:, 1:k_constraints_full);                     % E_rng contains the base vectors of the range space - the torque combinations that do no work
+                        C_constraints = W_constraints(:, k_constraints_full+1:end);                 % E_nul contains the base vectors of the null space - the torque combinations that do work
+                        P_constraint_full = B_constraints*B_constraints';                           % K_rng projects onto the range space
+                        P_constraint_free = C_constraints*C_constraints';                           % K_nul projects onto the null space
+                        T_workpure_2 = P_constraint_free * T_2;
+                        T_workless_2 = P_constraint_full * T_2;
+                        T_check_2 = T_workpure_2 + T_workless_2;
+
+                        % check for workless torques - but only those that also have no virtual torques
+                        B = [eye(k_v) zeros(k_v, number_of_joints - k_v)];
+                        k_c = rank(A);
+                        [~, ~, V_c] = svd(A);
+                        C_c = V_c(:, k_c+1:end); % C_c spans the null space of A
+                        k_w = rank([B' C_c]);
+                        [~, ~, V_w] = svd([B' C_c]');
+                        B_w = V_w(:, 1:k_w);                                                        % B_w columns span the space of torque vectors that do work, or have a virtual component, or both
+                        C_w = V_w(:, k_w+1:end);                                                    % C_w columns span the space of torque vectors that do no work and have no virtual component                        
+                        P_workpure = B_w*B_w';                                                      % P_workpure projects onto the space spanned by B_w columns
+                        P_workless = C_w*C_w';                                                      % P_workless projects onto the space spanned by C_w columns
+                        T_workpure_2 = P_workpure * T_2;
+                        T_workless_2 = P_workless * T_2;
+                        T_check_2 = T_workpure_2 + T_workless_2;
+
+                        % check what happens if I remove workless torques
+                        lambda = (A*M^(-1)*A')^(-1) ...
+                            * (A*M^(-1)*(T_workpure_2 - C*theta_dot - N) + A_dot*theta_dot);
+                        kinematic_tree.externalTorques = T_workpure_2;
+                        kinematic_tree.constraintTorques = A'*lambda;
+                        kinematic_tree.calculateAccelerationsFromExternalTorques;
+                        accelerations_check_2 = kinematic_tree.jointAccelerations;
+
+                        %% solution four - contact constraints, no torques in the free DoFs and no workless torques
+
+                        B = eye(k_v, number_of_joints);
+                        k_c = rank(A);
+                        [~, ~, V_c] = svd(A);
+                        C_c = V_c(:, k_c+1:end); % C_c spans the null space of A
+                        k_w = rank([B' C_c]);
+                        [~, ~, V_w] = svd([B' C_c]');
+                        C_w = V_w(:, k_w+1:end);                        
+                        % combine
+                        H = ...
+                          [ ...
+                            P; ...
+                            B; ...
+                            C_w'; ...
+                          ];
+
+
+                        % this does not work, apparently I have either virtual torques or workless torques
+
+                        b = ...
+                          [ ...
+                            b_acc; ...
+                            zeros(k_v, 1); ...
+                            zeros(number_of_joints - k_w, 1); ...
+                          ];
+
+
+                        T_4 = pinv(H) * b;
+                        lambda = (A*M^(-1)*A')^(-1) ...
+                            * (A*M^(-1)*(T_4 - C*theta_dot - N) + A_dot*theta_dot);
+                        kinematic_tree.externalTorques = T_4;
+                        kinematic_tree.constraintTorques = A'*lambda;
+                        kinematic_tree.calculateAccelerationsFromExternalTorques;
+                        accelerations_check = kinematic_tree.jointAccelerations;
+
+                        % check for workless torques
+                        k_constraints_full = rank(A);
+                        [~, ~, W_constraints] = svd(A);                                             % use singular value decomposition to get the basis
+                        B_constraints = W_constraints(:, 1:k_constraints_full);                     % E_rng contains the base vectors of the range space - the torque combinations that do no work
+                        C_constraints = W_constraints(:, k_constraints_full+1:end);                 % E_nul contains the base vectors of the null space - the torque combinations that do work
+                        P_constraint_full = B_constraints*B_constraints';                           % P_constraint_full projects onto the range space
+                        P_constraint_free = C_constraints*C_constraints';                           % P_constraint_free projects onto the null space
+                        T_workpure_4 = P_constraint_free * T_4;
+                        T_workless_4 = P_constraint_full * T_4;
+                        T_check_4 = T_workpure_4 + T_workless_4;
+
+                        % check for workless torques - but only those that also have no virtual torques
+                        B = [eye(k_v) zeros(k_v, number_of_joints - k_v)];
+                        k_c = rank(A);
+                        [~, ~, V_c] = svd(A);
+                        C_c = V_c(:, k_c+1:end); % C_c spans the null space of A
+                        k_w = rank([B' C_c]);
+                        [~, ~, V_w] = svd([B' C_c]');
+                        B_w = V_w(:, 1:k_w);                                                        % B_w columns span the space of torque vectors that do work, or have a virtual component, or both
+                        C_w = V_w(:, k_w+1:end);                                                    % C_w columns span the space of torque vectors that do no work and have no virtual component                        
+                        P_workpure = B_w*B_w';                                                      % P_workpure projects onto the space spanned by B_w columns
+                        P_workless = C_w*C_w';                                                      % P_workless projects onto the space spanned by C_w columns
+                        T_workpure_4 = P_workpure * T_4;
+                        T_workless_4 = P_workless * T_4;
+                        T_check_4 = T_workpure_4 + T_workless_4;
+
+                        % check what happens if I remove workless torques
+                        lambda = (A*M^(-1)*A')^(-1) ...
+                            * (A*M^(-1)*(T_workpure_4 - C*theta_dot - N) + A_dot*theta_dot);
+                        kinematic_tree.externalTorques = T_workpure_4;
+                        kinematic_tree.constraintTorques = A'*lambda;
+                        kinematic_tree.calculateAccelerationsFromExternalTorques;
+                        accelerations_check_4 = kinematic_tree.jointAccelerations;
+
+
+
+
                         if strcmp(constraint, 'point')
                             if left_foot_constraint_number_trajectory(i_time) == 0
                                 number_of_left_foot_constraints = 0;

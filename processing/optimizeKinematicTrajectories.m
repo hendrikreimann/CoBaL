@@ -347,7 +347,7 @@ function optimizeKinematicTrajectories(varargin)
             % determine time steps to optimize
             time_steps_to_optimize = 1 : number_of_time_steps;
 %             time_steps_to_optimize = 1 : 20;
-            time_steps_to_optimize = 29999 : 30000;
+%             time_steps_to_optimize = 29999 : 30000;
 %             time_steps_to_optimize = 30000;
             
 %             time_steps_to_optimize = determineTimeStepsToProcess(date, subject_id, condition, i_trial, study_settings.get('data_stretch_padding'));
