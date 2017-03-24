@@ -53,7 +53,6 @@ function calculateGroundReactionWrenches(varargin)
         number_of_labs = poolobject.NumWorkers;
     end
     
-    %% optimize
     for i_condition = 1 : length(condition_list)
         trials_to_process = trial_number_list{i_condition};
         for i_trial = trials_to_process
@@ -69,6 +68,7 @@ function calculateGroundReactionWrenches(varargin)
             % determine time steps to optimize
             time_steps_to_process = 1 : number_of_time_steps;
             time_steps_to_process = 1001 : 2000;
+%             time_steps_to_process = 1001 : 1010;
             
 %             time_steps_to_optimize = determineTimeStepsToOptimize(date, subject_id, condition, i_trial, study_settings.get('data_stretch_padding'));
 %             time_steps_to_optimize = determineTimeStepsToOptimize(date, subject_id, condition, i_trial, 0);
@@ -77,21 +77,53 @@ function calculateGroundReactionWrenches(varargin)
             fprintf([datestr(datetime,'yyyy-mm-dd HH:MM:SS') ' - Calculating ground reaction wrenches ... \n'])
             
 
-            %% calculate_torques
+            %% calculate
             tic
-            right_ground_reaction_wrench_trajectory = zeros(number_of_time_steps, 6);
             left_ground_reaction_wrench_trajectory = zeros(number_of_time_steps, 6);
+            right_ground_reaction_wrench_trajectory = zeros(number_of_time_steps, 6);
             if use_parallel
+                left_ground_reaction_wrench_trajectory_pool = zeros(size(left_ground_reaction_wrench_trajectory));
+                right_ground_reaction_wrench_trajectory_pool = zeros(size(left_ground_reaction_wrench_trajectory));
+                kinematic_tree_pool = kinematic_tree.copy;
+                joint_velocity_trajectories_belt_pool = joint_velocity_trajectories_belt;
+                joint_acceleration_trajectories_belt_pool = joint_acceleration_trajectories_belt;
+                constraint_torque_trajectories_left_pool = constraint_torque_trajectories_left;
+                constraint_torque_trajectories_right_pool = constraint_torque_trajectories_right;
+                belt_position_trajectory_mocap_pool = belt_position_trajectory_mocap;
+                spmd
+                    for i_time = time_steps_to_process
+                        if any(isnan(joint_angle_trajectories_belt(i_time, :)))
+                            left_ground_reaction_wrench_trajectory_pool(i_time, :) = NaN;
+                            right_ground_reaction_wrench_trajectory_pool(i_time, :) = NaN;
+                        else
+                            % update model
+                            kinematic_tree_pool.jointAngles = joint_angle_trajectories_belt(i_time, :)';
+                            kinematic_tree_pool.jointVelocities = joint_velocity_trajectories_belt_pool(i_time, :)';
+                            kinematic_tree_pool.jointAccelerations = joint_acceleration_trajectories_belt_pool(i_time, :)';
+                            kinematic_tree_pool.updateKinematics;
 
+                            % calculate ground reaction wrenches
+                            treadmill_origin_belt = [0; belt_position_trajectory_mocap_pool(i_time); 0]; % this is the physical location of the world coordinate frame in belt coordinates
+                            world_to_belt_transformation = [eye(3), treadmill_origin_belt; 0 0 0 1];
+                            left_ground_reaction_wrench_trajectory_pool(i_time, :) = calculateInstantaneousGroundReactionWrench(kinematic_tree_pool, constraint_torque_trajectories_left_pool(i_time, :)', world_to_belt_transformation);
+                            right_ground_reaction_wrench_trajectory_pool(i_time, :) = calculateInstantaneousGroundReactionWrench(kinematic_tree_pool, constraint_torque_trajectories_right_pool(i_time, :)', world_to_belt_transformation);
+
+                        end
+                    end
+                end
+                % reassemble
+                for i_lab = 1 : number_of_labs
+                    left_ground_reaction_wrench_trajectory_lab = left_ground_reaction_wrench_trajectory_pool{i_lab};
+                    left_ground_reaction_wrench_trajectory(time_steps_to_process(1)+i_lab-1 : number_of_labs : time_steps_to_process(end), :) = left_ground_reaction_wrench_trajectory_lab(time_steps_to_process(1)+i_lab-1 : number_of_labs : time_steps_to_process(end), :);
+                    right_ground_reaction_wrench_trajectory_lab = right_ground_reaction_wrench_trajectory_pool{i_lab};
+                    right_ground_reaction_wrench_trajectory(time_steps_to_process(1)+i_lab-1 : number_of_labs : time_steps_to_process(end), :) = right_ground_reaction_wrench_trajectory_lab(time_steps_to_process(1)+i_lab-1 : number_of_labs : time_steps_to_process(end), :);
+                end
             else
                 for i_time = time_steps_to_process
                     if any(isnan(joint_angle_trajectories_belt(i_time, :)))
-                        right_ground_reaction_wrench_trajectory(i_time, :) = NaN;
                         left_ground_reaction_wrench_trajectory(i_time, :) = NaN;
+                        right_ground_reaction_wrench_trajectory(i_time, :) = NaN;
                     else
-                        % TODO: transform the kinematic_tree back to world coordinates from belt coordinates, so the ground reaction wrench will coincide with the force plate readings 
-                        % 23.8.2016: this is already corrected, isn't it?
-                        
                         % update model
                         kinematic_tree.jointAngles = joint_angle_trajectories_belt(i_time, :)';
                         kinematic_tree.jointVelocities = joint_velocity_trajectories_belt(i_time, :)';

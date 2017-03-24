@@ -54,6 +54,12 @@ function optimizeKinematicTrajectories(varargin)
     
     number_of_joints = kinematic_tree.numberOfJoints; %#ok<NODEF>
     
+    if use_parallel
+        % get or open pool of workers
+        poolobject = gcp;
+        number_of_labs = poolobject.NumWorkers;
+    end    
+    
     %% determine weights
     weight_matrix = ones(1, length(kinematic_tree.markerLabels));
     marker_weight_table = study_settings.get('marker_weights');
@@ -336,23 +342,25 @@ function optimizeKinematicTrajectories(varargin)
             load(['processed' filesep makeFileName(date, subject_id, condition, i_trial, 'markerTrajectories')]);
             load(['processed' filesep makeFileName(date, subject_id, condition, i_trial, 'kinematicTrajectories')]);
             
-            % modify marker trajectories: set LTHIA marker to NaN to check if treatment of weightless markers is working properly
-            LTHIA_number = find(strcmp(marker_labels, 'LTHIA'));
-            LTHIA_indices = (LTHIA_number-1)*3 + (1:3);
-            marker_trajectories(:, LTHIA_indices) = NaN;
-            joint_angle_trajectories(:, 7) = NaN;
+%             % modify marker trajectories: set LTHIA marker to NaN to check if treatment of weightless markers is working properly
+%             LTHIA_number = find(strcmp(marker_labels, 'LTHIA'));
+%             LTHIA_indices = (LTHIA_number-1)*3 + (1:3);
+%             marker_trajectories(:, LTHIA_indices) = NaN;
+%             joint_angle_trajectories(:, 7) = NaN;
             
             number_of_time_steps = size(marker_trajectories, 1);
 
             % determine time steps to optimize
-            time_steps_to_optimize = 1 : number_of_time_steps;
+%             time_steps_to_optimize = 1 : number_of_time_steps;
 %             time_steps_to_optimize = 1 : 20;
 %             time_steps_to_optimize = 29999 : 30000;
 %             time_steps_to_optimize = 30000;
             
-%             time_steps_to_optimize = determineTimeStepsToProcess(date, subject_id, condition, i_trial, study_settings.get('data_stretch_padding'));
+            time_steps_to_optimize = determineTimeStepsToProcess(date, subject_id, condition, i_trial, study_settings.get('data_stretch_padding'));
 %             time_steps_to_optimize = determineTimeStepsToProcess(date, subject_id, condition, i_trial, 0);
 
+            number_of_time_steps_to_optimize = length(time_steps_to_optimize);
+            
             %% optimize
             joint_angle_trajectories_calculated = joint_angle_trajectories;
             joint_angle_trajectories_optimized = zeros(size(joint_angle_trajectories_calculated)) * NaN;
@@ -361,17 +369,12 @@ function optimizeKinematicTrajectories(varargin)
             % problem with the padding?
             
             tic
-%             disp([datestr(datetime,'yyyy-mm-dd HH:MM:SS') ' - Condition ' condition ', Trial ' num2str(i_trial)])
-%             fprintf([datestr(datetime,'yyyy-mm-dd HH:MM:SS') ' - Optimizing joint angles... \n'])
-            disp([' - Condition ' condition ', Trial ' num2str(i_trial)])
-            fprintf([' - Optimizing joint angles... \n'])
+            disp([datestr(datetime,'yyyy-mm-dd HH:MM:SS') ' - Condition ' condition ', Trial ' num2str(i_trial)])
+            fprintf([datestr(datetime,'yyyy-mm-dd HH:MM:SS') ' - Optimizing joint angles... \n'])
             if use_parallel
                 joint_angle_trajectories_optimized_pool = zeros(size(joint_angle_trajectories_optimized));
-                number_of_time_steps_to_optimize = length(time_steps_to_optimize);
+                
 
-                % get or open pool of workers
-                poolobject = gcp;
-                number_of_labs = poolobject.NumWorkers;
 
                 spmd
                     % create a copy of the kinematic_tree for each worker
@@ -424,13 +427,12 @@ function optimizeKinematicTrajectories(varargin)
                 );
             end
             joint_angle_trajectories_optimized = normalizeAngle(joint_angle_trajectories_optimized);
-%             fprintf([datestr(datetime,'yyyy-mm-dd HH:MM:SS') ' - finished\n'])
-            fprintf([' - finished\n'])
+            fprintf([datestr(datetime,'yyyy-mm-dd HH:MM:SS') ' - finished\n'])
             toc
                 
             %% get joint centers and CoM from the kinematic tree
-%             fprintf([datestr(datetime,'yyyy-mm-dd HH:MM:SS') ' - Calculating joint centers and CoM... \n'])
-            fprintf([' - Calculating joint centers and CoM... \n'])
+            fprintf([datestr(datetime,'yyyy-mm-dd HH:MM:SS') ' - Calculating joint centers and CoM... \n'])
+%             fprintf([' - Calculating joint centers and CoM... \n'])
             joint_center_trajectories_calculated = joint_center_trajectories;
             joint_center_trajectories_optimized = zeros(number_of_time_steps, length(joint_center_headers)*3);
             com_trajectories_calculated = com_trajectories;
@@ -439,8 +441,8 @@ function optimizeKinematicTrajectories(varargin)
             if use_parallel
                 % make variables accessible to workers by declaring them
                 joint_center_headers_pool = joint_center_headers;
-                joint_center_trajectories_optimized_pool = zeros(size(joint_center_trajectories_optimized));
-                com_trajectories_optimized_pool = zeros(size(com_trajectories_optimized));
+                joint_center_trajectories_optimized_pool = joint_center_trajectories_optimized;
+                com_trajectories_optimized_pool = com_trajectories_optimized;
                 com_labels_pool = com_labels;
                 spmd
                     kinematic_tree_pool = kinematic_tree.copy;
@@ -452,7 +454,7 @@ function optimizeKinematicTrajectories(varargin)
                         
                         
                             % set kinematic tree configuration
-                            theta = joint_center_trajectories_optimized_pool(i_time, :)';
+                            theta = joint_angle_trajectories_optimized(i_time, :)';
                             kinematic_tree_pool.jointAngles = theta;
                             kinematic_tree_pool.updateKinematics;
 
@@ -553,9 +555,9 @@ function optimizeKinematicTrajectories(varargin)
             
             
             
-            
 
-            fprintf('finished\n')
+            fprintf([datestr(datetime,'yyyy-mm-dd HH:MM:SS') ' - finished\n'])
+%             fprintf('finished\n')
             
             %% save
             variables_to_save = struct;

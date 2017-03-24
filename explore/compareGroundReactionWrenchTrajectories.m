@@ -44,39 +44,41 @@ plot(time_mocap, total_ground_reaction_wrench_trajectory(:, 4), 'color', color_x
 plot(time_mocap, total_ground_reaction_wrench_trajectory(:, 5), 'color', color_y_b, 'linewidth', 2);
 plot(time_mocap, total_ground_reaction_wrench_trajectory(:, 6), 'color', color_z_b, 'linewidth', 2);
 
-% figure; left_grf_axes = axes; hold on; title('left ground reaction forces');
-% plot(time_forceplate, left_forceplate_wrench_world(:, 1), 'color', color_x_a);
-% plot(time_forceplate, left_forceplate_wrench_world(:, 2), 'color', color_y_a);
-% plot(time_forceplate, left_forceplate_wrench_world(:, 3), 'color', color_z_a);
-% plot(time_mocap, left_ground_reaction_wrench_trajectory(:, 1), 'color', color_x_b, 'linewidth', 2);
-% plot(time_mocap, left_ground_reaction_wrench_trajectory(:, 2), 'color', color_y_b, 'linewidth', 2);
-% plot(time_mocap, left_ground_reaction_wrench_trajectory(:, 3), 'color', color_z_b, 'linewidth', 2);
-% 
-% figure; left_grm_axes = axes; hold on; title('left ground reaction moments');
-% plot(time_forceplate, left_forceplate_wrench_world(:, 4), 'color', color_x_a);
-% plot(time_forceplate, left_forceplate_wrench_world(:, 5), 'color', color_y_a);
-% plot(time_forceplate, left_forceplate_wrench_world(:, 6), 'color', color_z_a);
-% plot(time_mocap, left_ground_reaction_wrench_trajectory(:, 4), 'color', color_x_b, 'linewidth', 2);
-% plot(time_mocap, left_ground_reaction_wrench_trajectory(:, 5), 'color', color_y_b, 'linewidth', 2);
-% plot(time_mocap, left_ground_reaction_wrench_trajectory(:, 6), 'color', color_z_b, 'linewidth', 2);
-% 
-% figure; right_grf_axes = axes; hold on; title('right ground reaction forces');
-% plot(time_forceplate, right_forceplate_wrench_world(:, 1), 'color', color_x_a);
-% plot(time_forceplate, right_forceplate_wrench_world(:, 2), 'color', color_y_a);
-% plot(time_forceplate, right_forceplate_wrench_world(:, 3), 'color', color_z_a);
-% plot(time_mocap, right_ground_reaction_wrench_trajectory(:, 1), 'color', color_x_b, 'linewidth', 2);
-% plot(time_mocap, right_ground_reaction_wrench_trajectory(:, 2), 'color', color_y_b, 'linewidth', 2);
-% plot(time_mocap, right_ground_reaction_wrench_trajectory(:, 3), 'color', color_z_b, 'linewidth', 2);
-% 
-% figure; right_grm_axes = axes; hold on; title('right ground reaction moments');
-% plot(time_forceplate, right_forceplate_wrench_world(:, 4), 'color', color_x_a);
-% plot(time_forceplate, right_forceplate_wrench_world(:, 5), 'color', color_y_a);
-% plot(time_forceplate, right_forceplate_wrench_world(:, 6), 'color', color_z_a);
-% plot(time_mocap, right_ground_reaction_wrench_trajectory(:, 4), 'color', color_x_b, 'linewidth', 2);
-% plot(time_mocap, right_ground_reaction_wrench_trajectory(:, 5), 'color', color_y_b, 'linewidth', 2);
-% plot(time_mocap, right_ground_reaction_wrench_trajectory(:, 6), 'color', color_z_b, 'linewidth', 2);
+figure; left_grf_axes = axes; hold on; title('left ground reaction forces');
+plot(time_forceplate, left_forceplate_wrench_world(:, 1), 'color', color_x_a);
+plot(time_forceplate, left_forceplate_wrench_world(:, 2), 'color', color_y_a);
+plot(time_forceplate, left_forceplate_wrench_world(:, 3), 'color', color_z_a);
+plot(time_mocap, left_ground_reaction_wrench_trajectory(:, 1), 'color', color_x_b, 'linewidth', 2);
+plot(time_mocap, left_ground_reaction_wrench_trajectory(:, 2), 'color', color_y_b, 'linewidth', 2);
+plot(time_mocap, left_ground_reaction_wrench_trajectory(:, 3), 'color', color_z_b, 'linewidth', 2);
 
-% linkaxes([total_grf_axes total_grm_axes left_grf_axes left_grm_axes right_grf_axes right_grm_axes], 'x')
-linkaxes([total_grf_axes total_grm_axes], 'x')
-distFig('rows', 2, 'tight', true);
+figure; left_grm_axes = axes; hold on; title('left ground reaction moments');
+plot(time_forceplate, left_forceplate_wrench_world(:, 4), 'color', color_x_a);
+plot(time_forceplate, left_forceplate_wrench_world(:, 5), 'color', color_y_a);
+plot(time_forceplate, left_forceplate_wrench_world(:, 6), 'color', color_z_a);
+plot(time_mocap, left_ground_reaction_wrench_trajectory(:, 4), 'color', color_x_b, 'linewidth', 2);
+plot(time_mocap, left_ground_reaction_wrench_trajectory(:, 5), 'color', color_y_b, 'linewidth', 2);
+plot(time_mocap, left_ground_reaction_wrench_trajectory(:, 6), 'color', color_z_b, 'linewidth', 2);
+
+figure; right_grf_axes = axes; hold on; title('right ground reaction forces');
+plot(time_forceplate, right_forceplate_wrench_world(:, 1), 'color', color_x_a);
+plot(time_forceplate, right_forceplate_wrench_world(:, 2), 'color', color_y_a);
+plot(time_forceplate, right_forceplate_wrench_world(:, 3), 'color', color_z_a);
+plot(time_mocap, right_ground_reaction_wrench_trajectory(:, 1), 'color', color_x_b, 'linewidth', 2);
+plot(time_mocap, right_ground_reaction_wrench_trajectory(:, 2), 'color', color_y_b, 'linewidth', 2);
+plot(time_mocap, right_ground_reaction_wrench_trajectory(:, 3), 'color', color_z_b, 'linewidth', 2);
+
+figure; right_grm_axes = axes; hold on; title('right ground reaction moments');
+plot(time_forceplate, right_forceplate_wrench_world(:, 4), 'color', color_x_a);
+plot(time_forceplate, right_forceplate_wrench_world(:, 5), 'color', color_y_a);
+plot(time_forceplate, right_forceplate_wrench_world(:, 6), 'color', color_z_a);
+plot(time_mocap, right_ground_reaction_wrench_trajectory(:, 4), 'color', color_x_b, 'linewidth', 2);
+plot(time_mocap, right_ground_reaction_wrench_trajectory(:, 5), 'color', color_y_b, 'linewidth', 2);
+plot(time_mocap, right_ground_reaction_wrench_trajectory(:, 6), 'color', color_z_b, 'linewidth', 2);
+
+linkaxes([total_grf_axes total_grm_axes left_grf_axes left_grm_axes right_grf_axes right_grm_axes], 'x')
+distFig('rows', 3, 'tight', true);
+
+% linkaxes([total_grf_axes total_grm_axes], 'x')
+% distFig('rows', 2, 'tight', true);
 
