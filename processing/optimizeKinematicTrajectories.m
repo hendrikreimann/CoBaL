@@ -369,8 +369,10 @@ function optimizeKinematicTrajectories(varargin)
             % problem with the padding?
             
             tic
-            disp([datestr(datetime,'yyyy-mm-dd HH:MM:SS') ' - Condition ' condition ', Trial ' num2str(i_trial)])
-            fprintf([datestr(datetime,'yyyy-mm-dd HH:MM:SS') ' - Optimizing joint angles... \n'])
+%             disp([datestr(datetime,'yyyy-mm-dd HH:MM:SS') ' - Condition ' condition ', Trial ' num2str(i_trial)])
+%             fprintf([datestr(datetime,'yyyy-mm-dd HH:MM:SS') ' - Optimizing joint angles... \n'])
+            disp([' - Condition ' condition ', Trial ' num2str(i_trial)])
+            fprintf([' - Optimizing joint angles... \n'])
             if use_parallel
                 joint_angle_trajectories_optimized_pool = zeros(size(joint_angle_trajectories_optimized));
                 
@@ -427,12 +429,13 @@ function optimizeKinematicTrajectories(varargin)
                 );
             end
             joint_angle_trajectories_optimized = normalizeAngle(joint_angle_trajectories_optimized);
-            fprintf([datestr(datetime,'yyyy-mm-dd HH:MM:SS') ' - finished\n'])
+%             fprintf([datestr(datetime,'yyyy-mm-dd HH:MM:SS') ' - finished\n'])
+            fprintf([' - finished\n'])
             toc
                 
             %% get joint centers and CoM from the kinematic tree
-            fprintf([datestr(datetime,'yyyy-mm-dd HH:MM:SS') ' - Calculating joint centers and CoM... \n'])
-%             fprintf([' - Calculating joint centers and CoM... \n'])
+%             fprintf([datestr(datetime,'yyyy-mm-dd HH:MM:SS') ' - Calculating joint centers and CoM... \n'])
+            fprintf([' - Calculating joint centers and CoM... \n'])
             joint_center_trajectories_calculated = joint_center_trajectories;
             joint_center_trajectories_optimized = zeros(number_of_time_steps, length(joint_center_headers)*3);
             com_trajectories_calculated = com_trajectories;
@@ -556,7 +559,8 @@ function optimizeKinematicTrajectories(varargin)
             
             
 
-            fprintf([datestr(datetime,'yyyy-mm-dd HH:MM:SS') ' - finished\n'])
+%             fprintf([datestr(datetime,'yyyy-mm-dd HH:MM:SS') ' - finished\n'])
+            fprintf([' - finished\n'])
 %             fprintf('finished\n')
             
             %% save

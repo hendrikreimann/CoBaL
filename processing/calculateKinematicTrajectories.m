@@ -64,8 +64,10 @@ function calculateKinematicTrajectories(varargin)
             condition = condition_list{i_condition};
             
             % give feedback
-            disp([datestr(datetime,'yyyy-mm-dd HH:MM:SS') ' - Condition ' condition ', Trial ' num2str(i_trial)])
-            fprintf([datestr(datetime,'yyyy-mm-dd HH:MM:SS') ' - Calculating kinematic trajectories... \n'])
+%             disp([datestr(datetime,'yyyy-mm-dd HH:MM:SS') ' - Condition ' condition ', Trial ' num2str(i_trial)])
+%             fprintf([datestr(datetime,'yyyy-mm-dd HH:MM:SS') ' - Calculating kinematic trajectories... \n'])
+            disp([' - Condition ' condition ', Trial ' num2str(i_trial)])
+            fprintf([' - Calculating kinematic trajectories... \n'])
             
             % load data
             load(['processed' filesep makeFileName(date, subject_id, condition, i_trial, 'markerTrajectories')]);
@@ -94,6 +96,7 @@ function calculateKinematicTrajectories(varargin)
             com_trajectories = zeros(number_of_time_steps, length(com_labels)*3);
             joint_angle_trajectories = zeros(number_of_time_steps, number_of_joint_angles);
             
+            tic
             if use_parallel
                 % make variables accessible to workers by declaring them
                 joint_center_trajectories_pool = zeros(number_of_time_steps, length(joint_center_headers)*3);
@@ -261,8 +264,10 @@ function calculateKinematicTrajectories(varargin)
 
                 end                
             end
+            toc
             
-            fprintf([datestr(datetime,'yyyy-mm-dd HH:MM:SS') ' - Calculating kinematic trajectories... done\n'])
+%             fprintf([datestr(datetime,'yyyy-mm-dd HH:MM:SS') ' - Calculating kinematic trajectories... done\n'])
+            fprintf([' - Calculating kinematic trajectories... done\n'])
 
             
             % save
