@@ -359,14 +359,21 @@ function optimizeKinematicTrajectories(varargin)
             time_steps_to_optimize = determineTimeStepsToProcess(date, subject_id, condition, i_trial, study_settings.get('data_stretch_padding'));
 %             time_steps_to_optimize = determineTimeStepsToProcess(date, subject_id, condition, i_trial, 0);
 
+% cut down time steps to optimize for debugging
+% time_steps_to_optimize = time_steps_to_optimize(1006);
+% time_steps_to_optimize = time_steps_to_optimize(1005 : 1006);
+% time_steps_to_optimize = 3026 : 3030;
+
+
+
             number_of_time_steps_to_optimize = length(time_steps_to_optimize);
             
             %% optimize
             joint_angle_trajectories_calculated = joint_angle_trajectories;
             joint_angle_trajectories_optimized = zeros(size(joint_angle_trajectories_calculated)) * NaN;
             
-            % TODO: check what is used as initial condition, what happens if this contains NaNs? Maybe that's the
-            % problem with the padding?
+            TODO: check what is used as initial condition, what happens if this contains NaNs? Maybe that's the
+            problem with the padding?
             
             tic
 %             disp([datestr(datetime,'yyyy-mm-dd HH:MM:SS') ' - Condition ' condition ', Trial ' num2str(i_trial)])
@@ -411,8 +418,8 @@ function optimizeKinematicTrajectories(varargin)
                     joint_angle_trajectories_optimized_lab = joint_angle_trajectories_optimized_pool{i_lab};
                     joint_angle_trajectories_optimized(time_steps_to_optimize(i_lab : number_of_labs : number_of_time_steps_to_optimize), :) = joint_angle_trajectories_optimized_lab(time_steps_to_optimize(i_lab : number_of_labs : number_of_time_steps_to_optimize), :);
                 end                  
-                
-            else
+            end
+            if ~use_parallel
                 joint_angle_trajectories_optimized(time_steps_to_optimize, :) = ...
                 optimizeJointAngles ...
                 ( ...
@@ -441,6 +448,7 @@ function optimizeKinematicTrajectories(varargin)
             com_trajectories_calculated = com_trajectories;
             com_trajectories_optimized = zeros(number_of_time_steps, length(com_labels)*3);
             
+            tic
             if use_parallel
                 % make variables accessible to workers by declaring them
                 joint_center_headers_pool = joint_center_headers;
@@ -449,13 +457,12 @@ function optimizeKinematicTrajectories(varargin)
                 com_labels_pool = com_labels;
                 spmd
                     kinematic_tree_pool = kinematic_tree.copy;
-                    for i_time = time_steps_to_optimize(1)+labindex-1 : numlabs : time_steps_to_optimize(end)
+                    for i_time_index = labindex : numlabs : number_of_time_steps_to_optimize
+                        i_time = time_steps_to_optimize(i_time_index);
                         if any(any(isnan(joint_center_trajectories_optimized_pool(i_time, :))))
                             joint_center_trajectories_optimized_pool(i_time, :) = NaN;
                             com_trajectories_optimized_pool(i_time, :) = NaN;
                         else
-                        
-                        
                             % set kinematic tree configuration
                             theta = joint_angle_trajectories_optimized(i_time, :)';
                             kinematic_tree_pool.jointAngles = theta;
@@ -497,9 +504,11 @@ function optimizeKinematicTrajectories(varargin)
                     joint_center_trajectories_optimized(time_steps_to_optimize(i_lab : number_of_labs : number_of_time_steps_to_optimize), :) = joint_center_trajectories_optimized_lab(time_steps_to_optimize(i_lab : number_of_labs : number_of_time_steps_to_optimize), :);
                     com_trajectories_optimized_lab = com_trajectories_optimized_pool{i_lab};
                     com_trajectories_optimized(time_steps_to_optimize(i_lab : number_of_labs : number_of_time_steps_to_optimize), :) = com_trajectories_optimized_lab(time_steps_to_optimize(i_lab : number_of_labs : number_of_time_steps_to_optimize), :);
-                end                
-            else
-                for i_time = time_steps_to_optimize
+                end
+            end
+            if ~use_parallel
+                for i_time_step = 1 : length(time_steps_to_process)
+                    i_time = time_steps_to_process(i_time_step);
                     if any(any(isnan(joint_angle_trajectories_optimized(i_time, :))))
                         joint_center_trajectories_optimized(i_time, :) = NaN;
                         com_trajectories_optimized(i_time, :) = NaN;
@@ -543,13 +552,21 @@ function optimizeKinematicTrajectories(varargin)
                         end
                         com_trajectories_optimized(i_time, end-2 : end) = kinematic_tree.calculateCenterOfMassPosition;
                     end
+                    
+                    % give progress feedback
+                    display_step = 10;
+                    if (i_time_step / display_step) == floor(i_time_step / display_step)
+                        disp([num2str(i_time_step) '(' num2str(length(time_steps_to_process)) ')']);
+                    end                        
+                    
                 end                
             end
+            toc
             
             
             
-            
-            
+%             figure; axes; hold on
+%             plot(com_trajectories_optimized);
             
             
             
@@ -562,7 +579,7 @@ function optimizeKinematicTrajectories(varargin)
 %             fprintf([datestr(datetime,'yyyy-mm-dd HH:MM:SS') ' - finished\n'])
             fprintf([' - finished\n'])
 %             fprintf('finished\n')
-            
+
             %% save
             variables_to_save = struct;
             variables_to_save.joint_labels = kinematic_tree.jointLabels;
@@ -589,6 +606,7 @@ function optimizeKinematicTrajectories(varargin)
             addAvailableData('joint_center_trajectories_optimized', 'time_mocap', 'sampling_rate_mocap', 'joint_center_labels', save_folder, save_file_name);
             addAvailableData('com_trajectories_optimized', 'time_mocap', 'sampling_rate_mocap', 'com_labels', save_folder, save_file_name);
             addAvailableData('joint_angle_trajectories_optimized', 'time_mocap', 'sampling_rate_mocap', 'joint_labels', save_folder, save_file_name);
+            
         end
     end
 end
