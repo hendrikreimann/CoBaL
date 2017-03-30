@@ -28,7 +28,7 @@ fprintf(file_id, 'addpath ~/miscMatlabStuff\n');
 fprintf(file_id, 'addpath ~/KinematicChain\n');
 fprintf(file_id, 'addpath ~/ScrewGeometry\n');
 fprintf(file_id, 'parpool(32)\n');
-% fprintf(file_id, 'calculateKinematicTrajectories(''use_parallel'', true)\n');
+fprintf(file_id, 'calculateKinematicTrajectories(''use_parallel'', true)\n');
 fprintf(file_id, 'optimizeKinematicTrajectories(''use_parallel'', true)\n');
 fclose(file_id);
 
