@@ -74,6 +74,8 @@ function calculateKinematicTrajectories(varargin)
             number_of_time_steps = size(marker_trajectories, 1); %#ok<NODEF>
             time_steps_to_process = 1 : number_of_time_steps;
 %             time_steps_to_process = 29999 : 30000;
+            time_steps_to_process = determineTimeStepsToProcess(date, subject_id, condition, i_trial, study_settings.get('data_stretch_padding'));
+            number_of_time_steps_to_process = length(time_steps_to_process);
             
             com_labels = [segment_labels 'BODY'];
             for i_label = 1 : length(com_labels)
@@ -112,7 +114,8 @@ function calculateKinematicTrajectories(varargin)
                 direction_matrices_pool = direction_matrices;
                 direction_matrix_labels_pool = direction_matrix_labels;
                 spmd
-                    for i_time = time_steps_to_process(1)+labindex-1 : numlabs : time_steps_to_process(end)
+                    for i_time_index = labindex : numlabs : number_of_time_steps_to_process
+                        i_time = time_steps_to_process(i_time_index);
                         % check for missing markers
                         marker_current = marker_trajectories(i_time, :);
                         if any(isnan(marker_current))
@@ -190,7 +193,9 @@ function calculateKinematicTrajectories(varargin)
                 end               
             end
             if ~use_parallel
-                for i_time = time_steps_to_process
+                for i_time_step = 1 : length(time_steps_to_process)
+                    i_time = time_steps_to_process(i_time_step);
+                    
                     % check for missing markers
                     if any(any(isnan(marker_trajectories(i_time, essential_marker_indicator))))
                         joint_center_trajectories(i_time, :) = NaN;
@@ -253,9 +258,8 @@ function calculateKinematicTrajectories(varargin)
 
                         % give progress feedback
                         display_step = 1;
-                        last_time_step = time_steps_to_process(end);
-                        if (i_time / display_step) == floor(i_time / display_step)
-                            disp([num2str(i_time) '(' num2str(last_time_step) ')']);
+                        if (i_time_step / display_step) == floor(i_time_step / display_step)
+                            disp([num2str(i_time_step) '(' num2str(length(time_steps_to_process)) ')']);
                         end                        
                     end
                     
