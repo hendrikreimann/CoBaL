@@ -372,8 +372,8 @@ function optimizeKinematicTrajectories(varargin)
             joint_angle_trajectories_calculated = joint_angle_trajectories;
             joint_angle_trajectories_optimized = zeros(size(joint_angle_trajectories_calculated)) * NaN;
             
-            TODO: check what is used as initial condition, what happens if this contains NaNs? Maybe that's the
-            problem with the padding?
+            % TODO: check what is used as initial condition, what happens if this contains NaNs? Maybe that's the
+            % problem with the padding?
             
             tic
 %             disp([datestr(datetime,'yyyy-mm-dd HH:MM:SS') ' - Condition ' condition ', Trial ' num2str(i_trial)])
