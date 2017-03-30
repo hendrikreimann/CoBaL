@@ -322,23 +322,23 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('mz')
                 this.addStretchVariable('mz')
             end
-            if this.isVariableToAnalyze('body_com_to_cop_x')
+            if this.isVariableToAnalyze('body_cop_to_com_x')
                 this.addBasicVariable('total_forceplate_cop_world')
                 this.addBasicVariable('cop_ml')
                 this.addStretchVariable('cop_ml')
                 this.addBasicVariable('com_trajectories')
                 this.addBasicVariable('body_com_x')
                 this.addStretchVariable('body_com_x')
-                this.addStretchVariable('body_com_to_cop_x')
+                this.addStretchVariable('body_cop_to_com_x')
             end
-            if this.isVariableToAnalyze('body_com_to_cop_y')
+            if this.isVariableToAnalyze('body_cop_to_com_y')
                 this.addBasicVariable('total_forceplate_cop_world')
                 this.addBasicVariable('cop_ap')
                 this.addStretchVariable('cop_ap')
                 this.addBasicVariable('com_trajectories')
                 this.addBasicVariable('body_com_y')
                 this.addStretchVariable('body_com_y')
-                this.addStretchVariable('body_com_to_cop_y')
+                this.addStretchVariable('body_cop_to_com_y')
             end
             if this.isVariableToAnalyze('left_arm_angle')
                 this.addBasicVariable('marker_trajectories')
@@ -1038,15 +1038,15 @@ classdef WalkingDataCustodian < handle
                             stretch_data = NaN;
                         end
                     end
-                    if strcmp(variable_name, 'body_com_to_cop_x')
+                    if strcmp(variable_name, 'body_cop_to_com_x')
                         body_com_x = stretch_variables{strcmp(this.stretch_variable_names, 'body_com_x')}(:, i_stretch);
                         cop_ml = stretch_variables{strcmp(this.stretch_variable_names, 'cop_ml')}(:, i_stretch);
-                        stretch_data = cop_ml - body_com_x;
+                        stretch_data = body_com_x / cop_ml;
                     end
-                    if strcmp(variable_name, 'body_com_to_cop_y')
+                    if strcmp(variable_name, 'body_cop_to_com_y')
                         body_com_y = stretch_variables{strcmp(this.stretch_variable_names, 'body_com_y')}(:, i_stretch);
                         cop_ap = stretch_variables{strcmp(this.stretch_variable_names, 'cop_ap')}(:, i_stretch);
-                        stretch_data = cop_ap - body_com_y;
+                        stretch_data = body_com_y - cop_ap;
                     end
                     if strcmp(variable_name, 'cop_ap_vel')
                         
