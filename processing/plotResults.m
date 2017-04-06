@@ -401,12 +401,12 @@ function plotResults(varargin)
                         for i_condition = 1 : length(conditions_this_comparison)
                             if strcmp(study_settings.get('time_plot_style'), 'scaled_to_comparison_mean')
                                 abscissa_scaled = abscissa_unscaled * mean(step_time_means_this_comparison) / 100;
-                                abscissae_cell{i_comparison, i_variable}(i_condition, :) = abscissa_scaled;
+                                abscissae_cell{this_episode(i_comparison), i_variable}(i_condition, :) = abscissa_scaled;
                             elseif strcmp(study_settings.get('time_plot_style'), 'scaled_to_condition_mean')
                                 abscissa_scaled = abscissa_unscaled * step_time_means_this_comparison(i_condition) / 100;
-                                abscissae_cell{i_comparison, i_variable}(i_condition, :) = abscissa_scaled;
+                                abscissae_cell{this_episode(i_comparison), i_variable}(i_condition, :) = abscissa_scaled;
                             else
-                                abscissae_cell{i_comparison, i_variable}(i_condition, :) = abscissa_unscaled;
+                                abscissae_cell{this_episode(i_comparison), i_variable}(i_condition, :) = abscissa_unscaled;
                             end
                         end                    
                     end                    
@@ -466,8 +466,8 @@ function plotResults(varargin)
                                     end
 
                                     % find out where abscissa for previous step ends
-                                    previous_step_last_data_point = abscissae_cell{previous_step_comparison_index, i_variable}(previous_step_condition_index, end);
-                                    abscissae_cell{i_comparison, i_variable}(i_condition, :) = abscissae_cell{i_comparison, i_variable}(i_condition, :) + previous_step_last_data_point;
+                                    previous_step_last_data_point = abscissae_cell{this_episode(previous_step_comparison_index), i_variable}(previous_step_condition_index, end);
+                                    abscissae_cell{this_episode(i_comparison), i_variable}(i_condition, :) = abscissae_cell{this_episode(i_comparison), i_variable}(i_condition, :) + previous_step_last_data_point;
 
 
                                 end

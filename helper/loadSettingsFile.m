@@ -152,7 +152,12 @@ function [text_cell, settings] = parseNextBlock(text_cell, settings)
     
     % add to settings
     evalstring = ['settings.' variable_name ' = variable_value;'];
-    eval(evalstring);
+    try
+        eval(evalstring);
+    catch error
+        disp(['Variable name causing error: ' variable_name])
+        throw(error)
+    end
     
     % remove parsed line
     text_cell = text_cell(2:end);

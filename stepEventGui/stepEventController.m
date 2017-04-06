@@ -557,6 +557,7 @@ classdef stepEventController < handle
             
             
             this.updateSelectedTime
+            
         end
         function quit(this, sender, eventdata) %#ok<INUSD>
             try

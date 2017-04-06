@@ -14,6 +14,8 @@
 %     You should have received a copy of the GNU General Public License
 %     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+trials_to_process_string = '12 : 20';
+
 % figure out folder structure
 subject_settings = SettingsCustodian('subjectSettings.txt');
 path_split = strsplit(pwd, filesep);
@@ -28,8 +30,10 @@ fprintf(file_id, 'addpath ~/miscMatlabStuff\n');
 fprintf(file_id, 'addpath ~/KinematicChain\n');
 fprintf(file_id, 'addpath ~/ScrewGeometry\n');
 fprintf(file_id, 'parpool(32)\n');
-% fprintf(file_id, 'calculateKinematicTrajectories(''use_parallel'', true)\n');
+fprintf(file_id, 'calculateKinematicTrajectories(''use_parallel'', true)\n');
 fprintf(file_id, 'optimizeKinematicTrajectories(''use_parallel'', true)\n');
+% fprintf(file_id, ['calculateKinematicTrajectories(''use_parallel'', true, ''trials'', ' trials_to_process_string ')\n']);
+% fprintf(file_id, ['optimizeKinematicTrajectories(''use_parallel'', true, ''trials'', ' trials_to_process_string ')\n']);
 fclose(file_id);
 
 % copy command file to compute
