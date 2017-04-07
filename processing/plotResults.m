@@ -491,7 +491,7 @@ function plotResults(varargin)
             target_axes_handle = axes_handles(comparison_variable_to_axes_index_map(i_comparison), i_variable);
             
             % plot control
-            if ~isempty(conditions_control)
+            if study_settings.get('plot_control') && ~isempty(conditions_control)
                 % determine which control condition applies here
                 representant_condition_index = conditions_this_comparison(1);
                 this_condition_stance_foot = conditions_to_plot(representant_condition_index, 1);

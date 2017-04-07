@@ -89,6 +89,9 @@ classdef SettingsCustodian < handle
             if strcmp(property_name, 'right_legswing_peak_distance_threshold')
                 default_data = 0.25;
             end
+            if strcmp(property_name, 'plot_control')
+                default_data = 1;
+            end
             
 
             
