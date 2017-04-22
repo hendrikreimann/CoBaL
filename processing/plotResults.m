@@ -484,7 +484,7 @@ function plotResults(varargin)
     for i_variable = 1 : number_of_variables_to_plot
         data_to_plot = variable_data_all{i_variable, 1};
         colors_comparison = study_settings.get('colors_comparison');
-        for i_comparison = 1 : length(comparison_indices);
+        for i_comparison = 1 : length(comparison_indices)
             % find correct condition indicator for control
             conditions_this_comparison = comparison_indices{i_comparison};
             top_level_plots = [];

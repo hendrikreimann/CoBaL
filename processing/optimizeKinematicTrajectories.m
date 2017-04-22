@@ -507,7 +507,7 @@ function optimizeKinematicTrajectories(varargin)
                 end
             end
             if ~use_parallel
-                for i_time_step = 1 : length(time_steps_to_process)
+                for i_time_step = 1 : length(time_steps_to_optimize)
                     i_time = time_steps_to_process(i_time_step);
                     if any(any(isnan(joint_angle_trajectories_optimized(i_time, :))))
                         joint_center_trajectories_optimized(i_time, :) = NaN;
@@ -554,7 +554,7 @@ function optimizeKinematicTrajectories(varargin)
                     end
                     
                     % give progress feedback
-                    display_step = 10;
+                    display_step = 1;
                     if (i_time_step / display_step) == floor(i_time_step / display_step)
                         disp([num2str(i_time_step) '(' num2str(length(time_steps_to_process)) ')']);
                     end                        

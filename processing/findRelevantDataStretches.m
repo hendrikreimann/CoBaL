@@ -156,8 +156,9 @@ function findRelevantDataStretches(varargin)
             end
             
             % determine indices for optional markers
+            marker_weight_table = study_settings.get('marker_weights');
+            optional_marker_list = marker_weight_table(:, 1);
             optional_marker_indices = [];
-            optional_marker_list = study_settings.get('optional_markers');
             for i_marker = 1 : length(optional_marker_list)
                 marker = find(strcmp(marker_labels, optional_marker_list{i_marker}));
                 marker_indices = reshape([(marker - 1) * 3 + 1; (marker - 1) * 3 + 2; (marker - 1) * 3 + 3], 1, length(marker)*3);
@@ -821,7 +822,7 @@ function findRelevantDataStretches(varargin)
                         end            
                     else
                         trigger_foot = 'unclear';
-                        disp(['Trial ' num2str(i_trial) ': something went wrong at time ' num2str(time_stimulus(trigger_indices_labview(i_trigger))) ' - trigger exactly between two heelstrikes']);
+                        disp(['Trial ' num2str(i_trial) ': something went wrong at time ' num2str(time_stimulus(trigger_indices_labview(i_trigger))) ' - triggering heelstrike unclear']);
                         left_foot_heelstrike_minus_1    = 0;
                         left_foot_heelstrike_0          = 0;
                         left_foot_heelstrike_plus_1     = 0;

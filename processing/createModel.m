@@ -52,7 +52,7 @@ function createModel(varargin)
     if ankle_width == 0
         ankle_width = 0.07;
         disp('Ankle width not specified, using 0.07m as a proxy. Please enter measurement in subjects.csv.');
-    end
+    end%
     if elbow_width == 0
         elbow_width = 0.07;
         disp('Elbow width not specified, using 0.07m as a proxy. Please enter measurement in subjects.csv.');
