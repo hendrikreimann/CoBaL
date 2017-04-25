@@ -133,12 +133,17 @@ function optimizedJointAngles = optimizeJointAngles ...
         current_marker_positions_relevant = current_marker_positions_measured(weight_matrix_by_indices~=0);
 
         % check whether NaNs are present in relevant marker positions or joint angle initial values
-        if any(isnan(current_marker_positions_relevant)) || any(isnan(theta_0(pelvis_joints)))
+        if any(isnan(current_marker_positions_relevant)) % || any(isnan(theta_0(pelvis_joints)))
             theta_opt = zeros(size(theta_0)) * NaN;
         else % if not, optimize
             % pick initial values for limb chains. Use calculated angles if not containing any NaNs, otherwise use
             % zeros. Those NaNs are there because markes that we needed for the calculation were missing, but we don't
             % need those for the optimization (if we did, we'd have exited in the previous conditional).
+
+            theta_pelvis_init = theta_0(pelvis_joints);
+            if any(isnan(theta_pelvis_init))
+                theta_pelvis_init = zeros(size(theta_pelvis_init));
+            end
             theta_left_leg_init = theta_0(left_leg_joints);
             if any(isnan(theta_left_leg_init))
                 theta_left_leg_init = zeros(size(theta_left_leg_init));
@@ -160,17 +165,14 @@ function optimizedJointAngles = optimizeJointAngles ...
                 theta_right_arm_init = zeros(size(theta_right_arm_init));
             end
             
-            
             % use modular plant
-            theta_virtual = fminunc(@objfun_virtual_modular, theta_0(pelvis_joints), options);
-
+            theta_virtual = fminunc(@objfun_virtual_modular, theta_pelvis_init, options);
             pelvis_chain.jointAngles = theta_virtual;
             pelvis_chain.updateConfiguration();
             pelvis_to_world_poe = pelvis_chain.productsOfExponentials{6};
             theta_left_leg = fminunc(@objfun_left_leg_modular, theta_left_leg_init, options);
             theta_right_leg = fminunc(@objfun_right_leg_modular, theta_right_leg_init, options);
             theta_trunk_and_head = fminunc(@objfun_trunk_modular, theta_trunk_and_head_init, options);
-
             trunk_to_world_poe = pelvis_chain.productsOfExponentials{6} * torso_chain.productsOfExponentials{3};
             theta_left_arm = fminunc(@objfun_left_arm_modular, theta_left_arm_init, options);
             theta_right_arm = fminunc(@objfun_right_arm_modular, theta_right_arm_init, options);
