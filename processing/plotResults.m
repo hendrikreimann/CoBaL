@@ -68,6 +68,7 @@ function plotResults(varargin)
     origin_start_time_list_all = [];
     origin_end_time_list_all = [];
     variable_data_all = cell(number_of_variables_to_plot, 1);
+    response_data_all = cell(number_of_variables_to_plot, 1);
     step_time_data = [];
     
     for i_folder = 1 : length(data_folder_list)
@@ -77,28 +78,31 @@ function plotResults(varargin)
         load([data_path filesep 'analysis' filesep date '_' subject_id '_results.mat']);
 
         % append data from this subject to containers for all subjects
-        condition_stance_foot_list_all = [condition_stance_foot_list_all; condition_stance_foot_list_subject]; %#ok<AGROW>
-        condition_perturbation_list_all = [condition_perturbation_list_all; condition_perturbation_list_subject]; %#ok<AGROW>
-        condition_delay_list_all = [condition_delay_list_all; condition_delay_list_subject]; %#ok<AGROW>
-        condition_index_list_all = [condition_index_list_all; condition_index_list_subject]; %#ok<AGROW>
-        condition_experimental_list_all = [condition_experimental_list_all; condition_experimental_list_subject]; %#ok<AGROW>
-        condition_stimulus_list_all = [condition_stimulus_list_all; condition_stimulus_list_subject]; %#ok<AGROW>
-        condition_day_list_all = [condition_day_list_all; condition_day_list_subject]; %#ok<AGROW>
-        origin_trial_list_all = [origin_trial_list_all; origin_trial_list_subject]; %#ok<AGROW>
-        origin_start_time_list_all = [origin_start_time_list_all; origin_start_time_list_subject]; %#ok<AGROW>
-        origin_end_time_list_all = [origin_end_time_list_all; origin_end_time_list_subject]; %#ok<AGROW>
+        condition_stance_foot_list_all = [condition_stance_foot_list_all; condition_stance_foot_list_session]; %#ok<AGROW>
+        condition_perturbation_list_all = [condition_perturbation_list_all; condition_perturbation_list_session]; %#ok<AGROW>
+        condition_delay_list_all = [condition_delay_list_all; condition_delay_list_session]; %#ok<AGROW>
+        condition_index_list_all = [condition_index_list_all; condition_index_list_session]; %#ok<AGROW>
+        condition_experimental_list_all = [condition_experimental_list_all; condition_experimental_list_session]; %#ok<AGROW>
+        condition_stimulus_list_all = [condition_stimulus_list_all; condition_stimulus_list_session]; %#ok<AGROW>
+        condition_day_list_all = [condition_day_list_all; condition_day_list_session]; %#ok<AGROW>
+        origin_trial_list_all = [origin_trial_list_all; origin_trial_list_session]; %#ok<AGROW>
+        origin_start_time_list_all = [origin_start_time_list_all; origin_start_time_list_session]; %#ok<AGROW>
+        origin_end_time_list_all = [origin_end_time_list_all; origin_end_time_list_session]; %#ok<AGROW>
         for i_variable = 1 : number_of_variables_to_plot
             % load and extract data
             this_variable_name = variables_to_plot{i_variable, 1};
-            index_in_saved_data = find(strcmp(variable_names_subject, this_variable_name), 1, 'first');
-            this_variable_data = variable_data_subject{index_in_saved_data}; %#ok<USENS>
+            index_in_saved_data = find(strcmp(variable_names_session, this_variable_name), 1, 'first');
+            this_variable_data = variable_data_session{index_in_saved_data}; %#ok<USENS>
+            this_response_data = response_data_session{index_in_saved_data}; %#ok<USENS>
             
             % store
             variable_data_all{i_variable} = [variable_data_all{i_variable} this_variable_data];
+            % TODO: deal with paradigms that have no control condition and thus no response
+            response_data_all{i_variable} = [response_data_all{i_variable} this_response_data];
         end
         if strcmp(study_settings.get('time_plot_style'), 'scaled_to_comparison_mean') || strcmp(study_settings.get('time_plot_style'), 'scaled_to_condition_mean')
-            index_in_saved_data = find(strcmp(variable_names_subject, 'step_time'), 1, 'first');
-            this_step_time_data = variable_data_subject{index_in_saved_data};
+            index_in_saved_data = find(strcmp(variable_names_session, 'step_time'), 1, 'first');
+            this_step_time_data = variable_data_session{index_in_saved_data};
             step_time_data = [step_time_data this_step_time_data];
         end
     end
@@ -482,7 +486,12 @@ function plotResults(varargin)
     
     %% plot data
     for i_variable = 1 : number_of_variables_to_plot
-        data_to_plot = variable_data_all{i_variable, 1};
+        if study_settings.get('plot_response')
+            data_to_plot = response_data_all{i_variable, 1};
+        else
+            data_to_plot = variable_data_all{i_variable, 1};
+        end
+        
         colors_comparison = study_settings.get('colors_comparison');
         for i_comparison = 1 : length(comparison_indices)
             % find correct condition indicator for control
@@ -491,7 +500,7 @@ function plotResults(varargin)
             target_axes_handle = axes_handles(comparison_variable_to_axes_index_map(i_comparison), i_variable);
             
             % plot control
-            if study_settings.get('plot_control') && ~isempty(conditions_control)
+            if study_settings.get('plot_control') && ~isempty(conditions_control) && ~study_settings.get('plot_response')
                 % determine which control condition applies here
                 representant_condition_index = conditions_this_comparison(1);
                 this_condition_stance_foot = conditions_to_plot(representant_condition_index, 1);
@@ -499,6 +508,8 @@ function plotResults(varargin)
                 applicable_control_condition_labels = conditions_control(applicable_control_condition_index, :);
                 % NOTE: so far the applicable control conditions is determined only by stance foot. A general solution 
                 % is not needed at this time, but can be added later if desired
+                % TODO: general solution is implemented, but not integrated here. Compare analyzeData, calculation of
+                % responses
                 
                 % extract data for control condition
                 stance_foot_indicator = strcmp(condition_stance_foot_list_all, applicable_control_condition_labels{1});
