@@ -118,15 +118,17 @@ function plotResults(varargin)
     
     if strcmp(plot_mode, 'detailed') || strcmp(plot_mode, 'overview')
         % make one figure per comparison and variable
+        figure_handles = zeros(number_of_comparisons, number_of_variables_to_plot);
         axes_handles = zeros(number_of_comparisons, number_of_variables_to_plot);
         pos_text_handles = zeros(number_of_comparisons, number_of_variables_to_plot);
         neg_text_handles = zeros(number_of_comparisons, number_of_variables_to_plot);
         for i_variable = 1 : number_of_variables_to_plot
             for i_comparison = 1 : number_of_comparisons
                 % make figure and axes
-                figure; new_axes = axes; hold on;
+                new_figure = figure; new_axes = axes; hold on;
                 
                 % store handles and determine abscissa data
+                figure_handles(i_comparison, i_variable) = new_figure;
                 axes_handles(i_comparison, i_variable) = new_axes;
                 comparison_variable_to_axes_index_map(i_comparison) = i_comparison;
                     
@@ -237,12 +239,18 @@ function plotResults(varargin)
                 
                 % determine title
                 title_string = variables_to_plot{i_variable, 2};
+                filename_string = variables_to_plot{i_variable, 4};
                 for i_label = 1 : length(study_settings.get('condition_labels'));
-                    if i_label ~= study_settings.get('comparison_to_make')
-                        title_string = [title_string ' - ' strrep(conditions_to_plot{comparison_indices{i_comparison}(1), i_label}, '_', ' ')]; %#ok<AGROW>
+                    if (i_label ~= study_settings.get('comparison_to_make')) && (i_label ~= 1) && (i_label ~= 6) && (i_label ~= 7)
+                        this_condition_label = strrep(conditions_to_plot{comparison_indices{i_comparison}(1), i_label}, '_', ' ');
+                        if i_label ~= study_settings.get('comparison_to_make')
+                            title_string = [title_string ' - ' this_condition_label]; %#ok<AGROW>
+                            filename_string = [filename_string '_' this_condition_label];
+                        end
                     end
                 end
                 title(title_string); set(gca, 'Fontsize', 12)
+                set(gcf, 'UserData', filename_string)
                 
                 
             end
@@ -503,13 +511,8 @@ function plotResults(varargin)
             if study_settings.get('plot_control') && ~isempty(conditions_control) && ~study_settings.get('plot_response')
                 % determine which control condition applies here
                 representant_condition_index = conditions_this_comparison(1);
-                this_condition_stance_foot = conditions_to_plot(representant_condition_index, 1);
-                applicable_control_condition_index = find(strcmp(conditions_control, this_condition_stance_foot), 1, 'first');
+                applicable_control_condition_index = findApplicableControlConditionIndex(conditions_to_plot(representant_condition_index, :), conditions_control);
                 applicable_control_condition_labels = conditions_control(applicable_control_condition_index, :);
-                % NOTE: so far the applicable control conditions is determined only by stance foot. A general solution 
-                % is not needed at this time, but can be added later if desired
-                % TODO: general solution is implemented, but not integrated here. Compare analyzeData, calculation of
-                % responses
                 
                 % extract data for control condition
                 stance_foot_indicator = strcmp(condition_stance_foot_list_all, applicable_control_condition_labels{1});

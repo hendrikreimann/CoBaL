@@ -29,6 +29,5 @@ function applicable_control_condition_index = findApplicableControlConditionInde
         & control_conditions_with_same_day_indicator ...
       );
     applicable_control_condition_index = find(applicable_control_condition_indicator, '1', 'first');
-%     applicable_control_condition_index = find(strcmp(conditions_control, this_condition{1}), 1, 'first');
 
 end
