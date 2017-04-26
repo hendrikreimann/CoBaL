@@ -92,6 +92,9 @@ classdef SettingsCustodian < handle
             if strcmp(property_name, 'plot_control')
                 default_data = 1;
             end
+            if strcmp(property_name, 'plot_response')
+                default_data = 0;
+            end
             
 
             
