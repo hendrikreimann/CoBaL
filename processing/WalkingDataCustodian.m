@@ -149,6 +149,14 @@ classdef WalkingDataCustodian < handle
                 this.addStretchVariable('rheel_x_pos')
                 this.addStretchVariable('step_width')
             end
+            if this.isVariableToAnalyze('step_placement_ml')
+                this.addBasicVariable('marker_trajectories')
+                this.addBasicVariable('lheel_x_pos')
+                this.addBasicVariable('rheel_x_pos')
+                this.addStretchVariable('lheel_x_pos')
+                this.addStretchVariable('rheel_x_pos')
+                this.addStretchVariable('step_placement_ml')
+            end
             if this.isVariableToAnalyze('step_time')
                 this.addStretchVariable('step_time')
             end
@@ -958,6 +966,19 @@ classdef WalkingDataCustodian < handle
                         end
                         if strcmp(condition_stance_foot_list{i_stretch}, 'STANCE_LEFT')
                             stretch_data = abs(rheel_x_pos(end) - lheel_x_pos(1));
+                        end
+                        if strcmp(condition_stance_foot_list{i_stretch}, 'STANCE_BOTH')
+                            stretch_data = NaN;
+                        end
+                    end
+                    if strcmp(variable_name, 'step_placement_ml')
+                        lheel_x_pos = this.getTimeNormalizedData('lheel_x_pos', this_stretch_start_time, this_stretch_end_time);
+                        rheel_x_pos = this.getTimeNormalizedData('rheel_x_pos', this_stretch_start_time, this_stretch_end_time);
+                        if strcmp(condition_stance_foot_list{i_stretch}, 'STANCE_RIGHT')
+                            stretch_data = lheel_x_pos(end) - rheel_x_pos(1);
+                        end
+                        if strcmp(condition_stance_foot_list{i_stretch}, 'STANCE_LEFT')
+                            stretch_data = rheel_x_pos(end) - lheel_x_pos(1);
                         end
                         if strcmp(condition_stance_foot_list{i_stretch}, 'STANCE_BOTH')
                             stretch_data = NaN;
