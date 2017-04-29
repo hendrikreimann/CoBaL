@@ -492,18 +492,20 @@ function plotResults(varargin)
         
         % set x-limits
         for i_variable = 1 : number_of_variables_to_plot
-            for i_episode = 1 : number_of_episodes
-                % determine time window to show
-                this_episode = episode_indices{i_episode};
-                first_comparison_in_episode_index = this_episode(1);
-                first_step_abscissae = abscissae_cell{first_comparison_in_episode_index, i_variable};
-                episode_start_time = first_step_abscissae(1, 1);
-                last_comparison_in_episode_index = this_episode(end);
-                last_step_abscissae = abscissae_cell{last_comparison_in_episode_index, i_variable};
-                episode_end_time = last_step_abscissae(1, end);
-                
-                
-                set(axes_handles(i_episode, i_variable), 'xlim', [episode_start_time episode_end_time]);
+            if isContinuousVariable(i_variable, variable_data_all)
+                for i_episode = 1 : number_of_episodes
+                    % determine time window to show
+                    this_episode = episode_indices{i_episode};
+                    first_comparison_in_episode_index = this_episode(1);
+                    first_step_abscissae = abscissae_cell{first_comparison_in_episode_index, i_variable};
+                    episode_start_time = first_step_abscissae(1, 1);
+                    last_comparison_in_episode_index = this_episode(end);
+                    last_step_abscissae = abscissae_cell{last_comparison_in_episode_index, i_variable};
+                    episode_end_time = last_step_abscissae(1, end);
+
+                    % set x-limits accordingly
+                    set(axes_handles(i_episode, i_variable), 'xlim', [episode_start_time episode_end_time]);
+                end
             end
         end
     end
