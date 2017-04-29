@@ -69,11 +69,10 @@ function inverseDynamics(varargin)
             number_of_time_steps = size(marker_trajectories, 1);
 
             % determine time steps to optimize
-            time_steps_to_process = 1 : number_of_time_steps;
-            time_steps_to_process = 1001 : 2000;
-            
-%             time_steps_to_optimize = determineTimeStepsToOptimize(date, subject_id, condition, i_trial, study_settings.get('data_stretch_padding'));
-%             time_steps_to_optimize = determineTimeStepsToOptimize(date, subject_id, condition, i_trial, 0);
+%             time_steps_to_process = 1 : number_of_time_steps;
+%             time_steps_to_process = 1001 : 2000;
+            time_steps_to_process = determineTimeStepsToProcess(date, subject_id, condition, i_trial, study_settings.get('data_stretch_padding'));
+
 
             disp([datestr(datetime,'yyyy-mm-dd HH:MM:SS') ' - Condition ' condition ', Trial ' num2str(i_trial)])
             fprintf([datestr(datetime,'yyyy-mm-dd HH:MM:SS') ' - Calculating ... \n'])
