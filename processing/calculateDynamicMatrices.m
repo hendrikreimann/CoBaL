@@ -71,8 +71,10 @@ function calculateDynamicMatrices(varargin)
 %             time_steps_to_process = 1001 : 2000;
             time_steps_to_process = determineTimeStepsToProcess(date, subject_id, condition, i_trial, study_settings.get('data_stretch_padding'));
 
-            disp([datestr(datetime,'yyyy-mm-dd HH:MM:SS') ' - Condition ' condition ', Trial ' num2str(i_trial)])
-            fprintf([datestr(datetime,'yyyy-mm-dd HH:MM:SS') ' - Calculating dynamic matrices... \n'])
+%             disp([datestr(datetime,'yyyy-mm-dd HH:MM:SS') ' - Condition ' condition ', Trial ' num2str(i_trial)])
+%             fprintf([datestr(datetime,'yyyy-mm-dd HH:MM:SS') ' - Calculating dynamic matrices... \n'])
+            disp([' - Condition ' condition ', Trial ' num2str(i_trial)])
+            fprintf([' - Calculating dynamic matrices... \n'])
             
             % determine constraint numbers
             left_foot_constraint_number_trajectory = determineConstraintNumbers(time_mocap, left_touchdown_times, left_fullstance_times, left_pushoff_times);

@@ -74,8 +74,10 @@ function inverseDynamics(varargin)
             time_steps_to_process = determineTimeStepsToProcess(date, subject_id, condition, i_trial, study_settings.get('data_stretch_padding'));
 
 
-            disp([datestr(datetime,'yyyy-mm-dd HH:MM:SS') ' - Condition ' condition ', Trial ' num2str(i_trial)])
-            fprintf([datestr(datetime,'yyyy-mm-dd HH:MM:SS') ' - Calculating ... \n'])
+%             disp([datestr(datetime,'yyyy-mm-dd HH:MM:SS') ' - Condition ' condition ', Trial ' num2str(i_trial)])
+%             fprintf([datestr(datetime,'yyyy-mm-dd HH:MM:SS') ' - Calculating ... \n'])
+            disp([' - Condition ' condition ', Trial ' num2str(i_trial)])
+            fprintf([' - Calculating ... \n'])
             
 
             %% calculate_torques

@@ -70,8 +70,10 @@ function calculateGroundReactionWrenches(varargin)
 %             time_steps_to_process = 1001 : 2000;
             time_steps_to_process = determineTimeStepsToProcess(date, subject_id, condition, i_trial, study_settings.get('data_stretch_padding'));
 
-            disp([datestr(datetime,'yyyy-mm-dd HH:MM:SS') ' - Condition ' condition ', Trial ' num2str(i_trial)])
-            fprintf([datestr(datetime,'yyyy-mm-dd HH:MM:SS') ' - Calculating ground reaction wrenches ... \n'])
+%             disp([datestr(datetime,'yyyy-mm-dd HH:MM:SS') ' - Condition ' condition ', Trial ' num2str(i_trial)])
+%             fprintf([datestr(datetime,'yyyy-mm-dd HH:MM:SS') ' - Calculating ground reaction wrenches ... \n'])
+            disp([' - Condition ' condition ', Trial ' num2str(i_trial)])
+            fprintf([' - Calculating ground reaction wrenches ... \n'])
             
 
             %% calculate
