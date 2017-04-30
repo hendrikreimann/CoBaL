@@ -20,7 +20,9 @@ function stepEventGui(varargin)
     [condition_list, trial_number_list] = parseTrialArguments(varargin{:});
     parser = inputParser;
     parser.KeepUnmatched = true;
+    addParameter(parser, 'settings', 'eventGuiSettings.txt')
     parse(parser, varargin{:})
+    settings_file = parser.Results.settings;
 
     condition = condition_list{1};
     trial_to_process = trial_number_list{1}(1);
@@ -41,11 +43,11 @@ function stepEventGui(varargin)
     study_settings = SettingsCustodian(study_settings_file);
     
     gui_settings_file = '';
-    if exist(['..' filesep 'eventGuiSettings.txt'], 'file')
-        gui_settings_file = ['..' filesep 'eventGuiSettings.txt'];
+    if exist(['..' filesep settings_file], 'file')
+        gui_settings_file = ['..' filesep settings_file];
     end    
-    if exist(['..' filesep '..' filesep 'eventGuiSettings.txt'], 'file')
-        gui_settings_file = ['..' filesep '..' filesep 'eventGuiSettings.txt'];
+    if exist(['..' filesep '..' filesep settings_file], 'file')
+        gui_settings_file = ['..' filesep '..' filesep settings_file];
     end
     gui_settings = SettingsCustodian(gui_settings_file);
     
