@@ -350,8 +350,8 @@ function optimizeKinematicTrajectories(varargin)
             number_of_time_steps_to_optimize = length(time_steps_to_optimize);
             
             %% optimize
-%             joint_angle_trajectories_calculated = joint_angle_trajectories;
-%             joint_angle_trajectories_optimized = zeros(size(joint_angle_trajectories_calculated)) * NaN;
+            joint_angle_trajectories_calculated = joint_angle_trajectories;
+            joint_angle_trajectories_optimized = zeros(size(joint_angle_trajectories_calculated)) * NaN;
             
             tic
 %             disp([datestr(datetime,'yyyy-mm-dd HH:MM:SS') ' - Condition ' condition ', Trial ' num2str(i_trial)])
@@ -360,7 +360,6 @@ function optimizeKinematicTrajectories(varargin)
             fprintf([' - Optimizing joint angles... \n'])
             
             
-joint_angle_trajectories_optimized = joint_angle_trajectories;
             if use_parallel
                 joint_angle_trajectories_optimized_pool = zeros(size(joint_angle_trajectories_optimized));
                 

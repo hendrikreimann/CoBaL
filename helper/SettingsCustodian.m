@@ -95,6 +95,9 @@ classdef SettingsCustodian < handle
             if strcmp(property_name, 'plot_response')
                 default_data = 0;
             end
+            if strcmp(property_name, 'apply_forceplate_offset')
+                default_data = 0;
+            end
             
 
             

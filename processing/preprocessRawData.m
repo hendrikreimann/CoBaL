@@ -52,8 +52,6 @@ function preprocessRawData(varargin)
     if exist(['..' filesep '..' filesep 'studySettings.txt'], 'file')
         study_settings_file = ['..' filesep '..' filesep 'studySettings.txt'];
     end
-%     study_settings = loadSettingsFile(study_settings_file);
-%     subject_settings = loadSettingsFile('subjectSettings.txt');
     study_settings = SettingsCustodian(study_settings_file);
     subject_settings = SettingsCustodian('subjectSettings.txt');
     
@@ -176,6 +174,23 @@ function preprocessRawData(varargin)
                 mxr_trajectory = forceplate_trajectories_filtered(:, 10);
                 myr_trajectory = forceplate_trajectories_filtered(:, 11);
                 mzr_trajectory = forceplate_trajectories_filtered(:, 12);
+                
+                % apply offset for cases where forceplate wasn't set to zero
+                if subject_settings.get('apply_forceplate_offset')
+                    fxl_trajectory = fxl_trajectory - subject_settings.get('offset_fxl');
+                    fyl_trajectory = fyl_trajectory - subject_settings.get('offset_fyl');
+                    fzl_trajectory = fzl_trajectory - subject_settings.get('offset_fzl');
+                    mxl_trajectory = mxl_trajectory - subject_settings.get('offset_mxl');
+                    myl_trajectory = myl_trajectory - subject_settings.get('offset_myl');
+                    mzl_trajectory = mzl_trajectory - subject_settings.get('offset_mzl');
+                    fxr_trajectory = fxr_trajectory - subject_settings.get('offset_fxr');
+                    fyr_trajectory = fyr_trajectory - subject_settings.get('offset_fyr');
+                    fzr_trajectory = fzr_trajectory - subject_settings.get('offset_fzr');
+                    mxr_trajectory = mxr_trajectory - subject_settings.get('offset_mxr');
+                    myr_trajectory = myr_trajectory - subject_settings.get('offset_myr');
+                    mzr_trajectory = mzr_trajectory - subject_settings.get('offset_mzr');
+                end
+                
 
 %                 % calculate CoP
 %                 copxl_trajectory = - myl_trajectory ./ fzl_trajectory;
