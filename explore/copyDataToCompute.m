@@ -32,22 +32,25 @@ study_label = path_split{end-1};
 %     '''' ...
 %   ];
 % system(['ssh tuf79669@compute.temple.edu ' folder_creation_string]);
-
+% 
 % copy settings, info and model files
 % target_dir = ['data/' study_label];
 % system(['scp ../studySettings.txt tuf79669@compute.temple.edu:' target_dir]);
-%  
+% 
 % target_dir = ['data/' study_label '/' subject_label];
 % system(['scp subjectSettings.txt tuf79669@compute.temple.edu:' target_dir]);
 % system(['scp subjectInfo.mat tuf79669@compute.temple.edu:' target_dir]);
 % system(['scp subjectModel.mat tuf79669@compute.temple.edu:' target_dir]);
 
-% copy data
+% % copy data
 target_dir = ['data/' study_label '/' subject_label '/processed'];
-system(['scp processed/*kinematicTrajectories.mat tuf79669@compute.temple.edu:' target_dir]);
-system(['scp processed/*markerTrajectories.mat tuf79669@compute.temple.edu:' target_dir]);
-
-target_dir = ['data/' study_label '/' subject_label '/analysis'];
+% system(['scp processed/*kinematicTrajectories.mat tuf79669@compute.temple.edu:' target_dir]);
+% system(['scp processed/*markerTrajectories.mat tuf79669@compute.temple.edu:' target_dir]);
+% system(['scp processed/*forceplateTrajectories.mat tuf79669@compute.temple.edu:' target_dir]);
+% system(['scp processed/*labviewData.mat tuf79669@compute.temple.edu:' target_dir]);
+% % 
+% target_dir = ['data/' study_label '/' subject_label '/analysis'];
+system(['scp analysis/*stepEvents.mat tuf79669@compute.temple.edu:' target_dir]);
 system(['scp analysis/*availableVariables.mat tuf79669@compute.temple.edu:' target_dir]);
 system(['scp analysis/*relevantDataStretches.mat tuf79669@compute.temple.edu:' target_dir]);
 

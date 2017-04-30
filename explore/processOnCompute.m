@@ -14,7 +14,8 @@
 %     You should have received a copy of the GNU General Public License
 %     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-trials_to_process_string = '12 : 20';
+trials_to_process_string = '8 : 20';
+% trials_to_process_string = 'all';
 
 % figure out folder structure
 subject_settings = SettingsCustodian('subjectSettings.txt');
@@ -30,10 +31,19 @@ fprintf(file_id, 'addpath ~/miscMatlabStuff\n');
 fprintf(file_id, 'addpath ~/KinematicChain\n');
 fprintf(file_id, 'addpath ~/ScrewGeometry\n');
 fprintf(file_id, 'parpool(32)\n');
-fprintf(file_id, 'calculateKinematicTrajectories(''use_parallel'', true)\n');
-fprintf(file_id, 'optimizeKinematicTrajectories(''use_parallel'', true)\n');
-% fprintf(file_id, ['calculateKinematicTrajectories(''use_parallel'', true, ''trials'', ' trials_to_process_string ')\n']);
-% fprintf(file_id, ['optimizeKinematicTrajectories(''use_parallel'', true, ''trials'', ' trials_to_process_string ')\n']);
+if strcmp(trials_to_process_string, 'all')
+%     fprintf(file_id, 'calculateKinematicTrajectories(''use_parallel'', true)\n');
+    fprintf(file_id, 'optimizeKinematicTrajectories(''use_parallel'', true)\n');
+%     fprintf(file_id, 'calculateDynamicMatrices(''use_parallel'', true)\n');
+%     fprintf(file_id, 'inverseDynamics(''use_parallel'', true)\n');
+%     fprintf(file_id, 'calculateGroundReactionWrenches(''use_parallel'', true)\n');
+else
+%     fprintf(file_id, ['calculateKinematicTrajectories(''use_parallel'', true, ''trials'', ' trials_to_process_string ')\n']);
+    fprintf(file_id, ['optimizeKinematicTrajectories(''use_parallel'', true, ''trials'', ' trials_to_process_string ')\n']);
+%     fprintf(file_id, ['calculateDynamicMatrices(''use_parallel'', true, ''trials'', ' trials_to_process_string ')\n']);
+%     fprintf(file_id, ['inverseDynamics(''use_parallel'', true, ''trials'', ' trials_to_process_string ')\n']);
+%     fprintf(file_id, ['calculateGroundReactionWrenches(''use_parallel'', true, ''trials'', ' trials_to_process_string ')\n']);
+end
 fclose(file_id);
 
 % copy command file to compute
@@ -42,6 +52,7 @@ system(['scp tmp_compute.m tuf79669@compute.temple.edu:' target_dir]);
 delete tmp_compute.m
 
 % % execute command file
+% ... doesn't really work, execute by hand for now
 % execution_string = ...
 %   [ ...
 %     '''' ...

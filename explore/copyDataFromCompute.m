@@ -22,7 +22,8 @@ study_label = path_split{end-1};
 
 % copy data
 source_dir = ['data/' study_label '/' subject_label '/processed/'];
-system(['scp tuf79669@compute.temple.edu:' source_dir '*kinematicTrajectories.mat processed/']);
+% system(['scp tuf79669@compute.temple.edu:' source_dir '*kinematicTrajectories.mat processed/']);
+system(['scp tuf79669@compute.temple.edu:' source_dir '*dynamicTrajectories.mat processed/']);
 source_dir = ['data/' study_label '/' subject_label '/analysis/'];
 system(['scp tuf79669@compute.temple.edu:' source_dir '*availableVariables.mat analysis/']);
 

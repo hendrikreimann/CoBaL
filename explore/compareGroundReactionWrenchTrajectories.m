@@ -17,9 +17,11 @@
 
 
 
-load('/Users/reimajbi/Box Sync/inverseKinematics/YJI/processed/20170307_YJI_walking_001_dynamicTrajectories.mat')
-load('/Users/reimajbi/Box Sync/inverseKinematics/YJI/processed/20170307_YJI_walking_001_forceplateTrajectories.mat')
+% load('/Users/reimajbi/Box Sync/inverseKinematics/YJI/processed/20170307_YJI_walking_001_dynamicTrajectories.mat')
+% load('/Users/reimajbi/Box Sync/inverseKinematics/YJI/processed/20170307_YJI_walking_001_forceplateTrajectories.mat')
 
+load('/Users/reimajbi/Dropbox/data/Vision/DJB/processed/20170227_DJB_walking_001_dynamicTrajectories.mat')
+load('/Users/reimajbi/Dropbox/data/Vision/DJB/processed/20170227_DJB_walking_001_forceplateTrajectories.mat')
 
 color_x_a = [1 0 0];
 color_y_a = [0 1 0];
