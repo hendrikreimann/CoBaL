@@ -416,8 +416,8 @@ function optimizeKinematicTrajectories(varargin)
                 );
             end
             joint_angle_trajectories_optimized = normalizeAngle(joint_angle_trajectories_optimized);
-            fprintf([datestr(datetime,'yyyy-mm-dd HH:MM:SS') ' - finished\n'])
-            fprintf([' - finished\n'])
+%             fprintf([datestr(datetime,'yyyy-mm-dd HH:MM:SS') ' - finished\n'])
+%             fprintf([' - finished\n'])
             toc
                 
             %% get joint centers and CoM from the kinematic tree
