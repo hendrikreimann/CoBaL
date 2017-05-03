@@ -20,8 +20,10 @@ classdef WalkingEventData < handle
         
         left_pushoff;
         left_touchdown;
+        left_fullstance_times;
         right_pushoff;
         right_touchdown;
+        right_fullstance_times
         
         left_arm_swing_onset_times;
         right_arm_swing_onset_times;
@@ -50,6 +52,12 @@ classdef WalkingEventData < handle
             this.right_pushoff = loaded_event_data.right_pushoff_times;
             this.right_touchdown = loaded_event_data.right_touchdown_times;
             
+            if isfield(loaded_event_data, 'left_fullstance_times')
+                this.left_fullstance_times = loaded_event_data.left_fullstance_times;
+            end
+            if isfield(loaded_event_data, 'right_arm_swing_onset_times')
+                this.right_arm_swing_onset_times = loaded_event_data.right_arm_swing_onset_times;
+            end
             if isfield(loaded_event_data, 'left_arm_swing_onset_times')
                 this.left_arm_swing_onset_times = loaded_event_data.left_arm_swing_onset_times;
             end
@@ -84,19 +92,26 @@ classdef WalkingEventData < handle
             variables_to_save.left_touchdown_times = this.left_touchdown;
             variables_to_save.right_pushoff_times = this.right_pushoff;
             variables_to_save.right_touchdown_times = this.right_touchdown;
-            if ~isempty(this.left_arm_swing_onset_times);
+            
+            if ~isempty(this.left_fullstance_times)
+                variables_to_save.left_fullstance_times = this.left_fullstance_times;
+            end
+            if ~isempty(this.right_fullstance_times)
+                variables_to_save.right_fullstance_times = this.right_fullstance_times;
+            end
+            if ~isempty(this.left_arm_swing_onset_times)
                 variables_to_save.left_arm_swing_onset_times = this.left_arm_swing_onset_times;
             end
-            if ~isempty(this.right_arm_swing_onset_times);
+            if ~isempty(this.right_arm_swing_onset_times)
                 variables_to_save.right_arm_swing_onset_times = this.right_arm_swing_onset_times;
             end
-            if ~isempty(this.left_leg_swing_onset_times);
+            if ~isempty(this.left_leg_swing_onset_times)
                 variables_to_save.left_leg_swing_onset_times = this.left_leg_swing_onset_times;
             end
-            if ~isempty(this.right_leg_swing_onset_times);
+            if ~isempty(this.right_leg_swing_onset_times)
                 variables_to_save.right_leg_swing_onset_times = this.right_leg_swing_onset_times;
             end
-            if ~isempty(this.ignore_times);
+            if ~isempty(this.ignore_times)
                 variables_to_save.ignore_times = this.ignore_times;
             end
             
