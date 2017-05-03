@@ -85,14 +85,19 @@ function preprocessRawData(varargin)
 
                 % low pass filter below 10 Hz -- aggressive smoothing after rectification
                 filter_order_final = 4;
-                cutoff_frequency_final = 10; % in Hz
-                [b_final, a_final] = butter(filter_order_final, cutoff_frequency_high/(sampling_rate_emg/2), 'low');
+                cutoff_frequency_final = 6; % in Hz
+                [b_final, a_final] = butter(filter_order_final, cutoff_frequency_final/(sampling_rate_emg/2), 'low');
 
                 % filter, then rectify
-                emg_trajectories_filtered_lowpass = filtfilt(b_low, a_low, emg_trajectories_raw);
-                emg_trajectories_filtered_highpass = filtfilt(b_high, a_high, emg_trajectories_filtered_lowpass);
-                emg_trajectories_rectified = abs(emg_trajectories_filtered_highpass);
+%                 emg_trajectories_filtered_lowpass = filtfilt(b_low, a_low, emg_trajectories_raw);
+%                 emg_trajectories_filtered_highpass = filtfilt(b_high, a_high, emg_trajectories_filtered_lowpass);
+%                 emg_trajectories_rectified = abs(emg_trajectories_filtered_highpass);
+%                 emg_trajectories = filtfilt(b_final, a_final, emg_trajectories_rectified);
+                
+                % rectify, then filter
+                emg_trajectories_rectified = abs(emg_trajectories_raw);
                 emg_trajectories = filtfilt(b_final, a_final, emg_trajectories_rectified);
+                
                 
 %                 emg_labels_from_source = emg_labels;
 %                 emg_labels = cell(size(emg_labels_from_source));
@@ -105,7 +110,21 @@ function preprocessRawData(varargin)
 %                     end
 %                 end
                 emg_labels = subject_settings.get('emg_labels');
-
+                
+                % apply RMS smoothing
+%                 window_size_time = 0.2; % time in seconds
+%                 window_radius_steps = ceil(sampling_rate_emg * window_size_time / 2);
+%                 emg_rms_smoothed = zeros(size(emg_trajectories_raw)) * NaN;
+%                 emg_rms_rectified = abs(emg_trajectories_raw);
+%                 for i_time = 1 + window_radius_steps : size(emg_trajectories_raw, 1) - window_radius_steps
+%                     window_steps = i_time - window_radius_steps : i_time + window_radius_steps;
+%                     window_data = emg_rms_rectified(window_steps, :);
+%                     
+%                     rms = mean(window_data.^2).^(0.5);
+%                     emg_rms_smoothed(i_time, :) = mean(window_data.^2).^(0.5);
+%                     
+%                 end
+                
                 % save
                 save_folder = 'processed';
                 save_file_name = makeFileName(date, subject_id, trial_type, trial_number, 'emgTrajectories.mat');
@@ -122,11 +141,12 @@ function preprocessRawData(varargin)
 
                 % visualize
                 if visualize
-                    i_channel = 1;
+                    i_channel = 3;
                     figure; axes; hold on; title(['EMG, condition ' trial_type ', trial ' num2str(trial_number)])
                     plot(time_emg, emg_trajectories_raw(:, i_channel), 'DisplayName', 'raw');
                     plot(time_emg, emg_trajectories_rectified(:, i_channel), 'DisplayName', 'rectified');
-            %         plot(time_smoothed, rms_smoothed, 'DisplayName', 'rms smoothed', 'linewidth', 2);
+%                     plot(time_emg, emg_rms_rectified(:, i_channel), 'DisplayName', 'rms rectified', 'linewidth', 2);
+%                     plot(time_emg, emg_rms_smoothed(:, i_channel), 'DisplayName', 'rms smoothed', 'linewidth', 2);
             %         plot(time_emg, emg_trajectories_filtered_lowpass(:, i_channel), 'DisplayName', 'lowpass');
             %         plot(time_emg, emg_trajectories_filtered_highpass(:, i_channel), 'DisplayName', 'highpass');
                     plot(time_emg, emg_trajectories(:, i_channel), 'linewidth', 2, 'DisplayName', 'final');
@@ -137,7 +157,7 @@ function preprocessRawData(varargin)
             end
         end
     end
-    
+return 
     %% forceplate data
     data_dir = dir(['raw' filesep '*_forceplateTrajectoriesRaw.mat']);
     clear file_name_list;
