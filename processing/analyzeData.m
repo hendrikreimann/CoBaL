@@ -169,6 +169,7 @@ function analyzeData(varargin)
     
     
     % calculate response (i.e. difference from control mean)
+    response_data_session = {};
     if ~isempty(conditions_control)
         % prepare container
         response_data_session = cell(size(data_session));

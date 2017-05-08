@@ -68,7 +68,9 @@ function plotResults(varargin)
     origin_start_time_list_all = [];
     origin_end_time_list_all = [];
     variable_data_all = cell(number_of_variables_to_plot, 1);
-    response_data_all = cell(number_of_variables_to_plot, 1);
+    if study_settings.get('plot_response')
+        response_data_all = cell(number_of_variables_to_plot, 1);
+    end
     step_time_data = [];
     
     for i_folder = 1 : length(data_folder_list)
@@ -93,12 +95,15 @@ function plotResults(varargin)
             this_variable_name = variables_to_plot{i_variable, 1};
             index_in_saved_data = find(strcmp(variable_names_session, this_variable_name), 1, 'first');
             this_variable_data = variable_data_session{index_in_saved_data}; %#ok<USENS>
-            this_response_data = response_data_session{index_in_saved_data}; %#ok<USENS>
+            if study_settings.get('plot_response')
+                this_response_data = response_data_session{index_in_saved_data}; %#ok<USENS>
+            end
             
             % store
             variable_data_all{i_variable} = [variable_data_all{i_variable} this_variable_data];
-            % TODO: deal with paradigms that have no control condition and thus no response
-            response_data_all{i_variable} = [response_data_all{i_variable} this_response_data];
+            if study_settings.get('plot_response')
+                response_data_all{i_variable} = [response_data_all{i_variable} this_response_data];
+            end
         end
         if strcmp(study_settings.get('time_plot_style'), 'scaled_to_comparison_mean') || strcmp(study_settings.get('time_plot_style'), 'scaled_to_condition_mean')
             index_in_saved_data = find(strcmp(variable_names_session, 'step_time'), 1, 'first');
@@ -240,14 +245,28 @@ function plotResults(varargin)
                 % determine title
                 title_string = variables_to_plot{i_variable, 2};
                 filename_string = variables_to_plot{i_variable, 4};
-                for i_label = 1 : length(study_settings.get('condition_labels'));
-                    if (i_label ~= study_settings.get('comparison_to_make')) && (i_label ~= 1) && (i_label ~= 6) && (i_label ~= 7)
+                for i_label = 1 : length(study_settings.get('condition_labels'))
+                    if (i_label ~= study_settings.get('comparison_to_make')) ...
+                        && (i_label ~= 1) ...
+                        && (i_label ~= 3) ...
+                        && (i_label ~= 5) ...
+                        && (i_label ~= 6) ...
+                        && (i_label ~= 7)
                         this_condition_label = strrep(conditions_to_plot{comparison_indices{i_comparison}(1), i_label}, '_', ' ');
                         if i_label ~= study_settings.get('comparison_to_make')
                             title_string = [title_string ' - ' this_condition_label]; %#ok<AGROW>
                             filename_string = [filename_string '_' this_condition_label];
                         end
                     end
+                end
+                stance_label = conditions_to_plot{comparison_indices{i_comparison}(1), 1};
+                if strcmp(stance_label, 'STANCE_RIGHT')
+                    title_string = [title_string ' - first step stance leg RIGHT'];
+                    filename_string = [filename_string '_stanceR'];
+                end
+                if strcmp(stance_label, 'STANCE_LEFT')
+                    title_string = [title_string ' - first step stance leg LEFT'];
+                    filename_string = [filename_string '_stanceL'];
                 end
                 title(title_string); set(gca, 'Fontsize', 12)
                 set(gcf, 'UserData', filename_string)
@@ -363,8 +382,12 @@ function plotResults(varargin)
                 % determine title and filename
                 title_string = variables_to_plot{i_variable, 2};
                 filename_string = variables_to_plot{i_variable, 4};
-                for i_label = 1 : length(study_settings.get('condition_labels'));
-                    if (i_label ~= study_settings.get('comparison_to_make')) && (i_label ~= 1) && (i_label ~= 4) && (i_label ~= 6)
+                for i_label = 1 : length(study_settings.get('condition_labels'))
+                    if (i_label ~= study_settings.get('comparison_to_make')) ...
+                        && (i_label ~= 1) ...
+                        && (i_label ~= 4) ...
+                        && (i_label ~= 5) ...
+                        && (i_label ~= 6) ...
                         this_condition_label = strrep(conditions_to_plot{comparison_indices{i_comparison}(1), i_label}, '_', ' ');
                         if ~strcmp(this_condition_label, 'N/A')
                             title_string = [title_string ' - ' this_condition_label]; %#ok<AGROW>
@@ -372,6 +395,19 @@ function plotResults(varargin)
                         end
                     end
                 end
+                first_comparison = this_episode(1);
+                conditions_first_comparison = comparison_indices{first_comparison};
+                example_condition = conditions_first_comparison(1);
+                condition_identifier = conditions_to_plot(example_condition, :);
+                if strcmp(condition_identifier{1}, 'STANCE_RIGHT')
+                    title_string = [title_string ' - first step stance leg RIGHT'];
+                    filename_string = [filename_string '_stanceR'];
+                end
+                if strcmp(condition_identifier{1}, 'STANCE_LEFT')
+                    title_string = [title_string ' - first step stance leg LEFT'];
+                    filename_string = [filename_string '_stanceL'];
+                end
+                
                 title(title_string); set(gca, 'Fontsize', 12)
                 set(gcf, 'UserData', filename_string)
                 

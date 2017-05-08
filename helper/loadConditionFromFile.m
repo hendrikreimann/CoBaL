@@ -35,18 +35,25 @@ function condition = loadConditionFromFile(filename, condition_label, trial_numb
     number_of_conditions = size(header, 2) - 1;
     trial_list = zeros(number_of_trials, 1) * NaN;
     condition_cell = cell(number_of_trials, number_of_conditions);
-    for i_trial = 1 : number_of_trials
-        text_line = text_cell{i_trial};
-        line_split = strsplit(text_line, ',');
-        trial_list(i_trial) = str2num(line_split{1});
-        condition_cell(i_trial, :) = line_split(2:end);
+    
+    if number_of_trials == 1
+        line_split = strsplit(text_cell{1}, ',');
+        condition_cell = line_split(2:end);
+        condition = condition_cell{strcmp(condition_header, condition_label)};
+    else
+        for i_trial = 1 : number_of_trials
+            text_line = text_cell{i_trial};
+            line_split = strsplit(text_line, ',');
+            trial_list(i_trial) = str2num(line_split{1});
+            condition_cell(i_trial, :) = line_split(2:end);
+        end
+        % get condition
+        trial_row = find(trial_list == trial_number, 1, 'first');
+        if isempty(trial_row)
+            condition = [];
+        else
+            condition = condition_cell{trial_row, strcmp(condition_header, condition_label)};
+        end
     end
     
-    % get condition
-    trial_row = find(trial_list == trial_number, 1, 'first');
-    if isempty(trial_row)
-        condition = [];
-    else
-        condition = condition_cell{trial_row, strcmp(condition_header, condition_label)};
-    end
 end

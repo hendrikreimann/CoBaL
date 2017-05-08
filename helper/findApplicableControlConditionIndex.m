@@ -28,6 +28,6 @@ function applicable_control_condition_index = findApplicableControlConditionInde
         & control_conditions_with_same_stimulus_indicator ...
         & control_conditions_with_same_day_indicator ...
       );
-    applicable_control_condition_index = find(applicable_control_condition_indicator, '1', 'first');
+    applicable_control_condition_index = find(applicable_control_condition_indicator, 1);
 
 end

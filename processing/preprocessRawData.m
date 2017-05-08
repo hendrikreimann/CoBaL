@@ -157,7 +157,7 @@ function preprocessRawData(varargin)
             end
         end
     end
-return 
+ 
     %% forceplate data
     data_dir = dir(['raw' filesep '*_forceplateTrajectoriesRaw.mat']);
     clear file_name_list;
