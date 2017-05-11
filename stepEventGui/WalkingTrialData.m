@@ -29,6 +29,7 @@ classdef WalkingTrialData < handle
         kinematic_data_available = 0;
         com_data_available = 0;
         joint_angle_data_available = 0;
+        joint_torque_data_available = 0;
         forceplate_data_available = 0;
         
         % time
@@ -110,44 +111,85 @@ classdef WalkingTrialData < handle
         left_leg_phase = [];
         right_leg_phase = [];
 
-        pelvis_x_trans = [];
-        pelvis_y_trans = [];
-        pelvis_z_trans = [];
-        pelvis_z_rot = [];
-        pelvis_x_rot = [];
-        pelvis_y_rot = [];
-        left_hip_flex = [];
-        left_hip_abd = [];
-        left_hip_introt = [];
-        left_knee_flex = [];
-        left_knee_extrot = [];
-        left_ankle_dorflex = [];
-        left_ankle_invers = [];
-        right_hip_flex = [];
-        right_hip_abd = [];
-        right_hip_introt = [];
-        right_knee_flex = [];
-        right_knee_extrot = [];
-        right_ankle_dorflex = [];
-        right_ankle_invers = [];
-        lumbar_joint_pitch = [];
-        lumbar_joint_roll = [];
-        lumbar_joint_yaw = [];
-        cervical_joint_pitch = [];
-        cervical_joint_roll = [];
-        cervical_joint_yaw = [];
-        left_shoulder_flex = [];
-        left_shoulder_abd = [];
-        left_shoulder_introt = [];
-        left_elbow_flex = [];
-        left_elbow_pronat = [];
-        left_wrist_flex = [];
-        right_shoulder_flex = [];
-        right_shoulder_abd = [];
-        right_shoulder_introt = [];
-        right_elbow_flex = [];
-        right_elbow_pronat = [];
-        right_wrist_flex = [];        
+        % joint angles
+        pelvis_x_trans_angle = [];
+        pelvis_y_trans_angle = [];
+        pelvis_z_trans_angle = [];
+        pelvis_z_rot_angle = [];
+        pelvis_x_rot_angle = [];
+        pelvis_y_rot_angle = [];
+        left_hip_flex_angle = [];
+        left_hip_abd_angle = [];
+        left_hip_introt_angle = [];
+        left_knee_flex_angle = [];
+        left_knee_extrot_angle = [];
+        left_ankle_dorflex_angle = [];
+        left_ankle_invers_angle = [];
+        right_hip_flex_angle = [];
+        right_hip_abd_angle = [];
+        right_hip_introt_angle = [];
+        right_knee_flex_angle = [];
+        right_knee_extrot_angle = [];
+        right_ankle_dorflex_angle = [];
+        right_ankle_invers_angle = [];
+        lumbar_joint_pitch_angle = [];
+        lumbar_joint_roll_angle = [];
+        lumbar_joint_yaw_angle = [];
+        cervical_joint_pitch_angle = [];
+        cervical_joint_roll_angle = [];
+        cervical_joint_yaw_angle = [];
+        left_shoulder_flex_angle = [];
+        left_shoulder_abd_angle = [];
+        left_shoulder_introt_angle = [];
+        left_elbow_flex_angle = [];
+        left_elbow_pronat_angle = [];
+        left_wrist_flex_angle = [];
+        right_shoulder_flex_angle = [];
+        right_shoulder_abd_angle = [];
+        right_shoulder_introt_angle = [];
+        right_elbow_flex_angle = [];
+        right_elbow_pronat_angle = [];
+        right_wrist_flex_angle = [];        
+        
+        % joint torques
+        pelvis_x_trans_torque = [];
+        pelvis_y_trans_torque = [];
+        pelvis_z_trans_torque = [];
+        pelvis_z_rot_torque = [];
+        pelvis_x_rot_torque = [];
+        pelvis_y_rot_torque = [];
+        left_hip_flex_torque = [];
+        left_hip_abd_torque = [];
+        left_hip_introt_torque = [];
+        left_knee_flex_torque = [];
+        left_knee_extrot_torque = [];
+        left_ankle_dorflex_torque = [];
+        left_ankle_invers_torque = [];
+        right_hip_flex_torque = [];
+        right_hip_abd_torque = [];
+        right_hip_introt_torque = [];
+        right_knee_flex_torque = [];
+        right_knee_extrot_torque = [];
+        right_ankle_dorflex_torque = [];
+        right_ankle_invers_torque = [];
+        lumbar_joint_pitch_torque = [];
+        lumbar_joint_roll_torque = [];
+        lumbar_joint_yaw_torque = [];
+        cervical_joint_pitch_torque = [];
+        cervical_joint_roll_torque = [];
+        cervical_joint_yaw_torque = [];
+        left_shoulder_flex_torque = [];
+        left_shoulder_abd_torque = [];
+        left_shoulder_introt_torque = [];
+        left_elbow_flex_torque = [];
+        left_elbow_pronat_torque = [];
+        left_wrist_flex_torque = [];
+        right_shoulder_flex_torque = [];
+        right_shoulder_abd_torque = [];
+        right_shoulder_introt_torque = [];
+        right_elbow_flex_torque = [];
+        right_elbow_pronat_torque = [];
+        right_wrist_flex_torque = [];   
         
         data_labels_mocap = ...
           { ...
@@ -161,13 +203,20 @@ classdef WalkingTrialData < handle
             'right_toes_y_pos', 'right_toes_y_vel', 'right_toes_y_acc', ...
             'left_arm_angle', 'right_arm_angle', 'left_leg_angle', 'right_leg_angle', ...
             'left_arm_phase', 'right_arm_phase', 'left_leg_phase', 'right_leg_phase', ...
-            'pelvis_x_trans', 'pelvis_y_trans', 'pelvis_z_trans', 'pelvis_z_rot', 'pelvis_x_rot', 'pelvis_y_rot', ...
-            'left_hip_flex', 'left_hip_abd', 'left_hip_introt', 'left_knee_flex', 'left_knee_extrot', 'left_ankle_dorflex', 'left_ankle_invers', ...
-            'right_hip_flex', 'right_hip_abd', 'right_hip_introt', 'right_knee_flex', 'right_knee_extrot', 'right_ankle_dorflex', 'right_ankle_invers', ...
-            'lumbar_joint_pitch', 'lumbar_joint_roll', 'lumbar_joint_yaw', ...
-            'cervical_joint_pitch', 'cervical_joint_roll', 'cervical_joint_yaw', ...
-            'left_shoulder_flex', 'left_shoulder_abd', 'left_shoulder_introt', 'left_elbow_flex', 'left_elbow_pronat', 'left_wrist_flex', ...
-            'right_shoulder_flex', 'right_shoulder_abd', 'right_shoulder_introt', 'right_elbow_flex', 'right_elbow_pronat', 'right_wrist_flex', ...
+            'pelvis_x_trans_angle', 'pelvis_y_trans_angle', 'pelvis_z_trans_angle', 'pelvis_z_rot_angle', 'pelvis_x_rot_angle', 'pelvis_y_rot_angle', ...
+            'left_hip_flex_angle', 'left_hip_abd_angle', 'left_hip_introt_angle', 'left_knee_flex_angle', 'left_knee_extrot_angle', 'left_ankle_dorflex_angle', 'left_ankle_invers_angle', ...
+            'right_hip_flex_angle', 'right_hip_abd_angle', 'right_hip_introt_angle', 'right_knee_flex_angle', 'right_knee_extrot_angle', 'right_ankle_dorflex_angle', 'right_ankle_invers_angle', ...
+            'lumbar_joint_pitch_angle', 'lumbar_joint_roll_angle', 'lumbar_joint_yaw_angle', ...
+            'cervical_joint_pitch_angle', 'cervical_joint_roll_angle', 'cervical_joint_yaw_angle', ...
+            'left_shoulder_flex_angle', 'left_shoulder_abd_angle', 'left_shoulder_introt_angle', 'left_elbow_flex_angle', 'left_elbow_pronat_angle', 'left_wrist_flex_angle', ...
+            'right_shoulder_flex_angle', 'right_shoulder_abd_angle', 'right_shoulder_introt_angle', 'right_elbow_flex_angle', 'right_elbow_pronat_angle', 'right_wrist_flex_angle', ...
+            'pelvis_x_trans_torque', 'pelvis_y_trans_torque', 'pelvis_z_trans_torque', 'pelvis_z_rot_torque', 'pelvis_x_rot_torque', 'pelvis_y_rot_torque', ...
+            'left_hip_flex_torque', 'left_hip_abd_torque', 'left_hip_introt_torque', 'left_knee_flex_torque', 'left_knee_extrot_torque', 'left_ankle_dorflex_torque', 'left_ankle_invers_torque', ...
+            'right_hip_flex_torque', 'right_hip_abd_torque', 'right_hip_introt_torque', 'right_knee_flex_torque', 'right_knee_extrot_torque', 'right_ankle_dorflex_torque', 'right_ankle_invers_torque', ...
+            'lumbar_joint_pitch_torque', 'lumbar_joint_roll_torque', 'lumbar_joint_yaw_torque', ...
+            'cervical_joint_pitch_torque', 'cervical_joint_roll_torque', 'cervical_joint_yaw_torque', ...
+            'left_shoulder_flex_torque', 'left_shoulder_abd_torque', 'left_shoulder_introt_torque', 'left_elbow_flex_torque', 'left_elbow_pronat_torque', 'left_wrist_flex_torque', ...
+            'right_shoulder_flex_torque', 'right_shoulder_abd_torque', 'right_shoulder_introt_torque', 'right_elbow_flex_torque', 'right_elbow_pronat_torque', 'right_wrist_flex_torque', ...
           };
         data_labels_forceplate = ...
           {
@@ -287,44 +336,87 @@ classdef WalkingTrialData < handle
             % joint angles
             [joint_angle_trajectories, ~, ~, joint_angle_labels, success] = loadData(this.date, this.subject_id, this.condition, this.trial_number, 'joint_angle_trajectories', 'optional');
             if success
-                this.pelvis_x_trans = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'pelvis, x-translation'));
-                this.pelvis_y_trans = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'pelvis, y-translation'));
-                this.pelvis_z_trans = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'pelvis, z-translation'));
-                this.pelvis_z_rot = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'pelvis, z-rotation'));
-                this.pelvis_x_rot = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'pelvis, x-rotation'));
-                this.pelvis_y_rot = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'pelvis, y-rotation'));
-                this.left_hip_flex = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'left hip flexion/extension'));
-                this.left_hip_abd = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'left hip ab/adduction'));
-                this.left_hip_introt = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'left hip internal/external rotation'));
-                this.left_knee_flex = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'left knee flexion/extension'));
-                this.left_knee_extrot = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'left knee external/internal rotation'));
-                this.left_ankle_dorflex = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'left ankle dorsi/plantarflexion'));
-                this.left_ankle_invers = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'left ankle inversion/eversion'));
-                this.right_hip_flex = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'right hip flexion/extension'));
-                this.right_hip_abd = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'right hip ab/adduction'));
-                this.right_hip_introt = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'right hip internal/external rotation'));
-                this.right_knee_flex = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'right knee flexion/extension'));
-                this.right_knee_extrot = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'right knee external/internal rotation'));
-                this.right_ankle_dorflex = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'right ankle dorsi/plantarflexion'));
-                this.right_ankle_invers = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'right ankle inversion/eversion'));
-                this.lumbar_joint_pitch = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'lumbar joint - forward/backward bending'));
-                this.lumbar_joint_roll = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'lumbar joint - sideways bending (right/left)'));
-                this.lumbar_joint_yaw = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'lumbar joint - internal rotation (right/left)'));
-                this.cervical_joint_pitch = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'cervical joint - forward/backward bending'));
-                this.cervical_joint_roll = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'cervical joint - sideways bending (right/left)'));
-                this.cervical_joint_yaw = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'cervical joint - internal rotation (right/left)'));
-                this.left_shoulder_flex = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'left shoulder flexion/extension'));
-                this.left_shoulder_abd = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'left shoulder ab/adduction'));
-                this.left_shoulder_introt = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'left shoulder in/external rotation'));
-                this.left_elbow_flex = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'left elbow flexion/extension'));
-                this.left_elbow_pronat = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'left pronation/supination'));
-                this.left_wrist_flex = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'left wrist flexion/extension'));
-                this.right_shoulder_flex = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'right shoulder flexion/extension'));
-                this.right_shoulder_abd = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'right shoulder ab/adduction'));
-                this.right_shoulder_introt = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'right shoulder in/external rotation'));
-                this.right_elbow_flex = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'right elbow flexion/extension'));
-                this.right_elbow_pronat = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'right pronation/supination'));
-                this.right_wrist_flex = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'right wrist flexion/extension'));
+                this.pelvis_x_trans_angle = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'pelvis, x-translation'));
+                this.pelvis_y_trans_angle = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'pelvis, y-translation'));
+                this.pelvis_z_trans_angle = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'pelvis, z-translation'));
+                this.pelvis_z_rot_angle = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'pelvis, z-rotation'));
+                this.pelvis_x_rot_angle = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'pelvis, x-rotation'));
+                this.pelvis_y_rot_angle = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'pelvis, y-rotation'));
+                this.left_hip_flex_angle = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'left hip flexion/extension'));
+                this.left_hip_abd_angle = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'left hip ab/adduction'));
+                this.left_hip_introt_angle = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'left hip internal/external rotation'));
+                this.left_knee_flex_angle = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'left knee flexion/extension'));
+                this.left_knee_extrot_angle = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'left knee external/internal rotation'));
+                this.left_ankle_dorflex_angle = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'left ankle dorsi/plantarflexion'));
+                this.left_ankle_invers_angle = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'left ankle eversion/inversion'));
+                this.right_hip_flex_angle = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'right hip flexion/extension'));
+                this.right_hip_abd_angle = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'right hip ab/adduction'));
+                this.right_hip_introt_angle = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'right hip internal/external rotation'));
+                this.right_knee_flex_angle = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'right knee flexion/extension'));
+                this.right_knee_extrot_angle = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'right knee external/internal rotation'));
+                this.right_ankle_dorflex_angle = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'right ankle dorsi/plantarflexion'));
+                this.right_ankle_invers_angle = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'right ankle eversion/inversion'));
+                this.lumbar_joint_pitch_angle = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'lumbar joint - forward/backward bending'));
+                this.lumbar_joint_roll_angle = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'lumbar joint - sideways bending (right/left)'));
+                this.lumbar_joint_yaw_angle = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'lumbar joint - internal rotation (right/left)'));
+                this.cervical_joint_pitch_angle = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'cervical joint - forward/backward bending'));
+                this.cervical_joint_roll_angle = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'cervical joint - sideways bending (right/left)'));
+                this.cervical_joint_yaw_angle = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'cervical joint - internal rotation (right/left)'));
+                this.left_shoulder_flex_angle = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'left shoulder flexion/extension'));
+                this.left_shoulder_abd_angle = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'left shoulder ab/adduction'));
+                this.left_shoulder_introt_angle = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'left shoulder in/external rotation'));
+                this.left_elbow_flex_angle = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'left elbow flexion/extension'));
+                this.left_elbow_pronat_angle = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'left pronation/supination'));
+                this.left_wrist_flex_angle = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'left wrist flexion/extension'));
+                this.right_shoulder_flex_angle = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'right shoulder flexion/extension'));
+                this.right_shoulder_abd_angle = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'right shoulder ab/adduction'));
+                this.right_shoulder_introt_angle = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'right shoulder in/external rotation'));
+                this.right_elbow_flex_angle = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'right elbow flexion/extension'));
+                this.right_elbow_pronat_angle = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'right pronation/supination'));
+                this.right_wrist_flex_angle = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'right wrist flexion/extension'));
+            end
+            
+            % joint torques
+            [joint_torque_trajectories, ~, ~, joint_torque_labels, success] = loadData(this.date, this.subject_id, this.condition, this.trial_number, 'joint_torque_trajectories', 'optional');
+            if success
+                this.pelvis_x_trans_torque = joint_torque_trajectories(:, strcmp(joint_torque_labels, 'pelvis, x-translation'));
+                this.pelvis_y_trans_torque = joint_torque_trajectories(:, strcmp(joint_torque_labels, 'pelvis, y-translation'));
+                this.pelvis_z_trans_torque = joint_torque_trajectories(:, strcmp(joint_torque_labels, 'pelvis, z-translation'));
+                this.pelvis_z_rot_torque = joint_torque_trajectories(:, strcmp(joint_torque_labels, 'pelvis, z-rotation'));
+                this.pelvis_x_rot_torque = joint_torque_trajectories(:, strcmp(joint_torque_labels, 'pelvis, x-rotation'));
+                this.pelvis_y_rot_torque = joint_torque_trajectories(:, strcmp(joint_torque_labels, 'pelvis, y-rotation'));
+                this.left_hip_flex_torque = joint_torque_trajectories(:, strcmp(joint_torque_labels, 'left hip flexion/extension'));
+                this.left_hip_abd_torque = joint_torque_trajectories(:, strcmp(joint_torque_labels, 'left hip ab/adduction'));
+                this.left_hip_introt_torque = joint_torque_trajectories(:, strcmp(joint_torque_labels, 'left hip internal/external rotation'));
+                this.left_knee_flex_torque = joint_torque_trajectories(:, strcmp(joint_torque_labels, 'left knee flexion/extension'));
+                this.left_knee_extrot_torque = joint_torque_trajectories(:, strcmp(joint_torque_labels, 'left knee external/internal rotation'));
+                this.left_ankle_dorflex_torque = joint_torque_trajectories(:, strcmp(joint_torque_labels, 'left ankle dorsi/plantarflexion'));
+                this.left_ankle_invers_torque = joint_torque_trajectories(:, strcmp(joint_torque_labels, 'left ankle eversion/inversion'));
+                this.right_hip_flex_torque = joint_torque_trajectories(:, strcmp(joint_torque_labels, 'right hip flexion/extension'));
+                this.right_hip_abd_torque = joint_torque_trajectories(:, strcmp(joint_torque_labels, 'right hip ab/adduction'));
+                this.right_hip_introt_torque = joint_torque_trajectories(:, strcmp(joint_torque_labels, 'right hip internal/external rotation'));
+                this.right_knee_flex_torque = joint_torque_trajectories(:, strcmp(joint_torque_labels, 'right knee flexion/extension'));
+                this.right_knee_extrot_torque = joint_torque_trajectories(:, strcmp(joint_torque_labels, 'right knee external/internal rotation'));
+                this.right_ankle_dorflex_torque = joint_torque_trajectories(:, strcmp(joint_torque_labels, 'right ankle dorsi/plantarflexion'));
+                this.right_ankle_invers_torque = joint_torque_trajectories(:, strcmp(joint_torque_labels, 'right ankle eversion/inversion'));
+                this.lumbar_joint_pitch_torque = joint_torque_trajectories(:, strcmp(joint_torque_labels, 'lumbar joint - forward/backward bending'));
+                this.lumbar_joint_roll_torque = joint_torque_trajectories(:, strcmp(joint_torque_labels, 'lumbar joint - sideways bending (right/left)'));
+                this.lumbar_joint_yaw_torque = joint_torque_trajectories(:, strcmp(joint_torque_labels, 'lumbar joint - internal rotation (right/left)'));
+                this.cervical_joint_pitch_torque = joint_torque_trajectories(:, strcmp(joint_torque_labels, 'cervical joint - forward/backward bending'));
+                this.cervical_joint_roll_torque = joint_torque_trajectories(:, strcmp(joint_torque_labels, 'cervical joint - sideways bending (right/left)'));
+                this.cervical_joint_yaw_torque = joint_torque_trajectories(:, strcmp(joint_torque_labels, 'cervical joint - internal rotation (right/left)'));
+                this.left_shoulder_flex_torque = joint_torque_trajectories(:, strcmp(joint_torque_labels, 'left shoulder flexion/extension'));
+                this.left_shoulder_abd_torque = joint_torque_trajectories(:, strcmp(joint_torque_labels, 'left shoulder ab/adduction'));
+                this.left_shoulder_introt_torque = joint_torque_trajectories(:, strcmp(joint_torque_labels, 'left shoulder in/external rotation'));
+                this.left_elbow_flex_torque = joint_torque_trajectories(:, strcmp(joint_torque_labels, 'left elbow flexion/extension'));
+                this.left_elbow_pronat_torque = joint_torque_trajectories(:, strcmp(joint_torque_labels, 'left pronation/supination'));
+                this.left_wrist_flex_torque = joint_torque_trajectories(:, strcmp(joint_torque_labels, 'left wrist flexion/extension'));
+                this.right_shoulder_flex_torque = joint_torque_trajectories(:, strcmp(joint_torque_labels, 'right shoulder flexion/extension'));
+                this.right_shoulder_abd_torque = joint_torque_trajectories(:, strcmp(joint_torque_labels, 'right shoulder ab/adduction'));
+                this.right_shoulder_introt_torque = joint_torque_trajectories(:, strcmp(joint_torque_labels, 'right shoulder in/external rotation'));
+                this.right_elbow_flex_torque = joint_torque_trajectories(:, strcmp(joint_torque_labels, 'right elbow flexion/extension'));
+                this.right_elbow_pronat_torque = joint_torque_trajectories(:, strcmp(joint_torque_labels, 'right pronation/supination'));
+                this.right_wrist_flex_torque = joint_torque_trajectories(:, strcmp(joint_torque_labels, 'right wrist flexion/extension'));
             end
             
             

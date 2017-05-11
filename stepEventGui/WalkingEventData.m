@@ -55,8 +55,8 @@ classdef WalkingEventData < handle
             if isfield(loaded_event_data, 'left_fullstance_times')
                 this.left_fullstance_times = loaded_event_data.left_fullstance_times;
             end
-            if isfield(loaded_event_data, 'right_arm_swing_onset_times')
-                this.right_arm_swing_onset_times = loaded_event_data.right_arm_swing_onset_times;
+            if isfield(loaded_event_data, 'right_fullstance_times')
+                this.right_fullstance_times = loaded_event_data.right_fullstance_times;
             end
             if isfield(loaded_event_data, 'left_arm_swing_onset_times')
                 this.left_arm_swing_onset_times = loaded_event_data.left_arm_swing_onset_times;
