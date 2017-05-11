@@ -65,20 +65,48 @@ function calculateDynamicMatrices(varargin)
             right_forceplate_wrench_world_trajectory = loadData(date, subject_id, condition, i_trial, 'right_forceplate_wrench_world');
             
             number_of_time_steps = size(marker_trajectories, 1);
+            
+            % determine constraint numbers
+            left_foot_constraint_number_trajectory = determineConstraintNumbers(time_mocap, left_touchdown_times, left_fullstance_times, left_pushoff_times);
+            right_foot_constraint_number_trajectory = determineConstraintNumbers(time_mocap, right_touchdown_times, right_fullstance_times, right_pushoff_times);
+            
 
             % determine time steps to optimize
 %             time_steps_to_process = 1 : number_of_time_steps;
 %             time_steps_to_process = 1001 : 2000;
             time_steps_to_process = determineTimeStepsToProcess(date, subject_id, condition, i_trial, study_settings.get('data_stretch_padding'));
+            
+            % remove time steps to process based on available events
+            bad_time_steps_left = time_steps_to_process(isnan(left_foot_constraint_number_trajectory(time_steps_to_process)));
+            bad_time_steps_right = time_steps_to_process(isnan(right_foot_constraint_number_trajectory(time_steps_to_process)));
+            bad_time_steps = [bad_time_steps_left bad_time_steps_right];
+            
+            % ignore the bad time steps and re-determinate the time steps to process
+            if ~isempty(bad_time_steps)
+                bad_times = time_mocap(bad_time_steps);
+                variables_to_save = struct;
+                if exist('ignore_times', 'var')
+                    variables_to_save.ignore_times = [ignore_times; bad_times];
+                else
+                    variables_to_save.ignore_times = bad_times;
+                end
+                
+                
+                save_folder = 'analysis';
+                save_file_name = makeFileName(date, subject_id, condition, i_trial, 'stepEvents.mat');
+                saveDataToFile([save_folder filesep save_file_name], variables_to_save);
+
+                findRelevantDataStretches('condition', {condition}, 'trial', i_trial);
+                time_steps_to_process = determineTimeStepsToProcess(date, subject_id, condition, i_trial, study_settings.get('data_stretch_padding'));
+            end            
+            
+            
 
 %             disp([datestr(datetime,'yyyy-mm-dd HH:MM:SS') ' - Condition ' condition ', Trial ' num2str(i_trial)])
 %             fprintf([datestr(datetime,'yyyy-mm-dd HH:MM:SS') ' - Calculating dynamic matrices... \n'])
             disp([' - Condition ' condition ', Trial ' num2str(i_trial)])
             fprintf([' - Calculating dynamic matrices... \n'])
             
-            % determine constraint numbers
-            left_foot_constraint_number_trajectory = determineConstraintNumbers(time_mocap, left_touchdown_times, left_fullstance_times, left_pushoff_times);
-            right_foot_constraint_number_trajectory = determineConstraintNumbers(time_mocap, right_touchdown_times, right_fullstance_times, right_pushoff_times);
             
             %% calculate belt space transformation
             [belt_speed_left_trajectory, time_belts] = loadData(date, subject_id, condition, i_trial, 'belt_speed_left_trajectory');
@@ -194,6 +222,7 @@ function calculateDynamicMatrices(varargin)
                 constraint_matrix_dot_trajectory_pool = cell(size(constraint_matrix_dot_trajectory));
                 number_of_lambdas_pool = zeros(number_of_time_steps, 1);
                 plant = kinematic_tree;
+                
                 spmd
                     plant_pool = plant.copy;
                     for i_time = time_steps_to_process(1)+labindex-1 : numlabs : time_steps_to_process(end)
