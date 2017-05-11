@@ -18,6 +18,7 @@ classdef stepEventController < handle
     properties
         trial_data;
         event_data;
+        figure_settings_file;
         
         event_time_normal_step = 0.005;
         event_time_large_step = 0.050;
@@ -51,9 +52,10 @@ classdef stepEventController < handle
         color_normal = [0 0 0];
     end
     methods
-        function this = stepEventController(trial_data, event_data)
+        function this = stepEventController(trial_data, event_data, figure_settings_file)
             this.trial_data = trial_data;
             this.event_data = event_data;
+            this.figure_settings_file = figure_settings_file;
 
             figure_height = 600;
             figure_width = 420;
@@ -295,11 +297,11 @@ classdef stepEventController < handle
             end
             
             % save settings to file
-            settings_file = [getUserSettingsPath filesep 'eventGuiFigureSettings.mat'];
+            settings_file = [getUserSettingsPath filesep this.figure_settings_file];
             save(settings_file, 'figure_settings', 'control_figure_setting', 'scene_figure_setting', 'kinematic_tree_figure_setting');
         end
         function loadFigureSettings(this, sender, eventdata) %#ok<INUSD>
-            settings_file = [getUserSettingsPath filesep 'eventGuiFigureSettings.mat'];
+            settings_file = [getUserSettingsPath filesep this.figure_settings_file];
 
             if exist(settings_file, 'file')
                 % load settings

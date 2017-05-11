@@ -52,7 +52,8 @@ function stepEventGui(varargin)
     gui_settings = SettingsCustodian(gui_settings_file);
     
     %% init gui
-    controller = stepEventController(trial_data, event_data);
+    settings_file = gui_settings.get('figure_settings_file');
+    controller = stepEventController(trial_data, event_data, settings_file);
     
     %% stick figure and kinematic tree figure
     scene_bound = ...
