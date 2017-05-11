@@ -100,6 +100,7 @@ function inverseDynamics(varargin)
 %             explained_acceleration_trajectories = zeros(number_of_time_steps, number_of_joints);
 %             leftover_acceleration_trajectories = zeros(number_of_time_steps, number_of_joints);
 
+
             if use_parallel
                 constraint_torque_trajectories_all_pool = zeros(number_of_time_steps, number_of_joints);
                 constraint_torque_trajectories_right_pool = zeros(number_of_time_steps, number_of_joints);
@@ -119,9 +120,11 @@ function inverseDynamics(varargin)
 % %                 violating_acceleration_trajectories_pool = zeros(number_of_time_steps, number_of_joints);
 % %                 explained_acceleration_trajectories_pool = zeros(number_of_time_steps, number_of_joints);
 % %                 leftover_acceleration_trajectories_pool = zeros(number_of_time_steps, number_of_joints);
+
+
                 spmd
                     for i_time = time_steps_to_process(1)+labindex-1 : numlabs : time_steps_to_process(end)
-                        if any(isnan(joint_angle_trajectories_belt(i_time, :)))
+                        if any(isnan(joint_angle_trajectories_belt(i_time, :))) | any(isnan(constraint_matrix_trajectory{i_time}))
                             constraint_torque_trajectories_all_pool(i_time, :) = NaN;
                             constraint_torque_trajectories_right_pool(i_time, :) = NaN;
                             constraint_torque_trajectories_left_pool(i_time, :) = NaN;
@@ -216,6 +219,7 @@ function inverseDynamics(varargin)
                             constraint_torque_trajectories_left_pool(i_time, :) = A' * lambda_left;
                             lambda_trajectories_pool{i_time} = lambda;
                             joint_torque_trajectories_pool(i_time, :) = T;
+
 %                             induced_accelerations_applied_trajectories_pool(i_time, :) = induced_acceleration_applied;
 %                             induced_accelerations_gravity_trajectories_pool(i_time, :) = induced_acceleration_gravity;
 %                             induced_accelerations_movement_trajectories_pool(i_time, :) = induced_acceleration_movement;
@@ -742,10 +746,21 @@ function inverseDynamics(varargin)
             fprintf(' done\n');
             toc
             
+            %% filter joint torques
+            if study_settings.get('filter_joint_torques')
+                joint_torque_trajectories_unfiltered = joint_torque_trajectories;
+                filter_order = 4;
+                cutoff_frequency = study_settings.get('joint_torques_cutoff_frequency'); % in Hz
+                [b_marker, a_marker] = butter(filter_order, cutoff_frequency/(sampling_rate_mocap/2));
+                joint_torque_trajectories = nanfiltfilt(b_marker, a_marker, joint_torque_trajectories);
+            end
+            
+            
+            
             %% save
             variables_to_save = struct;
             
-            variables_to_save.joint_torque_trajectories_belt = joint_torque_trajectories;
+            variables_to_save.joint_torque_trajectories = joint_torque_trajectories;
             variables_to_save.constraint_torque_trajectories_all = constraint_torque_trajectories_all;
             variables_to_save.constraint_torque_trajectories_left = constraint_torque_trajectories_left;
             variables_to_save.constraint_torque_trajectories_right = constraint_torque_trajectories_right;
@@ -755,7 +770,7 @@ function inverseDynamics(varargin)
             saveDataToFile([save_folder filesep save_file_name], variables_to_save);
             disp(['Condition ' condition ', Trial ' num2str(i_trial) ' completed, saved as ' save_folder filesep save_file_name]);
             
-            addAvailableData('joint_torque_trajectories_belt', 'time_mocap', 'sampling_rate_mocap', 'joint_labels', save_folder, save_file_name);
+            addAvailableData('joint_torque_trajectories', 'time_mocap', 'sampling_rate_mocap', 'joint_labels', save_folder, save_file_name);
             addAvailableData('constraint_torque_trajectories_all', 'time_mocap', 'sampling_rate_mocap', '', save_folder, save_file_name);
             addAvailableData('constraint_torque_trajectories_left', 'time_mocap', 'sampling_rate_mocap', '', save_folder, save_file_name);
             addAvailableData('constraint_torque_trajectories_right', 'time_mocap', 'sampling_rate_mocap', '', save_folder, save_file_name);
