@@ -1322,7 +1322,7 @@ function findRelevantDataStretches(varargin)
             for i_stretch = 1 : number_of_stretches
                 if ~isempty(ignore_times)
                     for i_ignore = 1 : length(ignore_times)
-                        if stretch_start_times(i_stretch) < ignore_times(i_ignore) && ignore_times(i_ignore) < stretch_end_times(i_stretch)
+                        if stretch_start_times(i_stretch) <= ignore_times(i_ignore) && ignore_times(i_ignore) <= stretch_end_times(i_stretch)
                             removal_flags(i_stretch) = 1;
                         end
                     end
