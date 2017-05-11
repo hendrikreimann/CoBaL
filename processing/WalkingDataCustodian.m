@@ -424,10 +424,10 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('left_knee_extrotation_angle')
                 this.addStretchVariable('left_knee_extrotation_angle')
             end
-            if this.isVariableToAnalyze('left_ankle_inversion_angle')
+            if this.isVariableToAnalyze('left_ankle_eversion_angle')
                 this.addBasicVariable('joint_angle_trajectories')
-                this.addBasicVariable('left_ankle_inversion_angle')
-                this.addStretchVariable('left_ankle_inversion_angle')
+                this.addBasicVariable('left_ankle_eversion_angle')
+                this.addStretchVariable('left_ankle_eversion_angle')
             end
             if this.isVariableToAnalyze('left_ankle_dorsiflexion_angle')
                 this.addBasicVariable('joint_angle_trajectories')
@@ -459,10 +459,10 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('right_knee_extrotation_angle')
                 this.addStretchVariable('right_knee_extrotation_angle')
             end
-            if this.isVariableToAnalyze('right_ankle_inversion_angle')
+            if this.isVariableToAnalyze('right_ankle_eversion_angle')
                 this.addBasicVariable('joint_angle_trajectories')
-                this.addBasicVariable('right_ankle_inversion_angle')
-                this.addStretchVariable('right_ankle_inversion_angle')
+                this.addBasicVariable('right_ankle_eversion_angle')
+                this.addStretchVariable('right_ankle_eversion_angle')
             end
             if this.isVariableToAnalyze('right_ankle_dorsiflexion_angle')
                 this.addBasicVariable('joint_angle_trajectories')
@@ -525,10 +525,10 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('left_knee_extrotation_torque')
                 this.addStretchVariable('left_knee_extrotation_torque')
             end
-            if this.isVariableToAnalyze('left_ankle_inversion_torque')
+            if this.isVariableToAnalyze('left_ankle_eversion_torque')
                 this.addBasicVariable('joint_torque_trajectories_belt')
-                this.addBasicVariable('left_ankle_inversion_torque')
-                this.addStretchVariable('left_ankle_inversion_torque')
+                this.addBasicVariable('left_ankle_eversion_torque')
+                this.addStretchVariable('left_ankle_eversion_torque')
             end
             if this.isVariableToAnalyze('left_ankle_dorsiflexion_torque')
                 this.addBasicVariable('joint_torque_trajectories_belt')
@@ -560,10 +560,10 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('right_knee_extrotation_torque')
                 this.addStretchVariable('right_knee_extrotation_torque')
             end
-            if this.isVariableToAnalyze('right_ankle_inversion_torque')
+            if this.isVariableToAnalyze('right_ankle_eversion_torque')
                 this.addBasicVariable('joint_torque_trajectories_belt')
-                this.addBasicVariable('right_ankle_inversion_torque')
-                this.addStretchVariable('right_ankle_inversion_torque')
+                this.addBasicVariable('right_ankle_eversion_torque')
+                this.addStretchVariable('right_ankle_eversion_torque')
             end
             if this.isVariableToAnalyze('right_ankle_dorsiflexion_torque')
                 this.addBasicVariable('joint_torque_trajectories_belt')
@@ -1119,10 +1119,10 @@ classdef WalkingDataCustodian < handle
                     this.basic_variable_data.left_knee_extrotation_angle = rad2deg(this.basic_variable_data.joint_angle_trajectories(:, joint_angle_indicator));
                     this.time_data.left_knee_extrotation_angle = this.time_data.joint_angle_trajectories;
                 end
-                if strcmp(variable_name, 'left_ankle_inversion_angle')
-                    joint_angle_indicator = strcmp(this.basic_variable_labels.joint_angle_trajectories, 'left ankle inversion/eversion');
-                    this.basic_variable_data.left_ankle_inversion_angle = rad2deg(this.basic_variable_data.joint_angle_trajectories(:, joint_angle_indicator));
-                    this.time_data.left_ankle_inversion_angle = this.time_data.joint_angle_trajectories;
+                if strcmp(variable_name, 'left_ankle_eversion_angle')
+                    joint_angle_indicator = strcmp(this.basic_variable_labels.joint_angle_trajectories, 'left ankle eversion/inversion');
+                    this.basic_variable_data.left_ankle_eversion_angle = rad2deg(this.basic_variable_data.joint_angle_trajectories(:, joint_angle_indicator));
+                    this.time_data.left_ankle_eversion_angle = this.time_data.joint_angle_trajectories;
                 end
                 if strcmp(variable_name, 'left_ankle_dorsiflexion_angle')
                     joint_angle_indicator = strcmp(this.basic_variable_labels.joint_angle_trajectories, 'left ankle dorsi/plantarflexion');
@@ -1154,10 +1154,10 @@ classdef WalkingDataCustodian < handle
                     this.basic_variable_data.right_knee_extrotation_angle = rad2deg(this.basic_variable_data.joint_angle_trajectories(:, joint_angle_indicator));
                     this.time_data.right_knee_extrotation_angle = this.time_data.joint_angle_trajectories;
                 end
-                if strcmp(variable_name, 'right_ankle_inversion_angle')
-                    joint_angle_indicator = strcmp(this.basic_variable_labels.joint_angle_trajectories, 'right ankle inversion/eversion');
-                    this.basic_variable_data.right_ankle_inversion_angle = rad2deg(this.basic_variable_data.joint_angle_trajectories(:, joint_angle_indicator));
-                    this.time_data.right_ankle_inversion_angle = this.time_data.joint_angle_trajectories;
+                if strcmp(variable_name, 'right_ankle_eversion_angle')
+                    joint_angle_indicator = strcmp(this.basic_variable_labels.joint_angle_trajectories, 'right ankle eversion/inversion');
+                    this.basic_variable_data.right_ankle_eversion_angle = rad2deg(this.basic_variable_data.joint_angle_trajectories(:, joint_angle_indicator));
+                    this.time_data.right_ankle_eversion_angle = this.time_data.joint_angle_trajectories;
                 end
                 if strcmp(variable_name, 'right_ankle_dorsiflexion_angle')
                     joint_angle_indicator = strcmp(this.basic_variable_labels.joint_angle_trajectories, 'right ankle dorsi/plantarflexion');
@@ -1221,10 +1221,10 @@ classdef WalkingDataCustodian < handle
                     this.basic_variable_data.left_knee_extrotation_torque = rad2deg(this.basic_variable_data.joint_torque_trajectories_belt(:, joint_torque_indicator));
                     this.time_data.left_knee_extrotation_torque = this.time_data.joint_torque_trajectories_belt;
                 end
-                if strcmp(variable_name, 'left_ankle_inversion_torque')
-                    joint_torque_indicator = strcmp(this.basic_variable_labels.joint_torque_trajectories_belt, 'left ankle inversion/eversion');
-                    this.basic_variable_data.left_ankle_inversion_torque = rad2deg(this.basic_variable_data.joint_torque_trajectories_belt(:, joint_torque_indicator));
-                    this.time_data.left_ankle_inversion_torque = this.time_data.joint_torque_trajectories_belt;
+                if strcmp(variable_name, 'left_ankle_eversion_torque')
+                    joint_torque_indicator = strcmp(this.basic_variable_labels.joint_torque_trajectories_belt, 'left ankle eversion/inversion');
+                    this.basic_variable_data.left_ankle_eversion_torque = rad2deg(this.basic_variable_data.joint_torque_trajectories_belt(:, joint_torque_indicator));
+                    this.time_data.left_ankle_eversion_torque = this.time_data.joint_torque_trajectories_belt;
                 end
                 if strcmp(variable_name, 'left_ankle_dorsiflexion_torque')
                     joint_torque_indicator = strcmp(this.basic_variable_labels.joint_torque_trajectories_belt, 'left ankle dorsi/plantarflexion');
@@ -1256,10 +1256,10 @@ classdef WalkingDataCustodian < handle
                     this.basic_variable_data.right_knee_extrotation_torque = rad2deg(this.basic_variable_data.joint_torque_trajectories_belt(:, joint_torque_indicator));
                     this.time_data.right_knee_extrotation_torque = this.time_data.joint_torque_trajectories_belt;
                 end
-                if strcmp(variable_name, 'right_ankle_inversion_torque')
-                    joint_torque_indicator = strcmp(this.basic_variable_labels.joint_torque_trajectories_belt, 'right ankle inversion/eversion');
-                    this.basic_variable_data.right_ankle_inversion_torque = rad2deg(this.basic_variable_data.joint_torque_trajectories_belt(:, joint_torque_indicator));
-                    this.time_data.right_ankle_inversion_torque = this.time_data.joint_torque_trajectories_belt;
+                if strcmp(variable_name, 'right_ankle_eversion_torque')
+                    joint_torque_indicator = strcmp(this.basic_variable_labels.joint_torque_trajectories_belt, 'right ankle eversion/inversion');
+                    this.basic_variable_data.right_ankle_eversion_torque = rad2deg(this.basic_variable_data.joint_torque_trajectories_belt(:, joint_torque_indicator));
+                    this.time_data.right_ankle_eversion_torque = this.time_data.joint_torque_trajectories_belt;
                 end
                 if strcmp(variable_name, 'right_ankle_dorsiflexion_torque')
                     joint_torque_indicator = strcmp(this.basic_variable_labels.joint_torque_trajectories_belt, 'right ankle dorsi/plantarflexion');
