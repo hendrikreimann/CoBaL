@@ -73,7 +73,30 @@ function inverseDynamics(varargin)
 %             time_steps_to_process = 1001 : 2000;
             time_steps_to_process = determineTimeStepsToProcess(date, subject_id, condition, i_trial, study_settings.get('data_stretch_padding'));
 
+            % remove time steps to process based on available events
+            bad_time_steps_left = time_steps_to_process(isnan(left_foot_constraint_number_trajectory(time_steps_to_process)));
+            bad_time_steps_right = time_steps_to_process(isnan(right_foot_constraint_number_trajectory(time_steps_to_process)));
+            bad_time_steps = [bad_time_steps_left bad_time_steps_right];
+            
+            % ignore the bad time steps and re-determinate the time steps to process
+            if ~isempty(bad_time_steps)
+                bad_times = time_mocap(bad_time_steps);
+                variables_to_save = struct;
+                if exist('ignore_times', 'var')
+                    variables_to_save.ignore_times = [ignore_times; bad_times];
+                else
+                    variables_to_save.ignore_times = bad_times;
+                end
+                
+                
+                save_folder = 'analysis';
+                save_file_name = makeFileName(date, subject_id, condition, i_trial, 'stepEvents.mat');
+                saveDataToFile([save_folder filesep save_file_name], variables_to_save);
 
+                findRelevantDataStretches('condition', {condition}, 'trial', i_trial);
+                time_steps_to_process = determineTimeStepsToProcess(date, subject_id, condition, i_trial, study_settings.get('data_stretch_padding'));
+            end   
+            
 %             disp([datestr(datetime,'yyyy-mm-dd HH:MM:SS') ' - Condition ' condition ', Trial ' num2str(i_trial)])
 %             fprintf([datestr(datetime,'yyyy-mm-dd HH:MM:SS') ' - Calculating ... \n'])
             disp([' - Condition ' condition ', Trial ' num2str(i_trial)])

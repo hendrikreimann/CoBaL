@@ -43,6 +43,9 @@ function saveSubjectInfoToFile
     data_raw = textscan(fid, format);
     fclose(fid);
 
+    variables_to_save = struct;
+    
+    
     % find header info
     header = strsplit(header_string, ',');
     
@@ -63,6 +66,16 @@ function saveSubjectInfoToFile
     ankle_width = str2num(data_cell{subject_row, strcmp(header, 'ankle width')}); %#ok<ST2NM,NASGU>
     elbow_width = str2num(data_cell{subject_row, strcmp(header, 'elbow width')}); %#ok<ST2NM,NASGU>
     
+    for i_column = 2 : length(header)
+        variable_name = strrep(header{i_column}, ' ', '_');
+        variable_value = data_cell{subject_row, i_column};
+        if all(ismember(variable_value, '0123456789-.'))
+            variable_value = str2num(variable_value); %#ok<ST2NM,NASGU>
+        end
+        evalstring = ['variables_to_save.' variable_name ' = variable_value;'];
+        eval(evalstring);
+    end
+    
     % find entries mapping EMG headers to muscle codes
     emg_sensor_map = {};
     for i_column = 1 : length(header)
@@ -71,13 +84,16 @@ function saveSubjectInfoToFile
             emg_sensor_map = [emg_sensor_map, {header{i_column}; muscle_code}]; %#ok<AGROW>
         end
     end
+    variables_to_save.emg_sensor_map = emg_sensor_map;
     
     % get parameters
     data_dir = dir(['raw' filesep '*.mat']);
     clear file_name_list;
     [file_name_list{1:length(data_dir)}] = deal(data_dir.name);
     sample_file_name = file_name_list{1};
-    [date, subject_id] = getFileParameters(sample_file_name); %#ok<ASGLU>
+    [date, subject_id] = getFileParameters(sample_file_name);
+    variables_to_save.date = date;
+    variables_to_save.subject_id = subject_id;
 
     % get list of conditions
     condition_list = {};
@@ -97,6 +113,8 @@ function saveSubjectInfoToFile
             trial_number_list{condition_index} = unique(trial_number_list{condition_index}); %#ok<AGROW>
         end
     end
+    variables_to_save.condition_list = condition_list;
+
     
     % if we have a conditions file, remove the trials not listed there
     conditions_file_name = [];
@@ -142,22 +160,27 @@ function saveSubjectInfoToFile
         end
         
     end
+    variables_to_save.trial_number_list = trial_number_list;
+    
+    % save
+    save_file_name = 'subjectInfo.mat';
+    save(save_file_name, '-struct', 'variables_to_save');
     
     
-    % save to file
-    save ...
-      ( ...
-        'subjectInfo', ...
-        'height', ...
-        'weight', ...
-        'gender', ...
-        'knee_width', ...
-        'ankle_width', ...
-        'elbow_width', ...
-        'date', ...
-        'subject_id', ...
-        'emg_sensor_map', ...
-        'condition_list', ...
-        'trial_number_list' ...
-      );
+%     % save to file
+%     save ...
+%       ( ...
+%         'subjectInfo', ...
+%         'height', ...
+%         'weight', ...
+%         'gender', ...
+%         'knee_width', ...
+%         'ankle_width', ...
+%         'elbow_width', ...
+%         'date', ...
+%         'subject_id', ...
+%         'emg_sensor_map', ...
+%         'condition_list', ...
+%         'trial_number_list' ...
+%       );
 end

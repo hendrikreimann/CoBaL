@@ -274,6 +274,19 @@ function plotResults(varargin)
                 
             end
         end
+        
+        % set x-limits
+        for i_variable = 1 : number_of_variables_to_plot
+            if isContinuousVariable(i_variable, variable_data_all)
+                for i_comparison = 1 : number_of_comparisons
+                    target_abscissa = abscissae_cell{i_comparison, i_variable}(1, :);
+                        
+                    % set x-limits accordingly
+                    set(axes_handles(i_comparison, i_variable), 'xlim', [target_abscissa(1) target_abscissa(end)]);
+                end
+            end
+        end
+        
     end
     if strcmp(plot_mode, 'episodes')
         abscissae_cell_unscaled = cell(size(abscissae_cell));
@@ -568,6 +581,9 @@ function plotResults(varargin)
                         conditions_this_comparison = comparison_indices{this_comparison};
                         example_condition = 1;
                         condition_identifier = conditions_to_plot(conditions_this_comparison(example_condition), :);
+                        if strcmp(condition_identifier{1}, 'STANCE_BOTH')
+                            step_stance_foot(i_comparison) = 0;
+                        end
                         if strcmp(condition_identifier{1}, 'STANCE_LEFT')
                             step_stance_foot(i_comparison) = 1;
                         end
@@ -804,6 +820,9 @@ function plotResults(varargin)
                 
                 for i_step = 1 : length(step_start_times)
                     patch_color = [1 1 1] * 0.8;
+                    if step_stance_foot(i_step) == 0
+                        patch_color = study_settings.get('stance_both_color');
+                    end
                     if step_stance_foot(i_step) == 1
                         patch_color = study_settings.get('stance_left_color');
                     end
