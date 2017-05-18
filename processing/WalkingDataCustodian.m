@@ -471,102 +471,102 @@ classdef WalkingDataCustodian < handle
             end
             % joint torques
             if this.isVariableToAnalyze('lumbar_roll_torque')
-                this.addBasicVariable('joint_torque_trajectories_belt')
+                this.addBasicVariable('joint_torque_trajectories')
                 this.addBasicVariable('lumbar_roll_torque')
                 this.addStretchVariable('lumbar_roll_torque')
             end
             if this.isVariableToAnalyze('lumbar_pitch_torque')
-                this.addBasicVariable('joint_torque_trajectories_belt')
+                this.addBasicVariable('joint_torque_trajectories')
                 this.addBasicVariable('lumbar_pitch_torque')
                 this.addStretchVariable('lumbar_pitch_torque')
             end
             if this.isVariableToAnalyze('lumbar_yaw_torque')
-                this.addBasicVariable('joint_torque_trajectories_belt')
+                this.addBasicVariable('joint_torque_trajectories')
                 this.addBasicVariable('lumbar_yaw_torque')
                 this.addStretchVariable('lumbar_yaw_torque')
             end
             if this.isVariableToAnalyze('cevical_roll_torque')
-                this.addBasicVariable('joint_torque_trajectories_belt')
+                this.addBasicVariable('joint_torque_trajectories')
                 this.addBasicVariable('cevical_roll_torque')
                 this.addStretchVariable('cevical_roll_torque')
             end
             if this.isVariableToAnalyze('cevical_pitch_torque')
-                this.addBasicVariable('joint_torque_trajectories_belt')
+                this.addBasicVariable('joint_torque_trajectories')
                 this.addBasicVariable('cevical_pitch_torque')
                 this.addStretchVariable('cevical_pitch_torque')
             end
             if this.isVariableToAnalyze('cevical_yaw_torque')
-                this.addBasicVariable('joint_torque_trajectories_belt')
+                this.addBasicVariable('joint_torque_trajectories')
                 this.addBasicVariable('cevical_yaw_torque')
                 this.addStretchVariable('cevical_yaw_torque')
             end
             if this.isVariableToAnalyze('left_hip_abduction_torque')
-                this.addBasicVariable('joint_torque_trajectories_belt')
+                this.addBasicVariable('joint_torque_trajectories')
                 this.addBasicVariable('left_hip_abduction_torque')
                 this.addStretchVariable('left_hip_abduction_torque')
             end
             if this.isVariableToAnalyze('left_hip_flexion_torque')
-                this.addBasicVariable('joint_torque_trajectories_belt')
+                this.addBasicVariable('joint_torque_trajectories')
                 this.addBasicVariable('left_hip_flexion_torque')
                 this.addStretchVariable('left_hip_flexion_torque')
             end
             if this.isVariableToAnalyze('left_hip_introtation_torque')
-                this.addBasicVariable('joint_torque_trajectories_belt')
+                this.addBasicVariable('joint_torque_trajectories')
                 this.addBasicVariable('left_hip_introtation_torque')
                 this.addStretchVariable('left_hip_introtation_torque')
             end
             if this.isVariableToAnalyze('left_knee_flexion_torque')
-                this.addBasicVariable('joint_torque_trajectories_belt')
+                this.addBasicVariable('joint_torque_trajectories')
                 this.addBasicVariable('left_knee_flexion_torque')
                 this.addStretchVariable('left_knee_flexion_torque')
             end
             if this.isVariableToAnalyze('left_knee_extrotation_torque')
-                this.addBasicVariable('joint_torque_trajectories_belt')
+                this.addBasicVariable('joint_torque_trajectories')
                 this.addBasicVariable('left_knee_extrotation_torque')
                 this.addStretchVariable('left_knee_extrotation_torque')
             end
             if this.isVariableToAnalyze('left_ankle_eversion_torque')
-                this.addBasicVariable('joint_torque_trajectories_belt')
+                this.addBasicVariable('joint_torque_trajectories')
                 this.addBasicVariable('left_ankle_eversion_torque')
                 this.addStretchVariable('left_ankle_eversion_torque')
             end
             if this.isVariableToAnalyze('left_ankle_dorsiflexion_torque')
-                this.addBasicVariable('joint_torque_trajectories_belt')
+                this.addBasicVariable('joint_torque_trajectories')
                 this.addBasicVariable('left_ankle_dorsiflexion_torque')
                 this.addStretchVariable('left_ankle_dorsiflexion_torque')
             end
             if this.isVariableToAnalyze('right_hip_abduction_torque')
-                this.addBasicVariable('joint_torque_trajectories_belt')
+                this.addBasicVariable('joint_torque_trajectories')
                 this.addBasicVariable('right_hip_abduction_torque')
                 this.addStretchVariable('right_hip_abduction_torque')
             end
             if this.isVariableToAnalyze('right_hip_flexion_torque')
-                this.addBasicVariable('joint_torque_trajectories_belt')
+                this.addBasicVariable('joint_torque_trajectories')
                 this.addBasicVariable('right_hip_flexion_torque')
                 this.addStretchVariable('right_hip_flexion_torque')
             end
             if this.isVariableToAnalyze('right_hip_introtation_torque')
-                this.addBasicVariable('joint_torque_trajectories_belt')
+                this.addBasicVariable('joint_torque_trajectories')
                 this.addBasicVariable('right_hip_introtation_torque')
                 this.addStretchVariable('right_hip_introtation_torque')
             end
             if this.isVariableToAnalyze('right_knee_flexion_torque')
-                this.addBasicVariable('joint_torque_trajectories_belt')
+                this.addBasicVariable('joint_torque_trajectories')
                 this.addBasicVariable('right_knee_flexion_torque')
                 this.addStretchVariable('right_knee_flexion_torque')
             end
             if this.isVariableToAnalyze('right_knee_extrotation_torque')
-                this.addBasicVariable('joint_torque_trajectories_belt')
+                this.addBasicVariable('joint_torque_trajectories')
                 this.addBasicVariable('right_knee_extrotation_torque')
                 this.addStretchVariable('right_knee_extrotation_torque')
             end
             if this.isVariableToAnalyze('right_ankle_eversion_torque')
-                this.addBasicVariable('joint_torque_trajectories_belt')
+                this.addBasicVariable('joint_torque_trajectories')
                 this.addBasicVariable('right_ankle_eversion_torque')
                 this.addStretchVariable('right_ankle_eversion_torque')
             end
             if this.isVariableToAnalyze('right_ankle_dorsiflexion_torque')
-                this.addBasicVariable('joint_torque_trajectories_belt')
+                this.addBasicVariable('joint_torque_trajectories')
                 this.addBasicVariable('right_ankle_dorsiflexion_torque')
                 this.addStretchVariable('right_ankle_dorsiflexion_torque')
             end
@@ -1167,104 +1167,104 @@ classdef WalkingDataCustodian < handle
                 
                 % joint torques
                 if strcmp(variable_name, 'lumbar_roll_torque')
-                    joint_torque_indicator = strcmp(this.basic_variable_labels.joint_torque_trajectories_belt, 'lumbar joint - sideways bending (right/left)');
-                    this.basic_variable_data.lumbar_roll_torque = rad2deg(this.basic_variable_data.joint_torque_trajectories_belt(:, joint_torque_indicator));
-                    this.time_data.lumbar_roll_torque = this.time_data.joint_torque_trajectories_belt;
+                    joint_torque_indicator = strcmp(this.basic_variable_labels.joint_torque_trajectories, 'lumbar joint - sideways bending (right/left)');
+                    this.basic_variable_data.lumbar_roll_torque = this.basic_variable_data.joint_torque_trajectories(:, joint_torque_indicator);
+                    this.time_data.lumbar_roll_torque = this.time_data.joint_torque_trajectories;
                 end
                 if strcmp(variable_name, 'lumbar_pitch_torque')
-                    joint_torque_indicator = strcmp(this.basic_variable_labels.joint_torque_trajectories_belt, 'lumbar joint - forward/backward bending');
-                    this.basic_variable_data.lumbar_pitch_torque = rad2deg(this.basic_variable_data.joint_torque_trajectories_belt(:, joint_torque_indicator));
-                    this.time_data.lumbar_pitch_torque = this.time_data.joint_torque_trajectories_belt;
+                    joint_torque_indicator = strcmp(this.basic_variable_labels.joint_torque_trajectories, 'lumbar joint - forward/backward bending');
+                    this.basic_variable_data.lumbar_pitch_torque = this.basic_variable_data.joint_torque_trajectories(:, joint_torque_indicator);
+                    this.time_data.lumbar_pitch_torque = this.time_data.joint_torque_trajectories;
                 end
                 if strcmp(variable_name, 'lumbar_yaw_torque')
-                    joint_torque_indicator = strcmp(this.basic_variable_labels.joint_torque_trajectories_belt, 'lumbar joint - internal rotation (right/left)');
-                    this.basic_variable_data.lumbar_yaw_torque = rad2deg(this.basic_variable_data.joint_torque_trajectories_belt(:, joint_torque_indicator));
-                    this.time_data.lumbar_yaw_torque = this.time_data.joint_torque_trajectories_belt;
+                    joint_torque_indicator = strcmp(this.basic_variable_labels.joint_torque_trajectories, 'lumbar joint - internal rotation (right/left)');
+                    this.basic_variable_data.lumbar_yaw_torque = this.basic_variable_data.joint_torque_trajectories(:, joint_torque_indicator);
+                    this.time_data.lumbar_yaw_torque = this.time_data.joint_torque_trajectories;
                 end
                 if strcmp(variable_name, 'cevical_roll_torque')
-                    joint_torque_indicator = strcmp(this.basic_variable_labels.joint_torque_trajectories_belt, 'cervical joint - sideways bending (right/left)');
-                    this.basic_variable_data.cevical_roll_torque = rad2deg(this.basic_variable_data.joint_torque_trajectories_belt(:, joint_torque_indicator));
-                    this.time_data.cevical_roll_torque = this.time_data.joint_torque_trajectories_belt;
+                    joint_torque_indicator = strcmp(this.basic_variable_labels.joint_torque_trajectories, 'cervical joint - sideways bending (right/left)');
+                    this.basic_variable_data.cevical_roll_torque = this.basic_variable_data.joint_torque_trajectories(:, joint_torque_indicator);
+                    this.time_data.cevical_roll_torque = this.time_data.joint_torque_trajectories;
                 end
                 if strcmp(variable_name, 'cevical_pitch_torque')
-                    joint_torque_indicator = strcmp(this.basic_variable_labels.joint_torque_trajectories_belt, 'cervical joint - forward/backward bending');
-                    this.basic_variable_data.cevical_pitch_torque = rad2deg(this.basic_variable_data.joint_torque_trajectories_belt(:, joint_torque_indicator));
-                    this.time_data.cevical_pitch_torque = this.time_data.joint_torque_trajectories_belt;
+                    joint_torque_indicator = strcmp(this.basic_variable_labels.joint_torque_trajectories, 'cervical joint - forward/backward bending');
+                    this.basic_variable_data.cevical_pitch_torque = this.basic_variable_data.joint_torque_trajectories(:, joint_torque_indicator);
+                    this.time_data.cevical_pitch_torque = this.time_data.joint_torque_trajectories;
                 end
                 if strcmp(variable_name, 'cevical_yaw_torque')
-                    joint_torque_indicator = strcmp(this.basic_variable_labels.joint_torque_trajectories_belt, 'cervical joint - internal rotation (right/left)');
-                    this.basic_variable_data.cevical_yaw_torque = rad2deg(this.basic_variable_data.joint_torque_trajectories_belt(:, joint_torque_indicator));
-                    this.time_data.cevical_yaw_torque = this.time_data.joint_torque_trajectories_belt;
+                    joint_torque_indicator = strcmp(this.basic_variable_labels.joint_torque_trajectories, 'cervical joint - internal rotation (right/left)');
+                    this.basic_variable_data.cevical_yaw_torque = this.basic_variable_data.joint_torque_trajectories(:, joint_torque_indicator);
+                    this.time_data.cevical_yaw_torque = this.time_data.joint_torque_trajectories;
                 end
                 if strcmp(variable_name, 'left_hip_abduction_torque')
-                    joint_torque_indicator = strcmp(this.basic_variable_labels.joint_torque_trajectories_belt, 'left hip ab/adduction');
-                    this.basic_variable_data.left_hip_abduction_torque = rad2deg(this.basic_variable_data.joint_torque_trajectories_belt(:, joint_torque_indicator));
-                    this.time_data.left_hip_abduction_torque = this.time_data.joint_torque_trajectories_belt;
+                    joint_torque_indicator = strcmp(this.basic_variable_labels.joint_torque_trajectories, 'left hip ab/adduction');
+                    this.basic_variable_data.left_hip_abduction_torque = this.basic_variable_data.joint_torque_trajectories(:, joint_torque_indicator);
+                    this.time_data.left_hip_abduction_torque = this.time_data.joint_torque_trajectories;
                 end
                 if strcmp(variable_name, 'left_hip_flexion_torque')
-                    joint_torque_indicator = strcmp(this.basic_variable_labels.joint_torque_trajectories_belt, 'left hip flexion/extension');
-                    this.basic_variable_data.left_hip_flexion_torque = rad2deg(this.basic_variable_data.joint_torque_trajectories_belt(:, joint_torque_indicator));
-                    this.time_data.left_hip_flexion_torque = this.time_data.joint_torque_trajectories_belt;
+                    joint_torque_indicator = strcmp(this.basic_variable_labels.joint_torque_trajectories, 'left hip flexion/extension');
+                    this.basic_variable_data.left_hip_flexion_torque = this.basic_variable_data.joint_torque_trajectories(:, joint_torque_indicator);
+                    this.time_data.left_hip_flexion_torque = this.time_data.joint_torque_trajectories;
                 end
                 if strcmp(variable_name, 'left_hip_introtation_torque')
-                    joint_torque_indicator = strcmp(this.basic_variable_labels.joint_torque_trajectories_belt, 'left hip internal/external rotation');
-                    this.basic_variable_data.left_hip_introtation_torque = rad2deg(this.basic_variable_data.joint_torque_trajectories_belt(:, joint_torque_indicator));
-                    this.time_data.left_hip_introtation_torque = this.time_data.joint_torque_trajectories_belt;
+                    joint_torque_indicator = strcmp(this.basic_variable_labels.joint_torque_trajectories, 'left hip internal/external rotation');
+                    this.basic_variable_data.left_hip_introtation_torque = this.basic_variable_data.joint_torque_trajectories(:, joint_torque_indicator);
+                    this.time_data.left_hip_introtation_torque = this.time_data.joint_torque_trajectories;
                 end
                 if strcmp(variable_name, 'left_knee_flexion_torque')
-                    joint_torque_indicator = strcmp(this.basic_variable_labels.joint_torque_trajectories_belt, 'left knee flexion/extension');
-                    this.basic_variable_data.left_knee_flexion_torque = rad2deg(this.basic_variable_data.joint_torque_trajectories_belt(:, joint_torque_indicator));
-                    this.time_data.left_knee_flexion_torque = this.time_data.joint_torque_trajectories_belt;
+                    joint_torque_indicator = strcmp(this.basic_variable_labels.joint_torque_trajectories, 'left knee flexion/extension');
+                    this.basic_variable_data.left_knee_flexion_torque = this.basic_variable_data.joint_torque_trajectories(:, joint_torque_indicator);
+                    this.time_data.left_knee_flexion_torque = this.time_data.joint_torque_trajectories;
                 end
                 if strcmp(variable_name, 'left_knee_extrotation_torque')
-                    joint_torque_indicator = strcmp(this.basic_variable_labels.joint_torque_trajectories_belt, 'left knee external/internal rotation');
-                    this.basic_variable_data.left_knee_extrotation_torque = rad2deg(this.basic_variable_data.joint_torque_trajectories_belt(:, joint_torque_indicator));
-                    this.time_data.left_knee_extrotation_torque = this.time_data.joint_torque_trajectories_belt;
+                    joint_torque_indicator = strcmp(this.basic_variable_labels.joint_torque_trajectories, 'left knee external/internal rotation');
+                    this.basic_variable_data.left_knee_extrotation_torque = this.basic_variable_data.joint_torque_trajectories(:, joint_torque_indicator);
+                    this.time_data.left_knee_extrotation_torque = this.time_data.joint_torque_trajectories;
                 end
                 if strcmp(variable_name, 'left_ankle_eversion_torque')
-                    joint_torque_indicator = strcmp(this.basic_variable_labels.joint_torque_trajectories_belt, 'left ankle eversion/inversion');
-                    this.basic_variable_data.left_ankle_eversion_torque = rad2deg(this.basic_variable_data.joint_torque_trajectories_belt(:, joint_torque_indicator));
-                    this.time_data.left_ankle_eversion_torque = this.time_data.joint_torque_trajectories_belt;
+                    joint_torque_indicator = strcmp(this.basic_variable_labels.joint_torque_trajectories, 'left ankle eversion/inversion');
+                    this.basic_variable_data.left_ankle_eversion_torque = this.basic_variable_data.joint_torque_trajectories(:, joint_torque_indicator);
+                    this.time_data.left_ankle_eversion_torque = this.time_data.joint_torque_trajectories;
                 end
                 if strcmp(variable_name, 'left_ankle_dorsiflexion_torque')
-                    joint_torque_indicator = strcmp(this.basic_variable_labels.joint_torque_trajectories_belt, 'left ankle dorsi/plantarflexion');
-                    this.basic_variable_data.left_ankle_dorsiflexion_torque = rad2deg(this.basic_variable_data.joint_torque_trajectories_belt(:, joint_torque_indicator));
-                    this.time_data.left_ankle_dorsiflexion_torque = this.time_data.joint_torque_trajectories_belt;
+                    joint_torque_indicator = strcmp(this.basic_variable_labels.joint_torque_trajectories, 'left ankle dorsi/plantarflexion');
+                    this.basic_variable_data.left_ankle_dorsiflexion_torque = this.basic_variable_data.joint_torque_trajectories(:, joint_torque_indicator);
+                    this.time_data.left_ankle_dorsiflexion_torque = this.time_data.joint_torque_trajectories;
                 end
                 if strcmp(variable_name, 'right_hip_abduction_torque')
-                    joint_torque_indicator = strcmp(this.basic_variable_labels.joint_torque_trajectories_belt, 'right hip ab/adduction');
-                    this.basic_variable_data.right_hip_abduction_torque = rad2deg(this.basic_variable_data.joint_torque_trajectories_belt(:, joint_torque_indicator));
-                    this.time_data.right_hip_abduction_torque = this.time_data.joint_torque_trajectories_belt;
+                    joint_torque_indicator = strcmp(this.basic_variable_labels.joint_torque_trajectories, 'right hip ab/adduction');
+                    this.basic_variable_data.right_hip_abduction_torque = this.basic_variable_data.joint_torque_trajectories(:, joint_torque_indicator);
+                    this.time_data.right_hip_abduction_torque = this.time_data.joint_torque_trajectories;
                 end
                 if strcmp(variable_name, 'right_hip_flexion_torque')
-                    joint_torque_indicator = strcmp(this.basic_variable_labels.joint_torque_trajectories_belt, 'right hip flexion/extension');
-                    this.basic_variable_data.right_hip_flexion_torque = rad2deg(this.basic_variable_data.joint_torque_trajectories_belt(:, joint_torque_indicator));
-                    this.time_data.right_hip_flexion_torque = this.time_data.joint_torque_trajectories_belt;
+                    joint_torque_indicator = strcmp(this.basic_variable_labels.joint_torque_trajectories, 'right hip flexion/extension');
+                    this.basic_variable_data.right_hip_flexion_torque = this.basic_variable_data.joint_torque_trajectories(:, joint_torque_indicator);
+                    this.time_data.right_hip_flexion_torque = this.time_data.joint_torque_trajectories;
                 end
                 if strcmp(variable_name, 'right_hip_introtation_torque')
-                    joint_torque_indicator = strcmp(this.basic_variable_labels.joint_torque_trajectories_belt, 'right hip internal/external rotation');
-                    this.basic_variable_data.right_hip_introtation_torque = rad2deg(this.basic_variable_data.joint_torque_trajectories_belt(:, joint_torque_indicator));
-                    this.time_data.right_hip_introtation_torque = this.time_data.joint_torque_trajectories_belt;
+                    joint_torque_indicator = strcmp(this.basic_variable_labels.joint_torque_trajectories, 'right hip internal/external rotation');
+                    this.basic_variable_data.right_hip_introtation_torque = this.basic_variable_data.joint_torque_trajectories(:, joint_torque_indicator);
+                    this.time_data.right_hip_introtation_torque = this.time_data.joint_torque_trajectories;
                 end
                 if strcmp(variable_name, 'right_knee_flexion_torque')
-                    joint_torque_indicator = strcmp(this.basic_variable_labels.joint_torque_trajectories_belt, 'right knee flexion/extension');
-                    this.basic_variable_data.right_knee_flexion_torque = rad2deg(this.basic_variable_data.joint_torque_trajectories_belt(:, joint_torque_indicator));
-                    this.time_data.right_knee_flexion_torque = this.time_data.joint_torque_trajectories_belt;
+                    joint_torque_indicator = strcmp(this.basic_variable_labels.joint_torque_trajectories, 'right knee flexion/extension');
+                    this.basic_variable_data.right_knee_flexion_torque = this.basic_variable_data.joint_torque_trajectories(:, joint_torque_indicator);
+                    this.time_data.right_knee_flexion_torque = this.time_data.joint_torque_trajectories;
                 end
                 if strcmp(variable_name, 'right_knee_extrotation_torque')
-                    joint_torque_indicator = strcmp(this.basic_variable_labels.joint_torque_trajectories_belt, 'right knee external/internal rotation');
-                    this.basic_variable_data.right_knee_extrotation_torque = rad2deg(this.basic_variable_data.joint_torque_trajectories_belt(:, joint_torque_indicator));
-                    this.time_data.right_knee_extrotation_torque = this.time_data.joint_torque_trajectories_belt;
+                    joint_torque_indicator = strcmp(this.basic_variable_labels.joint_torque_trajectories, 'right knee external/internal rotation');
+                    this.basic_variable_data.right_knee_extrotation_torque = this.basic_variable_data.joint_torque_trajectories(:, joint_torque_indicator);
+                    this.time_data.right_knee_extrotation_torque = this.time_data.joint_torque_trajectories;
                 end
                 if strcmp(variable_name, 'right_ankle_eversion_torque')
-                    joint_torque_indicator = strcmp(this.basic_variable_labels.joint_torque_trajectories_belt, 'right ankle eversion/inversion');
-                    this.basic_variable_data.right_ankle_eversion_torque = rad2deg(this.basic_variable_data.joint_torque_trajectories_belt(:, joint_torque_indicator));
-                    this.time_data.right_ankle_eversion_torque = this.time_data.joint_torque_trajectories_belt;
+                    joint_torque_indicator = strcmp(this.basic_variable_labels.joint_torque_trajectories, 'right ankle eversion/inversion');
+                    this.basic_variable_data.right_ankle_eversion_torque = this.basic_variable_data.joint_torque_trajectories(:, joint_torque_indicator);
+                    this.time_data.right_ankle_eversion_torque = this.time_data.joint_torque_trajectories;
                 end
                 if strcmp(variable_name, 'right_ankle_dorsiflexion_torque')
-                    joint_torque_indicator = strcmp(this.basic_variable_labels.joint_torque_trajectories_belt, 'right ankle dorsi/plantarflexion');
-                    this.basic_variable_data.right_ankle_dorsiflexion_torque = rad2deg(this.basic_variable_data.joint_torque_trajectories_belt(:, joint_torque_indicator));
-                    this.time_data.right_ankle_dorsiflexion_torque = this.time_data.joint_torque_trajectories_belt;
+                    joint_torque_indicator = strcmp(this.basic_variable_labels.joint_torque_trajectories, 'right ankle dorsi/plantarflexion');
+                    this.basic_variable_data.right_ankle_dorsiflexion_torque = this.basic_variable_data.joint_torque_trajectories(:, joint_torque_indicator);
+                    this.time_data.right_ankle_dorsiflexion_torque = this.time_data.joint_torque_trajectories;
                 end
                 
                 % force plate

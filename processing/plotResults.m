@@ -282,6 +282,9 @@ function plotResults(varargin)
         axes_handles = zeros(number_of_episodes, number_of_variables_to_plot);
         pos_text_handles = zeros(number_of_episodes, number_of_variables_to_plot);
         neg_text_handles = zeros(number_of_episodes, number_of_variables_to_plot);
+        step_start_times_cell = cell(number_of_episodes, number_of_variables_to_plot);
+        step_end_times_cell = cell(number_of_episodes, number_of_variables_to_plot);
+        step_stance_foot_cell = cell(number_of_episodes, number_of_variables_to_plot);
 
         for i_variable = 1 : number_of_variables_to_plot
             for i_episode = 1 : number_of_episodes
@@ -544,6 +547,43 @@ function plotResults(varargin)
                 end
             end
         end
+        
+        % determine stance start and end times and stance foot
+        for i_variable = 1 : number_of_variables_to_plot
+            if isContinuousVariable(i_variable, variable_data_all)
+                for i_episode = 1 : number_of_episodes
+                    % get start times and end times for the steps
+                    this_episode = episode_indices{i_episode};
+                    step_start_times = zeros(1, length(this_episode));
+                    step_end_times = zeros(1, length(this_episode));
+                    step_stance_foot = zeros(1, length(this_episode));
+                    
+                    for i_comparison = 1 : length(this_episode)
+                        this_comparison = this_episode(i_comparison);
+                        step_abscissa = abscissae_cell{this_comparison, i_variable};
+                        step_start_times(i_comparison) = step_abscissa(1, 1);
+                        step_end_times(i_comparison) = step_abscissa(1, end);
+
+                        % determine stance foot
+                        conditions_this_comparison = comparison_indices{this_comparison};
+                        example_condition = 1;
+                        condition_identifier = conditions_to_plot(conditions_this_comparison(example_condition), :);
+                        if strcmp(condition_identifier{1}, 'STANCE_LEFT')
+                            step_stance_foot(i_comparison) = 1;
+                        end
+                        if strcmp(condition_identifier{1}, 'STANCE_RIGHT')
+                            step_stance_foot(i_comparison) = 2;
+                        end
+                        
+                    end
+                    
+                    step_start_times_cell{i_episode, i_variable} = step_start_times;
+                    step_end_times_cell{i_episode, i_variable} = step_end_times;
+                    step_stance_foot_cell{i_episode, i_variable} = step_stance_foot;
+                end
+            end
+        end
+        
     end
     
     %% plot data
@@ -660,6 +700,7 @@ function plotResults(varargin)
                 this_condition_indicator = stance_foot_indicator & perturbation_indicator & delay_indicator & index_indicator & experimental_indicator & stimulus_indicator & day_indicator;
                 data_to_plot_this_condition = data_to_plot(:, this_condition_indicator);
                 origin_trial_list_this_condition = origin_trial_list_all(this_condition_indicator);
+                origin_indices = find(this_condition_indicator);
                 if isDiscreteVariable(i_variable, variable_data_all)
                     target_abscissa = abscissae_cell{i_comparison, i_variable};
                     if strcmp(plot_mode, 'detailed')
@@ -684,12 +725,13 @@ function plotResults(varargin)
                     if strcmp(plot_mode, 'detailed')
                         for i_stretch = 1 : size(data_to_plot_this_condition, 2)
                             origin_trial_data = ones(size(target_abscissa)) * origin_trial_list_this_condition(i_stretch);
+                            origin_index_data = ones(size(target_abscissa)) * origin_indices(i_stretch);
                             plot3 ...
                               ( ...
                                 target_axes_handle, ...
                                 target_abscissa, ...
                                 data_to_plot_this_condition(:, i_stretch), ...
-                                origin_trial_data, ...
+                                origin_index_data, ... %origin_trial_data, ...
                                 'HandleVisibility', 'off', ...
                                 'color', lightenColor(colors_comparison(i_condition, :), 0.5) ...
                               );
@@ -749,6 +791,47 @@ function plotResults(varargin)
         end
     end
     
+    %% shade steps
+    if strcmp(plot_mode, 'episodes')
+        for i_variable = 1 : number_of_variables_to_plot
+            for i_episode = 1 : number_of_episodes
+                these_axes = axes_handles(i_episode, i_variable);
+                ylimits = get(these_axes, 'ylim');
+
+                step_start_times = step_start_times_cell{i_episode, i_variable};
+                step_end_times = step_end_times_cell{i_episode, i_variable};
+                step_stance_foot = step_stance_foot_cell{i_episode, i_variable};
+                
+                for i_step = 1 : length(step_start_times)
+                    patch_color = [1 1 1] * 0.8;
+                    if step_stance_foot(i_step) == 1
+                        patch_color = study_settings.get('stance_left_color');
+                    end
+                    if step_stance_foot(i_step) == 2
+                        patch_color = study_settings.get('stance_right_color');
+                    end
+                    stretch_start = step_start_times(i_step);
+                    stretch_end = step_end_times(i_step);
+
+                    patch_x = [stretch_start stretch_end stretch_end stretch_start];
+                    patch_y = [ylimits(1) ylimits(1) ylimits(2) ylimits(2)];
+                    patch_handle = ...
+                        patch ...
+                          ( ...
+                            patch_x, ...
+                            patch_y, ...
+                            patch_color, ...
+                            'parent', these_axes, ...
+                            'EdgeColor', 'none', ...
+                            'FaceAlpha', study_settings.get('stance_alpha'), ...
+                            'HandleVisibility', 'off' ...
+                          ); 
+                    uistack(patch_handle, 'bottom')
+                end
+            end
+        end
+    end
+    
     %% save figures
     if parser.Results.save
         % figure out folders
@@ -761,9 +844,9 @@ function plotResults(varargin)
         if ~exist(['figures' filesep 'noLabels'], 'dir')
             mkdir(['figures' filesep 'noLabels'])
         end
-        for i_figure = 1 : length(figure_handles)
+        for i_figure = 1 : numel(figure_handles)
             % save with labels
-            legend(axes_handles(i_figure), 'show');
+%             legend(axes_handles(i_figure), 'show');
             filename = ['figures' filesep 'withLabels' filesep get(figure_handles(i_figure), 'UserData')];
             saveas(figure_handles(i_figure), filename, parser.Results.format)
             

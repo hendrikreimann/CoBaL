@@ -347,11 +347,17 @@ function optimizeKinematicTrajectories(varargin)
 %             time_steps_to_optimize = 1 : number_of_time_steps;
             
             time_steps_to_optimize = determineTimeStepsToProcess(date, subject_id, condition, i_trial, study_settings.get('data_stretch_padding'));
+            
+% time_steps_to_optimize = time_steps_to_optimize(1 : 10);
             number_of_time_steps_to_optimize = length(time_steps_to_optimize);
             
             %% optimize
-            joint_angle_trajectories_calculated = joint_angle_trajectories;
-            joint_angle_trajectories_optimized = zeros(size(joint_angle_trajectories_calculated)) * NaN;
+            if exist('joint_angle_trajectories', 'var')
+                joint_angle_trajectories_calculated = joint_angle_trajectories;
+            else
+                joint_angle_trajectories_calculated = zeros(number_of_time_steps, number_of_joints);
+            end
+            joint_angle_trajectories_optimized = zeros(size(joint_angle_trajectories_calculated)) * NaN;            
             
             tic
 %             disp([datestr(datetime,'yyyy-mm-dd HH:MM:SS') ' - Condition ' condition ', Trial ' num2str(i_trial)])
@@ -580,9 +586,14 @@ function optimizeKinematicTrajectories(varargin)
             saveDataToFile([save_folder filesep save_file_name], variables_to_save);
             disp(['Condition ' condition ', Trial ' num2str(i_trial) ' completed, saved as ' save_folder filesep save_file_name]);
 
+            addAvailableData('joint_center_trajectories', 'time_mocap', 'sampling_rate_mocap', 'joint_center_labels', save_folder, save_file_name);
+            addAvailableData('com_trajectories', 'time_mocap', 'sampling_rate_mocap', 'com_labels', save_folder, save_file_name);
+            addAvailableData('joint_angle_trajectories', 'time_mocap', 'sampling_rate_mocap', 'joint_labels', save_folder, save_file_name);
+            
             addAvailableData('joint_center_trajectories_calculated', 'time_mocap', 'sampling_rate_mocap', 'joint_center_labels', save_folder, save_file_name);
             addAvailableData('com_trajectories_calculated', 'time_mocap', 'sampling_rate_mocap', 'com_labels', save_folder, save_file_name);
             addAvailableData('joint_angle_trajectories_calculated', 'time_mocap', 'sampling_rate_mocap', 'joint_labels', save_folder, save_file_name);
+            
             addAvailableData('joint_center_trajectories_optimized', 'time_mocap', 'sampling_rate_mocap', 'joint_center_labels', save_folder, save_file_name);
             addAvailableData('com_trajectories_optimized', 'time_mocap', 'sampling_rate_mocap', 'com_labels', save_folder, save_file_name);
             addAvailableData('joint_angle_trajectories_optimized', 'time_mocap', 'sampling_rate_mocap', 'joint_labels', save_folder, save_file_name);
