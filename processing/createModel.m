@@ -1026,7 +1026,7 @@ function createModel(varargin)
 
     number_of_segments = length(segment_labels);
 
-    mcs_to_wcs_transformations = calculateMcsToWcsTransformations_new([marker_reference joint_center_reference], [marker_labels joint_center_headers], segment_labels);
+    mcs_to_wcs_transformations = calculateMcsToWcsTransformations_new([marker_reference joint_center_reference], [marker_labels joint_center_headers], segment_labels, subject_settings);
     pelvis_transformation_current = mcs_to_wcs_transformations{strcmp(segment_labels, 'PELVIS')};
 
     % assemble segment masses

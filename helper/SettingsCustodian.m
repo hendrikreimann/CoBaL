@@ -101,7 +101,60 @@ classdef SettingsCustodian < handle
             if strcmp(property_name, 'figure_settings_file')
                 default_data = 'eventGuiFigureSettings.mat';
             end
-            
+            if strcmp(property_name, 'markers_HEAD')
+                default_data = {'RFHD', 'LFHD', 'RBHD'};
+            end
+            if strcmp(property_name, 'markers_TORSO')
+                default_data = {'C7', 'CLAV', 'T10'};
+            end
+            if strcmp(property_name, 'markers_LUPPERARM')
+                default_data = {'LSHOULDERCOR', 'LELBOWCOR', 'LELB'};
+            end
+            if strcmp(property_name, 'markers_RUPPERARM')
+                default_data = {'RSHOULDERCOR', 'RELBOWCOR', 'RELB'};
+            end
+            if strcmp(property_name, 'markers_LFOREARM')
+                default_data = {'LFRM', 'LWRA', 'LWRB'};
+            end
+            if strcmp(property_name, 'markers_RFOREARM')
+                default_data = {'RFRM', 'RWRA', 'RWRB'};
+            end
+            if strcmp(property_name, 'markers_LHAND')
+                default_data = {'LWRB', 'LWRA', 'LFIN'};
+            end
+            if strcmp(property_name, 'markers_RHAND')
+                default_data = {'RWRB', 'RWRA', 'RFIN'};
+            end
+            if strcmp(property_name, 'markers_LTHIGH')
+                default_data = {'LTHI', 'LHIPCOR', 'LKNE'};
+            end
+            if strcmp(property_name, 'markers_RTHIGH')
+                default_data = {'RTHI', 'RHIPCOR', 'RKNE'};
+            end
+            if strcmp(property_name, 'markers_LSHANK')
+                default_data = {'LKNEECOR', 'LKNE', 'LANK'};
+            end
+            if strcmp(property_name, 'markers_RSHANK')
+                default_data = {'RKNEECOR', 'RKNE', 'RANK'};
+            end
+            if strcmp(property_name, 'markers_LFOOT')
+                default_data = {'LHEE', 'LTOE', 'LTOEL'};
+            end
+            if strcmp(property_name, 'markers_RFOOT')
+                default_data = {'RHEE', 'RTOE', 'RTOEL'};
+            end
+
+
+
+
+
+
+
+
+
+
+
+
 
             
             

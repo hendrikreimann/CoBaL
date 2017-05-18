@@ -15,7 +15,7 @@
 %     along with this program.  If not, see <http://www.gnu.org/licenses/>.% compare the kinematic tree against the kinematic chain
 
 
-function transformations = calculateMcsToWcsTransformations_new(marker_positions, marker_headers, segment_labels)
+function transformations = calculateMcsToWcsTransformations_new(marker_positions, marker_headers, segment_labels, subject_settings)
 
     
     transformations = cell(length(segment_labels), 1);
@@ -39,38 +39,41 @@ function transformations = calculateMcsToWcsTransformations_new(marker_positions
             positions_this_segment = [pelvis_base_point, pelvis_base_point+pelvis_left_to_right, pelvis_base_point+MPSIS_to_MASIS]';
             
         else % define three markers and use these to define the basis
-            if strcmp(this_segment_label, 'HEAD')
-                this_segment_markers = {'RFHD', 'LFHD', 'RBHD'};
-            elseif strcmp(this_segment_label, 'TORSO')
-                this_segment_markers = {'C7', 'CLAV', 'T10'};
-            elseif strcmp(this_segment_label, 'LUPPERARM')
-                this_segment_markers = {'LSHOULDERCOR', 'LELBOWCOR', 'LELB'};
-            elseif strcmp(this_segment_label, 'RUPPERARM')
-                this_segment_markers = {'RSHOULDERCOR', 'RELBOWCOR', 'RELB'};
-            elseif strcmp(this_segment_label, 'LFOREARM')
-                this_segment_markers = {'LFRM', 'LWRA', 'LWRB'};
-            elseif strcmp(this_segment_label, 'RFOREARM')
-                this_segment_markers = {'RFRM', 'RWRA', 'RWRB'};
-            elseif strcmp(this_segment_label, 'LHAND')
-                this_segment_markers = {'LWRB', 'LWRA', 'LFIN'}; % this is not good because these markers are not actually on a rigid body. Check later if I can change that
-            elseif strcmp(this_segment_label, 'RHAND')
-                this_segment_markers = {'RWRB', 'RWRA', 'RFIN'};
-            elseif strcmp(this_segment_label, 'LTHIGH')
-                this_segment_markers = {'LTHI', 'LHIPCOR', 'LKNE'};
-            elseif strcmp(this_segment_label, 'RTHIGH')
-                this_segment_markers = {'RTHI', 'RHIPCOR', 'RKNE'};
-                
-            elseif strcmp(this_segment_label, 'LSHANK')
-                this_segment_markers = {'LKNEECOR', 'LKNE', 'LANK'};
-            elseif strcmp(this_segment_label, 'RSHANK')
-                this_segment_markers = {'RKNEECOR', 'RKNE', 'RANK'};
-            elseif strcmp(this_segment_label, 'LFOOT')
-%                 this_segment_markers = {'LANK', 'LHEE', 'LTOE'};
-                this_segment_markers = {'LHEE', 'LTOE', 'LTOEL'};
-            elseif strcmp(this_segment_label, 'RFOOT')
-%                 this_segment_markers = {'RANK', 'RHEE', 'RTOE'};
-                this_segment_markers = {'RHEE', 'RTOE', 'RTOEL'};
-            end                
+            this_segment_markers = subject_settings.get(['markers_' this_segment_label]);
+
+            
+%             if strcmp(this_segment_label, 'HEAD')
+%                 this_segment_markers = {'RFHD', 'LFHD', 'RBHD'};
+%             elseif strcmp(this_segment_label, 'TORSO')
+%                 this_segment_markers = {'C7', 'CLAV', 'T10'};
+%             elseif strcmp(this_segment_label, 'LUPPERARM')
+%                 this_segment_markers = {'LSHOULDERCOR', 'LELBOWCOR', 'LELB'};
+%             elseif strcmp(this_segment_label, 'RUPPERARM')
+%                 this_segment_markers = {'RSHOULDERCOR', 'RELBOWCOR', 'RELB'};
+%             elseif strcmp(this_segment_label, 'LFOREARM')
+%                 this_segment_markers = {'LFRM', 'LWRA', 'LWRB'};
+%             elseif strcmp(this_segment_label, 'RFOREARM')
+%                 this_segment_markers = {'RFRM', 'RWRA', 'RWRB'};
+%             elseif strcmp(this_segment_label, 'LHAND')
+%                 this_segment_markers = {'LWRB', 'LWRA', 'LFIN'}; % this is not good because these markers are not actually on a rigid body. Check later if I can change that
+%             elseif strcmp(this_segment_label, 'RHAND')
+%                 this_segment_markers = {'RWRB', 'RWRA', 'RFIN'};
+%             elseif strcmp(this_segment_label, 'LTHIGH')
+%                 this_segment_markers = {'LTHI', 'LHIPCOR', 'LKNE'};
+%             elseif strcmp(this_segment_label, 'RTHIGH')
+%                 this_segment_markers = {'RTHI', 'RHIPCOR', 'RKNE'};
+%                 
+%             elseif strcmp(this_segment_label, 'LSHANK')
+%                 this_segment_markers = {'LKNEECOR', 'LKNE', 'LANK'};
+%             elseif strcmp(this_segment_label, 'RSHANK')
+%                 this_segment_markers = {'RKNEECOR', 'RKNE', 'RANK'};
+%             elseif strcmp(this_segment_label, 'LFOOT')
+% %                 this_segment_markers = {'LANK', 'LHEE', 'LTOE'};
+%                 this_segment_markers = {'LHEE', 'LTOE', 'LTOEL'};
+%             elseif strcmp(this_segment_label, 'RFOOT')
+% %                 this_segment_markers = {'RANK', 'RHEE', 'RTOE'};
+%                 this_segment_markers = {'RHEE', 'RTOE', 'RTOEL'};
+%             end                
             
             % find marker numbers
             number_of_markers_this_segment = length(this_segment_markers);
