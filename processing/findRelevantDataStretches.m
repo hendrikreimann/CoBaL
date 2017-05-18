@@ -148,6 +148,7 @@ function findRelevantDataStretches(varargin)
             % stimulus data
             if strcmp(condition_stimulus, 'GVS')
                 GVS_out_trajectory = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'GVS_out_trajectory');
+                GVS_stim_trajectory = GVS_out_trajectory + subject_settings.get('gvs_offset');
                 [stimulus_state_trajectory, time_stimulus] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'stimulus_state_trajectory');
             end
             if strcmp(condition_stimulus, 'VISUAL')
@@ -171,11 +172,11 @@ function findRelevantDataStretches(varargin)
                 illusion_trajectory = zeros(size(time_stimulus)); % 1 = RIGHT, -1 = LEFT
                 % use GVS_out_trajectory as illusion
                 for i_time = 1 : length(time_stimulus)
-                    if GVS_out_trajectory(i_time) > 0
+                    if GVS_stim_trajectory(i_time) > 0
                         % anode is on the right, cathode is on the left, illusory fall is towards the cathode, i.e. LEFT
                         illusion_trajectory(i_time) = -1;
                     end
-                    if GVS_out_trajectory(i_time) < 0
+                    if GVS_stim_trajectory(i_time) < 0
                         % anode is on the left, cathode is on the right, illusory fall is towards the cathode, i.e. RIGHT
                         illusion_trajectory(i_time) = 1;
                     end
