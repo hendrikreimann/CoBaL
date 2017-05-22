@@ -21,7 +21,8 @@ function joint_center_positions = ...
         marker_positions, ...
         marker_headers, ...
         joint_center_reference, ...
-        joint_center_headers ...
+        joint_center_headers, ...
+        subject_settings ...
       )
   
   
@@ -40,8 +41,8 @@ function joint_center_positions = ...
 
     
     % calculate transformations for segments that are fully determined by markers
-    transformations_reference = calculateMcsToWcsTransformations_new(marker_reference, marker_headers, segment_labels);
-    transformations_current = calculateMcsToWcsTransformations_new(marker_positions, marker_headers, segment_labels);    
+    transformations_reference = calculateMcsToWcsTransformations_new(marker_reference, marker_headers, segment_labels, subject_settings);
+    transformations_current = calculateMcsToWcsTransformations_new(marker_positions, marker_headers, segment_labels, subject_settings);    
     
     
     % cervix
@@ -199,8 +200,8 @@ function joint_center_positions = ...
     markers_and_cor_labels = [marker_headers {'LHIPCOR', 'RHIPCOR'}];
     segment_labels = {'LTHIGH', 'RTHIGH'};
     
-    transformations_reference = calculateMcsToWcsTransformations_new(markers_and_cor_reference, markers_and_cor_labels, segment_labels);
-    transformations_current = calculateMcsToWcsTransformations_new(markers_and_cor_positions, markers_and_cor_labels, segment_labels);    
+    transformations_reference = calculateMcsToWcsTransformations_new(markers_and_cor_reference, markers_and_cor_labels, segment_labels, subject_settings);
+    transformations_current = calculateMcsToWcsTransformations_new(markers_and_cor_positions, markers_and_cor_labels, segment_labels, subject_settings);    
     
     % left knee
     T_reference_wcs_to_thigh_mcs = transformations_reference{strcmp(segment_labels, 'LTHIGH')}^(-1);
