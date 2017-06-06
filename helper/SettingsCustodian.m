@@ -18,6 +18,7 @@ classdef SettingsCustodian < handle
     properties
         settings_file = '';
         settings_struct = struct;
+        property_not_found_list = {};
     end
     methods
         function this = SettingsCustodian(settings_file)
@@ -36,17 +37,45 @@ classdef SettingsCustodian < handle
                 used_default = false;
             end
             
-            
-            
             if used_default
-                data_string = data;
+                % transform this entry into a string
+                if iscell(data)
+                    data_string = [];
+                    for i_cell = 1 : length(data)
+                        this_cell = data{i_cell};
+                        % make sure this is a string
+                        if isnumeric(this_cell)
+                            this_cell_string = num2str(this_cell);
+                        else
+                            this_cell_string = this_cell;
+                        end
+                        
+                        % append to entry string
+                        if isempty(data_string)
+                            data_string = this_cell_string;
+                        else
+                            data_string = [data_string ', ' this_cell_string];
+                        end
+                    end
+                end
+                
+                
+                ...
+                
+                % data
+                report_string = [];
                 if isempty(data_string)
-                    disp(['Setting not found in file ' this.settings_file ' - ' property_name]);
+                    report_string = ['Setting not found in file ' this.settings_file ' - ' property_name];
                 else
                     if isnumeric(data_string)
                         data_string = num2str(data_string);
                     end
-                    disp(['Setting not found in file ' this.settings_file ', using default - ' property_name ': ' data_string]);
+                    report_string = ['Setting not found in file ' this.settings_file ', using default - ' property_name ': ' data_string];
+                end
+                
+                if ~any(strcmp(property_name, this.property_not_found_list))
+                    disp(report_string)
+                    this.property_not_found_list = [this.property_not_found_list; property_name];
                 end
             end
         end
