@@ -19,12 +19,12 @@ classdef SettingsCustodian < handle
         settings_file = '';
         settings_struct = struct;
         property_not_found_list = {};
+        verbose = true;
     end
     methods
         function this = SettingsCustodian(settings_file)
             this.settings_file = settings_file;
             this.settings_struct = loadSettingsFile(settings_file);
-            
         end
         function data = get(this, property_name)
             % set to default
@@ -38,9 +38,9 @@ classdef SettingsCustodian < handle
             end
             
             if used_default
+                data_string = [];
                 % transform this entry into a string
                 if iscell(data)
-                    data_string = [];
                     for i_cell = 1 : length(data)
                         this_cell = data{i_cell};
                         % make sure this is a string
@@ -59,9 +59,6 @@ classdef SettingsCustodian < handle
                     end
                 end
                 
-                
-                ...
-                
                 % data
                 report_string = [];
                 if isempty(data_string)
@@ -74,7 +71,9 @@ classdef SettingsCustodian < handle
                 end
                 
                 if ~any(strcmp(property_name, this.property_not_found_list))
-                    disp(report_string)
+                    if this.verbose
+                        disp(report_string)
+                    end
                     this.property_not_found_list = [this.property_not_found_list; property_name];
                 end
             end
