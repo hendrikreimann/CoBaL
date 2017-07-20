@@ -831,7 +831,7 @@ function plotResults(varargin)
             for i_axes = 1 : size(axes_handles, 1)
                 these_axes = axes_handles(i_axes, i_variable);
                 xlimits = get(these_axes, 'xlim');
-                zero_plot = plot(xlimits, [0 0], 'color', [0.7 0.7 0.7]);
+                zero_plot = plot(these_axes, xlimits, [0 0], 'color', [0.7 0.7 0.7]);
                 uistack(zero_plot, 'bottom')
                 
             end

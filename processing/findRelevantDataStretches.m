@@ -1354,7 +1354,7 @@ function findRelevantDataStretches(varargin)
 %             save(stretches_file_name, '-struct', 'event_variables_to_save');
             saveDataToFile(stretches_file_name, event_variables_to_save);
             
-            disp(['Finding Relevant Data Stretches: condition ' condition_list{i_condition} ', Trial ' num2str(i_trial) ' completed, found ' num2str(length(stretch_start_times)) ' relevant stretches, saved as ' stretches_file_name]);                
+            disp(['Finding Relevant Data Stretches: condition ' condition_list{i_condition} ', Trial ' num2str(i_trial) ' completed, found ' num2str(length(event_variables_to_save.stretch_start_times)) ' relevant stretches, saved as ' stretches_file_name]);                
         end
 
     end

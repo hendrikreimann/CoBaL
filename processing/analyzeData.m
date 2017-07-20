@@ -54,11 +54,11 @@ function analyzeData(varargin)
         condition = condition_list{i_type};
         trials_to_process = trial_number_list{i_type};
         for i_trial = trials_to_process
-%             disp(['i_trial = ' num2str(i_trial)])
+            disp(['i_trial = ' num2str(i_trial)])
             % load and prepare data
             data_custodian.prepareBasicVariables(condition, i_trial);
             load(['analysis' filesep makeFileName(date, subject_id, condition, i_trial, 'relevantDataStretches')]);
-            data_trial = data_custodian.calculateStretchVariables(stretch_start_times, stretch_end_times, condition_stance_foot_list_trial);
+            data_trial = data_custodian.calculateStretchVariables(stretch_start_times, stretch_end_times, condition_stance_foot_list_trial, condition_experimental_list_trial);
             
             % append the data and condition lists from this trial to the total lists
             for i_variable = 1 : number_of_stretch_variables
