@@ -106,7 +106,19 @@ function rigidBodyFill(marker_to_fill, marker_source_1, marker_source_2, marker_
                 plot(error, 'linewidth', 3)
             end
             
-            % TODO: insert reconstructed trajectory back into array and save
+            % insert reconstructed trajectory back into array
+            marker_number = find(strcmp(marker_labels, marker_to_fill));
+            markers_indices = reshape([(marker_number - 1) * 3 + 1; (marker_number - 1) * 3 + 2; (marker_number - 1) * 3 + 3], 1, length(marker_number)*3);
+            marker_trajectories(:, markers_indices) = marker_to_fill_trajectory;
+            
+            % save
+            variables_to_save = struct;
+            variables_to_save.marker_trajectories = marker_trajectories;
+            
+            save_folder = 'processed';
+            save_file_name = makeFileName(date, subject_id, condition, i_trial, 'markerTrajectories.mat');
+            saveDataToFile([save_folder filesep save_file_name], variables_to_save);
+            disp(['Condition ' condition ', Trial ' num2str(i_trial) ' completed, saved as ' save_folder filesep save_file_name]);
             
         end
     end
