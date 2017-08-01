@@ -30,7 +30,7 @@ function analyzeAlpha(varargin)
 
     % calculate RMS
     alpha_labels = 'undefined';
-    for i_condition = 1 : length(condition_list)
+    for i_condition = 3 %: length(condition_list)
         trials_to_process = trial_number_list{i_condition};
         root_mean_square_errors_left = zeros(1, length(trials_to_process));
         root_mean_square_errors_right = zeros(1, length(trials_to_process));
@@ -44,6 +44,14 @@ function analyzeAlpha(varargin)
             [inclination_angle_mocap_right_trajectory, time_marker, sampling_rate_marker, marker_labels] = loadData(date, subject_id, condition, i_trial, 'inclination_angle_mocap_right_trajectory');
             [inclination_angle_armsense_left_trajectories, time_marker, sampling_rate_marker, alpha_labels_left] = loadData(date, subject_id, condition, i_trial, 'inclination_angle_armsense_left_trajectories');
             [inclination_angle_armsense_right_trajectories, time_marker, sampling_rate_marker, alpha_labels_right] = loadData(date, subject_id, condition, i_trial, 'inclination_angle_armsense_right_trajectories');
+            
+            % clip data due to missing marker data in beginning and end of
+            % trials
+            inclination_angle_mocap_left_trajectory = inclination_angle_mocap_left_trajectory(500:29500,:);
+            inclination_angle_mocap_right_trajectory = inclination_angle_mocap_right_trajectory(500:29500,:);
+            inclination_angle_armsense_left_trajectories = inclination_angle_armsense_left_trajectories(500:29500,:);
+            inclination_angle_armsense_right_trajectories = inclination_angle_armsense_right_trajectories(500:29500,:);
+            
             if strcmp(alpha_labels, 'undefined')
                 alpha_labels = alpha_labels_left;
             end
@@ -52,8 +60,8 @@ function analyzeAlpha(varargin)
             end
             
             % find peaks for average 
-            [maxPeaks_left, maxPeaks_left_indices] = findpeaks(inclination_angle_mocap_left_trajectory,'MinPeakHeight',40);
-            [maxPeaks_right, maxPeaks_right_indices] = findpeaks(inclination_angle_mocap_right_trajectory,'MinPeakHeight',40);
+            [maxPeaks_left, maxPeaks_left_indices] = findpeaks(inclination_angle_mocap_left_trajectory,'MinPeakHeight',30);
+            [maxPeaks_right, maxPeaks_right_indices] = findpeaks(inclination_angle_mocap_right_trajectory,'MinPeakHeight',30);
             [minPeaks_left, minPeaks_left_indices] = findpeaks(-inclination_angle_mocap_left_trajectory);
             [minPeaks_right, minPeaks_right_indices] = findpeaks(-inclination_angle_mocap_right_trajectory);
             minPeaks_left = abs(minPeaks_left);
