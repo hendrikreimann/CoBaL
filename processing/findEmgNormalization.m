@@ -66,7 +66,7 @@ function findEmgNormalization(varargin)
             data_custodian.prepareBasicVariables(condition, i_trial, [{'emg_trajectories'}; emg_variable_names]);
             
             load(['analysis' filesep makeFileName(date, subject_id, condition, i_trial, 'relevantDataStretches')]);
-            data_trial = data_custodian.calculateStretchVariables(stretch_start_times, stretch_end_times, condition_stance_foot_list_trial, emg_variable_names);
+            data_trial = data_custodian.calculateStretchVariables(stretch_start_times, stretch_end_times, condition_stance_foot_list_trial, condition_experimental_list_trial, emg_variable_names);
             
             % append the data and condition lists from this trial to the total lists
             for i_variable = 1 : number_of_stretch_variables
@@ -113,23 +113,27 @@ function findEmgNormalization(varargin)
     disp(conditions_emg_normalization_with_labels);
 
     % average across stretches
-    emg_normalization_values = zeros(length(emg_variable_names), 1);
+    emg_normalization_values = zeros(length(emg_variable_names), 1) * NaN;
     for i_variable = 1 : number_of_stretch_variables
         data_this_variable = data_subject{i_variable};
-        condition_averages_this_variable = zeros(1, number_of_conditions_emg_normalization);
-        for i_condition = 1 : number_of_conditions_emg_normalization
-            this_condition_indicator = conditions_emg_normalization_indicators(:, i_condition);
-            data_this_condition = data_this_variable(:, this_condition_indicator);
-            average_this_condition = mean(data_this_condition, 2);
-            condition_averages_this_variable(i_condition) = mean(average_this_condition);
-            
-            if visualize
-                figure; hold on
-                plot(data_this_condition);
-                plot(average_this_condition, 'linewidth', 5);
+        condition_averages_this_variable = zeros(1, number_of_conditions_emg_normalization) * NaN;
+        
+        if ~(strcmp(emg_variable_names{i_variable}, 'empty') || strcmp(emg_variable_names{i_variable}, '~'))
+            for i_condition = 1 : number_of_conditions_emg_normalization
+                this_condition_indicator = conditions_emg_normalization_indicators(:, i_condition);
+                data_this_condition = data_this_variable(:, this_condition_indicator);
+                average_this_condition = mean(data_this_condition, 2);
+                condition_averages_this_variable(i_condition) = mean(average_this_condition);
+
+                if visualize
+                    figure; hold on;
+                    title(emg_variable_names{i_variable});
+                    plot(data_this_condition);
+                    plot(average_this_condition, 'linewidth', 5);
+                end
             end
+            emg_normalization_values(i_variable) = mean(condition_averages_this_variable);
         end
-        emg_normalization_values(i_variable) = mean(condition_averages_this_variable);
     end
     
     % save data
