@@ -1283,8 +1283,6 @@ function findRelevantDataStretches(varargin)
                 variables_to_prune_for = [variables_to_prune_for; 'com_trajectories']; %#ok<AGROW>
             end
             
-            
-            
             % prune
             number_of_stretches = length(stretch_start_times);
             removal_flags = zeros(number_of_stretches, 1);
@@ -1319,6 +1317,30 @@ function findRelevantDataStretches(varargin)
                 end
             end
 
+            % check data availability for markers with non-zero weight
+            marker_weights = study_settings.get('marker_weights');
+            for i_marker = 1 : length(marker_labels)
+                this_marker_weight = 1; % 1 is default
+                
+                this_marker_label = marker_labels(i_marker);
+                if any(strcmp(marker_weights(:, 1), this_marker_label))
+                    this_marker_weight = marker_weights{strcmp(marker_weights(:, 1), this_marker_label), 2};
+                end
+                
+                if this_marker_weight > 0
+                    this_marker_data = extractMarkerTrajectories(marker_trajectories, marker_labels, this_marker_label);
+                    for i_stretch = 1 : number_of_stretches
+                        [~, start_index] = min(abs(time_marker - stretch_start_times(i_stretch)));
+                        [~, end_index] = min(abs(time_marker - stretch_end_times(i_stretch)));
+                        if any(isnan(this_marker_data(start_index : end_index)))
+                            removal_flags(i_stretch) = 1;
+                        end
+                    end
+                    
+                end
+                
+            end
+            
             % check ignore markers
             for i_stretch = 1 : number_of_stretches
                 if ~isempty(ignore_times)

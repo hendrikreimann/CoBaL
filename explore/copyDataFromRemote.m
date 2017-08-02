@@ -14,7 +14,11 @@
 %     You should have received a copy of the GNU General Public License
 %     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-% figure out folder structure and create folders on remote
+% set remote
+% remote = 'tuf79669@compute.temple.edu';
+remote = 'jhrei@128.175.143.182';
+
+% figure out folder structure
 subject_settings = SettingsCustodian('subjectSettings.txt');
 path_split = strsplit(pwd, filesep);
 subject_label = path_split{end};
@@ -22,10 +26,10 @@ study_label = path_split{end-1};
 
 % copy data
 source_dir = ['data/' study_label '/' subject_label '/processed/'];
-% system(['scp tuf79669@compute.temple.edu:' source_dir '*kinematicTrajectories.mat processed/']);
-system(['scp tuf79669@compute.temple.edu:' source_dir '*dynamicTrajectories.mat processed/']);
+% system(['scp ' remote ':' source_dir '*kinematicTrajectories.mat processed/']);
+system(['scp ' remote ':' source_dir '*dynamicTrajectories.mat processed/']);
 source_dir = ['data/' study_label '/' subject_label '/analysis/'];
-system(['scp tuf79669@compute.temple.edu:' source_dir '*availableVariables.mat analysis/']);
+system(['scp ' remote ':' source_dir '*.mat analysis/']);
 
 
 

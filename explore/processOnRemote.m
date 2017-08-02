@@ -14,8 +14,12 @@
 %     You should have received a copy of the GNU General Public License
 %     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-trials_to_process_string = '8 : 20';
-% trials_to_process_string = 'all';
+% set remote
+% remote = 'tuf79669@compute.temple.edu'; number_of_workers = 32;
+remote = 'jhrei@128.175.143.182'; number_of_workers = 44;
+
+% trials_to_process_string = '8 : 20';
+trials_to_process_string = 'all';
 
 % figure out folder structure
 subject_settings = SettingsCustodian('subjectSettings.txt');
@@ -30,16 +34,16 @@ fprintf(file_id, 'addpath ~/CoBaL/processing\n');
 fprintf(file_id, 'addpath ~/miscMatlabStuff\n');
 fprintf(file_id, 'addpath ~/KinematicChain\n');
 fprintf(file_id, 'addpath ~/ScrewGeometry\n');
-fprintf(file_id, 'parpool(32)\n');
+fprintf(file_id, ['parpool(' num2str(number_of_workers) ')\n']);
 if strcmp(trials_to_process_string, 'all')
 %     fprintf(file_id, 'calculateKinematicTrajectories(''use_parallel'', true)\n');
-    fprintf(file_id, 'optimizeKinematicTrajectories(''use_parallel'', true)\n');
-%     fprintf(file_id, 'calculateDynamicMatrices(''use_parallel'', true)\n');
+%     fprintf(file_id, 'optimizeKinematicTrajectories(''use_parallel'', true)\n');
+    fprintf(file_id, 'calculateDynamicMatrices(''use_parallel'', true)\n');
 %     fprintf(file_id, 'inverseDynamics(''use_parallel'', true)\n');
 %     fprintf(file_id, 'calculateGroundReactionWrenches(''use_parallel'', true)\n');
 else
 %     fprintf(file_id, ['calculateKinematicTrajectories(''use_parallel'', true, ''trials'', ' trials_to_process_string ')\n']);
-    fprintf(file_id, ['optimizeKinematicTrajectories(''use_parallel'', true, ''trials'', ' trials_to_process_string ')\n']);
+%     fprintf(file_id, ['optimizeKinematicTrajectories(''use_parallel'', true, ''trials'', ' trials_to_process_string ')\n']);
 %     fprintf(file_id, ['calculateDynamicMatrices(''use_parallel'', true, ''trials'', ' trials_to_process_string ')\n']);
 %     fprintf(file_id, ['inverseDynamics(''use_parallel'', true, ''trials'', ' trials_to_process_string ')\n']);
 %     fprintf(file_id, ['calculateGroundReactionWrenches(''use_parallel'', true, ''trials'', ' trials_to_process_string ')\n']);
@@ -48,7 +52,7 @@ fclose(file_id);
 
 % copy command file to compute
 target_dir = ['data/' study_label '/' subject_label];
-system(['scp tmp_compute.m tuf79669@compute.temple.edu:' target_dir]);
+system(['scp tmp_compute.m ' remote ':' target_dir]);
 delete tmp_compute.m
 
 % % execute command file
@@ -61,7 +65,7 @@ delete tmp_compute.m
 %     'nohup matlab -r < tmp_compute.m -logfile mat_out.log & ' ...
 %     '''' ...
 %   ];
-% system(['ssh tuf79669@compute.temple.edu ' execution_string]);
+% system(['ssh ' remote ' ' execution_string]);
 
 
 
