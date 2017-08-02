@@ -27,7 +27,7 @@ function mocapArmsenseComparison_AlphaOnly_AllTrials(varargin)
     
     load('subjectInfo.mat', 'date', 'subject_id');
 
-    for i_condition = 1 : length(condition_list)
+    for i_condition = 3 %2 : length(condition_list)
         trials_to_process = trial_number_list{i_condition};
         for i_trial = trials_to_process
             %% prepare
@@ -99,7 +99,7 @@ function mocapArmsenseComparison_AlphaOnly_AllTrials(varargin)
                 vertical_sensor_right_trajectory(1, :) = vertical_sensor_right_init;
                 for i_time = 2 : length(time_marker)
                     % calculate rate of change left
-                    vertical_sensor_left_accel = -normVector([left_acc_x_trajectories(1); left_acc_y_trajectories(1); left_acc_z_trajectories(1)]);
+                    vertical_sensor_left_accel = -normVector([left_acc_x_trajectories(i_time); left_acc_y_trajectories(i_time); left_acc_z_trajectories(i_time)]);
                     angular_body_velocity_gyro = [left_gyro_x_trajectories(i_time); left_gyro_y_trajectories(i_time); left_gyro_z_trajectories(i_time);];
                     angular_velocity_body_matrix = wedgeAxis(angular_body_velocity_gyro);
                     f_g = - angular_velocity_body_matrix * vertical_sensor_left_trajectory(i_time-1, :)';
@@ -107,7 +107,7 @@ function mocapArmsenseComparison_AlphaOnly_AllTrials(varargin)
                     vertical_sensor_left_dot(i_time, :) = f_g + f_a;
                     
                     % calculate rate of change right
-                    vertical_sensor_right_accel = -normVector([right_acc_x_trajectories(1); right_acc_y_trajectories(1); right_acc_z_trajectories(1)]);
+                    vertical_sensor_right_accel = -normVector([right_acc_x_trajectories(i_time); right_acc_y_trajectories(i_time); right_acc_z_trajectories(i_time)]);
                     angular_body_velocity_gyro = [right_gyro_x_trajectories(i_time); right_gyro_y_trajectories(i_time); right_gyro_z_trajectories(i_time);];
                     angular_velocity_body_matrix = wedgeAxis(angular_body_velocity_gyro);
                     f_g = - angular_velocity_body_matrix * vertical_sensor_right_trajectory(i_time-1, :)';
