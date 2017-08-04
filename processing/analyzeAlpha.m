@@ -30,16 +30,49 @@ function analyzeAlpha(varargin)
 
     % calculate RMS
     alpha_labels = 'undefined';
-    for i_condition = 3 %: length(condition_list)
+    
+    root_mean_square_errors_left = cell(length(condition_list),1);
+    root_mean_square_errors_right = cell(length(condition_list),1);
+    coefficients_of_multiple_correlation_left = cell(length(condition_list),1);
+    coefficients_of_multiple_correlation_right = cell(length(condition_list),1);
+    trialaveraged_mocap_peak_amplitude_left = cell(length(condition_list),1);
+    trialaveraged_mocap_peak_amplitude_right = cell(length(condition_list),1);
+    angular_velocity_left = cell(length(condition_list),1);
+    angular_velocity_right = cell(length(condition_list),1);
+        
+    adjust_i_condition = 0;
+    for i_condition = 1: length(condition_list)
+        condition = condition_list{i_condition};
+            
+        % remove the adaptation trials from armsense analysis
+        if strcmp(condition,"adaptation")
+            length_of_conditions = length(condition_list) - 1;
+            adjust_i_condition = 1;
+            
+            root_mean_square_errors_left = cell(length_of_conditions,1);
+            root_mean_square_errors_right = cell(length_of_conditions,1);
+            coefficients_of_multiple_correlation_left = cell(length_of_conditions,1);
+            coefficients_of_multiple_correlation_right = cell(length_of_conditions,1);
+            trialaveraged_mocap_peak_amplitude_left = cell(length_of_conditions,1);
+            trialaveraged_mocap_peak_amplitude_right = cell(length_of_conditions,1);
+            continue
+        end
+        adjusted_i_condition = i_condition;
+        if adjust_i_condition
+            adjusted_i_condition = i_condition - 1;
+        end
+       
         trials_to_process = trial_number_list{i_condition};
-        root_mean_square_errors_left = zeros(1, length(trials_to_process));
-        root_mean_square_errors_right = zeros(1, length(trials_to_process));
-        coefficients_of_multiple_correlation_left = zeros(1, length(trials_to_process));
-        coefficients_of_multiple_correlation_right = zeros(1, length(trials_to_process));
+        root_mean_square_errors_left{adjusted_i_condition} = zeros(1, length(trials_to_process));
+        root_mean_square_errors_right{adjusted_i_condition} = zeros(1, length(trials_to_process));
+        coefficients_of_multiple_correlation_left{adjusted_i_condition} = zeros(1, length(trials_to_process));
+        coefficients_of_multiple_correlation_right{adjusted_i_condition} = zeros(1, length(trials_to_process));
+        angular_velocity_left{adjusted_i_condition} = zeros(1,length(trials_to_process));
+        angular_velocity_right{adjusted_i_condition} = zeros(1,length(trials_to_process));
+        
         for i_trial = trials_to_process
             %% prepare
             % load data
-            condition = condition_list{i_condition};
             [inclination_angle_mocap_left_trajectory, time_marker, sampling_rate_marker, marker_labels] = loadData(date, subject_id, condition, i_trial, 'inclination_angle_mocap_left_trajectory');
             [inclination_angle_mocap_right_trajectory, time_marker, sampling_rate_marker, marker_labels] = loadData(date, subject_id, condition, i_trial, 'inclination_angle_mocap_right_trajectory');
             [inclination_angle_armsense_left_trajectories, time_marker, sampling_rate_marker, alpha_labels_left] = loadData(date, subject_id, condition, i_trial, 'inclination_angle_armsense_left_trajectories');
@@ -51,6 +84,10 @@ function analyzeAlpha(varargin)
             inclination_angle_mocap_right_trajectory = inclination_angle_mocap_right_trajectory(500:29500,:);
             inclination_angle_armsense_left_trajectories = inclination_angle_armsense_left_trajectories(500:29500,:);
             inclination_angle_armsense_right_trajectories = inclination_angle_armsense_right_trajectories(500:29500,:);
+            time_marker = time_marker(500:29500,:);
+            % find velocity of arm movement via mocap
+            angular_velocity_left{adjusted_i_condition}(i_trial) = mean(abs(diff(inclination_angle_mocap_left_trajectory)./diff(time_marker)));
+            angular_velocity_right{adjusted_i_condition}(i_trial) = mean(abs(diff(inclination_angle_mocap_right_trajectory)./diff(time_marker)));
             
             if strcmp(alpha_labels, 'undefined')
                 alpha_labels = alpha_labels_left;
@@ -66,8 +103,8 @@ function analyzeAlpha(varargin)
             [minPeaks_right, minPeaks_right_indices] = findpeaks(-inclination_angle_mocap_right_trajectory);
             minPeaks_left = abs(minPeaks_left);
             minPeaks_right = abs(minPeaks_right);
-            trialaveraged_mocap_peak_amplitude_left(i_trial) = mean(maxPeaks_left) - mean(minPeaks_left);
-            trialaveraged_mocap_peak_amplitude_right(i_trial) = mean(maxPeaks_right) - mean(minPeaks_right);
+            trialaveraged_mocap_peak_amplitude_left{adjusted_i_condition}(i_trial) = mean(maxPeaks_left) - mean(minPeaks_left);
+            trialaveraged_mocap_peak_amplitude_right{adjusted_i_condition}(i_trial) = mean(maxPeaks_right) - mean(minPeaks_right);
             
 %             figure; hold on;
 %             plot(inclination_angle_mocap_left_trajectory,'-')
@@ -85,8 +122,8 @@ function analyzeAlpha(varargin)
                 error_right = inclination_angle_mocap_right_trajectory - inclination_angle_armsense_right_trajectories(:, i_alpha);
                 
                 % root mean square error
-                root_mean_square_errors_left(i_alpha, i_trial) = mean(error_left.^2).^0.5;
-                root_mean_square_errors_right(i_alpha, i_trial) = mean(error_right.^2).^0.5;
+                root_mean_square_errors_left{adjusted_i_condition}(i_alpha, i_trial) = mean(error_left.^2).^0.5;
+                root_mean_square_errors_right{adjusted_i_condition}(i_alpha, i_trial) = mean(error_right.^2).^0.5;
                 
                 % coefficient of correlation left
                 number_of_time_steps_left = length(inclination_angle_mocap_left_trajectory);
@@ -108,7 +145,7 @@ function analyzeAlpha(varargin)
                 y_as_left_grand_deviation_squared_sum = sum(y_as_left_grand_mean_free_trajectory.^2);
                 denominator_left = (y_mc_left_grand_deviation_squared_sum + y_as_left_grand_deviation_squared_sum) / (number_of_time_steps_left * number_of_signals_left - 1);
                 
-                coefficients_of_multiple_correlation_left(i_alpha, i_trial) = sqrt(1 - numerator_left/denominator_left);
+                coefficients_of_multiple_correlation_left{adjusted_i_condition}(i_alpha, i_trial) = sqrt(1 - numerator_left/denominator_left);
 
                 % coefficient of correlation right
                 number_of_time_steps_right = length(inclination_angle_mocap_right_trajectory);
@@ -130,8 +167,7 @@ function analyzeAlpha(varargin)
                 y_as_right_grand_deviation_squared_sum = sum(y_as_right_grand_mean_free_trajectory.^2);
                 denominator_right = (y_mc_right_grand_deviation_squared_sum + y_as_right_grand_deviation_squared_sum) / (number_of_time_steps_right * number_of_signals_right - 1);
                 
-                coefficients_of_multiple_correlation_right(i_alpha, i_trial) = sqrt(1 - numerator_right/denominator_right);
-                
+                coefficients_of_multiple_correlation_right{adjusted_i_condition}(i_alpha, i_trial) = sqrt(1 - numerator_right/denominator_right);
                 
                 % alternative calculation
                 y_left_jt = [inclination_angle_mocap_left_trajectory'; inclination_angle_armsense_left_trajectories(:, i_alpha)'];
@@ -139,18 +175,28 @@ function analyzeAlpha(varargin)
                 T = size(y_left_jt, 2);
                 numerator_left = sum(sum((y_left_jt - repmat(mean(y_left_jt, 1), N, 1)).^2, 2), 1) / (T * (N - 1));
                 denominator_left = sum(sum((y_left_jt - mean(mean(y_left_jt, 1))).^2, 2), 1) / (T * N - 1);
-                coefficients_of_multiple_correlation_left(i_alpha, i_trial) = sqrt(1 - numerator_left/denominator_left);
+                coefficients_of_multiple_correlation_left{adjusted_i_condition}(i_alpha, i_trial) = sqrt(1 - numerator_left/denominator_left);
                 
                 y_right_jt = [inclination_angle_mocap_right_trajectory'; inclination_angle_armsense_right_trajectories(:, i_alpha)'];
                 N = size(y_right_jt, 1);
                 T = size(y_right_jt, 2);
                 numerator_right = sum(sum((y_right_jt - repmat(mean(y_right_jt, 1), N, 1)).^2, 2), 1) / (T * (N - 1));
                 denominator_right = sum(sum((y_right_jt - mean(mean(y_right_jt, 1))).^2, 2), 1) / (T * N - 1);
-                coefficients_of_multiple_correlation_right(i_alpha, i_trial) = sqrt(1 - numerator_right/denominator_right);
+                coefficients_of_multiple_correlation_right{adjusted_i_condition}(i_alpha, i_trial) = sqrt(1 - numerator_right/denominator_right);
                 
             end
         end
     end
+    
+    % cell2mat
+    root_mean_square_errors_left = cell2mat(root_mean_square_errors_left');
+    root_mean_square_errors_right = cell2mat(root_mean_square_errors_right');
+    coefficients_of_multiple_correlation_left = cell2mat(coefficients_of_multiple_correlation_left');
+    coefficients_of_multiple_correlation_right = cell2mat(coefficients_of_multiple_correlation_right');
+    trialaveraged_mocap_peak_amplitude_left = cell2mat(trialaveraged_mocap_peak_amplitude_left');
+    trialaveraged_mocap_peak_amplitude_right = cell2mat(trialaveraged_mocap_peak_amplitude_right');
+    angular_velocity_left = cell2mat(angular_velocity_left');
+    angular_velocity_right = cell2mat(angular_velocity_right');
     
     % average
     mean_root_mean_square_error_left = mean(root_mean_square_errors_left, 2);
@@ -165,6 +211,10 @@ function analyzeAlpha(varargin)
     mean_coefficient_of_multiple_correlation_right = mean(coefficients_of_multiple_correlation_right, 2);
     std_coefficient_of_multiple_correlation_left = std(coefficients_of_multiple_correlation_left,0,2);
     std_coefficient_of_multiple_correlation_right = std(coefficients_of_multiple_correlation_right,0,2);
+    mean_angular_velocity_left = mean(angular_velocity_left);
+    mean_angular_velocity_right = mean(angular_velocity_right);
+    std_angular_velocity_left = std(angular_velocity_left);
+    std_angular_velocity_right = std(angular_velocity_right);
   
     
     % visualize
@@ -200,6 +250,23 @@ function analyzeAlpha(varargin)
     ylabel('CMC')
     legend('show')
     
+    results_file_name = ['analysis' filesep makeFileName(date, subject_id, 'validation')];
+    save ...
+      ( ...
+        results_file_name, ...
+        'mean_coefficient_of_multiple_correlation_left',...
+        'mean_coefficient_of_multiple_correlation_right',...
+        'std_coefficient_of_multiple_correlation_left', ...
+        'std_coefficient_of_multiple_correlation_right', ...
+        'mean_root_mean_square_error_left', ...
+        'mean_root_mean_square_error_right', ...
+        'std_root_mean_square_error_left', ...
+        'std_root_mean_square_error_right', ...
+        'mean_angular_velocity_left', ...
+        'mean_angular_velocity_right', ...
+        'std_angular_velocity_left', ...
+        'std_angular_velocity_right' ...
+      )
     
     
 end
