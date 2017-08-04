@@ -60,6 +60,6 @@ target_dir = ['data/' study_label '/' subject_label '/analysis'];
 system(['scp analysis/*.mat ' remote ':' target_dir]);
 
 
-
+% processOnRemote
 
 

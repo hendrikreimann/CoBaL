@@ -49,6 +49,9 @@ function plotResults(varargin)
     study_settings = SettingsCustodian(study_settings_file);
     
     plot_settings_file = '';
+    if exist(settings_file, 'file')
+        plot_settings_file = settings_file;
+    end    
     if exist(['..' filesep settings_file], 'file')
         plot_settings_file = ['..' filesep settings_file];
     end    

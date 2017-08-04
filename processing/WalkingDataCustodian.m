@@ -1802,6 +1802,9 @@ classdef WalkingDataCustodian < handle
                     if strcmp(variable_name, 'left_tfl_rescaled')
                         left_tfl = this.getTimeNormalizedData('left_tfl', this_stretch_start_time, this_stretch_end_time);
                         normalization_value = this.emg_normalization_values(strcmp(this.emg_normalization_labels, 'left_tfl'));
+                        if isempty(normalization_value)
+                            normalization_value = 1;
+                        end
                         stretch_data = left_tfl * 1 / normalization_value;
                     end
                     if strcmp(variable_name, 'right_glut_med_rescaled')
@@ -1832,6 +1835,9 @@ classdef WalkingDataCustodian < handle
                     if strcmp(variable_name, 'right_tfl_rescaled')
                         right_tfl = this.getTimeNormalizedData('right_tfl', this_stretch_start_time, this_stretch_end_time);
                         normalization_value = this.emg_normalization_values(strcmp(this.emg_normalization_labels, 'right_tfl'));
+                        if isempty(normalization_value)
+                            normalization_value = 1;
+                        end
                         stretch_data = right_tfl * 1 / normalization_value;
                     end
                     

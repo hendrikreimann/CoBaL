@@ -1279,7 +1279,7 @@ function findRelevantDataStretches(varargin)
                 variables_to_prune_for = [variables_to_prune_for; 'right_leg_angle_ap']; %#ok<AGROW>
                 variables_to_prune_for = [variables_to_prune_for; 'right_leg_phase']; %#ok<AGROW>
             end
-            if any(strcmp(variables_to_analyze(:, 1), 'body_com_x')) || any(strcmp(variables_to_analyze(:, 1), 'body_com_y')) || any(strcmp(variables_to_analyze(:, 1), 'body_com_z'))
+            if any(strcmp(variables_to_analyze(:, 1), 'com_x')) || any(strcmp(variables_to_analyze(:, 1), 'com_y')) || any(strcmp(variables_to_analyze(:, 1), 'com_z'))
                 variables_to_prune_for = [variables_to_prune_for; 'com_trajectories']; %#ok<AGROW>
             end
             
