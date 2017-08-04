@@ -27,12 +27,15 @@ function mocapArmsenseComparison_AlphaOnly_AllTrials(varargin)
     
     load('subjectInfo.mat', 'date', 'subject_id');
 
-    for i_condition = 3 %2 : length(condition_list)
+    for i_condition = 1 : length(condition_list)
+        condition = condition_list{i_condition};
+        if strcmp(condition,"adaptation")
+            continue
+        end
         trials_to_process = trial_number_list{i_condition};
         for i_trial = trials_to_process
             %% prepare
             % load data
-            condition = condition_list{i_condition};
             [marker_trajectories, time_marker, sampling_rate_marker, marker_labels] = loadData(date, subject_id, condition, i_trial, 'marker_trajectories');
             [left_acc_x_trajectories, time_armsense_left, sampling_rate_armsense_left, labels] = loadData(date, subject_id, condition, i_trial, 'acc_x_left_trajectory');
             [left_acc_y_trajectories, time_armsense_left, sampling_rate_armsense_left, labels] = loadData(date, subject_id, condition, i_trial, 'acc_y_left_trajectory');
@@ -173,10 +176,7 @@ function mocapArmsenseComparison_AlphaOnly_AllTrials(varargin)
             
             disp(['Calculating inclination angles: condition ' condition ', Trial ' num2str(i_trial) ' completed, saved as ' save_file_name]);
 
-
         end
-
-
 
     end
 end
