@@ -90,9 +90,15 @@ function mocapArmsenseComparison_AlphaOnly_AllTrials(varargin)
             % integrate sensor axis and calculate inclination angles
             delta_t = sampling_rate_marker^(-1);
             vertical_sensor_left_init = -normVector([left_acc_x_trajectories(1); left_acc_y_trajectories(1); left_acc_z_trajectories(1)]);
+            vertical_sensor_right_init = -normVector([right_acc_x_trajectories(1); right_acc_y_trajectories(1); right_acc_z_trajectories(1)]);
             inclination_angle_armsense_left_trajectories = zeros(length(time_marker), length(parser.Results.alpha));
+            inclination_angle_armsense_left_accel_trajectory = zeros(length(time_marker),1);
+            inclination_angle_left_rad = acos(vertical_sensor_left_init' * [0; 1; 0]);
+            inclination_angle_right_rad = acos(vertical_sensor_right_init' * [0; 1; 0]);
             vertical_sensor_right_init = -normVector([right_acc_x_trajectories(1); right_acc_y_trajectories(1); right_acc_z_trajectories(1)]);
             inclination_angle_armsense_right_trajectories = zeros(length(time_marker), length(parser.Results.alpha));
+            inclination_angle_armsense_left_accel_trajectory(1) = abs(rad2deg(inclination_angle_left_rad)-180);
+            inclination_angle_armsense_right_accel_trajectory(1) = abs(rad2deg(inclination_angle_right_rad)-180);
             for i_alpha = 1 : length(parser.Results.alpha)
                 vertical_sensor_left_dot = zeros(length(time_marker), 3);
                 vertical_sensor_left_trajectory = zeros(length(time_marker), 3);
@@ -120,6 +126,13 @@ function mocapArmsenseComparison_AlphaOnly_AllTrials(varargin)
                     % integrate
                     vertical_sensor_left_trajectory(i_time, :) = normVector(vertical_sensor_left_trajectory(i_time-1, :)' + delta_t * vertical_sensor_left_dot(i_time, :)');
                     vertical_sensor_right_trajectory(i_time, :) = normVector(vertical_sensor_right_trajectory(i_time-1, :)' + delta_t * vertical_sensor_right_dot(i_time, :)');
+                    
+                    % calculate accel inclinatino angle
+                    inclination_angle_left_accel_rad = acos(vertical_sensor_left_accel' * [0; 1; 0]);
+                    inclination_angle_right_accel_rad = acos(vertical_sensor_right_accel' * [0; 1; 0]);
+                    inclination_angle_armsense_left_accel_trajectory(i_time) = abs(rad2deg(inclination_angle_left_accel_rad)-180);
+                    inclination_angle_armsense_right_accel_trajectory(i_time) = abs(rad2deg(inclination_angle_right_accel_rad)-180);
+                    
                 end
                 
                 % calculate inclination angles
@@ -165,6 +178,8 @@ function mocapArmsenseComparison_AlphaOnly_AllTrials(varargin)
                 'inclination_angle_mocap_right_trajectory', ...
                 'inclination_angle_armsense_left_trajectories', ...
                 'inclination_angle_armsense_right_trajectories', ...
+                'inclination_angle_armsense_left_accel_trajectory', ...
+                'inclination_angle_armsense_right_accel_trajectory', ...
                 'alpha_labels', ...
                 'time_marker', ...
                 'sampling_rate_marker' ...
@@ -173,7 +188,8 @@ function mocapArmsenseComparison_AlphaOnly_AllTrials(varargin)
             addAvailableData('inclination_angle_mocap_right_trajectory', 'time_marker', 'sampling_rate_marker', '', save_folder, save_file_name);
             addAvailableData('inclination_angle_armsense_left_trajectories', 'time_marker', 'sampling_rate_marker', 'alpha_labels', save_folder, save_file_name);
             addAvailableData('inclination_angle_armsense_right_trajectories', 'time_marker', 'sampling_rate_marker', 'alpha_labels', save_folder, save_file_name);
-            
+            addAvailableData('inclination_angle_armsense_left_accel_trajectory', 'time_marker', 'sampling_rate_marker', 'alpha_labels', save_folder, save_file_name);
+            addAvailableData('inclination_angle_armsense_right_accel_trajectory', 'time_marker', 'sampling_rate_marker', 'alpha_labels', save_folder, save_file_name);
             disp(['Calculating inclination angles: condition ' condition ', Trial ' num2str(i_trial) ' completed, saved as ' save_file_name]);
 
         end

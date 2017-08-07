@@ -37,9 +37,12 @@ function analyzeAlpha(varargin)
     coefficients_of_multiple_correlation_right = cell(length(condition_list),1);
     trialaveraged_mocap_peak_amplitude_left = cell(length(condition_list),1);
     trialaveraged_mocap_peak_amplitude_right = cell(length(condition_list),1);
-    angular_velocity_left = cell(length(condition_list),1);
-    angular_velocity_right = cell(length(condition_list),1);
-        
+    treadmill_speed_trajectories = cell(length(condition_list),1);
+    angular_velocity_mocap_left = cell(length(condition_list),1);
+    angular_velocity_mocap_right = cell(length(condition_list),1);
+    angular_acceleration_mocap_left = cell(length(condition_list),1);
+    angular_acceleration_mocap_right = cell(length(condition_list),1);
+    
     adjust_i_condition = 0;
     for i_condition = 1: length(condition_list)
         condition = condition_list{i_condition};
@@ -55,6 +58,12 @@ function analyzeAlpha(varargin)
             coefficients_of_multiple_correlation_right = cell(length_of_conditions,1);
             trialaveraged_mocap_peak_amplitude_left = cell(length_of_conditions,1);
             trialaveraged_mocap_peak_amplitude_right = cell(length_of_conditions,1);
+            treadmill_speed_trajectories = cell(length_of_conditions,1);
+            angular_velocity_mocap_left = cell(length_of_conditions,1);
+            angular_velocity_mocap_right = cell(length_of_conditions,1);
+            angular_acceleration_mocap_left = cell(length_of_conditions,1);
+            angular_acceleration_mocap_right = cell(length_of_conditions,1);
+         
             continue
         end
         adjusted_i_condition = i_condition;
@@ -67,8 +76,11 @@ function analyzeAlpha(varargin)
         root_mean_square_errors_right{adjusted_i_condition} = zeros(1, length(trials_to_process));
         coefficients_of_multiple_correlation_left{adjusted_i_condition} = zeros(1, length(trials_to_process));
         coefficients_of_multiple_correlation_right{adjusted_i_condition} = zeros(1, length(trials_to_process));
-        angular_velocity_left{adjusted_i_condition} = zeros(1,length(trials_to_process));
-        angular_velocity_right{adjusted_i_condition} = zeros(1,length(trials_to_process));
+        angular_velocity_mocap_left{adjusted_i_condition} = zeros(1,length(trials_to_process));
+        angular_velocity_mocap_right{adjusted_i_condition} = zeros(1,length(trials_to_process));
+        angular_acceleration_mocap_left{adjusted_i_condition} = zeros(1,length(trials_to_process));
+        angular_acceleration_mocap_right{adjusted_i_condition} = zeros(1,length(trials_to_process));
+        treadmill_speed_trajectories{adjusted_i_condition} = zeros(1,length(trials_to_process));
         
         for i_trial = trials_to_process
             %% prepare
@@ -77,17 +89,32 @@ function analyzeAlpha(varargin)
             [inclination_angle_mocap_right_trajectory, time_marker, sampling_rate_marker, marker_labels] = loadData(date, subject_id, condition, i_trial, 'inclination_angle_mocap_right_trajectory');
             [inclination_angle_armsense_left_trajectories, time_marker, sampling_rate_marker, alpha_labels_left] = loadData(date, subject_id, condition, i_trial, 'inclination_angle_armsense_left_trajectories');
             [inclination_angle_armsense_right_trajectories, time_marker, sampling_rate_marker, alpha_labels_right] = loadData(date, subject_id, condition, i_trial, 'inclination_angle_armsense_right_trajectories');
+            [inclination_angle_armsense_left_accel_trajectory, time_marker, sampling_rate_marker] = loadData(date, subject_id, condition, i_trial, 'inclination_angle_armsense_left_accel_trajectory');
+            [inclination_angle_armsense_right_accel_trajectory, time_marker, sampling_rate_marker] = loadData(date, subject_id, condition, i_trial, 'inclination_angle_armsense_right_accel_trajectory');
+            [trial_treadmill_speed_trajectories, time_plc] = loadData(date, subject_id, condition, i_trial, 'belt_speed_left_trajectory');
             
             % clip data due to missing marker data in beginning and end of
             % trials
-            inclination_angle_mocap_left_trajectory = inclination_angle_mocap_left_trajectory(500:29500,:);
-            inclination_angle_mocap_right_trajectory = inclination_angle_mocap_right_trajectory(500:29500,:);
-            inclination_angle_armsense_left_trajectories = inclination_angle_armsense_left_trajectories(500:29500,:);
-            inclination_angle_armsense_right_trajectories = inclination_angle_armsense_right_trajectories(500:29500,:);
-            time_marker = time_marker(500:29500,:);
+            begin_time = 2;
+            end_time = 118;
+            [begin_marker_clip begin_marker_clip] = min(abs(time_marker-begin_time));
+            [begin_plc_clip begin_plc_clip] = min(abs(time_plc-begin_time));
+            [end_marker_clip end_marker_clip] = min(abs(time_marker-end_time));
+            [end_plc_clip end_plc_clip] = min(abs(time_plc-end_time));
+            inclination_angle_mocap_left_trajectory = inclination_angle_mocap_left_trajectory(begin_marker_clip:end_marker_clip,:);
+            inclination_angle_mocap_right_trajectory = inclination_angle_mocap_right_trajectory(begin_marker_clip:end_marker_clip,:);
+            inclination_angle_armsense_left_trajectories = inclination_angle_armsense_left_trajectories(begin_marker_clip:end_marker_clip,:);
+            inclination_angle_armsense_right_trajectories = inclination_angle_armsense_right_trajectories(begin_marker_clip:end_marker_clip,:);
+            time_marker = time_marker(begin_marker_clip:end_marker_clip,:);
             % find velocity of arm movement via mocap
-            angular_velocity_left{adjusted_i_condition}(i_trial) = mean(abs(diff(inclination_angle_mocap_left_trajectory)./diff(time_marker)));
-            angular_velocity_right{adjusted_i_condition}(i_trial) = mean(abs(diff(inclination_angle_mocap_right_trajectory)./diff(time_marker)));
+            angular_velocity_mocap_left{adjusted_i_condition}(i_trial) = mean(abs(diff(inclination_angle_mocap_left_trajectory)./diff(time_marker)));
+            angular_velocity_mocap_right{adjusted_i_condition}(i_trial) = mean(abs(diff(inclination_angle_mocap_right_trajectory)./diff(time_marker)));
+            angular_acceleration_mocap_left{adjusted_i_condition}(i_trial) = mean(abs((diff(inclination_angle_mocap_left_trajectory)./diff(time_marker))./diff(time_marker)));
+            angular_acceleration_mocap_right{adjusted_i_condition}(i_trial) = mean(abs((diff(inclination_angle_mocap_right_trajectory)./diff(time_marker))./diff(time_marker)));
+%             angular_velocity_armsense_left{adjusted_i_condition}(i_trial) = mean(abs(diff(inclination_angle_armsense_left_trajectories)./diff(time_marker)));
+%             angular_velocity_armsense_right{adjusted_i_condition}(i_trial) = mean(abs(diff(inclination_angle_armsense_right_trajectories)./diff(time_marker)));
+%             
+            treadmill_speed_trajectories{adjusted_i_condition}(i_trial) = mean(trial_treadmill_speed_trajectories(begin_plc_clip:end_plc_clip,:));
             
             if strcmp(alpha_labels, 'undefined')
                 alpha_labels = alpha_labels_left;
@@ -195,14 +222,21 @@ function analyzeAlpha(varargin)
     coefficients_of_multiple_correlation_right = cell2mat(coefficients_of_multiple_correlation_right');
     trialaveraged_mocap_peak_amplitude_left = cell2mat(trialaveraged_mocap_peak_amplitude_left');
     trialaveraged_mocap_peak_amplitude_right = cell2mat(trialaveraged_mocap_peak_amplitude_right');
-    angular_velocity_left = cell2mat(angular_velocity_left');
-    angular_velocity_right = cell2mat(angular_velocity_right');
+    angular_velocity_mocap_left = cell2mat(angular_velocity_mocap_left');
+    angular_velocity_mocap_right = cell2mat(angular_velocity_mocap_right');
+    angular_acceleration_mocap_left = cell2mat(angular_acceleration_mocap_left');
+    angular_acceleration_mocap_right = cell2mat(angular_acceleration_mocap_right');
+%     angular_velocity_armsense_left = cell2mat(angular_velocity_armsense_left');
+%     angular_velocity_armsense_right = cell2mat(angular_velocity_armsense_right')
+    treadmill_speed_trajectories = cell2mat(treadmill_speed_trajectories');
     
     % average
     mean_root_mean_square_error_left = mean(root_mean_square_errors_left, 2);
     mean_root_mean_square_error_right = mean(root_mean_square_errors_right, 2);
     mean_mocap_peak_amplitude_left = mean(trialaveraged_mocap_peak_amplitude_left);
     mean_mocap_peak_amplitude_right = mean(trialaveraged_mocap_peak_amplitude_right);
+    std_mocap_peak_amplitude_left = std(trialaveraged_mocap_peak_amplitude_left);
+    std_mocap_peak_amplitude_right = std(trialaveraged_mocap_peak_amplitude_right);
     percent_error_left = (mean_root_mean_square_error_left/mean_mocap_peak_amplitude_left)*100;
     percent_error_right = (mean_root_mean_square_error_right/mean_mocap_peak_amplitude_right)*100;
     std_root_mean_square_error_left = std(root_mean_square_errors_left,0, 2);
@@ -211,11 +245,20 @@ function analyzeAlpha(varargin)
     mean_coefficient_of_multiple_correlation_right = mean(coefficients_of_multiple_correlation_right, 2);
     std_coefficient_of_multiple_correlation_left = std(coefficients_of_multiple_correlation_left,0,2);
     std_coefficient_of_multiple_correlation_right = std(coefficients_of_multiple_correlation_right,0,2);
-    mean_angular_velocity_left = mean(angular_velocity_left);
-    mean_angular_velocity_right = mean(angular_velocity_right);
-    std_angular_velocity_left = std(angular_velocity_left);
-    std_angular_velocity_right = std(angular_velocity_right);
-  
+    mean_angular_velocity_mocap_left = mean(angular_velocity_mocap_left);
+    mean_angular_velocity_mocap_right = mean(angular_velocity_mocap_right);
+    std_angular_velocity_mocap_left = std(angular_velocity_mocap_left);
+    std_angular_velocity_mocap_right = std(angular_velocity_mocap_right);
+    mean_angular_acceleration_mocap_left = mean(angular_acceleration_mocap_left);
+    std_angular_acceleration_mocap_left = std(angular_acceleration_mocap_left);
+    mean_angular_acceleration_mocap_right = mean(angular_acceleration_mocap_right);
+    std_angular_acceleration_mocap_right = std(angular_acceleration_mocap_right);
+%     mean_angular_velocity_armsense_left = mean(angular_velocity_armsense_left);
+%     mean_angular_velocity_armsense_right = mean(angular_velocity_armsense_right);
+%     std_angular_velocity_armsense_left = std(angular_velocity_armsense_left);
+%     std_angular_velocity_armsnesne_right = std(angular_velocity_armsense_right);
+    mean_treadmill_speed_trajectories = mean(treadmill_speed_trajectories);
+    std_treadmill_speed_trajectories = std(treadmill_speed_trajectories);
     
     % visualize
     alpha_values = zeros(size(alpha_labels));
@@ -239,7 +282,6 @@ function analyzeAlpha(varargin)
     ylabel('% Error (Relative to Avg Mocap Amplitude)')
     legend('show')
 
-
     % visualize
     figure; axes; hold on; title('CMC')
     errorbar(alpha_values, mean_coefficient_of_multiple_correlation_left, std_coefficient_of_multiple_correlation_left, 'o-', 'displayname', 'left')
@@ -262,13 +304,23 @@ function analyzeAlpha(varargin)
         'mean_root_mean_square_error_right', ...
         'std_root_mean_square_error_left', ...
         'std_root_mean_square_error_right', ...
-        'mean_angular_velocity_left', ...
-        'mean_angular_velocity_right', ...
-        'std_angular_velocity_left', ...
-        'std_angular_velocity_right' ...
+        'mean_angular_velocity_mocap_left', ...
+        'mean_angular_velocity_mocap_right', ...
+        'std_angular_velocity_mocap_left', ...
+        'std_angular_velocity_mocap_right', ...
+        'mean_mocap_peak_amplitude_left', ...
+        'mean_mocap_peak_amplitude_right', ...
+        'std_mocap_peak_amplitude_left', ...
+        'std_mocap_peak_amplitude_right', ...
+        'mean_treadmill_speed_trajectories', ...
+        'std_treadmill_speed_trajectories', ...
+        'mean_angular_acceleration_mocap_left', ...
+        'mean_angular_acceleration_mocap_right', ...
+        'std_angular_acceleration_mocap_left', ...
+        'std_angular_acceleration_mocap_right', ...
+        'percent_error_left', ...
+        'percent_error_right' ...
       )
-    
-    
 end
 
 
