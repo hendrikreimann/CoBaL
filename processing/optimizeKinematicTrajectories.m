@@ -35,8 +35,10 @@ function optimizeKinematicTrajectories(varargin)
     parser = inputParser;
     parser.KeepUnmatched = true;
     addParameter(parser, 'use_parallel', false)
+    addParameter(parser, 'mode', 'default')
     parse(parser, varargin{:})
     use_parallel = parser.Results.use_parallel;
+    mode = parser.Results.mode;
     
     
     % load settings
@@ -344,20 +346,25 @@ function optimizeKinematicTrajectories(varargin)
             number_of_time_steps = size(marker_trajectories, 1);
 
             % determine time steps to optimize
-%             time_steps_to_optimize = 1 : number_of_time_steps;
-            
             time_steps_to_optimize = determineTimeStepsToProcess(date, subject_id, condition, i_trial, study_settings.get('data_stretch_padding'));
+            if strcmp(mode, 'default')
+                if exist('joint_angle_trajectories', 'var')
+                    joint_angle_trajectories_calculated = joint_angle_trajectories;
+                else
+                    joint_angle_trajectories_calculated = zeros(number_of_time_steps, number_of_joints);
+                end
+                joint_angle_trajectories_optimized = zeros(size(joint_angle_trajectories_calculated)) * NaN;            
+            end
+            if strcmp(mode, 'fill')
+                % check existing trajectories for NaNs
+                time_steps_with_nans = find(any(isnan(joint_angle_trajectories), 2));
+                overlap_indices = ismember(time_steps_to_optimize, time_steps_with_nans);
+                time_steps_to_optimize = time_steps_to_optimize(overlap_indices);
+            end
             
-% time_steps_to_optimize = time_steps_to_optimize(1 : 1000);
             number_of_time_steps_to_optimize = length(time_steps_to_optimize);
             
             %% optimize
-            if exist('joint_angle_trajectories', 'var')
-                joint_angle_trajectories_calculated = joint_angle_trajectories;
-            else
-                joint_angle_trajectories_calculated = zeros(number_of_time_steps, number_of_joints);
-            end
-            joint_angle_trajectories_optimized = zeros(size(joint_angle_trajectories_calculated)) * NaN;            
             
             tic
 %             disp([datestr(datetime,'yyyy-mm-dd HH:MM:SS') ' - Condition ' condition ', Trial ' num2str(i_trial)])
@@ -432,7 +439,7 @@ function optimizeKinematicTrajectories(varargin)
             joint_center_trajectories_calculated = joint_center_trajectories;
             joint_center_trajectories_optimized = zeros(number_of_time_steps, length(joint_center_headers)*3);
             com_trajectories_calculated = com_trajectories;
-            com_trajectories_optimized = zeros(number_of_time_steps, length(com_labels)*3);
+            com_trajectories_optimized = zeros(number_of_time_steps, length(com_labels)*3) * NaN;
             
             tic
             if use_parallel
