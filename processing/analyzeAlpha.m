@@ -106,6 +106,7 @@ function analyzeAlpha(varargin)
             inclination_angle_armsense_left_trajectories = inclination_angle_armsense_left_trajectories(begin_marker_clip:end_marker_clip,:);
             inclination_angle_armsense_right_trajectories = inclination_angle_armsense_right_trajectories(begin_marker_clip:end_marker_clip,:);
             time_marker = time_marker(begin_marker_clip:end_marker_clip,:);
+            
             % find velocity of arm movement via mocap
             angular_velocity_mocap_left{adjusted_i_condition}(i_trial) = mean(abs(diff(inclination_angle_mocap_left_trajectory)./diff(time_marker)));
             angular_velocity_mocap_right{adjusted_i_condition}(i_trial) = mean(abs(diff(inclination_angle_mocap_right_trajectory)./diff(time_marker)));
@@ -266,14 +267,16 @@ function analyzeAlpha(varargin)
         alpha_values(i_alpha) = str2double(alpha_labels{i_alpha});
     end
     
-    figure; axes; hold on; title('RMS')
-    errorbar(alpha_values, mean_root_mean_square_error_left, std_root_mean_square_error_left, 'o-', 'displayname', 'left')
-    errorbar(alpha_values, mean_root_mean_square_error_right, std_root_mean_square_error_right, 'o-', 'displayname', 'right')
+    figure; axes; hold on; %title('RMS')
+    errorbar(alpha_values, mean_root_mean_square_error_left, std_root_mean_square_error_left, 'o-', 'displayname', 'left','LineWidth',3)
+    errorbar(alpha_values, mean_root_mean_square_error_right, std_root_mean_square_error_right, 'o-', 'displayname', 'right','LineWidth',3)
     set(gca, 'xtick', alpha_values)
     set(gca, 'xticklabels', alpha_labels)
-    xlabel('alpha')
-    ylabel('RMS (deg)')
-    legend('show')
+%     set(gca, 'LineWidth',3)
+    ylim([0 25]);
+%     xlabel('alpha')
+%     ylabel('RMS (deg)')
+%     legend('show')
     
     figure; axes; hold on; title('% Error')
     plot(alpha_values, percent_error_left, 'x-', 'displayname', 'left')

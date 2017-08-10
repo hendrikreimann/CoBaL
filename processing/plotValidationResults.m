@@ -53,7 +53,7 @@ function plotValidationResults(varargin)
         % load data
         data_path = data_folder_list{i_folder};
         load([data_path filesep 'subjectInfo.mat'], 'date', 'subject_id');
-        load([data_path filesep 'analysis' filesep date '_' subject_id '_validation.mat']);    
+        load([data_path filesep 'analysis' filesep date '_' subject_id '_validation.mat']);  
         
         mean_treadmill_speed_trajectories_all = [mean_treadmill_speed_trajectories_all; mean_treadmill_speed_trajectories];
         mean_coefficient_of_multiple_correlation_left_all = [mean_coefficient_of_multiple_correlation_left_all, mean_coefficient_of_multiple_correlation_left];
@@ -80,6 +80,31 @@ function plotValidationResults(varargin)
         percent_error_left_all = [percent_error_left_all, percent_error_left];
         percent_error_right_all = [percent_error_right_all, percent_error_right];
     end
+    
+    mean_treadmill_speed_trajectories_all = round(mean_treadmill_speed_trajectories_all,2);
+    mean_coefficient_of_multiple_correlation_left_all = round(mean_coefficient_of_multiple_correlation_left_all, 2);
+    mean_coefficient_of_multiple_correlation_right_all = round(mean_coefficient_of_multiple_correlation_right_all, 2);
+    std_coefficient_of_multiple_correlation_left_all = round(std_coefficient_of_multiple_correlation_left_all, 2);
+    std_coefficient_of_multiple_correlation_right_all = round(std_coefficient_of_multiple_correlation_right_all, 2);
+    mean_root_mean_square_error_left_all = round(mean_root_mean_square_error_left_all, 2);
+    mean_root_mean_square_error_right_all = round(mean_root_mean_square_error_right_all, 2);
+    std_root_mean_square_error_left_all = round(std_root_mean_square_error_left_all, 2);
+    std_root_mean_square_error_right_all = round(std_root_mean_square_error_right_all, 2);
+    mean_angular_velocity_mocap_left_all = round(mean_angular_velocity_mocap_left_all, 2);
+    mean_angular_velocity_mocap_right_all = round(mean_angular_velocity_mocap_right_all, 2);
+    std_angular_velocity_mocap_left_all = round(std_angular_velocity_mocap_left_all, 2);
+    std_angular_velocity_mocap_right_all = round(std_angular_velocity_mocap_right_all, 2);
+    mean_mocap_peak_amplitude_left_all = round(mean_mocap_peak_amplitude_left_all, 2);
+    mean_mocap_peak_amplitude_right_all = round(mean_mocap_peak_amplitude_right_all, 2);
+    std_mocap_peak_amplitude_left_all = round(std_mocap_peak_amplitude_left_all, 2);
+    std_mocap_peak_amplitude_right_all = round(std_mocap_peak_amplitude_right_all, 2);
+    std_treadmill_speed_trajectories_all = round(std_treadmill_speed_trajectories_all, 2);
+    mean_angular_acceleration_mocap_left_all = round(mean_angular_acceleration_mocap_left_all, 2);
+    mean_angular_acceleration_mocap_right_all = round(mean_angular_acceleration_mocap_right_all, 2);
+    std_angular_acceleration_mocap_left_all = round(std_angular_acceleration_mocap_left_all, 2);
+    std_angular_acceleration_mocap_right_all = round(std_angular_acceleration_mocap_right_all, 2);
+    percent_error_left_all = round(percent_error_left_all, 2);
+    percent_error_right_all = round(percent_error_right_all, 2);
     
 %     subjects = {'1', '2', '3', '4', '5', '6'};
     mean_coefficient_of_multiple_correlation_left_all  = mean_coefficient_of_multiple_correlation_left_all';
@@ -142,98 +167,98 @@ function plotValidationResults(varargin)
     % Create RMS table
     T2 = table
     
-    Beta1 = [mean_root_mean_square_error_left_all(:,1); std_root_mean_square_error_left_all(:,1); percent_error_left_all(:,1)]; 
-    Beta1(1:3:end-2) = mean_root_mean_square_error_left_all(:,1);
-    Beta1(2:3:end-1) = std_root_mean_square_error_left_all(:,1);
-    Beta1(3:3:end) = percent_error_left_all(:,1);
-    T2.Beta1 = Beta1;
+    Alpha1 = [mean_root_mean_square_error_left_all(:,1); std_root_mean_square_error_left_all(:,1); percent_error_left_all(:,1)]; 
+    Alpha1(1:3:end-2) = mean_root_mean_square_error_left_all(:,1);
+    Alpha1(2:3:end-1) = std_root_mean_square_error_left_all(:,1);
+    Alpha1(3:3:end) = percent_error_left_all(:,1);
+    T2.Alpha1 = Alpha1;
     
-    Beta2 = [mean_root_mean_square_error_left_all(:,2); std_root_mean_square_error_left_all(:,2); percent_error_left_all(:,2)];
-    Beta2(1:3:end-2) = mean_root_mean_square_error_left_all(:,2);
-    Beta2(2:3:end-1) = std_root_mean_square_error_left_all(:,2);
-    Beta2(3:3:end) = percent_error_left_all(:,2);
-    T2.Beta2 = Beta2;
+    Alpha2 = [mean_root_mean_square_error_left_all(:,2); std_root_mean_square_error_left_all(:,2); percent_error_left_all(:,2)];
+    Alpha2(1:3:end-2) = mean_root_mean_square_error_left_all(:,2);
+    Alpha2(2:3:end-1) = std_root_mean_square_error_left_all(:,2);
+    Alpha2(3:3:end) = percent_error_left_all(:,2);
+    T2.Alpha2 = Alpha2;
    
-    Beta3 = [mean_root_mean_square_error_left_all(:,3); std_root_mean_square_error_left_all(:,3); percent_error_left_all(:,3)];
-    Beta3(1:3:end-2) = mean_root_mean_square_error_left_all(:,3);
-    Beta3(2:3:end-1) = std_root_mean_square_error_left_all(:,3);
-    Beta3(3:3:end) = percent_error_left_all(:,3);
-    T2.Beta3 = Beta3;
+    Alpha3 = [mean_root_mean_square_error_left_all(:,3); std_root_mean_square_error_left_all(:,3); percent_error_left_all(:,3)];
+    Alpha3(1:3:end-2) = mean_root_mean_square_error_left_all(:,3);
+    Alpha3(2:3:end-1) = std_root_mean_square_error_left_all(:,3);
+    Alpha3(3:3:end) = percent_error_left_all(:,3);
+    T2.Alpha3 = Alpha3;
     
-    Beta4 = [mean_root_mean_square_error_left_all(:,4); std_root_mean_square_error_left_all(:,4); percent_error_left_all(:,4)];
-    Beta4(1:3:end-2) = mean_root_mean_square_error_left_all(:,4);
-    Beta4(2:3:end-1) = std_root_mean_square_error_left_all(:,4);
-    Beta4(3:3:end) = percent_error_left_all(:,4);
-    T2.Beta4 = Beta4;
+    Alpha4 = [mean_root_mean_square_error_left_all(:,4); std_root_mean_square_error_left_all(:,4); percent_error_left_all(:,4)];
+    Alpha4(1:3:end-2) = mean_root_mean_square_error_left_all(:,4);
+    Alpha4(2:3:end-1) = std_root_mean_square_error_left_all(:,4);
+    Alpha4(3:3:end) = percent_error_left_all(:,4);
+    T2.Alpha4 = Alpha4;
     
 
-    Beta5 = [mean_root_mean_square_error_left_all(:,5); std_root_mean_square_error_left_all(:,5); percent_error_left_all(:,5)];
-    Beta5(1:3:end-2) = mean_root_mean_square_error_left_all(:,5);
-    Beta5(2:3:end-1) = std_root_mean_square_error_left_all(:,5);
-    Beta5(3:3:end) = percent_error_left_all(:,5);
-    T2.Beta5 = Beta5;
+    Alpha5 = [mean_root_mean_square_error_left_all(:,5); std_root_mean_square_error_left_all(:,5); percent_error_left_all(:,5)];
+    Alpha5(1:3:end-2) = mean_root_mean_square_error_left_all(:,5);
+    Alpha5(2:3:end-1) = std_root_mean_square_error_left_all(:,5);
+    Alpha5(3:3:end) = percent_error_left_all(:,5);
+    T2.Alpha5 = Alpha5;
     
-    Beta6 = [mean_root_mean_square_error_left_all(:,6); std_root_mean_square_error_left_all(:,6); percent_error_left_all(:,6)];
-    Beta6(1:3:end-2) = mean_root_mean_square_error_left_all(:,6);
-    Beta6(2:3:end-1) = std_root_mean_square_error_left_all(:,6);
-    Beta6(3:3:end) = percent_error_left_all(:,6);
-    T2.Beta6 = Beta6;
+    Alpha6 = [mean_root_mean_square_error_left_all(:,6); std_root_mean_square_error_left_all(:,6); percent_error_left_all(:,6)];
+    Alpha6(1:3:end-2) = mean_root_mean_square_error_left_all(:,6);
+    Alpha6(2:3:end-1) = std_root_mean_square_error_left_all(:,6);
+    Alpha6(3:3:end) = percent_error_left_all(:,6);
+    T2.Alpha6 = Alpha6;
     
-    Beta7 = [mean_root_mean_square_error_left_all(:,7); std_root_mean_square_error_left_all(:,7); percent_error_left_all(:,7)];
-    Beta7(1:3:end-2) = mean_root_mean_square_error_left_all(:,7);
-    Beta7(2:3:end-1) = std_root_mean_square_error_left_all(:,7);
-    Beta7(3:3:end) = percent_error_left_all(:,7);
-    T2.Beta7 = Beta7;
+    Alpha7 = [mean_root_mean_square_error_left_all(:,7); std_root_mean_square_error_left_all(:,7); percent_error_left_all(:,7)];
+    Alpha7(1:3:end-2) = mean_root_mean_square_error_left_all(:,7);
+    Alpha7(2:3:end-1) = std_root_mean_square_error_left_all(:,7);
+    Alpha7(3:3:end) = percent_error_left_all(:,7);
+    T2.Alpha7 = Alpha7;
     
-    Beta8 = [mean_root_mean_square_error_left_all(:,8); std_root_mean_square_error_left_all(:,8); percent_error_left_all(:,8)];
-    Beta8(1:3:end-2) = mean_root_mean_square_error_left_all(:,8);
-    Beta8(2:3:end-1) = std_root_mean_square_error_left_all(:,8);
-    Beta8(3:3:end) = percent_error_left_all(:,8);
-    T2.Beta8 = Beta8;
+    Alpha8 = [mean_root_mean_square_error_left_all(:,8); std_root_mean_square_error_left_all(:,8); percent_error_left_all(:,8)];
+    Alpha8(1:3:end-2) = mean_root_mean_square_error_left_all(:,8);
+    Alpha8(2:3:end-1) = std_root_mean_square_error_left_all(:,8);
+    Alpha8(3:3:end) = percent_error_left_all(:,8);
+    T2.Alpha8 = Alpha8;
     
     % Create CMC table
     T3 = table;
     
-    Beta1 = [mean_coefficient_of_multiple_correlation_left_all(:,1); std_coefficient_of_multiple_correlation_left_all(:,1)]; 
-    Beta1(1:2:end-1) = mean_coefficient_of_multiple_correlation_left_all(:,1);
-    Beta1(2:2:end) = std_coefficient_of_multiple_correlation_left_all(:,1);
-    T3.Beta1 = Beta1;
+    Alpha1 = [mean_coefficient_of_multiple_correlation_left_all(:,1); std_coefficient_of_multiple_correlation_left_all(:,1)]; 
+    Alpha1(1:2:end-1) = mean_coefficient_of_multiple_correlation_left_all(:,1);
+    Alpha1(2:2:end) = std_coefficient_of_multiple_correlation_left_all(:,1);
+    T3.Alpha1 = Alpha1;
     
-    Beta2 = [mean_coefficient_of_multiple_correlation_left_all(:,2); std_coefficient_of_multiple_correlation_left_all(:,2)];
-    Beta2(1:2:end-1) = mean_coefficient_of_multiple_correlation_left_all(:,2);
-    Beta2(2:2:end) = std_coefficient_of_multiple_correlation_left_all(:,2);
-    T3.Beta2 = Beta2;
+    Alpha2 = [mean_coefficient_of_multiple_correlation_left_all(:,2); std_coefficient_of_multiple_correlation_left_all(:,2)];
+    Alpha2(1:2:end-1) = mean_coefficient_of_multiple_correlation_left_all(:,2);
+    Alpha2(2:2:end) = std_coefficient_of_multiple_correlation_left_all(:,2);
+    T3.Alpha2 = Alpha2;
    
-    Beta3 = [mean_coefficient_of_multiple_correlation_left_all(:,3); std_coefficient_of_multiple_correlation_left_all(:,3)];
-    Beta3(1:2:end-1) = mean_coefficient_of_multiple_correlation_left_all(:,3);
-    Beta3(2:2:end) = std_coefficient_of_multiple_correlation_left_all(:,3);
-    T3.Beta3 = Beta3;
+    Alpha3 = [mean_coefficient_of_multiple_correlation_left_all(:,3); std_coefficient_of_multiple_correlation_left_all(:,3)];
+    Alpha3(1:2:end-1) = mean_coefficient_of_multiple_correlation_left_all(:,3);
+    Alpha3(2:2:end) = std_coefficient_of_multiple_correlation_left_all(:,3);
+    T3.Alpha3 = Alpha3;
     
-    Beta4 = [mean_coefficient_of_multiple_correlation_left_all(:,4); std_coefficient_of_multiple_correlation_left_all(:,4)];
-    Beta4(1:2:end-1) = mean_coefficient_of_multiple_correlation_left_all(:,4);
-    Beta4(2:2:end) = std_coefficient_of_multiple_correlation_left_all(:,4);
-    T3.Beta4 = Beta4;
+    Alpha4 = [mean_coefficient_of_multiple_correlation_left_all(:,4); std_coefficient_of_multiple_correlation_left_all(:,4)];
+    Alpha4(1:2:end-1) = mean_coefficient_of_multiple_correlation_left_all(:,4);
+    Alpha4(2:2:end) = std_coefficient_of_multiple_correlation_left_all(:,4);
+    T3.Alpha4 = Alpha4;
     
 
-    Beta5 = [mean_coefficient_of_multiple_correlation_left_all(:,5); std_coefficient_of_multiple_correlation_left_all(:,5)];
-    Beta5(1:2:end-1) = mean_coefficient_of_multiple_correlation_left_all(:,5);
-    Beta5(2:2:end) = std_coefficient_of_multiple_correlation_left_all(:,5);
-    T3.Beta5 = Beta5;
+    Alpha5 = [mean_coefficient_of_multiple_correlation_left_all(:,5); std_coefficient_of_multiple_correlation_left_all(:,5)];
+    Alpha5(1:2:end-1) = mean_coefficient_of_multiple_correlation_left_all(:,5);
+    Alpha5(2:2:end) = std_coefficient_of_multiple_correlation_left_all(:,5);
+    T3.Alpha5 = Alpha5;
     
-    Beta6 = [mean_coefficient_of_multiple_correlation_left_all(:,6); std_coefficient_of_multiple_correlation_left_all(:,6)];
-    Beta6(1:2:end-1) = mean_coefficient_of_multiple_correlation_left_all(:,6);
-    Beta6(2:2:end) = std_coefficient_of_multiple_correlation_left_all(:,6);
-    T3.Beta6 = Beta6;
+    Alpha6 = [mean_coefficient_of_multiple_correlation_left_all(:,6); std_coefficient_of_multiple_correlation_left_all(:,6)];
+    Alpha6(1:2:end-1) = mean_coefficient_of_multiple_correlation_left_all(:,6);
+    Alpha6(2:2:end) = std_coefficient_of_multiple_correlation_left_all(:,6);
+    T3.Alpha6 = Alpha6;
     
-    Beta7 = [mean_coefficient_of_multiple_correlation_left_all(:,7); std_coefficient_of_multiple_correlation_left_all(:,7)];
-    Beta7(1:2:end-1) = mean_coefficient_of_multiple_correlation_left_all(:,7);
-    Beta7(2:2:end) = std_coefficient_of_multiple_correlation_left_all(:,7);
-    T3.Beta7 = Beta7;
+    Alpha7 = [mean_coefficient_of_multiple_correlation_left_all(:,7); std_coefficient_of_multiple_correlation_left_all(:,7)];
+    Alpha7(1:2:end-1) = mean_coefficient_of_multiple_correlation_left_all(:,7);
+    Alpha7(2:2:end) = std_coefficient_of_multiple_correlation_left_all(:,7);
+    T3.Alpha7 = Alpha7;
     
-    Beta8 = [mean_coefficient_of_multiple_correlation_left_all(:,8); std_coefficient_of_multiple_correlation_left_all(:,8)];
-    Beta8(1:2:end-1) = mean_coefficient_of_multiple_correlation_left_all(:,8);
-    Beta8(2:2:end) = std_coefficient_of_multiple_correlation_left_all(:,8);
-    T3.Beta8 = Beta8;
+    Alpha8 = [mean_coefficient_of_multiple_correlation_left_all(:,8); std_coefficient_of_multiple_correlation_left_all(:,8)];
+    Alpha8(1:2:end-1) = mean_coefficient_of_multiple_correlation_left_all(:,8);
+    Alpha8(2:2:end) = std_coefficient_of_multiple_correlation_left_all(:,8);
+    T3.Alpha8 = Alpha8;
     
     % Create velocity vs RMS
     figure
@@ -260,7 +285,7 @@ function plotValidationResults(varargin)
        plot( Amp_RMS_matrix(:,1), Amp_RMS_matrix(:,i+1),shapes{i},'MarkerSize',12,'LineWidth',2)
        hold on
     end
-    xlim([15 55]);
+    xlim([15 60]);
     xlabel('Average Armswing Amplitude (deg)')
     ylabel('RMS (sensor vs mocap)')
     legend('alpha1','alpha2','alpha3','alpha4','alpha5','alpha6','alpha7','alpha8')
