@@ -131,6 +131,26 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('rheel_x')
                 this.addStretchVariable('rheel_x')
             end
+            if this.isVariableToAnalyze('lankle_x')
+                this.addBasicVariable('marker_trajectories')
+                this.addBasicVariable('lankle_x')
+                this.addStretchVariable('lankle_x')
+            end
+            if this.isVariableToAnalyze('rankle_x')
+                this.addBasicVariable('marker_trajectories')
+                this.addBasicVariable('rankle_x')
+                this.addStretchVariable('rankle_x')
+            end
+            if this.isVariableToAnalyze('lankle_y')
+                this.addBasicVariable('marker_trajectories')
+                this.addBasicVariable('lankle_y')
+                this.addStretchVariable('lankle_y')
+            end
+            if this.isVariableToAnalyze('rankle_y')
+                this.addBasicVariable('marker_trajectories')
+                this.addBasicVariable('rankle_y')
+                this.addStretchVariable('rankle_y')
+            end
             if this.isVariableToAnalyze('step_length')
                 this.addBasicVariable('marker_trajectories')
                 this.addBasicVariable('lheel_y')
@@ -157,6 +177,19 @@ classdef WalkingDataCustodian < handle
             end
             if this.isVariableToAnalyze('step_time')
                 this.addStretchVariable('step_time')
+            end
+            if this.isVariableToAnalyze('pushoff_time')
+                this.addBasicVariable('marker_trajectories')
+                this.addStretchVariable('step_time')
+                this.addStretchVariable('pushoff_time')
+            end
+            if this.isVariableToAnalyze('midstance_index')
+                this.addBasicVariable('lankle_y')
+                this.addBasicVariable('rankle_y')
+                this.addBasicVariable('pelvis_y')
+                this.addStretchVariable('step_time')
+                this.addStretchVariable('pushoff_time')
+                this.addStretchVariable('midstance_index')
             end
             if this.isVariableToAnalyze('cadence')
                 this.addStretchVariable('step_time')
@@ -249,6 +282,28 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('right_leg_angle_ml')
                 this.addStretchVariable('right_leg_angle_ml')
             end
+            
+            if this.isVariableToAnalyze('left_foot_angle_ap')
+                this.addBasicVariable('marker_trajectories')
+                this.addBasicVariable('left_foot_angle_ap')
+                this.addStretchVariable('left_foot_angle_ap')
+            end
+            if this.isVariableToAnalyze('left_foot_angle_ml')
+                this.addBasicVariable('marker_trajectories')
+                this.addBasicVariable('left_foot_angle_ml')
+                this.addStretchVariable('left_foot_angle_ml')
+            end
+            if this.isVariableToAnalyze('right_foot_angle_ap')
+                this.addBasicVariable('marker_trajectories')
+                this.addBasicVariable('right_foot_angle_ap')
+                this.addStretchVariable('right_foot_angle_ap')
+            end
+            if this.isVariableToAnalyze('right_foot_angle_ml')
+                this.addBasicVariable('marker_trajectories')
+                this.addBasicVariable('right_foot_angle_ml')
+                this.addStretchVariable('right_foot_angle_ml')
+            end
+            
             if this.isVariableToAnalyze('left_arm_angle_ap')
                 this.addBasicVariable('marker_trajectories')
                 this.addBasicVariable('left_arm_angle_ap')
@@ -367,6 +422,27 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('com_z')
                 this.addBasicVariable('com_z_vel')
                 this.addStretchVariable('com_z_vel')
+            end
+            if this.isVariableToAnalyze('com_x_acc')
+                this.addBasicVariable('com_trajectories')
+                this.addBasicVariable('com_x')
+                this.addBasicVariable('com_x_vel')
+                this.addBasicVariable('com_x_acc')
+                this.addStretchVariable('com_x_acc')
+            end
+            if this.isVariableToAnalyze('com_y_acc')
+                this.addBasicVariable('com_trajectories')
+                this.addBasicVariable('com_y')
+                this.addBasicVariable('com_y_vel')
+                this.addBasicVariable('com_y_acc')
+                this.addStretchVariable('com_y_acc')
+            end
+            if this.isVariableToAnalyze('com_z_acc')
+                this.addBasicVariable('com_trajectories')
+                this.addBasicVariable('com_z')
+                this.addBasicVariable('com_z_vel')
+                this.addBasicVariable('com_z_acc')
+                this.addStretchVariable('com_z_acc')
             end
             if this.isVariableToAnalyze('heel_clearance')
                 this.addBasicVariable('marker_trajectories')
@@ -948,24 +1024,54 @@ classdef WalkingDataCustodian < handle
                     this.time_data.rheel_z = this.time_data.marker_trajectories;
                 end
                 if strcmp(variable_name, 'ltoes_y')
-                    LHEE_trajectory = extractMarkerTrajectories(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LTOE');
-                    this.basic_variable_data.ltoes_y = LHEE_trajectory(:, 2);
+                    LTOE_trajectory = extractMarkerTrajectories(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LTOE');
+                    this.basic_variable_data.ltoes_y = LTOE_trajectory(:, 2);
                     this.time_data.ltoes_y = this.time_data.marker_trajectories;
                 end
                 if strcmp(variable_name, 'rtoes_y')
-                    RHEE_trajectory = extractMarkerTrajectories(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RTOE');
-                    this.basic_variable_data.rtoes_y = RHEE_trajectory(:, 2);
+                    RTOE_trajectory = extractMarkerTrajectories(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RTOE');
+                    this.basic_variable_data.rtoes_y = RTOE_trajectory(:, 2);
                     this.time_data.rtoes_y = this.time_data.marker_trajectories;
                 end
                 if strcmp(variable_name, 'ltoes_z')
-                    LHEE_trajectory = extractMarkerTrajectories(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LTOE');
-                    this.basic_variable_data.ltoes_z = LHEE_trajectory(:, 3);
+                    LTOE_trajectory = extractMarkerTrajectories(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LTOE');
+                    this.basic_variable_data.ltoes_z = LTOE_trajectory(:, 3);
                     this.time_data.ltoes_z = this.time_data.marker_trajectories;
                 end
                 if strcmp(variable_name, 'rtoes_z')
-                    RHEE_trajectory = extractMarkerTrajectories(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RTOE');
-                    this.basic_variable_data.rtoes_z = RHEE_trajectory(:, 3);
+                    RTOE_trajectory = extractMarkerTrajectories(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RTOE');
+                    this.basic_variable_data.rtoes_z = RTOE_trajectory(:, 3);
                     this.time_data.rtoes_z = this.time_data.marker_trajectories;
+                end
+                if strcmp(variable_name, 'lankle_x')
+                    LANK_trajectory = extractMarkerTrajectories(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LANK');
+                    this.basic_variable_data.lankle_x = LANK_trajectory(:, 1);
+                    this.time_data.lankle_x = this.time_data.marker_trajectories;
+                end
+                if strcmp(variable_name, 'rankle_x')
+                    RANK_trajectory = extractMarkerTrajectories(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RANK');
+                    this.basic_variable_data.rankle_x = RANK_trajectory(:, 1);
+                    this.time_data.rankle_x = this.time_data.marker_trajectories;
+                end
+                if strcmp(variable_name, 'lankle_y')
+                    LANK_trajectory = extractMarkerTrajectories(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LANK');
+                    this.basic_variable_data.lankle_y = LANK_trajectory(:, 2);
+                    this.time_data.lankle_y = this.time_data.marker_trajectories;
+                end
+                if strcmp(variable_name, 'rankle_y')
+                    RANK_trajectory = extractMarkerTrajectories(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RANK');
+                    this.basic_variable_data.rankle_y = RANK_trajectory(:, 2);
+                    this.time_data.rankle_y = this.time_data.marker_trajectories;
+                end
+                if strcmp(variable_name, 'rasis_y')
+                    RASI_trajectory = extractMarkerTrajectories(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RASI');
+                    this.basic_variable_data.rasis_y = RASI_trajectory(:, 2);
+                    this.time_data.rasis_y = this.time_data.marker_trajectories;
+                end
+                if strcmp(variable_name, 'lasis_y')
+                    LASI_trajectory = extractMarkerTrajectories(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LASI');
+                    this.basic_variable_data.lasis_y = LASI_trajectory(:, 2);
+                    this.time_data.lasis_y = this.time_data.marker_trajectories;
                 end
                 if strcmp(variable_name, 'mpsis_x')
                     LPSI_trajectory = extractMarkerTrajectories(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LPSI');
@@ -980,6 +1086,19 @@ classdef WalkingDataCustodian < handle
                     MPSI_trajectory = (LPSI_trajectory + RPSI_trajectory) * 0.5;
                     this.basic_variable_data.mpsis_y = MPSI_trajectory(:, 2);
                     this.time_data.mpsis_y = this.time_data.marker_trajectories;
+                end
+                if strcmp(variable_name, 'pelvis_y')
+                    LPSI_trajectory = extractMarkerTrajectories(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LPSI');
+                    RPSI_trajectory = extractMarkerTrajectories(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RPSI');
+                    MPSI_trajectory = (LPSI_trajectory + RPSI_trajectory) * 0.5;
+                    
+                    LASI_trajectory = extractMarkerTrajectories(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LASI');
+                    RASI_trajectory = extractMarkerTrajectories(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RASI');
+                    
+                    pelvis_trajectory = (MPSI_trajectory + LASI_trajectory + RASI_trajectory) * (1 / 3);
+                    
+                    this.basic_variable_data.pelvis_y = pelvis_trajectory(:, 2);
+                    this.time_data.pelvis_y = this.time_data.marker_trajectories;
                 end
                 if strcmp(variable_name, 'c7_x')
                     c7_trajectory = extractMarkerTrajectories(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'C7');
@@ -1050,6 +1169,52 @@ classdef WalkingDataCustodian < handle
                     this.basic_variable_data.right_leg_angle_ml = rad2deg(atan2(right_leg_vector_x, right_leg_vector_z));
                     this.time_data.right_leg_angle_ml = this.time_data.joint_center_trajectories;
                 end
+                
+                if strcmp(variable_name, 'left_foot_angle_ap')
+                    LTOE_trajectory = extractMarkerTrajectories(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LTOE');
+                    LTOEL_trajectory = extractMarkerTrajectories(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LTOEL');
+                    LHEE_trajectory = extractMarkerTrajectories(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LHEE');
+                    LTOEM_trajectory = (LTOE_trajectory + LTOEL_trajectory) * 0.5;
+                    foot_vector_x = LTOEM_trajectory(:, 1) - LHEE_trajectory(:, 1);
+                    foot_vector_y = LTOEM_trajectory(:, 2) - LHEE_trajectory(:, 2);
+                    foot_vector_z = LTOEM_trajectory(:, 3) - LHEE_trajectory(:, 3);
+                    foot_vector_xy = (foot_vector_x.^2 + foot_vector_y.^2).^(0.5);
+                    this.basic_variable_data.left_foot_angle_ap = rad2deg(atan2(foot_vector_z, foot_vector_xy));
+                    this.time_data.left_foot_angle_ap = this.time_data.marker_trajectories;
+                end
+                if strcmp(variable_name, 'left_foot_angle_ml')
+                    LTOE_trajectory = extractMarkerTrajectories(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LTOE');
+                    LTOEL_trajectory = extractMarkerTrajectories(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LTOEL');
+                    foot_vector_x = LTOEL_trajectory(:, 1) - LTOE_trajectory(:, 1);
+                    foot_vector_y = LTOEL_trajectory(:, 2) - LTOE_trajectory(:, 2);
+                    foot_vector_z = LTOEL_trajectory(:, 3) - LTOE_trajectory(:, 3);
+                    foot_vector_xy = (foot_vector_x.^2 + foot_vector_y.^2).^(0.5);
+                    this.basic_variable_data.left_foot_angle_ml = rad2deg(atan2(foot_vector_z, foot_vector_xy));
+                    this.time_data.left_foot_angle_ml = this.time_data.marker_trajectories;
+                end
+                if strcmp(variable_name, 'right_foot_angle_ap')
+                    RTOE_trajectory = extractMarkerTrajectories(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RTOE');
+                    RTOEL_trajectory = extractMarkerTrajectories(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RTOEL');
+                    RHEE_trajectory = extractMarkerTrajectories(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RHEE');
+                    RTOEM_trajectory = (RTOE_trajectory + RTOEL_trajectory) * 0.5;
+                    foot_vector_x = RTOEM_trajectory(:, 1) - RHEE_trajectory(:, 1);
+                    foot_vector_y = RTOEM_trajectory(:, 2) - RHEE_trajectory(:, 2);
+                    foot_vector_z = RTOEM_trajectory(:, 3) - RHEE_trajectory(:, 3);
+                    foot_vector_xy = (foot_vector_x.^2 + foot_vector_y.^2).^(0.5);
+                    this.basic_variable_data.right_foot_angle_ap = rad2deg(atan2(foot_vector_z, foot_vector_xy));
+                    this.time_data.right_foot_angle_ap = this.time_data.marker_trajectories;
+                end
+                if strcmp(variable_name, 'right_foot_angle_ml')
+                    RTOE_trajectory = extractMarkerTrajectories(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RTOE');
+                    RTOEL_trajectory = extractMarkerTrajectories(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RTOEL');
+                    foot_vector_x = RTOEL_trajectory(:, 1) - RTOE_trajectory(:, 1);
+                    foot_vector_y = RTOEL_trajectory(:, 2) - RTOE_trajectory(:, 2);
+                    foot_vector_z = RTOEL_trajectory(:, 3) - RTOE_trajectory(:, 3);
+                    foot_vector_xy = (foot_vector_x.^2 + foot_vector_y.^2).^(0.5);
+                    this.basic_variable_data.right_foot_angle_ml = rad2deg(atan2(foot_vector_z, foot_vector_xy));
+                    this.time_data.right_foot_angle_ml = this.time_data.marker_trajectories;
+                end
+
                 if strcmp(variable_name, 'left_arm_right_leg_relative_phase')
                     left_arm_phase = this.getBasicVariableData('left_arm_phase');
                     right_leg_phase = this.getBasicVariableData('right_leg_phase');
@@ -1087,27 +1252,74 @@ classdef WalkingDataCustodian < handle
                 end
                 if strcmp(variable_name, 'com_x_vel')
                     com_x = this.getBasicVariableData('com_x');
+                    com_x(com_x==0) = NaN;
                     time = this.getTimeData('com_x');
+                    
+                    filter_order = this.study_settings.filter_order_com_vel;
+                    cutoff_frequency = this.study_settings.filter_cutoff_com_vel;
                     sampling_rate = 1/median(diff(time));
+                    [b, a] = butter(filter_order, cutoff_frequency/(sampling_rate/2));
                     com_x_vel = deriveByTime(nanfiltfilt(b, a, com_x), 1/sampling_rate);
+%                     com_x_vel = deriveByTime(com_x, 1/sampling_rate);
                     this.basic_variable_data.com_x_vel = com_x_vel;
                     this.time_data.com_x_vel = time;
                 end
                 if strcmp(variable_name, 'com_y_vel')
                     com_y = this.getBasicVariableData('com_y');
+                    com_y(com_y==0) = NaN;
                     time = this.getTimeData('com_y');
+                    filter_order = this.study_settings.filter_order_com_vel;
+                    cutoff_frequency = this.study_settings.filter_cutoff_com_vel;
                     sampling_rate = 1/median(diff(time));
+                    [b, a] = butter(filter_order, cutoff_frequency/(sampling_rate/2));	% set filter parameters for butterworth filter: 2=order of filter;
                     com_y_vel = deriveByTime(nanfiltfilt(b, a, com_y), 1/sampling_rate);
                     this.basic_variable_data.com_y_vel = com_y_vel;
                     this.time_data.com_y_vel = time;
                 end
                 if strcmp(variable_name, 'com_z_vel')
                     com_z = this.getBasicVariableData('com_z');
+                    com_z(com_z==0) = NaN;
                     time = this.getTimeData('com_z');
+                    filter_order = this.study_settings.filter_order_com_vel;
+                    cutoff_frequency = this.study_settings.filter_cutoff_com_vel;
                     sampling_rate = 1/median(diff(time));
+                    [b, a] = butter(filter_order, cutoff_frequency/(sampling_rate/2));	% set filter parameters for butterworth filter: 2=order of filter;
                     com_z_vel = deriveByTime(nanfiltfilt(b, a, com_z), 1/sampling_rate);
                     this.basic_variable_data.com_z_vel = com_z_vel;
                     this.time_data.com_x_vel = time;
+                end
+                if strcmp(variable_name, 'com_x_acc')
+                    com_x_vel = this.getBasicVariableData('com_x_vel');
+                    time = this.getTimeData('com_x_vel');
+                    filter_order = this.study_settings.filter_order_com_acc;
+                    cutoff_frequency = this.study_settings.filter_cutoff_com_acc;
+                    sampling_rate = 1/median(diff(time));
+                    [b, a] = butter(filter_order, cutoff_frequency/(sampling_rate/2));
+                    com_x_acc = deriveByTime(nanfiltfilt(b, a, com_x_vel), 1/sampling_rate);
+                    this.basic_variable_data.com_x_acc = com_x_acc;
+                    this.time_data.com_x_acc = time;
+                end
+                if strcmp(variable_name, 'com_y_acc')
+                    com_y_vel = this.getBasicVariableData('com_y_vel');
+                    time = this.getTimeData('com_y_vel');
+                    filter_order = this.study_settings.filter_order_com_acc;
+                    cutoff_frequency = this.study_settings.filter_cutoff_com_acc;
+                    sampling_rate = 1/median(diff(time));
+                    [b, a] = butter(filter_order, cutoff_frequency/(sampling_rate/2));	% set filter parameters for butterworth filter: 2=order of filter;
+                    com_y_acc = deriveByTime(nanfiltfilt(b, a, com_y_vel), 1/sampling_rate);
+                    this.basic_variable_data.com_y_acc = com_y_acc;
+                    this.time_data.com_y_acc = time;
+                end
+                if strcmp(variable_name, 'com_z_acc')
+                    com_z_vel = this.getBasicVariableData('com_z_vel');
+                    time = this.getTimeData('com_z_vel');
+                    filter_order = this.study_settings.filter_order_com_acc;
+                    cutoff_frequency = this.study_settings.filter_cutoff_com_acc;
+                    sampling_rate = 1/median(diff(time));
+                    [b, a] = butter(filter_order, cutoff_frequency/(sampling_rate/2));	% set filter parameters for butterworth filter: 2=order of filter;
+                    com_z_acc = deriveByTime(nanfiltfilt(b, a, com_z_vel), 1/sampling_rate);
+                    this.basic_variable_data.com_z_acc = com_z_acc;
+                    this.time_data.com_x_acc = time;
                 end
                 
                 % joint angles
@@ -1538,8 +1750,8 @@ classdef WalkingDataCustodian < handle
                 end
             end
         end
-        function stretch_variables = calculateStretchVariables(this, stretch_start_times, stretch_end_times, condition_stance_foot_list, condition_experimental_list, variables_to_calculate)
-            if nargin < 6
+        function stretch_variables = calculateStretchVariables(this, stretch_start_times, stretch_end_times, stretch_pushoff_times, condition_stance_foot_list, condition_experimental_list, variables_to_calculate)
+            if nargin < 7
                 variables_to_calculate = this.stretch_variable_names;
             end
             
@@ -1557,6 +1769,7 @@ classdef WalkingDataCustodian < handle
                     % time
                     this_stretch_start_time = stretch_start_times(i_stretch);
                     this_stretch_end_time = stretch_end_times(i_stretch);
+                    this_stretch_pushoff_time = stretch_pushoff_times(i_stretch);
                     
                     % calculate normalized stretch data for the basic variables
                     if this.isBasicVariable(variable_name)
@@ -1606,6 +1819,30 @@ classdef WalkingDataCustodian < handle
                     if strcmp(variable_name, 'step_time')
                         stretch_data = this_stretch_end_time - this_stretch_start_time;
                     end
+                    if strcmp(variable_name, 'pushoff_time')
+                        stretch_data = this_stretch_pushoff_time - this_stretch_start_time;
+                    end
+                    if strcmp(variable_name, 'midstance_index')
+                        % get trajectories
+                        pelvis_y = this.getTimeNormalizedData('pelvis_y', this_stretch_start_time, this_stretch_end_time);
+                        if strcmp(condition_stance_foot_list{i_stretch}, 'STANCE_RIGHT')
+                            stance_ankle_y = this.getTimeNormalizedData('rankle_y', this_stretch_start_time, this_stretch_end_time);
+                        end
+                        if strcmp(condition_stance_foot_list{i_stretch}, 'STANCE_LEFT')
+                            stance_ankle_y = this.getTimeNormalizedData('lankle_y', this_stretch_start_time, this_stretch_end_time);
+                        end
+                        if strcmp(condition_stance_foot_list{i_stretch}, 'STANCE_BOTH')
+                            stance_ankle_y = NaN;
+                        end
+                        stretch_data = find(stance_ankle_y < pelvis_y, 1, 'first');
+%                         
+%                         
+%                         figure; hold on;
+%                         plot(stance_ankle_y, 'linewidth', 2);
+%                         plot(pelvis_y, 'linewidth', 2);
+%                         plot(stretch_data, stance_ankle_y(stretch_data), 'o')
+%                         legend('stance ankle', 'pelvis', 'midstance')
+                    end                        
                     if strcmp(variable_name, 'cadence')
                         second_to_minute = 1/60;
                         step_time = stretch_variables{strcmp(this.stretch_variable_names, 'step_time')}(i_stretch);

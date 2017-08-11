@@ -18,7 +18,7 @@
 % remote = 'tuf79669@compute.temple.edu'; number_of_workers = 32;
 remote = 'jhrei@128.175.143.182'; number_of_workers = 44;
 
-% trials_to_process_string = '8 : 20';
+% trials_to_process_string = '18 : 20';
 trials_to_process_string = 'all';
 
 % figure out folder structure
@@ -37,14 +37,14 @@ fprintf(file_id, 'addpath ~/ScrewGeometry\n');
 fprintf(file_id, ['parpool(' num2str(number_of_workers) ')\n']);
 if strcmp(trials_to_process_string, 'all')
 %     fprintf(file_id, 'calculateKinematicTrajectories(''use_parallel'', true)\n');
-%     fprintf(file_id, 'optimizeKinematicTrajectories(''use_parallel'', true)\n');
-    fprintf(file_id, 'calculateDynamicMatrices(''use_parallel'', true)\n');
+   fprintf(file_id, 'optimizeKinematicTrajectories(''use_parallel'', true)\n');
+%     fprintf(file_id, 'calculateDynamicMatrices(''use_parallel'', true)\n');
 %     fprintf(file_id, 'inverseDynamics(''use_parallel'', true)\n');
 %     fprintf(file_id, 'calculateGroundReactionWrenches(''use_parallel'', true)\n');
 else
 %     fprintf(file_id, ['calculateKinematicTrajectories(''use_parallel'', true, ''trials'', ' trials_to_process_string ')\n']);
 %     fprintf(file_id, ['optimizeKinematicTrajectories(''use_parallel'', true, ''trials'', ' trials_to_process_string ')\n']);
-%     fprintf(file_id, ['calculateDynamicMatrices(''use_parallel'', true, ''trials'', ' trials_to_process_string ')\n']);
+    fprintf(file_id, ['calculateDynamicMatrices(''use_parallel'', true, ''trials'', ' trials_to_process_string ')\n']);
 %     fprintf(file_id, ['inverseDynamics(''use_parallel'', true, ''trials'', ' trials_to_process_string ')\n']);
 %     fprintf(file_id, ['calculateGroundReactionWrenches(''use_parallel'', true, ''trials'', ' trials_to_process_string ')\n']);
 end

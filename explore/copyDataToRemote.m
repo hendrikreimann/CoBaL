@@ -40,7 +40,7 @@ system(['ssh ' remote ' ' folder_creation_string]);
 
 % copy study settings
 target_dir = ['data/' study_label];
-% system(['scp ../studySettings.txt ' remote ':' target_dir]);
+system(['scp ../studySettings.txt ' remote ':' target_dir]);
 
 
 % copy subject settings, info and model files
@@ -50,16 +50,16 @@ system(['scp *.mat ' remote ':' target_dir]);
 
 % copy data
 target_dir = ['data/' study_label '/' subject_label '/processed'];
-% system(['scp processed/*kinematicTrajectories.mat ' remote ':' target_dir]);
-% system(['scp processed/*markerTrajectories.mat ' remote ':' target_dir]);
+system(['scp processed/*kinematicTrajectories.mat ' remote ':' target_dir]);
+system(['scp processed/*markerTrajectories.mat ' remote ':' target_dir]);
 % system(['scp processed/*forceplateTrajectories.mat ' remote ':' target_dir]);
 % system(['scp processed/*labviewData.mat ' remote ':' target_dir]);
-system(['scp processed/*.mat ' remote ':' target_dir]);
+% system(['scp processed/*.mat ' remote ':' target_dir]);
 
 target_dir = ['data/' study_label '/' subject_label '/analysis'];
 system(['scp analysis/*.mat ' remote ':' target_dir]);
 
 
-% processOnRemote
+processOnRemote
 
 

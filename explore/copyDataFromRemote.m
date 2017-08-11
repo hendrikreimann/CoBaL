@@ -24,6 +24,7 @@ path_split = strsplit(pwd, filesep);
 subject_label = path_split{end};
 study_label = path_split{end-1};
 
+
 % copy data
 source_dir = ['data/' study_label '/' subject_label '/processed/'];
 % system(['scp ' remote ':' source_dir '*kinematicTrajectories.mat processed/']);

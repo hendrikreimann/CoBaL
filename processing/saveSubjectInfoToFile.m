@@ -59,13 +59,6 @@ function saveSubjectInfoToFile
     subject_row = find(strcmp(data_cell(:, strcmp(header, 'ID')), subject_code));
     
     % extract data
-%     gender = data_cell{subject_row, strcmp(header, 'gender')}; %#ok<NASGU>
-%     height = str2num(data_cell{subject_row, strcmp(header, 'height')}); %#ok<ST2NM,NASGU>
-%     weight = str2num(data_cell{subject_row, strcmp(header, 'weight')}); %#ok<ST2NM,NASGU>
-%     knee_width = str2num(data_cell{subject_row, strcmp(header, 'knee width')}); %#ok<ST2NM,NASGU>
-%     ankle_width = str2num(data_cell{subject_row, strcmp(header, 'ankle width')}); %#ok<ST2NM,NASGU>
-%     elbow_width = str2num(data_cell{subject_row, strcmp(header, 'elbow width')}); %#ok<ST2NM,NASGU>
-    
     for i_column = 2 : length(header)
         variable_name = strrep(header{i_column}, ' ', '_');
         variable_value = data_cell{subject_row, i_column};
@@ -114,7 +107,6 @@ function saveSubjectInfoToFile
         end
     end
     variables_to_save.condition_list = condition_list;
-
     
     % if we have a conditions file, remove the trials not listed there
     conditions_file_name = [];

@@ -46,13 +46,15 @@ function calculateStepResponse(varargin)
     step_placement_x_data = variable_data_session{strcmp(variable_names_session, 'step_placement_x')};
     mpsis_x_data = variable_data_session{strcmp(variable_names_session, 'mpsis_x')};
     com_x_data = variable_data_session{strcmp(variable_names_session, 'com_x')};
-%     com_x_vel_data = variable_data_session{strcmp(variable_names_session, 'com_x_vel')};
-    mpsis_x_vel_data = deriveByTime(mpsis_x_data, 0.01); % XXX ACHTUNG: this is a hack because I don't have the midstance index data yet
-    com_x_vel_data = deriveByTime(com_x_data, 0.01); % XXX ACHTUNG: this is a hack because I don't have the midstance index data yet
-    lheelx_data = variable_data_session{strcmp(variable_names_session, 'lheel_x')};
-    rheelx_data = variable_data_session{strcmp(variable_names_session, 'rheel_x')};
+    mpsis_x_vel_data = deriveByTime(mpsis_x_data, 0.01); % XXX ACHTUNG: this is a hack because I don't have the data yet
+    com_x_vel_data = variable_data_session{strcmp(variable_names_session, 'com_x_vel')};
+%     lheelx_data = variable_data_session{strcmp(variable_names_session, 'lheel_x')};
+%     rheelx_data = variable_data_session{strcmp(variable_names_session, 'rheel_x')};
+    lanklex_data = variable_data_session{strcmp(variable_names_session, 'lankle_x')};
+    ranklex_data = variable_data_session{strcmp(variable_names_session, 'rankle_x')};
     cop_x_data = variable_data_session{strcmp(variable_names_session, 'cop_x')};
     midstance_index_data = ones(1, size(mpsis_x_data, 2)) * 65; % XXX ACHTUNG: this is a hack because I don't have the midstance index data yet
+    midstance_index_data = variable_data_session{strcmp(variable_names_session, 'midstance_index')};
     
     stimulus_response_x_data = zeros(1, size(mpsis_x_data, 2));
 
@@ -61,17 +63,17 @@ function calculateStepResponse(varargin)
     correlations_c = cell(1, size(conditions_control, 1));
     correlations_p = cell(1, size(conditions_control, 1));
     step_placement_x_means = zeros(1, size(conditions_control, 1));
-    com_from_heel_x_midstance_means = zeros(1, size(conditions_control, 1));
+    com_from_ankle_x_midstance_means = zeros(1, size(conditions_control, 1));
     com_x_vel_midstance_means = zeros(1, size(conditions_control, 1));
     
     for i_condition = 1 : size(conditions_control, 1)
         % determine stance foot
-        stance_heel_x_data = [];
+        stance_ankle_x_data = [];
         if strcmp(conditions_control{i_condition, 1}, 'STANCE_LEFT')
-            stance_heel_x_data = lheelx_data;
+            stance_ankle_x_data = lanklex_data;
         end
         if strcmp(conditions_control{i_condition, 1}, 'STANCE_RIGHT')
-            stance_heel_x_data = rheelx_data;
+            stance_ankle_x_data = ranklex_data;
         end
         
         % get control indicators
@@ -90,7 +92,7 @@ function calculateStepResponse(varargin)
         com_x_this_condition = com_x_data(:, this_condition_indicator);
         mpsis_x_vel_this_condition = mpsis_x_vel_data(:, this_condition_indicator);
         com_x_vel_this_condition = com_x_vel_data(:, this_condition_indicator);
-        stance_heel_x_this_condition = stance_heel_x_data(:, this_condition_indicator);
+        stance_ankle_x_this_condition = stance_ankle_x_data(:, this_condition_indicator);
         cop_x_this_condition = cop_x_data(:, this_condition_indicator);
         
         % extract midstance data
@@ -99,32 +101,32 @@ function calculateStepResponse(varargin)
         
         mpsis_x_midstance = mpsis_x_this_condition(midstance_sub_indices);
         com_x_midstance = com_x_this_condition(midstance_sub_indices);
-        stance_heel_x_midstance = stance_heel_x_this_condition(midstance_sub_indices);
+        stance_ankle_x_midstance = stance_ankle_x_this_condition(midstance_sub_indices);
         cop_x_midstance = cop_x_this_condition(midstance_sub_indices);
         mpsis_x_vel_midstance = mpsis_x_vel_this_condition(midstance_sub_indices);
         com_x_vel_midstance = com_x_vel_this_condition(midstance_sub_indices);
         
-        mpsis_from_heel_x_midstance = mpsis_x_midstance - stance_heel_x_midstance;
-        com_from_heel_x_midstance = com_x_midstance - stance_heel_x_midstance;
+        mpsis_from_ankle_x_midstance = mpsis_x_midstance - stance_ankle_x_midstance;
+        com_from_ankle_x_midstance = com_x_midstance - stance_ankle_x_midstance;
         mpsis_from_cop_x_midstance = mpsis_x_midstance - cop_x_midstance;
         com_from_cop_x_midstance = com_x_midstance - cop_x_midstance;
         
         % calculate means
         step_placement_x_means(i_condition) = mean(step_placement_x_this_condition);
-        com_from_heel_x_midstance_means(i_condition) = mean(com_from_heel_x_midstance);
+        com_from_ankle_x_midstance_means(i_condition) = mean(com_from_ankle_x_midstance);
         com_x_vel_midstance_means(i_condition) = mean(com_x_vel_midstance);
         
         % calculate delta from mean
         step_placement_x_this_condition_delta = step_placement_x_this_condition - mean(step_placement_x_this_condition);
-        mpsis_from_heel_x_midstance_delta = mpsis_from_heel_x_midstance - mean(mpsis_from_heel_x_midstance);
-        com_from_heel_x_midstance_delta = com_from_heel_x_midstance - mean(com_from_heel_x_midstance);
+        mpsis_from_ankle_x_midstance_delta = mpsis_from_ankle_x_midstance - mean(mpsis_from_ankle_x_midstance);
+        com_from_ankle_x_midstance_delta = com_from_ankle_x_midstance - mean(com_from_ankle_x_midstance);
         mpsis_from_cop_x_midstance_delta = mpsis_from_cop_x_midstance - mean(mpsis_from_cop_x_midstance);
         com_from_cop_x_midstance_delta = com_from_cop_x_midstance - mean(com_from_cop_x_midstance);
         mpsis_x_vel_midstance_delta = mpsis_x_vel_midstance - mean(mpsis_x_vel_midstance);
         com_x_vel_midstance_delta = com_x_vel_midstance - mean(com_x_vel_midstance);
         
-        % calculate regression coefficients for com from heel
-        input_matrix = [com_from_heel_x_midstance_delta; com_x_vel_midstance_delta];
+        % calculate regression coefficients for com from ankle
+        input_matrix = [com_from_ankle_x_midstance_delta; com_x_vel_midstance_delta];
         output_matrix = step_placement_x_this_condition_delta;
         Jacobian = output_matrix * pinv(input_matrix);
         [correlation_c, correlation_p] = corr(input_matrix', output_matrix');
@@ -133,25 +135,25 @@ function calculateStepResponse(varargin)
         correlations_p{i_condition} = correlation_p;
 
         if visualize
-            % calculate regression coefficients for mpsis from heel
-            input_matrix = [mpsis_from_heel_x_midstance_delta; mpsis_x_vel_midstance_delta];
+            % calculate regression coefficients for mpsis from ankle
+            input_matrix = [mpsis_from_ankle_x_midstance_delta; mpsis_x_vel_midstance_delta];
             output_matrix = step_placement_x_this_condition_delta;
             Jacobian = output_matrix * pinv(input_matrix);
             [correlation_c, correlation_p] = corr(input_matrix', output_matrix');
 
-            figure; plot(mpsis_from_heel_x_midstance_delta, step_placement_x_this_condition_delta, 'x')
-            title(['mpsis from heel - pos, J = ' num2str(Jacobian(1)) ', c = ' num2str(correlation_c(1)) ', p = ' num2str(correlation_p(1))]); axis equal
+            figure; plot(mpsis_from_ankle_x_midstance_delta, step_placement_x_this_condition_delta, 'x')
+            title(['mpsis from ankle - pos, J = ' num2str(Jacobian(1)) ', c = ' num2str(correlation_c(1)) ', p = ' num2str(correlation_p(1))]); axis equal
             figure; plot(mpsis_x_vel_midstance_delta, step_placement_x_this_condition_delta, 'x')
             title(['mpsis - vel, J = ' num2str(Jacobian(2)) ', c = ' num2str(correlation_c(2)) ', p = ' num2str(correlation_p(2))]); axis equal
 
-            % calculate regression coefficients for com from heel
-            input_matrix = [com_from_heel_x_midstance_delta; com_x_vel_midstance_delta];
+            % calculate regression coefficients for com from ankle
+            input_matrix = [com_from_ankle_x_midstance_delta; com_x_vel_midstance_delta];
             output_matrix = step_placement_x_this_condition_delta;
             Jacobian = output_matrix * pinv(input_matrix);
             [correlation_c, correlation_p] = corr(input_matrix', output_matrix');
 
-            figure; plot(com_from_heel_x_midstance_delta, step_placement_x_this_condition_delta, 'x')
-            title(['com from heel - pos, J = ' num2str(Jacobian(1)) ', c = ' num2str(correlation_c(1)) ', p = ' num2str(correlation_p(1))]); axis equal
+            figure; plot(com_from_ankle_x_midstance_delta, step_placement_x_this_condition_delta, 'x')
+            title(['com from ankle - pos, J = ' num2str(Jacobian(1)) ', c = ' num2str(correlation_c(1)) ', p = ' num2str(correlation_p(1))]); axis equal
             figure; plot(com_x_vel_midstance_delta, step_placement_x_this_condition_delta, 'x')
             title(['com - vel, J = ' num2str(Jacobian(2)) ', c = ' num2str(correlation_c(2)) ', p = ' num2str(correlation_p(2))]); axis equal
 
@@ -185,13 +187,13 @@ function calculateStepResponse(varargin)
     for i_condition = 1 : size(conditions_to_analyze, 1)
         
         % determine stance foot
-        stance_heel_x_data = [];
+        stance_ankle_x_data = [];
         if strcmp(conditions_to_analyze{i_condition, 1}, 'STANCE_LEFT')
-            stance_heel_x_data = lheelx_data;
+            stance_ankle_x_data = lanklex_data;
             applicable_control_condition = find(strcmp(conditions_control(:, 1), 'STANCE_LEFT'));
         end
         if strcmp(conditions_to_analyze{i_condition, 1}, 'STANCE_RIGHT')
-            stance_heel_x_data = rheelx_data;
+            stance_ankle_x_data = ranklex_data;
             applicable_control_condition = find(strcmp(conditions_control(:, 1), 'STANCE_RIGHT'));
         end
         
@@ -210,27 +212,27 @@ function calculateStepResponse(varargin)
         mpsis_x_this_condition = mpsis_x_data(:, this_condition_indicator);
         com_x_this_condition = com_x_data(:, this_condition_indicator);
         com_x_vel_this_condition = com_x_vel_data(:, this_condition_indicator);
-        stance_heel_x_this_condition = stance_heel_x_data(:, this_condition_indicator);
+        stance_ankle_x_this_condition = stance_ankle_x_data(:, this_condition_indicator);
         
         % extract midstance data
         midstance_index_data_this_condition = midstance_index_data(this_condition_indicator);
         midstance_sub_indices = sub2ind(size(mpsis_x_this_condition), midstance_index_data_this_condition, 1:length(midstance_index_data_this_condition));
         
         com_x_midstance = com_x_this_condition(midstance_sub_indices);
-        stance_heel_x_midstance = stance_heel_x_this_condition(midstance_sub_indices);
+        stance_ankle_x_midstance = stance_ankle_x_this_condition(midstance_sub_indices);
         com_x_vel_midstance = com_x_vel_this_condition(midstance_sub_indices);
         
-        com_from_heel_x_midstance = com_x_midstance - stance_heel_x_midstance;
+        com_from_ankle_x_midstance = com_x_midstance - stance_ankle_x_midstance;
         
         % calculate delta from control mean
         step_placement_x_this_condition_delta = step_placement_x_this_condition - step_placement_x_means(applicable_control_condition);
-        com_from_heel_x_midstance_delta = com_from_heel_x_midstance - com_from_heel_x_midstance_means(applicable_control_condition);
+        com_from_ankle_x_midstance_delta = com_from_ankle_x_midstance - com_from_ankle_x_midstance_means(applicable_control_condition);
         com_x_vel_midstance_delta = com_x_vel_midstance - com_x_vel_midstance_means(applicable_control_condition); 
         
         % calculate and remove expected part
         step_response_x = step_placement_x_this_condition_delta;
         Jacobian = Jacobians{applicable_control_condition};
-        expected_response_x = Jacobian(1) * com_from_heel_x_midstance_delta + Jacobian(2) * com_x_vel_midstance_delta;
+        expected_response_x = Jacobian(1) * com_from_ankle_x_midstance_delta + Jacobian(2) * com_x_vel_midstance_delta;
         stimulus_response_x = step_response_x - expected_response_x;
         
         stimulus_response_x_data(this_condition_indicator) = stimulus_response_x;
@@ -242,9 +244,19 @@ function calculateStepResponse(varargin)
     
     
     % save data
-    variable_data_session = [variable_data_session; stimulus_response_x_data];
-    response_data_session = [response_data_session; stimulus_response_x_data];
-    variable_names_session = [variable_names_session; 'stimulus_response_x'];
+    stimulus_response_index = find(strcmp(variable_names_session, 'stimulus_response_x'));
+    if isempty(stimulus_response_index)
+        % stimulus_response_x doesn't exist yet, so add it to end
+        variable_data_session = [variable_data_session; stimulus_response_x_data];
+        response_data_session = [response_data_session; stimulus_response_x_data];
+        variable_names_session = [variable_names_session; 'stimulus_response_x'];
+    end
+    if ~isempty(stimulus_response_index)
+        % stimulus_response_x exists, so overwrite this entry
+        variable_data_session{stimulus_response_index} = stimulus_response_x_data;
+        response_data_session{stimulus_response_index} = stimulus_response_x_data;
+        variable_names_session{stimulus_response_index} = 'stimulus_response_x';
+    end
     
     results_file_name = ['analysis' filesep makeFileName(date, subject_id, 'results')];
     save ...

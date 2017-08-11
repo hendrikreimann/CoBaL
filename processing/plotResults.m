@@ -29,11 +29,13 @@ function plotResults(varargin)
     addParameter(parser, 'save', false)
     addParameter(parser, 'format', 'epsc')
     addParameter(parser, 'settings', 'plotSettings.txt')
+    addParameter(parser, 'spread_method', 'cinv')
     parse(parser, varargin{:})
     subjects = parser.Results.subjects;
     dictate_axes = parser.Results.dictate_axes;
     show_legend = parser.Results.show_legend;
     settings_file = parser.Results.settings;
+    spread_method = parser.Results.spread_method;
 
     % load settings
     study_settings_file = '';
@@ -126,21 +128,21 @@ function plotResults(varargin)
         end
     end
     
-    % save data for quick stats
-    variables_to_save = struct;
-    variables_to_save.variable_data_all = variable_data_all;
-    if plot_settings.get('plot_response')
-        variables_to_save.response_data_all = response_data_all;
-    end
-    variables_to_save.variable_names = variables_to_plot;
-    variables_to_save.condition_stance_foot_list_all = condition_stance_foot_list_all;
-    variables_to_save.condition_perturbation_list_all = condition_perturbation_list_all;
-    variables_to_save.condition_delay_list_all = condition_delay_list_all;
-    variables_to_save.condition_index_list_all = condition_index_list_all;
-    variables_to_save.condition_experimental_list_all = condition_experimental_list_all;
-    variables_to_save.condition_stimulus_list_all = condition_stimulus_list_all;
-    variables_to_save.condition_day_list_all = condition_day_list_all;
-    save('results', '-struct', 'variables_to_save');
+%     % save data for quick stats
+%     variables_to_save = struct;
+%     variables_to_save.variable_data_all = variable_data_all;
+%     if plot_settings.get('plot_response')
+%         variables_to_save.response_data_all = response_data_all;
+%     end
+%     variables_to_save.variable_names = variables_to_plot;
+%     variables_to_save.condition_stance_foot_list_all = condition_stance_foot_list_all;
+%     variables_to_save.condition_perturbation_list_all = condition_perturbation_list_all;
+%     variables_to_save.condition_delay_list_all = condition_delay_list_all;
+%     variables_to_save.condition_index_list_all = condition_index_list_all;
+%     variables_to_save.condition_experimental_list_all = condition_experimental_list_all;
+%     variables_to_save.condition_stimulus_list_all = condition_stimulus_list_all;
+%     variables_to_save.condition_day_list_all = condition_day_list_all;
+%     save('results', '-struct', 'variables_to_save');
     
     %% create figures and determine abscissae for each comparison
     comparison_variable_to_axes_index_map = zeros(number_of_comparisons, 1);
@@ -724,7 +726,7 @@ function plotResults(varargin)
                               ( ...
                                 target_abscissa, ...
                                 mean(data_to_plot_this_condition, 2), ...
-                                cinv(data_to_plot_this_condition, 2), ...
+                                spread(data_to_plot_this_condition, spread_method), ...
                                 { ...
                                   'color', plot_settings.get('color_control'), ...
                                   'linewidth', 6 ...
@@ -794,13 +796,20 @@ function plotResults(varargin)
                                 'color', lightenColor(colors_comparison(i_condition, :), 0.5) ...
                               );
                         end
-                    end
+                        condition_mean_plot = plot ...
+                          ( ...
+                            target_axes_handle, ...
+                            target_abscissa, ...
+                            mean(data_to_plot_this_condition, 2), ...
+                            'linewidth', 5, ...
+                            'color', colors_comparison(i_condition, :) ...
+                          );                    end
                     if strcmp(plot_mode, 'overview') || strcmp(plot_mode, 'episodes')
                         plot_handles = shadedErrorBar ...
                           ( ...
                             target_abscissa, ...
                             mean(data_to_plot_this_condition, 2), ...
-                            cinv(data_to_plot_this_condition, 2), ...
+                            spread(data_to_plot_this_condition, spread_method), ...
                             { ...
                               'color', colors_comparison(i_condition, :), ...
                               'linewidth', 6 ...
@@ -1122,6 +1131,16 @@ function singleBoxPlot(target_axes_handle, abscissa, data, color, label, show_ou
     xticklabels = get(target_axes_handle, 'xticklabel');
     xticklabels{xtick == abscissa} = label;
     set(target_axes_handle, 'xticklabel', xticklabels);
+end
+
+function s = spread(data, method)
+    if strcmp(method, 'cinv')
+        s = cinv(data, 2);
+    end
+    if strcmp(method, 'sem')
+        s = std(data, 0, 2) * 1 / sqrt(size(data, 1));
+    end
+    
 end
 
 

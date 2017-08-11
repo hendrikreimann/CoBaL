@@ -191,6 +191,17 @@ classdef WalkingTrialData < handle
         right_elbow_pronat_torque = [];
         right_wrist_flex_torque = [];   
         
+        % com variables
+        com_x_pos = [];
+        com_y_pos = [];
+        com_z_pos = [];
+        com_x_vel = [];
+        com_y_vel = [];
+        com_z_vel = [];
+        com_x_acc = [];
+        com_y_acc = [];
+        com_z_acc = [];
+        
         data_labels_mocap = ...
           { ...
             'left_heel_z_pos', 'left_heel_z_vel', 'left_heel_z_acc', ...
@@ -217,6 +228,9 @@ classdef WalkingTrialData < handle
             'cervical_joint_pitch_torque', 'cervical_joint_roll_torque', 'cervical_joint_yaw_torque', ...
             'left_shoulder_flex_torque', 'left_shoulder_abd_torque', 'left_shoulder_introt_torque', 'left_elbow_flex_torque', 'left_elbow_pronat_torque', 'left_wrist_flex_torque', ...
             'right_shoulder_flex_torque', 'right_shoulder_abd_torque', 'right_shoulder_introt_torque', 'right_elbow_flex_torque', 'right_elbow_pronat_torque', 'right_wrist_flex_torque', ...
+            'com_x_pos', 'com_y_pos', 'com_z_pos', ...
+            'com_x_vel', 'com_y_vel', 'com_z_vel', ...
+            'com_x_acc', 'com_y_acc', 'com_z_acc', ...
           };
         data_labels_forceplate = ...
           {
@@ -283,9 +297,10 @@ classdef WalkingTrialData < handle
             right_heel_y_trajectory = this.marker_positions(:, right_heel_marker_indices(2));
 
             % calculate derivatives
-            filter_order = 2;
-            cutoff_frequency = 20; % cutoff frequency, in Hz
+            filter_order = 4;
+            cutoff_frequency = 5; % cutoff frequency, in Hz
             [b, a] = butter(filter_order, cutoff_frequency/(this.sampling_rate_marker/2));	% set filter parameters for butterworth filter: 2=order of filter;
+
             left_heel_z_vel_trajectory = deriveByTime(nanfiltfilt(b, a, left_heel_z_trajectory), 1/this.sampling_rate_marker);
             right_heel_z_vel_trajectory = deriveByTime(nanfiltfilt(b, a, right_heel_z_trajectory), 1/this.sampling_rate_marker);
             left_heel_z_acc_trajectory = deriveByTime(nanfiltfilt(b, a, left_heel_z_vel_trajectory), 1/this.sampling_rate_marker);
@@ -298,6 +313,26 @@ classdef WalkingTrialData < handle
             right_heel_y_vel_trajectory = deriveByTime(nanfiltfilt(b, a, right_heel_y_trajectory), 1/this.sampling_rate_marker);
             left_heel_y_acc_trajectory = deriveByTime(nanfiltfilt(b, a, left_heel_y_vel_trajectory), 1/this.sampling_rate_marker);
             right_heel_y_acc_trajectory = deriveByTime(nanfiltfilt(b, a, right_heel_y_vel_trajectory), 1/this.sampling_rate_marker);
+
+%             filterdesign = designfilt ...
+%               ( ...
+%                 'lowpassiir', ...
+%                 'FilterOrder', 6, ...
+%                 'HalfPowerFrequency', 1, ...
+%                 'DesignMethod', 'butter' ...
+%               );            
+%             left_heel_z_vel_trajectory = deriveByTime(nanfiltfilt(left_heel_z_trajectory, filterdesign), 1/this.sampling_rate_marker);
+%             right_heel_z_vel_trajectory = deriveByTime(nanfiltfilt(right_heel_z_trajectory, filterdesign), 1/this.sampling_rate_marker);
+%             left_heel_z_acc_trajectory = deriveByTime(nanfiltfilt(left_heel_z_vel_trajectory, filterdesign), 1/this.sampling_rate_marker);
+%             right_heel_z_acc_trajectory = deriveByTime(nanfiltfilt(right_heel_z_vel_trajectory, filterdesign), 1/this.sampling_rate_marker);
+%             left_toes_z_vel_trajectory = deriveByTime(nanfiltfilt(left_toes_z_trajectory, filterdesign), 1/this.sampling_rate_marker);
+%             right_toes_z_vel_trajectory = deriveByTime(nanfiltfilt(right_toes_z_trajectory, filterdesign), 1/this.sampling_rate_marker);
+%             left_toes_z_acc_trajectory = deriveByTime(nanfiltfilt(left_toes_z_vel_trajectory, filterdesign), 1/this.sampling_rate_marker);
+%             right_toes_z_acc_trajectory = deriveByTime(nanfiltfilt(right_toes_z_vel_trajectory, filterdesign), 1/this.sampling_rate_marker);        
+%             left_heel_y_vel_trajectory = deriveByTime(nanfiltfilt(left_heel_y_trajectory, filterdesign), 1/this.sampling_rate_marker);
+%             right_heel_y_vel_trajectory = deriveByTime(nanfiltfilt(right_heel_y_trajectory, filterdesign), 1/this.sampling_rate_marker);
+%             left_heel_y_acc_trajectory = deriveByTime(nanfiltfilt(left_heel_y_vel_trajectory, filterdesign), 1/this.sampling_rate_marker);
+%             right_heel_y_acc_trajectory = deriveByTime(nanfiltfilt(right_heel_y_vel_trajectory, filterdesign), 1/this.sampling_rate_marker);
 
             this.left_heel_z_pos = left_heel_z_trajectory;
             this.left_heel_z_vel = left_heel_z_vel_trajectory;
@@ -419,7 +454,21 @@ classdef WalkingTrialData < handle
                 this.right_wrist_flex_torque = joint_torque_trajectories(:, strcmp(joint_torque_labels, 'right wrist flexion/extension'));
             end
             
-            
+            % com
+            if this.com_data_available
+                body_com_positions = extractMarkerTrajectories(this.com_positions, this.com_labels, 'BODYCOM');
+                this.com_x_pos = body_com_positions(:, 1);
+                this.com_y_pos = body_com_positions(:, 2);
+                this.com_z_pos = body_com_positions(:, 3);
+                com_velocities = deriveByTime(nanfiltfilt(b, a, body_com_positions), 1/this.sampling_rate_marker);
+                this.com_x_vel = com_velocities(:, 1);
+                this.com_y_vel = com_velocities(:, 2);
+                this.com_z_vel = com_velocities(:, 3);
+                com_accelerations = deriveByTime(nanfiltfilt(b, a, com_velocities), 1/this.sampling_rate_marker);
+                this.com_x_acc = com_accelerations(:, 1);
+                this.com_y_acc = com_accelerations(:, 2);
+                this.com_z_acc = com_accelerations(:, 3);
+            end
         end
         function loadForceplateTrajectories(this)
             file_name_forceplate = [this.data_directory filesep 'processed' filesep makeFileName(this.date, this.subject_id, this.condition, this.trial_number, 'forceplateTrajectories.mat')];
