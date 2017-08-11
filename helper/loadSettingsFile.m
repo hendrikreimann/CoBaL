@@ -27,17 +27,10 @@ function settings = loadSettingsFile(filename)
 
     % open file
     if ~exist(filename, 'file')
-        fileID = fopen(filename, 'w');
-        fprintf(fileID,'example settings file, edit this later\n');
-        fclose(fileID);
-        
-        error(['Failed to load "' filename '", a sample file has been created. Please edit it with your study information or copy the correct file.'])
+        error(['Failed to load "' filename '".'])
     end
 
     fileID = fopen(filename, 'r');
-    
-    % for now, just read line by line and assume each one is a variable. Later I should add something like
-    % readSettingsBlock()
     
     % read text to cell
     text_line = fgetl(fileID);
@@ -52,6 +45,11 @@ function settings = loadSettingsFile(filename)
     lines_to_prune = false(size(text_cell, 1), 1);
     for i_line = 1 : size(text_cell, 1)
         this_line = text_cell{i_line};
+        
+        % remove initial white space
+        while length(this_line) > 0 && strcmp(this_line(1), ' ')
+            this_line(1) = [];
+        end
         
         % remove comments
         if length(this_line) > 1 && strcmp(this_line(1:2), '//')
