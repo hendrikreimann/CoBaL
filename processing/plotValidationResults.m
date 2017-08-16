@@ -113,6 +113,10 @@ function plotValidationResults(varargin)
     std_coefficient_of_multiple_correlation_right_all = std_coefficient_of_multiple_correlation_right_all';
     mean_root_mean_square_error_left_all = mean_root_mean_square_error_left_all';
     mean_root_mean_square_error_right_all = mean_root_mean_square_error_right_all';
+    mean_all_rms_left = mean(mean_root_mean_square_error_left_all);
+    mean_all_rms_right = mean(mean_root_mean_square_error_right_all);
+    std_all_rms_left = std(mean_root_mean_square_error_left_all);
+    std_all_rms_right = std(mean_root_mean_square_error_right_all);
     std_root_mean_square_error_left_all = std_root_mean_square_error_left_all';
     std_root_mean_square_error_right_all = std_root_mean_square_error_right_all';
     percent_error_left_all = percent_error_left_all';
@@ -163,6 +167,8 @@ function plotValidationResults(varargin)
 %         'RowNames', subjects); %'VariableNames',{'Treadmill Speed' 'Armswing Amplitude Left' 'Armswing Amplitude Right' 'Armswing Velocity Left', ...
         %'Armswing Velocity Right', 'Armswing Acceleration Left', 'Armswing Acceleration Right'});
     
+        
+        
         
     % Create RMS table
     T2 = table
@@ -259,6 +265,17 @@ function plotValidationResults(varargin)
     Alpha8(1:2:end-1) = mean_coefficient_of_multiple_correlation_left_all(:,8);
     Alpha8(2:2:end) = std_coefficient_of_multiple_correlation_left_all(:,8);
     T3.Alpha8 = Alpha8;
+    
+    % Plot Avg RMS for all subjects
+    alpha_values = [1 2 3 4 5 6 7 8];
+    alpha_labels = {'1' '2' '3' '4' '5' '6' '7' '8'};
+    
+    figure; axes; hold on; %title('RMS')
+    errorbar(alpha_values, mean_all_rms_left, std_all_rms_left, 'o-', 'displayname', 'left','LineWidth',3)
+    errorbar(alpha_values, mean_all_rms_right, std_all_rms_right, 'o-', 'displayname', 'right','LineWidth',3)
+    set(gca, 'xtick', alpha_values)
+    set(gca, 'xticklabels', alpha_labels)
+    ylim([0 25])
     
     % Create velocity vs RMS
     figure

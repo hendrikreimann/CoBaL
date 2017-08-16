@@ -192,14 +192,19 @@ function mocapArmsenseComparison_AlphaOnly_AllTrials(varargin)
             addAvailableData('inclination_angle_armsense_right_accel_trajectory', 'time_marker', 'sampling_rate_marker', 'alpha_labels', save_folder, save_file_name);
             disp(['Calculating inclination angles: condition ' condition ', Trial ' num2str(i_trial) ' completed, saved as ' save_file_name]);
             
-%             figure;
-%             plot(time_marker, inclination_angle_mocap_left_trajectory,'k','LineWidth',2);
-%             hold on
-%             for i = 1:8
-%                 plot(time_marker, inclination_angle_armsense_left_trajectories(:,i));
-%             end
-%             legend('mocap','alpha1','alpha2','alpha3','alpha4','alpha5','alpha6','alpha7','alpha8')
-%             keyboard
+            figure;
+%             plot(time_marker, inclination_angle_mocap_left_trajectory,'k','LineWidth',3.5);
+            hold on
+            for i = 1:8
+                plot(time_marker, inclination_angle_armsense_left_trajectories(:,i),'LineWidth',2);
+            end
+            plot(time_marker, inclination_angle_mocap_left_trajectory,'k','LineWidth',3.5);
+            xlim([5 7])
+            ylim([0 70])
+            legend('alpha1','alpha2','alpha3','alpha4','alpha5','alpha6','alpha7','alpha8','mocap')
+            set(gca,'xtick',[])
+            set(gca,'xticklabel',[])
+            keyboard
         end
 
     end

@@ -114,7 +114,7 @@ function analyzeAlpha(varargin)
             angular_acceleration_mocap_right{adjusted_i_condition}(i_trial) = mean(abs((diff(inclination_angle_mocap_right_trajectory)./diff(time_marker))./diff(time_marker)));
 %             angular_velocity_armsense_left{adjusted_i_condition}(i_trial) = mean(abs(diff(inclination_angle_armsense_left_trajectories)./diff(time_marker)));
 %             angular_velocity_armsense_right{adjusted_i_condition}(i_trial) = mean(abs(diff(inclination_angle_armsense_right_trajectories)./diff(time_marker)));
-%             
+             
             treadmill_speed_trajectories{adjusted_i_condition}(i_trial) = mean(trial_treadmill_speed_trajectories(begin_plc_clip:end_plc_clip,:));
             
             if strcmp(alpha_labels, 'undefined')

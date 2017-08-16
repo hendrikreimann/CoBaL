@@ -17,26 +17,27 @@ function RMS_error_ratio = myfun(this_alpha,varargin)
     parse(parser, varargin{:})
     subjects = parser.Results.subjects;
     
+    subject_dir = cd;
     data_folder_list = determineDataStructure(subjects);
+    
+    root_mean_square_errors_left = cell(length(data_folder_list),3);
+    root_mean_square_errors_right = cell(length(data_folder_list),3);
+    trialaveraged_mocap_peak_amplitude_left = cell(length(data_folder_list),3);
+    trialaveraged_mocap_peak_amplitude_right = cell(length(data_folder_list),3);
     
     for i_folder = 1 : length(data_folder_list)
         % load data
         data_path = data_folder_list{i_folder};
-        load([data_path filesep 'subjectInfo.mat'], 'date', 'subject_id');
-        load('subjectInfo.mat', 'condition_list','trial_number_list')
+        cd(data_path);
+        load([data_path filesep 'subjectInfo.mat'], 'date', 'subject_id', 'condition_list','trial_number_list');
+%          load('subjectInfo.mat', 'condition_list','trial_number_list')
 
         remove_conditions = {'adaptation', 'calibration', 'emg'};
-        remove_conditions_indices = find(ismember(condition_list, remove_conditions))
+        remove_conditions_indices = find(ismember(condition_list, remove_conditions));
         condition_list(remove_conditions_indices) = [];
         trial_number_list(remove_conditions_indices) = [];
         alpha_labels = 'undefined';
         
-        root_mean_square_errors_left = cell(length(data_folder_list),length(condition_list));
-        root_mean_square_errors_right = cell(length(data_folder_list),length(condition_list));
-        trialaveraged_mocap_peak_amplitude_left = cell(length(data_folder_list),length(condition_list));
-        trialaveraged_mocap_peak_amplitude_right = cell(length(data_folder_list),length(condition_list));
-        
-
         for i_condition = 1: length(condition_list)
             condition = condition_list{i_condition};
             trials_to_process = trial_number_list{i_condition};
@@ -162,8 +163,8 @@ function RMS_error_ratio = myfun(this_alpha,varargin)
                 [minPeaks_right, minPeaks_right_indices] = findpeaks(-inclination_angle_mocap_right_trajectory);
                 minPeaks_left = abs(minPeaks_left);
                 minPeaks_right = abs(minPeaks_right);
-                trialaveraged_mocap_peak_amplitude_left{i_condition}(i_trial) = mean(maxPeaks_left) - mean(minPeaks_left);
-                trialaveraged_mocap_peak_amplitude_right{i_condition}(i_trial) = mean(maxPeaks_right) - mean(minPeaks_right);
+                trialaveraged_mocap_peak_amplitude_left{i_folder,i_condition}(i_trial) = mean(maxPeaks_left) - mean(minPeaks_left);
+                trialaveraged_mocap_peak_amplitude_right{i_folder,i_condition}(i_trial) = mean(maxPeaks_right) - mean(minPeaks_right);
                 
                 % calculate error
                 error_left = inclination_angle_mocap_left_trajectory - inclination_angle_armsense_left_trajectories;
@@ -173,7 +174,8 @@ function RMS_error_ratio = myfun(this_alpha,varargin)
                 root_mean_square_errors_left{i_folder,i_condition}(i_trial) = mean(error_left.^2).^0.5;
                 root_mean_square_errors_right{i_folder,i_condition}(i_trial) = mean(error_right.^2).^0.5;
             end
-        end   
+        end
+        cd(subject_dir)
     end
         root_mean_square_errors_left = cell2mat(root_mean_square_errors_left);
         root_mean_square_errors_right = cell2mat(root_mean_square_errors_right);
@@ -186,12 +188,12 @@ function RMS_error_ratio = myfun(this_alpha,varargin)
         % average
         mean_root_mean_square_error_left = mean(root_mean_square_errors_left, 2);
         mean_root_mean_square_error_right = mean(root_mean_square_errors_right, 2);
-        mean_mocap_peak_amplitude_left = mean(trialaveraged_mocap_peak_amplitude_left);
-        mean_mocap_peak_amplitude_right = mean(trialaveraged_mocap_peak_amplitude_right);
-        percent_error_left = (mean_root_mean_square_error_left/mean_mocap_peak_amplitude_left);
-        percent_error_right = (mean_root_mean_square_error_right/mean_mocap_peak_amplitude_right);
+        mean_mocap_peak_amplitude_left = mean(trialaveraged_mocap_peak_amplitude_left, 2);
+        mean_mocap_peak_amplitude_right = mean(trialaveraged_mocap_peak_amplitude_right, 2);
+        percent_error_left = (mean_root_mean_square_error_left./mean_mocap_peak_amplitude_left);
+        percent_error_right = (mean_root_mean_square_error_right./mean_mocap_peak_amplitude_right);
         
-        RMS_error_ratio = mean([percent_error_left, percent_error_right]);
+        RMS_error_ratio = mean(mean([percent_error_left, percent_error_right]));
 end
 
 
