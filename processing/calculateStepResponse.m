@@ -184,27 +184,28 @@ function calculateStepResponse(varargin)
     end
     
     %% estimate stimulus response
-    for i_condition = 1 : size(conditions_to_analyze, 1)
+    all_conditions = [conditions_to_analyze; conditions_control];
+    for i_condition = 1 : size(all_conditions, 1)
         
         % determine stance foot
         stance_ankle_x_data = [];
-        if strcmp(conditions_to_analyze{i_condition, 1}, 'STANCE_LEFT')
+        if strcmp(all_conditions{i_condition, 1}, 'STANCE_LEFT')
             stance_ankle_x_data = lanklex_data;
             applicable_control_condition = find(strcmp(conditions_control(:, 1), 'STANCE_LEFT'));
         end
-        if strcmp(conditions_to_analyze{i_condition, 1}, 'STANCE_RIGHT')
+        if strcmp(all_conditions{i_condition, 1}, 'STANCE_RIGHT')
             stance_ankle_x_data = ranklex_data;
             applicable_control_condition = find(strcmp(conditions_control(:, 1), 'STANCE_RIGHT'));
         end
         
         % get control indicators
-        stance_foot_indicator = strcmp(condition_stance_foot_list_session, conditions_to_analyze{i_condition, 1});
-        perturbation_indicator = strcmp(condition_perturbation_list_session, conditions_to_analyze{i_condition, 2});
-        delay_indicator = strcmp(condition_delay_list_session, conditions_to_analyze{i_condition, 3});
-        index_indicator = strcmp(condition_index_list_session, conditions_to_analyze{i_condition, 4});
-        experimental_indicator = strcmp(condition_experimental_list_session, conditions_to_analyze{i_condition, 5});
-        stimulus_indicator = strcmp(condition_stimulus_list_session, conditions_to_analyze{i_condition, 6});
-        day_indicator = strcmp(condition_day_list_session, conditions_to_analyze{i_condition, 7});
+        stance_foot_indicator = strcmp(condition_stance_foot_list_session, all_conditions{i_condition, 1});
+        perturbation_indicator = strcmp(condition_perturbation_list_session, all_conditions{i_condition, 2});
+        delay_indicator = strcmp(condition_delay_list_session, all_conditions{i_condition, 3});
+        index_indicator = strcmp(condition_index_list_session, all_conditions{i_condition, 4});
+        experimental_indicator = strcmp(condition_experimental_list_session, all_conditions{i_condition, 5});
+        stimulus_indicator = strcmp(condition_stimulus_list_session, all_conditions{i_condition, 6});
+        day_indicator = strcmp(condition_day_list_session, all_conditions{i_condition, 7});
         this_condition_indicator = stance_foot_indicator & perturbation_indicator & delay_indicator & index_indicator & experimental_indicator & stimulus_indicator & day_indicator;
         
         % extract condition data

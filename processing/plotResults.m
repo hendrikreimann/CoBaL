@@ -61,7 +61,7 @@ function plotResults(varargin)
         plot_settings_file = ['..' filesep '..' filesep settings_file];
     end
     plot_settings = SettingsCustodian(plot_settings_file);
-    
+    show_outliers = plot_settings.get('show_outliers');
 
     %% determine subjects and data folders
     data_folder_list = determineDataStructure(subjects);
@@ -88,6 +88,7 @@ function plotResults(varargin)
         response_data_all = cell(number_of_variables_to_plot, 1);
     end
     step_time_data = [];
+    pushoff_time_data = [];
     
     for i_folder = 1 : length(data_folder_list)
         % load data
@@ -121,28 +122,22 @@ function plotResults(varargin)
                 response_data_all{i_variable} = [response_data_all{i_variable} this_response_data];
             end
         end
-        if strcmp(plot_settings.get('time_plot_style'), 'scaled_to_comparison_mean') || strcmp(plot_settings.get('time_plot_style'), 'scaled_to_condition_mean')
+        % get time variables
+        if any(find(strcmp(variable_names_session, 'step_time')))
             index_in_saved_data = find(strcmp(variable_names_session, 'step_time'), 1, 'first');
             this_step_time_data = variable_data_session{index_in_saved_data};
             step_time_data = [step_time_data this_step_time_data];
         end
+        if any(find(strcmp(variable_names_session, 'pushoff_time')))
+            index_in_saved_data = find(strcmp(variable_names_session, 'pushoff_time'), 1, 'first');
+            this_pushoff_time_data = variable_data_session{index_in_saved_data};
+            pushoff_time_data = [pushoff_time_data this_pushoff_time_data];
+        end
     end
-    
-%     % save data for quick stats
-%     variables_to_save = struct;
-%     variables_to_save.variable_data_all = variable_data_all;
-%     if plot_settings.get('plot_response')
-%         variables_to_save.response_data_all = response_data_all;
-%     end
-%     variables_to_save.variable_names = variables_to_plot;
-%     variables_to_save.condition_stance_foot_list_all = condition_stance_foot_list_all;
-%     variables_to_save.condition_perturbation_list_all = condition_perturbation_list_all;
-%     variables_to_save.condition_delay_list_all = condition_delay_list_all;
-%     variables_to_save.condition_index_list_all = condition_index_list_all;
-%     variables_to_save.condition_experimental_list_all = condition_experimental_list_all;
-%     variables_to_save.condition_stimulus_list_all = condition_stimulus_list_all;
-%     variables_to_save.condition_day_list_all = condition_day_list_all;
-%     save('results', '-struct', 'variables_to_save');
+    % calculate mean pushoff index
+    pushoff_time_ratio = pushoff_time_data ./ step_time_data;
+    mean_pushoff_ratio = mean(pushoff_time_ratio);
+    pushoff_index = round(mean_pushoff_ratio * 100);
     
     %% create figures and determine abscissae for each comparison
     comparison_variable_to_axes_index_map = zeros(number_of_comparisons, 1);
@@ -225,7 +220,7 @@ function plotResults(varargin)
                 end
                 
                 % set axes properties
-                if dictate_axes
+                if dictate_axes && ~(strcmp(plot_mode, 'detailed') && isDiscreteVariable(i_variable, variable_data_all))
     %                 set(gca, 'xlim', [time_normalized(1), time_normalized(end)]);
                     set(gca, 'ylim', [str2double(variables_to_plot{i_variable, 5}), str2double(variables_to_plot{i_variable, 6})]);
                 end
@@ -329,6 +324,7 @@ function plotResults(varargin)
         neg_text_handles = zeros(number_of_episodes, number_of_variables_to_plot);
         step_start_times_cell = cell(number_of_episodes, number_of_variables_to_plot);
         step_end_times_cell = cell(number_of_episodes, number_of_variables_to_plot);
+        step_pushoff_times_cell = cell(number_of_episodes, number_of_variables_to_plot);
         step_stance_foot_cell = cell(number_of_episodes, number_of_variables_to_plot);
 
         for i_variable = 1 : number_of_variables_to_plot
@@ -366,10 +362,10 @@ function plotResults(varargin)
                         abscissae = {abscissae_control, abscissae_stimulus};
                         abscissae_cell{this_episode(i_comparison), i_variable} = abscissae;
                         
-                        if ~isempty(conditions_control)
-                            xtick = [xtick abscissae{1}];
+                        if ~isempty(conditions_control) && plot_settings.get('plot_control') && ~plot_settings.get('plot_response')
+                            xtick = [xtick abscissae{1}]; %#ok<AGROW>
                         end
-                        xtick = [xtick abscissae{2}];
+                        xtick = [xtick abscissae{2}]; %#ok<AGROW>
                     end
                     if isContinuousVariable(i_variable, variable_data_all)
 %                         abscissae_cell{this_episode(i_comparison), i_variable} = (linspace(0, 100, study_settings.get('number_of_time_steps_normalized'))) + (step_index-1)*100;
@@ -603,12 +599,14 @@ function plotResults(varargin)
                     this_episode = episode_indices{i_episode};
                     step_start_times = zeros(1, length(this_episode));
                     step_end_times = zeros(1, length(this_episode));
+                    step_pushoff_times = zeros(1, length(this_episode));
                     step_stance_foot = zeros(1, length(this_episode));
                     
                     for i_comparison = 1 : length(this_episode)
                         this_comparison = this_episode(i_comparison);
                         step_abscissa = abscissae_cell{this_comparison, i_variable};
                         step_start_times(i_comparison) = step_abscissa(1, 1);
+                        step_pushoff_times(i_comparison) = step_abscissa(1, pushoff_index);
                         step_end_times(i_comparison) = step_abscissa(1, end);
 
                         % determine stance foot
@@ -629,6 +627,7 @@ function plotResults(varargin)
                     
                     step_start_times_cell{i_episode, i_variable} = step_start_times;
                     step_end_times_cell{i_episode, i_variable} = step_end_times;
+                    step_pushoff_times_cell{i_episode, i_variable} = step_pushoff_times;
                     step_stance_foot_cell{i_episode, i_variable} = step_stance_foot;
                 end
             end
@@ -685,7 +684,31 @@ function plotResults(varargin)
                               );
                         end
                         if strcmp(plot_mode, 'overview') || strcmp(plot_mode, 'episodes')
-                            singleBoxPlot(target_axes_handle, target_abscissa{1}, data_to_plot_this_condition, plot_settings.get('color_control'), 'CONTROL', false)
+                            if strcmp(plot_settings.get('discrete_data_plot_style'), 'box')
+                                singleBoxPlot ...
+                                  ( ...
+                                    target_axes_handle, ...
+                                    target_abscissa{1}, ...
+                                    data_to_plot_this_condition, ...
+                                    plot_settings.get('color_control'), ...
+                                    'CONTROL', ...
+                                    show_outliers ...
+                                  )
+                            end
+                            if strcmp(plot_settings.get('discrete_data_plot_style'), 'violin')
+                                singleViolinPlot ...
+                                  ( ...
+                                    data_to_plot_this_condition, ...
+                                    'axes', target_axes_handle, ...
+                                    'abscissa', target_abscissa{1}, ...
+                                    'facecolor', plot_settings.get('color_control'), ...
+                                    'plot_mean', false, ...
+                                    'plot_median', true, ...
+                                    'mediancolor', [0 0 0], ...
+                                    'show_outliers', show_outliers, ...
+                                    'xlabel', 'CONTROL' ...
+                                  );
+                            end
                         end
                     end
                     if isContinuousVariable(i_variable, variable_data_all)
@@ -776,7 +799,31 @@ function plotResults(varargin)
                     end
                     if strcmp(plot_mode, 'overview') || strcmp(plot_mode, 'episodes')
                         if ~any(isnan(data_to_plot_this_condition))
-                            singleBoxPlot(target_axes_handle, target_abscissa{2}(i_condition), data_to_plot_this_condition, colors_comparison(i_condition, :), label_string, false)
+                            if strcmp(plot_settings.get('discrete_data_plot_style'), 'box')
+                                singleBoxPlot ...
+                                  ( ...
+                                    target_axes_handle, ...
+                                    target_abscissa{2}(i_condition), ...
+                                    data_to_plot_this_condition, ...
+                                    colors_comparison(i_condition, :), ...
+                                    label_string, ...
+                                    show_outliers ...
+                                  )
+                            end
+                            if strcmp(plot_settings.get('discrete_data_plot_style'), 'violin')
+                                singleViolinPlot ...
+                                  ( ...
+                                    data_to_plot_this_condition, ...
+                                    'axes', target_axes_handle, ...
+                                    'abscissa', target_abscissa{2}(i_condition), ...
+                                    'facecolor', colors_comparison(i_condition, :), ...
+                                    'plot_mean', false, ...
+                                    'plot_median', true, ...
+                                    'mediancolor', [0 0 0], ...
+                                    'show_outliers', show_outliers, ...
+                                    'xlabel', label_string ...
+                                  );
+                            end
                         end
                     end
                 end
@@ -880,22 +927,14 @@ function plotResults(varargin)
 
                 step_start_times = step_start_times_cell{i_episode, i_variable};
                 step_end_times = step_end_times_cell{i_episode, i_variable};
+                step_pushoff_times = step_pushoff_times_cell{i_episode, i_variable};
                 step_stance_foot = step_stance_foot_cell{i_episode, i_variable};
                 
                 for i_step = 1 : length(step_start_times)
-                    patch_color = [1 1 1] * 0.8;
-                    if step_stance_foot(i_step) == 0
-                        patch_color = plot_settings.get('stance_both_color');
-                    end
-                    if step_stance_foot(i_step) == 1
-                        patch_color = plot_settings.get('stance_left_color');
-                    end
-                    if step_stance_foot(i_step) == 2
-                        patch_color = plot_settings.get('stance_right_color');
-                    end
+                    % double stance patch
+                    double_stance_patch_color = plot_settings.get('stance_double_color');
                     stretch_start = step_start_times(i_step);
-                    stretch_end = step_end_times(i_step);
-
+                    stretch_end = step_pushoff_times(i_step);
                     patch_x = [stretch_start stretch_end stretch_end stretch_start];
                     patch_y = [ylimits(1) ylimits(1) ylimits(2) ylimits(2)];
                     patch_handle = ...
@@ -903,7 +942,35 @@ function plotResults(varargin)
                           ( ...
                             patch_x, ...
                             patch_y, ...
-                            patch_color, ...
+                            double_stance_patch_color, ...
+                            'parent', these_axes, ...
+                            'EdgeColor', 'none', ...
+                            'FaceAlpha', plot_settings.get('stance_alpha'), ...
+                            'HandleVisibility', 'off' ...
+                          ); 
+                    uistack(patch_handle, 'bottom')
+                    
+                    % single stance patch
+                    single_stance_patch_color = [1 1 1] * 0.8;
+                    if step_stance_foot(i_step) == 0
+                        single_stance_patch_color = plot_settings.get('stance_both_color');
+                    end
+                    if step_stance_foot(i_step) == 1
+                        single_stance_patch_color = plot_settings.get('stance_left_color');
+                    end
+                    if step_stance_foot(i_step) == 2
+                        single_stance_patch_color = plot_settings.get('stance_right_color');
+                    end
+                    stretch_start = step_pushoff_times(i_step);
+                    stretch_end = step_end_times(i_step);
+                    patch_x = [stretch_start stretch_end stretch_end stretch_start];
+                    patch_y = [ylimits(1) ylimits(1) ylimits(2) ylimits(2)];
+                    patch_handle = ...
+                        patch ...
+                          ( ...
+                            patch_x, ...
+                            patch_y, ...
+                            single_stance_patch_color, ...
                             'parent', these_axes, ...
                             'EdgeColor', 'none', ...
                             'FaceAlpha', plot_settings.get('stance_alpha'), ...
@@ -999,7 +1066,7 @@ function [comparison_indices, conditions_per_comparison_max] = determineComparis
             conditions_per_comparison_max = length(this_comparison);
         end
     end    
-    if ~isempty(study_settings.get('conditions_control'))
+    if ~isempty(study_settings.get('conditions_control')) && ~plot_settings.get('plot_response')
         conditions_per_comparison_max = conditions_per_comparison_max + 1;
     end
 end
@@ -1084,53 +1151,6 @@ function continuous = isContinuousVariable(variable_index, variable_data)
     if size(variable_data{variable_index}, 1) == 100
         continuous = true;
     end
-end
-
-function singleBoxPlot(target_axes_handle, abscissa, data, color, label, show_outliers)
-    if nargin < 6
-        show_outliers = true;
-    end
-
-    % set some parameters, these should be name-value pair arguments later
-    width = 0.8;
-    
-    % extract data
-    data_median = median(data);
-    data_quartile_1 = prctile(data, 25);
-    data_quartile_3 = prctile(data, 75);
-    data_iqr = iqr(data);
-    data_upper_inner_fence = data_quartile_3 + 1.5*data_iqr;
-    data_lower_inner_fence = data_quartile_1 - 1.5*data_iqr;
-    data_upper_adjacent = max([data(data<=data_upper_inner_fence) -inf]);
-    data_lower_adjacent = min([data(data>=data_lower_inner_fence) inf]);
-    outliers = data(data>data_upper_inner_fence | data<data_lower_inner_fence);
-    
-    % plot
-    box_x_data = [abscissa-width/2 abscissa+width/2 abscissa+width/2 abscissa-width/2 abscissa-width/2];
-    box_y_data = [data_quartile_1 data_quartile_1 data_quartile_3 data_quartile_3 data_quartile_1];
-    patch ...
-      ( ...
-        box_x_data, ...
-        box_y_data, ...
-        color, ...
-        'parent', target_axes_handle, ...
-        'EdgeColor', 'none', ...
-        'HandleVisibility', 'off' ...
-      );
-    plot(target_axes_handle, abscissa + width*[-0.5 0.5], [data_median data_median], 'color', 'k', 'HandleVisibility', 'off'); % median
-    plot(target_axes_handle, [abscissa abscissa], [data_quartile_3 data_upper_adjacent], 'k--', 'HandleVisibility', 'off'); % upper range
-    plot(target_axes_handle, [abscissa abscissa], [data_lower_adjacent data_quartile_1], 'k--', 'HandleVisibility', 'off'); % lower range
-    plot(target_axes_handle, abscissa+width*[-0.25 0.25], [data_lower_adjacent data_lower_adjacent], 'k-', 'HandleVisibility', 'off'); % max
-    plot(target_axes_handle, abscissa+width*[-0.25 0.25], [data_upper_adjacent data_upper_adjacent], 'k-', 'HandleVisibility', 'off'); % min
-    if show_outliers
-        plot(target_axes_handle, abscissa * ones(size(outliers)), outliers, '+', 'color', [1; 1; 1] * 0.7, 'HandleVisibility', 'off');
-    end
-    
-    % labels
-    xtick = get(target_axes_handle, 'xtick');
-    xticklabels = get(target_axes_handle, 'xticklabel');
-    xticklabels{xtick == abscissa} = label;
-    set(target_axes_handle, 'xticklabel', xticklabels);
 end
 
 function s = spread(data, method)

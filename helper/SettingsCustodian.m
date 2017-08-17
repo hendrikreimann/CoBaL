@@ -123,6 +123,12 @@ classdef SettingsCustodian < handle
             if strcmp(property_name, 'plot_response')
                 default_data = 0;
             end
+            if strcmp(property_name, 'show_outliers')
+                default_data = 1;
+            end
+            if strcmp(property_name, 'discrete_data_plot_style')
+                default_data = 'box';
+            end
             if strcmp(property_name, 'apply_forceplate_offset')
                 default_data = 0;
             end
