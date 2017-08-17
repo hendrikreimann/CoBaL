@@ -25,7 +25,6 @@ function collectPopulationResults(varargin)
     subjects = parser.Results.subjects;
 
     % load settings
-    study_settings_file = '';
     if ~exist('studySettings.txt', 'file')
         error('No studySettings.txt file found. This function should be run from a study folder')
     end    
@@ -36,22 +35,19 @@ function collectPopulationResults(varargin)
     %% collect data from all data folders
     variables_to_analyze = study_settings.get('variables_to_analyze');
     number_of_variables_to_analyze = size(variables_to_analyze, 1);
-    condition_stance_foot_list_all = {};
-    condition_perturbation_list_all = {};
-    condition_delay_list_all = {};
-    condition_index_list_all = {};
-    condition_experimental_list_all = {};
-    condition_stimulus_list_all = {};
-    condition_day_list_all = {};
-    subject_list_all = {};
-    origin_trial_list_all = [];
-    origin_start_time_list_all = [];
-    origin_end_time_list_all = [];
-    variable_data_all = cell(number_of_variables_to_analyze, 1);
-    if plot_settings.get('plot_response')
-        response_data_all = cell(number_of_variables_to_analyze, 1);
-    end
-    step_time_data = [];
+    condition_stance_foot_list = {};
+    condition_perturbation_list = {};
+    condition_delay_list = {};
+    condition_index_list = {};
+    condition_experimental_list = {};
+    condition_stimulus_list = {};
+    condition_day_list = {};
+    subject_list = {};
+    origin_trial_list = [];
+    origin_start_time_list = [];
+    origin_end_time_list = [];
+    variable_data = cell(number_of_variables_to_analyze, 1);
+    response_data = cell(number_of_variables_to_analyze, 1);
     
     for i_folder = 1 : length(data_folder_list)
         % load data
@@ -60,53 +56,45 @@ function collectPopulationResults(varargin)
         load([data_path filesep 'analysis' filesep date '_' subject_id '_results.mat']);
 
         % append data from this subject to containers for all subjects
-        condition_stance_foot_list_all = [condition_stance_foot_list_all; condition_stance_foot_list_session]; %#ok<AGROW>
-        condition_perturbation_list_all = [condition_perturbation_list_all; condition_perturbation_list_session]; %#ok<AGROW>
-        condition_delay_list_all = [condition_delay_list_all; condition_delay_list_session]; %#ok<AGROW>
-        condition_index_list_all = [condition_index_list_all; condition_index_list_session]; %#ok<AGROW>
-        condition_experimental_list_all = [condition_experimental_list_all; condition_experimental_list_session]; %#ok<AGROW>
-        condition_stimulus_list_all = [condition_stimulus_list_all; condition_stimulus_list_session]; %#ok<AGROW>
-        condition_day_list_all = [condition_day_list_all; condition_day_list_session]; %#ok<AGROW>
-        origin_trial_list_all = [origin_trial_list_all; origin_trial_list_session]; %#ok<AGROW>
-        origin_start_time_list_all = [origin_start_time_list_all; origin_start_time_list_session]; %#ok<AGROW>
-        origin_end_time_list_all = [origin_end_time_list_all; origin_end_time_list_session]; %#ok<AGROW>
+        condition_stance_foot_list = [condition_stance_foot_list; condition_stance_foot_list_session]; %#ok<AGROW>
+        condition_perturbation_list = [condition_perturbation_list; condition_perturbation_list_session]; %#ok<AGROW>
+        condition_delay_list = [condition_delay_list; condition_delay_list_session]; %#ok<AGROW>
+        condition_index_list = [condition_index_list; condition_index_list_session]; %#ok<AGROW>
+        condition_experimental_list = [condition_experimental_list; condition_experimental_list_session]; %#ok<AGROW>
+        condition_stimulus_list = [condition_stimulus_list; condition_stimulus_list_session]; %#ok<AGROW>
+        condition_day_list = [condition_day_list; condition_day_list_session]; %#ok<AGROW>
+        [subject_list{length(subject_list)+(1 : length(condition_stance_foot_list_session))}] = deal(subject_id); %#ok<AGROW>
+        origin_trial_list = [origin_trial_list; origin_trial_list_session]; %#ok<AGROW>
+        origin_start_time_list = [origin_start_time_list; origin_start_time_list_session]; %#ok<AGROW>
+        origin_end_time_list = [origin_end_time_list; origin_end_time_list_session]; %#ok<AGROW>
         for i_variable = 1 : number_of_variables_to_analyze
             % load and extract data
             this_variable_name = variables_to_analyze{i_variable, 1};
             index_in_saved_data = find(strcmp(variable_names_session, this_variable_name), 1, 'first');
             this_variable_data = variable_data_session{index_in_saved_data}; %#ok<USENS>
-            if plot_settings.get('plot_response')
-                this_response_data = response_data_session{index_in_saved_data}; %#ok<USENS>
-            end
+            this_response_data = response_data_session{index_in_saved_data}; %#ok<USENS>
             
             % store
-            variable_data_all{i_variable} = [variable_data_all{i_variable} this_variable_data];
-            if plot_settings.get('plot_response')
-                response_data_all{i_variable} = [response_data_all{i_variable} this_response_data];
-            end
-        end
-        if strcmp(plot_settings.get('time_plot_style'), 'scaled_to_comparison_mean') || strcmp(plot_settings.get('time_plot_style'), 'scaled_to_condition_mean')
-            index_in_saved_data = find(strcmp(variable_names_session, 'step_time'), 1, 'first');
-            this_step_time_data = variable_data_session{index_in_saved_data};
-            step_time_data = [step_time_data this_step_time_data];
+            variable_data{i_variable} = [variable_data{i_variable} this_variable_data];
+            response_data{i_variable} = [response_data{i_variable} this_response_data];
         end
     end
+    subject_list = subject_list';
     
-%     % save data for quick stats
-%     variables_to_save = struct;
-%     variables_to_save.variable_data_all = variable_data_all;
-%     if plot_settings.get('plot_response')
-%         variables_to_save.response_data_all = response_data_all;
-%     end
-%     variables_to_save.variable_names = variables_to_plot;
-%     variables_to_save.condition_stance_foot_list_all = condition_stance_foot_list_all;
-%     variables_to_save.condition_perturbation_list_all = condition_perturbation_list_all;
-%     variables_to_save.condition_delay_list_all = condition_delay_list_all;
-%     variables_to_save.condition_index_list_all = condition_index_list_all;
-%     variables_to_save.condition_experimental_list_all = condition_experimental_list_all;
-%     variables_to_save.condition_stimulus_list_all = condition_stimulus_list_all;
-%     variables_to_save.condition_day_list_all = condition_day_list_all;
-%     save('results', '-struct', 'variables_to_save');
+    % save data
+    variables_to_save = struct;
+    variables_to_save.variable_data = variable_data;
+    variables_to_save.response_data = response_data;
+    variables_to_save.variable_names = variables_to_analyze;
+    variables_to_save.condition_stance_foot_list = condition_stance_foot_list;
+    variables_to_save.condition_perturbation_list = condition_perturbation_list;
+    variables_to_save.condition_delay_list = condition_delay_list;
+    variables_to_save.condition_index_list = condition_index_list;
+    variables_to_save.condition_experimental_list = condition_experimental_list;
+    variables_to_save.condition_stimulus_list = condition_stimulus_list;
+    variables_to_save.condition_day_list = condition_day_list;
+    variables_to_save.subject_list = subject_list;
+    save('results', '-struct', 'variables_to_save');
 
 
 

@@ -14,7 +14,13 @@
 %     You should have received a copy of the GNU General Public License
 %     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-function saveSubjectInfoToFile
+function saveSubjectInfoToFile(varargin)
+
+    parser = inputParser;
+    parser.KeepUnmatched = true;
+    addParameter(parser, 'screen_folder', 'raw')
+    parse(parser, varargin{:})
+    screen_folder = parser.Results.screen_folder;
     
     % get subject code
     current_path = pwd;
@@ -80,7 +86,7 @@ function saveSubjectInfoToFile
     variables_to_save.emg_sensor_map = emg_sensor_map;
     
     % get parameters
-    data_dir = dir(['raw' filesep '*.mat']);
+    data_dir = dir([screen_folder filesep '*.mat']);
     clear file_name_list;
     [file_name_list{1:length(data_dir)}] = deal(data_dir.name);
     sample_file_name = file_name_list{1};
