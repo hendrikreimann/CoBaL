@@ -46,12 +46,16 @@ classdef WalkingEventData < handle
             this.loadStretches();
         end
         function loadEvents(this)
-            loaded_event_data = load([this.trial_data.data_directory filesep 'analysis' filesep makeFileName(this.trial_data.date, this.trial_data.subject_id, this.trial_data.condition, this.trial_data.trial_number, 'stepEvents')]);
-            this.left_pushoff = loaded_event_data.left_pushoff_times;
-            this.left_touchdown = loaded_event_data.left_touchdown_times;
-            this.right_pushoff = loaded_event_data.right_pushoff_times;
-            this.right_touchdown = loaded_event_data.right_touchdown_times;
-            
+            step_events_file_name = [this.trial_data.data_directory filesep 'analysis' filesep makeFileName(this.trial_data.date, this.trial_data.subject_id, this.trial_data.condition, this.trial_data.trial_number, 'stepEvents.mat')];
+            if exist(step_events_file_name, 'file')
+                loaded_event_data = load(step_events_file_name);
+                this.left_pushoff = loaded_event_data.left_pushoff_times;
+                this.left_touchdown = loaded_event_data.left_touchdown_times;
+                this.right_pushoff = loaded_event_data.right_pushoff_times;
+                this.right_touchdown = loaded_event_data.right_touchdown_times;
+            else
+                loaded_event_data = struct;
+            end
             if isfield(loaded_event_data, 'left_fullstance_times')
                 this.left_fullstance_times = loaded_event_data.left_fullstance_times;
             end
@@ -79,9 +83,12 @@ classdef WalkingEventData < handle
             this.removeDuplicates();
         end
         function loadStretches(this)
-            loaded_stretch_data = load([this.trial_data.data_directory filesep 'analysis' filesep makeFileName(this.trial_data.date, this.trial_data.subject_id, this.trial_data.condition, this.trial_data.trial_number, 'relevantDataStretches')]);
-            this.stretch_start_times = loaded_stretch_data.stretch_start_times;
-            this.stretch_end_times = loaded_stretch_data.stretch_end_times;
+            relevant_stretches_file_name = [this.trial_data.data_directory filesep 'analysis' filesep makeFileName(this.trial_data.date, this.trial_data.subject_id, this.trial_data.condition, this.trial_data.trial_number, 'relevantDataStretches.mat')];
+            if exist(relevant_stretches_file_name, 'file')
+                loaded_stretch_data = load(relevant_stretches_file_name);
+                this.stretch_start_times = loaded_stretch_data.stretch_start_times;
+                this.stretch_end_times = loaded_stretch_data.stretch_end_times;
+            end
         end
         function saveEvents(this, sender, eventdata) %#ok<INUSD>
             % prepare data

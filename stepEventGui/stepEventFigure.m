@@ -288,7 +288,7 @@ classdef stepEventFigure < handle;
             block_end_times = stretch_end_times(sort_indices);
             
             index = 2;
-            while index <= length(block_end_times);
+            while index <= length(block_end_times)
                 while index <= length(block_end_times) && (block_start_times(index) == block_end_times(index - 1))
                     block_start_times(index) = [];
                     block_end_times(index-1) = [];

@@ -149,7 +149,12 @@ classdef WalkingTrialData < handle
         right_shoulder_introt_angle = [];
         right_elbow_flex_angle = [];
         right_elbow_pronat_angle = [];
-        right_wrist_flex_angle = [];        
+        right_wrist_flex_angle = [];
+        ankle_joint_angle = [];
+        knee_joint_angle = [];
+        hip_joint_angle = [];
+        lumbar_joint_angle = [];
+        neck_joint_angle = [];
         
         % joint torques
         pelvis_x_trans_torque = [];
@@ -231,6 +236,7 @@ classdef WalkingTrialData < handle
             'com_x_pos', 'com_y_pos', 'com_z_pos', ...
             'com_x_vel', 'com_y_vel', 'com_z_vel', ...
             'com_x_acc', 'com_y_acc', 'com_z_acc', ...
+            'ankle_joint_angle', 'knee_joint_angle', 'hip_joint_angle', 'lumbar_joint_angle', 'neck_joint_angle', ...
           };
         data_labels_forceplate = ...
           {
@@ -279,84 +285,72 @@ classdef WalkingTrialData < handle
             
             % time
             this.recording_time = this.time_marker(end);
-            
-            % extract data
-            left_heel_marker = find(strcmp(this.marker_labels, 'LHEE'));
-            left_toes_marker = find(strcmp(this.marker_labels, 'LTOE'));
-            right_heel_marker = find(strcmp(this.marker_labels, 'RHEE'));
-            right_toes_marker = find(strcmp(this.marker_labels, 'RTOE'));
-            left_heel_marker_indices = reshape([(left_heel_marker - 1) * 3 + 1; (left_heel_marker - 1) * 3 + 2; (left_heel_marker - 1) * 3 + 3], 1, length(left_heel_marker)*3);
-            left_toes_marker_indices = reshape([(left_toes_marker - 1) * 3 + 1; (left_toes_marker - 1) * 3 + 2; (left_toes_marker - 1) * 3 + 3], 1, length(left_toes_marker)*3);
-            right_heel_marker_indices = reshape([(right_heel_marker - 1) * 3 + 1; (right_heel_marker - 1) * 3 + 2; (right_heel_marker - 1) * 3 + 3], 1, length(right_heel_marker)*3);
-            right_toes_marker_indices = reshape([(right_toes_marker - 1) * 3 + 1; (right_toes_marker - 1) * 3 + 2; (right_toes_marker - 1) * 3 + 3], 1, length(right_toes_marker)*3);
-            left_heel_z_trajectory = this.marker_positions(:, left_heel_marker_indices(3));
-            left_toes_z_trajectory = this.marker_positions(:, left_toes_marker_indices(3));
-            right_heel_z_trajectory = this.marker_positions(:, right_heel_marker_indices(3));
-            right_toes_z_trajectory = this.marker_positions(:, right_toes_marker_indices(3));
-            left_heel_y_trajectory = this.marker_positions(:, left_heel_marker_indices(2));
-            right_heel_y_trajectory = this.marker_positions(:, right_heel_marker_indices(2));
-
-            % calculate derivatives
             filter_order = 4;
             cutoff_frequency = 5; % cutoff frequency, in Hz
             [b, a] = butter(filter_order, cutoff_frequency/(this.sampling_rate_marker/2));	% set filter parameters for butterworth filter: 2=order of filter;
-
-            left_heel_z_vel_trajectory = deriveByTime(nanfiltfilt(b, a, left_heel_z_trajectory), 1/this.sampling_rate_marker);
-            right_heel_z_vel_trajectory = deriveByTime(nanfiltfilt(b, a, right_heel_z_trajectory), 1/this.sampling_rate_marker);
-            left_heel_z_acc_trajectory = deriveByTime(nanfiltfilt(b, a, left_heel_z_vel_trajectory), 1/this.sampling_rate_marker);
-            right_heel_z_acc_trajectory = deriveByTime(nanfiltfilt(b, a, right_heel_z_vel_trajectory), 1/this.sampling_rate_marker);
-            left_toes_z_vel_trajectory = deriveByTime(nanfiltfilt(b, a, left_toes_z_trajectory), 1/this.sampling_rate_marker);
-            right_toes_z_vel_trajectory = deriveByTime(nanfiltfilt(b, a, right_toes_z_trajectory), 1/this.sampling_rate_marker);
-            left_toes_z_acc_trajectory = deriveByTime(nanfiltfilt(b, a, left_toes_z_vel_trajectory), 1/this.sampling_rate_marker);
-            right_toes_z_acc_trajectory = deriveByTime(nanfiltfilt(b, a, right_toes_z_vel_trajectory), 1/this.sampling_rate_marker);        
-            left_heel_y_vel_trajectory = deriveByTime(nanfiltfilt(b, a, left_heel_y_trajectory), 1/this.sampling_rate_marker);
-            right_heel_y_vel_trajectory = deriveByTime(nanfiltfilt(b, a, right_heel_y_trajectory), 1/this.sampling_rate_marker);
-            left_heel_y_acc_trajectory = deriveByTime(nanfiltfilt(b, a, left_heel_y_vel_trajectory), 1/this.sampling_rate_marker);
-            right_heel_y_acc_trajectory = deriveByTime(nanfiltfilt(b, a, right_heel_y_vel_trajectory), 1/this.sampling_rate_marker);
-
-%             filterdesign = designfilt ...
-%               ( ...
-%                 'lowpassiir', ...
-%                 'FilterOrder', 6, ...
-%                 'HalfPowerFrequency', 1, ...
-%                 'DesignMethod', 'butter' ...
-%               );            
-%             left_heel_z_vel_trajectory = deriveByTime(nanfiltfilt(left_heel_z_trajectory, filterdesign), 1/this.sampling_rate_marker);
-%             right_heel_z_vel_trajectory = deriveByTime(nanfiltfilt(right_heel_z_trajectory, filterdesign), 1/this.sampling_rate_marker);
-%             left_heel_z_acc_trajectory = deriveByTime(nanfiltfilt(left_heel_z_vel_trajectory, filterdesign), 1/this.sampling_rate_marker);
-%             right_heel_z_acc_trajectory = deriveByTime(nanfiltfilt(right_heel_z_vel_trajectory, filterdesign), 1/this.sampling_rate_marker);
-%             left_toes_z_vel_trajectory = deriveByTime(nanfiltfilt(left_toes_z_trajectory, filterdesign), 1/this.sampling_rate_marker);
-%             right_toes_z_vel_trajectory = deriveByTime(nanfiltfilt(right_toes_z_trajectory, filterdesign), 1/this.sampling_rate_marker);
-%             left_toes_z_acc_trajectory = deriveByTime(nanfiltfilt(left_toes_z_vel_trajectory, filterdesign), 1/this.sampling_rate_marker);
-%             right_toes_z_acc_trajectory = deriveByTime(nanfiltfilt(right_toes_z_vel_trajectory, filterdesign), 1/this.sampling_rate_marker);        
-%             left_heel_y_vel_trajectory = deriveByTime(nanfiltfilt(left_heel_y_trajectory, filterdesign), 1/this.sampling_rate_marker);
-%             right_heel_y_vel_trajectory = deriveByTime(nanfiltfilt(right_heel_y_trajectory, filterdesign), 1/this.sampling_rate_marker);
-%             left_heel_y_acc_trajectory = deriveByTime(nanfiltfilt(left_heel_y_vel_trajectory, filterdesign), 1/this.sampling_rate_marker);
-%             right_heel_y_acc_trajectory = deriveByTime(nanfiltfilt(right_heel_y_vel_trajectory, filterdesign), 1/this.sampling_rate_marker);
-
-            this.left_heel_z_pos = left_heel_z_trajectory;
-            this.left_heel_z_vel = left_heel_z_vel_trajectory;
-            this.left_heel_z_acc = left_heel_z_acc_trajectory;
-
-            this.right_heel_z_pos = right_heel_z_trajectory;
-            this.right_heel_z_vel = right_heel_z_vel_trajectory;
-            this.right_heel_z_acc = right_heel_z_acc_trajectory;
-
-            this.left_toes_z_pos = left_toes_z_trajectory;
-            this.left_toes_z_vel = left_toes_z_vel_trajectory;
-            this.left_toes_z_acc = left_toes_z_acc_trajectory;
-
-            this.right_toes_z_pos = right_toes_z_trajectory;
-            this.right_toes_z_vel = right_toes_z_vel_trajectory;
-            this.right_toes_z_acc = right_toes_z_acc_trajectory;        
             
-            this.left_heel_y_pos = left_heel_y_trajectory;
-            this.left_heel_y_vel = left_heel_y_vel_trajectory;
-            this.left_heel_y_acc = left_heel_y_acc_trajectory;
+            % extract data
+            left_heel_marker = find(strcmp(this.marker_labels, 'LHEE'));
+            if ~isempty(left_heel_marker)
+                left_heel_marker_indices = reshape([(left_heel_marker - 1) * 3 + 1; (left_heel_marker - 1) * 3 + 2; (left_heel_marker - 1) * 3 + 3], 1, length(left_heel_marker)*3);
+                left_heel_y_trajectory = this.marker_positions(:, left_heel_marker_indices(2));
+                left_heel_z_trajectory = this.marker_positions(:, left_heel_marker_indices(3));
+                left_heel_z_vel_trajectory = deriveByTime(nanfiltfilt(b, a, left_heel_z_trajectory), 1/this.sampling_rate_marker);
+                left_heel_z_acc_trajectory = deriveByTime(nanfiltfilt(b, a, left_heel_z_vel_trajectory), 1/this.sampling_rate_marker);
+                left_heel_y_vel_trajectory = deriveByTime(nanfiltfilt(b, a, left_heel_y_trajectory), 1/this.sampling_rate_marker);
+                left_heel_y_acc_trajectory = deriveByTime(nanfiltfilt(b, a, left_heel_y_vel_trajectory), 1/this.sampling_rate_marker);
+                this.left_heel_z_pos = left_heel_z_trajectory;
+                this.left_heel_z_vel = left_heel_z_vel_trajectory;
+                this.left_heel_z_acc = left_heel_z_acc_trajectory;
+                this.left_heel_y_pos = left_heel_y_trajectory;
+                this.left_heel_y_vel = left_heel_y_vel_trajectory;
+                this.left_heel_y_acc = left_heel_y_acc_trajectory;
+            end
+            
+            left_toes_marker = find(strcmp(this.marker_labels, 'LTOE'));
+            if ~isempty(left_toes_marker)
+                left_toes_marker_indices = reshape([(left_toes_marker - 1) * 3 + 1; (left_toes_marker - 1) * 3 + 2; (left_toes_marker - 1) * 3 + 3], 1, length(left_toes_marker)*3);
+                left_toes_z_trajectory = this.marker_positions(:, left_toes_marker_indices(3));
+                left_toes_z_vel_trajectory = deriveByTime(nanfiltfilt(b, a, left_toes_z_trajectory), 1/this.sampling_rate_marker);
+                left_toes_z_acc_trajectory = deriveByTime(nanfiltfilt(b, a, left_toes_z_vel_trajectory), 1/this.sampling_rate_marker);
+                this.left_toes_z_pos = left_toes_z_trajectory;
+                this.left_toes_z_vel = left_toes_z_vel_trajectory;
+                this.left_toes_z_acc = left_toes_z_acc_trajectory;
+            end
+            
+            right_heel_marker = find(strcmp(this.marker_labels, 'RHEE'));
+            if ~isempty(right_heel_marker)
+                right_heel_marker_indices = reshape([(right_heel_marker - 1) * 3 + 1; (right_heel_marker - 1) * 3 + 2; (right_heel_marker - 1) * 3 + 3], 1, length(right_heel_marker)*3);
+                right_heel_z_trajectory = this.marker_positions(:, right_heel_marker_indices(3));
+                right_heel_y_trajectory = this.marker_positions(:, right_heel_marker_indices(2));
+                right_heel_z_vel_trajectory = deriveByTime(nanfiltfilt(b, a, right_heel_z_trajectory), 1/this.sampling_rate_marker);
+                right_heel_z_acc_trajectory = deriveByTime(nanfiltfilt(b, a, right_heel_z_vel_trajectory), 1/this.sampling_rate_marker);
+                right_heel_y_vel_trajectory = deriveByTime(nanfiltfilt(b, a, right_heel_y_trajectory), 1/this.sampling_rate_marker);
+                right_heel_y_acc_trajectory = deriveByTime(nanfiltfilt(b, a, right_heel_y_vel_trajectory), 1/this.sampling_rate_marker);
+                this.right_heel_z_pos = right_heel_z_trajectory;
+                this.right_heel_z_vel = right_heel_z_vel_trajectory;
+                this.right_heel_z_acc = right_heel_z_acc_trajectory;
+                this.right_heel_y_pos = right_heel_y_trajectory;
+                this.right_heel_y_vel = right_heel_y_vel_trajectory;
+                this.right_heel_y_acc = right_heel_y_acc_trajectory;
+            end
+            right_toes_marker = find(strcmp(this.marker_labels, 'RTOE'));
+            if ~isempty(right_toes_marker)
+                right_toes_marker_indices = reshape([(right_toes_marker - 1) * 3 + 1; (right_toes_marker - 1) * 3 + 2; (right_toes_marker - 1) * 3 + 3], 1, length(right_toes_marker)*3);
+                right_toes_z_trajectory = this.marker_positions(:, right_toes_marker_indices(3));
+                right_toes_z_vel_trajectory = deriveByTime(nanfiltfilt(b, a, right_toes_z_trajectory), 1/this.sampling_rate_marker);
+                right_toes_z_acc_trajectory = deriveByTime(nanfiltfilt(b, a, right_toes_z_vel_trajectory), 1/this.sampling_rate_marker);
+                this.right_toes_z_pos = right_toes_z_trajectory;
+                this.right_toes_z_vel = right_toes_z_vel_trajectory;
+                this.right_toes_z_acc = right_toes_z_acc_trajectory;        
+            end            
+            
 
-            this.right_heel_y_pos = right_heel_y_trajectory;
-            this.right_heel_y_vel = right_heel_y_vel_trajectory;
-            this.right_heel_y_acc = right_heel_y_acc_trajectory;
+
+
+
+
+
             
             % angles
             this.left_arm_angle = loadData(this.date, this.subject_id, this.condition, this.trial_number, 'left_arm_angle', 'optional');
@@ -409,6 +403,13 @@ classdef WalkingTrialData < handle
                 this.right_elbow_flex_angle = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'right elbow flexion/extension'));
                 this.right_elbow_pronat_angle = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'right pronation/supination'));
                 this.right_wrist_flex_angle = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'right wrist flexion/extension'));
+                
+                this.ankle_joint_angle = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'ankle_joint_angle'));
+                this.knee_joint_angle = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'knee_joint_angle'));
+                this.hip_joint_angle = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'hip_joint_angle'));
+                this.lumbar_joint_angle = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'lumbar_joint_angle'));
+                this.neck_joint_angle = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'neck_joint_angle'));
+
             end
             
             % joint torques
