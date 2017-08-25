@@ -14,13 +14,30 @@
 %     You should have received a copy of the GNU General Public License
 %     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-function singleBoxPlot(target_axes_handle, abscissa, data, color, label, show_outliers)
+function singleBoxPlot(target_axes_handle, abscissa, data, color, label, show_outliers, width)
+    % these should be name-value pair arguments later
     if nargin < 6
         show_outliers = true;
     end
+    if nargin < 7
+        width = 0.8;
+    end
+    
+    
 
-    % set some parameters, these should be name-value pair arguments later
-    width = 0.8;
+    if length(data) == 1
+        bar ...
+          ( ...
+            abscissa, ...
+            data, ...
+            width, ...
+            'FaceColor', color, ...
+            'parent', target_axes_handle, ...
+            'EdgeColor', 'none', ...
+            'HandleVisibility', 'off' ...
+          );
+        return
+    end
     
     % extract data
     data_median = median(data);
@@ -55,8 +72,14 @@ function singleBoxPlot(target_axes_handle, abscissa, data, color, label, show_ou
     end
     
     % labels
-    xtick = get(target_axes_handle, 'xtick');
-    xticklabels = get(target_axes_handle, 'xticklabel');
-    xticklabels{xtick == abscissa} = label;
-    set(target_axes_handle, 'xticklabel', xticklabels);
+    if ~isempty(label)
+        xtick = get(target_axes_handle, 'xtick');
+        if ~ismember(abscissa, xtick)
+            xtick = sort([xtick, abscissa]);
+            set(target_axes_handle, 'xtick', xtick);
+        end
+        xticklabels = get(target_axes_handle, 'xticklabel');
+        xticklabels{xtick == abscissa} = label;
+        set(target_axes_handle, 'xticklabel', xticklabels);
+    end
 end

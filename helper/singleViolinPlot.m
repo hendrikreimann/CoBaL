@@ -21,15 +21,17 @@ function singleViolinPlot(data, varargin)
     parser.KeepUnmatched = true;
     addParameter(parser, 'abscissa', 1)
     addParameter(parser, 'axes', gca)
-    addParameter(parser, 'width', 0.4)
+    addParameter(parser, 'width', 0.8)
     addParameter(parser, 'facecolor', [0.8, 0.8, 0.8])
     addParameter(parser, 'edgecolor', [0.5, 0.5, 0.5])
     addParameter(parser, 'meancolor', [0.5, 0.5, 0.5])
+    addParameter(parser, 'mean_linewidth', 1)
     addParameter(parser, 'plot_mean', true)
     addParameter(parser, 'mediancolor', [0.7, 0.2, 0.07])
+    addParameter(parser, 'median_linewidth', 1)
     addParameter(parser, 'plot_median', true)
     addParameter(parser, 'facealpha', 1)
-    addParameter(parser, 'xlabel', '')
+    addParameter(parser, 'xlabel', [])
     addParameter(parser, 'bandwidth', '')
     addParameter(parser, 'show_outliers', true)
     parse(parser, varargin{:})
@@ -39,8 +41,10 @@ function singleViolinPlot(data, varargin)
     facecolor = parser.Results.facecolor;
     edgecolor = parser.Results.edgecolor;
     meancolor = parser.Results.meancolor;
+    mean_linewidth = parser.Results.mean_linewidth;
     plot_mean = parser.Results.plot_mean;
     mediancolor = parser.Results.mediancolor;
+    median_linewidth = parser.Results.median_linewidth;
     plot_median = parser.Results.plot_median;
     facealpha = parser.Results.facealpha;
     xlabel = parser.Results.xlabel;
@@ -60,6 +64,8 @@ function singleViolinPlot(data, varargin)
         data_lower_adjacent = min([data(data>=data_lower_inner_fence) inf]);
         outliers = data(data>data_upper_inner_fence | data<data_lower_inner_fence);
         data = data(data<=data_upper_inner_fence & data>=data_lower_inner_fence);
+        data_median = nanmedian(data);
+        data_mean = nanmean(data);
     end    
     
 	% Calculate the kernel density
@@ -69,7 +75,7 @@ function singleViolinPlot(data, varargin)
     if isempty(bandwidth)
         [data_density, data_range, bandwidth_used]=ksdensity(data);
     end
-    density_normalized = data_density/max(data_density)*width; %normalize
+    density_normalized = data_density/max(data_density)*width/2; %normalize
 
     % plot density estimate
     x_values = abscissa + [-flip(density_normalized) density_normalized];
@@ -92,6 +98,7 @@ function singleViolinPlot(data, varargin)
             abscissa + [-density_at_mean density_at_mean], ...
             [data_mean data_mean], ...
             'Parent', axes_handle, ...
+            'linewidth', mean_linewidth, ...
             'color', meancolor ...
           );
     end
@@ -104,16 +111,22 @@ function singleViolinPlot(data, varargin)
             abscissa + [-density_at_median density_at_median], ...
             [data_median data_median], ...
             'Parent', axes_handle, ...
+            'linewidth', median_linewidth, ...
             'color', mediancolor ...
           );
     end    
 
     % labels
-    xtick = get(axes_handle, 'xtick');
-    xticklabels = get(axes_handle, 'xticklabel');
-    xticklabels{xtick == abscissa} = xlabel;
-    set(axes_handle, 'xticklabel', xticklabels);
-
+    if ~isempty(xlabel)
+        xtick = get(axes_handle, 'xtick');
+        if ~ismember(abscissa, xtick)
+            xtick = sort([xtick, abscissa]);
+            set(axes_handle, 'xtick', xtick);
+        end
+        xticklabels = get(axes_handle, 'xticklabel');
+        xticklabels{xtick == abscissa} = xlabel;
+        set(axes_handle, 'xticklabel', xticklabels);
+    end
 
 
 
