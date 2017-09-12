@@ -105,13 +105,17 @@ function analyzeData(varargin)
     conditions_to_analyze_indicators = false(number_of_stretches_session, number_of_conditions_to_analyze);
     for i_condition = 1 : number_of_conditions_to_analyze
         stance_foot_indicator = strcmp(condition_stance_foot_list_session, conditions_to_analyze(i_condition, 1));
-        perturbation_indicator = strcmp(condition_perturbation_list_session, conditions_to_analyze(i_condition, 2));
+        if study_settings.get('analyze_total_response')
+            perturbation_indicator = strcmp(condition_perturbation_list_all,'ILLUSION_RIGHT') | strcmp(condition_perturbation_list_all,'ILLUSION_LEFT') 
+        else
+            perturbation_indicator = strcmp(condition_perturbation_list_session, conditions_to_analyze(i_condition, 2)); 
+        end
         delay_indicator = strcmp(condition_delay_list_session, conditions_to_analyze(i_condition, 3));
         index_indicator = strcmp(condition_index_list_session, conditions_to_analyze(i_condition, 4));
         experimental_indicator = strcmp(condition_experimental_list_session, conditions_to_analyze(i_condition, 5));
         stimulus_indicator = strcmp(condition_stimulus_list_session, conditions_to_analyze(i_condition, 6));
         day_indicator = strcmp(condition_day_list_session, conditions_to_analyze(i_condition, 7));
-
+        
         this_condition_indicator = stance_foot_indicator & perturbation_indicator & delay_indicator & index_indicator & experimental_indicator & stimulus_indicator & day_indicator;
         conditions_to_analyze_indicators(:, i_condition) = this_condition_indicator;
     end

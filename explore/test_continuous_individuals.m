@@ -2,7 +2,7 @@
 
 % load data and settings
 load('C:\Users\Tyler Fettrow\Documents\Vision_HY\results.mat')
-test_settings = SettingsCustodian('analyzeGroups.txt');
+test_settings = SettingsCustodian('statsSettings_continuous.txt');
 
 %% %% %% CoP Dominance Groups %% %% %% 
 % subjects = {'DXT','MTB','ZKY'}; % L dom
@@ -32,9 +32,34 @@ test_settings = SettingsCustodian('analyzeGroups.txt');
 % subjects = {'DJB','FNA','GHJ','ONT','SLL',}; % R dom pushoff
 % subjects = {'DXT', 'EFU','RRB','VQN'}; % L dom pushoff
 % subjects = {'MTB','NGY','RON','SPA','YMU'}; % symmetric pushoff
-subjects = {'PAG','UJD','IDA','WHO','XDY','ZKY'}; % no pushoff
+% subjects = {'PAG','UJD','IDA','WHO','XDY','ZKY'}; % no pushoff
 
-subject_indicator = ismember(subject_list,subjects);
+%% Individual Subjects %% %% %% 
+% subjects = 'DJB';
+% subjects = {'DXT'};
+% subjects = 'EFU';
+% subjects = 'FNA';
+% subjects = 'GHJ';
+% subjects = 'IDA';
+% subjects = 'MTB';   
+% subjects = 'NGY';
+% subjects = 'ONT';
+% subjects = 'PAG';
+% subjects = 'RON';
+% subjects = 'RRB';
+% subjects = 'SLL';
+% subjects = 'SPA';
+% subjects = 'UJD';
+% subjects = 'VQN';
+% subjects = 'WHO';
+% subjects = 'XDY';
+% subjects = 'YMU';
+% subjects = 'ZKY';
+
+subjects = {'DJB';'DXT';'EFU';'FNA';'GHJ';'IDA';'MTB';'NGY';'ONT';'PAG';'RON';'RRB';'SLL';'SPA';'UJD';'VQN';'WHO';'XDY';'YMU';'ZKY'}
+
+for i_subject = 1:length(subjects)
+subject_indicator = ismember(subject_list,subjects(i_subject));
 
 
 % initialize
@@ -71,133 +96,142 @@ for i_condition = 1 : number_of_conditions_to_test
     for i_variable = 1 : number_of_variables_to_test
         this_variable = variables_to_test{i_variable};
         this_condition = conditions_to_test(i_condition, :);
-
-        step_time_here_right = variable_data{strcmp(variable_names, 'step_time')}(:, indicator_stimulus_right);
-        step_time_here_left = variable_data{strcmp(variable_names, 'step_time')}(:, indicator_stimulus_left);
-        step_time_here = [step_time_here_right step_time_here_left];
         
-        data_here_right = response_data{strcmp(variable_names, this_variable)}(:, indicator_stimulus_right);
-        data_here_left = response_data{strcmp(variable_names, this_variable)}(:, indicator_stimulus_left);
-        data_here_left_inverted = -data_here_left; 
-        data_here = [data_here_right data_here_left_inverted];
-        number_of_time_steps_normalized = size(data_here, 1);
-        
-        % Benjamini-Hochberg test
-        data_cell = cell(number_of_time_steps_normalized * 2, 1);
-        for i_time = 1 : number_of_time_steps_normalized
-            data_cell{i_time} = data_here_right(i_time, :);
+        if strcmp(this_variable,'left_hip_abduction_angle')
+            step_time_here = variable_data{strcmp(variable_names, 'step_time')}(:, indicator_stimulus_left);
+            data_here = response_data{strcmp(variable_names, this_variable)}(:, indicator_stimulus_left);
+        elseif strcmp(this_variable,'right_hip_abduction_angle')
+            step_time_here = variable_data{strcmp(variable_names, 'step_time')}(:, indicator_stimulus_right);
+            data_here = response_data{strcmp(variable_names, this_variable)}(:, indicator_stimulus_right);
+        else    
+            step_time_here_right = variable_data{strcmp(variable_names, 'step_time')}(:, indicator_stimulus_right);
+            step_time_here_left = variable_data{strcmp(variable_names, 'step_time')}(:, indicator_stimulus_left);
+            step_time_here = [step_time_here_right step_time_here_left];
+            
+            data_here_right = response_data{strcmp(variable_names, this_variable)}(:, indicator_stimulus_right);
+            data_here_left = response_data{strcmp(variable_names, this_variable)}(:, indicator_stimulus_left);
+            data_here_left_inverted = -data_here_left; 
+            data_here = [data_here_right data_here_left_inverted];
         end
-        for i_time = 1 : number_of_time_steps_normalized
-            data_cell{number_of_time_steps_normalized + i_time} = - data_here_left(i_time, :);
-        end
-        tail = variables_to_test{i_variable, 2};
-        [h, p] = bhTest(data_cell, 'tail', tail);
-        h_results_stimRight = h(1 : number_of_time_steps_normalized);
-        h_results_stimLeft = h(number_of_time_steps_normalized+1 : end);
-
-
-        % estimate onset time - find absolute peak (but exclude start and end)
-        exclude_range_start = 0;
-        exclude_range_end = 0;
-        filter_order = 2;
-        cutoff_frequency = 10; % cutoff frequency, in Hz
-        mean_step_time = mean(step_time_here);
-        number_of_time_steps_normalized = size(data_here, 1);
-        time_normalized = linspace(0, mean_step_time, number_of_time_steps_normalized);
-        sampling_rate = number_of_time_steps_normalized / mean_step_time; % sampling rate of the data, in Hz
-        [filter_b, filter_a] = butter(filter_order, cutoff_frequency/(sampling_rate/2));	% set filter parameters for butterworth filter: 2=order of filter;
-
         data_here_mean = mean(data_here, 2);
-        data_here_filtered = filtfilt(filter_b, filter_a, data_here_mean);
-        data_here_dot = deriveByTime(data_here_filtered, 1/sampling_rate);
-        data_here_dot_pruned = [zeros(exclude_range_start, 1); data_here_dot(exclude_range_start+1 : end-exclude_range_end); zeros(exclude_range_end, 1)];
-        [~, peak_index_absolutePeak] = max(abs(data_here_dot_pruned));
-        data_here_slope_at_absolutePeak = data_here_dot(peak_index_absolutePeak);
-        data_here_slope_intersect_absolutePeak =  - time_normalized(peak_index_absolutePeak)*data_here_slope_at_absolutePeak + data_here_filtered(peak_index_absolutePeak);
-        onset_time_here_absolutePeak = - data_here_slope_intersect_absolutePeak / data_here_slope_at_absolutePeak;
+%         number_of_time_steps_normalized = size(data_here, 1);
+%         
+%         % Benjamini-Hochberg test
+%         data_cell = cell(number_of_time_steps_normalized * 2, 1);
+%         for i_time = 1 : number_of_time_steps_normalized
+%             data_cell{i_time} = data_here_right(i_time, :);
+%         end
+%         for i_time = 1 : number_of_time_steps_normalized
+%             data_cell{number_of_time_steps_normalized + i_time} = - data_here_left(i_time, :);
+%         end
+%         tail = variables_to_test{i_variable, 2};
+%         [h, p] = bhTest(data_cell, 'tail', tail);
+%         h_results_stimRight = h(1 : number_of_time_steps_normalized);
+%         h_results_stimLeft = h(number_of_time_steps_normalized+1 : end);
+
+
+%         % estimate onset time - find absolute peak (but exclude start and end)
+%         exclude_range_start = 0;
+%         exclude_range_end = 0;
+%         filter_order = 2;
+%         cutoff_frequency = 10; % cutoff frequency, in Hz
+%         mean_step_time = mean(step_time_here);
+%         number_of_time_steps_normalized = size(data_here, 1);
+%         time_normalized = linspace(0, mean_step_time, number_of_time_steps_normalized);
+%         sampling_rate = number_of_time_steps_normalized / mean_step_time; % sampling rate of the data, in Hz
+%         [filter_b, filter_a] = butter(filter_order, cutoff_frequency/(sampling_rate/2));	% set filter parameters for butterworth filter: 2=order of filter;
+% 
+%         data_here_mean = mean(data_here, 2);
+%         data_here_filtered = filtfilt(filter_b, filter_a, data_here_mean);
+%         data_here_dot = deriveByTime(data_here_filtered, 1/sampling_rate);
+%         data_here_dot_pruned = [zeros(exclude_range_start, 1); data_here_dot(exclude_range_start+1 : end-exclude_range_end); zeros(exclude_range_end, 1)];
+%         [~, peak_index_absolutePeak] = max(abs(data_here_dot_pruned));
+%         data_here_slope_at_absolutePeak = data_here_dot(peak_index_absolutePeak);
+%         data_here_slope_intersect_absolutePeak =  - time_normalized(peak_index_absolutePeak)*data_here_slope_at_absolutePeak + data_here_filtered(peak_index_absolutePeak);
+%         onset_time_here_absolutePeak = - data_here_slope_intersect_absolutePeak / data_here_slope_at_absolutePeak;
 
         % estimate onset time - find first peak after 95% confidence interval excludes zero
-        exclude_range_start = str2num(variables_to_test{i_variable, 3});
-        data_here_cinv_width = cinv(data_here, 2);
-        cinv_lower = data_here_mean - data_here_cinv_width;
-        cinv_upper = data_here_mean + data_here_cinv_width;
-        cinv_excludes_zero = (cinv_lower > 0) | cinv_upper < 0;
-        critical_index = find((cinv_excludes_zero & (1:number_of_time_steps_normalized)'>exclude_range_start), 1, 'first');
-        data_of_interest = data_here_mean(critical_index : end);
-        data_dot_of_interest = data_here_dot(critical_index : end);
-        if isempty(data_of_interest)
-            disp(['No significance found'])
-            break
-        end
-        if max(data_of_interest) > abs(min(data_of_interest))
-            [~, peak_index_local] = findpeaks(data_dot_of_interest);
-            if isempty(peak_index_local)
-                [~, peak_index_local] = max(data_dot_of_interest);
-            end
-        else
-            [~, peak_index_local] = findpeaks(-data_dot_of_interest);
-            if isempty(peak_index_local)
-                [~, peak_index_local] = max(-data_dot_of_interest);
-            end
-        end
+%         exclude_range_start = str2num(variables_to_test{i_variable, 3});
+%         data_here_cinv_width = cinv(data_here, 2);
+%         cinv_lower = data_here_mean - data_here_cinv_width;
+%         cinv_upper = data_here_mean + data_here_cinv_width;
+%         cinv_excludes_zero = (cinv_lower > 0) | cinv_upper < 0;
+%         critical_index = find((cinv_excludes_zero & (1:number_of_time_steps_normalized)'>exclude_range_start), 1, 'first');
+%         data_of_interest = data_here_mean(critical_index : end);
+%         data_dot_of_interest = data_here_dot(critical_index : end);
+%         if isempty(data_of_interest) || length(data_of_interest) < 5
+%             disp(['No significance found'])
+%             break
+%         end
+%         if max(data_of_interest) > abs(min(data_of_interest))
+%             [~, peak_index_local] = findpeaks(data_dot_of_interest);
+%             if isempty(peak_index_local)
+%                 [~, peak_index_local] = max(data_dot_of_interest);
+%             end
+%         else
+%             [~, peak_index_local] = findpeaks(-data_dot_of_interest);
+%             if isempty(peak_index_local)
+%                 [~, peak_index_local] = max(-data_dot_of_interest);
+%             end
+%         end
 %         peak_index_local(peak_index_local < 25) = [];
-        peak_index_localPeak = critical_index - 1 + peak_index_local(1);
-        data_here_slope_at_localPeak = data_here_dot(peak_index_localPeak);
-        data_here_slope_intersect_localPeak =  - time_normalized(peak_index_localPeak)*data_here_slope_at_localPeak + data_here_filtered(peak_index_localPeak);
-        onset_time_here_localPeak = - data_here_slope_intersect_localPeak / data_here_slope_at_localPeak;
+%         peak_index_localPeak = critical_index - 1 + peak_index_local(1);
+%         data_here_slope_at_localPeak = data_here_dot(peak_index_localPeak);
+%         data_here_slope_intersect_localPeak =  - time_normalized(peak_index_localPeak)*data_here_slope_at_localPeak + data_here_filtered(peak_index_localPeak);
+%         onset_time_here_localPeak = - data_here_slope_intersect_localPeak / data_here_slope_at_localPeak;
         max_amplitude = max(abs(data_here_mean));
         % report
-        disp(['Variable "' this_variable '", stance ' this_condition{1} ', Averaged stim direction'  ', step ' this_condition{4} ' - onset time: ' num2str(onset_time_here_localPeak)]);
+%         disp(['Variable "' this_variable '", stance ' this_condition{1} ', Averaged stim direction'  ', step ' this_condition{4} ' - onset time: ' num2str(onset_time_here_localPeak)]);
         disp(['Variable "' this_variable '", stance ' this_condition{1} ', Averaged stim direction'  ', step ' this_condition{4} ' - max amplitude: ' num2str(max_amplitude)]);
-        save(['stats_' this_variable '.mat'], 'h_results_stimRight', 'h_results_stimLeft');
+%         save(['stats_' this_variable '.mat'], 'h_results_stimRight', 'h_results_stimLeft');
          
 %         
 
         % visualize onset estimate
     %     time_plot_data = 1 : 100;
-        time_plot_data = time_normalized;
-        figure; hold on; title(strrep(this_variable, '_', ' '))
-        shadedErrorBar(time_plot_data, data_here_mean, data_here_cinv_width);
-        plot(time_plot_data([1 number_of_time_steps_normalized]), [0 0], 'k');
-        plot(time_plot_data, data_here_filtered);
-        plot(time_plot_data, data_here_dot);
-        plot(time_plot_data(peak_index_localPeak), data_here_mean(peak_index_localPeak), 'o');
-        plot(time_plot_data(peak_index_localPeak), data_here_dot(peak_index_localPeak), 'o');
-        plot(time_plot_data, time_normalized*data_here_slope_at_localPeak + data_here_slope_intersect_localPeak)
-        plot(onset_time_here_localPeak, 0, 'o')
+%         time_plot_data = time_normalized;
+%         figure; hold on; title(strrep(this_variable, '_', ' '))
+%         shadedErrorBar(time_plot_data, data_here_mean, data_here_cinv_width);
+%         plot(time_plot_data([1 number_of_time_steps_normalized]), [0 0], 'k');
+%         plot(time_plot_data, data_here_filtered);
+%         plot(time_plot_data, data_here_dot);
+%         plot(time_plot_data(peak_index_localPeak), data_here_mean(peak_index_localPeak), 'o');
+%         plot(time_plot_data(peak_index_localPeak), data_here_dot(peak_index_localPeak), 'o');
+%         plot(time_plot_data, time_normalized*data_here_slope_at_localPeak + data_here_slope_intersect_localPeak)
+%         plot(onset_time_here_localPeak, 0, 'o')
 
-        % visualize 
-        color_left = [0.2, 0.7, 0.07];
-        color_right = [0.7, 0.2, 0.07];
-        color_control = [0.2, 0.07, 0.7];
-        figure; my_axes = axes; hold on
-        shadedErrorBar ...
-          ( ...
-            time_plot_data, ...
-            mean(data_here_right, 2), ...
-            cinv(data_here_right, 2), ...
-            { ...
-              'color', color_right, ...
-              'linewidth', 6 ...
-            }, ...
-            1 ...
-          );
-        shadedErrorBar ...
-          ( ...
-            time_plot_data, ...
-            mean(data_here_left, 2), ...
-            cinv(data_here_left, 2), ...
-            { ...
-              'color', color_left, ...
-              'linewidth', 6 ...
-            }, ...
-            1 ...
-          );
-        significance_marker_height_pos_fdr = 1e-4;
-        significance_marker_height_neg_fdr = -1e-4;
-        if any(h_results_stimRight)
-            plot(time_plot_data(h_results_stimRight==1), significance_marker_height_pos_fdr, '*', 'color', color_right, 'markersize', 8, 'linewidth', 8);
-        end
+%         % visualize 
+%         color_left = [0.2, 0.7, 0.07];
+%         color_right = [0.7, 0.2, 0.07];
+%         color_control = [0.2, 0.07, 0.7];
+%         figure; my_axes = axes; hold on
+%         shadedErrorBar ...
+%           ( ...
+%             time_plot_data, ...
+%             mean(data_here_right, 2), ...
+%             cinv(data_here_right, 2), ...
+%             { ...
+%               'color', color_right, ...
+%               'linewidth', 6 ...
+%             }, ...
+%             1 ...
+%           );
+%         shadedErrorBar ...
+%           ( ...
+%             time_plot_data, ...
+%             mean(data_here_left, 2), ...
+%             cinv(data_here_left, 2), ...
+%             { ...
+%               'color', color_left, ...
+%               'linewidth', 6 ...
+%             }, ...
+%             1 ...
+%           );
+%         significance_marker_height_pos_fdr = 1e-4;
+%         significance_marker_height_neg_fdr = -1e-4;
+%         if any(h_results_stimRight)
+%             plot(time_plot_data(h_results_stimRight==1), significance_marker_height_pos_fdr, '*', 'color', color_right, 'markersize', 8, 'linewidth', 8);
+%         end
 %         if any(h_results_stimLeft)
 %             plot(time_plot_data(h_results_stimLeft==1), significance_marker_height_neg_fdr, '*', 'color', color_left, 'markersize', 8, 'linewidth', 8);
 %         end
@@ -287,6 +321,7 @@ for i_condition = 1 : number_of_conditions_to_test
 %         disp(['Variable "' this_variable '", stance ' this_condition{1} ', Averaged stim direction'  ', step ' this_condition{4} ' - onset time: ' num2str(onset_time_here_localPeak)]);
 %         
     end
+end
 end
 return
 
