@@ -27,6 +27,7 @@ function [h, p_values] = bhTest(x, varargin)
     fdr = parser.Results.fdr;
 
     % perform t-tests
+<<<<<<< HEAD
     if iscell(x)
         number_of_data_points = length(x);
         p_values = zeros(number_of_data_points, 1);
@@ -39,6 +40,12 @@ function [h, p_values] = bhTest(x, varargin)
         for i_data = 1 : number_of_data_points
             [~, p_values(i_data)] = ttest(x(i_data, :), 0, 'tail', tail);
         end
+=======
+    number_of_data_points = size(x, 1);
+    p_values = zeros(number_of_data_points, 1);
+    for i_data = 1 : number_of_data_points
+        [~, p_values(i_data)] = ttest(x{i_data, :}, 0, 'tail', tail);
+>>>>>>> 78bbb07b69ff2de3b13e69de26bcc8c8b496f922
     end
     h_indices = 1 : number_of_data_points;
     hypothesis_matrix = [p_values, h_indices'];
@@ -52,7 +59,7 @@ function [h, p_values] = bhTest(x, varargin)
     result_matrix_ascending = [hypothesis_matrix_ascending h_results_cop'];
     result_matrix = sortrows(result_matrix_ascending, 2);
 
-    h = result_matrix(:, 3);
+    h = result_matrix(:, 2);
     
 %     false_discovery_rate = 0.05;
 %     p_ttest_cop_pos = zeros(number_of_time_steps_twrpd, 1);
