@@ -27,16 +27,27 @@ function [h, p_values] = bhTest(x, varargin)
     fdr = parser.Results.fdr;
 
     % perform t-tests
-    number_of_data_points = size(x, 1);
-    p_values = zeros(number_of_data_points, 1);
-    for i_data = 1 : number_of_data_points
-        [~, p_values(i_data)] = ttest(x(i_data, :), 0, 'tail', tail);
+    if iscell(x)
+        number_of_data_points = length(x);
+        p_values = zeros(number_of_data_points, 1);
+        for i_data = 1 : number_of_data_points
+            [~, p_values(i_data)] = ttest(x{i_data}, 0, 'tail', tail);
+        end
+    else
+        number_of_data_points = size(x, 1);
+        p_values = zeros(number_of_data_points, 1);
+        for i_data = 1 : number_of_data_points
+            [~, p_values(i_data)] = ttest(x(i_data, :), 0, 'tail', tail);
+        end
     end
     h_indices = 1 : number_of_data_points;
     hypothesis_matrix = [p_values, h_indices'];
     hypothesis_matrix_ascending = sortrows(hypothesis_matrix, 1);
     decision_threshold = (1:number_of_data_points)' * 1/number_of_data_points * fdr;
     hypothesis_rejection_index = find(hypothesis_matrix_ascending(:, 1) < decision_threshold, 1, 'last');
+    if isempty(hypothesis_rejection_index)
+        hypothesis_rejection_index = 0;
+    end
     h_results_cop = [ones(1, hypothesis_rejection_index) zeros(1, number_of_data_points - hypothesis_rejection_index)];
     result_matrix_ascending = [hypothesis_matrix_ascending h_results_cop'];
     result_matrix = sortrows(result_matrix_ascending, 2);

@@ -29,6 +29,7 @@ study_label = path_split{end-1};
 
 % create temporary file with commands
 file_id = fopen('tmp_compute.m', 'w');
+fprintf(file_id, 'addpath ~\n');
 fprintf(file_id, 'addpath ~/CoBaL/helper\n');
 fprintf(file_id, 'addpath ~/CoBaL/processing\n');
 fprintf(file_id, 'addpath ~/miscMatlabStuff\n');
@@ -48,6 +49,7 @@ else
 %     fprintf(file_id, ['inverseDynamics(''use_parallel'', true, ''trials'', ' trials_to_process_string ')\n']);
 %     fprintf(file_id, ['calculateGroundReactionWrenches(''use_parallel'', true, ''trials'', ' trials_to_process_string ')\n']);
 end
+fprintf(file_id, ['matlabmail(''hendrikreimann@gmail.com'', ''processing of ' subject_label ' - finished'', ''' subject_label ' - finished'')\n']);
 fclose(file_id);
 
 % copy command file to compute

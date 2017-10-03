@@ -46,9 +46,10 @@ function collectPopulationResults(varargin)
     origin_trial_list = [];
     origin_start_time_list = [];
     origin_end_time_list = [];
+    time_list = [];
     variable_data = cell(number_of_variables_to_analyze, 1);
     response_data = cell(number_of_variables_to_analyze, 1);
-    
+   
     for i_folder = 1 : length(data_folder_list)
         % load data
         data_path = data_folder_list{i_folder};
@@ -67,6 +68,7 @@ function collectPopulationResults(varargin)
         origin_trial_list = [origin_trial_list; origin_trial_list_session]; %#ok<AGROW>
         origin_start_time_list = [origin_start_time_list; origin_start_time_list_session]; %#ok<AGROW>
         origin_end_time_list = [origin_end_time_list; origin_end_time_list_session]; %#ok<AGROW>
+        time_list = [time_list; time_list_session]; %#ok<AGROW>
         for i_variable = 1 : number_of_variables_to_analyze
             % load and extract data
             this_variable_name = variables_to_analyze{i_variable, 1};
@@ -78,6 +80,7 @@ function collectPopulationResults(varargin)
             variable_data{i_variable} = [variable_data{i_variable} this_variable_data];
             response_data{i_variable} = [response_data{i_variable} this_response_data];
         end
+        
     end
     subject_list = subject_list';
     
@@ -93,6 +96,7 @@ function collectPopulationResults(varargin)
     variables_to_save.condition_experimental_list = condition_experimental_list;
     variables_to_save.condition_stimulus_list = condition_stimulus_list;
     variables_to_save.condition_day_list = condition_day_list;
+    variables_to_save.time_list = time_list;
     variables_to_save.subject_list = subject_list;
     save('results', '-struct', 'variables_to_save');
 

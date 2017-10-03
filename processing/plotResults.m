@@ -73,6 +73,8 @@ function plotResults(varargin)
     %% collect data from all data folders
     variables_to_plot = plot_settings.get('variables_to_plot');
     number_of_variables_to_plot = size(variables_to_plot, 1);
+    paths_to_plot = plot_settings.get('paths_to_plot');
+    number_of_paths_to_plot = size(paths_to_plot, 1);
     condition_stance_foot_list_all = {};
     condition_perturbation_list_all = {};
     condition_delay_list_all = {};
@@ -84,8 +86,10 @@ function plotResults(varargin)
     origin_start_time_list_all = [];
     origin_end_time_list_all = [];
     variable_data_all = cell(number_of_variables_to_plot, 1);
+    path_data_all = cell(number_of_paths_to_plot, 2);
     if plot_settings.get('plot_response')
-        response_data_all = cell(number_of_variables_to_plot, 1);
+        variable_response_data_all = cell(number_of_variables_to_plot, 1);
+        path_response_data_all = cell(number_of_paths_to_plot, 2);
     end
     step_time_data = [];
     pushoff_time_data = [];
@@ -119,7 +123,30 @@ function plotResults(varargin)
             % store
             variable_data_all{i_variable} = [variable_data_all{i_variable} this_variable_data];
             if plot_settings.get('plot_response')
-                response_data_all{i_variable} = [response_data_all{i_variable} this_response_data];
+                variable_response_data_all{i_variable} = [variable_response_data_all{i_variable} this_response_data];
+            end
+        end
+        for i_path = 1 : number_of_paths_to_plot
+            % load and extract data
+            this_path_variable_name_x = paths_to_plot{i_path, 1};
+            index_in_saved_data_x = find(strcmp(variable_names_session, this_path_variable_name_x), 1, 'first');
+            this_path_variable_data_x = variable_data_session{index_in_saved_data_x}; %#ok<USENS>
+            if plot_settings.get('plot_response')
+                this_path_response_data_x = response_data_session{index_in_saved_data_x}; %#ok<USENS>
+            end
+            this_path_variable_name_y = paths_to_plot{i_path, 2};
+            index_in_saved_data_y = find(strcmp(variable_names_session, this_path_variable_name_y), 1, 'first');
+            this_path_variable_data_y = variable_data_session{index_in_saved_data_y}; %#ok<USENS>
+            if plot_settings.get('plot_response')
+                this_path_response_data_y = response_data_session{index_in_saved_data_y}; %#ok<USENS>
+            end
+            
+            % store
+            path_data_all{i_path, 1} = [path_data_all{i_path, 1} this_path_variable_data_x];
+            path_data_all{i_path, 2} = [path_data_all{i_path, 2} this_path_variable_data_y];
+            if plot_settings.get('plot_response')
+                path_response_data_all{i_path, 1} = [path_response_data_all{i_path, 1} this_path_response_data_x];
+                path_response_data_all{i_path, 2} = [path_response_data_all{i_path, 2} this_path_response_data_y];
             end
         end
         % get time variables
@@ -142,26 +169,30 @@ function plotResults(varargin)
     %% create figures and determine abscissae for each comparison
     comparison_variable_to_axes_index_map = zeros(number_of_comparisons, 1);
     abscissae_cell = cell(number_of_comparisons, number_of_variables_to_plot);
+    comparison_path_to_axes_index_map = zeros(number_of_comparisons, 1);
     
     plot_mode = plot_settings.get('plot_mode');
     variables_to_plot = plot_settings.get('variables_to_plot');
     conditions_to_plot = plot_settings.get('conditions_to_plot');    
     conditions_control = study_settings.get('conditions_control');
     
+    % time plots
     if strcmp(plot_mode, 'detailed') || strcmp(plot_mode, 'overview')
         % make one figure per comparison and variable
-        figure_handles = zeros(number_of_comparisons, number_of_variables_to_plot);
-        axes_handles = zeros(number_of_comparisons, number_of_variables_to_plot);
+        trajectory_figure_handles = zeros(number_of_comparisons, number_of_variables_to_plot);
+        trajectory_axes_handles = zeros(number_of_comparisons, number_of_variables_to_plot);
         pos_text_handles = zeros(number_of_comparisons, number_of_variables_to_plot);
         neg_text_handles = zeros(number_of_comparisons, number_of_variables_to_plot);
+        pos_arrow_handles = zeros(number_of_comparisons, number_of_variables_to_plot);
+        neg_arrow_handles = zeros(number_of_comparisons, number_of_variables_to_plot);
         for i_variable = 1 : number_of_variables_to_plot
             for i_comparison = 1 : number_of_comparisons
                 % make figure and axes
                 new_figure = figure; new_axes = axes; hold on;
                 
                 % store handles and determine abscissa data
-                figure_handles(i_comparison, i_variable) = new_figure;
-                axes_handles(i_comparison, i_variable) = new_axes;
+                trajectory_figure_handles(i_comparison, i_variable) = new_figure;
+                trajectory_axes_handles(i_comparison, i_variable) = new_axes;
                 comparison_variable_to_axes_index_map(i_comparison) = i_comparison;
                     
                 if isDiscreteVariable(i_variable, variable_data_all)
@@ -249,9 +280,20 @@ function plotResults(varargin)
                       ( ...
                         0, ...
                         0, ...
-                        [variables_to_plot{i_variable, 7} ' $\rightarrow$'], ...
+                        [variables_to_plot{i_variable, 7}], ...
                         'rotation', 90, ...
                         'Fontsize', 24, ...
+                        'horizontalalignment', 'right', ...
+                        'parent', new_axes ...
+                      );
+                pos_arrow_handles(i_comparison, i_variable) = ...
+                    text ...
+                      ( ...
+                        0, ...
+                        0, ...
+                        [' $\rightarrow$'], ...
+                        'rotation', 90, ...
+                        'Fontsize', 36, ...
                         'horizontalalignment', 'right', ...
                         'interpreter', 'LaTeX', ...
                         'parent', new_axes ...
@@ -263,7 +305,7 @@ function plotResults(varargin)
                         0, ...
                         ['$\leftarrow$ ' variables_to_plot{i_variable, 8}], ...
                         'rotation', 90, ...
-                        'Fontsize', 24, ...
+                        'Fontsize', 18, ...
                         'horizontalalignment', 'left', ...
                         'interpreter', 'LaTeX', ...
                         'parent', new_axes...
@@ -309,7 +351,7 @@ function plotResults(varargin)
                     target_abscissa = abscissae_cell{i_comparison, i_variable}(1, :);
                         
                     % set x-limits accordingly
-                    set(axes_handles(i_comparison, i_variable), 'xlim', [target_abscissa(1) target_abscissa(end)]);
+                    set(trajectory_axes_handles(i_comparison, i_variable), 'xlim', [target_abscissa(1) target_abscissa(end)]);
                 end
             end
         end
@@ -318,10 +360,12 @@ function plotResults(varargin)
     if strcmp(plot_mode, 'episodes')
         abscissae_cell_unscaled = cell(size(abscissae_cell));
         % make one figure per episode and variable
-        figure_handles = zeros(number_of_episodes, number_of_variables_to_plot);
-        axes_handles = zeros(number_of_episodes, number_of_variables_to_plot);
+        trajectory_figure_handles = zeros(number_of_episodes, number_of_variables_to_plot);
+        trajectory_axes_handles = zeros(number_of_episodes, number_of_variables_to_plot);
         pos_text_handles = zeros(number_of_episodes, number_of_variables_to_plot);
         neg_text_handles = zeros(number_of_episodes, number_of_variables_to_plot);
+        pos_arrow_handles = zeros(number_of_comparisons, number_of_variables_to_plot);
+        neg_arrow_handles = zeros(number_of_comparisons, number_of_variables_to_plot);
         step_start_times_cell = cell(number_of_episodes, number_of_variables_to_plot);
         step_end_times_cell = cell(number_of_episodes, number_of_variables_to_plot);
         step_pushoff_times_cell = cell(number_of_episodes, number_of_variables_to_plot);
@@ -331,8 +375,8 @@ function plotResults(varargin)
             for i_episode = 1 : number_of_episodes
                 % make figure and axes and store handles
                 new_figure = figure; new_axes = axes; hold on;
-                figure_handles(i_episode, i_variable) = new_figure;
-                axes_handles(i_episode, i_variable) = new_axes;
+                trajectory_figure_handles(i_episode, i_variable) = new_figure;
+                trajectory_axes_handles(i_episode, i_variable) = new_axes;
                 this_episode = episode_indices{i_episode};
 
                 % store handles and determine abscissa data for all comparisons in this episode
@@ -400,25 +444,47 @@ function plotResults(varargin)
                           ( ...
                             0, ...
                             0, ...
-                            [variables_to_plot{i_variable, 7} ' $\rightarrow$'], ...
+                            variables_to_plot{i_variable, 7}, ...
                             'rotation', 90, ...
-                            'Fontsize', 24, ...
+                            'Fontsize', 18, ...
+                            'horizontalalignment', 'right', ...
+                            'parent', new_axes ...
+                          );
+                    pos_arrow_handles(i_episode, i_variable) = ...
+                        text ...
+                          ( ...
+                            0, ...
+                            0, ...
+                            ' $\rightarrow$', ...
+                            'rotation', 90, ...
+                            'Fontsize', 36, ...
                             'horizontalalignment', 'right', ...
                             'interpreter', 'LaTeX', ...
                             'parent', new_axes ...
                           );
                 end
                 if ~strcmp(variables_to_plot{i_variable, 8}, '~')
+                    neg_arrow_handles(i_episode, i_variable) = ...
+                        text ...
+                          ( ...
+                            0, ...
+                            0, ...
+                            '$\leftarrow$ ', ...
+                            'rotation', 90, ...
+                            'Fontsize', 36, ...
+                            'horizontalalignment', 'left', ...
+                            'interpreter', 'LaTeX', ...
+                            'parent', new_axes...
+                          );
                     neg_text_handles(i_episode, i_variable) = ...
                         text ...
                           ( ...
                             0, ...
                             0, ...
-                            ['$\leftarrow$ ' variables_to_plot{i_variable, 8}], ...
+                            variables_to_plot{i_variable, 8}, ...
                             'rotation', 90, ...
-                            'Fontsize', 24, ...
+                            'Fontsize', 18, ...
                             'horizontalalignment', 'left', ...
-                            'interpreter', 'LaTeX', ...
                             'parent', new_axes...
                           );
                 end
@@ -586,7 +652,7 @@ function plotResults(varargin)
                     episode_end_time = last_step_abscissae(1, end);
 
                     % set x-limits accordingly
-                    set(axes_handles(i_episode, i_variable), 'xlim', [episode_start_time episode_end_time]);
+                    set(trajectory_axes_handles(i_episode, i_variable), 'xlim', [episode_start_time episode_end_time]);
                 end
             end
         end
@@ -635,20 +701,71 @@ function plotResults(varargin)
         
     end
     
+    % path plots
+    if strcmp(plot_mode, 'detailed') || strcmp(plot_mode, 'overview')
+        % make one figure per comparison and variable
+        path_figure_handles = zeros(number_of_comparisons, number_of_variables_to_plot);
+        path_axes_handles = zeros(number_of_comparisons, number_of_variables_to_plot);
+        for i_path = 1 : number_of_paths_to_plot
+            for i_comparison = 1 : number_of_comparisons
+                % make figure and axes
+                new_figure = figure; new_axes = axes; hold on;
+                
+                % store handles and determine abscissa data
+                path_figure_handles(i_comparison, i_path) = new_figure;
+                path_axes_handles(i_comparison, i_path) = new_axes;
+                comparison_path_to_axes_index_map(i_comparison) = i_comparison;
+                    
+                % determine title
+                title_string = paths_to_plot{i_path, 2};
+                filename_string = paths_to_plot{i_path, 6};
+                for i_label = 1 : length(study_settings.get('condition_labels'))
+                    if (i_label ~= plot_settings.get('comparison_to_make')) ...
+                        && (i_label ~= 1) ...
+                        && (i_label ~= 3) ...
+                        && (i_label ~= 5) ...
+                        && (i_label ~= 6) ...
+                        && (i_label ~= 7)
+                        this_condition_label = strrep(conditions_to_plot{comparison_indices{i_comparison}(1), i_label}, '_', ' ');
+                        if i_label ~= plot_settings.get('comparison_to_make')
+                            title_string = [title_string ' - ' this_condition_label]; %#ok<AGROW>
+                            filename_string = [filename_string '_' this_condition_label];
+                        end
+                    end
+                end
+                stance_label = conditions_to_plot{comparison_indices{i_comparison}(1), 1};
+                if strcmp(stance_label, 'STANCE_RIGHT')
+                    title_string = [title_string ' - first step stance leg RIGHT'];
+                    filename_string = [filename_string '_stanceR'];
+                end
+                if strcmp(stance_label, 'STANCE_LEFT')
+                    title_string = [title_string ' - first step stance leg LEFT'];
+                    filename_string = [filename_string '_stanceL'];
+                end
+                title(title_string); set(gca, 'Fontsize', 12)
+                set(gcf, 'UserData', filename_string)
+                
+                
+            end
+        end
+        
+        
+    end
+    
     %% plot data
+    colors_comparison = plot_settings.get('colors_comparison');
     for i_variable = 1 : number_of_variables_to_plot
         if plot_settings.get('plot_response')
-            data_to_plot = response_data_all{i_variable, 1};
+            data_to_plot = variable_response_data_all{i_variable, 1};
         else
             data_to_plot = variable_data_all{i_variable, 1};
         end
         
-        colors_comparison = plot_settings.get('colors_comparison');
         for i_comparison = 1 : length(comparison_indices)
             % find correct condition indicator for control
             conditions_this_comparison = comparison_indices{i_comparison};
             top_level_plots = [];
-            target_axes_handle = axes_handles(comparison_variable_to_axes_index_map(i_comparison), i_variable);
+            target_axes_handle = trajectory_axes_handles(comparison_variable_to_axes_index_map(i_comparison), i_variable);
             
             % plot control
             if plot_settings.get('plot_control') && ~isempty(conditions_control) && ~plot_settings.get('plot_response')
@@ -886,19 +1003,143 @@ function plotResults(varargin)
             end
         end
     end
+    for i_path = 1 : number_of_paths_to_plot
+        if plot_settings.get('plot_response')
+            data_to_plot_x = path_response_data_all{i_path, 1};
+            data_to_plot_y = path_response_data_all{i_path, 2};
+        else
+            data_to_plot_x = path_data_all{i_path, 1};
+            data_to_plot_y = path_data_all{i_path, 2};
+        end
+        
+        for i_comparison = 1 : length(comparison_indices)
+            % find correct condition indicator for control
+            conditions_this_comparison = comparison_indices{i_comparison};
+            top_level_plots = [];
+            target_axes_handle = path_axes_handles(comparison_path_to_axes_index_map(i_comparison), i_path);
+            
+            % plot control
+            if plot_settings.get('plot_control') && ~isempty(conditions_control) && ~plot_settings.get('plot_response')
+                % determine which control condition applies here
+                representant_condition_index = conditions_this_comparison(1);
+                applicable_control_condition_index = findApplicableControlConditionIndex(conditions_to_plot(representant_condition_index, :), conditions_control);
+                applicable_control_condition_labels = conditions_control(applicable_control_condition_index, :);
+                
+                % extract data for control condition
+                stance_foot_indicator = strcmp(condition_stance_foot_list_all, applicable_control_condition_labels{1});
+                perturbation_indicator = strcmp(condition_perturbation_list_all, applicable_control_condition_labels{2});
+                delay_indicator = strcmp(condition_delay_list_all, applicable_control_condition_labels{3});
+                index_indicator = strcmp(condition_index_list_all, applicable_control_condition_labels{4});
+                experimental_indicator = strcmp(condition_experimental_list_all, applicable_control_condition_labels{5});
+                stimulus_indicator = strcmp(condition_stimulus_list_all, applicable_control_condition_labels{6});
+                day_indicator = strcmp(condition_day_list_all, applicable_control_condition_labels{7});
+                this_condition_indicator = stance_foot_indicator & perturbation_indicator & delay_indicator & index_indicator & experimental_indicator & stimulus_indicator & day_indicator;
+                data_to_plot_this_condition_x = data_to_plot_x(:, this_condition_indicator);
+                data_to_plot_this_condition_y = data_to_plot_y(:, this_condition_indicator);
+%                 origin_indices = find(this_condition_indicator);
+                
+                if ~isempty(data_to_plot_this_condition_x)
+                    if strcmp(plot_mode, 'detailed')
+                        % individual trajectories
+                        for i_stretch = 1 : size(data_to_plot_this_condition_x, 2)
+%                             origin_index_data = ones(size(target_abscissa)) * origin_indices(i_stretch);
+                            plot ...
+                              ( ...
+                                target_axes_handle, ...
+                                data_to_plot_this_condition_x(:, i_stretch), ...
+                                data_to_plot_this_condition_y(:, i_stretch), ...
+                                'HandleVisibility', 'off', ...
+                                'color', lightenColor(plot_settings.get('color_control'), 0.5) ...
+                              );
+                        end
+                        % condition average
+                        control_mean_plot = plot ...
+                          ( ...
+                            target_axes_handle, ...
+                            mean(data_to_plot_this_condition_x, 2), ...
+                            mean(data_to_plot_this_condition_y, 2), ...
+                            'DisplayName', 'CONTROL', ...
+                            'linewidth', 5, ...
+                            'color', plot_settings.get('color_control') ...
+                          );
+                        top_level_plots = [top_level_plots control_mean_plot]; %#ok<AGROW>
+                    end
+                end
+            end
+            
+            % plot stimulus
+            for i_condition = 1 : length(conditions_this_comparison)
+                label_string = strrep(conditions_to_plot{comparison_indices{i_comparison}(i_condition), plot_settings.get('comparison_to_make')}, '_', ' ');
+                
+                % find correct condition indicator
+                condition_identifier = conditions_to_plot(conditions_this_comparison(i_condition), :);
+                stance_foot_indicator = strcmp(condition_stance_foot_list_all, condition_identifier{1});
+                perturbation_indicator = strcmp(condition_perturbation_list_all, condition_identifier{2});
+                delay_indicator = strcmp(condition_delay_list_all, condition_identifier{3});
+                index_indicator = strcmp(condition_index_list_all, condition_identifier{4});
+                experimental_indicator = strcmp(condition_experimental_list_all, condition_identifier{5});
+                stimulus_indicator = strcmp(condition_stimulus_list_all, condition_identifier{6});
+                day_indicator = strcmp(condition_day_list_all, condition_identifier{7});
+                this_condition_indicator = stance_foot_indicator & perturbation_indicator & delay_indicator & index_indicator & experimental_indicator & stimulus_indicator & day_indicator;
+                data_to_plot_this_condition_x = data_to_plot_x(:, this_condition_indicator);
+                data_to_plot_this_condition_y = data_to_plot_y(:, this_condition_indicator);
+%                 origin_trial_list_this_condition = origin_trial_list_all(this_condition_indicator);
+                origin_indices = find(this_condition_indicator);
+                if strcmp(plot_mode, 'detailed')
+                    for i_stretch = 1 : size(data_to_plot_this_condition_x, 2)
+%                             origin_trial_data = ones(size(target_abscissa)) * origin_trial_list_this_condition(i_stretch);
+%                         origin_index_data = ones(size(target_abscissa)) * origin_indices(i_stretch);
+                        plot ...
+                          ( ...
+                            target_axes_handle, ...
+                            data_to_plot_this_condition_x(:, i_stretch), ...
+                            data_to_plot_this_condition_y(:, i_stretch), ...
+                            'HandleVisibility', 'off', ...
+                            'color', lightenColor(colors_comparison(i_condition, :), 0.5) ...
+                          );
+                    end
+                    condition_mean_plot = plot ...
+                      ( ...
+                        target_axes_handle, ...
+                        mean(data_to_plot_this_condition_x, 2), ...
+                        mean(data_to_plot_this_condition_y, 2), ...
+                        'linewidth', 5, ...
+                        'color', colors_comparison(i_condition, :) ...
+                      );
+                    top_level_plots = [top_level_plots condition_mean_plot]; %#ok<AGROW>
+                end
+            end
+
+            % reorder to bring mean plots on top
+            for i_plot = 1 : length(top_level_plots)
+                uistack(top_level_plots(i_plot), 'top');
+            end
+            
+            % toggle legend
+            if show_legend && ~(isDiscreteVariable(i_variable, variable_data_all) && (strcmp(plot_mode, 'overview') || strcmp(plot_mode, 'episodes')))
+                legend(target_axes_handle, 'show')
+            end
+        end
+    end        
     
     %% update label positions
     for i_variable = 1 : number_of_variables_to_plot
-        for i_axes = 1 : size(axes_handles, 1)
-            these_axes = axes_handles(i_axes, i_variable);
+        for i_axes = 1 : size(trajectory_axes_handles, 1)
+            these_axes = trajectory_axes_handles(i_axes, i_variable);
             xlimits = get(these_axes, 'xlim'); ylimits = get(these_axes, 'ylim');
-            if pos_text_handles(i_axes, i_variable) ~= 0
-                pos_text_position_x = xlimits(1) - (xlimits(2)-xlimits(1))*0.12;
+            if pos_arrow_handles(i_axes, i_variable) ~= 0
+                pos_arrow_position_x = xlimits(1) - (xlimits(2)-xlimits(1))*0.09;
+                pos_arrow_position_y = ylimits(2);
+                set(pos_arrow_handles(i_axes, i_variable), 'Position', [pos_arrow_position_x pos_arrow_position_y]);
+                pos_text_position_x = xlimits(1) - (xlimits(2)-xlimits(1))*0.14;
                 pos_text_position_y = ylimits(2);
                 set(pos_text_handles(i_axes, i_variable), 'Position', [pos_text_position_x pos_text_position_y]);
             end
-            if neg_text_handles(i_axes, i_variable) ~= 0
-                neg_text_position_x = xlimits(1) - (xlimits(2)-xlimits(1))*0.12;
+            if neg_arrow_handles(i_axes, i_variable) ~= 0
+                neg_arrow_position_x = xlimits(1) - (xlimits(2)-xlimits(1))*0.09;
+                neg_arrow_position_y = ylimits(1);
+                set(neg_arrow_handles(i_axes, i_variable), 'Position', [neg_arrow_position_x neg_arrow_position_y]);
+                neg_text_position_x = xlimits(1) - (xlimits(2)-xlimits(1))*0.14;
                 neg_text_position_y = ylimits(1);
                 set(neg_text_handles(i_axes, i_variable), 'Position', [neg_text_position_x neg_text_position_y]);
             end
@@ -908,8 +1149,8 @@ function plotResults(varargin)
     %% add zero line
     if plot_settings.get('plot_zero')
         for i_variable = 1 : number_of_variables_to_plot
-            for i_axes = 1 : size(axes_handles, 1)
-                these_axes = axes_handles(i_axes, i_variable);
+            for i_axes = 1 : size(trajectory_axes_handles, 1)
+                these_axes = trajectory_axes_handles(i_axes, i_variable);
                 xlimits = get(these_axes, 'xlim');
                 zero_plot = plot(these_axes, xlimits, [0 0], 'color', [0.7 0.7 0.7]);
                 uistack(zero_plot, 'bottom')
@@ -922,7 +1163,7 @@ function plotResults(varargin)
     if strcmp(plot_mode, 'episodes')
         for i_variable = 1 : number_of_variables_to_plot
             for i_episode = 1 : number_of_episodes
-                these_axes = axes_handles(i_episode, i_variable);
+                these_axes = trajectory_axes_handles(i_episode, i_variable);
                 ylimits = get(these_axes, 'ylim');
 
                 step_start_times = step_start_times_cell{i_episode, i_variable};
@@ -994,29 +1235,29 @@ function plotResults(varargin)
         if ~exist(['figures' filesep 'noLabels'], 'dir')
             mkdir(['figures' filesep 'noLabels'])
         end
-        for i_figure = 1 : numel(figure_handles)
+        for i_figure = 1 : numel(trajectory_figure_handles)
             % save with labels
 %             legend(axes_handles(i_figure), 'show');
-            filename = ['figures' filesep 'withLabels' filesep get(figure_handles(i_figure), 'UserData')];
-            saveas(figure_handles(i_figure), filename, parser.Results.format)
+            filename = ['figures' filesep 'withLabels' filesep get(trajectory_figure_handles(i_figure), 'UserData')];
+            saveas(trajectory_figure_handles(i_figure), filename, parser.Results.format)
             
             % save without labels
 %             set(postext, 'visible', 'off');
 %             set(negtext, 'visible', 'off');
             
-            set(get(axes_handles(i_figure), 'xaxis'), 'visible', 'off');
-            set(get(axes_handles(i_figure), 'yaxis'), 'visible', 'off');
-            set(get(axes_handles(i_figure), 'xlabel'), 'visible', 'off');
-            set(get(axes_handles(i_figure), 'ylabel'), 'visible', 'off');
-            set(get(axes_handles(i_figure), 'title'), 'visible', 'off');
-            set(axes_handles(i_figure), 'xticklabel', '');
-            set(axes_handles(i_figure), 'yticklabel', '');
-            set(axes_handles(i_figure), 'position', [0 0 1 1]);
-            legend(axes_handles(i_figure), 'hide');
-            filename = ['figures' filesep 'noLabels' filesep get(figure_handles(i_figure), 'UserData')];
-                saveas(figure_handles(i_figure), filename, parser.Results.format)
+            set(get(trajectory_axes_handles(i_figure), 'xaxis'), 'visible', 'off');
+            set(get(trajectory_axes_handles(i_figure), 'yaxis'), 'visible', 'off');
+            set(get(trajectory_axes_handles(i_figure), 'xlabel'), 'visible', 'off');
+            set(get(trajectory_axes_handles(i_figure), 'ylabel'), 'visible', 'off');
+            set(get(trajectory_axes_handles(i_figure), 'title'), 'visible', 'off');
+            set(trajectory_axes_handles(i_figure), 'xticklabel', '');
+            set(trajectory_axes_handles(i_figure), 'yticklabel', '');
+            set(trajectory_axes_handles(i_figure), 'position', [0 0 1 1]);
+            legend(trajectory_axes_handles(i_figure), 'hide');
+            filename = ['figures' filesep 'noLabels' filesep get(trajectory_figure_handles(i_figure), 'UserData')];
+            saveas(trajectory_figure_handles(i_figure), filename, parser.Results.format);
 
-            close(figure_handles(i_figure))            
+            close(trajectory_figure_handles(i_figure))            
         end
     end
     

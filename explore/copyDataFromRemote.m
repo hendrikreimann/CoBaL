@@ -27,8 +27,8 @@ study_label = path_split{end-1};
 
 % copy data
 source_dir = ['data/' study_label '/' subject_label '/processed/'];
-% system(['scp ' remote ':' source_dir '*kinematicTrajectories.mat processed/']);
-system(['scp ' remote ':' source_dir '*dynamicTrajectories.mat processed/']);
+system(['scp ' remote ':' source_dir '*kinematicTrajectories.mat processed/']);
+% system(['scp ' remote ':' source_dir '*dynamicTrajectories.mat processed/']);
 source_dir = ['data/' study_label '/' subject_label '/analysis/'];
 system(['scp ' remote ':' source_dir '*.mat analysis/']);
 

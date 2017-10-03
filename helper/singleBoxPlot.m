@@ -38,6 +38,9 @@ function singleBoxPlot(target_axes_handle, abscissa, data, color, label, show_ou
           );
         return
     end
+    if iscolumn(data)
+        data = data';
+    end
     
     % extract data
     data_median = median(data);

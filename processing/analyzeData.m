@@ -48,6 +48,7 @@ function analyzeData(varargin)
     origin_trial_list_session = [];
     origin_start_time_list_session = [];
     origin_end_time_list_session = [];
+    time_list_session = [];
     
     % analyze and store data
     for i_type = 1 : length(condition_list)
@@ -75,6 +76,8 @@ function analyzeData(varargin)
             origin_trial_list_session = [origin_trial_list_session; ones(size(stretch_start_times)) * i_trial]; %#ok<AGROW>
             origin_start_time_list_session = [origin_start_time_list_session; stretch_start_times]; %#ok<AGROW>
             origin_end_time_list_session = [origin_end_time_list_session; stretch_end_times]; %#ok<AGROW>
+            time_list = ones(size(stretch_start_times)) * (i_trial - 1) * study_settings.get('trial_length') + stretch_start_times;
+            time_list_session = [time_list_session; time_list]; %#ok<AGROW>
         end
         disp(['Finished condition "' condition '".'])
     end
@@ -243,7 +246,8 @@ function analyzeData(varargin)
         'condition_day_list_session', ...
         'origin_trial_list_session', ...
         'origin_start_time_list_session', ...
-        'origin_end_time_list_session' ...
+        'origin_end_time_list_session', ...
+        'time_list_session' ...
       )
 end
 

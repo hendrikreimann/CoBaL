@@ -131,6 +131,16 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('rheel_x')
                 this.addStretchVariable('rheel_x')
             end
+            if this.isVariableToAnalyze('lheel_y')
+                this.addBasicVariable('marker_trajectories')
+                this.addBasicVariable('lheel_y')
+                this.addStretchVariable('lheel_y')
+            end
+            if this.isVariableToAnalyze('rheel_y')
+                this.addBasicVariable('marker_trajectories')
+                this.addBasicVariable('rheel_y')
+                this.addStretchVariable('rheel_y')
+            end
             if this.isVariableToAnalyze('lankle_x')
                 this.addBasicVariable('marker_trajectories')
                 this.addBasicVariable('lankle_x')

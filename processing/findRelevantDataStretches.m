@@ -1306,13 +1306,14 @@ function findRelevantDataStretches(varargin)
             
             % check data availability for variables just calculated here
             for i_variable = 1 : length(variables_to_prune_for)
-                [data, time] = loadData(date, subject_id, condition_list{i_condition}, i_trial, variables_to_prune_for{i_variable});
-                
-                for i_stretch = 1 : number_of_stretches
-                    [~, start_index] = min(abs(time - stretch_start_times(i_stretch)));
-                    [~, end_index] = min(abs(time - stretch_end_times(i_stretch)));
-                    if any(isnan(data(start_index : end_index)))
-                        removal_flags(i_stretch) = 1;
+                [data, time, ~, ~, success] = loadData(date, subject_id, condition_list{i_condition}, i_trial, variables_to_prune_for{i_variable}, 'optional');
+                if success
+                    for i_stretch = 1 : number_of_stretches
+                        [~, start_index] = min(abs(time - stretch_start_times(i_stretch)));
+                        [~, end_index] = min(abs(time - stretch_end_times(i_stretch)));
+                        if any(isnan(data(start_index : end_index)))
+                            removal_flags(i_stretch) = 1;
+                        end
                     end
                 end
             end
