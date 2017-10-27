@@ -572,6 +572,129 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('right_ankle_dorsiflexion_angle')
                 this.addStretchVariable('right_ankle_dorsiflexion_angle')
             end
+            
+            % joint angles at step end
+            if this.isVariableToAnalyze('lumbar_roll_step_end_angle')
+                this.addBasicVariable('joint_angle_trajectories')
+                this.addBasicVariable('lumbar_roll_angle')
+                this.addStretchVariable('lumbar_roll_angle')
+                this.addStretchVariable('lumbar_roll_step_end_angle')
+            end
+            if this.isVariableToAnalyze('lumbar_pitch_step_end_angle')
+                this.addBasicVariable('joint_angle_trajectories')
+                this.addBasicVariable('lumbar_pitch_angle')
+                this.addStretchVariable('lumbar_pitch_angle')
+                this.addStretchVariable('lumbar_pitch_step_end_angle')
+            end
+            if this.isVariableToAnalyze('lumbar_yaw_step_end_angle')
+                this.addBasicVariable('joint_angle_trajectories')
+                this.addBasicVariable('lumbar_yaw_angle')
+                this.addStretchVariable('lumbar_yaw_angle')
+                this.addStretchVariable('lumbar_yaw_step_end_angle')
+            end
+            if this.isVariableToAnalyze('cervical_roll_step_end_angle')
+                this.addBasicVariable('joint_angle_trajectories')
+                this.addBasicVariable('cervical_roll_angle')
+                this.addStretchVariable('cervical_roll_angle')
+                this.addStretchVariable('cervical_roll_step_end_angle')
+            end
+            if this.isVariableToAnalyze('cervical_pitch_step_end_angle')
+                this.addBasicVariable('joint_angle_trajectories')
+                this.addBasicVariable('cervical_pitch_angle')
+                this.addStretchVariable('cervical_pitch_angle')
+                this.addStretchVariable('cervical_pitch_step_end_angle')
+            end
+            if this.isVariableToAnalyze('cervical_yaw_step_end_angle')
+                this.addBasicVariable('joint_angle_trajectories')
+                this.addBasicVariable('cervical_yaw_angle')
+                this.addStretchVariable('cervical_yaw_angle')
+                this.addStretchVariable('cervical_yaw_step_end_angle')
+            end
+            if this.isVariableToAnalyze('left_hip_abduction_step_end_angle')
+                this.addBasicVariable('joint_angle_trajectories')
+                this.addBasicVariable('left_hip_abduction_angle')
+                this.addStretchVariable('left_hip_abduction_angle')
+                this.addStretchVariable('left_hip_abduction_step_end_angle')
+            end
+            if this.isVariableToAnalyze('left_hip_flexion_step_end_angle')
+                this.addBasicVariable('joint_angle_trajectories')
+                this.addBasicVariable('left_hip_flexion_angle')
+                this.addStretchVariable('left_hip_flexion_angle')
+                this.addStretchVariable('left_hip_flexion_step_end_angle')
+            end
+            if this.isVariableToAnalyze('left_hip_introtation_step_end_angle')
+                this.addBasicVariable('joint_angle_trajectories')
+                this.addBasicVariable('left_hip_introtation_angle')
+                this.addStretchVariable('left_hip_introtation_angle')
+                this.addStretchVariable('left_hip_introtation_step_end_angle')
+            end
+            if this.isVariableToAnalyze('left_knee_flexion_step_end_angle')
+                this.addBasicVariable('joint_angle_trajectories')
+                this.addBasicVariable('left_knee_flexion_angle')
+                this.addStretchVariable('left_knee_flexion_angle')
+                this.addStretchVariable('left_knee_flexion_step_end_angle')
+            end
+            if this.isVariableToAnalyze('left_knee_extrotation_step_end_angle')
+                this.addBasicVariable('joint_angle_trajectories')
+                this.addBasicVariable('left_knee_extrotation_angle')
+                this.addStretchVariable('left_knee_extrotation_angle')
+                this.addStretchVariable('left_knee_extrotation_step_end_angle')
+            end
+            if this.isVariableToAnalyze('left_ankle_eversion_step_end_angle')
+                this.addBasicVariable('joint_angle_trajectories')
+                this.addBasicVariable('left_ankle_eversion_angle')
+                this.addStretchVariable('left_ankle_eversion_angle')
+                this.addStretchVariable('left_ankle_eversion_step_end_angle')
+            end
+            if this.isVariableToAnalyze('left_ankle_dorsiflexion_step_end_angle')
+                this.addBasicVariable('joint_angle_trajectories')
+                this.addBasicVariable('left_ankle_dorsiflexion_angle')
+                this.addStretchVariable('left_ankle_dorsiflexion_angle')
+                this.addStretchVariable('left_ankle_dorsiflexion_step_end_angle')
+            end
+            if this.isVariableToAnalyze('right_hip_abduction_step_end_angle')
+                this.addBasicVariable('joint_angle_trajectories')
+                this.addBasicVariable('right_hip_abduction_angle')
+                this.addStretchVariable('right_hip_abduction_angle')
+                this.addStretchVariable('right_hip_abduction_step_end_angle')
+            end
+            if this.isVariableToAnalyze('right_hip_flexion_step_end_angle')
+                this.addBasicVariable('joint_angle_trajectories')
+                this.addBasicVariable('right_hip_flexion_angle')
+                this.addStretchVariable('right_hip_flexion_angle')
+                this.addStretchVariable('right_hip_flexion_step_end_angle')
+            end
+            if this.isVariableToAnalyze('right_hip_introtation_step_end_angle')
+                this.addBasicVariable('joint_angle_trajectories')
+                this.addBasicVariable('right_hip_introtation_angle')
+                this.addStretchVariable('right_hip_introtation_angle')
+                this.addStretchVariable('right_hip_introtation_step_end_angle')
+            end
+            if this.isVariableToAnalyze('right_knee_flexion_step_end_angle')
+                this.addBasicVariable('joint_angle_trajectories')
+                this.addBasicVariable('right_knee_flexion_angle')
+                this.addStretchVariable('right_knee_flexion_angle')
+                this.addStretchVariable('right_knee_flexion_step_end_angle')
+            end
+            if this.isVariableToAnalyze('right_knee_extrotation_step_end_angle')
+                this.addBasicVariable('joint_angle_trajectories')
+                this.addBasicVariable('right_knee_extrotation_angle')
+                this.addStretchVariable('right_knee_extrotation_angle')
+                this.addStretchVariable('right_knee_extrotation_step_end_angle')
+            end
+            if this.isVariableToAnalyze('right_ankle_eversion_step_end_angle')
+                this.addBasicVariable('joint_angle_trajectories')
+                this.addBasicVariable('right_ankle_eversion_angle')
+                this.addStretchVariable('right_ankle_eversion_angle')
+                this.addStretchVariable('right_ankle_eversion_step_end_angle')
+            end
+            if this.isVariableToAnalyze('right_ankle_dorsiflexion_step_end_angle')
+                this.addBasicVariable('joint_angle_trajectories')
+                this.addBasicVariable('right_ankle_dorsiflexion_angle')
+                this.addStretchVariable('right_ankle_dorsiflexion_angle')
+                this.addStretchVariable('right_ankle_dorsiflexion_step_end_angle')
+            end
+            
             % joint torques
             if this.isVariableToAnalyze('lumbar_roll_torque')
                 this.addBasicVariable('joint_torque_trajectories')
@@ -2086,6 +2209,90 @@ classdef WalkingDataCustodian < handle
                             normalization_value = 1;
                         end
                         stretch_data = right_tfl * 1 / normalization_value;
+                    end
+                    
+                    % step end variables
+                    if strcmp(variable_name, 'lumbar_roll_step_end_angle')
+                        whole_stretch_data = this.getTimeNormalizedData('lumbar_roll_angle', this_stretch_start_time, this_stretch_end_time);
+                        stretch_data = whole_stretch_data(end);
+                    end
+                    if strcmp(variable_name, 'lumbar_pitch_step_end_angle')
+                        whole_stretch_data = this.getTimeNormalizedData('lumbar_pitch_angle', this_stretch_start_time, this_stretch_end_time);
+                        stretch_data = whole_stretch_data(end);
+                    end
+                    if strcmp(variable_name, 'lumbar_yaw_step_end_angle')
+                        whole_stretch_data = this.getTimeNormalizedData('lumbar_yaw_angle', this_stretch_start_time, this_stretch_end_time);
+                        stretch_data = whole_stretch_data(end);
+                    end
+                    if strcmp(variable_name, 'cervical_roll_step_end_angle')
+                        whole_stretch_data = this.getTimeNormalizedData('cervical_roll_angle', this_stretch_start_time, this_stretch_end_time);
+                        stretch_data = whole_stretch_data(end);
+                    end
+                    if strcmp(variable_name, 'cervical_pitch_step_end_angle')
+                        whole_stretch_data = this.getTimeNormalizedData('cervical_pitch_angle', this_stretch_start_time, this_stretch_end_time);
+                        stretch_data = whole_stretch_data(end);
+                    end
+                    if strcmp(variable_name, 'cervical_yaw_step_end_angle')
+                        whole_stretch_data = this.getTimeNormalizedData('cervical_yaw_angle', this_stretch_start_time, this_stretch_end_time);
+                        stretch_data = whole_stretch_data(end);
+                    end
+                    
+                    if strcmp(variable_name, 'left_hip_abduction_step_end_angle')
+                        whole_stretch_data = this.getTimeNormalizedData('left_hip_abduction_angle', this_stretch_start_time, this_stretch_end_time);
+                        stretch_data = whole_stretch_data(end);
+                    end
+                    if strcmp(variable_name, 'left_hip_flexion_step_end_angle')
+                        whole_stretch_data = this.getTimeNormalizedData('left_hip_flexion_angle', this_stretch_start_time, this_stretch_end_time);
+                        stretch_data = whole_stretch_data(end);
+                    end
+                    if strcmp(variable_name, 'left_hip_introtation_step_end_angle')
+                        whole_stretch_data = this.getTimeNormalizedData('left_hip_introtation_angle', this_stretch_start_time, this_stretch_end_time);
+                        stretch_data = whole_stretch_data(end);
+                    end
+                    if strcmp(variable_name, 'left_knee_flexion_step_end_angle')
+                        whole_stretch_data = this.getTimeNormalizedData('left_knee_flexion_angle', this_stretch_start_time, this_stretch_end_time);
+                        stretch_data = whole_stretch_data(end);
+                    end
+                    if strcmp(variable_name, 'left_knee_extrotation_step_end_angle')
+                        whole_stretch_data = this.getTimeNormalizedData('left_knee_extrotation_angle', this_stretch_start_time, this_stretch_end_time);
+                        stretch_data = whole_stretch_data(end);
+                    end
+                    if strcmp(variable_name, 'left_ankle_eversion_step_end_angle')
+                        whole_stretch_data = this.getTimeNormalizedData('left_ankle_eversion_angle', this_stretch_start_time, this_stretch_end_time);
+                        stretch_data = whole_stretch_data(end);
+                    end
+                    if strcmp(variable_name, 'left_ankle_dorsiflexion_step_end_angle')
+                        whole_stretch_data = this.getTimeNormalizedData('left_ankle_dorsiflexion_angle', this_stretch_start_time, this_stretch_end_time);
+                        stretch_data = whole_stretch_data(end);
+                    end
+                    
+                    if strcmp(variable_name, 'right_hip_abduction_step_end_angle')
+                        whole_stretch_data = this.getTimeNormalizedData('right_hip_abduction_angle', this_stretch_start_time, this_stretch_end_time);
+                        stretch_data = whole_stretch_data(end);
+                    end
+                    if strcmp(variable_name, 'right_hip_flexion_step_end_angle')
+                        whole_stretch_data = this.getTimeNormalizedData('right_hip_flexion_angle', this_stretch_start_time, this_stretch_end_time);
+                        stretch_data = whole_stretch_data(end);
+                    end
+                    if strcmp(variable_name, 'right_hip_introtation_step_end_angle')
+                        whole_stretch_data = this.getTimeNormalizedData('right_hip_introtation_angle', this_stretch_start_time, this_stretch_end_time);
+                        stretch_data = whole_stretch_data(end);
+                    end
+                    if strcmp(variable_name, 'right_knee_flexion_step_end_angle')
+                        whole_stretch_data = this.getTimeNormalizedData('right_knee_flexion_angle', this_stretch_start_time, this_stretch_end_time);
+                        stretch_data = whole_stretch_data(end);
+                    end
+                    if strcmp(variable_name, 'right_knee_extrotation_step_end_angle')
+                        whole_stretch_data = this.getTimeNormalizedData('right_knee_extrotation_angle', this_stretch_start_time, this_stretch_end_time);
+                        stretch_data = whole_stretch_data(end);
+                    end
+                    if strcmp(variable_name, 'right_ankle_eversion_step_end_angle')
+                        whole_stretch_data = this.getTimeNormalizedData('right_ankle_eversion_angle', this_stretch_start_time, this_stretch_end_time);
+                        stretch_data = whole_stretch_data(end);
+                    end
+                    if strcmp(variable_name, 'right_ankle_dorsiflexion_step_end_angle')
+                        whole_stretch_data = this.getTimeNormalizedData('right_ankle_dorsiflexion_angle', this_stretch_start_time, this_stretch_end_time);
+                        stretch_data = whole_stretch_data(end);
                     end
                     
                     % store in cell

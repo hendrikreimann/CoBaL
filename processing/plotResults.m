@@ -87,9 +87,24 @@ function plotResults(varargin)
     origin_end_time_list_all = [];
     variable_data_all = cell(number_of_variables_to_plot, 1);
     path_data_all = cell(number_of_paths_to_plot, 2);
+    data_mode = 'default';
+    if plot_settings.get('plot_response') && plot_settings.get('plot_integrated')
+        error('Cannot plot response and integrated at the same time. Please pick one!')
+    end
     if plot_settings.get('plot_response')
+        data_mode = 'response';
+    end
+    if plot_settings.get('plot_integrated')
+        data_mode = 'integrated';
+    end
+    
+    if strcmp(data_mode, 'response')
         variable_response_data_all = cell(number_of_variables_to_plot, 1);
         path_response_data_all = cell(number_of_paths_to_plot, 2);
+    end
+    if strcmp(data_mode, 'integrated')
+        variable_integrated_data_all = cell(number_of_variables_to_plot, 1);
+        path_integrated_data_all = cell(number_of_paths_to_plot, 2);
     end
     step_time_data = [];
     pushoff_time_data = [];
@@ -119,11 +134,17 @@ function plotResults(varargin)
             if plot_settings.get('plot_response')
                 this_response_data = response_data_session{index_in_saved_data}; %#ok<USENS>
             end
+            if plot_settings.get('plot_integrated')
+                this_integrated_data = integrated_data_session{index_in_saved_data}; %#ok<USENS>
+            end
             
             % store
             variable_data_all{i_variable} = [variable_data_all{i_variable} this_variable_data];
             if plot_settings.get('plot_response')
                 variable_response_data_all{i_variable} = [variable_response_data_all{i_variable} this_response_data];
+            end
+            if plot_settings.get('plot_integrated')
+                variable_integrated_data_all{i_variable} = [variable_integrated_data_all{i_variable} this_integrated_data];
             end
         end
         for i_path = 1 : number_of_paths_to_plot
@@ -280,7 +301,7 @@ function plotResults(varargin)
                       ( ...
                         0, ...
                         0, ...
-                        [variables_to_plot{i_variable, 7}], ...
+                        variables_to_plot{i_variable, 7}, ...
                         'rotation', 90, ...
                         'Fontsize', 24, ...
                         'horizontalalignment', 'right', ...
@@ -291,7 +312,7 @@ function plotResults(varargin)
                       ( ...
                         0, ...
                         0, ...
-                        [' $\rightarrow$'], ...
+                        ' $\rightarrow$', ...
                         'rotation', 90, ...
                         'Fontsize', 36, ...
                         'horizontalalignment', 'right', ...
@@ -303,14 +324,24 @@ function plotResults(varargin)
                       ( ...
                         0, ...
                         0, ...
-                        ['$\leftarrow$ ' variables_to_plot{i_variable, 8}], ...
+                        variables_to_plot{i_variable, 8}, ...
                         'rotation', 90, ...
-                        'Fontsize', 18, ...
+                        'Fontsize', 24, ...
                         'horizontalalignment', 'left', ...
-                        'interpreter', 'LaTeX', ...
                         'parent', new_axes...
                       );
-                
+                neg_arrow_handles(i_comparison, i_variable) = ...
+                    text ...
+                      ( ...
+                        0, ...
+                        0, ...
+                        '$\leftarrow$ ', ...
+                        'rotation', 90, ...
+                        'Fontsize', 36, ...
+                        'horizontalalignment', 'left', ...
+                        'interpreter', 'LaTeX', ...
+                        'parent', new_axes ...
+                      );                
                 % determine title
                 title_string = variables_to_plot{i_variable, 2};
                 filename_string = variables_to_plot{i_variable, 4};
@@ -406,7 +437,8 @@ function plotResults(varargin)
                         abscissae = {abscissae_control, abscissae_stimulus};
                         abscissae_cell{this_episode(i_comparison), i_variable} = abscissae;
                         
-                        if ~isempty(conditions_control) && plot_settings.get('plot_control') && ~plot_settings.get('plot_response')
+%                         if ~isempty(conditions_control) && plot_settings.get('plot_control') && ~plot_settings.get('plot_response')
+                        if ~isempty(conditions_control) && plot_settings.get('plot_control') && strcmp(data_mode, 'default')
                             xtick = [xtick abscissae{1}]; %#ok<AGROW>
                         end
                         xtick = [xtick abscissae{2}]; %#ok<AGROW>
@@ -755,10 +787,17 @@ function plotResults(varargin)
     %% plot data
     colors_comparison = plot_settings.get('colors_comparison');
     for i_variable = 1 : number_of_variables_to_plot
-        if plot_settings.get('plot_response')
-            data_to_plot = variable_response_data_all{i_variable, 1};
-        else
+%         if plot_settings.get('plot_response')
+%             data_to_plot = variable_response_data_all{i_variable, 1};
+%         else
+%             data_to_plot = variable_data_all{i_variable, 1};
+%         end
+        if strcmp(data_mode, 'default')
             data_to_plot = variable_data_all{i_variable, 1};
+        elseif strcmp(data_mode, 'response')
+            data_to_plot = variable_response_data_all{i_variable, 1};
+        elseif strcmp(data_mode, 'integrated')
+            data_to_plot = variable_integrated_data_all{i_variable, 1};
         end
         
         for i_comparison = 1 : length(comparison_indices)
@@ -768,7 +807,8 @@ function plotResults(varargin)
             target_axes_handle = trajectory_axes_handles(comparison_variable_to_axes_index_map(i_comparison), i_variable);
             
             % plot control
-            if plot_settings.get('plot_control') && ~isempty(conditions_control) && ~plot_settings.get('plot_response')
+%             if plot_settings.get('plot_control') && ~isempty(conditions_control) && ~plot_settings.get('plot_response')
+            if plot_settings.get('plot_control') && ~isempty(conditions_control) && strcmp(data_mode, 'default')
                 % determine which control condition applies here
                 representant_condition_index = conditions_this_comparison(1);
                 applicable_control_condition_index = findApplicableControlConditionIndex(conditions_to_plot(representant_condition_index, :), conditions_control);

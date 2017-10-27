@@ -12,7 +12,7 @@
 %     GNU General Public License for more details.
 % 
 %     You should have received a copy of the GNU General Public License
-%     along with this program.  If not, see <http://www.gnu.org/licenses/>.% input
+%     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 % analyze the data
 
@@ -109,7 +109,7 @@ function analyzeData(varargin)
     for i_condition = 1 : number_of_conditions_to_analyze
         stance_foot_indicator = strcmp(condition_stance_foot_list_session, conditions_to_analyze(i_condition, 1));
         if study_settings.get('analyze_total_response')
-            perturbation_indicator = strcmp(condition_perturbation_list_all,'ILLUSION_RIGHT') | strcmp(condition_perturbation_list_all,'ILLUSION_LEFT') 
+            perturbation_indicator = strcmp(condition_perturbation_list_all,'ILLUSION_RIGHT') | strcmp(condition_perturbation_list_all,'ILLUSION_LEFT');
         else
             perturbation_indicator = strcmp(condition_perturbation_list_session, conditions_to_analyze(i_condition, 2)); 
         end
@@ -168,12 +168,8 @@ function analyzeData(varargin)
     disp(['Number of stimulus stretches: ' num2str(sum(trials_per_condition_to_analyze))]);
     disp(['Number of un-analyzed stretches: ' num2str(number_of_stretches_session - sum(trials_per_condition_control) - sum(trials_per_condition_to_analyze))]);
     
-    
-    
-    
-    
-    
-    
+    variable_data_session = data_session; %#ok<NASGU>
+    variable_names_session = data_custodian.stretch_variable_names;
     
     % calculate response (i.e. difference from control mean)
     response_data_session = {};
@@ -223,23 +219,41 @@ function analyzeData(varargin)
         end
     end
     
-    
-    
-    
-    
-    
-    
+    % integrate response
+    integrated_data_session = cell(size(response_data_session));
+    step_time_index_in_saved_data = find(strcmp(data_custodian.stretch_variable_names, 'step_time'), 1, 'first');
+    this_time_data = data_session{step_time_index_in_saved_data};
+    for i_variable = 1 : number_of_stretch_variables
+        % find response data for this variable
+        this_variable_name = variable_names_session{i_variable, 1};
+        data_index_in_saved_data = find(strcmp(variable_names_session, this_variable_name), 1, 'first');
+        this_response_data = response_data_session{data_index_in_saved_data};
+        
+        % integrate
+        if size(this_response_data, 1) > 1
+            this_response_data_integrated = zeros(size(this_response_data));
+            for i_stretch = 1 : size(this_response_data, 2)
+                step_time = this_time_data(i_stretch);
+                time = linspace(0, step_time, study_settings.get('number_of_time_steps_normalized'));
+                variable_data = this_response_data(:, i_stretch);
+                this_response_data_integrated_this_stretch = cumtrapz(time, variable_data);
+                this_response_data_integrated(:, i_stretch) = this_response_data_integrated_this_stretch;
+            end
+        else
+            this_response_data_integrated = NaN;
+        end
+        % store integrated data
+        integrated_data_session{data_index_in_saved_data} = this_response_data_integrated;
+    end    
     
     % save data
-    variable_data_session = data_session; %#ok<NASGU>
-    variable_names_session = data_custodian.stretch_variable_names; %#ok<NASGU>
-    
     results_file_name = ['analysis' filesep makeFileName(date, subject_id, 'results')];
     save ...
       ( ...
         results_file_name, ...
         'variable_data_session', ...
         'response_data_session', ...
+        'integrated_data_session', ...
         'variable_names_session', ...
         'condition_stance_foot_list_session', ...
         'condition_perturbation_list_session', ...
