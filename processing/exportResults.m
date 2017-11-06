@@ -16,25 +16,52 @@
 
 % function exportResults
     
-% load results.mat
+load results.mat
 
-
-variables_to_export = {'step_placement_x', 'stimulus_response_x'};
-number_of_variables_to_export = length(variables_to_export);
+% load settings
+if ~exist('studySettings.txt', 'file')
+    error('No studySettings.txt file found. This function should be run from a study folder')
+end    
+study_settings = SettingsCustodian('studySettings.txt');
+variables_to_export = study_settings.get('variables_to_export');
+number_of_variables_to_export = size(variables_to_export, 1);
 number_of_data_points = length(subject_list);
 
-% find entries for left stim, to negate
-left_stim_data = strcmp(condition_perturbation_list, 'ILLUSION_LEFT');
+
+
+
+%     one_left = strcmp(condition_perturbation_list, 'ILLUSION_LEFT') & strcmp(condition_index_list, 'ONE');
+%     one_right = strcmp(condition_perturbation_list, 'ILLUSION_RIGHT') & strcmp(condition_index_list, 'ONE');
+%     one_towards = strcmp(condition_stimulus_list, 'TOWARDS') & strcmp(condition_index_list, 'ONE');
+%     one_away = strcmp(condition_stimulus_list, 'AWAY') & strcmp(condition_index_list, 'ONE');
+%     response_illusion_left_1_pre = population_data{1}(:, one_left);
+%     response_illusion_right_1_pre = population_data{1}(:, one_right);
+
 
 % make data export cell
 data_cell = cell(number_of_data_points, number_of_variables_to_export);
 data_array = zeros(number_of_data_points, number_of_variables_to_export) * NaN;
 for i_variable = 1 : number_of_variables_to_export
-    variable_index = find(strcmp(variables_to_export{i_variable}, variable_names));
-    this_variable_data = response_data{variable_index}';
-    
-    % negate left stim data
-    this_variable_data(left_stim_data) = -this_variable_data(left_stim_data);
+    % load and assemble data
+    this_variable_name = variables_to_export{i_variable};
+    if strcmp(variables_to_export{i_variable, 2}, '~')
+        % just export the variable itself
+        variable_index = find(strcmp(this_variable_name, variable_names));
+        this_variable_data = population_data{variable_index}';
+    else
+        % source variable depends upon stance foot
+        source_variable_name_left = variables_to_export{i_variable, 2};
+        source_variable_name_right = variables_to_export{i_variable, 3};
+        variable_index_left = find(strcmp(source_variable_name_left, variable_names));
+        variable_index_right = find(strcmp(source_variable_name_right, variable_names));
+        variable_data_left = population_data{variable_index_left}';
+        variable_data_right = population_data{variable_index_right}';
+        
+        % choose data according to stance foot
+        this_variable_data = zeros(number_of_data_points, 1);
+        this_variable_data(strcmp(condition_stance_foot_list, 'STANCE_LEFT')) = variable_data_left(strcmp(condition_stance_foot_list, 'STANCE_LEFT'));
+        this_variable_data(strcmp(condition_stance_foot_list, 'STANCE_RIGHT')) = variable_data_right(strcmp(condition_stance_foot_list, 'STANCE_RIGHT'));
+    end
     
     % export
     this_variable_data_strings = num2str(this_variable_data);
@@ -42,47 +69,11 @@ for i_variable = 1 : number_of_variables_to_export
     data_cell(:, i_variable) = this_variable_data_cell;
     data_array(:, i_variable) = this_variable_data;
 end
-
-% process time
-time_category = cell(size(time_list));
-time_category_borders = [0 600 1200 1800 2400];
-% time_category_borders = [0 1200 2400];
-for i_point = 1 : number_of_data_points
-    if time_category_borders(1) < time_list(i_point) && time_list(i_point) < time_category_borders(2)
-        time_category{i_point} = 'TIME_ONE';
-    end
-    if time_category_borders(2) < time_list(i_point) && time_list(i_point) < time_category_borders(3)
-        time_category{i_point} = 'TIME_TWO';
-    end
-    if time_category_borders(3) < time_list(i_point) && time_list(i_point) < time_category_borders(4)
-        time_category{i_point} = 'TIME_THREE';
-    end
-    if time_category_borders(4) < time_list(i_point) && time_list(i_point) < time_category_borders(5)
-        time_category{i_point} = 'TIME_FOUR';
-    end
-end
 time_data_strings = num2str(time_list);
 time_data_cell = strtrim(cellstr(time_data_strings));
 
-
-% create stimulus label - TOWARDS or AWAY from stance foot
-condition_stimulus_list = cell(size(condition_perturbation_list));
-for i_point = 1 : number_of_data_points
-    if strcmp(condition_stance_foot_list{i_point}, 'STANCE_LEFT') && strcmp(condition_perturbation_list{i_point}, 'ILLUSION_LEFT')
-        condition_stimulus_list{i_point} = 'TOWARDS';
-    end
-    if strcmp(condition_stance_foot_list{i_point}, 'STANCE_LEFT') && strcmp(condition_perturbation_list{i_point}, 'ILLUSION_RIGHT')
-        condition_stimulus_list{i_point} = 'AWAY';
-    end
-    if strcmp(condition_stance_foot_list{i_point}, 'STANCE_RIGHT') && strcmp(condition_perturbation_list{i_point}, 'ILLUSION_LEFT')
-        condition_stimulus_list{i_point} = 'AWAY';
-    end
-    if strcmp(condition_stance_foot_list{i_point}, 'STANCE_RIGHT') && strcmp(condition_perturbation_list{i_point}, 'ILLUSION_RIGHT')
-        condition_stimulus_list{i_point} = 'TOWARDS';
-    end
-end
-
 % gather export cell
+header = [{'subject', 'stance_foot', 'perturbation', 'stimulus', 'step_index', 'time_category', 'time'}, variables_to_export(:, 1)'];
 export_cell = [subject_list, condition_stance_foot_list, condition_perturbation_list, condition_stimulus_list, condition_index_list, time_category, time_data_cell, data_cell];
 
 % remove control steps
@@ -91,13 +82,17 @@ export_cell(control_steps, :) = [];
 data_array(control_steps, :) = [];
 
 % remove steps 2-4
-ONE_steps = strcmp(export_cell(:, 4), 'ONE');
-not_ONE_steps = ~ONE_steps;
-export_cell(not_ONE_steps, :) = [];
-data_array(not_ONE_steps, :) = [];
+TWO_steps = strcmp(export_cell(:, strcmp(header, 'step_index')), 'TWO');
+export_cell(TWO_steps, :) = [];
+data_array(TWO_steps, :) = [];
+THREE_steps = strcmp(export_cell(:, strcmp(header, 'step_index')), 'THREE');
+export_cell(THREE_steps, :) = [];
+data_array(THREE_steps, :) = [];
+FOUR_steps = strcmp(export_cell(:, strcmp(header, 'step_index')), 'FOUR');
+export_cell(FOUR_steps, :) = [];
+data_array(FOUR_steps, :) = [];
 
 % save as .csv
-header = [{'subject', 'stance_foot', 'perturbation', 'stimulus', 'step_index', 'time_category', 'time'}, variables_to_export];
 export_cell = [header; export_cell];
 cell2csv('results.csv', export_cell);
 
