@@ -201,13 +201,14 @@ function plotResults(varargin)
                     
                 if isDiscreteVariable(i_variable, data_all)
                     % abscissae gives the bin edges here
-                    if strcmp(data_mode, 'default')
-                        data_to_plot = data_all{i_variable, 1};
-                    elseif strcmp(data_mode, 'response')
-                        data_to_plot = variable_response_data_all{i_variable, 1};
-                    elseif strcmp(data_mode, 'integrated')
-                        data_to_plot = variable_integrated_data_all{i_variable, 1};
-                    end
+%                     if strcmp(data_mode, 'default')
+%                         data_to_plot = data_all{i_variable, 1};
+%                     elseif strcmp(data_mode, 'response')
+%                         data_to_plot = variable_response_data_all{i_variable, 1};
+%                     elseif strcmp(data_mode, 'integrated')
+%                         data_to_plot = variable_integrated_data_all{i_variable, 1};
+%                     end
+                    data_to_plot = data_all{i_variable, 1};
                     if dictate_axes
                         lower_bound = str2double(variables_to_plot{i_variable, 5});
                         upper_bound = str2double(variables_to_plot{i_variable, 6});

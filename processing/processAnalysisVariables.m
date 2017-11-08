@@ -33,6 +33,7 @@ function processAnalysisVariables(varargin)
     
     conditions_control = study_settings.get('conditions_control');
     number_of_stretch_variables = length(stretch_names_session);
+    number_of_stretches = size(stretch_data_session{1}, 2);
     
     analysis_data_session = {};
     analysis_names_session = {};
@@ -47,8 +48,7 @@ function processAnalysisVariables(varargin)
             response_data_session{i_variable} = zeros(size(stretch_data_session{i_variable}));
         end        
         
-        % new code - go stretch by stretch
-        number_of_stretches = size(stretch_data_session{1}, 2);
+        % go stretch by stretch
         for i_stretch = 1 : number_of_stretches
             % determine conditions and applicable control
             this_stretch_condition_string = ...
@@ -134,8 +134,51 @@ function processAnalysisVariables(varargin)
         analysis_names_session = [analysis_names_session; this_variable_name]; %#ok<AGROW>
     end
 
-
-
+    %% gather variables with inversion by perturbation direction
+    variables_to_invert = study_settings.get('analysis_variables_from_inversion');
+    for i_variable = 1 : size(variables_to_invert, 1)
+        % get data
+        this_variable_name = variables_to_invert{i_variable, 1};
+        this_variable_source_type = variables_to_invert{i_variable, 2};
+        if strcmp(this_variable_source_type, 'response')
+            this_variable_source_index = find(strcmp(response_names_session, this_variable_name), 1, 'first');
+            this_variable_source_data = response_data_session{this_variable_source_index};
+        end
+        if strcmp(this_variable_source_type, 'analysis')
+            this_variable_source_index = find(strcmp(analysis_names_session, this_variable_name), 1, 'first');
+            this_variable_source_data = analysis_data_session{this_variable_source_index};
+        end
+        
+        % get signs
+        if strcmp(variables_to_invert{i_variable, 3}, '+')
+            sign_illusion_left = 1;
+        elseif strcmp(variables_to_invert{i_variable, 3}, '-')
+            sign_illusion_left = -1;
+        else
+            error('Sign must be either "+" or "-"')
+        end
+        if strcmp(variables_to_invert{i_variable, 4}, '+')
+            sign_illusion_right = 1;
+        elseif strcmp(variables_to_invert{i_variable, 4}, '-')
+            sign_illusion_right = -1;
+        else
+            error('Sign must be either "+" or "-"')
+        end
+        
+        % invert
+        this_variable_data = this_variable_source_data;
+        for i_stretch = 1 : number_of_stretches
+            if strcmp(condition_perturbation_list_session{i_stretch}, 'ILLUSION_LEFT')
+                this_variable_data(:, i_stretch) = sign_illusion_left * this_variable_source_data(:, i_stretch);
+            elseif strcmp(condition_perturbation_list_session{i_stretch}, 'ILLUSION_RIGHT')
+                this_variable_data(:, i_stretch) = sign_illusion_right * this_variable_source_data(:, i_stretch);
+            end
+        end
+        
+        analysis_data_session = [analysis_data_session; this_variable_data]; %#ok<AGROW>
+        analysis_names_session = [analysis_names_session; this_variable_name]; %#ok<AGROW>
+        
+    end
 
     %% save data
     save ...
