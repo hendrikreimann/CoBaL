@@ -123,8 +123,8 @@ function findEmgNormalization(varargin)
             for i_condition = 1 : number_of_conditions_emg_normalization
                 this_condition_indicator = conditions_emg_normalization_indicators(:, i_condition);
                 data_this_condition = data_this_variable(:, this_condition_indicator);
-                average_this_condition = mean(data_this_condition, 2);
-                condition_averages_this_variable(i_condition) = mean(average_this_condition);
+                average_this_condition = median(data_this_condition, 2); % average across trials
+                condition_averages_this_variable(i_condition) = mean(average_this_condition); % average across time
 
                 if visualize
                     figure; hold on;

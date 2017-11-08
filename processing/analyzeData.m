@@ -50,7 +50,7 @@ function analyzeData(varargin)
     origin_end_time_list_session = [];
     time_list_session = [];
     
-    % analyze and store data
+    %% analyze and store data
     for i_type = 1 : length(condition_list)
         condition = condition_list{i_type};
         trials_to_process = trial_number_list{i_type};
@@ -82,7 +82,7 @@ function analyzeData(varargin)
         disp(['Finished condition "' condition '".'])
     end
     
-    % calculate some subject-level data and report
+    %% calculate some subject-level data and report
     number_of_stretches_session = length(condition_stance_foot_list_session);
     
     % extract indicators for control
@@ -171,7 +171,7 @@ function analyzeData(varargin)
     variable_data_session = data_session; %#ok<NASGU>
     variable_names_session = data_custodian.stretch_variable_names;
     
-    % calculate response (i.e. difference from control mean)
+    %% calculate response (i.e. difference from control mean)
     response_data_session = {};
     if ~isempty(conditions_control)
         % prepare container
@@ -180,12 +180,23 @@ function analyzeData(varargin)
             response_data_session{i_variable} = zeros(size(data_session{i_variable}));
         end        
         
-        for i_condition = 1 : number_of_conditions_to_analyze
-
-            % determine which control condition applies here
-            applicable_control_condition_index = findApplicableControlConditionIndex(conditions_to_analyze(i_condition, :), conditions_control);
+        % new code - go stretch by stretch
+        number_of_stretches = size(variable_data_session{1}, 2);
+        for i_stretch = 1 : number_of_stretches
+            % determine conditions and applicable control
+            this_stretch_condition_string = ...
+              { ...
+                condition_stance_foot_list_session{i_stretch}, ...
+                condition_perturbation_list_session{i_stretch}, ...
+                condition_delay_list_session{i_stretch}, ...
+                condition_index_list_session{i_stretch}, ...
+                condition_experimental_list_session{i_stretch}, ...
+                condition_stimulus_list_session{i_stretch}, ...
+                condition_day_list_session{i_stretch} ...
+              };
+            applicable_control_condition_index = findApplicableControlConditionIndex(this_stretch_condition_string, conditions_control);
             applicable_control_condition_labels = conditions_control(applicable_control_condition_index, :);
-
+            
             % determine indicator for control
             stance_foot_indicator = strcmp(condition_stance_foot_list_session, applicable_control_condition_labels{1});
             perturbation_indicator = strcmp(condition_perturbation_list_session, applicable_control_condition_labels{2});
@@ -196,17 +207,7 @@ function analyzeData(varargin)
             day_indicator = strcmp(condition_day_list_session, applicable_control_condition_labels{7});
             this_condition_control_indicator = stance_foot_indicator & perturbation_indicator & delay_indicator & index_indicator & experimental_indicator & stimulus_indicator & day_indicator;
             
-            % determine indicator for stimulus
-            condition_identifier = conditions_to_analyze(i_condition, :);
-            stance_foot_indicator = strcmp(condition_stance_foot_list_session, condition_identifier{1});
-            perturbation_indicator = strcmp(condition_perturbation_list_session, condition_identifier{2});
-            delay_indicator = strcmp(condition_delay_list_session, condition_identifier{3});
-            index_indicator = strcmp(condition_index_list_session, condition_identifier{4});
-            experimental_indicator = strcmp(condition_experimental_list_session, condition_identifier{5});
-            stimulus_indicator = strcmp(condition_stimulus_list_session, condition_identifier{6});
-            day_indicator = strcmp(condition_day_list_session, condition_identifier{7});
-            this_condition_indicator = stance_foot_indicator & perturbation_indicator & delay_indicator & index_indicator & experimental_indicator & stimulus_indicator & day_indicator;
-
+            % calculate responses
             for i_variable = 1 : number_of_stretch_variables
                 % calculate control mean
                 data_this_variable = data_session{i_variable};
@@ -214,12 +215,14 @@ function analyzeData(varargin)
                 this_condition_control_mean = mean(this_condition_control_data, 2);
                 
                 % calculate response
-                response_data_session{i_variable}(:, this_condition_indicator) = data_session{i_variable}(:, this_condition_indicator) - repmat(this_condition_control_mean, 1, sum(this_condition_indicator));
+                response_data_session{i_variable}(:, i_stretch) = data_session{i_variable}(:, i_stretch) - this_condition_control_mean;
             end
+            
         end
+
     end
     
-    % integrate response
+    %% integrate response
     integrated_data_session = cell(size(response_data_session));
     step_time_index_in_saved_data = find(strcmp(data_custodian.stretch_variable_names, 'step_time'), 1, 'first');
     this_time_data = data_session{step_time_index_in_saved_data};
@@ -244,9 +247,10 @@ function analyzeData(varargin)
         end
         % store integrated data
         integrated_data_session{data_index_in_saved_data} = this_response_data_integrated;
-    end    
+    end
     
-    % save data
+    
+    %% save data
     results_file_name = ['analysis' filesep makeFileName(date, subject_id, 'results')];
     save ...
       ( ...

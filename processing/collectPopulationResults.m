@@ -33,8 +33,6 @@ function collectPopulationResults(varargin)
     data_folder_list = determineDataStructure(subjects);
 
     %% collect data from all data folders
-%     variables_to_analyze = study_settings.get('variables_to_analyze');
-%     variables_to_integrate = study_settings.get('variables_to_integrate');
     variables_to_collect = study_settings.get('variables_to_collect');
     
     number_of_variables_to_collect = size(variables_to_collect, 1);
@@ -87,48 +85,62 @@ function collectPopulationResults(varargin)
         end
         
     end
+    population_data_absolute = variable_data;
     population_data = response_data;
     subject_list = subject_list';
     
     
-    % make relative illusion condition list
+    %% make relative illusion condition list
     condition_stimulus_list = condition_perturbation_list;
     for i_stretch = 1 : length(condition_stimulus_list)
-        if strcmp(condition_stimulus_list{i_stretch}, 'ILLUSION_LEFT')
-            if strcmp(condition_stance_foot_list{i_stretch}, 'STANCE_LEFT')
-                condition_stimulus_list{i_stretch} = 'TOWARDS';
-            elseif strcmp(condition_stance_foot_list{i_stretch}, 'STANCE_RIGHT')
-                condition_stimulus_list{i_stretch} = 'AWAY';
-            end
-        elseif strcmp(condition_stimulus_list{i_stretch}, 'ILLUSION_RIGHT')
-            if strcmp(condition_stance_foot_list{i_stretch}, 'STANCE_LEFT')
-                condition_stimulus_list{i_stretch} = 'AWAY';
-            elseif strcmp(condition_stance_foot_list{i_stretch}, 'STANCE_RIGHT')
-                condition_stimulus_list{i_stretch} = 'TOWARDS';
-            end
+        if ...
+          (strcmp(condition_index_list{i_stretch}, 'ONE') && strcmp(condition_stimulus_list{i_stretch}, 'ILLUSION_LEFT') && strcmp(condition_stance_foot_list{i_stretch}, 'STANCE_LEFT')) ...
+          || (strcmp(condition_index_list{i_stretch}, 'TWO') && strcmp(condition_stimulus_list{i_stretch}, 'ILLUSION_LEFT') && strcmp(condition_stance_foot_list{i_stretch}, 'STANCE_RIGHT')) ...
+          || (strcmp(condition_index_list{i_stretch}, 'THREE') && strcmp(condition_stimulus_list{i_stretch}, 'ILLUSION_LEFT') && strcmp(condition_stance_foot_list{i_stretch}, 'STANCE_LEFT')) ...
+          || (strcmp(condition_index_list{i_stretch}, 'FOUR') && strcmp(condition_stimulus_list{i_stretch}, 'ILLUSION_LEFT') && strcmp(condition_stance_foot_list{i_stretch}, 'STANCE_RIGHT')) ...
+          || (strcmp(condition_index_list{i_stretch}, 'ONE') && strcmp(condition_stimulus_list{i_stretch}, 'ILLUSION_RIGHT') && strcmp(condition_stance_foot_list{i_stretch}, 'STANCE_RIGHT')) ...
+          || (strcmp(condition_index_list{i_stretch}, 'TWO') && strcmp(condition_stimulus_list{i_stretch}, 'ILLUSION_RIGHT') && strcmp(condition_stance_foot_list{i_stretch}, 'STANCE_LEFT')) ...
+          || (strcmp(condition_index_list{i_stretch}, 'THREE') && strcmp(condition_stimulus_list{i_stretch}, 'ILLUSION_RIGHT') && strcmp(condition_stance_foot_list{i_stretch}, 'STANCE_RIGHT')) ...
+          || (strcmp(condition_index_list{i_stretch}, 'FOUR') && strcmp(condition_stimulus_list{i_stretch}, 'ILLUSION_RIGHT') && strcmp(condition_stance_foot_list{i_stretch}, 'STANCE_LEFT'))
+            % these are all the cases where the illusion is TOWARDS the first stance leg, i.e. the triggering leg
+            condition_stimulus_list{i_stretch} = 'TOWARDS';
+        elseif ...
+          (strcmp(condition_index_list{i_stretch}, 'ONE') && strcmp(condition_stimulus_list{i_stretch}, 'ILLUSION_LEFT') && strcmp(condition_stance_foot_list{i_stretch}, 'STANCE_RIGHT')) ...
+          || (strcmp(condition_index_list{i_stretch}, 'TWO') && strcmp(condition_stimulus_list{i_stretch}, 'ILLUSION_LEFT') && strcmp(condition_stance_foot_list{i_stretch}, 'STANCE_LEFT')) ...
+          || (strcmp(condition_index_list{i_stretch}, 'THREE') && strcmp(condition_stimulus_list{i_stretch}, 'ILLUSION_LEFT') && strcmp(condition_stance_foot_list{i_stretch}, 'STANCE_RIGHT')) ...
+          || (strcmp(condition_index_list{i_stretch}, 'FOUR') && strcmp(condition_stimulus_list{i_stretch}, 'ILLUSION_LEFT') && strcmp(condition_stance_foot_list{i_stretch}, 'STANCE_LEFT')) ...
+          || (strcmp(condition_index_list{i_stretch}, 'ONE') && strcmp(condition_stimulus_list{i_stretch}, 'ILLUSION_RIGHT') && strcmp(condition_stance_foot_list{i_stretch}, 'STANCE_LEFT')) ...
+          || (strcmp(condition_index_list{i_stretch}, 'TWO') && strcmp(condition_stimulus_list{i_stretch}, 'ILLUSION_RIGHT') && strcmp(condition_stance_foot_list{i_stretch}, 'STANCE_RIGHT')) ...
+          || (strcmp(condition_index_list{i_stretch}, 'THREE') && strcmp(condition_stimulus_list{i_stretch}, 'ILLUSION_RIGHT') && strcmp(condition_stance_foot_list{i_stretch}, 'STANCE_LEFT')) ...
+          || (strcmp(condition_index_list{i_stretch}, 'FOUR') && strcmp(condition_stimulus_list{i_stretch}, 'ILLUSION_RIGHT') && strcmp(condition_stance_foot_list{i_stretch}, 'STANCE_RIGHT'))
+            % these are all the cases where the illusion is AWAY from the first stance leg, i.e. the triggering leg
+            condition_stimulus_list{i_stretch} = 'AWAY';
+        elseif strcmp(condition_stimulus_list{i_stretch}, 'CONTROL')
+            % do nothing
+        else
+            error('Something wrong with the condition: No match found')
         end
-    end
-    
-    % invert data for appropriate conditions
-    for i_variable = 1 : number_of_variables_to_collect
-        % define what to invert
-        if strcmp(variables_to_collect{i_variable, 2}, 'absolute')
-            condition_indicator = condition_perturbation_list;
-            condition_to_invert = 'ILLUSION_LEFT';
-        elseif strcmp(variables_to_collect{i_variable, 2}, 'relative')
-            condition_indicator = condition_stimulus_list;
-            condition_to_invert = 'AWAY';
-        end
-        % go through stretches and invert
-        for i_stretch = 1 : length(condition_indicator)
-            if strcmp(condition_indicator{i_stretch}, condition_to_invert)
-                population_data{i_variable}(:, i_stretch) = - population_data{i_variable}(:, i_stretch);
-            end 
-        end
+        
+        
+%         % old code
+%         if strcmp(condition_stimulus_list{i_stretch}, 'ILLUSION_LEFT')
+%             if strcmp(condition_stance_foot_list{i_stretch}, 'STANCE_LEFT')
+%                 condition_stimulus_list{i_stretch} = 'TOWARDS';
+%             elseif strcmp(condition_stance_foot_list{i_stretch}, 'STANCE_RIGHT')
+%                 condition_stimulus_list{i_stretch} = 'AWAY';
+%             end
+%         elseif strcmp(condition_stimulus_list{i_stretch}, 'ILLUSION_RIGHT')
+%             if strcmp(condition_stance_foot_list{i_stretch}, 'STANCE_LEFT')
+%                 condition_stimulus_list{i_stretch} = 'AWAY';
+%             elseif strcmp(condition_stance_foot_list{i_stretch}, 'STANCE_RIGHT')
+%                 condition_stimulus_list{i_stretch} = 'TOWARDS';
+%             end
+%         end
     end
     
 
-    % process time
+
+    %% make time categorical variable
     time_category = cell(size(time_list));
     time_category_borders = study_settings.get('time_category_borders');
     for i_point = 1 : length(time_list)
@@ -149,9 +161,10 @@ function collectPopulationResults(varargin)
 
     
     
-    % save data
+    %% save
     variables_to_save = struct;
     variables_to_save.population_data = population_data;
+    variables_to_save.population_data_absolute = population_data_absolute;
     variables_to_save.variable_names = variables_to_collect(:, 1);
     variables_to_save.condition_stance_foot_list = condition_stance_foot_list;
     variables_to_save.condition_perturbation_list = condition_perturbation_list;

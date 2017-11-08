@@ -218,12 +218,19 @@ function plotResults(varargin)
                     
                 if isDiscreteVariable(i_variable, variable_data_all)
                     % abscissae gives the bin edges here
+                    if strcmp(data_mode, 'default')
+                        data_to_plot = variable_data_all{i_variable, 1};
+                    elseif strcmp(data_mode, 'response')
+                        data_to_plot = variable_response_data_all{i_variable, 1};
+                    elseif strcmp(data_mode, 'integrated')
+                        data_to_plot = variable_integrated_data_all{i_variable, 1};
+                    end
                     if dictate_axes
                         lower_bound = str2double(variables_to_plot{i_variable, 5});
                         upper_bound = str2double(variables_to_plot{i_variable, 6});
                     else
-                        lower_bound = min(variable_data_all{i_variable});
-                        upper_bound = max(variable_data_all{i_variable});
+                        lower_bound = min(data_to_plot);
+                        upper_bound = max(data_to_plot);
                     end
                     if strcmp(plot_mode, 'detailed')
 %                         abscissae_cell{i_comparison, i_variable}(i_condition, :) = linspace(lower_bound, upper_bound, plot_settings.get('number_of_bins_in_histogram'));
@@ -808,7 +815,8 @@ function plotResults(varargin)
             
             % plot control
 %             if plot_settings.get('plot_control') && ~isempty(conditions_control) && ~plot_settings.get('plot_response')
-            if plot_settings.get('plot_control') && ~isempty(conditions_control) && strcmp(data_mode, 'default')
+%             if plot_settings.get('plot_control') && ~isempty(conditions_control) && strcmp(data_mode, 'default')
+            if plot_settings.get('plot_control') && ~isempty(conditions_control)
                 % determine which control condition applies here
                 representant_condition_index = conditions_this_comparison(1);
                 applicable_control_condition_index = findApplicableControlConditionIndex(conditions_to_plot(representant_condition_index, :), conditions_control);
