@@ -44,6 +44,7 @@ function singleBoxPlot(target_axes_handle, abscissa, data, color, label, show_ou
     
     % extract data
     data_median = median(data);
+    data_mean = mean(data);
     data_quartile_1 = prctile(data, 25);
     data_quartile_3 = prctile(data, 75);
     data_iqr = iqr(data);
@@ -66,6 +67,7 @@ function singleBoxPlot(target_axes_handle, abscissa, data, color, label, show_ou
         'HandleVisibility', 'off' ...
       );
     plot(target_axes_handle, abscissa + width*[-0.5 0.5], [data_median data_median], 'color', 'k', 'HandleVisibility', 'off'); % median
+    plot(target_axes_handle, abscissa + width*[-0.5 0.5], [data_mean data_mean], 'color', [1 1 1]*0.5, 'HandleVisibility', 'off'); % mean
     plot(target_axes_handle, [abscissa abscissa], [data_quartile_3 data_upper_adjacent], 'k--', 'HandleVisibility', 'off'); % upper range
     plot(target_axes_handle, [abscissa abscissa], [data_lower_adjacent data_quartile_1], 'k--', 'HandleVisibility', 'off'); % lower range
     plot(target_axes_handle, abscissa+width*[-0.25 0.25], [data_lower_adjacent data_lower_adjacent], 'k-', 'HandleVisibility', 'off'); % max

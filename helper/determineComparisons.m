@@ -55,7 +55,7 @@ function [comparison_indices, conditions_per_comparison_max] = determineComparis
             conditions_per_comparison_max = length(this_comparison);
         end
     end    
-    if ~isempty(study_settings.get('conditions_control')) && ~plot_settings.get('plot_response')
+    if ~isempty(study_settings.get('conditions_control'))
         conditions_per_comparison_max = conditions_per_comparison_max + 1;
     end
 end
