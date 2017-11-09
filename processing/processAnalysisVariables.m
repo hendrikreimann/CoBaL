@@ -35,8 +35,10 @@ function processAnalysisVariables(varargin)
     number_of_stretch_variables = length(stretch_names_session);
     number_of_stretches = size(stretch_data_session{1}, 2); %#ok<*USENS>
     
-    analysis_data_session = {};
-    analysis_names_session = {};
+    if ~exist('analysis_data_session', 'var')
+        analysis_data_session = {};
+        analysis_names_session = {};
+    end
     
     %% make relative illusion condition list
     condition_direction_list_session = condition_perturbation_list_session;

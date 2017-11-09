@@ -39,22 +39,23 @@ function calculateStepResponse(varargin)
     study_settings = SettingsCustodian(study_settings_file);
     
     load('subjectInfo.mat', 'date', 'subject_id');
-    load(['analysis' filesep date '_' subject_id '_results.mat']);
+    
+    results_file_name = ['analysis' filesep makeFileName(date, subject_id, 'results')];
+    load(results_file_name);
+    
 
     conditions_control = study_settings.get('conditions_control');
     conditions_to_analyze = study_settings.get('conditions_to_analyze');
-    step_placement_x_data = variable_data_session{strcmp(variable_names_session, 'step_placement_x')};
-    mpsis_x_data = variable_data_session{strcmp(variable_names_session, 'mpsis_x')};
-    com_x_data = variable_data_session{strcmp(variable_names_session, 'com_x')};
+    step_placement_x_data = stretch_data_session{strcmp(stretch_names_session, 'step_placement_x')};
+    mpsis_x_data = stretch_data_session{strcmp(stretch_names_session, 'mpsis_x')};
+    com_x_data = stretch_data_session{strcmp(stretch_names_session, 'com_x')};
     mpsis_x_vel_data = deriveByTime(mpsis_x_data, 0.01); % XXX ACHTUNG: this is a hack because I don't have the data yet
-    com_x_vel_data = variable_data_session{strcmp(variable_names_session, 'com_x_vel')};
-%     lheelx_data = variable_data_session{strcmp(variable_names_session, 'lheel_x')};
-%     rheelx_data = variable_data_session{strcmp(variable_names_session, 'rheel_x')};
-    lanklex_data = variable_data_session{strcmp(variable_names_session, 'lankle_x')};
-    ranklex_data = variable_data_session{strcmp(variable_names_session, 'rankle_x')};
-    cop_x_data = variable_data_session{strcmp(variable_names_session, 'cop_x')};
+    com_x_vel_data = stretch_data_session{strcmp(stretch_names_session, 'com_x_vel')};
+    lanklex_data = stretch_data_session{strcmp(stretch_names_session, 'lankle_x')};
+    ranklex_data = stretch_data_session{strcmp(stretch_names_session, 'rankle_x')};
+    cop_x_data = stretch_data_session{strcmp(stretch_names_session, 'cop_x')};
     midstance_index_data = ones(1, size(mpsis_x_data, 2)) * 65; % XXX ACHTUNG: this is a hack because I don't have the midstance index data yet
-    midstance_index_data = variable_data_session{strcmp(variable_names_session, 'midstance_index')};
+    midstance_index_data = stretch_data_session{strcmp(stretch_names_session, 'midstance_index')};
     
     stimulus_response_x_data = zeros(1, size(mpsis_x_data, 2));
 
@@ -243,30 +244,21 @@ function calculateStepResponse(varargin)
 %         mean(step_response)
     end
     
-    
-    % save data
-    stimulus_response_index = find(strcmp(variable_names_session, 'stimulus_response_x'));
-    if isempty(stimulus_response_index)
-        % stimulus_response_x doesn't exist yet, so add it to end
-        variable_data_session = [variable_data_session; stimulus_response_x_data];
-        response_data_session = [response_data_session; stimulus_response_x_data];
-        variable_names_session = [variable_names_session; 'stimulus_response_x'];
+    % store data
+    if ~exist('analysis_data_session', 'var')
+        analysis_data_session = {};
+        analysis_names_session = {};
     end
-    if ~isempty(stimulus_response_index)
-        % stimulus_response_x exists, so overwrite this entry
-        variable_data_session{stimulus_response_index} = stimulus_response_x_data;
-        response_data_session{stimulus_response_index} = stimulus_response_x_data;
-        variable_names_session{stimulus_response_index} = 'stimulus_response_x';
-    end
+    analysis_data_session = [analysis_data_session; stimulus_response_x_data]; %#ok<NASGU>
+    analysis_names_session = [analysis_names_session; 'stimulus_response_x']; %#ok<NASGU>
     
-    results_file_name = ['analysis' filesep makeFileName(date, subject_id, 'results')];
     save ...
       ( ...
         results_file_name, ...
-        'variable_data_session', ...
-        'response_data_session', ...
-        'integrated_data_session', ...
-        'variable_names_session', ...
+        'stretch_data_session', ...
+        'stretch_names_session', ...
+        'analysis_data_session', ...
+        'analysis_names_session', ...
         'condition_stance_foot_list_session', ...
         'condition_perturbation_list_session', ...
         'condition_delay_list_session', ...
@@ -278,8 +270,9 @@ function calculateStepResponse(varargin)
         'origin_start_time_list_session', ...
         'origin_end_time_list_session', ...
         'time_list_session' ...
-      )
+      )    
     
+
     
     
     

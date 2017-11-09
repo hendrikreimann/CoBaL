@@ -171,7 +171,6 @@ function processStretchVariables(varargin)
     stretch_data_session = data_session; %#ok<NASGU>
     stretch_names_session = data_custodian.stretch_variable_names; %#ok<NASGU>
     
-    
     %% save data
     results_file_name = ['analysis' filesep makeFileName(date, subject_id, 'results')];
     save ...
