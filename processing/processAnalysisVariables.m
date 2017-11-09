@@ -171,27 +171,28 @@ function processAnalysisVariables(varargin)
     for i_variable = 1 : size(variables_to_invert, 1)
         % get data
         this_variable_name = variables_to_invert{i_variable, 1};
-        this_variable_source_type = variables_to_invert{i_variable, 2};
+        this_variable_source_name = variables_to_invert{i_variable, 2};
+        this_variable_source_type = variables_to_invert{i_variable, 3};
         if strcmp(this_variable_source_type, 'response')
-            this_variable_source_index = find(strcmp(response_names_session, this_variable_name), 1, 'first');
+            this_variable_source_index = find(strcmp(response_names_session, this_variable_source_name), 1, 'first');
             this_variable_source_data = response_data_session{this_variable_source_index};
         end
         if strcmp(this_variable_source_type, 'analysis')
-            this_variable_source_index = find(strcmp(analysis_names_session, this_variable_name), 1, 'first');
+            this_variable_source_index = find(strcmp(analysis_names_session, this_variable_source_name), 1, 'first');
             this_variable_source_data = analysis_data_session{this_variable_source_index};
         end
         
         % get signs
-        if strcmp(variables_to_invert{i_variable, 3}, '+')
+        if strcmp(variables_to_invert{i_variable, 4}, '+')
             sign_illusion_left = 1;
-        elseif strcmp(variables_to_invert{i_variable, 3}, '-')
+        elseif strcmp(variables_to_invert{i_variable, 4}, '-')
             sign_illusion_left = -1;
         else
             error('Sign must be either "+" or "-"')
         end
-        if strcmp(variables_to_invert{i_variable, 4}, '+')
+        if strcmp(variables_to_invert{i_variable, 5}, '+')
             sign_illusion_right = 1;
-        elseif strcmp(variables_to_invert{i_variable, 4}, '-')
+        elseif strcmp(variables_to_invert{i_variable, 5}, '-')
             sign_illusion_right = -1;
         else
             error('Sign must be either "+" or "-"')
