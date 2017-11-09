@@ -75,7 +75,6 @@ function collectPopulationResults(varargin)
         origin_end_time_list = [origin_end_time_list; origin_end_time_list_session]; %#ok<AGROW>
         time_list = [time_list; time_list_session]; %#ok<AGROW>
         
-        % what is this section being used for?
         for i_variable = 1 : number_of_variables_to_collect
             % load and extract data
             this_variable_name = variables_to_collect{i_variable, 1};
@@ -96,9 +95,7 @@ function collectPopulationResults(varargin)
         step_time_data = [step_time_data stretch_data_session{step_time_source_index}];
         pushoff_time_source_index = find(strcmp(response_names_session, 'pushoff_time'), 1, 'first');
         pushoff_time_data = [pushoff_time_data stretch_data_session{pushoff_time_source_index}];
-        
-        
-        
+
     end
     subject_list = subject_list';
     
@@ -136,33 +133,9 @@ function collectPopulationResults(varargin)
     end
     
     %% make group condition list
-    condition_group_assignment = study_settings.get('condition_group_assignment');
-    condition_group_list_old = cell(size(condition_stimulus_list));
-    
     group_assignment = study_settings.get('group_assignment');
     condition_group_list = cell(size(condition_stimulus_list));
     for i_stretch = 1 : length(condition_stimulus_list)
-    % old code:
-        % find the row that the subject of this stretch matches in the foot
-        group_assignment_subject_row = find(strcmp(subject_list{i_stretch}, condition_group_assignment(:,1)));
-        
-           
-        group_assignment_foot_col = find(strcmp(condition_stance_foot_list{i_stretch}, condition_group_assignment(group_assignment_subject_row,:)));
-        if isempty(group_assignment_foot_col)
-            group_assignment_foot_col = find(strcmp(condition_group_assignment(group_assignment_subject_row,:), 'BOTH'));
-        end
-        
-        if group_assignment_foot_col == 2
-            condition_group_list_old{i_stretch} = 'EARLY';
-        elseif group_assignment_foot_col == 3
-            condition_group_list_old{i_stretch} = 'LATE';           
-        elseif group_assignment_foot_col == 4
-            condition_group_list_old{i_stretch} = 'NO';
-        else
-            error('Something wrong with the group matching: No match found')
-        end
-        
-    % new code
         groups_this_subject = group_assignment(strcmp(group_assignment(:, 1), subject_list{i_stretch}), 2:3);
         if strcmp(condition_stance_foot_list{i_stretch}, 'STANCE_LEFT')
             condition_group_list{i_stretch} = groups_this_subject{1};
