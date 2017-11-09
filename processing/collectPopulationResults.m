@@ -28,7 +28,7 @@ function collectPopulationResults(varargin)
     if ~exist('studySettings.txt', 'file')
         error('No studySettings.txt file found. This function should be run from a study folder')
     end    
-    study_settings = SettingsCustodian('studySettings_TF.txt');
+    study_settings = SettingsCustodian('studySettings.txt');
     
     data_folder_list = determineDataStructure(subjects);
 
@@ -38,6 +38,7 @@ function collectPopulationResults(varargin)
     number_of_variables_to_collect = size(variables_to_collect, 1);
     condition_stance_foot_list = {};
     condition_perturbation_list = {};
+    condition_direction_list = {};
     condition_delay_list = {};
     condition_index_list = {};
     condition_experimental_list = {};
@@ -49,7 +50,8 @@ function collectPopulationResults(varargin)
     origin_end_time_list = [];
     time_list = [];
     variable_data = cell(number_of_variables_to_collect, 1);
-    response_data = cell(number_of_variables_to_collect, 1);
+    step_time_data = [];
+    pushoff_time_data = [];
    
     for i_folder = 1 : length(data_folder_list)
         % load data
@@ -61,38 +63,45 @@ function collectPopulationResults(varargin)
         % append data from this subject to containers for all subjects
         condition_stance_foot_list = [condition_stance_foot_list; condition_stance_foot_list_session]; %#ok<AGROW>
         condition_perturbation_list = [condition_perturbation_list; condition_perturbation_list_session]; %#ok<AGROW>
+        condition_direction_list = [condition_direction_list; condition_direction_list_session]; %#ok<AGROW>
         condition_delay_list = [condition_delay_list; condition_delay_list_session]; %#ok<AGROW>
         condition_index_list = [condition_index_list; condition_index_list_session]; %#ok<AGROW>
         condition_experimental_list = [condition_experimental_list; condition_experimental_list_session]; %#ok<AGROW>
         condition_stimulus_list = [condition_stimulus_list; condition_stimulus_list_session]; %#ok<AGROW>
         condition_day_list = [condition_day_list; condition_day_list_session]; %#ok<AGROW>
         [subject_list{length(subject_list)+(1 : length(condition_stance_foot_list_session))}] = deal(subject_id); %#ok<AGROW>
-%         origin_trial_list = [origin_trial_list; origin_trial_list_session]; %#ok<AGROW>
-%         origin_start_time_list = [origin_start_time_list; origin_start_time_list_session]; %#ok<AGROW>
-%         origin_end_time_list = [origin_end_time_list; origin_end_time_list_session]; %#ok<AGROW>
-%         time_list = [time_list; time_list_session]; %#ok<AGROW>
+        origin_trial_list = [origin_trial_list; origin_trial_list_session]; %#ok<AGROW>
+        origin_start_time_list = [origin_start_time_list; origin_start_time_list_session]; %#ok<AGROW>
+        origin_end_time_list = [origin_end_time_list; origin_end_time_list_session]; %#ok<AGROW>
+        time_list = [time_list; time_list_session]; %#ok<AGROW>
         
         % what is this section being used for?
         for i_variable = 1 : number_of_variables_to_collect
             % load and extract data
             this_variable_name = variables_to_collect{i_variable, 1};
-            index_in_saved_data = find(strcmp(variable_names_session, this_variable_name), 1, 'first');
-            this_variable_data = variable_data_session{index_in_saved_data}; %#ok<USENS>
-            this_response_data = response_data_session{index_in_saved_data}; %#ok<USENS>
+            this_variable_source_type = variables_to_collect{i_variable, 2};
+            if strcmp(this_variable_source_type, 'response')
+                this_variable_source_index = find(strcmp(response_names_session, this_variable_name), 1, 'first');
+                this_variable_data = response_data_session{this_variable_source_index}; %#ok<USENS>
+            end
+            if strcmp(this_variable_source_type, 'analysis')
+                this_variable_source_index = find(strcmp(analysis_names_session, this_variable_name), 1, 'first');
+                this_variable_data = analysis_data_session{this_variable_source_index}; %#ok<USENS>
+            end
             
             % store
             variable_data{i_variable} = [variable_data{i_variable} this_variable_data];
-            response_data{i_variable} = [response_data{i_variable} this_response_data];
         end
+        step_time_source_index = find(strcmp(response_names_session, 'step_time'), 1, 'first');
+        step_time_data = [step_time_data stretch_data_session{step_time_source_index}];
+        pushoff_time_source_index = find(strcmp(response_names_session, 'pushoff_time'), 1, 'first');
+        pushoff_time_data = [pushoff_time_data stretch_data_session{pushoff_time_source_index}];
+        
+        
         
     end
-    population_data_absolute = variable_data;
-    population_data = response_data;
     subject_list = subject_list';
     
-    % add a condition_group_list
-    condition_group_assignment = study_settings.get('condition_group_assignment');
-    condition_group_list = cell(size(condition_stimulus_list));
     
     %% make relative illusion condition list
     condition_stimulus_list = condition_perturbation_list;
@@ -124,7 +133,16 @@ function collectPopulationResults(varargin)
         else
             error('Something wrong with the condition: No match found')
         end
-        
+    end
+    
+    %% make group condition list
+    condition_group_assignment = study_settings.get('condition_group_assignment');
+    condition_group_list_old = cell(size(condition_stimulus_list));
+    
+    group_assignment = study_settings.get('group_assignment');
+    condition_group_list = cell(size(condition_stimulus_list));
+    for i_stretch = 1 : length(condition_stimulus_list)
+    % old code:
         % find the row that the subject of this stretch matches in the foot
         group_assignment_subject_row = find(strcmp(subject_list{i_stretch}, condition_group_assignment(:,1)));
         
@@ -135,47 +153,56 @@ function collectPopulationResults(varargin)
         end
         
         if group_assignment_foot_col == 2
-            condition_group_list{i_stretch} = 'EARLY';
+            condition_group_list_old{i_stretch} = 'EARLY';
         elseif group_assignment_foot_col == 3
-            condition_group_list{i_stretch} = 'LATE';           
+            condition_group_list_old{i_stretch} = 'LATE';           
         elseif group_assignment_foot_col == 4
-            condition_group_list{i_stretch} = 'NO';
+            condition_group_list_old{i_stretch} = 'NO';
         else
             error('Something wrong with the group matching: No match found')
         end
-
+        
+    % new code
+        groups_this_subject = group_assignment(strcmp(group_assignment(:, 1), subject_list{i_stretch}), 2:3);
+        if strcmp(condition_stance_foot_list{i_stretch}, 'STANCE_LEFT')
+            condition_group_list{i_stretch} = groups_this_subject{1};
+        elseif strcmp(condition_stance_foot_list{i_stretch}, 'STANCE_RIGHT')
+            condition_group_list{i_stretch} = groups_this_subject{2};
+        else
+            error('Can only assign a group for STANCE_LEFT or STANCE_RIGHT')
+        end
     end
     
-
-
     %% make time categorical variable
-%     time_category = cell(size(time_list));
-%     time_category_borders = study_settings.get('time_category_borders');
-%     for i_point = 1 : length(time_list)
-%         if time_category_borders(1) < time_list(i_point) && time_list(i_point) < time_category_borders(2)
-%             time_category{i_point} = 'TIME_ONE';
-%         end
-%         if time_category_borders(2) < time_list(i_point) && time_list(i_point) < time_category_borders(3)
-%             time_category{i_point} = 'TIME_TWO';
-%         end
-%         if time_category_borders(3) < time_list(i_point) && time_list(i_point) < time_category_borders(4)
-%             time_category{i_point} = 'TIME_THREE';
-%         end
-%         if time_category_borders(4) < time_list(i_point) && time_list(i_point) < time_category_borders(5)
-%             time_category{i_point} = 'TIME_FOUR';
-%         end
-%     end
+    time_category = cell(size(time_list));
+    time_category_borders = study_settings.get('time_category_borders');
+    for i_point = 1 : length(time_list)
+        if time_category_borders(1) < time_list(i_point) && time_list(i_point) < time_category_borders(2)
+            time_category{i_point} = 'TIME_ONE';
+        end
+        if time_category_borders(2) < time_list(i_point) && time_list(i_point) < time_category_borders(3)
+            time_category{i_point} = 'TIME_TWO';
+        end
+        if time_category_borders(3) < time_list(i_point) && time_list(i_point) < time_category_borders(4)
+            time_category{i_point} = 'TIME_THREE';
+        end
+        if time_category_borders(4) < time_list(i_point) && time_list(i_point) < time_category_borders(5)
+            time_category{i_point} = 'TIME_FOUR';
+        end
+    end
     
 
     
     
     %% save
     variables_to_save = struct;
-    variables_to_save.population_data = population_data;
-    variables_to_save.population_data_absolute = population_data_absolute;
+    variables_to_save.variable_data = variable_data;
     variables_to_save.variable_names = variables_to_collect(:, 1);
+    variables_to_save.step_time_data = step_time_data;
+    variables_to_save.pushoff_time_data = pushoff_time_data;
     variables_to_save.condition_stance_foot_list = condition_stance_foot_list;
     variables_to_save.condition_perturbation_list = condition_perturbation_list;
+    variables_to_save.condition_direction_list = condition_direction_list;
     variables_to_save.condition_stimulus_list = condition_perturbation_list;
     variables_to_save.condition_delay_list = condition_delay_list;
     variables_to_save.condition_index_list = condition_index_list;
@@ -183,9 +210,9 @@ function collectPopulationResults(varargin)
     variables_to_save.condition_stimulus_list = condition_stimulus_list;
     variables_to_save.condition_day_list = condition_day_list;
     variables_to_save.condition_group_list = condition_group_list;
-%     variables_to_save.time_list = time_list;
-%     variables_to_save.time_category = time_category;
-    variables_to_save.subject_list = subject_list;
+    variables_to_save.time_list = time_list;
+    variables_to_save.time_category = time_category;
+    variables_to_save.subject_list = subject_list; %#ok<STRNU>
     save('results', '-struct', 'variables_to_save');
 
 
