@@ -16,7 +16,7 @@
 
 % set remote
 % remote = 'tuf79669@compute.temple.edu';
-remote = 'jhrei@128.175.143.182';
+remote = 'jhrei@128.175.94.240';
 
 
 % figure out folder structure and create folders on remote
