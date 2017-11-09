@@ -215,7 +215,45 @@ function processAnalysisVariables(varargin)
     %% gather variables that are selected from different sources depending on condition
     variables_to_select = study_settings.get('analysis_variables_from_selection');
     for i_variable = 1 : size(variables_to_select, 1)
-    
+        % get data
+        this_variable_name = variables_to_select{i_variable, 1};
+        this_variable_source_name_triggerLeft = variables_to_select{i_variable, 3};
+        this_variable_source_name_triggerRight = variables_to_select{i_variable, 4};
+        this_variable_source_type = variables_to_select{i_variable, 2};
+        if strcmp(this_variable_source_type, 'response')
+            this_variable_source_index_triggerLeft = find(strcmp(response_names_session, this_variable_source_name_triggerLeft), 1, 'first');
+            this_variable_source_index_triggerRight = find(strcmp(response_names_session, this_variable_source_name_triggerRight), 1, 'first');
+            this_variable_source_data_triggerLeft = response_data_session{this_variable_source_index_triggerLeft};
+            this_variable_source_data_triggerRight = response_data_session{this_variable_source_index_triggerRight};
+        end
+        if strcmp(this_variable_source_type, 'analysis')
+            this_variable_source_index_triggerLeft = find(strcmp(analysis_names_session, this_variable_source_name_triggerLeft), 1, 'first');
+            this_variable_source_index_triggerRight = find(strcmp(analysis_names_session, this_variable_source_name_triggerRight), 1, 'first');
+            this_variable_source_data_triggerLeft = analysis_data_session{this_variable_source_index_triggerLeft};
+            this_variable_source_data_triggerRight = analysis_data_session{this_variable_source_index_triggerRight};
+        end
+        
+        % select
+        this_variable_data = zeros(size(this_variable_source_data_triggerLeft));
+        for i_stretch = 1 : number_of_stretches
+            if ...
+              (strcmp(condition_stance_foot_list_session{i_stretch}, 'STANCE_LEFT') && strcmp(condition_index_list_session{i_stretch}, 'ONE')) || ...
+              (strcmp(condition_stance_foot_list_session{i_stretch}, 'STANCE_RIGHT') && strcmp(condition_index_list_session{i_stretch}, 'TWO')) || ...
+              (strcmp(condition_stance_foot_list_session{i_stretch}, 'STANCE_LEFT') && strcmp(condition_index_list_session{i_stretch}, 'THREE')) || ...
+              (strcmp(condition_stance_foot_list_session{i_stretch}, 'STANCE_RIGHT') && strcmp(condition_index_list_session{i_stretch}, 'FOUR'))
+                this_variable_data(:, i_stretch) = this_variable_source_data_triggerLeft(:, i_stretch);
+            end
+            if ...
+              (strcmp(condition_stance_foot_list_session{i_stretch}, 'STANCE_RIGHT') && strcmp(condition_index_list_session{i_stretch}, 'ONE')) || ...
+              (strcmp(condition_stance_foot_list_session{i_stretch}, 'STANCE_LEFT') && strcmp(condition_index_list_session{i_stretch}, 'TWO')) || ...
+              (strcmp(condition_stance_foot_list_session{i_stretch}, 'STANCE_RIGHT') && strcmp(condition_index_list_session{i_stretch}, 'THREE')) || ...
+              (strcmp(condition_stance_foot_list_session{i_stretch}, 'STANCE_LEFT') && strcmp(condition_index_list_session{i_stretch}, 'FOUR'))
+                this_variable_data(:, i_stretch) = this_variable_source_data_triggerRight(:, i_stretch);
+            end
+        end
+        
+        analysis_data_session = [analysis_data_session; this_variable_data]; %#ok<AGROW>
+        analysis_names_session = [analysis_names_session; this_variable_name]; %#ok<AGROW>    
     end
     
     %% save data
