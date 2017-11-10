@@ -63,14 +63,104 @@ function plotResults(varargin)
     plot_settings = SettingsCustodian(plot_settings_file);
     show_outliers = plot_settings.get('show_outliers');
 
-    %% determine subjects and data folders
+    %% determine conditions
+    % in development ...
+    conditions_settings = plot_settings.get('conditions');
+    condition_labels = conditions_settings(:, 1)';
+    condition_source_variables = conditions_settings(:, 2)';
+    condition_cell = {};
+    number_of_condition_labels = length(condition_labels);
+    
+    % load data
     data_folder_list = determineDataStructure(subjects);
-    [comparison_indices, conditions_per_comparison_max] = determineComparisons(study_settings, plot_settings);
-    number_of_comparisons = length(comparison_indices);
-    episode_indices = determineEpisodes(study_settings, plot_settings, comparison_indices);
-    number_of_episodes = length(episode_indices);
+    variables_to_plot = plot_settings.get('variables_to_plot');
+    number_of_variables_to_plot = size(variables_to_plot, 1);
+    condition_data_all = {};
+    origin_trial_list_all = [];
+    origin_start_time_list_all = [];
+    origin_end_time_list_all = [];
+    data_all = cell(number_of_variables_to_plot, 1);
+    
+    data_source = plot_settings.get('data_source');
+    step_time_data = [];
+    pushoff_time_data = [];
+    
+    for i_folder = 1 : length(data_folder_list)
+        % load data
+        data_path = data_folder_list{i_folder};
+        load([data_path filesep 'subjectInfo.mat'], 'date', 'subject_id');
+        load([data_path filesep 'analysis' filesep date '_' subject_id '_results.mat']);
+        number_of_stretches_this_session = length(time_list_session);
+
+        % append data from this subject to containers for all subjects
+        condition_data_session = cell(number_of_stretches_this_session, number_of_condition_labels);
+        for i_label = 1 : length(condition_labels)
+            % check if this is subject
+            if strcmp(condition_labels{i_label}, 'subject')
+                condition_data_session(:, i_label) = {subject_id};
+            else
+                eval(['data_this_condition = ' condition_source_variables{i_label} ';']);
+                condition_data_session(:, i_label) = data_this_condition;
+            end
+        end
+        condition_data_all = [condition_data_all; condition_data_session]; %#ok<AGROW>
+        origin_trial_list_all = [origin_trial_list_all; origin_trial_list_session]; %#ok<AGROW>
+        origin_start_time_list_all = [origin_start_time_list_all; origin_start_time_list_session]; %#ok<AGROW>
+        origin_end_time_list_all = [origin_end_time_list_all; origin_end_time_list_session]; %#ok<AGROW>
+        
+        
+        if strcmp(data_source, 'stretch')
+            names_session = stretch_names_session;
+            data_session = stretch_data_session;
+        elseif strcmp(data_source, 'response')
+            names_session = response_names_session;
+            data_session = response_data_session;
+        elseif strcmp(data_source, 'analysis')
+            names_session = analysis_names_session;
+            data_session = analysis_data_session;
+        end
+        for i_variable = 1 : number_of_variables_to_plot
+            % load and extract data
+            this_variable_name = variables_to_plot{i_variable, 1};
+            index_in_saved_data = find(strcmp(names_session, this_variable_name), 1, 'first');
+            this_variable_data = data_session{index_in_saved_data};
+            
+            % store
+            data_all{i_variable} = [data_all{i_variable} this_variable_data];
+        end
+        % get time variables
+        if any(find(strcmp(stretch_names_session, 'step_time')))
+            index_in_saved_data = find(strcmp(stretch_names_session, 'step_time'), 1, 'first');
+            this_step_time_data = stretch_data_session{index_in_saved_data};
+            step_time_data = [step_time_data this_step_time_data]; %#ok<AGROW>
+        end
+        if any(find(strcmp(stretch_names_session, 'pushoff_time')))
+            index_in_saved_data = find(strcmp(stretch_names_session, 'pushoff_time'), 1, 'first');
+            this_pushoff_time_data = stretch_data_session{index_in_saved_data};
+            pushoff_time_data = [pushoff_time_data this_pushoff_time_data]; %#ok<AGROW>
+        end
+    end
+    % calculate mean pushoff index
+    pushoff_time_ratio = pushoff_time_data ./ step_time_data;
+    mean_pushoff_ratio = mean(pushoff_time_ratio);
+    pushoff_index = round(mean_pushoff_ratio * 100);
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     %% collect data from all data folders
+    data_folder_list = determineDataStructure(subjects);
     variables_to_plot = plot_settings.get('variables_to_plot');
     number_of_variables_to_plot = size(variables_to_plot, 1);
     paths_to_plot = plot_settings.get('paths_to_plot');
@@ -130,29 +220,6 @@ function plotResults(varargin)
             % store
             data_all{i_variable} = [data_all{i_variable} this_variable_data];
         end
-        for i_path = 1 : number_of_paths_to_plot
-%             % load and extract data
-%             this_path_variable_name_x = paths_to_plot{i_path, 1};
-%             index_in_saved_data_x = find(strcmp(variable_names_session, this_path_variable_name_x), 1, 'first');
-%             this_path_variable_data_x = variable_data_session{index_in_saved_data_x}; %#ok<USENS>
-%             if plot_settings.get('plot_response')
-%                 this_path_response_data_x = response_data_session{index_in_saved_data_x}; %#ok<USENS>
-%             end
-%             this_path_variable_name_y = paths_to_plot{i_path, 2};
-%             index_in_saved_data_y = find(strcmp(variable_names_session, this_path_variable_name_y), 1, 'first');
-%             this_path_variable_data_y = variable_data_session{index_in_saved_data_y}; %#ok<USENS>
-%             if plot_settings.get('plot_response')
-%                 this_path_response_data_y = response_data_session{index_in_saved_data_y}; %#ok<USENS>
-%             end
-%             
-%             % store
-%             path_data_all{i_path, 1} = [path_data_all{i_path, 1} this_path_variable_data_x];
-%             path_data_all{i_path, 2} = [path_data_all{i_path, 2} this_path_variable_data_y];
-%             if plot_settings.get('plot_response')
-%                 path_response_data_all{i_path, 1} = [path_response_data_all{i_path, 1} this_path_response_data_x];
-%                 path_response_data_all{i_path, 2} = [path_response_data_all{i_path, 2} this_path_response_data_y];
-%             end
-        end
         % get time variables
         if any(find(strcmp(stretch_names_session, 'step_time')))
             index_in_saved_data = find(strcmp(stretch_names_session, 'step_time'), 1, 'first');
@@ -169,6 +236,12 @@ function plotResults(varargin)
     pushoff_time_ratio = pushoff_time_data ./ step_time_data;
     mean_pushoff_ratio = mean(pushoff_time_ratio);
     pushoff_index = round(mean_pushoff_ratio * 100);
+    
+    %% determine subjects and data folders
+    [comparison_indices, conditions_per_comparison_max] = determineComparisons(study_settings, plot_settings);
+    number_of_comparisons = length(comparison_indices);
+    episode_indices = determineEpisodes(study_settings, plot_settings, comparison_indices);
+    number_of_episodes = length(episode_indices);
     
     %% create figures and determine abscissae for each comparison
     comparison_variable_to_axes_index_map = zeros(number_of_comparisons, 1);

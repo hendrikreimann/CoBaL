@@ -18,7 +18,7 @@
 % ... results.mat for each subject
 % 
 
-function calculateStepResponse(varargin)
+function processStimulusResponse(varargin)
     parser = inputParser;
     parser.KeepUnmatched = true;
     addParameter(parser, 'visualize', false)
@@ -41,21 +41,21 @@ function calculateStepResponse(varargin)
     load('subjectInfo.mat', 'date', 'subject_id');
     
     results_file_name = ['analysis' filesep makeFileName(date, subject_id, 'results')];
-    load(results_file_name);
+    loaded_data = load(results_file_name);
     
 
     conditions_control = study_settings.get('conditions_control');
     conditions_to_analyze = study_settings.get('conditions_to_analyze');
-    step_placement_x_data = stretch_data_session{strcmp(stretch_names_session, 'step_placement_x')};
-    mpsis_x_data = stretch_data_session{strcmp(stretch_names_session, 'mpsis_x')};
-    com_x_data = stretch_data_session{strcmp(stretch_names_session, 'com_x')};
+    step_placement_x_data = loaded_data.stretch_data_session{strcmp(loaded_data.stretch_names_session, 'step_placement_x')};
+    mpsis_x_data = loaded_data.stretch_data_session{strcmp(loaded_data.stretch_names_session, 'mpsis_x')};
+    com_x_data = loaded_data.stretch_data_session{strcmp(loaded_data.stretch_names_session, 'com_x')};
     mpsis_x_vel_data = deriveByTime(mpsis_x_data, 0.01); % XXX ACHTUNG: this is a hack because I don't have the data yet
-    com_x_vel_data = stretch_data_session{strcmp(stretch_names_session, 'com_x_vel')};
-    lanklex_data = stretch_data_session{strcmp(stretch_names_session, 'lankle_x')};
-    ranklex_data = stretch_data_session{strcmp(stretch_names_session, 'rankle_x')};
-    cop_x_data = stretch_data_session{strcmp(stretch_names_session, 'cop_x')};
+    com_x_vel_data = loaded_data.stretch_data_session{strcmp(loaded_data.stretch_names_session, 'com_x_vel')};
+    lanklex_data = loaded_data.stretch_data_session{strcmp(loaded_data.stretch_names_session, 'lankle_x')};
+    ranklex_data = loaded_data.stretch_data_session{strcmp(loaded_data.stretch_names_session, 'rankle_x')};
+    cop_x_data = loaded_data.stretch_data_session{strcmp(loaded_data.stretch_names_session, 'cop_x')};
     midstance_index_data = ones(1, size(mpsis_x_data, 2)) * 65; % XXX ACHTUNG: this is a hack because I don't have the midstance index data yet
-    midstance_index_data = stretch_data_session{strcmp(stretch_names_session, 'midstance_index')};
+    midstance_index_data = loaded_data.stretch_data_session{strcmp(loaded_data.stretch_names_session, 'midstance_index')};
     
     stimulus_response_x_data = zeros(1, size(mpsis_x_data, 2));
 
@@ -78,13 +78,13 @@ function calculateStepResponse(varargin)
         end
         
         % get control indicators
-        stance_foot_indicator = strcmp(condition_stance_foot_list_session, conditions_control{i_condition, 1});
-        perturbation_indicator = strcmp(condition_perturbation_list_session, conditions_control{i_condition, 2});
-        delay_indicator = strcmp(condition_delay_list_session, conditions_control{i_condition, 3});
-        index_indicator = strcmp(condition_index_list_session, conditions_control{i_condition, 4});
-        experimental_indicator = strcmp(condition_experimental_list_session, conditions_control{i_condition, 5});
-        stimulus_indicator = strcmp(condition_stimulus_list_session, conditions_control{i_condition, 6});
-        day_indicator = strcmp(condition_day_list_session, conditions_control{i_condition, 7});
+        stance_foot_indicator = strcmp(loaded_data.condition_stance_foot_list_session, conditions_control{i_condition, 1});
+        perturbation_indicator = strcmp(loaded_data.condition_perturbation_list_session, conditions_control{i_condition, 2});
+        delay_indicator = strcmp(loaded_data.condition_delay_list_session, conditions_control{i_condition, 3});
+        index_indicator = strcmp(loaded_data.condition_index_list_session, conditions_control{i_condition, 4});
+        experimental_indicator = strcmp(loaded_data.condition_experimental_list_session, conditions_control{i_condition, 5});
+        stimulus_indicator = strcmp(loaded_data.condition_stimulus_list_session, conditions_control{i_condition, 6});
+        day_indicator = strcmp(loaded_data.condition_day_list_session, conditions_control{i_condition, 7});
         this_condition_indicator = stance_foot_indicator & perturbation_indicator & delay_indicator & index_indicator & experimental_indicator & stimulus_indicator & day_indicator;
         
         % extract condition data
@@ -200,13 +200,13 @@ function calculateStepResponse(varargin)
         end
         
         % get control indicators
-        stance_foot_indicator = strcmp(condition_stance_foot_list_session, all_conditions{i_condition, 1});
-        perturbation_indicator = strcmp(condition_perturbation_list_session, all_conditions{i_condition, 2});
-        delay_indicator = strcmp(condition_delay_list_session, all_conditions{i_condition, 3});
-        index_indicator = strcmp(condition_index_list_session, all_conditions{i_condition, 4});
-        experimental_indicator = strcmp(condition_experimental_list_session, all_conditions{i_condition, 5});
-        stimulus_indicator = strcmp(condition_stimulus_list_session, all_conditions{i_condition, 6});
-        day_indicator = strcmp(condition_day_list_session, all_conditions{i_condition, 7});
+        stance_foot_indicator = strcmp(loaded_data.condition_stance_foot_list_session, all_conditions{i_condition, 1});
+        perturbation_indicator = strcmp(loaded_data.condition_perturbation_list_session, all_conditions{i_condition, 2});
+        delay_indicator = strcmp(loaded_data.condition_delay_list_session, all_conditions{i_condition, 3});
+        index_indicator = strcmp(loaded_data.condition_index_list_session, all_conditions{i_condition, 4});
+        experimental_indicator = strcmp(loaded_data.condition_experimental_list_session, all_conditions{i_condition, 5});
+        stimulus_indicator = strcmp(loaded_data.condition_stimulus_list_session, all_conditions{i_condition, 6});
+        day_indicator = strcmp(loaded_data.condition_day_list_session, all_conditions{i_condition, 7});
         this_condition_indicator = stance_foot_indicator & perturbation_indicator & delay_indicator & index_indicator & experimental_indicator & stimulus_indicator & day_indicator;
         
         % extract condition data
@@ -244,38 +244,21 @@ function calculateStepResponse(varargin)
 %         mean(step_response)
     end
     
-    % store data
-    if ~exist('analysis_data_session', 'var')
+    % save
+    if isfield(loaded_data, 'analysis_data_session')
+        analysis_data_session = loaded_data.analysis_data_session;
+        analysis_names_session = loaded_data.analysis_names_session;
+    else
         analysis_data_session = {};
         analysis_names_session = {};
     end
-    analysis_data_session = [analysis_data_session; stimulus_response_x_data]; %#ok<NASGU>
-    analysis_names_session = [analysis_names_session; 'stimulus_response_x']; %#ok<NASGU>
+    [analysis_data_session, analysis_names_session] = addOrOverwriteData(analysis_data_session, analysis_names_session, stimulus_response_x_data, 'stimulus_response_x');
     
-    save ...
-      ( ...
-        results_file_name, ...
-        'stretch_data_session', ...
-        'stretch_names_session', ...
-        'analysis_data_session', ...
-        'analysis_names_session', ...
-        'condition_stance_foot_list_session', ...
-        'condition_perturbation_list_session', ...
-        'condition_delay_list_session', ...
-        'condition_index_list_session', ...
-        'condition_experimental_list_session', ...
-        'condition_stimulus_list_session', ...
-        'condition_day_list_session', ...
-        'origin_trial_list_session', ...
-        'origin_start_time_list_session', ...
-        'origin_end_time_list_session', ...
-        'time_list_session' ...
-      )    
-    
-
-    
-    
-    
+    variables_to_save = loaded_data;
+    variables_to_save.analysis_data_session = analysis_data_session;
+    variables_to_save.analysis_names_session = analysis_names_session;
+    save(results_file_name, '-struct', 'variables_to_save');
+        
     
 end
 

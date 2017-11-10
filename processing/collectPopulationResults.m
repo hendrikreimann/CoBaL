@@ -44,6 +44,7 @@ function collectPopulationResults(varargin)
     condition_experimental_list = {};
     condition_stimulus_list = {};
     condition_day_list = {};
+    condition_group_list = {};
     subject_list = {};
     origin_trial_list = [];
     origin_start_time_list = [];
@@ -69,6 +70,7 @@ function collectPopulationResults(varargin)
         condition_experimental_list = [condition_experimental_list; condition_experimental_list_session]; %#ok<AGROW>
         condition_stimulus_list = [condition_stimulus_list; condition_stimulus_list_session]; %#ok<AGROW>
         condition_day_list = [condition_day_list; condition_day_list_session]; %#ok<AGROW>
+        condition_group_list = [condition_group_list; condition_group_list_session]; %#ok<AGROW>
         [subject_list{length(subject_list)+(1 : length(condition_stance_foot_list_session))}] = deal(subject_id); %#ok<AGROW>
         origin_trial_list = [origin_trial_list; origin_trial_list_session]; %#ok<AGROW>
         origin_start_time_list = [origin_start_time_list; origin_start_time_list_session]; %#ok<AGROW>
@@ -99,52 +101,6 @@ function collectPopulationResults(varargin)
     end
     subject_list = subject_list';
     
-    
-    %% make relative illusion condition list
-    condition_stimulus_list = condition_perturbation_list;
-    for i_stretch = 1 : length(condition_stimulus_list)
-        if ...
-          (strcmp(condition_index_list{i_stretch}, 'ONE') && strcmp(condition_stimulus_list{i_stretch}, 'ILLUSION_LEFT') && strcmp(condition_stance_foot_list{i_stretch}, 'STANCE_LEFT')) ...
-          || (strcmp(condition_index_list{i_stretch}, 'TWO') && strcmp(condition_stimulus_list{i_stretch}, 'ILLUSION_LEFT') && strcmp(condition_stance_foot_list{i_stretch}, 'STANCE_RIGHT')) ...
-          || (strcmp(condition_index_list{i_stretch}, 'THREE') && strcmp(condition_stimulus_list{i_stretch}, 'ILLUSION_LEFT') && strcmp(condition_stance_foot_list{i_stretch}, 'STANCE_LEFT')) ...
-          || (strcmp(condition_index_list{i_stretch}, 'FOUR') && strcmp(condition_stimulus_list{i_stretch}, 'ILLUSION_LEFT') && strcmp(condition_stance_foot_list{i_stretch}, 'STANCE_RIGHT')) ...
-          || (strcmp(condition_index_list{i_stretch}, 'ONE') && strcmp(condition_stimulus_list{i_stretch}, 'ILLUSION_RIGHT') && strcmp(condition_stance_foot_list{i_stretch}, 'STANCE_RIGHT')) ...
-          || (strcmp(condition_index_list{i_stretch}, 'TWO') && strcmp(condition_stimulus_list{i_stretch}, 'ILLUSION_RIGHT') && strcmp(condition_stance_foot_list{i_stretch}, 'STANCE_LEFT')) ...
-          || (strcmp(condition_index_list{i_stretch}, 'THREE') && strcmp(condition_stimulus_list{i_stretch}, 'ILLUSION_RIGHT') && strcmp(condition_stance_foot_list{i_stretch}, 'STANCE_RIGHT')) ...
-          || (strcmp(condition_index_list{i_stretch}, 'FOUR') && strcmp(condition_stimulus_list{i_stretch}, 'ILLUSION_RIGHT') && strcmp(condition_stance_foot_list{i_stretch}, 'STANCE_LEFT'))
-            % these are all the cases where the illusion is TOWARDS the first stance leg, i.e. the triggering leg
-            condition_stimulus_list{i_stretch} = 'TOWARDS';
-        elseif ...
-          (strcmp(condition_index_list{i_stretch}, 'ONE') && strcmp(condition_stimulus_list{i_stretch}, 'ILLUSION_LEFT') && strcmp(condition_stance_foot_list{i_stretch}, 'STANCE_RIGHT')) ...
-          || (strcmp(condition_index_list{i_stretch}, 'TWO') && strcmp(condition_stimulus_list{i_stretch}, 'ILLUSION_LEFT') && strcmp(condition_stance_foot_list{i_stretch}, 'STANCE_LEFT')) ...
-          || (strcmp(condition_index_list{i_stretch}, 'THREE') && strcmp(condition_stimulus_list{i_stretch}, 'ILLUSION_LEFT') && strcmp(condition_stance_foot_list{i_stretch}, 'STANCE_RIGHT')) ...
-          || (strcmp(condition_index_list{i_stretch}, 'FOUR') && strcmp(condition_stimulus_list{i_stretch}, 'ILLUSION_LEFT') && strcmp(condition_stance_foot_list{i_stretch}, 'STANCE_LEFT')) ...
-          || (strcmp(condition_index_list{i_stretch}, 'ONE') && strcmp(condition_stimulus_list{i_stretch}, 'ILLUSION_RIGHT') && strcmp(condition_stance_foot_list{i_stretch}, 'STANCE_LEFT')) ...
-          || (strcmp(condition_index_list{i_stretch}, 'TWO') && strcmp(condition_stimulus_list{i_stretch}, 'ILLUSION_RIGHT') && strcmp(condition_stance_foot_list{i_stretch}, 'STANCE_RIGHT')) ...
-          || (strcmp(condition_index_list{i_stretch}, 'THREE') && strcmp(condition_stimulus_list{i_stretch}, 'ILLUSION_RIGHT') && strcmp(condition_stance_foot_list{i_stretch}, 'STANCE_LEFT')) ...
-          || (strcmp(condition_index_list{i_stretch}, 'FOUR') && strcmp(condition_stimulus_list{i_stretch}, 'ILLUSION_RIGHT') && strcmp(condition_stance_foot_list{i_stretch}, 'STANCE_RIGHT'))
-            % these are all the cases where the illusion is AWAY from the first stance leg, i.e. the triggering leg
-            condition_stimulus_list{i_stretch} = 'AWAY';
-        elseif strcmp(condition_stimulus_list{i_stretch}, 'CONTROL')
-            % do nothing
-        else
-            error('Something wrong with the condition: No match found')
-        end
-    end
-    
-    %% make group condition list
-    group_assignment = study_settings.get('group_assignment');
-    condition_group_list = cell(size(condition_stimulus_list));
-    for i_stretch = 1 : length(condition_stimulus_list)
-        groups_this_subject = group_assignment(strcmp(group_assignment(:, 1), subject_list{i_stretch}), 2:3);
-        if strcmp(condition_stance_foot_list{i_stretch}, 'STANCE_LEFT')
-            condition_group_list{i_stretch} = groups_this_subject{1};
-        elseif strcmp(condition_stance_foot_list{i_stretch}, 'STANCE_RIGHT')
-            condition_group_list{i_stretch} = groups_this_subject{2};
-        else
-            error('Can only assign a group for STANCE_LEFT or STANCE_RIGHT')
-        end
-    end
     
     %% make time categorical variable
     time_category = cell(size(time_list));
