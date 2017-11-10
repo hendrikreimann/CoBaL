@@ -63,12 +63,12 @@ function plotResults(varargin)
     plot_settings = SettingsCustodian(plot_settings_file);
     show_outliers = plot_settings.get('show_outliers');
 
-    %% determine conditions
-    % in development ...
+    %% load data
+    % declare variables
     conditions_settings = plot_settings.get('conditions');
+    condition_to_compare = plot_settings.get('condition_to_compare');
     condition_labels = conditions_settings(:, 1)';
     condition_source_variables = conditions_settings(:, 2)';
-    condition_cell = {};
     number_of_condition_labels = length(condition_labels);
     
     % load data
@@ -111,7 +111,7 @@ function plotResults(varargin)
         
         if strcmp(data_source, 'stretch')
             names_session = stretch_names_session;
-            data_session = stretch_data_session;
+            data_session = stretch_data_session; %#ok<USENS>
         elseif strcmp(data_source, 'response')
             names_session = response_names_session;
             data_session = response_data_session;
@@ -145,9 +145,67 @@ function plotResults(varargin)
     mean_pushoff_ratio = mean(pushoff_time_ratio);
     pushoff_index = round(mean_pushoff_ratio * 100);
     
+    %% populate condition cell
+    condition_combination_labels = {};
+    condition_combinations_stimulus = {};
+    labels_to_ignore = plot_settings.get('conditions_to_ignore');
+    for i_label = 1 : number_of_condition_labels
+        if ~any(strcmp(condition_labels{i_label}, labels_to_ignore))
+            this_label = condition_labels{i_label};
+            condition_combination_labels = [condition_combination_labels this_label]; %#ok<AGROW>
+            levels_this_label = unique(condition_data_all(:, i_label));
+            
+            % exclude control level if there is one
+            control_level_this_label = conditions_settings(strcmp(conditions_settings(:, 1), this_label), 3);
+            control_level_index_in_levels = find(strcmp(levels_this_label, control_level_this_label));
+            if ~isempty(control_level_index_in_levels)
+                levels_this_label(control_level_index_in_levels, :) = [];
+            end
+            
+            % remove levels specified in settings
+            levels_to_remove = plot_settings.get('levels_to_remove');
+            levels_to_remove_this_label = levels_to_remove(strcmp(levels_to_remove(:, 1), this_label), 2);
+            for i_level = 1 : length(levels_to_remove_this_label)
+                index_to_remove = strcmp(levels_to_remove_this_label(i_level), levels_this_label);
+                levels_this_label(index_to_remove) = [];
+            end
+            
+            % repeat stuff to get combinations
+            if isempty(condition_combinations_stimulus)
+                condition_combinations_stimulus = levels_this_label;
+            else
+                condition_combinations_pre_this_level = condition_combinations_stimulus;
+                condition_combinations_post_this_level = {};
+                for i_level = 1 : length(levels_this_label)
+                    this_condition_this_level = cell(size(condition_combinations_pre_this_level, 1), 1);
+                    this_condition_this_level(:) = levels_this_label(i_level);
+                    condition_combinations_with_this_level = [condition_combinations_pre_this_level, this_condition_this_level];
+                    condition_combinations_post_this_level = [condition_combinations_post_this_level; condition_combinations_with_this_level]; %#ok<AGROW>
+                end
+                condition_combinations_stimulus = condition_combinations_post_this_level;
+            end
+        end
+    end
     
-    
-    
+    % make control conditions cell
+    condition_combinations_control = {};
+    for i_combination = 1 : length(condition_combinations_stimulus)
+        this_combination_stimulus = condition_combinations_stimulus(i_combination, :);
+        this_combination_control = cell(size(this_combination_stimulus));
+        for i_label = 1 : length(condition_combination_labels)
+            this_label = condition_combination_labels{i_label};
+            control_level_this_label = conditions_settings{strcmp(conditions_settings(:, 1), this_label), 3};
+            if strcmp(control_level_this_label, '~')
+                this_combination_control{i_label} = this_combination_stimulus{i_label};
+            else
+                this_combination_control{i_label} = control_level_this_label;
+            end
+        end
+        
+        condition_combinations_control = [condition_combinations_control; this_combination_control]; %#ok<AGROW>
+        
+        
+    end
     
     
     
@@ -160,88 +218,92 @@ function plotResults(varargin)
     
     
     %% collect data from all data folders
-    data_folder_list = determineDataStructure(subjects);
-    variables_to_plot = plot_settings.get('variables_to_plot');
-    number_of_variables_to_plot = size(variables_to_plot, 1);
-    paths_to_plot = plot_settings.get('paths_to_plot');
-    number_of_paths_to_plot = size(paths_to_plot, 1);
-    condition_stance_foot_list_all = {};
-    condition_perturbation_list_all = {};
-    condition_delay_list_all = {};
-    condition_index_list_all = {};
-    condition_experimental_list_all = {};
-    condition_stimulus_list_all = {};
-    condition_day_list_all = {};
-    origin_trial_list_all = [];
-    origin_start_time_list_all = [];
-    origin_end_time_list_all = [];
-    data_all = cell(number_of_variables_to_plot, 1);
-    path_data_all = cell(number_of_paths_to_plot, 2);
-    
-    data_source = plot_settings.get('data_source');
-    step_time_data = [];
-    pushoff_time_data = [];
-    
-    for i_folder = 1 : length(data_folder_list)
-        % load data
-        data_path = data_folder_list{i_folder};
-        load([data_path filesep 'subjectInfo.mat'], 'date', 'subject_id');
-        load([data_path filesep 'analysis' filesep date '_' subject_id '_results.mat']);
+    % this is old
+    if false
+        data_folder_list = determineDataStructure(subjects);
+        variables_to_plot = plot_settings.get('variables_to_plot');
+        number_of_variables_to_plot = size(variables_to_plot, 1);
+        paths_to_plot = plot_settings.get('paths_to_plot');
+        number_of_paths_to_plot = size(paths_to_plot, 1);
+        condition_stance_foot_list_all = {};
+        condition_perturbation_list_all = {};
+        condition_delay_list_all = {};
+        condition_index_list_all = {};
+        condition_experimental_list_all = {};
+        condition_stimulus_list_all = {};
+        condition_day_list_all = {};
+        origin_trial_list_all = [];
+        origin_start_time_list_all = [];
+        origin_end_time_list_all = [];
+        data_all = cell(number_of_variables_to_plot, 1);
+        path_data_all = cell(number_of_paths_to_plot, 2);
 
-        % append data from this subject to containers for all subjects
-        condition_stance_foot_list_all = [condition_stance_foot_list_all; condition_stance_foot_list_session]; %#ok<AGROW>
-        condition_perturbation_list_all = [condition_perturbation_list_all; condition_perturbation_list_session]; %#ok<AGROW>
-        condition_delay_list_all = [condition_delay_list_all; condition_delay_list_session]; %#ok<AGROW>
-        condition_index_list_all = [condition_index_list_all; condition_index_list_session]; %#ok<AGROW>
-        condition_experimental_list_all = [condition_experimental_list_all; condition_experimental_list_session]; %#ok<AGROW>
-        condition_stimulus_list_all = [condition_stimulus_list_all; condition_stimulus_list_session]; %#ok<AGROW>
-        condition_day_list_all = [condition_day_list_all; condition_day_list_session]; %#ok<AGROW>
-        origin_trial_list_all = [origin_trial_list_all; origin_trial_list_session]; %#ok<AGROW>
-        origin_start_time_list_all = [origin_start_time_list_all; origin_start_time_list_session]; %#ok<AGROW>
-        origin_end_time_list_all = [origin_end_time_list_all; origin_end_time_list_session]; %#ok<AGROW>
-        
-        
-        if strcmp(data_source, 'stretch')
-            names_session = stretch_names_session;
-            data_session = stretch_data_session;
-        elseif strcmp(data_source, 'response')
-            names_session = response_names_session;
-            data_session = response_data_session;
-        elseif strcmp(data_source, 'analysis')
-            names_session = analysis_names_session;
-            data_session = analysis_data_session;
+        data_source = plot_settings.get('data_source');
+        step_time_data = [];
+        pushoff_time_data = [];
+
+        for i_folder = 1 : length(data_folder_list)
+            % load data
+            data_path = data_folder_list{i_folder};
+            load([data_path filesep 'subjectInfo.mat'], 'date', 'subject_id');
+            load([data_path filesep 'analysis' filesep date '_' subject_id '_results.mat']);
+
+            % append data from this subject to containers for all subjects
+            condition_stance_foot_list_all = [condition_stance_foot_list_all; condition_stance_foot_list_session]; %#ok<AGROW>
+            condition_perturbation_list_all = [condition_perturbation_list_all; condition_perturbation_list_session]; %#ok<AGROW>
+            condition_delay_list_all = [condition_delay_list_all; condition_delay_list_session]; %#ok<AGROW>
+            condition_index_list_all = [condition_index_list_all; condition_index_list_session]; %#ok<AGROW>
+            condition_experimental_list_all = [condition_experimental_list_all; condition_experimental_list_session]; %#ok<AGROW>
+            condition_stimulus_list_all = [condition_stimulus_list_all; condition_stimulus_list_session]; %#ok<AGROW>
+            condition_day_list_all = [condition_day_list_all; condition_day_list_session]; %#ok<AGROW>
+            origin_trial_list_all = [origin_trial_list_all; origin_trial_list_session]; %#ok<AGROW>
+            origin_start_time_list_all = [origin_start_time_list_all; origin_start_time_list_session]; %#ok<AGROW>
+            origin_end_time_list_all = [origin_end_time_list_all; origin_end_time_list_session]; %#ok<AGROW>
+
+
+            if strcmp(data_source, 'stretch')
+                names_session = stretch_names_session;
+                data_session = stretch_data_session;
+            elseif strcmp(data_source, 'response')
+                names_session = response_names_session;
+                data_session = response_data_session;
+            elseif strcmp(data_source, 'analysis')
+                names_session = analysis_names_session;
+                data_session = analysis_data_session;
+            end
+            for i_variable = 1 : number_of_variables_to_plot
+                % load and extract data
+                this_variable_name = variables_to_plot{i_variable, 1};
+                index_in_saved_data = find(strcmp(names_session, this_variable_name), 1, 'first');
+                this_variable_data = data_session{index_in_saved_data};
+
+                % store
+                data_all{i_variable} = [data_all{i_variable} this_variable_data];
+            end
+            % get time variables
+            if any(find(strcmp(stretch_names_session, 'step_time')))
+                index_in_saved_data = find(strcmp(stretch_names_session, 'step_time'), 1, 'first');
+                this_step_time_data = stretch_data_session{index_in_saved_data};
+                step_time_data = [step_time_data this_step_time_data]; %#ok<AGROW>
+            end
+            if any(find(strcmp(stretch_names_session, 'pushoff_time')))
+                index_in_saved_data = find(strcmp(stretch_names_session, 'pushoff_time'), 1, 'first');
+                this_pushoff_time_data = stretch_data_session{index_in_saved_data};
+                pushoff_time_data = [pushoff_time_data this_pushoff_time_data]; %#ok<AGROW>
+            end
         end
-        for i_variable = 1 : number_of_variables_to_plot
-            % load and extract data
-            this_variable_name = variables_to_plot{i_variable, 1};
-            index_in_saved_data = find(strcmp(names_session, this_variable_name), 1, 'first');
-            this_variable_data = data_session{index_in_saved_data};
-            
-            % store
-            data_all{i_variable} = [data_all{i_variable} this_variable_data];
-        end
-        % get time variables
-        if any(find(strcmp(stretch_names_session, 'step_time')))
-            index_in_saved_data = find(strcmp(stretch_names_session, 'step_time'), 1, 'first');
-            this_step_time_data = stretch_data_session{index_in_saved_data};
-            step_time_data = [step_time_data this_step_time_data]; %#ok<AGROW>
-        end
-        if any(find(strcmp(stretch_names_session, 'pushoff_time')))
-            index_in_saved_data = find(strcmp(stretch_names_session, 'pushoff_time'), 1, 'first');
-            this_pushoff_time_data = stretch_data_session{index_in_saved_data};
-            pushoff_time_data = [pushoff_time_data this_pushoff_time_data]; %#ok<AGROW>
-        end
+        % calculate mean pushoff index
+        pushoff_time_ratio = pushoff_time_data ./ step_time_data;
+        mean_pushoff_ratio = mean(pushoff_time_ratio);
+        pushoff_index = round(mean_pushoff_ratio * 100);
     end
-    % calculate mean pushoff index
-    pushoff_time_ratio = pushoff_time_data ./ step_time_data;
-    mean_pushoff_ratio = mean(pushoff_time_ratio);
-    pushoff_index = round(mean_pushoff_ratio * 100);
     
     %% determine subjects and data folders
-    [comparison_indices, conditions_per_comparison_max] = determineComparisons(study_settings, plot_settings);
+    [comparison_indices, conditions_per_comparison_max] = determineComparisons_new(condition_combinations_stimulus, condition_combination_labels, plot_settings);
     number_of_comparisons = length(comparison_indices);
-    episode_indices = determineEpisodes(study_settings, plot_settings, comparison_indices);
-    number_of_episodes = length(episode_indices);
+    % implement this later
+%     episode_indices = determineEpisodes(study_settings, plot_settings, comparison_indices);
+%     number_of_episodes = length(episode_indices);
     
     %% create figures and determine abscissae for each comparison
     comparison_variable_to_axes_index_map = zeros(number_of_comparisons, 1);
@@ -250,8 +312,8 @@ function plotResults(varargin)
     
     plot_mode = plot_settings.get('plot_mode');
     variables_to_plot = plot_settings.get('variables_to_plot');
-    conditions_to_plot = plot_settings.get('conditions_to_plot');    
-    conditions_control = study_settings.get('conditions_control');
+%     conditions_to_plot = plot_settings.get('conditions_to_plot');    
+%     conditions_control = study_settings.get('conditions_control');
     
     % time plots
     if strcmp(plot_mode, 'detailed') || strcmp(plot_mode, 'overview')
@@ -264,6 +326,7 @@ function plotResults(varargin)
         neg_arrow_handles = zeros(number_of_comparisons, number_of_variables_to_plot);
         for i_variable = 1 : number_of_variables_to_plot
             for i_comparison = 1 : number_of_comparisons
+                this_comparison = comparison_indices{i_comparison};
                 % make figure and axes
                 new_figure = figure; new_axes = axes; hold on;
                 
@@ -294,7 +357,6 @@ function plotResults(varargin)
                         abscissae_cell{i_comparison, i_variable} = linspace(lower_bound, upper_bound, plot_settings.get('number_of_bins_in_histogram'));
                     end
                     if strcmp(plot_mode, 'overview')
-                        this_comparison = comparison_indices{i_comparison};
                         abscissae_control = 0;
                         abscissae_stimulus = 1 : length(this_comparison);
                         abscissae = {abscissae_control, abscissae_stimulus};
@@ -309,16 +371,18 @@ function plotResults(varargin)
                     conditions_this_comparison = comparison_indices{i_comparison};
                     step_time_means_this_comparison = zeros(size(conditions_this_comparison));
                     for i_condition = 1 : length(conditions_this_comparison)
-                        % find correct condition indicator
-                        condition_identifier = conditions_to_plot(conditions_this_comparison(i_condition), :);
-                        stance_foot_indicator = strcmp(condition_stance_foot_list_all, condition_identifier{1});
-                        perturbation_indicator = strcmp(condition_perturbation_list_all, condition_identifier{2});
-                        delay_indicator = strcmp(condition_delay_list_all, condition_identifier{3});
-                        index_indicator = strcmp(condition_index_list_all, condition_identifier{4});
-                        experimental_indicator = strcmp(condition_experimental_list_all, condition_identifier{5});
-                        stimulus_indicator = strcmp(condition_stimulus_list_all, condition_identifier{6});
-                        day_indicator = strcmp(condition_day_list_all, condition_identifier{7});
-                        this_condition_indicator = stance_foot_indicator & perturbation_indicator & delay_indicator & index_indicator & experimental_indicator & stimulus_indicator & day_indicator;
+                        this_condition_combination = condition_combinations_stimulus(i_condition, :);
+                        this_condition_indicator = getConditionIndicator(this_condition_combination, condition_combination_labels, condition_data_all, condition_labels);
+%                         % find correct condition indicator
+%                         condition_identifier = conditions_to_plot(conditions_this_comparison(i_condition), :);
+%                         stance_foot_indicator = strcmp(condition_stance_foot_list_all, condition_identifier{1});
+%                         perturbation_indicator = strcmp(condition_perturbation_list_all, condition_identifier{2});
+%                         delay_indicator = strcmp(condition_delay_list_all, condition_identifier{3});
+%                         index_indicator = strcmp(condition_index_list_all, condition_identifier{4});
+%                         experimental_indicator = strcmp(condition_experimental_list_all, condition_identifier{5});
+%                         stimulus_indicator = strcmp(condition_stimulus_list_all, condition_identifier{6});
+%                         day_indicator = strcmp(condition_day_list_all, condition_identifier{7});
+%                         this_condition_indicator = stance_foot_indicator & perturbation_indicator & delay_indicator & index_indicator & experimental_indicator & stimulus_indicator & day_indicator;
                         step_time_data_this_condition = step_time_data(:, this_condition_indicator);
                         step_time_means_this_comparison(i_condition) = mean(step_time_data_this_condition);
                     end
@@ -342,7 +406,7 @@ function plotResults(varargin)
                 end
                 if isDiscreteVariable(i_variable, data_all) && strcmp(plot_mode, 'overview')
                     xtick = abscissae_cell{i_comparison, i_variable}{2};
-                    if ~isempty(conditions_control)
+                    if plot_settings.get('plot_control')
                         xtick = [abscissae_cell{i_comparison, i_variable}{1} xtick]; %#ok<AGROW>
                     end
 %                     set(gca, 'xlim', [-0.5 length(comparison_indices{i_comparison})+0.5]);
@@ -409,29 +473,42 @@ function plotResults(varargin)
                 % determine title
                 title_string = variables_to_plot{i_variable, 2};
                 filename_string = variables_to_plot{i_variable, 4};
-                for i_label = 1 : length(study_settings.get('condition_labels'))
-                    if (i_label ~= plot_settings.get('comparison_to_make')) ...
-                        && (i_label ~= 1) ...
-                        && (i_label ~= 3) ...
-                        && (i_label ~= 5) ...
-                        && (i_label ~= 6) ...
-                        && (i_label ~= 7)
-                        this_condition_label = strrep(conditions_to_plot{comparison_indices{i_comparison}(1), i_label}, '_', ' ');
-                        if i_label ~= plot_settings.get('comparison_to_make')
-                            title_string = [title_string ' - ' this_condition_label]; %#ok<AGROW>
-                            filename_string = [filename_string '_' this_condition_label];
-                        end
+                
+                representative_condition = condition_combinations_stimulus(this_comparison(1), :);
+%                 this_condition_combination
+                
+                for i_label = 1 : length(representative_condition)
+                    if ~(strcmp(condition_combination_labels{i_label}, condition_to_compare))
+                        this_string = strrep(representative_condition{i_label}, '_', '');
+                        filename_string = [filename_string '_' this_string]; %#ok<AGROW>
+                        title_string = [title_string ' - ' this_string]; %#ok<AGROW>
                     end
                 end
-                stance_label = conditions_to_plot{comparison_indices{i_comparison}(1), 1};
-                if strcmp(stance_label, 'STANCE_RIGHT')
-                    title_string = [title_string ' - first step stance leg RIGHT'];
-                    filename_string = [filename_string '_stanceR'];
-                end
-                if strcmp(stance_label, 'STANCE_LEFT')
-                    title_string = [title_string ' - first step stance leg LEFT'];
-                    filename_string = [filename_string '_stanceL'];
-                end
+                
+                
+%                 for i_label = 1 : length(study_settings.get('condition_labels'))
+%                     if (i_label ~= plot_settings.get('comparison_to_make')) ...
+%                         && (i_label ~= 1) ...
+%                         && (i_label ~= 3) ...
+%                         && (i_label ~= 5) ...
+%                         && (i_label ~= 6) ...
+%                         && (i_label ~= 7)
+%                         this_condition_label = strrep(conditions_to_plot{comparison_indices{i_comparison}(1), i_label}, '_', ' ');
+%                         if i_label ~= plot_settings.get('comparison_to_make')
+%                             title_string = [title_string ' - ' this_condition_label]; %#ok<AGROW>
+%                             filename_string = [filename_string '_' this_condition_label];
+%                         end
+%                     end
+%                 end
+%                 stance_label = conditions_to_plot{comparison_indices{i_comparison}(1), 1};
+%                 if strcmp(stance_label, 'STANCE_RIGHT')
+%                     title_string = [title_string ' - first step stance leg RIGHT'];
+%                     filename_string = [filename_string '_stanceR'];
+%                 end
+%                 if strcmp(stance_label, 'STANCE_LEFT')
+%                     title_string = [title_string ' - first step stance leg LEFT'];
+%                     filename_string = [filename_string '_stanceL'];
+%                 end
                 title(title_string); set(gca, 'Fontsize', 12)
                 set(gcf, 'UserData', filename_string)
                 
@@ -797,55 +874,57 @@ function plotResults(varargin)
         
     end
     
-    % path plots
-    if strcmp(plot_mode, 'detailed') || strcmp(plot_mode, 'overview')
-        % make one figure per comparison and variable
-        path_figure_handles = zeros(number_of_comparisons, number_of_variables_to_plot);
-        path_axes_handles = zeros(number_of_comparisons, number_of_variables_to_plot);
-        for i_path = 1 : number_of_paths_to_plot
-            for i_comparison = 1 : number_of_comparisons
-                % make figure and axes
-                new_figure = figure; new_axes = axes; hold on;
-                
-                % store handles and determine abscissa data
-                path_figure_handles(i_comparison, i_path) = new_figure;
-                path_axes_handles(i_comparison, i_path) = new_axes;
-                comparison_path_to_axes_index_map(i_comparison) = i_comparison;
-                    
-                % determine title
-                title_string = paths_to_plot{i_path, 2};
-                filename_string = paths_to_plot{i_path, 6};
-                for i_label = 1 : length(study_settings.get('condition_labels'))
-                    if (i_label ~= plot_settings.get('comparison_to_make')) ...
-                        && (i_label ~= 1) ...
-                        && (i_label ~= 3) ...
-                        && (i_label ~= 5) ...
-                        && (i_label ~= 6) ...
-                        && (i_label ~= 7)
-                        this_condition_label = strrep(conditions_to_plot{comparison_indices{i_comparison}(1), i_label}, '_', ' ');
-                        if i_label ~= plot_settings.get('comparison_to_make')
-                            title_string = [title_string ' - ' this_condition_label]; %#ok<AGROW>
-                            filename_string = [filename_string '_' this_condition_label];
+    % path plots - removed for now by if false, check back later
+    if false
+        if strcmp(plot_mode, 'detailed') || strcmp(plot_mode, 'overview')
+            % make one figure per comparison and variable
+            path_figure_handles = zeros(number_of_comparisons, number_of_variables_to_plot);
+            path_axes_handles = zeros(number_of_comparisons, number_of_variables_to_plot);
+            for i_path = 1 : number_of_paths_to_plot
+                for i_comparison = 1 : number_of_comparisons
+                    % make figure and axes
+                    new_figure = figure; new_axes = axes; hold on;
+
+                    % store handles and determine abscissa data
+                    path_figure_handles(i_comparison, i_path) = new_figure;
+                    path_axes_handles(i_comparison, i_path) = new_axes;
+                    comparison_path_to_axes_index_map(i_comparison) = i_comparison;
+
+                    % determine title
+                    title_string = paths_to_plot{i_path, 2};
+                    filename_string = paths_to_plot{i_path, 6};
+                    for i_label = 1 : length(study_settings.get('condition_labels'))
+                        if (i_label ~= plot_settings.get('comparison_to_make')) ...
+                            && (i_label ~= 1) ...
+                            && (i_label ~= 3) ...
+                            && (i_label ~= 5) ...
+                            && (i_label ~= 6) ...
+                            && (i_label ~= 7)
+                            this_condition_label = strrep(conditions_to_plot{comparison_indices{i_comparison}(1), i_label}, '_', ' ');
+                            if i_label ~= plot_settings.get('comparison_to_make')
+                                title_string = [title_string ' - ' this_condition_label]; %#ok<AGROW>
+                                filename_string = [filename_string '_' this_condition_label];
+                            end
                         end
                     end
+                    stance_label = conditions_to_plot{comparison_indices{i_comparison}(1), 1};
+                    if strcmp(stance_label, 'STANCE_RIGHT')
+                        title_string = [title_string ' - first step stance leg RIGHT'];
+                        filename_string = [filename_string '_stanceR'];
+                    end
+                    if strcmp(stance_label, 'STANCE_LEFT')
+                        title_string = [title_string ' - first step stance leg LEFT'];
+                        filename_string = [filename_string '_stanceL'];
+                    end
+                    title(title_string); set(gca, 'Fontsize', 12)
+                    set(gcf, 'UserData', filename_string)
+
+
                 end
-                stance_label = conditions_to_plot{comparison_indices{i_comparison}(1), 1};
-                if strcmp(stance_label, 'STANCE_RIGHT')
-                    title_string = [title_string ' - first step stance leg RIGHT'];
-                    filename_string = [filename_string '_stanceR'];
-                end
-                if strcmp(stance_label, 'STANCE_LEFT')
-                    title_string = [title_string ' - first step stance leg LEFT'];
-                    filename_string = [filename_string '_stanceL'];
-                end
-                title(title_string); set(gca, 'Fontsize', 12)
-                set(gcf, 'UserData', filename_string)
-                
-                
             end
+
+
         end
-        
-        
     end
     
     %% plot data
@@ -861,21 +940,12 @@ function plotResults(varargin)
             % plot control
 %             if plot_settings.get('plot_control') && ~isempty(conditions_control) && ~plot_settings.get('plot_response')
 %             if plot_settings.get('plot_control') && ~isempty(conditions_control) && strcmp(data_mode, 'default')
-            if plot_settings.get('plot_control') && ~isempty(conditions_control)
+            if plot_settings.get('plot_control') % && ~isempty(conditions_control) <-- removed for now, but I need something here again to deal with situations where we do not have a control
                 % determine which control condition applies here
                 representant_condition_index = conditions_this_comparison(1);
-                applicable_control_condition_index = findApplicableControlConditionIndex(conditions_to_plot(representant_condition_index, :), conditions_control);
-                applicable_control_condition_labels = conditions_control(applicable_control_condition_index, :);
+                control_condition = condition_combinations_control(representant_condition_index, :);
                 
-                % extract data for control condition
-                stance_foot_indicator = strcmp(condition_stance_foot_list_all, applicable_control_condition_labels{1});
-                perturbation_indicator = strcmp(condition_perturbation_list_all, applicable_control_condition_labels{2});
-                delay_indicator = strcmp(condition_delay_list_all, applicable_control_condition_labels{3});
-                index_indicator = strcmp(condition_index_list_all, applicable_control_condition_labels{4});
-                experimental_indicator = strcmp(condition_experimental_list_all, applicable_control_condition_labels{5});
-                stimulus_indicator = strcmp(condition_stimulus_list_all, applicable_control_condition_labels{6});
-                day_indicator = strcmp(condition_day_list_all, applicable_control_condition_labels{7});
-                this_condition_indicator = stance_foot_indicator & perturbation_indicator & delay_indicator & index_indicator & experimental_indicator & stimulus_indicator & day_indicator;
+                this_condition_indicator = getConditionIndicator(control_condition, condition_combination_labels, condition_data_all, condition_labels);
                 data_to_plot_this_condition = data_to_plot(:, this_condition_indicator);
                 origin_indices = find(this_condition_indicator);
                 
@@ -979,18 +1049,10 @@ function plotResults(varargin)
             
             % plot stimulus
             for i_condition = 1 : length(conditions_this_comparison)
-                label_string = strrep(conditions_to_plot{comparison_indices{i_comparison}(i_condition), plot_settings.get('comparison_to_make')}, '_', ' ');
-                
-                % find correct condition indicator
-                condition_identifier = conditions_to_plot(conditions_this_comparison(i_condition), :);
-                stance_foot_indicator = strcmp(condition_stance_foot_list_all, condition_identifier{1});
-                perturbation_indicator = strcmp(condition_perturbation_list_all, condition_identifier{2});
-                delay_indicator = strcmp(condition_delay_list_all, condition_identifier{3});
-                index_indicator = strcmp(condition_index_list_all, condition_identifier{4});
-                experimental_indicator = strcmp(condition_experimental_list_all, condition_identifier{5});
-                stimulus_indicator = strcmp(condition_stimulus_list_all, condition_identifier{6});
-                day_indicator = strcmp(condition_day_list_all, condition_identifier{7});
-                this_condition_indicator = stance_foot_indicator & perturbation_indicator & delay_indicator & index_indicator & experimental_indicator & stimulus_indicator & day_indicator;
+                this_condition_index = conditions_this_comparison(i_condition);
+                this_condition = condition_combinations_stimulus(this_condition_index, :);
+                label_string = strrep(this_condition{strcmp(condition_combination_labels, condition_to_compare)}, '_', ' ');
+                this_condition_indicator = getConditionIndicator(this_condition, condition_combination_labels, condition_data_all, condition_labels);
                 data_to_plot_this_condition = data_to_plot(:, this_condition_indicator);
 %                 origin_trial_list_this_condition = origin_trial_list_all(this_condition_indicator);
                 origin_indices = find(this_condition_indicator);
@@ -1078,9 +1140,9 @@ function plotResults(varargin)
                         set(plot_handles.edge, 'HandleVisibility', 'off');
                         set(plot_handles.patch, 'HandleVisibility', 'off');
                         set(plot_handles.mainLine, 'DisplayName', label_string);
-                        if ~strcmp(condition_identifier{4}, 'ONE')
-                            set(plot_handles.mainLine, 'HandleVisibility', 'off');
-                        end
+%                         if ~strcmp(condition_identifier{4}, 'ONE')
+%                             set(plot_handles.mainLine, 'HandleVisibility', 'off');
+%                         end
                     end
                 end
             end
@@ -1096,7 +1158,8 @@ function plotResults(varargin)
             end
         end
     end
-     for i_path = 1 : number_of_paths_to_plot
+    if false % removed for now, look back later
+%      for i_path = 1 : number_of_paths_to_plot
 %         if plot_settings.get('plot_response')
 %             data_to_plot_x = path_response_data_all{i_path, 1};
 %             data_to_plot_y = path_response_data_all{i_path, 2};
