@@ -24,9 +24,9 @@ function plotResults(varargin)
     parser = inputParser;
     parser.KeepUnmatched = true;
     addParameter(parser, 'subjects', [])
-    addParameter(parser, 'dictate_axes', false)
+    addParameter(parser, 'dictate_axes', true)
     addParameter(parser, 'show_legend', false)
-    addParameter(parser, 'save', false)
+    addParameter(parser, 'save', true)
     addParameter(parser, 'format', 'epsc')
     addParameter(parser, 'settings', 'plotSettings.txt')
     addParameter(parser, 'spread_method', 'cinv')
@@ -124,6 +124,9 @@ function plotResults(varargin)
             this_variable_name = variables_to_plot{i_variable, 1};
             index_in_saved_data = find(strcmp(names_session, this_variable_name), 1, 'first');
             this_variable_data = data_session{index_in_saved_data};
+            if plot_settings.get('convert_to_mm') && strcmp(this_variable_name,'cop_from_com_x') || strcmp(this_variable_name, 'step_placement_x')
+                this_variable_data = this_variable_data * 1000;
+            end
             
             % store
             data_all{i_variable} = [data_all{i_variable} this_variable_data];
@@ -302,8 +305,8 @@ function plotResults(varargin)
     [comparison_indices, conditions_per_comparison_max] = determineComparisons_new(condition_combinations_stimulus, condition_combination_labels, plot_settings);
     number_of_comparisons = length(comparison_indices);
     % implement this later
-%     episode_indices = determineEpisodes(study_settings, plot_settings, comparison_indices);
-%     number_of_episodes = length(episode_indices);
+    episode_indices = determineEpisodes(study_settings, plot_settings, comparison_indices);
+    number_of_episodes = length(episode_indices);
     
     %% create figures and determine abscissae for each comparison
     comparison_variable_to_axes_index_map = zeros(number_of_comparisons, 1);
@@ -312,8 +315,8 @@ function plotResults(varargin)
     
     plot_mode = plot_settings.get('plot_mode');
     variables_to_plot = plot_settings.get('variables_to_plot');
-%     conditions_to_plot = plot_settings.get('conditions_to_plot');    
-%     conditions_control = study_settings.get('conditions_control');
+    conditions_to_plot = plot_settings.get('conditions_to_plot');    
+    conditions_control = study_settings.get('conditions_control');
     
     % time plots
     if strcmp(plot_mode, 'detailed') || strcmp(plot_mode, 'overview')
@@ -975,6 +978,16 @@ function plotResults(varargin)
                                     show_outliers ...
                                   )
                             end
+                            if strcmp(plot_settings.get('discrete_data_plot_style'), 'bar')
+                               singleBarPlot ...
+                                   ( ...
+                                     target_axes_handle, ...
+                                     target_abscissa{1}, ...
+                                     data_to_plot_this_condition, ...
+                                     plot_settings.get('color_control'), ...
+                                     'CONTROL' ...
+                                   ) 
+                            end
                             if strcmp(plot_settings.get('discrete_data_plot_style'), 'violin')
                                 singleViolinPlot ...
                                   ( ...
@@ -1080,6 +1093,16 @@ function plotResults(varargin)
                                     colors_comparison(i_condition, :), ...
                                     label_string, ...
                                     show_outliers ...
+                                  )
+                            end
+                            if strcmp(plot_settings.get('discrete_data_plot_style'), 'bar')
+                                singleBarPlot ...
+                                  ( ...
+                                    target_axes_handle, ...
+                                    target_abscissa{2}(i_condition), ...
+                                    data_to_plot_this_condition, ...
+                                    colors_comparison(i_condition, :), ...
+                                    label_string ...
                                   )
                             end
                             if strcmp(plot_settings.get('discrete_data_plot_style'), 'violin')
@@ -1350,7 +1373,7 @@ function plotResults(varargin)
                     % single stance patch
                     single_stance_patch_color = [1 1 1] * 0.8;
                     if step_stance_foot(i_step) == 0
-                        single_stance_patch_color = plot_settings.get('stance_both_color');
+                        single_stance_patch_color = plot_settings.get('stance_double_color');
                     end
                     if step_stance_foot(i_step) == 1
                         single_stance_patch_color = plot_settings.get('stance_left_color');
