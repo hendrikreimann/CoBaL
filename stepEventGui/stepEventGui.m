@@ -73,10 +73,12 @@ function stepEventGui(varargin)
         headers = [headers trial_data.com_labels(1, :)];
     end
     
+    % stick figure
     controller.scene_figure = stickFigure(positions, headers, scene_bound);
     controller.scene_figure.setColors('extended plug-in gait');
     controller.scene_figure.addLines('extended plug-in gait');
-
+    
+    % kinematic tree figure
     if trial_data.joint_angle_data_available
         positions = trial_data.marker_positions(1, :);
         headers = trial_data.marker_labels;
@@ -84,9 +86,9 @@ function stepEventGui(varargin)
             positions = [positions trial_data.joint_center_positions(1, :)];
             headers = [headers trial_data.joint_center_labels(1, :)];
         end
-        controller.kinematic_tree_controller = KinematicTreeController(kinematic_tree, scene_bound, 'none', positions);
+        [controller.kinematic_tree_stick_figure, controller.kinematic_tree_controller] = KinematicTreeController(kinematic_tree, scene_bound, 'none', positions);
         % link perspectives of the stick figures
-        Link = linkprop([controller.kinematic_tree_controller.sceneAxes controller.scene_figure.scene_axes], {'CameraUpVector', 'CameraPosition', 'CameraTarget', 'CameraViewAngle'}); 
+        Link = linkprop([controller.kinematic_tree_stick_figure.sceneAxes controller.scene_figure.scene_axes], {'CameraUpVector', 'CameraPosition', 'CameraTarget', 'CameraViewAngle'}); 
         setappdata(gcf, 'StoreTheLink', Link);
     end
     

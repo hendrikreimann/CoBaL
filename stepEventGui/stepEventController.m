@@ -46,6 +46,7 @@ classdef stepEventController < handle
         selected_time_edit;
         
         scene_figure = [];
+        kinematic_tree_stick_figure = [];
         kinematic_tree_controller = [];
         
         color_selected = [1 0.5 0];
@@ -162,11 +163,11 @@ classdef stepEventController < handle
             
             % update kinematic chain stick figure
             if ~isempty(this.kinematic_tree_controller)
-                this.kinematic_tree_controller.kinematicTree.jointAngles = joint_angle_data';
-                this.kinematic_tree_controller.kinematicTree.updateConfiguration();
-                this.kinematic_tree_controller.update();
+                this.kinematic_tree_stick_figure.kinematicTree.jointAngles = joint_angle_data';
+                this.kinematic_tree_stick_figure.kinematicTree.updateConfiguration();
+                this.kinematic_tree_stick_figure.update();
                 
-                this.kinematic_tree_controller.updateRecordedMarkerPlots([marker_data joint_center_data]);
+                this.kinematic_tree_stick_figure.updateRecordedMarkerPlots([marker_data joint_center_data]);
             end
             
             this.selected_time_edit.String = num2str(this.trial_data.selected_time);
@@ -292,8 +293,8 @@ classdef stepEventController < handle
             
             % get figure settings from kinematic tree figure
             kinematic_tree_figure_setting = struct();
-            if ~isempty(this.kinematic_tree_controller)
-                kinematic_tree_figure_setting.position = this.kinematic_tree_controller.sceneFigure.Position; %#ok<STRNU>
+            if ~isempty(this.kinematic_tree_stick_figure)
+                kinematic_tree_figure_setting.position = this.kinematic_tree_stick_figure.sceneFigure.Position; %#ok<STRNU>
             end
             
             % save settings to file
@@ -310,8 +311,8 @@ classdef stepEventController < handle
                 % apply for controller and stick figure
                 this.control_figure.Position = control_figure_setting.position;
                 this.scene_figure.scene_figure.Position = scene_figure_setting.position;
-                if ~isempty(this.kinematic_tree_controller) && any(strcmp(fieldnames(kinematic_tree_figure_setting), 'position'))
-                    this.kinematic_tree_controller.sceneFigure.Position = kinematic_tree_figure_setting.position;
+                if ~isempty(this.kinematic_tree_stick_figure) && any(strcmp(fieldnames(kinematic_tree_figure_setting), 'position'))
+                    this.kinematic_tree_stick_figure.sceneFigure.Position = kinematic_tree_figure_setting.position;
                 end
                 
                 % apply for trajectory figure
@@ -576,6 +577,20 @@ classdef stepEventController < handle
                     if ~strcmp(exception.identifier, 'MATLAB:close:InvalidFigureHandle')
                         rethrow(exception)
                     end
+                end
+            end
+            try
+                close(this.kinematic_tree_stick_figure.sceneFigure);
+            catch exception
+                if ~strcmp(exception.identifier, 'MATLAB:close:InvalidFigureHandle')
+                    rethrow(exception)
+                end
+            end
+            try
+                close(this.kinematic_tree_controller);
+            catch exception
+                if ~strcmp(exception.identifier, 'MATLAB:close:InvalidFigureHandle')
+                    rethrow(exception)
                 end
             end
             close(this.control_figure);
