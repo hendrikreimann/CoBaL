@@ -42,15 +42,16 @@ function importQTM(varargin)
     qtm_emg_scale = 1;
     
     % create folders if necessary
+    if ~exist('analysis', 'dir')
+        mkdir('analysis')
+    end
     if ~exist('raw', 'dir')
         mkdir('raw')
     end
     if ~exist('processed', 'dir')
         mkdir('processed')
     end
-    if ~exist('analysis', 'dir')
-        mkdir('analysis')
-    end
+   
     current_path = pwd;
     path_split = strsplit(current_path, filesep);
     subject_code = path_split{end};
@@ -77,6 +78,16 @@ function importQTM(varargin)
                 % file name stuff
                 data_file_name = file_name_list{i_file};
                 [date, subject_id, trial_type, trial_number, file_type] = getFileParameters(data_file_name);
+                % create file name for other labview file in order to check
+                % time trajectory
+                if strcmp(file_type, 'protocolData')
+                   time_comparison_file_type = 'PLCData';
+                   time_comparison_file_name = makeFileName(date, subject_id, trial_type, trial_number, time_comparison_file_type);
+                elseif strcmp(file_type, 'PLCData')
+                   time_comparison_file_type = 'protocolData';
+                   time_comparison_file_name = makeFileName(date, subject_id, trial_type, trial_number, time_comparison_file_type);
+                end
+                
             if isempty(file_type)
                 if data_file_name(end-2) == 'm';
                     file_type = 'qualisysData';
@@ -95,10 +106,13 @@ function importQTM(varargin)
             %% labview
             else
                 % assume this is labview data
-                [imported_data, delimiter, nheaderlines] = importdata([source_dir filesep data_file_name], ',', 3);
+                [imported_data, delimiter, nheaderlines] = importdata([source_dir filesep data_file_name], ',', 2);
+                [time_comparison_imported_data, delimiter, nheaderlines] = importdata([source_dir filesep time_comparison_file_name '.csv'], ',', 2);
+                
                 labview_trajectories = imported_data.data;     
-                 
-                                    % extract headers
+                time_comparison_labview_trajectories = time_comparison_imported_data.data;
+                
+                    % extract headers
                     column_name_string = imported_data.textdata{1, 1};
                     labview_header = strsplit(column_name_string, ',');
                     number_of_data_columns = size(imported_data.textdata, 2);
@@ -112,21 +126,21 @@ function importQTM(varargin)
                         eval(extract_string);
                         variables_to_save_list = [variables_to_save_list; variable_name];
                     end
-
-                    % electrodes were inverted for subject STD (red was left, should be right), so correct this
-                    if strcmp(subject_code, 'STD')
-                        figure; hold on;
-                        plot(variables_to_save.GVS_out_trajectory);
-                        variables_to_save.GVS_out_trajectory = -variables_to_save.GVS_out_trajectory;
-                        plot(variables_to_save.GVS_out_trajectory);
-                    end
-
+                                        
                     % take special care of time, transform to seconds and rename according to file type
                     if isrow(variables_to_save.time_trajectory)
                         variables_to_save.time_trajectory = variables_to_save.time_trajectory';
                     end
                     eval(['variables_to_save.time = variables_to_save.time_trajectory * milliseconds_to_seconds;']);
-                    variables_to_save.time = variables_to_save.time - variables_to_save.time(1);
+                    
+                    % find out which time trajectory starts earlier..
+                    labview_loop_timing_difference = variables_to_save.time_trajectory(1) - time_comparison_labview_trajectories(1,1);
+                    if labview_loop_timing_difference <= 0
+                        variables_to_save.time = variables_to_save.time - variables_to_save.time(1);
+                    elseif labview_loop_timing_difference >= 0
+                        variables_to_save.time = variables_to_save.time - variables_to_save.time(1) + labview_loop_timing_difference/milliseconds_to_seconds;
+                    end
+                    
                     variables_to_save = rmfield(variables_to_save, 'time_trajectory');
                     variables_to_save_list(strcmp(variables_to_save_list, 'time_trajectory')) = [];
 
