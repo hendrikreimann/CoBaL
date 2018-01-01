@@ -69,7 +69,7 @@ function findStepEvents(varargin)
                 left_fz_trajectory = left_foot_wrench_world(:, 3);
                 right_fz_trajectory = right_foot_wrench_world(:, 3);
             end
-            
+%             marker_trajectories_raw
             % extract data
             LHEE_trajectory = extractMarkerTrajectories(marker_trajectories, marker_labels, 'LHEE');
             LHEE_z_trajectory = LHEE_trajectory(:, 3);
@@ -325,70 +325,70 @@ function findStepEvents(varargin)
             variables_to_save.right_fullstance_times = right_fullstance_times;
 
             %% find events for angles
-            % TODO: change conditionals to use a WalkingDataCustodian
-            variables_to_analyze = study_settings.get('variables_to_analyze');
-            if any(strcmp(variables_to_analyze(:, 1), 'left_arm_phase')) || any(strcmp(variables_to_analyze(:, 1), 'left_arm_right_leg_relative_phase'))
-                % calculate vectors
-                left_wrist_center_trajectory = (LWRA_trajectory + LWRB_trajectory) * 0.5;
-                left_arm_vector_trajectory = LELB_trajectory - left_wrist_center_trajectory;
-
-                % calculate angles
-                larm_angle = rad2deg(atan2(-left_arm_vector_trajectory(:, 2), left_arm_vector_trajectory(:, 3)));
-
-                % find negative peaks
-                [~, left_arm_swing_onset_indices] = findpeaks(-larm_angle, 'MinPeakProminence', subject_settings.get('left_armswing_peak_prominence_threshold'), 'MinPeakDistance', subject_settings.get('left_armswing_peak_distance_threshold') * sampling_rate_marker);
-                left_arm_swing_onset_times = time_marker(left_arm_swing_onset_indices);
-
-                % add new variables to be saved
-                variables_to_save.left_arm_swing_onset_times = left_arm_swing_onset_times;
-            end
-            if any(strcmp(variables_to_analyze(:, 1), 'right_arm_phase')) || any(strcmp(variables_to_analyze(:, 1), 'right_arm_left_leg_relative_phase'))
-                % calculate vectors
-                right_wrist_center_trajectory = (RWRA_trajectory + RWRB_trajectory) * 0.5;
-                right_arm_vector_trajectory = RELB_trajectory - right_wrist_center_trajectory;
-                
-                % calculate angles
-                rarm_angle = rad2deg(atan2(-right_arm_vector_trajectory(:, 2), right_arm_vector_trajectory(:, 3)));
-
-                % find negative peaks
-                [~, right_arm_swing_onset_indices] = findpeaks(-rarm_angle, 'MinPeakProminence', subject_settings.get('right_armswing_peak_prominence_threshold'), 'MinPeakDistance', subject_settings.get('right_armswing_peak_distance_threshold') * sampling_rate_marker);
-                right_arm_swing_onset_times = time_marker(right_arm_swing_onset_indices);
-
-                % add new variables to be saved
-                variables_to_save.right_arm_swing_onset_times = right_arm_swing_onset_times;
-            end
-            if any(strcmp(variables_to_analyze(:, 1), 'left_leg_phase')) || any(strcmp(variables_to_analyze(:, 1), 'left_arm_right_leg_relative_phase'))
-                % calculate vectors
-                left_pelvis_center_trajectory = (LPSI_trajectory + LASI_trajectory) * 0.5;
-                left_leg_vector_trajectory = left_pelvis_center_trajectory - LANK_trajectory;
-                
-                % calculate angles
-                lleg_angle = rad2deg(atan2(-left_leg_vector_trajectory(:, 2), left_leg_vector_trajectory(:, 3)));
-
-                % find negative peaks
-                [~, left_leg_swing_onset_indices] = findpeaks(-lleg_angle, 'MinPeakProminence', subject_settings.get('left_legswing_peak_prominence_threshold'), 'MinPeakDistance', subject_settings.get('left_legswing_peak_distance_threshold') * sampling_rate_marker);
-                left_leg_swing_onset_times = time_marker(left_leg_swing_onset_indices);
-
-                % add new variables to be saved
-                variables_to_save.left_leg_swing_onset_times = left_leg_swing_onset_times;
-            end
-            if any(strcmp(variables_to_analyze(:, 1), 'right_leg_phase')) || any(strcmp(variables_to_analyze(:, 1), 'right_arm_left_leg_relative_phase'))
-                % calculate vectors
-                right_pelvis_center_trajectory = (RPSI_trajectory + RASI_trajectory) * 0.5;
-                right_leg_vector_trajectory = right_pelvis_center_trajectory - RANK_trajectory;
-                
-                % calculate angles
-                rleg_angle = rad2deg(atan2(-right_leg_vector_trajectory(:, 2), right_leg_vector_trajectory(:, 3)));
-
-                % find negative peaks
-                [~, right_leg_swing_onset_indices] = findpeaks(-rleg_angle, 'MinPeakProminence', subject_settings.get('right_legswing_peak_prominence_threshold'), 'MinPeakDistance', subject_settings.get('right_legswing_peak_distance_threshold') * sampling_rate_marker);
-                right_leg_swing_onset_times = time_marker(right_leg_swing_onset_indices);
-
-                % add new variables to be saved
-                variables_to_save.right_leg_swing_onset_times = right_leg_swing_onset_times;
-            end
-            
-
+%             % TODO: change conditionals to use a WalkingDataCustodian
+%             variables_to_analyze = study_settings.get('variables_to_analyze');
+%             if any(strcmp(variables_to_analyze(:, 1), 'left_arm_phase')) || any(strcmp(variables_to_analyze(:, 1), 'left_arm_right_leg_relative_phase'))
+%                 % calculate vectors
+%                 left_wrist_center_trajectory = (LWRA_trajectory + LWRB_trajectory) * 0.5;
+%                 left_arm_vector_trajectory = LELB_trajectory - left_wrist_center_trajectory;
+% 
+%                 % calculate angles
+%                 larm_angle = rad2deg(atan2(-left_arm_vector_trajectory(:, 2), left_arm_vector_trajectory(:, 3)));
+% 
+%                 % find negative peaks
+%                 [~, left_arm_swing_onset_indices] = findpeaks(-larm_angle, 'MinPeakProminence', subject_settings.get('left_armswing_peak_prominence_threshold'), 'MinPeakDistance', subject_settings.get('left_armswing_peak_distance_threshold') * sampling_rate_marker);
+%                 left_arm_swing_onset_times = time_marker(left_arm_swing_onset_indices);
+% 
+%                 % add new variables to be saved
+%                 variables_to_save.left_arm_swing_onset_times = left_arm_swing_onset_times;
+%             end
+%             if any(strcmp(variables_to_analyze(:, 1), 'right_arm_phase')) || any(strcmp(variables_to_analyze(:, 1), 'right_arm_left_leg_relative_phase'))
+%                 % calculate vectors
+%                 right_wrist_center_trajectory = (RWRA_trajectory + RWRB_trajectory) * 0.5;
+%                 right_arm_vector_trajectory = RELB_trajectory - right_wrist_center_trajectory;
+%                 
+%                 % calculate angles
+%                 rarm_angle = rad2deg(atan2(-right_arm_vector_trajectory(:, 2), right_arm_vector_trajectory(:, 3)));
+% 
+%                 % find negative peaks
+%                 [~, right_arm_swing_onset_indices] = findpeaks(-rarm_angle, 'MinPeakProminence', subject_settings.get('right_armswing_peak_prominence_threshold'), 'MinPeakDistance', subject_settings.get('right_armswing_peak_distance_threshold') * sampling_rate_marker);
+%                 right_arm_swing_onset_times = time_marker(right_arm_swing_onset_indices);
+% 
+%                 % add new variables to be saved
+%                 variables_to_save.right_arm_swing_onset_times = right_arm_swing_onset_times;
+%             end
+%             if any(strcmp(variables_to_analyze(:, 1), 'left_leg_phase')) || any(strcmp(variables_to_analyze(:, 1), 'left_arm_right_leg_relative_phase'))
+%                 % calculate vectors
+%                 left_pelvis_center_trajectory = (LPSI_trajectory + LASI_trajectory) * 0.5;
+%                 left_leg_vector_trajectory = left_pelvis_center_trajectory - LANK_trajectory;
+%                 
+%                 % calculate angles
+%                 lleg_angle = rad2deg(atan2(-left_leg_vector_trajectory(:, 2), left_leg_vector_trajectory(:, 3)));
+% 
+%                 % find negative peaks
+%                 [~, left_leg_swing_onset_indices] = findpeaks(-lleg_angle, 'MinPeakProminence', subject_settings.get('left_legswing_peak_prominence_threshold'), 'MinPeakDistance', subject_settings.get('left_legswing_peak_distance_threshold') * sampling_rate_marker);
+%                 left_leg_swing_onset_times = time_marker(left_leg_swing_onset_indices);
+% 
+%                 % add new variables to be saved
+%                 variables_to_save.left_leg_swing_onset_times = left_leg_swing_onset_times;
+%             end
+%             if any(strcmp(variables_to_analyze(:, 1), 'right_leg_phase')) || any(strcmp(variables_to_analyze(:, 1), 'right_arm_left_leg_relative_phase'))
+%                 % calculate vectors
+%                 right_pelvis_center_trajectory = (RPSI_trajectory + RASI_trajectory) * 0.5;
+%                 right_leg_vector_trajectory = right_pelvis_center_trajectory - RANK_trajectory;
+%                 
+%                 % calculate angles
+%                 rleg_angle = rad2deg(atan2(-right_leg_vector_trajectory(:, 2), right_leg_vector_trajectory(:, 3)));
+% 
+%                 % find negative peaks
+%                 [~, right_leg_swing_onset_indices] = findpeaks(-rleg_angle, 'MinPeakProminence', subject_settings.get('right_legswing_peak_prominence_threshold'), 'MinPeakDistance', subject_settings.get('right_legswing_peak_distance_threshold') * sampling_rate_marker);
+%                 right_leg_swing_onset_times = time_marker(right_leg_swing_onset_indices);
+% 
+%                 % add new variables to be saved
+%                 variables_to_save.right_leg_swing_onset_times = right_leg_swing_onset_times;
+%             end
+%             
+% 
 
             
             % normalize

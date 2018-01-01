@@ -192,7 +192,7 @@ function plotResults(varargin)
     
     % make control conditions cell
     condition_combinations_control = {};
-    for i_combination = 1 : length(condition_combinations_stimulus)
+    for i_combination = 1 : size(condition_combinations_stimulus,1)
         this_combination_stimulus = condition_combinations_stimulus(i_combination, :);
         this_combination_control = cell(size(this_combination_stimulus));
         for i_label = 1 : length(condition_combination_labels)

@@ -248,6 +248,23 @@ function preprocessRawData(varargin)
 %                     left_forceplate_cop_world = (eye(2, 4) * Acl_to_world_trafo * [left_forceplate_cop_Acl ones(size(left_forceplate_cop_Acl, 1), 1)]')';
                     right_forceplate_wrench_world = (Acr_to_world_adjoint' * right_forceplate_wrench_Acr')';
 %                     right_forceplate_cop_world = (eye(2, 4) * Acr_to_world_trafo * [right_forceplate_cop_Acr ones(size(right_forceplate_cop_Acr, 1), 1)]')';
+                elseif strcmp(data_source, 'qtm')
+                    % transform forceplate data to CoBaL world frame A_cw
+                    left_forceplate_wrench_Acl = [fxl_trajectory fyl_trajectory fzl_trajectory mxl_trajectory myl_trajectory mzl_trajectory];
+                    right_forceplate_wrench_Acr = [fxr_trajectory fyr_trajectory fzr_trajectory mxr_trajectory myr_trajectory mzr_trajectory];
+                    % define forceplate rotation and translation
+                    Acr_to_world_rotation = [-1 0 0; 0 1 0; 0 0 -1];
+                    Acr_to_world_translation = [0.5588; 0; 0]; % origin of Acw in Acr frame
+                    Acr_to_world_trafo = [Acr_to_world_rotation Acr_to_world_translation; 0 0 0 1];
+                    Acl_to_world_rotation = [-1 0 0; 0 1 0; 0 0 -1];
+                    Acl_to_world_translation = [-0.5588; 0; 0]; % origin of Acw in Acl frame
+                    Acl_to_world_trafo = [Acl_to_world_rotation Acl_to_world_translation; 0 0 0 1];
+                    Acr_to_world_adjoint = rigidToAdjointTransformation(Acr_to_world_trafo);
+                    Acl_to_world_adjoint = rigidToAdjointTransformation(Acl_to_world_trafo);
+                    
+                    % transform
+                    left_forceplate_wrench_world = (Acl_to_world_adjoint' * left_forceplate_wrench_Acl')';
+                    right_forceplate_wrench_world = (Acr_to_world_adjoint' * right_forceplate_wrench_Acr')';
                 elseif strcmp(data_source, 'neurocom')
                     % transform forceplate data to VEPO world frame A_vw
                     left_forceplate_wrench_Anl = [fxl_trajectory fyl_trajectory fzl_trajectory mxl_trajectory myl_trajectory mzl_trajectory];
@@ -323,6 +340,12 @@ function preprocessRawData(varargin)
                 
                 % define wrench and CoP trajectories for feet instead of forceplate sides
                 if strcmp(data_source, 'nexus')
+                    left_foot_cop_world = left_forceplate_cop_world;
+                    left_foot_wrench_world = left_forceplate_wrench_world;
+                    right_foot_cop_world = right_forceplate_cop_world;
+                    right_foot_wrench_world = right_forceplate_wrench_world;
+                end
+                if strcmp(data_source, 'qtm')
                     left_foot_cop_world = left_forceplate_cop_world;
                     left_foot_wrench_world = left_forceplate_wrench_world;
                     right_foot_cop_world = right_forceplate_cop_world;
@@ -422,7 +445,7 @@ function preprocessRawData(varargin)
                     marker_trajectories = marker_trajectories_raw;
                 end
                 
-                
+                marker_trajectories = marker_trajectories';
                 
                 % save
                 save_folder = 'processed';

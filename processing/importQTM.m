@@ -112,11 +112,19 @@ for i_source = 1 : length(sources)
                    marker_labels = qtm_data.Trajectories.Labeled.Labels;
                    sampling_rate_mocap = qtm_data.FrameRate;
                    
-                   marker_trajectories_raw = qtm_data.Trajectories.Labeled.Data(...
+                   tempMarkers = qtm_data.Trajectories.Labeled.Data(...
                       :,...
                       1:3,...
                       :) * millimeter_to_meter;
                   
+                    marker_count = 1;
+                    marker_trajectories_raw = [];
+                    for i_marker = 1: size(tempMarkers,1)
+                        this_marker = tempMarkers(i_marker,:,:);
+                        marker_trajectories_raw(marker_count:marker_count+2,:) = reshape(this_marker, size(this_marker,2), size(this_marker,3)) * millimeter_to_meter; 
+                        marker_count = marker_count + 3;
+                    end
+
                   time_mocap = (1 : length(marker_trajectories_raw)) / sampling_rate_mocap;
                    if isrow(time_mocap)
                        time_mocap = time_mocap';
@@ -249,7 +257,6 @@ for i_source = 1 : length(sources)
                             1:3,...
                             start_indices_mocap(i_trial_this_qtm_file):end_indices_mocap(i_trial_this_qtm_file));
                      
-
                         data_type = 'markers';
                         % deal with marker data
                         sampling_rate_mocap = qtm_data.FrameRate;
@@ -259,10 +266,14 @@ for i_source = 1 : length(sources)
                         if isrow(time_mocap)
                            time_mocap = time_mocap';
                         end
-                        marker_trajectories_raw =  reshape(tempMarkers,...
-                            size(tempMarkers,1)* size(tempMarkers,2),...
-                            number_of_frames) ...
-                            * millimeter_to_meter; 
+                        
+                        marker_count = 1;
+                        marker_trajectories_raw = [];
+                        for i_marker = 1: size(tempMarkers,1)
+                            this_marker = tempMarkers(i_marker,:,:);
+                            marker_trajectories_raw(marker_count:marker_count+2,:) = reshape(this_marker, size(this_marker,2), size(this_marker,3)) * millimeter_to_meter; 
+                            marker_count = marker_count + 3;
+                        end
                     
                         % save
                         save_folder = 'raw';
