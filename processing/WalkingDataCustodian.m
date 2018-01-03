@@ -1854,8 +1854,14 @@ classdef WalkingDataCustodian < handle
                     this.time_data.left_pero_lng = this.time_data.emg_trajectories;
                 end
                 if strcmp(variable_name, 'left_tfl')
-                    this.basic_variable_data.left_tfl = this.basic_variable_data.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'left_tfl'));
-                    this.time_data.left_tfl = this.time_data.emg_trajectories;
+                    if any(strcmp(this.basic_variable_labels.emg_trajectories, 'left_tfl'))
+                        this.basic_variable_data.left_tfl = this.basic_variable_data.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'left_tfl'));
+                        this.time_data.left_tfl = this.time_data.emg_trajectories;
+                    else
+                        this.time_data.left_tfl = this.time_data.emg_trajectories;
+                        this.basic_variable_data.left_tfl = this.time_data.emg_trajectories * NaN;
+                        disp(['Warning: variable ''' variable_name ''' not available, used NaN as data']);
+                    end
                 end
                 if strcmp(variable_name, 'right_glut_med')
                     this.basic_variable_data.right_glut_med = this.basic_variable_data.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'right_glut_med'));
@@ -1878,8 +1884,14 @@ classdef WalkingDataCustodian < handle
                     this.time_data.right_pero_lng = this.time_data.emg_trajectories;
                 end
                 if strcmp(variable_name, 'right_tfl')
-                    this.basic_variable_data.right_tfl = this.basic_variable_data.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'right_tfl'));
-                    this.time_data.right_tfl = this.time_data.emg_trajectories;
+                    if any(strcmp(this.basic_variable_labels.emg_trajectories, 'left_tfl'))
+                        this.basic_variable_data.right_tfl = this.basic_variable_data.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'right_tfl'));
+                        this.time_data.right_tfl = this.time_data.emg_trajectories;
+                    else
+                        this.time_data.right_tfl = this.time_data.emg_trajectories;
+                        this.basic_variable_data.right_tfl = this.time_data.emg_trajectories * NaN;
+                        disp(['Warning: variable ''' variable_name ''' not available, used NaN as data']);
+                    end
                 end
             end
         end
@@ -2211,90 +2223,6 @@ classdef WalkingDataCustodian < handle
                         stretch_data = right_tfl * 1 / normalization_value;
                     end
                     
-                    % step end variables
-%                     if strcmp(variable_name, 'lumbar_roll_step_end_angle')
-%                         whole_stretch_data = this.getTimeNormalizedData('lumbar_roll_angle', this_stretch_start_time, this_stretch_end_time);
-%                         stretch_data = whole_stretch_data(end);
-%                     end
-%                     if strcmp(variable_name, 'lumbar_pitch_step_end_angle')
-%                         whole_stretch_data = this.getTimeNormalizedData('lumbar_pitch_angle', this_stretch_start_time, this_stretch_end_time);
-%                         stretch_data = whole_stretch_data(end);
-%                     end
-%                     if strcmp(variable_name, 'lumbar_yaw_step_end_angle')
-%                         whole_stretch_data = this.getTimeNormalizedData('lumbar_yaw_angle', this_stretch_start_time, this_stretch_end_time);
-%                         stretch_data = whole_stretch_data(end);
-%                     end
-%                     if strcmp(variable_name, 'cervical_roll_step_end_angle')
-%                         whole_stretch_data = this.getTimeNormalizedData('cervical_roll_angle', this_stretch_start_time, this_stretch_end_time);
-%                         stretch_data = whole_stretch_data(end);
-%                     end
-%                     if strcmp(variable_name, 'cervical_pitch_step_end_angle')
-%                         whole_stretch_data = this.getTimeNormalizedData('cervical_pitch_angle', this_stretch_start_time, this_stretch_end_time);
-%                         stretch_data = whole_stretch_data(end);
-%                     end
-%                     if strcmp(variable_name, 'cervical_yaw_step_end_angle')
-%                         whole_stretch_data = this.getTimeNormalizedData('cervical_yaw_angle', this_stretch_start_time, this_stretch_end_time);
-%                         stretch_data = whole_stretch_data(end);
-%                     end
-%                     
-%                     if strcmp(variable_name, 'left_hip_abduction_step_end_angle')
-%                         whole_stretch_data = this.getTimeNormalizedData('left_hip_abduction_angle', this_stretch_start_time, this_stretch_end_time);
-%                         stretch_data = whole_stretch_data(end);
-%                     end
-%                     if strcmp(variable_name, 'left_hip_flexion_step_end_angle')
-%                         whole_stretch_data = this.getTimeNormalizedData('left_hip_flexion_angle', this_stretch_start_time, this_stretch_end_time);
-%                         stretch_data = whole_stretch_data(end);
-%                     end
-%                     if strcmp(variable_name, 'left_hip_introtation_step_end_angle')
-%                         whole_stretch_data = this.getTimeNormalizedData('left_hip_introtation_angle', this_stretch_start_time, this_stretch_end_time);
-%                         stretch_data = whole_stretch_data(end);
-%                     end
-%                     if strcmp(variable_name, 'left_knee_flexion_step_end_angle')
-%                         whole_stretch_data = this.getTimeNormalizedData('left_knee_flexion_angle', this_stretch_start_time, this_stretch_end_time);
-%                         stretch_data = whole_stretch_data(end);
-%                     end
-%                     if strcmp(variable_name, 'left_knee_extrotation_step_end_angle')
-%                         whole_stretch_data = this.getTimeNormalizedData('left_knee_extrotation_angle', this_stretch_start_time, this_stretch_end_time);
-%                         stretch_data = whole_stretch_data(end);
-%                     end
-%                     if strcmp(variable_name, 'left_ankle_eversion_step_end_angle')
-%                         whole_stretch_data = this.getTimeNormalizedData('left_ankle_eversion_angle', this_stretch_start_time, this_stretch_end_time);
-%                         stretch_data = whole_stretch_data(end);
-%                     end
-%                     if strcmp(variable_name, 'left_ankle_dorsiflexion_step_end_angle')
-%                         whole_stretch_data = this.getTimeNormalizedData('left_ankle_dorsiflexion_angle', this_stretch_start_time, this_stretch_end_time);
-%                         stretch_data = whole_stretch_data(end);
-%                     end
-%                     
-%                     if strcmp(variable_name, 'right_hip_abduction_step_end_angle')
-%                         whole_stretch_data = this.getTimeNormalizedData('right_hip_abduction_angle', this_stretch_start_time, this_stretch_end_time);
-%                         stretch_data = whole_stretch_data(end);
-%                     end
-%                     if strcmp(variable_name, 'right_hip_flexion_step_end_angle')
-%                         whole_stretch_data = this.getTimeNormalizedData('right_hip_flexion_angle', this_stretch_start_time, this_stretch_end_time);
-%                         stretch_data = whole_stretch_data(end);
-%                     end
-%                     if strcmp(variable_name, 'right_hip_introtation_step_end_angle')
-%                         whole_stretch_data = this.getTimeNormalizedData('right_hip_introtation_angle', this_stretch_start_time, this_stretch_end_time);
-%                         stretch_data = whole_stretch_data(end);
-%                     end
-%                     if strcmp(variable_name, 'right_knee_flexion_step_end_angle')
-%                         whole_stretch_data = this.getTimeNormalizedData('right_knee_flexion_angle', this_stretch_start_time, this_stretch_end_time);
-%                         stretch_data = whole_stretch_data(end);
-%                     end
-%                     if strcmp(variable_name, 'right_knee_extrotation_step_end_angle')
-%                         whole_stretch_data = this.getTimeNormalizedData('right_knee_extrotation_angle', this_stretch_start_time, this_stretch_end_time);
-%                         stretch_data = whole_stretch_data(end);
-%                     end
-%                     if strcmp(variable_name, 'right_ankle_eversion_step_end_angle')
-%                         whole_stretch_data = this.getTimeNormalizedData('right_ankle_eversion_angle', this_stretch_start_time, this_stretch_end_time);
-%                         stretch_data = whole_stretch_data(end);
-%                     end
-%                     if strcmp(variable_name, 'right_ankle_dorsiflexion_step_end_angle')
-%                         whole_stretch_data = this.getTimeNormalizedData('right_ankle_dorsiflexion_angle', this_stretch_start_time, this_stretch_end_time);
-%                         stretch_data = whole_stretch_data(end);
-%                     end
-                    
                     % store in cell
                     stretch_variables{i_variable} = [stretch_variables{i_variable} stretch_data];
                 end
@@ -2305,15 +2233,20 @@ classdef WalkingDataCustodian < handle
         end
         function data_normalized = getTimeNormalizedData(this, variable_name, start_time, end_time)
             % extract data
-            variable_time = this.getTimeData(variable_name);
-            variable_data = this.getBasicVariableData(variable_name);
-            [~, start_index] = min(abs(variable_time - start_time));
-            [~, end_index] = min(abs(variable_time - end_time));
-            time_extracted = variable_time(start_index : end_index);
-            data_extracted = variable_data(start_index : end_index);
+            try
+                variable_time = this.getTimeData(variable_name);
+                variable_data = this.getBasicVariableData(variable_name);
+                [~, start_index] = min(abs(variable_time - start_time));
+                [~, end_index] = min(abs(variable_time - end_time));
+                time_extracted = variable_time(start_index : end_index);
+                data_extracted = variable_data(start_index : end_index);
+            catch error
+                disp(['Error while processing variable ''' variable_name ''''])
+                throw(error)
+            end
                 
             % normalize data in time
-            if ~isempty(time_extracted)
+            if ~isempty(time_extracted) && ~any(isnan(data_extracted))
                 time_normalized = linspace(time_extracted(1), time_extracted(end), this.number_of_time_steps_normalized)';
                 data_normalized = spline(time_extracted, data_extracted, time_normalized);
             else

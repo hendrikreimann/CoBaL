@@ -16,7 +16,7 @@
 
 % function exportResults
     
-load results.mat
+% load results.mat
 
 % load settings
 if ~exist('studySettings.txt', 'file')
@@ -35,26 +35,6 @@ for i_variable = 1 : number_of_variables_to_export
     this_variable_name = variables_to_export{i_variable};
     variable_index = find(strcmp(this_variable_name, variable_names));
     this_variable_data = variable_data{variable_index}';
-    
-    
-%     if strcmp(variables_to_export{i_variable, 2}, '~')
-%         % just export the variable itself
-%         variable_index = find(strcmp(this_variable_name, variable_names));
-%         this_variable_data = population_data{variable_index}';
-%     else
-%         % source variable depends upon stance foot
-%         source_variable_name_left = variables_to_export{i_variable, 2};
-%         source_variable_name_right = variables_to_export{i_variable, 3};
-%         variable_index_left = find(strcmp(source_variable_name_left, variable_names));
-%         variable_index_right = find(strcmp(source_variable_name_right, variable_names));
-%         variable_data_left = population_data{variable_index_left}';
-%         variable_data_right = population_data{variable_index_right}';
-%         
-%         % choose data according to stance foot
-%         this_variable_data = zeros(number_of_data_points, 1);
-%         this_variable_data(strcmp(condition_stance_foot_list, 'STANCE_LEFT')) = variable_data_left(strcmp(condition_stance_foot_list, 'STANCE_LEFT'));
-%         this_variable_data(strcmp(condition_stance_foot_list, 'STANCE_RIGHT')) = variable_data_right(strcmp(condition_stance_foot_list, 'STANCE_RIGHT'));
-%     end
     
     % export
     this_variable_data_strings = num2str(this_variable_data);

@@ -178,10 +178,16 @@ function processAnalysisVariables(varargin)
         this_variable_source_type = variables_to_invert{i_variable, 3};
         if strcmp(this_variable_source_type, 'response')
             this_variable_source_index = find(strcmp(response_names_session, this_variable_source_name), 1, 'first');
+            if isempty(this_variable_source_index)
+                error(['Data not found: ' this_variable_source_name])
+            end
             this_variable_source_data = response_data_session{this_variable_source_index};
         end
         if strcmp(this_variable_source_type, 'analysis')
             this_variable_source_index = find(strcmp(analysis_names_session, this_variable_source_name), 1, 'first');
+            if isempty(this_variable_source_index)
+                error(['Data not found: ' this_variable_source_name])
+            end
             this_variable_source_data = analysis_data_session{this_variable_source_index};
         end
         
@@ -265,6 +271,22 @@ function processAnalysisVariables(varargin)
     %% gather variables that are selected from different sources depending on condition
     variables_to_select = study_settings.get('analysis_variables_from_selection');
     for i_variable = 1 : size(variables_to_select, 1)
+        % get signs
+        if strcmp(variables_to_select{i_variable, 5}, '+')
+            sign_trigger_left = 1;
+        elseif strcmp(variables_to_select{i_variable, 5}, '-')
+            sign_trigger_left = -1;
+        else
+            error('Sign must be either "+" or "-"')
+        end
+        if strcmp(variables_to_select{i_variable, 6}, '+')
+            sign_trigger_right = 1;
+        elseif strcmp(variables_to_select{i_variable, 6}, '-')
+            sign_trigger_right = -1;
+        else
+            error('Sign must be either "+" or "-"')
+        end
+        
         % get data
         this_variable_name = variables_to_select{i_variable, 1};
         this_variable_source_name_triggerLeft = variables_to_select{i_variable, 3};
@@ -273,12 +295,24 @@ function processAnalysisVariables(varargin)
         if strcmp(this_variable_source_type, 'response')
             this_variable_source_index_triggerLeft = find(strcmp(response_names_session, this_variable_source_name_triggerLeft), 1, 'first');
             this_variable_source_index_triggerRight = find(strcmp(response_names_session, this_variable_source_name_triggerRight), 1, 'first');
+            if isempty(this_variable_source_index_triggerLeft)
+                error(['Data not found: ' this_variable_source_name_triggerLeft])
+            end
+            if isempty(this_variable_source_index_triggerRight)
+                error(['Data not found: ' this_variable_source_name_triggerRight])
+            end
             this_variable_source_data_triggerLeft = response_data_session{this_variable_source_index_triggerLeft};
             this_variable_source_data_triggerRight = response_data_session{this_variable_source_index_triggerRight};
         end
         if strcmp(this_variable_source_type, 'analysis')
             this_variable_source_index_triggerLeft = find(strcmp(analysis_names_session, this_variable_source_name_triggerLeft), 1, 'first');
             this_variable_source_index_triggerRight = find(strcmp(analysis_names_session, this_variable_source_name_triggerRight), 1, 'first');
+            if isempty(this_variable_source_index_triggerLeft)
+                error(['Data not found: ' this_variable_source_name_triggerLeft])
+            end
+            if isempty(this_variable_source_index_triggerRight)
+                error(['Data not found: ' this_variable_source_name_triggerRight])
+            end
             this_variable_source_data_triggerLeft = analysis_data_session{this_variable_source_index_triggerLeft};
             this_variable_source_data_triggerRight = analysis_data_session{this_variable_source_index_triggerRight};
         end
@@ -291,14 +325,14 @@ function processAnalysisVariables(varargin)
               (strcmp(loaded_data.condition_stance_foot_list_session{i_stretch}, 'STANCE_RIGHT') && strcmp(loaded_data.condition_index_list_session{i_stretch}, 'TWO')) || ...
               (strcmp(loaded_data.condition_stance_foot_list_session{i_stretch}, 'STANCE_LEFT') && strcmp(loaded_data.condition_index_list_session{i_stretch}, 'THREE')) || ...
               (strcmp(loaded_data.condition_stance_foot_list_session{i_stretch}, 'STANCE_RIGHT') && strcmp(loaded_data.condition_index_list_session{i_stretch}, 'FOUR'))
-                this_variable_data(:, i_stretch) = this_variable_source_data_triggerLeft(:, i_stretch);
+                this_variable_data(:, i_stretch) = sign_trigger_left * this_variable_source_data_triggerLeft(:, i_stretch);
             end
             if ...
               (strcmp(loaded_data.condition_stance_foot_list_session{i_stretch}, 'STANCE_RIGHT') && strcmp(loaded_data.condition_index_list_session{i_stretch}, 'ONE')) || ...
               (strcmp(loaded_data.condition_stance_foot_list_session{i_stretch}, 'STANCE_LEFT') && strcmp(loaded_data.condition_index_list_session{i_stretch}, 'TWO')) || ...
               (strcmp(loaded_data.condition_stance_foot_list_session{i_stretch}, 'STANCE_RIGHT') && strcmp(loaded_data.condition_index_list_session{i_stretch}, 'THREE')) || ...
               (strcmp(loaded_data.condition_stance_foot_list_session{i_stretch}, 'STANCE_LEFT') && strcmp(loaded_data.condition_index_list_session{i_stretch}, 'FOUR'))
-                this_variable_data(:, i_stretch) = this_variable_source_data_triggerRight(:, i_stretch);
+                this_variable_data(:, i_stretch) = sign_trigger_right * this_variable_source_data_triggerRight(:, i_stretch);
             end
         end
         

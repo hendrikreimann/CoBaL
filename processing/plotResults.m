@@ -123,6 +123,11 @@ function plotResults(varargin)
             % load and extract data
             this_variable_name = variables_to_plot{i_variable, 1};
             index_in_saved_data = find(strcmp(names_session, this_variable_name), 1, 'first');
+            
+            if isempty(index_in_saved_data)
+                error(['Data not found: ' this_variable_name])
+            end
+            
             this_variable_data = data_session{index_in_saved_data};
             if plot_settings.get('convert_to_mm') & (strcmp(this_variable_name,'cop_from_com_x') | strcmp(this_variable_name, 'step_placement_x'))
                 this_variable_data = this_variable_data * 1000;
@@ -1343,33 +1348,35 @@ function plotResults(varargin)
     %% shade steps
     if strcmp(plot_mode, 'overview')
         for i_variable = 1 : number_of_variables_to_plot
-            for i_comparison = 1 : number_of_comparisons
-                these_axes = trajectory_axes_handles(i_comparison, i_variable);
-                ylimits = get(these_axes, 'ylim');
-                
-                step_start_time = step_start_times_cell{i_comparison, i_variable};
-                step_end_time = step_end_times_cell{i_comparison, i_variable};
-                step_pushoff_time = step_pushoff_times_cell{i_comparison, i_variable};
-                step_stance_foot = step_stance_foot_cell{i_comparison, i_variable};
-                
-                % double stance patch
-                double_stance_patch_color = plot_settings.get('stance_double_color');
-                stretch_start = step_start_time;
-                stretch_end = step_pushoff_time;
-                patch_x = [stretch_start stretch_end stretch_end stretch_start];
-                patch_y = [ylimits(1) ylimits(1) ylimits(2) ylimits(2)];
-                patch_handle = ...
-                    patch ...
-                      ( ...
-                        patch_x, ...
-                        patch_y, ...
-                        double_stance_patch_color, ...
-                        'parent', these_axes, ...
-                        'EdgeColor', 'none', ...
-                        'FaceAlpha', plot_settings.get('stance_alpha'), ...
-                        'HandleVisibility', 'off' ...
-                      ); 
-                uistack(patch_handle, 'bottom')                
+            if isContinuousVariable(i_variable, data_all)
+                for i_comparison = 1 : number_of_comparisons
+                    these_axes = trajectory_axes_handles(i_comparison, i_variable);
+                    ylimits = get(these_axes, 'ylim');
+
+                    step_start_time = step_start_times_cell{i_comparison, i_variable};
+                    step_end_time = step_end_times_cell{i_comparison, i_variable};
+                    step_pushoff_time = step_pushoff_times_cell{i_comparison, i_variable};
+                    step_stance_foot = step_stance_foot_cell{i_comparison, i_variable};
+
+                    % double stance patch
+                    double_stance_patch_color = plot_settings.get('stance_double_color');
+                    stretch_start = step_start_time;
+                    stretch_end = step_pushoff_time;
+                    patch_x = [stretch_start stretch_end stretch_end stretch_start];
+                    patch_y = [ylimits(1) ylimits(1) ylimits(2) ylimits(2)];
+                    patch_handle = ...
+                        patch ...
+                          ( ...
+                            patch_x, ...
+                            patch_y, ...
+                            double_stance_patch_color, ...
+                            'parent', these_axes, ...
+                            'EdgeColor', 'none', ...
+                            'FaceAlpha', plot_settings.get('stance_alpha'), ...
+                            'HandleVisibility', 'off' ...
+                          ); 
+                    uistack(patch_handle, 'bottom')                
+                end
             end
         end        
     end
