@@ -176,7 +176,7 @@ for i_source = 1 : length(sources)
                     end
                     
                     if end_indices(end) > length(qtm_data.Analog.Data)
-                        end_indices(end) = length(qtm_data.Analog.Data);
+                        end_indices(end)
                     end
 
                     %                  TO DO: Check number of start indices against number of

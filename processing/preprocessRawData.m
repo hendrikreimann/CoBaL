@@ -254,10 +254,10 @@ function preprocessRawData(varargin)
                     right_forceplate_wrench_Acr = [fxr_trajectory fyr_trajectory fzr_trajectory mxr_trajectory myr_trajectory mzr_trajectory];
                     % define forceplate rotation and translation
                     Acr_to_world_rotation = [-1 0 0; 0 1 0; 0 0 -1];
-                    Acr_to_world_translation = [.5; -.17; 0]; % origin of Acw in Acr frame
+                    Acr_to_world_translation = [.52; -.05; 0]; % origin of Acw in Acr frame
                     Acr_to_world_trafo = [Acr_to_world_rotation Acr_to_world_translation; 0 0 0 1];
                     Acl_to_world_rotation = [-1 0 0; 0 1 0; 0 0 -1];
-                    Acl_to_world_translation = [-.5; -.17; 0]; % origin of Acw in Acl frame
+                    Acl_to_world_translation = [-.52; -.05; 0]; % origin of Acw in Acl frame
                     Acl_to_world_trafo = [Acl_to_world_rotation Acl_to_world_translation; 0 0 0 1];
                     Acr_to_world_adjoint = rigidToAdjointTransformation(Acr_to_world_trafo);
                     Acl_to_world_adjoint = rigidToAdjointTransformation(Acl_to_world_trafo);
