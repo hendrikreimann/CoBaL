@@ -124,6 +124,8 @@ for i_source = 1 : length(sources)
                         marker_trajectories_raw(marker_count:marker_count+2,:) = reshape(this_marker, size(this_marker,2), size(this_marker,3)) * millimeter_to_meter; 
                         marker_count = marker_count + 3;
                     end
+                    
+                    marker_trajectories_raw = marker_trajectories_raw';
 
                   time_mocap = (1 : length(marker_trajectories_raw)) / sampling_rate_mocap;
                    if isrow(time_mocap)
@@ -227,6 +229,8 @@ for i_source = 1 : length(sources)
                             qtm_data.Force(2).Moment(:,start_indices(i_trial_this_qtm_file):end_indices(i_trial_this_qtm_file))'];
                         forceplate_trajectories_raw = [forceplate_tajectories_Left, forceplate_tajectories_Right];
                         forceplate_labels = qtm_data.Analog.Labels(1:12);
+                        forceplate_location_Acl = qtm_data.Force(1).ForcePlateLocation(4,:)/1000; % back left corner coordinates (m)
+                        forceplate_location_Acr = qtm_data.Force(2).ForcePlateLocation(3,:)/1000; % back right corner coordinates (m)
                         sampling_rate_forceplate = analog_fs;
                         time_forceplate = (1 : number_of_samples) / sampling_rate_forceplate;
                         if isrow(time_forceplate)
@@ -243,13 +247,15 @@ for i_source = 1 : length(sources)
                             'forceplate_labels', ...
                             'data_source', ...
                             'time_forceplate', ...
-                            'sampling_rate_forceplate' ...
+                            'sampling_rate_forceplate', ...
+                            'forceplate_location_Acl', ...    
+                            'forceplate_location_Acr' ...    
                             );
                         addAvailableData('forceplate_trajectories_raw', 'time_forceplate', 'sampling_rate_forceplate', 'forceplate_labels', save_folder, save_file_name);
                         
                        
                         % Markers
-                        
+                        sampling_rate_mocap = qtm_data.FrameRate;
                         % align indices
                         start_indices_mocap = round(start_indices * ...
                             sampling_rate_mocap/analog_fs);
@@ -263,13 +269,15 @@ for i_source = 1 : length(sources)
                      
                         data_type = 'markers';
                         % deal with marker data
-                        sampling_rate_mocap = qtm_data.FrameRate;
+                        
                         marker_labels = qtm_data.Trajectories.Labeled.Labels;
                         sampling_rate_mocap = qtm_data.FrameRate;
                         time_mocap = (1 : number_of_frames) / sampling_rate_mocap;
                         if isrow(time_mocap)
                            time_mocap = time_mocap';
                         end
+                        
+                        
                         
                         marker_count = 1;
                         marker_trajectories_raw = [];
@@ -278,7 +286,8 @@ for i_source = 1 : length(sources)
                             marker_trajectories_raw(marker_count:marker_count+2,:) = reshape(this_marker, size(this_marker,2), size(this_marker,3)) * millimeter_to_meter; 
                             marker_count = marker_count + 3;
                         end
-                    
+                        marker_trajectories_raw = marker_trajectories_raw';
+                         
                         % save
                         save_folder = 'raw';
                         save_file_name = makeFileName(date, subject_id, trial_type, importing_trial_number, 'markerTrajectoriesRaw.mat');

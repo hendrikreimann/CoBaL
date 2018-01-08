@@ -87,7 +87,7 @@ function findRelevantDataStretches(varargin)
 
     subject_settings = SettingsCustodian('subjectSettings.txt');
 
-    time_to_nearest_heelstrike_before_trigger_threshold = 0.10; % a heelstrike should happen less than this long after a trigger
+    time_to_nearest_heelstrike_before_trigger_threshold = 0.10; % a heelstrike should happen less than this long before a trigger
     time_to_nearest_heelstrike_after_trigger_threshold = 0.3; % a heelstrike should happen less than this long after a trigger
     
     
@@ -820,10 +820,10 @@ function findRelevantDataStretches(varargin)
                             end
 
                             if visualize
-                                plot([left_foot_heelstrike_minus_1 left_foot_heelstrike_0 left_foot_heelstrike_plus_1 left_foot_heelstrike_plus_2], [0 0 0 0]-0.01, 'v', 'linewidth', 3);
-                                plot([left_foot_pushoff_minus_1  left_foot_pushoff_0 left_foot_pushoff_plus_1 left_foot_pushoff_plus_2], [0 0 0 0]-0.01, '^', 'linewidth', 3);
-                                plot([right_foot_heelstrike_minus_1 right_foot_heelstrike_0 right_foot_heelstrike_plus_1 right_foot_heelstrike_plus_2], [0 0 0 0]+0.01, 'v', 'linewidth', 3);
-                                plot([right_foot_pushoff_minus_1  right_foot_pushoff_0 right_foot_pushoff_plus_1 right_foot_pushoff_plus_2], [0 0 0 0]+0.01, '^', 'linewidth', 3);
+                                plot([left_foot_heelstrike_minus_1 left_foot_heelstrike_0 left_foot_heelstrike_plus_1 left_foot_heelstrike_plus_2], [0 0 0 0]-0.01, 'v', 'linewidth', 2, 'color', 'r');
+                                plot([left_foot_pushoff_minus_1  left_foot_pushoff_0 left_foot_pushoff_plus_1 left_foot_pushoff_plus_2], [0 0 0 0]-0.01, '^', 'linewidth', 2, 'color', 'g');
+                                plot([right_foot_heelstrike_minus_1 right_foot_heelstrike_0 right_foot_heelstrike_plus_1 right_foot_heelstrike_plus_2], [0 0 0 0]+0.01, 'v', 'linewidth', 2, 'color', 'r');
+                                plot([right_foot_pushoff_minus_1  right_foot_pushoff_0 right_foot_pushoff_plus_1 right_foot_pushoff_plus_2], [0 0 0 0]+0.01, '^', 'linewidth', 2, 'color', 'g');
                             end            
                         end            
                     else
@@ -1062,7 +1062,6 @@ function findRelevantDataStretches(varargin)
                 closest_heelstrike_distance_times = closest_heelstrike_distance_times(unflagged_indices, :);
                 
                 % reorder
-                % XXX this should be replaced with a reshape
                 stretch_start_times = reshape(stretch_start_times, numel(stretch_start_times), 1);
                 stretch_pushoff_times = reshape(stretch_pushoff_times, numel(stretch_pushoff_times), 1);
                 stretch_end_times = reshape(stretch_end_times, numel(stretch_end_times), 1);
@@ -1300,12 +1299,14 @@ function findRelevantDataStretches(varargin)
                 removal_flags(stretch_times > stretch_time_outlier_limits(2)) = 1;
             end
             
+            % % Running into problems with markers missing !!! % % %
             % check data availability for markers and flag stretches with gaps
             for i_stretch = 1 : number_of_stretches
                 [~, start_index_mocap] = min(abs(time_marker - stretch_start_times(i_stretch)));
                 [~, end_index_mocap] = min(abs(time_marker - stretch_end_times(i_stretch)));
                 if any(any(isnan(marker_trajectories(start_index_mocap : end_index_mocap, essential_marker_indicator))))
                     removal_flags(i_stretch) = 1;
+                    disp('Removing a strech due to gaps in essential markers')
                 end
             end
             
@@ -1323,7 +1324,8 @@ function findRelevantDataStretches(varargin)
                 end
             end
 
-            % check data availability for markers with non-zero weight
+            % % Running into problems with markers missing !!! % % %
+            %  check data availability for markers with non-zero weight
             marker_weights = study_settings.get('marker_weights');
             for i_marker = 1 : length(marker_labels)
                 this_marker_weight = 1; % 1 is default
@@ -1333,14 +1335,16 @@ function findRelevantDataStretches(varargin)
                     this_marker_weight = marker_weights{strcmp(marker_weights(:, 1), this_marker_label), 2};
                 end
                 
-                if this_marker_weight > 0
+                if this_marker_weight == 1
                     this_marker_data = extractMarkerTrajectories(marker_trajectories, marker_labels, this_marker_label);
                     for i_stretch = 1 : number_of_stretches
                         [~, start_index] = min(abs(time_marker - stretch_start_times(i_stretch)));
                         [~, end_index] = min(abs(time_marker - stretch_end_times(i_stretch)));
                         if any(isnan(this_marker_data(start_index : end_index)))
                             removal_flags(i_stretch) = 1;
-                        end
+                            this_marker_text = string(this_marker_label);
+                            disp(['Removing a strech due to gap in', this_marker_text]);
+                        end 
                     end
                     
                 end

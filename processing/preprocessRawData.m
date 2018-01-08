@@ -174,7 +174,7 @@ function preprocessRawData(varargin)
             if ismember(trial_number, trial_number_list_this_condition)
                 % load raw data
                 load(['raw' filesep raw_forceplate_file_name]);
-
+                
                 % define filter
                 filter_order_low = 4;
                 cutoff_frequency_low = 50; % in Hz
@@ -194,6 +194,8 @@ function preprocessRawData(varargin)
                 mxr_trajectory = forceplate_trajectories_filtered(:, 10);
                 myr_trajectory = forceplate_trajectories_filtered(:, 11);
                 mzr_trajectory = forceplate_trajectories_filtered(:, 12);
+                
+                
                 
                 % apply offset for cases where forceplate wasn't set to zero
                 if subject_settings.get('apply_forceplate_offset')
@@ -249,15 +251,22 @@ function preprocessRawData(varargin)
                     right_forceplate_wrench_world = (Acr_to_world_adjoint' * right_forceplate_wrench_Acr')';
 %                     right_forceplate_cop_world = (eye(2, 4) * Acr_to_world_trafo * [right_forceplate_cop_Acr ones(size(right_forceplate_cop_Acr, 1), 1)]')';
                 elseif strcmp(data_source, 'qtm')
+                    % extract forceplate locations
+                    Acl_x = forceplate_location_Acl(1);
+                    Acl_y = forceplate_location_Acl(2);
+                    Acl_z = forceplate_location_Acl(3);
+                    Acr_x = forceplate_location_Acr(1);
+                    Acr_y = forceplate_location_Acr(2);
+                    Acr_z = forceplate_location_Acr(3);
                     % transform forceplate data to CoBaL world frame A_cw
                     left_forceplate_wrench_Acl = [fxl_trajectory fyl_trajectory fzl_trajectory mxl_trajectory myl_trajectory mzl_trajectory];
                     right_forceplate_wrench_Acr = [fxr_trajectory fyr_trajectory fzr_trajectory mxr_trajectory myr_trajectory mzr_trajectory];
                     % define forceplate rotation and translation
                     Acr_to_world_rotation = [-1 0 0; 0 1 0; 0 0 -1];
-                    Acr_to_world_translation = [.52; -.05; 0]; % origin of Acw in Acr frame
+                    Acr_to_world_translation = [Acr_x; Acr_y; -Acr_z]; % origin of Acw in Acr frame
                     Acr_to_world_trafo = [Acr_to_world_rotation Acr_to_world_translation; 0 0 0 1];
                     Acl_to_world_rotation = [-1 0 0; 0 1 0; 0 0 -1];
-                    Acl_to_world_translation = [-.52; -.05; 0]; % origin of Acw in Acl frame
+                    Acl_to_world_translation = [Acl_x; Acl_y; -Acl_z]; % origin of Acw in Acl frame
                     Acl_to_world_trafo = [Acl_to_world_rotation Acl_to_world_translation; 0 0 0 1];
                     Acr_to_world_adjoint = rigidToAdjointTransformation(Acr_to_world_trafo);
                     Acl_to_world_adjoint = rigidToAdjointTransformation(Acl_to_world_trafo);
@@ -435,7 +444,7 @@ function preprocessRawData(varargin)
             trial_number_list_this_condition = trial_number_list{strcmp(trial_type, condition_list)};
             if ismember(trial_number, trial_number_list_this_condition)
                 load(['raw' filesep raw_marker_file_name]);
-                
+                      
                 if study_settings.get('filter_marker_data')
                     filter_order = 4;
                     cutoff_frequency = study_settings.get('marker_data_cutoff_frequency'); % in Hz
@@ -444,9 +453,7 @@ function preprocessRawData(varargin)
                 else
                     marker_trajectories = marker_trajectories_raw;
                 end
-                
-                marker_trajectories = marker_trajectories';
-                
+                  
                 % save
                 save_folder = 'processed';
                 save_file_name = makeFileName(date, subject_id, trial_type, trial_number, 'markerTrajectories.mat');
