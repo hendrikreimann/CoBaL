@@ -342,7 +342,7 @@ function optimizeKinematicTrajectories(varargin)
             %% load data
             condition = condition_list{i_condition};
             load(['processed' filesep makeFileName(date, subject_id, condition, i_trial, 'markerTrajectories')]);
-            load(['processed' filesep makeFileName(date, subject_id, condition, i_trial, 'kinematicTrajectories')]);
+%             load(['processed' filesep makeFileName(date, subject_id, condition, i_trial, 'kinematicTrajectories')]);
             number_of_time_steps = size(marker_trajectories, 1);
 
             % determine time steps to optimize
