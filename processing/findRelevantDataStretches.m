@@ -87,7 +87,7 @@ function findRelevantDataStretches(varargin)
 
     subject_settings = SettingsCustodian('subjectSettings.txt');
 
-    time_to_nearest_heelstrike_before_trigger_threshold = 0.10; % a heelstrike should happen less than this long after a trigger
+    time_to_nearest_heelstrike_before_trigger_threshold = 0.10; % a heelstrike should happen less than this long before a trigger
     time_to_nearest_heelstrike_after_trigger_threshold = 0.3; % a heelstrike should happen less than this long after a trigger
     
     
@@ -152,7 +152,10 @@ function findRelevantDataStretches(varargin)
                 [stimulus_state_trajectory, time_stimulus] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'stimulus_state_trajectory');
             end
             if strcmp(condition_stimulus, 'VISUAL')
-                visual_scene_ml_translation__trajectory = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'visual_scene_ml_translation__trajectory');
+                % this is for UD data
+                 visual_scene_ml_translation_trajectory = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'current_rotation_trajectory');
+                % this if for TU data
+%                 visual_scene_ml_translation_trajectory = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'visual_scene_ml_translation_trajectory');
                 [stimulus_state_trajectory, time_stimulus] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'stimulus_state_trajectory');
             end
             
@@ -185,13 +188,15 @@ function findRelevantDataStretches(varargin)
             if strcmp(condition_stimulus, 'VISUAL')
                 illusion_trajectory = zeros(size(time_stimulus)); % 1 = RIGHT, -1 = LEFT
                 for i_time = 1 : length(time_stimulus)
-                    if visual_scene_ml_translation__trajectory(i_time) > 0
-                        % angle change is positive, horizon rotates counter-clockwise, illusion is to the RIGHT
+                    if visual_scene_ml_translation_trajectory(i_time) > 0
+                        % angle change is positive horizon rotates counter-clockwise, illusion is to the RIGHT
                         illusion_trajectory(i_time) = 1;
                     end
-                    if visual_scene_ml_translation__trajectory(i_time) < 0
+                    if visual_scene_ml_translation_trajectory(i_time) < 0 & visual_scene_ml_translation_trajectory(i_time) > -20 % weird -inf in one of the trajectories?
                         % angle change is negative, horizon rotates clockwise, illusion is to the LEFT
                         illusion_trajectory(i_time) = -1;
+                        
+                        
                     end
                 end
             end
@@ -757,7 +762,7 @@ function findRelevantDataStretches(varargin)
 %                         else
 %                             closest_heelstrike_distance_times(i_trigger) = -closest_heelstrike_distance_time;
 %                         end
-                        if index_right == 1 || length(right_touchdown_times) < index_right + 1 || removal_flags(i_trigger) == 1
+                        if index_right == 1 || length(right_touchdown_times) < index_right + 2 || removal_flags(i_trigger) == 1
                             % data doesn't include previous or next step
                             removal_flags(i_trigger) = 1;
                             left_foot_heelstrike_minus_1 = NaN;
@@ -815,10 +820,10 @@ function findRelevantDataStretches(varargin)
                             end
 
                             if visualize
-                                plot([left_foot_heelstrike_minus_1 left_foot_heelstrike_0 left_foot_heelstrike_plus_1 left_foot_heelstrike_plus_2], [0 0 0 0]-0.01, 'v', 'linewidth', 3);
-                                plot([left_foot_pushoff_minus_1  left_foot_pushoff_0 left_foot_pushoff_plus_1 left_foot_pushoff_plus_2], [0 0 0 0]-0.01, '^', 'linewidth', 3);
-                                plot([right_foot_heelstrike_minus_1 right_foot_heelstrike_0 right_foot_heelstrike_plus_1 right_foot_heelstrike_plus_2], [0 0 0 0]+0.01, 'v', 'linewidth', 3);
-                                plot([right_foot_pushoff_minus_1  right_foot_pushoff_0 right_foot_pushoff_plus_1 right_foot_pushoff_plus_2], [0 0 0 0]+0.01, '^', 'linewidth', 3);
+                                plot([left_foot_heelstrike_minus_1 left_foot_heelstrike_0 left_foot_heelstrike_plus_1 left_foot_heelstrike_plus_2], [0 0 0 0]-0.01, 'v', 'linewidth', 2, 'color', 'r');
+                                plot([left_foot_pushoff_minus_1  left_foot_pushoff_0 left_foot_pushoff_plus_1 left_foot_pushoff_plus_2], [0 0 0 0]-0.01, '^', 'linewidth', 2, 'color', 'g');
+                                plot([right_foot_heelstrike_minus_1 right_foot_heelstrike_0 right_foot_heelstrike_plus_1 right_foot_heelstrike_plus_2], [0 0 0 0]+0.01, 'v', 'linewidth', 2, 'color', 'r');
+                                plot([right_foot_pushoff_minus_1  right_foot_pushoff_0 right_foot_pushoff_plus_1 right_foot_pushoff_plus_2], [0 0 0 0]+0.01, '^', 'linewidth', 2, 'color', 'g');
                             end            
                         end            
                     else
@@ -1057,7 +1062,6 @@ function findRelevantDataStretches(varargin)
                 closest_heelstrike_distance_times = closest_heelstrike_distance_times(unflagged_indices, :);
                 
                 % reorder
-                % XXX this should be replaced with a reshape
                 stretch_start_times = reshape(stretch_start_times, numel(stretch_start_times), 1);
                 stretch_pushoff_times = reshape(stretch_pushoff_times, numel(stretch_pushoff_times), 1);
                 stretch_end_times = reshape(stretch_end_times, numel(stretch_end_times), 1);
@@ -1151,137 +1155,137 @@ function findRelevantDataStretches(varargin)
             variables_to_prune_for = {};
             save_folder = 'processed';
             save_file_name = makeFileName(date, subject_id, condition_list{i_condition}, i_trial, 'kinematicTrajectories.mat');
-            if any(strcmp(variables_to_analyze(:, 1), 'left_arm_phase'))
-                LELB_trajectory = extractMarkerTrajectories(marker_trajectories, marker_labels, 'LELB');
-                LWRA_trajectory = extractMarkerTrajectories(marker_trajectories, marker_labels, 'LWRA');
-                LWRB_trajectory = extractMarkerTrajectories(marker_trajectories, marker_labels, 'LWRB');
-                
-                % calculate vectors
-                left_wrist_center_trajectory = (LWRA_trajectory + LWRB_trajectory) * 0.5;
-                left_arm_vector_trajectory = LELB_trajectory - left_wrist_center_trajectory;
-
-                % calculate angles
-                left_arm_angle_ap = rad2deg(atan2(-left_arm_vector_trajectory(:, 2), left_arm_vector_trajectory(:, 3)));
-
-                % find negative peaks
-                [~, left_arm_peak_locations] = findpeaks(-left_arm_angle_ap, 'MinPeakProminence', subject_settings.get('left_armswing_peak_prominence_threshold'), 'MinPeakDistance', subject_settings.get('left_armswing_peak_distance_threshold') * sampling_rate_marker);
-                
-                % normalize
-                [larm_angle_ap_normalized, larm_angle_ap_dot_normalized] = normalizePeriodicVariable(left_arm_angle_ap, time_marker, left_arm_peak_locations);
-
-                % calculate phase
-                left_arm_phase = atan2(larm_angle_ap_dot_normalized, -larm_angle_ap_normalized);
-                
-%                 % XXX plot some stuff to check
-%                 figure; hold on
-%                 plot(left_arm_phase)
-%                 plot(left_arm_phase_atan2)
+%             if any(strcmp(variables_to_analyze(:, 1), 'left_arm_phase'))
+%                 LELB_trajectory = extractMarkerTrajectories(marker_trajectories, marker_labels, 'LELB');
+%                 LWRA_trajectory = extractMarkerTrajectories(marker_trajectories, marker_labels, 'LWRA');
+%                 LWRB_trajectory = extractMarkerTrajectories(marker_trajectories, marker_labels, 'LWRB');
 %                 
-                
-                % add new variables to be saved
-                variables_to_save.left_arm_angle_ap = left_arm_angle_ap;
-                variables_to_save.left_arm_phase = left_arm_phase;
-                variables_to_save.sampling_rate_marker = sampling_rate_marker;
-                variables_to_save.time_marker = time_marker;
-                saveDataToFile([save_folder filesep save_file_name], variables_to_save);
-                addAvailableData('left_arm_angle_ap', 'time_marker', 'sampling_rate_marker', '', save_folder, save_file_name);
-                addAvailableData('left_arm_phase', 'time_marker', 'sampling_rate_marker', '', save_folder, save_file_name);
-                variables_to_prune_for = [variables_to_prune_for; 'left_arm_angle_ap']; %#ok<AGROW>
-                variables_to_prune_for = [variables_to_prune_for; 'left_arm_phase']; %#ok<AGROW>
-            end
-            if any(strcmp(variables_to_analyze(:, 1), 'right_arm_phase'))
-                RELB_trajectory = extractMarkerTrajectories(marker_trajectories, marker_labels, 'RELB');
-                RWRA_trajectory = extractMarkerTrajectories(marker_trajectories, marker_labels, 'RWRA');
-                RWRB_trajectory = extractMarkerTrajectories(marker_trajectories, marker_labels, 'RWRB');
-                
-                % calculate vectors
-                right_wrist_center_trajectory = (RWRA_trajectory + RWRB_trajectory) * 0.5;
-                right_arm_vector_trajectory = RELB_trajectory - right_wrist_center_trajectory;
-                
-                % calculate angles
-                right_arm_angle_ap = rad2deg(atan2(-right_arm_vector_trajectory(:, 2), right_arm_vector_trajectory(:, 3)));
-
-                % find negative peaks
-                [~, right_arm_peak_locations] = findpeaks(-right_arm_angle_ap, 'MinPeakProminence', subject_settings.get('right_armswing_peak_prominence_threshold'), 'MinPeakDistance', subject_settings.get('right_armswing_peak_distance_threshold') * sampling_rate_marker);
-                
-                % normalize
-                [larm_angle_ap_normalized, larm_angle_ap_dot_normalized] = normalizePeriodicVariable(right_arm_angle_ap, time_marker, right_arm_peak_locations);
-
-                % calculate phase
-                right_arm_phase = atan2(larm_angle_ap_dot_normalized, -larm_angle_ap_normalized);
-                
-                % add new variables to be saved
-                variables_to_save.right_arm_angle_ap = right_arm_angle_ap;
-                variables_to_save.right_arm_phase = right_arm_phase;
-                saveDataToFile([save_folder filesep save_file_name], variables_to_save);
-                addAvailableData('right_arm_angle_ap', 'time_marker', 'sampling_rate_marker', '', save_folder, save_file_name);
-                addAvailableData('right_arm_phase', 'time_marker', 'sampling_rate_marker', '', save_folder, save_file_name);
-                variables_to_prune_for = [variables_to_prune_for; 'right_arm_angle_ap']; %#ok<AGROW>
-                variables_to_prune_for = [variables_to_prune_for; 'right_arm_phase']; %#ok<AGROW>
-            end
-            if any(strcmp(variables_to_analyze(:, 1), 'left_leg_phase'))
-                LANK_trajectory = extractMarkerTrajectories(marker_trajectories, marker_labels, 'LANK');
-                LPSI_trajectory = extractMarkerTrajectories(marker_trajectories, marker_labels, 'LPSI');
-                LASI_trajectory = extractMarkerTrajectories(marker_trajectories, marker_labels, 'LASI');
-                
-                % calculate vectors
-                left_pelvis_center_trajectory = (LPSI_trajectory + LASI_trajectory) * 0.5;
-                left_leg_vector_trajectory = left_pelvis_center_trajectory - LANK_trajectory;
-                
-                % calculate angles
-                left_leg_angle_ap = rad2deg(atan2(-left_leg_vector_trajectory(:, 2), left_leg_vector_trajectory(:, 3)));
-
-                % find negative peaks
-                [~, left_leg_peak_locations] = findpeaks(-left_leg_angle_ap, 'MinPeakProminence', subject_settings.get('left_legswing_peak_prominence_threshold'), 'MinPeakDistance', subject_settings.get('left_legswing_peak_distance_threshold') * sampling_rate_marker);
-                
-                % normalize
-                [lleg_angle_ap_normalized, lleg_angle_ap_dot_normalized] = normalizePeriodicVariable(left_leg_angle_ap, time_marker, left_leg_peak_locations);
-
-                % calculate phase
-                left_leg_phase = atan2(-lleg_angle_ap_dot_normalized, lleg_angle_ap_normalized);
-                
-                % add new variables to be saved
-                variables_to_save.left_leg_angle_ap = left_leg_angle_ap;
-                variables_to_save.left_leg_phase = left_leg_phase;
-                saveDataToFile([save_folder filesep save_file_name], variables_to_save);
-                addAvailableData('left_leg_angle_ap', 'time_marker', 'sampling_rate_marker', '', save_folder, save_file_name);
-                addAvailableData('left_leg_phase', 'time_marker', 'sampling_rate_marker', '', save_folder, save_file_name);
-                variables_to_prune_for = [variables_to_prune_for; 'left_leg_angle_ap']; %#ok<AGROW>
-                variables_to_prune_for = [variables_to_prune_for; 'left_leg_phase']; %#ok<AGROW>
-            end
-            if any(strcmp(variables_to_analyze(:, 1), 'right_leg_phase'))
-                RANK_trajectory = extractMarkerTrajectories(marker_trajectories, marker_labels, 'RANK');
-                RPSI_trajectory = extractMarkerTrajectories(marker_trajectories, marker_labels, 'RPSI');
-                RASI_trajectory = extractMarkerTrajectories(marker_trajectories, marker_labels, 'RASI');
-                
-                % calculate vectors
-                right_pelvis_center_trajectory = (RPSI_trajectory + RASI_trajectory) * 0.5;
-                right_leg_vector_trajectory = right_pelvis_center_trajectory - RANK_trajectory;
-                
-                % calculate angles
-                right_leg_angle_ap = rad2deg(atan2(-right_leg_vector_trajectory(:, 2), right_leg_vector_trajectory(:, 3)));
-
-                % find negative peaks
-                [~, right_leg_peak_locations] = findpeaks(-right_leg_angle_ap, 'MinPeakProminence', subject_settings.get('right_legswing_peak_prominence_threshold'), 'MinPeakDistance', subject_settings.get('right_legswing_peak_distance_threshold') * sampling_rate_marker);
-                
-                % normalize
-                [lleg_angle_ap_normalized, lleg_angle_ap_dot_normalized] = normalizePeriodicVariable(right_leg_angle_ap, time_marker, right_leg_peak_locations);
-
-                % calculate phase
-                right_leg_phase = atan2(lleg_angle_ap_dot_normalized, -lleg_angle_ap_normalized);
-                
-                % add new variables to be saved
-                variables_to_save.right_leg_angle_ap = right_leg_angle_ap;
-                variables_to_save.right_leg_phase = right_leg_phase;
-                saveDataToFile([save_folder filesep save_file_name], variables_to_save);
-                addAvailableData('right_leg_angle_ap', 'time_marker', 'sampling_rate_marker', '', save_folder, save_file_name);
-                addAvailableData('right_leg_phase', 'time_marker', 'sampling_rate_marker', '', save_folder, save_file_name);
-                variables_to_prune_for = [variables_to_prune_for; 'right_leg_angle_ap']; %#ok<AGROW>
-                variables_to_prune_for = [variables_to_prune_for; 'right_leg_phase']; %#ok<AGROW>
-            end
-            if any(strcmp(variables_to_analyze(:, 1), 'com_x')) || any(strcmp(variables_to_analyze(:, 1), 'com_y')) || any(strcmp(variables_to_analyze(:, 1), 'com_z'))
-                variables_to_prune_for = [variables_to_prune_for; 'com_trajectories']; %#ok<AGROW>
-            end
+%                 % calculate vectors
+%                 left_wrist_center_trajectory = (LWRA_trajectory + LWRB_trajectory) * 0.5;
+%                 left_arm_vector_trajectory = LELB_trajectory - left_wrist_center_trajectory;
+% 
+%                 % calculate angles
+%                 left_arm_angle_ap = rad2deg(atan2(-left_arm_vector_trajectory(:, 2), left_arm_vector_trajectory(:, 3)));
+% 
+%                 % find negative peaks
+%                 [~, left_arm_peak_locations] = findpeaks(-left_arm_angle_ap, 'MinPeakProminence', subject_settings.get('left_armswing_peak_prominence_threshold'), 'MinPeakDistance', subject_settings.get('left_armswing_peak_distance_threshold') * sampling_rate_marker);
+%                 
+%                 % normalize
+%                 [larm_angle_ap_normalized, larm_angle_ap_dot_normalized] = normalizePeriodicVariable(left_arm_angle_ap, time_marker, left_arm_peak_locations);
+% 
+%                 % calculate phase
+%                 left_arm_phase = atan2(larm_angle_ap_dot_normalized, -larm_angle_ap_normalized);
+%                 
+% %                 % XXX plot some stuff to check
+% %                 figure; hold on
+% %                 plot(left_arm_phase)
+% %                 plot(left_arm_phase_atan2)
+% %                 
+%                 
+%                 % add new variables to be saved
+%                 variables_to_save.left_arm_angle_ap = left_arm_angle_ap;
+%                 variables_to_save.left_arm_phase = left_arm_phase;
+%                 variables_to_save.sampling_rate_marker = sampling_rate_marker;
+%                 variables_to_save.time_marker = time_marker;
+%                 saveDataToFile([save_folder filesep save_file_name], variables_to_save);
+%                 addAvailableData('left_arm_angle_ap', 'time_marker', 'sampling_rate_marker', '', save_folder, save_file_name);
+%                 addAvailableData('left_arm_phase', 'time_marker', 'sampling_rate_marker', '', save_folder, save_file_name);
+%                 variables_to_prune_for = [variables_to_prune_for; 'left_arm_angle_ap']; %#ok<AGROW>
+%                 variables_to_prune_for = [variables_to_prune_for; 'left_arm_phase']; %#ok<AGROW>
+%             end
+%             if any(strcmp(variables_to_analyze(:, 1), 'right_arm_phase'))
+%                 RELB_trajectory = extractMarkerTrajectories(marker_trajectories, marker_labels, 'RELB');
+%                 RWRA_trajectory = extractMarkerTrajectories(marker_trajectories, marker_labels, 'RWRA');
+%                 RWRB_trajectory = extractMarkerTrajectories(marker_trajectories, marker_labels, 'RWRB');
+%                 
+%                 % calculate vectors
+%                 right_wrist_center_trajectory = (RWRA_trajectory + RWRB_trajectory) * 0.5;
+%                 right_arm_vector_trajectory = RELB_trajectory - right_wrist_center_trajectory;
+%                 
+%                 % calculate angles
+%                 right_arm_angle_ap = rad2deg(atan2(-right_arm_vector_trajectory(:, 2), right_arm_vector_trajectory(:, 3)));
+% 
+%                 % find negative peaks
+%                 [~, right_arm_peak_locations] = findpeaks(-right_arm_angle_ap, 'MinPeakProminence', subject_settings.get('right_armswing_peak_prominence_threshold'), 'MinPeakDistance', subject_settings.get('right_armswing_peak_distance_threshold') * sampling_rate_marker);
+%                 
+%                 % normalize
+%                 [larm_angle_ap_normalized, larm_angle_ap_dot_normalized] = normalizePeriodicVariable(right_arm_angle_ap, time_marker, right_arm_peak_locations);
+% 
+%                 % calculate phase
+%                 right_arm_phase = atan2(larm_angle_ap_dot_normalized, -larm_angle_ap_normalized);
+%                 
+%                 % add new variables to be saved
+%                 variables_to_save.right_arm_angle_ap = right_arm_angle_ap;
+%                 variables_to_save.right_arm_phase = right_arm_phase;
+%                 saveDataToFile([save_folder filesep save_file_name], variables_to_save);
+%                 addAvailableData('right_arm_angle_ap', 'time_marker', 'sampling_rate_marker', '', save_folder, save_file_name);
+%                 addAvailableData('right_arm_phase', 'time_marker', 'sampling_rate_marker', '', save_folder, save_file_name);
+%                 variables_to_prune_for = [variables_to_prune_for; 'right_arm_angle_ap']; %#ok<AGROW>
+%                 variables_to_prune_for = [variables_to_prune_for; 'right_arm_phase']; %#ok<AGROW>
+%             end
+%             if any(strcmp(variables_to_analyze(:, 1), 'left_leg_phase'))
+%                 LANK_trajectory = extractMarkerTrajectories(marker_trajectories, marker_labels, 'LANK');
+%                 LPSI_trajectory = extractMarkerTrajectories(marker_trajectories, marker_labels, 'LPSI');
+%                 LASI_trajectory = extractMarkerTrajectories(marker_trajectories, marker_labels, 'LASI');
+%                 
+%                 % calculate vectors
+%                 left_pelvis_center_trajectory = (LPSI_trajectory + LASI_trajectory) * 0.5;
+%                 left_leg_vector_trajectory = left_pelvis_center_trajectory - LANK_trajectory;
+%                 
+%                 % calculate angles
+%                 left_leg_angle_ap = rad2deg(atan2(-left_leg_vector_trajectory(:, 2), left_leg_vector_trajectory(:, 3)));
+% 
+%                 % find negative peaks
+%                 [~, left_leg_peak_locations] = findpeaks(-left_leg_angle_ap, 'MinPeakProminence', subject_settings.get('left_legswing_peak_prominence_threshold'), 'MinPeakDistance', subject_settings.get('left_legswing_peak_distance_threshold') * sampling_rate_marker);
+%                 
+%                 % normalize
+%                 [lleg_angle_ap_normalized, lleg_angle_ap_dot_normalized] = normalizePeriodicVariable(left_leg_angle_ap, time_marker, left_leg_peak_locations);
+% 
+%                 % calculate phase
+%                 left_leg_phase = atan2(-lleg_angle_ap_dot_normalized, lleg_angle_ap_normalized);
+%                 
+%                 % add new variables to be saved
+%                 variables_to_save.left_leg_angle_ap = left_leg_angle_ap;
+%                 variables_to_save.left_leg_phase = left_leg_phase;
+%                 saveDataToFile([save_folder filesep save_file_name], variables_to_save);
+%                 addAvailableData('left_leg_angle_ap', 'time_marker', 'sampling_rate_marker', '', save_folder, save_file_name);
+%                 addAvailableData('left_leg_phase', 'time_marker', 'sampling_rate_marker', '', save_folder, save_file_name);
+%                 variables_to_prune_for = [variables_to_prune_for; 'left_leg_angle_ap']; %#ok<AGROW>
+%                 variables_to_prune_for = [variables_to_prune_for; 'left_leg_phase']; %#ok<AGROW>
+%             end
+%             if any(strcmp(variables_to_analyze(:, 1), 'right_leg_phase'))
+%                 RANK_trajectory = extractMarkerTrajectories(marker_trajectories, marker_labels, 'RANK');
+%                 RPSI_trajectory = extractMarkerTrajectories(marker_trajectories, marker_labels, 'RPSI');
+%                 RASI_trajectory = extractMarkerTrajectories(marker_trajectories, marker_labels, 'RASI');
+%                 
+%                 % calculate vectors
+%                 right_pelvis_center_trajectory = (RPSI_trajectory + RASI_trajectory) * 0.5;
+%                 right_leg_vector_trajectory = right_pelvis_center_trajectory - RANK_trajectory;
+%                 
+%                 % calculate angles
+%                 right_leg_angle_ap = rad2deg(atan2(-right_leg_vector_trajectory(:, 2), right_leg_vector_trajectory(:, 3)));
+% 
+%                 % find negative peaks
+%                 [~, right_leg_peak_locations] = findpeaks(-right_leg_angle_ap, 'MinPeakProminence', subject_settings.get('right_legswing_peak_prominence_threshold'), 'MinPeakDistance', subject_settings.get('right_legswing_peak_distance_threshold') * sampling_rate_marker);
+%                 
+%                 % normalize
+%                 [lleg_angle_ap_normalized, lleg_angle_ap_dot_normalized] = normalizePeriodicVariable(right_leg_angle_ap, time_marker, right_leg_peak_locations);
+% 
+%                 % calculate phase
+%                 right_leg_phase = atan2(lleg_angle_ap_dot_normalized, -lleg_angle_ap_normalized);
+%                 
+%                 % add new variables to be saved
+%                 variables_to_save.right_leg_angle_ap = right_leg_angle_ap;
+%                 variables_to_save.right_leg_phase = right_leg_phase;
+%                 saveDataToFile([save_folder filesep save_file_name], variables_to_save);
+%                 addAvailableData('right_leg_angle_ap', 'time_marker', 'sampling_rate_marker', '', save_folder, save_file_name);
+%                 addAvailableData('right_leg_phase', 'time_marker', 'sampling_rate_marker', '', save_folder, save_file_name);
+%                 variables_to_prune_for = [variables_to_prune_for; 'right_leg_angle_ap']; %#ok<AGROW>
+%                 variables_to_prune_for = [variables_to_prune_for; 'right_leg_phase']; %#ok<AGROW>
+%             end
+%             if any(strcmp(variables_to_analyze(:, 1), 'com_x')) || any(strcmp(variables_to_analyze(:, 1), 'com_y')) || any(strcmp(variables_to_analyze(:, 1), 'com_z'))
+%                 variables_to_prune_for = [variables_to_prune_for; 'com_trajectories']; %#ok<AGROW>
+%             end
             
             % prune
             number_of_stretches = length(stretch_start_times);
@@ -1295,12 +1299,14 @@ function findRelevantDataStretches(varargin)
                 removal_flags(stretch_times > stretch_time_outlier_limits(2)) = 1;
             end
             
+            % % Running into problems with markers missing !!! % % %
             % check data availability for markers and flag stretches with gaps
             for i_stretch = 1 : number_of_stretches
                 [~, start_index_mocap] = min(abs(time_marker - stretch_start_times(i_stretch)));
                 [~, end_index_mocap] = min(abs(time_marker - stretch_end_times(i_stretch)));
                 if any(any(isnan(marker_trajectories(start_index_mocap : end_index_mocap, essential_marker_indicator))))
                     removal_flags(i_stretch) = 1;
+                    disp('Removing a strech due to gaps in essential markers')
                 end
             end
             
@@ -1318,7 +1324,8 @@ function findRelevantDataStretches(varargin)
                 end
             end
 
-            % check data availability for markers with non-zero weight
+            % % Running into problems with markers missing !!! % % %
+            %  check data availability for markers with non-zero weight
             marker_weights = study_settings.get('marker_weights');
             for i_marker = 1 : length(marker_labels)
                 this_marker_weight = 1; % 1 is default
@@ -1328,14 +1335,16 @@ function findRelevantDataStretches(varargin)
                     this_marker_weight = marker_weights{strcmp(marker_weights(:, 1), this_marker_label), 2};
                 end
                 
-                if this_marker_weight > 0
+                if this_marker_weight == 1
                     this_marker_data = extractMarkerTrajectories(marker_trajectories, marker_labels, this_marker_label);
                     for i_stretch = 1 : number_of_stretches
                         [~, start_index] = min(abs(time_marker - stretch_start_times(i_stretch)));
                         [~, end_index] = min(abs(time_marker - stretch_end_times(i_stretch)));
                         if any(isnan(this_marker_data(start_index : end_index)))
                             removal_flags(i_stretch) = 1;
-                        end
+                            this_marker_text = string(this_marker_label);
+                            disp(['Removing a strech due to gap in', this_marker_text]);
+                        end 
                     end
                     
                 end

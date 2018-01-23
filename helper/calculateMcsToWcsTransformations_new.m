@@ -50,10 +50,10 @@ function transformations = calculateMcsToWcsTransformations_new(marker_positions
 %                 this_segment_markers = {'LSHOULDERCOR', 'LELBOWCOR', 'LELB'};
 %             elseif strcmp(this_segment_label, 'RUPPERARM')
 %                 this_segment_markers = {'RSHOULDERCOR', 'RELBOWCOR', 'RELB'};
-%             elseif strcmp(this_segment_label, 'LFOREARM')
-%                 this_segment_markers = {'LFRM', 'LWRA', 'LWRB'};
-%             elseif strcmp(this_segment_label, 'RFOREARM')
-%                 this_segment_markers = {'RFRM', 'RWRA', 'RWRB'};
+            if strcmp(this_segment_label, 'LFOREARM')
+                this_segment_markers = {'LFRA', 'LWRA', 'LWRB'};
+            elseif strcmp(this_segment_label, 'RFOREARM')
+                this_segment_markers = {'RFRA', 'RWRA', 'RWRB'};
 %             elseif strcmp(this_segment_label, 'LHAND')
 %                 this_segment_markers = {'LWRB', 'LWRA', 'LFIN'}; % this is not good because these markers are not actually on a rigid body. Check later if I can change that
 %             elseif strcmp(this_segment_label, 'RHAND')
@@ -73,7 +73,7 @@ function transformations = calculateMcsToWcsTransformations_new(marker_positions
 %             elseif strcmp(this_segment_label, 'RFOOT')
 % %                 this_segment_markers = {'RANK', 'RHEE', 'RTOE'};
 %                 this_segment_markers = {'RHEE', 'RTOE', 'RTOEL'};
-%             end                
+            end                
             
             % find marker numbers
             number_of_markers_this_segment = length(this_segment_markers);

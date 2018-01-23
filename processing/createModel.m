@@ -66,11 +66,20 @@ function createModel(varargin)
 
     % find first time step where all markers are available
     i_time = 1;
+    
+    % For TU data
+%     while any(isnan(marker_trajectories(i_time, :)))
+%         i_time = i_time + 1;
+%     end
+%     marker_reference = marker_trajectories(i_time, :);
+
+    % For UD data
     while any(isnan(marker_trajectories(i_time, :)))
         i_time = i_time + 1;
     end
     marker_reference = marker_trajectories(i_time, :);
 
+    
     %% extract marker reference positions
     
     % head

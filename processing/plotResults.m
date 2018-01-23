@@ -154,6 +154,7 @@ function plotResults(varargin)
     pushoff_index = round(mean_pushoff_ratio * 100);
     
     %% populate condition cell
+    %% This needs to grab conditions from conditions_to_plot in plotSettings.txt, but seems to be generating its own combinations
     condition_combination_labels = {};
     condition_combinations_stimulus = {};
     labels_to_ignore = plot_settings.get('conditions_to_ignore');
@@ -197,7 +198,7 @@ function plotResults(varargin)
     
     % make control conditions cell
     condition_combinations_control = {};
-    for i_combination = 1 : length(condition_combinations_stimulus)
+    for i_combination = 1 : size(condition_combinations_stimulus,1)
         this_combination_stimulus = condition_combinations_stimulus(i_combination, :);
         this_combination_control = cell(size(this_combination_stimulus));
         for i_label = 1 : length(condition_combination_labels)
@@ -383,6 +384,8 @@ function plotResults(varargin)
                     for i_condition = 1 : length(conditions_this_comparison)
                         this_condition_combination = condition_combinations_stimulus(i_condition, :);
                         this_condition_indicator = getConditionIndicator(this_condition_combination, condition_combination_labels, condition_data_all, condition_labels);
+                        %% there is a problem here.. but not sure what it is exactly
+                        any(this_condition_indicator)
                         step_time_data_this_condition = step_time_data(:, this_condition_indicator);
                         step_time_means_this_comparison(i_condition) = mean(step_time_data_this_condition);
                     end
