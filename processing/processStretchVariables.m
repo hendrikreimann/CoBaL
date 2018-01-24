@@ -84,14 +84,6 @@ function processStretchVariables(varargin)
                 conditions_session.(condition_source_variables{i_condition}) = [conditions_session.(condition_source_variables{i_condition}); conditions_trial.(condition_source_variables{i_condition}) ];
             end
             
-%             condition_stance_foot_list_session = [condition_stance_foot_list_session; condition_stance_foot_list_trial]; %#ok<AGROW>
-%             condition_perturbation_list_session = [condition_perturbation_list_session; condition_perturbation_list_trial]; %#ok<AGROW>
-%             condition_delay_list_session = [condition_delay_list_session; condition_delay_list_trial]; %#ok<AGROW>
-%             condition_index_list_session = [condition_index_list_session; condition_index_list_trial]; %#ok<AGROW>
-%             condition_experimental_list_session = [condition_experimental_list_session; condition_experimental_list_trial]; %#ok<AGROW>
-%             condition_stimulus_list_session = [condition_stimulus_list_session; condition_stimulus_list_trial]; %#ok<AGROW>
-%             condition_day_list_session = [condition_day_list_session; condition_day_list_trial]; %#ok<AGROW>
-            
             origin_trial_list_session = [origin_trial_list_session; ones(size(stretch_start_times)) * i_trial]; %#ok<AGROW>
             origin_start_time_list_session = [origin_start_time_list_session; stretch_start_times]; %#ok<AGROW>
             origin_end_time_list_session = [origin_end_time_list_session; stretch_end_times]; %#ok<AGROW>
