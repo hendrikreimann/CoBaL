@@ -31,9 +31,23 @@ function processAnalysisVariables(varargin)
     results_file_name = ['analysis' filesep makeFileName(date, subject_id, 'results')];
     loaded_data = load(results_file_name);
     
-    conditions_control = study_settings.get('conditions_control');
     number_of_stretch_variables = length(loaded_data.stretch_names_session);
     number_of_stretches = size(loaded_data.stretch_data_session{1}, 2); %#ok<*USENS>
+    
+    % make condition data tables
+    conditions_settings = study_settings.get('conditions');
+    condition_labels = conditions_settings(:, 1)';
+    condition_source_variables = conditions_settings(:, 2)';
+    number_of_condition_labels = length(condition_labels);
+    conditions_session = loaded_data.conditions_session;
+    condition_data_all = cell(number_of_stretches, number_of_condition_labels);
+    for i_condition = 1 : number_of_condition_labels
+        condition_data_all(:, i_condition) = conditions_session.(condition_source_variables{i_condition});
+    end
+    labels_to_ignore = study_settings.get('conditions_to_ignore');
+    levels_to_remove = study_settings.get('levels_to_remove');
+    [condition_combination_labels, condition_combinations_stimulus, condition_combinations_control] = determineConditionCombinations(condition_data_all, conditions_settings, labels_to_ignore, levels_to_remove);
+    condition_combinations_control_unique = table2cell(unique(cell2table(condition_combinations_control), 'rows'));
     
     if isfield(loaded_data, 'analysis_data_session')
         analysis_data_session = loaded_data.analysis_data_session;
@@ -43,42 +57,10 @@ function processAnalysisVariables(varargin)
         analysis_names_session = {};
     end
     
-%     %% make relative illusion condition list
-%     condition_direction_list_session = loaded_data.condition_perturbation_list_session;
-%     for i_stretch = 1 : number_of_stretches
-%         if ...
-%           (strcmp(loaded_data.condition_index_list_session{i_stretch}, 'ONE') && strcmp(loaded_data.condition_perturbation_list_session{i_stretch}, 'ILLUSION_LEFT') && strcmp(loaded_data.condition_stance_foot_list_session{i_stretch}, 'STANCE_LEFT')) ...
-%           || (strcmp(loaded_data.condition_index_list_session{i_stretch}, 'TWO') && strcmp(loaded_data.condition_perturbation_list_session{i_stretch}, 'ILLUSION_LEFT') && strcmp(loaded_data.condition_stance_foot_list_session{i_stretch}, 'STANCE_RIGHT')) ...
-%           || (strcmp(loaded_data.condition_index_list_session{i_stretch}, 'THREE') && strcmp(loaded_data.condition_perturbation_list_session{i_stretch}, 'ILLUSION_LEFT') && strcmp(loaded_data.condition_stance_foot_list_session{i_stretch}, 'STANCE_LEFT')) ...
-%           || (strcmp(loaded_data.condition_index_list_session{i_stretch}, 'FOUR') && strcmp(loaded_data.condition_perturbation_list_session{i_stretch}, 'ILLUSION_LEFT') && strcmp(loaded_data.condition_stance_foot_list_session{i_stretch}, 'STANCE_RIGHT')) ...
-%           || (strcmp(loaded_data.condition_index_list_session{i_stretch}, 'ONE') && strcmp(loaded_data.condition_perturbation_list_session{i_stretch}, 'ILLUSION_RIGHT') && strcmp(loaded_data.condition_stance_foot_list_session{i_stretch}, 'STANCE_RIGHT')) ...
-%           || (strcmp(loaded_data.condition_index_list_session{i_stretch}, 'TWO') && strcmp(loaded_data.condition_perturbation_list_session{i_stretch}, 'ILLUSION_RIGHT') && strcmp(loaded_data.condition_stance_foot_list_session{i_stretch}, 'STANCE_LEFT')) ...
-%           || (strcmp(loaded_data.condition_index_list_session{i_stretch}, 'THREE') && strcmp(loaded_data.condition_perturbation_list_session{i_stretch}, 'ILLUSION_RIGHT') && strcmp(loaded_data.condition_stance_foot_list_session{i_stretch}, 'STANCE_RIGHT')) ...
-%           || (strcmp(loaded_data.condition_index_list_session{i_stretch}, 'FOUR') && strcmp(loaded_data.condition_perturbation_list_session{i_stretch}, 'ILLUSION_RIGHT') && strcmp(loaded_data.condition_stance_foot_list_session{i_stretch}, 'STANCE_LEFT'))
-%             % these are all the cases where the illusion is TOWARDS the first stance leg, i.e. the triggering leg
-%             condition_direction_list_session{i_stretch} = 'TOWARDS';
-%         elseif ...
-%           (strcmp(loaded_data.condition_index_list_session{i_stretch}, 'ONE') && strcmp(loaded_data.condition_perturbation_list_session{i_stretch}, 'ILLUSION_LEFT') && strcmp(loaded_data.condition_stance_foot_list_session{i_stretch}, 'STANCE_RIGHT')) ...
-%           || (strcmp(loaded_data.condition_index_list_session{i_stretch}, 'TWO') && strcmp(loaded_data.condition_perturbation_list_session{i_stretch}, 'ILLUSION_LEFT') && strcmp(loaded_data.condition_stance_foot_list_session{i_stretch}, 'STANCE_LEFT')) ...
-%           || (strcmp(loaded_data.condition_index_list_session{i_stretch}, 'THREE') && strcmp(loaded_data.condition_perturbation_list_session{i_stretch}, 'ILLUSION_LEFT') && strcmp(loaded_data.condition_stance_foot_list_session{i_stretch}, 'STANCE_RIGHT')) ...
-%           || (strcmp(loaded_data.condition_index_list_session{i_stretch}, 'FOUR') && strcmp(loaded_data.condition_perturbation_list_session{i_stretch}, 'ILLUSION_LEFT') && strcmp(loaded_data.condition_stance_foot_list_session{i_stretch}, 'STANCE_LEFT')) ...
-%           || (strcmp(loaded_data.condition_index_list_session{i_stretch}, 'ONE') && strcmp(loaded_data.condition_perturbation_list_session{i_stretch}, 'ILLUSION_RIGHT') && strcmp(loaded_data.condition_stance_foot_list_session{i_stretch}, 'STANCE_LEFT')) ...
-%           || (strcmp(loaded_data.condition_index_list_session{i_stretch}, 'TWO') && strcmp(loaded_data.condition_perturbation_list_session{i_stretch}, 'ILLUSION_RIGHT') && strcmp(loaded_data.condition_stance_foot_list_session{i_stretch}, 'STANCE_RIGHT')) ...
-%           || (strcmp(loaded_data.condition_index_list_session{i_stretch}, 'THREE') && strcmp(loaded_data.condition_perturbation_list_session{i_stretch}, 'ILLUSION_RIGHT') && strcmp(loaded_data.condition_stance_foot_list_session{i_stretch}, 'STANCE_LEFT')) ...
-%           || (strcmp(loaded_data.condition_index_list_session{i_stretch}, 'FOUR') && strcmp(loaded_data.condition_perturbation_list_session{i_stretch}, 'ILLUSION_RIGHT') && strcmp(loaded_data.condition_stance_foot_list_session{i_stretch}, 'STANCE_RIGHT'))
-%             % these are all the cases where the illusion is AWAY from the first stance leg, i.e. the triggering leg
-%             condition_direction_list_session{i_stretch} = 'AWAY';
-%         elseif strcmp(loaded_data.condition_perturbation_list_session{i_stretch}, 'CONTROL')
-%             % do nothing
-%         else
-%             error('Something wrong with the condition: No match found')
-%         end
-%     end
-    
     %% calculate response (i.e. difference from control mean)
     response_data_session = {};
     response_names_session = loaded_data.stretch_names_session;
-    if ~isempty(conditions_control)
+    if ~isempty(condition_combinations_control)
         % prepare container
         response_data_session = cell(size(loaded_data.stretch_data_session));
         for i_variable = 1 : number_of_stretch_variables
@@ -87,35 +69,62 @@ function processAnalysisVariables(varargin)
         
         % go stretch by stretch
         for i_stretch = 1 : number_of_stretches
-            % determine conditions and applicable control
-            this_stretch_condition_string = ...
-              { ...
-                loaded_data.condition_stance_foot_list_session{i_stretch}, ...
-                loaded_data.condition_perturbation_list_session{i_stretch}, ...
-                loaded_data.condition_delay_list_session{i_stretch}, ...
-                loaded_data.condition_index_list_session{i_stretch}, ...
-                loaded_data.condition_experimental_list_session{i_stretch}, ...
-                loaded_data.condition_stimulus_list_session{i_stretch}, ...
-                loaded_data.condition_day_list_session{i_stretch} ...
-              };
-            applicable_control_condition_index = findApplicableControlConditionIndex(this_stretch_condition_string, conditions_control);
-            applicable_control_condition_labels = conditions_control(applicable_control_condition_index, :);
+            % extract this stretches relevant conditions
+            this_stretch_condition_string = cell(1, length(condition_combination_labels));
+            for i_label = 1 : length(condition_combination_labels)
+                this_label = condition_combination_labels{i_label};
+                this_label_source_variable = condition_source_variables{strcmp(condition_labels, this_label)};
+                this_label_condition_list = conditions_session.(this_label_source_variable);
+                this_stretch_condition_string{i_label} = this_label_condition_list{i_stretch};
+            end
+            
+            % determine applicable control condition index
+            if strcmp(this_stretch_condition_string{strcmp(condition_combination_labels, 'stance_foot')}, 'STANCE_LEFT')
+                applicable_control_condition = find(strcmp(condition_combinations_control_unique(:, strcmp(condition_combination_labels, 'stance_foot')), 'STANCE_LEFT'));
+            end
+            if strcmp(this_stretch_condition_string{strcmp(condition_combination_labels, 'stance_foot')}, 'STANCE_RIGHT')
+                applicable_control_condition = find(strcmp(condition_combinations_control_unique(:, strcmp(condition_combination_labels, 'stance_foot')), 'STANCE_RIGHT'));
+            end
             
             % determine indicator for control
-            stance_foot_indicator = strcmp(loaded_data.condition_stance_foot_list_session, applicable_control_condition_labels{1});
-            perturbation_indicator = strcmp(loaded_data.condition_perturbation_list_session, applicable_control_condition_labels{2});
-            delay_indicator = strcmp(loaded_data.condition_delay_list_session, applicable_control_condition_labels{3});
-            index_indicator = strcmp(loaded_data.condition_index_list_session, applicable_control_condition_labels{4});
-            experimental_indicator = strcmp(loaded_data.condition_experimental_list_session, applicable_control_condition_labels{5});
-            stimulus_indicator = strcmp(loaded_data.condition_stimulus_list_session, applicable_control_condition_labels{6});
-            day_indicator = strcmp(loaded_data.condition_day_list_session, applicable_control_condition_labels{7});
-            this_condition_control_indicator = stance_foot_indicator & perturbation_indicator & delay_indicator & index_indicator & experimental_indicator & stimulus_indicator & day_indicator;
+            control_condition_indicator = true(number_of_stretches, 1);
+            for i_label = 1 : length(condition_combination_labels)
+                this_label = condition_combination_labels{i_label};
+                this_label_list = condition_data_all(:, strcmp(conditions_settings(:, 1), this_label));
+                this_label_indicator = strcmp(this_label_list, condition_combinations_control_unique(applicable_control_condition, i_label));
+                control_condition_indicator = control_condition_indicator .* this_label_indicator;
+            end        
+            control_condition_indicator = logical(control_condition_indicator);            
+            
+            
+%             this_stretch_condition_string = ...
+%               { ...
+%                 loaded_data.condition_stance_foot_list_session{i_stretch}, ...
+%                 loaded_data.condition_perturbation_list_session{i_stretch}, ...
+%                 loaded_data.condition_delay_list_session{i_stretch}, ...
+%                 loaded_data.condition_index_list_session{i_stretch}, ...
+%                 loaded_data.condition_experimental_list_session{i_stretch}, ...
+%                 loaded_data.condition_stimulus_list_session{i_stretch}, ...
+%                 loaded_data.condition_day_list_session{i_stretch} ...
+%               };
+%             applicable_control_condition_index = findApplicableControlConditionIndex(this_stretch_condition_string, conditions_control);
+%             applicable_control_condition_labels = conditions_control(applicable_control_condition_index, :);
+%             
+%             % determine indicator for control
+%             stance_foot_indicator = strcmp(loaded_data.condition_stance_foot_list_session, applicable_control_condition_labels{1});
+%             perturbation_indicator = strcmp(loaded_data.condition_perturbation_list_session, applicable_control_condition_labels{2});
+%             delay_indicator = strcmp(loaded_data.condition_delay_list_session, applicable_control_condition_labels{3});
+%             index_indicator = strcmp(loaded_data.condition_index_list_session, applicable_control_condition_labels{4});
+%             experimental_indicator = strcmp(loaded_data.condition_experimental_list_session, applicable_control_condition_labels{5});
+%             stimulus_indicator = strcmp(loaded_data.condition_stimulus_list_session, applicable_control_condition_labels{6});
+%             day_indicator = strcmp(loaded_data.condition_day_list_session, applicable_control_condition_labels{7});
+%             this_condition_control_indicator = stance_foot_indicator & perturbation_indicator & delay_indicator & index_indicator & experimental_indicator & stimulus_indicator & day_indicator;
             
             % calculate responses
             for i_variable = 1 : number_of_stretch_variables
                 % calculate control mean
                 data_this_variable = loaded_data.stretch_data_session{i_variable};
-                this_condition_control_data = data_this_variable(:, this_condition_control_indicator);
+                this_condition_control_data = data_this_variable(:, control_condition_indicator);
                 this_condition_control_mean = mean(this_condition_control_data, 2);
                 
                 % calculate response
@@ -126,6 +135,15 @@ function processAnalysisVariables(varargin)
 
     end
 
+    
+    
+    
+    
+    
+    
+    
+    
+    
     %% calculate integrated variables
     variables_to_integrate = study_settings.get('analysis_variables_from_integration');
     step_time_index_in_saved_data = find(strcmp(loaded_data.stretch_names_session, 'step_time'), 1, 'first');
@@ -210,11 +228,17 @@ function processAnalysisVariables(varargin)
         % invert
         this_variable_data = this_variable_source_data;
         for i_stretch = 1 : number_of_stretches
-            if strcmp(loaded_data.condition_perturbation_list_session{i_stretch}, 'ILLUSION_LEFT')
+            perturbation_list = conditions_session.(condition_source_variables{strcmp(condition_labels, 'perturbation')});
+            if strcmp(perturbation_list, 'ILLUSION_LEFT')
                 this_variable_data(:, i_stretch) = sign_illusion_left * this_variable_source_data(:, i_stretch);
-            elseif strcmp(loaded_data.condition_perturbation_list_session{i_stretch}, 'ILLUSION_RIGHT')
+            elseif strcmp(perturbation_list, 'ILLUSION_RIGHT')
                 this_variable_data(:, i_stretch) = sign_illusion_right * this_variable_source_data(:, i_stretch);
             end
+%             if strcmp(loaded_data.condition_perturbation_list_session{i_stretch}, 'ILLUSION_LEFT')
+%                 this_variable_data(:, i_stretch) = sign_illusion_left * this_variable_source_data(:, i_stretch);
+%             elseif strcmp(loaded_data.condition_perturbation_list_session{i_stretch}, 'ILLUSION_RIGHT')
+%                 this_variable_data(:, i_stretch) = sign_illusion_right * this_variable_source_data(:, i_stretch);
+%             end
         end
         
         % store
@@ -256,11 +280,18 @@ function processAnalysisVariables(varargin)
         % invert
         this_variable_data = this_variable_source_data;
         for i_stretch = 1 : number_of_stretches
-            if strcmp(condition_direction_list_session{i_stretch}, 'TOWARDS')
+            direction_list = conditions_session.(condition_source_variables{strcmp(condition_labels, 'direction')});
+            if strcmp(direction_list{i_stretch}, 'TOWARDS')
                 this_variable_data(:, i_stretch) = sign_illusion_left * this_variable_source_data(:, i_stretch);
-            elseif strcmp(condition_direction_list_session{i_stretch}, 'AWAY')
+            elseif strcmp(direction_list{i_stretch}, 'AWAY')
                 this_variable_data(:, i_stretch) = sign_illusion_right * this_variable_source_data(:, i_stretch);
             end
+            
+%             if strcmp(condition_direction_list_session{i_stretch}, 'TOWARDS')
+%                 this_variable_data(:, i_stretch) = sign_illusion_left * this_variable_source_data(:, i_stretch);
+%             elseif strcmp(condition_direction_list_session{i_stretch}, 'AWAY')
+%                 this_variable_data(:, i_stretch) = sign_illusion_right * this_variable_source_data(:, i_stretch);
+%             end
         end
         
         % store
@@ -319,19 +350,21 @@ function processAnalysisVariables(varargin)
         
         % select
         this_variable_data = zeros(size(this_variable_source_data_triggerLeft));
+        stance_foot_list = conditions_session.(condition_source_variables{strcmp(condition_labels, 'stance_foot')});
+        index_list = conditions_session.(condition_source_variables{strcmp(condition_labels, 'index')});
         for i_stretch = 1 : number_of_stretches
             if ...
-              (strcmp(loaded_data.condition_stance_foot_list_session{i_stretch}, 'STANCE_LEFT') && strcmp(loaded_data.condition_index_list_session{i_stretch}, 'ONE')) || ...
-              (strcmp(loaded_data.condition_stance_foot_list_session{i_stretch}, 'STANCE_RIGHT') && strcmp(loaded_data.condition_index_list_session{i_stretch}, 'TWO')) || ...
-              (strcmp(loaded_data.condition_stance_foot_list_session{i_stretch}, 'STANCE_LEFT') && strcmp(loaded_data.condition_index_list_session{i_stretch}, 'THREE')) || ...
-              (strcmp(loaded_data.condition_stance_foot_list_session{i_stretch}, 'STANCE_RIGHT') && strcmp(loaded_data.condition_index_list_session{i_stretch}, 'FOUR'))
+              (strcmp(stance_foot_list{i_stretch}, 'STANCE_LEFT') && strcmp(index_list{i_stretch}, 'ONE')) || ...
+              (strcmp(stance_foot_list{i_stretch}, 'STANCE_RIGHT') && strcmp(index_list{i_stretch}, 'TWO')) || ...
+              (strcmp(stance_foot_list{i_stretch}, 'STANCE_LEFT') && strcmp(index_list{i_stretch}, 'THREE')) || ...
+              (strcmp(stance_foot_list{i_stretch}, 'STANCE_RIGHT') && strcmp(index_list{i_stretch}, 'FOUR'))
                 this_variable_data(:, i_stretch) = sign_trigger_left * this_variable_source_data_triggerLeft(:, i_stretch);
             end
             if ...
-              (strcmp(loaded_data.condition_stance_foot_list_session{i_stretch}, 'STANCE_RIGHT') && strcmp(loaded_data.condition_index_list_session{i_stretch}, 'ONE')) || ...
-              (strcmp(loaded_data.condition_stance_foot_list_session{i_stretch}, 'STANCE_LEFT') && strcmp(loaded_data.condition_index_list_session{i_stretch}, 'TWO')) || ...
-              (strcmp(loaded_data.condition_stance_foot_list_session{i_stretch}, 'STANCE_RIGHT') && strcmp(loaded_data.condition_index_list_session{i_stretch}, 'THREE')) || ...
-              (strcmp(loaded_data.condition_stance_foot_list_session{i_stretch}, 'STANCE_LEFT') && strcmp(loaded_data.condition_index_list_session{i_stretch}, 'FOUR'))
+              (strcmp(stance_foot_list{i_stretch}, 'STANCE_RIGHT') && strcmp(index_list{i_stretch}, 'ONE')) || ...
+              (strcmp(stance_foot_list{i_stretch}, 'STANCE_LEFT') && strcmp(index_list{i_stretch}, 'TWO')) || ...
+              (strcmp(stance_foot_list{i_stretch}, 'STANCE_RIGHT') && strcmp(index_list{i_stretch}, 'THREE')) || ...
+              (strcmp(stance_foot_list{i_stretch}, 'STANCE_LEFT') && strcmp(index_list{i_stretch}, 'FOUR'))
                 this_variable_data(:, i_stretch) = sign_trigger_right * this_variable_source_data_triggerRight(:, i_stretch);
             end
         end
@@ -346,7 +379,6 @@ function processAnalysisVariables(varargin)
     variables_to_save.response_names_session = response_names_session;
     variables_to_save.analysis_data_session = analysis_data_session;
     variables_to_save.analysis_names_session = analysis_names_session;
-    variables_to_save.condition_direction_list_session = condition_direction_list_session;
     save(results_file_name, '-struct', 'variables_to_save');    
 
     
