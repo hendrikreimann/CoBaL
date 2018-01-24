@@ -1146,6 +1146,7 @@ function findRelevantDataStretches(varargin)
 %                   )
 % 
 %                 disp(['Finding Relevant Data Stretches: condition ' condition_list{i_condition} ', Trial ' num2str(i_trial) ' completed, found ' num2str(length(stretch_start_times)) ' relevant stretches, saved as ' data_stretches_file_name]);                
+
                 % determine trigger foot
                 condition_trigger_foot_list = cell(size(condition_stance_foot_list));
                 for i_stretch = 1 : length(condition_trigger_foot_list)
@@ -1168,6 +1169,64 @@ function findRelevantDataStretches(varargin)
                     end
                 end
                 conditions_trial.condition_trigger_foot_list = condition_trigger_foot_list;
+                
+                % determine direction
+                condition_direction_list = cell(size(condition_stance_foot_list));
+                for i_stretch = 1 : length(condition_direction_list)
+                    if strcmp(condition_trigger_foot_list{i_stretch}, 'TRIGGER_RIGHT')
+                        if strcmp(condition_perturbation_list{i_stretch}, 'ILLUSION_RIGHT')
+                            condition_direction_list{i_stretch} = 'TOWARDS';
+                        end
+                        if strcmp(condition_perturbation_list{i_stretch}, 'ILLUSION_LEFT')
+                            condition_direction_list{i_stretch} = 'AWAY';
+                        end
+                    end
+                    if strcmp(condition_trigger_foot_list{i_stretch}, 'TRIGGER_LEFT')
+                        if strcmp(condition_perturbation_list{i_stretch}, 'ILLUSION_RIGHT')
+                            condition_direction_list{i_stretch} = 'AWAY';
+                        end
+                        if strcmp(condition_perturbation_list{i_stretch}, 'ILLUSION_LEFT')
+                            condition_direction_list{i_stretch} = 'TOWARDS';
+                        end
+                    end
+                    if strcmp(condition_trigger_foot_list{i_stretch}, 'CONTROL')
+                        condition_direction_list{i_stretch} = 'CONTROL';
+                    end
+                end
+                conditions_trial.condition_direction_list = condition_direction_list;
+                
+%                 % determining direction, copied over from processAnalysisVariables
+%                 condition_direction_list_old = condition_perturbation_list;
+%                 for i_stretch = 1 : number_of_stretches
+%                     if ...
+%                       (strcmp(condition_index_list{i_stretch}, 'ONE') && strcmp(condition_perturbation_list{i_stretch}, 'ILLUSION_LEFT') && strcmp(condition_stance_foot_list{i_stretch}, 'STANCE_LEFT')) ...
+%                       || (strcmp(condition_index_list{i_stretch}, 'TWO') && strcmp(condition_perturbation_list{i_stretch}, 'ILLUSION_LEFT') && strcmp(condition_stance_foot_list{i_stretch}, 'STANCE_RIGHT')) ...
+%                       || (strcmp(condition_index_list{i_stretch}, 'THREE') && strcmp(condition_perturbation_list{i_stretch}, 'ILLUSION_LEFT') && strcmp(condition_stance_foot_list{i_stretch}, 'STANCE_LEFT')) ...
+%                       || (strcmp(condition_index_list{i_stretch}, 'FOUR') && strcmp(condition_perturbation_list{i_stretch}, 'ILLUSION_LEFT') && strcmp(condition_stance_foot_list{i_stretch}, 'STANCE_RIGHT')) ...
+%                       || (strcmp(condition_index_list{i_stretch}, 'ONE') && strcmp(condition_perturbation_list{i_stretch}, 'ILLUSION_RIGHT') && strcmp(condition_stance_foot_list{i_stretch}, 'STANCE_RIGHT')) ...
+%                       || (strcmp(condition_index_list{i_stretch}, 'TWO') && strcmp(condition_perturbation_list{i_stretch}, 'ILLUSION_RIGHT') && strcmp(condition_stance_foot_list{i_stretch}, 'STANCE_LEFT')) ...
+%                       || (strcmp(condition_index_list{i_stretch}, 'THREE') && strcmp(condition_perturbation_list{i_stretch}, 'ILLUSION_RIGHT') && strcmp(condition_stance_foot_list{i_stretch}, 'STANCE_RIGHT')) ...
+%                       || (strcmp(condition_index_list{i_stretch}, 'FOUR') && strcmp(condition_perturbation_list{i_stretch}, 'ILLUSION_RIGHT') && strcmp(condition_stance_foot_list{i_stretch}, 'STANCE_LEFT'))
+%                         % these are all the cases where the illusion is TOWARDS the first stance leg, i.e. the triggering leg
+%                         condition_direction_list_old{i_stretch} = 'TOWARDS';
+%                     elseif ...
+%                       (strcmp(condition_index_list{i_stretch}, 'ONE') && strcmp(condition_perturbation_list{i_stretch}, 'ILLUSION_LEFT') && strcmp(condition_stance_foot_list{i_stretch}, 'STANCE_RIGHT')) ...
+%                       || (strcmp(condition_index_list{i_stretch}, 'TWO') && strcmp(condition_perturbation_list{i_stretch}, 'ILLUSION_LEFT') && strcmp(condition_stance_foot_list{i_stretch}, 'STANCE_LEFT')) ...
+%                       || (strcmp(condition_index_list{i_stretch}, 'THREE') && strcmp(condition_perturbation_list{i_stretch}, 'ILLUSION_LEFT') && strcmp(condition_stance_foot_list{i_stretch}, 'STANCE_RIGHT')) ...
+%                       || (strcmp(condition_index_list{i_stretch}, 'FOUR') && strcmp(condition_perturbation_list{i_stretch}, 'ILLUSION_LEFT') && strcmp(condition_stance_foot_list{i_stretch}, 'STANCE_LEFT')) ...
+%                       || (strcmp(condition_index_list{i_stretch}, 'ONE') && strcmp(condition_perturbation_list{i_stretch}, 'ILLUSION_RIGHT') && strcmp(condition_stance_foot_list{i_stretch}, 'STANCE_LEFT')) ...
+%                       || (strcmp(condition_index_list{i_stretch}, 'TWO') && strcmp(condition_perturbation_list{i_stretch}, 'ILLUSION_RIGHT') && strcmp(condition_stance_foot_list{i_stretch}, 'STANCE_RIGHT')) ...
+%                       || (strcmp(condition_index_list{i_stretch}, 'THREE') && strcmp(condition_perturbation_list{i_stretch}, 'ILLUSION_RIGHT') && strcmp(condition_stance_foot_list{i_stretch}, 'STANCE_LEFT')) ...
+%                       || (strcmp(condition_index_list{i_stretch}, 'FOUR') && strcmp(condition_perturbation_list{i_stretch}, 'ILLUSION_RIGHT') && strcmp(condition_stance_foot_list{i_stretch}, 'STANCE_RIGHT'))
+%                         % these are all the cases where the illusion is AWAY from the first stance leg, i.e. the triggering leg
+%                         condition_direction_list_old{i_stretch} = 'AWAY';
+%                     elseif strcmp(condition_perturbation_list{i_stretch}, 'CONTROL')
+%                         % do nothing
+%                     else
+%                         error('Something wrong with the condition: No match found')
+%                     end
+%                 end                
+                
             end
             
             % add subject
