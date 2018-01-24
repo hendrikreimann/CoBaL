@@ -153,9 +153,9 @@ function findRelevantDataStretches(varargin)
             end
             if strcmp(condition_stimulus, 'VISUAL')
                 % this is for UD data
-                 visual_scene_ml_translation_trajectory = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'current_rotation_trajectory');
+%                  visual_scene_ml_translation_trajectory = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'current_rotation_trajectory');
                 % this if for TU data
-%                 visual_scene_ml_translation_trajectory = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'visual_scene_ml_translation_trajectory');
+                visual_scene_ml_translation_trajectory = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'visual_scene_ml_translation__trajectory');
                 [stimulus_state_trajectory, time_stimulus] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'stimulus_state_trajectory');
             end
             
@@ -1143,14 +1143,34 @@ function findRelevantDataStretches(varargin)
 %                   )
 % 
 %                 disp(['Finding Relevant Data Stretches: condition ' condition_list{i_condition} ', Trial ' num2str(i_trial) ' completed, found ' num2str(length(stretch_start_times)) ' relevant stretches, saved as ' data_stretches_file_name]);                
-                
-                
+                % determine trigger foot
+                condition_trigger_foot_list_trial = cell(size(condition_stance_foot_list_trial));
+                for i_stretch = 1 : length(condition_trigger_foot_list_trial)
+                    if strcmp(condition_index_list_trial{i_stretch}, 'ONE') || strcmp(condition_index_list_trial{i_stretch}, 'THREE')
+                        if strcmp(condition_stance_foot_list_trial{i_stretch}, 'STANCE_RIGHT')
+                            condition_trigger_foot_list_trial{i_stretch} = 'TRIGGER_RIGHT';
+                        elseif strcmp(condition_stance_foot_list_trial{i_stretch}, 'STANCE_LEFT')
+                            condition_trigger_foot_list_trial{i_stretch} = 'TRIGGER_LEFT';
+                        end
+                    end
+                    if strcmp(condition_index_list_trial{i_stretch}, 'TWO') || strcmp(condition_index_list_trial{i_stretch}, 'FOUR')
+                        if strcmp(condition_stance_foot_list_trial{i_stretch}, 'STANCE_LEFT')
+                            condition_trigger_foot_list_trial{i_stretch} = 'TRIGGER_RIGHT';
+                        elseif strcmp(condition_stance_foot_list_trial{i_stretch}, 'STANCE_RIGHT')
+                            condition_trigger_foot_list_trial{i_stretch} = 'TRIGGER_LEFT';
+                        end
+                    end
+                    if strcmp(condition_index_list_trial{i_stretch}, 'CONTROL')
+                        condition_trigger_foot_list_trial{i_stretch} = 'CONTROL';
+                    end
+                end
+                event_variables_to_save.condition_trigger_foot_list_trial = condition_trigger_foot_list_trial;
             end            
 
             %% remove stretches where important variables are missing
             %
             % calculate variables that depend upon the step events to be identified correctly
-            variables_to_analyze = study_settings.get('variables_to_analyze');
+%             variables_to_analyze = study_settings.get('variables_to_analyze');
             variables_to_save = struct;
             variables_to_prune_for = {};
             save_folder = 'processed';
@@ -1378,7 +1398,8 @@ function findRelevantDataStretches(varargin)
                 eval(evalstring);
             end
             
-            
+            %%
+
             
             %% save
             %
