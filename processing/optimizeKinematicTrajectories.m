@@ -342,7 +342,7 @@ function optimizeKinematicTrajectories(varargin)
             %% load data
             condition = condition_list{i_condition};
             load(['processed' filesep makeFileName(date, subject_id, condition, i_trial, 'markerTrajectories')]);
-%             load(['processed' filesep makeFileName(date, subject_id, condition, i_trial, 'kinematicTrajectories')]);
+            load(['processed' filesep makeFileName(date, subject_id, condition, i_trial, 'kinematicTrajectories')]);
             number_of_time_steps = size(marker_trajectories, 1);
 
             % determine time steps to optimize
@@ -438,9 +438,9 @@ function optimizeKinematicTrajectories(varargin)
             %% get joint centers and CoM from the kinematic tree
 %             fprintf([datestr(datetime,'yyyy-mm-dd HH:MM:SS') ' - Calculating joint centers and CoM... \n'])
             fprintf([' - Calculating joint centers and CoM... \n'])
-%             joint_center_trajectories_calculated = joint_center_trajectories;
+            joint_center_trajectories_calculated = joint_center_trajectories;
             joint_center_trajectories_optimized = zeros(number_of_time_steps, length(joint_center_headers)*3);
-%             com_trajectories_calculated = com_trajectories;
+            com_trajectories_calculated = com_trajectories;
             com_trajectories_optimized = zeros(number_of_time_steps, length(com_labels)*3) * NaN;
             
             tic
