@@ -1195,6 +1195,10 @@ function findRelevantDataStretches(varargin)
                 end
                 conditions_trial.condition_direction_list = condition_direction_list;
                 
+                % put in placeholder for group
+                conditions_trial.condition_group_list = condition_direction_list;
+                [conditions_trial.condition_group_list{:}] = deal('to be determined');
+                
 %                 % determining direction, copied over from processAnalysisVariables
 %                 condition_direction_list_old = condition_perturbation_list;
 %                 for i_stretch = 1 : number_of_stretches
