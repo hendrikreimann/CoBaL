@@ -43,9 +43,14 @@ function processStimulusResponse(varargin)
     results_file_name = ['analysis' filesep makeFileName(date, subject_id, 'results')];
     loaded_data = load(results_file_name);
     
-
-    conditions_control = study_settings.get('conditions_control');
-    conditions_to_analyze = study_settings.get('conditions_to_analyze');
+    % find relevant conditions
+    conditions_session = loaded_data.conditions_session;
+    conditions_settings = study_settings.get('conditions');
+    condition_labels = conditions_settings(:, 1)';
+    condition_source_variables = conditions_settings(:, 2)';
+    number_of_condition_labels = length(condition_labels);
+    
+    % extract data
     step_placement_x_data = loaded_data.stretch_data_session{strcmp(loaded_data.stretch_names_session, 'step_placement_x')};
     mpsis_x_data = loaded_data.stretch_data_session{strcmp(loaded_data.stretch_names_session, 'mpsis_x')};
     com_x_data = loaded_data.stretch_data_session{strcmp(loaded_data.stretch_names_session, 'com_x')};
@@ -54,38 +59,59 @@ function processStimulusResponse(varargin)
     lanklex_data = loaded_data.stretch_data_session{strcmp(loaded_data.stretch_names_session, 'lankle_x')};
     ranklex_data = loaded_data.stretch_data_session{strcmp(loaded_data.stretch_names_session, 'rankle_x')};
     cop_x_data = loaded_data.stretch_data_session{strcmp(loaded_data.stretch_names_session, 'cop_x')};
-    midstance_index_data = ones(1, size(mpsis_x_data, 2)) * 65; % XXX ACHTUNG: this is a hack because I don't have the midstance index data yet
     midstance_index_data = loaded_data.stretch_data_session{strcmp(loaded_data.stretch_names_session, 'midstance_index')};
     
     stimulus_response_x_data = zeros(1, size(mpsis_x_data, 2));
+    number_of_stretches_session = length(step_placement_x_data);
+    
+    % make condition data tables
+    condition_data_all = cell(number_of_stretches_session, number_of_condition_labels);
+    for i_condition = 1 : number_of_condition_labels
+        condition_data_all(:, i_condition) = conditions_session.(condition_source_variables{i_condition});
+    end
+    labels_to_ignore = study_settings.get('conditions_to_ignore');
+    levels_to_remove = study_settings.get('levels_to_remove');
+    [condition_combination_labels, condition_combinations_stimulus, condition_combinations_control] = determineConditionCombinations(condition_data_all, conditions_settings, labels_to_ignore, levels_to_remove);
+    condition_combinations_control_unique = table2cell(unique(cell2table(condition_combinations_control), 'rows'));
+    
+    
 
     %% estimate step response model parameters
-    Jacobians = cell(1, size(conditions_control, 1));
-    correlations_c = cell(1, size(conditions_control, 1));
-    correlations_p = cell(1, size(conditions_control, 1));
-    step_placement_x_means = zeros(1, size(conditions_control, 1));
-    com_from_ankle_x_midstance_means = zeros(1, size(conditions_control, 1));
-    com_x_vel_midstance_means = zeros(1, size(conditions_control, 1));
+    number_of_conditions_control = size(condition_combinations_control_unique, 1);
+    Jacobians = cell(1, number_of_conditions_control);
+    correlations_c = cell(1, number_of_conditions_control);
+    correlations_p = cell(1, number_of_conditions_control);
+    step_placement_x_means = zeros(1, number_of_conditions_control);
+    com_from_ankle_x_midstance_means = zeros(1, number_of_conditions_control);
+    com_x_vel_midstance_means = zeros(1, number_of_conditions_control);
     
-    for i_condition = 1 : size(conditions_control, 1)
+    for i_condition = 1 : number_of_conditions_control
         % determine stance foot
         stance_ankle_x_data = [];
-        if strcmp(conditions_control{i_condition, 1}, 'STANCE_LEFT')
+        if strcmp(condition_combinations_control_unique{i_condition, strcmp(condition_combination_labels, 'stance_foot')}, 'STANCE_LEFT')
             stance_ankle_x_data = lanklex_data;
         end
-        if strcmp(conditions_control{i_condition, 1}, 'STANCE_RIGHT')
+        if strcmp(condition_combinations_control_unique{i_condition, strcmp(condition_combination_labels, 'stance_foot')}, 'STANCE_RIGHT')
             stance_ankle_x_data = ranklex_data;
         end
         
         % get control indicators
-        stance_foot_indicator = strcmp(loaded_data.condition_stance_foot_list_session, conditions_control{i_condition, 1});
-        perturbation_indicator = strcmp(loaded_data.condition_perturbation_list_session, conditions_control{i_condition, 2});
-        delay_indicator = strcmp(loaded_data.condition_delay_list_session, conditions_control{i_condition, 3});
-        index_indicator = strcmp(loaded_data.condition_index_list_session, conditions_control{i_condition, 4});
-        experimental_indicator = strcmp(loaded_data.condition_experimental_list_session, conditions_control{i_condition, 5});
-        stimulus_indicator = strcmp(loaded_data.condition_stimulus_list_session, conditions_control{i_condition, 6});
-        day_indicator = strcmp(loaded_data.condition_day_list_session, conditions_control{i_condition, 7});
-        this_condition_indicator = stance_foot_indicator & perturbation_indicator & delay_indicator & index_indicator & experimental_indicator & stimulus_indicator & day_indicator;
+        this_condition_indicator = true(number_of_stretches_session, 1);
+        for i_label = 1 : length(condition_combination_labels)
+            this_label = condition_combination_labels{i_label};
+            this_label_list = condition_data_all(:, strcmp(conditions_settings(:, 1), this_label));
+            this_label_indicator = strcmp(this_label_list, condition_combinations_control_unique(i_condition, i_label));
+            this_condition_indicator = this_condition_indicator .* this_label_indicator;
+        end        
+        this_condition_indicator = logical(this_condition_indicator);
+%         stance_foot_indicator = strcmp(loaded_data.condition_stance_foot_list_session, conditions_control{i_condition, 1});
+%         perturbation_indicator = strcmp(loaded_data.condition_perturbation_list_session, conditions_control{i_condition, 2});
+%         delay_indicator = strcmp(loaded_data.condition_delay_list_session, conditions_control{i_condition, 3});
+%         index_indicator = strcmp(loaded_data.condition_index_list_session, conditions_control{i_condition, 4});
+%         experimental_indicator = strcmp(loaded_data.condition_experimental_list_session, conditions_control{i_condition, 5});
+%         stimulus_indicator = strcmp(loaded_data.condition_stimulus_list_session, conditions_control{i_condition, 6});
+%         day_indicator = strcmp(loaded_data.condition_day_list_session, conditions_control{i_condition, 7});
+%         this_condition_indicator = stance_foot_indicator & perturbation_indicator & delay_indicator & index_indicator & experimental_indicator & stimulus_indicator & day_indicator;
         
         % extract condition data
         step_placement_x_this_condition = step_placement_x_data(:, this_condition_indicator);
@@ -185,29 +211,38 @@ function processStimulusResponse(varargin)
     end
     
     %% estimate stimulus response
-    all_conditions = [conditions_to_analyze; conditions_control];
+    all_conditions = [condition_combinations_stimulus; condition_combinations_control_unique];
     for i_condition = 1 : size(all_conditions, 1)
         
         % determine stance foot
         stance_ankle_x_data = [];
-        if strcmp(all_conditions{i_condition, 1}, 'STANCE_LEFT')
+        if strcmp(all_conditions{i_condition, strcmp(condition_combination_labels, 'stance_foot')}, 'STANCE_LEFT')
             stance_ankle_x_data = lanklex_data;
-            applicable_control_condition = find(strcmp(conditions_control(:, 1), 'STANCE_LEFT'));
+            applicable_control_condition = find(strcmp(condition_combinations_control_unique(:, strcmp(condition_combination_labels, 'stance_foot')), 'STANCE_LEFT'));
         end
-        if strcmp(all_conditions{i_condition, 1}, 'STANCE_RIGHT')
+        if strcmp(all_conditions{i_condition, strcmp(condition_combination_labels, 'stance_foot')}, 'STANCE_RIGHT')
             stance_ankle_x_data = ranklex_data;
-            applicable_control_condition = find(strcmp(conditions_control(:, 1), 'STANCE_RIGHT'));
+            applicable_control_condition = find(strcmp(condition_combinations_control_unique(:, strcmp(condition_combination_labels, 'stance_foot')), 'STANCE_RIGHT'));
         end
         
-        % get control indicators
-        stance_foot_indicator = strcmp(loaded_data.condition_stance_foot_list_session, all_conditions{i_condition, 1});
-        perturbation_indicator = strcmp(loaded_data.condition_perturbation_list_session, all_conditions{i_condition, 2});
-        delay_indicator = strcmp(loaded_data.condition_delay_list_session, all_conditions{i_condition, 3});
-        index_indicator = strcmp(loaded_data.condition_index_list_session, all_conditions{i_condition, 4});
-        experimental_indicator = strcmp(loaded_data.condition_experimental_list_session, all_conditions{i_condition, 5});
-        stimulus_indicator = strcmp(loaded_data.condition_stimulus_list_session, all_conditions{i_condition, 6});
-        day_indicator = strcmp(loaded_data.condition_day_list_session, all_conditions{i_condition, 7});
-        this_condition_indicator = stance_foot_indicator & perturbation_indicator & delay_indicator & index_indicator & experimental_indicator & stimulus_indicator & day_indicator;
+        % get condition indicator
+        this_condition_indicator = true(number_of_stretches_session, 1);
+        for i_label = 1 : length(condition_combination_labels)
+            this_label = condition_combination_labels{i_label};
+            this_label_list = condition_data_all(:, strcmp(conditions_settings(:, 1), this_label));
+            this_label_indicator = strcmp(this_label_list, all_conditions(i_condition, i_label));
+            this_condition_indicator = this_condition_indicator .* this_label_indicator;
+        end        
+        this_condition_indicator = logical(this_condition_indicator);
+        
+%         stance_foot_indicator = strcmp(loaded_data.condition_stance_foot_list_session, all_conditions{i_condition, 1});
+%         perturbation_indicator = strcmp(loaded_data.condition_perturbation_list_session, all_conditions{i_condition, 2});
+%         delay_indicator = strcmp(loaded_data.condition_delay_list_session, all_conditions{i_condition, 3});
+%         index_indicator = strcmp(loaded_data.condition_index_list_session, all_conditions{i_condition, 4});
+%         experimental_indicator = strcmp(loaded_data.condition_experimental_list_session, all_conditions{i_condition, 5});
+%         stimulus_indicator = strcmp(loaded_data.condition_stimulus_list_session, all_conditions{i_condition, 6});
+%         day_indicator = strcmp(loaded_data.condition_day_list_session, all_conditions{i_condition, 7});
+%         this_condition_indicator = stance_foot_indicator & perturbation_indicator & delay_indicator & index_indicator & experimental_indicator & stimulus_indicator & day_indicator;
         
         % extract condition data
         step_placement_x_this_condition = step_placement_x_data(:, this_condition_indicator);
