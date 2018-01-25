@@ -16,7 +16,6 @@
 
 function [comparison_indices, conditions_per_comparison_max] = determineComparisons_new(conditions_to_plot, condition_labels, plot_settings)
     % initialize
-    conditions_to_plot_old = plot_settings.get('conditions_to_plot');
     number_of_conditions_to_plot = size(conditions_to_plot, 1);
     comparison_indices = {};
     conditions_already_compared = [];

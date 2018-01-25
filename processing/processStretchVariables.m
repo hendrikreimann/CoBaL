@@ -47,23 +47,11 @@ function processStretchVariables(varargin)
         conditions_session.(condition_source_variables{i_condition}) = {};
     end
     
-%     condition_stance_foot_list_session = {};
-%     condition_perturbation_list_session = {};
-%     condition_delay_list_session = {};
-%     condition_index_list_session = {};
-%     condition_experimental_list_session = {};
-%     condition_stimulus_list_session = {};
-%     condition_day_list_session = {};
-    
     % make containers to store origin information for the stretches
     origin_trial_list_session = [];
     origin_start_time_list_session = [];
     origin_end_time_list_session = [];
     time_list_session = [];
-    
-
-    
-    
     
     %% analyze and store data
     for i_type = 1 : length(condition_list)
