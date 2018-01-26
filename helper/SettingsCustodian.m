@@ -178,6 +178,9 @@ classdef SettingsCustodian < handle
                 default_data = {'RHEE', 'RTOE', 'RTOEL'};
             end
 
+            if strcmp(property_name, 'acceptable_number_of_zeros_per_stretch')
+                default_data = 5;
+            end
 
 
 

@@ -331,7 +331,7 @@ function plotResults(varargin)
 %     end
     
     %% determine subjects and data folders
-    [comparison_indices, conditions_per_comparison_max] = determineComparisons_new(condition_combinations_stimulus, condition_combination_labels, plot_settings);
+    [comparison_indices, conditions_per_comparison_max] = determineComparisons(condition_combinations_stimulus, condition_combination_labels, plot_settings);
     number_of_comparisons = length(comparison_indices);
     % implement this later
     
@@ -340,7 +340,7 @@ function plotResults(varargin)
 
     % new version I'm currently working on
     if strcmp(plot_mode, 'episodes')
-        episodes = determineEpisodes_new(condition_combinations_stimulus, condition_combination_labels, comparison_indices, plot_settings);
+        episodes = determineEpisodes(condition_combinations_stimulus, condition_combination_labels, comparison_indices, plot_settings);
         number_of_episodes = length(episodes);
     end
     

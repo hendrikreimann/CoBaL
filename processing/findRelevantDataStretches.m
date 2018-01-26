@@ -84,8 +84,9 @@ function findRelevantDataStretches(varargin)
     if exist(makeFileName(date, subject_id, 'conditions.csv'), 'file')
         conditions_file_name = makeFileName(date, subject_id, 'conditions.csv');
     end
-
+    
     subject_settings = SettingsCustodian('subjectSettings.txt');
+    acceptable_number_of_zeros_per_stretch = subject_settings.get('acceptable_number_of_zeros_per_stretch');
 
     time_to_nearest_heelstrike_before_trigger_threshold = 0.10; % a heelstrike should happen less than this long before a trigger
     time_to_nearest_heelstrike_after_trigger_threshold = 0.3; % a heelstrike should happen less than this long after a trigger
@@ -755,7 +756,7 @@ function findRelevantDataStretches(varargin)
 %                         else
 %                             closest_heelstrike_distance_times(i_trigger) = -closest_heelstrike_distance_time;
 %                         end
-                        if index_right == 1 || length(right_touchdown_times) < index_right + 2 || removal_flags(i_trigger) == 1
+                        if index_right == 1 || length(right_touchdown_times) < index_right + 1 || removal_flags(i_trigger) == 1
                             % data doesn't include previous or next step
                             removal_flags(i_trigger) = 1;
                             left_foot_heelstrike_minus_1 = NaN;
@@ -1243,12 +1244,12 @@ function findRelevantDataStretches(varargin)
             %% remove stretches where important variables are missing
             %
             % calculate variables that depend upon the step events to be identified correctly
-%             variables_to_analyze = study_settings.get('variables_to_analyze');
+            stretch_variables = study_settings.get('stretch_variables');
 %             variables_to_save = struct;
             variables_to_prune_for = {};
 %             save_folder = 'processed';
 %             save_file_name = makeFileName(date, subject_id, condition_list{i_condition}, i_trial, 'kinematicTrajectories.mat');
-%             if any(strcmp(variables_to_analyze(:, 1), 'left_arm_phase'))
+%             if any(strcmp(stretch_variables(:, 1), 'left_arm_phase'))
 %                 LELB_trajectory = extractMarkerTrajectories(marker_trajectories, marker_labels, 'LELB');
 %                 LWRA_trajectory = extractMarkerTrajectories(marker_trajectories, marker_labels, 'LWRA');
 %                 LWRB_trajectory = extractMarkerTrajectories(marker_trajectories, marker_labels, 'LWRB');
@@ -1286,7 +1287,7 @@ function findRelevantDataStretches(varargin)
 %                 variables_to_prune_for = [variables_to_prune_for; 'left_arm_angle_ap']; %#ok<AGROW>
 %                 variables_to_prune_for = [variables_to_prune_for; 'left_arm_phase']; %#ok<AGROW>
 %             end
-%             if any(strcmp(variables_to_analyze(:, 1), 'right_arm_phase'))
+%             if any(strcmp(stretch_variables(:, 1), 'right_arm_phase'))
 %                 RELB_trajectory = extractMarkerTrajectories(marker_trajectories, marker_labels, 'RELB');
 %                 RWRA_trajectory = extractMarkerTrajectories(marker_trajectories, marker_labels, 'RWRA');
 %                 RWRB_trajectory = extractMarkerTrajectories(marker_trajectories, marker_labels, 'RWRB');
@@ -1316,7 +1317,7 @@ function findRelevantDataStretches(varargin)
 %                 variables_to_prune_for = [variables_to_prune_for; 'right_arm_angle_ap']; %#ok<AGROW>
 %                 variables_to_prune_for = [variables_to_prune_for; 'right_arm_phase']; %#ok<AGROW>
 %             end
-%             if any(strcmp(variables_to_analyze(:, 1), 'left_leg_phase'))
+%             if any(strcmp(stretch_variables(:, 1), 'left_leg_phase'))
 %                 LANK_trajectory = extractMarkerTrajectories(marker_trajectories, marker_labels, 'LANK');
 %                 LPSI_trajectory = extractMarkerTrajectories(marker_trajectories, marker_labels, 'LPSI');
 %                 LASI_trajectory = extractMarkerTrajectories(marker_trajectories, marker_labels, 'LASI');
@@ -1346,7 +1347,7 @@ function findRelevantDataStretches(varargin)
 %                 variables_to_prune_for = [variables_to_prune_for; 'left_leg_angle_ap']; %#ok<AGROW>
 %                 variables_to_prune_for = [variables_to_prune_for; 'left_leg_phase']; %#ok<AGROW>
 %             end
-%             if any(strcmp(variables_to_analyze(:, 1), 'right_leg_phase'))
+%             if any(strcmp(stretch_variables(:, 1), 'right_leg_phase'))
 %                 RANK_trajectory = extractMarkerTrajectories(marker_trajectories, marker_labels, 'RANK');
 %                 RPSI_trajectory = extractMarkerTrajectories(marker_trajectories, marker_labels, 'RPSI');
 %                 RASI_trajectory = extractMarkerTrajectories(marker_trajectories, marker_labels, 'RASI');
@@ -1376,9 +1377,9 @@ function findRelevantDataStretches(varargin)
 %                 variables_to_prune_for = [variables_to_prune_for; 'right_leg_angle_ap']; %#ok<AGROW>
 %                 variables_to_prune_for = [variables_to_prune_for; 'right_leg_phase']; %#ok<AGROW>
 %             end
-%             if any(strcmp(variables_to_analyze(:, 1), 'com_x')) || any(strcmp(variables_to_analyze(:, 1), 'com_y')) || any(strcmp(variables_to_analyze(:, 1), 'com_z'))
-%                 variables_to_prune_for = [variables_to_prune_for; 'com_trajectories']; %#ok<AGROW>
-%             end
+            if any(strcmp(stretch_variables(:, 1), 'com_x')) || any(strcmp(stretch_variables(:, 1), 'com_y')) || any(strcmp(stretch_variables(:, 1), 'com_z'))
+                variables_to_prune_for = [variables_to_prune_for; 'com_trajectories']; %#ok<AGROW>
+            end
             
             % prune
             number_of_stretches = length(stretch_start_times);
@@ -1410,7 +1411,12 @@ function findRelevantDataStretches(varargin)
                     for i_stretch = 1 : number_of_stretches
                         [~, start_index] = min(abs(time - stretch_start_times(i_stretch)));
                         [~, end_index] = min(abs(time - stretch_end_times(i_stretch)));
+                        % check for NaNs
                         if any(isnan(data(start_index : end_index)))
+                            removal_flags(i_stretch) = 1;
+                        end
+                        % check for zeros
+                        if sum(data(start_index : end_index)==0) > acceptable_number_of_zeros_per_stretch
                             removal_flags(i_stretch) = 1;
                         end
                     end
