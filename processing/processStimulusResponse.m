@@ -104,14 +104,6 @@ function processStimulusResponse(varargin)
             this_condition_indicator = this_condition_indicator .* this_label_indicator;
         end        
         this_condition_indicator = logical(this_condition_indicator);
-%         stance_foot_indicator = strcmp(loaded_data.condition_stance_foot_list_session, conditions_control{i_condition, 1});
-%         perturbation_indicator = strcmp(loaded_data.condition_perturbation_list_session, conditions_control{i_condition, 2});
-%         delay_indicator = strcmp(loaded_data.condition_delay_list_session, conditions_control{i_condition, 3});
-%         index_indicator = strcmp(loaded_data.condition_index_list_session, conditions_control{i_condition, 4});
-%         experimental_indicator = strcmp(loaded_data.condition_experimental_list_session, conditions_control{i_condition, 5});
-%         stimulus_indicator = strcmp(loaded_data.condition_stimulus_list_session, conditions_control{i_condition, 6});
-%         day_indicator = strcmp(loaded_data.condition_day_list_session, conditions_control{i_condition, 7});
-%         this_condition_indicator = stance_foot_indicator & perturbation_indicator & delay_indicator & index_indicator & experimental_indicator & stimulus_indicator & day_indicator;
         
         % extract condition data
         step_placement_x_this_condition = step_placement_x_data(:, this_condition_indicator);

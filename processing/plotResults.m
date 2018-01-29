@@ -105,7 +105,7 @@ function plotResults(varargin)
         % load data
         data_path = data_folder_list{i_folder};
         load([data_path filesep 'subjectInfo.mat'], 'date', 'subject_id');
-        results_file_name = ['analysis' filesep makeFileName(date, subject_id, 'results')];
+        results_file_name = [data_path filesep 'analysis' filesep makeFileName(date, subject_id, 'results')];
         loaded_data = load(results_file_name);
         number_of_stretches_this_session = length(loaded_data.time_list_session);
 
