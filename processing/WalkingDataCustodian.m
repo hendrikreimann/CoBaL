@@ -1962,39 +1962,77 @@ classdef WalkingDataCustodian < handle
                         
                     end
                     if strcmp(variable_name, 'step_width')
-                        lheel_x = this.getTimeNormalizedData('lheel_x', this_stretch_start_time, this_stretch_end_time);
-                        rheel_x = this.getTimeNormalizedData('rheel_x', this_stretch_start_time, this_stretch_end_time);
-                        if strcmp(stance_foot_data{i_stretch}, 'STANCE_RIGHT')
-                            stretch_data = abs(lheel_x(end) - rheel_x(1));
+%                         lheel_x = this.getTimeNormalizedData('lheel_x', this_stretch_start_time, this_stretch_end_time);
+%                         rheel_x = this.getTimeNormalizedData('rheel_x', this_stretch_start_time, this_stretch_end_time);
+%                         if strcmp(stance_foot_data{i_stretch}, 'STANCE_RIGHT')
+%                             stretch_data = abs(lheel_x(end) - rheel_x(1));
+%                         end
+%                         if strcmp(stance_foot_data{i_stretch}, 'STANCE_LEFT')
+%                             stretch_data = abs(rheel_x(end) - lheel_x(1));
+%                         end
+%                         if strcmp(stance_foot_data{i_stretch}, 'STANCE_BOTH')
+%                             stretch_data = NaN;
+%                         end
+                        
+                        lheel_x = this.getTimeNormalizedData('lheel_x', this_stretch_band_times);
+                        rheel_x = this.getTimeNormalizedData('rheel_x', this_stretch_band_times);
+                        stretch_data = zeros(number_of_bands, 1);
+                        for i_band = 1 : number_of_bands
+                            [~, band_end_indices] = getBandIndices(i_band, this.number_of_time_steps_normalized);
+                            
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_RIGHT')
+                                stretch_data(i_band) = abs(lheel_x(band_end_indices) - rheel_x(band_end_indices));
+                            end
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_LEFT')
+                                stretch_data(i_band) = abs(rheel_x(band_end_indices) - lheel_x(band_end_indices));
+                            end
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_BOTH')
+                                stretch_data(i_band) = NaN;
+                            end
                         end
-                        if strcmp(stance_foot_data{i_stretch}, 'STANCE_LEFT')
-                            stretch_data = abs(rheel_x(end) - lheel_x(1));
-                        end
-                        if strcmp(stance_foot_data{i_stretch}, 'STANCE_BOTH')
-                            stretch_data = NaN;
-                        end
+                        
                     end
                     if strcmp(variable_name, 'step_placement_x')
-                        lheel_x = this.getTimeNormalizedData('lheel_x', this_stretch_start_time, this_stretch_end_time);
-                        rheel_x = this.getTimeNormalizedData('rheel_x', this_stretch_start_time, this_stretch_end_time);
-                        if strcmp(stance_foot_data{i_stretch}, 'STANCE_RIGHT')
-                            stretch_data = lheel_x(end) - rheel_x(1);
+%                         lheel_x = this.getTimeNormalizedData('lheel_x', this_stretch_start_time, this_stretch_end_time);
+%                         rheel_x = this.getTimeNormalizedData('rheel_x', this_stretch_start_time, this_stretch_end_time);
+%                         if strcmp(stance_foot_data{i_stretch}, 'STANCE_RIGHT')
+%                             stretch_data = lheel_x(end) - rheel_x(1);
+%                         end
+%                         if strcmp(stance_foot_data{i_stretch}, 'STANCE_LEFT')
+%                             stretch_data = rheel_x(end) - lheel_x(1);
+%                         end
+%                         if strcmp(stance_foot_data{i_stretch}, 'STANCE_BOTH')
+%                             stretch_data = NaN;
+%                         end
+                        lheel_x = this.getTimeNormalizedData('lheel_x', this_stretch_band_times);
+                        rheel_x = this.getTimeNormalizedData('rheel_x', this_stretch_band_times);
+                        stretch_data = zeros(number_of_bands, 1);
+                        for i_band = 1 : number_of_bands
+                            [~, band_end_indices] = getBandIndices(i_band, this.number_of_time_steps_normalized);
+                            
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_RIGHT')
+                                stretch_data(i_band) = lheel_x(band_end_indices) - rheel_x(band_end_indices);
+                            end
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_LEFT')
+                                stretch_data(i_band) = rheel_x(band_end_indices) - lheel_x(band_end_indices);
+                            end
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_BOTH')
+                                stretch_data(i_band) = NaN;
+                            end
                         end
-                        if strcmp(stance_foot_data{i_stretch}, 'STANCE_LEFT')
-                            stretch_data = rheel_x(end) - lheel_x(1);
-                        end
-                        if strcmp(stance_foot_data{i_stretch}, 'STANCE_BOTH')
-                            stretch_data = NaN;
-                        end
+
                     end
                     if strcmp(variable_name, 'step_time')
 %                         stretch_data = this_stretch_end_time - this_stretch_start_time;
                         stretch_data = diff(this_stretch_band_times)';
                     end
+                    
                     if strcmp(variable_name, 'pushoff_time')
+                        % TODO: not updated to new subdivision of stretches into bands yet... don't really know what to do here yet
                         stretch_data = this_stretch_pushoff_time - this_stretch_start_time;
                     end
                     if strcmp(variable_name, 'midstance_index')
+                        % TODO: not updated to new subdivision of stretches into bands yet... don't really know what to do here yet
                         % get trajectories
                         pelvis_y = this.getTimeNormalizedData('pelvis_y', this_stretch_start_time, this_stretch_end_time);
                         if strcmp(stance_foot_data{i_stretch}, 'STANCE_RIGHT')
@@ -2007,25 +2045,19 @@ classdef WalkingDataCustodian < handle
                             stance_ankle_y = NaN;
                         end
                         stretch_data = find(stance_ankle_y < pelvis_y, 1, 'first');
-%                         
-%                         
-%                         figure; hold on;
-%                         plot(stance_ankle_y, 'linewidth', 2);
-%                         plot(pelvis_y, 'linewidth', 2);
-%                         plot(stretch_data, stance_ankle_y(stretch_data), 'o')
-%                         legend('stance ankle', 'pelvis', 'midstance')
                     end                        
                     if strcmp(variable_name, 'cadence')
                         second_to_minute = 1/60;
-                        step_time = stretch_variables{strcmp(this.stretch_variable_names, 'step_time')}(i_stretch);
-                        stretch_data = (step_time * second_to_minute)^(-1);
+                        step_time = stretch_variables{strcmp(this.stretch_variable_names, 'step_time')}(:, i_stretch);
+                        stretch_data = (step_time .* second_to_minute).^(-1);
                     end
                     if strcmp(variable_name, 'velocity')
-                        step_time = stretch_variables{strcmp(this.stretch_variable_names, 'step_time')}(i_stretch);
-                        step_length = stretch_variables{strcmp(this.stretch_variable_names, 'step_length')}(i_stretch);
-                        stretch_data = step_length / step_time;
+                        step_time = stretch_variables{strcmp(this.stretch_variable_names, 'step_time')}(:, i_stretch);
+                        step_length = stretch_variables{strcmp(this.stretch_variable_names, 'step_length')}(:, i_stretch);
+                        stretch_data = step_length ./ step_time;
                     end
                     if strcmp(variable_name, 'left_arm_phase') || strcmp(variable_name, 'right_arm_phase') || strcmp(variable_name, 'left_leg_phase') || strcmp(variable_name, 'right_leg_phase')
+                        % TODO: not updated to new subdivision of stretches into bands yet... 
                         % extract data
                         variable_time = this.getTimeData(variable_name);
                         variable_data = this.getBasicVariableData(variable_name);
@@ -2058,6 +2090,7 @@ classdef WalkingDataCustodian < handle
                         stretch_data = normalizeAngle(data_normalized);
                     end
                     if strcmp(variable_name, 'left_arm_phase_at_heelstrike')
+                        % TODO: not updated to new subdivision of stretches into bands yet... 
                         left_arm_phase = stretch_variables{strcmp(variables_to_calculate, 'left_arm_phase')}(:, i_stretch);
                         stretch_data = left_arm_phase(1);
                         
@@ -2073,6 +2106,7 @@ classdef WalkingDataCustodian < handle
                         end
                     end
                     if strcmp(variable_name, 'right_arm_phase_at_heelstrike')
+                        % TODO: not updated to new subdivision of stretches into bands yet... 
                         right_arm_phase = stretch_variables{strcmp(variables_to_calculate, 'right_arm_phase')}(:, i_stretch);
                         stretch_data = right_arm_phase(1);
                         
@@ -2108,108 +2142,118 @@ classdef WalkingDataCustodian < handle
                         stretch_data = cop_y - com_y;
                     end
                     if strcmp(variable_name, 'heel_clearance')
-                        if strcmp(stance_foot_data{i_stretch}, 'STANCE_BOTH')
-                            stretch_data = NaN;
-                        else
-                            % get relevant data
-                            if strcmp(stance_foot_data{i_stretch}, 'STANCE_RIGHT')
-                                swing_marker_y_complete = this.getBasicVariableData('lheel_y');
-                                swing_marker_z_complete = this.getBasicVariableData('lheel_z');
-                                variable_time = this.getTimeData('lheel_y');
-                            end
-                            if strcmp(stance_foot_data{i_stretch}, 'STANCE_LEFT')
-                                swing_marker_y_complete = this.getBasicVariableData('rheel_y');
-                                swing_marker_z_complete = this.getBasicVariableData('rheel_z');
-                                variable_time = this.getTimeData('rheel_y');
-                            end
-                            [~, start_index] = min(abs(variable_time - this_stretch_start_time));
-                            [~, end_index] = min(abs(variable_time - this_stretch_end_time));
-                            swing_heel_marker_y = swing_marker_y_complete(start_index : end_index);
-                            swing_heel_marker_z = swing_marker_z_complete(start_index : end_index);
-
-                            % find time step of obstacle crossing
-                            obstacle_pos_y = NaN;
-                            if strcmp(condition_data{i_stretch}, 'OBS_NEAR')
-                                obstacle_pos_y = this.subject_info.near_distance;
-                            end
-                            if strcmp(condition_data{i_stretch}, 'OBS_FAR')
-                                obstacle_pos_y = this.subject_info.far_distance;
-                            end
-                            [~, crossing_time_step] = min(abs(swing_heel_marker_y - obstacle_pos_y));
-                            
-                            % extract swing foot heel marker
-                            if strcmp(condition_data{i_stretch}, 'OBS_NO')
-                                stretch_data = NaN;
+                        stretch_data = zeros(number_of_bands, 1);
+                        for i_band = 1 : number_of_bands
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_BOTH')
+                                stretch_data(i_band) = NaN;
                             else
-                                stretch_data = swing_heel_marker_z(crossing_time_step) - this.subject_settings.obstacle_height;
+                                % get relevant data
+                                if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_RIGHT')
+                                    swing_marker_y_complete = this.getBasicVariableData('lheel_y');
+                                    swing_marker_z_complete = this.getBasicVariableData('lheel_z');
+                                    variable_time = this.getTimeData('lheel_y');
+                                end
+                                if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_LEFT')
+                                    swing_marker_y_complete = this.getBasicVariableData('rheel_y');
+                                    swing_marker_z_complete = this.getBasicVariableData('rheel_z');
+                                    variable_time = this.getTimeData('rheel_y');
+                                end
+                                this_band_start_time = this_stretch_band_times(i_band);
+                                this_band_end_time = this_stretch_band_times(i_band+1);
+                                [~, start_index] = min(abs(variable_time - this_band_start_time));
+                                [~, end_index] = min(abs(variable_time - this_band_end_time));
+                                swing_heel_marker_y = swing_marker_y_complete(start_index : end_index);
+                                swing_heel_marker_z = swing_marker_z_complete(start_index : end_index);
+
+                                % find time step of obstacle crossing
+                                obstacle_pos_y = NaN;
+                                if strcmp(condition_data{i_stretch}, 'OBS_NEAR')
+                                    obstacle_pos_y = this.subject_info.near_distance;
+                                end
+                                if strcmp(condition_data{i_stretch}, 'OBS_FAR')
+                                    obstacle_pos_y = this.subject_info.far_distance;
+                                end
+                                [~, crossing_time_step] = min(abs(swing_heel_marker_y - obstacle_pos_y));
+
+                                % extract swing foot heel marker
+                                if strcmp(condition_data{i_stretch}, 'OBS_NO')
+                                    stretch_data(i_band) = NaN;
+                                else
+                                    stretch_data(i_band) = swing_heel_marker_z(crossing_time_step) - this.subject_info.obstacle_height;
+                                end
                             end
-                        end                        
+                        end
                     end
                     if strcmp(variable_name, 'toes_clearance')
-                        if strcmp(stance_foot_data{i_stretch}, 'STANCE_BOTH')
-                            stretch_data = NaN;
-                        else
-                            % get relevant data
-                            if strcmp(stance_foot_data{i_stretch}, 'STANCE_RIGHT')
-                                swing_marker_y_complete = this.getBasicVariableData('ltoes_y');
-                                swing_marker_z_complete = this.getBasicVariableData('ltoes_z');
-                                variable_time = this.getTimeData('ltoes_y');
-                            end
-                            if strcmp(stance_foot_data{i_stretch}, 'STANCE_LEFT')
-                                swing_marker_y_complete = this.getBasicVariableData('rtoes_y');
-                                swing_marker_z_complete = this.getBasicVariableData('rtoes_z');
-                                variable_time = this.getTimeData('rtoes_y');
-                            end
-                            [~, start_index] = min(abs(variable_time - this_stretch_start_time));
-                            [~, end_index] = min(abs(variable_time - this_stretch_end_time));
-                            swing_toes_marker_y = swing_marker_y_complete(start_index : end_index);
-                            swing_toes_marker_z = swing_marker_z_complete(start_index : end_index);
-
-                            % find time step of obstacle crossing
-                            obstacle_pos_y = NaN;
-                            if strcmp(condition_data{i_stretch}, 'OBS_NEAR')
-                                obstacle_pos_y = this.subject_info.near_distance;
-                            end
-                            if strcmp(condition_data{i_stretch}, 'OBS_FAR')
-                                obstacle_pos_y = this.subject_info.far_distance;
-                            end
-                            [~, crossing_time_step] = min(abs(swing_toes_marker_y - obstacle_pos_y));
-                            
-                            % extract swing foot toes marker
-                            if strcmp(condition_data{i_stretch}, 'OBS_NO')
-                                stretch_data = NaN;
+                        stretch_data = zeros(number_of_bands, 1);
+                        for i_band = 1 : number_of_bands
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_BOTH')
+                                stretch_data(i_band) = NaN;
                             else
-                                stretch_data = swing_toes_marker_z(crossing_time_step) - this.subject_settings.obstacle_height;
+                                % get relevant data
+                                if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_RIGHT')
+                                    swing_marker_y_complete = this.getBasicVariableData('ltoes_y');
+                                    swing_marker_z_complete = this.getBasicVariableData('ltoes_z');
+                                    variable_time = this.getTimeData('ltoes_y');
+                                end
+                                if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_LEFT')
+                                    swing_marker_y_complete = this.getBasicVariableData('rtoes_y');
+                                    swing_marker_z_complete = this.getBasicVariableData('rtoes_z');
+                                    variable_time = this.getTimeData('rtoes_y');
+                                end
+                                this_band_start_time = this_stretch_band_times(i_band);
+                                this_band_end_time = this_stretch_band_times(i_band+1);
+                                [~, start_index] = min(abs(variable_time - this_band_start_time));
+                                [~, end_index] = min(abs(variable_time - this_band_end_time));
+                                swing_toes_marker_y = swing_marker_y_complete(start_index : end_index);
+                                swing_toes_marker_z = swing_marker_z_complete(start_index : end_index);
+
+                                % find time step of obstacle crossing
+                                obstacle_pos_y = NaN;
+                                if strcmp(condition_data{i_stretch}, 'OBS_NEAR')
+                                    obstacle_pos_y = this.subject_info.toe_marker + this.subject_info.near_distance;
+                                end
+                                if strcmp(condition_data{i_stretch}, 'OBS_FAR')
+                                    obstacle_pos_y = this.subject_info.toe_marker + this.subject_info.far_distance;
+                                end
+                                [~, crossing_time_step] = min(abs(swing_toes_marker_y - obstacle_pos_y));
+
+                                % extract swing foot toes marker
+                                if strcmp(condition_data{i_stretch}, 'OBS_NO')
+                                    stretch_data(i_band) = NaN;
+                                else
+                                    stretch_data(i_band) = swing_toes_marker_z(crossing_time_step) - this.subject_info.obstacle_height;
+                                end
                             end
-                        end                        
+                        end
                     end
                     if strcmp(variable_name, 'left_glut_med_rescaled')
-                        left_glut_med = this.getTimeNormalizedData('left_glut_med', this_stretch_start_time, this_stretch_end_time);
+                        left_glut_med = this.getTimeNormalizedData('left_glut_med', this_stretch_band_times);
                         normalization_value = this.emg_normalization_values(strcmp(this.emg_normalization_labels, 'left_glut_med'));
                         stretch_data = left_glut_med * 1 / normalization_value;
                     end
                     if strcmp(variable_name, 'left_delt_ant_rescaled')
-                        left_delt_ant = this.getTimeNormalizedData('left_delt_ant', this_stretch_start_time, this_stretch_end_time);
+                        left_delt_ant = this.getTimeNormalizedData('left_delt_ant', this_stretch_band_times);
                         normalization_value = this.emg_normalization_values(strcmp(this.emg_normalization_labels, 'left_delt_ant'));
                         stretch_data = left_delt_ant * 1 / normalization_value;
                     end
                     if strcmp(variable_name, 'left_tibi_ant_rescaled')
-                        left_tibi_ant = this.getTimeNormalizedData('left_tibi_ant', this_stretch_start_time, this_stretch_end_time);
+                        left_tibi_ant = this.getTimeNormalizedData('left_tibi_ant', this_stretch_band_times);
                         normalization_value = this.emg_normalization_values(strcmp(this.emg_normalization_labels, 'left_tibi_ant'));
                         stretch_data = left_tibi_ant * 1 / normalization_value;
                     end
                     if strcmp(variable_name, 'left_gastroc_med_rescaled')
-                        left_gastroc_med = this.getTimeNormalizedData('left_gastroc_med', this_stretch_start_time, this_stretch_end_time);
+                        left_gastroc_med = this.getTimeNormalizedData('left_gastroc_med', this_stretch_band_times);
                         normalization_value = this.emg_normalization_values(strcmp(this.emg_normalization_labels, 'left_gastroc_med'));
                         stretch_data = left_gastroc_med * 1 / normalization_value;
                     end
                     if strcmp(variable_name, 'left_pero_lng_rescaled')
-                        left_pero_lng = this.getTimeNormalizedData('left_pero_lng', this_stretch_start_time, this_stretch_end_time);
+                        left_pero_lng = this.getTimeNormalizedData('left_pero_lng', this_stretch_band_times);
                         normalization_value = this.emg_normalization_values(strcmp(this.emg_normalization_labels, 'left_pero_lng'));
                         stretch_data = left_pero_lng * 1 / normalization_value;
                     end
                     if strcmp(variable_name, 'left_tfl_rescaled')
-                        left_tfl = this.getTimeNormalizedData('left_tfl', this_stretch_start_time, this_stretch_end_time);
+                        left_tfl = this.getTimeNormalizedData('left_tfl', this_stretch_band_times);
                         normalization_value = this.emg_normalization_values(strcmp(this.emg_normalization_labels, 'left_tfl'));
                         if isempty(normalization_value)
                             normalization_value = 1;
@@ -2217,32 +2261,32 @@ classdef WalkingDataCustodian < handle
                         stretch_data = left_tfl * 1 / normalization_value;
                     end
                     if strcmp(variable_name, 'right_glut_med_rescaled')
-                        right_glut_med = this.getTimeNormalizedData('right_glut_med', this_stretch_start_time, this_stretch_end_time);
+                        right_glut_med = this.getTimeNormalizedData('right_glut_med', this_stretch_band_times);
                         normalization_value = this.emg_normalization_values(strcmp(this.emg_normalization_labels, 'right_glut_med'));
                         stretch_data = right_glut_med * 1 / normalization_value;
                     end
                     if strcmp(variable_name, 'right_delt_ant_rescaled')
-                        right_delt_ant = this.getTimeNormalizedData('right_delt_ant', this_stretch_start_time, this_stretch_end_time);
+                        right_delt_ant = this.getTimeNormalizedData('right_delt_ant', this_stretch_band_times);
                         normalization_value = this.emg_normalization_values(strcmp(this.emg_normalization_labels, 'right_delt_ant'));
                         stretch_data = right_delt_ant * 1 / normalization_value;
                     end
                     if strcmp(variable_name, 'right_tibi_ant_rescaled')
-                        right_tibi_ant = this.getTimeNormalizedData('right_tibi_ant', this_stretch_start_time, this_stretch_end_time);
+                        right_tibi_ant = this.getTimeNormalizedData('right_tibi_ant', this_stretch_band_times);
                         normalization_value = this.emg_normalization_values(strcmp(this.emg_normalization_labels, 'right_tibi_ant'));
                         stretch_data = right_tibi_ant * 1 / normalization_value;
                     end
                     if strcmp(variable_name, 'right_gastroc_med_rescaled')
-                        right_gastroc_med = this.getTimeNormalizedData('right_gastroc_med', this_stretch_start_time, this_stretch_end_time);
+                        right_gastroc_med = this.getTimeNormalizedData('right_gastroc_med', this_stretch_band_times);
                         normalization_value = this.emg_normalization_values(strcmp(this.emg_normalization_labels, 'right_gastroc_med'));
                         stretch_data = right_gastroc_med * 1 / normalization_value;
                     end
                     if strcmp(variable_name, 'right_pero_lng_rescaled')
-                        right_pero_lng = this.getTimeNormalizedData('right_pero_lng', this_stretch_start_time, this_stretch_end_time);
+                        right_pero_lng = this.getTimeNormalizedData('right_pero_lng', this_stretch_band_times);
                         normalization_value = this.emg_normalization_values(strcmp(this.emg_normalization_labels, 'right_pero_lng'));
                         stretch_data = right_pero_lng * 1 / normalization_value;
                     end
                     if strcmp(variable_name, 'right_tfl_rescaled')
-                        right_tfl = this.getTimeNormalizedData('right_tfl', this_stretch_start_time, this_stretch_end_time);
+                        right_tfl = this.getTimeNormalizedData('right_tfl', this_stretch_band_times);
                         normalization_value = this.emg_normalization_values(strcmp(this.emg_normalization_labels, 'right_tfl'));
                         if isempty(normalization_value)
                             normalization_value = 1;

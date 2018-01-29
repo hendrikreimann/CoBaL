@@ -188,9 +188,11 @@ function plotResults(varargin)
         end
     end
     % calculate mean pushoff index
-    pushoff_time_ratio = pushoff_time_data ./ step_time_data;
-    mean_pushoff_ratio = mean(pushoff_time_ratio);
-    pushoff_index = round(mean_pushoff_ratio * 100);
+    if mark_pushoff
+        pushoff_time_ratio = pushoff_time_data ./ step_time_data;
+        mean_pushoff_ratio = mean(pushoff_time_ratio);
+        pushoff_index = round(mean_pushoff_ratio * 100);
+    end
     
     %% populate condition cell
     % new
@@ -414,7 +416,7 @@ function plotResults(varargin)
                         
                         
 %                         abscissae_control = (conditions_per_comparison_max + gap_between_bands) * step_index; % ignore control for now, get back to that later
-                        abscissae_stimulus = repmat((1 : length(this_comparison)), bands_per_stretch, 1)
+                        abscissae_stimulus = repmat((1 : length(this_comparison)), bands_per_stretch, 1);
                         shifter = (0:bands_per_stretch-1)' * (conditions_per_comparison_max + gap_between_bands);
                         abscissae_stimulus = abscissae_stimulus + repmat(shifter, 1, conditions_per_comparison_max);
                         
