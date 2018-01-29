@@ -52,6 +52,7 @@ function processStretchVariables(varargin)
     origin_start_time_list_session = [];
     origin_end_time_list_session = [];
     time_list_session = [];
+    bands_per_stretch_session = [];
     
     %% analyze and store data
     for i_type = 1 : length(condition_list)
@@ -62,7 +63,8 @@ function processStretchVariables(varargin)
             % load and prepare data
             data_custodian.prepareBasicVariables(condition, i_trial);
             load(['analysis' filesep makeFileName(date, subject_id, condition, i_trial, 'relevantDataStretches')]);
-            data_trial = data_custodian.calculateStretchVariables(stretch_start_times, stretch_end_times, stretch_pushoff_times, conditions_trial.condition_stance_foot_list, conditions_trial.condition_experimental_list);
+            bands_per_stretch_session = [bands_per_stretch_session; bands_per_stretch];
+            data_trial = data_custodian.calculateStretchVariables(stretch_start_times, stretch_end_times, stretch_pushoff_times, time_normalization_markers, stance_foot_data, conditions_trial.condition_experimental_list);
             
             % append the data and condition lists from this trial to the total lists
             for i_variable = 1 : number_of_stretch_variables
@@ -152,7 +154,7 @@ function processStretchVariables(varargin)
         conditions_stimulus_with_number{i_condition, size(condition_combinations_stimulus, 2)+1} = num2str(trials_per_condition_stimulus(i_condition));
     end
     conditions_stimulus_with_labels = [condition_combination_labels 'number of stretches'; conditions_stimulus_with_number];
-    disp('Control conditions:')
+    disp('Stimulus conditions:')
     disp(conditions_stimulus_with_labels);
     
 %     % extract indicators for conditions to analyze - old
@@ -227,7 +229,10 @@ function processStretchVariables(varargin)
     stretch_data_session = data_session; %#ok<NASGU>
     stretch_names_session = data_custodian.stretch_variable_names; %#ok<NASGU>
     
-
+    bands_per_stretch = median(bands_per_stretch_session);
+    if any(bands_per_stretch_session ~= bands_per_stretch)
+        warning('Different trials have different numbers of bands per stretch')
+    end
     
     %% save data
     results_file_name = ['analysis' filesep makeFileName(date, subject_id, 'results')];
@@ -237,19 +242,12 @@ function processStretchVariables(varargin)
         'conditions_session', ...
         'stretch_data_session', ...
         'stretch_names_session', ...
+        'bands_per_stretch', ...
         'origin_trial_list_session', ...
         'origin_start_time_list_session', ...
         'origin_end_time_list_session', ...
         'time_list_session' ...
       )
-%         'condition_stance_foot_list_session', ...
-%         'condition_perturbation_list_session', ...
-%         'condition_delay_list_session', ...
-%         'condition_index_list_session', ...
-%         'condition_experimental_list_session', ...
-%         'condition_stimulus_list_session', ...
-%         'condition_day_list_session', ...
-%         'condition_trigger_foot_list_session', ...
 end
 
           

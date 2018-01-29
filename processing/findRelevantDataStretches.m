@@ -417,9 +417,11 @@ function findRelevantDataStretches(varargin)
             end  
             if strcmp(condition_stimulus, 'OBSTACLE')
                 % determine data
+                bands_per_stretch = 2;
                 stretch_start_times = right_pushoff_times(1) - 1;
                 stretch_end_times = right_touchdown_times(1);
                 stretch_pushoff_times = 0;
+                stance_foot_data = {'STANCE_BOTH', 'STANCE_LEFT'};
                 time_normalization_markers = right_pushoff_times(1);
                 condition_experimental_list = {condition_experimental};
                 
@@ -515,6 +517,7 @@ function findRelevantDataStretches(varargin)
                 event_variables_to_save.stretch_pushoff_times = stretch_pushoff_times;
                 event_variables_to_save.stretch_end_times = stretch_end_times;
                 event_variables_to_save.time_normalization_markers = time_normalization_markers;
+                event_variables_to_save.stance_foot_data = stance_foot_data;
 
 %                 % save data
 %                 data_stretches_file_name = ['analysis' filesep makeFileName(date, subject_id, condition_list{i_condition}, i_trial, 'relevantDataStretches')];
@@ -1108,6 +1111,8 @@ function findRelevantDataStretches(varargin)
                 event_variables_to_save.stretch_start_times = stretch_start_times;
                 event_variables_to_save.stretch_pushoff_times = stretch_pushoff_times;
                 event_variables_to_save.stretch_end_times = stretch_end_times;
+                
+                event_variables_to_save.stance_foot_data = condition_stance_foot_list; % TODO: haven't tested this yet. Adapted during the stretch rework, which is currently in development for Obstacle data
 %                 event_variables_to_save.trigger_times = trigger_times;
 %                 event_variables_to_save.closest_heelstrike_distance_times = closest_heelstrike_distance_times;
                 
@@ -1426,7 +1431,7 @@ function findRelevantDataStretches(varargin)
                         if any(isnan(this_marker_data(start_index : end_index)))
                             removal_flags(i_stretch) = 1;
                             this_marker_text = string(this_marker_label);
-                            disp(['Removing a strech due to gap in', this_marker_text]);
+                            disp(['Removing a stretch due to gap in', this_marker_text]);
                         end 
                     end
                     
@@ -1440,6 +1445,7 @@ function findRelevantDataStretches(varargin)
                     for i_ignore = 1 : length(ignore_times)
                         if stretch_start_times(i_stretch) <= ignore_times(i_ignore) && ignore_times(i_ignore) <= stretch_end_times(i_stretch)
                             removal_flags(i_stretch) = 1;
+                            disp('Removing a stretch because of manually set ignore marker');
                         end
                     end
                 end
@@ -1476,6 +1482,8 @@ function findRelevantDataStretches(varargin)
             
             %% save
             event_variables_to_save.conditions_trial = conditions_trial;
+            event_variables_to_save.bands_per_stretch = bands_per_stretch;
+            
             stretches_file_name = ['analysis' filesep makeFileName(date, subject_id, condition_list{i_condition}, i_trial, 'relevantDataStretches')];
 %             save(stretches_file_name, '-struct', 'event_variables_to_save');
             saveDataToFile(stretches_file_name, event_variables_to_save);

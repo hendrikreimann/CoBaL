@@ -45,7 +45,7 @@ function [conditions_to_analyze, trials_to_analyze, calibration_trials, emg_tria
     if iscell(trials)
         trials_to_analyze = trials;
     else
-        if trials == 0;
+        if trials == 0
             % find list of available trials for this condition
             trials_to_analyze = cell(size(conditions_to_analyze));
             for i_condition = 1 : length(conditions_to_analyze)
