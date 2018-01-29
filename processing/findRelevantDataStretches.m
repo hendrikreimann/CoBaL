@@ -416,50 +416,39 @@ function findRelevantDataStretches(varargin)
                 
             end  
             if strcmp(condition_stimulus, 'OBSTACLE')
-                stretch_start_times = zeros(2, 1);
-                stretch_end_times = zeros(2, 1);
-                stretch_pushoff_times = zeros(2, 1);
+                % determine data
+                stretch_start_times = right_pushoff_times(1) - 1;
+                stretch_end_times = right_touchdown_times(1);
+                stretch_pushoff_times = 0;
+                time_normalization_markers = right_pushoff_times(1);
+                condition_experimental_list = {condition_experimental};
                 
-                condition_stance_foot_list = cell(2, 1);
-                condition_perturbation_list = cell(2, 1);
-                condition_delay_list = cell(2, 1);
-                condition_index_list = cell(2, 1);
-                condition_experimental_list = cell(2, 1);
-                condition_stimulus_list = cell(2, 1);
-                condition_day_list = cell(2, 1);
+                % add to save struct
+                conditions_trial = struct;
+                conditions_trial.condition_experimental_list = condition_experimental_list;
                 
-                % second stretch goes from first right pushoff to first right heelstrike
-                stretch_start_times(2, 1) = right_pushoff_times(1);
-                stretch_end_times(2, 1) = right_touchdown_times(1);
-                condition_perturbation_list{2, 1} = 'N/A';
-                condition_delay_list{2, 1} = 'N/A';
-                condition_index_list{2, 1} = 'TWO';
-                condition_experimental_list{2, 1} = condition_experimental;
-                condition_stance_foot_list{2, 1} = 'STANCE_LEFT';
-                condition_stimulus_list{2, 1} = condition_stimulus;
-                condition_day_list{2, 1} = condition_day;
                 
-%                 % third stretch goes from first right heelstrike to first left heelstrike
-%                 stretch_start_times(3, 1) = right_touchdown_times(1);
-%                 stretch_end_times(3, 1) = left_touchdown_times(1);
-%                 condition_perturbation_list{3, 1} = 'N/A';
-%                 condition_delay_list{3, 1} = 'N/A';
-%                 condition_index_list{3, 1} = 'THREE';
-%                 condition_experimental_list{3, 1} = condition_experimental;
-%                 condition_stance_foot_list{3, 1} = 'STANCE_RIGHT';
-%                 condition_stimulus_list{3, 1} = condition_stimulus;
-%                 condition_day_list{3, 1} = condition_day;
-                
-                % first stretch goes from first right pushoff minus 1 second to first right pushoff
-                stretch_start_times(1, 1) = right_pushoff_times(1) - 1;
-                stretch_end_times(1, 1) = right_pushoff_times(1);
-                condition_perturbation_list{1, 1} = 'N/A';
-                condition_delay_list{1, 1} = 'N/A';
-                condition_index_list{1, 1} = 'ONE';
-                condition_experimental_list{1, 1} = condition_experimental;
-                condition_stance_foot_list{1, 1} = 'STANCE_BOTH';
-                condition_stimulus_list{1, 1} = condition_stimulus;
-                condition_day_list{1, 1} = condition_day;
+%                 % second stretch goes from first right pushoff to first right heelstrike
+%                 stretch_start_times(2, 1) = right_pushoff_times(1);
+%                 stretch_end_times(2, 1) = right_touchdown_times(1);
+%                 condition_perturbation_list{2, 1} = 'N/A';
+%                 condition_delay_list{2, 1} = 'N/A';
+%                 condition_index_list{2, 1} = 'TWO';
+%                 condition_experimental_list{2, 1} = condition_experimental;
+%                 condition_stance_foot_list{2, 1} = 'STANCE_LEFT';
+%                 condition_stimulus_list{2, 1} = condition_stimulus;
+%                 condition_day_list{2, 1} = condition_day;
+%                 
+%                 % first stretch goes from first right pushoff minus 1 second to first right pushoff
+%                 stretch_start_times(1, 1) = right_pushoff_times(1) - 1;
+%                 stretch_end_times(1, 1) = right_pushoff_times(1);
+%                 condition_perturbation_list{1, 1} = 'N/A';
+%                 condition_delay_list{1, 1} = 'N/A';
+%                 condition_index_list{1, 1} = 'ONE';
+%                 condition_experimental_list{1, 1} = condition_experimental;
+%                 condition_stance_foot_list{1, 1} = 'STANCE_BOTH';
+%                 condition_stimulus_list{1, 1} = condition_stimulus;
+%                 condition_day_list{1, 1} = condition_day;
                 
 %                 % remove flagged triggers
 %                 unflagged_indices = ~removal_flags;
@@ -521,16 +510,11 @@ function findRelevantDataStretches(varargin)
 
                 % add new variables to be saved
                 conditions_trial = struct;
-                conditions_trial.condition_stance_foot_list = condition_stance_foot_list;
-                conditions_trial.condition_perturbation_list = condition_perturbation_list;
-                conditions_trial.condition_delay_list = condition_delay_list;
-                conditions_trial.condition_index_list = condition_index_list;
                 conditions_trial.condition_experimental_list = condition_experimental_list;
-                conditions_trial.condition_stimulus_list = condition_stimulus_list;
-                conditions_trial.condition_day_list = condition_day_list;
                 event_variables_to_save.stretch_start_times = stretch_start_times;
                 event_variables_to_save.stretch_pushoff_times = stretch_pushoff_times;
                 event_variables_to_save.stretch_end_times = stretch_end_times;
+                event_variables_to_save.time_normalization_markers = time_normalization_markers;
 
 %                 % save data
 %                 data_stretches_file_name = ['analysis' filesep makeFileName(date, subject_id, condition_list{i_condition}, i_trial, 'relevantDataStretches')];
@@ -1235,7 +1219,7 @@ function findRelevantDataStretches(varargin)
             end
             
             % add subject
-            condition_subject_list = cell(size(condition_stance_foot_list));
+            condition_subject_list = cell(size(condition_experimental_list));
             for i_stretch = 1 : length(condition_subject_list)
                 condition_subject_list{i_stretch} = subject_id;
             end
