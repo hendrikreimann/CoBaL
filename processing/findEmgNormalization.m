@@ -71,7 +71,7 @@ function findEmgNormalization(varargin)
         trials_to_process = trial_number_list{i_type};
         for i_trial = trials_to_process
             % TODO: check whether this trial contains any stretches relevant for EMG normalization
-            disp(['i_trial = ' num2str(i_trial)])
+            disp(['Finding EMG normalization: condition ' condition_list{i_type} ', Trial ' num2str(i_trial) ' completed']);
             
             % load and prepare data
             data_custodian.prepareBasicVariables(condition, i_trial, [{'emg_trajectories'}; emg_variable_names]);

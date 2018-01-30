@@ -59,7 +59,6 @@ function processStretchVariables(varargin)
         condition = condition_list{i_type};
         trials_to_process = trial_number_list{i_type};
         for i_trial = trials_to_process
-            disp(['i_trial = ' num2str(i_trial)])
             % load and prepare data
             data_custodian.prepareBasicVariables(condition, i_trial);
             load(['analysis' filesep makeFileName(date, subject_id, condition, i_trial, 'relevantDataStretches')]);
@@ -80,8 +79,8 @@ function processStretchVariables(varargin)
             origin_end_time_list_session = [origin_end_time_list_session; stretch_times(:, end)]; %#ok<AGROW>
             time_list = ones(number_of_stretches_this_trial, 1) * (i_trial - 1) * study_settings.get('trial_length') + stretch_times(:, 1);
             time_list_session = [time_list_session; time_list]; %#ok<AGROW>
+            disp(['Processing stretch variables: condition ' condition_list{i_type} ', Trial ' num2str(i_trial) ' completed']);
         end
-        disp(['Finished condition "' condition '".'])
     end
     
     %% calculate some subject-level data and report

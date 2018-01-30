@@ -22,6 +22,9 @@ function saveSubjectInfoToFile(varargin)
     parse(parser, varargin{:})
     screen_folder = parser.Results.screen_folder;
     
+    % get subject settings
+    subject_settings = SettingsCustodian('subjectSettings.txt');
+    
     % get subject code
     current_path = pwd;
     path_split = strsplit(current_path, filesep);
@@ -112,7 +115,20 @@ function saveSubjectInfoToFile(varargin)
             trial_number_list{condition_index} = unique(trial_number_list{condition_index}); %#ok<AGROW>
         end
     end
-    variables_to_save.condition_list = condition_list;
+    
+    % remove trials listed in subjectSettings.txt
+    trials_to_exclude = subject_settings.get('trials_to_exclude');
+    for i_trial = 1 : size(trials_to_exclude, 1)
+        condition_index = find(strcmp(condition_list, trials_to_exclude{i_trial, 1}));
+        if ~isempty(condition_index)
+            trial_number_list_this_condition = trial_number_list{condition_index};
+            matches = ismember(trial_number_list_this_condition, str2num(trials_to_exclude{i_trial, 2})); %#ok<ST2NM>
+            trial_number_list_this_condition_pruned = trial_number_list_this_condition(~matches);
+            trial_number_list{condition_index} = trial_number_list_this_condition_pruned;
+        end
+        
+    end
+    
     
     % if we have a conditions file, remove the trials not listed there
     conditions_file_name = [];
@@ -158,7 +174,9 @@ function saveSubjectInfoToFile(varargin)
         end
         
     end
-    variables_to_save.trial_number_list = trial_number_list;
+    variables_to_save.condition_list = condition_list;
+    variables_to_save.trial_number_list = trial_number_list; %#ok<STRNU>
+    
     
     % save
     save_file_name = 'subjectInfo.mat';
