@@ -25,8 +25,13 @@
 
 % pushoff_times is a legacy variable which might disappear soon
 
- 
+% changing this to a more comprehensive structure: stretch_marker_times, which is the collection of 
+% stretch_start_times, band_marker_times and stretch_end_times
 
+% do this for the obstacle first
+% but leave the stretch_start_times and stretch_end_times around
+
+% TODO: stimulus type 'NONE' has not been updated to the new structure yet. This matters for ArmSense
 
 % input: 
 % - subjectInfo.mat
@@ -247,7 +252,7 @@ function findRelevantDataStretches(varargin)
             %% extract event data
             %
             % For each trigger, determine the conditions and the relevant step events.
-            % The result is 
+            % The result is
             % stretch_start_indices_forceplate, stretch_end_indices_forceplate
             % stretch_start_times, stretch_end_times
             % condition_stance_foot_list, condition_perturbation_list, condition_delay_list, condition_index_list
@@ -413,6 +418,7 @@ function findRelevantDataStretches(varargin)
                 stance_foot_data = {'STANCE_BOTH', 'STANCE_LEFT'};
                 band_marker_times = right_pushoff_times(1);
                 condition_experimental_list = {condition_experimental};
+                stretch_times = [stretch_start_times band_marker_times stretch_end_times];
                 
                 if visualize
                     for i_trigger = 1 : length(stretch_start_times)
@@ -429,10 +435,11 @@ function findRelevantDataStretches(varargin)
                 % add new variables to be saved
                 conditions_trial = struct;
                 conditions_trial.condition_experimental_list = condition_experimental_list;
-                event_variables_to_save.stretch_start_times = stretch_start_times;
+%                 event_variables_to_save.stretch_start_times = stretch_start_times;
                 event_variables_to_save.stretch_pushoff_times = stretch_pushoff_times;
-                event_variables_to_save.stretch_end_times = stretch_end_times;
-                event_variables_to_save.band_marker_times = band_marker_times;
+%                 event_variables_to_save.stretch_end_times = stretch_end_times;
+%                 event_variables_to_save.band_marker_times = band_marker_times;
+                event_variables_to_save.stretch_times = stretch_times;
                 event_variables_to_save.stance_foot_data = stance_foot_data;
 
             end
@@ -912,12 +919,12 @@ function findRelevantDataStretches(varargin)
                 % we now have a neatly ordered list of stretches which we can prune
                 % check step times and flag outliers
                 number_of_stretches = length(stretch_start_times);
-                stretch_times = stretch_end_times - stretch_start_times;
-                stretch_time_outlier_limits = median(stretch_times) * [0.8 1.2];
+                stretch_durations = stretch_end_times - stretch_start_times;
+                stretch_duration_outlier_limits = median(stretch_durations) * [0.8 1.2];
 
                 removal_flags = zeros(number_of_stretches, 1);
-                removal_flags(stretch_times < stretch_time_outlier_limits(1)) = 1;
-                removal_flags(stretch_times > stretch_time_outlier_limits(2)) = 1;
+                removal_flags(stretch_durations < stretch_duration_outlier_limits(1)) = 1;
+                removal_flags(stretch_durations > stretch_duration_outlier_limits(2)) = 1;
 
                 % remove flagged triggers
                 unflagged_indices = ~removal_flags;
@@ -932,6 +939,8 @@ function findRelevantDataStretches(varargin)
                 condition_stimulus_list = condition_stimulus_list(unflagged_indices, :);
                 condition_day_list = condition_day_list(unflagged_indices, :);
 
+                % restructure for saving
+                stretch_times = [stretch_start_times stretch_end_times];
                 conditions_trial = struct;
                 conditions_trial.condition_stance_foot_list = condition_stance_foot_list;
                 conditions_trial.condition_perturbation_list = condition_perturbation_list;
@@ -999,6 +1008,12 @@ function findRelevantDataStretches(varargin)
                 conditions_trial.condition_group_list = condition_direction_list;
                 [conditions_trial.condition_group_list{:}] = deal('to be determined');
                 
+                % make copy of stance foot information
+                event_variables_to_save.stance_foot_data = condition_stance_foot_list;
+                
+                % add empty arrays for bands
+                event_variables_to_save.band_marker_times = ones(size(condition_stance_foot_list));
+
             end
             
             % add subject
@@ -1154,10 +1169,10 @@ function findRelevantDataStretches(varargin)
             
             % take care of steps with very large or small step time
             if study_settings.get('prune_step_time_outliers')
-                stretch_times = stretch_end_times - stretch_start_times;
-                stretch_time_outlier_limits = median(stretch_times) * [0.5 2.0];
-                removal_flags(stretch_times < stretch_time_outlier_limits(1)) = 1;
-                removal_flags(stretch_times > stretch_time_outlier_limits(2)) = 1;
+                stretch_durations = stretch_end_times - stretch_start_times;
+                stretch_duration_outlier_limits = median(stretch_durations) * [0.5 2.0];
+                removal_flags(stretch_durations < stretch_duration_outlier_limits(1)) = 1;
+                removal_flags(stretch_durations > stretch_duration_outlier_limits(2)) = 1;
             end
             
             % % Running into problems with markers missing !!! % % %
@@ -1265,7 +1280,7 @@ function findRelevantDataStretches(varargin)
             stretches_file_name = ['analysis' filesep makeFileName(date, subject_id, condition_list{i_condition}, i_trial, 'relevantDataStretches')];
             saveDataToFile(stretches_file_name, event_variables_to_save);
             
-            disp(['Finding Relevant Data Stretches: condition ' condition_list{i_condition} ', Trial ' num2str(i_trial) ' completed, found ' num2str(length(event_variables_to_save.stretch_start_times)) ' relevant stretches, saved as ' stretches_file_name]);                
+            disp(['Finding Relevant Data Stretches: condition ' condition_list{i_condition} ', Trial ' num2str(i_trial) ' completed, found ' num2str(size(event_variables_to_save.stretch_times, 1)) ' relevant stretches, saved as ' stretches_file_name]);                
         end
 
     end

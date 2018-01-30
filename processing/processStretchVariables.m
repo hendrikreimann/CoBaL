@@ -63,8 +63,10 @@ function processStretchVariables(varargin)
             % load and prepare data
             data_custodian.prepareBasicVariables(condition, i_trial);
             load(['analysis' filesep makeFileName(date, subject_id, condition, i_trial, 'relevantDataStretches')]);
+            number_of_stretches_this_trial = size(stretch_times, 1);
             bands_per_stretch_session = [bands_per_stretch_session; bands_per_stretch];
-            data_trial = data_custodian.calculateStretchVariables(stretch_start_times, stretch_end_times, stretch_pushoff_times, time_normalization_markers, stance_foot_data, conditions_trial.condition_experimental_list);
+%             data_trial = data_custodian.calculateStretchVariables(stretch_start_times, stretch_end_times, stretch_pushoff_times, time_normalization_markers, stance_foot_data, conditions_trial.condition_experimental_list);
+            data_trial = data_custodian.calculateStretchVariables(stretch_times, stance_foot_data, conditions_trial.condition_experimental_list, stretch_pushoff_times);
             
             % append the data and condition lists from this trial to the total lists
             for i_variable = 1 : number_of_stretch_variables
@@ -73,11 +75,10 @@ function processStretchVariables(varargin)
             for i_condition = 1 : number_of_condition_labels
                 conditions_session.(condition_source_variables{i_condition}) = [conditions_session.(condition_source_variables{i_condition}); conditions_trial.(condition_source_variables{i_condition}) ];
             end
-            
-            origin_trial_list_session = [origin_trial_list_session; ones(size(stretch_start_times)) * i_trial]; %#ok<AGROW>
-            origin_start_time_list_session = [origin_start_time_list_session; stretch_start_times]; %#ok<AGROW>
-            origin_end_time_list_session = [origin_end_time_list_session; stretch_end_times]; %#ok<AGROW>
-            time_list = ones(size(stretch_start_times)) * (i_trial - 1) * study_settings.get('trial_length') + stretch_start_times;
+            origin_trial_list_session = [origin_trial_list_session; ones(number_of_stretches_this_trial, 1) * i_trial]; %#ok<AGROW>
+            origin_start_time_list_session = [origin_start_time_list_session; stretch_times(:, 1)]; %#ok<AGROW>
+            origin_end_time_list_session = [origin_end_time_list_session; stretch_times(:, end)]; %#ok<AGROW>
+            time_list = ones(number_of_stretches_this_trial, 1) * (i_trial - 1) * study_settings.get('trial_length') + stretch_times(:, 1);
             time_list_session = [time_list_session; time_list]; %#ok<AGROW>
         end
         disp(['Finished condition "' condition '".'])

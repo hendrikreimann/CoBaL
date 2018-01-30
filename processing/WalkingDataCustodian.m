@@ -1895,13 +1895,17 @@ classdef WalkingDataCustodian < handle
                 end
             end
         end
-        function stretch_variables = calculateStretchVariables(this, stretch_start_times, stretch_end_times, stretch_pushoff_times, time_normalization_markers, stance_foot_data, condition_data, variables_to_calculate)
-            if nargin < 8
+%         function stretch_variables = calculateStretchVariables(this, stretch_start_times, stretch_end_times, stretch_pushoff_times, time_normalization_markers, stance_foot_data, condition_data, variables_to_calculate)
+%             if nargin < 8
+%                 variables_to_calculate = this.stretch_variable_names;
+%             end
+        function stretch_variables = calculateStretchVariables(this, stretch_times, stance_foot_data, condition_data, stretch_pushoff_times, variables_to_calculate)
+            if nargin < 6
                 variables_to_calculate = this.stretch_variable_names;
             end
             
             number_of_stretch_variables = length(variables_to_calculate);
-            number_of_stretches = length(stretch_start_times);
+            number_of_stretches = size(stretch_times, 1);
             number_of_bands = size(stance_foot_data, 2);
             stretch_variables = cell(number_of_stretch_variables, 1);
             
@@ -1913,18 +1917,21 @@ classdef WalkingDataCustodian < handle
                     stretch_data = [];
                     
                     % time
-                    this_stretch_start_time = stretch_start_times(i_stretch);
-                    this_stretch_end_time = stretch_end_times(i_stretch);
-                    this_stretch_pushoff_time = stretch_pushoff_times(i_stretch);
-                    this_stretch_time_normalization_markers = time_normalization_markers(i_stretch, :);
+%                     this_stretch_start_time = stretch_start_times(i_stretch);
+%                     this_stretch_end_time = stretch_end_times(i_stretch);
+%                     this_stretch_pushoff_time = stretch_pushoff_times(i_stretch);
+%                     this_stretch_time_normalization_markers = time_normalization_markers(i_stretch, :);
                     
-                    this_stretch_band_times = [this_stretch_start_time this_stretch_time_normalization_markers this_stretch_end_time];
+                    this_stretch_times = stretch_times(i_stretch, :);
+                    this_stretch_start_time = this_stretch_times(1);
+                    this_stretch_end_time = this_stretch_times(end);
+                    this_stretch_pushoff_time = stretch_pushoff_times(i_stretch);
                     
                     
                     % calculate normalized stretch data for the basic variables
                     if this.isBasicVariable(variable_name)
 %                         stretch_data = this.getTimeNormalizedData(variable_name, this_stretch_start_time, this_stretch_end_time);
-                        stretch_data = this.getTimeNormalizedData(variable_name, this_stretch_band_times);
+                        stretch_data = this.getTimeNormalizedData(variable_name, this_stretch_times);
                     end
                 
                     % calculate stretch variables that are not basic variables
@@ -1941,8 +1948,8 @@ classdef WalkingDataCustodian < handle
 %                             stretch_data = NaN;
 %                         end
                         
-                        lheel_y = this.getTimeNormalizedData('lheel_y', this_stretch_band_times);
-                        rheel_y = this.getTimeNormalizedData('rheel_y', this_stretch_band_times);
+                        lheel_y = this.getTimeNormalizedData('lheel_y', this_stretch_times);
+                        rheel_y = this.getTimeNormalizedData('rheel_y', this_stretch_times);
                         
                         stretch_data = zeros(number_of_bands, 1);
                         for i_band = 1 : number_of_bands
@@ -1974,8 +1981,8 @@ classdef WalkingDataCustodian < handle
 %                             stretch_data = NaN;
 %                         end
                         
-                        lheel_x = this.getTimeNormalizedData('lheel_x', this_stretch_band_times);
-                        rheel_x = this.getTimeNormalizedData('rheel_x', this_stretch_band_times);
+                        lheel_x = this.getTimeNormalizedData('lheel_x', this_stretch_times);
+                        rheel_x = this.getTimeNormalizedData('rheel_x', this_stretch_times);
                         stretch_data = zeros(number_of_bands, 1);
                         for i_band = 1 : number_of_bands
                             [~, band_end_indices] = getBandIndices(i_band, this.number_of_time_steps_normalized);
@@ -2004,8 +2011,8 @@ classdef WalkingDataCustodian < handle
 %                         if strcmp(stance_foot_data{i_stretch}, 'STANCE_BOTH')
 %                             stretch_data = NaN;
 %                         end
-                        lheel_x = this.getTimeNormalizedData('lheel_x', this_stretch_band_times);
-                        rheel_x = this.getTimeNormalizedData('rheel_x', this_stretch_band_times);
+                        lheel_x = this.getTimeNormalizedData('lheel_x', this_stretch_times);
+                        rheel_x = this.getTimeNormalizedData('rheel_x', this_stretch_times);
                         stretch_data = zeros(number_of_bands, 1);
                         for i_band = 1 : number_of_bands
                             [~, band_end_indices] = getBandIndices(i_band, this.number_of_time_steps_normalized);
@@ -2024,7 +2031,7 @@ classdef WalkingDataCustodian < handle
                     end
                     if strcmp(variable_name, 'step_time')
 %                         stretch_data = this_stretch_end_time - this_stretch_start_time;
-                        stretch_data = diff(this_stretch_band_times)';
+                        stretch_data = diff(this_stretch_times)';
                     end
                     
                     if strcmp(variable_name, 'pushoff_time')
@@ -2158,8 +2165,8 @@ classdef WalkingDataCustodian < handle
                                     swing_marker_z_complete = this.getBasicVariableData('rheel_z');
                                     variable_time = this.getTimeData('rheel_y');
                                 end
-                                this_band_start_time = this_stretch_band_times(i_band);
-                                this_band_end_time = this_stretch_band_times(i_band+1);
+                                this_band_start_time = this_stretch_times(i_band);
+                                this_band_end_time = this_stretch_times(i_band+1);
                                 [~, start_index] = min(abs(variable_time - this_band_start_time));
                                 [~, end_index] = min(abs(variable_time - this_band_end_time));
                                 swing_heel_marker_y = swing_marker_y_complete(start_index : end_index);
@@ -2201,8 +2208,8 @@ classdef WalkingDataCustodian < handle
                                     swing_marker_z_complete = this.getBasicVariableData('rtoes_z');
                                     variable_time = this.getTimeData('rtoes_y');
                                 end
-                                this_band_start_time = this_stretch_band_times(i_band);
-                                this_band_end_time = this_stretch_band_times(i_band+1);
+                                this_band_start_time = this_stretch_times(i_band);
+                                this_band_end_time = this_stretch_times(i_band+1);
                                 [~, start_index] = min(abs(variable_time - this_band_start_time));
                                 [~, end_index] = min(abs(variable_time - this_band_end_time));
                                 swing_toes_marker_y = swing_marker_y_complete(start_index : end_index);
@@ -2228,32 +2235,32 @@ classdef WalkingDataCustodian < handle
                         end
                     end
                     if strcmp(variable_name, 'left_glut_med_rescaled')
-                        left_glut_med = this.getTimeNormalizedData('left_glut_med', this_stretch_band_times);
+                        left_glut_med = this.getTimeNormalizedData('left_glut_med', this_stretch_times);
                         normalization_value = this.emg_normalization_values(strcmp(this.emg_normalization_labels, 'left_glut_med'));
                         stretch_data = left_glut_med * 1 / normalization_value;
                     end
                     if strcmp(variable_name, 'left_delt_ant_rescaled')
-                        left_delt_ant = this.getTimeNormalizedData('left_delt_ant', this_stretch_band_times);
+                        left_delt_ant = this.getTimeNormalizedData('left_delt_ant', this_stretch_times);
                         normalization_value = this.emg_normalization_values(strcmp(this.emg_normalization_labels, 'left_delt_ant'));
                         stretch_data = left_delt_ant * 1 / normalization_value;
                     end
                     if strcmp(variable_name, 'left_tibi_ant_rescaled')
-                        left_tibi_ant = this.getTimeNormalizedData('left_tibi_ant', this_stretch_band_times);
+                        left_tibi_ant = this.getTimeNormalizedData('left_tibi_ant', this_stretch_times);
                         normalization_value = this.emg_normalization_values(strcmp(this.emg_normalization_labels, 'left_tibi_ant'));
                         stretch_data = left_tibi_ant * 1 / normalization_value;
                     end
                     if strcmp(variable_name, 'left_gastroc_med_rescaled')
-                        left_gastroc_med = this.getTimeNormalizedData('left_gastroc_med', this_stretch_band_times);
+                        left_gastroc_med = this.getTimeNormalizedData('left_gastroc_med', this_stretch_times);
                         normalization_value = this.emg_normalization_values(strcmp(this.emg_normalization_labels, 'left_gastroc_med'));
                         stretch_data = left_gastroc_med * 1 / normalization_value;
                     end
                     if strcmp(variable_name, 'left_pero_lng_rescaled')
-                        left_pero_lng = this.getTimeNormalizedData('left_pero_lng', this_stretch_band_times);
+                        left_pero_lng = this.getTimeNormalizedData('left_pero_lng', this_stretch_times);
                         normalization_value = this.emg_normalization_values(strcmp(this.emg_normalization_labels, 'left_pero_lng'));
                         stretch_data = left_pero_lng * 1 / normalization_value;
                     end
                     if strcmp(variable_name, 'left_tfl_rescaled')
-                        left_tfl = this.getTimeNormalizedData('left_tfl', this_stretch_band_times);
+                        left_tfl = this.getTimeNormalizedData('left_tfl', this_stretch_times);
                         normalization_value = this.emg_normalization_values(strcmp(this.emg_normalization_labels, 'left_tfl'));
                         if isempty(normalization_value)
                             normalization_value = 1;
@@ -2261,32 +2268,32 @@ classdef WalkingDataCustodian < handle
                         stretch_data = left_tfl * 1 / normalization_value;
                     end
                     if strcmp(variable_name, 'right_glut_med_rescaled')
-                        right_glut_med = this.getTimeNormalizedData('right_glut_med', this_stretch_band_times);
+                        right_glut_med = this.getTimeNormalizedData('right_glut_med', this_stretch_times);
                         normalization_value = this.emg_normalization_values(strcmp(this.emg_normalization_labels, 'right_glut_med'));
                         stretch_data = right_glut_med * 1 / normalization_value;
                     end
                     if strcmp(variable_name, 'right_delt_ant_rescaled')
-                        right_delt_ant = this.getTimeNormalizedData('right_delt_ant', this_stretch_band_times);
+                        right_delt_ant = this.getTimeNormalizedData('right_delt_ant', this_stretch_times);
                         normalization_value = this.emg_normalization_values(strcmp(this.emg_normalization_labels, 'right_delt_ant'));
                         stretch_data = right_delt_ant * 1 / normalization_value;
                     end
                     if strcmp(variable_name, 'right_tibi_ant_rescaled')
-                        right_tibi_ant = this.getTimeNormalizedData('right_tibi_ant', this_stretch_band_times);
+                        right_tibi_ant = this.getTimeNormalizedData('right_tibi_ant', this_stretch_times);
                         normalization_value = this.emg_normalization_values(strcmp(this.emg_normalization_labels, 'right_tibi_ant'));
                         stretch_data = right_tibi_ant * 1 / normalization_value;
                     end
                     if strcmp(variable_name, 'right_gastroc_med_rescaled')
-                        right_gastroc_med = this.getTimeNormalizedData('right_gastroc_med', this_stretch_band_times);
+                        right_gastroc_med = this.getTimeNormalizedData('right_gastroc_med', this_stretch_times);
                         normalization_value = this.emg_normalization_values(strcmp(this.emg_normalization_labels, 'right_gastroc_med'));
                         stretch_data = right_gastroc_med * 1 / normalization_value;
                     end
                     if strcmp(variable_name, 'right_pero_lng_rescaled')
-                        right_pero_lng = this.getTimeNormalizedData('right_pero_lng', this_stretch_band_times);
+                        right_pero_lng = this.getTimeNormalizedData('right_pero_lng', this_stretch_times);
                         normalization_value = this.emg_normalization_values(strcmp(this.emg_normalization_labels, 'right_pero_lng'));
                         stretch_data = right_pero_lng * 1 / normalization_value;
                     end
                     if strcmp(variable_name, 'right_tfl_rescaled')
-                        right_tfl = this.getTimeNormalizedData('right_tfl', this_stretch_band_times);
+                        right_tfl = this.getTimeNormalizedData('right_tfl', this_stretch_times);
                         normalization_value = this.emg_normalization_values(strcmp(this.emg_normalization_labels, 'right_tfl'));
                         if isempty(normalization_value)
                             normalization_value = 1;
