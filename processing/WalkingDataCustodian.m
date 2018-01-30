@@ -2041,12 +2041,12 @@ classdef WalkingDataCustodian < handle
                     if strcmp(variable_name, 'midstance_index')
                         % TODO: not updated to new subdivision of stretches into bands yet... don't really know what to do here yet
                         % get trajectories
-                        pelvis_y = this.getTimeNormalizedData('pelvis_y', this_stretch_start_time, this_stretch_end_time);
+                        pelvis_y = this.getTimeNormalizedData('pelvis_y', this_stretch_times);
                         if strcmp(stance_foot_data{i_stretch}, 'STANCE_RIGHT')
-                            stance_ankle_y = this.getTimeNormalizedData('rankle_y', this_stretch_start_time, this_stretch_end_time);
+                            stance_ankle_y = this.getTimeNormalizedData('rankle_y', this_stretch_times);
                         end
                         if strcmp(stance_foot_data{i_stretch}, 'STANCE_LEFT')
-                            stance_ankle_y = this.getTimeNormalizedData('lankle_y', this_stretch_start_time, this_stretch_end_time);
+                            stance_ankle_y = this.getTimeNormalizedData('lankle_y', this_stretch_times);
                         end
                         if strcmp(stance_foot_data{i_stretch}, 'STANCE_BOTH')
                             stance_ankle_y = NaN;

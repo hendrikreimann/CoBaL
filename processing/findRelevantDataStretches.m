@@ -16,20 +16,14 @@
 
 % This script finds the stretches of data relevant to the experimental paradigm and determines the condition factors.
 
-% Stretches are further subdivided into bands, e.g. double stance and single stance. Stretches are defined by start time
-% and end time, each of which is a column vector with one entry per stretch. Bands are defined by band_marker_times, which
-% is a matrix with one row per stretch and one column for each band division, i.e. one less than the number of bands.
+% Stretches are further subdivided into bands, e.g. double stance and single stance. Stretches are defined by the times
+% where each band starts and ends, i.e. N+1 numbers per stretch, where N is the number of bands per stretch. These are
+% stored in stretch_times, an array with one row per stretch and N columns.
 % Conditions are saved in a struct conditions_trial, with one field for each factor. Factors are column cell arrays with
 % one entry per stretch. Stance foot information is saved in stance_foot_data, an array with one row per stretch and one
 % column per band, where each entry specifies which foot is on the ground for that band. 
 
 % pushoff_times is a legacy variable which might disappear soon
-
-% changing this to a more comprehensive structure: stretch_marker_times, which is the collection of 
-% stretch_start_times, band_marker_times and stretch_end_times
-
-% do this for the obstacle first
-% but leave the stretch_start_times and stretch_end_times around
 
 % TODO: stimulus type 'NONE' has not been updated to the new structure yet. This matters for ArmSense
 
@@ -41,9 +35,7 @@
 % file relevantDataStretches.mat, containing
 % 
 % - stretch_pushoff_times
-% - stretch_start_times
-% - stretch_end_times
-% - band_marker_times
+% - stretch_times
 % - stance_foot_data
 % - conditions_trial
 % - bands_per_stretch
@@ -444,6 +436,8 @@ function findRelevantDataStretches(varargin)
 
             end
             if strcmp(condition_stimulus, 'VISUAL') || strcmp(condition_stimulus, 'GVS')
+                bands_per_stretch = 2;
+                
                 % for each trigger, extract conditions and relevant step events
                 number_of_triggers = length(trigger_indices_mocap);
                 removal_flags = zeros(number_of_triggers, 1);
@@ -950,9 +944,10 @@ function findRelevantDataStretches(varargin)
                 conditions_trial.condition_stimulus_list = condition_stimulus_list;
                 conditions_trial.condition_day_list = condition_day_list;
                 
-                event_variables_to_save.stretch_start_times = stretch_start_times;
+%                 event_variables_to_save.stretch_start_times = stretch_start_times;
                 event_variables_to_save.stretch_pushoff_times = stretch_pushoff_times;
-                event_variables_to_save.stretch_end_times = stretch_end_times;
+%                 event_variables_to_save.stretch_end_times = stretch_end_times;
+                event_variables_to_save.stretch_times = stretch_times;
                 
                 event_variables_to_save.stance_foot_data = condition_stance_foot_list; % TODO: haven't tested this yet. Adapted during the stretch rework, which is currently in development for Obstacle data
 
@@ -1011,9 +1006,6 @@ function findRelevantDataStretches(varargin)
                 % make copy of stance foot information
                 event_variables_to_save.stance_foot_data = condition_stance_foot_list;
                 
-                % add empty arrays for bands
-                event_variables_to_save.band_marker_times = ones(size(condition_stance_foot_list));
-
             end
             
             % add subject
@@ -1182,7 +1174,7 @@ function findRelevantDataStretches(varargin)
                 [~, end_index_mocap] = min(abs(time_marker - stretch_end_times(i_stretch)));
                 if any(any(isnan(marker_trajectories(start_index_mocap : end_index_mocap, essential_marker_indicator))))
                     removal_flags(i_stretch) = 1;
-                    disp('Removing a strech due to gaps in essential markers')
+                    disp('Removing a stretch due to gaps in essential markers')
                 end
             end
             

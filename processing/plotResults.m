@@ -949,7 +949,9 @@ function plotResults(varargin)
                         this_comparison = this_episode(i_comparison);
                         step_abscissa = abscissae_cell{this_comparison, i_variable};
                         step_start_times(i_comparison) = step_abscissa(1, 1);
-                        step_pushoff_times(i_comparison) = step_abscissa(1, pushoff_index);
+                        if mark_pushoff
+                            step_pushoff_times(i_comparison) = step_abscissa(1, pushoff_index);
+                        end
                         step_end_times(i_comparison) = step_abscissa(1, end);
 
                         % determine stance foot
