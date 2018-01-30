@@ -219,7 +219,17 @@ function findRelevantDataStretches(varargin)
 
                 %
                 epsilon = 1e-5;
+                % remove weird noise in illusion trajectory (check labview
+                % for odd behavior i.e. wait time and illusion_trajectory)
                 stim_start_indices_labview = find(diff(sign(abs(illusion_trajectory) - epsilon)) > 0) + 1;
+                i_stim = 1;
+                while i_stim ~= length(stim_start_indices_labview)
+                    if illusion_trajectory(stim_start_indices_labview(i_stim) + 5) == 0
+                        stim_start_indices_labview(i_stim) = [];
+                        i_stim = i_stim - 1;
+                    end
+                    i_stim = i_stim + 1;
+                end
                 trigger_indices_labview = trigger_indices_labview(1 : length(stim_start_indices_labview)); % in case a stim is triggered, but not recorded
                 
                 trigger_times = time_stimulus(trigger_indices_labview);

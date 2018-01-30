@@ -187,6 +187,19 @@ function processAnalysisVariables(varargin)
         [analysis_data_session, analysis_names_session] = addOrOverwriteData(analysis_data_session, analysis_names_session, step_end_data, this_variable_name);
     end
 
+    
+    %% find peak ankle flexion during second double stance phase
+    variables_for_pushoff = study_settings.get('analysis_variables_for_exploring_pushoff_mechanism');
+    for i_variable = 1 : size(variables_for_pushoff, 1)
+        this_variable_name = variables_for_pushoff{i_variable, 1};
+        this_variable_source_name = variables_for_pushoff{i_variable, 2};
+        this_variable_response_data = response_data_session{strcmp(loaded_data.stretch_names_session, this_variable_source_name)};
+        this_variable_data = abs(max(this_variable_response_data(1:25,:))); % this is a hack to get something out for now.. need to invert first.. chose first quarter as a result of targeting second double stance phase..
+        
+         % store
+        [analysis_data_session, analysis_names_session] = addOrOverwriteData(analysis_data_session, analysis_names_session, this_variable_data, this_variable_name);
+    end
+    
     %% gather variables with inversion by perturbation
     variables_to_invert = study_settings.get('analysis_variables_from_inversion_by_perturbation');
     for i_variable = 1 : size(variables_to_invert, 1)
