@@ -181,7 +181,12 @@ classdef SettingsCustodian < handle
             if strcmp(property_name, 'acceptable_number_of_zeros_per_stretch')
                 default_data = 5;
             end
-
+            if strcmp(property_name, 'mark_pushoff')
+                default_data = 0;
+            end
+            if strcmp(property_name, 'mark_bands')
+                default_data = 0;
+            end
 
 
 

@@ -78,6 +78,7 @@ function plotResults(varargin)
     show_outliers = plot_settings.get('show_outliers');
     plot_mode = plot_settings.get('plot_mode');
     mark_pushoff = plot_settings.get('mark_pushoff');
+    mark_bands = plot_settings.get('mark_bands');
     number_of_time_steps_normalized = study_settings.get('number_of_time_steps_normalized');
     variables_to_plot = plot_settings.get('variables_to_plot');
 
@@ -464,18 +465,17 @@ function plotResults(varargin)
                         else
                             band_scales = ones(bands_per_stretch, 1) * number_of_time_steps_normalized;
                         end
-                        abscissa_scaled = createScaledAbscissa(band_scales, number_of_time_steps_normalized);
+                        [abscissa_scaled, band_limits] = createScaledAbscissa(band_scales, number_of_time_steps_normalized);
+                        
+                        if strcmp(plot_settings.get('time_plot_style'), 'scaled_to_condition_mean')
+                            time_plot_band_anchor_index = plot_settings.get('time_plot_band_anchor');
+                            time_plot_band_anchor_time = band_limits(time_plot_band_anchor_index);
+                            abscissa_scaled = abscissa_scaled - time_plot_band_anchor_time;
+                        end
+                        
                         abscissae_cell{i_comparison, i_variable}(i_condition, :) = abscissa_scaled;
                         
-%                         if strcmp(plot_settings.get('time_plot_style'), 'scaled_to_comparison_mean')
-%                             abscissa_scaled = abscissa_unscaled * mean(step_time_means_this_comparison) / 100;
-%                             abscissae_cell{i_comparison, i_variable}(i_condition, :) = abscissa_scaled;
-%                         elseif strcmp(plot_settings.get('time_plot_style'), 'scaled_to_condition_mean')
-%                             abscissa_scaled = abscissa_unscaled * step_time_means_this_comparison(i_condition) / 100;
-%                             abscissae_cell{i_comparison, i_variable}(i_condition, :) = abscissa_scaled;
-%                         else
-%                             abscissae_cell{i_comparison, i_variable}(i_condition, :) = abscissa_unscaled;
-%                         end
+
                     end                    
                 end
                 
@@ -577,10 +577,10 @@ function plotResults(varargin)
         for i_variable = 1 : number_of_variables_to_plot
             if isContinuousVariable(i_variable, data_all, bands_per_stretch)
                 for i_comparison = 1 : number_of_comparisons
-                    target_abscissa = abscissae_cell{i_comparison, i_variable}(1, :);
-                        
+                    target_abscissae = abscissae_cell{i_comparison, i_variable};
+                    xlim = [min(target_abscissae(:, 1)) max(target_abscissae(:, end))];
                     % set x-limits accordingly
-                    set(trajectory_axes_handles(i_comparison, i_variable), 'xlim', [target_abscissa(1) target_abscissa(end)]);
+                    set(trajectory_axes_handles(i_comparison, i_variable), 'xlim', xlim);
                 end
             end
         end
@@ -1459,6 +1459,72 @@ function plotResults(varargin)
     end
     
     %% shade steps
+    if mark_bands
+        if strcmp(plot_mode, 'overview')
+            these_axes = trajectory_axes_handles(i_comparison, i_variable);
+            these_abscissae = abscissae_cell{i_comparison, i_variable};
+            ylimits = get(these_axes, 'ylim');
+
+            for i_band = 2 : 2 : bands_per_stretch
+                % double stance patch
+                double_stance_patch_color = plot_settings.get('stance_double_color');
+                
+                [start_index, end_index] = getBandIndices(i_band, number_of_time_steps_normalized);
+                
+                band_start_times = these_abscissae(:, start_index);
+                band_end_times = these_abscissae(:, end_index);
+                
+                % if these rows are all the same, then we're good and we can mark only a single box.
+                
+                % for testing
+                if length(unique(band_start_times)) == 1 && length(unique(band_end_times)) == 1
+                    patch_x = [band_start_times(1) band_end_times(1) band_end_times(1) band_start_times(1)];
+                    patch_y = [ylimits(1) ylimits(1) ylimits(2) ylimits(2)];
+                    patch_handle = ...
+                        patch ...
+                          ( ...
+                            patch_x, ...
+                            patch_y, ...
+                            double_stance_patch_color, ...
+                            'parent', these_axes, ...
+                            'EdgeColor', 'none', ...
+                            'FaceAlpha', plot_settings.get('stance_alpha'), ...
+                            'HandleVisibility', 'off' ...
+                          ); 
+                    uistack(patch_handle, 'bottom')                    
+                end
+                
+                % otherwise we'll have to do something else
+                if length(unique(band_start_times)) > 1 || length(unique(band_end_times)) > 1
+                    number_of_conditions = length(band_start_times);
+                    y_values = linspace(ylimits(1), ylimits(2), number_of_conditions+1);
+                    for i_condition = 1 : number_of_conditions
+                        patch_x = [band_start_times(i_condition) band_end_times(i_condition) band_end_times(i_condition) band_start_times(i_condition)];
+                        patch_y = [y_values(i_condition) y_values(i_condition) y_values(i_condition+1) y_values(i_condition+1)];
+                        patch_handle = ...
+                            patch ...
+                              ( ...
+                                patch_x, ...
+                                patch_y, ...
+                                colors_comparison(i_condition, :), ...
+                                'parent', these_axes, ...
+                                'EdgeColor', 'none', ...
+                                'FaceAlpha', plot_settings.get('stance_alpha'), ...
+                                'HandleVisibility', 'off' ...
+                              ); 
+                        uistack(patch_handle, 'bottom')                    
+                        
+                    end
+                    
+                end
+                
+
+
+            end
+            
+        end
+    end
+    
     if mark_pushoff
         if strcmp(plot_mode, 'overview')
             for i_variable = 1 : number_of_variables_to_plot
@@ -1624,9 +1690,10 @@ function s = spread(data, method)
     
 end
 
-function scaled_abscissa = createScaledAbscissa(band_scales, number_of_time_steps_normalized)
+function [scaled_abscissa, band_limits] = createScaledAbscissa(band_scales, number_of_time_steps_normalized)
     number_of_bands = length(band_scales);
     scaled_abscissa = [];
+    band_limits = 0;
     for i_band = 1 : number_of_bands
         scaled_abscissa_this_band = linspace(0, band_scales(i_band), number_of_time_steps_normalized)';
         if i_band > 1
@@ -1635,6 +1702,7 @@ function scaled_abscissa = createScaledAbscissa(band_scales, number_of_time_step
             scaled_abscissa_this_band = scaled_abscissa_this_band(2:end);
         end
         scaled_abscissa = [scaled_abscissa; scaled_abscissa_this_band]; %#ok<AGROW>
+        band_limits = [band_limits scaled_abscissa(end)]; %#ok<AGROW>
     end
     
 end
