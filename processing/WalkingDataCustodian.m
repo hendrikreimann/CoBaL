@@ -2325,12 +2325,6 @@ classdef WalkingDataCustodian < handle
                 data_extracted = variable_data(band_time_indices(1) : band_time_indices(end));
                 band_time_indices_local = band_time_indices - band_time_indices(1) + 1;
                 
-%                 [~, start_index] = min(abs(variable_time - start_time));
-%                 [~, end_index] = min(abs(variable_time - end_time));
-%                 time_extracted = variable_time(start_index : end_index);
-%                 data_extracted = variable_data(start_index : end_index);
-
-                
             catch error
                 disp(['Error while processing variable ''' variable_name ''''])
                 throw(error)

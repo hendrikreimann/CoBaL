@@ -121,6 +121,7 @@ function findRelevantDataStretches(varargin)
             % forceplate data
             [left_forceplate_cop_world_trajectory, time_left_forceplate, ~, ~, left_forceplate_available] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'left_forceplate_cop_world', 'optional');
             [right_forceplate_cop_world_trajectory, time_right_forceplate, ~, ~, right_forceplate_available] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'right_forceplate_cop_world', 'optional');
+            [cop_world_trajectory, time_forceplate, ~, ~, cop_available] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'total_forceplate_cop_world', 'optional');
             if left_forceplate_available && right_forceplate_available
                 left_copx_trajectory = left_forceplate_cop_world_trajectory(:, 1);
                 right_copx_trajectory = right_forceplate_cop_world_trajectory(:, 1);
@@ -412,15 +413,31 @@ function findRelevantDataStretches(varargin)
                 
             end  
             if strcmp(condition_stimulus, 'OBSTACLE')
-                % determine data
-                bands_per_stretch = 2;
+                % determine start and end
+                stance_foot_data = {'STANCE_BOTH', 'STANCE_BOTH', 'STANCE_LEFT'};
+                bands_per_stretch = length(stance_foot_data);
+                
+                init_time = right_pushoff_times(1) - 1;
+                end_time = right_touchdown_times(1);
+                unload_time = right_pushoff_times(1);
+                
+                % determine unload time as maximal backward-right shift of the CoP, following Halliday et al, Gait and Posture 8 (1998) 8?14
+                [~, start_time_index_forceplate] = min(abs(time_forceplate - init_time));
+                [~, unload_time_index_forceplate] = min(abs(time_forceplate - unload_time));
+                cop_data_relevant = cop_world_trajectory(start_time_index_forceplate : unload_time_index_forceplate, :);
+                time_forceplate_relevant = time_forceplate(start_time_index_forceplate : unload_time_index_forceplate);
+                [~, release_time_index_forceplate] = max(cop_data_relevant(:, 1));
+                release_time = time_forceplate_relevant(release_time_index_forceplate);
+                start_time = release_time - 0.5;
+                
+%                 plot(cop_data_relevant(:, 1), cop_data_relevant(:, 2))
+%                 plot(cop_data_relevant(release_time_index_forceplate, 1), cop_data_relevant(release_time_index_forceplate, 2), 'x', 'linewidth', 2)
+                
                 stretch_start_times = right_pushoff_times(1) - 1;
                 stretch_end_times = right_touchdown_times(1);
                 stretch_pushoff_times = 0;
-                stance_foot_data = {'STANCE_BOTH', 'STANCE_LEFT'};
-                band_marker_times = right_pushoff_times(1);
                 condition_experimental_list = {condition_experimental};
-                stretch_times = [stretch_start_times band_marker_times stretch_end_times];
+                stretch_times = [start_time release_time unload_time end_time];
                 
                 if visualize
                     for i_trigger = 1 : length(stretch_start_times)
