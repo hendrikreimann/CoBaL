@@ -463,7 +463,7 @@ function findRelevantDataStretches(varargin)
 
             end
             if strcmp(condition_stimulus, 'VISUAL') || strcmp(condition_stimulus, 'GVS')
-                bands_per_stretch = 2;
+                bands_per_stretch = 1;
                 
                 % for each trigger, extract conditions and relevant step events
                 number_of_triggers = length(trigger_indices_mocap);

@@ -19,7 +19,8 @@
 remote = 'jhrei@128.175.94.240'; number_of_workers = 44;
 
 % trials_to_process_string = '15 : 20';
-trials_to_process_string = 'all';
+trials_to_process_string = '18';
+% trials_to_process_string = 'all';
 
 % figure out folder structure
 subject_settings = SettingsCustodian('subjectSettings.txt');

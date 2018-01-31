@@ -19,10 +19,10 @@ function time_steps_to_optimize = determineTimeStepsToProcess(date, subject_id, 
     load(['analysis' filesep makeFileName(date, subject_id, condition, trial_number, 'relevantDataStretches')]);
     
     time_steps_to_optimize_indicator = false(length(time_mocap), 1);
-    for i_stretch = 1 : length(stretch_start_times)
+    for i_stretch = 1 : size(stretch_times, 1)
         % get unpadded stretches as indices
-        this_stretch_start_time = stretch_start_times(i_stretch);
-        this_stretch_end_time = stretch_end_times(i_stretch);
+        this_stretch_start_time = stretch_times(i_stretch, 1);
+        this_stretch_end_time = stretch_times(i_stretch, end);
         [~, this_stretch_start_index_mocap] = min(abs(this_stretch_start_time - time_mocap));
         [~, this_stretch_end_index_mocap] = min(abs(this_stretch_end_time - time_mocap));
         

@@ -15,7 +15,6 @@
 %     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 % set remote
-% remote = 'tuf79669@compute.temple.edu';
 remote = 'jhrei@128.175.94.240';
 
 
