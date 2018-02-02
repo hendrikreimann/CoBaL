@@ -19,7 +19,7 @@
 
 % TODO: this should be merged into the WalkingData object
 
-function [data, time, sampling_rate, labels, success] = loadData(date, subject_id, trial_type, trial_number, data_name, optional)
+function [data, time, sampling_rate, labels, directions, success] = loadData(date, subject_id, trial_type, trial_number, data_name, optional)
     if nargin < 6
         optional = 'required';
     end
@@ -34,10 +34,12 @@ function [data, time, sampling_rate, labels, success] = loadData(date, subject_i
             % data is not optional, throw error
             error(['Required data "' data_name '" not available.'])
         end
+        % this was optional, so return empty arrays
         data = [];
         time = [];
         sampling_rate = [];
         labels = [];
+        directions = [];
         success = false;
         return
     end
@@ -47,18 +49,55 @@ function [data, time, sampling_rate, labels, success] = loadData(date, subject_i
     data_time = available_variables{row, 2};
     data_sampling_rate = available_variables{row, 3};
     data_labels = available_variables{row, 4};
-    data_folder = available_variables{row, 5};
-    data_file_name = available_variables{row, 6};
-    loaded_data = load([data_folder filesep data_file_name], data_name, data_time, data_sampling_rate, data_labels);
+    if strcmp(data_labels(1), '_')
+        load_data_labels = true;
+        data_labels_variable = data_labels(2:end);
+    else
+        load_data_labels = false;
+    end
+    data_directions = available_variables{row, 5};
+    if strcmp(data_directions(1), '_')
+        load_data_directions = true;
+        data_directions_variable = data_directions(2:end);
+    else
+        load_data_directions = false;
+    end
+    data_folder = available_variables{row, 6};
+    data_file_name = available_variables{row, 7};
+    
+    if load_data_labels && load_data_directions
+        loaded_data = load([data_folder filesep data_file_name], data_name, data_time, data_sampling_rate, data_labels_variable, data_directions_variable);
+    end
+    if load_data_labels && ~load_data_directions
+        loaded_data = load([data_folder filesep data_file_name], data_name, data_time, data_sampling_rate, data_labels_variable);
+    end
+    if ~load_data_labels && load_data_directions
+        loaded_data = load([data_folder filesep data_file_name], data_name, data_time, data_sampling_rate, data_directions_variable);
+    end
+    if ~load_data_labels && ~load_data_directions
+        loaded_data = load([data_folder filesep data_file_name], data_name, data_time, data_sampling_rate);
+    end
 
     % hand over
     eval(['data = loaded_data.' data_name ';'])
     eval(['time = loaded_data.' data_time ';'])
     eval(['sampling_rate = loaded_data.' data_sampling_rate ';'])
-    if isempty(data_labels)
-        labels = data_name;
+    
+    if load_data_labels
+        eval(['labels = loaded_data.' data_labels_variable ';'])
     else
-        eval(['labels = loaded_data.' data_labels ';'])
+        labels = data_labels;
     end
+    if load_data_directions
+        eval(['directions = loaded_data.' data_directions_variable ';'])
+    else
+        directions = data_directions;
+    end
+    
+%     if isempty(data_labels)
+%         labels = data_name;
+%     else
+%         eval(['labels = loaded_data.' data_labels ';'])
+%     end
     success = true;
 end

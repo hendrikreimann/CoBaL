@@ -72,18 +72,16 @@ classdef stickFigure < handle
             plot3([0, 0]+mean(this.scene_bound(1, :)), [0, 0]+mean(this.scene_bound(2, :)), [this.scene_bound(3, 1), this.scene_bound(3, 2)], 'color', 'k', 'Linewidth', 1, 'Linestyle', ':');
 
             % set up marker plots
-            this.number_of_markers = length(markerLabels);
+            this.number_of_markers = length(markerLabels)/3;
+            marker_labels_single = markerLabels(1 : 3 : end);
+            for i_marker = 1 : this.number_of_markers
+                marker_labels_single{i_marker} = marker_labels_single{i_marker}(1:end-2);
+            end
             this.marker_labels = markerLabels;
             this.marker_plots = cell(this.number_of_markers, 1);
             for i_marker = 1 : this.number_of_markers
                 this.marker_plots{i_marker} = plot3(0, 0, 0, 'color', this.marker_color, 'markersize', 10, 'linewidth', 2, 'Marker', 'o');
             end
-%             this.number_of_virtual_markers = length(virtualMarkerLabels);
-%             this.virtual_marker_labels = virtualMarkerLabels;
-%             this.virtual_marker_plots = cell(this.number_of_virtual_markers, 1);
-%             for i_marker = 1 : this.number_of_virtual_markers
-%                 this.virtual_marker_plots{i_marker} = plot3(0, 0, 0, 'color', this.marker_color, 'markersize', 10, 'linewidth', 3, 'Marker', 'x');
-%             end
             
             % groom
             set(gca,'xlim',[this.scene_bound(1, 1), this.scene_bound(1, 2)],'ylim',[this.scene_bound(2, 1), this.scene_bound(2, 2)], 'zlim',[this.scene_bound(3, 1), this.scene_bound(3, 2)]);

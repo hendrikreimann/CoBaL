@@ -270,17 +270,17 @@ classdef WalkingTrialData < handle
             
             if exist([this.data_directory filesep 'subjectModel.mat'], 'file')
                 loaded_subject_model = load([this.data_directory filesep 'subjectModel.mat']);
-                this.joint_center_labels = loaded_subject_model.joint_center_headers;
+                this.joint_center_labels = loaded_subject_model.joint_center_labels;
             end
         end
         function loadMarkerTrajectories(this)
             [this.marker_positions, this.time_marker, this.sampling_rate_marker, this.marker_labels] = loadData(this.date, this.subject_id, this.condition, this.trial_number, 'marker_trajectories');
             
             % load kinematic data
-            [joint_center_trajectories, ~, ~, this.joint_center_labels, this.kinematic_data_available] = loadData(this.date, this.subject_id, this.condition, this.trial_number, 'joint_center_trajectories', 'optional');
+            [joint_center_trajectories, ~, ~, this.joint_center_labels, ~, this.kinematic_data_available] = loadData(this.date, this.subject_id, this.condition, this.trial_number, 'joint_center_trajectories', 'optional');
             this.joint_center_positions = joint_center_trajectories;
-            [this.com_positions, ~, ~, this.com_labels, this.com_data_available] = loadData(this.date, this.subject_id, this.condition, this.trial_number, 'com_trajectories', 'optional');
-            [this.joint_angles, ~, ~, ~, this.joint_angle_data_available] = loadData(this.date, this.subject_id, this.condition, this.trial_number, 'joint_angle_trajectories', 'optional');
+            [this.com_positions, ~, ~, this.com_labels, ~, this.com_data_available] = loadData(this.date, this.subject_id, this.condition, this.trial_number, 'com_trajectories', 'optional');
+            [this.joint_angles, ~, ~, ~, ~, this.joint_angle_data_available] = loadData(this.date, this.subject_id, this.condition, this.trial_number, 'joint_angle_trajectories', 'optional');
             
             
             % time
@@ -290,11 +290,10 @@ classdef WalkingTrialData < handle
             [b, a] = butter(filter_order, cutoff_frequency/(this.sampling_rate_marker/2));	% set filter parameters for butterworth filter: 2=order of filter;
             
             % extract data
-            left_heel_marker = find(strcmp(this.marker_labels, 'LHEE'));
+            left_heel_marker = extractMarkerData(this.marker_positions, this.marker_labels, 'LHEE');
             if ~isempty(left_heel_marker)
-                left_heel_marker_indices = reshape([(left_heel_marker - 1) * 3 + 1; (left_heel_marker - 1) * 3 + 2; (left_heel_marker - 1) * 3 + 3], 1, length(left_heel_marker)*3);
-                left_heel_y_trajectory = this.marker_positions(:, left_heel_marker_indices(2));
-                left_heel_z_trajectory = this.marker_positions(:, left_heel_marker_indices(3));
+                left_heel_y_trajectory = left_heel_marker(:, 2);
+                left_heel_z_trajectory = left_heel_marker(:, 3);
                 left_heel_z_vel_trajectory = deriveByTime(nanfiltfilt(b, a, left_heel_z_trajectory), 1/this.sampling_rate_marker);
                 left_heel_z_acc_trajectory = deriveByTime(nanfiltfilt(b, a, left_heel_z_vel_trajectory), 1/this.sampling_rate_marker);
                 left_heel_y_vel_trajectory = deriveByTime(nanfiltfilt(b, a, left_heel_y_trajectory), 1/this.sampling_rate_marker);
@@ -307,10 +306,9 @@ classdef WalkingTrialData < handle
                 this.left_heel_y_acc = left_heel_y_acc_trajectory;
             end
             
-            left_toes_marker = find(strcmp(this.marker_labels, 'LTOE'));
+            left_toes_marker = extractMarkerData(this.marker_positions, this.marker_labels, 'LTOE');
             if ~isempty(left_toes_marker)
-                left_toes_marker_indices = reshape([(left_toes_marker - 1) * 3 + 1; (left_toes_marker - 1) * 3 + 2; (left_toes_marker - 1) * 3 + 3], 1, length(left_toes_marker)*3);
-                left_toes_z_trajectory = this.marker_positions(:, left_toes_marker_indices(3));
+                left_toes_z_trajectory = left_toes_marker(:, 3);
                 left_toes_z_vel_trajectory = deriveByTime(nanfiltfilt(b, a, left_toes_z_trajectory), 1/this.sampling_rate_marker);
                 left_toes_z_acc_trajectory = deriveByTime(nanfiltfilt(b, a, left_toes_z_vel_trajectory), 1/this.sampling_rate_marker);
                 this.left_toes_z_pos = left_toes_z_trajectory;
@@ -318,11 +316,10 @@ classdef WalkingTrialData < handle
                 this.left_toes_z_acc = left_toes_z_acc_trajectory;
             end
             
-            right_heel_marker = find(strcmp(this.marker_labels, 'RHEE'));
+            right_heel_marker = extractMarkerData(this.marker_positions, this.marker_labels, 'RHEE');
             if ~isempty(right_heel_marker)
-                right_heel_marker_indices = reshape([(right_heel_marker - 1) * 3 + 1; (right_heel_marker - 1) * 3 + 2; (right_heel_marker - 1) * 3 + 3], 1, length(right_heel_marker)*3);
-                right_heel_z_trajectory = this.marker_positions(:, right_heel_marker_indices(3));
-                right_heel_y_trajectory = this.marker_positions(:, right_heel_marker_indices(2));
+                right_heel_z_trajectory = right_heel_marker(:, 2);
+                right_heel_y_trajectory = right_heel_marker(:, 3);
                 right_heel_z_vel_trajectory = deriveByTime(nanfiltfilt(b, a, right_heel_z_trajectory), 1/this.sampling_rate_marker);
                 right_heel_z_acc_trajectory = deriveByTime(nanfiltfilt(b, a, right_heel_z_vel_trajectory), 1/this.sampling_rate_marker);
                 right_heel_y_vel_trajectory = deriveByTime(nanfiltfilt(b, a, right_heel_y_trajectory), 1/this.sampling_rate_marker);
@@ -334,10 +331,9 @@ classdef WalkingTrialData < handle
                 this.right_heel_y_vel = right_heel_y_vel_trajectory;
                 this.right_heel_y_acc = right_heel_y_acc_trajectory;
             end
-            right_toes_marker = find(strcmp(this.marker_labels, 'RTOE'));
+            right_toes_marker = extractMarkerData(this.marker_positions, this.marker_labels, 'RTOE');
             if ~isempty(right_toes_marker)
-                right_toes_marker_indices = reshape([(right_toes_marker - 1) * 3 + 1; (right_toes_marker - 1) * 3 + 2; (right_toes_marker - 1) * 3 + 3], 1, length(right_toes_marker)*3);
-                right_toes_z_trajectory = this.marker_positions(:, right_toes_marker_indices(3));
+                right_toes_z_trajectory = right_toes_marker(:, 3);
                 right_toes_z_vel_trajectory = deriveByTime(nanfiltfilt(b, a, right_toes_z_trajectory), 1/this.sampling_rate_marker);
                 right_toes_z_acc_trajectory = deriveByTime(nanfiltfilt(b, a, right_toes_z_vel_trajectory), 1/this.sampling_rate_marker);
                 this.right_toes_z_pos = right_toes_z_trajectory;
@@ -363,7 +359,7 @@ classdef WalkingTrialData < handle
             this.right_leg_phase = loadData(this.date, this.subject_id, this.condition, this.trial_number, 'right_leg_phase', 'optional');
             
             % joint angles
-            [joint_angle_trajectories, ~, ~, joint_angle_labels, success] = loadData(this.date, this.subject_id, this.condition, this.trial_number, 'joint_angle_trajectories', 'optional');
+            [joint_angle_trajectories, ~, ~, joint_angle_labels, ~, success] = loadData(this.date, this.subject_id, this.condition, this.trial_number, 'joint_angle_trajectories', 'optional');
             if success
                 this.pelvis_x_trans_angle = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'pelvis, x-translation'));
                 this.pelvis_y_trans_angle = joint_angle_trajectories(:, strcmp(joint_angle_labels, 'pelvis, y-translation'));
@@ -413,7 +409,7 @@ classdef WalkingTrialData < handle
             end
             
             % joint torques
-            [joint_torque_trajectories, ~, ~, joint_torque_labels, success] = loadData(this.date, this.subject_id, this.condition, this.trial_number, 'joint_torque_trajectories', 'optional');
+            [joint_torque_trajectories, ~, ~, joint_torque_labels, ~, success] = loadData(this.date, this.subject_id, this.condition, this.trial_number, 'joint_torque_trajectories', 'optional');
             if success
                 this.pelvis_x_trans_torque = joint_torque_trajectories(:, strcmp(joint_torque_labels, 'pelvis, x-translation'));
                 this.pelvis_y_trans_torque = joint_torque_trajectories(:, strcmp(joint_torque_labels, 'pelvis, y-translation'));
@@ -457,7 +453,7 @@ classdef WalkingTrialData < handle
             
             % com
             if this.com_data_available
-                body_com_positions = extractMarkerTrajectories(this.com_positions, this.com_labels, 'BODYCOM');
+                body_com_positions = extractMarkerData(this.com_positions, this.com_labels, 'BODYCOM');
                 this.com_x_pos = body_com_positions(:, 1);
                 this.com_y_pos = body_com_positions(:, 2);
                 this.com_z_pos = body_com_positions(:, 3);
