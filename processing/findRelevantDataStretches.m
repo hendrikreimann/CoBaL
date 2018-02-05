@@ -228,7 +228,12 @@ function findRelevantDataStretches(varargin)
                  if strcmp(condition_experimental(end-1:end), 'OG')
                      trigger_times = [];
                  else
-                     trigger_times = [left_touchdown_times; right_touchdown_times]; 
+                     if left_touchdown_times(end) > right_touchdown_times(end)
+                        trigger_times = [left_touchdown_times(1:end-1); right_touchdown_times]; 
+                     else
+                        trigger_times = [left_touchdown_times; right_touchdown_times(1:end-1)]; 
+                     end
+                     
                  end
             end
             
@@ -430,24 +435,23 @@ function findRelevantDataStretches(varargin)
             end
             
             if strcmp(condition_stimulus, 'ARMSENSE')
-                % determine start and end
-                stance_foot_data = {'DOUBLE_STANCE', 'SINGLE_STANCE', 'DOUBLE_STANCE'};
-                bands_per_stretch = length(stance_foot_data);
+                % preallocating
+%                 stance_foot_data = {'DOUBLE_STANCE', 'SINGLE_STANCE', 'DOUBLE_STANCE', 'SINGLE_STANCE', 'DOUBLE_STANCE', 'SINGLE_STANCE', 'DOUBLE_STANCE'};
+%                 bands_per_stretch = length(stance_foot_data);
                 
-                 
                 if strcmp(condition_experimental(end-1:end), 'OG')
                     if left_touchdown_times(1) <= right_touchdown_times(1)
                         stretch_times = [left_touchdown_times(2); right_touchdown_times(2); left_touchdown_times(3); right_touchdown_times(3)];
                         stretch_start_times = [left_touchdown_times(2)];
                         stretch_end_times = [right_touchdown_times(3)];
                         stretch_pushoff_times = [right_pushoff_times(1); left_pushoff_times(2); right_pushoff_times(2)];
-                        condition_stance_foot_list = 'STANCE_LEFT';
+                        stance_foot_data = {'STANCE_BOTH', 'STANCE_LEFT', 'STANCE_BOTH', 'STANCE_RIGHT', 'STANCE_BOTH', 'STANCE_LEFT', 'STANCE_BOTH'};
                     else
                         stretch_times = [right_touchdown_times(2); left_touchdown_times(2); right_touchdown_times(3); left_touchdown_times(3)];
                         stretch_start_times = [right_touchdown_times(2)];
                         stretch_end_times = [left_touchdown_times(3)];
                         stretch_pushoff_times = [left_pushoff_times(1); right_pushoff_times(2); left_pushoff_times(2)];
-                        condition_stance_foot_list = 'STANCE_RIGHT';
+                        stance_foot_data = {'STANCE_BOTH', 'STANCE_RIGHT', 'STANCE_BOTH', 'STANCE_LEFT', 'STANCE_BOTH', 'STANCE_RIGHT', 'STANCE_BOTH'};
                     end 
                    
                     condition_perturbation_list = 'N/A';
@@ -455,16 +459,17 @@ function findRelevantDataStretches(varargin)
                     condition_experimental_list = condition_experimental;
                     condition_stimulus_list = condition_stimulus;
                     condition_index_list = 'N/A';
-                    condition_day_list = condition_day;                    
+                    condition_day_list = condition_day;                
                 else
+                    stance_foot_data = {};
                     stretch_start_times = zeros(number_of_triggers, 1);
                     stretch_end_times = zeros(number_of_triggers, 1);
                     stretch_pushoff_times = zeros(number_of_triggers, 1);
                     closest_heelstrike_distance_times = zeros(number_of_triggers, 1);
-                    condition_stance_foot_list = cell(number_of_triggers, 1);
+%                     condition_stance_foot_list = cell(number_of_triggers, 1);
                     condition_perturbation_list = cell(number_of_triggers, 1);
                     condition_delay_list = cell(number_of_triggers, 1);
-                    condition_index_list = cell(number_of_triggers, 1);
+%                     condition_index_list = cell(number_of_triggers, 1);
                     condition_experimental_list = cell(number_of_triggers, 1);
                     condition_stimulus_list = cell(number_of_triggers, 1);
                     condition_day_list = cell(number_of_triggers, 1);
@@ -483,8 +488,8 @@ function findRelevantDataStretches(varargin)
                         closest_heelstrike_distance_time = min([distance_to_trigger_left_time distance_to_trigger_right_time]);
 
                         if distance_to_trigger_left_time < distance_to_trigger_right_time
-                            condition_stance_foot_list{i_trigger, 1} = 'STANCE_LEFT';
-                            condition_index_list{i_trigger, 1} = 'ONE';
+                            stance_foot_data{i_trigger, 1} = {'STANCE_BOTH', 'STANCE_LEFT', 'STANCE_BOTH'};
+%                             condition_index_list{i_trigger, 1} = 'ONE';
                             stretch_start_times(i_trigger, 1) = trigger_times(i_trigger);
                             stretch_end_time_index = find(right_touchdown_times > trigger_times(i_trigger), 1, 'first');
                             stretch_pushoff_time_index = find(right_pushoff_times > trigger_times(i_trigger), 1, 'first');
@@ -498,8 +503,8 @@ function findRelevantDataStretches(varargin)
                             end
                         end    
                         if distance_to_trigger_right_time < distance_to_trigger_left_time
-                            condition_stance_foot_list{i_trigger, 1} = 'STANCE_RIGHT';
-                            condition_index_list{i_trigger, 1} = 'TWO';
+                            stance_foot_data{i_trigger, 1} = {'STANCE_BOTH', 'STANCE_RIGHT', 'STANCE_BOTH'};
+%                             condition_index_list{i_trigger, 1} = 'TWO';
                             stretch_start_times(i_trigger, 1) = trigger_times(i_trigger);
                             stretch_end_time_index = find(left_touchdown_times > trigger_times(i_trigger), 1, 'first');
                             stretch_pushoff_time_index = find(left_pushoff_times > trigger_times(i_trigger), 1, 'first');
@@ -519,10 +524,11 @@ function findRelevantDataStretches(varargin)
                     stretch_start_times = stretch_start_times(unflagged_indices, :);
                     stretch_end_times = stretch_end_times(unflagged_indices, :);
                     stretch_pushoff_times = stretch_pushoff_times(unflagged_indices, :);
-                    condition_stance_foot_list = condition_stance_foot_list(unflagged_indices, :);
+%                     condition_stance_foot_list = condition_stance_foot_list(unflagged_indices, :);
+
                     condition_perturbation_list = condition_perturbation_list(unflagged_indices, :);
                     condition_delay_list = condition_delay_list(unflagged_indices, :);
-                    condition_index_list = condition_index_list(unflagged_indices, :);
+%                     condition_index_list = condition_index_list(unflagged_indices, :);
                     condition_experimental_list = condition_experimental_list(unflagged_indices, :);
                     condition_stimulus_list = condition_stimulus_list(unflagged_indices, :);
                     condition_day_list = condition_day_list(unflagged_indices, :);
@@ -532,7 +538,7 @@ function findRelevantDataStretches(varargin)
                     
                     if visualize
                         for i_trigger = 1 : length(stretch_start_times)
-                            if strcmp(condition_stance_foot_list(i_trigger), 'STANCE_RIGHT')
+                            if strcmp(stance_foot_data(i_trigger), 'STANCE_RIGHT')
                                 stretch_indicator_height = 0.01;
                             else
                                 stretch_indicator_height = -0.01;
@@ -543,22 +549,24 @@ function findRelevantDataStretches(varargin)
                     end 
                 end             
                                 
+                bands_per_stretch = length(stance_foot_data);
+                
                 % restructure for saving
                 conditions_trial = struct;
-                conditions_trial.condition_stance_foot_list = condition_stance_foot_list;
-                conditions_trial.condition_perturbation_list = condition_perturbation_list;
-                conditions_trial.condition_delay_list = condition_delay_list;
-                conditions_trial.condition_index_list = condition_index_list;
+                conditions_trial.stance_foot_data = stance_foot_data;
+%                 conditions_trial.condition_perturbation_list = condition_perturbation_list;
+%                 conditions_trial.condition_delay_list = condition_delay_list;
+%                 conditions_trial.condition_index_list = condition_index_list;
                 conditions_trial.condition_experimental_list = condition_experimental_list;
                 conditions_trial.condition_stimulus_list = condition_stimulus_list;
                 conditions_trial.condition_day_list = condition_day_list;
                 
-                event_variables_to_save.stretch_start_times = stretch_start_times;
+%                 event_variables_to_save.stretch_start_times = stretch_start_times;
                 event_variables_to_save.stretch_pushoff_times = stretch_pushoff_times;
-                event_variables_to_save.stretch_end_times = stretch_end_times;
+%                 event_variables_to_save.stretch_end_times = stretch_end_times;
                 event_variables_to_save.stretch_times = stretch_times;
                 
-                event_variables_to_save.stance_foot_data = condition_stance_foot_list;
+                event_variables_to_save.stance_foot_data = stance_foot_data;
                        
             end
             
@@ -1370,31 +1378,44 @@ function findRelevantDataStretches(varargin)
             
 
             % remove flagged triggers
-            % what exactly is this section meant to do? (TF)
-%             unflagged_indices = ~removal_flags;
-%             event_variables_to_save_names = fieldnames(event_variables_to_save);
-%             for i_variable = 1 : length(event_variables_to_save_names)
-%                 this_variable_name = event_variables_to_save_names{i_variable};
-%                 
-%                 evalstring = ['this_variable_data = event_variables_to_save.' this_variable_name ';'];
-%                 eval(evalstring);
-%                 this_variable_data = this_variable_data(unflagged_indices, :);
-%                 
-%                 evalstring = ['event_variables_to_save.' this_variable_name ' = this_variable_data;'];
-%                 eval(evalstring);
-%             end
+            unflagged_indices = ~removal_flags;
+            event_variables_to_save_names = fieldnames(event_variables_to_save);
+            for i_variable = 1 : length(event_variables_to_save_names)
+                this_variable_name = event_variables_to_save_names{i_variable};
+                
+                evalstring = ['this_variable_data = event_variables_to_save.' this_variable_name ';'];
+                eval(evalstring);
+                
+                if strcmp(condition_experimental(end-1:end), 'OG') 
+                    if unflagged_indices == 0;
+                       this_variable_data = []; 
+                    end
+                else
+                    this_variable_data = this_variable_data(unflagged_indices, :);
+                end
+                
+                evalstring = ['event_variables_to_save.' this_variable_name ' = this_variable_data;'];
+                eval(evalstring);
+            end
             
-%             conditions_trial_names = fieldnames(conditions_trial);
-%             for i_label = 1 : length(conditions_trial_names)
-%                 this_condition_name = conditions_trial_names{i_label};
-%                 
-%                 evalstring = ['this_condition_data = conditions_trial.' this_condition_name ';'];
-%                 eval(evalstring);
-%                 this_condition_data = this_condition_data(unflagged_indices, :);
-%                 
-%                 evalstring = ['conditions_trial.' this_condition_name ' = this_condition_data;'];
-%                 eval(evalstring);
-%             end
+            conditions_trial_names = fieldnames(conditions_trial);
+            for i_label = 1 : length(conditions_trial_names)
+                this_condition_name = conditions_trial_names{i_label};
+                
+                evalstring = ['this_condition_data = conditions_trial.' this_condition_name ';'];
+                eval(evalstring);
+                
+                if strcmp(condition_experimental(end-1:end), 'OG') 
+                    if unflagged_indices == 0;
+                       this_condition_data = []; 
+                    end
+                else
+                    this_condition_data = this_condition_data(unflagged_indices, :);
+                end
+                
+                evalstring = ['conditions_trial.' this_condition_name ' = this_condition_data;'];
+                eval(evalstring);
+            end
             
             
             %% save
