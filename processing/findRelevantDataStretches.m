@@ -441,17 +441,17 @@ function findRelevantDataStretches(varargin)
                 
                 if strcmp(condition_experimental(end-1:end), 'OG')
                     if left_touchdown_times(1) <= right_touchdown_times(1)
-                        stretch_times = [left_touchdown_times(2); right_touchdown_times(2); left_touchdown_times(3); right_touchdown_times(3)];
+                        stretch_times = [left_touchdown_times(2) right_touchdown_times(2); right_touchdown_times(2) left_touchdown_times(3);left_touchdown_times(3) right_touchdown_times(3)];
                         stretch_start_times = [left_touchdown_times(2)];
                         stretch_end_times = [right_touchdown_times(3)];
                         stretch_pushoff_times = [right_pushoff_times(1); left_pushoff_times(2); right_pushoff_times(2)];
-                        stance_foot_data = {'STANCE_BOTH', 'STANCE_LEFT', 'STANCE_BOTH', 'STANCE_RIGHT', 'STANCE_BOTH', 'STANCE_LEFT', 'STANCE_BOTH'};
+                        stance_foot_data = {'STANCE_LEFT'; 'STANCE_RIGHT'; 'STANCE_LEFT'};
                     else
-                        stretch_times = [right_touchdown_times(2); left_touchdown_times(2); right_touchdown_times(3); left_touchdown_times(3)];
+                        stretch_times = [right_touchdown_times(2) left_touchdown_times(2); left_touchdown_times(2) right_touchdown_times(3); right_touchdown_times(3) left_touchdown_times(3)];
                         stretch_start_times = [right_touchdown_times(2)];
                         stretch_end_times = [left_touchdown_times(3)];
                         stretch_pushoff_times = [left_pushoff_times(1); right_pushoff_times(2); left_pushoff_times(2)];
-                        stance_foot_data = {'STANCE_BOTH', 'STANCE_RIGHT', 'STANCE_BOTH', 'STANCE_LEFT', 'STANCE_BOTH', 'STANCE_RIGHT', 'STANCE_BOTH'};
+                        stance_foot_data = {'STANCE_RIGHT'; 'STANCE_LEFT'; 'STANCE_RIGHT'};
                     end 
                    
                     condition_perturbation_list = 'N/A';
@@ -488,7 +488,7 @@ function findRelevantDataStretches(varargin)
                         closest_heelstrike_distance_time = min([distance_to_trigger_left_time distance_to_trigger_right_time]);
 
                         if distance_to_trigger_left_time < distance_to_trigger_right_time
-                            stance_foot_data{i_trigger, 1} = {'STANCE_BOTH', 'STANCE_LEFT', 'STANCE_BOTH'};
+                            stance_foot_data{i_trigger, 1} = {'STANCE_BOTH'; 'STANCE_LEFT'; 'STANCE_BOTH'};
 %                             condition_index_list{i_trigger, 1} = 'ONE';
                             stretch_start_times(i_trigger, 1) = trigger_times(i_trigger);
                             stretch_end_time_index = find(right_touchdown_times > trigger_times(i_trigger), 1, 'first');
@@ -503,7 +503,7 @@ function findRelevantDataStretches(varargin)
                             end
                         end    
                         if distance_to_trigger_right_time < distance_to_trigger_left_time
-                            stance_foot_data{i_trigger, 1} = {'STANCE_BOTH', 'STANCE_RIGHT', 'STANCE_BOTH'};
+                            stance_foot_data{i_trigger, 1} = {'STANCE_BOTH'; 'STANCE_RIGHT'; 'STANCE_BOTH'};
 %                             condition_index_list{i_trigger, 1} = 'TWO';
                             stretch_start_times(i_trigger, 1) = trigger_times(i_trigger);
                             stretch_end_time_index = find(left_touchdown_times > trigger_times(i_trigger), 1, 'first');
@@ -553,13 +553,13 @@ function findRelevantDataStretches(varargin)
                 
                 % restructure for saving
                 conditions_trial = struct;
-                conditions_trial.stance_foot_data = stance_foot_data;
+%                 conditions_trial.stance_foot_data = stance_foot_data;
 %                 conditions_trial.condition_perturbation_list = condition_perturbation_list;
 %                 conditions_trial.condition_delay_list = condition_delay_list;
 %                 conditions_trial.condition_index_list = condition_index_list;
                 conditions_trial.condition_experimental_list = condition_experimental_list;
-                conditions_trial.condition_stimulus_list = condition_stimulus_list;
-                conditions_trial.condition_day_list = condition_day_list;
+%                 conditions_trial.condition_stimulus_list = condition_stimulus_list;
+%                 conditions_trial.condition_day_list = condition_day_list;
                 
 %                 event_variables_to_save.stretch_start_times = stretch_start_times;
                 event_variables_to_save.stretch_pushoff_times = stretch_pushoff_times;
