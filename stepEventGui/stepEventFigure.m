@@ -67,7 +67,7 @@ classdef stepEventFigure < handle;
             this.event_data = eventData;
             
         end
-        function addDataPlot(this, data_label, legend_label, color, scale_factor, offset)
+        function addDataPlot(this, data_label, legend_label, color, scale_factor, offset, linewidth)
             % define defaults if not all properties are specified
             if nargin < 3
                 color = rand(1, 3);
@@ -85,6 +85,7 @@ classdef stepEventFigure < handle;
                 this.trial_data.getTime(data_label), ...
                 (this.trial_data.getData(data_label) + offset) * scale_factor, ...
                 'color', color, ...
+                'linewidth', linewidth, ...
                 'ButtonDownFcn', @this.stepEventFigureClicked ...
               );
           
@@ -103,13 +104,16 @@ classdef stepEventFigure < handle;
             this.data_plot_scale_factors(length(this.data_plot_scale_factors)+1) = scale_factor;
             
         end
-        function addEventPlot(this, data_label, event_label, legend_label, color, marker)
+        function addEventPlot(this, data_label, event_label, legend_label, color, marker, marker_size)
             % define defaults if not all properties are specified
             if nargin < 3
                 color = rand(1, 3);
             end
             if nargin < 4
                 marker = 'o';
+            end
+            if nargin < 5
+                marker_size = 6;
             end
             data_plot_handle = this.getDataPlot(data_label);
             
@@ -121,6 +125,7 @@ classdef stepEventFigure < handle;
                 'linewidth', 2, ...
                 'color', color, ...
                 'marker', marker, ...
+                'markersize', marker_size, ...
                 'ButtonDownFcn', @this.stepEventFigureClicked ...
               );
           
@@ -139,8 +144,12 @@ classdef stepEventFigure < handle;
         end
         function data_plot = getDataPlot(this, data_label)
             i_plot = 1;
-            while i_plot < length(this.data_plots) && ~strcmp(this.data_plots{i_plot}.UserData, data_label)
+            while i_plot <= length(this.data_plots) && ~strcmp(this.data_plots{i_plot}.UserData, data_label)
                 i_plot = i_plot+1;
+            end
+            if i_plot > length(this.data_plots)
+                i_plot = 1;
+                warning(['Label ' data_label ' not found, defaulting to ' this.data_plots{i_plot}.UserData])
             end
             data_plot = this.data_plots{i_plot};
         end

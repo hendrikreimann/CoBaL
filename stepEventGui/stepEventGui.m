@@ -107,7 +107,8 @@ function stepEventGui(varargin)
                 scale_factor = str2num(plot_list{i_plot, 4});
                 offset = str2num(plot_list{i_plot, 5});
                 color = [str2num(plot_list{i_plot, 6}) str2num(plot_list{i_plot, 7}) str2num(plot_list{i_plot, 8})];
-                new_figure.addDataPlot(variable_label, legend_label, color, scale_factor, offset);
+                linewidth = str2num(plot_list{i_plot, 9});
+                new_figure.addDataPlot(variable_label, legend_label, color, scale_factor, offset, linewidth);
             end
             if strcmp(plot_list{i_plot, 1}, 'event')
                 event_label = plot_list{i_plot, 2};
@@ -115,7 +116,8 @@ function stepEventGui(varargin)
                 legend_label = plot_list{i_plot, 4};
                 marker = plot_list{i_plot, 5};
                 color = [str2num(plot_list{i_plot, 6}) str2num(plot_list{i_plot, 7}) str2num(plot_list{i_plot, 8})];
-                new_figure.addEventPlot(variable_label, event_label, legend_label, color, marker);
+                marker_size = str2num(plot_list{i_plot, 9});
+                new_figure.addEventPlot(variable_label, event_label, legend_label, color, marker, marker_size);
             end
                 
         end

@@ -39,9 +39,9 @@ function plotResults(varargin)
     parser.KeepUnmatched = true;
     addParameter(parser, 'subjects', [])
     addParameter(parser, 'dictate_axes', false)
-    addParameter(parser, 'show_legend', true)
+    addParameter(parser, 'show_legend', false)
     addParameter(parser, 'save', false)
-    addParameter(parser, 'format', 'epsc')
+    addParameter(parser, 'format', 'tiff')
     addParameter(parser, 'settings', 'plotSettings.txt')
     addParameter(parser, 'spread_method', 'cinv')
     parse(parser, varargin{:})
@@ -747,7 +747,7 @@ function plotResults(varargin)
                 % new
                 condition_to_compare = plot_settings.get('condition_to_compare');
                 relevant_labels = find(~(strcmp(condition_combination_labels, 'index') | strcmp(condition_combination_labels, condition_to_compare)));
-                for i_label = 1 : length(relevant_labels)
+                for i_label = relevant_labels
                     title_string = [title_string ' - ' strrep(condition_identifier{1, i_label}, '_', ' ')]; %#ok<AGROW>
                     filename_string = [filename_string '_' strrep(condition_identifier{1, i_label}, '_', '')]; %#ok<AGROW>
                 end

@@ -116,11 +116,11 @@ function findRelevantDataStretches(varargin)
             
             
             % marker data
-            [marker_trajectories, time_marker, sampling_rate_marker, marker_labels] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'marker_trajectories');
+            [marker_trajectories, time_marker, sampling_rate_marker, marker_labels, marker_directions] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'marker_trajectories');
             
             % forceplate data
-            [left_forceplate_cop_world_trajectory, time_left_forceplate, ~, ~, left_forceplate_available] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'left_forceplate_cop_world', 'optional');
-            [right_forceplate_cop_world_trajectory, time_right_forceplate, ~, ~, right_forceplate_available] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'right_forceplate_cop_world', 'optional');
+            [left_forceplate_cop_world_trajectory, time_left_forceplate, ~, ~, ~, left_forceplate_available] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'left_foot_cop_world', 'optional');
+            [right_forceplate_cop_world_trajectory, time_right_forceplate, ~, ~, ~, right_forceplate_available] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'right_foot_cop_world', 'optional');
             [cop_world_trajectory, time_forceplate, ~, ~, cop_available] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'total_forceplate_cop_world', 'optional');
             if left_forceplate_available && right_forceplate_available
                 left_copx_trajectory = left_forceplate_cop_world_trajectory(:, 1);
@@ -152,8 +152,8 @@ function findRelevantDataStretches(varargin)
             optional_marker_list = marker_weight_table(:, 1);
             optional_marker_indices = [];
             for i_marker = 1 : length(optional_marker_list)
-                marker = find(strcmp(marker_labels, optional_marker_list{i_marker}));
-                marker_indices = reshape([(marker - 1) * 3 + 1; (marker - 1) * 3 + 2; (marker - 1) * 3 + 3], 1, length(marker)*3);
+%                 marker_indices = reshape([(marker - 1) * 3 + 1; (marker - 1) * 3 + 2; (marker - 1) * 3 + 3], 1, length(marker)*3);
+                marker_indices = extractMarkerData(marker_trajectories, marker_labels, optional_marker_list{i_marker}, 'indices');
                 optional_marker_indices = [optional_marker_indices marker_indices];
             end
             essential_marker_indicator = ~ismember(1 : size(marker_trajectories, 2), optional_marker_indices);
@@ -1317,7 +1317,7 @@ function findRelevantDataStretches(varargin)
             
             % check data availability for variables just calculated here
             for i_variable = 1 : length(variables_to_prune_for)
-                [data, time, ~, ~, success] = loadData(date, subject_id, condition_list{i_condition}, i_trial, variables_to_prune_for{i_variable}, 'optional');
+                [data, time, ~, ~, ~, success] = loadData(date, subject_id, condition_list{i_condition}, i_trial, variables_to_prune_for{i_variable}, 'optional');
                 if success
                     for i_stretch = 1 : number_of_stretches
                         [~, start_index] = min(abs(time - stretch_start_times(i_stretch)));
@@ -1339,16 +1339,16 @@ function findRelevantDataStretches(varargin)
             % % Running into problems with markers missing !!! % % %
             %  check data availability for markers with non-zero weight
             marker_weights = study_settings.get('marker_weights');
-            for i_marker = 1 : length(marker_labels)
+            for i_marker = 1 : 3 : length(marker_labels)
                 this_marker_weight = 1; % 1 is default
                 
-                this_marker_label = marker_labels(i_marker);
+                this_marker_label = marker_labels{i_marker}(1:end-2);
                 if any(strcmp(marker_weights(:, 1), this_marker_label))
                     this_marker_weight = marker_weights{strcmp(marker_weights(:, 1), this_marker_label), 2};
                 end
                 
                 if this_marker_weight == 1
-                    this_marker_data = extractMarkerTrajectories(marker_trajectories, marker_labels, this_marker_label);
+                    this_marker_data = extractMarkerData(marker_trajectories, marker_labels, this_marker_label);
                     for i_stretch = 1 : number_of_stretches
                         [~, start_index] = min(abs(time_marker - stretch_start_times(i_stretch)));
                         [~, end_index] = min(abs(time_marker - stretch_end_times(i_stretch)));

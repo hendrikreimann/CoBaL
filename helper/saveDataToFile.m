@@ -14,6 +14,10 @@
 %     You should have received a copy of the GNU General Public License
 %     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+% this function will save the provided variables to the specified file.
+
+% If the file already exists, the new variables will be added, overwriting the old version of the same variable if it is
+% already present, and adding it otherwise. Existing data that is not provided to this function will be left unchanged.
 
 function saveDataToFile(data_file_name_with_path, variables_to_save)
 

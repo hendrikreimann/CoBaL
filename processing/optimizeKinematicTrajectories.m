@@ -31,6 +31,7 @@
 
 
 function optimizeKinematicTrajectories(varargin)
+error('This function has not been updated to the new structure of data tracking yet and will not work as is!')
     [condition_list, trial_number_list] = parseTrialArguments(varargin{:});
     parser = inputParser;
     parser.KeepUnmatched = true;
