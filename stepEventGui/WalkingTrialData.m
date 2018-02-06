@@ -318,8 +318,8 @@ classdef WalkingTrialData < handle
             
             right_heel_marker = extractMarkerData(this.marker_positions, this.marker_labels, 'RHEE');
             if ~isempty(right_heel_marker)
-                right_heel_z_trajectory = right_heel_marker(:, 2);
-                right_heel_y_trajectory = right_heel_marker(:, 3);
+                right_heel_y_trajectory = right_heel_marker(:, 2);
+                right_heel_z_trajectory = right_heel_marker(:, 3);
                 right_heel_z_vel_trajectory = deriveByTime(nanfiltfilt(b, a, right_heel_z_trajectory), 1/this.sampling_rate_marker);
                 right_heel_z_acc_trajectory = deriveByTime(nanfiltfilt(b, a, right_heel_z_vel_trajectory), 1/this.sampling_rate_marker);
                 right_heel_y_vel_trajectory = deriveByTime(nanfiltfilt(b, a, right_heel_y_trajectory), 1/this.sampling_rate_marker);
