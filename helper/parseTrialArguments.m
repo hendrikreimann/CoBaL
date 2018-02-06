@@ -85,8 +85,15 @@ function [conditions_to_analyze, trials_to_analyze, calibration_trials, emg_tria
     trials_to_analyze(strcmp(conditions_to_analyze, 'calibration')) = [];
     conditions_to_analyze(strcmp(conditions_to_analyze, 'calibration')) = [];
 
+    % exclude dance
+    calibration_trials = trials_to_analyze(strcmp(conditions_to_analyze, 'dance'));
+    trials_to_analyze(strcmp(conditions_to_analyze, 'dance')) = [];
+    conditions_to_analyze(strcmp(conditions_to_analyze, 'dance')) = [];
+    
     % exclude emg
     emg_trials = trials_to_analyze(strcmp(conditions_to_analyze, 'emg'));
     trials_to_analyze(strcmp(conditions_to_analyze, 'emg')) = [];
     conditions_to_analyze(strcmp(conditions_to_analyze, 'emg')) = [];
+    
+    
 end
