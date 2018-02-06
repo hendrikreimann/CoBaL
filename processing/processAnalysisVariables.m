@@ -14,8 +14,19 @@
 %     You should have received a copy of the GNU General Public License
 %     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-% process stretches
+% This function uses the previously calculated stretch variables to process analysis variables. For all stretch variables,
+% the response is calculated, i.e. the difference from the control mean.
 
+% A stretch variable is somethings that can be calculated for each stretch or band of data separately. An analysis variable
+% can depend upon other data. There are several standard types of analysis variables that are pre-defined, along with ways
+% to calculate them. These are:
+% - analysis_variables_from_integration: integrate a variable over the whole band
+% - analysis_variables_from_step_end: take the value of a variable at the end of the band
+% - analysis_variables_from_inversion_by_perturbation: invert the variable depending on the value of the perturbation condition
+% - analysis_variables_from_inversion_by_direction: invert the variable depending on the value of the direction condition
+% - analysis_variables_from_selection: select variables from different sources, depending on the trigger_foot and index conditions
+
+% note: the inversion could be automated more elegantly, but that's for a later date
 
 function processAnalysisVariables(varargin)
     load('subjectInfo.mat', 'date', 'subject_id');
@@ -30,6 +41,11 @@ function processAnalysisVariables(varargin)
     study_settings = SettingsCustodian(study_settings_file);
     results_file_name = ['analysis' filesep makeFileName(date, subject_id, 'results')];
     loaded_data = load(results_file_name);
+    
+    number_of_time_steps_normalized = study_settings.get('number_of_time_steps_normalized');
+    bands_per_stretch = loaded_data.bands_per_stretch;
+    stretch_names_session = loaded_data.stretch_names_session;
+    stretch_data_session = loaded_data.stretch_data_session;
     
     number_of_stretch_variables = length(loaded_data.stretch_names_session);
     number_of_stretches = size(loaded_data.stretch_data_session{1}, 2); %#ok<*USENS>
@@ -46,7 +62,7 @@ function processAnalysisVariables(varargin)
     end
     labels_to_ignore = study_settings.get('conditions_to_ignore');
     levels_to_remove = study_settings.get('levels_to_remove');
-    [condition_combination_labels, condition_combinations_stimulus, condition_combinations_control] = determineConditionCombinations(condition_data_all, conditions_settings, labels_to_ignore, levels_to_remove);
+    [condition_combination_labels, ~, condition_combinations_control] = determineConditionCombinations(condition_data_all, conditions_settings, labels_to_ignore, levels_to_remove);
     condition_combinations_control_unique = table2cell(unique(cell2table(condition_combinations_control), 'rows'));
     
     if isfield(loaded_data, 'analysis_data_session')
@@ -58,6 +74,7 @@ function processAnalysisVariables(varargin)
     end
     
     %% calculate response (i.e. difference from control mean)
+    % TODO: deal with bands
     response_data_session = {};
     response_names_session = loaded_data.stretch_names_session;
     if ~isempty(condition_combinations_control)
@@ -96,30 +113,6 @@ function processAnalysisVariables(varargin)
             end        
             control_condition_indicator = logical(control_condition_indicator);            
             
-            
-%             this_stretch_condition_string = ...
-%               { ...
-%                 loaded_data.condition_stance_foot_list_session{i_stretch}, ...
-%                 loaded_data.condition_perturbation_list_session{i_stretch}, ...
-%                 loaded_data.condition_delay_list_session{i_stretch}, ...
-%                 loaded_data.condition_index_list_session{i_stretch}, ...
-%                 loaded_data.condition_experimental_list_session{i_stretch}, ...
-%                 loaded_data.condition_stimulus_list_session{i_stretch}, ...
-%                 loaded_data.condition_day_list_session{i_stretch} ...
-%               };
-%             applicable_control_condition_index = findApplicableControlConditionIndex(this_stretch_condition_string, conditions_control);
-%             applicable_control_condition_labels = conditions_control(applicable_control_condition_index, :);
-%             
-%             % determine indicator for control
-%             stance_foot_indicator = strcmp(loaded_data.condition_stance_foot_list_session, applicable_control_condition_labels{1});
-%             perturbation_indicator = strcmp(loaded_data.condition_perturbation_list_session, applicable_control_condition_labels{2});
-%             delay_indicator = strcmp(loaded_data.condition_delay_list_session, applicable_control_condition_labels{3});
-%             index_indicator = strcmp(loaded_data.condition_index_list_session, applicable_control_condition_labels{4});
-%             experimental_indicator = strcmp(loaded_data.condition_experimental_list_session, applicable_control_condition_labels{5});
-%             stimulus_indicator = strcmp(loaded_data.condition_stimulus_list_session, applicable_control_condition_labels{6});
-%             day_indicator = strcmp(loaded_data.condition_day_list_session, applicable_control_condition_labels{7});
-%             this_condition_control_indicator = stance_foot_indicator & perturbation_indicator & delay_indicator & index_indicator & experimental_indicator & stimulus_indicator & day_indicator;
-            
             % calculate responses
             for i_variable = 1 : number_of_stretch_variables
                 % calculate control mean
@@ -135,16 +128,8 @@ function processAnalysisVariables(varargin)
 
     end
 
-    
-    
-    
-    
-    
-    
-    
-    
-    
     %% calculate integrated variables
+    % TODO: deal with bands
     variables_to_integrate = study_settings.get('analysis_variables_from_integration');
     step_time_index_in_saved_data = find(strcmp(loaded_data.stretch_names_session, 'step_time'), 1, 'first');
     this_step_time_data = loaded_data.stretch_data_session{step_time_index_in_saved_data};
@@ -180,15 +165,81 @@ function processAnalysisVariables(varargin)
     for i_variable = 1 : size(variables_step_end, 1)
         this_variable_name = variables_step_end{i_variable, 1};
         this_variable_source_name = variables_step_end{i_variable, 2};
-        this_variable_response_data = response_data_session{strcmp(loaded_data.stretch_names_session, this_variable_source_name)};
-        step_end_data = this_variable_response_data(end, :);
-        
+        this_variable_source_type = variables_step_end{i_variable, 3};
+        % pick data depending on source specification
+        eval(['data_source = ' this_variable_source_type '_data_session;']);
+        eval(['names_source = ' this_variable_source_type '_names_session;']);
+        this_variable_source_data = data_source{strcmp(names_source, this_variable_source_name)};
+        step_end_data = zeros(bands_per_stretch, number_of_stretches);
+        for i_band = 1 : bands_per_stretch
+            [~, end_index] = getBandIndices(i_band, number_of_time_steps_normalized);
+            step_end_data(i_band, :) = this_variable_source_data(end_index, :);
+        end
         % store
         [analysis_data_session, analysis_names_session] = addOrOverwriteData(analysis_data_session, analysis_names_session, step_end_data, this_variable_name);
     end
 
+    %% calculate variables from inversion
+    % TODO: deal with bands
+    variables_to_invert = study_settings.get('analysis_variables_from_inversion');
+    for i_variable = 1 : size(variables_to_invert, 1)
+        % get data
+        this_variable_name = variables_to_invert{i_variable, 1};
+        this_variable_source_name = variables_to_invert{i_variable, 2};
+        this_variable_source_type = variables_to_invert{i_variable, 3};
+        % pick data depending on source specification
+        eval(['data_source = ' this_variable_source_type '_data_session;']);
+        eval(['names_source = ' this_variable_source_type '_names_session;']);
+        this_variable_source_data = data_source{strcmp(names_source, this_variable_source_name)};
+        
+%         if strcmp(this_variable_source_type, 'response')
+%             this_variable_source_index = find(strcmp(response_names_session, this_variable_source_name), 1, 'first');
+%             if isempty(this_variable_source_index)
+%                 error(['Data not found: ' this_variable_source_name])
+%             end
+%             this_variable_source_data = response_data_session{this_variable_source_index};
+%         end
+%         if strcmp(this_variable_source_type, 'analysis')
+%             this_variable_source_index = find(strcmp(analysis_names_session, this_variable_source_name), 1, 'first');
+%             if isempty(this_variable_source_index)
+%                 error(['Data not found: ' this_variable_source_name])
+%             end
+%             this_variable_source_data = analysis_data_session{this_variable_source_index};
+%         end
+        
+        relevant_condition = variables_to_invert{i_variable, 4};
+        condition_sign_map = reshape(variables_to_invert(i_variable, 5:end), 2, (size(variables_to_invert, 2)-4)/2)';
+        
+        % go through levels and invert
+        this_variable_data = this_variable_source_data;
+        level_list = conditions_session.(condition_source_variables{strcmp(condition_labels, relevant_condition)});
+        for i_level = 1 : size(condition_sign_map, 1)
+            % get sign
+            if strcmp(condition_sign_map{i_level, 2}, '+')
+                sign_this_level = 1;
+            elseif strcmp(condition_sign_map{i_level, 2}, '-')
+                sign_this_level = -1;
+            else
+                error('Sign must be either "+" or "-"')
+            end
+            
+            % get matches
+            label_this_level = condition_sign_map{i_level, 1};
+            match_this_level = strcmp(level_list, label_this_level);
+            
+            % invert
+            this_variable_data(:, match_this_level) = sign_this_level * this_variable_data(:, match_this_level);
+        end
+
+        
+        
+        % store
+        [analysis_data_session, analysis_names_session] = addOrOverwriteData(analysis_data_session, analysis_names_session, this_variable_data, this_variable_name);
+    end
+    
     
     %% find peak ankle flexion during second double stance phase
+    % TODO: deal with bands
     variables_for_pushoff = study_settings.get('analysis_variables_for_exploring_pushoff_mechanism');
     for i_variable = 1 : size(variables_for_pushoff, 1)
         this_variable_name = variables_for_pushoff{i_variable, 1};
@@ -201,6 +252,7 @@ function processAnalysisVariables(varargin)
     end
     
     %% gather variables with inversion by perturbation
+    % TODO: deal with bands
     variables_to_invert = study_settings.get('analysis_variables_from_inversion_by_perturbation');
     for i_variable = 1 : size(variables_to_invert, 1)
         % get data
@@ -259,6 +311,7 @@ function processAnalysisVariables(varargin)
     end
     
     %% gather variables with inversion by direction
+    % TODO: deal with bands
     variables_to_invert = study_settings.get('analysis_variables_from_inversion_by_direction');
     for i_variable = 1 : size(variables_to_invert, 1)
         % get data
@@ -313,6 +366,7 @@ function processAnalysisVariables(varargin)
     end
 
     %% gather variables that are selected from different sources depending on condition
+    % TODO: deal with bands
     variables_to_select = study_settings.get('analysis_variables_from_selection');
     for i_variable = 1 : size(variables_to_select, 1)
         % get signs
