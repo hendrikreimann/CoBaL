@@ -91,38 +91,39 @@ function findEmgNormalization(varargin)
     end
     
     %% calculate some subject-level data and report
-    number_of_stretches_session = size(data_session{1}, 2);
-    
-    % make condition data tables
-    condition_data_all = cell(number_of_stretches_session, number_of_condition_labels);
-    for i_condition = 1 : number_of_condition_labels
-        condition_data_all(:, i_condition) = conditions_session.(condition_source_variables{i_condition});
-    end
-    labels_to_ignore = study_settings.get('conditions_to_ignore');
-    levels_to_remove = study_settings.get('levels_to_remove');
-    [condition_combination_labels, condition_combinations_stimulus, condition_combinations_control, condition_combinations_emg_unique] = determineConditionCombinations(condition_data_all, conditions_settings, labels_to_ignore, levels_to_remove);
-
-    % extract indicators for emg
-    number_of_conditions_emg = size(condition_combinations_emg_unique, 1);
-    conditions_emg_indicators = true(number_of_stretches_session, number_of_conditions_emg);
-    for i_condition = 1 : number_of_conditions_emg
-        for i_label = 1 : length(condition_combination_labels)
-            this_label = condition_combination_labels{i_label};
-            this_label_list = condition_data_all(:, strcmp(conditions_settings(:, 1), this_label));
-            this_label_indicator = strcmp(this_label_list, condition_combinations_emg_unique(i_condition, i_label));
-            conditions_emg_indicators(:, i_condition) = conditions_emg_indicators(:, i_condition) .* this_label_indicator;
-        end
-    end    
-    
-    % report emg
-    trials_per_condition_emg = sum(conditions_emg_indicators)';
-    conditions_emg_with_number = condition_combinations_emg_unique;
-    for i_condition = 1 : number_of_conditions_emg
-        conditions_emg_with_number{i_condition, size(condition_combinations_emg_unique, 2)+1} = num2str(trials_per_condition_emg(i_condition));
-    end
-    conditions_emg_with_labels = [condition_combination_labels 'number of stretches'; conditions_emg_with_number];
-    disp('EMG normalization conditions:')
-    disp(conditions_emg_with_labels);
+    % not working for AS data structure
+%     number_of_stretches_session = size(data_session{1}, 2);
+%     
+%     % make condition data tables
+%     condition_data_all = cell(number_of_stretches_session, number_of_condition_labels);
+%     for i_condition = 1 : number_of_condition_labels
+%         condition_data_all(:, i_condition) = conditions_session.(condition_source_variables{i_condition});
+%     end
+%     labels_to_ignore = study_settings.get('conditions_to_ignore');
+%     levels_to_remove = study_settings.get('levels_to_remove');
+%     [condition_combination_labels, condition_combinations_stimulus, condition_combinations_control, condition_combinations_emg_unique] = determineConditionCombinations(condition_data_all, conditions_settings, labels_to_ignore, levels_to_remove);
+% 
+%     % extract indicators for emg
+%     number_of_conditions_emg = size(condition_combinations_emg_unique, 1);
+%     conditions_emg_indicators = true(number_of_stretches_session, number_of_conditions_emg);
+%     for i_condition = 1 : number_of_conditions_emg
+%         for i_label = 1 : length(condition_combination_labels)
+%             this_label = condition_combination_labels{i_label};
+%             this_label_list = condition_data_all(:, strcmp(conditions_settings(:, 1), this_label));
+%             this_label_indicator = strcmp(this_label_list, condition_combinations_emg_unique(i_condition, i_label));
+%             conditions_emg_indicators(:, i_condition) = conditions_emg_indicators(:, i_condition) .* this_label_indicator;
+%         end
+%     end    
+%     
+%     % report emg
+%     trials_per_condition_emg = sum(conditions_emg_indicators)';
+%     conditions_emg_with_number = condition_combinations_emg_unique;
+%     for i_condition = 1 : number_of_conditions_emg
+%         conditions_emg_with_number{i_condition, size(condition_combinations_emg_unique, 2)+1} = num2str(trials_per_condition_emg(i_condition));
+%     end
+%     conditions_emg_with_labels = [condition_combination_labels 'number of stretches'; conditions_emg_with_number];
+%     disp('EMG normalization conditions:')
+%     disp(conditions_emg_with_labels);
     
 %     % calculate some subject-level data and report
 %     number_of_stretches_subject = length(condition_stance_foot_list_subject);

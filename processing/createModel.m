@@ -1539,7 +1539,7 @@ function marker_segments = createMarkerSegmentList(marker_labels, subject_settin
     for i_label = 1 : number_of_markers
         this_marker_label = marker_labels{i_label*3};
         this_marker_id = this_marker_label(1:end-2);
-        marker_segments(i_label) = str2num(marker_to_segment_map{strcmp(marker_to_segment_map(:, 1), this_marker_id), 2});
+        marker_segments(i_label) = marker_to_segment_map{strcmp(marker_to_segment_map(:, 1), this_marker_id), 2};  % already provding a double, therefore no need for str2num
     end
 end
 

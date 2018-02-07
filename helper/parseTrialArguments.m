@@ -81,6 +81,8 @@ function [conditions_to_analyze, trials_to_analyze, calibration_trials, emg_tria
     end
         
     % exclude calibration
+    % this needs to be blocked for when runnung saveSubjectInfoToFile.. I
+    % believe (TF)
     calibration_trials = trials_to_analyze(strcmp(conditions_to_analyze, 'calibration'));
     trials_to_analyze(strcmp(conditions_to_analyze, 'calibration')) = [];
     conditions_to_analyze(strcmp(conditions_to_analyze, 'calibration')) = [];
