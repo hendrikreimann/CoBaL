@@ -342,7 +342,7 @@ function calculateKinematicTrajectories(varargin)
             save_folder = 'processed';
             save_file_name = makeFileName(date, subject_id, condition, i_trial, 'kinematicTrajectories.mat');
             saveDataToFile([save_folder filesep save_file_name], variables_to_save);
-            disp(['Condition ' condition ', Trial ' num2str(i_trial) ' completed, saved as ' save_folder filesep save_file_name]);
+            disp(['Calculating kinematic variables, condition ' condition ', Trial ' num2str(i_trial) ' completed, saved as ' save_folder filesep save_file_name]);
 
             addAvailableData_new ...
               ( ...

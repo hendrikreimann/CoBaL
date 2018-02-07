@@ -674,6 +674,7 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('right_ankle_dorsiflexion_torque')
                 this.addStretchVariable('right_ankle_dorsiflexion_torque')
             end
+
             % force plate
             if this.isVariableToAnalyze('copl_y')
                 this.addBasicVariable('left_foot_cop_world')
@@ -821,6 +822,7 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('mz')
                 this.addStretchVariable('mz')
             end
+
             % emg
             if this.isVariableToAnalyze('left_glut_med')
                 this.addBasicVariable('emg_trajectories')
@@ -1185,7 +1187,11 @@ classdef WalkingDataCustodian < handle
                     LTOE_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LTOE');
                     LTOEL_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LTOEL');
                     LHEE_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LHEE');
-                    LTOEM_trajectory = (LTOE_trajectory + LTOEL_trajectory) * 0.5;
+                    if isempty(LTOEL_trajectory)
+                        LTOEM_trajectory = LTOE_trajectory;
+                    else
+                        LTOEM_trajectory = (LTOE_trajectory + LTOEL_trajectory) * 0.5;
+                    end
                     foot_vector_x = LTOEM_trajectory(:, 1) - LHEE_trajectory(:, 1);
                     foot_vector_y = LTOEM_trajectory(:, 2) - LHEE_trajectory(:, 2);
                     foot_vector_z = LTOEM_trajectory(:, 3) - LHEE_trajectory(:, 3);
@@ -1207,7 +1213,11 @@ classdef WalkingDataCustodian < handle
                     RTOE_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RTOE');
                     RTOEL_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RTOEL');
                     RHEE_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RHEE');
-                    RTOEM_trajectory = (RTOE_trajectory + RTOEL_trajectory) * 0.5;
+                    if isempty(RTOEL_trajectory)
+                        RTOEM_trajectory = RTOE_trajectory;
+                    else
+                        RTOEM_trajectory = (RTOE_trajectory + RTOEL_trajectory) * 0.5;
+                    end
                     foot_vector_x = RTOEM_trajectory(:, 1) - RHEE_trajectory(:, 1);
                     foot_vector_y = RTOEM_trajectory(:, 2) - RHEE_trajectory(:, 2);
                     foot_vector_z = RTOEM_trajectory(:, 3) - RHEE_trajectory(:, 3);

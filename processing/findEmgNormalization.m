@@ -77,7 +77,6 @@ function findEmgNormalization(varargin)
             data_custodian.prepareBasicVariables(condition, i_trial, [{'emg_trajectories'}; emg_variable_names]);
             
             load(['analysis' filesep makeFileName(date, subject_id, condition, i_trial, 'relevantDataStretches')]);
-%             data_trial = data_custodian.calculateStretchVariables(stretch_start_times, stretch_end_times, stretch_pushoff_times, conditions_trial.condition_stance_foot_list, conditions_trial.condition_experimental_list, emg_variable_names);
             data_trial = data_custodian.calculateStretchVariables(stretch_times, stance_foot_data, conditions_trial.condition_experimental_list, stretch_pushoff_times, emg_variable_names);
             
             % append the data and condition lists from this trial to the total lists
