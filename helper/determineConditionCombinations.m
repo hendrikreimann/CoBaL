@@ -81,7 +81,7 @@ function [condition_combination_labels, condition_combinations_stimulus, conditi
     % make control conditions cell
     if nargout > 3
         condition_combinations_emg = {};
-        if any(~strcmp(conditions_settings(:, 3), '~'))
+        if any(~strcmp(conditions_settings(:, 4), '~'))
             for i_combination = 1 : size(condition_combinations_stimulus,1)
                 this_combination_stimulus = condition_combinations_stimulus(i_combination, :);
                 this_combination_emg = cell(size(this_combination_stimulus));

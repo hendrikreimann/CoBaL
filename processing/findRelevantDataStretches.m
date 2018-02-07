@@ -225,16 +225,16 @@ function findRelevantDataStretches(varargin)
                 trigger_times = [];
             end
             if strcmp(condition_stimulus, 'ARMSENSE')
-                 if strcmp(condition_experimental(end-1:end), 'OG')
+%                  if strcmp(condition_experimental(end-1:end), 'OG')
                      trigger_times = [];
-                 else
-                     if left_touchdown_times(end) > right_touchdown_times(end)
-                        trigger_times = [left_touchdown_times(1:end-1); right_touchdown_times]; 
-                     else
-                        trigger_times = [left_touchdown_times; right_touchdown_times(1:end-1)]; 
-                     end
-                     
-                 end
+%                  else
+%                      if left_touchdown_times(end) > right_touchdown_times(end)
+%                         trigger_times = [left_touchdown_times(1:end-1); right_touchdown_times]; 
+%                      else
+%                         trigger_times = [left_touchdown_times; right_touchdown_times(1:end-1)]; 
+%                      end
+%                      
+%                  end
             end
             
             % calculate indices
@@ -435,152 +435,182 @@ function findRelevantDataStretches(varargin)
             end
             
             if strcmp(condition_stimulus, 'ARMSENSE')
-                if strcmp(condition_experimental(end-1:end), 'OG')
-                    if left_touchdown_times(1) <= right_touchdown_times(1)
-                        if length(right_touchdown_times) < 3
-                            stretch_times = [right_touchdown_times(1) left_touchdown_times(2) right_touchdown_times(2)];
-                            stretch_start_times = [right_touchdown_times(1)];
-                            stretch_end_times = [right_touchdown_times(2)];
-                            stretch_pushoff_times = [left_pushoff_times(1) right_pushoff_times(1)];
-                            stance_foot_data = {'STANCE_RIGHT' 'STANCE_LEFT'};
-                        else
-                            stretch_times = [right_touchdown_times(1) left_touchdown_times(2) right_touchdown_times(2); right_touchdown_times(2) left_touchdown_times(3) right_touchdown_times(3)];
-                            stretch_start_times = [right_touchdown_times(1); right_touchdown_times(2)];
-                            stretch_end_times = [right_touchdown_times(2); right_touchdown_times(3)];
-                            stretch_pushoff_times = [left_pushoff_times(1) right_pushoff_times(1); left_pushoff_times(2) right_pushoff_times(2)];
-                            stance_foot_data = {'STANCE_RIGHT' 'STANCE_LEFT'; 'STANCE_RIGHT' 'STANCE_LEFT' };
-                        end
-                    else
-                        if length(left_touchdown_times) < 3
-                            stretch_times = [left_touchdown_times(1) right_touchdown_times(2) left_touchdown_times(2)];
-                            stretch_start_times = [left_touchdown_times(1)];
-                            stretch_end_times = [left_touchdown_times(2)];
-                            stretch_pushoff_times = [right_pushoff_times(1) left_pushoff_times(1)];
-                            stance_foot_data = {'STANCE_LEFT' 'STANCE_RIGHT'};
-                        else
-                            stretch_times = [left_touchdown_times(1) right_touchdown_times(2) left_touchdown_times(2);left_touchdown_times(2) right_touchdown_times(3) left_touchdown_times(3)];
-                            stretch_start_times = [left_touchdown_times(1); left_touchdown_times(2)];
-                            stretch_end_times = [left_touchdown_times(2); left_touchdown_times(3)];
-                            stretch_pushoff_times = [right_pushoff_times(1) left_pushoff_times(1); right_pushoff_times(2) left_pushoff_times(2)];
-                            stance_foot_data = {'STANCE_LEFT' 'STANCE_RIGHT'; 'STANCE_LEFT' 'STANCE_RIGHT' };
-                        end
-                    end 
-                   
-                    condition_perturbation_list = 'N/A';
-                    condition_delay_list = 'N/A';
-                    condition_experimental_list = condition_experimental;
-                    condition_stimulus_list = condition_stimulus;
-                    condition_index_list = 'N/A';
-                    condition_day_list = condition_day;                
+                if left_touchdown_times(1) <= right_touchdown_times(1)
+                    stretch_starter_events = right_touchdown_times;
+                    band_delimiter_events = left_touchdown_times;
+                    first_stance_foot = 'STANCE_RIGHT';
+                    second_stance_foot = 'STANCE_LEFT';
                 else
-                    number_of_stretches = floor(number_of_triggers/2); % setting up to take every other heel strike
-                    removal_flags = zeros(number_of_stretches, 1);
-                    
-                    stance_foot_data = {};
-                    stretch_start_times = zeros(number_of_stretches, 1);
-                    stretch_band_marker_times = zeros(number_of_stretches, 1);
-                    stretch_end_times = zeros(number_of_stretches, 1);
-                    stretch_pushoff_times = zeros(number_of_stretches, 2); % 2 = number of bands
-                    closest_heelstrike_distance_times = zeros(number_of_stretches, 1);
-%                     condition_stance_foot_list = cell(number_of_stretches, 1);
-                    condition_perturbation_list = cell(number_of_stretches, 1);
-                    condition_delay_list = cell(number_of_stretches, 1);
-%                     condition_index_list = cell(number_of_stretches, 1);
-                    condition_experimental_list = cell(number_of_stretches, 1);
-                    condition_stimulus_list = cell(number_of_stretches, 1);
-                    condition_day_list = cell(number_of_stretches, 1);
-                    
-                    for i_stretch = 1 :  number_of_stretches
-                       
-                        i_trigger = i_stretch * 2 - 1; % take every other trigger.. should always be same foot.. need a way to check if not same foot
-                        
-                        [distance_to_trigger_left_time, index_left] = min(abs(left_touchdown_times - trigger_times(i_trigger)));
-                        [distance_to_trigger_right_time, index_right] = min(abs(right_touchdown_times - trigger_times(i_trigger)));
-                        closest_heelstrike_distance_time = min([distance_to_trigger_left_time distance_to_trigger_right_time]);
+                    stretch_starter_events = left_touchdown_times;
+                    band_delimiter_events = right_touchdown_times;
+                    first_stance_foot = 'STANCE_LEFT';
+                    second_stance_foot = 'STANCE_RIGHT';
+                end                    
 
-                        if distance_to_trigger_left_time < distance_to_trigger_right_time
-                            stance_foot_data(end + 1, :) =  {'STANCE_LEFT' 'STANCE_RIGHT'};
-%                             condition_index_list{i_trigger, 1} = 'ONE';
-                            stretch_start_times(i_stretch, 1) = trigger_times(i_trigger);
-                            stretch_band_marker_index = find(right_touchdown_times > trigger_times(i_trigger), 1, 'first');
-                            stretch_end_time_index = find(left_touchdown_times > trigger_times(i_trigger), 1, 'first');
-                            stretch_pushoff_time_index = [find(right_pushoff_times > trigger_times(i_trigger), 1, 'first') find(left_pushoff_times > trigger_times(i_trigger), 1, 'first')];
-                            if isempty(stretch_end_time_index) || isempty(stretch_pushoff_time_index)
-                                stretch_band_marker_times(i_stretch, 1) = -1;
-                                stretch_end_times(i_stretch, 1) = -1;
-                                stretch_pushoff_times(i_stretch, 1) = -1;
-                                removal_flags(i_stretch) = 1;
-                            else
-                                stretch_band_marker_times(i_stretch, 1) = right_touchdown_times(stretch_band_marker_index);
-                                stretch_end_times(i_stretch, 1) = left_touchdown_times(stretch_end_time_index);
-                                stretch_pushoff_times(i_stretch, :) = [right_pushoff_times(stretch_pushoff_time_index(1)) left_pushoff_times(stretch_pushoff_time_index(2))];
-                            end
-                        end    
-                        if distance_to_trigger_right_time < distance_to_trigger_left_time
-                            stance_foot_data(end + 1, :) = {'STANCE_RIGHT' 'STANCE_LEFT'};
-%                             condition_index_list{i_trigger, 1} = 'ONE';
-                            stretch_start_times(i_stretch, 1) = trigger_times(i_trigger);
-                            stretch_band_marker_index = find(left_touchdown_times > trigger_times(i_trigger), 1, 'first');
-                            stretch_end_time_index = find(right_touchdown_times > trigger_times(i_trigger), 1, 'first');
-                            stretch_pushoff_time_index = [find(left_pushoff_times > trigger_times(i_trigger), 1, 'first') find(right_pushoff_times > trigger_times(i_trigger), 1, 'first')];
-                            if isempty(stretch_end_time_index) || isempty(stretch_pushoff_time_index)
-                                stretch_band_marker_times(i_stretch, 1) = -1;
-                                stretch_end_times(i_stretch, 1) = -1;
-                                stretch_pushoff_times(i_stretch, 1) = -1;
-                                removal_flags(i_stretch) = 1;
-                            else
-                                stretch_band_marker_times(i_stretch, 1) = left_touchdown_times(stretch_band_marker_index);
-                                stretch_end_times(i_stretch, 1) = right_touchdown_times(stretch_end_time_index);
-                                stretch_pushoff_times(i_stretch, :) = [left_pushoff_times(stretch_pushoff_time_index(1)) right_pushoff_times(stretch_pushoff_time_index(2))];
-                            end
-                        end
+                % go through events and take stretches
+                stretch_times = [];
+                stance_foot_data = {};
+                condition_experimental_list = {};
+                for i_event = 1 : length(stretch_starter_events) - 1
+                    this_stretch_start = stretch_starter_events(i_event);
+                    this_stretch_end = stretch_starter_events(i_event+1);
+                    band_delimiter = min(band_delimiter_events(band_delimiter_events>this_stretch_start));
+                    % check if we have a valid stretch
+                    if ~isempty(band_delimiter) && band_delimiter < this_stretch_end
+                        this_stretch = [this_stretch_start band_delimiter this_stretch_end];
+                        stretch_times = [stretch_times; this_stretch];
+                        stance_foot_data = [stance_foot_data; {first_stance_foot, second_stance_foot}];
+                        condition_experimental_list = [condition_experimental_list; condition_experimental];
                     end
-                    condition_perturbation_list = 'N/A';
-                    condition_delay_list = 'N/A';
-                    condition_experimental_list = condition_experimental;
-                    condition_stimulus_list = condition_stimulus;
-                    condition_index_list = 'N/A';
-                    condition_day_list = condition_day; 
-                    
-                    % remove flagged triggers
-                    unflagged_indices = ~removal_flags;
-                    trigger_times = trigger_times(unflagged_indices);
-                    stretch_start_times = stretch_start_times(unflagged_indices, :);
-                    stretch_band_marker_times = stretch_band_marker_times(unflagged_indices, :);
-                    stretch_end_times = stretch_end_times(unflagged_indices, :);
-                    stretch_pushoff_times = stretch_pushoff_times(unflagged_indices, :);
-%                     condition_stance_foot_list = condition_stance_foot_list(unflagged_indices, :);
 
-                    stretch_times = [stretch_start_times stretch_band_marker_times stretch_end_times];
-                    
-                    if visualize
-                        for i_trigger = 1 : length(stretch_start_times)
-                            if strcmp(stance_foot_data(i_trigger), 'STANCE_RIGHT')
-                                stretch_indicator_height = 0.01;
-                            else
-                                stretch_indicator_height = -0.01;
-                            end
+                end
 
-                            plot([stretch_start_times(i_trigger) stretch_end_times(i_trigger)], [1 1]*stretch_indicator_height, 'linewidth', 3);
-                        end
-                    end 
-                end             
+                if strcmp(condition_experimental(end-1:end), 'OG')
+                    % remove all but first two stretches
+                    stretch_times(3:end, :) = [];
+                end
+                
+                % fill in stuff
+                number_of_stretches = size(stretch_times, 1);
+                stretch_pushoff_times = zeros(size(stretch_times));
+                stretch_start_times = stretch_times(:, 1);
+                stretch_end_times = stretch_times(:, end);
+                
+%                 if strcmp(condition_experimental(end-1:end), 'OG')
+%                     
+%                     
+%                     
+%                     if left_touchdown_times(1) <= right_touchdown_times(1)
+%                         if length(right_touchdown_times) < 3
+%                             stretch_times = [right_touchdown_times(1) left_touchdown_times(2) right_touchdown_times(2)];
+%                             stretch_start_times = [right_touchdown_times(1)];
+%                             stretch_end_times = [right_touchdown_times(2)];
+%                             stretch_pushoff_times = [left_pushoff_times(1) right_pushoff_times(1)];
+%                             stance_foot_data = {'STANCE_RIGHT' 'STANCE_LEFT'};
+%                             condition_experimental_list = {condition_experimental};
+%                         else
+%                             stretch_times = [right_touchdown_times(1) left_touchdown_times(2) right_touchdown_times(2); right_touchdown_times(2) left_touchdown_times(3) right_touchdown_times(3)];
+%                             stretch_start_times = [right_touchdown_times(1); right_touchdown_times(2)];
+%                             stretch_end_times = [right_touchdown_times(2); right_touchdown_times(3)];
+%                             stretch_pushoff_times = [left_pushoff_times(1) right_pushoff_times(1); left_pushoff_times(2) right_pushoff_times(2)];
+%                             stance_foot_data = {'STANCE_RIGHT' 'STANCE_LEFT'; 'STANCE_RIGHT' 'STANCE_LEFT' };
+%                             condition_experimental_list = {condition_experimental; condition_experimental};
+%                         end
+%                     else
+%                         if length(left_touchdown_times) < 3
+%                             stretch_times = [left_touchdown_times(1) right_touchdown_times(2) left_touchdown_times(2)];
+%                             stretch_start_times = [left_touchdown_times(1)];
+%                             stretch_end_times = [left_touchdown_times(2)];
+%                             stretch_pushoff_times = [right_pushoff_times(1) left_pushoff_times(1)];
+%                             stance_foot_data = {'STANCE_LEFT' 'STANCE_RIGHT'};
+%                             condition_experimental_list = {condition_experimental};
+%                         else
+%                             stretch_times = [left_touchdown_times(1) right_touchdown_times(2) left_touchdown_times(2);left_touchdown_times(2) right_touchdown_times(3) left_touchdown_times(3)];
+%                             stretch_start_times = [left_touchdown_times(1); left_touchdown_times(2)];
+%                             stretch_end_times = [left_touchdown_times(2); left_touchdown_times(3)];
+%                             stretch_pushoff_times = [right_pushoff_times(1) left_pushoff_times(1); right_pushoff_times(2) left_pushoff_times(2)];
+%                             stance_foot_data = {'STANCE_LEFT' 'STANCE_RIGHT'; 'STANCE_LEFT' 'STANCE_RIGHT' };
+%                             condition_experimental_list = {condition_experimental; condition_experimental};
+%                         end
+%                     end 
+%                    
+%                 end
+%                 if ~strcmp(condition_experimental(end-1:end), 'OG')
+%                     
+%                     
+% %                     number_of_stretches = floor(number_of_triggers/2); % setting up to take every other heel strike
+% %                     removal_flags = zeros(number_of_stretches, 1);
+% %                     
+% %                     stance_foot_data = {};
+% %                     stretch_start_times = zeros(number_of_stretches, 1);
+% %                     stretch_band_marker_times = zeros(number_of_stretches, 1);
+% %                     stretch_end_times = zeros(number_of_stretches, 1);
+% %                     stretch_pushoff_times = zeros(number_of_stretches, 2); % 2 = number of bands
+% %                     condition_experimental_list = cell(number_of_stretches, 1);
+% %                     
+% %                     for i_stretch = 1 :  number_of_stretches
+% %                        
+% %                         i_trigger = i_stretch * 2 - 1; % take every other trigger.. should always be same foot.. need a way to check if not same foot
+% %                         
+% %                         [distance_to_trigger_left_time, index_left] = min(abs(left_touchdown_times - trigger_times(i_trigger)));
+% %                         [distance_to_trigger_right_time, index_right] = min(abs(right_touchdown_times - trigger_times(i_trigger)));
+% %                         closest_heelstrike_distance_time = min([distance_to_trigger_left_time distance_to_trigger_right_time]);
+% % 
+% %                         if distance_to_trigger_left_time < distance_to_trigger_right_time
+% %                             stance_foot_data(end + 1, :) =  {'STANCE_LEFT' 'STANCE_RIGHT'};
+% % %                             condition_index_list{i_trigger, 1} = 'ONE';
+% %                             stretch_start_times(i_stretch, 1) = trigger_times(i_trigger);
+% %                             stretch_band_marker_index = find(right_touchdown_times > trigger_times(i_trigger), 1, 'first');
+% %                             stretch_end_time_index = find(left_touchdown_times > trigger_times(i_trigger), 1, 'first');
+% %                             stretch_pushoff_time_index = [find(right_pushoff_times > trigger_times(i_trigger), 1, 'first') find(left_pushoff_times > trigger_times(i_trigger), 1, 'first')];
+% %                             if isempty(stretch_end_time_index) || isempty(stretch_pushoff_time_index)
+% %                                 stretch_band_marker_times(i_stretch, 1) = -1;
+% %                                 stretch_end_times(i_stretch, 1) = -1;
+% %                                 stretch_pushoff_times(i_stretch, 1) = -1;
+% %                                 removal_flags(i_stretch) = 1;
+% %                             else
+% %                                 stretch_band_marker_times(i_stretch, 1) = right_touchdown_times(stretch_band_marker_index);
+% %                                 stretch_end_times(i_stretch, 1) = left_touchdown_times(stretch_end_time_index);
+% %                                 stretch_pushoff_times(i_stretch, :) = [right_pushoff_times(stretch_pushoff_time_index(1)) left_pushoff_times(stretch_pushoff_time_index(2))];
+% %                             end
+% %                         end    
+% %                         if distance_to_trigger_right_time < distance_to_trigger_left_time
+% %                             stance_foot_data(end + 1, :) = {'STANCE_RIGHT' 'STANCE_LEFT'};
+% % %                             condition_index_list{i_trigger, 1} = 'ONE';
+% %                             stretch_start_times(i_stretch, 1) = trigger_times(i_trigger);
+% %                             stretch_band_marker_index = find(left_touchdown_times > trigger_times(i_trigger), 1, 'first');
+% %                             stretch_end_time_index = find(right_touchdown_times > trigger_times(i_trigger), 1, 'first');
+% %                             stretch_pushoff_time_index = [find(left_pushoff_times > trigger_times(i_trigger), 1, 'first') find(right_pushoff_times > trigger_times(i_trigger), 1, 'first')];
+% %                             if isempty(stretch_end_time_index) || isempty(stretch_pushoff_time_index)
+% %                                 stretch_band_marker_times(i_stretch, 1) = -1;
+% %                                 stretch_end_times(i_stretch, 1) = -1;
+% %                                 stretch_pushoff_times(i_stretch, 1) = -1;
+% %                                 removal_flags(i_stretch) = 1;
+% %                             else
+% %                                 stretch_band_marker_times(i_stretch, 1) = left_touchdown_times(stretch_band_marker_index);
+% %                                 stretch_end_times(i_stretch, 1) = right_touchdown_times(stretch_end_time_index);
+% %                                 stretch_pushoff_times(i_stretch, :) = [left_pushoff_times(stretch_pushoff_time_index(1)) right_pushoff_times(stretch_pushoff_time_index(2))];
+% %                             end
+% %                         end
+% %                     end
+% %                     condition_perturbation_list = 'N/A';
+% %                     condition_delay_list = 'N/A';
+% %                     condition_experimental_list = condition_experimental;
+% %                     condition_stimulus_list = condition_stimulus;
+% %                     condition_index_list = 'N/A';
+% %                     condition_day_list = condition_day; 
+% %                     
+% %                     % remove flagged triggers
+% %                     unflagged_indices = ~removal_flags;
+% %                     trigger_times = trigger_times(unflagged_indices);
+% %                     stretch_start_times = stretch_start_times(unflagged_indices, :);
+% %                     stretch_band_marker_times = stretch_band_marker_times(unflagged_indices, :);
+% %                     stretch_end_times = stretch_end_times(unflagged_indices, :);
+% %                     stretch_pushoff_times = stretch_pushoff_times(unflagged_indices, :);
+% % %                     condition_stance_foot_list = condition_stance_foot_list(unflagged_indices, :);
+% % 
+% %                     stretch_times = [stretch_start_times stretch_band_marker_times stretch_end_times];
+%                     
+%                     if visualize
+%                         for i_trigger = 1 : length(stretch_start_times)
+%                             if strcmp(stance_foot_data(i_trigger), 'STANCE_RIGHT')
+%                                 stretch_indicator_height = 0.01;
+%                             else
+%                                 stretch_indicator_height = -0.01;
+%                             end
+% 
+%                             plot([stretch_start_times(i_trigger) stretch_end_times(i_trigger)], [1 1]*stretch_indicator_height, 'linewidth', 3);
+%                         end
+%                     end 
+%                 end             
                                 
-                bands_per_stretch = length(stance_foot_data);
+                bands_per_stretch = 2;
                 
                 % restructure for saving
                 conditions_trial = struct;
-%                 conditions_trial.stance_foot_data = stance_foot_data;
-%                 conditions_trial.condition_perturbation_list = condition_perturbation_list;
-%                 conditions_trial.condition_delay_list = condition_delay_list;
-%                 conditions_trial.condition_index_list = condition_index_list;
                 conditions_trial.condition_experimental_list = condition_experimental_list;
-%                 conditions_trial.condition_stimulus_list = condition_stimulus_list;
-%                 conditions_trial.condition_day_list = condition_day_list;
                 
-%                 event_variables_to_save.stretch_start_times = stretch_start_times;
                 event_variables_to_save.stretch_pushoff_times = stretch_pushoff_times;
-%                 event_variables_to_save.stretch_end_times = stretch_end_times;
                 event_variables_to_save.stretch_times = stretch_times;
                 
                 event_variables_to_save.stance_foot_data = stance_foot_data;
@@ -1162,7 +1192,7 @@ function findRelevantDataStretches(varargin)
             end
             
             % add subject
-            condition_subject_list = cell(size(condition_experimental_list,1)); % This was originally overdoing subject list, but may cause problems with other data sets (TF)
+            condition_subject_list = cell(size(condition_experimental_list));
             for i_stretch = 1 : length(condition_subject_list)
                 condition_subject_list{i_stretch} = subject_id;
             end
@@ -1402,14 +1432,7 @@ function findRelevantDataStretches(varargin)
                 
                 evalstring = ['this_variable_data = event_variables_to_save.' this_variable_name ';'];
                 eval(evalstring);
-                
-                if strcmp(condition_experimental(end-1:end), 'OG') 
-                    if unflagged_indices == 0;
-                       this_variable_data = []; 
-                    end
-                else
-                    this_variable_data = this_variable_data(unflagged_indices, :);
-                end
+                this_variable_data = this_variable_data(unflagged_indices, :);
                 
                 evalstring = ['event_variables_to_save.' this_variable_name ' = this_variable_data;'];
                 eval(evalstring);
@@ -1421,14 +1444,7 @@ function findRelevantDataStretches(varargin)
                 
                 evalstring = ['this_condition_data = conditions_trial.' this_condition_name ';'];
                 eval(evalstring);
-                
-                if strcmp(condition_stimulus, 'ARMSENSE') 
-                    if ~any(unflagged_indices)
-                       this_condition_data = []; 
-                    end
-                else
-                    this_condition_data = this_condition_data(unflagged_indices, :);
-                end
+                this_condition_data = this_condition_data(unflagged_indices, :);
                 
                 evalstring = ['conditions_trial.' this_condition_name ' = this_condition_data;'];
                 eval(evalstring);
