@@ -86,81 +86,83 @@ function processStretchVariables(varargin)
     end
     
     %% calculate some subject-level data and report
-    number_of_stretches_session = size(data_session{1}, 2);
-    
-    % make condition data tables
-    condition_data_all = cell(number_of_stretches_session, number_of_condition_labels);
-    for i_condition = 1 : number_of_condition_labels
-        condition_data_all(:, i_condition) = conditions_session.(condition_source_variables{i_condition});
-    end
-    labels_to_ignore = study_settings.get('conditions_to_ignore');
-    levels_to_remove = study_settings.get('levels_to_remove');
-    [condition_combination_labels, condition_combinations_stimulus, condition_combinations_control] = determineConditionCombinations(condition_data_all, conditions_settings, labels_to_ignore, levels_to_remove);
-
-    % extract indicators for control
-    condition_combinations_control_unique = table2cell(unique(cell2table(condition_combinations_control), 'rows'));
-    number_of_conditions_control = size(condition_combinations_control_unique, 1);
-    conditions_control_indicators = true(number_of_stretches_session, number_of_conditions_control);
-    for i_condition = 1 : number_of_conditions_control
-        for i_label = 1 : length(condition_combination_labels)
-            this_label = condition_combination_labels{i_label};
-            this_label_list = condition_data_all(:, strcmp(conditions_settings(:, 1), this_label));
-            this_label_indicator = strcmp(this_label_list, condition_combinations_control_unique(i_condition, i_label));
-            conditions_control_indicators(:, i_condition) = conditions_control_indicators(:, i_condition) .* this_label_indicator;
-        end
-    end
-    
-    % report control
-    trials_per_condition_control = sum(conditions_control_indicators)';
-    conditions_control_with_number = condition_combinations_control_unique;
-    for i_condition = 1 : number_of_conditions_control
-        conditions_control_with_number{i_condition, size(condition_combinations_control_unique, 2)+1} = num2str(trials_per_condition_control(i_condition));
-    end
-    conditions_control_with_labels = [condition_combination_labels 'number of stretches'; conditions_control_with_number];
-    disp('Control conditions:')
-    disp(conditions_control_with_labels);
-    
-    % extract indicators for stimulus
-    number_of_conditions_stimulus = size(condition_combinations_stimulus, 1);
-    conditions_stimulus_indicators = true(number_of_stretches_session, number_of_conditions_stimulus);
-    for i_condition = 1 : number_of_conditions_stimulus
-        for i_label = 1 : length(condition_combination_labels)
-            this_label = condition_combination_labels{i_label};
-            this_label_list = condition_data_all(:, strcmp(conditions_settings(:, 1), this_label));
-            this_label_indicator = strcmp(this_label_list, condition_combinations_stimulus(i_condition, i_label));
-            conditions_stimulus_indicators(:, i_condition) = conditions_stimulus_indicators(:, i_condition) .* this_label_indicator;
-        end
-    end
-
-    % report stimulus
-    trials_per_condition_stimulus = sum(conditions_stimulus_indicators)';
-    conditions_stimulus_with_number = condition_combinations_stimulus;
-    for i_condition = 1 : number_of_conditions_stimulus
-        conditions_stimulus_with_number{i_condition, size(condition_combinations_stimulus, 2)+1} = num2str(trials_per_condition_stimulus(i_condition));
-    end
-    conditions_stimulus_with_labels = [condition_combination_labels 'number of stretches'; conditions_stimulus_with_number];
-    disp('Stimulus conditions:')
-    disp(conditions_stimulus_with_labels);
-    
-    % check the unassigned stretches
-    assigned_stretch_indicator = sum([conditions_stimulus_indicators conditions_control_indicators], 2);
-    unassigned_stretch_indicator = ~assigned_stretch_indicator;
-    unassigned_stretch_indices = find(unassigned_stretch_indicator);
-    if ~isempty(unassigned_stretch_indices)
-        disp(['There were ' num2str(length(unassigned_stretch_indices)) ' unassigned stretches. Code to display more details needs to be updated (l. 206f).'])
-    end
-
-    disp(['Number of control stretches: ' num2str(sum(trials_per_condition_control))]);
-    disp(['Number of stimulus stretches: ' num2str(sum(trials_per_condition_stimulus))]);
-    disp(['Number of un-analyzed stretches: ' num2str(number_of_stretches_session - sum(trials_per_condition_control) - sum(trials_per_condition_stimulus))]);
-    
+    % this does not work at all for AS data 
+%     
+%     number_of_stretches_session = size(data_session{1}, 2);
+%     
+%     % make condition data tables
+%     condition_data_all = cell(number_of_stretches_session, number_of_condition_labels);
+%     for i_condition = 1 : number_of_condition_labels
+%         condition_data_all(:, i_condition) = conditions_session.(condition_source_variables{i_condition});
+%     end
+%     labels_to_ignore = study_settings.get('conditions_to_ignore');
+%     levels_to_remove = study_settings.get('levels_to_remove');
+%     [condition_combination_labels, condition_combinations_stimulus, condition_combinations_control] = determineConditionCombinations(condition_data_all, conditions_settings, labels_to_ignore, levels_to_remove);
+% 
+%     % extract indicators for control
+%     condition_combinations_control_unique = table2cell(unique(cell2table(condition_combinations_control), 'rows'));
+%     number_of_conditions_control = size(condition_combinations_control_unique, 1);
+%     conditions_control_indicators = true(number_of_stretches_session, number_of_conditions_control);
+%     for i_condition = 1 : number_of_conditions_control
+%         for i_label = 1 : length(condition_combination_labels)
+%             this_label = condition_combination_labels{i_label};
+%             this_label_list = condition_data_all(:, strcmp(conditions_settings(:, 1), this_label));
+%             this_label_indicator = strcmp(this_label_list, condition_combinations_control_unique(i_condition, i_label));
+%             conditions_control_indicators(:, i_condition) = conditions_control_indicators(:, i_condition) .* this_label_indicator;
+%         end
+%     end
+%     
+%     % report control
+%     trials_per_condition_control = sum(conditions_control_indicators)';
+%     conditions_control_with_number = condition_combinations_control_unique;
+%     for i_condition = 1 : number_of_conditions_control
+%         conditions_control_with_number{i_condition, size(condition_combinations_control_unique, 2)+1} = num2str(trials_per_condition_control(i_condition));
+%     end
+%     conditions_control_with_labels = [condition_combination_labels 'number of stretches'; conditions_control_with_number];
+%     disp('Control conditions:')
+%     disp(conditions_control_with_labels);
+%     
+%     % extract indicators for stimulus
+%     number_of_conditions_stimulus = size(condition_combinations_stimulus, 1);
+%     conditions_stimulus_indicators = true(number_of_stretches_session, number_of_conditions_stimulus);
+%     for i_condition = 1 : number_of_conditions_stimulus
+%         for i_label = 1 : length(condition_combination_labels)
+%             this_label = condition_combination_labels{i_label};
+%             this_label_list = condition_data_all(:, strcmp(conditions_settings(:, 1), this_label));
+%             this_label_indicator = strcmp(this_label_list, condition_combinations_stimulus(i_condition, i_label));
+%             conditions_stimulus_indicators(:, i_condition) = conditions_stimulus_indicators(:, i_condition) .* this_label_indicator;
+%         end
+%     end
+% 
+%     % report stimulus
+%     trials_per_condition_stimulus = sum(conditions_stimulus_indicators)';
+%     conditions_stimulus_with_number = condition_combinations_stimulus;
+%     for i_condition = 1 : number_of_conditions_stimulus
+%         conditions_stimulus_with_number{i_condition, size(condition_combinations_stimulus, 2)+1} = num2str(trials_per_condition_stimulus(i_condition));
+%     end
+%     conditions_stimulus_with_labels = [condition_combination_labels 'number of stretches'; conditions_stimulus_with_number];
+%     disp('Stimulus conditions:')
+%     disp(conditions_stimulus_with_labels);
+%     
+%     % check the unassigned stretches
+%     assigned_stretch_indicator = sum([conditions_stimulus_indicators conditions_control_indicators], 2);
+%     unassigned_stretch_indicator = ~assigned_stretch_indicator;
+%     unassigned_stretch_indices = find(unassigned_stretch_indicator);
+%     if ~isempty(unassigned_stretch_indices)
+%         disp(['There were ' num2str(length(unassigned_stretch_indices)) ' unassigned stretches. Code to display more details needs to be updated (l. 206f).'])
+%     end
+% 
+%     disp(['Number of control stretches: ' num2str(sum(trials_per_condition_control))]);
+%     disp(['Number of stimulus stretches: ' num2str(sum(trials_per_condition_stimulus))]);
+%     disp(['Number of un-analyzed stretches: ' num2str(number_of_stretches_session - sum(trials_per_condition_control) - sum(trials_per_condition_stimulus))]);
+%     
     stretch_data_session = data_session; %#ok<NASGU>
     stretch_names_session = data_custodian.stretch_variable_names; %#ok<NASGU>
-    
+%     
     bands_per_stretch = median(bands_per_stretch_session);
-    if any(bands_per_stretch_session ~= bands_per_stretch)
-        warning('Different trials have different numbers of bands per stretch')
-    end
+%     if any(bands_per_stretch_session ~= bands_per_stretch)
+%         warning('Different trials have different numbers of bands per stretch')
+%     end
     
     %% save data
     results_file_name = ['analysis' filesep makeFileName(date, subject_id, 'results')];
