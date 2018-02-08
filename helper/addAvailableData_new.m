@@ -29,7 +29,7 @@ function addAvailableData_new(name, time, sampling_rate, labels, directions, fol
     available_variables = {};
     variable_file_name = makeFileName(date, subject_id, trial_type, trial_number, 'availableVariables.mat');
     
-    if exist(['analysis' filesep variable_file_name], 'file');
+    if exist(['analysis' filesep variable_file_name], 'file')
         load(['analysis' filesep variable_file_name]);
     end
 
