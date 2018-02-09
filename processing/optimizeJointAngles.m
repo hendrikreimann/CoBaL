@@ -120,7 +120,7 @@ function optimizedJointAngles = optimizeJointAngles ...
             'UseParallel', 'always' ...
         );
 
-    weight_matrix_by_indices = reshape(repmat(weight_matrix, 3, 1), 1, length(weight_matrix)*3);
+%     weight_matrix_by_indices = reshape(repmat(weight_matrix, 3, 1), 1, length(weight_matrix)*3);
 
     for i_time = 1 : number_of_time_steps
         %
@@ -130,7 +130,7 @@ function optimizedJointAngles = optimizeJointAngles ...
 
 
         current_marker_positions_measured = markerTrajectories(i_time, :);
-        current_marker_positions_relevant = current_marker_positions_measured(weight_matrix_by_indices~=0);
+        current_marker_positions_relevant = current_marker_positions_measured(weight_matrix~=0);
 
         % check whether NaNs are present in relevant marker positions or joint angle initial values
         if any(isnan(current_marker_positions_relevant)) % || any(isnan(theta_0(pelvis_joints)))
