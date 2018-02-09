@@ -86,8 +86,13 @@ classdef WalkingEventData < handle
             relevant_stretches_file_name = [this.trial_data.data_directory filesep 'analysis' filesep makeFileName(this.trial_data.date, this.trial_data.subject_id, this.trial_data.condition, this.trial_data.trial_number, 'relevantDataStretches.mat')];
             if exist(relevant_stretches_file_name, 'file')
                 loaded_stretch_data = load(relevant_stretches_file_name);
-                this.stretch_start_times = loaded_stretch_data.stretch_times(:, 1);
-                this.stretch_end_times = loaded_stretch_data.stretch_times(:, end);
+                if isempty(loaded_stretch_data.stretch_times)
+                    this.stretch_start_times = [];
+                    this.stretch_end_times = [];
+                else
+                    this.stretch_start_times = loaded_stretch_data.stretch_times(:, 1);
+                    this.stretch_end_times = loaded_stretch_data.stretch_times(:, end);
+                end
             end
         end
         function saveEvents(this, sender, eventdata) %#ok<INUSD>

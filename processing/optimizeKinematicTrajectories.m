@@ -31,7 +31,6 @@
 
 
 function optimizeKinematicTrajectories(varargin)
-error('This function has not been updated to the new structure of data tracking yet and will not work as is!')
     [condition_list, trial_number_list] = parseTrialArguments(varargin{:});
     parser = inputParser;
     parser.KeepUnmatched = true;
@@ -64,14 +63,19 @@ error('This function has not been updated to the new structure of data tracking 
     end    
     
     %% determine weights
-    weight_matrix = ones(1, length(kinematic_tree.markerLabels));
+    marker_labels = kinematic_tree.markerLabels;
+    weight_matrix = ones(1, length(marker_labels));
     marker_weight_table = study_settings.get('marker_weights');
     for i_weight = 1 : size(marker_weight_table, 1)
         this_weight_marker_label = marker_weight_table{i_weight, 1};
         this_weight = str2double(marker_weight_table{i_weight, 2});
         
-        this_weight_marker_index = find(strcmp(kinematic_tree.markerLabels, this_weight_marker_label), 1, 'first');
-        weight_matrix(this_weight_marker_index) = this_weight;
+        for i_label = 1 : length(marker_labels)
+            this_label = marker_labels{i_label};
+            if strcmp(this_weight_marker_label, this_label(1:end-2))
+                weight_matrix(i_label) = this_weight;
+            end
+        end
     end
     
     %% create limb kinematic_trees
@@ -348,7 +352,7 @@ error('This function has not been updated to the new structure of data tracking 
 
             % determine time steps to optimize
             time_steps_to_optimize = determineTimeStepsToProcess(date, subject_id, condition, i_trial, study_settings.get('data_stretch_padding'));
-% time_steps_to_optimize = 2900 : 3000;
+time_steps_to_optimize = 40;
             if strcmp(mode, 'default')
                 if exist('joint_angle_trajectories', 'var')
                     joint_angle_trajectories_calculated = joint_angle_trajectories;
@@ -440,14 +444,15 @@ error('This function has not been updated to the new structure of data tracking 
 %             fprintf([datestr(datetime,'yyyy-mm-dd HH:MM:SS') ' - Calculating joint centers and CoM... \n'])
             fprintf([' - Calculating joint centers and CoM... \n'])
             joint_center_trajectories_calculated = joint_center_trajectories;
-            joint_center_trajectories_optimized = zeros(number_of_time_steps, length(joint_center_headers)*3);
+            joint_center_trajectories_optimized = zeros(size(joint_center_trajectories));
             com_trajectories_calculated = com_trajectories;
-            com_trajectories_optimized = zeros(number_of_time_steps, length(com_labels)*3) * NaN;
+            com_trajectories_optimized = zeros(size(com_trajectories_calculated)) * NaN;
             
             tic
+use_parallel=0
             if use_parallel
                 % make variables accessible to workers by declaring them
-                joint_center_headers_pool = joint_center_headers;
+                joint_center_labels_pool = joint_center_labels;
                 joint_center_trajectories_optimized_pool = joint_center_trajectories_optimized;
                 com_trajectories_optimized_pool = com_trajectories_optimized;
                 com_labels_pool = com_labels;
@@ -465,21 +470,21 @@ error('This function has not been updated to the new structure of data tracking 
                             kinematic_tree_pool.updateKinematics;
 
                             % calculate joint center positions
-                            for i_center = 1 : length(joint_center_headers_pool)
-                                this_joint_label = joint_center_headers_pool{i_center};
+                            for i_label = 1 : length(joint_center_labels_pool)
+                                this_joint_label = joint_center_labels_pool{i_label};
 
                                 % try as joint
                                 joint_indices = kinematic_tree_pool.getJointGroup(this_joint_label);
                                 if ~isempty(joint_indices)
                                     joint_position = kinematic_tree_pool.jointTransformations{joint_indices(end)}(1:3, 4);
-                                    joint_center_trajectories_optimized_pool(i_time, (i_center-1)*3 + [1 2 3]) = joint_position;
+                                    joint_center_trajectories_optimized_pool(i_time, (i_label-1)*3 + [1 2 3]) = joint_position;
                                 end
 
                                 % try as end-effector
                                 point_indices = kinematic_tree_pool.getEndEffectorIndex(this_joint_label);
                                 if ~isempty(point_indices)
                                     point_position = kinematic_tree_pool.endEffectorPositions{point_indices(end)};
-                                    joint_center_trajectories_optimized_pool(i_time, (i_center-1)*3 + [1 2 3]) = point_position;
+                                    joint_center_trajectories_optimized_pool(i_time, (i_label-1)*3 + [1 2 3]) = point_position;
                                 end
                             end
 
@@ -517,34 +522,45 @@ error('This function has not been updated to the new structure of data tracking 
                         kinematic_tree.updateKinematics;
 
                         % calculate joint center positions
-                        for i_center = 1 : length(joint_center_headers)
-                            this_joint_label = joint_center_headers{i_center};
+                        for i_label = 1 : length(joint_center_labels)
+                            this_joint_label = joint_center_labels{i_label}(1:end-2);
+                            this_joint_index_string = joint_center_labels{i_label}(end-1:end);
+                            if strcmp(this_joint_index_string, '_x')
+                                this_component_index = 1;
+                            end
+                            if strcmp(this_joint_index_string, '_y')
+                                this_component_index = 2;
+                            end
+                            if strcmp(this_joint_index_string, '_z')
+                                this_component_index = 3;
+                            end
 
                             % try as joint
                             joint_indices = kinematic_tree.getJointGroup(this_joint_label);
                             if ~isempty(joint_indices)
                                 joint_position = kinematic_tree.jointTransformations{joint_indices(end)}(1:3, 4);
-                                joint_center_trajectories_optimized(i_time, (i_center-1)*3 + [1 2 3]) = joint_position;
+%                                 joint_center_trajectories_optimized(i_time, (i_label-1)*3 + [1 2 3]) = joint_position;
+                                joint_center_trajectories_optimized(i_time, i_label) = joint_position(this_component_index);
                             end
 
                             % try as end-effector
                             point_indices = kinematic_tree.getEndEffectorIndex(this_joint_label);
                             if ~isempty(point_indices)
-                                point_position = kinematic_tree.endEffectorPositions{point_indices(end)};
-                                joint_center_trajectories_optimized(i_time, (i_center-1)*3 + [1 2 3]) = point_position;
+                                point_position = kinematic_tree.endEffectorPositions{point_indices};
+                                joint_center_trajectories_optimized(i_time, i_label) = point_position(this_component_index);
                             end
-
-
-        %                     joint_center = kinematic_tree.getPointOfInterestPosition(joint_center_headers{i_center});
-        %                     joint_center_trajectories_optimized(i_time, (i_center-1)*3 + [1 2 3]) = joint_center;
                         end
 
                         % get segment CoMs
                         for i_segment = 1 : length(com_labels) - 1
-                            segment_label = com_labels{i_segment}(1 : end-3);
+                            segment_label = com_labels{i_segment}(1 : end-5);
                             joint_index = getSegmentJointIndex(kinematic_tree, segment_label);
+                            component_index = mod(i_segment, 3);
+                            if component_index==0
+                                component_index = 3;
+                            end
                             segment_com = kinematic_tree.linkTransformations{joint_index}(1:3, 4);
-                            com_trajectories_optimized(i_time, (i_segment-1)*3 + [1 2 3]) = segment_com;
+                            com_trajectories_optimized(i_time, i_segment) = segment_com(component_index);
                         end
                         com_trajectories_optimized(i_time, end-2 : end) = kinematic_tree.calculateCenterOfMassPosition;
                     end

@@ -475,9 +475,13 @@ function findRelevantDataStretches(varargin)
                 % fill in stuff
                 number_of_stretches = size(stretch_times, 1);
                 stretch_pushoff_times = zeros(size(stretch_times));
-                stretch_start_times = stretch_times(:, 1);
-                stretch_end_times = stretch_times(:, end);
-                
+                if isempty(stretch_times)
+                    stretch_start_times = [];
+                    stretch_end_times = [];
+                else
+                    stretch_start_times = stretch_times(:, 1);
+                    stretch_end_times = stretch_times(:, end);
+                end
 %                 if strcmp(condition_experimental(end-1:end), 'OG')
 %                     
 %                     
