@@ -1353,14 +1353,9 @@ classdef WalkingDataCustodian < handle
                         com_z_acc = ones(size(com_z_vel)) * NaN;
                     end
                     this.basic_variable_data.com_z_acc = com_z_acc;
-<<<<<<< HEAD
-                    this.time_data.com_x_acc = time;
-                end                
-=======
                     this.time_data.com_z_acc = time;
                 end
                 
->>>>>>> cbc397919f26784d0c63d7c6664929ab48f1ef28
                 % joint angles
                 if strcmp(variable_name, 'lumbar_roll_angle')
                     joint_angle_indicator = strcmp(this.basic_variable_labels.joint_angle_trajectories, 'lumbar joint - sideways bending (right/left)');
