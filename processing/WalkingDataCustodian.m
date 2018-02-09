@@ -291,8 +291,7 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('joint_center_trajectories')
                 this.addBasicVariable('right_leg_angle_ml')
                 this.addStretchVariable('right_leg_angle_ml')
-            end
-            
+            end           
             if this.isVariableToAnalyze('left_foot_angle_ap')
                 this.addBasicVariable('marker_trajectories')
                 this.addBasicVariable('left_foot_angle_ap')
@@ -312,8 +311,7 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('marker_trajectories')
                 this.addBasicVariable('right_foot_angle_ml')
                 this.addStretchVariable('right_foot_angle_ml')
-            end
-            
+            end            
             if this.isVariableToAnalyze('left_arm_angle_ap')
                 this.addBasicVariable('marker_trajectories')
                 this.addBasicVariable('left_arm_angle_ap')
@@ -470,7 +468,6 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('rtoes_z')
                 this.addStretchVariable('toes_clearance')
             end
-
             % joint angles
             if this.isVariableToAnalyze('lumbar_roll_angle')
                 this.addBasicVariable('joint_angle_trajectories')
@@ -571,8 +568,7 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('joint_angle_trajectories')
                 this.addBasicVariable('right_ankle_dorsiflexion_angle')
                 this.addStretchVariable('right_ankle_dorsiflexion_angle')
-            end
-            
+            end    
             % joint torques
             if this.isVariableToAnalyze('lumbar_roll_torque')
                 this.addBasicVariable('joint_torque_trajectories')
@@ -674,7 +670,6 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('right_ankle_dorsiflexion_torque')
                 this.addStretchVariable('right_ankle_dorsiflexion_torque')
             end
-
             % force plate
             if this.isVariableToAnalyze('copl_y')
                 this.addBasicVariable('left_foot_cop_world')
@@ -822,7 +817,6 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('mz')
                 this.addStretchVariable('mz')
             end
-
             % emg
             if this.isVariableToAnalyze('left_glut_med')
                 this.addBasicVariable('emg_trajectories')
@@ -956,10 +950,7 @@ classdef WalkingDataCustodian < handle
                 this.addStretchVariable('right_tfl')
                 this.addStretchVariable('right_tfl_rescaled')
             end
-            
-            
-  
-        end
+   end
         
         % interface
         function result = isVariableToAnalyze(this, variable_name)
@@ -1181,8 +1172,7 @@ classdef WalkingDataCustodian < handle
                     right_leg_vector_z = right_hip_cor_trajectory(:, 3) - right_ankle_cor_trajectory(:, 3);
                     this.basic_variable_data.right_leg_angle_ml = rad2deg(atan2(right_leg_vector_x, right_leg_vector_z));
                     this.time_data.right_leg_angle_ml = this.time_data.joint_center_trajectories;
-                end
-                
+                end               
                 if strcmp(variable_name, 'left_foot_angle_ap')
                     LTOE_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LTOE');
                     LTOEL_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LTOEL');
@@ -1235,7 +1225,6 @@ classdef WalkingDataCustodian < handle
                     this.basic_variable_data.right_foot_angle_ml = rad2deg(atan2(foot_vector_z, foot_vector_xy));
                     this.time_data.right_foot_angle_ml = this.time_data.marker_trajectories;
                 end
-
                 if strcmp(variable_name, 'left_arm_right_leg_relative_phase')
                     left_arm_phase = this.getBasicVariableData('left_arm_phase');
                     right_leg_phase = this.getBasicVariableData('right_leg_phase');
@@ -1341,8 +1330,7 @@ classdef WalkingDataCustodian < handle
                     com_z_acc = deriveByTime(nanfiltfilt(b, a, com_z_vel), 1/sampling_rate);
                     this.basic_variable_data.com_z_acc = com_z_acc;
                     this.time_data.com_x_acc = time;
-                end
-                
+                end                
                 % joint angles
                 if strcmp(variable_name, 'lumbar_roll_angle')
                     joint_angle_indicator = strcmp(this.basic_variable_labels.joint_angle_trajectories, 'lumbar joint - sideways bending (right/left)');
@@ -1443,8 +1431,7 @@ classdef WalkingDataCustodian < handle
                     joint_angle_indicator = strcmp(this.basic_variable_labels.joint_angle_trajectories, 'right ankle dorsi/plantarflexion');
                     this.basic_variable_data.right_ankle_dorsiflexion_angle = rad2deg(this.basic_variable_data.joint_angle_trajectories(:, joint_angle_indicator));
                     this.time_data.right_ankle_dorsiflexion_angle = this.time_data.joint_angle_trajectories;
-                end
-                
+                end               
                 % joint torques
                 if strcmp(variable_name, 'lumbar_roll_torque')
                     joint_torque_indicator = strcmp(this.basic_variable_labels.joint_torque_trajectories, 'lumbar joint - sideways bending (right/left)');
@@ -1545,8 +1532,7 @@ classdef WalkingDataCustodian < handle
                     joint_torque_indicator = strcmp(this.basic_variable_labels.joint_torque_trajectories, 'right ankle dorsi/plantarflexion');
                     this.basic_variable_data.right_ankle_dorsiflexion_torque = this.basic_variable_data.joint_torque_trajectories(:, joint_torque_indicator);
                     this.time_data.right_ankle_dorsiflexion_torque = this.time_data.joint_torque_trajectories;
-                end
-                
+                end                
                 % force plate
                 if strcmp(variable_name, 'copl_y')
                     left_foot_cop_world = this.getBasicVariableData('left_foot_cop_world');
@@ -1917,7 +1903,6 @@ classdef WalkingDataCustodian < handle
 %                         stretch_data = this_stretch_end_time - this_stretch_start_time;
                         stretch_data = diff(this_stretch_times)';
                     end
-                    
                     if strcmp(variable_name, 'pushoff_time')
                         % TODO: not updated to new subdivision of stretches into bands yet... don't really know what to do here yet
                         stretch_data = this_stretch_pushoff_time - this_stretch_start_time;
@@ -1948,15 +1933,20 @@ classdef WalkingDataCustodian < handle
                         stretch_data = step_length ./ step_time;
                     end
                     if strcmp(variable_name, 'left_arm_phase') || strcmp(variable_name, 'right_arm_phase') || strcmp(variable_name, 'left_leg_phase') || strcmp(variable_name, 'right_leg_phase')
-                        % TODO: not updated to new subdivision of stretches into bands yet... 
-                        % extract data
+     
+                        stretch_data = [];
                         variable_time = this.getTimeData(variable_name);
                         variable_data = this.getBasicVariableData(variable_name);
-                        [~, start_index] = min(abs(variable_time - this_stretch_start_time));
-                        [~, end_index] = min(abs(variable_time - this_stretch_end_time));
-                        time_extracted = variable_time(start_index : end_index);
-                        data_extracted = variable_data(start_index : end_index);
-                        
+
+                        band_time_indices = zeros(size(this_stretch_times));
+                        for i_band_time = 1 : length(this_stretch_times)
+                            [~, time_index] = min(abs(variable_time - this_stretch_times(i_band_time)));
+                            band_time_indices(i_band_time) = time_index;
+                        end
+                        time_extracted = variable_time(band_time_indices(1) : band_time_indices(end));
+                        data_extracted = variable_data(band_time_indices(1) : band_time_indices(end));
+                        band_time_indices_local = band_time_indices - band_time_indices(1) + 1;
+                                  
                         % make sure there's no leaf change within this data stretch
                         data_extracted_groomed = data_extracted;
                         for i_time = 2 : length(time_extracted)
@@ -1968,14 +1958,38 @@ classdef WalkingDataCustodian < handle
                                 while data_extracted_groomed(i_time) - data_extracted_groomed(i_time-1) > pi
                                     data_extracted_groomed(i_time) = data_extracted_groomed(i_time) - 2*pi;
                                 end
-                                
-                                
                             end
                         end
                         
-                        % normalize time
-                        time_normalized = linspace(time_extracted(1), time_extracted(end), this.number_of_time_steps_normalized)';
-                        data_normalized = spline(time_extracted, data_extracted_groomed, time_normalized);
+                        % normalize data in time
+                        if ~isempty(time_extracted) && ~any(isnan(data_extracted))
+                            % create normalized time
+                            number_of_bands = length(band_time_indices_local) - 1;
+                            time_normalized = [];
+                            for i_band = 1 : number_of_bands
+                                time_normalized_this_band = linspace(time_extracted(band_time_indices_local(i_band)), time_extracted(band_time_indices_local(i_band+1)), this.number_of_time_steps_normalized)';
+                                if i_band > 1
+                                    % start time of this band is end time of the last band, so remove the duplicate point
+                                    time_normalized_this_band = time_normalized_this_band(2:end);
+                                end
+                                time_normalized = [time_normalized; time_normalized_this_band]; %#ok<AGROW>
+                            end
+                            % time-normalize data
+                            data_normalized = spline(time_extracted, data_extracted_groomed, time_normalized);
+                        else
+                              % create normalized time
+                            number_of_bands = length(band_time_indices_local) - 1;
+                            time_normalized = [];
+                            for i_band = 1 : number_of_bands
+                                time_normalized_this_band = linspace(time_extracted(band_time_indices_local(i_band)), time_extracted(band_time_indices_local(i_band+1)), this.number_of_time_steps_normalized)';
+                                if i_band > 1
+                                    % start time of this band is end time of the last band, so remove the duplicate point
+                                    time_normalized_this_band = time_normalized_this_band(2:end);
+                                end
+                                time_normalized = [time_normalized; time_normalized_this_band]; %#ok<AGROW>
+                            end
+                            data_normalized = time_normalized * NaN;
+                        end
                         
                         % re-normalize angle
                         stretch_data = normalizeAngle(data_normalized);
@@ -2235,7 +2249,19 @@ classdef WalkingDataCustodian < handle
 %                 time_normalized = linspace(time_extracted(1), time_extracted(end), this.number_of_time_steps_normalized)';
 %                 data_normalized = spline(time_extracted, data_extracted, time_normalized);
             else
-                data_normalized = zeros(this.number_of_time_steps_normalized, 1) * NaN;
+                number_of_bands = length(band_time_indices_local) - 1;
+                time_normalized = [];
+                for i_band = 1 : number_of_bands
+                    time_normalized_this_band = linspace(time_extracted(band_time_indices_local(i_band)), time_extracted(band_time_indices_local(i_band+1)), this.number_of_time_steps_normalized)';
+                    if i_band > 1
+                        % start time of this band is end time of the last band, so remove the duplicate point
+                        time_normalized_this_band = time_normalized_this_band(2:end);
+                    end
+                    time_normalized = [time_normalized; time_normalized_this_band]; %#ok<AGROW>
+                end
+                
+                % time-normalize data
+                data_normalized = time_normalized * NaN;
             end
         end
     end
