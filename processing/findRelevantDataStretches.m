@@ -451,6 +451,7 @@ function findRelevantDataStretches(varargin)
                 stretch_times = [];
                 stance_foot_data = {};
                 condition_experimental_list = {};
+                condition_startfoot_list = {};
                 for i_event = 1 : length(stretch_starter_events) - 1
                     this_stretch_start = stretch_starter_events(i_event);
                     this_stretch_end = stretch_starter_events(i_event+1);
@@ -460,6 +461,7 @@ function findRelevantDataStretches(varargin)
                         this_stretch = [this_stretch_start band_delimiter this_stretch_end];
                         stretch_times = [stretch_times; this_stretch];
                         stance_foot_data = [stance_foot_data; {first_stance_foot, second_stance_foot}];
+                        condition_startfoot_list = [condition_startfoot_list; first_stance_foot];
                         condition_experimental_list = [condition_experimental_list; condition_experimental];
                     end
 
@@ -609,7 +611,7 @@ function findRelevantDataStretches(varargin)
                 % restructure for saving
                 conditions_trial = struct;
                 conditions_trial.condition_experimental_list = condition_experimental_list;
-                
+                conditions_trial.condition_startfoot_list = condition_startfoot_list;
                 event_variables_to_save.stretch_pushoff_times = stretch_pushoff_times;
                 event_variables_to_save.stretch_times = stretch_times;
                 
@@ -1076,6 +1078,7 @@ function findRelevantDataStretches(varargin)
                 condition_delay_list = condition_delay_list(unflagged_indices, :);
                 condition_index_list = condition_index_list(unflagged_indices, :);
                 condition_experimental_list = condition_experimental_list(unflagged_indices, :); % XXX needs to be updated
+                condition_startfoot_list = condition_startfoot_list(unflagged_indices, :);
                 condition_stimulus_list = condition_stimulus_list(unflagged_indices, :); % XXX needs to be updated
                 condition_day_list = condition_day_list(unflagged_indices, :); % XXX needs to be updated
 %                 closest_heelstrike_distance_times = closest_heelstrike_distance_times(unflagged_indices, :);
@@ -1090,6 +1093,7 @@ function findRelevantDataStretches(varargin)
                 condition_delay_list = reshape(condition_delay_list, numel(condition_delay_list), 1);
                 condition_index_list = reshape(condition_index_list, numel(condition_index_list), 1);
                 condition_experimental_list = reshape(condition_experimental_list, numel(condition_experimental_list), 1);
+                condition_startfoot_list = reshape(condition_startfoot_list, numel(condition_startfoot_list), 1);
                 condition_stimulus_list = reshape(condition_stimulus_list, numel(condition_stimulus_list), 1);
                 condition_day_list = reshape(condition_day_list, numel(condition_day_list), 1);
                 
@@ -1113,6 +1117,7 @@ function findRelevantDataStretches(varargin)
                 condition_delay_list = condition_delay_list(unflagged_indices, :);
                 condition_index_list = condition_index_list(unflagged_indices, :);
                 condition_experimental_list = condition_experimental_list(unflagged_indices, :);
+                condition_startfoot_list = condition_startfoot_list(unflagged_indices, :);
                 condition_stimulus_list = condition_stimulus_list(unflagged_indices, :);
                 condition_day_list = condition_day_list(unflagged_indices, :);
 
@@ -1124,6 +1129,7 @@ function findRelevantDataStretches(varargin)
                 conditions_trial.condition_delay_list = condition_delay_list;
                 conditions_trial.condition_index_list = condition_index_list;
                 conditions_trial.condition_experimental_list = condition_experimental_list;
+                conditions_trial.condition_startfoot_list = condition_startfoot_list;
                 conditions_trial.condition_stimulus_list = condition_stimulus_list;
                 conditions_trial.condition_day_list = condition_day_list;
                 
