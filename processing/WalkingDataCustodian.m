@@ -1269,7 +1269,11 @@ classdef WalkingDataCustodian < handle
                     cutoff_frequency = this.study_settings.filter_cutoff_com_vel;
                     sampling_rate = 1/median(diff(time));
                     [b, a] = butter(filter_order, cutoff_frequency/(sampling_rate/2));
-                    com_x_vel = deriveByTime(nanfiltfilt(b, a, com_x), 1/sampling_rate);
+                    if any(~isnan(com_x))
+                        com_x_vel = deriveByTime(nanfiltfilt(b, a, com_x), 1/sampling_rate);
+                    else
+                        com_x_vel = ones(size(com_x)) * NaN;
+                    end
 %                     com_x_vel = deriveByTime(com_x, 1/sampling_rate);
                     this.basic_variable_data.com_x_vel = com_x_vel;
                     this.time_data.com_x_vel = time;
@@ -1282,7 +1286,11 @@ classdef WalkingDataCustodian < handle
                     cutoff_frequency = this.study_settings.filter_cutoff_com_vel;
                     sampling_rate = 1/median(diff(time));
                     [b, a] = butter(filter_order, cutoff_frequency/(sampling_rate/2));	% set filter parameters for butterworth filter: 2=order of filter;
-                    com_y_vel = deriveByTime(nanfiltfilt(b, a, com_y), 1/sampling_rate);
+                    if any(~isnan(com_y))
+                        com_y_vel = deriveByTime(nanfiltfilt(b, a, com_y), 1/sampling_rate);
+                    else
+                        com_y_vel = ones(size(com_y)) * NaN;
+                    end
                     this.basic_variable_data.com_y_vel = com_y_vel;
                     this.time_data.com_y_vel = time;
                 end
@@ -1294,9 +1302,13 @@ classdef WalkingDataCustodian < handle
                     cutoff_frequency = this.study_settings.filter_cutoff_com_vel;
                     sampling_rate = 1/median(diff(time));
                     [b, a] = butter(filter_order, cutoff_frequency/(sampling_rate/2));	% set filter parameters for butterworth filter: 2=order of filter;
-                    com_z_vel = deriveByTime(nanfiltfilt(b, a, com_z), 1/sampling_rate);
+                    if any(~isnan(com_z))
+                        com_z_vel = deriveByTime(nanfiltfilt(b, a, com_z), 1/sampling_rate);
+                    else
+                        com_z_vel = ones(size(com_z)) * NaN;
+                    end
                     this.basic_variable_data.com_z_vel = com_z_vel;
-                    this.time_data.com_x_vel = time;
+                    this.time_data.com_z_vel = time;
                 end
                 if strcmp(variable_name, 'com_x_acc')
                     com_x_vel = this.getBasicVariableData('com_x_vel');
@@ -1305,7 +1317,11 @@ classdef WalkingDataCustodian < handle
                     cutoff_frequency = this.study_settings.filter_cutoff_com_acc;
                     sampling_rate = 1/median(diff(time));
                     [b, a] = butter(filter_order, cutoff_frequency/(sampling_rate/2));
-                    com_x_acc = deriveByTime(nanfiltfilt(b, a, com_x_vel), 1/sampling_rate);
+                    if any(~isnan(com_x_vel))
+                        com_x_acc = deriveByTime(nanfiltfilt(b, a, com_x_vel), 1/sampling_rate);
+                    else
+                        com_x_acc = ones(size(com_x_vel)) * NaN;
+                    end
                     this.basic_variable_data.com_x_acc = com_x_acc;
                     this.time_data.com_x_acc = time;
                 end
@@ -1316,7 +1332,11 @@ classdef WalkingDataCustodian < handle
                     cutoff_frequency = this.study_settings.filter_cutoff_com_acc;
                     sampling_rate = 1/median(diff(time));
                     [b, a] = butter(filter_order, cutoff_frequency/(sampling_rate/2));	% set filter parameters for butterworth filter: 2=order of filter;
-                    com_y_acc = deriveByTime(nanfiltfilt(b, a, com_y_vel), 1/sampling_rate);
+                    if any(~isnan(com_y_vel))
+                        com_y_acc = deriveByTime(nanfiltfilt(b, a, com_y_vel), 1/sampling_rate);
+                    else
+                        com_y_acc = ones(size(com_y_vel)) * NaN;
+                    end
                     this.basic_variable_data.com_y_acc = com_y_acc;
                     this.time_data.com_y_acc = time;
                 end
@@ -1327,10 +1347,20 @@ classdef WalkingDataCustodian < handle
                     cutoff_frequency = this.study_settings.filter_cutoff_com_acc;
                     sampling_rate = 1/median(diff(time));
                     [b, a] = butter(filter_order, cutoff_frequency/(sampling_rate/2));	% set filter parameters for butterworth filter: 2=order of filter;
-                    com_z_acc = deriveByTime(nanfiltfilt(b, a, com_z_vel), 1/sampling_rate);
+                    if any(~isnan(com_z_vel))
+                        com_z_acc = deriveByTime(nanfiltfilt(b, a, com_z_vel), 1/sampling_rate);
+                    else
+                        com_z_acc = ones(size(com_z_vel)) * NaN;
+                    end
                     this.basic_variable_data.com_z_acc = com_z_acc;
+<<<<<<< HEAD
                     this.time_data.com_x_acc = time;
                 end                
+=======
+                    this.time_data.com_z_acc = time;
+                end
+                
+>>>>>>> cbc397919f26784d0c63d7c6664929ab48f1ef28
                 % joint angles
                 if strcmp(variable_name, 'lumbar_roll_angle')
                     joint_angle_indicator = strcmp(this.basic_variable_labels.joint_angle_trajectories, 'lumbar joint - sideways bending (right/left)');
@@ -1800,24 +1830,11 @@ classdef WalkingDataCustodian < handle
                     
                     % calculate normalized stretch data for the basic variables
                     if this.isBasicVariable(variable_name)
-%                         stretch_data = this.getTimeNormalizedData(variable_name, this_stretch_start_time, this_stretch_end_time);
                         stretch_data = this.getTimeNormalizedData(variable_name, this_stretch_times);
                     end
                 
                     % calculate stretch variables that are not basic variables
                     if strcmp(variable_name, 'step_length')
-%                         lheel_y = this.getTimeNormalizedData('lheel_y', this_stretch_start_time, this_stretch_end_time);
-%                         rheel_y = this.getTimeNormalizedData('rheel_y', this_stretch_start_time, this_stretch_end_time);
-%                         if strcmp(stance_foot_data{i_stretch}, 'STANCE_RIGHT')
-%                             stretch_data = lheel_y(end) - rheel_y(end);
-%                         end
-%                         if strcmp(stance_foot_data{i_stretch}, 'STANCE_LEFT')
-%                             stretch_data = rheel_y(end) - lheel_y(end);
-%                         end
-%                         if strcmp(stance_foot_data{i_stretch}, 'STANCE_BOTH')
-%                             stretch_data = NaN;
-%                         end
-                        
                         lheel_y = this.getTimeNormalizedData('lheel_y', this_stretch_times);
                         rheel_y = this.getTimeNormalizedData('rheel_y', this_stretch_times);
                         
@@ -1839,18 +1856,6 @@ classdef WalkingDataCustodian < handle
                         
                     end
                     if strcmp(variable_name, 'step_width')
-%                         lheel_x = this.getTimeNormalizedData('lheel_x', this_stretch_start_time, this_stretch_end_time);
-%                         rheel_x = this.getTimeNormalizedData('rheel_x', this_stretch_start_time, this_stretch_end_time);
-%                         if strcmp(stance_foot_data{i_stretch}, 'STANCE_RIGHT')
-%                             stretch_data = abs(lheel_x(end) - rheel_x(1));
-%                         end
-%                         if strcmp(stance_foot_data{i_stretch}, 'STANCE_LEFT')
-%                             stretch_data = abs(rheel_x(end) - lheel_x(1));
-%                         end
-%                         if strcmp(stance_foot_data{i_stretch}, 'STANCE_BOTH')
-%                             stretch_data = NaN;
-%                         end
-                        
                         lheel_x = this.getTimeNormalizedData('lheel_x', this_stretch_times);
                         rheel_x = this.getTimeNormalizedData('rheel_x', this_stretch_times);
                         stretch_data = zeros(number_of_bands, 1);
@@ -1870,17 +1875,6 @@ classdef WalkingDataCustodian < handle
                         
                     end
                     if strcmp(variable_name, 'step_placement_x')
-%                         lheel_x = this.getTimeNormalizedData('lheel_x', this_stretch_start_time, this_stretch_end_time);
-%                         rheel_x = this.getTimeNormalizedData('rheel_x', this_stretch_start_time, this_stretch_end_time);
-%                         if strcmp(stance_foot_data{i_stretch}, 'STANCE_RIGHT')
-%                             stretch_data = lheel_x(end) - rheel_x(1);
-%                         end
-%                         if strcmp(stance_foot_data{i_stretch}, 'STANCE_LEFT')
-%                             stretch_data = rheel_x(end) - lheel_x(1);
-%                         end
-%                         if strcmp(stance_foot_data{i_stretch}, 'STANCE_BOTH')
-%                             stretch_data = NaN;
-%                         end
                         lheel_x = this.getTimeNormalizedData('lheel_x', this_stretch_times);
                         rheel_x = this.getTimeNormalizedData('rheel_x', this_stretch_times);
                         stretch_data = zeros(number_of_bands, 1);
@@ -1900,7 +1894,6 @@ classdef WalkingDataCustodian < handle
 
                     end
                     if strcmp(variable_name, 'step_time')
-%                         stretch_data = this_stretch_end_time - this_stretch_start_time;
                         stretch_data = diff(this_stretch_times)';
                     end
                     if strcmp(variable_name, 'pushoff_time')
@@ -2222,7 +2215,10 @@ classdef WalkingDataCustodian < handle
                 time_extracted = variable_time(band_time_indices(1) : band_time_indices(end));
                 data_extracted = variable_data(band_time_indices(1) : band_time_indices(end));
                 band_time_indices_local = band_time_indices - band_time_indices(1) + 1;
-                
+                if any(isnan(data_extracted))
+                    exception = MException('CoBaL:NaN', 'Data contains NaN values.');
+                    throw(exception)
+                end
             catch error
                 disp(['Error while processing variable ''' variable_name ''''])
                 throw(error)
@@ -2244,10 +2240,6 @@ classdef WalkingDataCustodian < handle
                 
                 % time-normalize data
                 data_normalized = spline(time_extracted, data_extracted, time_normalized);
-                
-                
-%                 time_normalized = linspace(time_extracted(1), time_extracted(end), this.number_of_time_steps_normalized)';
-%                 data_normalized = spline(time_extracted, data_extracted, time_normalized);
             else
                 number_of_bands = length(band_time_indices_local) - 1;
                 time_normalized = [];

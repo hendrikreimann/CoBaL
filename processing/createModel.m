@@ -66,14 +66,6 @@ function createModel(varargin)
 
     % find first time step where all markers are available
     i_time = 1;
-    
-    % For TU data
-%     while any(isnan(marker_trajectories(i_time, :)))
-%         i_time = i_time + 1;
-%     end
-%     marker_reference = marker_trajectories(i_time, :);
-
-    % For UD data
     while any(isnan(marker_trajectories(i_time, :)))
         i_time = i_time + 1;
     end
@@ -1539,7 +1531,7 @@ function marker_segments = createMarkerSegmentList(marker_labels, subject_settin
     for i_label = 1 : number_of_markers
         this_marker_label = marker_labels{i_label*3};
         this_marker_id = this_marker_label(1:end-2);
-        marker_segments(i_label) = marker_to_segment_map{strcmp(marker_to_segment_map(:, 1), this_marker_id), 2};  % already provding a double, therefore no need for str2num
+        marker_segments(i_label) = str2num(marker_to_segment_map{strcmp(marker_to_segment_map(:, 1), this_marker_id), 2});
     end
 end
 
@@ -1559,21 +1551,6 @@ function marker_color_list = createMarkerColorList(marker_labels, subject_settin
           ];
         marker_color_list{i_marker} = this_marker_color;
     end
-
-
-%     marker_color_array = zeros(number_of_markers, 3) * 0.3;
-%     for i_label = 1 : number_of_markers
-%         this_marker_label = marker_labels{i_label*3};
-%         this_marker_id = this_marker_label(1:end-2);
-%         marker_color_array(i_label, :) = marker_to_color_map{strcmp(marker_to_color_map(:, 1), this_marker_id), 2};
-%     end
-% 
-%     % export to list
-%     marker_color_list = cell(1, number_of_markers);
-%     for i_marker = 1 : number_of_markers
-%         marker_color_list{i_marker} = marker_color_array(i_marker, :);
-%     end
-
 end
 
 
