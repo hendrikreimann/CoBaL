@@ -1965,7 +1965,7 @@ classdef WalkingDataCustodian < handle
                             % time-normalize data
                             data_normalized = spline(time_extracted, data_extracted_groomed, time_normalized);
                         else
-                              % create normalized time
+                            % create normalized time
                             number_of_bands = length(band_time_indices_local) - 1;
                             time_normalized = [];
                             for i_band = 1 : number_of_bands

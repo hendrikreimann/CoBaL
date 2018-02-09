@@ -352,7 +352,7 @@ function optimizeKinematicTrajectories(varargin)
 
             % determine time steps to optimize
             time_steps_to_optimize = determineTimeStepsToProcess(date, subject_id, condition, i_trial, study_settings.get('data_stretch_padding'));
-time_steps_to_optimize = 40;
+% time_steps_to_optimize = 40;
             if strcmp(mode, 'default')
                 if exist('joint_angle_trajectories', 'var')
                     joint_angle_trajectories_calculated = joint_angle_trajectories;
@@ -552,7 +552,7 @@ use_parallel=0
                         end
 
                         % get segment CoMs
-                        for i_segment = 1 : length(com_labels) - 1
+                        for i_segment = 1 : length(com_labels) - 3
                             segment_label = com_labels{i_segment}(1 : end-5);
                             joint_index = getSegmentJointIndex(kinematic_tree, segment_label);
                             component_index = mod(i_segment, 3);
@@ -612,17 +612,17 @@ use_parallel=0
             saveDataToFile([save_folder filesep save_file_name], variables_to_save);
             disp(['Condition ' condition ', Trial ' num2str(i_trial) ' completed, saved as ' save_folder filesep save_file_name]);
 
-            addAvailableData('joint_center_trajectories', 'time_mocap', 'sampling_rate_mocap', 'joint_center_labels', save_folder, save_file_name);
-            addAvailableData('com_trajectories', 'time_mocap', 'sampling_rate_mocap', 'com_labels', save_folder, save_file_name);
-            addAvailableData('joint_angle_trajectories', 'time_mocap', 'sampling_rate_mocap', 'joint_labels', save_folder, save_file_name);
+            addAvailableData_new('joint_center_trajectories', 'time_mocap', 'sampling_rate_mocap', '_joint_center_labels', '_joint_center_directions', save_folder, save_file_name);
+            addAvailableData_new('com_trajectories', 'time_mocap', 'sampling_rate_mocap', '_com_labels', '_com_directions', save_folder, save_file_name);
+            addAvailableData_new('joint_angle_trajectories', 'time_mocap', 'sampling_rate_mocap', '_joint_labels', '_joint_directions', save_folder, save_file_name);
             
-            addAvailableData('joint_center_trajectories_calculated', 'time_mocap', 'sampling_rate_mocap', 'joint_center_labels', save_folder, save_file_name);
-            addAvailableData('com_trajectories_calculated', 'time_mocap', 'sampling_rate_mocap', 'com_labels', save_folder, save_file_name);
-            addAvailableData('joint_angle_trajectories_calculated', 'time_mocap', 'sampling_rate_mocap', 'joint_labels', save_folder, save_file_name);
+            addAvailableData_new('joint_center_trajectories_calculated', 'time_mocap', 'sampling_rate_mocap', '_joint_center_labels', '_joint_center_directions', save_folder, save_file_name);
+            addAvailableData_new('com_trajectories_calculated', 'time_mocap', 'sampling_rate_mocap', '_com_labels', '_com_directions', save_folder, save_file_name);
+            addAvailableData_new('joint_angle_trajectories_calculated', 'time_mocap', 'sampling_rate_mocap', '_joint_labels', '_joint_directions', save_folder, save_file_name);
             
-            addAvailableData('joint_center_trajectories_optimized', 'time_mocap', 'sampling_rate_mocap', 'joint_center_labels', save_folder, save_file_name);
-            addAvailableData('com_trajectories_optimized', 'time_mocap', 'sampling_rate_mocap', 'com_labels', save_folder, save_file_name);
-            addAvailableData('joint_angle_trajectories_optimized', 'time_mocap', 'sampling_rate_mocap', 'joint_labels', save_folder, save_file_name);
+            addAvailableData_new('joint_center_trajectories_optimized', 'time_mocap', 'sampling_rate_mocap', '_joint_center_labels', '_joint_center_directions', save_folder, save_file_name);
+            addAvailableData_new('com_trajectories_optimized', 'time_mocap', 'sampling_rate_mocap', '_com_labels', '_com_directions', save_folder, save_file_name);
+            addAvailableData_new('joint_angle_trajectories_optimized', 'time_mocap', 'sampling_rate_mocap', '_joint_labels', '_joint_directions', save_folder, save_file_name);
             
         end
     end
