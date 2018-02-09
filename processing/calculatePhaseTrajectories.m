@@ -31,7 +31,7 @@ function calculatePhaseTrajectories(varargin)
             save_file_name = makeFileName(date, subject_id, condition_list{i_condition}, i_trial, 'phaseTrajectories.mat');
                         
             % marker data
-            [marker_trajectories, time_marker, sampling_rate_marker, marker_labels, marker_directions] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'marker_trajectories');
+            [marker_trajectories, time_mocap, sampling_rate_mocap, marker_labels, marker_directions] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'marker_trajectories');
             
             if any(strcmp(stretch_variables(:, 1), 'left_arm_right_leg_relative_phase'))
                 LELB_trajectory = extractMarkerData(marker_trajectories, marker_labels, 'LELB', 'trajectories');
@@ -46,10 +46,10 @@ function calculatePhaseTrajectories(varargin)
                 left_arm_angle_ap = rad2deg(atan2(-left_arm_vector_trajectory(:, 2), left_arm_vector_trajectory(:, 3)));
 
                 % find negative peaks
-                [~, left_arm_peak_locations] = findpeaks(-left_arm_angle_ap, 'MinPeakProminence', subject_settings.get('left_armswing_peak_prominence_threshold'), 'MinPeakDistance', subject_settings.get('left_armswing_peak_distance_threshold') * sampling_rate_marker);
+                [~, left_arm_peak_locations] = findpeaks(-left_arm_angle_ap, 'MinPeakProminence', subject_settings.get('left_armswing_peak_prominence_threshold'), 'MinPeakDistance', subject_settings.get('left_armswing_peak_distance_threshold') * sampling_rate_mocap);
 
                 % normalize
-                [larm_angle_ap_normalized, larm_angle_ap_dot_normalized] = normalizePeriodicVariable(left_arm_angle_ap, time_marker, left_arm_peak_locations);
+                [larm_angle_ap_normalized, larm_angle_ap_dot_normalized] = normalizePeriodicVariable(left_arm_angle_ap, time_mocap, left_arm_peak_locations);
 
                 % calculate phase
                 left_arm_phase = atan2(larm_angle_ap_dot_normalized, -larm_angle_ap_normalized);
@@ -66,13 +66,13 @@ function calculatePhaseTrajectories(varargin)
                 right_leg_angle = rad2deg(atan2(-right_leg_vector_trajectory(:, 2), right_leg_vector_trajectory(:, 3)));
 
                 % find negative peaks
-                [~, right_leg_peak_locations] = findpeaks(-right_leg_angle, 'MinPeakProminence', subject_settings.get('right_legswing_peak_prominence_threshold'), 'MinPeakDistance', subject_settings.get('right_legswing_peak_distance_threshold') * sampling_rate_marker);
+                [~, right_leg_peak_locations] = findpeaks(-right_leg_angle, 'MinPeakProminence', subject_settings.get('right_legswing_peak_prominence_threshold'), 'MinPeakDistance', subject_settings.get('right_legswing_peak_distance_threshold') * sampling_rate_mocap);
 
                 % normalize
-                [lleg_angle_ap_normalized, lleg_angle_ap_dot_normalized] = normalizePeriodicVariable(right_leg_angle, time_marker, right_leg_peak_locations);
+                [rleg_angle_ap_normalized, rleg_angle_ap_dot_normalized] = normalizePeriodicVariable(right_leg_angle, time_mocap, right_leg_peak_locations);
 
                 % calculate phase
-                right_leg_phase = atan2(lleg_angle_ap_dot_normalized, -lleg_angle_ap_normalized);
+                right_leg_phase = atan2(rleg_angle_ap_dot_normalized, -rleg_angle_ap_normalized);
                 
                 % add new variables to be saved
                 
@@ -80,19 +80,19 @@ function calculatePhaseTrajectories(varargin)
                 % if so, save it
                 if any(strcmp(stretch_variables(:, 1), 'left_arm_angle_ap'))
                     variables_to_save.left_arm_angle_ap = left_arm_angle_ap;
-                    addAvailableData_new('left_arm_angle_ap', 'time_marker', 'sampling_rate_marker', 'NA', 'NA', save_folder, save_file_name);
+                    addAvailableData_new('left_arm_angle_ap', 'time_mocap', 'sampling_rate_mocap', 'Left Arm Angle (A/P)', {'+', '-'}, save_folder, save_file_name);
                 end
                 if any(strcmp(stretch_variables(:, 1), 'left_arm_phase'))
                     variables_to_save.left_arm_phase = left_arm_phase;
-                    addAvailableData_new('left_arm_phase', 'time_marker', 'sampling_rate_marker', 'NA', 'NA', save_folder, save_file_name);
+                    addAvailableData_new('left_arm_phase', 'time_mocap', 'sampling_rate_mocap', 'Left Arm Phase', {'+', '-'}, save_folder, save_file_name);
                 end
                 if any(strcmp(stretch_variables(:, 1), 'right_leg_angle_ap'))
                     variables_to_save.right_leg_angle_ap = right_leg_angle;
-                    addAvailableData_new('right_leg_angle_ap', 'time_marker', 'sampling_rate_marker', 'NA', 'NA', save_folder, save_file_name);
+                    addAvailableData_new('right_leg_angle_ap', 'time_mocap', 'sampling_rate_mocap', 'Right Leg Angle (A/P)', {'+', '-'}, save_folder, save_file_name);
                 end
                 if any(strcmp(stretch_variables(:, 1), 'right_leg_phase'))
                     variables_to_save.right_leg_phase = right_leg_phase;
-                    addAvailableData_new('right_leg_phase', 'time_marker', 'sampling_rate_marker', 'NA', 'NA', save_folder, save_file_name);
+                    addAvailableData_new('right_leg_phase', 'time_mocap', 'sampling_rate_mocap', 'Right Leg Phase', {'+', '-'}, save_folder, save_file_name);
                 end        
            end
             
@@ -109,10 +109,10 @@ function calculatePhaseTrajectories(varargin)
                 right_arm_angle_ap = rad2deg(atan2(-right_arm_vector_trajectory(:, 2), right_arm_vector_trajectory(:, 3)));
 
                 % find negative peaks
-                [~, right_arm_peak_locations] = findpeaks(-right_arm_angle_ap, 'MinPeakProminence', subject_settings.get('right_armswing_peak_prominence_threshold'), 'MinPeakDistance', subject_settings.get('right_armswing_peak_distance_threshold') * sampling_rate_marker);
+                [~, right_arm_peak_locations] = findpeaks(-right_arm_angle_ap, 'MinPeakProminence', subject_settings.get('right_armswing_peak_prominence_threshold'), 'MinPeakDistance', subject_settings.get('right_armswing_peak_distance_threshold') * sampling_rate_mocap);
 
                 % normalize
-                [larm_angle_ap_normalized, larm_angle_ap_dot_normalized] = normalizePeriodicVariable(right_arm_angle_ap, time_marker, right_arm_peak_locations);
+                [larm_angle_ap_normalized, larm_angle_ap_dot_normalized] = normalizePeriodicVariable(right_arm_angle_ap, time_mocap, right_arm_peak_locations);
 
                 % calculate phase
                 right_arm_phase = atan2(larm_angle_ap_dot_normalized, -larm_angle_ap_normalized);
@@ -129,10 +129,10 @@ function calculatePhaseTrajectories(varargin)
                 left_leg_angle_ap = rad2deg(atan2(-left_leg_vector_trajectory(:, 2), left_leg_vector_trajectory(:, 3)));
 
                 % find negative peaks
-                [~, left_leg_peak_locations] = findpeaks(-left_leg_angle_ap, 'MinPeakProminence', subject_settings.get('left_legswing_peak_prominence_threshold'), 'MinPeakDistance', subject_settings.get('left_legswing_peak_distance_threshold') * sampling_rate_marker);
+                [~, left_leg_peak_locations] = findpeaks(-left_leg_angle_ap, 'MinPeakProminence', subject_settings.get('left_legswing_peak_prominence_threshold'), 'MinPeakDistance', subject_settings.get('left_legswing_peak_distance_threshold') * sampling_rate_mocap);
 
                 % normalize
-                [lleg_angle_ap_normalized, lleg_angle_ap_dot_normalized] = normalizePeriodicVariable(left_leg_angle_ap, time_marker, left_leg_peak_locations);
+                [lleg_angle_ap_normalized, lleg_angle_ap_dot_normalized] = normalizePeriodicVariable(left_leg_angle_ap, time_mocap, left_leg_peak_locations);
 
                 % calculate phase
                 left_leg_phase = atan2(-lleg_angle_ap_dot_normalized, lleg_angle_ap_normalized);
@@ -140,24 +140,55 @@ function calculatePhaseTrajectories(varargin)
                 % add new variables to be saved
                 if any(strcmp(stretch_variables(:, 1), 'right_arm_angle_ap'))
                     variables_to_save.right_arm_angle_ap = right_arm_angle_ap;
-                    addAvailableData_new('right_arm_angle_ap', 'time_marker', 'sampling_rate_marker', 'NA', 'NA', save_folder, save_file_name);
+                    addAvailableData_new('right_arm_angle_ap', 'time_mocap', 'sampling_rate_mocap', 'Right Arm Angle (A/P)', {'+', '-'}, save_folder, save_file_name);
                 end
                 if any(strcmp(stretch_variables(:, 1), 'right_arm_phase'))
                     variables_to_save.right_arm_phase = right_arm_phase;
-                    addAvailableData_new('right_arm_phase', 'time_marker', 'sampling_rate_marker', 'NA', 'NA', save_folder, save_file_name);
+                    addAvailableData_new('right_arm_phase', 'time_mocap', 'sampling_rate_mocap', 'Right Arm Phase', {'+', '-'}, save_folder, save_file_name);
                 end
                 if any(strcmp(stretch_variables(:, 1), 'left_leg_angle_ap'))
                     variables_to_save.left_leg_angle_ap = left_leg_angle_ap;
-                    addAvailableData_new('left_leg_angle_ap', 'time_marker', 'sampling_rate_marker', 'NA', 'NA', save_folder, save_file_name);
+                    addAvailableData_new('left_leg_angle_ap', 'time_mocap', 'sampling_rate_mocap', 'Left Leg Angle (A/P)', {'+', '-'}, save_folder, save_file_name);
                 end
                 if any(strcmp(stretch_variables(:, 1), 'left_leg_phase'))
                     variables_to_save.left_leg_phase = left_leg_phase;
-                    addAvailableData_new('left_leg_phase', 'time_marker', 'sampling_rate_marker', 'NA', 'NA', save_folder, save_file_name);
+                    addAvailableData_new('left_leg_phase', 'time_mocap', 'sampling_rate_mocap', 'Left Leg Phase', {'+', '-'}, save_folder, save_file_name);
                 end
-                saveDataToFile([save_folder filesep save_file_name], variables_to_save);
+                
            end
-           variables_to_save.sampling_rate_marker = sampling_rate_marker;
-           variables_to_save.time_marker = time_marker;   
+           
+           % ignore trials that possess NaNs
+           % load step events for this trial, and add ignore times...
+           % find this time indices in which NaNs occur, and place an ignore marker there...
+           
+           if any(isnan(left_leg_phase)) || any(isnan(left_leg_angle_ap)) || any(isnan(left_arm_phase)) || any(isnan(left_arm_angle_ap)) || any(isnan(right_leg_phase)) || any(isnan(right_leg_angle_ap)) || any(isnan(right_arm_phase)) || any(isnan(right_arm_angle_ap))
+               left_leg_ignore_times = find(isnan(left_leg_phase));
+               left_arm_ignore_times = find(isnan(left_arm_phase));
+               right_leg_ignore_times = find(isnan(right_leg_phase));
+               right_arm_ignore_times = find(isnan(right_arm_phase));
+               all_ignore_times = [left_leg_ignore_times; right_leg_ignore_times; left_arm_ignore_times; right_arm_ignore_times];
+                          
+               stepEvent_file_name = makeFileName(date, subject_id, condition_list{i_condition}, i_trial, 'stepEvents.mat');
+               % just to grab ignore_times.. is there a way to specifiy
+               % this variable and no others?
+               load(['analysis/',stepEvent_file_name]);
+               
+               if ~exist('ignore_times')
+                   ignore_times = [];
+               end
+               
+               stretches_to_ignore = struct;
+               this_ignore_times = time_mocap(all_ignore_times);
+               ignore_times = [ignore_times; this_ignore_times];
+               stretches_to_ignore.ignore_times = sort(ignore_times);
+               saveDataToFile(['analysis' filesep stepEvent_file_name], stretches_to_ignore)
+               findRelevantDataStretches('condition',condition_list{i_condition}, 'trial', i_trial)
+               clear('ignore_times');
+           end
+           
+           variables_to_save.sampling_rate_mocap = sampling_rate_mocap;
+           variables_to_save.time_mocap = time_mocap;   
+           saveDataToFile([save_folder filesep save_file_name], variables_to_save);
            disp(['Finding Phase Trajectories: Trial ', num2str(i_trial), ' completed',  ' relevant stretches, saved as ', save_file_name]);                
         end
     end
