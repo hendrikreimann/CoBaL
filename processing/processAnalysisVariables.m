@@ -178,6 +178,39 @@ function processAnalysisVariables(varargin)
         % store
         [analysis_data_session, analysis_names_session] = addOrOverwriteData(analysis_data_session, analysis_names_session, step_end_data, this_variable_name);
     end
+    
+    %% calculate variables from extrema
+    variables_from_extrema = study_settings.get('analysis_variables_from_extrema');
+    for i_variable = 1 : size(variables_from_extrema, 1)
+        % get data
+        this_variable_name = variables_from_extrema{i_variable, 1};
+        this_variable_source_name = variables_from_extrema{i_variable, 2};
+        this_variable_source_type = variables_from_extrema{i_variable, 3};
+        this_variable_extremum_type = variables_from_extrema{i_variable, 4};
+        % pick data depending on source specification
+        eval(['data_source = ' this_variable_source_type '_data_session;']);
+        eval(['names_source = ' this_variable_source_type '_names_session;']);
+        this_variable_source_data = data_source{strcmp(names_source, this_variable_source_name)};
+        
+        
+        extrema_data = zeros(bands_per_stretch, number_of_stretches);
+        for i_band = 1 : bands_per_stretch
+            [band_start_index, band_end_index] = getBandIndices(i_band, number_of_time_steps_normalized);
+            data_this_band = this_variable_source_data(band_start_index : band_end_index, :);
+            if strcmp(this_variable_extremum_type, 'min')
+                extrema_data(i_band, :) = min(data_this_band);
+            end
+            if strcmp(this_variable_extremum_type, 'max')
+                extrema_data(i_band, :) = max(data_this_band);
+            end
+            if ~strcmp(this_variable_extremum_type, 'min') && ~strcmp(this_variable_extremum_type, 'max')
+                error(['"' this_variable_extremum_type '" is not a valid type for variables_from_extrema. Acceptable types are "min" or "max".']);
+            end
+        end
+        % store
+        [analysis_data_session, analysis_names_session] = addOrOverwriteData(analysis_data_session, analysis_names_session, extrema_data, this_variable_name);
+    end
+    
 
     %% calculate variables from inversion
     % TODO: deal with bands
@@ -222,38 +255,6 @@ function processAnalysisVariables(varargin)
         [analysis_data_session, analysis_names_session] = addOrOverwriteData(analysis_data_session, analysis_names_session, this_variable_data, this_variable_name);
     end
     
-    
-    %% calculate variables from extrema
-    variables_from_extrema = study_settings.get('analysis_variables_from_extrema');
-    for i_variable = 1 : size(variables_from_extrema, 1)
-        % get data
-        this_variable_name = variables_from_extrema{i_variable, 1};
-        this_variable_source_name = variables_from_extrema{i_variable, 2};
-        this_variable_source_type = variables_from_extrema{i_variable, 3};
-        this_variable_extremum_type = variables_from_extrema{i_variable, 4};
-        % pick data depending on source specification
-        eval(['data_source = ' this_variable_source_type '_data_session;']);
-        eval(['names_source = ' this_variable_source_type '_names_session;']);
-        this_variable_source_data = data_source{strcmp(names_source, this_variable_source_name)};
-        
-        
-        extrema_data = zeros(bands_per_stretch, number_of_stretches);
-        for i_band = 1 : bands_per_stretch
-            [band_start_index, band_end_index] = getBandIndices(i_band, number_of_time_steps_normalized);
-            data_this_band = this_variable_source_data(band_start_index : band_end_index, :);
-            if strcmp(this_variable_extremum_type, 'min')
-                extrema_data(i_band, :) = min(data_this_band);
-            end
-            if strcmp(this_variable_extremum_type, 'max')
-                extrema_data(i_band, :) = max(data_this_band);
-            end
-            if ~strcmp(this_variable_extremum_type, 'min') && ~strcmp(this_variable_extremum_type, 'max')
-                error(['"' this_variable_extremum_type '" is not a valid type for variables_from_extrema. Acceptable types are "min" or "max".']);
-            end
-        end
-        % store
-        [analysis_data_session, analysis_names_session] = addOrOverwriteData(analysis_data_session, analysis_names_session, extrema_data, this_variable_name);
-    end
     
     
     

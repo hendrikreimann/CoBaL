@@ -1922,7 +1922,6 @@ classdef WalkingDataCustodian < handle
                     end
                     if strcmp(variable_name, 'left_arm_phase') || strcmp(variable_name, 'right_arm_phase') || strcmp(variable_name, 'left_leg_phase') || strcmp(variable_name, 'right_leg_phase')
      
-                        stretch_data = [];
                         variable_time = this.getTimeData(variable_name);
                         variable_data = this.getBasicVariableData(variable_name);
 
