@@ -70,13 +70,13 @@ function calculatePhaseTrajectories(varargin)
             right_leg_vector_trajectory = right_pelvis_center_trajectory - RANK_trajectory;
 
             % calculate angles
-            right_leg_angle = rad2deg(atan2(-right_leg_vector_trajectory(:, 2), right_leg_vector_trajectory(:, 3)));
+            right_leg_angle_ap = rad2deg(atan2(-right_leg_vector_trajectory(:, 2), right_leg_vector_trajectory(:, 3)));
 
             % find negative peaks
-            [~, right_leg_peak_locations] = findpeaks(-right_leg_angle, 'MinPeakProminence', subject_settings.get('right_legswing_peak_prominence_threshold'), 'MinPeakDistance', subject_settings.get('right_legswing_peak_distance_threshold') * sampling_rate_mocap);
+            [~, right_leg_peak_locations] = findpeaks(-right_leg_angle_ap, 'MinPeakProminence', subject_settings.get('right_legswing_peak_prominence_threshold'), 'MinPeakDistance', subject_settings.get('right_legswing_peak_distance_threshold') * sampling_rate_mocap);
 
             % normalize
-            [rleg_angle_ap_normalized, rleg_angle_ap_dot_normalized] = normalizePeriodicVariable(right_leg_angle, time_mocap, right_leg_peak_locations);
+            [rleg_angle_ap_normalized, rleg_angle_ap_dot_normalized] = normalizePeriodicVariable(right_leg_angle_ap, time_mocap, right_leg_peak_locations);
 
             % calculate phase
             right_leg_phase = atan2(rleg_angle_ap_dot_normalized, -rleg_angle_ap_normalized);
@@ -149,7 +149,7 @@ function calculatePhaseTrajectories(varargin)
             % add new variables to be saved
             variables_to_save.left_arm_angle_ap = left_arm_angle_ap;
             variables_to_save.left_arm_phase = left_arm_phase;
-            variables_to_save.right_leg_angle_ap = right_leg_angle;
+            variables_to_save.right_leg_angle_ap = right_leg_angle_ap;
             variables_to_save.right_leg_phase = right_leg_phase;
             addAvailableData_new('left_arm_angle_ap', 'time_mocap', 'sampling_rate_mocap', 'Left Arm Angle (A/P)', {'+', '-'}, save_folder, save_file_name);
             addAvailableData_new('right_leg_angle_ap', 'time_mocap', 'sampling_rate_mocap', 'Right Leg Angle (A/P)', {'+', '-'}, save_folder, save_file_name);
