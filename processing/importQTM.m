@@ -96,8 +96,8 @@ for i_source = 1 : length(sources)
                 %      with multiple trials
                 
                 data_source = 'qtm';
-                varName = whos('-file', [source_dir,'\',data_file_name]);
-                temp_data = load([source_dir,'\',data_file_name]);
+                varName = whos('-file', [source_dir, filesep, data_file_name]);
+                temp_data = load([source_dir, filesep, data_file_name]);
                 qtm_data = temp_data.(varName.name);
                 
               
@@ -160,7 +160,7 @@ for i_source = 1 : length(sources)
                    disp(['imported ' source_dir filesep data_file_name ' and saved as ' save_folder filesep save_file_name])
                                       
                 else
-              
+                    % this is not calibration data, so break up into 2min chunks
                     analog_fs = qtm_data.Analog.Frequency;
                   
                     % Find trial start times
@@ -236,11 +236,17 @@ for i_source = 1 : length(sources)
                         %Force data are in qtm_data.Force(n).Force
                         data_type = 'forceplate';
                         if any(qtm_data.Force(1).Force)
-                            forceplate_tajectories_Left = [qtm_data.Force(1).Force(:,start_indices(i_trial_this_qtm_file):end_indices(i_trial_this_qtm_file))'...
-                                ,qtm_data.Force(1).Moment(:,start_indices(i_trial_this_qtm_file):end_indices(i_trial_this_qtm_file))'];
-                            forceplate_tajectories_Right = [qtm_data.Force(2).Force(:,start_indices(i_trial_this_qtm_file):end_indices(i_trial_this_qtm_file))',...
-                                qtm_data.Force(2).Moment(:,start_indices(i_trial_this_qtm_file):end_indices(i_trial_this_qtm_file))'];
-                            forceplate_trajectories_raw = [forceplate_tajectories_Left, forceplate_tajectories_Right];
+                        forceplate_tajectories_Left = ...
+	                          [ ...
+    	                        qtm_data.Force(1).Force(:, start_indices(i_trial_this_qtm_file) : end_indices(i_trial_this_qtm_file))', ...
+        	                    qtm_data.Force(1).Moment(:, start_indices(i_trial_this_qtm_file) : end_indices(i_trial_this_qtm_file))' ...
+            	              ];
+                	        forceplate_tajectories_Right = ...
+                    	      [ ...
+                        	    qtm_data.Force(2).Force(:, start_indices(i_trial_this_qtm_file) : end_indices(i_trial_this_qtm_file))', ...
+                            	qtm_data.Force(2).Moment(:, start_indices(i_trial_this_qtm_file) : end_indices(i_trial_this_qtm_file))' ...
+                          	  ];
+	                        forceplate_trajectories_raw = [forceplate_tajectories_Left, forceplate_tajectories_Right];
                         else % currently taking volts... need to scale accordinginly
                             forceplate_trajectories_raw = [qtm_data.Analog.Data(1:12,start_indices(i_trial_this_qtm_file):end_indices(i_trial_this_qtm_file))]';
                         end
