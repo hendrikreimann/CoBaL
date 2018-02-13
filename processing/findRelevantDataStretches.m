@@ -87,12 +87,16 @@ function findRelevantDataStretches(varargin)
             load(['analysis' filesep makeFileName(date, subject_id, condition_list{i_condition}, i_trial, 'stepEvents')]);
             
             % determine experimental condition
+            this_trial_type = condition_list{i_condition};
             condition_experimental = study_settings.get('experimental_condition');
             if strcmp(condition_experimental, 'load_from_conditions_file')
                 condition_experimental = loadConditionFromFile(conditions_file_name, 'experimental', i_trial);
             end
             if strcmp(condition_experimental, 'determine_from_file_name')
                 condition_experimental = condition_list{i_condition};
+            end
+            if strcmp(condition_experimental, 'determine_from_type_day_combination')
+                % do nothing, we'll deal with this depending on experiment type
             end
             
             % determine stimulus type
@@ -112,8 +116,9 @@ function findRelevantDataStretches(varargin)
             if strcmp(condition_day, 'determine_from_file_name')
                 condition_day = condition_list{i_condition};
             end
-            
-            
+            if strcmp(condition_day, 'determine_from_subject_settings')
+                condition_day = subject_settings.get('session_label');
+            end
             
             % marker data
             [marker_trajectories, time_marker, sampling_rate_marker, marker_labels, marker_directions] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'marker_trajectories');
@@ -225,16 +230,7 @@ function findRelevantDataStretches(varargin)
                 trigger_times = [];
             end
             if strcmp(condition_stimulus, 'ARMSENSE')
-%                  if strcmp(condition_experimental(end-1:end), 'OG')
-                     trigger_times = [];
-%                  else
-%                      if left_touchdown_times(end) > right_touchdown_times(end)
-%                         trigger_times = [left_touchdown_times(1:end-1); right_touchdown_times]; 
-%                      else
-%                         trigger_times = [left_touchdown_times; right_touchdown_times(1:end-1)]; 
-%                      end
-%                      
-%                  end
+                 trigger_times = [];
             end
             
             % calculate indices
@@ -435,6 +431,22 @@ function findRelevantDataStretches(varargin)
             end
             
             if strcmp(condition_stimulus, 'ARMSENSE')
+                            
+                % sort out type-day-combination
+                if strcmp(condition_experimental, 'determine_from_type_day_combination')
+
+                    if strcmp(condition_day, 'day1') && strcmp(this_trial_type, 'preOG')
+                        condition_experimental = 'pre';
+                    end
+                    if strcmp(condition_day, 'day1') && strcmp(this_trial_type, 'postOG')
+                        condition_experimental = 'post0';
+                    end
+                    if strcmp(condition_day, 'day2') && strcmp(this_trial_type, 'preOG')
+                        condition_experimental = 'post4';
+                    end
+                end
+
+                % determine first stance foot
                 if left_touchdown_times(1) <= right_touchdown_times(1)
                     stretch_starter_events = right_touchdown_times;
                     band_delimiter_events = left_touchdown_times;
@@ -452,7 +464,6 @@ function findRelevantDataStretches(varargin)
                 stance_foot_data = {};
                 condition_experimental_list = {};
                 condition_startfoot_list = {};
-                condition_day_list = {};
                 for i_event = 1 : length(stretch_starter_events) - 1
                     this_stretch_start = stretch_starter_events(i_event);
                     this_stretch_end = stretch_starter_events(i_event+1);
@@ -464,12 +475,11 @@ function findRelevantDataStretches(varargin)
                         stance_foot_data = [stance_foot_data; {first_stance_foot, second_stance_foot}];
                         condition_startfoot_list = [condition_startfoot_list; first_stance_foot];
                         condition_experimental_list = [condition_experimental_list; condition_experimental];
-                        condition_day_list = [condition_day_list; condition_day];
                     end
 
                 end
 
-                if strcmp(condition_experimental(end-1:end), 'OG')
+                if strcmp(this_trial_type(end-1:end), 'OG')
                     % remove all but first two stretches
                     stretch_times(3:end, :) = [];
                 end
@@ -491,7 +501,6 @@ function findRelevantDataStretches(varargin)
                 conditions_trial = struct;
                 conditions_trial.condition_experimental_list = condition_experimental_list;
                 conditions_trial.condition_startfoot_list = condition_startfoot_list;
-                conditions_trial.condition_day_list = condition_day_list;
                 event_variables_to_save.stretch_pushoff_times = stretch_pushoff_times;
                 event_variables_to_save.stretch_times = stretch_times;
                 
