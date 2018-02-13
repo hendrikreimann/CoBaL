@@ -199,7 +199,9 @@ function plotResults(varargin)
     % new
     labels_to_ignore = plot_settings.get('conditions_to_ignore');
     levels_to_remove = plot_settings.get('levels_to_remove');
+    preferred_level_order = plot_settings.get('preferred_level_order');
     [condition_combination_labels, condition_combinations_stimulus, condition_combinations_control] = determineConditionCombinations(condition_data_all, conditions_settings, labels_to_ignore, levels_to_remove);
+    condition_combinations_stimulus = sortConditionCombinations(condition_combinations_stimulus, condition_combination_labels, condition_to_compare, preferred_level_order);
     
     %% determine subjects and data folders
     [comparison_indices, conditions_per_comparison_max] = determineComparisons(condition_combinations_stimulus, condition_combination_labels, plot_settings);
@@ -282,23 +284,6 @@ function plotResults(varargin)
 %                         abscissae_cell{this_episode(i_comparison), i_variable} = abscissae;
 
                         abscissae_cell{i_comparison, i_variable} = abscissae_stimulus;
-                        
-                        
-% if isDiscreteVariable(i_variable, data_all, bands_per_stretch)
-%     this_comparison = comparison_indices{i_comparison};
-%     abscissae_control = (conditions_per_comparison_max + gap_between_steps) * step_index;
-%     abscissae_stimulus = (1 : length(this_comparison)) + (conditions_per_comparison_max + gap_between_steps) * step_index;
-%     abscissae = {abscissae_control, abscissae_stimulus};
-%     abscissae_cell{this_episode(i_comparison), i_variable} = abscissae;
-% 
-%     if ~isempty(conditions_control) && plot_settings.get('plot_control') && strcmp(data_source, 'stretch')
-%         xtick = [xtick abscissae{1}]; %#ok<AGROW>
-%     end
-%     xtick = [xtick abscissae{2}]; %#ok<AGROW>
-% end
-                        
-                        
-                        
                     end
                 end
                 if isContinuousVariable(i_variable, data_all, bands_per_stretch)
@@ -320,7 +305,7 @@ function plotResults(varargin)
                         elseif strcmp(plot_settings.get('time_plot_style'), 'scaled_to_condition_mean')
                             band_scales = step_time_means_this_comparison(:, i_condition);
                         else
-                            band_scales = ones(bands_per_stretch, 1) * number_of_time_steps_normalized;
+                            band_scales = ones(bands_per_stretch, 1) * (number_of_time_steps_normalized-1);
                         end
                         [abscissa_scaled, band_limits] = createScaledAbscissa(band_scales, number_of_time_steps_normalized);
                         

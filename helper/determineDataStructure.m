@@ -54,6 +54,8 @@ function [data_folder_list, subject_list] = determineDataStructure(subjects)
         folder_list = dir_name(dir_flags);
         % remove pointers to upper level directories
         folder_list(1:2) = [];
+        % remove folders called 'figures'
+        folder_list(strcmp(folder_list, 'figures')) = [];
         
         % store data folders in lists
         number_of_data_folders = length(folder_list);
