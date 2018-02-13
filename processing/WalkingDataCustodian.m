@@ -1828,7 +1828,7 @@ classdef WalkingDataCustodian < handle
                         stretch_data = this.getTimeNormalizedData(variable_name, this_stretch_times);
                     end
                 
-                    % calculate stretch variables that are not basic variables
+                    % calculate stretch variables that are not basic variables or need special attention
                     if strcmp(variable_name, 'step_length')
                         lheel_y = this.getTimeNormalizedData('lheel_y', this_stretch_times);
                         rheel_y = this.getTimeNormalizedData('rheel_y', this_stretch_times);
@@ -2185,7 +2185,49 @@ classdef WalkingDataCustodian < handle
                         end
                         stretch_data = right_tfl * 1 / normalization_value;
                     end
-                    
+                    if strcmp(variable_name, 'copl_x') || strcmp(variable_name, 'copl_y') || strcmp(variable_name, 'copr_x') || strcmp(variable_name, 'copr_y')
+                        % whole stretches might be zero, deal with this in a special way.
+                        band_times = this_stretch_times;
+                        
+
+                        % extract data
+                        try
+                            variable_time = this.getTimeData(variable_name);
+                            variable_data = this.getBasicVariableData(variable_name);
+
+                            band_time_indices = zeros(size(band_times));
+                            for i_band_time = 1 : length(band_times)
+                                [~, time_index] = min(abs(variable_time - band_times(i_band_time)));
+                                band_time_indices(i_band_time) = time_index;
+                            end
+
+                            data_extracted = variable_data(band_time_indices(1) : band_time_indices(end));
+                            band_time_indices_local = band_time_indices - band_time_indices(1) + 1;
+                            if any(isnan(data_extracted))
+                                exception = MException('CoBaL:NaN', 'Data contains NaN values.');
+                                throw(exception)
+                            end
+                        catch error
+                            disp(['Error while processing variable ''' variable_name ''''])
+                            throw(error)
+                        end
+                        
+                        % check whether last band might be zeros only
+                        last_band_zeros_only = 0;
+                        data_last_band = data_extracted(band_time_indices_local(i_band) : band_time_indices_local(i_band+1));
+                        if ~any(data_last_band(2:end)~=0)
+                            last_band_zeros_only = 1;
+                        end
+                        
+                        if last_band_zeros_only
+                            data_normalized_first_bands = this.getTimeNormalizedData(variable_name, band_times(1:end-1));
+                            data_normalized_last_band = zeros(this.number_of_time_steps_normalized-1, 1);
+                            stretch_data = [data_normalized_first_bands; data_normalized_last_band];
+                        else
+                            stretch_data = this.getTimeNormalizedData(variable_name, band_times);
+                        end
+
+                    end                    
                     % store in cell
                     stretch_variables{i_variable} = [stretch_variables{i_variable} stretch_data];
                 end
