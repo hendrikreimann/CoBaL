@@ -44,9 +44,10 @@ function processGroupInformation(varargin)
         if isempty(groups_this_subject)
             error(['Trying to assign groups, but subject "' subject_id '" not found in group_assignment in studySettings.txt'])
         end
-        if strcmp(loaded_data.condition_stance_foot_list_session{i_stretch}, 'STANCE_LEFT')
+        % TO DO: figure out a way to decipher for Early-Late comparison
+        if strcmp(loaded_data.conditions_session.condition_startfoot_list{i_stretch}, 'STANCE_LEFT')
             condition_group_list_session{i_stretch} = groups_this_subject{1};
-        elseif strcmp(loaded_data.condition_stance_foot_list_session{i_stretch}, 'STANCE_RIGHT')
+        elseif strcmp(loaded_data.conditions_session.condition_startfoot_list{i_stretch}, 'STANCE_RIGHT')
             condition_group_list_session{i_stretch} = groups_this_subject{2};
         else
             error('Can only assign a group for STANCE_LEFT or STANCE_RIGHT')
@@ -55,7 +56,7 @@ function processGroupInformation(varargin)
 
     % save
     variables_to_save = loaded_data;
-    variables_to_save.condition_group_list_session = condition_group_list_session;
+    variables_to_save.conditions_session.condition_group_list = condition_group_list_session;
     save(results_file_name, '-struct', 'variables_to_save');
     
 end

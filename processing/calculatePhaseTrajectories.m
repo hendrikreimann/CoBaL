@@ -80,18 +80,6 @@ function calculatePhaseTrajectories(varargin)
 
             % calculate phase
             right_leg_phase = atan2(rleg_angle_ap_dot_normalized, -rleg_angle_ap_normalized);
-
-            % add new variables to be saved
-
-            % check to see if arm_angle is a variable being processed,
-            variables_to_save.left_arm_angle_ap = left_arm_angle_ap;
-            variables_to_save.left_arm_phase = left_arm_phase;
-            variables_to_save.right_leg_angle_ap = right_leg_angle;
-            variables_to_save.right_leg_phase = right_leg_phase;
-            addAvailableData_new('left_arm_angle_ap', 'time_mocap', 'sampling_rate_mocap', 'Left Arm Angle (A/P)', {'+', '-'}, save_folder, save_file_name);
-            addAvailableData_new('right_leg_angle_ap', 'time_mocap', 'sampling_rate_mocap', 'Right Leg Angle (A/P)', {'+', '-'}, save_folder, save_file_name);
-            addAvailableData_new('left_arm_phase', 'time_mocap', 'sampling_rate_mocap', 'Left Arm Phase', {'+', '-'}, save_folder, save_file_name);
-            addAvailableData_new('right_leg_phase', 'time_mocap', 'sampling_rate_mocap', 'Right Leg Phase', {'+', '-'}, save_folder, save_file_name);
                      
             if strcmp('elbow', arm_angle_method)
                 proximal_trajectory = extractMarkerData(marker_trajectories, marker_labels, 'RELB', 'trajectories');
@@ -101,9 +89,9 @@ function calculatePhaseTrajectories(varargin)
             
             RWRA_trajectory = extractMarkerData(marker_trajectories, marker_labels, 'RWRA', 'trajectories');
             RWRB_trajectory = extractMarkerData(marker_trajectories, marker_labels, 'RWRB', 'trajectories');
-
-            % calculate vectors
             right_wrist_center_trajectory = (RWRA_trajectory + RWRB_trajectory) * 0.5;
+            % calculate vectors
+            
             right_arm_vector_trajectory = proximal_trajectory - right_wrist_center_trajectory;
 
             % calculate angles
@@ -169,6 +157,14 @@ function calculatePhaseTrajectories(varargin)
             
             
             % add new variables to be saved
+            variables_to_save.left_arm_angle_ap = left_arm_angle_ap;
+            variables_to_save.left_arm_phase = left_arm_phase;
+            variables_to_save.right_leg_angle_ap = right_leg_angle;
+            variables_to_save.right_leg_phase = right_leg_phase;
+            addAvailableData_new('left_arm_angle_ap', 'time_mocap', 'sampling_rate_mocap', 'Left Arm Angle (A/P)', {'+', '-'}, save_folder, save_file_name);
+            addAvailableData_new('right_leg_angle_ap', 'time_mocap', 'sampling_rate_mocap', 'Right Leg Angle (A/P)', {'+', '-'}, save_folder, save_file_name);
+            addAvailableData_new('left_arm_phase', 'time_mocap', 'sampling_rate_mocap', 'Left Arm Phase', {'+', '-'}, save_folder, save_file_name);
+            addAvailableData_new('right_leg_phase', 'time_mocap', 'sampling_rate_mocap', 'Right Leg Phase', {'+', '-'}, save_folder, save_file_name);
             variables_to_save.right_arm_angle_ap = right_arm_angle_ap;
             variables_to_save.right_arm_phase = right_arm_phase;
             variables_to_save.left_leg_angle_ap = left_leg_angle_ap;
