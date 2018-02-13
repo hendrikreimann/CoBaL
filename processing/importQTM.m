@@ -131,7 +131,18 @@ for i_source = 1 : length(sources)
                    if isrow(time_mocap)
                        time_mocap = time_mocap';
                    end
-                  
+                   
+                   % make directions
+                    % NOTE: this defines directions and makes assumptions, make sure everything is right here
+                    number_of_marker_trajectories = size(marker_trajectories_raw, 2);
+                    marker_directions = cell(2, number_of_marker_trajectories);
+                    [marker_directions{1, 1 : 3 : number_of_marker_trajectories}] = deal('right');
+                    [marker_directions{2, 1 : 3 : number_of_marker_trajectories}] = deal('left');
+                    [marker_directions{1, 2 : 3 : number_of_marker_trajectories}] = deal('forward');
+                    [marker_directions{2, 2 : 3 : number_of_marker_trajectories}] = deal('backward');
+                    [marker_directions{1, 3 : 3 : number_of_marker_trajectories}] = deal('up');
+                    [marker_directions{2, 3 : 3 : number_of_marker_trajectories}] = deal('down');
+                    
                   % save
                    save_folder = 'raw';
                    save_file_name = makeFileName(date, subject_id, trial_type, trial_number, 'markerTrajectoriesRaw.mat');
@@ -142,9 +153,10 @@ for i_source = 1 : length(sources)
                        'time_mocap', ...
                        'data_source', ...
                        'sampling_rate_mocap', ...
-                       'marker_labels' ...
+                       'marker_labels', ...
+                       'marker_directions' ...
                        );
-                   addAvailableData('marker_trajectories_raw', 'time_mocap', 'sampling_rate_mocap', 'marker_labels', save_folder, save_file_name);
+                   addAvailableData_new('marker_trajectories_raw', 'time_mocap', 'sampling_rate_mocap', 'marker_labels','_marker_directions', save_folder, save_file_name);
                    disp(['imported ' source_dir filesep data_file_name ' and saved as ' save_folder filesep save_file_name])
                                       
                 else
@@ -163,13 +175,7 @@ for i_source = 1 : length(sources)
                     analog_index = 1:length(qtm_data.Analog.Data);
                     % trials start on negative edge
                     start_indices = analog_index(trigger_edges==-1);
-
-                    %                  Subject DG is special case before LV code was fixed
-                    if strcmp(subject_id, 'DG')
-                        end_indices = start_indices + 120*analog_fs;
-                    else
-                        end_indices = analog_index(trigger_edges ==1);
-                    end
+                    end_indices = analog_index(trigger_edges ==1);
 
                     if length(end_indices) ~= length(start_indices)
                         sprintf('ERROR: %d start indicies ~= %d end indices\nUSING 120 s trials\n',...
@@ -203,7 +209,12 @@ for i_source = 1 : length(sources)
                         if isrow(time_emg)
                             time_emg = time_emg';
                         end
-
+                        
+                        % make directions
+                        emg_directions = cell(2, length(emg_labels));
+                        [emg_directions{1, :}] = deal('positive');
+                        [emg_directions{2, :}] = deal('negative');
+                        
                         % save emg data
                         save_folder = 'raw';
                         save_file_name = makeFileName(date, subject_id, trial_type, importing_trial_number, 'emgTrajectoriesRaw.mat');
@@ -214,20 +225,25 @@ for i_source = 1 : length(sources)
                             'time_emg', ...
                             'sampling_rate_emg', ...
                             'data_source', ...
-                            'emg_labels' ...
+                            'emg_labels', ...
+                            'emg_directions' ...
                             );
-                        addAvailableData('emg_trajectories_raw', 'time_emg', 'sampling_rate_emg', 'emg_labels', save_folder, save_file_name);
+                        addAvailableData_new('emg_trajectories_raw', 'time_emg', 'sampling_rate_emg', 'emg_labels', '_emg_directions', save_folder, save_file_name);
 
 
 
                         % Force data
                         %Force data are in qtm_data.Force(n).Force
                         data_type = 'forceplate';
-                        forceplate_tajectories_Left = [qtm_data.Force(1).Force(:,start_indices(i_trial_this_qtm_file):end_indices(i_trial_this_qtm_file))'...
-                            ,qtm_data.Force(1).Moment(:,start_indices(i_trial_this_qtm_file):end_indices(i_trial_this_qtm_file))'];
-                        forceplate_tajectories_Right = [qtm_data.Force(2).Force(:,start_indices(i_trial_this_qtm_file):end_indices(i_trial_this_qtm_file))',...
-                            qtm_data.Force(2).Moment(:,start_indices(i_trial_this_qtm_file):end_indices(i_trial_this_qtm_file))'];
-                        forceplate_trajectories_raw = [forceplate_tajectories_Left, forceplate_tajectories_Right];
+                        if any(qtm_data.Force(1).Force)
+                            forceplate_tajectories_Left = [qtm_data.Force(1).Force(:,start_indices(i_trial_this_qtm_file):end_indices(i_trial_this_qtm_file))'...
+                                ,qtm_data.Force(1).Moment(:,start_indices(i_trial_this_qtm_file):end_indices(i_trial_this_qtm_file))'];
+                            forceplate_tajectories_Right = [qtm_data.Force(2).Force(:,start_indices(i_trial_this_qtm_file):end_indices(i_trial_this_qtm_file))',...
+                                qtm_data.Force(2).Moment(:,start_indices(i_trial_this_qtm_file):end_indices(i_trial_this_qtm_file))'];
+                            forceplate_trajectories_raw = [forceplate_tajectories_Left, forceplate_tajectories_Right];
+                        else % currently taking volts... need to scale accordinginly
+                            forceplate_trajectories_raw = [qtm_data.Analog.Data(1:12,start_indices(i_trial_this_qtm_file):end_indices(i_trial_this_qtm_file))]';
+                        end
                         forceplate_labels = qtm_data.Analog.Labels(1:12);
                         forceplate_location_Acl = qtm_data.Force(1).ForcePlateLocation(4,:)/1000; % back left corner coordinates (m)
                         forceplate_location_Acr = qtm_data.Force(2).ForcePlateLocation(3,:)/1000; % back right corner coordinates (m)
@@ -236,6 +252,18 @@ for i_source = 1 : length(sources)
                         if isrow(time_forceplate)
                             time_forceplate = time_forceplate';
                         end
+                        
+                        % make directions
+                        % NOTE: this defines directions and makes assumptions, make sure everything is right here
+                        forceplate_directions = cell(2, length(forceplate_labels));
+                        [forceplate_directions{1, [1 4 7 10]}] = deal('right');
+                        [forceplate_directions{2, [1 4 7 10]}] = deal('left');
+                        [forceplate_directions{1, [2 5 8 11]}] = deal('forward');
+                        [forceplate_directions{2, [2 5 8 11]}] = deal('backward');
+                        [forceplate_directions{1, [3 6 9 12]}] = deal('up');
+                        [forceplate_directions{2, [3 6 9 12]}] = deal('down');
+                        [forceplate_directions{1, [13 15 17]}] = deal('right');
+                        [forceplate_directions{1, [14 16 18]}] = deal('left');
 
                         % save forceplate data
                         save_folder = 'raw';
@@ -249,9 +277,10 @@ for i_source = 1 : length(sources)
                             'time_forceplate', ...
                             'sampling_rate_forceplate', ...
                             'forceplate_location_Acl', ...    
-                            'forceplate_location_Acr' ...    
+                            'forceplate_location_Acr', ...    
+                            'forceplate_directions' ...
                             );
-                        addAvailableData('forceplate_trajectories_raw', 'time_forceplate', 'sampling_rate_forceplate', 'forceplate_labels', save_folder, save_file_name);
+                        addAvailableData_new('forceplate_trajectories_raw', 'time_forceplate', 'sampling_rate_forceplate', 'forceplate_labels', '_forceplate_directions', save_folder, save_file_name);
                         
                        
                         % Markers
@@ -288,6 +317,18 @@ for i_source = 1 : length(sources)
                         end
                         marker_trajectories_raw = marker_trajectories_raw';
                          
+                        % make directions
+                        % NOTE: this defines directions and makes assumptions, make sure everything is right here
+                        number_of_marker_trajectories = size(marker_trajectories_raw, 2);
+                        marker_directions = cell(2, number_of_marker_trajectories);
+                        [marker_directions{1, 1 : 3 : number_of_marker_trajectories}] = deal('right');
+                        [marker_directions{2, 1 : 3 : number_of_marker_trajectories}] = deal('left');
+                        [marker_directions{1, 2 : 3 : number_of_marker_trajectories}] = deal('forward');
+                        [marker_directions{2, 2 : 3 : number_of_marker_trajectories}] = deal('backward');
+                        [marker_directions{1, 3 : 3 : number_of_marker_trajectories}] = deal('up');
+                        [marker_directions{2, 3 : 3 : number_of_marker_trajectories}] = deal('down');
+
+                        
                         % save
                         save_folder = 'raw';
                         save_file_name = makeFileName(date, subject_id, trial_type, importing_trial_number, 'markerTrajectoriesRaw.mat');
@@ -298,9 +339,10 @@ for i_source = 1 : length(sources)
                             'time_mocap', ...
                             'data_source', ...
                             'sampling_rate_mocap', ...
-                            'marker_labels' ...
+                            'marker_labels', ...
+                            'marker_directions' ...
                             );
-                        addAvailableData('marker_trajectories_raw', 'time_mocap', 'sampling_rate_mocap', 'marker_labels', save_folder, save_file_name);
+                        addAvailableData_new('marker_trajectories_raw', 'time_mocap', 'sampling_rate_mocap', 'marker_labels', '_marker_directions', save_folder, save_file_name);
 
                         disp(['imported ' source_dir filesep data_file_name ' and saved as ' save_folder filesep save_file_name])
                     end

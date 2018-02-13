@@ -349,7 +349,12 @@ function preprocessRawData(varargin)
                         right_foot_cop_world = left_forceplate_cop_world;
                         right_foot_wrench_world = left_forceplate_wrench_world;
                     end
-                    
+                    if strcmp(data_source, 'qtm')
+                        left_foot_cop_world = left_forceplate_cop_world;
+                        left_foot_wrench_world = left_forceplate_wrench_world;
+                        right_foot_cop_world = right_forceplate_cop_world;
+                        right_foot_wrench_world = right_forceplate_wrench_world;
+                    end
                     % directions for wrench
                     wrench_directions = cell(2, 6);
                     [wrench_directions{1, [1 4]}] = deal('right');
