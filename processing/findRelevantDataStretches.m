@@ -388,7 +388,7 @@ function findRelevantDataStretches(varargin)
                 stance_foot_data = {'STANCE_BOTH', 'STANCE_BOTH', 'STANCE_LEFT'};
                 bands_per_stretch = length(stance_foot_data);
                 
-                init_time = right_pushoff_times(1) - 1;
+                init_time = right_pushoff_times(1) - 1; % assume heel-off happened at least one second before toes-off, so start looking at that point
                 end_time = right_touchdown_times(1);
                 unload_time = right_pushoff_times(1);
                 
@@ -404,7 +404,7 @@ function findRelevantDataStretches(varargin)
 %                 plot(cop_data_relevant(:, 1), cop_data_relevant(:, 2))
 %                 plot(cop_data_relevant(release_time_index_forceplate, 1), cop_data_relevant(release_time_index_forceplate, 2), 'x', 'linewidth', 2)
                 
-                stretch_start_times = right_pushoff_times(1) - 1;  % what is the -1 for? (TF)
+                stretch_start_times = right_pushoff_times(1) - 1; % HR: this is probably not right anymore
                 stretch_end_times = right_touchdown_times(1);
                 stretch_pushoff_times = 0;
                 condition_experimental_list = {condition_experimental};
