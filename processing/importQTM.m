@@ -112,27 +112,39 @@ for i_source = 1 : length(sources)
                    marker_labels = qtm_data.Trajectories.Labeled.Labels;
                    sampling_rate_mocap = qtm_data.FrameRate;
                    
-                   tempMarkers = qtm_data.Trajectories.Labeled.Data(...
-                      :,...
-                      1:3,...
-                      :) * millimeter_to_meter;
-                  
+                   tempMarkers = qtm_data.Trajectories.Labeled.Data ...
+                     (...
+                       :,...
+                       1:3,...
+                       : ...
+                     ) * millimeter_to_meter;
+                    
                     marker_count = 1;
                     marker_trajectories_raw = [];
                     for i_marker = 1: size(tempMarkers,1)
                         this_marker = tempMarkers(i_marker,:,:);
-                        marker_trajectories_raw(marker_count:marker_count+2,:) = reshape(this_marker, size(this_marker,2), size(this_marker,3)) * millimeter_to_meter; 
+                        marker_trajectories_raw(marker_count:marker_count+2,:) = reshape(this_marker, size(this_marker,2), size(this_marker,3));
                         marker_count = marker_count + 3;
                     end
-                    
                     marker_trajectories_raw = marker_trajectories_raw';
 
-                  time_mocap = (1 : length(marker_trajectories_raw)) / sampling_rate_mocap;
-                   if isrow(time_mocap)
-                       time_mocap = time_mocap';
-                   end
-                   
-                   % make directions
+                    time_mocap = (1 : length(marker_trajectories_raw)) / sampling_rate_mocap;
+                    if isrow(time_mocap)
+                        time_mocap = time_mocap';
+                    end
+                    
+                    % triplicate labels
+                    marker_labels_loaded = marker_labels;
+                    number_of_markers = length(marker_labels_loaded);
+                    marker_labels = cell(3, number_of_markers);
+                    for i_marker = 1 : length(marker_labels)
+                        marker_labels{1, i_marker} = [marker_labels_loaded{i_marker} '_x'];
+                        marker_labels{2, i_marker} = [marker_labels_loaded{i_marker} '_y'];
+                        marker_labels{3, i_marker} = [marker_labels_loaded{i_marker} '_z'];
+                    end
+                    marker_labels = reshape(marker_labels, 1, number_of_markers*3);
+                                
+                    % make directions
                     % NOTE: this defines directions and makes assumptions, make sure everything is right here
                     number_of_marker_trajectories = size(marker_trajectories_raw, 2);
                     marker_directions = cell(2, number_of_marker_trajectories);
@@ -268,8 +280,6 @@ for i_source = 1 : length(sources)
                         [forceplate_directions{2, [2 5 8 11]}] = deal('backward');
                         [forceplate_directions{1, [3 6 9 12]}] = deal('up');
                         [forceplate_directions{2, [3 6 9 12]}] = deal('down');
-                        [forceplate_directions{1, [13 15 17]}] = deal('right');
-                        [forceplate_directions{1, [14 16 18]}] = deal('left');
 
                         % save forceplate data
                         save_folder = 'raw';
@@ -323,6 +333,17 @@ for i_source = 1 : length(sources)
                         end
                         marker_trajectories_raw = marker_trajectories_raw';
                          
+                        % triplicate labels
+                        marker_labels_loaded = marker_labels;
+                        number_of_markers = length(marker_labels_loaded);
+                        marker_labels = cell(3, number_of_markers);
+                        for i_marker = 1 : length(marker_labels)
+                            marker_labels{1, i_marker} = [marker_labels_loaded{i_marker} '_x'];
+                            marker_labels{2, i_marker} = [marker_labels_loaded{i_marker} '_y'];
+                            marker_labels{3, i_marker} = [marker_labels_loaded{i_marker} '_z'];
+                        end
+                        marker_labels = reshape(marker_labels, 1, number_of_markers*3);
+                        
                         % make directions
                         % NOTE: this defines directions and makes assumptions, make sure everything is right here
                         number_of_marker_trajectories = size(marker_trajectories_raw, 2);
@@ -409,7 +430,16 @@ for i_source = 1 : length(sources)
                 
                 for i_variable = 1 : length(variables_to_save_list)
                     if ~checkDataAvailability(date, subject_id, trial_type, trial_number, variables_to_save_list{i_variable})
-                        addAvailableData(variables_to_save_list{i_variable}, 'time', 'sampling_rate', variables_to_save_list{i_variable}, save_folder, save_file_name);
+                        addAvailableData_new ...
+                          ( ...
+                            variables_to_save_list{i_variable}, ...
+                            'time', ...
+                            'sampling_rate', ...
+                            variables_to_save_list{i_variable}, ...
+                            {'~', '~'}, ... % placeholder for direction
+                            save_folder, ...
+                            save_file_name ...
+                          );
                     end
                 end
                 
