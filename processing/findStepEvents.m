@@ -31,7 +31,7 @@
 
 
 function findStepEvents(varargin)
-error('This function has not been updated to the new structure of data tracking yet and will not work as is!')
+% error('This function has not been updated to the new structure of data tracking yet and will not work as is!')
 
     % parse arguments
     [condition_list, trial_number_list] = parseTrialArguments(varargin{:});
@@ -67,35 +67,35 @@ error('This function has not been updated to the new structure of data tracking 
             [marker_trajectories, time_marker, sampling_rate_marker, marker_labels] = loadData(date, subject_id, condition, i_trial, 'marker_trajectories');
             [left_foot_wrench_world, time_left_forceplate, ~, ~, left_forceplate_available] = loadData(date, subject_id, condition, i_trial, 'left_foot_wrench_world', 'optional');
             [right_foot_wrench_world, time_right_forceplate, ~, ~, right_forceplate_available] = loadData(date, subject_id, condition, i_trial, 'right_foot_wrench_world', 'optional');
-            if left_forceplate_available && right_forceplate_available
+            if left_forceplate_available & right_forceplate_available
                 left_fz_trajectory = left_foot_wrench_world(:, 3);
                 right_fz_trajectory = right_foot_wrench_world(:, 3);
             end
 %             marker_trajectories_raw
             % extract data
-            LHEE_trajectory = extractMarkerTrajectories(marker_trajectories, marker_labels, 'LHEE');
+            LHEE_trajectory = extractMarkerData(marker_trajectories, marker_labels, 'LHEE', 'trajectories');
             LHEE_z_trajectory = LHEE_trajectory(:, 3);
-            LTOE_trajectory = extractMarkerTrajectories(marker_trajectories, marker_labels, 'LTOE');
+            LTOE_trajectory = extractMarkerData(marker_trajectories, marker_labels, 'LTOE', 'trajectories');
             LTOE_z_trajectory = LTOE_trajectory(:, 3);
             
-            RHEE_trajectory = extractMarkerTrajectories(marker_trajectories, marker_labels, 'RHEE');
+            RHEE_trajectory = extractMarkerData(marker_trajectories, marker_labels, 'RHEE', 'trajectories');
             RHEE_z_trajectory = RHEE_trajectory(:, 3);
-            RTOE_trajectory = extractMarkerTrajectories(marker_trajectories, marker_labels, 'RTOE');
+            RTOE_trajectory = extractMarkerData(marker_trajectories, marker_labels, 'RTOE', 'trajectories');
             RTOE_z_trajectory = RTOE_trajectory(:, 3);
             
-            LELB_trajectory = extractMarkerTrajectories(marker_trajectories, marker_labels, 'LELB');
-            LWRA_trajectory = extractMarkerTrajectories(marker_trajectories, marker_labels, 'LWRA');
-            LWRB_trajectory = extractMarkerTrajectories(marker_trajectories, marker_labels, 'LWRB');
-            RELB_trajectory = extractMarkerTrajectories(marker_trajectories, marker_labels, 'RELB');
-            RWRA_trajectory = extractMarkerTrajectories(marker_trajectories, marker_labels, 'RWRA');
-            RWRB_trajectory = extractMarkerTrajectories(marker_trajectories, marker_labels, 'RWRB');
+            LELB_trajectory = extractMarkerData(marker_trajectories, marker_labels, 'LELB', 'trajectories');
+            LWRA_trajectory = extractMarkerData(marker_trajectories, marker_labels, 'LWRA', 'trajectories');
+            LWRB_trajectory = extractMarkerData(marker_trajectories, marker_labels, 'LWRB', 'trajectories');
+            RELB_trajectory = extractMarkerData(marker_trajectories, marker_labels, 'RELB', 'trajectories');
+            RWRA_trajectory = extractMarkerData(marker_trajectories, marker_labels, 'RWRA', 'trajectories');
+            RWRB_trajectory = extractMarkerData(marker_trajectories, marker_labels, 'RWRB', 'trajectories');
             
-            LANK_trajectory = extractMarkerTrajectories(marker_trajectories, marker_labels, 'LANK');
-            LPSI_trajectory = extractMarkerTrajectories(marker_trajectories, marker_labels, 'LPSI');
-            LASI_trajectory = extractMarkerTrajectories(marker_trajectories, marker_labels, 'LASI');
-            RANK_trajectory = extractMarkerTrajectories(marker_trajectories, marker_labels, 'RANK');
-            RPSI_trajectory = extractMarkerTrajectories(marker_trajectories, marker_labels, 'RPSI');
-            RASI_trajectory = extractMarkerTrajectories(marker_trajectories, marker_labels, 'RASI');
+            LANK_trajectory = extractMarkerData(marker_trajectories, marker_labels, 'LANK', 'trajectories');
+            LPSI_trajectory = extractMarkerData(marker_trajectories, marker_labels, 'LPSI', 'trajectories');
+            LASI_trajectory = extractMarkerData(marker_trajectories, marker_labels, 'LASI', 'trajectories');
+            RANK_trajectory = extractMarkerData(marker_trajectories, marker_labels, 'RANK', 'trajectories');
+            RPSI_trajectory = extractMarkerData(marker_trajectories, marker_labels, 'RPSI', 'trajectories');
+            RASI_trajectory = extractMarkerData(marker_trajectories, marker_labels, 'RASI', 'trajectories');
             
             % calculate foot angle
             left_foot_vector = LTOE_trajectory - LHEE_trajectory;
@@ -326,79 +326,6 @@ error('This function has not been updated to the new structure of data tracking 
             variables_to_save.right_touchdown_times = right_touchdown_times;
             variables_to_save.right_fullstance_times = right_fullstance_times;
 
-            %% find events for angles
-%             % TODO: change conditionals to use a WalkingDataCustodian
-%             variables_to_analyze = study_settings.get('variables_to_analyze');
-%             if any(strcmp(variables_to_analyze(:, 1), 'left_arm_phase')) || any(strcmp(variables_to_analyze(:, 1), 'left_arm_right_leg_relative_phase'))
-%                 % calculate vectors
-%                 left_wrist_center_trajectory = (LWRA_trajectory + LWRB_trajectory) * 0.5;
-%                 left_arm_vector_trajectory = LELB_trajectory - left_wrist_center_trajectory;
-% 
-%                 % calculate angles
-%                 larm_angle = rad2deg(atan2(-left_arm_vector_trajectory(:, 2), left_arm_vector_trajectory(:, 3)));
-% 
-%                 % find negative peaks
-%                 [~, left_arm_swing_onset_indices] = findpeaks(-larm_angle, 'MinPeakProminence', subject_settings.get('left_armswing_peak_prominence_threshold'), 'MinPeakDistance', subject_settings.get('left_armswing_peak_distance_threshold') * sampling_rate_marker);
-%                 left_arm_swing_onset_times = time_marker(left_arm_swing_onset_indices);
-% 
-%                 % add new variables to be saved
-%                 variables_to_save.left_arm_swing_onset_times = left_arm_swing_onset_times;
-%             end
-%             if any(strcmp(variables_to_analyze(:, 1), 'right_arm_phase')) || any(strcmp(variables_to_analyze(:, 1), 'right_arm_left_leg_relative_phase'))
-%                 % calculate vectors
-%                 right_wrist_center_trajectory = (RWRA_trajectory + RWRB_trajectory) * 0.5;
-%                 right_arm_vector_trajectory = RELB_trajectory - right_wrist_center_trajectory;
-%                 
-%                 % calculate angles
-%                 rarm_angle = rad2deg(atan2(-right_arm_vector_trajectory(:, 2), right_arm_vector_trajectory(:, 3)));
-% 
-%                 % find negative peaks
-%                 [~, right_arm_swing_onset_indices] = findpeaks(-rarm_angle, 'MinPeakProminence', subject_settings.get('right_armswing_peak_prominence_threshold'), 'MinPeakDistance', subject_settings.get('right_armswing_peak_distance_threshold') * sampling_rate_marker);
-%                 right_arm_swing_onset_times = time_marker(right_arm_swing_onset_indices);
-% 
-%                 % add new variables to be saved
-%                 variables_to_save.right_arm_swing_onset_times = right_arm_swing_onset_times;
-%             end
-%             if any(strcmp(variables_to_analyze(:, 1), 'left_leg_phase')) || any(strcmp(variables_to_analyze(:, 1), 'left_arm_right_leg_relative_phase'))
-%                 % calculate vectors
-%                 left_pelvis_center_trajectory = (LPSI_trajectory + LASI_trajectory) * 0.5;
-%                 left_leg_vector_trajectory = left_pelvis_center_trajectory - LANK_trajectory;
-%                 
-%                 % calculate angles
-%                 lleg_angle = rad2deg(atan2(-left_leg_vector_trajectory(:, 2), left_leg_vector_trajectory(:, 3)));
-% 
-%                 % find negative peaks
-%                 [~, left_leg_swing_onset_indices] = findpeaks(-lleg_angle, 'MinPeakProminence', subject_settings.get('left_legswing_peak_prominence_threshold'), 'MinPeakDistance', subject_settings.get('left_legswing_peak_distance_threshold') * sampling_rate_marker);
-%                 left_leg_swing_onset_times = time_marker(left_leg_swing_onset_indices);
-% 
-%                 % add new variables to be saved
-%                 variables_to_save.left_leg_swing_onset_times = left_leg_swing_onset_times;
-%             end
-%             if any(strcmp(variables_to_analyze(:, 1), 'right_leg_phase')) || any(strcmp(variables_to_analyze(:, 1), 'right_arm_left_leg_relative_phase'))
-%                 % calculate vectors
-%                 right_pelvis_center_trajectory = (RPSI_trajectory + RASI_trajectory) * 0.5;
-%                 right_leg_vector_trajectory = right_pelvis_center_trajectory - RANK_trajectory;
-%                 
-%                 % calculate angles
-%                 rleg_angle = rad2deg(atan2(-right_leg_vector_trajectory(:, 2), right_leg_vector_trajectory(:, 3)));
-% 
-%                 % find negative peaks
-%                 [~, right_leg_swing_onset_indices] = findpeaks(-rleg_angle, 'MinPeakProminence', subject_settings.get('right_legswing_peak_prominence_threshold'), 'MinPeakDistance', subject_settings.get('right_legswing_peak_distance_threshold') * sampling_rate_marker);
-%                 right_leg_swing_onset_times = time_marker(right_leg_swing_onset_indices);
-% 
-%                 % add new variables to be saved
-%                 variables_to_save.right_leg_swing_onset_times = right_leg_swing_onset_times;
-%             end
-%             
-% 
-
-            
-            % normalize
-%             larm_angle_normalized = normalizePeriodicVariable(larm_angle, left_arm_peak_locations);
-%             rarm_angle_normalized = normalizePeriodicVariable(rarm_angle, right_arm_peak_locations);
-%             lleg_angle_normalized = normalizePeriodicVariable(lleg_angle, left_leg_peak_locations);
-%             rleg_angle_normalized = normalizePeriodicVariable(rleg_angle, right_leg_peak_locations);
-            
             %% visualize
             color_heelstrike = [1 0 0];
             color_pushoff = [0 1 0];
@@ -410,7 +337,7 @@ error('This function has not been updated to the new structure of data tracking 
 
 
 
-            if left_forceplate_available && right_forceplate_available
+            if left_forceplate_available & right_forceplate_available
                 left_fz_trajectory_marker = spline(time_left_forceplate, left_fz_trajectory, time_marker);
                 right_fz_trajectory_marker = spline(time_right_forceplate, right_fz_trajectory, time_marker);
             end
