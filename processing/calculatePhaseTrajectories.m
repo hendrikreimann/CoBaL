@@ -137,24 +137,14 @@ function calculatePhaseTrajectories(varargin)
 
             % calculate phase
             left_leg_phase = atan2(-lleg_angle_ap_dot_normalized, lleg_angle_ap_normalized);
-
-
-            
+     
             % set ignore markers for NaNs
             if strcmp(subject_id, '101')
-                right_arm_angle_ap = zeros(length(right_arm_angle_ap),1);
-                right_arm_phase = zeros(length(right_arm_angle_ap),1);
-                
-                left_arm_angle_ap = zeros(length(right_arm_angle_ap),1);
-                left_arm_phase = zeros(length(right_arm_angle_ap),1);
-                
-                left_leg_angle_ap = zeros(length(right_arm_angle_ap),1);
-                left_leg_phase = zeros(length(right_arm_angle_ap),1);
-                 
-                right_leg_angle_ap = zeros(length(right_arm_angle_ap),1);
+                right_arm_phase = zeros(length(right_arm_angle_ap),1);               
+                left_arm_phase = zeros(length(right_arm_angle_ap),1);             
+                left_leg_phase = zeros(length(right_arm_angle_ap),1);             
                 right_leg_phase = zeros(length(right_arm_angle_ap),1);
             end
-            
             
             % add new variables to be saved
             variables_to_save.left_arm_angle_ap = left_arm_angle_ap;
