@@ -110,17 +110,25 @@ function [data_folder_list, subject_list] = determineDataStructure(subjects)
                 folder_list = dir_name(dir_flags);
                 % remove pointers to upper level directories
                 folder_list(1:2) = [];
+                
+                % remove figure folder within subject folder
+                if any(strcmp(folder_list, 'figures'))
+                    figure_folder_index = strcmp(folder_list, 'figures');
+                    folder_list(figure_folder_index) = [];
+                end
 
                 % store data folders in lists
                 number_of_data_folders = length(folder_list);
                 path_split = strsplit(subject_path, filesep);
                 subject = path_split{end};
-                subject_list = cell(number_of_data_folders, 1);
-                data_folder_list = cell(number_of_data_folders, 1);
+%                 subject_list = cell(number_of_data_folders, 1);
+%                 data_folder_list = cell(number_of_data_folders, 1);
                 for i_folder = 1 : number_of_data_folders
-                    subject_list{i_folder} = subject;
-                    data_folder_list{i_folder} = [subject_path filesep folder_list{i_folder}];
-                end                
+                    this_subject_list{i_folder} = subject;
+                    this_data_folder_list{i_folder} = [subject_path filesep folder_list{i_folder}];
+                end              
+                subject_list = [subject_list; this_subject_list'];
+                data_folder_list = [data_folder_list; this_data_folder_list'];
             end
         end
     end
