@@ -25,7 +25,7 @@
 
 % pushoff_times is a legacy variable which might disappear soon
 
-% TODO: stimulus type 'NONE' has not been updated to the new structure yet. This matters for ArmSense
+% stimulus_condition dictates the appropriate relevant data stretches
 
 % input: 
 % - subjectInfo.mat
@@ -450,13 +450,13 @@ function findRelevantDataStretches(varargin)
                 if left_touchdown_times(1) <= right_touchdown_times(1)
                     stretch_starter_events = right_touchdown_times;
                     band_delimiter_events = left_touchdown_times;
-                    first_stance_foot = 'STANCE_RIGHT';
-                    second_stance_foot = 'STANCE_LEFT';
+                    first_stance_foot = 'STANCE_LEFT';
+                    second_stance_foot = 'STANCE_RIGHT';
                 else
                     stretch_starter_events = left_touchdown_times;
                     band_delimiter_events = right_touchdown_times;
-                    first_stance_foot = 'STANCE_LEFT';
-                    second_stance_foot = 'STANCE_RIGHT';
+                    first_stance_foot = 'STANCE_RIGHT';
+                    second_stance_foot = 'STANCE_LEFT';
                 end                    
 
                 % go through events and take stretches
@@ -464,7 +464,14 @@ function findRelevantDataStretches(varargin)
                 stance_foot_data = {};
                 condition_experimental_list = {};
                 condition_startfoot_list = {};
-                for i_event = 1 : length(stretch_starter_events) - 1
+                % determine stride id start index
+                strides_to_identify = study_settings.get('number_of_strides');
+                if strides_to_identify == 1
+                    stride_start_index = 2;
+                else
+                    stride_start_index = 1;
+                end
+                for i_event = stride_start_index : length(stretch_starter_events) - 1
                     this_stretch_start = stretch_starter_events(i_event);
                     this_stretch_end = stretch_starter_events(i_event+1);
                     band_delimiter = min(band_delimiter_events(band_delimiter_events>this_stretch_start));

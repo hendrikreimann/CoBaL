@@ -147,50 +147,66 @@ function calculatePhaseTrajectories(varargin)
             end
             
             % add new variables to be saved
+            variables_to_save.right_arm_angle_ap = right_arm_angle_ap;
+            variables_to_save.left_leg_angle_ap = left_leg_angle_ap;            
             variables_to_save.left_arm_angle_ap = left_arm_angle_ap;
-            variables_to_save.left_arm_phase = left_arm_phase;
             variables_to_save.right_leg_angle_ap = right_leg_angle_ap;
-            variables_to_save.right_leg_phase = right_leg_phase;
+            
+            addAvailableData_new('right_arm_angle_ap', 'time_mocap', 'sampling_rate_mocap', 'Right Arm Angle (A/P)', {'+', '-'}, save_folder, save_file_name);
+            addAvailableData_new('left_leg_angle_ap', 'time_mocap', 'sampling_rate_mocap', 'Left Leg Angle (A/P)', {'+', '-'}, save_folder, save_file_name);           
             addAvailableData_new('left_arm_angle_ap', 'time_mocap', 'sampling_rate_mocap', 'Left Arm Angle (A/P)', {'+', '-'}, save_folder, save_file_name);
             addAvailableData_new('right_leg_angle_ap', 'time_mocap', 'sampling_rate_mocap', 'Right Leg Angle (A/P)', {'+', '-'}, save_folder, save_file_name);
-            addAvailableData_new('left_arm_phase', 'time_mocap', 'sampling_rate_mocap', 'Left Arm Phase', {'+', '-'}, save_folder, save_file_name);
-            addAvailableData_new('right_leg_phase', 'time_mocap', 'sampling_rate_mocap', 'Right Leg Phase', {'+', '-'}, save_folder, save_file_name);
-            variables_to_save.right_arm_angle_ap = right_arm_angle_ap;
-            variables_to_save.right_arm_phase = right_arm_phase;
-            variables_to_save.left_leg_angle_ap = left_leg_angle_ap;
-            variables_to_save.left_leg_phase = left_leg_phase;
-            addAvailableData_new('right_arm_angle_ap', 'time_mocap', 'sampling_rate_mocap', 'Right Arm Angle (A/P)', {'+', '-'}, save_folder, save_file_name);
-            addAvailableData_new('right_arm_phase', 'time_mocap', 'sampling_rate_mocap', 'Right Arm Phase', {'+', '-'}, save_folder, save_file_name);
-            addAvailableData_new('left_leg_angle_ap', 'time_mocap', 'sampling_rate_mocap', 'Left Leg Angle (A/P)', {'+', '-'}, save_folder, save_file_name);
-            addAvailableData_new('left_leg_phase', 'time_mocap', 'sampling_rate_mocap', 'Left Leg Phase', {'+', '-'}, save_folder, save_file_name);
-
+            
+            if any(strcmp(stretch_variables, 'left_arm_phase'))
+                variables_to_save.left_arm_phase = left_arm_phase;
+                addAvailableData_new('left_arm_phase', 'time_mocap', 'sampling_rate_mocap', 'Left Arm Phase', {'+', '-'}, save_folder, save_file_name);
+            end
+            
+            if any(strcmp(stretch_variables, 'right_leg_phase'))
+                variables_to_save.right_leg_phase = right_leg_phase;
+                addAvailableData_new('right_leg_phase', 'time_mocap', 'sampling_rate_mocap', 'Right Leg Phase', {'+', '-'}, save_folder, save_file_name);
+            end
+            
+            if any(strcmp(stretch_variables, 'right_arm_phase'))
+                variables_to_save.right_arm_phase = right_arm_phase;
+                addAvailableData_new('right_arm_phase', 'time_mocap', 'sampling_rate_mocap', 'Right Arm Phase', {'+', '-'}, save_folder, save_file_name);
+            end
+            if any(strcmp(stretch_variables, 'left_leg_phase'))
+                variables_to_save.left_leg_phase = left_leg_phase; 
+                addAvailableData_new('left_leg_phase', 'time_mocap', 'sampling_rate_mocap', 'Left Leg Phase', {'+', '-'}, save_folder, save_file_name);
+            end
+            
             variables_to_save.sampling_rate_mocap = sampling_rate_mocap;
             variables_to_save.time_mocap = time_mocap; 
             saveDataToFile([save_folder filesep save_file_name], variables_to_save);
-                    
-            if any(isnan(left_leg_phase)) || any(isnan(left_leg_angle_ap)) || any(isnan(left_arm_phase)) || any(isnan(left_arm_angle_ap)) || any(isnan(right_leg_phase)) || any(isnan(right_leg_angle_ap)) || any(isnan(right_arm_phase)) || any(isnan(right_arm_angle_ap))
-                left_leg_ignore_indices = find(isnan(left_leg_phase));
-                left_arm_ignore_indices = find(isnan(left_arm_phase));
-                right_leg_ignore_indices = find(isnan(right_leg_phase));
-                right_arm_ignore_indices = find(isnan(right_arm_phase));
-                all_ignore_indices = unique([left_leg_ignore_indices; right_leg_ignore_indices; left_arm_ignore_indices; right_arm_ignore_indices]);
+            
+            if any(ismember(stretch_variables, {'left_arm_phase', 'right_leg_phase', 'right_arm_phase', 'left_leg_phase'}))
+                if any(isnan(left_leg_phase)) || any(isnan(left_leg_angle_ap)) || any(isnan(left_arm_phase)) || any(isnan(left_arm_angle_ap)) || any(isnan(right_leg_phase)) || any(isnan(right_leg_angle_ap)) || any(isnan(right_arm_phase)) || any(isnan(right_arm_angle_ap))
+                    left_leg_ignore_indices = find(isnan(left_leg_phase));
+                    left_arm_ignore_indices = find(isnan(left_arm_phase));
+                    right_leg_ignore_indices = find(isnan(right_leg_phase));
+                    right_arm_ignore_indices = find(isnan(right_arm_phase));
+                    all_ignore_indices = unique([left_leg_ignore_indices; right_leg_ignore_indices; left_arm_ignore_indices; right_arm_ignore_indices]);
 
-                stepEvent_file_name = makeFileName(date, subject_id, condition_list{i_condition}, i_trial, 'stepEvents.mat');
-                % just to grab ignore_times.. is there a way to specifiy
-                % this variable and no others?
-                load(['analysis' filesep stepEvent_file_name]);
+                    stepEvent_file_name = makeFileName(date, subject_id, condition_list{i_condition}, i_trial, 'stepEvents.mat');
+                    % just to grab ignore_times.. is there a way to specifiy
+                    % this variable and no others?
+                    load(['analysis' filesep stepEvent_file_name]);
 
-                if ~exist('ignore_times', 'var')
-                   ignore_times = [];
+                    if ~exist('ignore_times', 'var')
+                       ignore_times = [];
+                    end
+
+                    stretches_to_ignore = struct;
+                    this_ignore_times = time_mocap(all_ignore_indices);
+                    ignore_times = [ignore_times; this_ignore_times];
+                    stretches_to_ignore.ignore_times = sort(ignore_times);
+                    saveDataToFile(['analysis' filesep stepEvent_file_name], stretches_to_ignore)
+                    findRelevantDataStretches('condition',condition_list{i_condition}, 'trial', i_trial)
+                    % add a display for how many stretches were removed as a
+                    % result of Nans formed in phase variables
+                    clear('ignore_times');
                 end
-
-                stretches_to_ignore = struct;
-                this_ignore_times = time_mocap(all_ignore_indices);
-                ignore_times = [ignore_times; this_ignore_times];
-                stretches_to_ignore.ignore_times = sort(ignore_times);
-                saveDataToFile(['analysis' filesep stepEvent_file_name], stretches_to_ignore)
-                findRelevantDataStretches('condition',condition_list{i_condition}, 'trial', i_trial)
-                clear('ignore_times');
             end
            
            disp(['Finding Phase Trajectories: Trial ', num2str(i_trial), ' completed',  ' relevant stretches, saved as ', save_file_name]);                
