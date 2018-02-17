@@ -94,6 +94,9 @@ function plotResults(varargin)
     data_folder_list = determineDataStructure(subjects);
     variables_to_plot = plot_settings.get('variables_to_plot');
     number_of_variables_to_plot = size(variables_to_plot, 1);
+    if size(variables_to_plot, 2) < 9
+        error('Entries missing in variables_to_plot in plot settings file.');
+    end
     condition_data_all = {};
     origin_trial_list_all = [];
     origin_start_time_list_all = [];
@@ -120,48 +123,59 @@ function plotResults(varargin)
         for i_condition = 1 : number_of_condition_labels
             condition_array_session(:, i_condition) = conditions_session.(condition_source_variables{i_condition});
         end
-        labels_to_ignore = plot_settings.get('conditions_to_ignore');
-        levels_to_remove = plot_settings.get('levels_to_remove');
-        [condition_combination_labels, condition_combinations_stimulus, condition_combinations_control] = determineConditionCombinations(condition_array_session, conditions_settings, labels_to_ignore, levels_to_remove);
-        condition_combinations_control_unique = table2cell(unique(cell2table(condition_combinations_control), 'rows'));
+%         labels_to_ignore = plot_settings.get('conditions_to_ignore');
+%         levels_to_remove = plot_settings.get('levels_to_remove');
+%         [~, ~, condition_combinations_control] = determineConditionCombinations(condition_array_session, conditions_settings, labels_to_ignore, levels_to_remove);
+%         condition_combinations_control_unique = table2cell(unique(cell2table(condition_combinations_control), 'rows'));
         
-%         % append data from this subject to containers for all subjects
-%         condition_data_session = cell(number_of_stretches_this_session, number_of_condition_labels);
-%         for i_label = 1 : length(condition_labels)
-%             % check if this is subject
-%             if strcmp(condition_labels{i_label}, 'subject')
-%                 condition_data_session(:, i_label) = {subject_id};
-%             else
-%                 eval(['data_this_condition = ' condition_source_variables{i_label} '_session;']);
-%                 condition_data_session(:, i_label) = data_this_condition;
-%             end
-%         end
         condition_data_all = [condition_data_all; condition_array_session]; %#ok<AGROW>
         origin_trial_list_all = [origin_trial_list_all; loaded_data.origin_trial_list_session]; %#ok<AGROW>
         origin_start_time_list_all = [origin_start_time_list_all; loaded_data.origin_start_time_list_session]; %#ok<AGROW>
         origin_end_time_list_all = [origin_end_time_list_all; loaded_data.origin_end_time_list_session]; %#ok<AGROW>
         
         
-        if strcmp(data_source, 'stretch')
-            names_session = loaded_data.stretch_names_session;
-            data_session = loaded_data.stretch_data_session;
-        elseif strcmp(data_source, 'response')
-            names_session = loaded_data.response_names_session;
-            data_session = loaded_data.response_data_session;
-        elseif strcmp(data_source, 'analysis')
-            names_session = loaded_data.analysis_names_session;
-            data_session = loaded_data.analysis_data_session;
+        if any(strcmp(variables_to_plot(:, 2), 'stretch'))
+            stretch_names_session = loaded_data.stretch_names_session;
+            stretch_data_session = loaded_data.stretch_data_session;
+        end
+        if any(strcmp(variables_to_plot(:, 2), 'response'))
+            response_names_session = loaded_data.response_names_session;
+            response_data_session = loaded_data.response_data_session;
+        end
+        if any(strcmp(variables_to_plot(:, 2), 'analysis'))
+            analysis_names_session = loaded_data.analysis_names_session;
+            analysis_data_session = loaded_data.analysis_data_session;
         end
         for i_variable = 1 : number_of_variables_to_plot
             % load and extract data
             this_variable_name = variables_to_plot{i_variable, 1};
-            index_in_saved_data = find(strcmp(names_session, this_variable_name), 1, 'first');
+            this_variable_source = variables_to_plot{i_variable, 2};
+            if strcmp(this_variable_source, 'stretch')
+                index_in_saved_data = find(strcmp(stretch_names_session, this_variable_name), 1, 'first');
+            end
+            if strcmp(this_variable_source, 'response')
+                index_in_saved_data = find(strcmp(response_names_session, this_variable_name), 1, 'first');
+            end
+            if strcmp(this_variable_source, 'analysis')
+                index_in_saved_data = find(strcmp(analysis_names_session, this_variable_name), 1, 'first');
+            end
             
             if isempty(index_in_saved_data)
                 error(['Data not found: ' this_variable_name])
             end
             
-            this_variable_data = data_session{index_in_saved_data};
+            if strcmp(this_variable_source, 'stretch')
+                this_variable_data = stretch_data_session{index_in_saved_data};
+            end
+            if strcmp(this_variable_source, 'response')
+                this_variable_data = response_data_session{index_in_saved_data};
+            end
+            if strcmp(this_variable_source, 'analysis')
+                this_variable_data = analysis_data_session{index_in_saved_data};
+            end
+            
+            
+            
             if plot_settings.get('convert_to_mm') & (strcmp(this_variable_name,'cop_from_com_x') | strcmp(this_variable_name, 'step_placement_x'))
                 this_variable_data = this_variable_data * 1000;
             end
