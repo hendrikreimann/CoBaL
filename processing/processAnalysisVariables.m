@@ -268,11 +268,16 @@ function processAnalysisVariables(varargin)
 
             average_step_time = mean(reshape(this_variable_source_data, 1, length(this_variable_source_data)*2));
             for i_stretch = 1:  length(this_variable_source_data)
-                % check the left vs right... this might actually swap
-                % depending on which foot started. 
-                this_left_step_time = this_variable_source_data(1,i_stretch);
-                this_right_step_time = this_variable_source_data(2,i_stretch);
-                
+                % find the left and right stance data
+                if strcmp(condition_data_all(i_stretch,3), 'STANCE_LEFT')
+                    left_step_index = 2;
+                    right_step_index = 1;
+                else
+                    left_step_index = 1;
+                    right_step_index = 2;
+                end
+                this_left_step_time = this_variable_source_data(left_step_index,i_stretch);
+                this_right_step_time = this_variable_source_data(right_step_index,i_stretch);
                 this_variable_data(1:2,i_stretch) = this_left_step_time - this_right_step_time / average_step_time;
             end
         end
