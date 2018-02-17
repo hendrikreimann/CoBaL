@@ -16,6 +16,7 @@
 
 function condition_combinations_stimulus_sorted = sortConditionCombinations(condition_combinations_stimulus, condition_combination_labels, condition_to_compare, preferred_level_order)
     % if nothing was specified, do nothing
+    condition_combinations_stimulus_sorted = condition_combinations_stimulus;
     if isempty(preferred_level_order)
         return
     end
