@@ -255,11 +255,10 @@ function processAnalysisVariables(varargin)
         [analysis_data_session, analysis_names_session] = addOrOverwriteData(analysis_data_session, analysis_names_session, this_variable_data, this_variable_name);
     end
 
+    %% process variables where something specific happens for each variable
     special_variables_to_calculate = study_settings.get('analysis_variables_special');
     for i_variable = 1:size(special_variables_to_calculate, 1)
         this_variable_name = special_variables_to_calculate{i_variable, 1};
-        this_variable_source_name_trigger = special_variables_to_calculate{i_variable, 3};
-        this_variable_source_name_triggerRight = special_variables_to_calculate{i_variable, 4};
         this_variable_source_name = special_variables_to_calculate{i_variable, 2};
         
         if strcmp(this_variable_name, 'step_symmetry_index')
