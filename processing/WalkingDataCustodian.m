@@ -2437,63 +2437,78 @@ classdef WalkingDataCustodian < handle
                     this.time_data.mz = this.time_data.total_forceplate_wrench_world;
                 end
                 % emg
+                % TODO: added directions, but didn't test yet
                 if strcmp(variable_name, 'left_glut_med')
                     this.basic_variable_data.left_glut_med = this.basic_variable_data.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'left_glut_med'));
+                    this.basic_variable_directions.left_glut_med = this.basic_variable_directions.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'left_glut_med'));
                     this.time_data.left_glut_med = this.time_data.emg_trajectories;
                 end
                 if strcmp(variable_name, 'left_delt_ant')
                     this.basic_variable_data.left_delt_ant = this.basic_variable_data.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'left_delt_ant'));
+                    this.basic_variable_directions.left_delt_ant = this.basic_variable_directions.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'left_delt_ant'));
                     this.time_data.left_delt_ant = this.time_data.emg_trajectories;
                 end
                 if strcmp(variable_name, 'left_tibi_ant')
                     this.basic_variable_data.left_tibi_ant = this.basic_variable_data.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'left_tibi_ant'));
+                    this.basic_variable_directions.left_tibi_ant = this.basic_variable_directions.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'left_tibi_ant'));
                     this.time_data.left_tibi_ant = this.time_data.emg_trajectories;
                 end
                 if strcmp(variable_name, 'left_gastroc_med')
                     this.basic_variable_data.left_gastroc_med = this.basic_variable_data.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'left_gastroc_med'));
+                    this.basic_variable_directions.left_gastroc_med = this.basic_variable_directions.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'left_gastroc_med'));
                     this.time_data.left_gastroc_med = this.time_data.emg_trajectories;
                 end
                 if strcmp(variable_name, 'left_pero_lng')
                     this.basic_variable_data.left_pero_lng = this.basic_variable_data.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'left_pero_lng'));
+                    this.basic_variable_directions.left_pero_lng = this.basic_variable_directions.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'left_pero_lng'));
                     this.time_data.left_pero_lng = this.time_data.emg_trajectories;
                 end
                 if strcmp(variable_name, 'left_tfl')
                     if any(strcmp(this.basic_variable_labels.emg_trajectories, 'left_tfl'))
                         this.basic_variable_data.left_tfl = this.basic_variable_data.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'left_tfl'));
+                        this.basic_variable_directions.left_tfl = this.basic_variable_directions.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'left_tfl'));
                         this.time_data.left_tfl = this.time_data.emg_trajectories;
                     else
                         this.time_data.left_tfl = this.time_data.emg_trajectories;
                         this.basic_variable_data.left_tfl = this.time_data.emg_trajectories * NaN;
+                        this.basic_variable_directions.left_tfl = {'N/A', 'N/A'};
                         disp(['Warning: variable ''' variable_name ''' not available, used NaN as data']);
                     end
                 end
                 if strcmp(variable_name, 'right_glut_med')
                     this.basic_variable_data.right_glut_med = this.basic_variable_data.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'right_glut_med'));
+                    this.basic_variable_directions.right_glut_med = this.basic_variable_directions.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'right_glut_med'));
                     this.time_data.right_glut_med = this.time_data.emg_trajectories;
                 end
                 if strcmp(variable_name, 'right_delt_ant')
                     this.basic_variable_data.right_delt_ant = this.basic_variable_data.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'right_delt_ant'));
+                    this.basic_variable_directions.right_delt_ant = this.basic_variable_directions.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'right_delt_ant'));
                     this.time_data.right_delt_ant = this.time_data.emg_trajectories;
                 end
                 if strcmp(variable_name, 'right_tibi_ant')
                     this.basic_variable_data.right_tibi_ant = this.basic_variable_data.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'right_tibi_ant'));
+                    this.basic_variable_directions.right_tibi_ant = this.basic_variable_directions.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'right_tibi_ant'));
                     this.time_data.right_tibi_ant = this.time_data.emg_trajectories;
                 end
                 if strcmp(variable_name, 'right_gastroc_med')
                     this.basic_variable_data.right_gastroc_med = this.basic_variable_data.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'right_gastroc_med'));
+                    this.basic_variable_directions.right_gastroc_med = this.basic_variable_directions.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'right_gastroc_med'));
                     this.time_data.right_gastroc_med = this.time_data.emg_trajectories;
                 end
                 if strcmp(variable_name, 'right_pero_lng')
                     this.basic_variable_data.right_pero_lng = this.basic_variable_data.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'right_pero_lng'));
+                    this.basic_variable_directions.right_pero_lng = this.basic_variable_directions.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'right_pero_lng'));
                     this.time_data.right_pero_lng = this.time_data.emg_trajectories;
                 end
                 if strcmp(variable_name, 'right_tfl')
                     if any(strcmp(this.basic_variable_labels.emg_trajectories, 'left_tfl'))
                         this.basic_variable_data.right_tfl = this.basic_variable_data.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'right_tfl'));
+                        this.basic_variable_directions.right_tfl = this.basic_variable_directions.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'right_tfl'));
                         this.time_data.right_tfl = this.time_data.emg_trajectories;
                     else
                         this.time_data.right_tfl = this.time_data.emg_trajectories;
                         this.basic_variable_data.right_tfl = this.time_data.emg_trajectories * NaN;
+                        this.basic_variable_directions.right_tfl = {'N/A', 'N/A'};
                         disp(['Warning: variable ''' variable_name ''' not available, used NaN as data']);
                     end
                 end
