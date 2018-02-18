@@ -445,65 +445,100 @@ function findRelevantDataStretches(varargin)
                         condition_experimental = 'post4';
                     end
                 end
-
-                % determine first stance foot
-                if left_touchdown_times(1) <= right_touchdown_times(1)
-                    stretch_starter_events = right_touchdown_times;
-                    band_delimiter_events = left_touchdown_times;
-                    first_stance_foot = 'STANCE_LEFT';
-                    second_stance_foot = 'STANCE_RIGHT';
-                else
-                    stretch_starter_events = left_touchdown_times;
-                    band_delimiter_events = right_touchdown_times;
-                    first_stance_foot = 'STANCE_RIGHT';
-                    second_stance_foot = 'STANCE_LEFT';
-                end                    
-
-                % go through events and take stretches
-                stretch_times = [];
-                stance_foot_data = {};
-                condition_experimental_list = {};
-                condition_startfoot_list = {};
-                % determine stride id start index
-                strides_to_identify = study_settings.get('number_of_strides');
-                if strides_to_identify == 1
-                    stride_start_index = 2;
-                else
-                    stride_start_index = 1;
+                    
+                % determine stride identification type
+                stride_identification = study_settings.get('stride_identification');
+                if strcmp(stride_identification, 'step_4-step_5')
+                   if left_touchdown_times(1) <= right_touchdown_times(1)
+                        this_stretch_start = right_touchdown_times(2);
+                        this_stretch_end = right_touchdown_times(3);
+                        band_delimiter = left_touchdown_times(3);
+                        first_stance_foot = 'STANCE_RIGHT';
+                        second_stance_foot = 'STANCE_LEFT';
+                   else
+                        this_stretch_start = left_touchdown_times(2);
+                        this_stretch_end = left_touchdown_times(3);
+                        band_delimiter = right_touchdown_times(3);
+                        first_stance_foot = 'STANCE_LEFT';
+                        second_stance_foot = 'STANCE_RIGHT';
+                   end
+                    % go through events and take stretches
+                    stretch_times = [];
+                    stance_foot_data = {};
+                    condition_experimental_list = {};
+                    condition_startfoot_list = {};
+    
+                    
+                    stretch_times = [this_stretch_start, band_delimiter, this_stretch_end];
+                    stance_foot_data = {first_stance_foot, first_stance_foot};
+                    condition_experimental_list = condition_experimental;
+                    condition_startfoot_list = {first_stance_foot; second_stance_foot};
+                    bands_per_stretch = 2;
+                    
+                    % fill in stuff
+                    number_of_stretches = size(stretch_times, 1);
+                    stretch_pushoff_times = zeros(size(stretch_times));
+                    if isempty(stretch_times)
+                        stretch_start_times = [];
+                        stretch_end_times = [];
+                    else
+                        stretch_start_times = stretch_times(:, 1);
+                        stretch_end_times = stretch_times(:, end);
+                    end
                 end
-                for i_event = stride_start_index : length(stretch_starter_events) - 1
-                    this_stretch_start = stretch_starter_events(i_event);
-                    this_stretch_end = stretch_starter_events(i_event+1);
-                    band_delimiter = min(band_delimiter_events(band_delimiter_events>this_stretch_start));
-                    % check if we have a valid stretch
-                    if ~isempty(band_delimiter) && band_delimiter < this_stretch_end
-                        this_stretch = [this_stretch_start band_delimiter this_stretch_end];
-                        stretch_times = [stretch_times; this_stretch];
-                        stance_foot_data = [stance_foot_data; {first_stance_foot, second_stance_foot}];
-                        condition_startfoot_list = [condition_startfoot_list; first_stance_foot];
-                        condition_experimental_list = [condition_experimental_list; condition_experimental];
+                if strcmp(stride_identification, 'all_but_first') 
+                    % determine first stance foot
+                    if left_touchdown_times(1) <= right_touchdown_times(1)
+                        stretch_starter_events = left_touchdown_times;
+                        band_delimiter_events = right_touchdown_times;
+                        first_stance_foot = 'STANCE_RIGHT';
+                        second_stance_foot = 'STANCE_LEFT';
+                    else
+                        stretch_starter_events = right_touchdown_times;
+                        band_delimiter_events = left_touchdown_times;
+                        first_stance_foot = 'STANCE_LEFT';
+                        second_stance_foot = 'STANCE_RIGHT';
+                    end                    
+
+                    % go through events and take stretches
+                    stretch_times = [];
+                    stance_foot_data = {};
+                    condition_experimental_list = {};
+                    condition_startfoot_list = {};
+
+                    for i_event = 1 : length(stretch_starter_events) - 1
+                        this_stretch_start = stretch_starter_events(i_event);
+                        this_stretch_end = stretch_starter_events(i_event+1);
+                        band_delimiter = min(band_delimiter_events(band_delimiter_events>this_stretch_start));
+                        % check if we have a valid stretch
+                        if ~isempty(band_delimiter) && band_delimiter < this_stretch_end
+                            this_stretch = [this_stretch_start band_delimiter this_stretch_end];
+                            stretch_times = [stretch_times; this_stretch];
+                            stance_foot_data = [stance_foot_data; {first_stance_foot, second_stance_foot}];
+                            condition_startfoot_list = [condition_startfoot_list; first_stance_foot];
+                            condition_experimental_list = [condition_experimental_list; condition_experimental];
+                        end
+
                     end
 
-                end
+                    if strcmp(this_trial_type(end-1:end), 'OG')
+                        % remove all but first two stretches
+                        stretch_times(3:end, :) = [];
+                    end
 
-                if strcmp(this_trial_type(end-1:end), 'OG')
-                    % remove all but first two stretches
-                    stretch_times(3:end, :) = [];
+                    % fill in stuff
+                    number_of_stretches = size(stretch_times, 1);
+                    stretch_pushoff_times = zeros(size(stretch_times));
+                    if isempty(stretch_times)
+                        stretch_start_times = [];
+                        stretch_end_times = [];
+                    else
+                        stretch_start_times = stretch_times(:, 1);
+                        stretch_end_times = stretch_times(:, end);
+                    end
+
+                    bands_per_stretch = 2;
                 end
-                
-                % fill in stuff
-                number_of_stretches = size(stretch_times, 1);
-                stretch_pushoff_times = zeros(size(stretch_times));
-                if isempty(stretch_times)
-                    stretch_start_times = [];
-                    stretch_end_times = [];
-                else
-                    stretch_start_times = stretch_times(:, 1);
-                    stretch_end_times = stretch_times(:, end);
-                end
-                                
-                bands_per_stretch = 2;
-                
                 % restructure for saving
                 conditions_trial = struct;
                 conditions_trial.condition_experimental_list = condition_experimental_list;
