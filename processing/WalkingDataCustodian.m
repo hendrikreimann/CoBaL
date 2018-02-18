@@ -117,7 +117,7 @@ classdef WalkingDataCustodian < handle
         function addStretchVariable(this, variable_name)
             if ~any(strcmp(this.stretch_variable_names, variable_name))
                 this.stretch_variable_names = [this.stretch_variable_names; variable_name];
-                this.stretch_variable_directions = [this.stretch_variable_directions; 'TBD'];
+                this.stretch_variable_directions = [this.stretch_variable_directions; {'TBD', 'TBD'}];
             end
         end
         function determineVariables(this)
@@ -3032,15 +3032,15 @@ classdef WalkingDataCustodian < handle
                 stretch_directions_new = {'+'; '-'};
             end
             if strcmp(variable_name, 'velocity')
-                stretch_directions_new = this.stretch_variable_directions{strcmp('step_length', this.stretch_variable_names)};
+                stretch_directions_new = this.stretch_variable_directions(strcmp('step_length', this.stretch_variable_names), :);
             end
             if strcmp(variable_name, 'left_arm_phase') || strcmp(variable_name, 'right_arm_phase') || strcmp(variable_name, 'left_leg_phase') || strcmp(variable_name, 'right_leg_phase')
                 % TODO: not tested yet
                 stretch_directions_new = this.basic_variable_directions.(variable_name);
             end
             if strcmp(variable_name, 'cop_from_mpsis_x')
-                mpsis_x_directions = this.stretch_variable_directions{strcmp(this.stretch_variable_names, 'mpsis_x')};
-                cop_x_directions = this.stretch_variable_directions{strcmp(this.stretch_variable_names, 'cop_x')};
+                mpsis_x_directions = this.stretch_variable_directions(strcmp(this.stretch_variable_names, 'mpsis_x'), :);
+                cop_x_directions = this.stretch_variable_directions(strcmp(this.stretch_variable_names, 'cop_x'), :);
                 if ~strcmp(mpsis_x_directions{1}, cop_x_directions{1})
                     error('mpsis_x and cop_x directions are different from each other')
                 end
@@ -3050,8 +3050,8 @@ classdef WalkingDataCustodian < handle
                 stretch_directions_new = mpsis_x_directions;
             end
             if strcmp(variable_name, 'cop_from_mpsis_y')
-                mpsis_y_directions = this.stretch_variable_directions{strcmp(this.stretch_variable_names, 'mpsis_y')};
-                cop_y_directions = this.stretch_variable_directions{strcmp(this.stretch_variable_names, 'cop_y')};
+                mpsis_y_directions = this.stretch_variable_directions(strcmp(this.stretch_variable_names, 'mpsis_y'), :);
+                cop_y_directions = this.stretch_variable_directions(strcmp(this.stretch_variable_names, 'cop_y'), :);
                 if ~strcmp(mpsis_y_directions{1}, cop_y_directions{1})
                     error('mpsis_y and cop_y directions are different from each other')
                 end
@@ -3061,8 +3061,8 @@ classdef WalkingDataCustodian < handle
                 stretch_directions_new = mpsis_y_directions;
             end
             if strcmp(variable_name, 'cop_from_com_x')
-                com_x_directions = this.stretch_variable_directions{strcmp(this.stretch_variable_names, 'com_x')};
-                cop_x_directions = this.stretch_variable_directions{strcmp(this.stretch_variable_names, 'cop_x')};
+                com_x_directions = this.stretch_variable_directions(strcmp(this.stretch_variable_names, 'com_x'), :);
+                cop_x_directions = this.stretch_variable_directions(strcmp(this.stretch_variable_names, 'cop_x'), :);
                 if ~strcmp(com_x_directions{1}, cop_x_directions{1})
                     error('com_x and cop_x directions are different from each other')
                 end
@@ -3072,8 +3072,8 @@ classdef WalkingDataCustodian < handle
                 stretch_directions_new = com_x_directions;
             end
             if strcmp(variable_name, 'cop_from_com_y')
-                com_y_directions = this.stretch_variable_directions{strcmp(this.stretch_variable_names, 'com_y')};
-                cop_y_directions = this.stretch_variable_directions{strcmp(this.stretch_variable_names, 'cop_y')};
+                com_y_directions = this.stretch_variable_directions(strcmp(this.stretch_variable_names, 'com_y'), :);
+                cop_y_directions = this.stretch_variable_directions(strcmp(this.stretch_variable_names, 'cop_y'), :);
                 if ~strcmp(com_y_directions{1}, cop_y_directions{1})
                     error('com_y and cop_y directions are different from each other')
                 end
@@ -3157,10 +3157,10 @@ classdef WalkingDataCustodian < handle
             end                    
             
             % compare against what is already on file
-            stretch_directions_on_file = this.stretch_variable_directions{this_variable_index};
-            if strcmp(stretch_directions_on_file, 'TBD')
+            stretch_directions_on_file = this.stretch_variable_directions(this_variable_index, :);
+            if strcmp(stretch_directions_on_file{1}, 'TBD') && strcmp(stretch_directions_on_file{2}, 'TBD')
                 % nothing is no file yet, so file the new information
-                this.stretch_variable_directions{this_variable_index} = stretch_directions_new;
+                this.stretch_variable_directions(this_variable_index, :) = stretch_directions_new;
             else
                 % check whether the new information matches up with what is on file
                 if ~strcmp(stretch_directions_new{1}, stretch_directions_on_file{1})

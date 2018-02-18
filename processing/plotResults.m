@@ -139,10 +139,12 @@ function plotResults(varargin)
         if any(strcmp(variables_to_plot(:, 2), 'response'))
             response_names_session = loaded_data.response_names_session;
             response_data_session = loaded_data.response_data_session;
+            response_directions_session = loaded_data.response_directions_session;
         end
         if any(strcmp(variables_to_plot(:, 2), 'analysis'))
             analysis_names_session = loaded_data.analysis_names_session;
             analysis_data_session = loaded_data.analysis_data_session;
+            analysis_directions_session = loaded_data.analysis_directions_session;
         end
         for i_variable = 1 : number_of_variables_to_plot
             % load and extract data
@@ -164,13 +166,15 @@ function plotResults(varargin)
             
             if strcmp(this_variable_source, 'stretch')
                 this_variable_data = stretch_data_session{index_in_saved_data};
-                this_variable_directions = stretch_directions_session{index_in_saved_data};
+                this_variable_directions = stretch_directions_session(index_in_saved_data, :);
             end
             if strcmp(this_variable_source, 'response')
                 this_variable_data = response_data_session{index_in_saved_data};
+                this_variable_directions = response_directions_session(index_in_saved_data, :);
             end
             if strcmp(this_variable_source, 'analysis')
                 this_variable_data = analysis_data_session{index_in_saved_data};
+                this_variable_directions = analysis_directions_session(index_in_saved_data, :);
             end
             
             if plot_settings.get('convert_to_mm') && (strcmp(this_variable_name,'cop_from_com_x') || strcmp(this_variable_name, 'step_placement_x'))
