@@ -1844,6 +1844,7 @@ classdef WalkingDataCustodian < handle
                     
                     % store
                     this.basic_variable_data.left_arm_right_leg_relative_phase = left_arm_right_leg_relative_phase;
+                    this.basic_variable_directions.left_arm_right_leg_relative_phase = {'lead'; 'lag'};
                     this.time_data.left_arm_right_leg_relative_phase = this.time_data.marker_trajectories;
                 end             
                 if strcmp(variable_name, 'right_arm_left_leg_relative_phase')
@@ -1854,28 +1855,43 @@ classdef WalkingDataCustodian < handle
                     
                     % store
                     this.basic_variable_data.right_arm_left_leg_relative_phase = right_arm_left_leg_relative_phase;
+                    this.basic_variable_directions.right_arm_left_leg_relative_phase = {'lead'; 'lag'};
                     this.time_data.right_arm_left_leg_relative_phase = this.time_data.marker_trajectories;
                 end
                 if strcmp(variable_name, 'com_x')
                     com_trajectory = extractMarkerData(this.basic_variable_data.com_trajectories, this.basic_variable_labels.com_trajectories, 'BODYCOM');
                     this.basic_variable_data.com_x = com_trajectory(:, 1);
+
+                    com_indices = extractMarkerData(this.basic_variable_data.com_trajectories, this.basic_variable_labels.com_trajectories, 'BODYCOM',  'indices');
+                    com_directions_x = this.basic_variable_directions.com_trajectories(:, com_indices(1));
+                    this.basic_variable_directions.com_x = com_directions_x;
+                    
                     this.time_data.com_x = this.time_data.com_trajectories;
                 end
                 if strcmp(variable_name, 'com_y')
                     com_trajectory = extractMarkerData(this.basic_variable_data.com_trajectories, this.basic_variable_labels.com_trajectories, 'BODYCOM');
                     this.basic_variable_data.com_y = com_trajectory(:, 2);
+
+                    com_indices = extractMarkerData(this.basic_variable_data.com_trajectories, this.basic_variable_labels.com_trajectories, 'BODYCOM',  'indices');
+                    com_directions_y = this.basic_variable_directions.com_trajectories(:, com_indices(2));
+                    this.basic_variable_directions.com_y = com_directions_y;
+                    
                     this.time_data.com_y = this.time_data.com_trajectories;
                 end
                 if strcmp(variable_name, 'com_z')
                     com_trajectory = extractMarkerData(this.basic_variable_data.com_trajectories, this.basic_variable_labels.com_trajectories, 'BODYCOM');
                     this.basic_variable_data.com_z = com_trajectory(:, 3);
+
+                    com_indices = extractMarkerData(this.basic_variable_data.com_trajectories, this.basic_variable_labels.com_trajectories, 'BODYCOM',  'indices');
+                    com_directions_z = this.basic_variable_directions.com_trajectories(:, com_indices(3));
+                    this.basic_variable_directions.com_z = com_directions_z;
+                    
                     this.time_data.com_z = this.time_data.com_trajectories;
                 end
                 if strcmp(variable_name, 'com_x_vel')
                     com_x = this.getBasicVariableData('com_x');
                     com_x(com_x==0) = NaN;
                     time = this.getTimeData('com_x');
-                    
                     filter_order = this.study_settings.filter_order_com_vel;
                     cutoff_frequency = this.study_settings.filter_cutoff_com_vel;
                     sampling_rate = 1/median(diff(time));
@@ -1885,8 +1901,8 @@ classdef WalkingDataCustodian < handle
                     else
                         com_x_vel = ones(size(com_x)) * NaN;
                     end
-%                     com_x_vel = deriveByTime(com_x, 1/sampling_rate);
                     this.basic_variable_data.com_x_vel = com_x_vel;
+                    this.basic_variable_directions.com_x_vel = this.basic_variable_directions.com_x;
                     this.time_data.com_x_vel = time;
                 end
                 if strcmp(variable_name, 'com_y_vel')
@@ -1903,6 +1919,7 @@ classdef WalkingDataCustodian < handle
                         com_y_vel = ones(size(com_y)) * NaN;
                     end
                     this.basic_variable_data.com_y_vel = com_y_vel;
+                    this.basic_variable_directions.com_y_vel = this.basic_variable_directions.com_y;
                     this.time_data.com_y_vel = time;
                 end
                 if strcmp(variable_name, 'com_z_vel')
@@ -1919,6 +1936,7 @@ classdef WalkingDataCustodian < handle
                         com_z_vel = ones(size(com_z)) * NaN;
                     end
                     this.basic_variable_data.com_z_vel = com_z_vel;
+                    this.basic_variable_directions.com_z_vel = this.basic_variable_directions.com_z;
                     this.time_data.com_z_vel = time;
                 end
                 if strcmp(variable_name, 'com_x_acc')
@@ -1934,6 +1952,7 @@ classdef WalkingDataCustodian < handle
                         com_x_acc = ones(size(com_x_vel)) * NaN;
                     end
                     this.basic_variable_data.com_x_acc = com_x_acc;
+                    this.basic_variable_directions.com_x_acc = this.basic_variable_directions.com_x_vel;
                     this.time_data.com_x_acc = time;
                 end
                 if strcmp(variable_name, 'com_y_acc')
@@ -1949,6 +1968,7 @@ classdef WalkingDataCustodian < handle
                         com_y_acc = ones(size(com_y_vel)) * NaN;
                     end
                     this.basic_variable_data.com_y_acc = com_y_acc;
+                    this.basic_variable_directions.com_y_acc = this.basic_variable_directions.com_y_vel;
                     this.time_data.com_y_acc = time;
                 end
                 if strcmp(variable_name, 'com_z_acc')
@@ -1964,6 +1984,7 @@ classdef WalkingDataCustodian < handle
                         com_z_acc = ones(size(com_z_vel)) * NaN;
                     end
                     this.basic_variable_data.com_z_acc = com_z_acc;
+                    this.basic_variable_directions.com_z_acc = this.basic_variable_directions.com_z_vel;
                     this.time_data.com_z_acc = time;
                 end
                 
