@@ -58,11 +58,13 @@ classdef WalkingDataCustodian < handle
         variables_to_analyze = {};
         basic_variable_names = {};
         stretch_variable_names = {};
+        stretch_variable_directions = {};
         
         % these are private and should only be accessed using get functions
         number_of_time_steps_normalized;
         basic_variable_data;
         basic_variable_labels;
+        basic_variable_directions;
         stretch_variable_data;
         time_data;
         
@@ -115,6 +117,7 @@ classdef WalkingDataCustodian < handle
         function addStretchVariable(this, variable_name)
             if ~any(strcmp(this.stretch_variable_names, variable_name))
                 this.stretch_variable_names = [this.stretch_variable_names; variable_name];
+                this.stretch_variable_directions = [this.stretch_variable_directions; 'TBD'];
             end
         end
         function determineVariables(this)
@@ -974,6 +977,7 @@ classdef WalkingDataCustodian < handle
             % clear out old data
             this.basic_variable_data = struct;
             this.basic_variable_labels = struct;
+            this.basic_variable_directions = struct;
             this.stretch_variable_data = struct;
             this.time_data = struct;
             
@@ -992,6 +996,7 @@ classdef WalkingDataCustodian < handle
                     eval(['this.basic_variable_data.' variable_name ' = data;']);
                     eval(['this.time_data.' variable_name ' = time;']);
                     eval(['this.basic_variable_labels.' variable_name ' = labels;']);
+                    eval(['this.basic_variable_directions.' variable_name ' = directions;']);
                 end
                 
                 % calculate variables that can't be loaded
@@ -1000,88 +1005,131 @@ classdef WalkingDataCustodian < handle
                 if strcmp(variable_name, 'lheel_x')
                     LHEE_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LHEE');
                     this.basic_variable_data.lheel_x = LHEE_trajectory(:, 1);
+                    LHEE_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LHEE',  'indices');
+                    this.basic_variable_directions.lheelx = this.basic_variable_directions.marker_trajectories(:, LHEE_indices(1));
                     this.time_data.lheel_x = this.time_data.marker_trajectories;
                 end
                 if strcmp(variable_name, 'rheel_x')
                     RHEE_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RHEE');
                     this.basic_variable_data.rheel_x = RHEE_trajectory(:, 1);
+                    RHEE_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RHEE',  'indices');
+                    this.basic_variable_directions.rheelx = this.basic_variable_directions.marker_trajectories(:, RHEE_indices(1));
                     this.time_data.rheel_x = this.time_data.marker_trajectories;
                 end
                 if strcmp(variable_name, 'lheel_y')
                     LHEE_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LHEE');
                     this.basic_variable_data.lheel_y = LHEE_trajectory(:, 2);
+                    LHEE_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LHEE',  'indices');
+                    this.basic_variable_directions.lheely = this.basic_variable_directions.marker_trajectories(:, LHEE_indices(2));
                     this.time_data.lheel_y = this.time_data.marker_trajectories;
                 end
                 if strcmp(variable_name, 'rheel_y')
                     RHEE_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RHEE');
                     this.basic_variable_data.rheel_y = RHEE_trajectory(:, 2);
+                    RHEE_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RHEE',  'indices');
+                    this.basic_variable_directions.rheely = this.basic_variable_directions.marker_trajectories(:, RHEE_indices(2));
                     this.time_data.rheel_y = this.time_data.marker_trajectories;
                 end
                 if strcmp(variable_name, 'lheel_z')
                     LHEE_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LHEE');
                     this.basic_variable_data.lheel_z = LHEE_trajectory(:, 3);
+                    LHEE_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LHEE',  'indices');
+                    this.basic_variable_directions.lheelz = this.basic_variable_directions.marker_trajectories(:, LHEE_indices(3));
                     this.time_data.lheel_z = this.time_data.marker_trajectories;
                 end
                 if strcmp(variable_name, 'rheel_z')
                     RHEE_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RHEE');
                     this.basic_variable_data.rheel_z = RHEE_trajectory(:, 3);
+                    RHEE_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RHEE',  'indices');
+                    this.basic_variable_directions.rheelz = this.basic_variable_directions.marker_trajectories(:, RHEE_indices(3));
                     this.time_data.rheel_z = this.time_data.marker_trajectories;
                 end
                 if strcmp(variable_name, 'ltoes_y')
                     LTOE_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LTOE');
                     this.basic_variable_data.ltoes_y = LTOE_trajectory(:, 2);
+                    LTOE_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LTOE',  'indices');
+                    this.basic_variable_directions.ltoes_y = this.basic_variable_directions.marker_trajectories(:, LTOE_indices(2));
                     this.time_data.ltoes_y = this.time_data.marker_trajectories;
                 end
                 if strcmp(variable_name, 'rtoes_y')
                     RTOE_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RTOE');
                     this.basic_variable_data.rtoes_y = RTOE_trajectory(:, 2);
+                    RTOE_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RTOE',  'indices');
+                    this.basic_variable_directions.rtoes_y = this.basic_variable_directions.marker_trajectories(:, RTOE_indices(2));
                     this.time_data.rtoes_y = this.time_data.marker_trajectories;
                 end
                 if strcmp(variable_name, 'ltoes_z')
                     LTOE_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LTOE');
                     this.basic_variable_data.ltoes_z = LTOE_trajectory(:, 3);
+                    LTOE_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LTOE',  'indices');
+                    this.basic_variable_directions.ltoes_z = this.basic_variable_directions.marker_trajectories(:, LTOE_indices(3));
                     this.time_data.ltoes_z = this.time_data.marker_trajectories;
                 end
                 if strcmp(variable_name, 'rtoes_z')
                     RTOE_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RTOE');
                     this.basic_variable_data.rtoes_z = RTOE_trajectory(:, 3);
+                    RTOE_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RTOE',  'indices');
+                    this.basic_variable_directions.rtoes_z = this.basic_variable_directions.marker_trajectories(:, RTOE_indices(3));
                     this.time_data.rtoes_z = this.time_data.marker_trajectories;
                 end
                 if strcmp(variable_name, 'lankle_x')
                     LANK_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LANK');
                     this.basic_variable_data.lankle_x = LANK_trajectory(:, 1);
+                    LANK_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LANK',  'indices');
+                    this.basic_variable_directions.lankle_x = this.basic_variable_directions.marker_trajectories(:, LANK_indices(1));
                     this.time_data.lankle_x = this.time_data.marker_trajectories;
                 end
                 if strcmp(variable_name, 'rankle_x')
                     RANK_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RANK');
                     this.basic_variable_data.rankle_x = RANK_trajectory(:, 1);
+                    RANK_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RANK',  'indices');
+                    this.basic_variable_directions.rankle_x = this.basic_variable_directions.marker_trajectories(:, RANK_indices(1));
                     this.time_data.rankle_x = this.time_data.marker_trajectories;
                 end
                 if strcmp(variable_name, 'lankle_y')
                     LANK_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LANK');
                     this.basic_variable_data.lankle_y = LANK_trajectory(:, 2);
+                    LANK_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LANK',  'indices');
+                    this.basic_variable_directions.lankle_y = this.basic_variable_directions.marker_trajectories(:, LANK_indices(2));
                     this.time_data.lankle_y = this.time_data.marker_trajectories;
                 end
                 if strcmp(variable_name, 'rankle_y')
                     RANK_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RANK');
                     this.basic_variable_data.rankle_y = RANK_trajectory(:, 2);
+                    RANK_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RANK',  'indices');
+                    this.basic_variable_directions.rankle_y = this.basic_variable_directions.marker_trajectories(:, RANK_indices(2));
                     this.time_data.rankle_y = this.time_data.marker_trajectories;
-                end
-                if strcmp(variable_name, 'rasis_y')
-                    RASI_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RASI');
-                    this.basic_variable_data.rasis_y = RASI_trajectory(:, 2);
-                    this.time_data.rasis_y = this.time_data.marker_trajectories;
                 end
                 if strcmp(variable_name, 'lasis_y')
                     LASI_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LASI');
                     this.basic_variable_data.lasis_y = LASI_trajectory(:, 2);
+                    LASI_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LASI',  'indices');
+                    this.basic_variable_directions.lasis_y = this.basic_variable_directions.marker_trajectories(:, LASI_indices(2));
                     this.time_data.lasis_y = this.time_data.marker_trajectories;
+                end
+                if strcmp(variable_name, 'rasis_y')
+                    RASI_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RASI');
+                    this.basic_variable_data.rasis_y = RASI_trajectory(:, 2);
+                    RASI_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RASI',  'indices');
+                    this.basic_variable_directions.rasis_y = this.basic_variable_directions.marker_trajectories(:, RASI_indices(2));
+                    this.time_data.rasis_y = this.time_data.marker_trajectories;
                 end
                 if strcmp(variable_name, 'mpsis_x')
                     LPSI_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LPSI');
                     RPSI_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RPSI');
                     MPSI_trajectory = (LPSI_trajectory + RPSI_trajectory) * 0.5;
                     this.basic_variable_data.mpsis_x = MPSI_trajectory(:, 1);
+                    LPSI_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LPSI',  'indices');
+                    RPSI_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RPSI',  'indices');
+                    LPSI_directions = this.basic_variable_directions.marker_trajectories(:, LPSI_indices(1));
+                    RPSI_directions = this.basic_variable_directions.marker_trajectories(:, RPSI_indices(1));
+                    if ~strcmp(LPSI_directions{1}, RPSI_directions{1})
+                        error('LPSI and RPSI directions found in marker data are different from each other')
+                    end
+                    if ~strcmp(LPSI_directions{2}, RPSI_directions{2})
+                        error('LPSI and RPSI directions found in marker data are different from each other')
+                    end
+                    this.basic_variable_directions.mpsis_x = LPSI_directions;
                     this.time_data.mpsis_x = this.time_data.marker_trajectories;
                 end
                 if strcmp(variable_name, 'mpsis_y')
@@ -1089,91 +1137,419 @@ classdef WalkingDataCustodian < handle
                     RPSI_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RPSI');
                     MPSI_trajectory = (LPSI_trajectory + RPSI_trajectory) * 0.5;
                     this.basic_variable_data.mpsis_y = MPSI_trajectory(:, 2);
+                    LPSI_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LPSI',  'indices');
+                    RPSI_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RPSI',  'indices');
+                    LPSI_directions = this.basic_variable_directions.marker_trajectories(:, LPSI_indices(2));
+                    RPSI_directions = this.basic_variable_directions.marker_trajectories(:, RPSI_indices(2));
+                    if ~strcmp(LPSI_directions{1}, RPSI_directions{1})
+                        error('LPSI and RPSI directions found in marker data are different from each other')
+                    end
+                    if ~strcmp(LPSI_directions{2}, RPSI_directions{2})
+                        error('LPSI and RPSI directions found in marker data are different from each other')
+                    end
+                    this.basic_variable_directions.mpsis_y = LPSI_directions;
                     this.time_data.mpsis_y = this.time_data.marker_trajectories;
                 end
                 if strcmp(variable_name, 'pelvis_y')
                     LPSI_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LPSI');
                     RPSI_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RPSI');
-                    MPSI_trajectory = (LPSI_trajectory + RPSI_trajectory) * 0.5;
-                    
                     LASI_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LASI');
                     RASI_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RASI');
-                    
-                    pelvis_trajectory = (MPSI_trajectory + LASI_trajectory + RASI_trajectory) * (1 / 3);
-                    
+                    pelvis_trajectory = (LPSI_trajectory + RPSI_trajectory + LASI_trajectory + RASI_trajectory) * (1 / 4);
                     this.basic_variable_data.pelvis_y = pelvis_trajectory(:, 2);
+                    
+                    LPSI_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LPSI',  'indices');
+                    RPSI_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RPSI',  'indices');
+                    LASI_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LASI',  'indices');
+                    RASI_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RASI',  'indices');
+                    LPSI_directions = this.basic_variable_directions.marker_trajectories(:, LPSI_indices(2));
+                    RPSI_directions = this.basic_variable_directions.marker_trajectories(:, RPSI_indices(2));
+                    LASI_directions = this.basic_variable_directions.marker_trajectories(:, LASI_indices(2));
+                    RASI_directions = this.basic_variable_directions.marker_trajectories(:, RASI_indices(2));
+                    
+                    if any(~strcmp(LPSI_directions{1}, {RPSI_directions{1}, LASI_directions{1}, RASI_directions{1}}))
+                        error('LPSI, RPSI, LASI and RASI directions found in marker data are different from each other')
+                    end
+                    if any(~strcmp(LPSI_directions{2}, {RPSI_directions{2}, LASI_directions{2}, RASI_directions{2}}))
+                        error('LPSI, RPSI, LASI and RASI directions found in marker data are different from each other')
+                    end
+                    this.basic_variable_directions.pelvis_y = LPSI_directions;
                     this.time_data.pelvis_y = this.time_data.marker_trajectories;
                 end
                 if strcmp(variable_name, 'c7_x')
-                    c7_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'C7');
-                    this.basic_variable_data.c7_x = c7_trajectory(:, 2);
+                    C7_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'C7');
+                    this.basic_variable_data.c7_x = C7_trajectory(:, 1);
+                    C7_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'C7',  'indices');
+                    this.basic_variable_directions.c7_x = this.basic_variable_directions.marker_trajectories(:, C7_indices(1));
                     this.time_data.c7_x = this.time_data.marker_trajectories;
                 end
                 if strcmp(variable_name, 'head_angle_ap')
-                    c7_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'C7');
+                    % calculate angle trajectory
+                    C7_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'C7');
                     LBHD_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LBHD');
                     RBHD_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RBHD');
                     MBHD_trajectory = (LBHD_trajectory + RBHD_trajectory) * 0.5;
-                    head_vector_y = MBHD_trajectory(:, 2) - c7_trajectory(:, 2);
-                    head_vector_z = MBHD_trajectory(:, 3) - c7_trajectory(:, 3);
+                    head_vector_y = MBHD_trajectory(:, 2) - C7_trajectory(:, 2);
+                    head_vector_z = MBHD_trajectory(:, 3) - C7_trajectory(:, 3);
                     this.basic_variable_data.head_angle_ap = rad2deg(atan2(head_vector_y, head_vector_z));
+                    
+                    % determine directions
+                    C7_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'C7',  'indices');
+                    LBHD_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LBHD',  'indices');
+                    RBHD_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RBHD',  'indices');
+                    C7_directions_y = this.basic_variable_directions.marker_trajectories(:, C7_indices(2));
+                    LBHD_directions_y = this.basic_variable_directions.marker_trajectories(:, LBHD_indices(2));
+                    RBHD_directions_y = this.basic_variable_directions.marker_trajectories(:, RBHD_indices(2));
+                    C7_directions_z = this.basic_variable_directions.marker_trajectories(:, C7_indices(3));
+                    LBHD_directions_z = this.basic_variable_directions.marker_trajectories(:, LBHD_indices(3));
+                    RBHD_directions_z = this.basic_variable_directions.marker_trajectories(:, RBHD_indices(3));
+                    
+                    % check whether directions of markers are the same
+                    if any(~strcmp(C7_directions_y{1}, {LBHD_directions_y{1}, RBHD_directions_y{1}}))
+                        error('C7, LBHD and RBHD directions found in marker data are different from each other')
+                    end
+                    if any(~strcmp(C7_directions_y{2}, {LBHD_directions_y{2}, RBHD_directions_y{2}}))
+                        error('C7, LBHD and RBHD directions found in marker data are different from each other')
+                    end
+                    if any(~strcmp(C7_directions_z{1}, {LBHD_directions_z{1}, RBHD_directions_z{1}}))
+                        error('C7, LBHD and RBHD directions found in marker data are different from each other')
+                    end
+                    if any(~strcmp(C7_directions_z{2}, {LBHD_directions_z{2}, RBHD_directions_z{2}}))
+                        error('C7, LBHD and RBHD directions found in marker data are different from each other')
+                    end
+                    
+                    % check assumption that y is left-right and z is down-up
+                    if ~strcmp(LBHD_directions_y{1}, 'forward')
+                        error('Assuming positive y-direction for markers C7, LBHD and RBHD is "down"')
+                    end                  
+                    if ~strcmp(LBHD_directions_y{2}, 'backward')
+                        error('Assuming negative y-direction for markers C7, LBHD and RBHD is "backward"')
+                    end                  
+                    if ~strcmp(LBHD_directions_z{1}, 'up')
+                        error('Assuming positive z-direction for markers C7, LBHD and RBHD is "up"')
+                    end                  
+                    if ~strcmp(LBHD_directions_z{2}, 'down')
+                        error('Assuming negative z-direction for markers C7, LBHD and RBHD is "down"')
+                    end
+                    
+                    % all assumptions are met, define directions
+                    this.basic_variable_directions.head_angle_ap = {'forward'; 'backward'};
+                    
+                    % time
                     this.time_data.head_angle_ap = this.time_data.marker_trajectories;
                 end
                 if strcmp(variable_name, 'head_angle_ml')
-                    c7_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'C7');
+                    % calculate angle trajectory
+                    C7_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'C7');
                     LBHD_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LBHD');
                     RBHD_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RBHD');
                     MBHD_trajectory = (LBHD_trajectory + RBHD_trajectory) * 0.5;
-                    head_vector_x = MBHD_trajectory(:, 1) - c7_trajectory(:, 1);
-                    head_vector_z = MBHD_trajectory(:, 3) - c7_trajectory(:, 3);
+                    head_vector_x = MBHD_trajectory(:, 1) - C7_trajectory(:, 1);
+                    head_vector_z = MBHD_trajectory(:, 3) - C7_trajectory(:, 3);
                     this.basic_variable_data.head_angle_ml = rad2deg(atan2(head_vector_x, head_vector_z));
+                    
+                    % determine directions
+                    C7_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'C7',  'indices');
+                    LBHD_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LBHD',  'indices');
+                    RBHD_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RBHD',  'indices');
+                    C7_directions_x = this.basic_variable_directions.marker_trajectories(:, C7_indices(1));
+                    LBHD_directions_x = this.basic_variable_directions.marker_trajectories(:, LBHD_indices(1));
+                    RBHD_directions_x = this.basic_variable_directions.marker_trajectories(:, RBHD_indices(1));
+                    C7_directions_z = this.basic_variable_directions.marker_trajectories(:, C7_indices(3));
+                    LBHD_directions_z = this.basic_variable_directions.marker_trajectories(:, LBHD_indices(3));
+                    RBHD_directions_z = this.basic_variable_directions.marker_trajectories(:, RBHD_indices(3));
+                    
+                    % check whether directions of markers are the same
+                    if any(~strcmp(C7_directions_x{1}, {LBHD_directions_x{1}, RBHD_directions_x{1}}))
+                        error('C7, LBHD and RBHD directions found in marker data are different from each other')
+                    end
+                    if any(~strcmp(C7_directions_x{2}, {LBHD_directions_x{2}, RBHD_directions_x{2}}))
+                        error('C7, LBHD and RBHD directions found in marker data are different from each other')
+                    end
+                    if any(~strcmp(C7_directions_z{1}, {LBHD_directions_z{1}, RBHD_directions_z{1}}))
+                        error('C7, LBHD and RBHD directions found in marker data are different from each other')
+                    end
+                    if any(~strcmp(C7_directions_z{2}, {LBHD_directions_z{2}, RBHD_directions_z{2}}))
+                        error('C7, LBHD and RBHD directions found in marker data are different from each other')
+                    end
+                    
+                    % check assumption that y is left-right and z is down-up
+                    if ~strcmp(LBHD_directions_x{1}, 'right')
+                        error('Assuming positive x-direction for markers C7, LBHD and RBHD is "right"')
+                    end                  
+                    if ~strcmp(LBHD_directions_x{2}, 'left')
+                        error('Assuming negative x-direction for markers C7, LBHD and RBHD is "left"')
+                    end                  
+                    if ~strcmp(LBHD_directions_z{1}, 'up')
+                        error('Assuming positive z-direction for markers C7, LBHD and RBHD is "up"')
+                    end                  
+                    if ~strcmp(LBHD_directions_z{2}, 'down')
+                        error('Assuming negative z-direction for markers C7, LBHD and RBHD is "down"')
+                    end
+                    
+                    % all assumptions are met, define directions
+                    this.basic_variable_directions.head_angle_ml = {'right'; 'left'};                    
+                    
                     this.time_data.head_angle_ml = this.time_data.marker_trajectories;
                 end
                 if strcmp(variable_name, 'trunk_angle_ap')
-                    c7_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'C7');
+                    % calculate angle trajectory
+                    C7_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'C7');
                     LPSI_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LPSI');
                     RPSI_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RPSI');
                     MPSI_trajectory = (LPSI_trajectory + RPSI_trajectory) * 0.5;
-                    trunk_vector_y = c7_trajectory(:, 2) - MPSI_trajectory(:, 2);
-                    trunk_vector_z = c7_trajectory(:, 3) - MPSI_trajectory(:, 3);
+                    trunk_vector_y = C7_trajectory(:, 2) - MPSI_trajectory(:, 2);
+                    trunk_vector_z = C7_trajectory(:, 3) - MPSI_trajectory(:, 3);
                     this.basic_variable_data.trunk_angle_ap = rad2deg(atan2(trunk_vector_y, trunk_vector_z));
+                    
+                    % determine directions
+                    C7_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'C7',  'indices');
+                    LPSI_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LPSI',  'indices');
+                    RPSI_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RPSI',  'indices');
+                    C7_directions_y = this.basic_variable_directions.marker_trajectories(:, C7_indices(2));
+                    LPSI_directions_y = this.basic_variable_directions.marker_trajectories(:, LPSI_indices(2));
+                    RPSI_directions_y = this.basic_variable_directions.marker_trajectories(:, RPSI_indices(2));
+                    C7_directions_z = this.basic_variable_directions.marker_trajectories(:, C7_indices(3));
+                    LPSI_directions_z = this.basic_variable_directions.marker_trajectories(:, LPSI_indices(3));
+                    RPSI_directions_z = this.basic_variable_directions.marker_trajectories(:, RPSI_indices(3));
+                    
+                    % check whether directions of markers are the same
+                    if any(~strcmp(C7_directions_y{1}, {LPSI_directions_y{1}, RPSI_directions_y{1}}))
+                        error('C7, LPSI and RPSI directions found in marker data are different from each other')
+                    end
+                    if any(~strcmp(C7_directions_y{2}, {LPSI_directions_y{2}, RPSI_directions_y{2}}))
+                        error('C7, LPSI and RPSI directions found in marker data are different from each other')
+                    end
+                    if any(~strcmp(C7_directions_z{1}, {LPSI_directions_z{1}, RPSI_directions_z{1}}))
+                        error('C7, LPSI and RPSI directions found in marker data are different from each other')
+                    end
+                    if any(~strcmp(C7_directions_z{2}, {LPSI_directions_z{2}, RPSI_directions_z{2}}))
+                        error('C7, LPSI and RPSI directions found in marker data are different from each other')
+                    end
+                    
+                    % check assumption that y is left-right and z is down-up
+                    if ~strcmp(LPSI_directions_y{1}, 'forward')
+                        error('Assuming positive y-direction for markers C7, LPSI and RPSI is "down"')
+                    end                  
+                    if ~strcmp(LPSI_directions_y{2}, 'backward')
+                        error('Assuming negative y-direction for markers C7, LPSI and RPSI is "backward"')
+                    end                  
+                    if ~strcmp(LPSI_directions_z{1}, 'up')
+                        error('Assuming positive z-direction for markers C7, LPSI and RPSI is "up"')
+                    end                  
+                    if ~strcmp(LPSI_directions_z{2}, 'down')
+                        error('Assuming negative z-direction for markers C7, LPSI and RPSI is "down"')
+                    end
+                    
+                    % all assumptions are met, define directions
+                    this.basic_variable_directions.trunk_angle_ap = {'forward'; 'backward'};                    
+                    
                     this.time_data.trunk_angle_ap = this.time_data.marker_trajectories;
                 end
                 if strcmp(variable_name, 'trunk_angle_ml')
-                    c7_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'C7');
+                    % calculate angle trajectory
+                    C7_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'C7');
                     LPSI_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LPSI');
                     RPSI_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RPSI');
                     MPSI_trajectory = (LPSI_trajectory + RPSI_trajectory) * 0.5;
-                    trunk_vector_x = c7_trajectory(:, 1) - MPSI_trajectory(:, 1);
-                    trunk_vector_z = c7_trajectory(:, 3) - MPSI_trajectory(:, 3);
+                    trunk_vector_x = C7_trajectory(:, 1) - MPSI_trajectory(:, 1);
+                    trunk_vector_z = C7_trajectory(:, 3) - MPSI_trajectory(:, 3);
                     this.basic_variable_data.trunk_angle_ml = rad2deg(atan2(trunk_vector_x, trunk_vector_z));
+                    
+                    % determine directions
+                    C7_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'C7',  'indices');
+                    LPSI_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LPSI',  'indices');
+                    RPSI_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RPSI',  'indices');
+                    C7_directions_x = this.basic_variable_directions.marker_trajectories(:, C7_indices(1));
+                    LPSI_directions_x = this.basic_variable_directions.marker_trajectories(:, LPSI_indices(1));
+                    RPSI_directions_x = this.basic_variable_directions.marker_trajectories(:, RPSI_indices(1));
+                    C7_directions_z = this.basic_variable_directions.marker_trajectories(:, C7_indices(3));
+                    LPSI_directions_z = this.basic_variable_directions.marker_trajectories(:, LPSI_indices(3));
+                    RPSI_directions_z = this.basic_variable_directions.marker_trajectories(:, RPSI_indices(3));
+                    
+                    % check whether directions of markers are the same
+                    if any(~strcmp(C7_directions_x{1}, {LPSI_directions_x{1}, RPSI_directions_x{1}}))
+                        error('C7, LPSI and RPSI directions found in marker data are different from each other')
+                    end
+                    if any(~strcmp(C7_directions_x{2}, {LPSI_directions_x{2}, RPSI_directions_x{2}}))
+                        error('C7, LPSI and RPSI directions found in marker data are different from each other')
+                    end
+                    if any(~strcmp(C7_directions_z{1}, {LPSI_directions_z{1}, RPSI_directions_z{1}}))
+                        error('C7, LPSI and RPSI directions found in marker data are different from each other')
+                    end
+                    if any(~strcmp(C7_directions_z{2}, {LBHD_directions_z{2}, RPSI_directions_z{2}}))
+                        error('C7, LPSI and RPSI directions found in marker data are different from each other')
+                    end
+                    
+                    % check assumption that y is left-right and z is down-up
+                    if ~strcmp(LPSI_directions_x{1}, 'right')
+                        error('Assuming positive x-direction for markers C7, LPSI and RPSI is "right"')
+                    end                  
+                    if ~strcmp(LPSI_directions_x{2}, 'left')
+                        error('Assuming negative x-direction for markers C7, LPSI and RPSI is "left"')
+                    end                  
+                    if ~strcmp(LPSI_directions_z{1}, 'up')
+                        error('Assuming positive z-direction for markers C7, LPSI and RPSI is "up"')
+                    end                  
+                    if ~strcmp(LPSI_directions_z{2}, 'down')
+                        error('Assuming negative z-direction for markers C7, LPSI and RPSI is "down"')
+                    end
+                    
+                    % all assumptions are met, define directions
+                    this.basic_variable_directions.trunk_angle_ml = {'right'; 'left'};
+                    
                     this.time_data.trunk_angle_ml = this.time_data.marker_trajectories;
                 end
                 if strcmp(variable_name, 'pelvis_angle_ml')
+                    % calculate angle trajectory
                     left_hip_cor_trajectory = extractMarkerData(this.basic_variable_data.joint_center_trajectories, this.basic_variable_labels.joint_center_trajectories, 'LHIPCOR');
                     right_hip_cor_trajectory = extractMarkerData(this.basic_variable_data.joint_center_trajectories, this.basic_variable_labels.joint_center_trajectories, 'RHIPCOR');
                     pelvis_vector_x = right_hip_cor_trajectory(:, 1) - left_hip_cor_trajectory(:, 1);
                     pelvis_vector_z = right_hip_cor_trajectory(:, 3) - left_hip_cor_trajectory(:, 3);
                     this.basic_variable_data.pelvis_angle_ml = -rad2deg(atan2(pelvis_vector_z, pelvis_vector_x));
+                    
+                    % determine directions
+                    LHIPCOR_indices = extractMarkerData(this.basic_variable_data.joint_center_trajectories, this.basic_variable_labels.joint_center_trajectories, 'LHIPCOR',  'indices');
+                    RHIPCOR_indices = extractMarkerData(this.basic_variable_data.joint_center_trajectories, this.basic_variable_labels.joint_center_trajectories, 'RHIPCOR',  'indices');
+                    LHIPCOR_directions_x = this.basic_variable_directions.joint_center_trajectories(:, LHIPCOR_indices(1));
+                    RHIPCOR_directions_x = this.basic_variable_directions.joint_center_trajectories(:, RHIPCOR_indices(1));
+                    LHIPCOR_directions_z = this.basic_variable_directions.joint_center_trajectories(:, LHIPCOR_indices(3));
+                    RHIPCOR_directions_z = this.basic_variable_directions.joint_center_trajectories(:, RHIPCOR_indices(3));
+                    
+                    % check whether directions of markers are the same
+                    if ~strcmp(LHIPCOR_directions_x{1}, RHIPCOR_directions_x{1})
+                        error('LHIPCOR and RHIPCOR directions found in marker data are different from each other')
+                    end
+                    if ~strcmp(LHIPCOR_directions_x{2}, RHIPCOR_directions_x{2})
+                        error('LHIPCOR and RHIPCOR directions found in marker data are different from each other')
+                    end
+                    if ~strcmp(LHIPCOR_directions_z{1}, RHIPCOR_directions_z{1})
+                        error('LHIPCOR and RHIPCOR directions found in marker data are different from each other')
+                    end
+                    if ~strcmp(LHIPCOR_directions_z{2}, RHIPCOR_directions_z{2})
+                        error('LHIPCOR and RHIPCOR directions found in marker data are different from each other')
+                    end
+                    
+                    % check assumption that y is left-right and z is down-up
+                    if ~strcmp(LHIPCOR_directions_x{1}, 'right')
+                        error('Assuming positive x-direction for markers LHIPCOR and RHIPCOR is "right"')
+                    end                  
+                    if ~strcmp(LHIPCOR_directions_x{2}, 'left')
+                        error('Assuming negative x-direction for markers LHIPCOR and RHIPCOR is "left"')
+                    end                  
+                    if ~strcmp(LHIPCOR_directions_z{1}, 'up')
+                        error('Assuming positive z-direction for markers LHIPCOR and RHIPCOR is "up"')
+                    end                  
+                    if ~strcmp(LHIPCOR_directions_z{2}, 'down')
+                        error('Assuming negative z-direction for markers LHIPCOR and RHIPCOR is "down"')
+                    end
+                    
+                    % all assumptions are met, define directions
+                    this.basic_variable_directions.pelvis_angle_ml = {'right'; 'left'};
+                    
+                    
                     this.time_data.pelvis_angle_ml = this.time_data.joint_center_trajectories;
                 end
                 if strcmp(variable_name, 'left_leg_angle_ml')
+                    % calculate angle trajectories
                     left_hip_cor_trajectory = extractMarkerData(this.basic_variable_data.joint_center_trajectories, this.basic_variable_labels.joint_center_trajectories, 'LHIPCOR');
                     left_ankle_cor_trajectory = extractMarkerData(this.basic_variable_data.joint_center_trajectories, this.basic_variable_labels.joint_center_trajectories, 'LANKLECOR');
                     left_leg_vector_x = left_hip_cor_trajectory(:, 1) - left_ankle_cor_trajectory(:, 1);
                     left_leg_vector_z = left_hip_cor_trajectory(:, 3) - left_ankle_cor_trajectory(:, 3);
                     this.basic_variable_data.left_leg_angle_ml = rad2deg(atan2(left_leg_vector_x, left_leg_vector_z));
+                    
+                    % determine directions
+                    LHIPCOR_indices = extractMarkerData(this.basic_variable_data.joint_center_trajectories, this.basic_variable_labels.joint_center_trajectories, 'LHIPCOR',  'indices');
+                    LANKLECOR_indices = extractMarkerData(this.basic_variable_data.joint_center_trajectories, this.basic_variable_labels.joint_center_trajectories, 'LANKLECOR',  'indices');
+                    LHIPCOR_directions_x = this.basic_variable_directions.joint_center_trajectories(:, LHIPCOR_indices(1));
+                    LANKLECOR_directions_x = this.basic_variable_directions.joint_center_trajectories(:, LANKLECOR_indices(1));
+                    LHIPCOR_directions_z = this.basic_variable_directions.joint_center_trajectories(:, LHIPCOR_indices(3));
+                    LANKLECOR_directions_z = this.basic_variable_directions.joint_center_trajectories(:, LANKLECOR_indices(3));
+                    
+                    % check whether directions of markers are the same
+                    if ~strcmp(LHIPCOR_directions_x{1}, LANKLECOR_directions_x{1})
+                        error('LHIPCOR and LANKLECOR directions found in marker data are different from each other')
+                    end
+                    if ~strcmp(LHIPCOR_directions_x{2}, LANKLECOR_directions_x{2})
+                        error('LHIPCOR and LANKLECOR directions found in marker data are different from each other')
+                    end
+                    if ~strcmp(LHIPCOR_directions_z{1}, LANKLECOR_directions_z{1})
+                        error('LHIPCOR and LANKLECOR directions found in marker data are different from each other')
+                    end
+                    if ~strcmp(LHIPCOR_directions_z{2}, LANKLECOR_directions_z{2})
+                        error('LHIPCOR and LANKLECOR directions found in marker data are different from each other')
+                    end
+                    
+                    % check assumption that y is left-right and z is down-up
+                    if ~strcmp(LHIPCOR_directions_x{1}, 'right')
+                        error('Assuming positive x-direction for markers LHIPCOR and LANKLECOR is "right"')
+                    end                  
+                    if ~strcmp(LHIPCOR_directions_x{2}, 'left')
+                        error('Assuming negative x-direction for markers LHIPCOR and LANKLECOR is "left"')
+                    end                  
+                    if ~strcmp(LHIPCOR_directions_z{1}, 'up')
+                        error('Assuming positive z-direction for markers LHIPCOR and LANKLECOR is "up"')
+                    end                  
+                    if ~strcmp(LHIPCOR_directions_z{2}, 'down')
+                        error('Assuming negative z-direction for markers LHIPCOR and LANKLECOR is "down"')
+                    end
+                    
+                    % all assumptions are met, define directions
+                    this.basic_variable_directions.left_leg_angle_ml = {'right'; 'left'};
+                    
                     this.time_data.left_leg_angle_ml = this.time_data.joint_center_trajectories;
                 end
                 if strcmp(variable_name, 'right_leg_angle_ml')
+                    % calculate angle trajectories
                     right_hip_cor_trajectory = extractMarkerData(this.basic_variable_data.joint_center_trajectories, this.basic_variable_labels.joint_center_trajectories, 'RHIPCOR');
                     right_ankle_cor_trajectory = extractMarkerData(this.basic_variable_data.joint_center_trajectories, this.basic_variable_labels.joint_center_trajectories, 'RANKLECOR');
                     right_leg_vector_x = right_hip_cor_trajectory(:, 1) - right_ankle_cor_trajectory(:, 1);
                     right_leg_vector_z = right_hip_cor_trajectory(:, 3) - right_ankle_cor_trajectory(:, 3);
                     this.basic_variable_data.right_leg_angle_ml = rad2deg(atan2(right_leg_vector_x, right_leg_vector_z));
+                    
+                    % determine directions
+                    RHIPCOR_indices = extractMarkerData(this.basic_variable_data.joint_center_trajectories, this.basic_variable_labels.joint_center_trajectories, 'RHIPCOR',  'indices');
+                    RANKLECOR_indices = extractMarkerData(this.basic_variable_data.joint_center_trajectories, this.basic_variable_labels.joint_center_trajectories, 'RANKLECOR',  'indices');
+                    RHIPCOR_directions_x = this.basic_variable_directions.joint_center_trajectories(:, RHIPCOR_indices(1));
+                    RANKLECOR_directions_x = this.basic_variable_directions.joint_center_trajectories(:, RANKLECOR_indices(1));
+                    RHIPCOR_directions_z = this.basic_variable_directions.joint_center_trajectories(:, RHIPCOR_indices(3));
+                    RANKLECOR_directions_z = this.basic_variable_directions.joint_center_trajectories(:, RANKLECOR_indices(3));
+                    
+                    % check whether directions of markers are the same
+                    if ~strcmp(RHIPCOR_directions_x{1}, RANKLECOR_directions_x{1})
+                        error('RHIPCOR and RANKLECOR directions found in marker data are different from each other')
+                    end
+                    if ~strcmp(RHIPCOR_directions_x{2}, RANKLECOR_directions_x{2})
+                        error('RHIPCOR and RANKLECOR directions found in marker data are different from each other')
+                    end
+                    if ~strcmp(RHIPCOR_directions_z{1}, RANKLECOR_directions_z{1})
+                        error('RHIPCOR and RANKLECOR directions found in marker data are different from each other')
+                    end
+                    if ~strcmp(RHIPCOR_directions_z{2}, RANKLECOR_directions_z{2})
+                        error('RHIPCOR and RANKLECOR directions found in marker data are different from each other')
+                    end
+                    
+                    % check assumption that y is left-right and z is down-up
+                    if ~strcmp(RHIPCOR_directions_x{1}, 'right')
+                        error('Assuming positive x-direction for markers RHIPCOR and RANKLECOR is "right"')
+                    end                  
+                    if ~strcmp(RHIPCOR_directions_x{2}, 'left')
+                        error('Assuming negative x-direction for markers RHIPCOR and RANKLECOR is "left"')
+                    end                  
+                    if ~strcmp(RHIPCOR_directions_z{1}, 'up')
+                        error('Assuming positive z-direction for markers RHIPCOR and RANKLECOR is "up"')
+                    end                  
+                    if ~strcmp(RHIPCOR_directions_z{2}, 'down')
+                        error('Assuming negative z-direction for markers RHIPCOR and RANKLECOR is "down"')
+                    end
+                    
+                    % all assumptions are met, define directions
+                    this.basic_variable_directions.right_leg_angle_ml = {'right'; 'left'};
+                    
                     this.time_data.right_leg_angle_ml = this.time_data.joint_center_trajectories;
                 end               
                 if strcmp(variable_name, 'left_foot_angle_ap')
+                    % calculate angle trajectory
                     LTOE_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LTOE');
                     LTOEL_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LTOEL');
                     LHEE_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LHEE');
@@ -1187,9 +1563,72 @@ classdef WalkingDataCustodian < handle
                     foot_vector_z = LTOEM_trajectory(:, 3) - LHEE_trajectory(:, 3);
                     foot_vector_xy = (foot_vector_x.^2 + foot_vector_y.^2).^(0.5);
                     this.basic_variable_data.left_foot_angle_ap = rad2deg(atan2(foot_vector_z, foot_vector_xy));
+                    
+                    % determine directions
+                    LTOE_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LTOE',  'indices');
+                    LTOEL_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LTOEL',  'indices');
+                    LHEE_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LHEE',  'indices');
+                    if isempty(LTOEL_indices)
+                        LTOEL_indices = LTOE_indices;
+                    end
+                    LTOE_directions_x = this.basic_variable_directions.marker_trajectories(:, LTOE_indices(1));
+                    LTOEL_directions_x = this.basic_variable_directions.marker_trajectories(:, LTOEL_indices(1));
+                    LHEE_directions_x = this.basic_variable_directions.marker_trajectories(:, LHEE_indices(1));
+                    LTOE_directions_y = this.basic_variable_directions.marker_trajectories(:, LTOE_indices(2));
+                    LTOEL_directions_y = this.basic_variable_directions.marker_trajectories(:, LTOEL_indices(2));
+                    LHEE_directions_y = this.basic_variable_directions.marker_trajectories(:, LHEE_indices(2));
+                    LTOE_directions_z = this.basic_variable_directions.marker_trajectories(:, LTOE_indices(3));
+                    LTOEL_directions_z = this.basic_variable_directions.marker_trajectories(:, LTOEL_indices(3));
+                    LHEE_directions_z = this.basic_variable_directions.marker_trajectories(:, LHEE_indices(3));
+                    
+                    % check whether directions of markers are the same
+                    if any(~strcmp(LTOE_directions_x{1}, {LTOEL_directions_x{1}, LHEE_directions_x{1}}))
+                        error('LTOE, LTOEL and LHEE directions found in marker data are different from each other')
+                    end
+                    if any(~strcmp(LTOE_directions_x{2}, {LTOEL_directions_x{2}, LHEE_directions_x{2}}))
+                        error('LTOE, LTOEL and LHEE directions found in marker data are different from each other')
+                    end
+                    if any(~strcmp(LTOE_directions_y{1}, {LTOEL_directions_y{1}, LHEE_directions_y{1}}))
+                        error('LTOE, LTOEL and LHEE directions found in marker data are different from each other')
+                    end
+                    if any(~strcmp(LTOE_directions_y{2}, {LTOEL_directions_y{2}, LHEE_directions_y{2}}))
+                        error('LTOE, LTOEL and LHEE directions found in marker data are different from each other')
+                    end
+                    if any(~strcmp(LTOE_directions_z{1}, {LTOEL_directions_z{1}, LHEE_directions_z{1}}))
+                        error('LTOE, LTOEL and LHEE directions found in marker data are different from each other')
+                    end
+                    if any(~strcmp(LTOE_directions_z{2}, {LTOEL_directions_z{2}, LHEE_directions_z{2}}))
+                        error('LTOE, LTOEL and LHEE directions found in marker data are different from each other')
+                    end
+                    
+                    % check assumption that y is left-right and z is down-up
+                    if ~strcmp(LTOEL_directions_x{1}, 'right')
+                        error('Assuming positive y-direction for markers LTOE, LTOEL and LHEE is "right"')
+                    end                  
+                    if ~strcmp(LTOEL_directions_x{2}, 'left')
+                        error('Assuming negative y-direction for markers LTOE, LTOEL and LHEE is "left"')
+                    end                  
+                    if ~strcmp(LTOEL_directions_y{1}, 'forward')
+                        error('Assuming positive y-direction for markers LTOE, LTOEL and LHEE is "down"')
+                    end                  
+                    if ~strcmp(LTOEL_directions_y{2}, 'backward')
+                        error('Assuming negative y-direction for markers LTOE, LTOEL and LHEE is "backward"')
+                    end                  
+                    if ~strcmp(LTOEL_directions_z{1}, 'up')
+                        error('Assuming positive z-direction for markers LTOE, LTOEL and LHEE is "up"')
+                    end                  
+                    if ~strcmp(LTOEL_directions_z{2}, 'down')
+                        error('Assuming negative z-direction for markers LTOE, LTOEL and LHEE is "down"')
+                    end
+                    
+                    % all assumptions are met, define directions
+                    this.basic_variable_directions.left_foot_angle_ap = {'up'; 'down'};
+                                        
                     this.time_data.left_foot_angle_ap = this.time_data.marker_trajectories;
                 end
                 if strcmp(variable_name, 'left_foot_angle_ml')
+                    % TODO: test this
+                    % calculate angle trajectory
                     LTOE_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LTOE');
                     LTOEL_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LTOEL');
                     foot_vector_x = LTOEL_trajectory(:, 1) - LTOE_trajectory(:, 1);
@@ -1197,9 +1636,64 @@ classdef WalkingDataCustodian < handle
                     foot_vector_z = LTOEL_trajectory(:, 3) - LTOE_trajectory(:, 3);
                     foot_vector_xy = (foot_vector_x.^2 + foot_vector_y.^2).^(0.5);
                     this.basic_variable_data.left_foot_angle_ml = rad2deg(atan2(foot_vector_z, foot_vector_xy));
+                    
+                    % determine directions
+                    LTOE_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LTOE',  'indices');
+                    LTOEL_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LTOEL',  'indices');
+                    LTOE_directions_x = this.basic_variable_directions.marker_trajectories(:, LTOE_indices(1));
+                    LTOEL_directions_x = this.basic_variable_directions.marker_trajectories(:, LTOEL_indices(1));
+                    LTOE_directions_y = this.basic_variable_directions.marker_trajectories(:, LTOE_indices(2));
+                    LTOEL_directions_y = this.basic_variable_directions.marker_trajectories(:, LTOEL_indices(2));
+                    LTOE_directions_z = this.basic_variable_directions.marker_trajectories(:, LTOE_indices(3));
+                    LTOEL_directions_z = this.basic_variable_directions.marker_trajectories(:, LTOEL_indices(3));
+                    
+                    % check whether directions of markers are the same
+                    if ~strcmp(LTOE_directions_x{1}, LTOEL_directions_x{1})
+                        error('LTOE and LTOEL directions found in marker data are different from each other')
+                    end
+                    if ~strcmp(LTOE_directions_x{2}, LTOEL_directions_x{2})
+                        error('LTOE and LTOEL directions found in marker data are different from each other')
+                    end
+                    if ~strcmp(LTOE_directions_y{1}, LTOEL_directions_y{1})
+                        error('LTOE and LTOEL directions found in marker data are different from each other')
+                    end
+                    if ~strcmp(LTOE_directions_y{2}, LTOEL_directions_y{2})
+                        error('LTOE and LTOEL directions found in marker data are different from each other')
+                    end
+                    if ~strcmp(LTOE_directions_z{1}, LTOEL_directions_z{1})
+                        error('LTOE and LTOEL directions found in marker data are different from each other')
+                    end
+                    if ~strcmp(LTOE_directions_z{2}, LTOEL_directions_z{2})
+                        error('LTOE and LTOEL directions found in marker data are different from each other')
+                    end
+                    
+                    % check assumption that y is left-right and z is down-up
+                    if ~strcmp(LTOEL_directions_x{1}, 'right')
+                        error('Assuming positive y-direction for markers LTOE and LTOEL is "right"')
+                    end                  
+                    if ~strcmp(LTOEL_directions_x{2}, 'left')
+                        error('Assuming negative y-direction for markers LTOE and LTOEL is "left"')
+                    end                  
+                    if ~strcmp(LTOEL_directions_y{1}, 'forward')
+                        error('Assuming positive y-direction for markers LTOE and LTOEL is "down"')
+                    end                  
+                    if ~strcmp(LTOEL_directions_y{2}, 'backward')
+                        error('Assuming negative y-direction for markers LTOE and LTOEL is "backward"')
+                    end                  
+                    if ~strcmp(LTOEL_directions_z{1}, 'up')
+                        error('Assuming positive z-direction for markers LTOE and LTOEL is "up"')
+                    end                  
+                    if ~strcmp(LTOEL_directions_z{2}, 'down')
+                        error('Assuming negative z-direction for markers LTOE and LTOEL is "down"')
+                    end
+                    
+                    % all assumptions are met, define directions
+                    this.basic_variable_directions.left_foot_angle_ml = {'right'; 'left'};
+                    
                     this.time_data.left_foot_angle_ml = this.time_data.marker_trajectories;
                 end
                 if strcmp(variable_name, 'right_foot_angle_ap')
+                    % calculate angle trajectory
                     RTOE_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RTOE');
                     RTOEL_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RTOEL');
                     RHEE_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RHEE');
@@ -1213,16 +1707,133 @@ classdef WalkingDataCustodian < handle
                     foot_vector_z = RTOEM_trajectory(:, 3) - RHEE_trajectory(:, 3);
                     foot_vector_xy = (foot_vector_x.^2 + foot_vector_y.^2).^(0.5);
                     this.basic_variable_data.right_foot_angle_ap = rad2deg(atan2(foot_vector_z, foot_vector_xy));
+                    
+                    % determine directions
+                    RTOE_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RTOE',  'indices');
+                    RTOEL_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RTOEL',  'indices');
+                    RHEE_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RHEE',  'indices');
+                    if isempty(RTOEL_indices)
+                        RTOEL_indices = RTOE_indices;
+                    end
+                    RTOE_directions_x = this.basic_variable_directions.marker_trajectories(:, RTOE_indices(1));
+                    RTOEL_directions_x = this.basic_variable_directions.marker_trajectories(:, RTOEL_indices(1));
+                    RHEE_directions_x = this.basic_variable_directions.marker_trajectories(:, RHEE_indices(1));
+                    RTOE_directions_y = this.basic_variable_directions.marker_trajectories(:, RTOE_indices(2));
+                    RTOEL_directions_y = this.basic_variable_directions.marker_trajectories(:, RTOEL_indices(2));
+                    RHEE_directions_y = this.basic_variable_directions.marker_trajectories(:, RHEE_indices(2));
+                    RTOE_directions_z = this.basic_variable_directions.marker_trajectories(:, RTOE_indices(3));
+                    RTOEL_directions_z = this.basic_variable_directions.marker_trajectories(:, RTOEL_indices(3));
+                    RHEE_directions_z = this.basic_variable_directions.marker_trajectories(:, RHEE_indices(3));
+                    
+                    % check whether directions of markers are the same
+                    if any(~strcmp(RTOE_directions_x{1}, {RTOEL_directions_x{1}, RHEE_directions_x{1}}))
+                        error('RTOE, RTOEL and RHEE directions found in marker data are different from each other')
+                    end
+                    if any(~strcmp(RTOE_directions_x{2}, {RTOEL_directions_x{2}, RHEE_directions_x{2}}))
+                        error('RTOE, RTOEL and RHEE directions found in marker data are different from each other')
+                    end
+                    if any(~strcmp(RTOE_directions_y{1}, {RTOEL_directions_y{1}, RHEE_directions_y{1}}))
+                        error('RTOE, RTOEL and RHEE directions found in marker data are different from each other')
+                    end
+                    if any(~strcmp(RTOE_directions_y{2}, {RTOEL_directions_y{2}, RHEE_directions_y{2}}))
+                        error('RTOE, RTOEL and RHEE directions found in marker data are different from each other')
+                    end
+                    if any(~strcmp(RTOE_directions_z{1}, {RTOEL_directions_z{1}, RHEE_directions_z{1}}))
+                        error('RTOE, RTOEL and RHEE directions found in marker data are different from each other')
+                    end
+                    if any(~strcmp(RTOE_directions_z{2}, {RTOEL_directions_z{2}, RHEE_directions_z{2}}))
+                        error('RTOE, RTOEL and RHEE directions found in marker data are different from each other')
+                    end
+                    
+                    % check assumption that y is left-right and z is down-up
+                    if ~strcmp(RTOEL_directions_x{1}, 'right')
+                        error('Assuming positive y-direction for markers RTOE, RTOEL and RHEE is "right"')
+                    end                  
+                    if ~strcmp(RTOEL_directions_x{2}, 'left')
+                        error('Assuming negative y-direction for markers RTOE, RTOEL and RHEE is "left"')
+                    end                  
+                    if ~strcmp(RTOEL_directions_y{1}, 'forward')
+                        error('Assuming positive y-direction for markers RTOE, RTOEL and RHEE is "down"')
+                    end                  
+                    if ~strcmp(RTOEL_directions_y{2}, 'backward')
+                        error('Assuming negative y-direction for markers RTOE, RTOEL and RHEE is "backward"')
+                    end                  
+                    if ~strcmp(RTOEL_directions_z{1}, 'up')
+                        error('Assuming positive z-direction for markers RTOE, RTOEL and RHEE is "up"')
+                    end                  
+                    if ~strcmp(RTOEL_directions_z{2}, 'down')
+                        error('Assuming negative z-direction for markers RTOE, RTOEL and RHEE is "down"')
+                    end
+                    
+                    % all assumptions are met, define directions
+                    this.basic_variable_directions.right_foot_angle_ap = {'up'; 'down'};                    
+                    
                     this.time_data.right_foot_angle_ap = this.time_data.marker_trajectories;
                 end
                 if strcmp(variable_name, 'right_foot_angle_ml')
+                    % TODO: test this
+                    % calculate angle trajectory
                     RTOE_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RTOE');
                     RTOEL_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RTOEL');
                     foot_vector_x = RTOEL_trajectory(:, 1) - RTOE_trajectory(:, 1);
                     foot_vector_y = RTOEL_trajectory(:, 2) - RTOE_trajectory(:, 2);
                     foot_vector_z = RTOEL_trajectory(:, 3) - RTOE_trajectory(:, 3);
                     foot_vector_xy = (foot_vector_x.^2 + foot_vector_y.^2).^(0.5);
-                    this.basic_variable_data.right_foot_angle_ml = rad2deg(atan2(foot_vector_z, foot_vector_xy));
+                    this.basic_variable_data.right_foot_angle_ml = -rad2deg(atan2(foot_vector_z, foot_vector_xy));
+                    
+                    % determine directions
+                    RTOE_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RTOE',  'indices');
+                    RTOEL_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RTOEL',  'indices');
+                    RTOE_directions_x = this.basic_variable_directions.marker_trajectories(:, RTOE_indices(1));
+                    RTOEL_directions_x = this.basic_variable_directions.marker_trajectories(:, RTOEL_indices(1));
+                    RTOE_directions_y = this.basic_variable_directions.marker_trajectories(:, RTOE_indices(2));
+                    RTOEL_directions_y = this.basic_variable_directions.marker_trajectories(:, RTOEL_indices(2));
+                    RTOE_directions_z = this.basic_variable_directions.marker_trajectories(:, RTOE_indices(3));
+                    RTOEL_directions_z = this.basic_variable_directions.marker_trajectories(:, RTOEL_indices(3));
+                    
+                    % check whether directions of markers are the same
+                    if ~strcmp(RTOE_directions_x{1}, RTOEL_directions_x{1})
+                        error('RTOE and RTOEL directions found in marker data are different from each other')
+                    end
+                    if ~strcmp(RTOE_directions_x{2}, RTOEL_directions_x{2})
+                        error('RTOE and RTOEL directions found in marker data are different from each other')
+                    end
+                    if ~strcmp(RTOE_directions_y{1}, RTOEL_directions_y{1})
+                        error('RTOE and RTOEL directions found in marker data are different from each other')
+                    end
+                    if ~strcmp(RTOE_directions_y{2}, RTOEL_directions_y{2})
+                        error('RTOE and RTOEL directions found in marker data are different from each other')
+                    end
+                    if ~strcmp(RTOE_directions_z{1}, RTOEL_directions_z{1})
+                        error('RTOE and RTOEL directions found in marker data are different from each other')
+                    end
+                    if ~strcmp(RTOE_directions_z{2}, RTOEL_directions_z{2})
+                        error('RTOE and RTOEL directions found in marker data are different from each other')
+                    end
+                    
+                    % check assumption that y is left-right and z is down-up
+                    if ~strcmp(RTOEL_directions_x{1}, 'right')
+                        error('Assuming positive y-direction for markers RTOE and RTOEL is "right"')
+                    end                  
+                    if ~strcmp(RTOEL_directions_x{2}, 'left')
+                        error('Assuming negative y-direction for markers RTOE and RTOEL is "left"')
+                    end                  
+                    if ~strcmp(RTOEL_directions_y{1}, 'forward')
+                        error('Assuming positive y-direction for markers RTOE and RTOEL is "down"')
+                    end                  
+                    if ~strcmp(RTOEL_directions_y{2}, 'backward')
+                        error('Assuming negative y-direction for markers RTOE and RTOEL is "backward"')
+                    end                  
+                    if ~strcmp(RTOEL_directions_z{1}, 'up')
+                        error('Assuming positive z-direction for markers RTOE and RTOEL is "up"')
+                    end                  
+                    if ~strcmp(RTOEL_directions_z{2}, 'down')
+                        error('Assuming negative z-direction for markers RTOE and RTOEL is "down"')
+                    end
+                    
+                    % all assumptions are met, define directions
+                    this.basic_variable_directions.right_foot_angle_ml = {'right'; 'left'};
+                    
                     this.time_data.right_foot_angle_ml = this.time_data.marker_trajectories;
                 end
                 if strcmp(variable_name, 'left_arm_right_leg_relative_phase')
@@ -1806,16 +2417,13 @@ classdef WalkingDataCustodian < handle
             
             for i_variable = 1 : number_of_stretch_variables
                 variable_name = variables_to_calculate{i_variable};
+                this.registerVariableDirections(variable_name);
                 
                 % extract and normalize data from stretches
                 for i_stretch = 1 : number_of_stretches
                     stretch_data = [];
                     
                     % time
-%                     this_stretch_start_time = stretch_start_times(i_stretch);
-%                     this_stretch_end_time = stretch_end_times(i_stretch);
-%                     this_stretch_pushoff_time = stretch_pushoff_times(i_stretch);
-%                     this_stretch_time_normalization_markers = time_normalization_markers(i_stretch, :);
                     
                     this_stretch_times = stretch_times(i_stretch, :);
                     this_stretch_start_time = this_stretch_times(1);
@@ -2291,6 +2899,10 @@ classdef WalkingDataCustodian < handle
                 % time-normalize data
                 data_normalized = time_normalized * NaN;
             end
+        end
+        
+        function registerVariableDirections(this, variable_name)
+            
         end
     end
 end
