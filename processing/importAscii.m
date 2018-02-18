@@ -381,6 +381,12 @@ function importAscii(varargin)
                     end
 
                     emg_trajectories_raw = imported_data.data(:, 3:end) * qtm_emg_scale;
+                    
+                    % check for column of zeros and remove                    
+                    columns_to_remove = ~any(emg_trajectories_raw);
+                    emg_trajectories_raw(:,columns_to_remove) = [];
+                    emg_labels(columns_to_remove) = [];
+                    
                     sampling_rate_field = imported_data.textdata{3, 1};
                     sampling_rate_strings = strsplit(sampling_rate_field);
                     sampling_rate_emg = str2num(sampling_rate_strings{2});
