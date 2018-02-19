@@ -828,6 +828,11 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('left_delt_ant')
                 this.addStretchVariable('left_delt_ant')
             end
+            if this.isVariableToAnalyze('left_delt_post')
+                this.addBasicVariable('emg_trajectories')
+                this.addBasicVariable('left_delt_post')
+                this.addStretchVariable('left_delt_post')
+            end
             if this.isVariableToAnalyze('left_tibi_ant')
                 this.addBasicVariable('emg_trajectories')
                 this.addBasicVariable('left_tibi_ant')
@@ -857,6 +862,11 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('emg_trajectories')
                 this.addBasicVariable('right_delt_ant')
                 this.addStretchVariable('right_delt_ant')
+            end
+            if this.isVariableToAnalyze('right_delt_post')
+                this.addBasicVariable('emg_trajectories')
+                this.addBasicVariable('right_delt_post')
+                this.addStretchVariable('right_delt_post')
             end
             if this.isVariableToAnalyze('right_tibi_ant')
                 this.addBasicVariable('emg_trajectories')
@@ -889,6 +899,12 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('left_delt_ant')
                 this.addStretchVariable('left_delt_ant')
                 this.addStretchVariable('left_delt_ant_rescaled')
+            end
+            if this.isVariableToAnalyze('left_delt_post_rescaled')
+                this.addBasicVariable('emg_trajectories')
+                this.addBasicVariable('left_delt_post')
+                this.addStretchVariable('left_delt_post')
+                this.addStretchVariable('left_delt_post_rescaled')
             end
             if this.isVariableToAnalyze('left_tibi_ant_rescaled')
                 this.addBasicVariable('emg_trajectories')
@@ -925,6 +941,12 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('right_delt_ant')
                 this.addStretchVariable('right_delt_ant')
                 this.addStretchVariable('right_delt_ant_rescaled')
+            end
+            if this.isVariableToAnalyze('right_delt_post_rescaled')
+                this.addBasicVariable('emg_trajectories')
+                this.addBasicVariable('right_delt_post')
+                this.addStretchVariable('right_delt_post')
+                this.addStretchVariable('right_delt_post_rescaled')
             end
             if this.isVariableToAnalyze('right_tibi_ant_rescaled')
                 this.addBasicVariable('emg_trajectories')
@@ -1740,6 +1762,10 @@ classdef WalkingDataCustodian < handle
                     this.basic_variable_data.left_delt_ant = this.basic_variable_data.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'left_delt_ant'));
                     this.time_data.left_delt_ant = this.time_data.emg_trajectories;
                 end
+                if strcmp(variable_name, 'left_delt_post')
+                    this.basic_variable_data.left_delt_post = this.basic_variable_data.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'left_delt_post'));
+                    this.time_data.left_delt_post = this.time_data.emg_trajectories;
+                end
                 if strcmp(variable_name, 'left_tibi_ant')
                     this.basic_variable_data.left_tibi_ant = this.basic_variable_data.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'left_tibi_ant'));
                     this.time_data.left_tibi_ant = this.time_data.emg_trajectories;
@@ -1769,6 +1795,10 @@ classdef WalkingDataCustodian < handle
                 if strcmp(variable_name, 'right_delt_ant')
                     this.basic_variable_data.right_delt_ant = this.basic_variable_data.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'right_delt_ant'));
                     this.time_data.right_delt_ant = this.time_data.emg_trajectories;
+                end
+                if strcmp(variable_name, 'right_delt_post')
+                    this.basic_variable_data.right_delt_post = this.basic_variable_data.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'right_delt_post'));
+                    this.time_data.right_delt_post = this.time_data.emg_trajectories;
                 end
                 if strcmp(variable_name, 'right_tibi_ant')
                     this.basic_variable_data.right_tibi_ant = this.basic_variable_data.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'right_tibi_ant'));
@@ -2129,6 +2159,11 @@ classdef WalkingDataCustodian < handle
                         normalization_value = this.emg_normalization_values(strcmp(this.emg_normalization_labels, 'left_delt_ant'));
                         stretch_data = left_delt_ant * 1 / normalization_value;
                     end
+                    if strcmp(variable_name, 'left_delt_post_rescaled')
+                        left_delt_post = this.getTimeNormalizedData('left_delt_post', this_stretch_times);
+                        normalization_value = this.emg_normalization_values(strcmp(this.emg_normalization_labels, 'left_delt_post'));
+                        stretch_data = left_delt_post * 1 / normalization_value;
+                    end
                     if strcmp(variable_name, 'left_tibi_ant_rescaled')
                         left_tibi_ant = this.getTimeNormalizedData('left_tibi_ant', this_stretch_times);
                         normalization_value = this.emg_normalization_values(strcmp(this.emg_normalization_labels, 'left_tibi_ant'));
@@ -2161,6 +2196,11 @@ classdef WalkingDataCustodian < handle
                         right_delt_ant = this.getTimeNormalizedData('right_delt_ant', this_stretch_times);
                         normalization_value = this.emg_normalization_values(strcmp(this.emg_normalization_labels, 'right_delt_ant'));
                         stretch_data = right_delt_ant * 1 / normalization_value;
+                    end
+                    if strcmp(variable_name, 'right_delt_post_rescaled')
+                        right_delt_post = this.getTimeNormalizedData('right_delt_post', this_stretch_times);
+                        normalization_value = this.emg_normalization_values(strcmp(this.emg_normalization_labels, 'right_delt_post'));
+                        stretch_data = right_delt_post * 1 / normalization_value;
                     end
                     if strcmp(variable_name, 'right_tibi_ant_rescaled')
                         right_tibi_ant = this.getTimeNormalizedData('right_tibi_ant', this_stretch_times);

@@ -470,7 +470,7 @@ function findRelevantDataStretches(varargin)
     
                     
                     stretch_times = [this_stretch_start, band_delimiter, this_stretch_end];
-                    stance_foot_data = {first_stance_foot, first_stance_foot};
+                    stance_foot_data = {first_stance_foot, second_stance_foot};
                     condition_experimental_list = condition_experimental;
                     condition_startfoot_list = {first_stance_foot; second_stance_foot};
                     bands_per_stretch = 2;
@@ -1129,7 +1129,7 @@ function findRelevantDataStretches(varargin)
             end
             
             % add subject
-            condition_subject_list = cell(size(condition_experimental_list));
+            condition_subject_list = cell(size(condition_experimental_list,1));
             for i_stretch = 1 : length(condition_subject_list)
                 condition_subject_list{i_stretch} = subject_id;
             end
