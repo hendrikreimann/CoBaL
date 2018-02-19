@@ -452,28 +452,31 @@ function findRelevantDataStretches(varargin)
                    if left_touchdown_times(1) <= right_touchdown_times(1)
                         this_stretch_start = right_touchdown_times(2);
                         this_stretch_end = right_touchdown_times(3);
-                        band_delimiter = left_touchdown_times(3);
+                        band_delimiter = min(left_touchdown_times(left_touchdown_times>this_stretch_start));
                         first_stance_foot = 'STANCE_RIGHT';
                         second_stance_foot = 'STANCE_LEFT';
                    else
                         this_stretch_start = left_touchdown_times(2);
                         this_stretch_end = left_touchdown_times(3);
-                        band_delimiter = right_touchdown_times(3);
+                        band_delimiter = min(right_touchdown_times(right_touchdown_times>this_stretch_start));
                         first_stance_foot = 'STANCE_LEFT';
                         second_stance_foot = 'STANCE_RIGHT';
                    end
+                   
                     % go through events and take stretches
                     stretch_times = [];
                     stance_foot_data = {};
                     condition_experimental_list = {};
                     condition_startfoot_list = {};
-    
                     
-                    stretch_times = [this_stretch_start, band_delimiter, this_stretch_end];
-                    stance_foot_data = {first_stance_foot, second_stance_foot};
-                    condition_experimental_list = condition_experimental;
-                    condition_startfoot_list = {first_stance_foot; second_stance_foot};
-                    bands_per_stretch = 2;
+                    % check if we have a valid stretch
+                    if ~isempty(band_delimiter) && band_delimiter < this_stretch_end
+                        stretch_times = [this_stretch_start, band_delimiter, this_stretch_end];
+                        stance_foot_data = {first_stance_foot, second_stance_foot};
+                        condition_experimental_list = condition_experimental;
+                        condition_startfoot_list = {first_stance_foot; second_stance_foot};
+                        bands_per_stretch = 2;
+                    end
                     
                     % fill in stuff
                     number_of_stretches = size(stretch_times, 1);
