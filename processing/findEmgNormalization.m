@@ -99,6 +99,14 @@ function findEmgNormalization(varargin)
     end
     labels_to_ignore = study_settings.get('conditions_to_ignore');
     levels_to_remove = study_settings.get('levels_to_remove');
+    
+    % make an adjustment to condition_data_all "control" emg condition
+    % this is a hack and should think about a way to automate this
+    % intelligently
+    if any(strcmp(condition_data_all(:, 2), 'post4'))
+        conditions_settings(2,4) = {'post4'};
+    end
+    
     [condition_combination_labels, condition_combinations_stimulus, condition_combinations_control, condition_combinations_emg_unique] = determineConditionCombinations(condition_data_all, conditions_settings, labels_to_ignore, levels_to_remove);
 
     % extract indicators for emg

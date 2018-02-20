@@ -277,7 +277,7 @@ function processAnalysisVariables(varargin)
                 end
                 this_left_step_time = this_variable_source_data(left_step_index,i_stretch);
                 this_right_step_time = this_variable_source_data(right_step_index,i_stretch);
-                this_variable_data(1:2,i_stretch) = this_left_step_time - this_right_step_time / average_step_time;
+                this_variable_data(1:2,i_stretch) = (this_left_step_time - this_right_step_time) / average_step_time;
             end
         end
         
