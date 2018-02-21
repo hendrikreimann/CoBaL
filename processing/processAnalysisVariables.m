@@ -280,9 +280,27 @@ function processAnalysisVariables(varargin)
                 this_variable_data(1:2,i_stretch) = (this_left_step_time - this_right_step_time) / average_step_time;
             end
         end
-        
+        if strcmp(this_variable_name, 'com_selfReferenced')
+            this_variable_source_index = find(strcmp(stretch_names_session, this_variable_source_name), 1, 'first');
+            this_variable_source_data = stretch_data_session{this_variable_source_index};
+            
+            for i_stretch = 1:length(this_variable_source_data)
+                this_variable_data(:,i_stretch) = this_variable_source_data(:,i_stretch) - this_variable_source_data(1,i_stretch);
+            end
+        end
+        if strcmp(this_variable_name, 'double_stance_pushoff')
+            % need a way to access double stance/ second step index of
+            % relevant stretches
+            % maybe create a source variable for the second double stance
+            % ankle dorsi angle? 
+            this_variable_source_index = find(strcmp(stretch_names_session, this_variable_source_name), 1, 'first');
+            this_variable_source_data = stretch_data_session{this_variable_source_index};
+            
+            for i_stretch = 1:length(this_variable_source_data)
+                this_variable_data(:,i_stretch) = findpeaks
+            end
+        end
         [analysis_data_session, analysis_names_session] =  addOrOverwriteData(analysis_data_session, analysis_names_session, this_variable_data, this_variable_name);
-        
     end
     
     %% gather variables with inversion by perturbation
