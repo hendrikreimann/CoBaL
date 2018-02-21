@@ -1496,8 +1496,8 @@ function createModel(varargin)
         % show stick figure of geometric model
         hip_center = (right_hip_cor + left_hip_cor) * 0.5;
         scene_bound = repmat(hip_center, 1, 2) + 2*[-0.5 0.5; -0.5 0.5; -1 1];
-        stick_figure = KinematicTreeController(kinematic_tree, scene_bound, 'ellipsoid');
-%         stick_figure = KinematicTreeController(kinematic_tree, scene_bound, 'none');
+%         stick_figure = KinematicTreeController(kinematic_tree, scene_bound, 'ellipsoid');
+        stick_figure = KinematicTreeController(kinematic_tree, scene_bound, 'none');
 
         % show segment CoMs
         for i_segment = 1 : number_of_segments

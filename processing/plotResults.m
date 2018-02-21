@@ -207,7 +207,6 @@ function plotResults(varargin)
     [comparison_indices, conditions_per_comparison_max] = determineComparisons(condition_combinations_stimulus, condition_combination_labels, plot_settings);
     number_of_comparisons = length(comparison_indices);
 
-    % new version I'm currently working on
     if strcmp(plot_mode, 'episodes')
         episodes = determineEpisodes(condition_combinations_stimulus, condition_combination_labels, comparison_indices, plot_settings);
         number_of_episodes = length(episodes);
@@ -1024,7 +1023,7 @@ function plotResults(varargin)
                 data_to_plot_this_condition = data_to_plot(:, this_condition_indicator);
                 
                 origin_indices = find(this_condition_indicator);
-                if isDiscreteVariable(i_variable, data_all, size(data_to_plot_this_condition, 1))
+                if isDiscreteVariable(i_variable, data_all, bands_per_stretch)
                     if plot_settings.get('merge_bands')
                         data_to_plot_this_condition = reshape(data_to_plot_this_condition, 1, numel(data_to_plot_this_condition));
                     end
