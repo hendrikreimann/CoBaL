@@ -471,38 +471,56 @@ function processAnalysisVariables(varargin)
         end
         if strcmp(this_variable_name, 'com_from_com_init_x')
             % should we be looking at response or stretch variable here??
-            this_variable_source_index = find(strcmp(stretch_names_session, this_variable_source_name), 1, 'first');
-            this_variable_source_data = stretch_data_session{this_variable_source_index};  
+            this_variable_source_index = find(strcmp(response_names_session, this_variable_source_name), 1, 'first');
+            this_variable_source_data = response_data_session{this_variable_source_index};  
             for i_stretch = 1:length(this_variable_source_data)
                 this_variable_data(:,i_stretch) = this_variable_source_data(:,i_stretch) - this_variable_source_data(1,i_stretch);
             end
         end
-%         if strcmp(this_variable_name, 'right_double_stance_pushoff_angle')
-%             this_variable_source_index = find(strcmp(response_names_session, this_variable_source_name), 1, 'first');
-%             this_variable_source_data = response_data_session{this_variable_source_index};
-%             
-%             for i_stretch = 1:length(this_variable_source_data)
-%                 this_variable_data(:,i_stretch) = max(findpeaks(this_variable_source_data(:,i_stretch)));
-%             end
-%         end
-%         if strcmp(this_variable_name, 'left_double_stance_pushoff_angle')
-%             
-%         end
        if strcmp(this_variable_name, 'trigger_leg_ankle_dorsiflexion_angle_max')
             this_variable_source_index = find(strcmp(analysis_names_session, this_variable_source_name), 1, 'first');
             this_variable_source_data = analysis_data_session{this_variable_source_index};
             
+            
             for i_stretch = 1:length(this_variable_source_data)
-                this_pushoff_value = max(findpeaks(this_variable_source_data(:,i_stretch)));
-                if ~isempty(this_pushoff_value)
-                    this_variable_data(i_stretch) = this_pushoff_value;
+                % create time
+                this_stretch_time_full = linspace(0, this_step_time_data(i_stretch), 100);
+                this_stretch_data_full = this_variable_source_data(:, i_stretch);
+
+                % interpolate double stance to 100 data points
+                this_stretch_time_double = linspace(0, this_pushoff_time_data(i_stretch), 100);       
+                this_stretch_data_double = interp1(this_stretch_time_full, this_stretch_data_full, this_stretch_time_double);
+
+
+                this_dorsi_angle_value = max(findpeaks(this_stretch_data_double));
+                if ~isempty(this_dorsi_angle_value)
+                    this_variable_data(i_stretch) = this_dorsi_angle_value;
                 else
                     this_variable_data(i_stretch) = NaN;
                 end
             end
        end
-       
-        [analysis_data_session, analysis_names_session] =  addOrOverwriteData(analysis_data_session, analysis_names_session, this_variable_data, this_variable_name);
+       if strcmp(this_variable_name, 'cop_from_com_x_integrated_twice')
+            this_variable_source_index = find(strcmp(response_names_session, this_variable_source_name), 1, 'first');
+            this_variable_source_data = response_data_session{this_variable_source_index};
+            number_of_stretches = size(this_variable_source_data, 2);
+
+            for i_stretch = 1 : number_of_stretches
+                % get data for full step
+                this_stretch_time_full = linspace(0, this_step_time_data(i_stretch), 100);
+                this_stretch_data_full = this_variable_source_data(:, i_stretch);
+
+                % interpolate single stance to 100 data points
+                this_stretch_time_single = linspace(this_pushoff_time_data(i_stretch), this_step_time_data(i_stretch), 100);
+                this_stretch_data_single = interp1(this_stretch_time_full, this_stretch_data_full, this_stretch_time_single);
+
+                % integrate data in single stance
+                this_stretch_data_single_integrated = cumtrapz(this_stretch_time_single, this_stretch_data_single);
+                this_stretch_data_single_integrated_twice = cumtrapz(this_stretch_time_single, this_stretch_data_single_integrated);
+                this_variable_data(i_stretch) = this_stretch_data_single_integrated_twice(end);
+            end 
+       end
+       [analysis_data_session, analysis_names_session] =  addOrOverwriteData(analysis_data_session, analysis_names_session, this_variable_data, this_variable_name);
     end
     
     
