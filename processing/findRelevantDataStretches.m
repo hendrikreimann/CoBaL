@@ -1144,8 +1144,9 @@ function findRelevantDataStretches(varargin)
             %
             % calculate variables that depend upon the step events to be identified correctly
             stretch_variables = study_settings.get('stretch_variables');
+            
 %             variables_to_save = struct;
-            variables_to_prune_for = {};
+            
 
             % prune
             number_of_stretches = length(stretch_start_times);
@@ -1167,6 +1168,12 @@ function findRelevantDataStretches(varargin)
                 if any(any(isnan(marker_trajectories(start_index_mocap : end_index_mocap, essential_marker_indicator))))
                     removal_flags(i_stretch) = 1;
                     disp('Removing a stretch due to gaps in essential markers')
+                end
+                if any(strcmp(stretch_variables(:, 1), 'com_x')) || any(strcmp(stretch_variables(:, 1), 'com_y')) || any(strcmp(stretch_variables(:, 1), 'com_z'))
+                    if any(any(isnan(com_trajectories(start_index_mocap : end_index_mocap)))); 
+                        removal_flags = 1;
+                        disp('Removing a stretch due to gaps in com trajectories')
+                    end
                 end
             end
             
