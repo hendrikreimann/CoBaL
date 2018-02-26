@@ -1001,6 +1001,8 @@ function findRelevantDataStretches(varargin)
                 end
 
                 % remove flagged triggers
+                % needs to be restructured to only populate what is
+                % necessary
                 unflagged_indices = ~removal_flags;
                 trigger_times = trigger_times(unflagged_indices);
                 stim_start_indices_labview = stim_start_indices_labview(unflagged_indices, :);
@@ -1012,7 +1014,7 @@ function findRelevantDataStretches(varargin)
                 condition_delay_list = condition_delay_list(unflagged_indices, :);
                 condition_index_list = condition_index_list(unflagged_indices, :);
                 condition_experimental_list = condition_experimental_list(unflagged_indices, :); % XXX needs to be updated
-                condition_startfoot_list = condition_startfoot_list(unflagged_indices, :);
+%                 condition_startfoot_list = condition_startfoot_list(unflagged_indices, :);
                 condition_stimulus_list = condition_stimulus_list(unflagged_indices, :); % XXX needs to be updated
                 condition_day_list = condition_day_list(unflagged_indices, :); % XXX needs to be updated
 %                 closest_heelstrike_distance_times = closest_heelstrike_distance_times(unflagged_indices, :);
@@ -1027,7 +1029,7 @@ function findRelevantDataStretches(varargin)
                 condition_delay_list = reshape(condition_delay_list, numel(condition_delay_list), 1);
                 condition_index_list = reshape(condition_index_list, numel(condition_index_list), 1);
                 condition_experimental_list = reshape(condition_experimental_list, numel(condition_experimental_list), 1);
-                condition_startfoot_list = reshape(condition_startfoot_list, numel(condition_startfoot_list), 1);
+%                 condition_startfoot_list = reshape(condition_startfoot_list, numel(condition_startfoot_list), 1);
                 condition_stimulus_list = reshape(condition_stimulus_list, numel(condition_stimulus_list), 1);
                 condition_day_list = reshape(condition_day_list, numel(condition_day_list), 1);
                 
@@ -1051,7 +1053,7 @@ function findRelevantDataStretches(varargin)
                 condition_delay_list = condition_delay_list(unflagged_indices, :);
                 condition_index_list = condition_index_list(unflagged_indices, :);
                 condition_experimental_list = condition_experimental_list(unflagged_indices, :);
-                condition_startfoot_list = condition_startfoot_list(unflagged_indices, :);
+%                 condition_startfoot_list = condition_startfoot_list(unflagged_indices, :);
                 condition_stimulus_list = condition_stimulus_list(unflagged_indices, :);
                 condition_day_list = condition_day_list(unflagged_indices, :);
 
@@ -1063,7 +1065,7 @@ function findRelevantDataStretches(varargin)
                 conditions_trial.condition_delay_list = condition_delay_list;
                 conditions_trial.condition_index_list = condition_index_list;
                 conditions_trial.condition_experimental_list = condition_experimental_list;
-                conditions_trial.condition_startfoot_list = condition_startfoot_list;
+%                 conditions_trial.condition_startfoot_list = condition_startfoot_list;
                 conditions_trial.condition_stimulus_list = condition_stimulus_list;
                 conditions_trial.condition_day_list = condition_day_list;
                 
@@ -1132,7 +1134,7 @@ function findRelevantDataStretches(varargin)
             end
             
             % add subject
-            condition_subject_list = cell(size(condition_experimental_list,1));
+            condition_subject_list = cell(size(condition_experimental_list,1),1);
             for i_stretch = 1 : length(condition_subject_list)
                 condition_subject_list{i_stretch} = subject_id;
             end

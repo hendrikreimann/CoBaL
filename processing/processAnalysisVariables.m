@@ -255,54 +255,6 @@ function processAnalysisVariables(varargin)
         [analysis_data_session, analysis_names_session] = addOrOverwriteData(analysis_data_session, analysis_names_session, this_variable_data, this_variable_name);
     end
 
-    %% process variables where something specific happens for each variable
-    special_variables_to_calculate = study_settings.get('analysis_variables_special');
-    for i_variable = 1:size(special_variables_to_calculate, 1)
-        this_variable_name = special_variables_to_calculate{i_variable, 1};
-        this_variable_source_name = special_variables_to_calculate{i_variable, 2};
-        
-        if strcmp(this_variable_name, 'step_symmetry_index')
-            this_variable_source_index = find(strcmp(stretch_names_session, this_variable_source_name), 1, 'first');
-            this_variable_source_data = stretch_data_session{this_variable_source_index};
-
-            average_step_time = mean(reshape(this_variable_source_data, 1, length(this_variable_source_data)*2));
-            for i_stretch = 1:  length(this_variable_source_data)
-                % find the left and right stance data
-                if strcmp(condition_data_all(i_stretch,3), 'STANCE_LEFT')
-                    left_step_index = 2;
-                    right_step_index = 1;
-                else
-                    left_step_index = 1;
-                    right_step_index = 2;
-                end
-                this_left_step_time = this_variable_source_data(left_step_index,i_stretch);
-                this_right_step_time = this_variable_source_data(right_step_index,i_stretch);
-                this_variable_data(1:2,i_stretch) = (this_left_step_time - this_right_step_time) / average_step_time;
-            end
-        end
-        if strcmp(this_variable_name, 'com_selfReferenced')
-            this_variable_source_index = find(strcmp(stretch_names_session, this_variable_source_name), 1, 'first');
-            this_variable_source_data = stretch_data_session{this_variable_source_index};
-            
-            for i_stretch = 1:length(this_variable_source_data)
-                this_variable_data(:,i_stretch) = this_variable_source_data(:,i_stretch) - this_variable_source_data(1,i_stretch);
-            end
-        end
-        if strcmp(this_variable_name, 'double_stance_pushoff')
-            % need a way to access double stance/ second step index of
-            % relevant stretches
-            % maybe create a source variable for the second double stance
-            % ankle dorsi angle? 
-            this_variable_source_index = find(strcmp(stretch_names_session, this_variable_source_name), 1, 'first');
-            this_variable_source_data = stretch_data_session{this_variable_source_index};
-            
-            for i_stretch = 1:length(this_variable_source_data)
-                this_variable_data(:,i_stretch) = findpeaks
-            end
-        end
-        [analysis_data_session, analysis_names_session] =  addOrOverwriteData(analysis_data_session, analysis_names_session, this_variable_data, this_variable_name);
-    end
-    
     %% gather variables with inversion by perturbation
     % TODO: deal with bands
     variables_to_invert = study_settings.get('analysis_variables_from_inversion_by_perturbation');
@@ -491,6 +443,68 @@ function processAnalysisVariables(varargin)
         % store
         [analysis_data_session, analysis_names_session] = addOrOverwriteData(analysis_data_session, analysis_names_session, this_variable_data, this_variable_name);
     end
+    
+     %% process variables where something specific happens for each variable
+    special_variables_to_calculate = study_settings.get('analysis_variables_special');
+    for i_variable = 1:size(special_variables_to_calculate, 1)
+        this_variable_name = special_variables_to_calculate{i_variable, 1};
+        this_variable_source_name = special_variables_to_calculate{i_variable, 2};
+        
+        if strcmp(this_variable_name, 'step_symmetry_index')
+            this_variable_source_index = find(strcmp(stretch_names_session, this_variable_source_name), 1, 'first');
+            this_variable_source_data = stretch_data_session{this_variable_source_index};
+
+            average_step_time = mean(reshape(this_variable_source_data, 1, length(this_variable_source_data)*2));
+            for i_stretch = 1:  length(this_variable_source_data)
+                % find the left and right stance data
+                if strcmp(condition_data_all(i_stretch,3), 'STANCE_LEFT')
+                    left_step_index = 2;
+                    right_step_index = 1;
+                else
+                    left_step_index = 1;
+                    right_step_index = 2;
+                end
+                this_left_step_time = this_variable_source_data(left_step_index,i_stretch);
+                this_right_step_time = this_variable_source_data(right_step_index,i_stretch);
+                this_variable_data(1:2,i_stretch) = (this_left_step_time - this_right_step_time) / average_step_time;
+            end
+        end
+        if strcmp(this_variable_name, 'com_from_com_init_x')
+            % should we be looking at response or stretch variable here??
+            this_variable_source_index = find(strcmp(stretch_names_session, this_variable_source_name), 1, 'first');
+            this_variable_source_data = stretch_data_session{this_variable_source_index};  
+            for i_stretch = 1:length(this_variable_source_data)
+                this_variable_data(:,i_stretch) = this_variable_source_data(:,i_stretch) - this_variable_source_data(1,i_stretch);
+            end
+        end
+%         if strcmp(this_variable_name, 'right_double_stance_pushoff_angle')
+%             this_variable_source_index = find(strcmp(response_names_session, this_variable_source_name), 1, 'first');
+%             this_variable_source_data = response_data_session{this_variable_source_index};
+%             
+%             for i_stretch = 1:length(this_variable_source_data)
+%                 this_variable_data(:,i_stretch) = max(findpeaks(this_variable_source_data(:,i_stretch)));
+%             end
+%         end
+%         if strcmp(this_variable_name, 'left_double_stance_pushoff_angle')
+%             
+%         end
+       if strcmp(this_variable_name, 'trigger_leg_ankle_dorsiflexion_angle_max')
+            this_variable_source_index = find(strcmp(analysis_names_session, this_variable_source_name), 1, 'first');
+            this_variable_source_data = analysis_data_session{this_variable_source_index};
+            
+            for i_stretch = 1:length(this_variable_source_data)
+                this_pushoff_value = max(findpeaks(this_variable_source_data(:,i_stretch)));
+                if ~isempty(this_pushoff_value)
+                    this_variable_data(i_stretch) = this_pushoff_value;
+                else
+                    this_variable_data(i_stretch) = NaN;
+                end
+            end
+       end
+       
+        [analysis_data_session, analysis_names_session] =  addOrOverwriteData(analysis_data_session, analysis_names_session, this_variable_data, this_variable_name);
+    end
+    
     
     %% save data
     variables_to_save = loaded_data;
