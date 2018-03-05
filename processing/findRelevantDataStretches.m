@@ -85,6 +85,7 @@ function findRelevantDataStretches(varargin)
             %% load data
             ignore_times = [];
             load(['analysis' filesep makeFileName(date, subject_id, condition_list{i_condition}, i_trial, 'stepEvents')]);
+            load(['processed' filesep makeFileName(date, subject_id, condition_list{i_condition}, i_trial, 'kinematicTrajectories')]);
             
             % determine experimental condition
             this_trial_type = condition_list{i_condition};
@@ -122,7 +123,8 @@ function findRelevantDataStretches(varargin)
             
             % marker data
             [marker_trajectories, time_marker, sampling_rate_marker, marker_labels, marker_directions] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'marker_trajectories');
-            
+%             [com_trajectories, time_marker, sampling_rate_marker, com_labels, com_directions] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'com_trajectories');
+                
             % forceplate data
             [left_forceplate_cop_world_trajectory, time_left_forceplate, ~, ~, ~, left_forceplate_available] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'left_foot_cop_world', 'optional');
             [right_forceplate_cop_world_trajectory, time_right_forceplate, ~, ~, ~, right_forceplate_available] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'right_foot_cop_world', 'optional');
@@ -1170,7 +1172,7 @@ function findRelevantDataStretches(varargin)
                     disp('Removing a stretch due to gaps in essential markers')
                 end
                 if any(strcmp(stretch_variables(:, 1), 'com_x')) || any(strcmp(stretch_variables(:, 1), 'com_y')) || any(strcmp(stretch_variables(:, 1), 'com_z'))
-                    if any(any(isnan(com_trajectories(start_index_mocap : end_index_mocap)))); 
+                    if any(any(isnan(com_trajectories(start_index_mocap : end_index_mocap,:)))) |  any(any(com_trajectories(start_index_mocap : end_index_mocap,:))) == 0 % mostly a problem for RON (VISION_HY) trials 6 + 7
                         removal_flags = 1;
                         disp('Removing a stretch due to gaps in com trajectories')
                     end

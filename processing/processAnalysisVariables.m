@@ -298,9 +298,9 @@ function processAnalysisVariables(varargin)
         this_variable_data = this_variable_source_data;
         for i_stretch = 1 : number_of_stretches
             perturbation_list = conditions_session.(condition_source_variables{strcmp(condition_labels, 'perturbation')});
-            if strcmp(perturbation_list, 'ILLUSION_LEFT')
+            if strcmp(perturbation_list{i_stretch}, 'ILLUSION_LEFT')
                 this_variable_data(:, i_stretch) = sign_illusion_left * this_variable_source_data(:, i_stretch);
-            elseif strcmp(perturbation_list, 'ILLUSION_RIGHT')
+            elseif strcmp(perturbation_list{i_stretch}, 'ILLUSION_RIGHT')
                 this_variable_data(:, i_stretch) = sign_illusion_right * this_variable_source_data(:, i_stretch);
             end
 %             if strcmp(loaded_data.condition_perturbation_list_session{i_stretch}, 'ILLUSION_LEFT')
