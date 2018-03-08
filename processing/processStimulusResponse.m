@@ -52,6 +52,7 @@ function processStimulusResponse(varargin)
     
     % extract data
     step_placement_x_data = loaded_data.stretch_data_session{strcmp(loaded_data.stretch_names_session, 'step_placement_x')};
+    step_placement_x_directions = loaded_data.stretch_directions_session(strcmp(loaded_data.stretch_names_session, 'step_placement_x'), :);
     mpsis_x_data = loaded_data.stretch_data_session{strcmp(loaded_data.stretch_names_session, 'mpsis_x')};
     com_x_data = loaded_data.stretch_data_session{strcmp(loaded_data.stretch_names_session, 'com_x')};
     mpsis_x_vel_data = deriveByTime(mpsis_x_data, 0.01); % XXX ACHTUNG: this is a hack because I don't have the data yet
@@ -275,11 +276,23 @@ function processStimulusResponse(varargin)
     if isfield(loaded_data, 'analysis_data_session')
         analysis_data_session = loaded_data.analysis_data_session;
         analysis_names_session = loaded_data.analysis_names_session;
+        analysis_directions_session = loaded_data.analysis_directions_session;
     else
         analysis_data_session = {};
         analysis_names_session = {};
+        analysis_directions_session = {};
     end
-    [analysis_data_session, analysis_names_session] = addOrOverwriteData(analysis_data_session, analysis_names_session, stimulus_response_x_data, 'stimulus_response_x');
+%     [analysis_data_session, analysis_names_session] = addOrOverwriteData(analysis_data_session, analysis_names_session, stimulus_response_x_data, 'stimulus_response_x');
+    [analysis_data_session, analysis_names_session] = ...
+        addOrOverwriteResultsData ...
+          ( ...
+            analysis_data_session, ...
+            analysis_names_session, ...
+            analysis_directions_session, ...
+            stimulus_response_x_data, ...
+            'stimulus_response_x',...
+            step_placement_x_directions ...
+          );
     
     variables_to_save = loaded_data;
     variables_to_save.analysis_data_session = analysis_data_session;

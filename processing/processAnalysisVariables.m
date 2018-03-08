@@ -176,7 +176,7 @@ function processAnalysisVariables(varargin)
         eval(['names_source = ' this_variable_source_type '_names_session;']);
         eval(['directions_source = ' this_variable_source_type '_directions_session;']);
         this_variable_source_data = data_source{strcmp(names_source, this_variable_source_name)};
-        this_variable_directions = directions_source(strcmp(names_source, this_variable_source_name), :);
+        new_variable_directions = directions_source(strcmp(names_source, this_variable_source_name), :);
         step_end_data = zeros(bands_per_stretch, number_of_stretches);
         for i_band = 1 : bands_per_stretch
             [~, end_index] = getBandIndices(i_band, number_of_time_steps_normalized);
@@ -187,7 +187,7 @@ function processAnalysisVariables(varargin)
             addOrOverwriteResultsData ...
               ( ...
                 analysis_data_session, analysis_names_session, analysis_directions_session, ...
-                step_end_data, this_variable_name, this_variable_directions ...
+                step_end_data, this_variable_name, new_variable_directions ...
               );
     end
     
@@ -204,7 +204,7 @@ function processAnalysisVariables(varargin)
         eval(['names_source = ' this_variable_source_type '_names_session;']);
         eval(['directions_source = ' this_variable_source_type '_directions_session;']);
         this_variable_source_data = data_source{strcmp(names_source, this_variable_source_name)};
-        this_variable_directions = directions_source(strcmp(names_source, this_variable_source_name), :);
+        new_variable_directions = directions_source(strcmp(names_source, this_variable_source_name), :);
         
         extrema_data = zeros(bands_per_stretch, number_of_stretches);
         for i_band = 1 : bands_per_stretch
@@ -225,7 +225,7 @@ function processAnalysisVariables(varargin)
             addOrOverwriteResultsData ...
               ( ...
                 analysis_data_session, analysis_names_session, analysis_directions_session, ...
-                step_end_data, this_variable_name, this_variable_directions ...
+                extrema_data, this_variable_name, new_variable_directions ...
               );
     end
     
@@ -243,7 +243,7 @@ function processAnalysisVariables(varargin)
         eval(['names_source = ' this_variable_source_type '_names_session;']);
         eval(['directions_source = ' this_variable_source_type '_directions_session;']);
         this_variable_source_data = data_source{strcmp(names_source, this_variable_source_name)};
-        this_variable_directions = variables_to_invert(i_variable, 4:5);
+        new_variable_directions = variables_to_invert(i_variable, 4:5);
         
         relevant_condition = variables_to_invert{i_variable, 6};
         condition_sign_map = reshape(variables_to_invert(i_variable, 7:end), 2, (size(variables_to_invert, 2)-6)/2)';
@@ -276,9 +276,63 @@ function processAnalysisVariables(varargin)
             addOrOverwriteResultsData ...
               ( ...
                 analysis_data_session, analysis_names_session, analysis_directions_session, ...
-                step_end_data, this_variable_name, this_variable_directions ...
+                this_variable_data, this_variable_name, new_variable_directions ...
               );
     end
+
+    %% calculate inversion variables
+    inversion_variables = study_settings.get('inversion_variables');
+    for i_variable = 1 : size(inversion_variables, 1)
+        % get data
+        this_variable_name = inversion_variables{i_variable, 1};
+        this_variable_source_name = inversion_variables{i_variable, 2};
+        this_variable_source_type = inversion_variables{i_variable, 3};
+        % pick data depending on source specification
+        eval(['data_source = ' this_variable_source_type '_data_session;']);
+        eval(['names_source = ' this_variable_source_type '_names_session;']);
+        eval(['directions_source = ' this_variable_source_type '_directions_session;']);
+        this_variable_source_data = data_source{strcmp(names_source, this_variable_source_name)};
+        this_variable_source_directions = directions_source(strcmp(names_source, this_variable_source_name), :);
+        new_variable_directions = inversion_variables(i_variable, 6:7);
+        
+        relevant_condition = inversion_variables{i_variable, 4};
+        inversion_table = study_settings.get(inversion_variables{i_variable, 5});
+        
+        % go through levels and invert
+        this_variable_data = this_variable_source_data;
+        level_list = conditions_session.(condition_source_variables{strcmp(condition_labels, relevant_condition)});
+        for i_level = 1 : size(inversion_table, 1)
+            % determine whether this has to be inverted
+            this_level_direction_map = inversion_table(i_level, 2:3);
+            if strcmp(this_level_direction_map{1}, this_variable_source_directions{1}) && strcmp(this_level_direction_map{2}, this_variable_source_directions{2})
+                % directions of the new variable and the source variable are the same, no need to invert here
+                sign_this_level = 1;
+            elseif strcmp(this_level_direction_map{1}, this_variable_source_directions{2}) && strcmp(this_level_direction_map{2}, this_variable_source_directions{1})
+                % positive direction for new variable is negative for source variable, and vice versa, so we need to invert data for this level
+                sign_this_level = -1;
+            else
+                error(['Trying to invert variable ' this_variable_name ', but direction labels do not match.'])
+            end
+            
+            % get matches
+            label_this_level = inversion_table{i_level, 1};
+            match_this_level = strcmp(level_list, label_this_level);
+            
+            % invert
+            this_variable_data(:, match_this_level) = sign_this_level * this_variable_data(:, match_this_level);
+        end
+
+        
+        
+        % store
+        [analysis_data_session, analysis_names_session, analysis_directions_session] = ...
+            addOrOverwriteResultsData ...
+              ( ...
+                analysis_data_session, analysis_names_session, analysis_directions_session, ...
+                this_variable_data, this_variable_name, new_variable_directions ...
+              );
+    end
+
 
     %% process variables where something specific happens for each variable
     % TODO: deal with directions
@@ -312,8 +366,9 @@ function processAnalysisVariables(varargin)
     end
     
     %% gather variables with inversion by perturbation
-    % TODO: deal with bands
-    % TODO: deal with directions
+    % THIS IS LEGACY CODE
+    % used this for the Vision experiment, it doesn't deal with bands or directions
+    % use the general solution for variables_to_invert instead
     variables_to_invert = study_settings.get('analysis_variables_from_inversion_by_perturbation');
     for i_variable = 1 : size(variables_to_invert, 1)
         % get data
