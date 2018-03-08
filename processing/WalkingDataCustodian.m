@@ -260,6 +260,24 @@ classdef WalkingDataCustodian < handle
                 this.addStretchVariable('com_y')
                 this.addStretchVariable('cop_from_com_y')
             end
+            if this.isVariableToAnalyze('cop_to_com_x')
+                this.addBasicVariable('total_forceplate_cop_world')
+                this.addBasicVariable('cop_x')
+                this.addStretchVariable('cop_x')
+                this.addBasicVariable('com_trajectories')
+                this.addBasicVariable('com_x')
+                this.addStretchVariable('com_x')
+                this.addStretchVariable('cop_to_com_x')
+            end
+            if this.isVariableToAnalyze('cop_to_com_y')
+                this.addBasicVariable('total_forceplate_cop_world')
+                this.addBasicVariable('cop_y')
+                this.addStretchVariable('cop_y')
+                this.addBasicVariable('com_trajectories')
+                this.addBasicVariable('com_y')
+                this.addStretchVariable('com_y')
+                this.addStretchVariable('cop_to_com_y')
+            end
             if this.isVariableToAnalyze('head_angle_ap')
                 this.addBasicVariable('marker_trajectories')
                 this.addBasicVariable('head_angle_ap')
@@ -2749,6 +2767,16 @@ classdef WalkingDataCustodian < handle
                         cop_y = stretch_variables{strcmp(this.stretch_variable_names, 'cop_y')}(:, i_stretch);
                         stretch_data = cop_y - com_y;
                     end
+                    if strcmp(variable_name, 'cop_to_com_x')
+                        com_x = stretch_variables{strcmp(this.stretch_variable_names, 'com_x')}(:, i_stretch);
+                        cop_x = stretch_variables{strcmp(this.stretch_variable_names, 'cop_x')}(:, i_stretch);
+                        stretch_data = com_x - cop_x;
+                    end
+                    if strcmp(variable_name, 'cop_to_com_y')
+                        com_y = stretch_variables{strcmp(this.stretch_variable_names, 'com_y')}(:, i_stretch);
+                        cop_y = stretch_variables{strcmp(this.stretch_variable_names, 'cop_y')}(:, i_stretch);
+                        stretch_data = com_y - cop_y;
+                    end
                     if strcmp(variable_name, 'heel_clearance')
                         stretch_data = zeros(number_of_bands, 1);
                         for i_band = 1 : number_of_bands
@@ -3112,6 +3140,28 @@ classdef WalkingDataCustodian < handle
                 stretch_directions_new = com_x_directions;
             end
             if strcmp(variable_name, 'cop_from_com_y')
+                com_y_directions = this.stretch_variable_directions(strcmp(this.stretch_variable_names, 'com_y'), :);
+                cop_y_directions = this.stretch_variable_directions(strcmp(this.stretch_variable_names, 'cop_y'), :);
+                if ~strcmp(com_y_directions{1}, cop_y_directions{1})
+                    error('com_y and cop_y directions are different from each other')
+                end
+                if ~strcmp(com_y_directions{2}, cop_y_directions{2})
+                    error('com_y and cop_y directions are different from each other')
+                end
+                stretch_directions_new = com_y_directions;
+            end
+            if strcmp(variable_name, 'cop_to_com_x')
+                com_x_directions = this.stretch_variable_directions(strcmp(this.stretch_variable_names, 'com_x'), :);
+                cop_x_directions = this.stretch_variable_directions(strcmp(this.stretch_variable_names, 'cop_x'), :);
+                if ~strcmp(com_x_directions{1}, cop_x_directions{1})
+                    error('com_x and cop_x directions are different from each other')
+                end
+                if ~strcmp(com_x_directions{2}, cop_x_directions{2})
+                    error('com_x and cop_x directions are different from each other')
+                end
+                stretch_directions_new = com_x_directions;
+            end
+            if strcmp(variable_name, 'cop_to_com_y')
                 com_y_directions = this.stretch_variable_directions(strcmp(this.stretch_variable_names, 'com_y'), :);
                 cop_y_directions = this.stretch_variable_directions(strcmp(this.stretch_variable_names, 'cop_y'), :);
                 if ~strcmp(com_y_directions{1}, cop_y_directions{1})
