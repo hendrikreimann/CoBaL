@@ -156,11 +156,12 @@ function processStretchVariables(varargin)
 
     stretch_data_session = data_session; %#ok<NASGU>
     stretch_names_session = data_custodian.stretch_variable_names; %#ok<NASGU>
-%     
+    stretch_directions_session = data_custodian.stretch_variable_directions; %#ok<NASGU>
+
     bands_per_stretch = median(bands_per_stretch_session);
-%     if any(bands_per_stretch_session ~= bands_per_stretch)
-%         warning('Different trials have different numbers of bands per stretch')
-%     end
+    if any(bands_per_stretch_session ~= bands_per_stretch)
+        warning('Different trials have different numbers of bands per stretch')
+    end
 
     %% save data
     results_file_name = ['analysis' filesep makeFileName(date, subject_id, 'results')];
@@ -170,6 +171,7 @@ function processStretchVariables(varargin)
         'conditions_session', ...
         'stretch_data_session', ...
         'stretch_names_session', ...
+        'stretch_directions_session', ...
         'bands_per_stretch', ...
         'origin_trial_list_session', ...
         'origin_start_time_list_session', ...
