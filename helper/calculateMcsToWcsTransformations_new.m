@@ -82,6 +82,10 @@ function transformations = calculateMcsToWcsTransformations_new(marker_positions
             marker_indices_y = zeros(1, number_of_markers_this_segment);
             marker_indices_z = zeros(1, number_of_markers_this_segment);
             for i_marker = 1 : number_of_markers_this_segment
+                if ~any(strcmp(marker_labels, [this_segment_markers{i_marker} '_x']))
+                    error(['Marker not found: ' [this_segment_markers{i_marker}]]);
+                end
+                
                 marker_indices_x(i_marker) = find(strcmp(marker_labels, [this_segment_markers{i_marker} '_x']));
                 marker_indices_y(i_marker) = find(strcmp(marker_labels, [this_segment_markers{i_marker} '_y']));
                 marker_indices_z(i_marker) = find(strcmp(marker_labels, [this_segment_markers{i_marker} '_z']));

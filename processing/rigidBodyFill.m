@@ -42,10 +42,10 @@ function rigidBodyFill(marker_to_fill, marker_source_1, marker_source_2, marker_
     % get reference positions
     marker_reference = kinematic_tree.exportMarkerPositions;
     marker_labels = kinematic_tree.markerLabels;
-    marker_to_fill_reference = extractMarkerTrajectories(marker_reference, marker_labels, marker_to_fill)';
-    marker_source_1_reference = extractMarkerTrajectories(marker_reference, marker_labels, marker_source_1)';
-    marker_source_2_reference = extractMarkerTrajectories(marker_reference, marker_labels, marker_source_2)';
-    marker_source_3_reference = extractMarkerTrajectories(marker_reference, marker_labels, marker_source_3)';
+    marker_to_fill_reference = extractMarkerData(marker_reference, marker_labels, marker_to_fill)';
+    marker_source_1_reference = extractMarkerData(marker_reference, marker_labels, marker_source_1)';
+    marker_source_2_reference = extractMarkerData(marker_reference, marker_labels, marker_source_2)';
+    marker_source_3_reference = extractMarkerData(marker_reference, marker_labels, marker_source_3)';
     
     % define coordinate frame based on positions
     p = mean([marker_source_1_reference marker_source_2_reference marker_source_3_reference], 2);
@@ -69,9 +69,9 @@ function rigidBodyFill(marker_to_fill, marker_source_1, marker_source_2, marker_
             load(['processed' filesep makeFileName(date, subject_id, condition, i_trial, 'markerTrajectories')]);
             number_of_time_steps = size(marker_trajectories, 1);
             
-            marker_source_1_trajectory = extractMarkerTrajectories(marker_trajectories, marker_labels, marker_source_1);
-            marker_source_2_trajectory = extractMarkerTrajectories(marker_trajectories, marker_labels, marker_source_2);
-            marker_source_3_trajectory = extractMarkerTrajectories(marker_trajectories, marker_labels, marker_source_3);
+            marker_source_1_trajectory = extractMarkerData(marker_trajectories, marker_labels, marker_source_1);
+            marker_source_2_trajectory = extractMarkerData(marker_trajectories, marker_labels, marker_source_2);
+            marker_source_3_trajectory = extractMarkerData(marker_trajectories, marker_labels, marker_source_3);
             
             marker_to_fill_trajectory = zeros(number_of_time_steps, 3);
             
@@ -91,7 +91,7 @@ function rigidBodyFill(marker_to_fill, marker_source_1, marker_source_2, marker_
             end
             
             if visualize
-                marker_to_fill_trajectory_original = extractMarkerTrajectories(marker_trajectories, marker_labels, marker_to_fill);
+                marker_to_fill_trajectory_original = extractMarkerData(marker_trajectories, marker_labels, marker_to_fill);
                 figure; hold on
                 x_plot = plot(marker_to_fill_trajectory_original(:, 1), 'linewidth', 2);
                 y_plot = plot(marker_to_fill_trajectory_original(:, 2), 'linewidth', 2);
@@ -107,9 +107,11 @@ function rigidBodyFill(marker_to_fill, marker_source_1, marker_source_2, marker_
             end
             
             % insert reconstructed trajectory back into array
-            marker_number = find(strcmp(marker_labels, marker_to_fill));
-            markers_indices = reshape([(marker_number - 1) * 3 + 1; (marker_number - 1) * 3 + 2; (marker_number - 1) * 3 + 3], 1, length(marker_number)*3);
-            marker_trajectories(:, markers_indices) = marker_to_fill_trajectory;
+            marker_indices = extractMarkerData(marker_trajectories, marker_labels, marker_to_fill, 'indices');
+            
+%             marker_number = find(strcmp(marker_labels, marker_to_fill));
+%             markers_indices = reshape([(marker_number - 1) * 3 + 1; (marker_number - 1) * 3 + 2; (marker_number - 1) * 3 + 3], 1, length(marker_number)*3);
+            marker_trajectories(:, marker_indices) = marker_to_fill_trajectory;
             
             % save
             variables_to_save = struct;
