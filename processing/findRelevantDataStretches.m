@@ -85,6 +85,7 @@ function findRelevantDataStretches(varargin)
             %% load data
             ignore_times = [];
             load(['analysis' filesep makeFileName(date, subject_id, condition_list{i_condition}, i_trial, 'stepEvents')]);
+%             load(['processed' filesep makeFileName(date, subject_id, condition_list{i_condition}, i_trial, 'kinematicTrajectories')]);
             
             % determine experimental condition
             this_trial_type = condition_list{i_condition};
@@ -122,7 +123,8 @@ function findRelevantDataStretches(varargin)
             
             % marker data
             [marker_trajectories, time_marker, sampling_rate_marker, marker_labels, marker_directions] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'marker_trajectories');
-            
+%             [com_trajectories, time_marker, sampling_rate_marker, com_labels, com_directions] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'com_trajectories');
+                
             % forceplate data
             [left_forceplate_cop_world_trajectory, time_left_forceplate, ~, ~, ~, left_forceplate_available] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'left_foot_cop_world', 'optional');
             [right_forceplate_cop_world_trajectory, time_right_forceplate, ~, ~, ~, right_forceplate_available] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'right_foot_cop_world', 'optional');
@@ -449,20 +451,24 @@ function findRelevantDataStretches(varargin)
                 % determine stride identification type
                 stride_identification = study_settings.get('stride_identification');
                 if strcmp(stride_identification, 'step_4-step_5')
-                   if left_touchdown_times(1) <= right_touchdown_times(1)
-                        this_stretch_start = right_touchdown_times(2);
-                        this_stretch_end = right_touchdown_times(3);
-                        band_delimiter = min(left_touchdown_times(left_touchdown_times>this_stretch_start));
-                        first_stance_foot = 'STANCE_RIGHT';
-                        second_stance_foot = 'STANCE_LEFT';
-                   else
-                        this_stretch_start = left_touchdown_times(2);
-                        this_stretch_end = left_touchdown_times(3);
-                        band_delimiter = min(right_touchdown_times(right_touchdown_times>this_stretch_start));
-                        first_stance_foot = 'STANCE_LEFT';
-                        second_stance_foot = 'STANCE_RIGHT';
+                   if length(left_touchdown_times) < 3 | length(right_touchdown_times) < 3
+                       this_stretch_start = 0;
+                       this_stretch_end = 0;
+                   else                   
+                       if left_touchdown_times(1) <= right_touchdown_times(1)
+                            this_stretch_start = right_touchdown_times(2);
+                            this_stretch_end = right_touchdown_times(3);
+                            band_delimiter = min(left_touchdown_times(left_touchdown_times>this_stretch_start));
+                            first_stance_foot = 'STANCE_RIGHT';
+                            second_stance_foot = 'STANCE_LEFT';
+                       else
+                            this_stretch_start = left_touchdown_times(2);
+                            this_stretch_end = left_touchdown_times(3);
+                            band_delimiter = min(right_touchdown_times(right_touchdown_times>this_stretch_start));
+                            first_stance_foot = 'STANCE_LEFT';
+                            second_stance_foot = 'STANCE_RIGHT';
+                       end
                    end
-                   
                     % go through events and take stretches
                     stretch_times = [];
                     stance_foot_data = {};
@@ -1001,6 +1007,8 @@ function findRelevantDataStretches(varargin)
                 end
 
                 % remove flagged triggers
+                % needs to be restructured to only populate what is
+                % necessary
                 unflagged_indices = ~removal_flags;
                 trigger_times = trigger_times(unflagged_indices);
                 stim_start_indices_labview = stim_start_indices_labview(unflagged_indices, :);
@@ -1012,7 +1020,7 @@ function findRelevantDataStretches(varargin)
                 condition_delay_list = condition_delay_list(unflagged_indices, :);
                 condition_index_list = condition_index_list(unflagged_indices, :);
                 condition_experimental_list = condition_experimental_list(unflagged_indices, :); % XXX needs to be updated
-                condition_startfoot_list = condition_startfoot_list(unflagged_indices, :);
+%                 condition_startfoot_list = condition_startfoot_list(unflagged_indices, :);
                 condition_stimulus_list = condition_stimulus_list(unflagged_indices, :); % XXX needs to be updated
                 condition_day_list = condition_day_list(unflagged_indices, :); % XXX needs to be updated
 %                 closest_heelstrike_distance_times = closest_heelstrike_distance_times(unflagged_indices, :);
@@ -1027,7 +1035,7 @@ function findRelevantDataStretches(varargin)
                 condition_delay_list = reshape(condition_delay_list, numel(condition_delay_list), 1);
                 condition_index_list = reshape(condition_index_list, numel(condition_index_list), 1);
                 condition_experimental_list = reshape(condition_experimental_list, numel(condition_experimental_list), 1);
-                condition_startfoot_list = reshape(condition_startfoot_list, numel(condition_startfoot_list), 1);
+%                 condition_startfoot_list = reshape(condition_startfoot_list, numel(condition_startfoot_list), 1);
                 condition_stimulus_list = reshape(condition_stimulus_list, numel(condition_stimulus_list), 1);
                 condition_day_list = reshape(condition_day_list, numel(condition_day_list), 1);
                 
@@ -1051,7 +1059,7 @@ function findRelevantDataStretches(varargin)
                 condition_delay_list = condition_delay_list(unflagged_indices, :);
                 condition_index_list = condition_index_list(unflagged_indices, :);
                 condition_experimental_list = condition_experimental_list(unflagged_indices, :);
-                condition_startfoot_list = condition_startfoot_list(unflagged_indices, :);
+%                 condition_startfoot_list = condition_startfoot_list(unflagged_indices, :);
                 condition_stimulus_list = condition_stimulus_list(unflagged_indices, :);
                 condition_day_list = condition_day_list(unflagged_indices, :);
 
@@ -1063,7 +1071,7 @@ function findRelevantDataStretches(varargin)
                 conditions_trial.condition_delay_list = condition_delay_list;
                 conditions_trial.condition_index_list = condition_index_list;
                 conditions_trial.condition_experimental_list = condition_experimental_list;
-                conditions_trial.condition_startfoot_list = condition_startfoot_list;
+%                 conditions_trial.condition_startfoot_list = condition_startfoot_list;
                 conditions_trial.condition_stimulus_list = condition_stimulus_list;
                 conditions_trial.condition_day_list = condition_day_list;
                 
@@ -1132,7 +1140,7 @@ function findRelevantDataStretches(varargin)
             end
             
             % add subject
-            condition_subject_list = cell(size(condition_experimental_list,1));
+            condition_subject_list = cell(size(condition_experimental_list,1),1);
             for i_stretch = 1 : length(condition_subject_list)
                 condition_subject_list{i_stretch} = subject_id;
             end
@@ -1142,8 +1150,9 @@ function findRelevantDataStretches(varargin)
             %
             % calculate variables that depend upon the step events to be identified correctly
             stretch_variables = study_settings.get('stretch_variables');
+            
 %             variables_to_save = struct;
-            variables_to_prune_for = {};
+            
 
             % prune
             number_of_stretches = length(stretch_start_times);
@@ -1166,6 +1175,12 @@ function findRelevantDataStretches(varargin)
                     removal_flags(i_stretch) = 1;
                     disp('Removing a stretch due to gaps in essential markers')
                 end
+%                 if any(strcmp(stretch_variables(:, 1), 'com_x')) || any(strcmp(stretch_variables(:, 1), 'com_y')) || any(strcmp(stretch_variables(:, 1), 'com_z'))
+%                     if any(any(isnan(com_trajectories(start_index_mocap : end_index_mocap,:)))) |  any(any(com_trajectories(start_index_mocap : end_index_mocap,:))) == 0 % mostly a problem for RON (VISION_HY) trials 6 + 7
+%                         removal_flags = 1;
+%                         disp('Removing a stretch due to gaps in com trajectories')
+%                     end
+%                 end
             end
             
             %  check data availability for markers with non-zero weight
