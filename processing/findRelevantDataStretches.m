@@ -201,13 +201,16 @@ function findRelevantDataStretches(varargin)
             if strcmp(experimental_paradigm, 'Vision')
                 illusion_trajectory = zeros(size(time_stimulus)); % -1 = LEFT, 1 = RIGHT
                 for i_time = 1 : length(time_stimulus)
-                    if current_rotation_trajectory(i_time) < 0
-                        % angle change is positive horizon rotates counter-clockwise, illusion is to the LEFT
-                        illusion_trajectory(i_time) = -1;
-                    end
-                    if current_rotation_trajectory(i_time) > 0
-                        % angle change is negative, horizon rotates clockwise, illusion is to the LEFT
-                        illusion_trajectory(i_time) = 1;
+                    if stimulus_state_trajectory(i_time) == 2
+                        % stimulus is currently active
+                        if current_rotation_trajectory(i_time) < 0
+                            % angle change is positive horizon rotates counter-clockwise, illusion is to the LEFT
+                            illusion_trajectory(i_time) = -1;
+                        end
+                        if current_rotation_trajectory(i_time) > 0
+                            % angle change is negative, horizon rotates clockwise, illusion is to the LEFT
+                            illusion_trajectory(i_time) = 1;
+                        end
                     end
                 end
             end
@@ -1412,15 +1415,16 @@ function findRelevantDataStretches(varargin)
                 disp(['Removing a stretch due to innappropriate step length']);
             end
             
-            % check data availability for markers and flag stretches with gaps
-            for i_stretch = 1 : number_of_stretches
-                [~, start_index_mocap] = min(abs(time_marker - stretch_times(i_stretch, 1)));
-                [~, end_index_mocap] = min(abs(time_marker - stretch_times(i_stretch, end)));
-                if any(any(isnan(marker_trajectories(start_index_mocap : end_index_mocap, essential_marker_indicator))))
-                    removal_flags(i_stretch) = 1;
-                    disp('Removing a stretch due to gaps in essential markers')
-                end
-            end
+%             % check data availability for markers and flag stretches with gaps
+% not really doing this anymore...
+%             for i_stretch = 1 : number_of_stretches
+%                 [~, start_index_mocap] = min(abs(time_marker - stretch_times(i_stretch, 1)));
+%                 [~, end_index_mocap] = min(abs(time_marker - stretch_times(i_stretch, end)));
+%                 if any(any(isnan(marker_trajectories(start_index_mocap : end_index_mocap, essential_marker_indicator))))
+%                     removal_flags(i_stretch) = 1;
+%                     disp('Removing a stretch due to gaps in essential markers')
+%                 end
+%             end
             
             %  check data availability for markers with non-zero weight
             marker_weights = study_settings.get('marker_weights');
@@ -1436,11 +1440,10 @@ function findRelevantDataStretches(varargin)
                     this_marker_data = extractMarkerData(marker_trajectories, marker_labels, this_marker_label);
                     for i_stretch = 1 : number_of_stretches
                         [~, start_index] = min(abs(time_marker - stretch_times(i_stretch, 1)));
-                        [~, end_index] = min(abs(time_marker - stretch_times(i_stretch, 1)));
-                        if any(isnan(this_marker_data(start_index : end_index)))
+                        [~, end_index] = min(abs(time_marker - stretch_times(i_stretch, end)));
+                        if any(any(isnan(this_marker_data(start_index : end_index, :))))
                             removal_flags(i_stretch) = 1;
-                            this_marker_text = string(this_marker_label);
-                            disp(['Removing a stretch due to gap in', this_marker_text]);
+                            disp(['Removing a stretch due to gap in marker "', this_marker_label '"']);
                         end 
                     end
                     
