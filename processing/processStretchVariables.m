@@ -67,7 +67,10 @@ function processStretchVariables(varargin)
             load(['analysis' filesep makeFileName(date, subject_id, condition, i_trial, 'relevantDataStretches')]);
             number_of_stretches_this_trial = size(stretch_times, 1);
             bands_per_stretch_session = [bands_per_stretch_session; bands_per_stretch];
-            data_trial = data_custodian.calculateStretchVariables(stretch_times, stance_foot_data, conditions_trial.stimulus_list);
+            condition_relevant_for_analysis = study_settings.get('condition_relevant_for_analysis');
+            condition_relevant_name = conditions_settings{strcmp(conditions_settings(:, 1), condition_relevant_for_analysis), 2};
+            condition_data = conditions_trial.(condition_relevant_name);
+            data_trial = data_custodian.calculateStretchVariables(stretch_times, stance_foot_data, condition_data);
 
             % append the data and condition lists from this trial to the total lists
             for i_variable = 1 : number_of_stretch_variables
