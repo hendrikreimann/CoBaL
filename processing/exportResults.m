@@ -68,29 +68,19 @@ for i_condition = 1 : number_of_conditions
     condition_header(:, i_condition) = condition_labels(i_condition);
 end
 
-% header = {'subject', 'stance_foot', 'perturbation', 'stimulus', 'step_index', 'direction', 'time_category', 'time'};
-% export_cell = [subject_list, condition_stance_foot_list, condition_perturbation_list, condition_stimulus_list, condition_index_list, condition_direction_list, time_category, time_data_cell];
-% if exist('condition_group_list', 'var')
-%     header = [header, 'group'];
-%     export_cell = [export_cell, condition_group_list];
-% end
-% header = [header, variables_to_export(:, 1)'];
-% export_cell = [export_cell, data_cell];
-
-% % remove control steps
-% control_steps = strcmp(export_cell(:, 3), 'CONTROL');
-% export_cell(control_steps, :) = [];
-% 
-% % remove steps 2-4
-% TWO_steps = strcmp(export_cell(:, strcmp(header, 'step_index')), 'TWO');
-% export_cell(TWO_steps, :) = [];
-% THREE_steps = strcmp(export_cell(:, strcmp(header, 'step_index')), 'THREE');
-% export_cell(THREE_steps, :) = [];
-% FOUR_steps = strcmp(export_cell(:, strcmp(header, 'step_index')), 'FOUR');
-% export_cell(FOUR_steps, :) = [];
+% gather origin cell
+origin_trial_number_data_cell = strtrim(cellstr(num2str(origin_trial_number_data)));
+origin_stretch_start_time_data_cell = strtrim(cellstr(num2str(origin_stretch_start_time_data)));
+origin_stretch_end_time_data_cell = strtrim(cellstr(num2str(origin_stretch_end_time_data)));
+origin_cell = [origin_session_folder_data origin_trial_number_data_cell origin_stretch_start_time_data_cell origin_stretch_end_time_data_cell];
+origin_header = {'origin folder', 'origin trial number', 'stretch start time within trial', 'stretch end time within trial'};
 
 % join to export cell
-export_cell = [condition_header, data_header; condition_cell, data_cell];
+export_cell = ...
+  [ ...
+    condition_header, origin_header, data_header; ...
+    condition_cell, origin_cell, data_cell ...
+  ];
 
 % save as .csv
 % export_cell = [header; export_cell];

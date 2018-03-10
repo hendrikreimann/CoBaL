@@ -50,7 +50,11 @@ function collectPopulationResults(varargin)
     time_list = [];
     variable_data = cell(number_of_variables_to_collect, 1);
     step_time_data = [];
-    pushoff_time_data = [];
+%     pushoff_time_data = [];
+    origin_trial_number_data = [];
+    origin_stretch_start_time_data = [];
+    origin_stretch_end_time_data = [];
+    origin_session_folder_data = {};
     variables_to_save = struct;
    
     for i_folder = 1 : length(data_folder_list)
@@ -58,7 +62,7 @@ function collectPopulationResults(varargin)
         data_path = data_folder_list{i_folder};
         load([data_path filesep 'subjectInfo.mat'], 'date', 'subject_id');
         disp(['Collecting from ' subject_id]);
-        load([data_path filesep 'analysis' filesep date '_' subject_id '_results.mat']);
+        load([data_path filesep 'analysis' filesep date '_' subject_id '_results.mat']); %#ok<LOAD>
 
         % append data from this subject to containers for all subjects
         for i_condition = 1 : number_of_condition_labels
@@ -75,23 +79,43 @@ function collectPopulationResults(varargin)
             this_variable_source_type = variables_to_collect{i_variable, 2};
             if strcmp(this_variable_source_type, 'stretch')
                 this_variable_source_index = find(strcmp(stretch_names_session, this_variable_name), 1, 'first');
-                this_variable_data = stretch_data_session{this_variable_source_index}; %#ok<USENS>
+                if isempty(this_variable_source_index)
+                    error(['Variable not found: ' this_variable_name])
+                end
+                this_variable_data = stretch_data_session{this_variable_source_index}; %#ok<IDISVAR,USENS>
             end
             if strcmp(this_variable_source_type, 'response')
                 this_variable_source_index = find(strcmp(response_names_session, this_variable_name), 1, 'first');
-                this_variable_data = response_data_session{this_variable_source_index}; %#ok<USENS>
+                if isempty(this_variable_source_index)
+                    error(['Variable not found: ' this_variable_name])
+                end
+                this_variable_data = response_data_session{this_variable_source_index}; %#ok<IDISVAR,USENS>
             end
             if strcmp(this_variable_source_type, 'analysis')
                 this_variable_source_index = find(strcmp(analysis_names_session, this_variable_name), 1, 'first');
-                this_variable_data = analysis_data_session{this_variable_source_index}; %#ok<USENS>
+                if isempty(this_variable_source_index)
+                    error(['Variable not found: ' this_variable_name])
+                end
+                this_variable_data = analysis_data_session{this_variable_source_index}; %#ok<IDISVAR,USENS>
             end
             
             % store
             variable_data{i_variable} = [variable_data{i_variable} this_variable_data];
         end
         step_time_source_index = find(strcmp(stretch_names_session, 'step_time'), 1, 'first');
-        step_time_data = [step_time_data stretch_data_session{step_time_source_index}];
+        step_time_data = [step_time_data stretch_data_session{step_time_source_index}]; %#ok<AGROW>
+        
+        origin_trial_number_data = [origin_trial_number_data; origin_trial_list_session]; %#ok<AGROW>
+        origin_stretch_start_time_data = [origin_stretch_start_time_data; origin_start_time_list_session]; %#ok<AGROW>
+        origin_stretch_end_time_data = [origin_stretch_end_time_data; origin_end_time_list_session]; %#ok<AGROW>
+        session_folder_list = cell(size(origin_trial_list_session));
+        data_path_split = strsplit(data_path, filesep);
+        session_folder = data_path_split{end};
+        [session_folder_list{:}] = deal(session_folder);
+        origin_session_folder_data = [origin_session_folder_data; session_folder_list]; %#ok<AGROW>
 
+        
+        
         % HR: removed, because the whole pushoff thing shouldn't have to be treated in a special way
         % this might generate problems for legacy formats in Vision and GVS, resolve then
 %         pushoff_time_source_index = find(strcmp(response_names_session, 'pushoff_time'), 1, 'first');
@@ -107,6 +131,10 @@ function collectPopulationResults(varargin)
     variables_to_save.step_time_data = step_time_data;
     variables_to_save.conditions = conditions;
     variables_to_save.time_list = time_list;
+    variables_to_save.origin_session_folder_data = origin_session_folder_data;
+    variables_to_save.origin_trial_number_data = origin_trial_number_data;
+    variables_to_save.origin_stretch_start_time_data = origin_stretch_start_time_data;
+    variables_to_save.origin_stretch_end_time_data = origin_stretch_end_time_data; %#ok<STRNU>
     save('results', '-struct', 'variables_to_save');
 
 
