@@ -2562,7 +2562,7 @@ classdef WalkingDataCustodian < handle
                 end
             end
         end
-        function stretch_variables = calculateStretchVariables(this, stretch_times, stance_foot_data, condition_data, stretch_pushoff_times, variables_to_calculate)
+        function stretch_variables = calculateStretchVariables(this, stretch_times, stance_foot_data, condition_data, variables_to_calculate)
             if nargin < 6
                 variables_to_calculate = this.stretch_variable_names;
             end
@@ -2586,7 +2586,6 @@ classdef WalkingDataCustodian < handle
                     this_stretch_times = stretch_times(i_stretch, :);
                     this_stretch_start_time = this_stretch_times(1);
                     this_stretch_end_time = this_stretch_times(end);
-                    this_stretch_pushoff_time = stretch_pushoff_times(i_stretch);
                     
                     % calculate normalized stretch data for the basic variables
                     if this.isBasicVariable(variable_name)

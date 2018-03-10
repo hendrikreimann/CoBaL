@@ -100,11 +100,16 @@ function processAnalysisVariables(varargin)
             end
             
             % determine applicable control condition index
-            if strcmp(this_stretch_condition_string{strcmp(condition_combination_labels, 'stance_foot')}, 'STANCE_LEFT')
-                applicable_control_condition = find(strcmp(condition_combinations_control_unique(:, strcmp(condition_combination_labels, 'stance_foot')), 'STANCE_LEFT'));
+            if strcmp(study_settings.get('experimental_paradigm'), 'Vision')
+                applicable_control_condition = 1;
             end
-            if strcmp(this_stretch_condition_string{strcmp(condition_combination_labels, 'stance_foot')}, 'STANCE_RIGHT')
-                applicable_control_condition = find(strcmp(condition_combinations_control_unique(:, strcmp(condition_combination_labels, 'stance_foot')), 'STANCE_RIGHT'));
+            if strcmp(study_settings.get('condition_stimulus'), 'VISUAL') || strcmp(study_settings.get('condition_stimulus'), 'GVS_old')
+                if strcmp(this_stretch_condition_string{strcmp(condition_combination_labels, 'stance_foot')}, 'STANCE_LEFT')
+                    applicable_control_condition = find(strcmp(condition_combinations_control_unique(:, strcmp(condition_combination_labels, 'stance_foot')), 'STANCE_LEFT'));
+                end
+                if strcmp(this_stretch_condition_string{strcmp(condition_combination_labels, 'stance_foot')}, 'STANCE_RIGHT')
+                    applicable_control_condition = find(strcmp(condition_combinations_control_unique(:, strcmp(condition_combination_labels, 'stance_foot')), 'STANCE_RIGHT'));
+                end
             end
             
             % determine indicator for control
@@ -139,7 +144,7 @@ function processAnalysisVariables(varargin)
     step_time_index_in_saved_data = find(strcmp(loaded_data.stretch_names_session, 'step_time'), 1, 'first');
     this_step_time_data = loaded_data.stretch_data_session{step_time_index_in_saved_data};
     pushoff_time_index_in_saved_data = find(strcmp(loaded_data.stretch_names_session, 'pushoff_time'), 1, 'first');
-    this_pushoff_time_data = loaded_data.stretch_data_session{pushoff_time_index_in_saved_data};
+%     this_pushoff_time_data = loaded_data.stretch_data_session{pushoff_time_index_in_saved_data};
     for i_variable = 1 : size(variables_to_integrate, 1)
         this_variable_name = variables_to_integrate{i_variable, 1};
         this_variable_source_name = variables_to_integrate{i_variable, 2};
