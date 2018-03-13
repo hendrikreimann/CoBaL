@@ -20,7 +20,7 @@ function exists = directoryExists(directory_name, path)
     end
     
     try 
-        ls([path filesep directory_name])
+        x = ls([path filesep directory_name]);
        
     catch exception
         if strcmp(exception.identifier, 'MATLAB:ls:OSError')

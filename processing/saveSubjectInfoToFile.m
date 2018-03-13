@@ -18,7 +18,7 @@ function saveSubjectInfoToFile(varargin)
 
     parser = inputParser;
     parser.KeepUnmatched = true;
-    addParameter(parser, 'screen_folder', 'raw')
+    addParameter(parser, 'screen_folder', 'analysis')
     parse(parser, varargin{:})
     screen_folder = parser.Results.screen_folder;
     
