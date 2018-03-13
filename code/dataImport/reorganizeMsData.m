@@ -68,7 +68,7 @@ function reorganizeMsData(varargin)
         marker_trajectories(:, 2 : 3 : end) = pos_Y * millimeter_to_meter;
         marker_trajectories(:, 3 : 3 : end) = pos_Z * millimeter_to_meter;
         time_mocap = pos_time;
-        sampling_rate_mocap = median(diff(time_mocap));
+        sampling_rate_mocap = round(median(diff(time_mocap))^(-1) * 1000);
         
         % triplicate labels
         number_of_markers = length(pos_labels);
@@ -114,7 +114,7 @@ function reorganizeMsData(varargin)
           );
         addAvailableData_new ...
           ( ...
-            'marker_trajectories_raw', ...
+            'marker_trajectories', ...
             'time_mocap', ...
             'sampling_rate_mocap', ...
             '_marker_labels', ...
@@ -125,6 +125,7 @@ function reorganizeMsData(varargin)
         
         
         
+        disp(['Reorganizing data, trial type ' trial_type ', number ' trial_number ' completed, saved as ' save_folder filesep save_file_name]);
         
         
 
