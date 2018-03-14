@@ -55,6 +55,8 @@ classdef WalkingDataCustodian < handle
     properties
         date = [];
         subject_id = [];
+        trial_type = [];
+        trial_number = [];
         variables_to_analyze = {};
         basic_variable_names = {};
         stretch_variable_names = {};
@@ -91,7 +93,8 @@ classdef WalkingDataCustodian < handle
             if exist(['..' filesep '..' filesep 'studySettings.txt'], 'file')
                 study_settings_file = ['..' filesep '..' filesep 'studySettings.txt'];
             end
-            this.study_settings = loadSettingsFile(study_settings_file);
+            this.study_settings = SettingsCustodian(study_settings_file);
+%             this.study_settings = loadSettingsFile(study_settings_file);
             emg_normalization_file_name = ['analysis' filesep makeFileName(date, subject_id, 'emgNormalization.mat')];
             if exist(emg_normalization_file_name, 'file')
                 emg_normalization_data = load(emg_normalization_file_name);
@@ -99,11 +102,11 @@ classdef WalkingDataCustodian < handle
                 this.emg_normalization_labels = emg_normalization_data.emg_variable_names;
             end
             if nargin < 1
-                variables_to_analyze = this.study_settings.stretch_variables;
+                variables_to_analyze = this.study_settings.get('stretch_variables');
             end
             
             this.variables_to_analyze = variables_to_analyze;
-            this.number_of_time_steps_normalized = this.study_settings.number_of_time_steps_normalized;
+            this.number_of_time_steps_normalized = this.study_settings.get('number_of_time_steps_normalized');
             
             this.determineVariables();
         end
@@ -121,7 +124,25 @@ classdef WalkingDataCustodian < handle
             end
         end
         function determineVariables(this)
+            % go through list of variables to analyze and check if they are elementary variables
+            for i_variable = 1 : length(this.variables_to_analyze)
+                this_variable_name = this.variables_to_analyze{i_variable};
+                % check if this is a compound name, listing a loaded variable and a label
+                if any(this_variable_name==':')
+                    this_variable_split = strsplit(this_variable_name, ':');
+                    this_variable_type = this_variable_split{1};
+                    this_variable_label = this_variable_split{2};
+                    
+                    this.addBasicVariable([this_variable_type '_trajectories'])
+                    this.addStretchVariable(this_variable_name)
+                end
+            end
+            
+            
             % for each possible variable to analyze, list the basic and required variables required to calculate it
+            
+            
+            
             
             % kinematics
             if this.isVariableToAnalyze('lheel_x')
@@ -1003,16 +1024,41 @@ classdef WalkingDataCustodian < handle
             result = any(strcmp(this.basic_variable_names, variable_name));
         end
         function time_data = getTimeData(this, variable_name) %#ok<STOUT,INUSL>
-            eval(['time_data = this.time_data.' variable_name ';']);
+            % check if this is a sub-variable
+            if any(variable_name==':')
+                this_variable_split = strsplit(variable_name, ':');
+                name_to_use = [this_variable_split{1} '_trajectories'];
+            else
+                name_to_use = variable_name;
+            end
+            
+            
+%             eval(['time_data = this.time_data.' name_to_use ';']);
+            time_data = this.time_data.(name_to_use);
         end
-        function [variable_data, variable_directions] = getBasicVariableData(this, variable_name) %#ok<STOUT,INUSL>
-            eval(['variable_data = this.basic_variable_data.' variable_name ';']);
+        function [variable_data, variable_directions] = getBasicVariableData(this, variable_name)
+            % unpack name
+            if any(variable_name==':')
+                this_variable_split = strsplit(variable_name, ':');
+                name_to_use = [this_variable_split{1} '_trajectories'];
+                label_to_use = this_variable_split{2};
+                trajectory_data = this.basic_variable_data.(name_to_use);
+                trajectory_labels = this.basic_variable_labels.(name_to_use);
+                variable_data = trajectory_data(:, strcmp(trajectory_labels, label_to_use));
+                
+            else
+                name_to_use = variable_name;
+%                 eval(['variable_data = this.basic_variable_data.' name_to_use ';']);
+                variable_data = this.basic_variable_data.(variable_name);
+            end
+            
             if nargout > 1
-                eval(['variable_directions = this.basic_variable_directions.' variable_name ';']);
+%                 eval(['variable_directions = this.basic_variable_directions.' name_to_use ';']);
+                variable_directions = this.basic_variable_directions.(name_to_use);
             end
         end
         
-        function prepareBasicVariables(this, condition, trial, variables_to_prepare)
+        function prepareBasicVariables(this, trial_type, trial_number, variables_to_prepare)
             if nargin < 4
                 variables_to_prepare = this.basic_variable_names;
             end
@@ -1023,16 +1069,18 @@ classdef WalkingDataCustodian < handle
             this.basic_variable_directions = struct;
             this.stretch_variable_data = struct;
             this.time_data = struct;
+            this.trial_type = trial_type;
+            this.trial_number = trial_number;
             
             % prepare the data by loading all the basic variables from disk and calculating the required variables
-            load(['analysis' filesep makeFileName(this.subject_info.date, this.subject_info.subject_id, condition, trial, 'availableVariables')]);
+            load(['analysis' filesep makeFileName(this.subject_info.date, this.subject_info.subject_id, trial_type, trial_number, 'availableVariables')]);
             
             % load basic variables
             for i_variable = 1 : length(variables_to_prepare)
                 variable_name = variables_to_prepare{i_variable};
                 
                 % try loading
-                [data, time, sampling_rate, labels, directions, success] = loadData(this.subject_info.date, this.subject_info.subject_id, condition, trial, variable_name, 'optional'); %#ok<ASGLU>
+                [data, time, sampling_rate, labels, directions, success] = loadData(this.subject_info.date, this.subject_info.subject_id, trial_type, trial_number, variable_name, 'optional'); %#ok<ASGLU>
                 
                 % store
                 if success
@@ -3262,8 +3310,6 @@ classdef WalkingDataCustodian < handle
         end
     end
 end
-
-
 
 
 
