@@ -115,7 +115,7 @@ classdef eventController < handle
             end
             this.event_data.selected_event_label = event_label;
             this.event_data.selected_event_time = event_time;
-            this.trial_data.selected_time = event_time;
+            this.event_data.selected_time = event_time;
             
             this.updateSelectedEventPlots();
             this.updateSelectedTime();
@@ -126,51 +126,53 @@ classdef eventController < handle
             end
         end
         function updateSelectedTime(this)
-            % determine index to display
-            [~, index_mocap] = min(abs(this.trial_data.time_marker - this.trial_data.selected_time));
             
             % update step event figures
             for i_figure = 1 : size(this.figureSelectionBox.String, 1)
                 this.figureSelectionBox.UserData{i_figure}.updateSelectedTimePlot();
             end
             
-            % extract marker data
-            marker_data = this.trial_data.marker_positions(index_mocap, :);
+            % update scene figures
+%             % determine index to display
+%             [~, index_mocap] = min(abs(this.trial_data.time_marker - this.trial_data.selected_time));
+%             
+%             % extract marker data
+%             marker_data = this.trial_data.marker_positions(index_mocap, :);
+%             
+%             % extract joint center data
+%             if ~isempty(this.trial_data.joint_center_positions)
+%                 joint_center_data = this.trial_data.joint_center_positions(index_mocap, :);
+%             else 
+%                 joint_center_data = [];
+%             end                
+%             
+%             % extract CoM data
+%             if ~isempty(this.trial_data.com_positions)
+%                 com_data = this.trial_data.com_positions(index_mocap, :);
+%             else 
+%                 com_data = [];
+%             end
+%             
+%             % extract joint angle data and update
+%             if ~isempty(this.trial_data.joint_angles)
+%                 joint_angle_data = this.trial_data.joint_angles(index_mocap, :);
+%             else 
+%                 joint_angle_data = [];
+%             end
+%             
+%             % update scene figure
+%             this.scene_figure.update([marker_data joint_center_data com_data]);
+%             
+%             % update kinematic chain stick figure
+%             if ~isempty(this.kinematic_tree_controller)
+%                 this.kinematic_tree_stick_figure.kinematicTree.jointAngles = joint_angle_data';
+%                 this.kinematic_tree_stick_figure.kinematicTree.updateConfiguration();
+%                 this.kinematic_tree_stick_figure.update();
+%                 
+%                 this.kinematic_tree_stick_figure.updateRecordedMarkerPlots([marker_data joint_center_data]);
+%             end
             
-            % extract joint center data
-            if ~isempty(this.trial_data.joint_center_positions)
-                joint_center_data = this.trial_data.joint_center_positions(index_mocap, :);
-            else 
-                joint_center_data = [];
-            end                
-            
-            % extract CoM data
-            if ~isempty(this.trial_data.com_positions)
-                com_data = this.trial_data.com_positions(index_mocap, :);
-            else 
-                com_data = [];
-            end
-            
-            % extract joint angle data and update
-            if ~isempty(this.trial_data.joint_angles)
-                joint_angle_data = this.trial_data.joint_angles(index_mocap, :);
-            else 
-                joint_angle_data = [];
-            end
-            
-            % update scene figure
-            this.scene_figure.update([marker_data joint_center_data com_data]);
-            
-            % update kinematic chain stick figure
-            if ~isempty(this.kinematic_tree_controller)
-                this.kinematic_tree_stick_figure.kinematicTree.jointAngles = joint_angle_data';
-                this.kinematic_tree_stick_figure.kinematicTree.updateConfiguration();
-                this.kinematic_tree_stick_figure.update();
-                
-                this.kinematic_tree_stick_figure.updateRecordedMarkerPlots([marker_data joint_center_data]);
-            end
-            
-            this.selected_time_edit.String = num2str(this.trial_data.selected_time);
+            this.selected_time_edit.String = num2str(this.event_data.selected_time);
         end
         function updateEventPlots(this)
             for i_figure = 1 : size(this.figureSelectionBox.String, 1)
@@ -518,19 +520,15 @@ classdef eventController < handle
             
             % load new data
             this.data_custodian.prepareBasicVariables(new_condition, new_trial_number)
+            this.event_data.loadEvents;
+            this.event_data.loadStretches;
             
-%             this.trial_data.condition = new_condition;
-%             this.trial_data.trial_number = new_trial_number;
-%             this.trial_data.loadMarkerTrajectories;
-%             this.trial_data.loadForceplateTrajectories;
-%             this.event_data.loadEvents;
-%             this.event_data.loadStretches;
-            
+            % update everything
             this.updateDataPlots;
-%             this.updateEventPlots;
-%             this.updateStretchPatches;
-%             this.event_data.selectNextEvent;
-%             this.updateSelectedEventPlots;
+            this.updateEventPlots;
+            this.updateStretchPatches;
+            this.event_data.selectNextEvent;
+            this.updateSelectedEventPlots;
             this.updateTrialLabels;
         end
         function loadNextTrial(this, sender, eventdata) %#ok<INUSD>
@@ -551,20 +549,15 @@ classdef eventController < handle
             
             % load new data
             this.data_custodian.prepareBasicVariables(new_condition, new_trial_number)
-            
-%             this.trial_data.condition = new_condition;
-%             this.trial_data.trial_number = new_trial_number;
-%             this.trial_data.loadMarkerTrajectories;
-%             this.trial_data.loadForceplateTrajectories;
-%             this.event_data.loadEvents;
-%             this.event_data.loadStretches;
+            this.event_data.loadEvents;
+            this.event_data.loadStretches;
 
             % update everything
             this.updateDataPlots;
-%             this.updateEventPlots;
-%             this.updateStretchPatches;
-%             this.event_data.selectNextEvent;
-%             this.updateSelectedEventPlots;
+            this.updateEventPlots;
+            this.updateStretchPatches;
+            this.event_data.selectNextEvent;
+            this.updateSelectedEventPlots;
             this.updateTrialLabels;
             
             

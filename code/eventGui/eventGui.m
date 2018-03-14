@@ -56,8 +56,8 @@ function eventGui(varargin)
     data_custodian.prepareBasicVariables(condition, trial_to_process);
     
 %     trial_data = WalkingTrialData(pwd, condition, trial_to_process);
-%     event_data = WalkingEventData(trial_data);
-    event_data = [];
+    event_data = eventData(data_custodian);
+%     event_data = [];
     
     %% init gui
     figure_settings_file = gui_settings.get('figure_settings_file');
@@ -140,18 +140,18 @@ function eventGui(varargin)
     %% initialize figures
     % load settings
     controller.loadFigureSettings();
-%     controller.updateStretchPatches();
+    controller.updateStretchPatches();
     
-%     % select event (first left touchdown is default
-%     event_label = 'left_pushoff';
-% %     event_label = 'left_touchdown';
-%     event_times = controller.event_data.getEventTimes(event_label);
-%     if isempty(event_times)
-%         event_time = 0;
-%     else
-%         event_time = event_times(1);
-%     end
-%     controller.setSelectedEvent(event_label, event_time);
+    % select event (first left touchdown is default
+    event_label = 'left_pushoff';
+%     event_label = 'left_touchdown';
+    event_times = controller.event_data.getEventTimes(event_label);
+    if isempty(event_times)
+        event_time = 0;
+    else
+        event_time = event_times(1);
+    end
+    controller.setSelectedEvent(event_label, event_time);
 
 end
 

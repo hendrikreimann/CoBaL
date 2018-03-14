@@ -53,6 +53,7 @@
 
 classdef WalkingDataCustodian < handle
     properties
+        data_directory = [];
         date = [];
         subject_id = [];
         trial_type = [];
@@ -79,23 +80,29 @@ classdef WalkingDataCustodian < handle
     
     methods
         % constructor
-        function this = WalkingDataCustodian(variables_to_analyze)
-            % load this information from the subjects.mat and studySettings.txt files
-            load('subjectInfo.mat', 'date', 'subject_id');
+        function this = WalkingDataCustodian(variables_to_analyze, data_directory)
+            if nargin < 2
+                data_directory = pwd;
+            end
             
-            this.subject_info = load('subjectInfo.mat');
-            this.subject_settings = loadSettingsFile('subjectSettings.txt');
+            % load this information from the subjects.mat and studySettings.txt files
+            this.data_directory = data_directory;
+            load([data_directory filesep 'subjectInfo.mat'], 'date', 'subject_id');
+            this.date = date;
+            this.subject_id = subject_id;
+            
+            this.subject_info = load([data_directory filesep 'subjectInfo.mat']);
+            this.subject_settings = loadSettingsFile([data_directory filesep 'subjectSettings.txt']);
             % load settings
             study_settings_file = '';
-            if exist(['..' filesep 'studySettings.txt'], 'file')
-                study_settings_file = ['..' filesep 'studySettings.txt'];
+            if exist([data_directory filesep '..' filesep 'studySettings.txt'], 'file')
+                study_settings_file = [data_directory filesep '..' filesep 'studySettings.txt'];
             end    
-            if exist(['..' filesep '..' filesep 'studySettings.txt'], 'file')
-                study_settings_file = ['..' filesep '..' filesep 'studySettings.txt'];
+            if exist([data_directory filesep '..' filesep '..' filesep 'studySettings.txt'], 'file')
+                study_settings_file = [data_directory filesep '..' filesep '..' filesep 'studySettings.txt'];
             end
             this.study_settings = SettingsCustodian(study_settings_file);
-%             this.study_settings = loadSettingsFile(study_settings_file);
-            emg_normalization_file_name = ['analysis' filesep makeFileName(date, subject_id, 'emgNormalization.mat')];
+            emg_normalization_file_name = [data_directory filesep 'analysis' filesep makeFileName(date, subject_id, 'emgNormalization.mat')];
             if exist(emg_normalization_file_name, 'file')
                 emg_normalization_data = load(emg_normalization_file_name);
                 this.emg_normalization_values = emg_normalization_data.emg_normalization_values;

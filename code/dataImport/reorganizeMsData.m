@@ -18,6 +18,7 @@
 function reorganizeMsData(varargin)
     % set some parameters
     millimeter_to_meter = 1e-3;
+    milliseconds_to_seconds = 1e-3;
     
     % set and prepare folders
     source_folder = 'original';
@@ -67,7 +68,7 @@ function reorganizeMsData(varargin)
         marker_trajectories(:, 1 : 3 : end) = pos_X * millimeter_to_meter;
         marker_trajectories(:, 2 : 3 : end) = pos_Y * millimeter_to_meter;
         marker_trajectories(:, 3 : 3 : end) = pos_Z * millimeter_to_meter;
-        time_mocap = pos_time;
+        time_mocap = pos_time * milliseconds_to_seconds;
         sampling_rate_mocap = round(median(diff(time_mocap))^(-1) * 1000);
         
         % triplicate labels

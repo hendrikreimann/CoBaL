@@ -362,7 +362,7 @@ classdef eventFigure < handle;
             set(this.selected_event_plot, 'visible', 'on');
         end
         function updateSelectedTimePlot(this)
-            set(this.selected_time_plot, 'xdata', this.trial_data.selected_time);
+            set(this.selected_time_plot, 'xdata', this.event_data.selected_time);
         end
     end
     
