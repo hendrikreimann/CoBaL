@@ -122,8 +122,6 @@ function findStepEvents(varargin)
             left_foot_angle_acc_trajectory = deriveByTime(nanfiltfilt(b, a, left_foot_angle_vel_trajectory), 1/sampling_rate_marker);
             right_foot_angle_acc_trajectory = deriveByTime(nanfiltfilt(b, a, right_foot_angle_vel_trajectory), 1/sampling_rate_marker);
             
-            % struct for saving
-            variables_to_save = struct;
 
             %% find events for left foot
             left_touchdown_times = [];
@@ -203,13 +201,7 @@ function findStepEvents(varargin)
                 left_fullstance_indices_mocap(left_fullstance_indices_mocap==0) = [];
                 left_fullstance_times = [left_fullstance_times; time_marker(left_fullstance_indices_mocap)];
             end
-                    
             
-            
-            % add new variables to be saved
-            variables_to_save.left_pushoff_times = left_pushoff_times;
-            variables_to_save.left_touchdown_times = left_touchdown_times;
-            variables_to_save.left_fullstance_times = left_fullstance_times;
 
             %% find events for right foot
             right_touchdown_times = [];
@@ -320,11 +312,6 @@ function findStepEvents(varargin)
                 right_pushoff_indices_mocap(i_index) = index_mocap;
             end
             
-            % add new variables to be saved
-            variables_to_save.right_pushoff_times = right_pushoff_times;
-            variables_to_save.right_touchdown_times = right_touchdown_times;
-            variables_to_save.right_fullstance_times = right_fullstance_times;
-
             %% visualize
             color_heelstrike = [1 0 0];
             color_pushoff = [0 1 0];
@@ -432,8 +419,36 @@ function findStepEvents(varargin)
             end
 
             %% save
+            % struct for saving
+            variables_to_save = struct;
+            
+            
+            
+            
+            event_data = ...
+              { ...
+                left_pushoff_times; ...
+                left_touchdown_times; ...
+                left_fullstance_times; ...
+                right_pushoff_times; ...
+                right_touchdown_times; ...
+                right_fullstance_times; ...
+              };
+            event_labels = ...
+              { ...
+                'left_pushoff'; ...
+                'left_touchdown'; ...
+                'left_fullstance'; ...
+                'right_pushoff'; ...
+                'right_touchdown'; ...
+                'right_fullstance'; ...
+              };
+            
+            % add new variables to be saved
+            variables_to_save.event_data = event_data;
+            variables_to_save.event_labels = event_labels;
+            
             step_events_file_name = ['analysis' filesep makeFileName(date, subject_id, condition, i_trial, 'stepEvents')];
-%             save(step_events_file_name, '-struct', 'variables_to_save');
             saveDataToFile(step_events_file_name, variables_to_save);
 
             disp(['Finding Step Events: condition ' condition ', Trial ' num2str(i_trial) ' completed, saved as ' step_events_file_name]);

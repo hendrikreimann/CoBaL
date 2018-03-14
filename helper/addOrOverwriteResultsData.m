@@ -24,11 +24,4 @@ function [data, names, directions] = addOrOverwriteResultsData(data, names, dire
         data{index_in_existing_data} = new_data;
         % TODO: check whether directions are different
     end
-
-
-
-
-
-
-
 end

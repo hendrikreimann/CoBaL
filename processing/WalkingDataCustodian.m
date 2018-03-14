@@ -1030,6 +1030,22 @@ classdef WalkingDataCustodian < handle
         function result = isBasicVariable(this, variable_name)
             result = any(strcmp(this.basic_variable_names, variable_name));
         end
+        function T = getRecordingTimeStart(this)
+            T = inf;
+            for i_variable = 1 : size(this.basic_variable_names)
+                this_variable_name = this.basic_variable_names{i_variable};
+                this_variable_time = this.time_data.(this_variable_name);
+                T = min([this_variable_time(1), T]);
+            end
+        end
+        function T = getRecordingTimeEnd(this)
+            T = inf;
+            for i_variable = 1 : size(this.basic_variable_names)
+                this_variable_name = this.basic_variable_names{i_variable};
+                this_variable_time = this.time_data.(this_variable_name);
+                T = min([this_variable_time(end), T]);
+            end
+        end
         function time_data = getTimeData(this, variable_name) %#ok<STOUT,INUSL>
             % check if this is a sub-variable
             if any(variable_name==':')
@@ -1990,8 +2006,8 @@ classdef WalkingDataCustodian < handle
                     com_x = this.getBasicVariableData('com_x');
                     com_x(com_x==0) = NaN;
                     time = this.getTimeData('com_x');
-                    filter_order = this.study_settings.filter_order_com_vel;
-                    cutoff_frequency = this.study_settings.filter_cutoff_com_vel;
+                    filter_order = this.study_settings.get('filter_order_com_vel');
+                    cutoff_frequency = this.study_settings.get('filter_cutoff_com_vel');
                     sampling_rate = 1/median(diff(time));
                     [b, a] = butter(filter_order, cutoff_frequency/(sampling_rate/2));
                     if any(~isnan(com_x))
@@ -2007,8 +2023,8 @@ classdef WalkingDataCustodian < handle
                     com_y = this.getBasicVariableData('com_y');
                     com_y(com_y==0) = NaN;
                     time = this.getTimeData('com_y');
-                    filter_order = this.study_settings.filter_order_com_vel;
-                    cutoff_frequency = this.study_settings.filter_cutoff_com_vel;
+                    filter_order = this.study_settings.get('filter_order_com_vel');
+                    cutoff_frequency = this.study_settings.get('filter_cutoff_com_vel');
                     sampling_rate = 1/median(diff(time));
                     [b, a] = butter(filter_order, cutoff_frequency/(sampling_rate/2));	% set filter parameters for butterworth filter: 2=order of filter;
                     if any(~isnan(com_y))
@@ -2024,8 +2040,8 @@ classdef WalkingDataCustodian < handle
                     com_z = this.getBasicVariableData('com_z');
                     com_z(com_z==0) = NaN;
                     time = this.getTimeData('com_z');
-                    filter_order = this.study_settings.filter_order_com_vel;
-                    cutoff_frequency = this.study_settings.filter_cutoff_com_vel;
+                    filter_order = this.study_settings.get('filter_order_com_vel');
+                    cutoff_frequency = this.study_settings.get('filter_cutoff_com_vel');
                     sampling_rate = 1/median(diff(time));
                     [b, a] = butter(filter_order, cutoff_frequency/(sampling_rate/2));	% set filter parameters for butterworth filter: 2=order of filter;
                     if any(~isnan(com_z))
@@ -2040,8 +2056,8 @@ classdef WalkingDataCustodian < handle
                 if strcmp(variable_name, 'com_x_acc')
                     com_x_vel = this.getBasicVariableData('com_x_vel');
                     time = this.getTimeData('com_x_vel');
-                    filter_order = this.study_settings.filter_order_com_acc;
-                    cutoff_frequency = this.study_settings.filter_cutoff_com_acc;
+                    filter_order = this.study_settings.get('filter_order_com_acc');
+                    cutoff_frequency = this.study_settings.get('filter_cutoff_com_acc');
                     sampling_rate = 1/median(diff(time));
                     [b, a] = butter(filter_order, cutoff_frequency/(sampling_rate/2));
                     if any(~isnan(com_x_vel))
@@ -2056,8 +2072,8 @@ classdef WalkingDataCustodian < handle
                 if strcmp(variable_name, 'com_y_acc')
                     com_y_vel = this.getBasicVariableData('com_y_vel');
                     time = this.getTimeData('com_y_vel');
-                    filter_order = this.study_settings.filter_order_com_acc;
-                    cutoff_frequency = this.study_settings.filter_cutoff_com_acc;
+                    filter_order = this.study_settings.get('filter_order_com_acc');
+                    cutoff_frequency = this.study_settings.get('filter_cutoff_com_acc');
                     sampling_rate = 1/median(diff(time));
                     [b, a] = butter(filter_order, cutoff_frequency/(sampling_rate/2));	% set filter parameters for butterworth filter: 2=order of filter;
                     if any(~isnan(com_y_vel))
@@ -2072,8 +2088,8 @@ classdef WalkingDataCustodian < handle
                 if strcmp(variable_name, 'com_z_acc')
                     com_z_vel = this.getBasicVariableData('com_z_vel');
                     time = this.getTimeData('com_z_vel');
-                    filter_order = this.study_settings.filter_order_com_acc;
-                    cutoff_frequency = this.study_settings.filter_cutoff_com_acc;
+                    filter_order = this.study_settings.get('filter_order_com_acc');
+                    cutoff_frequency = this.study_settings.get('filter_cutoff_com_acc');
                     sampling_rate = 1/median(diff(time));
                     [b, a] = butter(filter_order, cutoff_frequency/(sampling_rate/2));	% set filter parameters for butterworth filter: 2=order of filter;
                     if any(~isnan(com_z_vel))
@@ -2371,8 +2387,8 @@ classdef WalkingDataCustodian < handle
                     cop_y = this.getBasicVariableData('cop_y');
                     cop_y(cop_y==0) = NaN;
                     time = this.getTimeData('cop_y');
-                    filter_order = this.study_settings.force_plate_derivative_filter_order;
-                    cutoff_frequency = this.study_settings.force_plate_derivative_filter_cutoff;
+                    filter_order = this.study_settings.get('force_plate_derivative_filter_order');
+                    cutoff_frequency = this.study_settings.get('force_plate_derivative_filter_cutoff');
                     sampling_rate = 1/median(diff(time));
                     [b, a] = butter(filter_order, cutoff_frequency/(sampling_rate/2));	% set filter parameters for butterworth filter: 2=order of filter;
                     cop_y_vel = deriveByTime(nanfiltfilt(b, a, cop_y), 1/sampling_rate);
@@ -2385,8 +2401,8 @@ classdef WalkingDataCustodian < handle
                     cop_y_vel = this.getBasicVariableData('cop_y_vel');
                     cop_y_vel(cop_y_vel==0) = NaN;
                     time = this.getTimeData('cop_y_vel');
-                    filter_order = this.study_settings.force_plate_derivative_filter_order;
-                    cutoff_frequency = this.study_settings.force_plate_derivative_filter_cutoff;
+                    filter_order = this.study_settings.get('force_plate_derivative_filter_order');
+                    cutoff_frequency = this.study_settings.get('force_plate_derivative_filter_cutoff');
                     sampling_rate = 1/median(diff(time));
                     [b, a] = butter(filter_order, cutoff_frequency/(sampling_rate/2));	% set filter parameters for butterworth filter: 2=order of filter;
                     cop_y_acc = deriveByTime(nanfiltfilt(b, a, cop_y_vel), 1/sampling_rate);
@@ -2399,8 +2415,8 @@ classdef WalkingDataCustodian < handle
                     cop_x = this.getBasicVariableData('cop_x');
                     cop_x(cop_x==0) = NaN;
                     time = this.getTimeData('cop_x');
-                    filter_order = this.study_settings.force_plate_derivative_filter_order;
-                    cutoff_frequency = this.study_settings.force_plate_derivative_filter_cutoff;
+                    filter_order = this.study_settings.get('force_plate_derivative_filter_order');
+                    cutoff_frequency = this.study_settings.get('force_plate_derivative_filter_cutoff');
                     sampling_rate = 1/median(diff(time));
                     [b, a] = butter(filter_order, cutoff_frequency/(sampling_rate/2));	% set filter parameters for butterworth filter: 2=order of filter;
                     cop_x_vel = deriveByTime(nanfiltfilt(b, a, cop_x), 1/sampling_rate);
@@ -2413,8 +2429,8 @@ classdef WalkingDataCustodian < handle
                     cop_x_vel = this.getBasicVariableData('cop_x_vel');
                     cop_x_vel(cop_x_vel==0) = NaN;
                     time = this.getTimeData('cop_x_vel');
-                    filter_order = this.study_settings.force_plate_derivative_filter_order;
-                    cutoff_frequency = this.study_settings.force_plate_derivative_filter_cutoff;
+                    filter_order = this.study_settings.get('force_plate_derivative_filter_order');
+                    cutoff_frequency = this.study_settings.get('force_plate_derivative_filter_cutoff');
                     sampling_rate = 1/median(diff(time));
                     [b, a] = butter(filter_order, cutoff_frequency/(sampling_rate/2));	% set filter parameters for butterworth filter: 2=order of filter;
                     cop_x_acc = deriveByTime(nanfiltfilt(b, a, cop_x_vel), 1/sampling_rate);

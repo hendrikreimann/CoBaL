@@ -18,17 +18,20 @@ classdef eventData < handle
     properties
         data_custodian;
         
-        left_pushoff;
-        left_touchdown;
-        left_fullstance_times;
-        right_pushoff;
-        right_touchdown;
-        right_fullstance_times
+        event_data;
+        event_labels;
         
-        left_arm_swing_onset_times;
-        right_arm_swing_onset_times;
-        left_leg_swing_onset_times;
-        right_leg_swing_onset_times;
+%         left_pushoff;
+%         left_touchdown;
+%         left_fullstance_times;
+%         right_pushoff;
+%         right_touchdown;
+%         right_fullstance_times
+        
+%         left_arm_swing_onset_times;
+%         right_arm_swing_onset_times;
+%         left_leg_swing_onset_times;
+%         right_leg_swing_onset_times;
         
         ignore_times;
         
@@ -49,34 +52,38 @@ classdef eventData < handle
         function loadEvents(this)
             step_events_file_name = [this.data_custodian.data_directory filesep 'analysis' filesep makeFileName(this.data_custodian.date, this.data_custodian.subject_id, this.data_custodian.trial_type, this.data_custodian.trial_number, 'stepEvents.mat')];
             if exist(step_events_file_name, 'file')
-                loaded_event_data = load(step_events_file_name);
-                this.left_pushoff = loaded_event_data.left_pushoff_times;
-                this.left_touchdown = loaded_event_data.left_touchdown_times;
-                this.right_pushoff = loaded_event_data.right_pushoff_times;
-                this.right_touchdown = loaded_event_data.right_touchdown_times;
+                loaded_data = load(step_events_file_name);
+                this.event_data = loaded_data.event_data;
+                this.event_labels = loaded_data.event_labels;
+                
+%                 this.left_pushoff = loaded_data.left_pushoff_times;
+%                 this.left_touchdown = loaded_data.left_touchdown_times;
+%                 this.right_pushoff = loaded_data.right_pushoff_times;
+%                 this.right_touchdown = loaded_data.right_touchdown_times;
             else
-                loaded_event_data = struct;
+                loaded_data = struct;
             end
-            if isfield(loaded_event_data, 'left_fullstance_times')
-                this.left_fullstance_times = loaded_event_data.left_fullstance_times;
-            end
-            if isfield(loaded_event_data, 'right_fullstance_times')
-                this.right_fullstance_times = loaded_event_data.right_fullstance_times;
-            end
-            if isfield(loaded_event_data, 'left_arm_swing_onset_times')
-                this.left_arm_swing_onset_times = loaded_event_data.left_arm_swing_onset_times;
-            end
-            if isfield(loaded_event_data, 'right_arm_swing_onset_times')
-                this.right_arm_swing_onset_times = loaded_event_data.right_arm_swing_onset_times;
-            end
-            if isfield(loaded_event_data, 'left_leg_swing_onset_times')
-                this.left_leg_swing_onset_times = loaded_event_data.left_leg_swing_onset_times;
-            end
-            if isfield(loaded_event_data, 'right_leg_swing_onset_times')
-                this.right_leg_swing_onset_times = loaded_event_data.right_leg_swing_onset_times;
-            end
-            if isfield(loaded_event_data, 'ignore_times')
-                this.ignore_times = loaded_event_data.ignore_times;
+%             if isfield(loaded_data, 'left_fullstance_times')
+%                 this.left_fullstance_times = loaded_data.left_fullstance_times;
+%             end
+%             if isfield(loaded_data, 'right_fullstance_times')
+%                 this.right_fullstance_times = loaded_data.right_fullstance_times;
+%             end
+%             if isfield(loaded_data, 'left_arm_swing_onset_times')
+%                 this.left_arm_swing_onset_times = loaded_data.left_arm_swing_onset_times;
+%             end
+%             if isfield(loaded_data, 'right_arm_swing_onset_times')
+%                 this.right_arm_swing_onset_times = loaded_data.right_arm_swing_onset_times;
+%             end
+%             if isfield(loaded_data, 'left_leg_swing_onset_times')
+%                 this.left_leg_swing_onset_times = loaded_data.left_leg_swing_onset_times;
+%             end
+%             if isfield(loaded_data, 'right_leg_swing_onset_times')
+%                 this.right_leg_swing_onset_times = loaded_data.right_leg_swing_onset_times;
+%             end
+            
+            if isfield(loaded_data, 'ignore_times')
+                this.ignore_times = loaded_data.ignore_times;
             else
                 this.ignore_times = [];
             end
@@ -101,42 +108,47 @@ classdef eventData < handle
             this.removeDuplicates();
             variables_to_save = struct;
             
-            variables_to_save.left_pushoff_times = this.left_pushoff;
-            variables_to_save.left_touchdown_times = this.left_touchdown;
-            variables_to_save.right_pushoff_times = this.right_pushoff;
-            variables_to_save.right_touchdown_times = this.right_touchdown;
+%             variables_to_save.left_pushoff_times = this.left_pushoff;
+%             variables_to_save.left_touchdown_times = this.left_touchdown;
+%             variables_to_save.right_pushoff_times = this.right_pushoff;
+%             variables_to_save.right_touchdown_times = this.right_touchdown;
+%             
+%             if ~isempty(this.left_fullstance_times)
+%                 variables_to_save.left_fullstance_times = this.left_fullstance_times;
+%             end
+%             if ~isempty(this.right_fullstance_times)
+%                 variables_to_save.right_fullstance_times = this.right_fullstance_times;
+%             end
+%             if ~isempty(this.left_arm_swing_onset_times)
+%                 variables_to_save.left_arm_swing_onset_times = this.left_arm_swing_onset_times;
+%             end
+%             if ~isempty(this.right_arm_swing_onset_times)
+%                 variables_to_save.right_arm_swing_onset_times = this.right_arm_swing_onset_times;
+%             end
+%             if ~isempty(this.left_leg_swing_onset_times)
+%                 variables_to_save.left_leg_swing_onset_times = this.left_leg_swing_onset_times;
+%             end
+%             if ~isempty(this.right_leg_swing_onset_times)
+%                 variables_to_save.right_leg_swing_onset_times = this.right_leg_swing_onset_times;
+%             end
             
-            if ~isempty(this.left_fullstance_times)
-                variables_to_save.left_fullstance_times = this.left_fullstance_times;
-            end
-            if ~isempty(this.right_fullstance_times)
-                variables_to_save.right_fullstance_times = this.right_fullstance_times;
-            end
-            if ~isempty(this.left_arm_swing_onset_times)
-                variables_to_save.left_arm_swing_onset_times = this.left_arm_swing_onset_times;
-            end
-            if ~isempty(this.right_arm_swing_onset_times)
-                variables_to_save.right_arm_swing_onset_times = this.right_arm_swing_onset_times;
-            end
-            if ~isempty(this.left_leg_swing_onset_times)
-                variables_to_save.left_leg_swing_onset_times = this.left_leg_swing_onset_times;
-            end
-            if ~isempty(this.right_leg_swing_onset_times)
-                variables_to_save.right_leg_swing_onset_times = this.right_leg_swing_onset_times;
-            end
+% check this out later, get things to work first
+            variables_to_save.event_data = this.event_data;
+            variables_to_save.event_labels = this.event_labels;
             if ~isempty(this.ignore_times)
                 variables_to_save.ignore_times = this.ignore_times;
             end
             
-            step_events_file_name = [this.trial_data.data_directory filesep 'analysis' filesep makeFileName(this.trial_data.date, this.trial_data.subject_id, this.trial_data.condition, this.trial_data.trial_number, 'stepEvents')];
+            step_events_file_name = [this.data_custodian.data_directory filesep 'analysis' filesep makeFileName(this.data_custodian.date, this.data_custodian.subject_id, this.data_custodian.trial_type, this.data_custodian.trial_number, 'stepEvents.mat')];
             saveDataToFile(step_events_file_name, variables_to_save);
-
-
+            
             disp(['Step events saved as "' step_events_file_name '"']);
         end
         
         function setEventTimes(this, event_times, event_label) %#ok<INUSL>
-            eval(['this.' event_label ' = event_times;']);
+%             eval(['this.' event_label ' = event_times;']);
+            event_index = strcmp(this.event_labels, event_label);
+            this.event_data{event_index} = event_times;
         end
         function addEventTime(this, event_time, event_label)
             event_times = this.getEventTimes(event_label);
@@ -147,7 +159,12 @@ classdef eventData < handle
             this.selected_event_label = event_label;
         end
         function event_times = getEventTimes(this, event_label) %#ok<INUSL,STOUT>
-            eval(['event_times = this.' event_label ';']);
+%             eval(['event_times = this.' event_label ';']);
+    
+
+            event_index = strcmp(this.event_labels, event_label);
+            event_times = this.event_data{event_index};
+            
         end
         function event_index = getEventIndex(this, event_label, event_time)
             event_times = this.getEventTimes(event_label);
@@ -173,10 +190,6 @@ classdef eventData < handle
                 % sort and store
                 this.setEventTimes(sort(event_times), event_label);
             end
-            
-            
-            
-            
         end
         function selectNextEvent(this)
             % find index of currently selected event
@@ -184,13 +197,16 @@ classdef eventData < handle
             event_data_of_current_type = this.getEventTimes(this.selected_event_label);
             event_data_of_current_type_after_currently_selected = event_data_of_current_type(event_data_of_current_type > currently_selected_event_time);
             
-            if isempty(event_data_of_current_type_after_currently_selected)
-                % the selected event was the last of this type, so go to next type
-                this.selected_event_label = this.getNextEventTypeLabel(this.selected_event_label);
-                event_data_of_current_type = this.getEventTimes(this.selected_event_label);
-                this.selected_event_time = event_data_of_current_type(1);
-            else
-                % select next one
+%             if isempty(event_data_of_current_type_after_currently_selected)
+%                 % the selected event was the last of this type, so go to next type
+%                 this.selected_event_label = this.getNextEventTypeLabel(this.selected_event_label);
+%                 event_data_of_current_type = this.getEventTimes(this.selected_event_label);
+%                 this.selected_event_time = event_data_of_current_type(1);
+%             else
+%                 % select next one
+%                 this.selected_event_time = event_data_of_current_type_after_currently_selected(1);
+%             end
+            if ~isempty(event_data_of_current_type_after_currently_selected)
                 this.selected_event_time = event_data_of_current_type_after_currently_selected(1);
             end
             this.selected_time = this.selected_event_time;
@@ -201,17 +217,48 @@ classdef eventData < handle
             event_data_of_current_type = this.getEventTimes(this.selected_event_label);
             event_data_of_current_type_before_currently_selected = event_data_of_current_type(event_data_of_current_type < currently_selected_event_time);
             
-            if isempty(event_data_of_current_type_before_currently_selected)
-                % the selected event was the last of this type, so go to next type
-                this.selected_event_label = this.getPreviousEventTypeLabel(this.selected_event_label);
-                event_data_of_current_type = this.getEventTimes(this.selected_event_label);
-                this.selected_event_time = event_data_of_current_type(end);
-            else
-                % select next one
+            if ~isempty(event_data_of_current_type_before_currently_selected)
                 this.selected_event_time = event_data_of_current_type_before_currently_selected(end);
             end
-            this.trial_data.selected_time = this.selected_event_time;
+%             if isempty(event_data_of_current_type_before_currently_selected)
+%                 % the selected event was the last of this type, so go to next type
+%                 this.selected_event_label = this.getPreviousEventTypeLabel(this.selected_event_label);
+%                 event_data_of_current_type = this.getEventTimes(this.selected_event_label);
+%                 this.selected_event_time = event_data_of_current_type(end);
+%             else
+%                 % select next one
+%                 this.selected_event_time = event_data_of_current_type_before_currently_selected(end);
+%             end
+            this.selected_time = this.selected_event_time;
         end
+        function stepSelectedTime(this, direction, stepsize)
+            warning('Stepping through time currently not implemented, wait until scene figures are back!')
+%             if nargin < 3
+%                 stepsize = 1;
+%             end
+%             
+%             % get current time step
+%             [~, time_index_mocap] = min(abs(this.time_marker - this.selected_time));
+%             
+%             if strcmp(direction, 'back')
+%                 new_time_index_mocap = time_index_mocap - stepsize;
+%             elseif strcmp(direction, 'forward')
+%                 new_time_index_mocap = time_index_mocap + stepsize;
+%             else
+%                 error('Direction must be either "back" or "forward"');
+%             end
+%             
+%             % enforce limits
+%             if new_time_index_mocap < 1
+%                 new_time_index_mocap = 1;
+%             elseif new_time_index_mocap > length(this.time_marker)
+%                 new_time_index_mocap = length(this.time_marker);
+%             end
+%             
+%             % set result
+%             this.selected_time = this.time_marker(new_time_index_mocap);
+        end
+        
         function next_event_label = getNextEventTypeLabel(this, current_event_type_label) %#ok<INUSL>
             next_event_label = 'left_pushoff';
             if strcmp(current_event_type_label, 'left_touchdown')
@@ -239,10 +286,14 @@ classdef eventData < handle
             end
         end
         function removeDuplicates(this)
-            this.left_pushoff = unique(this.left_pushoff);
-            this.left_touchdown = unique(this.left_touchdown);
-            this.right_pushoff = unique(this.right_pushoff);
-            this.right_touchdown = unique(this.right_touchdown);
+            for i_type = 1 : length(this.event_data)
+                this.event_data{i_type} = unique(this.event_data{i_type});
+            end
+            
+%             this.left_pushoff = unique(this.left_pushoff);
+%             this.left_touchdown = unique(this.left_touchdown);
+%             this.right_pushoff = unique(this.right_pushoff);
+%             this.right_touchdown = unique(this.right_touchdown);
         end
     end
 end

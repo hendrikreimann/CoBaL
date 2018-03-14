@@ -337,8 +337,8 @@ classdef eventFigure < handle;
             end
         end
         function updateIgnoreMarkerPlot(this)
-            event_time = this.event_data.getEventTimes('ignore_times');
-            set(this.ignore_marker_plot, 'xdata', event_time, 'ydata', zeros(size(event_time)));
+            ignore_times = this.event_data.ignore_times;
+            set(this.ignore_marker_plot, 'xdata', ignore_times, 'ydata', zeros(size(ignore_times)));
         end
         function updateSelectedEventPlot(this)
             % go through all event plots and check whether they are of the selected event

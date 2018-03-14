@@ -55,9 +55,7 @@ function eventGui(varargin)
     data_custodian = WalkingDataCustodian(variables_list);
     data_custodian.prepareBasicVariables(condition, trial_to_process);
     
-%     trial_data = WalkingTrialData(pwd, condition, trial_to_process);
     event_data = eventData(data_custodian);
-%     event_data = [];
     
     %% init gui
     figure_settings_file = gui_settings.get('figure_settings_file');

@@ -237,21 +237,21 @@ classdef eventController < handle
             end
             if strcmp(eventdata.Key, 'leftarrow')
                 if isempty(eventdata.Modifier)
-                    this.trial_data.stepSelectedTime('back')
+                    this.event_data.stepSelectedTime('back')
                 elseif strcmp(eventdata.Modifier, 'shift')
-                    this.trial_data.stepSelectedTime('back', 5)
+                    this.event_data.stepSelectedTime('back', 5)
                 elseif strcmp(eventdata.Modifier, 'alt')
-                    this.trial_data.stepSelectedTime('back', 25)
+                    this.event_data.stepSelectedTime('back', 25)
                 end
                 this.updateSelectedTime();
             end
             if strcmp(eventdata.Key, 'rightarrow')
                 if isempty(eventdata.Modifier)
-                    this.trial_data.stepSelectedTime('forward')
+                    this.event_data.stepSelectedTime('forward')
                 elseif strcmp(eventdata.Modifier, 'shift')
-                    this.trial_data.stepSelectedTime('forward', 5)
+                    this.event_data.stepSelectedTime('forward', 5)
                 elseif strcmp(eventdata.Modifier, 'alt')
-                    this.trial_data.stepSelectedTime('forward', 25)
+                    this.event_data.stepSelectedTime('forward', 25)
                 end
                 this.updateSelectedTime();
             end
@@ -339,7 +339,7 @@ classdef eventController < handle
         
         function findEvents(this, sender, eventdata)
             % find events
-            findStepEvents('condition', this.trial_data.condition, 'trials', this.trial_data.trial_number);
+            findStepEvents('condition', this.data_custodian.trial_type, 'trials', this.data_custodian.trial_number);
             
             % load results from events file
             this.event_data.loadEvents;
@@ -360,7 +360,7 @@ classdef eventController < handle
         
         function findStretches(this, sender, eventdata) %#ok<INUSD>
             % find stretches
-            findRelevantDataStretches('condition', this.trial_data.condition, 'trials', this.trial_data.trial_number);
+            findRelevantDataStretches('condition', this.data_custodian.trial_type, 'trials', this.data_custodian.trial_number);
             
             % load results from stretch file
             this.event_data.loadStretches;
@@ -491,11 +491,11 @@ classdef eventController < handle
             
             % calculate new time range
             new_x_lim = new_center + [-0.5 0.5]*new_extension;
-            if new_x_lim(1) < 0
-                new_x_lim = new_x_lim - new_x_lim(1);
+            if new_x_lim(1) < this.data_custodian.getRecordingTimeStart()
+                new_x_lim = new_x_lim - (new_x_lim(1) - this.data_custodian.getRecordingTimeStart());
             end
-            if new_x_lim(2) > this.trial_data.recording_time
-                new_x_lim = new_x_lim - (new_x_lim(2) - this.trial_data.recording_time);
+            if new_x_lim(2) > this.data_custodian.getRecordingTimeEnd()
+                new_x_lim = new_x_lim - (new_x_lim(2) - this.data_custodian.getRecordingTimeEnd());
             end
             
             for i_figure = 1 : size(this.figureSelectionBox.String, 1)
