@@ -141,8 +141,7 @@ function eventGui(varargin)
     controller.updateStretchPatches();
     
     % select event (first left touchdown is default
-    event_label = 'left_pushoff';
-%     event_label = 'left_touchdown';
+    event_label = controller.event_data.event_labels{1};
     event_times = controller.event_data.getEventTimes(event_label);
     if isempty(event_times)
         event_time = 0;

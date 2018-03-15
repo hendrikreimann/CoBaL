@@ -69,7 +69,7 @@ function reorganizeMsData(varargin)
         marker_trajectories(:, 2 : 3 : end) = pos_Y * millimeter_to_meter;
         marker_trajectories(:, 3 : 3 : end) = pos_Z * millimeter_to_meter;
         time_mocap = pos_time * milliseconds_to_seconds;
-        sampling_rate_mocap = round(median(diff(time_mocap))^(-1) * 1000);
+        sampling_rate_mocap = round(median(diff(time_mocap))^(-1));
         
         % triplicate labels
         number_of_markers = length(pos_labels);

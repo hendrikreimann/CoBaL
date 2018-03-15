@@ -21,18 +21,6 @@ classdef eventData < handle
         event_data;
         event_labels;
         
-%         left_pushoff;
-%         left_touchdown;
-%         left_fullstance_times;
-%         right_pushoff;
-%         right_touchdown;
-%         right_fullstance_times
-        
-%         left_arm_swing_onset_times;
-%         right_arm_swing_onset_times;
-%         left_leg_swing_onset_times;
-%         right_leg_swing_onset_times;
-        
         ignore_times;
         
         selected_event_label;
@@ -50,37 +38,17 @@ classdef eventData < handle
             this.loadStretches();
         end
         function loadEvents(this)
-            step_events_file_name = [this.data_custodian.data_directory filesep 'analysis' filesep makeFileName(this.data_custodian.date, this.data_custodian.subject_id, this.data_custodian.trial_type, this.data_custodian.trial_number, 'stepEvents.mat')];
+            step_events_file_name = [this.data_custodian.data_directory filesep 'analysis' filesep makeFileName(this.data_custodian.date, this.data_custodian.subject_id, this.data_custodian.trial_type, this.data_custodian.trial_number, 'events.mat')];
             if exist(step_events_file_name, 'file')
                 loaded_data = load(step_events_file_name);
                 this.event_data = loaded_data.event_data;
                 this.event_labels = loaded_data.event_labels;
                 
-%                 this.left_pushoff = loaded_data.left_pushoff_times;
-%                 this.left_touchdown = loaded_data.left_touchdown_times;
-%                 this.right_pushoff = loaded_data.right_pushoff_times;
-%                 this.right_touchdown = loaded_data.right_touchdown_times;
             else
                 loaded_data = struct;
+                this.event_data = {};
+                this.event_labels = {};
             end
-%             if isfield(loaded_data, 'left_fullstance_times')
-%                 this.left_fullstance_times = loaded_data.left_fullstance_times;
-%             end
-%             if isfield(loaded_data, 'right_fullstance_times')
-%                 this.right_fullstance_times = loaded_data.right_fullstance_times;
-%             end
-%             if isfield(loaded_data, 'left_arm_swing_onset_times')
-%                 this.left_arm_swing_onset_times = loaded_data.left_arm_swing_onset_times;
-%             end
-%             if isfield(loaded_data, 'right_arm_swing_onset_times')
-%                 this.right_arm_swing_onset_times = loaded_data.right_arm_swing_onset_times;
-%             end
-%             if isfield(loaded_data, 'left_leg_swing_onset_times')
-%                 this.left_leg_swing_onset_times = loaded_data.left_leg_swing_onset_times;
-%             end
-%             if isfield(loaded_data, 'right_leg_swing_onset_times')
-%                 this.right_leg_swing_onset_times = loaded_data.right_leg_swing_onset_times;
-%             end
             
             if isfield(loaded_data, 'ignore_times')
                 this.ignore_times = loaded_data.ignore_times;
@@ -163,7 +131,11 @@ classdef eventData < handle
     
 
             event_index = strcmp(this.event_labels, event_label);
-            event_times = this.event_data{event_index};
+            if any(event_index)
+                event_times = this.event_data{event_index};
+            else
+                event_times = [];
+            end
             
         end
         function event_index = getEventIndex(this, event_label, event_time)
@@ -195,19 +167,14 @@ classdef eventData < handle
             % find index of currently selected event
             currently_selected_event_time = this.selected_event_time;
             event_data_of_current_type = this.getEventTimes(this.selected_event_label);
-            event_data_of_current_type_after_currently_selected = event_data_of_current_type(event_data_of_current_type > currently_selected_event_time);
-            
-%             if isempty(event_data_of_current_type_after_currently_selected)
-%                 % the selected event was the last of this type, so go to next type
-%                 this.selected_event_label = this.getNextEventTypeLabel(this.selected_event_label);
-%                 event_data_of_current_type = this.getEventTimes(this.selected_event_label);
-%                 this.selected_event_time = event_data_of_current_type(1);
-%             else
-%                 % select next one
-%                 this.selected_event_time = event_data_of_current_type_after_currently_selected(1);
-%             end
-            if ~isempty(event_data_of_current_type_after_currently_selected)
-                this.selected_event_time = event_data_of_current_type_after_currently_selected(1);
+            if isempty(event_data_of_current_type)
+                this.selected_event_time = [];
+            end
+            if ~isempty(event_data_of_current_type)
+                event_data_of_current_type_after_currently_selected = event_data_of_current_type(event_data_of_current_type > currently_selected_event_time);
+                if ~isempty(event_data_of_current_type_after_currently_selected)
+                    this.selected_event_time = event_data_of_current_type_after_currently_selected(1);
+                end
             end
             this.selected_time = this.selected_event_time;
         end
@@ -215,20 +182,15 @@ classdef eventData < handle
             % find index of currently selected event
             currently_selected_event_time = this.selected_event_time;
             event_data_of_current_type = this.getEventTimes(this.selected_event_label);
-            event_data_of_current_type_before_currently_selected = event_data_of_current_type(event_data_of_current_type < currently_selected_event_time);
-            
-            if ~isempty(event_data_of_current_type_before_currently_selected)
-                this.selected_event_time = event_data_of_current_type_before_currently_selected(end);
+            if isempty(event_data_of_current_type)
+                this.selected_event_time = [];
             end
-%             if isempty(event_data_of_current_type_before_currently_selected)
-%                 % the selected event was the last of this type, so go to next type
-%                 this.selected_event_label = this.getPreviousEventTypeLabel(this.selected_event_label);
-%                 event_data_of_current_type = this.getEventTimes(this.selected_event_label);
-%                 this.selected_event_time = event_data_of_current_type(end);
-%             else
-%                 % select next one
-%                 this.selected_event_time = event_data_of_current_type_before_currently_selected(end);
-%             end
+            if ~isempty(event_data_of_current_type)
+                event_data_of_current_type_before_currently_selected = event_data_of_current_type(event_data_of_current_type < currently_selected_event_time);
+                if ~isempty(event_data_of_current_type_before_currently_selected)
+                    this.selected_event_time = event_data_of_current_type_before_currently_selected(end);
+                end
+            end
             this.selected_time = this.selected_event_time;
         end
         function stepSelectedTime(this, direction, stepsize)
