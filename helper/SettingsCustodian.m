@@ -190,6 +190,13 @@ classdef SettingsCustodian < handle
             if strcmp(property_name, 'merge_bands')
                 default_data = 0;
             end
+            if strcmp(property_name, 'xtick_label_rotation')
+                default_data = 0;
+            end
+            if strcmp(property_name, 'group_bands_within_conditions')
+                default_data = 0;
+            end
+            
             if strcmp(property_name, 'marker_to_segment_map')
                 default_data = ...
                   { ...
