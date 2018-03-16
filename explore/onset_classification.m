@@ -35,9 +35,11 @@ function onset_classification(varargin)
         condition_response_time_list_session = cell(number_of_stretch_variables, 1);
         condition_response_type_list_session = cell(number_of_stretch_variables, 1);
         
-        for i_condition = 1 : number_of_conditions_to_test % in this particular analysis, there should be two conditions (one for each system)
+        for i_condition = 1 : number_of_conditions_to_test % in this particular analysis, there should be two conditions (one for each system/trigger foot)            
             this_determine_onset_variable = variable_to_test; % in this particular analysis, only variable_to_test should be cop_from_com_x_inverted (maybe make this a bit more clear)
             stimulus_condition = conditions_to_test(i_condition, :);
+            control_condition = conditions_control(strcmp(conditions_control(:, 1), stimulus_condition{1}), :);
+            
             trigger_foot_indicator_stimulus = strcmp(loaded_data.conditions_session.condition_trigger_foot_list, stimulus_condition{1});
             index_indicator_stim = strcmp(loaded_data.conditions_session.condition_index_list, stimulus_condition{4}); % the step index (i.e. step one, step two, etc)
             indicator_this_stimulus = trigger_foot_indicator_stimulus & index_indicator_stim;
@@ -131,9 +133,13 @@ function onset_classification(varargin)
             end
 
             % save condition_group_list
+            % assign groups for all indices (steps 1-4)
+            indicator_this_stimulus = trigger_foot_indicator_stimulus;
             condition_response_time_list_session(indicator_this_stimulus) = {this_system_cop_response_timing};
             condition_response_type_list_session(indicator_this_stimulus) = {this_system_response_type};
-
+         
+            perturbation_indicator_control = strcmp(loaded_data.conditions_session.condition_perturbation_list, control_condition{2});
+            condition_response_time_list_session(perturbation_indicator_control) = {'Control'};
         end
         
         % save
