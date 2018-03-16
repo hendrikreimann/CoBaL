@@ -1435,29 +1435,15 @@ function findRelevantDataStretches(varargin)
             end
             
             % add subject
-<<<<<<< HEAD
             subject_list = cell(size(stance_foot_data, 1), 1);
             for i_stretch = 1 : length(subject_list)
                 subject_list{i_stretch} = subject_id;
-=======
-            condition_subject_list = cell(size(condition_experimental_list,1),1);
-            for i_stretch = 1 : length(condition_subject_list)
-                condition_subject_list{i_stretch} = subject_id;
->>>>>>> ArmsenseUpdates
-            end
             conditions_trial.subject_list = subject_list;
 
             %% remove stretches where important variables are missing
 
             % calculate variables that depend upon the step events to be identified correctly
             stretch_variables = study_settings.get('stretch_variables');
-<<<<<<< HEAD
-            variables_to_prune_for = {};
-=======
-            
-%             variables_to_save = struct;
-            
->>>>>>> ArmsenseUpdates
 
             % prune
             number_of_stretches = size(stretch_times, 1);
@@ -1472,7 +1458,6 @@ function findRelevantDataStretches(varargin)
                 disp(['Removing a stretch due to innappropriate step length']);
             end
             
-<<<<<<< HEAD
 %             % check data availability for markers and flag stretches with gaps
 % not really doing this anymore...
 %             for i_stretch = 1 : number_of_stretches
@@ -1483,7 +1468,7 @@ function findRelevantDataStretches(varargin)
 %                     disp('Removing a stretch due to gaps in essential markers')
 %                 end
 %             end
-=======
+
             % check data availability for markers and flag stretches with gaps
             for i_stretch = 1 : number_of_stretches
                 [~, start_index_mocap] = min(abs(time_marker - stretch_start_times(i_stretch)));
@@ -1499,7 +1484,6 @@ function findRelevantDataStretches(varargin)
 %                     end
 %                 end
             end
->>>>>>> ArmsenseUpdates
             
             %  check data availability for markers with non-zero weight
             marker_weights = study_settings.get('marker_weights');
