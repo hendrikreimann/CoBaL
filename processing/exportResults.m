@@ -45,7 +45,7 @@ for i_variable = 1 : number_of_variables_to_export
         this_variable_data_cell = strtrim(cellstr(data_strings));
         
         % store in appropriate location in data cell
-        this_band_column = (i_variable-1)*3 + i_band;
+        this_band_column = (i_variable-1)*number_of_bands + i_band;
         data_cell(:, this_band_column) = this_variable_data_cell;
         
         % make and store label

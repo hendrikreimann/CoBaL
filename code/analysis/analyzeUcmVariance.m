@@ -109,21 +109,26 @@ function analyzeUcmVariance(varargin)
                     
                     % calculate variance measures
                     [V_para, V_perp] = calculateUcmVariance(joint_angle_data_to_analyze', jacobian);
-                    V_para_trial(i_variable, i_trial) = V_para;
-                    V_perp_trial(i_variable, i_trial) = V_perp;
+%                     V_para_trial(i_variable, i_trial) = V_para;
+%                     V_perp_trial(i_variable, i_trial) = V_perp;
+                    stretch_data_session{i_variable} = [stretch_data_session{i_variable} [V_para; V_perp]];
                 end
-            end
-            % store data for this block as mean across trials
-            for i_variable = 1 : number_of_ucm_variables
-                V_para_this_block_this_variable = mean(V_para_trial(i_variable, :));
-                V_perp_this_block_this_variable = mean(V_perp_trial(i_variable, :));
+                subject_list = [subject_list; subject_id]; %#ok<AGROW>
+                time_point_list = [time_point_list; 'NA']; %#ok<AGROW>
+                condition_list = [condition_list; this_block_label]; %#ok<AGROW>
                 
-                stretch_data_session{i_variable} = [stretch_data_session{i_variable} [V_para_this_block_this_variable; V_perp_this_block_this_variable]];
             end
-            
-            subject_list = [subject_list; subject_id]; %#ok<AGROW>
-            time_point_list = [time_point_list; 'N/A']; %#ok<AGROW>
-            condition_list = [condition_list; this_block_label]; %#ok<AGROW>
+%             % store data for this block as mean across trials
+%             for i_variable = 1 : number_of_ucm_variables
+%                 V_para_this_block_this_variable = mean(V_para_trial(i_variable, :));
+%                 V_perp_this_block_this_variable = mean(V_perp_trial(i_variable, :));
+%                 
+%                 stretch_data_session{i_variable} = [stretch_data_session{i_variable} [V_para_this_block_this_variable; V_perp_this_block_this_variable]];
+%             end
+%             
+%             subject_list = [subject_list; subject_id]; %#ok<AGROW>
+%             time_point_list = [time_point_list; 'NA']; %#ok<AGROW>
+%             condition_list = [condition_list; this_block_label]; %#ok<AGROW>
         end
         if any(strcmp(this_block_label, across_trials_conditions))
             % analyze across trials
