@@ -1438,7 +1438,7 @@ function findRelevantDataStretches(varargin)
             subject_list = cell(size(stance_foot_data, 1), 1);
             for i_stretch = 1 : length(subject_list)
                 subject_list{i_stretch} = subject_id;
-            conditions_trial.subject_list = subject_list;
+                 conditions_trial.subject_list = subject_list;
 
             %% remove stretches where important variables are missing
 
@@ -1451,15 +1451,16 @@ function findRelevantDataStretches(varargin)
             
             % take care of stretches with very large or small stretch duration
             if study_settings.get('prune_step_time_outliers')
-                stretch_durations = stretch_end_times - stretch_start_times;
-                stretch_duration_outlier_limits = median(stretch_durations) * [0.5 2.0];
-                removal_flags(stretch_durations < stretch_duration_outlier_limits(1)) = 1;
-                removal_flags(stretch_durations > stretch_duration_outlier_limits(2)) = 1;
-                disp(['Removing a stretch due to innappropriate step length']);
+                for i_stretch = 1 : number_of_stretches
+                    stretch_durations = stretch_times(i_stretch, end) - stretch_times(i_stretch, 1);
+                    stretch_duration_outlier_limits = median(stretch_durations) * [0.5 2.0];
+                    removal_flags(stretch_durations < stretch_duration_outlier_limits(1)) = 1;
+                    removal_flags(stretch_durations > stretch_duration_outlier_limits(2)) = 1;
+                    disp(['Removing a stretch due to innappropriate step length']);
+                end
             end
             
-%             % check data availability for markers and flag stretches with gaps
-% not really doing this anymore...
+%             % check data availability for markers and flag stretches with gaps.. not really doing this anymore...
 %             for i_stretch = 1 : number_of_stretches
 %                 [~, start_index_mocap] = min(abs(time_marker - stretch_times(i_stretch, 1)));
 %                 [~, end_index_mocap] = min(abs(time_marker - stretch_times(i_stretch, end)));
@@ -1468,22 +1469,6 @@ function findRelevantDataStretches(varargin)
 %                     disp('Removing a stretch due to gaps in essential markers')
 %                 end
 %             end
-
-            % check data availability for markers and flag stretches with gaps
-            for i_stretch = 1 : number_of_stretches
-                [~, start_index_mocap] = min(abs(time_marker - stretch_start_times(i_stretch)));
-                [~, end_index_mocap] = min(abs(time_marker - stretch_end_times(i_stretch)));
-                if any(any(isnan(marker_trajectories(start_index_mocap : end_index_mocap, essential_marker_indicator))))
-                    removal_flags(i_stretch) = 1;
-                    disp('Removing a stretch due to gaps in essential markers')
-                end
-%                 if any(strcmp(stretch_variables(:, 1), 'com_x')) || any(strcmp(stretch_variables(:, 1), 'com_y')) || any(strcmp(stretch_variables(:, 1), 'com_z'))
-%                     if any(any(isnan(com_trajectories(start_index_mocap : end_index_mocap,:)))) |  any(any(com_trajectories(start_index_mocap : end_index_mocap,:))) == 0 % mostly a problem for RON (VISION_HY) trials 6 + 7
-%                         removal_flags = 1;
-%                         disp('Removing a stretch due to gaps in com trajectories')
-%                     end
-%                 end
-            end
             
             %  check data availability for markers with non-zero weight
             marker_weights = study_settings.get('marker_weights');
