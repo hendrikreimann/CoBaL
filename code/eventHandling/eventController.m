@@ -342,7 +342,11 @@ classdef eventController < handle
         
         function findEvents(this, sender, eventdata)
             % find events
-            findStepEvents('condition', this.data_custodian.trial_type, 'trials', this.data_custodian.trial_number);
+            if strcmp(this.data_custodian.study_settings.get('study_type'), 'MS')
+                findEvents_MS('condition', this.data_custodian.trial_type, 'trials', this.data_custodian.trial_number);
+            else
+                findStepEvents('condition', this.data_custodian.trial_type, 'trials', this.data_custodian.trial_number);
+            end
             
             % load results from events file
             this.event_data.loadEvents;
@@ -362,6 +366,10 @@ classdef eventController < handle
         end
         
         function findStretches(this, sender, eventdata) %#ok<INUSD>
+            if strcmp(this.data_custodian.study_settings.get('study_type'), 'MS')
+                return
+            end
+            
             % find stretches
             findRelevantDataStretches('condition', this.data_custodian.trial_type, 'trials', this.data_custodian.trial_number);
             
@@ -531,9 +539,10 @@ classdef eventController < handle
             this.updateDataPlots;
             this.updateEventPlots;
             this.updateStretchPatches;
-            this.event_data.selectNextEvent;
+            this.event_data.selectClosestEvent;
             this.updateSelectedEventPlots;
             this.updateTrialLabels;
+            this.updateSelectedTime;
         end
         function loadNextTrial(this, sender, eventdata) %#ok<INUSD>
             % figure out new type/number based on current values
@@ -560,14 +569,10 @@ classdef eventController < handle
             this.updateDataPlots;
             this.updateEventPlots;
             this.updateStretchPatches;
-            this.event_data.selectNextEvent;
+            this.event_data.selectClosestEvent;
             this.updateSelectedEventPlots;
             this.updateTrialLabels;
-            
-            
-            
-%             this.updateSelectedTime
-            
+            this.updateSelectedTime;
         end
         function quit(this, sender, eventdata) %#ok<INUSD>
             try

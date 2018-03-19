@@ -190,7 +190,7 @@ function new_string = reformatDate(old_string)
 end
 
 function new_string = reformatCondition(old_string, trial_number)
-    if strcmp(old_string, 'IL71')
+    if strcmp(old_string(1:2), 'IL')
         block_1 = 31:35;
         block_2 = 36:40;
         block_3 = 41:45;

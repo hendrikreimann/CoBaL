@@ -166,36 +166,61 @@ classdef eventData < handle
         function selectNextEvent(this)
             % find index of currently selected event
             currently_selected_event_time = this.selected_event_time;
-            event_data_of_current_type = this.getEventTimes(this.selected_event_label);
-            if isempty(event_data_of_current_type)
-                this.selected_event_time = [];
-            end
-            if ~isempty(event_data_of_current_type)
-                event_data_of_current_type_after_currently_selected = event_data_of_current_type(event_data_of_current_type > currently_selected_event_time);
-                if ~isempty(event_data_of_current_type_after_currently_selected)
-                    this.selected_event_time = event_data_of_current_type_after_currently_selected(1);
+            if ~isempty(currently_selected_event_time)
+                event_data_of_current_type = this.getEventTimes(this.selected_event_label);
+                if isempty(event_data_of_current_type)
+                    this.selected_event_time = [];
                 end
+                if ~isempty(event_data_of_current_type)
+                    event_data_of_current_type_after_currently_selected = event_data_of_current_type(event_data_of_current_type > currently_selected_event_time);
+                    if ~isempty(event_data_of_current_type_after_currently_selected)
+                        this.selected_event_time = event_data_of_current_type_after_currently_selected(1);
+                    end
+                end
+                this.selected_time = this.selected_event_time;
+                
             end
-            this.selected_time = this.selected_event_time;
         end
         function selectPreviousEvent(this)
             % find index of currently selected event
             currently_selected_event_time = this.selected_event_time;
-            event_data_of_current_type = this.getEventTimes(this.selected_event_label);
-            if isempty(event_data_of_current_type)
-                this.selected_event_time = [];
-            end
-            if ~isempty(event_data_of_current_type)
-                event_data_of_current_type_before_currently_selected = event_data_of_current_type(event_data_of_current_type < currently_selected_event_time);
-                if ~isempty(event_data_of_current_type_before_currently_selected)
-                    this.selected_event_time = event_data_of_current_type_before_currently_selected(end);
+            if ~isempty(currently_selected_event_time)
+                event_data_of_current_type = this.getEventTimes(this.selected_event_label);
+                if isempty(event_data_of_current_type)
+                    this.selected_event_time = [];
                 end
+                if ~isempty(event_data_of_current_type)
+                    event_data_of_current_type_before_currently_selected = event_data_of_current_type(event_data_of_current_type < currently_selected_event_time);
+                    if ~isempty(event_data_of_current_type_before_currently_selected)
+                        this.selected_event_time = event_data_of_current_type_before_currently_selected(end);
+                    end
+                end
+                this.selected_time = this.selected_event_time;
             end
-            this.selected_time = this.selected_event_time;
         end
         function setSelectedTime(this, new_time)
             this.selected_time = new_time;
         end
+        function selectClosestEvent(this)
+            % find index of currently selected event
+            currently_selected_event_time = this.selected_event_time;
+            if ~isempty(currently_selected_event_time)
+                event_data_of_current_type = this.getEventTimes(this.selected_event_label);
+                if isempty(event_data_of_current_type)
+                    this.selected_event_time = [];
+                end
+                if ~isempty(event_data_of_current_type)
+                    if ~isempty(event_data_of_current_type)
+                        [~, candidate_index] = min(abs(currently_selected_event_time - event_data_of_current_type));
+                        
+                        this.selected_event_time = event_data_of_current_type(candidate_index);
+                    end
+                end
+                this.selected_time = this.selected_event_time;
+            end
+            
+        end
+        
         function stepSelectedTime(this, direction, stepsize)
             warning('Stepping through time currently not implemented, wait until scene figures are back!')
 %             if nargin < 3
