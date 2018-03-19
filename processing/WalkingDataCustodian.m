@@ -1055,7 +1055,6 @@ classdef WalkingDataCustodian < handle
                 name_to_use = variable_name;
             end
             
-            
 %             eval(['time_data = this.time_data.' name_to_use ';']);
             time_data = this.time_data.(name_to_use);
         end

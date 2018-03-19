@@ -119,9 +119,13 @@ function findEvents_MS(varargin)
             end
             
             if length(condition_experimental) >= 4 && strcmp(condition_experimental(1:4), 'RAMP')
-                [~, platform_acc_peak_indices] = findpeaks(platform_acc_trajectory, 'MinPeakProminence', subject_settings.get('platform_acc_peak_prominence_threshold'), 'MinPeakDistance', subject_settings.get('platform_acc_peak_distance_threshold') * sampling_rate_marker);
+                distance_threshold = subject_settings.get('platform_acc_peak_distance_threshold') * sampling_rate_marker;
+                if distance_threshold > length(platform_acc_trajectory) - 2
+                    distance_threshold = length(platform_acc_trajectory) - 2;
+                end
+                [~, platform_acc_peak_indices] = findpeaks(platform_acc_trajectory, 'MinPeakProminence', subject_settings.get('platform_acc_peak_prominence_threshold'), 'MinPeakDistance', distance_threshold);
                 platform_acc_peak_times = time_marker(platform_acc_peak_indices);
-                [~, platform_acc_vale_indices] = findpeaks(-platform_acc_trajectory, 'MinPeakProminence', subject_settings.get('platform_acc_peak_prominence_threshold'), 'MinPeakDistance', subject_settings.get('platform_acc_peak_distance_threshold') * sampling_rate_marker);
+                [~, platform_acc_vale_indices] = findpeaks(-platform_acc_trajectory, 'MinPeakProminence', subject_settings.get('platform_acc_peak_prominence_threshold'), 'MinPeakDistance', distance_threshold);
                 platform_acc_vale_times = time_marker(platform_acc_vale_indices);
 %                 platform_event_indices = [platform_acc_peak_indices; platform_acc_vale_indices];
                 
@@ -148,6 +152,10 @@ function findEvents_MS(varargin)
                     'perturbation_end_plus_one'; ...
                     'perturbation_end_plus_two'; ...
                   };
+              
+                platform_events = [platform_shift_start_time, platform_shift_end_time, platform_shift_end_time + 1, platform_shift_end_time + 2];
+                platform_event_indices = findClosestIndex(platform_events, time_marker);
+              
             end
 
             

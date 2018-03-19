@@ -107,7 +107,7 @@ classdef eventData < handle
                 variables_to_save.ignore_times = this.ignore_times;
             end
             
-            step_events_file_name = [this.data_custodian.data_directory filesep 'analysis' filesep makeFileName(this.data_custodian.date, this.data_custodian.subject_id, this.data_custodian.trial_type, this.data_custodian.trial_number, 'stepEvents.mat')];
+            step_events_file_name = [this.data_custodian.data_directory filesep 'analysis' filesep makeFileName(this.data_custodian.date, this.data_custodian.subject_id, this.data_custodian.trial_type, this.data_custodian.trial_number, 'events.mat')];
             saveDataToFile(step_events_file_name, variables_to_save);
             
             disp(['Step events saved as "' step_events_file_name '"']);
@@ -153,8 +153,8 @@ classdef eventData < handle
                 
             else
                 % clamp new time to limits
-                new_event_time = max([new_event_time, 0]);
-                new_event_time = min([new_event_time, this.trial_data.recording_time]);
+                new_event_time = max([new_event_time, this.data_custodian.getRecordingTimeStart]);
+                new_event_time = min([new_event_time, this.data_custodian.getRecordingTimeEnd]);
                 
                 % update
                 event_times(event_index) = new_event_time;
@@ -192,6 +192,9 @@ classdef eventData < handle
                 end
             end
             this.selected_time = this.selected_event_time;
+        end
+        function setSelectedTime(this, new_time)
+            this.selected_time = new_time;
         end
         function stepSelectedTime(this, direction, stepsize)
             warning('Stepping through time currently not implemented, wait until scene figures are back!')
@@ -252,10 +255,6 @@ classdef eventData < handle
                 this.event_data{i_type} = unique(this.event_data{i_type});
             end
             
-%             this.left_pushoff = unique(this.left_pushoff);
-%             this.left_touchdown = unique(this.left_touchdown);
-%             this.right_pushoff = unique(this.right_pushoff);
-%             this.right_touchdown = unique(this.right_touchdown);
         end
     end
 end

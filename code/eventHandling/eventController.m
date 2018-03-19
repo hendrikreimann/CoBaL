@@ -125,7 +125,10 @@ classdef eventController < handle
                 this.figureSelectionBox.UserData{i_figure}.updateSelectedEventPlot();
             end
         end
-        function updateSelectedTime(this)
+        function updateSelectedTime(this, new_time)
+            if nargin > 1
+                this.event_data.selected_time = new_time;
+            end
             
             % update step event figures
             for i_figure = 1 : size(this.figureSelectionBox.String, 1)
@@ -461,6 +464,7 @@ classdef eventController < handle
             
             % update plots
             this.updateSelectedEventPlots();
+            this.updateSelectedTime(this.event_data.selected_event_time);
             this.updateEventPlots();
         end
         function updateTimeWindow(this, mode)
