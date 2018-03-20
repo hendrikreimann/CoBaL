@@ -1273,8 +1273,7 @@ function findRelevantDataStretches(varargin)
                                 % have checked that
                             end                
                         end
-                    end
-                    if strcmp(trigger_foot, 'right')
+                        elseif strcmp(trigger_foot, 'right')
                         if length(right_touchdown_times) < index_right + 2 || removal_flags(i_trigger) == 1
                             % data doesn't include the required number of steps after the trigger
                             removal_flags(i_trigger) = 1;
@@ -1438,6 +1437,7 @@ function findRelevantDataStretches(varargin)
             subject_list = cell(size(stance_foot_data, 1), 1);
             for i_stretch = 1 : length(subject_list)
                 subject_list{i_stretch} = subject_id;
+            end
                  conditions_trial.subject_list = subject_list;
 
             %% remove stretches where important variables are missing
