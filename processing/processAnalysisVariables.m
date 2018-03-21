@@ -101,7 +101,13 @@ function processAnalysisVariables(varargin)
             
             % determine applicable control condition index
             if strcmp(study_settings.get('experimental_paradigm'), 'Vision')
-                applicable_control_condition = 1;
+                if strcmp(this_stretch_condition_string{strcmp(condition_combination_labels, 'trigger_foot')}, 'TRIGGER_LEFT')
+                    applicable_control_condition = find(strcmp(condition_combinations_control_unique(:, strcmp(condition_combination_labels, 'trigger_foot')), 'TRIGGER_LEFT'));
+                end
+                if strcmp(this_stretch_condition_string{strcmp(condition_combination_labels, 'trigger_foot')}, 'TRIGGER_RIGHT')
+                    applicable_control_condition = find(strcmp(condition_combinations_control_unique(:, strcmp(condition_combination_labels, 'trigger_foot')), 'TRIGGER_RIGHT'));
+                end
+%                 applicable_control_condition = 1;
             end
             if strcmp(study_settings.get('condition_stimulus'), 'VISUAL') || strcmp(study_settings.get('condition_stimulus'), 'GVS_old')
                 if strcmp(this_stretch_condition_string{strcmp(condition_combination_labels, 'stance_foot')}, 'STANCE_LEFT')
