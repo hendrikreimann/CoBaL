@@ -149,7 +149,7 @@ classdef eventData < handle
                 % delete event
                 event_times(event_index) = [];
                 this.setEventTimes(event_times, event_label);
-                this.selectNextEvent();
+                this.selectClosestEvent();
                 
             else
                 % clamp new time to limits
