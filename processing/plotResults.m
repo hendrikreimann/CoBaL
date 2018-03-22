@@ -1024,7 +1024,7 @@ function plotResults(varargin)
                 data_to_plot_this_condition = data_to_plot(:, this_condition_indicator);
                 
                 origin_indices = find(this_condition_indicator);
-                if isDiscreteVariable(i_variable, data_all, size(data_to_plot_this_condition, 1))
+                if isDiscreteVariable(i_variable, data_all, bands_per_stretch)
                     if plot_settings.get('merge_bands')
                         data_to_plot_this_condition = reshape(data_to_plot_this_condition, 1, numel(data_to_plot_this_condition));
                     end
