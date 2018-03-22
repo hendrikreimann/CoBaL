@@ -42,10 +42,10 @@ function rigidBodyFill(marker_to_fill, marker_source_1, marker_source_2, marker_
     % get reference positions
     marker_reference = kinematic_tree.exportMarkerPositions;
     marker_labels = kinematic_tree.markerLabels;
-    marker_to_fill_reference = extractMarkerTrajectories(marker_reference, marker_labels, marker_to_fill)';
-    marker_source_1_reference = extractMarkerTrajectories(marker_reference, marker_labels, marker_source_1)';
-    marker_source_2_reference = extractMarkerTrajectories(marker_reference, marker_labels, marker_source_2)';
-    marker_source_3_reference = extractMarkerTrajectories(marker_reference, marker_labels, marker_source_3)';
+    marker_to_fill_reference = extractMarkerData(marker_reference, marker_labels, marker_to_fill)';
+    marker_source_1_reference = extractMarkerData(marker_reference, marker_labels, marker_source_1)';
+    marker_source_2_reference = extractMarkerData(marker_reference, marker_labels, marker_source_2)';
+    marker_source_3_reference = extractMarkerData(marker_reference, marker_labels, marker_source_3)';
     
     % define coordinate frame based on positions
     p = mean([marker_source_1_reference marker_source_2_reference marker_source_3_reference], 2);
