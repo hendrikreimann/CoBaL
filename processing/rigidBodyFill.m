@@ -69,9 +69,9 @@ function rigidBodyFill(marker_to_fill, marker_source_1, marker_source_2, marker_
             load(['processed' filesep makeFileName(date, subject_id, condition, i_trial, 'markerTrajectories')]);
             number_of_time_steps = size(marker_trajectories, 1);
             
-            marker_source_1_trajectory = extractMarkerTrajectories(marker_trajectories, marker_labels, marker_source_1);
-            marker_source_2_trajectory = extractMarkerTrajectories(marker_trajectories, marker_labels, marker_source_2);
-            marker_source_3_trajectory = extractMarkerTrajectories(marker_trajectories, marker_labels, marker_source_3);
+            marker_source_1_trajectory = extractMarkerData(marker_trajectories, marker_labels, marker_source_1);
+            marker_source_2_trajectory = extractMarkerData(marker_trajectories, marker_labels, marker_source_2);
+            marker_source_3_trajectory = extractMarkerData(marker_trajectories, marker_labels, marker_source_3);
             
             marker_to_fill_trajectory = zeros(number_of_time_steps, 3);
             
@@ -107,7 +107,9 @@ function rigidBodyFill(marker_to_fill, marker_source_1, marker_source_2, marker_
             end
             
             % insert reconstructed trajectory back into array
-            marker_number = find(strcmp(marker_labels, marker_to_fill));
+%             if any(strcmp(marker_labels
+            marker_labels_simplified = unique(extractBefore(marker_labels, '_'));
+            marker_number = find(strcmp(marker_labels_simplified, marker_to_fill));
             markers_indices = reshape([(marker_number - 1) * 3 + 1; (marker_number - 1) * 3 + 2; (marker_number - 1) * 3 + 3], 1, length(marker_number)*3);
             marker_trajectories(:, markers_indices) = marker_to_fill_trajectory;
             
