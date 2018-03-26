@@ -76,9 +76,7 @@ function findRelevantDataStretches(varargin)
 
     time_to_nearest_heelstrike_before_trigger_threshold = 0.10; % a heelstrike should happen less than this long before a trigger
     time_to_nearest_heelstrike_after_trigger_threshold = 0.3; % a heelstrike should happen less than this long after a trigger
-    
-    
-    
+     
     for i_condition = 1 : length(condition_list)
         trials_to_process = trial_number_list{i_condition};
         for i_trial = trials_to_process
@@ -148,7 +146,7 @@ function findRelevantDataStretches(varargin)
             end
             if strcmp(condition_stimulus, 'VISUAL')
                 % this if for TU data
-                visual_scene_ml_translation_trajectory = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'visual_scene_ml_translation__trajectory');
+                visual_scene_ml_translation_trajectory = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'visual_scene_ml_translation__trajectory'); %take note of the double "_"
                 [stimulus_state_trajectory, time_stimulus] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'stimulus_state_trajectory');
             end
             if strcmp(experimental_paradigm, 'Vision')
@@ -191,7 +189,7 @@ function findRelevantDataStretches(varargin)
                         % angle change is positive horizon rotates counter-clockwise, illusion is to the RIGHT
                         illusion_trajectory(i_time) = 1;
                     end
-                    if visual_scene_ml_translation_trajectory(i_time) < 0 & visual_scene_ml_translation_trajectory(i_time) > -20 % weird -inf in one of the trajectories?
+                    if visual_scene_ml_translation_trajectory(i_time) < 0 
                         % angle change is negative, horizon rotates clockwise, illusion is to the LEFT
                         illusion_trajectory(i_time) = -1;
                         
@@ -1169,6 +1167,7 @@ function findRelevantDataStretches(varargin)
                 closest_heelstrike_distance_times = zeros(number_of_triggers, 1);
                 stance_foot_data = cell(number_of_triggers, bands_per_stretch);
                 stimulus_list = cell(number_of_triggers, 1); % stimulus STIM_LEFT, STIM_RIGHT or STIM_NONE
+                amplitude_list = cell(number_of_triggers, 1); % amplitude 30, 60, 120
                 trigger_foot_list = cell(number_of_triggers, 1); % triggering foot TRIGGER_LEFT or TRIGGER_RIGHT
                 
                 for i_trigger = 1 : number_of_triggers
@@ -1379,7 +1378,22 @@ function findRelevantDataStretches(varargin)
                             plot([stretch_times(i_trigger, 4) stretch_times(i_trigger, 5)], [-1 1]*+0.01, 'color', 'm', 'linewidth', 3);
                         end
                     end
+                    
+                    % determine stimulus amplitude
+                    resulting_stim_amplitude = max(abs(current_rotation_trajectory(trigger_indices_labview(i_trigger):trigger_indices_labview(i_trigger)+200)));
 
+                    if resulting_stim_amplitude < 6 & resulting_stim_amplitude > 0
+                        amplitude_list{i_trigger} = '30';
+                    end
+                    if resulting_stim_amplitude > 6 & resulting_stim_amplitude < 12
+                        amplitude_list{i_trigger} = '60';
+                    end  
+                    if resulting_stim_amplitude > 12
+                        amplitude_list{i_trigger} = '120';
+                    end   
+                    if resulting_stim_amplitude < 1
+                        amplitude_list{i_trigger} = '0';
+                    end 
                 end
                     
                 % remove flagged triggers
@@ -1418,6 +1432,8 @@ function findRelevantDataStretches(varargin)
                     end
                 end
                 
+                    
+                    
                 % put in placeholder for group
                 group_list = cell(size(direction_list));
                 [group_list{:}] = deal('to be determined');
@@ -1425,6 +1441,7 @@ function findRelevantDataStretches(varargin)
                 % restructure for saving
                 conditions_trial = struct;
                 conditions_trial.stimulus_list = stimulus_list;
+                conditions_trial.amplitude_list = amplitude_list;
                 conditions_trial.trigger_foot_list = trigger_foot_list;
                 conditions_trial.direction_list = direction_list;
                 conditions_trial.group_list = group_list;
