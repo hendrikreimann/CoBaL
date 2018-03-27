@@ -874,6 +874,16 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('left_tfl')
                 this.addStretchVariable('left_tfl')
             end
+            if this.isVariableToAnalyze('left_rect_fem')
+                this.addBasicVariable('emg_trajectories')
+                this.addBasicVariable('left_rect_fem')
+                this.addStretchVariable('left_rect_fem')
+            end
+            if this.isVariableToAnalyze('left_bic_fem')
+                this.addBasicVariable('emg_trajectories')
+                this.addBasicVariable('left_bic_fem')
+                this.addStretchVariable('left_bic_fem')
+            end
             if this.isVariableToAnalyze('right_glut_med')
                 this.addBasicVariable('emg_trajectories')
                 this.addBasicVariable('right_glut_med')
@@ -908,6 +918,16 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('emg_trajectories')
                 this.addBasicVariable('right_tfl')
                 this.addStretchVariable('right_tfl')
+            end
+            if this.isVariableToAnalyze('right_rect_fem')
+                this.addBasicVariable('emg_trajectories')
+                this.addBasicVariable('right_rect_fem')
+                this.addStretchVariable('right_rect_fem')
+            end
+            if this.isVariableToAnalyze('right_bic_fem')
+                this.addBasicVariable('emg_trajectories')
+                this.addBasicVariable('right_bic_fem')
+                this.addStretchVariable('right_bic_fem')
             end
             if this.isVariableToAnalyze('left_glut_med_rescaled')
                 this.addBasicVariable('emg_trajectories')
@@ -951,6 +971,18 @@ classdef WalkingDataCustodian < handle
                 this.addStretchVariable('left_tfl')
                 this.addStretchVariable('left_tfl_rescaled')
             end
+            if this.isVariableToAnalyze('left_rect_fem_rescaled')
+                this.addBasicVariable('emg_trajectories')
+                this.addBasicVariable('left_rect_fem')
+                this.addStretchVariable('left_rect_fem')
+                this.addStretchVariable('left_rect_fem_rescaled')
+            end
+            if this.isVariableToAnalyze('left_bic_fem_rescaled')
+                this.addBasicVariable('emg_trajectories')
+                this.addBasicVariable('left_bic_fem')
+                this.addStretchVariable('left_bic_fem')
+                this.addStretchVariable('left_bic_fem_rescaled')
+            end
             if this.isVariableToAnalyze('right_glut_med_rescaled')
                 this.addBasicVariable('emg_trajectories')
                 this.addBasicVariable('right_glut_med')
@@ -992,6 +1024,18 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('right_tfl')
                 this.addStretchVariable('right_tfl')
                 this.addStretchVariable('right_tfl_rescaled')
+            end
+            if this.isVariableToAnalyze('right_rect_fem_rescaled')
+                this.addBasicVariable('emg_trajectories')
+                this.addBasicVariable('right_rect_fem')
+                this.addStretchVariable('right_rect_fem')
+                this.addStretchVariable('right_rect_fem_rescaled')
+            end
+            if this.isVariableToAnalyze('right_bic_fem_rescaled')
+                this.addBasicVariable('emg_trajectories')
+                this.addBasicVariable('right_bic_fem')
+                this.addStretchVariable('right_bic_fem')
+                this.addStretchVariable('right_bic_fem_rescaled')
             end
    end
         
@@ -2519,6 +2563,16 @@ classdef WalkingDataCustodian < handle
                         disp(['Warning: variable ''' variable_name ''' not available, used NaN as data']);
                     end
                 end
+                if strcmp(variable_name, 'left_rect_fem')
+                    this.basic_variable_data.left_rect_fem = this.basic_variable_data.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'left_rect_fem'));
+                    this.basic_variable_directions.left_rect_fem = this.basic_variable_directions.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'left_rect_fem'));
+                    this.time_data.left_rect_fem = this.time_data.emg_trajectories;
+                end
+                if strcmp(variable_name, 'left_bic_fem')
+                    this.basic_variable_data.left_bic_fem = this.basic_variable_data.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'left_bic_fem'));
+                    this.basic_variable_directions.left_bic_fem = this.basic_variable_directions.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'left_bic_fem'));
+                    this.time_data.left_bic_fem = this.time_data.emg_trajectories;
+                end
                 if strcmp(variable_name, 'right_glut_med')
                     this.basic_variable_data.right_glut_med = this.basic_variable_data.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'right_glut_med'));
                     this.basic_variable_directions.right_glut_med = this.basic_variable_directions.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'right_glut_med'));
@@ -2549,7 +2603,7 @@ classdef WalkingDataCustodian < handle
                     this.time_data.right_pero_lng = this.time_data.emg_trajectories;
                 end
                 if strcmp(variable_name, 'right_tfl')
-                    if any(strcmp(this.basic_variable_labels.emg_trajectories, 'left_tfl'))
+                    if any(strcmp(this.basic_variable_labels.emg_trajectories, 'right_tfl'))
                         this.basic_variable_data.right_tfl = this.basic_variable_data.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'right_tfl'));
                         this.basic_variable_directions.right_tfl = this.basic_variable_directions.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'right_tfl'));
                         this.time_data.right_tfl = this.time_data.emg_trajectories;
@@ -2559,6 +2613,16 @@ classdef WalkingDataCustodian < handle
                         this.basic_variable_directions.right_tfl = {'N/A', 'N/A'};
                         disp(['Warning: variable ''' variable_name ''' not available, used NaN as data']);
                     end
+                end
+                if strcmp(variable_name, 'right_rect_fem')
+                    this.basic_variable_data.right_rect_fem = this.basic_variable_data.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'right_rect_fem'));
+                    this.basic_variable_directions.right_rect_fem = this.basic_variable_directions.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'right_rect_fem'));
+                    this.time_data.right_rect_fem = this.time_data.emg_trajectories;
+                end
+                if strcmp(variable_name, 'right_bic_fem')
+                    this.basic_variable_data.right_bic_fem = this.basic_variable_data.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'right_bic_fem'));
+                    this.basic_variable_directions.right_bic_fem = this.basic_variable_directions.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'right_bic_fem'));
+                    this.time_data.right_bic_fem = this.time_data.emg_trajectories;
                 end
             end
         end
@@ -2900,6 +2964,16 @@ classdef WalkingDataCustodian < handle
                         end
                         stretch_data = left_tfl * 1 / normalization_value;
                     end
+                    if strcmp(variable_name, 'left_rect_fem_rescaled')
+                        left_rect_fem = this.getTimeNormalizedData('left_rect_fem', this_stretch_times);
+                        normalization_value = this.emg_normalization_values(strcmp(this.emg_normalization_labels, 'left_rect_fem'));
+                        stretch_data = left_rect_fem * 1 / normalization_value;
+                    end
+                    if strcmp(variable_name, 'left_bic_fem_rescaled')
+                        left_bic_fem = this.getTimeNormalizedData('left_bic_fem', this_stretch_times);
+                        normalization_value = this.emg_normalization_values(strcmp(this.emg_normalization_labels, 'left_bic_fem'));
+                        stretch_data = left_bic_fem * 1 / normalization_value;
+                    end
                     if strcmp(variable_name, 'right_glut_med_rescaled')
                         right_glut_med = this.getTimeNormalizedData('right_glut_med', this_stretch_times);
                         normalization_value = this.emg_normalization_values(strcmp(this.emg_normalization_labels, 'right_glut_med'));
@@ -2937,6 +3011,16 @@ classdef WalkingDataCustodian < handle
                             normalization_value = 1;
                         end
                         stretch_data = right_tfl * 1 / normalization_value;
+                    end
+                    if strcmp(variable_name, 'right_rect_fem_rescaled')
+                        right_rect_fem = this.getTimeNormalizedData('right_rect_fem', this_stretch_times);
+                        normalization_value = this.emg_normalization_values(strcmp(this.emg_normalization_labels, 'right_rect_fem'));
+                        stretch_data = right_rect_fem * 1 / normalization_value;
+                    end
+                    if strcmp(variable_name, 'right_bic_fem_rescaled')
+                        right_bic_fem = this.getTimeNormalizedData('right_bic_fem', this_stretch_times);
+                        normalization_value = this.emg_normalization_values(strcmp(this.emg_normalization_labels, 'right_bic_fem'));
+                        stretch_data = right_bic_fem * 1 / normalization_value;
                     end
                     if strcmp(variable_name, 'copl_x') || strcmp(variable_name, 'copl_y') || strcmp(variable_name, 'copr_x') || strcmp(variable_name, 'copr_y')
                         % whole stretches might be zero, deal with this in a special way.
@@ -3217,6 +3301,12 @@ classdef WalkingDataCustodian < handle
                 % TODO: not tested yet
                 stretch_directions_new = this.basic_variable_directions.left_tfl;
             end
+            if strcmp(variable_name, 'left_rect_fem_rescaled')
+                stretch_directions_new = this.basic_variable_directions.left_rect_fem;
+            end
+            if strcmp(variable_name, 'left_bic_fem_rescaled')
+                stretch_directions_new = this.basic_variable_directions.left_bic_fem;
+            end
             if strcmp(variable_name, 'right_glut_med_rescaled')
                 % TODO: not tested yet
                 stretch_directions_new = this.basic_variable_directions.right_glut_med;
@@ -3240,6 +3330,12 @@ classdef WalkingDataCustodian < handle
             if strcmp(variable_name, 'right_tfl_rescaled')
                 % TODO: not tested yet
                 stretch_directions_new = this.basic_variable_directions.right_tfl;
+            end
+            if strcmp(variable_name, 'right_rect_fem_rescaled')
+                stretch_directions_new = this.basic_variable_directions.right_rect_fem;
+            end
+            if strcmp(variable_name, 'right_bic_fem_rescaled')
+                stretch_directions_new = this.basic_variable_directions.right_bic_fem;
             end
             if strcmp(variable_name, 'copl_x') || strcmp(variable_name, 'copl_y') || strcmp(variable_name, 'copr_x') || strcmp(variable_name, 'copr_y')
                 stretch_directions_new = this.basic_variable_directions.(variable_name);
