@@ -91,7 +91,7 @@ function rigidBodyFill(marker_to_fill, marker_source_1, marker_source_2, marker_
             end
             
             if visualize
-                marker_to_fill_trajectory_original = extractMarkerTrajectories(marker_trajectories, marker_labels, marker_to_fill);
+                marker_to_fill_trajectory_original = extractMarkerData(marker_trajectories, marker_labels, marker_to_fill);
                 figure; hold on
                 x_plot = plot(marker_to_fill_trajectory_original(:, 1), 'linewidth', 2);
                 y_plot = plot(marker_to_fill_trajectory_original(:, 2), 'linewidth', 2);
@@ -107,9 +107,11 @@ function rigidBodyFill(marker_to_fill, marker_source_1, marker_source_2, marker_
             end
             
             % insert reconstructed trajectory back into array
-            marker_number = find(strcmp(marker_labels, marker_to_fill));
-            markers_indices = reshape([(marker_number - 1) * 3 + 1; (marker_number - 1) * 3 + 2; (marker_number - 1) * 3 + 3], 1, length(marker_number)*3);
-            marker_trajectories(:, markers_indices) = marker_to_fill_trajectory;
+            marker_indices = extractMarkerData(marker_trajectories, marker_labels, marker_to_fill, 'indices');
+            
+%             marker_number = find(strcmp(marker_labels, marker_to_fill));
+%             markers_indices = reshape([(marker_number - 1) * 3 + 1; (marker_number - 1) * 3 + 2; (marker_number - 1) * 3 + 3], 1, length(marker_number)*3);
+            marker_trajectories(:, marker_indices) = marker_to_fill_trajectory;
             
             % save
             variables_to_save = struct;

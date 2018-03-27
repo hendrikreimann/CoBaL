@@ -52,6 +52,7 @@ function processStimulusResponse(varargin)
     
     % extract data
     step_placement_x_data = loaded_data.stretch_data_session{strcmp(loaded_data.stretch_names_session, 'step_placement_x')};
+    step_placement_x_directions = loaded_data.stretch_directions_session(strcmp(loaded_data.stretch_names_session, 'step_placement_x'), :);
     mpsis_x_data = loaded_data.stretch_data_session{strcmp(loaded_data.stretch_names_session, 'mpsis_x')};
     com_x_data = loaded_data.stretch_data_session{strcmp(loaded_data.stretch_names_session, 'com_x')};
     mpsis_x_vel_data = deriveByTime(mpsis_x_data, 0.01); % XXX ACHTUNG: this is a hack because I don't have the data yet
@@ -160,10 +161,15 @@ function processStimulusResponse(varargin)
             Jacobian = output_matrix * pinv(input_matrix);
             [correlation_c, correlation_p] = corr(input_matrix', output_matrix');
 
-            figure; plot(mpsis_from_ankle_x_midstance_delta, step_placement_x_this_condition_delta, 'x')
-            title(['mpsis from ankle - pos, J = ' num2str(Jacobian(1)) ', c = ' num2str(correlation_c(1)) ', p = ' num2str(correlation_p(1))]); axis equal
-            figure; plot(mpsis_x_vel_midstance_delta, step_placement_x_this_condition_delta, 'x')
-            title(['mpsis - vel, J = ' num2str(Jacobian(2)) ', c = ' num2str(correlation_c(2)) ', p = ' num2str(correlation_p(2))]); axis equal
+%             figure; plot(mpsis_from_ankle_x_midstance, step_placement_x_this_condition, 'x'); hold on, plot(0, 0);
+%             title('mpsis from ankle - pos'); axis equal
+%             figure; plot(mpsis_x_vel_midstance_delta, step_placement_x_this_condition, 'x'); hold on, plot(0, 0);
+%             title('mpsis from ankle - vel'); axis equal
+%             
+%             figure; plot(mpsis_from_ankle_x_midstance_delta, step_placement_x_this_condition_delta, 'x')
+%             title(['Delta mpsis from ankle - pos, J = ' num2str(Jacobian(1)) ', c = ' num2str(correlation_c(1)) ', p = ' num2str(correlation_p(1))]); axis equal
+%             figure; plot(mpsis_x_vel_midstance_delta, step_placement_x_this_condition_delta, 'x')
+%             title(['Delta mpsis - vel, J = ' num2str(Jacobian(2)) ', c = ' num2str(correlation_c(2)) ', p = ' num2str(correlation_p(2))]); axis equal
 
             % calculate regression coefficients for com from ankle
             input_matrix = [com_from_ankle_x_midstance_delta; com_x_vel_midstance_delta];
@@ -275,11 +281,23 @@ function processStimulusResponse(varargin)
     if isfield(loaded_data, 'analysis_data_session')
         analysis_data_session = loaded_data.analysis_data_session;
         analysis_names_session = loaded_data.analysis_names_session;
+        analysis_directions_session = loaded_data.analysis_directions_session;
     else
         analysis_data_session = {};
         analysis_names_session = {};
+        analysis_directions_session = {};
     end
-    [analysis_data_session, analysis_names_session] = addOrOverwriteData(analysis_data_session, analysis_names_session, stimulus_response_x_data, 'stimulus_response_x');
+%     [analysis_data_session, analysis_names_session] = addOrOverwriteData(analysis_data_session, analysis_names_session, stimulus_response_x_data, 'stimulus_response_x');
+    [analysis_data_session, analysis_names_session] = ...
+        addOrOverwriteResultsData ...
+          ( ...
+            analysis_data_session, ...
+            analysis_names_session, ...
+            analysis_directions_session, ...
+            stimulus_response_x_data, ...
+            'stimulus_response_x',...
+            step_placement_x_directions ...
+          );
     
     variables_to_save = loaded_data;
     variables_to_save.analysis_data_session = analysis_data_session;

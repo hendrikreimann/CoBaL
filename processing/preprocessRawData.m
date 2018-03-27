@@ -101,7 +101,7 @@ function preprocessRawData(varargin)
 
                     % save
                     emg_labels = subject_settings.get('emg_labels');
-                    emg_directions = emg_directions(:, length(emg_labels));
+                    emg_directions = emg_directions(:, 1:length(emg_labels));
                     save_folder = 'processed';
                     save_file_name = makeFileName(date, subject_id, trial_type, trial_number, 'emgTrajectories.mat');
                     save ...
@@ -241,21 +241,23 @@ function preprocessRawData(varargin)
     %                     right_forceplate_cop_world = (eye(2, 4) * Acr_to_world_trafo * [right_forceplate_cop_Acr ones(size(right_forceplate_cop_Acr, 1), 1)]')';
                     elseif strcmp(data_source, 'qtm')
                         % extract forceplate locations
-                        Acl_x = forceplate_location_Acl(1);
-                        Acl_y = forceplate_location_Acl(2);
-                        Acl_z = forceplate_location_Acl(3);
-                        Acr_x = forceplate_location_Acr(1);
-                        Acr_y = forceplate_location_Acr(2);
-                        Acr_z = forceplate_location_Acr(3);
+%                         Acl_x = forceplate_location_Acl(1);
+%                         Acl_y = forceplate_location_Acl(2);
+%                         Acl_z = forceplate_location_Acl(3);
+%                         Acr_x = forceplate_location_Acr(1);
+%                         Acr_y = forceplate_location_Acr(2);
+%                         Acr_z = forceplate_location_Acr(3);
                         % transform forceplate data to CoBaL world frame A_cw
                         left_forceplate_wrench_Acl = [fxl_trajectory fyl_trajectory fzl_trajectory mxl_trajectory myl_trajectory mzl_trajectory];
                         right_forceplate_wrench_Acr = [fxr_trajectory fyr_trajectory fzr_trajectory mxr_trajectory myr_trajectory mzr_trajectory];
                         % define forceplate rotation and translation
-                        Acr_to_world_rotation = [-.999915 .001935 .012896; .001944 .999998 .000629; -.012894 .000654 -.999917];
-                        Acr_to_world_translation = [.2770547; -.8754495; -.0036151]; % origin of Acw in Acr frame
+                        Acr_to_world_rotation = [-1 0 0; 0 1 0; 0 0 -1];
+%                         Acr_to_world_translation = [.2770547; -.8754495; -.0036151]; % origin of Acw in Acr frame
+                        Acr_to_world_translation = forceplate_location_right';
                         Acr_to_world_trafo = [Acr_to_world_rotation Acr_to_world_translation; 0 0 0 1];
                         Acl_to_world_rotation = [-.999991 -.001155 .004082; -.001156 .999999 -.000193; -.004082 -.000197 -.999992];
-                        Acl_to_world_translation = [-.2813943; -.8710612; -.0042636]; % origin of Acw in Acl frame
+%                         Acl_to_world_translation = [-.2813943; -.8710612; -.0042636]; % origin of Acw in Acl frame
+                        Acl_to_world_translation = forceplate_location_left';
                         Acl_to_world_trafo = [Acl_to_world_rotation Acl_to_world_translation; 0 0 0 1];
                         Acr_to_world_adjoint = rigidToAdjointTransformation(Acr_to_world_trafo);
                         Acl_to_world_adjoint = rigidToAdjointTransformation(Acl_to_world_trafo);

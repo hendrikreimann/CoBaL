@@ -187,6 +187,9 @@ classdef SettingsCustodian < handle
             if strcmp(property_name, 'mark_bands')
                 default_data = 0;
             end
+            if strcmp(property_name, 'merge_bands')
+                default_data = 0;
+            end
             if strcmp(property_name, 'marker_to_segment_map')
                 default_data = ...
                   { ...
@@ -237,8 +240,6 @@ classdef SettingsCustodian < handle
                     'RTOEL', '20'; ...
                   };
             end
-
-
             if strcmp(property_name, 'marker_to_color_map')
                 default_data = ...
                   { ...

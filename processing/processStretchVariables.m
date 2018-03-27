@@ -67,12 +67,11 @@ function processStretchVariables(varargin)
             load(['analysis' filesep makeFileName(date, subject_id, condition, i_trial, 'relevantDataStretches')]);
             number_of_stretches_this_trial = size(stretch_times, 1);
             bands_per_stretch_session = [bands_per_stretch_session; bands_per_stretch];
-            if isempty(stretch_times)
-                data_trial = cell(size(data_trial));
-            else
-                data_trial = data_custodian.calculateStretchVariables(stretch_times, stance_foot_data, conditions_trial.condition_experimental_list, stretch_pushoff_times);
-            end
-            
+            condition_relevant_for_analysis = study_settings.get('condition_relevant_for_analysis');
+            condition_relevant_name = conditions_settings{strcmp(conditions_settings(:, 1), condition_relevant_for_analysis), 2};
+            condition_data = conditions_trial.(condition_relevant_name);
+            data_trial = data_custodian.calculateStretchVariables(stretch_times, stance_foot_data, condition_data);
+
             % append the data and condition lists from this trial to the total lists
             for i_variable = 1 : number_of_stretch_variables
                 data_session{i_variable} = [data_session{i_variable} data_trial{i_variable}];
@@ -160,11 +159,12 @@ function processStretchVariables(varargin)
 
     stretch_data_session = data_session; %#ok<NASGU>
     stretch_names_session = data_custodian.stretch_variable_names; %#ok<NASGU>
-%     
+    stretch_directions_session = data_custodian.stretch_variable_directions; %#ok<NASGU>
+
     bands_per_stretch = median(bands_per_stretch_session);
-%     if any(bands_per_stretch_session ~= bands_per_stretch)
-%         warning('Different trials have different numbers of bands per stretch')
-%     end
+    if any(bands_per_stretch_session ~= bands_per_stretch)
+        warning('Different trials have different numbers of bands per stretch')
+    end
 
     %% save data
     results_file_name = ['analysis' filesep makeFileName(date, subject_id, 'results')];
@@ -174,6 +174,7 @@ function processStretchVariables(varargin)
         'conditions_session', ...
         'stretch_data_session', ...
         'stretch_names_session', ...
+        'stretch_directions_session', ...
         'bands_per_stretch', ...
         'origin_trial_list_session', ...
         'origin_start_time_list_session', ...
