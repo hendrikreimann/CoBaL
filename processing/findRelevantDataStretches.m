@@ -83,6 +83,8 @@ function findRelevantDataStretches(varargin)
             %% load data
             ignore_times = [];
             load(['analysis' filesep makeFileName(date, subject_id, condition_list{i_condition}, i_trial, 'stepEvents')]);
+%           load(['processed' filesep makeFileName(date, subject_id, condition_list{i_condition}, i_trial, 'kinematicTrajectories')]);
+            
             experimental_paradigm = study_settings.get('experimental_paradigm');
 
             % determine experimental condition
