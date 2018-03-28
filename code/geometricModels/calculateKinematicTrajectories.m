@@ -64,6 +64,7 @@ function calculateKinematicTrajectories(varargin)
     for i_condition = 1 : length(condition_list)
         trials_to_process = trial_number_list{i_condition};
         for i_trial = trials_to_process
+            %% prepare
             condition = condition_list{i_condition};
             
             % give feedback
@@ -93,6 +94,7 @@ function calculateKinematicTrajectories(varargin)
             end
             essential_marker_indicator = ~ismember(1 : size(marker_trajectories, 2), optional_marker_indices);
             
+            %% process
             if register_without_calculating
                 % rename variables to avoid overwriting
                 joint_center_labels_correct = joint_center_labels;
@@ -112,9 +114,10 @@ function calculateKinematicTrajectories(varargin)
                 fprintf([' - Calculating kinematic trajectories... \n'])
                 
                 % calculate
-                joint_center_trajectories = zeros(number_of_time_steps, length(joint_center_labels));
-                com_trajectories = zeros(number_of_time_steps, length(com_labels_single)*3);
-                joint_angle_trajectories = zeros(number_of_time_steps, number_of_joint_angles);
+                joint_center_trajectories = zeros(number_of_time_steps, length(joint_center_labels)) * NaN;
+                com_trajectories = zeros(number_of_time_steps, length(com_labels_single)*3) * NaN;
+                joint_angle_trajectories = zeros(number_of_time_steps, number_of_joint_angles) * NaN;
+                new_ignore_markers = [];
                 tic
                 if use_parallel
                     % make variables accessible to workers by declaring them

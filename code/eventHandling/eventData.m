@@ -103,9 +103,7 @@ classdef eventData < handle
 % check this out later, get things to work first
             variables_to_save.event_data = this.event_data;
             variables_to_save.event_labels = this.event_labels;
-            if ~isempty(this.ignore_times)
-                variables_to_save.ignore_times = this.ignore_times;
-            end
+            variables_to_save.ignore_times = this.ignore_times;
             
             step_events_file_name = [this.data_custodian.data_directory filesep 'analysis' filesep makeFileName(this.data_custodian.date, this.data_custodian.subject_id, this.data_custodian.trial_type, this.data_custodian.trial_number, 'events.mat')];
             saveDataToFile(step_events_file_name, variables_to_save);
@@ -113,28 +111,38 @@ classdef eventData < handle
             disp(['Step events saved as "' step_events_file_name '"']);
         end
         
-        function setEventTimes(this, event_times, event_label) %#ok<INUSL>
-%             eval(['this.' event_label ' = event_times;']);
-            event_index = strcmp(this.event_labels, event_label);
-            this.event_data{event_index} = event_times;
+        function setEventTimes(this, event_times, event_label)
+            if strcmp(event_label, 'ignore_times')
+                this.ignore_times = event_times;
+            else
+                event_index = strcmp(this.event_labels, event_label);
+                this.event_data{event_index} = event_times;
+            end
         end
         function addEventTime(this, event_time, event_label)
-            event_times = this.getEventTimes(event_label);
-            event_times = [event_times; event_time];
-            event_times = sort(event_times);
-            this.setEventTimes(sort(event_times), event_label);
+            if strcmp(event_label, 'ignore_times')
+                ignore_times_current = this.getEventTimes(event_label);
+                ignore_times_new = [ignore_times_current; event_time];
+                this.ignore_times = sort(ignore_times_new);
+            else
+                event_times = this.getEventTimes(event_label);
+                event_times = [event_times; event_time];
+                event_times = sort(event_times);
+                this.setEventTimes(sort(event_times), event_label);
+            end
             this.selected_event_time = event_time;
             this.selected_event_label = event_label;
         end
-        function event_times = getEventTimes(this, event_label) %#ok<INUSL,STOUT>
-%             eval(['event_times = this.' event_label ';']);
-    
-
-            event_index = strcmp(this.event_labels, event_label);
-            if any(event_index)
-                event_times = this.event_data{event_index};
+        function event_times = getEventTimes(this, event_label)
+            if strcmp(event_label, 'ignore_times')
+                event_times = this.ignore_times;
             else
-                event_times = [];
+                event_index = strcmp(this.event_labels, event_label);
+                if any(event_index)
+                    event_times = this.event_data{event_index};
+                else
+                    event_times = [];
+                end
             end
             
         end
