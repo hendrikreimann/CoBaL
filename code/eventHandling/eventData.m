@@ -105,10 +105,10 @@ classdef eventData < handle
             variables_to_save.event_labels = this.event_labels;
             variables_to_save.ignore_times = this.ignore_times;
             
-            step_events_file_name = [this.data_custodian.data_directory filesep 'analysis' filesep makeFileName(this.data_custodian.date, this.data_custodian.subject_id, this.data_custodian.trial_type, this.data_custodian.trial_number, 'events.mat')];
-            saveDataToFile(step_events_file_name, variables_to_save);
+            events_file_name = [this.data_custodian.data_directory filesep 'analysis' filesep makeFileName(this.data_custodian.date, this.data_custodian.subject_id, this.data_custodian.trial_type, this.data_custodian.trial_number, 'events.mat')];
+            saveDataToFile(events_file_name, variables_to_save);
             
-            disp(['Step events saved as "' step_events_file_name '"']);
+            disp(['Step events saved as "' events_file_name '"']);
         end
         
         function setEventTimes(this, event_times, event_label)

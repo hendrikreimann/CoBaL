@@ -117,7 +117,7 @@ function calculateKinematicTrajectories(varargin)
                 joint_center_trajectories = zeros(number_of_time_steps, length(joint_center_labels)) * NaN;
                 com_trajectories = zeros(number_of_time_steps, length(com_labels_single)*3) * NaN;
                 joint_angle_trajectories = zeros(number_of_time_steps, number_of_joint_angles) * NaN;
-                new_ignore_markers = [];
+                new_ignore_times = [];
                 tic
                 if use_parallel
                     % make variables accessible to workers by declaring them
@@ -134,6 +134,8 @@ function calculateKinematicTrajectories(varargin)
                     direction_matrices_pool = direction_matrices;
                     direction_matrix_labels_pool = direction_matrix_labels;
                     subject_settings_pool = subject_settings;
+                    new_ignore_times_pool = new_ignore_times;
+                    time_mocap_pool = time_mocap;
                     spmd
                         for i_time_index = labindex : numlabs : number_of_time_steps_to_process
                             i_time = time_steps_to_process(i_time_index);
@@ -143,6 +145,7 @@ function calculateKinematicTrajectories(varargin)
                                 joint_center_trajectories_pool(i_time, :) = NaN;
                                 com_trajectories_pool(i_time, :) = NaN;
                                 joint_angle_trajectories_pool(i_time, :) = NaN;
+                                new_ignore_times_pool = [new_ignore_times_pool; time_mocap_pool(i_time)]; %#ok<AGROW>
                             else
                                 % calculate joint center positions
                                 subject_settings_pool.verbose = false;
@@ -206,12 +209,14 @@ function calculateKinematicTrajectories(varargin)
                         joint_center_trajectories_lab = joint_center_trajectories_pool{i_lab};
                         com_trajectories_lab = com_trajectories_pool{i_lab};
                         joint_angle_trajectories_lab = joint_angle_trajectories_pool{i_lab};
+                        new_ignore_times_lab = new_ignore_times_pool{i_lab};
                         joint_center_trajectories(time_steps_to_process(i_lab : number_of_labs : number_of_time_steps_to_process), :) ...
                             = joint_center_trajectories_lab(time_steps_to_process(i_lab : number_of_labs : number_of_time_steps_to_process), :);
                         com_trajectories(time_steps_to_process(i_lab : number_of_labs : number_of_time_steps_to_process), :) ...
                             = com_trajectories_lab(time_steps_to_process(i_lab : number_of_labs : number_of_time_steps_to_process), :);
                         joint_angle_trajectories(time_steps_to_process(i_lab : number_of_labs : number_of_time_steps_to_process), :) ...
                             = joint_angle_trajectories_lab(time_steps_to_process(i_lab : number_of_labs : number_of_time_steps_to_process), :);
+                        new_ignore_times = [new_ignore_times; new_ignore_times_lab];
                     end               
                 end
                 if ~use_parallel
@@ -223,6 +228,7 @@ function calculateKinematicTrajectories(varargin)
                             joint_center_trajectories(i_time, :) = NaN;
                             com_trajectories(i_time, :) = NaN;
                             joint_angle_trajectories(i_time, :) = NaN;
+                            new_ignore_times = [new_ignore_times; time_mocap(i_time)]; %#ok<AGROW>
                         else
                             % calculate joint center positions
                             marker_current = marker_trajectories(i_time, :);
@@ -369,6 +375,21 @@ function calculateKinematicTrajectories(varargin)
                 save_folder, ...
                 save_file_name ...
               );
+          
+            if ~isempty(new_ignore_times)
+                save_folder = 'analysis';
+                events_file_name = makeFileName(date, subject_id, condition, i_trial, 'events.mat');
+                events = load(['analysis' filesep events_file_name]);
+                if isfield(events, 'ignore_times')
+                    events.ignore_times = [events.ignore_times; new_ignore_times];
+                else
+                    events.ignore_times = new_ignore_times;
+                end                
+                saveDataToFile(['analysis' filesep events_file_name], events);
+                determineStretchesToAnalyze('condition', condition, 'trials', i_trial);
+            end
+            
+          
 %             addAvailableData('joint_center_trajectories', 'time_mocap', 'sampling_rate_mocap', 'joint_center_labels', save_folder, save_file_name);
 %             addAvailableData('com_trajectories', 'time_mocap', 'sampling_rate_mocap', 'com_labels', save_folder, save_file_name);
 %             addAvailableData('joint_angle_trajectories', 'time_mocap', 'sampling_rate_mocap', 'joint_labels', save_folder, save_file_name);
