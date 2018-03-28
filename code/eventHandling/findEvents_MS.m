@@ -203,9 +203,6 @@ function findEvents_MS(varargin)
             % struct for saving
             variables_to_save = struct;
             
-%             return
-            
-            
             % add new variables to be saved
             variables_to_save.event_data = event_data;
             variables_to_save.event_labels = event_labels;

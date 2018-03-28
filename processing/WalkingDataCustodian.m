@@ -1090,7 +1090,7 @@ classdef WalkingDataCustodian < handle
                 T = min([this_variable_time(end), T]);
             end
         end
-        function time_data = getTimeData(this, variable_name) %#ok<STOUT,INUSL>
+        function time_data = getTimeData(this, variable_name)
             % check if this is a sub-variable
             if any(variable_name==':')
                 this_variable_split = strsplit(variable_name, ':');

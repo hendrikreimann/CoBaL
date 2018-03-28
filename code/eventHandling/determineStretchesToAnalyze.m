@@ -82,7 +82,7 @@ function findRelevantDataStretches(varargin)
         for i_trial = trials_to_process
             %% load data
             ignore_times = [];
-            load(['analysis' filesep makeFileName(date, subject_id, condition_list{i_condition}, i_trial, 'stepEvents')]);
+            load(['analysis' filesep makeFileName(date, subject_id, condition_list{i_condition}, i_trial, 'events')]);
             
             right_pushoff_times = event_data{strcmp(event_labels, 'right_pushoff')};
             right_touchdown_times = event_data{strcmp(event_labels, 'right_touchdown')};

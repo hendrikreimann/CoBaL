@@ -45,13 +45,13 @@ qtm_emg_scale = 1;
 total_number_of_trials_extracted_this_subject = 0;
 
 % create folders if necessary
-if ~exist('raw', 'dir')
+if ~directoryExists('raw')
     mkdir('raw')
 end
-if ~exist('processed', 'dir')
+if ~directoryExists('processed')
     mkdir('processed')
 end
-if ~exist('analysis', 'dir')
+if ~directoryExists('analysis')
     mkdir('analysis')
 end
 current_path = pwd;
