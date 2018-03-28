@@ -47,13 +47,13 @@ function joint_center_positions = ...
     
     % cervix
     T_reference_wcs_to_head_mcs = transformations_reference{strcmp(segment_labels, 'HEAD')}^(-1);
-    cervix_cor_reference_wcs = extractMarkerTrajectories(joint_center_reference, joint_center_headers, 'CERVIXCOR')';
+    cervix_cor_reference_wcs = extractMarkerData(joint_center_reference, joint_center_headers, 'CERVIXCOR')';
     cervix_cor_head_mcs = eye(3, 4) * T_reference_wcs_to_head_mcs * [cervix_cor_reference_wcs; 1];
     T_current_head_mcs_to_wcs = transformations_current{strcmp(segment_labels, 'HEAD')};
     cervix_cor_current_wcs_from_head = eye(3, 4) * T_current_head_mcs_to_wcs * [cervix_cor_head_mcs; 1];
     
     T_reference_wcs_to_torso_mcs = transformations_reference{strcmp(segment_labels, 'TORSO')}^(-1);
-    cervix_cor_reference_wcs = extractMarkerTrajectories(joint_center_reference, joint_center_headers, 'CERVIXCOR')';
+    cervix_cor_reference_wcs = extractMarkerData(joint_center_reference, joint_center_headers, 'CERVIXCOR')';
     cervix_cor_torso_mcs = eye(3, 4) * T_reference_wcs_to_torso_mcs * [cervix_cor_reference_wcs; 1];
     T_current_torso_mcs_to_wcs = transformations_current{strcmp(segment_labels, 'TORSO')};
     cervix_cor_current_wcs_from_torso = eye(3, 4) * T_current_torso_mcs_to_wcs * [cervix_cor_torso_mcs; 1];
@@ -62,14 +62,14 @@ function joint_center_positions = ...
     
     % left shoulder
     T_reference_wcs_to_torso_mcs = transformations_reference{strcmp(segment_labels, 'TORSO')}^(-1);
-    lshoulder_cor_reference_wcs = extractMarkerTrajectories(joint_center_reference, joint_center_headers, 'LSHOULDERCOR')';
+    lshoulder_cor_reference_wcs = extractMarkerData(joint_center_reference, joint_center_headers, 'LSHOULDERCOR')';
     lshoulder_cor_torso_mcs = eye(3, 4) * T_reference_wcs_to_torso_mcs * [lshoulder_cor_reference_wcs; 1];
     T_current_torso_mcs_to_wcs = transformations_current{strcmp(segment_labels, 'TORSO')};
     lshoulder_cor_current_wcs = eye(3, 4) * T_current_torso_mcs_to_wcs * [lshoulder_cor_torso_mcs; 1];
     
     % right shoulder
     T_reference_wcs_to_torso_mcs = transformations_reference{strcmp(segment_labels, 'TORSO')}^(-1);
-    rshoulder_cor_reference_wcs = extractMarkerTrajectories(joint_center_reference, joint_center_headers, 'RSHOULDERCOR')';
+    rshoulder_cor_reference_wcs = extractMarkerData(joint_center_reference, joint_center_headers, 'RSHOULDERCOR')';
     rshoulder_cor_torso_mcs = eye(3, 4) * T_reference_wcs_to_torso_mcs * [rshoulder_cor_reference_wcs; 1];
     T_current_torso_mcs_to_wcs = transformations_current{strcmp(segment_labels, 'TORSO')};
     rshoulder_cor_current_wcs = eye(3, 4) * T_current_torso_mcs_to_wcs * [rshoulder_cor_torso_mcs; 1];
@@ -77,35 +77,35 @@ function joint_center_positions = ...
 % replace this with a version that uses the forearm instead of the hand markers
 %     % left wrist
 %     T_reference_wcs_to_hand_mcs = transformations_reference{strcmp(segment_labels, 'LHAND')}^(-1);
-%     lwrist_cor_reference_wcs = extractMarkerTrajectories(joint_center_reference, joint_center_headers, 'LWRISTCOR')';
+%     lwrist_cor_reference_wcs = extractMarkerData(joint_center_reference, joint_center_headers, 'LWRISTCOR')';
 %     lwrist_cor_hand_mcs = eye(3, 4) * T_reference_wcs_to_hand_mcs * [lwrist_cor_reference_wcs; 1];
 %     T_current_hand_mcs_to_wcs = transformations_current{strcmp(segment_labels, 'LHAND')};
 %     lwrist_cor_current_wcs = eye(3, 4) * T_current_hand_mcs_to_wcs * [lwrist_cor_hand_mcs; 1];
 %     
 %     % right wrist
 %     T_reference_wcs_to_hand_mcs = transformations_reference{strcmp(segment_labels, 'RHAND')}^(-1);
-%     rwrist_cor_reference_wcs = extractMarkerTrajectories(joint_center_reference, joint_center_headers, 'RWRISTCOR')';
+%     rwrist_cor_reference_wcs = extractMarkerData(joint_center_reference, joint_center_headers, 'RWRISTCOR')';
 %     rwrist_cor_hand_mcs = eye(3, 4) * T_reference_wcs_to_hand_mcs * [rwrist_cor_reference_wcs; 1];
 %     T_current_hand_mcs_to_wcs = transformations_current{strcmp(segment_labels, 'RHAND')};
 %     rwrist_cor_current_wcs = eye(3, 4) * T_current_hand_mcs_to_wcs * [rwrist_cor_hand_mcs; 1];
 
     % left wrist
     T_reference_wcs_to_forearm_mcs = transformations_reference{strcmp(segment_labels, 'LFOREARM')}^(-1); % debugging: this does not depend on the wrist angle
-    lwrist_cor_reference_wcs = extractMarkerTrajectories(joint_center_reference, joint_center_headers, 'LWRISTCOR')'; % debugging: this does not depend on the wrist angle
+    lwrist_cor_reference_wcs = extractMarkerData(joint_center_reference, joint_center_headers, 'LWRISTCOR')'; % debugging: this does not depend on the wrist angle
     lwrist_cor_forearm_mcs = eye(3, 4) * T_reference_wcs_to_forearm_mcs * [lwrist_cor_reference_wcs; 1]; % debugging: this does not depend on the wrist angle
     T_current_forearm_mcs_to_wcs = transformations_current{strcmp(segment_labels, 'LFOREARM')};
     lwrist_cor_current_wcs = eye(3, 4) * T_current_forearm_mcs_to_wcs * [lwrist_cor_forearm_mcs; 1];
     
     % right wrist
     T_reference_wcs_to_forearm_mcs = transformations_reference{strcmp(segment_labels, 'RFOREARM')}^(-1);
-    rwrist_cor_reference_wcs = extractMarkerTrajectories(joint_center_reference, joint_center_headers, 'RWRISTCOR')';
+    rwrist_cor_reference_wcs = extractMarkerData(joint_center_reference, joint_center_headers, 'RWRISTCOR')';
     rwrist_cor_forearm_mcs = eye(3, 4) * T_reference_wcs_to_forearm_mcs * [rwrist_cor_reference_wcs; 1];
     T_current_forearm_mcs_to_wcs = transformations_current{strcmp(segment_labels, 'RFOREARM')};
     rwrist_cor_current_wcs = eye(3, 4) * T_current_forearm_mcs_to_wcs * [rwrist_cor_forearm_mcs; 1]; 
     
     % lumbar
     T_reference_wcs_to_pelvis_mcs = transformations_reference{strcmp(segment_labels, 'PELVIS')}^(-1);
-    lumbar_cor_reference_wcs = extractMarkerTrajectories(joint_center_reference, joint_center_headers, 'LUMBARCOR')';
+    lumbar_cor_reference_wcs = extractMarkerData(joint_center_reference, joint_center_headers, 'LUMBARCOR')';
     lumbar_cor_pelvis_mcs = eye(3, 4) * T_reference_wcs_to_pelvis_mcs * [lumbar_cor_reference_wcs; 1];
     T_current_pelvis_mcs_to_wcs = transformations_current{strcmp(segment_labels, 'PELVIS')};
     lumbar_cor_current_wcs_from_pelvis = eye(3, 4) * T_current_pelvis_mcs_to_wcs * [lumbar_cor_pelvis_mcs; 1];
@@ -113,7 +113,7 @@ function joint_center_positions = ...
     lumbar_cor_current_wcs = lumbar_cor_current_wcs_from_pelvis;
     
 %     T_reference_wcs_to_torso_mcs = transformations_reference{strcmp(segment_labels, 'TORSO')}^(-1);
-%     lumbar_cor_reference_wcs = extractMarkerTrajectories(joint_center_reference, joint_center_headers, 'LUMBARCOR')';
+%     lumbar_cor_reference_wcs = extractMarkerData(joint_center_reference, joint_center_headers, 'LUMBARCOR')';
 %     lumbar_cor_torso_mcs = eye(3, 4) * T_reference_wcs_to_torso_mcs * [lumbar_cor_reference_wcs; 1];
 %     T_current_torso_mcs_to_wcs = transformations_current{strcmp(segment_labels, 'TORSO')};
 %     lumbar_cor_current_wcs_from_torso = eye(3, 4) * T_current_torso_mcs_to_wcs * [lumbar_cor_torso_mcs; 1];
@@ -122,42 +122,42 @@ function joint_center_positions = ...
     
     % left hip
     T_reference_wcs_to_pelvis_mcs = transformations_reference{strcmp(segment_labels, 'PELVIS')}^(-1);
-    lhip_cor_reference_wcs = extractMarkerTrajectories(joint_center_reference, joint_center_headers, 'LHIPCOR')';
+    lhip_cor_reference_wcs = extractMarkerData(joint_center_reference, joint_center_headers, 'LHIPCOR')';
     lhip_cor_pelvis_mcs = eye(3, 4) * T_reference_wcs_to_pelvis_mcs * [lhip_cor_reference_wcs; 1];
     T_current_pelvis_mcs_to_wcs = transformations_current{strcmp(segment_labels, 'PELVIS')};
     lhip_cor_current_wcs = eye(3, 4) * T_current_pelvis_mcs_to_wcs * [lhip_cor_pelvis_mcs; 1];
     
     % right hip
     T_reference_wcs_to_pelvis_mcs = transformations_reference{strcmp(segment_labels, 'PELVIS')}^(-1);
-    rhip_cor_reference_wcs = extractMarkerTrajectories(joint_center_reference, joint_center_headers, 'RHIPCOR')';
+    rhip_cor_reference_wcs = extractMarkerData(joint_center_reference, joint_center_headers, 'RHIPCOR')';
     rhip_cor_pelvis_mcs = eye(3, 4) * T_reference_wcs_to_pelvis_mcs * [rhip_cor_reference_wcs; 1];
     T_current_pelvis_mcs_to_wcs = transformations_current{strcmp(segment_labels, 'PELVIS')};
     rhip_cor_current_wcs = eye(3, 4) * T_current_pelvis_mcs_to_wcs * [rhip_cor_pelvis_mcs; 1];
         
     % left ankle
     T_reference_wcs_to_foot_mcs = transformations_reference{strcmp(segment_labels, 'LFOOT')}^(-1);
-    lankle_cor_reference_wcs = extractMarkerTrajectories(joint_center_reference, joint_center_headers, 'LANKLECOR')';
+    lankle_cor_reference_wcs = extractMarkerData(joint_center_reference, joint_center_headers, 'LANKLECOR')';
     lankle_cor_foot_mcs = eye(3, 4) * T_reference_wcs_to_foot_mcs * [lankle_cor_reference_wcs; 1];
     T_current_foot_mcs_to_wcs = transformations_current{strcmp(segment_labels, 'LFOOT')};
     lankle_cor_current_wcs = eye(3, 4) * T_current_foot_mcs_to_wcs * [lankle_cor_foot_mcs; 1];
     
     % right ankle
     T_reference_wcs_to_foot_mcs = transformations_reference{strcmp(segment_labels, 'RFOOT')}^(-1);
-    rankle_cor_reference_wcs = extractMarkerTrajectories(joint_center_reference, joint_center_headers, 'RANKLECOR')';
+    rankle_cor_reference_wcs = extractMarkerData(joint_center_reference, joint_center_headers, 'RANKLECOR')';
     rankle_cor_foot_mcs = eye(3, 4) * T_reference_wcs_to_foot_mcs * [rankle_cor_reference_wcs; 1];
     T_current_foot_mcs_to_wcs = transformations_current{strcmp(segment_labels, 'RFOOT')};
     rankle_cor_current_wcs = eye(3, 4) * T_current_foot_mcs_to_wcs * [rankle_cor_foot_mcs; 1];
     
     % left toes eef
     T_reference_wcs_to_foot_mcs = transformations_reference{strcmp(segment_labels, 'LFOOT')}^(-1);
-    ltoes_eef_reference_wcs = extractMarkerTrajectories(joint_center_reference, joint_center_headers, 'LTOESEEF')';
+    ltoes_eef_reference_wcs = extractMarkerData(joint_center_reference, joint_center_headers, 'LTOESEEF')';
     ltoes_eef_foot_mcs = eye(3, 4) * T_reference_wcs_to_foot_mcs * [ltoes_eef_reference_wcs; 1];
     T_current_foot_mcs_to_wcs = transformations_current{strcmp(segment_labels, 'LFOOT')};
     ltoes_eef_current_wcs = eye(3, 4) * T_current_foot_mcs_to_wcs * [ltoes_eef_foot_mcs; 1];
     
     % right toes eef
     T_reference_wcs_to_foot_mcs = transformations_reference{strcmp(segment_labels, 'RFOOT')}^(-1);
-    rtoes_eef_reference_wcs = extractMarkerTrajectories(joint_center_reference, joint_center_headers, 'RTOESEEF')';
+    rtoes_eef_reference_wcs = extractMarkerData(joint_center_reference, joint_center_headers, 'RTOESEEF')';
     rtoes_eef_foot_mcs = eye(3, 4) * T_reference_wcs_to_foot_mcs * [rtoes_eef_reference_wcs; 1];
     T_current_foot_mcs_to_wcs = transformations_current{strcmp(segment_labels, 'RFOOT')};
     rtoes_eef_current_wcs = eye(3, 4) * T_current_foot_mcs_to_wcs * [rtoes_eef_foot_mcs; 1];
@@ -166,14 +166,14 @@ function joint_center_positions = ...
     
     % left hand eef
     T_reference_wcs_to_hand_mcs = transformations_reference{strcmp(segment_labels, 'LHAND')}^(-1);
-    lhand_eef_reference_wcs = extractMarkerTrajectories(joint_center_reference, joint_center_headers, 'LHANDEEF')';
+    lhand_eef_reference_wcs = extractMarkerData(joint_center_reference, joint_center_headers, 'LHANDEEF')';
     lhand_eef_hand_mcs = eye(3, 4) * T_reference_wcs_to_hand_mcs * [lhand_eef_reference_wcs; 1];
     T_current_hand_mcs_to_wcs = transformations_current{strcmp(segment_labels, 'LHAND')};
     lhand_eef_current_wcs = eye(3, 4) * T_current_hand_mcs_to_wcs * [lhand_eef_hand_mcs; 1];
     
     % right hand eef
     T_reference_wcs_to_hand_mcs = transformations_reference{strcmp(segment_labels, 'RHAND')}^(-1);
-    rhand_eef_reference_wcs = extractMarkerTrajectories(joint_center_reference, joint_center_headers, 'RHANDEEF')';
+    rhand_eef_reference_wcs = extractMarkerData(joint_center_reference, joint_center_headers, 'RHANDEEF')';
     rhand_eef_hand_mcs = eye(3, 4) * T_reference_wcs_to_hand_mcs * [rhand_eef_reference_wcs; 1];
     T_current_hand_mcs_to_wcs = transformations_current{strcmp(segment_labels, 'RHAND')};
     rhand_eef_current_wcs = eye(3, 4) * T_current_hand_mcs_to_wcs * [rhand_eef_hand_mcs; 1];
@@ -181,14 +181,14 @@ function joint_center_positions = ...
     
     % left elbow
     T_reference_wcs_to_forearm_mcs = transformations_reference{strcmp(segment_labels, 'LFOREARM')}^(-1);
-    lelbow_cor_reference_wcs = extractMarkerTrajectories(joint_center_reference, joint_center_headers, 'LELBOWCOR')';
+    lelbow_cor_reference_wcs = extractMarkerData(joint_center_reference, joint_center_headers, 'LELBOWCOR')';
     lelbow_cor_forearm_mcs = eye(3, 4) * T_reference_wcs_to_forearm_mcs * [lelbow_cor_reference_wcs; 1];
     T_current_forearm_mcs_to_wcs = transformations_current{strcmp(segment_labels, 'LFOREARM')};
     lelbow_cor_current_wcs = eye(3, 4) * T_current_forearm_mcs_to_wcs * [lelbow_cor_forearm_mcs; 1];
     
     % right elbow
     T_reference_wcs_to_forearm_mcs = transformations_reference{strcmp(segment_labels, 'RFOREARM')}^(-1);
-    relbow_cor_reference_wcs = extractMarkerTrajectories(joint_center_reference, joint_center_headers, 'RELBOWCOR')';
+    relbow_cor_reference_wcs = extractMarkerData(joint_center_reference, joint_center_headers, 'RELBOWCOR')';
     relbow_cor_forearm_mcs = eye(3, 4) * T_reference_wcs_to_forearm_mcs * [relbow_cor_reference_wcs; 1];
     T_current_forearm_mcs_to_wcs = transformations_current{strcmp(segment_labels, 'RFOREARM')};
     relbow_cor_current_wcs = eye(3, 4) * T_current_forearm_mcs_to_wcs * [relbow_cor_forearm_mcs; 1]; 
@@ -197,7 +197,7 @@ function joint_center_positions = ...
     % exploratory: calculate knees and elbows also based on markers
     markers_and_cor_reference = [marker_reference lhip_cor_reference_wcs' rhip_cor_reference_wcs'];
     markers_and_cor_positions = [marker_positions lhip_cor_current_wcs' rhip_cor_current_wcs'];
-    markers_and_cor_labels = [marker_headers {'LHIPCOR', 'RHIPCOR'}];
+    markers_and_cor_labels = [marker_headers {'LHIPCOR_x', 'LHIPCOR_y', 'LHIPCOR_z', 'RHIPCOR_x', 'RHIPCOR_y', 'RHIPCOR_z'}];
     segment_labels = {'LTHIGH', 'RTHIGH'};
     
     transformations_reference = calculateMcsToWcsTransformations_new(markers_and_cor_reference, markers_and_cor_labels, segment_labels, subject_settings);
@@ -205,14 +205,14 @@ function joint_center_positions = ...
     
     % left knee
     T_reference_wcs_to_thigh_mcs = transformations_reference{strcmp(segment_labels, 'LTHIGH')}^(-1);
-    lknee_cor_reference_wcs = extractMarkerTrajectories(joint_center_reference, joint_center_headers, 'LKNEECOR')'; % this seems wrong
+    lknee_cor_reference_wcs = extractMarkerData(joint_center_reference, joint_center_headers, 'LKNEECOR')'; % this seems wrong
     lknee_cor_thigh_mcs = eye(3, 4) * T_reference_wcs_to_thigh_mcs * [lknee_cor_reference_wcs; 1];
     T_current_thigh_mcs_to_wcs = transformations_current{strcmp(segment_labels, 'LTHIGH')};
     lknee_cor_current_wcs = eye(3, 4) * T_current_thigh_mcs_to_wcs * [lknee_cor_thigh_mcs; 1];
     
     % right knee
     T_reference_wcs_to_thigh_mcs = transformations_reference{strcmp(segment_labels, 'RTHIGH')}^(-1);
-    rknee_cor_reference_wcs = extractMarkerTrajectories(joint_center_reference, joint_center_headers, 'RKNEECOR')';
+    rknee_cor_reference_wcs = extractMarkerData(joint_center_reference, joint_center_headers, 'RKNEECOR')';
     rknee_cor_thigh_mcs = eye(3, 4) * T_reference_wcs_to_thigh_mcs * [rknee_cor_reference_wcs; 1];
     T_current_thigh_mcs_to_wcs = transformations_current{strcmp(segment_labels, 'RTHIGH')};
     rknee_cor_current_wcs = eye(3, 4) * T_current_thigh_mcs_to_wcs * [rknee_cor_thigh_mcs; 1];
@@ -236,7 +236,7 @@ function joint_center_positions = ...
 % the following is being replaced with what's above, using the LTHI and RTHI markers
 if false
     % left knee
-    LANK_current = extractMarkerTrajectories(marker_positions, marker_headers, 'LANK')'; % left ankle marker
+    LANK_current = extractMarkerData(marker_positions, marker_headers, 'LANK')'; % left ankle marker
     lknee_axis_direction = normVector(lankle_cor_current_wcs - LANK_current); 
     % knee axis direction, defined to be the same as the ankle axis direction
     % but that isn't true, because I have an additional joint for knee internal rotation
@@ -258,29 +258,29 @@ if false
     % define thigh by 
     
     
-    LKNE_current = extractMarkerTrajectories(marker_positions, marker_headers, 'LKNE')';
-    LKNE_reference = extractMarkerTrajectories(marker_reference, marker_headers, 'LKNE')';
-    LKNEECOR_reference = extractMarkerTrajectories(joint_center_reference, joint_center_headers, 'LKNEECOR')';
+    LKNE_current = extractMarkerData(marker_positions, marker_headers, 'LKNE')';
+    LKNE_reference = extractMarkerData(marker_reference, marker_headers, 'LKNE')';
+    LKNEECOR_reference = extractMarkerData(joint_center_reference, joint_center_headers, 'LKNEECOR')';
     lknee_cor_to_marker = norm(LKNE_reference - LKNEECOR_reference);
     lknee_cor_current_wcs = LKNE_current + lknee_cor_to_marker * lknee_axis_direction;
     lknee_cor_current_wcs_from_markers = lknee_cor_current_wcs;
     
     % right knee
-    RANK_current = extractMarkerTrajectories(marker_positions, marker_headers, 'RANK')';
+    RANK_current = extractMarkerData(marker_positions, marker_headers, 'RANK')';
     rknee_axis_direction = normVector(rankle_cor_current_wcs - RANK_current);
-    RKNE_current = extractMarkerTrajectories(marker_positions, marker_headers, 'RKNE')';
-    RKNE_reference = extractMarkerTrajectories(marker_reference, marker_headers, 'RKNE')';
-    RKNEECOR_reference = extractMarkerTrajectories(joint_center_reference, joint_center_headers, 'RKNEECOR')';
+    RKNE_current = extractMarkerData(marker_positions, marker_headers, 'RKNE')';
+    RKNE_reference = extractMarkerData(marker_reference, marker_headers, 'RKNE')';
+    RKNEECOR_reference = extractMarkerData(joint_center_reference, joint_center_headers, 'RKNEECOR')';
     rknee_cor_to_marker = norm(RKNE_reference - RKNEECOR_reference);
     rknee_cor_current_wcs = RKNE_current + rknee_cor_to_marker * rknee_axis_direction;
     
     % what follows uses findHingeJointCenter, i.e. the circle method
     % left knee
-    LKNE_reference = extractMarkerTrajectories(marker_reference, marker_headers, 'LKNE')';
-    LHIPCOR_reference = extractMarkerTrajectories(joint_center_reference, joint_center_headers, 'LHIPCOR')';
-    LKNEECOR_reference = extractMarkerTrajectories(joint_center_reference, joint_center_headers, 'LKNEECOR')';
-    LANKLECOR_reference = extractMarkerTrajectories(joint_center_reference, joint_center_headers, 'LANKLECOR')';
-    LKNE_current = extractMarkerTrajectories(marker_positions, marker_headers, 'LKNE')';
+    LKNE_reference = extractMarkerData(marker_reference, marker_headers, 'LKNE')';
+    LHIPCOR_reference = extractMarkerData(joint_center_reference, joint_center_headers, 'LHIPCOR')';
+    LKNEECOR_reference = extractMarkerData(joint_center_reference, joint_center_headers, 'LKNEECOR')';
+    LANKLECOR_reference = extractMarkerData(joint_center_reference, joint_center_headers, 'LANKLECOR')';
+    LKNE_current = extractMarkerData(marker_positions, marker_headers, 'LKNE')';
     r_marker = norm(LKNE_reference - LKNEECOR_reference);
     r_hip = norm(LKNE_reference - LHIPCOR_reference);
     r_ankle = norm(LKNE_reference - LANKLECOR_reference);
@@ -290,11 +290,11 @@ if false
     lknee_cor_current_wcs_from_findHingeJointCenter = lknee_cor_current_wcs
     
     % right knee
-    RKNE_reference = extractMarkerTrajectories(marker_reference, marker_headers, 'RKNE')';
-    RHIPCOR_reference = extractMarkerTrajectories(joint_center_reference, joint_center_headers, 'RHIPCOR')';
-    RKNEECOR_reference = extractMarkerTrajectories(joint_center_reference, joint_center_headers, 'RKNEECOR')';
-    RANKLECOR_reference = extractMarkerTrajectories(joint_center_reference, joint_center_headers, 'RANKLECOR')';
-    RKNE_current = extractMarkerTrajectories(marker_positions, marker_headers, 'RKNE')';
+    RKNE_reference = extractMarkerData(marker_reference, marker_headers, 'RKNE')';
+    RHIPCOR_reference = extractMarkerData(joint_center_reference, joint_center_headers, 'RHIPCOR')';
+    RKNEECOR_reference = extractMarkerData(joint_center_reference, joint_center_headers, 'RKNEECOR')';
+    RANKLECOR_reference = extractMarkerData(joint_center_reference, joint_center_headers, 'RANKLECOR')';
+    RKNE_current = extractMarkerData(marker_positions, marker_headers, 'RKNE')';
     r_marker = norm(RKNE_reference - RKNEECOR_reference);
     r_hip = norm(RKNE_reference - RHIPCOR_reference);
     r_ankle = norm(RKNE_reference - RANKLECOR_reference);
@@ -304,11 +304,11 @@ if false
     knee_to_marker_distance_right = norm(rknee_cor_current_wcs - RKNE_current);
     
     % left elbow
-    LELB_reference = extractMarkerTrajectories(marker_reference, marker_headers, 'LELB')';
-    LSHOULDERCOR_reference = extractMarkerTrajectories(joint_center_reference, joint_center_headers, 'LSHOULDERCOR')';
-    LELBOWCOR_reference = extractMarkerTrajectories(joint_center_reference, joint_center_headers, 'LELBOWCOR')';
-    LWRISTCOR_reference = extractMarkerTrajectories(joint_center_reference, joint_center_headers, 'LWRISTCOR')';
-    LELB_current = extractMarkerTrajectories(marker_positions, marker_headers, 'LELB')';
+    LELB_reference = extractMarkerData(marker_reference, marker_headers, 'LELB')';
+    LSHOULDERCOR_reference = extractMarkerData(joint_center_reference, joint_center_headers, 'LSHOULDERCOR')';
+    LELBOWCOR_reference = extractMarkerData(joint_center_reference, joint_center_headers, 'LELBOWCOR')';
+    LWRISTCOR_reference = extractMarkerData(joint_center_reference, joint_center_headers, 'LWRISTCOR')';
+    LELB_current = extractMarkerData(marker_positions, marker_headers, 'LELB')';
     r_marker = norm(LELB_reference - LELBOWCOR_reference);
     r_shoulder = norm(LELB_reference - LSHOULDERCOR_reference);
     r_wrist = norm(LELB_reference - LWRISTCOR_reference);
@@ -316,11 +316,11 @@ if false
     lelbow_cor_current_wcs = zeros(3, 1);
     
     % right elbow
-    RELB_reference = extractMarkerTrajectories(marker_reference, marker_headers, 'RELB')';
-    RSHOULDERCOR_reference = extractMarkerTrajectories(joint_center_reference, joint_center_headers, 'RSHOULDERCOR')';
-    RELBOWCOR_reference = extractMarkerTrajectories(joint_center_reference, joint_center_headers, 'RELBOWCOR')';
-    RWRISTCOR_reference = extractMarkerTrajectories(joint_center_reference, joint_center_headers, 'RWRISTCOR')';
-    RELB_current = extractMarkerTrajectories(marker_positions, marker_headers, 'RELB')';
+    RELB_reference = extractMarkerData(marker_reference, marker_headers, 'RELB')';
+    RSHOULDERCOR_reference = extractMarkerData(joint_center_reference, joint_center_headers, 'RSHOULDERCOR')';
+    RELBOWCOR_reference = extractMarkerData(joint_center_reference, joint_center_headers, 'RELBOWCOR')';
+    RWRISTCOR_reference = extractMarkerData(joint_center_reference, joint_center_headers, 'RWRISTCOR')';
+    RELB_current = extractMarkerData(marker_positions, marker_headers, 'RELB')';
     r_marker = norm(RELB_reference - RELBOWCOR_reference);
     r_shoulder = norm(RELB_reference - RSHOULDERCOR_reference);
     r_wrist = norm(RELB_reference - RWRISTCOR_reference);
