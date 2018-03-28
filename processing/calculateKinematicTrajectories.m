@@ -113,18 +113,18 @@ function calculateKinematicTrajectories(varargin)
                 
                 % calculate
                 joint_center_trajectories = zeros(number_of_time_steps, length(joint_center_labels));
-                com_trajectories = zeros(number_of_time_steps, length(com_labels_single));
+                com_trajectories = zeros(number_of_time_steps, length(com_labels_single)*3);
                 joint_angle_trajectories = zeros(number_of_time_steps, number_of_joint_angles);
                 tic
                 if use_parallel
                     % make variables accessible to workers by declaring them
-                    joint_center_trajectories_pool = zeros(number_of_time_steps, length(joint_center_headers)*3);
+                    joint_center_trajectories_pool = zeros(number_of_time_steps, length(joint_center_labels));
                     com_trajectories_pool = zeros(number_of_time_steps, length(com_labels_single)*3);
                     joint_angle_trajectories_pool = zeros(number_of_time_steps, number_of_joint_angles);
                     marker_reference_pool = marker_reference;
                     marker_labels_pool = marker_labels;
                     joint_center_reference_pool = joint_center_reference;
-                    joint_center_labels_pool = joint_center_headers;
+                    joint_center_labels_pool = joint_center_labels;
                     segment_labels_pool = segment_labels;
                     segment_coms_wcs_pool = segment_coms_wcs;
                     segment_masses_pool = segment_masses;

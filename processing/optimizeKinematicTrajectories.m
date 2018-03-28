@@ -353,7 +353,7 @@ function optimizeKinematicTrajectories(varargin)
             % determine time steps to optimize
             time_steps_to_optimize = determineTimeStepsToProcess(date, subject_id, condition, i_trial, study_settings.get('data_stretch_padding'));
 % time_steps_to_optimize = 421;
-time_steps_to_optimize = time_steps_to_optimize(1:100);
+% time_steps_to_optimize = time_steps_to_optimize(1:100);
             if strcmp(mode, 'default')
                 if exist('joint_angle_trajectories', 'var')
                     joint_angle_trajectories_calculated = joint_angle_trajectories;
