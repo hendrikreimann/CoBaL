@@ -14,14 +14,23 @@
 %     You should have received a copy of the GNU General Public License
 %     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-function [data, names, directions] = addOrOverwriteResultsData(data, names, directions, new_data, new_name, new_directions)
-    index_in_existing_data = find(strcmp(names, new_name));
-    if isempty(index_in_existing_data)
-        data = [data; new_data];
-        names = [names; new_name];
-        directions = [directions; new_directions];
-    else
-        data{index_in_existing_data} = new_data;
-        % TODO: check whether directions are different
+function exists = directoryExists(directory_name, path)
+    if nargin < 2
+        path = pwd;
     end
+    
+    try 
+        x = ls([path filesep directory_name]);
+       
+    catch exception
+        if strcmp(exception.identifier, 'MATLAB:ls:OSError')
+            exists = false;
+            return
+        else
+            rethrow(exception)
+        end
+    end
+    
+    exists = true;
+    
 end

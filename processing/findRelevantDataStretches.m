@@ -83,7 +83,13 @@ function findRelevantDataStretches(varargin)
             %% load data
             ignore_times = [];
             load(['analysis' filesep makeFileName(date, subject_id, condition_list{i_condition}, i_trial, 'stepEvents')]);
-%           load(['processed' filesep makeFileName(date, subject_id, condition_list{i_condition}, i_trial, 'kinematicTrajectories')]);
+            
+            right_pushoff_times = event_data{strcmp(event_labels, 'right_pushoff')};
+            right_touchdown_times = event_data{strcmp(event_labels, 'right_touchdown')};
+            left_pushoff_times = event_data{strcmp(event_labels, 'left_pushoff')};
+            left_touchdown_times = event_data{strcmp(event_labels, 'left_touchdown')};
+            
+            
             
             experimental_paradigm = study_settings.get('experimental_paradigm');
 
@@ -435,7 +441,7 @@ function findRelevantDataStretches(varargin)
                 
                 if visualize
                     for i_trigger = 1 : length(stretch_start_times)
-                        if strcmp(condition_stance_foot_list(i_trigger), 'STANCE_LEFT')
+                        if strcmp(stance_foot_data(i_trigger), 'STANCE_LEFT')
                             stretch_indicator_height = 0.01;
                         else
                             stretch_indicator_height = -0.01;

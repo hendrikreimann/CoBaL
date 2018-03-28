@@ -14,14 +14,12 @@
 %     You should have received a copy of the GNU General Public License
 %     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-function [data, names, directions] = addOrOverwriteResultsData(data, names, directions, new_data, new_name, new_directions)
-    index_in_existing_data = find(strcmp(names, new_name));
-    if isempty(index_in_existing_data)
-        data = [data; new_data];
-        names = [names; new_name];
-        directions = [directions; new_directions];
-    else
-        data{index_in_existing_data} = new_data;
-        % TODO: check whether directions are different
+function indices = findClosestIndex(time_points, time_vector)
+    indices = zeros(size(time_points));
+    for i_point = 1 : length(time_points)
+        this_time_point = time_points(i_point);
+        [~, this_index] = min(abs(time_vector - this_time_point));
+        indices(i_point) = this_index;
     end
+
 end

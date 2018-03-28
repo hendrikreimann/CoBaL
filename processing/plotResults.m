@@ -79,6 +79,7 @@ function plotResults(varargin)
     plot_mode = plot_settings.get('plot_mode');
     mark_pushoff = plot_settings.get('mark_pushoff');
     mark_bands = plot_settings.get('mark_bands');
+    band_labels = study_settings.get('band_labels');
     number_of_time_steps_normalized = study_settings.get('number_of_time_steps_normalized');
 
     %% load data
@@ -271,13 +272,25 @@ function plotResults(varargin)
                     end
                     if strcmp(plot_mode, 'overview')
                         this_comparison = comparison_indices{i_comparison};
-                        gap_between_bands = 1;
-                        
-                        abscissae_stimulus = repmat((1 : length(this_comparison)), bands_per_stretch, 1);
-                        shifter = (0:bands_per_stretch-1)' * (conditions_per_comparison_max + gap_between_bands);
-                        abscissae_stimulus = abscissae_stimulus + repmat(shifter, 1, conditions_per_comparison_max);
-                        if plot_settings.get('merge_bands')
-                            abscissae_stimulus = abscissae_stimulus(1, :);
+                        if plot_settings.get('group_bands_within_conditions')
+                            gap_between_conditions = 1;
+                            
+                            abscissae_stimulus = repmat((1 : bands_per_stretch)', 1, length(this_comparison));
+                            shifter = (0:length(this_comparison)-1) * (bands_per_stretch + gap_between_conditions);
+                            abscissae_stimulus = abscissae_stimulus + repmat(shifter, bands_per_stretch, 1);
+                            if plot_settings.get('merge_bands')
+                                abscissae_stimulus = abscissae_stimulus(1, :);
+                            end
+                            
+                        else
+                            gap_between_bands = 1;
+
+                            abscissae_stimulus = repmat((1 : length(this_comparison)), bands_per_stretch, 1);
+                            shifter = (0:bands_per_stretch-1)' * (conditions_per_comparison_max + gap_between_bands);
+                            abscissae_stimulus = abscissae_stimulus + repmat(shifter, 1, conditions_per_comparison_max);
+                            if plot_settings.get('merge_bands')
+                                abscissae_stimulus = abscissae_stimulus(1, :);
+                            end
                         end
                         abscissae_cell{i_comparison, i_variable} = abscissae_stimulus;
                         
@@ -331,10 +344,12 @@ function plotResults(varargin)
                 end
                 
                 % set axis labels
-                if strcmp(plot_settings.get('time_plot_style'), 'scaled_to_comparison_mean') || strcmp(plot_settings.get('time_plot_style'), 'scaled_to_condition_mean')
-                    xlabel('normalized time (s)');
-                else
-                    xlabel('normalized time (%)');
+                if isContinuousVariable(i_variable, data_all, bands_per_stretch)
+                    if strcmp(plot_settings.get('time_plot_style'), 'scaled_to_comparison_mean') || strcmp(plot_settings.get('time_plot_style'), 'scaled_to_condition_mean')
+                        xlabel('normalized time (s)');
+                    else
+                        xlabel('normalized time (%)');
+                    end
                 end
                 ylabel(variables_to_plot{i_variable, 4});
                 
@@ -864,6 +879,7 @@ function plotResults(varargin)
     
     %% plot data
     colors_comparison = plot_settings.get('colors_comparison');
+    colors_bands = plot_settings.get('colors_bands');
     for i_variable = 1 : number_of_variables_to_plot
         data_to_plot = data_all{i_variable, 1};
         for i_comparison = 1 : length(comparison_indices)
@@ -1015,6 +1031,11 @@ function plotResults(varargin)
                         data_to_plot_this_condition = reshape(data_to_plot_this_condition, 1, numel(data_to_plot_this_condition));
                     end
                     for i_band = 1 : size(data_to_plot_this_condition, 1)
+                        if ~isempty(band_labels)
+                            label_string_this_band = [label_string '-' band_labels{i_band}];
+                        else
+                            label_string_this_band = label_string;
+                        end
                         if strcmp(plot_mode, 'episodes')
                             this_cell = abscissae_cell{i_comparison, i_variable};
                             target_abscissa = this_cell{2}(i_band, i_condition);
@@ -1035,14 +1056,20 @@ function plotResults(varargin)
                         end
                         if strcmp(plot_mode, 'overview') || strcmp(plot_mode, 'episodes')
                             if ~any(isnan(data_to_plot_this_band))
+                                if plot_settings.get('group_bands_within_conditions')
+                                    this_color = colors_bands(i_band, :);
+                                else
+                                    this_color = colors_comparison(i_condition, :);
+                                end
+                                
                                 if strcmp(plot_settings.get('discrete_data_plot_style'), 'box')
                                     singleBoxPlot ...
                                       ( ...
                                         target_axes_handle, ...
                                         target_abscissa, ...
                                         data_to_plot_this_band, ...
-                                        colors_comparison(i_condition, :), ...
-                                        label_string, ...
+                                        this_color, ...
+                                        label_string_this_band, ...
                                         show_outliers ...
                                       )
                                 end
@@ -1052,8 +1079,8 @@ function plotResults(varargin)
                                         target_axes_handle, ...
                                         target_abscissa, ...
                                         data_to_plot_this_band, ...
-                                        colors_comparison(i_condition, :), ...
-                                        label_string ...
+                                        this_color, ...
+                                        label_string_this_band ...
                                       )
                                 end
                                 if strcmp(plot_settings.get('discrete_data_plot_style'), 'violin')
@@ -1062,12 +1089,12 @@ function plotResults(varargin)
                                         data_to_plot_this_band, ...
                                         'axes', target_axes_handle, ...
                                         'abscissa', target_abscissa, ...
-                                        'facecolor', colors_comparison(i_condition, :), ...
+                                        'facecolor', this_color, ...
                                         'plot_mean', false, ...
                                         'plot_median', true, ...
                                         'mediancolor', [0 0 0], ...
                                         'show_outliers', show_outliers, ...
-                                        'xlabel', label_string ...
+                                        'xlabel', label_string_this_band ...
                                       );
                                 end
                             end
@@ -1276,6 +1303,13 @@ function plotResults(varargin)
                 neg_text_position_y = ylimits(1);
                 set(neg_text_handles(i_axes, i_variable), 'Position', [neg_text_position_x neg_text_position_y]);
             end
+            if isDiscreteVariable(i_variable, data_all, bands_per_stretch)
+                % rotate labels
+                xtick_label_rotation = plot_settings.get('xtick_label_rotation');
+                set(these_axes, 'XTickLabelRotation', xtick_label_rotation);
+                
+            end
+            
         end
     end
     

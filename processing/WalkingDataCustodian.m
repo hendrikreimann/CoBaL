@@ -53,8 +53,11 @@
 
 classdef WalkingDataCustodian < handle
     properties
+        data_directory = [];
         date = [];
         subject_id = [];
+        trial_type = [];
+        trial_number = [];
         variables_to_analyze = {};
         basic_variable_names = {};
         stretch_variable_names = {};
@@ -77,33 +80,40 @@ classdef WalkingDataCustodian < handle
     
     methods
         % constructor
-        function this = WalkingDataCustodian(variables_to_analyze)
-            % load this information from the subjects.mat and studySettings.txt files
-            load('subjectInfo.mat', 'date', 'subject_id');
+        function this = WalkingDataCustodian(variables_to_analyze, data_directory)
+            if nargin < 2
+                data_directory = pwd;
+            end
             
-            this.subject_info = load('subjectInfo.mat');
-            this.subject_settings = loadSettingsFile('subjectSettings.txt');
+            % load this information from the subjects.mat and studySettings.txt files
+            this.data_directory = data_directory;
+            load([data_directory filesep 'subjectInfo.mat'], 'date', 'subject_id');
+            this.date = date;
+            this.subject_id = subject_id;
+            
+            this.subject_info = load([data_directory filesep 'subjectInfo.mat']);
+            this.subject_settings = loadSettingsFile([data_directory filesep 'subjectSettings.txt']);
             % load settings
             study_settings_file = '';
-            if exist(['..' filesep 'studySettings.txt'], 'file')
-                study_settings_file = ['..' filesep 'studySettings.txt'];
+            if exist([data_directory filesep '..' filesep 'studySettings.txt'], 'file')
+                study_settings_file = [data_directory filesep '..' filesep 'studySettings.txt'];
             end    
-            if exist(['..' filesep '..' filesep 'studySettings.txt'], 'file')
-                study_settings_file = ['..' filesep '..' filesep 'studySettings.txt'];
+            if exist([data_directory filesep '..' filesep '..' filesep 'studySettings.txt'], 'file')
+                study_settings_file = [data_directory filesep '..' filesep '..' filesep 'studySettings.txt'];
             end
-            this.study_settings = loadSettingsFile(study_settings_file);
-            emg_normalization_file_name = ['analysis' filesep makeFileName(date, subject_id, 'emgNormalization.mat')];
+            this.study_settings = SettingsCustodian(study_settings_file);
+            emg_normalization_file_name = [data_directory filesep 'analysis' filesep makeFileName(date, subject_id, 'emgNormalization.mat')];
             if exist(emg_normalization_file_name, 'file')
                 emg_normalization_data = load(emg_normalization_file_name);
                 this.emg_normalization_values = emg_normalization_data.emg_normalization_values;
                 this.emg_normalization_labels = emg_normalization_data.emg_variable_names;
             end
             if nargin < 1
-                variables_to_analyze = this.study_settings.stretch_variables;
+                variables_to_analyze = this.study_settings.get('stretch_variables');
             end
             
             this.variables_to_analyze = variables_to_analyze;
-            this.number_of_time_steps_normalized = this.study_settings.number_of_time_steps_normalized;
+            this.number_of_time_steps_normalized = this.study_settings.get('number_of_time_steps_normalized');
             
             this.determineVariables();
         end
@@ -121,7 +131,25 @@ classdef WalkingDataCustodian < handle
             end
         end
         function determineVariables(this)
+            % go through list of variables to analyze and check if they are elementary variables
+            for i_variable = 1 : length(this.variables_to_analyze)
+                this_variable_name = this.variables_to_analyze{i_variable};
+                % check if this is a compound name, listing a loaded variable and a label
+                if any(this_variable_name==':')
+                    this_variable_split = strsplit(this_variable_name, ':');
+                    this_variable_type = this_variable_split{1};
+                    this_variable_label = this_variable_split{2};
+                    
+                    this.addBasicVariable([this_variable_type '_trajectories'])
+                    this.addStretchVariable(this_variable_name)
+                end
+            end
+            
+            
             % for each possible variable to analyze, list the basic and required variables required to calculate it
+            
+            
+            
             
             % kinematics
             if this.isVariableToAnalyze('lheel_x')
@@ -1046,17 +1074,57 @@ classdef WalkingDataCustodian < handle
         function result = isBasicVariable(this, variable_name)
             result = any(strcmp(this.basic_variable_names, variable_name));
         end
-        function time_data = getTimeData(this, variable_name) %#ok<STOUT,INUSL>
-            eval(['time_data = this.time_data.' variable_name ';']);
+        function T = getRecordingTimeStart(this)
+            T = inf;
+            for i_variable = 1 : size(this.basic_variable_names)
+                this_variable_name = this.basic_variable_names{i_variable};
+                this_variable_time = this.time_data.(this_variable_name);
+                T = min([this_variable_time(1), T]);
+            end
         end
-        function [variable_data, variable_directions] = getBasicVariableData(this, variable_name) %#ok<STOUT,INUSL>
-            eval(['variable_data = this.basic_variable_data.' variable_name ';']);
+        function T = getRecordingTimeEnd(this)
+            T = inf;
+            for i_variable = 1 : size(this.basic_variable_names)
+                this_variable_name = this.basic_variable_names{i_variable};
+                this_variable_time = this.time_data.(this_variable_name);
+                T = min([this_variable_time(end), T]);
+            end
+        end
+        function time_data = getTimeData(this, variable_name) %#ok<STOUT,INUSL>
+            % check if this is a sub-variable
+            if any(variable_name==':')
+                this_variable_split = strsplit(variable_name, ':');
+                name_to_use = [this_variable_split{1} '_trajectories'];
+            else
+                name_to_use = variable_name;
+            end
+            
+%             eval(['time_data = this.time_data.' name_to_use ';']);
+            time_data = this.time_data.(name_to_use);
+        end
+        function [variable_data, variable_directions] = getBasicVariableData(this, variable_name)
+            % unpack name
+            if any(variable_name==':')
+                this_variable_split = strsplit(variable_name, ':');
+                name_to_use = [this_variable_split{1} '_trajectories'];
+                label_to_use = this_variable_split{2};
+                trajectory_data = this.basic_variable_data.(name_to_use);
+                trajectory_labels = this.basic_variable_labels.(name_to_use);
+                variable_data = trajectory_data(:, strcmp(trajectory_labels, label_to_use));
+                
+            else
+                name_to_use = variable_name;
+%                 eval(['variable_data = this.basic_variable_data.' name_to_use ';']);
+                variable_data = this.basic_variable_data.(variable_name);
+            end
+            
             if nargout > 1
-                eval(['variable_directions = this.basic_variable_directions.' variable_name ';']);
+%                 eval(['variable_directions = this.basic_variable_directions.' name_to_use ';']);
+                variable_directions = this.basic_variable_directions.(name_to_use);
             end
         end
         
-        function prepareBasicVariables(this, condition, trial, variables_to_prepare)
+        function prepareBasicVariables(this, trial_type, trial_number, variables_to_prepare)
             if nargin < 4
                 variables_to_prepare = this.basic_variable_names;
             end
@@ -1067,16 +1135,18 @@ classdef WalkingDataCustodian < handle
             this.basic_variable_directions = struct;
             this.stretch_variable_data = struct;
             this.time_data = struct;
+            this.trial_type = trial_type;
+            this.trial_number = trial_number;
             
             % prepare the data by loading all the basic variables from disk and calculating the required variables
-            load(['analysis' filesep makeFileName(this.subject_info.date, this.subject_info.subject_id, condition, trial, 'availableVariables')]);
+            load(['analysis' filesep makeFileName(this.subject_info.date, this.subject_info.subject_id, trial_type, trial_number, 'availableVariables')]);
             
             % load basic variables
             for i_variable = 1 : length(variables_to_prepare)
                 variable_name = variables_to_prepare{i_variable};
                 
                 % try loading
-                [data, time, sampling_rate, labels, directions, success] = loadData(this.subject_info.date, this.subject_info.subject_id, condition, trial, variable_name, 'optional'); %#ok<ASGLU>
+                [data, time, sampling_rate, labels, directions, success] = loadData(this.subject_info.date, this.subject_info.subject_id, trial_type, trial_number, variable_name, 'optional'); %#ok<ASGLU>
                 
                 % store
                 if success
@@ -1979,8 +2049,8 @@ classdef WalkingDataCustodian < handle
                     com_x = this.getBasicVariableData('com_x');
                     com_x(com_x==0) = NaN;
                     time = this.getTimeData('com_x');
-                    filter_order = this.study_settings.filter_order_com_vel;
-                    cutoff_frequency = this.study_settings.filter_cutoff_com_vel;
+                    filter_order = this.study_settings.get('filter_order_com_vel');
+                    cutoff_frequency = this.study_settings.get('filter_cutoff_com_vel');
                     sampling_rate = 1/median(diff(time));
                     [b, a] = butter(filter_order, cutoff_frequency/(sampling_rate/2));
                     if any(~isnan(com_x))
@@ -1996,8 +2066,8 @@ classdef WalkingDataCustodian < handle
                     com_y = this.getBasicVariableData('com_y');
                     com_y(com_y==0) = NaN;
                     time = this.getTimeData('com_y');
-                    filter_order = this.study_settings.filter_order_com_vel;
-                    cutoff_frequency = this.study_settings.filter_cutoff_com_vel;
+                    filter_order = this.study_settings.get('filter_order_com_vel');
+                    cutoff_frequency = this.study_settings.get('filter_cutoff_com_vel');
                     sampling_rate = 1/median(diff(time));
                     [b, a] = butter(filter_order, cutoff_frequency/(sampling_rate/2));	% set filter parameters for butterworth filter: 2=order of filter;
                     if any(~isnan(com_y))
@@ -2013,8 +2083,8 @@ classdef WalkingDataCustodian < handle
                     com_z = this.getBasicVariableData('com_z');
                     com_z(com_z==0) = NaN;
                     time = this.getTimeData('com_z');
-                    filter_order = this.study_settings.filter_order_com_vel;
-                    cutoff_frequency = this.study_settings.filter_cutoff_com_vel;
+                    filter_order = this.study_settings.get('filter_order_com_vel');
+                    cutoff_frequency = this.study_settings.get('filter_cutoff_com_vel');
                     sampling_rate = 1/median(diff(time));
                     [b, a] = butter(filter_order, cutoff_frequency/(sampling_rate/2));	% set filter parameters for butterworth filter: 2=order of filter;
                     if any(~isnan(com_z))
@@ -2029,8 +2099,8 @@ classdef WalkingDataCustodian < handle
                 if strcmp(variable_name, 'com_x_acc')
                     com_x_vel = this.getBasicVariableData('com_x_vel');
                     time = this.getTimeData('com_x_vel');
-                    filter_order = this.study_settings.filter_order_com_acc;
-                    cutoff_frequency = this.study_settings.filter_cutoff_com_acc;
+                    filter_order = this.study_settings.get('filter_order_com_acc');
+                    cutoff_frequency = this.study_settings.get('filter_cutoff_com_acc');
                     sampling_rate = 1/median(diff(time));
                     [b, a] = butter(filter_order, cutoff_frequency/(sampling_rate/2));
                     if any(~isnan(com_x_vel))
@@ -2045,8 +2115,8 @@ classdef WalkingDataCustodian < handle
                 if strcmp(variable_name, 'com_y_acc')
                     com_y_vel = this.getBasicVariableData('com_y_vel');
                     time = this.getTimeData('com_y_vel');
-                    filter_order = this.study_settings.filter_order_com_acc;
-                    cutoff_frequency = this.study_settings.filter_cutoff_com_acc;
+                    filter_order = this.study_settings.get('filter_order_com_acc');
+                    cutoff_frequency = this.study_settings.get('filter_cutoff_com_acc');
                     sampling_rate = 1/median(diff(time));
                     [b, a] = butter(filter_order, cutoff_frequency/(sampling_rate/2));	% set filter parameters for butterworth filter: 2=order of filter;
                     if any(~isnan(com_y_vel))
@@ -2061,8 +2131,8 @@ classdef WalkingDataCustodian < handle
                 if strcmp(variable_name, 'com_z_acc')
                     com_z_vel = this.getBasicVariableData('com_z_vel');
                     time = this.getTimeData('com_z_vel');
-                    filter_order = this.study_settings.filter_order_com_acc;
-                    cutoff_frequency = this.study_settings.filter_cutoff_com_acc;
+                    filter_order = this.study_settings.get('filter_order_com_acc');
+                    cutoff_frequency = this.study_settings.get('filter_cutoff_com_acc');
                     sampling_rate = 1/median(diff(time));
                     [b, a] = butter(filter_order, cutoff_frequency/(sampling_rate/2));	% set filter parameters for butterworth filter: 2=order of filter;
                     if any(~isnan(com_z_vel))
@@ -2360,8 +2430,8 @@ classdef WalkingDataCustodian < handle
                     cop_y = this.getBasicVariableData('cop_y');
                     cop_y(cop_y==0) = NaN;
                     time = this.getTimeData('cop_y');
-                    filter_order = this.study_settings.force_plate_derivative_filter_order;
-                    cutoff_frequency = this.study_settings.force_plate_derivative_filter_cutoff;
+                    filter_order = this.study_settings.get('force_plate_derivative_filter_order');
+                    cutoff_frequency = this.study_settings.get('force_plate_derivative_filter_cutoff');
                     sampling_rate = 1/median(diff(time));
                     [b, a] = butter(filter_order, cutoff_frequency/(sampling_rate/2));	% set filter parameters for butterworth filter: 2=order of filter;
                     cop_y_vel = deriveByTime(nanfiltfilt(b, a, cop_y), 1/sampling_rate);
@@ -2374,8 +2444,8 @@ classdef WalkingDataCustodian < handle
                     cop_y_vel = this.getBasicVariableData('cop_y_vel');
                     cop_y_vel(cop_y_vel==0) = NaN;
                     time = this.getTimeData('cop_y_vel');
-                    filter_order = this.study_settings.force_plate_derivative_filter_order;
-                    cutoff_frequency = this.study_settings.force_plate_derivative_filter_cutoff;
+                    filter_order = this.study_settings.get('force_plate_derivative_filter_order');
+                    cutoff_frequency = this.study_settings.get('force_plate_derivative_filter_cutoff');
                     sampling_rate = 1/median(diff(time));
                     [b, a] = butter(filter_order, cutoff_frequency/(sampling_rate/2));	% set filter parameters for butterworth filter: 2=order of filter;
                     cop_y_acc = deriveByTime(nanfiltfilt(b, a, cop_y_vel), 1/sampling_rate);
@@ -2388,8 +2458,8 @@ classdef WalkingDataCustodian < handle
                     cop_x = this.getBasicVariableData('cop_x');
                     cop_x(cop_x==0) = NaN;
                     time = this.getTimeData('cop_x');
-                    filter_order = this.study_settings.force_plate_derivative_filter_order;
-                    cutoff_frequency = this.study_settings.force_plate_derivative_filter_cutoff;
+                    filter_order = this.study_settings.get('force_plate_derivative_filter_order');
+                    cutoff_frequency = this.study_settings.get('force_plate_derivative_filter_cutoff');
                     sampling_rate = 1/median(diff(time));
                     [b, a] = butter(filter_order, cutoff_frequency/(sampling_rate/2));	% set filter parameters for butterworth filter: 2=order of filter;
                     cop_x_vel = deriveByTime(nanfiltfilt(b, a, cop_x), 1/sampling_rate);
@@ -2402,8 +2472,8 @@ classdef WalkingDataCustodian < handle
                     cop_x_vel = this.getBasicVariableData('cop_x_vel');
                     cop_x_vel(cop_x_vel==0) = NaN;
                     time = this.getTimeData('cop_x_vel');
-                    filter_order = this.study_settings.force_plate_derivative_filter_order;
-                    cutoff_frequency = this.study_settings.force_plate_derivative_filter_cutoff;
+                    filter_order = this.study_settings.get('force_plate_derivative_filter_order');
+                    cutoff_frequency = this.study_settings.get('force_plate_derivative_filter_cutoff');
                     sampling_rate = 1/median(diff(time));
                     [b, a] = butter(filter_order, cutoff_frequency/(sampling_rate/2));	% set filter parameters for butterworth filter: 2=order of filter;
                     cop_x_acc = deriveByTime(nanfiltfilt(b, a, cop_x_vel), 1/sampling_rate);
@@ -3358,8 +3428,6 @@ classdef WalkingDataCustodian < handle
         end
     end
 end
-
-
 
 
 

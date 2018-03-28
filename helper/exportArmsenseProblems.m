@@ -1,4 +1,4 @@
-mode = 'analog';
+mode = 'marker';
 
 load_file = ['matches_' mode '.mat'];
 load(load_file);

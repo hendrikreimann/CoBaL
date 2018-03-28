@@ -1,4 +1,4 @@
-mode = 'analog';
+mode = 'marker';
 
 load_file = ['timestamps_' mode '.mat'];
 load(load_file);
