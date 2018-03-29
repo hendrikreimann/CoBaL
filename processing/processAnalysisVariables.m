@@ -186,6 +186,27 @@ function processAnalysisVariables(varargin)
 
     end
     
+    %% calculate step end variables
+    variables_step_end = study_settings.get('analysis_variables_from_step_end');
+    names_source = response_names_session;
+    directions_source = response_directions_session;
+    for i_variable = 1 : size(variables_step_end, 1)
+        this_variable_name = variables_step_end{i_variable, 1};
+        this_variable_source_name = variables_step_end{i_variable, 2};
+        this_variable_response_data = response_data_session{strcmp(loaded_data.stretch_names_session, this_variable_source_name)};
+        new_variable_directions = directions_source(strcmp(names_source, this_variable_source_name), :);
+        step_end_data = this_variable_response_data(end, :);
+        
+        % store
+%         [analysis_data_session, analysis_names_session] = addOrOverwriteData(analysis_data_session, analysis_names_session, step_end_data, this_variable_name);
+        [analysis_data_session, analysis_names_session, analysis_directions_session] = ...
+            addOrOverwriteResultsData ...
+              ( ...
+                analysis_data_session, analysis_names_session, analysis_directions_session, ...
+                step_end_data, this_variable_name, new_variable_directions ...
+              );
+    end
+    
     %% calculate band end variables
     variables_step_end = study_settings.get('analysis_variables_from_band_end');
     for i_variable = 1 : size(variables_step_end, 1)
@@ -421,6 +442,7 @@ function processAnalysisVariables(varargin)
                 analysis_data_session, analysis_names_session, analysis_directions_session, ...
                 this_variable_data, this_variable_name, new_variable_directions ...
               );
+        % TODO: check whether the directions are actually still correct here
     end
     
     %% gather variables with inversion by direction
@@ -435,10 +457,12 @@ function processAnalysisVariables(varargin)
         if strcmp(this_variable_source_type, 'response')
             this_variable_source_index = find(strcmp(response_names_session, this_variable_source_name), 1, 'first');
             this_variable_source_data = response_data_session{this_variable_source_index};
+            new_variable_directions = response_directions_session(strcmp(response_names_session, this_variable_source_name), :);
         end
         if strcmp(this_variable_source_type, 'analysis')
             this_variable_source_index = find(strcmp(analysis_names_session, this_variable_source_name), 1, 'first');
             this_variable_source_data = analysis_data_session{this_variable_source_index};
+            new_variable_directions = analysis_directions_session(strcmp(analysis_names_session, this_variable_source_name), :);
         end
         
         % get signs
@@ -475,8 +499,14 @@ function processAnalysisVariables(varargin)
         end
         
         % store
-        [analysis_data_session, analysis_names_session] = addOrOverwriteData(analysis_data_session, analysis_names_session, this_variable_data, this_variable_name);
-        
+%         [analysis_data_session, analysis_names_session] = addOrOverwriteData(analysis_data_session, analysis_names_session, this_variable_data, this_variable_name);
+        [analysis_data_session, analysis_names_session, analysis_directions_session] = ...
+            addOrOverwriteResultsData ...
+              ( ...
+                analysis_data_session, analysis_names_session, analysis_directions_session, ...
+                this_variable_data, this_variable_name, new_variable_directions ...
+              );
+        % TODO: check whether the directions are actually still correct here
     end
 
     %% gather variables that are selected from different sources depending on condition
@@ -516,6 +546,7 @@ function processAnalysisVariables(varargin)
             end
             this_variable_source_data_triggerLeft = response_data_session{this_variable_source_index_triggerLeft};
             this_variable_source_data_triggerRight = response_data_session{this_variable_source_index_triggerRight};
+            new_variable_directions = response_directions_session(strcmp(response_names_session, this_variable_source_name), :);
         end
         if strcmp(this_variable_source_type, 'analysis')
             this_variable_source_index_triggerLeft = find(strcmp(analysis_names_session, this_variable_source_name_triggerLeft), 1, 'first');
@@ -528,6 +559,7 @@ function processAnalysisVariables(varargin)
             end
             this_variable_source_data_triggerLeft = analysis_data_session{this_variable_source_index_triggerLeft};
             this_variable_source_data_triggerRight = analysis_data_session{this_variable_source_index_triggerRight};
+            new_variable_directions = analysis_directions_session(strcmp(analysis_names_session, this_variable_source_name), :);
         end
         
         % select
@@ -552,7 +584,14 @@ function processAnalysisVariables(varargin)
         end
         
         % store
-        [analysis_data_session, analysis_names_session] = addOrOverwriteData(analysis_data_session, analysis_names_session, this_variable_data, this_variable_name);
+%         [analysis_data_session, analysis_names_session] = addOrOverwriteData(analysis_data_session, analysis_names_session, this_variable_data, this_variable_name);
+        [analysis_data_session, analysis_names_session, analysis_directions_session] = ...
+            addOrOverwriteResultsData ...
+              ( ...
+                analysis_data_session, analysis_names_session, analysis_directions_session, ...
+                this_variable_data, this_variable_name, new_variable_directions ...
+              );
+        % TODO: check whether the directions are actually still correct here
     end
     
      %% process variables where something specific happens for each variable
@@ -636,7 +675,7 @@ function processAnalysisVariables(varargin)
     
     
     %% save data
-    return
+%     return
     variables_to_save = loaded_data;
     variables_to_save.response_data_session = response_data_session;
     variables_to_save.response_directions_session = response_directions_session;

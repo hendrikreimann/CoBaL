@@ -506,8 +506,9 @@ function plotResults(varargin)
                         abscissae_cell{this_episode(i_comparison), i_variable} = abscissae;
                         
 %                         if ~isempty(conditions_control) && plot_settings.get('plot_control') && strcmp(data_source, 'stretch')
-%                             xtick = [xtick abscissae{1}]; %#ok<AGROW>
-%                         end
+                        if plot_settings.get('plot_control')
+                            xtick = [xtick abscissae{1}]; %#ok<AGROW>
+                        end
                         xtick = [xtick abscissae{2}]; %#ok<AGROW>
 
 
@@ -920,8 +921,8 @@ function plotResults(varargin)
                             end
                             if strcmp(plot_mode, 'episodes')
                                 % TODO: copied over from stimulus, fix this later
-%                                 this_cell = abscissae_cell{i_comparison, i_variable};
-%                                 target_abscissa = this_cell{2}(i_band, i_condition);
+                                this_cell = abscissae_cell{i_comparison, i_variable};
+                                target_abscissa = this_cell{1};
                             else
                                 target_abscissa = abscissae_cell{i_comparison, i_variable}(i_band, end);
                             end
