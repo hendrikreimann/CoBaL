@@ -2706,6 +2706,10 @@ classdef WalkingDataCustodian < handle
             number_of_bands = size(stance_foot_data, 2);
             stretch_variables = cell(number_of_stretch_variables, 1);
             
+            % as a hack to get things working for legacy data of the Vision and GVS projects, load push-off data
+            loaded_data = load(['analysis' filesep makeFileName(this.date, this.subject_id, this.trial_type, this.trial_number, 'relevantDataStretches')], 'stretch_pushoff_times');
+            pushoff_times = loaded_data.stretch_pushoff_times;
+            
             for i_variable = 1 : number_of_stretch_variables
                 variable_name = variables_to_calculate{i_variable};
                 this.registerStretchVariableDirections(variable_name);
@@ -2720,6 +2724,9 @@ classdef WalkingDataCustodian < handle
                     this_stretch_times = stretch_times(i_stretch, :);
                     this_stretch_start_time = this_stretch_times(1);
                     this_stretch_end_time = this_stretch_times(end);
+                    this_stretch_pushoff_time = pushoff_times(i_stretch);
+                    % determine applicable push-off
+                    
                     
                     % calculate normalized stretch data for the basic variables
                     if this.isBasicVariable(variable_name)

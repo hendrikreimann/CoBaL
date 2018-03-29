@@ -41,7 +41,7 @@
 % - bands_per_stretch
 
 
-function findRelevantDataStretches(varargin)
+function determineStretchesToAnalyze(varargin)
     % parse arguments
     parser = inputParser;
     parser.KeepUnmatched = true;
@@ -1156,6 +1156,7 @@ function findRelevantDataStretches(varargin)
                     end
                 end
                 conditions_trial.condition_direction_list = condition_direction_list;
+                conditions_trial.condition_stance_foot_list = condition_stance_foot_list;
                 
                 % put in placeholder for group
                 conditions_trial.condition_group_list = condition_direction_list;
@@ -1163,7 +1164,6 @@ function findRelevantDataStretches(varargin)
                 
                 % make copy of stance foot information
                 event_variables_to_save.stance_foot_data = condition_stance_foot_list;
-                
             end
             
             if strcmp(experimental_paradigm, 'Vision')
@@ -1459,7 +1459,7 @@ function findRelevantDataStretches(varargin)
             end
             
             % add subject
-            subject_list = cell(size(stance_foot_data, 1), 1);
+            subject_list = cell(size(event_variables_to_save.stance_foot_data, 1), 1);
             for i_stretch = 1 : length(subject_list)
                 subject_list{i_stretch} = subject_id;
             end

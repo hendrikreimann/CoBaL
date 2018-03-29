@@ -95,6 +95,7 @@ function calculateKinematicTrajectories(varargin)
             essential_marker_indicator = ~ismember(1 : size(marker_trajectories, 2), optional_marker_indices);
             
             %% process
+            new_ignore_times = [];
             if register_without_calculating
                 % rename variables to avoid overwriting
                 joint_center_labels_correct = joint_center_labels;
@@ -117,7 +118,6 @@ function calculateKinematicTrajectories(varargin)
                 joint_center_trajectories = zeros(number_of_time_steps, length(joint_center_labels)) * NaN;
                 com_trajectories = zeros(number_of_time_steps, length(com_labels_single)*3) * NaN;
                 joint_angle_trajectories = zeros(number_of_time_steps, number_of_joint_angles) * NaN;
-                new_ignore_times = [];
                 tic
                 if use_parallel
                     % make variables accessible to workers by declaring them

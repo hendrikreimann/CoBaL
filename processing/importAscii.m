@@ -44,13 +44,13 @@ function importAscii(varargin)
     qtm_emg_scale = 1;
 
     % create folders if necessary
-    if ~exist('raw', 'dir')
+    if ~directoryExists('raw', 'dir')
         mkdir('raw')
     end
-    if ~exist('processed', 'dir')
+    if ~directoryExists('processed', 'dir')
         mkdir('processed')
     end
-    if ~exist('analysis', 'dir')
+    if ~directoryExists('analysis', 'dir')
         mkdir('analysis')
     end
     current_path = pwd;
