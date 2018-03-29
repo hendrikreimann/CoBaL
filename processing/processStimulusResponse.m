@@ -288,7 +288,7 @@ function processStimulusResponse(varargin)
         analysis_directions_session = {};
     end
 %     [analysis_data_session, analysis_names_session] = addOrOverwriteData(analysis_data_session, analysis_names_session, stimulus_response_x_data, 'stimulus_response_x');
-    [analysis_data_session, analysis_names_session] = ...
+    [analysis_data_session, analysis_names_session, analysis_directions_session] = ...
         addOrOverwriteResultsData ...
           ( ...
             analysis_data_session, ...
@@ -302,6 +302,7 @@ function processStimulusResponse(varargin)
     variables_to_save = loaded_data;
     variables_to_save.analysis_data_session = analysis_data_session;
     variables_to_save.analysis_names_session = analysis_names_session;
+    variables_to_save.analysis_directions_session = analysis_directions_session;
     save(results_file_name, '-struct', 'variables_to_save');
         
     

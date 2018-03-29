@@ -68,7 +68,7 @@ function processAnalysisVariables(varargin)
     
     if isfield(loaded_data, 'analysis_data_session')
         analysis_data_session = loaded_data.analysis_data_session;
-        analysis_directions_session = loaded_data.analysis_data_session;
+        analysis_directions_session = loaded_data.analysis_directions_session;
         analysis_names_session = loaded_data.analysis_names_session;
     else
         analysis_data_session = {};
@@ -109,7 +109,7 @@ function processAnalysisVariables(varargin)
                 end
 %                 applicable_control_condition = 1;
             end
-            if strcmp(study_settings.get('condition_stimulus'), 'VISUAL') || strcmp(study_settings.get('condition_stimulus'), 'GVS_old')
+            if strcmp(study_settings.get('stimulus_condition'), 'VISUAL') || strcmp(study_settings.get('stimulus_condition'), 'GVS_old')
                 if strcmp(this_stretch_condition_string{strcmp(condition_combination_labels, 'stance_foot')}, 'STANCE_LEFT')
                     applicable_control_condition = find(strcmp(condition_combinations_control_unique(:, strcmp(condition_combination_labels, 'stance_foot')), 'STANCE_LEFT'));
                 end
@@ -150,12 +150,15 @@ function processAnalysisVariables(varargin)
     step_time_index_in_saved_data = find(strcmp(loaded_data.stretch_names_session, 'step_time'), 1, 'first');
     this_step_time_data = loaded_data.stretch_data_session{step_time_index_in_saved_data};
     pushoff_time_index_in_saved_data = find(strcmp(loaded_data.stretch_names_session, 'pushoff_time'), 1, 'first');
-%     this_pushoff_time_data = loaded_data.stretch_data_session{pushoff_time_index_in_saved_data};
+    this_pushoff_time_data = loaded_data.stretch_data_session{pushoff_time_index_in_saved_data};
+    names_source = response_names_session;
+    directions_source = response_directions_session;
     for i_variable = 1 : size(variables_to_integrate, 1)
         this_variable_name = variables_to_integrate{i_variable, 1};
         this_variable_source_name = variables_to_integrate{i_variable, 2};
         this_variable_response_data = response_data_session{strcmp(loaded_data.stretch_names_session, this_variable_source_name)};
         number_of_stretches = size(this_variable_response_data, 2);
+        new_variable_directions = directions_source(strcmp(names_source, this_variable_source_name), :);
         integrated_data = zeros(1, number_of_stretches);
         for i_stretch = 1 : number_of_stretches
             % get data for full step
@@ -173,7 +176,14 @@ function processAnalysisVariables(varargin)
         end
         
         % store
-        [analysis_data_session, analysis_names_session] = addOrOverwriteData(analysis_data_session, analysis_names_session, integrated_data, this_variable_name);
+%         [analysis_data_session, analysis_names_session] = addOrOverwriteData(analysis_data_session, analysis_names_session, integrated_data, this_variable_name);
+        [analysis_data_session, analysis_names_session, analysis_directions_session] = ...
+            addOrOverwriteResultsData ...
+              ( ...
+                analysis_data_session, analysis_names_session, analysis_directions_session, ...
+                integrated_data, this_variable_name, new_variable_directions ...
+              );
+
     end
     
     %% calculate band end variables
@@ -239,7 +249,6 @@ function processAnalysisVariables(varargin)
                 extrema_data, this_variable_name, new_variable_directions ...
               );
     end
-    
 
     %% calculate variables from inversion
     % TODO: deal with bands
@@ -360,6 +369,7 @@ function processAnalysisVariables(varargin)
                 error(['Data not found: ' this_variable_source_name])
             end
             this_variable_source_data = response_data_session{this_variable_source_index};
+            new_variable_directions = response_directions_session(strcmp(response_names_session, this_variable_source_name), :);
         end
         if strcmp(this_variable_source_type, 'analysis')
             this_variable_source_index = find(strcmp(analysis_names_session, this_variable_source_name), 1, 'first');
@@ -367,7 +377,9 @@ function processAnalysisVariables(varargin)
                 error(['Data not found: ' this_variable_source_name])
             end
             this_variable_source_data = analysis_data_session{this_variable_source_index};
+            new_variable_directions = analysis_directions_session(strcmp(analysis_names_session, this_variable_source_name), :);
         end
+ 
         
         % get signs
         if strcmp(variables_to_invert{i_variable, 4}, '+')
@@ -402,7 +414,13 @@ function processAnalysisVariables(varargin)
         end
         
         % store
-        [analysis_data_session, analysis_names_session] = addOrOverwriteData(analysis_data_session, analysis_names_session, this_variable_data, this_variable_name);
+%         [analysis_data_session, analysis_names_session] = addOrOverwriteData(analysis_data_session, analysis_names_session, this_variable_data, this_variable_name);
+        [analysis_data_session, analysis_names_session, analysis_directions_session] = ...
+            addOrOverwriteResultsData ...
+              ( ...
+                analysis_data_session, analysis_names_session, analysis_directions_session, ...
+                this_variable_data, this_variable_name, new_variable_directions ...
+              );
     end
     
     %% gather variables with inversion by direction
@@ -618,6 +636,7 @@ function processAnalysisVariables(varargin)
     
     
     %% save data
+    return
     variables_to_save = loaded_data;
     variables_to_save.response_data_session = response_data_session;
     variables_to_save.response_directions_session = response_directions_session;
