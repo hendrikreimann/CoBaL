@@ -20,6 +20,11 @@ classdef SettingsCustodian < handle
         settings_struct = struct;
         property_not_found_list = {};
         verbose = true;
+        
+        force_string_list = ...
+          { ...
+            'preferred_level_order'; ...
+          }
     end
     methods
         function this = SettingsCustodian(settings_file)
@@ -31,7 +36,7 @@ classdef SettingsCustodian < handle
             data = this.getDefaultSetting(property_name);
             used_default = true;
             
-            % try reading from settings file
+            % try reading from settings struct
             if isfield(this.settings_struct, property_name)
                 eval(['data = this.settings_struct.' property_name ';']);
                 used_default = false;
@@ -77,6 +82,24 @@ classdef SettingsCustodian < handle
                     this.property_not_found_list = [this.property_not_found_list; property_name];
                 end
             end
+            
+            % force string
+            if any(strcmp(this.force_string_list, property_name))
+                if ~iscell(data)
+                    data_cell = cell(size(data));
+                    for i_entry = 1 : numel(data)
+                        this_entry = data(i_entry);
+                        if isnumeric(this_entry)
+                            data_cell{i_entry} = num2str(this_entry);
+                        else
+                            data_cell{i_entry} = this_entry;
+                        end
+                        
+                    end
+                    data = data_cell;
+                end
+            end
+            
         end
         
         function default_data = getDefaultSetting(this, property_name)
