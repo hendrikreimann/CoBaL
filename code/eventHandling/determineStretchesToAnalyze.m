@@ -267,6 +267,9 @@ function determineStretchesToAnalyze(varargin)
             if strcmp(condition_stimulus, 'ARMSENSE')
                  trigger_times = [];
             end
+            if strcmp(experimental_paradigm, 'Vision Stochastic')
+                trigger_times = [];
+            end
             
             % calculate indices
             trigger_indices_mocap = zeros(size(trigger_times));
@@ -1456,6 +1459,49 @@ function determineStretchesToAnalyze(varargin)
                 
                 event_variables_to_save.stretch_times = stretch_times;
                 event_variables_to_save.stance_foot_data = stance_foot_data;
+            end
+            
+            if strcmp(experimental_paradigm, 'Vision Stochastic')
+                stim_frequency = loadConditionFromFile(conditions_file_name, 'frequency', i_trial);
+                stim_amplitude = loadConditionFromFile(conditions_file_name, 'SD', i_trial);
+                
+                stance_foot_data_stretch = {'STANCE_BOTH', 'STANCE_LEFT', 'STANCE_BOTH', 'STANCE_RIGHT'};
+                bands_per_stretch = length(stance_foot_data_stretch);
+                
+                left_touchdown_times_relevant = ...
+                    left_touchdown_times ...
+                      ( ...
+                        left_touchdown_times > study_settings.get('analysis_start_time') ...
+                        & left_touchdown_times < study_settings.get('analysis_end_time') ...
+                      );
+                stretch_start_times = left_touchdown_times_relevant(1:end-1);
+                number_of_stretches = length(stretch_start_times);
+                stretch_times = zeros(number_of_stretches, bands_per_stretch+1);
+                removal_flags = false(number_of_stretches, 1);
+                for i_stretch = 1 : number_of_stretches
+                    this_stretch_start = stretch_start_times(i_stretch);
+                    this_right_pushoff = min(right_pushoff_times(right_pushoff_times > this_stretch_start));
+                    this_right_touchdown = min(right_touchdown_times(right_touchdown_times > this_stretch_start));
+                    this_left_pushoff = min(left_pushoff_times(left_pushoff_times > this_stretch_start));
+                    this_left_touchdown = min(left_touchdown_times(left_touchdown_times > this_stretch_start));
+                    this_stretch_times = [this_stretch_start this_right_pushoff this_right_touchdown this_left_pushoff this_left_touchdown];
+                    if ~issorted(this_stretch_times)
+                        removal_flags(i_stretch) = 1;
+                    end
+                    stretch_times(i_stretch, :) = this_stretch_times;
+                end
+                stretch_times(removal_flags, :) = [];
+                
+                stance_foot_data = repmat(stance_foot_data_stretch, size(stretch_times, 1), 1);
+                event_variables_to_save.stretch_times = stretch_times;
+                event_variables_to_save.stance_foot_data = stance_foot_data;
+
+                % conditions
+                stim_frequency_list = repmat(stim_frequency, size(stretch_times, 1), 1);
+                stim_amplitude_list = repmat(stim_amplitude, size(stretch_times, 1), 1);
+                conditions_trial = struct;
+                conditions_trial.stim_frequency_list = stim_frequency_list;
+                conditions_trial.stim_amplitude_list = stim_amplitude_list;
             end
             
             % add subject
