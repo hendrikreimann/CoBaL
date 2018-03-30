@@ -282,7 +282,7 @@ classdef eventFigure < handle;
                 data = this.data_custodian.getBasicVariableData(data_label);
                 
                 % update
-                set(data_plot_handle, 'xdata', time, 'ydata', data);
+                set(data_plot_handle, 'xdata', time, 'ydata', (data + offset) * scale_factor);
                 
 %                 time_data = this.trial_data.getTime(data_label);
 %                 trajectory_data = (this.trial_data.getData(data_label) + offset) * scale_factor;
