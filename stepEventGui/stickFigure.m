@@ -255,11 +255,18 @@ classdef stickFigure < handle
                     'BODYCOM', body_com_color, body_com_color, body_com_marker_style, body_com_marker_size; ...
                   };
               
+                
+                headers = this.marker_labels(1 : 3 : length(this.marker_labels));
+                for i_header = 1 : length(headers)
+                    headers{i_header} = headers{i_header}(1:end-2);
+                end
+                
+                
                 for i_label = 1 : size(marker_candidates, 1)
                     try
                         set ...
                           ( ...
-                            this.marker_plots{find(strcmp(this.marker_labels, marker_candidates{i_label, 1}))}, ...
+                            this.marker_plots{find(strcmp(headers, marker_candidates{i_label, 1}))}, ...
                             'color', marker_candidates{i_label, 2}, ...
                             'markerfacecolor', marker_candidates{i_label, 3}, ...
                             'marker', marker_candidates{i_label, 4}, ...
@@ -269,44 +276,7 @@ classdef stickFigure < handle
                         % label not found, but we don't care
                     end
                 end
-              
-              
-                
 
-%                 set(this.marker_plots{find(strcmp(this.marker_labels, 'CERVIXCOR'))}, 'color', joint_center_color, 'marker', joint_center_marker_style, 'markersize', joint_center_marker_size);
-%                 set(this.marker_plots{find(strcmp(this.marker_labels, 'LSHOULDERCOR'))}, 'color', joint_center_color, 'marker', joint_center_marker_style, 'markersize', joint_center_marker_size);
-%                 set(this.marker_plots{find(strcmp(this.marker_labels, 'RSHOULDERCOR'))}, 'color', joint_center_color, 'marker', joint_center_marker_style, 'markersize', joint_center_marker_size);
-%                 set(this.marker_plots{find(strcmp(this.marker_labels, 'LELBOWCOR'))}, 'color', joint_center_color, 'marker', joint_center_marker_style, 'markersize', joint_center_marker_size);
-%                 set(this.marker_plots{find(strcmp(this.marker_labels, 'RELBOWCOR'))}, 'color', joint_center_color, 'marker', joint_center_marker_style, 'markersize', joint_center_marker_size);
-%                 set(this.marker_plots{find(strcmp(this.marker_labels, 'LWRISTCOR'))}, 'color', joint_center_color, 'marker', joint_center_marker_style, 'markersize', joint_center_marker_size);
-%                 set(this.marker_plots{find(strcmp(this.marker_labels, 'RWRISTCOR'))}, 'color', joint_center_color, 'marker', joint_center_marker_style, 'markersize', joint_center_marker_size);
-%                 set(this.marker_plots{find(strcmp(this.marker_labels, 'LUMBARCOR'))}, 'color', joint_center_color, 'marker', joint_center_marker_style, 'markersize', joint_center_marker_size);
-%                 set(this.marker_plots{find(strcmp(this.marker_labels, 'LHIPCOR'))}, 'color', joint_center_color, 'marker', joint_center_marker_style, 'markersize', joint_center_marker_size);
-%                 set(this.marker_plots{find(strcmp(this.marker_labels, 'RHIPCOR'))}, 'color', joint_center_color, 'marker', joint_center_marker_style, 'markersize', joint_center_marker_size);
-%                 set(this.marker_plots{find(strcmp(this.marker_labels, 'LKNEECOR'))}, 'color', joint_center_color, 'marker', joint_center_marker_style, 'markersize', joint_center_marker_size);
-%                 set(this.marker_plots{find(strcmp(this.marker_labels, 'RKNEECOR'))}, 'color', joint_center_color, 'marker', joint_center_marker_style, 'markersize', joint_center_marker_size);
-%                 set(this.marker_plots{find(strcmp(this.marker_labels, 'LANKLECOR'))}, 'color', joint_center_color, 'marker', joint_center_marker_style, 'markersize', joint_center_marker_size);
-%                 set(this.marker_plots{find(strcmp(this.marker_labels, 'RANKLECOR'))}, 'color', joint_center_color, 'marker', joint_center_marker_style, 'markersize', joint_center_marker_size);
-%     
-%                 % segment CoMs
-%                 set(this.marker_plots{find(strcmp(this.marker_labels, 'HEADCOM'))}, 'color', lightenColor(com_color, 0.5), 'marker', com_marker_style, 'markersize', com_marker_size, 'markerfacecolor', lightenColor(com_color, 0.5));
-%                 set(this.marker_plots{find(strcmp(this.marker_labels, 'TORSOCOM'))}, 'color', lightenColor(com_color, 0.5), 'marker', com_marker_style, 'markersize', com_marker_size, 'markerfacecolor', lightenColor(com_color, 0.5));
-%                 set(this.marker_plots{find(strcmp(this.marker_labels, 'LUPPERARMCOM'))}, 'color', lightenColor(com_color, 0.5), 'marker', com_marker_style, 'markersize', com_marker_size, 'markerfacecolor', lightenColor(com_color, 0.5));
-%                 set(this.marker_plots{find(strcmp(this.marker_labels, 'RUPPERARMCOM'))}, 'color', lightenColor(com_color, 0.5), 'marker', com_marker_style, 'markersize', com_marker_size, 'markerfacecolor', lightenColor(com_color, 0.5));
-%                 set(this.marker_plots{find(strcmp(this.marker_labels, 'LFOREARMCOM'))}, 'color', lightenColor(com_color, 0.5), 'marker', com_marker_style, 'markersize', com_marker_size, 'markerfacecolor', lightenColor(com_color, 0.5));
-%                 set(this.marker_plots{find(strcmp(this.marker_labels, 'RFOREARMCOM'))}, 'color', lightenColor(com_color, 0.5), 'marker', com_marker_style, 'markersize', com_marker_size, 'markerfacecolor', lightenColor(com_color, 0.5));
-%                 set(this.marker_plots{find(strcmp(this.marker_labels, 'LHANDCOM'))}, 'color', lightenColor(com_color, 0.5), 'marker', com_marker_style, 'markersize', com_marker_size, 'markerfacecolor', lightenColor(com_color, 0.5));
-%                 set(this.marker_plots{find(strcmp(this.marker_labels, 'RHANDCOM'))}, 'color', lightenColor(com_color, 0.5), 'marker', com_marker_style, 'markersize', com_marker_size, 'markerfacecolor', lightenColor(com_color, 0.5));
-%                 set(this.marker_plots{find(strcmp(this.marker_labels, 'PELVISCOM'))}, 'color', lightenColor(com_color, 0.5), 'marker', com_marker_style, 'markersize', com_marker_size, 'markerfacecolor', lightenColor(com_color, 0.5));
-%                 set(this.marker_plots{find(strcmp(this.marker_labels, 'LTHIGHCOM'))}, 'color', lightenColor(com_color, 0.5), 'marker', com_marker_style, 'markersize', com_marker_size, 'markerfacecolor', lightenColor(com_color, 0.5));
-%                 set(this.marker_plots{find(strcmp(this.marker_labels, 'RTHIGHCOM'))}, 'color', lightenColor(com_color, 0.5), 'marker', com_marker_style, 'markersize', com_marker_size, 'markerfacecolor', lightenColor(com_color, 0.5));
-%                 set(this.marker_plots{find(strcmp(this.marker_labels, 'LSHANKCOM'))}, 'color', lightenColor(com_color, 0.5), 'marker', com_marker_style, 'markersize', com_marker_size, 'markerfacecolor', lightenColor(com_color, 0.5));
-%                 set(this.marker_plots{find(strcmp(this.marker_labels, 'RSHANKCOM'))}, 'color', lightenColor(com_color, 0.5), 'marker', com_marker_style, 'markersize', com_marker_size, 'markerfacecolor', lightenColor(com_color, 0.5));
-%                 set(this.marker_plots{find(strcmp(this.marker_labels, 'LFOOTCOM'))}, 'color', lightenColor(com_color, 0.5), 'marker', com_marker_style, 'markersize', com_marker_size, 'markerfacecolor', lightenColor(com_color, 0.5));
-%                 set(this.marker_plots{find(strcmp(this.marker_labels, 'RFOOTCOM'))}, 'color', lightenColor(com_color, 0.5), 'marker', com_marker_style, 'markersize', com_marker_size, 'markerfacecolor', lightenColor(com_color, 0.5));
-%                 
-%                 % body CoM
-%                 set(this.marker_plots{find(strcmp(this.marker_labels, 'BODYCOM'))}, 'color', com_color, 'marker', com_marker_style, 'markersize', round(com_marker_size*1.5), 'markerfacecolor', com_color);
             else
                 error('color scheme not recognized, options are "default", "extended plug-in gait".')
             end
@@ -413,9 +383,14 @@ classdef stickFigure < handle
             if nargin < 4
                 width = 1;
             end
-            label_indices = [find(strcmp(this.marker_labels, from_label)), find(strcmp(this.marker_labels, to_label))];
+            headers = this.marker_labels(1 : 3 : length(this.marker_labels));
+            for i_header = 1 : length(headers)
+                headers{i_header} = headers{i_header}(1:end-2);
+            end
+            
+            label_indices = [find(strcmp(headers, from_label)), find(strcmp(headers, to_label))];
             if size(label_indices, 1) == 1 && size(label_indices, 2) == 2
-                this.line_marker_indices(end+1, :) = [find(strcmp(this.marker_labels, from_label)), find(strcmp(this.marker_labels, to_label))];
+                this.line_marker_indices(end+1, :) = [find(strcmp(headers, from_label)), find(strcmp(headers, to_label))];
                 this.line_plots(end+1) = plot3([0 0], [0 0], [0 0], 'color', color, 'linewidth', width);
             end
         end

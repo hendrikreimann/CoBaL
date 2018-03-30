@@ -147,6 +147,15 @@ classdef WalkingDataCustodian < handle
             
             
             % for each possible variable to analyze, list the basic and required variables required to calculate it
+            if this.isVariableToAnalyze('marker_trajectories')
+                this.addBasicVariable('marker_trajectories')
+            end
+            if this.isVariableToAnalyze('joint_center_trajectories')
+                this.addBasicVariable('joint_center_trajectories')
+            end
+            if this.isVariableToAnalyze('com_trajectories')
+                this.addBasicVariable('com_trajectories')
+            end
             
             
             

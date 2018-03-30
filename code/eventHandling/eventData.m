@@ -230,31 +230,31 @@ classdef eventData < handle
         end
         
         function stepSelectedTime(this, direction, stepsize)
-            warning('Stepping through time currently not implemented, wait until scene figures are back!')
-%             if nargin < 3
-%                 stepsize = 1;
-%             end
-%             
-%             % get current time step
-%             [~, time_index_mocap] = min(abs(this.time_marker - this.selected_time));
-%             
-%             if strcmp(direction, 'back')
-%                 new_time_index_mocap = time_index_mocap - stepsize;
-%             elseif strcmp(direction, 'forward')
-%                 new_time_index_mocap = time_index_mocap + stepsize;
-%             else
-%                 error('Direction must be either "back" or "forward"');
-%             end
-%             
-%             % enforce limits
-%             if new_time_index_mocap < 1
-%                 new_time_index_mocap = 1;
-%             elseif new_time_index_mocap > length(this.time_marker)
-%                 new_time_index_mocap = length(this.time_marker);
-%             end
-%             
-%             % set result
-%             this.selected_time = this.time_marker(new_time_index_mocap);
+            if nargin < 3
+                stepsize = 1;
+            end
+            
+            % get current time step
+            time_mocap = this.data_custodian.getTimeData('marker_trajectories');
+            [~, time_index_mocap] = min(abs(time_mocap - this.selected_time));
+            
+            if strcmp(direction, 'back')
+                new_time_index_mocap = time_index_mocap - stepsize;
+            elseif strcmp(direction, 'forward')
+                new_time_index_mocap = time_index_mocap + stepsize;
+            else
+                error('Direction must be either "back" or "forward"');
+            end
+            
+            % enforce limits
+            if new_time_index_mocap < 1
+                new_time_index_mocap = 1;
+            elseif new_time_index_mocap > length(time_mocap)
+                new_time_index_mocap = length(time_mocap);
+            end
+            
+            % set result
+            this.selected_time = time_mocap(new_time_index_mocap);
         end
         
         function next_event_label = getNextEventTypeLabel(this, current_event_type_label) %#ok<INUSL>
