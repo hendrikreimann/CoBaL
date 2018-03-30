@@ -2705,7 +2705,7 @@ classdef WalkingDataCustodian < handle
                 end
             end
         end
-        function stretch_variables = calculateStretchVariables(this, stretch_times, stance_foot_data, condition_data, variables_to_calculate)
+        function stretch_variables = calculateStretchVariables(this, stretch_times, stance_foot_data, relevant_condition_data, variables_to_calculate)
             if nargin < 6
                 variables_to_calculate = this.stretch_variable_names;
             end
@@ -2716,8 +2716,16 @@ classdef WalkingDataCustodian < handle
             stretch_variables = cell(number_of_stretch_variables, 1);
             
             % as a hack to get things working for legacy data of the Vision and GVS projects, load push-off data
-            loaded_data = load(['analysis' filesep makeFileName(this.date, this.subject_id, this.trial_type, this.trial_number, 'relevantDataStretches')], 'stretch_pushoff_times');
-            pushoff_times = loaded_data.stretch_pushoff_times;
+            try
+                loaded_data = load(['analysis' filesep makeFileName(this.date, this.subject_id, this.trial_type, this.trial_number, 'relevantDataStretches')], 'stretch_pushoff_times');
+                pushoff_times = loaded_data.stretch_pushoff_times;
+            catch exception
+                if strcmp(exception.identifier, 'MATLAB:nonExistentField')
+                    pushoff_times = zeros(number_of_stretches, 1);
+                else
+                    throw(exception);
+                end
+            end
             
             for i_variable = 1 : number_of_stretch_variables
                 variable_name = variables_to_calculate{i_variable};
@@ -2952,16 +2960,16 @@ classdef WalkingDataCustodian < handle
 
                                 % find time step of obstacle crossing
                                 obstacle_pos_y = NaN;
-                                if strcmp(condition_data{i_stretch}, 'OBS_NEAR')
+                                if strcmp(relevant_condition_data{i_stretch}, 'OBS_NEAR')
                                     obstacle_pos_y = this.subject_info.near_distance;
                                 end
-                                if strcmp(condition_data{i_stretch}, 'OBS_FAR')
+                                if strcmp(relevant_condition_data{i_stretch}, 'OBS_FAR')
                                     obstacle_pos_y = this.subject_info.far_distance;
                                 end
                                 [~, crossing_time_step] = min(abs(swing_heel_marker_y - obstacle_pos_y));
 
                                 % extract swing foot heel marker
-                                if strcmp(condition_data{i_stretch}, 'OBS_NO')
+                                if strcmp(relevant_condition_data{i_stretch}, 'OBS_NO')
                                     stretch_data(i_band) = NaN;
                                 else
                                     stretch_data(i_band) = swing_heel_marker_z(crossing_time_step) - this.subject_info.obstacle_height;
@@ -2995,16 +3003,16 @@ classdef WalkingDataCustodian < handle
 
                                 % find time step of obstacle crossing
                                 obstacle_pos_y = NaN;
-                                if strcmp(condition_data{i_stretch}, 'OBS_NEAR')
+                                if strcmp(relevant_condition_data{i_stretch}, 'OBS_NEAR')
                                     obstacle_pos_y = this.subject_info.toe_marker + this.subject_info.near_distance;
                                 end
-                                if strcmp(condition_data{i_stretch}, 'OBS_FAR')
+                                if strcmp(relevant_condition_data{i_stretch}, 'OBS_FAR')
                                     obstacle_pos_y = this.subject_info.toe_marker + this.subject_info.far_distance;
                                 end
                                 [~, crossing_time_step] = min(abs(swing_toes_marker_y - obstacle_pos_y));
 
                                 % extract swing foot toes marker
-                                if strcmp(condition_data{i_stretch}, 'OBS_NO')
+                                if strcmp(relevant_condition_data{i_stretch}, 'OBS_NO')
                                     stretch_data(i_band) = NaN;
                                 else
                                     stretch_data(i_band) = swing_toes_marker_z(crossing_time_step) - this.subject_info.obstacle_height;
