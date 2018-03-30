@@ -307,7 +307,7 @@ function plotResults(varargin)
                     conditions_this_comparison = comparison_indices{i_comparison};
                     step_time_means_this_comparison = zeros(bands_per_stretch, size(conditions_this_comparison, 2));
                     for i_condition = 1 : length(conditions_this_comparison)
-                        this_condition_combination = condition_combinations_stimulus(i_condition, :);
+                        this_condition_combination = condition_combinations_stimulus(conditions_this_comparison(i_condition), :);
                         this_condition_indicator = getConditionIndicator(this_condition_combination, condition_combination_labels, condition_data_all, condition_labels);
                         step_time_data_this_condition = step_time_data(:, this_condition_indicator);
                         step_time_means_this_comparison(:, i_condition) = mean(step_time_data_this_condition, 2);

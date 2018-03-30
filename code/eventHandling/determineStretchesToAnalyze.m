@@ -1464,6 +1464,11 @@ function determineStretchesToAnalyze(varargin)
             if strcmp(experimental_paradigm, 'Vision Stochastic')
                 stim_frequency = loadConditionFromFile(conditions_file_name, 'frequency', i_trial);
                 stim_amplitude = loadConditionFromFile(conditions_file_name, 'SD', i_trial);
+                if i_trial < 12
+                    block = 'FIRST';
+                else
+                    block = 'SECOND';
+                end
                 
                 stance_foot_data_stretch = {'STANCE_BOTH', 'STANCE_LEFT', 'STANCE_BOTH', 'STANCE_RIGHT'};
                 bands_per_stretch = length(stance_foot_data_stretch);
@@ -1497,11 +1502,13 @@ function determineStretchesToAnalyze(varargin)
                 event_variables_to_save.stance_foot_data = stance_foot_data;
 
                 % conditions
-                stim_frequency_list = repmat(stim_frequency, size(stretch_times, 1), 1);
-                stim_amplitude_list = repmat(stim_amplitude, size(stretch_times, 1), 1);
+                stim_frequency_list = repmat({stim_frequency}, size(stretch_times, 1), 1);
+                stim_amplitude_list = repmat({stim_amplitude}, size(stretch_times, 1), 1);
+                block_list = repmat({block}, size(stretch_times, 1), 1);
                 conditions_trial = struct;
                 conditions_trial.stim_frequency_list = stim_frequency_list;
                 conditions_trial.stim_amplitude_list = stim_amplitude_list;
+                conditions_trial.block_list = block_list;
             end
             
             % add subject
