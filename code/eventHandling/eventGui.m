@@ -69,23 +69,24 @@ function eventGui(varargin)
         study_settings.get('scene_bound_z_min') study_settings.get('scene_bound_z_max') ...
       ];
   
-    marker_trajectories = data_custodian.getBasicVariableData('marker_trajectories');
-    joint_center_trajectories = data_custodian.getBasicVariableData('joint_center_trajectories');
-    com_trajectories = data_custodian.getBasicVariableData('com_trajectories');
-    % TODO: deal with cases where we have only marker data and no kinematic data yet
-  
-    marker_labels = data_custodian.basic_variable_labels.marker_trajectories;
-    joint_center_labels = data_custodian.basic_variable_labels.joint_center_trajectories;
-    com_labels = data_custodian.basic_variable_labels.com_trajectories;
-    
-    positions = [marker_trajectories(1, :), joint_center_trajectories(1, :), com_trajectories(1, :)];
-    labels = [marker_labels joint_center_labels com_labels];
-    
-    % stick figure
-    controller.scene_figure = stickFigure(positions, labels, scene_bound);
-    controller.scene_figure.setColors('extended plug-in gait');
-    controller.scene_figure.addLines('extended plug-in gait');
-    
+    if gui_settings.get('show_simple_stick_figure')
+        marker_trajectories = data_custodian.getBasicVariableData('marker_trajectories');
+        joint_center_trajectories = data_custodian.getBasicVariableData('joint_center_trajectories');
+        com_trajectories = data_custodian.getBasicVariableData('com_trajectories');
+        % TODO: deal with cases where we have only marker data and no kinematic data yet
+
+        marker_labels = data_custodian.basic_variable_labels.marker_trajectories;
+        joint_center_labels = data_custodian.basic_variable_labels.joint_center_trajectories;
+        com_labels = data_custodian.basic_variable_labels.com_trajectories;
+
+        positions = [marker_trajectories(1, :), joint_center_trajectories(1, :), com_trajectories(1, :)];
+        labels = [marker_labels joint_center_labels com_labels];
+
+        % stick figure
+        controller.scene_figure = stickFigure(positions, labels, scene_bound);
+        controller.scene_figure.setColors('extended plug-in gait');
+        controller.scene_figure.addLines('extended plug-in gait');
+    end    
 %     % kinematic tree figure
 %     if trial_data.joint_angle_data_available
 %         positions = trial_data.marker_positions(1, :);

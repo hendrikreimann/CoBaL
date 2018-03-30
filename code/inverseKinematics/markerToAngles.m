@@ -19,15 +19,18 @@
 function joint_angles = ...
     markerToAngles ...
       ( ...
-        marker_reference, ...
-        marker_current, ...
-        marker_labels, ...
-        joint_center_reference, ...
-        joint_center_current, ...
-        joint_center_headers, ...
+        marker_positions_reference, ...
+        marker_positions_current, ...
+        marker_labels_reference, ...
+        marker_labels_current, ...
+        joint_center_positions_reference, ...
+        joint_center_positions_current, ...
+        joint_center_labels_reference, ...
+        joint_center_labels_current, ...
         direction_matrices, ...
         direction_matrix_labels ...
       )
+  
     
     % get matrices for comparison
 %     load('/Users/reimajbi/Box Sync/inverseKinematics/BRC/processed/00000000_XXX_simulation_001_markerTrajectories.mat')
@@ -121,103 +124,103 @@ function joint_angles = ...
     right_wrist_direction_matrix_inverse = right_wrist_direction_matrix^(-1);
     
     % extract positions
-    LASI_current = extractMarkerData(marker_current, marker_labels, 'LASI')';
-    LPSI_current = extractMarkerData(marker_current, marker_labels, 'LPSI')';
-    LKNE_current = extractMarkerData(marker_current, marker_labels, 'LKNE')';
-    LANK_current = extractMarkerData(marker_current, marker_labels, 'LANK')';
-    LTOE_current = extractMarkerData(marker_current, marker_labels, 'LTOE')';
-    LTOEL_current = extractMarkerData(marker_current, marker_labels, 'LTOEL')';
-    LSHO_current = extractMarkerData(marker_current, marker_labels, 'LSHO')';
-    LFHD_current = extractMarkerData(marker_current, marker_labels, 'LFHD')';
-    LBHD_current = extractMarkerData(marker_current, marker_labels, 'LBHD')';
-    LELB_current = extractMarkerData(marker_current, marker_labels, 'LELB')';
-    LWRB_current = extractMarkerData(marker_current, marker_labels, 'LWRB')';
-    LFIN_current = extractMarkerData(marker_current, marker_labels, 'LFIN')';
-    RASI_current = extractMarkerData(marker_current, marker_labels, 'RASI')';
-    RPSI_current = extractMarkerData(marker_current, marker_labels, 'RPSI')';
-    RKNE_current = extractMarkerData(marker_current, marker_labels, 'RKNE')';
-    RANK_current = extractMarkerData(marker_current, marker_labels, 'RANK')';
-    RTOE_current = extractMarkerData(marker_current, marker_labels, 'RTOE')';
-    RTOEL_current = extractMarkerData(marker_current, marker_labels, 'RTOEL')';
-    RSHO_current = extractMarkerData(marker_current, marker_labels, 'RSHO')';
-    RFHD_current = extractMarkerData(marker_current, marker_labels, 'RFHD')';
-    RBHD_current = extractMarkerData(marker_current, marker_labels, 'RBHD')';
-    RELB_current = extractMarkerData(marker_current, marker_labels, 'RELB')';
-    RWRB_current = extractMarkerData(marker_current, marker_labels, 'RWRB')';
-    RFIN_current = extractMarkerData(marker_current, marker_labels, 'RFIN')';
-    left_hip_cor_current = extractMarkerData(joint_center_current, joint_center_headers, 'LHIPCOR')';
-    left_knee_cor_current = extractMarkerData(joint_center_current, joint_center_headers, 'LKNEECOR')';
-    left_ankle_cor_current = extractMarkerData(joint_center_current, joint_center_headers, 'LANKLECOR')';
-    left_toes_eef_current = extractMarkerData(joint_center_current, joint_center_headers, 'LTOESEEF')';
-    left_shoulder_cor_current = extractMarkerData(joint_center_current, joint_center_headers, 'LSHOULDERCOR')';
-    left_elbow_cor_current = extractMarkerData(joint_center_current, joint_center_headers, 'LELBOWCOR')';
-    left_wrist_cor_current = extractMarkerData(joint_center_current, joint_center_headers, 'LWRISTCOR')';
-    left_hand_eef_current = extractMarkerData(joint_center_current, joint_center_headers, 'LHANDEEF')';
-    right_hip_cor_current = extractMarkerData(joint_center_current, joint_center_headers, 'RHIPCOR')';
-    right_knee_cor_current = extractMarkerData(joint_center_current, joint_center_headers, 'RKNEECOR')';
-    right_ankle_cor_current = extractMarkerData(joint_center_current, joint_center_headers, 'RANKLECOR')';
-    right_toes_eef_current = extractMarkerData(joint_center_current, joint_center_headers, 'RTOESEEF')';
-    right_shoulder_cor_current = extractMarkerData(joint_center_current, joint_center_headers, 'RSHOULDERCOR')';
-    right_elbow_cor_current = extractMarkerData(joint_center_current, joint_center_headers, 'RELBOWCOR')';
-    right_wrist_cor_current = extractMarkerData(joint_center_current, joint_center_headers, 'RWRISTCOR')';
-    right_hand_eef_current = extractMarkerData(joint_center_current, joint_center_headers, 'RHANDEEF')';
-    lumbar_cor_current = extractMarkerData(joint_center_current, joint_center_headers, 'LUMBARCOR')';
-    cervix_cor_current = extractMarkerData(joint_center_current, joint_center_headers, 'CERVIXCOR')';
+    LASI_current = extractMarkerData(marker_positions_current, marker_labels_current, 'LASI')';
+    LPSI_current = extractMarkerData(marker_positions_current, marker_labels_current, 'LPSI')';
+    LKNE_current = extractMarkerData(marker_positions_current, marker_labels_current, 'LKNE')';
+    LANK_current = extractMarkerData(marker_positions_current, marker_labels_current, 'LANK')';
+    LTOE_current = extractMarkerData(marker_positions_current, marker_labels_current, 'LTOE')';
+    LTOEL_current = extractMarkerData(marker_positions_current, marker_labels_current, 'LTOEL')';
+    LSHO_current = extractMarkerData(marker_positions_current, marker_labels_current, 'LSHO')';
+    LFHD_current = extractMarkerData(marker_positions_current, marker_labels_current, 'LFHD')';
+    LBHD_current = extractMarkerData(marker_positions_current, marker_labels_current, 'LBHD')';
+    LELB_current = extractMarkerData(marker_positions_current, marker_labels_current, 'LELB')';
+    LWRB_current = extractMarkerData(marker_positions_current, marker_labels_current, 'LWRB')';
+    LFIN_current = extractMarkerData(marker_positions_current, marker_labels_current, 'LFIN')';
+    RASI_current = extractMarkerData(marker_positions_current, marker_labels_current, 'RASI')';
+    RPSI_current = extractMarkerData(marker_positions_current, marker_labels_current, 'RPSI')';
+    RKNE_current = extractMarkerData(marker_positions_current, marker_labels_current, 'RKNE')';
+    RANK_current = extractMarkerData(marker_positions_current, marker_labels_current, 'RANK')';
+    RTOE_current = extractMarkerData(marker_positions_current, marker_labels_current, 'RTOE')';
+    RTOEL_current = extractMarkerData(marker_positions_current, marker_labels_current, 'RTOEL')';
+    RSHO_current = extractMarkerData(marker_positions_current, marker_labels_current, 'RSHO')';
+    RFHD_current = extractMarkerData(marker_positions_current, marker_labels_current, 'RFHD')';
+    RBHD_current = extractMarkerData(marker_positions_current, marker_labels_current, 'RBHD')';
+    RELB_current = extractMarkerData(marker_positions_current, marker_labels_current, 'RELB')';
+    RWRB_current = extractMarkerData(marker_positions_current, marker_labels_current, 'RWRB')';
+    RFIN_current = extractMarkerData(marker_positions_current, marker_labels_current, 'RFIN')';
+    left_hip_cor_current = extractMarkerData(joint_center_positions_current, joint_center_labels_current, 'LHIPCOR')';
+    left_knee_cor_current = extractMarkerData(joint_center_positions_current, joint_center_labels_current, 'LKNEECOR')';
+    left_ankle_cor_current = extractMarkerData(joint_center_positions_current, joint_center_labels_current, 'LANKLECOR')';
+    left_toes_eef_current = extractMarkerData(joint_center_positions_current, joint_center_labels_current, 'LTOESEEF')';
+    left_shoulder_cor_current = extractMarkerData(joint_center_positions_current, joint_center_labels_current, 'LSHOULDERCOR')';
+    left_elbow_cor_current = extractMarkerData(joint_center_positions_current, joint_center_labels_current, 'LELBOWCOR')';
+    left_wrist_cor_current = extractMarkerData(joint_center_positions_current, joint_center_labels_current, 'LWRISTCOR')';
+    left_hand_eef_current = extractMarkerData(joint_center_positions_current, joint_center_labels_current, 'LHANDEEF')';
+    right_hip_cor_current = extractMarkerData(joint_center_positions_current, joint_center_labels_current, 'RHIPCOR')';
+    right_knee_cor_current = extractMarkerData(joint_center_positions_current, joint_center_labels_current, 'RKNEECOR')';
+    right_ankle_cor_current = extractMarkerData(joint_center_positions_current, joint_center_labels_current, 'RANKLECOR')';
+    right_toes_eef_current = extractMarkerData(joint_center_positions_current, joint_center_labels_current, 'RTOESEEF')';
+    right_shoulder_cor_current = extractMarkerData(joint_center_positions_current, joint_center_labels_current, 'RSHOULDERCOR')';
+    right_elbow_cor_current = extractMarkerData(joint_center_positions_current, joint_center_labels_current, 'RELBOWCOR')';
+    right_wrist_cor_current = extractMarkerData(joint_center_positions_current, joint_center_labels_current, 'RWRISTCOR')';
+    right_hand_eef_current = extractMarkerData(joint_center_positions_current, joint_center_labels_current, 'RHANDEEF')';
+    lumbar_cor_current = extractMarkerData(joint_center_positions_current, joint_center_labels_current, 'LUMBARCOR')';
+    cervix_cor_current = extractMarkerData(joint_center_positions_current, joint_center_labels_current, 'CERVIXCOR')';
     head_center_current = mean([LFHD_current RFHD_current LBHD_current RBHD_current], 2);
     forehead_center_current = mean([LFHD_current RFHD_current], 2);
 
-    LASI_reference = extractMarkerData(marker_reference, marker_labels, 'LASI')';
-    LPSI_reference = extractMarkerData(marker_reference, marker_labels, 'LPSI')';
-    LKNE_reference = extractMarkerData(marker_reference, marker_labels, 'LKNE')';
-    LANK_reference = extractMarkerData(marker_reference, marker_labels, 'LANK')';
-    LTOE_reference = extractMarkerData(marker_reference, marker_labels, 'LTOE')';
-    LTOEL_reference = extractMarkerData(marker_reference, marker_labels, 'LTOEL')';
-    LSHO_reference = extractMarkerData(marker_reference, marker_labels, 'LSHO')';
-    LFHD_reference = extractMarkerData(marker_reference, marker_labels, 'LFHD')';
-    LBHD_reference = extractMarkerData(marker_reference, marker_labels, 'LBHD')';
-    LELB_reference = extractMarkerData(marker_reference, marker_labels, 'LELB')';
-    LWRB_reference = extractMarkerData(marker_reference, marker_labels, 'LWRB')';
-    LFIN_reference = extractMarkerData(marker_reference, marker_labels, 'LFIN')';
-    RASI_reference = extractMarkerData(marker_reference, marker_labels, 'RASI')';
-    RPSI_reference = extractMarkerData(marker_reference, marker_labels, 'RPSI')';
-    RKNE_reference = extractMarkerData(marker_reference, marker_labels, 'RKNE')';
-    RANK_reference = extractMarkerData(marker_reference, marker_labels, 'RANK')';
-    RTOE_reference = extractMarkerData(marker_reference, marker_labels, 'RTOE')';
-    RTOEL_reference = extractMarkerData(marker_reference, marker_labels, 'RTOEL')';
-    RSHO_reference = extractMarkerData(marker_reference, marker_labels, 'RSHO')';
-    RFHD_reference = extractMarkerData(marker_reference, marker_labels, 'RFHD')';
-    RBHD_reference = extractMarkerData(marker_reference, marker_labels, 'RBHD')';
-    RELB_reference = extractMarkerData(marker_reference, marker_labels, 'RELB')';
-    RWRB_reference = extractMarkerData(marker_reference, marker_labels, 'RWRB')';
-    RFIN_reference = extractMarkerData(marker_reference, marker_labels, 'RFIN')';
-    left_hip_cor_reference = extractMarkerData(joint_center_reference, joint_center_headers, 'LHIPCOR')';
-    left_knee_cor_reference = extractMarkerData(joint_center_reference, joint_center_headers, 'LKNEECOR')';
-    left_ankle_cor_reference = extractMarkerData(joint_center_reference, joint_center_headers, 'LANKLECOR')';
-    left_toes_eef_reference = extractMarkerData(joint_center_reference, joint_center_headers, 'LTOESEEF')';
-    left_shoulder_cor_reference = extractMarkerData(joint_center_reference, joint_center_headers, 'LSHOULDERCOR')';
-    left_elbow_cor_reference = extractMarkerData(joint_center_reference, joint_center_headers, 'LELBOWCOR')';
-    left_wrist_cor_reference = extractMarkerData(joint_center_reference, joint_center_headers, 'LWRISTCOR')';
-    left_hand_eef_reference = extractMarkerData(joint_center_reference, joint_center_headers, 'LHANDEEF')';
-    right_hip_cor_reference = extractMarkerData(joint_center_reference, joint_center_headers, 'RHIPCOR')';
-    right_knee_cor_reference = extractMarkerData(joint_center_reference, joint_center_headers, 'RKNEECOR')';
-    right_ankle_cor_reference = extractMarkerData(joint_center_reference, joint_center_headers, 'RANKLECOR')';
-    right_toes_eef_reference = extractMarkerData(joint_center_reference, joint_center_headers, 'RTOESEEF')';
-    right_shoulder_cor_reference = extractMarkerData(joint_center_reference, joint_center_headers, 'RSHOULDERCOR')';
-    right_elbow_cor_reference = extractMarkerData(joint_center_reference, joint_center_headers, 'RELBOWCOR')';
-    right_wrist_cor_reference = extractMarkerData(joint_center_reference, joint_center_headers, 'RWRISTCOR')';
-    right_hand_eef_reference = extractMarkerData(joint_center_reference, joint_center_headers, 'RHANDEEF')';
-    lumbar_cor_reference = extractMarkerData(joint_center_reference, joint_center_headers, 'LUMBARCOR')';
-    cervix_cor_reference = extractMarkerData(joint_center_reference, joint_center_headers, 'CERVIXCOR')';
+    LASI_reference = extractMarkerData(marker_positions_reference, marker_labels_reference, 'LASI')';
+    LPSI_reference = extractMarkerData(marker_positions_reference, marker_labels_reference, 'LPSI')';
+    LKNE_reference = extractMarkerData(marker_positions_reference, marker_labels_reference, 'LKNE')';
+    LANK_reference = extractMarkerData(marker_positions_reference, marker_labels_reference, 'LANK')';
+    LTOE_reference = extractMarkerData(marker_positions_reference, marker_labels_reference, 'LTOE')';
+    LTOEL_reference = extractMarkerData(marker_positions_reference, marker_labels_reference, 'LTOEL')';
+    LSHO_reference = extractMarkerData(marker_positions_reference, marker_labels_reference, 'LSHO')';
+    LFHD_reference = extractMarkerData(marker_positions_reference, marker_labels_reference, 'LFHD')';
+    LBHD_reference = extractMarkerData(marker_positions_reference, marker_labels_reference, 'LBHD')';
+    LELB_reference = extractMarkerData(marker_positions_reference, marker_labels_reference, 'LELB')';
+    LWRB_reference = extractMarkerData(marker_positions_reference, marker_labels_reference, 'LWRB')';
+    LFIN_reference = extractMarkerData(marker_positions_reference, marker_labels_reference, 'LFIN')';
+    RASI_reference = extractMarkerData(marker_positions_reference, marker_labels_reference, 'RASI')';
+    RPSI_reference = extractMarkerData(marker_positions_reference, marker_labels_reference, 'RPSI')';
+    RKNE_reference = extractMarkerData(marker_positions_reference, marker_labels_reference, 'RKNE')';
+    RANK_reference = extractMarkerData(marker_positions_reference, marker_labels_reference, 'RANK')';
+    RTOE_reference = extractMarkerData(marker_positions_reference, marker_labels_reference, 'RTOE')';
+    RTOEL_reference = extractMarkerData(marker_positions_reference, marker_labels_reference, 'RTOEL')';
+    RSHO_reference = extractMarkerData(marker_positions_reference, marker_labels_reference, 'RSHO')';
+    RFHD_reference = extractMarkerData(marker_positions_reference, marker_labels_reference, 'RFHD')';
+    RBHD_reference = extractMarkerData(marker_positions_reference, marker_labels_reference, 'RBHD')';
+    RELB_reference = extractMarkerData(marker_positions_reference, marker_labels_reference, 'RELB')';
+    RWRB_reference = extractMarkerData(marker_positions_reference, marker_labels_reference, 'RWRB')';
+    RFIN_reference = extractMarkerData(marker_positions_reference, marker_labels_reference, 'RFIN')';
+    left_hip_cor_reference = extractMarkerData(joint_center_positions_reference, joint_center_labels_reference, 'LHIPCOR')';
+    left_knee_cor_reference = extractMarkerData(joint_center_positions_reference, joint_center_labels_reference, 'LKNEECOR')';
+    left_ankle_cor_reference = extractMarkerData(joint_center_positions_reference, joint_center_labels_reference, 'LANKLECOR')';
+    left_toes_eef_reference = extractMarkerData(joint_center_positions_reference, joint_center_labels_reference, 'LTOESEEF')';
+    left_shoulder_cor_reference = extractMarkerData(joint_center_positions_reference, joint_center_labels_reference, 'LSHOULDERCOR')';
+    left_elbow_cor_reference = extractMarkerData(joint_center_positions_reference, joint_center_labels_reference, 'LELBOWCOR')';
+    left_wrist_cor_reference = extractMarkerData(joint_center_positions_reference, joint_center_labels_reference, 'LWRISTCOR')';
+    left_hand_eef_reference = extractMarkerData(joint_center_positions_reference, joint_center_labels_reference, 'LHANDEEF')';
+    right_hip_cor_reference = extractMarkerData(joint_center_positions_reference, joint_center_labels_reference, 'RHIPCOR')';
+    right_knee_cor_reference = extractMarkerData(joint_center_positions_reference, joint_center_labels_reference, 'RKNEECOR')';
+    right_ankle_cor_reference = extractMarkerData(joint_center_positions_reference, joint_center_labels_reference, 'RANKLECOR')';
+    right_toes_eef_reference = extractMarkerData(joint_center_positions_reference, joint_center_labels_reference, 'RTOESEEF')';
+    right_shoulder_cor_reference = extractMarkerData(joint_center_positions_reference, joint_center_labels_reference, 'RSHOULDERCOR')';
+    right_elbow_cor_reference = extractMarkerData(joint_center_positions_reference, joint_center_labels_reference, 'RELBOWCOR')';
+    right_wrist_cor_reference = extractMarkerData(joint_center_positions_reference, joint_center_labels_reference, 'RWRISTCOR')';
+    right_hand_eef_reference = extractMarkerData(joint_center_positions_reference, joint_center_labels_reference, 'RHANDEEF')';
+    lumbar_cor_reference = extractMarkerData(joint_center_positions_reference, joint_center_labels_reference, 'LUMBARCOR')';
+    cervix_cor_reference = extractMarkerData(joint_center_positions_reference, joint_center_labels_reference, 'CERVIXCOR')';
     head_center_reference = mean([LFHD_reference RFHD_reference LBHD_reference RBHD_reference], 2);
     forehead_center_reference = mean([LFHD_reference RFHD_reference], 2);
     
     %% pelvis
     % pelvis angles
-    pelvis_transformation_current_cell = calculateMcsToWcsTransformations_detailed(marker_current, marker_labels, {'PELVIS'});    
+    pelvis_transformation_current_cell = calculateMcsToWcsTransformations_detailed(marker_positions_current, marker_labels_current, {'PELVIS'});    
     pelvis_transformation_current = pelvis_transformation_current_cell{1};
     pelvis_translation_current = pelvis_transformation_current(1:3, 4);
 
-    pelvis_transformation_reference_cell = calculateMcsToWcsTransformations_detailed(marker_reference, marker_labels, {'PELVIS'});
+    pelvis_transformation_reference_cell = calculateMcsToWcsTransformations_detailed(marker_positions_reference, marker_labels_reference, {'PELVIS'});
     pelvis_transformation_reference = pelvis_transformation_reference_cell{1};
     pelvis_translation_reference = pelvis_transformation_reference(1:3, 4);
     pelvis_translation_reference_to_current = pelvis_translation_current - pelvis_translation_reference;

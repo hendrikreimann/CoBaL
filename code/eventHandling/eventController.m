@@ -136,20 +136,19 @@ classdef eventController < handle
             end
             
             % update scene figures
-            
-            % determine index to display
-            [~, index_mocap] = min(abs(this.data_custodian.getTimeData('marker_trajectories') - this.event_data.selected_time));
-            
-            % extract marker data
-            marker_trajectories = this.data_custodian.getBasicVariableData('marker_trajectories');
-            marker_data = marker_trajectories(index_mocap, :);
-            joint_center_trajectories = this.data_custodian.getBasicVariableData('joint_center_trajectories');
-            joint_center_data = joint_center_trajectories(index_mocap, :);
-            com_trajectories = this.data_custodian.getBasicVariableData('com_trajectories');
-            com_data = com_trajectories(index_mocap, :);
-            % TODO: deal with cases where we have only marker data and no kinematic data yet
-            
-            
+            if ~isempty(this.scene_figure)
+                
+                % determine index to display
+                [~, index_mocap] = min(abs(this.data_custodian.getTimeData('marker_trajectories') - this.event_data.selected_time));
+
+                % extract marker data
+                marker_trajectories = this.data_custodian.getBasicVariableData('marker_trajectories');
+                marker_data = marker_trajectories(index_mocap, :);
+                joint_center_trajectories = this.data_custodian.getBasicVariableData('joint_center_trajectories');
+                joint_center_data = joint_center_trajectories(index_mocap, :);
+                com_trajectories = this.data_custodian.getBasicVariableData('com_trajectories');
+                com_data = com_trajectories(index_mocap, :);
+                % TODO: deal with cases where we have only marker data and no kinematic data yet
             
 %             
 %             % extract joint angle data and update
@@ -160,7 +159,7 @@ classdef eventController < handle
 %             end
 %             
 %             % update scene figure
-            this.scene_figure.update([marker_data joint_center_data com_data]);
+                this.scene_figure.update([marker_data joint_center_data com_data]);
 %             
 %             % update kinematic chain stick figure
 %             if ~isempty(this.kinematic_tree_controller)
@@ -170,6 +169,8 @@ classdef eventController < handle
 %                 
 %                 this.kinematic_tree_stick_figure.updateRecordedMarkerPlots([marker_data joint_center_data]);
 %             end
+            
+            end            
             
             this.selected_time_edit.String = num2str(this.event_data.selected_time);
         end
