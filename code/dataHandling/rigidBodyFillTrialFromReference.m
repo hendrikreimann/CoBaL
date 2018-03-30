@@ -15,7 +15,7 @@
 %     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-function rigidBodyFill(marker_to_fill, marker_source_1, marker_source_2, marker_source_3, varargin)
+function rigidBodyFillTrialFromReference(marker_to_fill, marker_source_1, marker_source_2, marker_source_3, varargin)
     [condition_list, trial_number_list] = parseTrialArguments(varargin{:});
     parser = inputParser;
     parser.KeepUnmatched = true;
@@ -27,14 +27,14 @@ function rigidBodyFill(marker_to_fill, marker_source_1, marker_source_2, marker_
     
     
     % load settings
-    study_settings_file = '';
-    if exist(['..' filesep 'studySettings.txt'], 'file')
-        study_settings_file = ['..' filesep 'studySettings.txt'];
-    end    
-    if exist(['..' filesep '..' filesep 'studySettings.txt'], 'file')
-        study_settings_file = ['..' filesep '..' filesep 'studySettings.txt'];
-    end
-    study_settings = SettingsCustodian(study_settings_file);
+%     study_settings_file = '';
+%     if exist(['..' filesep 'studySettings.txt'], 'file')
+%         study_settings_file = ['..' filesep 'studySettings.txt'];
+%     end    
+%     if exist(['..' filesep '..' filesep 'studySettings.txt'], 'file')
+%         study_settings_file = ['..' filesep '..' filesep 'studySettings.txt'];
+%     end
+%     study_settings = SettingsCustodian(study_settings_file);
     
     load('subjectInfo.mat', 'date', 'subject_id');
     load('subjectModel.mat');
@@ -108,19 +108,32 @@ function rigidBodyFill(marker_to_fill, marker_source_1, marker_source_2, marker_
             
             % insert reconstructed trajectory back into array
             marker_indices = extractMarkerData(marker_trajectories, marker_labels, marker_to_fill, 'indices');
+            if isempty(marker_indices)
+                % marker was not present at all in this trial, so add it
+                marker_labels = ...
+                  [ ...
+                    marker_labels, ...
+                    [marker_to_fill '_x'], ...
+                    [marker_to_fill '_y'], ...
+                    [marker_to_fill '_z'] ...
+                  ]; %#ok<AGROW>
+                single_marker_directions = marker_directions(:, 1:3); % re-use this, assuming the direction is the same for all markers
+                marker_directions = [marker_directions, single_marker_directions]; %#ok<AGROW>
+                marker_indices = (1 : 3) + size(marker_trajectories, 2);
+            end
             
-%             marker_number = find(strcmp(marker_labels, marker_to_fill));
-%             markers_indices = reshape([(marker_number - 1) * 3 + 1; (marker_number - 1) * 3 + 2; (marker_number - 1) * 3 + 3], 1, length(marker_number)*3);
-            marker_trajectories(:, marker_indices) = marker_to_fill_trajectory;
+            marker_trajectories(:, marker_indices) = marker_to_fill_trajectory; %#ok<AGROW>
             
             % save
             variables_to_save = struct;
             variables_to_save.marker_trajectories = marker_trajectories;
+            variables_to_save.marker_labels = marker_labels;
+            variables_to_save.marker_directions = marker_directions;
             
             save_folder = 'processed';
             save_file_name = makeFileName(date, subject_id, condition, i_trial, 'markerTrajectories.mat');
             saveDataToFile([save_folder filesep save_file_name], variables_to_save);
-            disp(['Condition ' condition ', Trial ' num2str(i_trial) ' completed, saved as ' save_folder filesep save_file_name]);
+            disp(['Rigid body filling marker ' marker_to_fill ', condition ' condition ', Trial ' num2str(i_trial)]);
             
         end
     end
