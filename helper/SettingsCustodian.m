@@ -196,6 +196,12 @@ classdef SettingsCustodian < handle
             if strcmp(property_name, 'group_bands_within_conditions')
                 default_data = 0;
             end
+            if strcmp(property_name, 'emg_time_offset')
+                default_data = 0;
+            end
+            
+            
+            
             
             if strcmp(property_name, 'marker_to_segment_map')
                 default_data = ...
