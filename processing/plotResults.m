@@ -1602,12 +1602,31 @@ function plotResults(varargin)
             end
         end    
     end
-    if plot_settings.get('plot_zero')
+    if plot_settings.get('plot_diagonals')
+        for i_path = 1 : number_of_paths_to_plot
+            for i_axes = 1 : size(path_axes_handles, 1)
+                these_axes = path_axes_handles(i_axes, i_path);
+                xlimits = get(these_axes, 'xlim');
+                ylimits = get(these_axes, 'ylim');
+                
+                xlimits = [-1 1] * max(abs(xlimits));
+                ylimits = [-1 1] * max(abs(ylimits));
+                
+                diagonal_plot = plot(these_axes, [0 xlimits(1)], [0 ylimits(1)], 'color', [0.7 0.7 0.7]); set(diagonal_plot, 'HandleVisibility', 'off'); uistack(diagonal_plot, 'bottom')
+                diagonal_plot = plot(these_axes, [0 xlimits(1)], [0 ylimits(2)], 'color', [0.7 0.7 0.7]); set(diagonal_plot, 'HandleVisibility', 'off'); uistack(diagonal_plot, 'bottom')
+                diagonal_plot = plot(these_axes, [0 xlimits(2)], [0 ylimits(1)], 'color', [0.7 0.7 0.7]); set(diagonal_plot, 'HandleVisibility', 'off'); uistack(diagonal_plot, 'bottom')
+                diagonal_plot = plot(these_axes, [0 xlimits(2)], [0 ylimits(2)], 'color', [0.7 0.7 0.7]); set(diagonal_plot, 'HandleVisibility', 'off'); uistack(diagonal_plot, 'bottom')
+                set(these_axes, 'xlim', xlimits);
+                set(these_axes, 'ylim', ylimits);
+                
+                
+            end
+        end    
         
     end
     
     %% shade steps
-    if mark_bands
+    if mark_bands && ~strcmp(plot_mode, 'episodes')
 %         if strcmp(plot_mode, 'overview')
             for i_comparison = 1 : number_of_comparisons
                 for i_variable = 1 : number_of_variables_to_plot

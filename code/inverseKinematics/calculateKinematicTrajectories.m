@@ -127,6 +127,14 @@ function calculateKinematicTrajectories(varargin)
                 % get correct information back
                 joint_center_labels = joint_center_labels_correct;
                 
+                for i_time_step = 1 : length(time_steps_to_process)
+                    i_time = time_steps_to_process(i_time_step);
+                    % check for missing markers
+                    if any(any(isnan(marker_trajectories_trial(i_time, essential_marker_indicator))))
+                        new_ignore_times = [new_ignore_times; time_mocap(i_time)]; %#ok<AGROW>
+                    end                
+                end                
+                
             end
             
             if ~register_without_calculating

@@ -2795,9 +2795,14 @@ classdef WalkingDataCustodian < handle
                     
                     
                     % calculate normalized stretch data for the basic variables
-                    if this.isBasicVariable(variable_name)
+                    if this.isBasicVariable(variable_name) || any(variable_name==':')
                         stretch_data = this.getTimeNormalizedData(variable_name, this_stretch_times);
                     end
+                    
+                    
+                    
+                    
+                    
                 
                     % calculate stretch variables that are not basic variables or need special attention
                     % REMINDER: if you add a variable here, make sure to also add it below in registerStretchVariableDirections
@@ -3290,10 +3295,10 @@ classdef WalkingDataCustodian < handle
                 time_extracted = variable_time(band_time_indices(1) : band_time_indices(end));
                 data_extracted = variable_data(band_time_indices(1) : band_time_indices(end));
                 band_time_indices_local = band_time_indices - band_time_indices(1) + 1;
-                if any(isnan(data_extracted))
-                    exception = MException('CoBaL:NaN', 'Data contains NaN values.');
-                    throw(exception)
-                end
+%                 if any(isnan(data_extracted))
+%                     exception = MException('CoBaL:NaN', 'Data contains NaN values.');
+%                     throw(exception)
+%                 end
             catch error
                 disp(['Error while processing variable ''' variable_name ''''])
                 throw(error)
@@ -3338,6 +3343,17 @@ classdef WalkingDataCustodian < handle
             % determine directions
             if this.isBasicVariable(variable_name)
                 stretch_directions_new = this.basic_variable_directions.(variable_name);
+            end
+            % check if this is a compound name, listing a loaded variable and a label
+            if any(variable_name==':')
+                this_variable_split = strsplit(variable_name, ':');
+                this_variable_type = this_variable_split{1};
+                this_variable_label = this_variable_split{2};
+                
+                this_type_labels = this.basic_variable_labels.([this_variable_type '_trajectories']);
+                this_type_directions = this.basic_variable_directions.([this_variable_type '_trajectories']);
+                
+                stretch_directions_new = this_type_directions(:, strcmp(this_type_labels, this_variable_label));
             end
             
             if strcmp(variable_name, 'step_length')
@@ -3572,7 +3588,7 @@ classdef WalkingDataCustodian < handle
             end
             if strcmp(variable_name, 'copl_x') || strcmp(variable_name, 'copl_y') || strcmp(variable_name, 'copr_x') || strcmp(variable_name, 'copr_y')
                 stretch_directions_new = this.basic_variable_directions.(variable_name);
-            end                    
+            end
             
             % compare against what is already on file
             stretch_directions_on_file = this.stretch_variable_directions(this_variable_index, :);

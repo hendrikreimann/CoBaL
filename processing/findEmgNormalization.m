@@ -42,7 +42,8 @@ function findEmgNormalization(varargin)
     subject_settings = SettingsCustodian('subjectSettings.txt');
     emg_variable_names = subject_settings.get('emg_labels')';
     data_custodian = WalkingDataCustodian(emg_variable_names);
-    number_of_stretch_variables = length(emg_variable_names);
+%     number_of_stretch_variables = length(emg_variable_names);
+    number_of_stretch_variables = length(data_custodian.stretch_variable_names);
    
     
     % find relevant conditions
