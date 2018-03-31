@@ -1502,8 +1502,8 @@ function determineStretchesToAnalyze(varargin)
                 event_variables_to_save.stance_foot_data = stance_foot_data;
 
                 % conditions
-                stim_frequency_list = repmat({stim_frequency}, size(stretch_times, 1), 1);
-                stim_amplitude_list = repmat({stim_amplitude}, size(stretch_times, 1), 1);
+                stim_frequency_list = repmat({['FRQ_' stim_frequency]}, size(stretch_times, 1), 1);
+                stim_amplitude_list = repmat({['AMPL_' stim_amplitude]}, size(stretch_times, 1), 1);
                 block_list = repmat({block}, size(stretch_times, 1), 1);
                 conditions_trial = struct;
                 conditions_trial.stim_frequency_list = stim_frequency_list;

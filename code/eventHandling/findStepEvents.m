@@ -73,11 +73,13 @@ function findStepEvents(varargin)
 %             marker_trajectories_raw
             % extract data
             LHEE_trajectory = extractMarkerData(marker_trajectories, marker_labels, 'LHEE', 'trajectories');
+            LHEE_y_trajectory = LHEE_trajectory(:, 2);
             LHEE_z_trajectory = LHEE_trajectory(:, 3);
             LTOE_trajectory = extractMarkerData(marker_trajectories, marker_labels, 'LTOE', 'trajectories');
             LTOE_z_trajectory = LTOE_trajectory(:, 3);
             
             RHEE_trajectory = extractMarkerData(marker_trajectories, marker_labels, 'RHEE', 'trajectories');
+            RHEE_y_trajectory = RHEE_trajectory(:, 2);
             RHEE_z_trajectory = RHEE_trajectory(:, 3);
             RTOE_trajectory = extractMarkerData(marker_trajectories, marker_labels, 'RTOE', 'trajectories');
             RTOE_z_trajectory = RTOE_trajectory(:, 3);
@@ -163,6 +165,12 @@ function findStepEvents(varargin)
                 left_touchdown_indices_mocap(left_touchdown_indices_mocap==0) = [];
                 left_touchdown_times = [left_touchdown_times; time_marker(left_touchdown_indices_mocap)];
             end
+            if any(strcmp(subject_settings.get('left_touchdown_method'), 'heel_ap_peak'))
+                % find velocity zeros
+                [~, left_heel_vel_peak_locations] = findpeaks(LHEE_y_trajectory, 'MinPeakProminence', subject_settings.get('left_touchdown_peak_prominence_threshold'));
+                left_touchdown_indices_mocap = left_heel_vel_peak_locations;
+                left_touchdown_times = [left_touchdown_times; time_marker(left_heel_vel_peak_locations)];
+            end
 
             left_pushoff_times = [];
             if any(strcmp(subject_settings.get('left_pushoff_method'), 'first_velocity_peak_after_touchdown'))
@@ -242,6 +250,12 @@ function findStepEvents(varargin)
                 end
                 right_touchdown_indices_mocap(right_touchdown_indices_mocap==0) = [];
                 right_touchdown_times = [right_touchdown_times; time_marker(right_touchdown_indices_mocap)];
+            end
+            if any(strcmp(subject_settings.get('right_touchdown_method'), 'heel_ap_peak'))
+                % find velocity zeros
+                [~, right_heel_vel_peak_locations] = findpeaks(RHEE_y_trajectory, 'MinPeakProminence', subject_settings.get('right_touchdown_peak_prominence_threshold'));
+                right_touchdown_indices_mocap = right_heel_vel_peak_locations;
+                right_touchdown_times = [right_touchdown_times; time_marker(right_heel_vel_peak_locations)];
             end
   
             right_pushoff_times = []; 

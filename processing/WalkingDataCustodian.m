@@ -315,6 +315,43 @@ classdef WalkingDataCustodian < handle
                 this.addStretchVariable('com_y')
                 this.addStretchVariable('cop_to_com_y')
             end
+            if this.isVariableToAnalyze('init_heel_to_com_x')
+                this.addBasicVariable('marker_trajectories')
+                this.addBasicVariable('lheel_x')
+                this.addStretchVariable('lheel_x')
+                this.addBasicVariable('rheel_x')
+                this.addStretchVariable('rheel_x')
+                this.addBasicVariable('com_trajectories')
+                this.addBasicVariable('com_x')
+                this.addStretchVariable('com_x')
+                this.addStretchVariable('init_heel_to_com_x')
+            end
+            if this.isVariableToAnalyze('cop_to_com_vel_scaled_x')
+                this.addBasicVariable('com_trajectories')
+                this.addBasicVariable('com_x')
+                this.addBasicVariable('com_x_vel')
+                this.addStretchVariable('com_x_vel')
+                this.addBasicVariable('com_z')
+                this.addStretchVariable('com_z')
+                this.addBasicVariable('total_forceplate_cop_world')
+                this.addBasicVariable('cop_x')
+                this.addBasicVariable('cop_x_vel')
+                this.addStretchVariable('cop_x_vel')
+                this.addStretchVariable('cop_to_com_vel_scaled_x')
+            end
+            if this.isVariableToAnalyze('cop_to_com_vel_scaled_y')
+                this.addBasicVariable('com_trajectories')
+                this.addBasicVariable('com_y')
+                this.addBasicVariable('com_y_vel')
+                this.addStretchVariable('com_y_vel')
+                this.addBasicVariable('com_z')
+                this.addStretchVariable('com_z')
+                this.addBasicVariable('total_forceplate_cop_world')
+                this.addBasicVariable('cop_y')
+                this.addBasicVariable('cop_y_vel')
+                this.addStretchVariable('cop_y_vel')
+                this.addStretchVariable('cop_to_com_vel_scaled_y')
+            end
             if this.isVariableToAnalyze('head_angle_ap')
                 this.addBasicVariable('marker_trajectories')
                 this.addBasicVariable('head_angle_ap')
@@ -477,6 +514,18 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('com_x_vel')
                 this.addStretchVariable('com_x_vel')
             end
+            if this.isVariableToAnalyze('com_x_vel_scaled')
+                this.addBasicVariable('com_trajectories')
+                this.addBasicVariable('com_x')
+                this.addBasicVariable('com_x_vel')
+                this.addStretchVariable('com_x_vel')
+                this.addBasicVariable('com_z')
+                this.addStretchVariable('com_z')
+                this.addStretchVariable('com_x_vel_scaled')
+            end
+            
+            
+            
             if this.isVariableToAnalyze('com_y_vel')
                 this.addBasicVariable('com_trajectories')
                 this.addBasicVariable('com_y')
@@ -2934,6 +2983,66 @@ classdef WalkingDataCustodian < handle
                         cop_y = stretch_variables{strcmp(this.stretch_variable_names, 'cop_y')}(:, i_stretch);
                         stretch_data = com_y - cop_y;
                     end
+                    if strcmp(variable_name, 'init_heel_to_com_x')
+                        com_x = stretch_variables{strcmp(this.stretch_variable_names, 'com_x')}(:, i_stretch);
+                        
+                        lheel_x = this.getTimeNormalizedData('lheel_x', this_stretch_times);
+                        rheel_x = this.getTimeNormalizedData('rheel_x', this_stretch_times);
+                        stretch_data = zeros(size(rheel_x)) * NaN;
+                        
+                        
+                        for i_band = 1 : number_of_bands
+                            [band_start_index, band_end_index] = getBandIndices(i_band, this.number_of_time_steps_normalized);
+                            
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_RIGHT')
+                                stretch_data(band_start_index : band_end_index) = com_x(band_start_index : band_end_index) - rheel_x(band_start_index);
+                            end
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_LEFT')
+                                stretch_data(band_start_index : band_end_index) = com_x(band_start_index : band_end_index) - lheel_x(band_start_index);
+                            end
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_BOTH')
+                                % do nothing, leave NaNs
+                            end
+                        end
+                    end
+                    
+                    
+                    if strcmp(variable_name, 'cop_to_com_vel_scaled_x')
+                        com_z = stretch_variables{strcmp(this.stretch_variable_names, 'com_z')}(:, i_stretch);
+                        com_x_vel = stretch_variables{strcmp(this.stretch_variable_names, 'com_x_vel')}(:, i_stretch);
+                        cop_x_vel = stretch_variables{strcmp(this.stretch_variable_names, 'cop_x_vel')}(:, i_stretch);
+                        
+                        g = 9.81;
+                        omega = (g./com_z).^(0.5);
+                        
+                        stretch_data = (com_x_vel - cop_x_vel) ./ omega;
+                        
+                        
+                        com_x = stretch_variables{strcmp(this.stretch_variable_names, 'com_x')}(:, i_stretch);
+                        cop_x = stretch_variables{strcmp(this.stretch_variable_names, 'cop_x')}(:, i_stretch);
+                        pos = com_x - cop_x;
+                        
+                        
+                    end
+                    if strcmp(variable_name, 'cop_to_com_vel_scaled_y')
+                        com_y_vel = stretch_variables{strcmp(this.stretch_variable_names, 'com_y_vel')}(:, i_stretch);
+                        cop_y_vel = stretch_variables{strcmp(this.stretch_variable_names, 'cop_y_vel')}(:, i_stretch);
+                        stretch_data = com_y_vel - cop_y_vel;
+                    end
+                    if strcmp(variable_name, 'com_x_vel_scaled')
+                        com_z = stretch_variables{strcmp(this.stretch_variable_names, 'com_z')}(:, i_stretch);
+                        com_x_vel = stretch_variables{strcmp(this.stretch_variable_names, 'com_x_vel')}(:, i_stretch);
+                        
+                        g = 9.81;
+                        omega = (g./com_z).^(0.5);
+                        
+                        stretch_data = com_x_vel ./ omega;
+                    end
+                    
+                                        
+
+                    
+                    
                     if strcmp(variable_name, 'heel_clearance')
                         stretch_data = zeros(number_of_bands, 1);
                         for i_band = 1 : number_of_bands
@@ -3339,6 +3448,36 @@ classdef WalkingDataCustodian < handle
                 stretch_directions_new = com_x_directions;
             end
             if strcmp(variable_name, 'cop_to_com_y')
+                com_y_directions = this.stretch_variable_directions(strcmp(this.stretch_variable_names, 'com_y'), :);
+                cop_y_directions = this.stretch_variable_directions(strcmp(this.stretch_variable_names, 'cop_y'), :);
+                if ~strcmp(com_y_directions{1}, cop_y_directions{1})
+                    error('com_y and cop_y directions are different from each other')
+                end
+                if ~strcmp(com_y_directions{2}, cop_y_directions{2})
+                    error('com_y and cop_y directions are different from each other')
+                end
+                stretch_directions_new = com_y_directions;
+            end
+            if strcmp(variable_name, 'init_heel_to_com_x')
+                com_x_directions = this.stretch_variable_directions(strcmp(this.stretch_variable_names, 'com_x'), :);
+                stretch_directions_new = com_x_directions;
+            end
+            if strcmp(variable_name, 'com_x_vel_scaled')
+                com_x_directions = this.stretch_variable_directions(strcmp(this.stretch_variable_names, 'com_x'), :);
+                stretch_directions_new = com_x_directions;
+            end
+            if strcmp(variable_name, 'cop_to_com_vel_scaled_x')
+                com_x_directions = this.stretch_variable_directions(strcmp(this.stretch_variable_names, 'com_x'), :);
+                cop_x_directions = this.stretch_variable_directions(strcmp(this.stretch_variable_names, 'cop_x'), :);
+                if ~strcmp(com_x_directions{1}, cop_x_directions{1})
+                    error('com_x and cop_x directions are different from each other')
+                end
+                if ~strcmp(com_x_directions{2}, cop_x_directions{2})
+                    error('com_x and cop_x directions are different from each other')
+                end
+                stretch_directions_new = com_x_directions;
+            end
+            if strcmp(variable_name, 'cop_to_com_vel_scaled_y')
                 com_y_directions = this.stretch_variable_directions(strcmp(this.stretch_variable_names, 'com_y'), :);
                 cop_y_directions = this.stretch_variable_directions(strcmp(this.stretch_variable_names, 'cop_y'), :);
                 if ~strcmp(com_y_directions{1}, cop_y_directions{1})
