@@ -728,14 +728,23 @@ function determineStretchesToAnalyze(varargin)
                         if index_left == 1 || length(left_touchdown_times) < index_left + 1 || removal_flags(i_trigger) == 1
                             % data doesn't include previous or next step
                             removal_flags(i_trigger) = 1;
-                            right_foot_heelstrike_minus_1 = NaN;
-                            right_foot_heelstrike_0 = NaN;
-                            right_foot_heelstrike_plus_1 = NaN;
-                            right_foot_heelstrike_plus_2 = NaN;
-                            left_foot_heelstrike_minus_1 = NaN;
-                            left_foot_heelstrike_0 = NaN;
-                            left_foot_heelstrike_plus_1 = NaN;
-                            left_foot_heelstrike_plus_2 = NaN;
+                            right_foot_heelstrike_minus_1   = NaN;
+                            right_foot_heelstrike_0         = NaN;
+                            right_foot_heelstrike_plus_1    = NaN;
+                            right_foot_heelstrike_plus_2    = NaN;
+                            left_foot_heelstrike_minus_1    = NaN;
+                            left_foot_heelstrike_0          = NaN;
+                            left_foot_heelstrike_plus_1     = NaN;
+                            left_foot_heelstrike_plus_2     = NaN;
+                            
+                            right_foot_pushoff_minus_1      = NaN;
+                            right_foot_pushoff_0            = NaN;
+                            right_foot_pushoff_plus_1       = NaN;
+                            right_foot_pushoff_plus_2       = NaN;
+                            left_foot_pushoff_minus_1       = NaN;
+                            left_foot_pushoff_0             = NaN;
+                            left_foot_pushoff_plus_1        = NaN;
+                            left_foot_pushoff_plus_2        = NaN;
                         else
                             left_foot_heelstrike_minus_1    = left_touchdown_times(index_left-1);
                             left_foot_heelstrike_0          = left_touchdown_times(index_left);
@@ -799,14 +808,23 @@ function determineStretchesToAnalyze(varargin)
                         if index_right == 1 || length(right_touchdown_times) < index_right + 1 || removal_flags(i_trigger) == 1
                             % data doesn't include previous or next step
                             removal_flags(i_trigger) = 1;
-                            left_foot_heelstrike_minus_1 = NaN;
-                            left_foot_heelstrike_0 = NaN;
-                            left_foot_heelstrike_plus_1 = NaN;
-                            left_foot_heelstrike_plus_2 = NaN;
-                            right_foot_heelstrike_minus_1 = NaN;
-                            right_foot_heelstrike_0 = NaN;
-                            right_foot_heelstrike_plus_1 = NaN;
-                            right_foot_heelstrike_plus_2 = NaN;
+                            left_foot_heelstrike_minus_1    = NaN;
+                            left_foot_heelstrike_0          = NaN;
+                            left_foot_heelstrike_plus_1     = NaN;
+                            left_foot_heelstrike_plus_2     = NaN;
+                            right_foot_heelstrike_minus_1   = NaN;
+                            right_foot_heelstrike_0         = NaN;
+                            right_foot_heelstrike_plus_1    = NaN;
+                            right_foot_heelstrike_plus_2    = NaN;
+                            
+                            right_foot_pushoff_minus_1      = NaN;
+                            right_foot_pushoff_0            = NaN;
+                            right_foot_pushoff_plus_1       = NaN;
+                            right_foot_pushoff_plus_2       = NaN;
+                            left_foot_pushoff_minus_1       = NaN;
+                            left_foot_pushoff_0             = NaN;
+                            left_foot_pushoff_plus_1        = NaN;
+                            left_foot_pushoff_plus_2        = NaN;
                         else
                             right_foot_heelstrike_minus_1       = right_touchdown_times(index_right-1);
                             right_foot_heelstrike_0             = right_touchdown_times(index_right);
