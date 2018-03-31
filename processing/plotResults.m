@@ -1348,7 +1348,6 @@ function plotResults(varargin)
         for i_comparison = 1 : length(comparison_indices)
             % find correct condition indicator for control
             conditions_this_comparison = comparison_indices{i_comparison};
-            top_level_plots = [];
             target_axes_handle = path_axes_handles(comparison_path_to_axes_index_map(i_comparison), i_path);
         
             % plot control
@@ -1403,14 +1402,27 @@ function plotResults(varargin)
                 
                 if strcmp(plot_mode, 'detailed')
                     for i_stretch = 1 : size(path_to_plot_x_this_condition, 2)
-                        plot ...
-                          ( ...
-                            target_axes_handle, ...
-                            path_to_plot_x_this_condition(:, i_stretch), ...
-                            path_to_plot_y_this_condition(:, i_stretch), ...
-                            'HandleVisibility', 'off', ...
-                            'color', lightenColor(colors_comparison(i_condition, :), 0.5) ...
-                          );
+%                         plot ...
+%                           ( ...
+%                             target_axes_handle, ...
+%                             path_to_plot_x_this_condition(:, i_stretch), ...
+%                             path_to_plot_y_this_condition(:, i_stretch), ...
+%                             'HandleVisibility', 'off', ...
+%                             'color', lightenColor(colors_comparison(i_condition, :), 0.5) ...
+%                           );
+                        for i_band = 1 : bands_per_stretch
+                            if ~ismember(i_band, plot_settings.get('bands_to_remove'))
+                                [band_start_index, band_end_index] = getBandIndices(i_band, number_of_time_steps_normalized);
+                                plot ...
+                                  ( ...
+                                    target_axes_handle, ...
+                                    path_to_plot_x_this_condition(band_start_index : band_end_index, i_stretch), ...
+                                    path_to_plot_y_this_condition(band_start_index : band_end_index, i_stretch), ...
+                                    'HandleVisibility', 'off', ...
+                                    'color', lightenColor(colors_comparison(i_condition, :), 0.5) ...
+                                  );
+                            end
+                        end
                         for i_band = 2 : bands_per_stretch
                             band_index = getBandIndices(i_band, number_of_time_steps_normalized);
                             plot ...
@@ -1430,132 +1442,6 @@ function plotResults(varargin)
         
         end
         
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-%         for i_comparison = 1 : length(comparison_indices)
-%             % find correct condition indicator for control
-%             conditions_this_comparison = comparison_indices{i_comparison};
-%             top_level_plots = [];
-%             target_axes_handle = path_axes_handles(comparison_path_to_axes_index_map(i_comparison), i_path);
-%             
-%             % plot control
-%             if plot_settings.get('plot_control') && ~isempty(conditions_control) && ~plot_settings.get('plot_response')
-%                 % determine which control condition applies here
-%                 representant_condition_index = conditions_this_comparison(1);
-%                 applicable_control_condition_index = findApplicableControlConditionIndex(conditions_to_plot(representant_condition_index, :), conditions_control);
-%                 applicable_control_condition_labels = conditions_control(applicable_control_condition_index, :);
-%                 
-%                 % extract data for control condition
-%                 stance_foot_indicator = strcmp(condition_stance_foot_list_all, applicable_control_condition_labels{1});
-%                 perturbation_indicator = strcmp(condition_perturbation_list_all, applicable_control_condition_labels{2});
-%                 delay_indicator = strcmp(condition_delay_list_all, applicable_control_condition_labels{3});
-%                 index_indicator = strcmp(condition_index_list_all, applicable_control_condition_labels{4});
-%                 experimental_indicator = strcmp(condition_experimental_list_all, applicable_control_condition_labels{5});
-%                 stimulus_indicator = strcmp(condition_stimulus_list_all, applicable_control_condition_labels{6});
-%                 day_indicator = strcmp(condition_day_list_all, applicable_control_condition_labels{7});
-%                 this_condition_indicator = stance_foot_indicator & perturbation_indicator & delay_indicator & index_indicator & experimental_indicator & stimulus_indicator & day_indicator;
-%                 data_to_plot_this_condition_x = data_to_plot_x(:, this_condition_indicator);
-%                 data_to_plot_this_condition_y = data_to_plot_y(:, this_condition_indicator);
-% %                 origin_indices = find(this_condition_indicator);
-%                 
-%                 if ~isempty(data_to_plot_this_condition_x)
-%                     if strcmp(plot_mode, 'detailed')
-%                         % individual trajectories
-%                         for i_stretch = 1 : size(data_to_plot_this_condition_x, 2)
-% %                             origin_index_data = ones(size(target_abscissa)) * origin_indices(i_stretch);
-%                             plot ...
-%                               ( ...
-%                                 target_axes_handle, ...
-%                                 data_to_plot_this_condition_x(:, i_stretch), ...
-%                                 data_to_plot_this_condition_y(:, i_stretch), ...
-%                                 'HandleVisibility', 'off', ...
-%                                 'color', lightenColor(plot_settings.get('color_control'), 0.5) ...
-%                               );
-%                         end
-%                         % condition average
-%                         control_mean_plot = plot ...
-%                           ( ...
-%                             target_axes_handle, ...
-%                             mean(data_to_plot_this_condition_x, 2), ...
-%                             mean(data_to_plot_this_condition_y, 2), ...
-%                             'DisplayName', 'CONTROL', ...
-%                             'linewidth', 5, ...
-%                             'color', plot_settings.get('color_control') ...
-%                           );
-%                         top_level_plots = [top_level_plots control_mean_plot]; %#ok<AGROW>
-%                     end
-%                 end
-%             end
-%             
-%             % plot stimulus
-%             for i_condition = 1 : length(conditions_this_comparison)
-%                 label_string = strrep(conditions_to_plot{comparison_indices{i_comparison}(i_condition), plot_settings.get('comparison_to_make')}, '_', ' ');
-%                 
-%                 % find correct condition indicator
-%                 condition_identifier = conditions_to_plot(conditions_this_comparison(i_condition), :);
-%                 stance_foot_indicator = strcmp(condition_stance_foot_list_all, condition_identifier{1});
-%                 perturbation_indicator = strcmp(condition_perturbation_list_all, condition_identifier{2});
-%                 delay_indicator = strcmp(condition_delay_list_all, condition_identifier{3});
-%                 index_indicator = strcmp(condition_index_list_all, condition_identifier{4});
-%                 experimental_indicator = strcmp(condition_experimental_list_all, condition_identifier{5});
-%                 stimulus_indicator = strcmp(condition_stimulus_list_all, condition_identifier{6});
-%                 day_indicator = strcmp(condition_day_list_all, condition_identifier{7});
-%                 this_condition_indicator = stance_foot_indicator & perturbation_indicator & delay_indicator & index_indicator & experimental_indicator & stimulus_indicator & day_indicator;
-%                 data_to_plot_this_condition_x = data_to_plot_x(:, this_condition_indicator);
-%                 data_to_plot_this_condition_y = data_to_plot_y(:, this_condition_indicator);
-% %                 origin_trial_list_this_condition = origin_trial_list_all(this_condition_indicator);
-%                 origin_indices = find(this_condition_indicator);
-%                 if strcmp(plot_mode, 'detailed')
-%                     for i_stretch = 1 : size(data_to_plot_this_condition_x, 2)
-% %                             origin_trial_data = ones(size(target_abscissa)) * origin_trial_list_this_condition(i_stretch);
-% %                         origin_index_data = ones(size(target_abscissa)) * origin_indices(i_stretch);
-%                         plot ...
-%                           ( ...
-%                             target_axes_handle, ...
-%                             data_to_plot_this_condition_x(:, i_stretch), ...
-%                             data_to_plot_this_condition_y(:, i_stretch), ...
-%                             'HandleVisibility', 'off', ...
-%                             'color', lightenColor(colors_comparison(i_condition, :), 0.5) ...
-%                           );
-%                     end
-%                     condition_mean_plot = plot ...
-%                       ( ...
-%                         target_axes_handle, ...
-%                         mean(data_to_plot_this_condition_x, 2), ...
-%                         mean(data_to_plot_this_condition_y, 2), ...
-%                         'linewidth', 5, ...
-%                         'color', colors_comparison(i_condition, :) ...
-%                       );
-%                     top_level_plots = [top_level_plots condition_mean_plot]; %#ok<AGROW>
-%                 end
-%             end
-% 
-%             % reorder to bring mean plots on top
-%             for i_plot = 1 : length(top_level_plots)
-%                 uistack(top_level_plots(i_plot), 'top');
-%             end
-%             
-%             % toggle legend
-%             if show_legend && ~(isDiscreteVariable(i_variable, data_all, bands_per_stretch) && (strcmp(plot_mode, 'overview') || strcmp(plot_mode, 'episodes')))
-%                 legend(target_axes_handle, 'show')
-%             end
-%         end
     end
     
     %% update label positions
