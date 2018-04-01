@@ -1,2 +1,4 @@
 subjectSheet.pages
 analyzeSubjects.m
+*.orig
+*.asv
