@@ -58,7 +58,6 @@ function createModel(varargin)
         disp('Elbow width not specified, using 0.07m as a proxy. Please enter measurement in subjects.csv.');
     end
 
-
     %% create static reference
 
     % load static reference file
@@ -70,7 +69,6 @@ function createModel(varargin)
         i_time = i_time + 1;
     end
     marker_reference = marker_trajectories(i_time, :);
-
     
     %% extract marker reference positions
     
