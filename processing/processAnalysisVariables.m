@@ -68,7 +68,7 @@ function processAnalysisVariables(varargin)
     
     if isfield(loaded_data, 'analysis_data_session')
         analysis_data_session = loaded_data.analysis_data_session;
-        analysis_directions_session = loaded_data.analysis_data_session;
+        analysis_directions_session = loaded_data.analysis_directions_session;
         analysis_names_session = loaded_data.analysis_names_session;
     else
         analysis_data_session = {};
