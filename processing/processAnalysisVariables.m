@@ -145,16 +145,25 @@ function processAnalysisVariables(varargin)
 
     %% calculate integrated variables
     % TODO: deal with bands
-    % TODO: deal with directions
+    % TODO: deal with directions .. check this
     variables_to_integrate = study_settings.get('analysis_variables_from_integration');
     step_time_index_in_saved_data = find(strcmp(loaded_data.stretch_names_session, 'step_time'), 1, 'first');
     this_step_time_data = loaded_data.stretch_data_session{step_time_index_in_saved_data};
     pushoff_time_index_in_saved_data = find(strcmp(loaded_data.stretch_names_session, 'pushoff_time'), 1, 'first');
-%     this_pushoff_time_data = loaded_data.stretch_data_session{pushoff_time_index_in_saved_data};
+    this_pushoff_time_data = loaded_data.stretch_data_session{pushoff_time_index_in_saved_data};
     for i_variable = 1 : size(variables_to_integrate, 1)
         this_variable_name = variables_to_integrate{i_variable, 1};
         this_variable_source_name = variables_to_integrate{i_variable, 2};
+        
+        eval(['data_source = ' 'response_data_session;']);
+        eval(['names_source = ' 'response_names_session;']);
+        eval(['directions_source = '  'response_directions_session;']);
+        
+        this_variable_source_data = data_source{strcmp(names_source, this_variable_source_name)};
+        new_variable_directions = directions_source(strcmp(names_source, this_variable_source_name), :);
+        
         this_variable_response_data = response_data_session{strcmp(loaded_data.stretch_names_session, this_variable_source_name)};
+        
         number_of_stretches = size(this_variable_response_data, 2);
         integrated_data = zeros(1, number_of_stretches);
         for i_stretch = 1 : number_of_stretches
@@ -173,7 +182,12 @@ function processAnalysisVariables(varargin)
         end
         
         % store
-        [analysis_data_session, analysis_names_session] = addOrOverwriteData(analysis_data_session, analysis_names_session, integrated_data, this_variable_name);
+        [analysis_data_session, analysis_names_session, analysis_directions_session] = ... 
+            addOrOverwriteResultsData ...
+            ( ...
+            analysis_data_session, analysis_names_session, analysis_directions_session, ...
+            integrated_data, this_variable_name, new_variable_directions ...
+            );
     end
     
     %% calculate band end variables
