@@ -358,10 +358,22 @@ function processAnalysisVariables(varargin)
               );
     end
  %% process variables where something specific happens for each variable
+ % TO DO: automate the source type and data extraction
     special_variables_to_calculate = study_settings.get('analysis_variables_special');
     for i_variable = 1:size(special_variables_to_calculate, 1)
         this_variable_name = special_variables_to_calculate{i_variable, 1};
         this_variable_source_name = special_variables_to_calculate{i_variable, 2};
+        this_variable_source_type = inversion_variables{i_variable, 3};
+        
+          % pick data depending on source specification
+        eval(['data_source = ' this_variable_source_type '_data_session;']);
+        eval(['names_source = ' this_variable_source_type '_names_session;']);
+        eval(['directions_source = ' this_variable_source_type '_directions_session;']);
+%         this_variable_source_data = data_source{strcmp(names_source, this_variable_source_name)};
+        this_variable_source_directions = directions_source(strcmp(names_source, this_variable_source_name), :);
+        new_variable_directions = this_variable_source_directions;
+        
+        
         
         if strcmp(this_variable_name, 'step_symmetry_index')
             this_variable_source_index = find(strcmp(stretch_names_session, this_variable_source_name), 1, 'first');
@@ -386,6 +398,7 @@ function processAnalysisVariables(varargin)
             % should we be looking at response or stretch variable here??
             this_variable_source_index = find(strcmp(response_names_session, this_variable_source_name), 1, 'first');
             this_variable_source_data = response_data_session{this_variable_source_index};  
+            this_variable_data = [];
             for i_stretch = 1:length(this_variable_source_data)
                 this_variable_data(:,i_stretch) = this_variable_source_data(:,i_stretch) - this_variable_source_data(1,i_stretch);
             end
@@ -433,7 +446,13 @@ function processAnalysisVariables(varargin)
                 this_variable_data(i_stretch) = this_stretch_data_single_integrated_twice(end);
             end 
        end
-       [analysis_data_session, analysis_names_session] =  addOrOverwriteData(analysis_data_session, analysis_names_session, this_variable_data, this_variable_name);
+              % store
+        [analysis_data_session, analysis_names_session, analysis_directions_session] = ...
+            addOrOverwriteResultsData ...
+              ( ...
+                analysis_data_session, analysis_names_session, analysis_directions_session, ...
+                this_variable_data, this_variable_name, new_variable_directions ...
+              );
     end
     
     
