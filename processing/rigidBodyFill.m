@@ -107,10 +107,7 @@ function rigidBodyFill(marker_to_fill, marker_source_1, marker_source_2, marker_
             end
             
             % insert reconstructed trajectory back into array
-            marker_indices = extractMarkerData(marker_trajectories, marker_labels, marker_to_fill, 'indices');
-            
-%             marker_number = find(strcmp(marker_labels, marker_to_fill));
-%             markers_indices = reshape([(marker_number - 1) * 3 + 1; (marker_number - 1) * 3 + 2; (marker_number - 1) * 3 + 3], 1, length(marker_number)*3);
+            marker_indices = extractMarkerData(marker_trajectories, marker_labels, marker_to_fill, 'indices'); 
             marker_trajectories(:, marker_indices) = marker_to_fill_trajectory;
             
             % save
