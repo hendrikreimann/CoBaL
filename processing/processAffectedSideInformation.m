@@ -16,7 +16,7 @@
 
 
 
-function processGroupInformation(varargin)
+function processAffectedSideInformation(varargin)
     load('subjectInfo.mat', 'date', 'subject_id', 'most_affected');
     
     % load settings and existing results
@@ -34,25 +34,17 @@ function processGroupInformation(varargin)
     number_of_stretch_variables = length(loaded_data.stretch_names_session);
     number_of_stretches = size(loaded_data.stretch_data_session{1}, 2); %#ok<*USENS>
     
-    condition_effectedSide_list_session = cell(number_of_stretch_variables, 1);
+    condition_affectedSide_list_session = cell(number_of_stretch_variables, 1);
+    % probably do not need a for loop here..
     for i_stretch = 1 : number_of_stretches
         if most_affected == 'L'
-            if strcmp(loaded_data.conditions_session.condition_startfoot_list{i_stretch}, 'STANCE_LEFT')
-                condition_effectedSide_list_session{i_stretch} = 'Effected'
-            else
-                condition_effectedSide_list_session{i_stretch} = 'Non-Effected'
-            end
-        elseif most_affected == 'R'
-            if strcmp(loaded_data.conditions_session.condition_startfoot_list{i_stretch}, 'STANCE_RIGHT')
-                condition_effectedSide_list_session{i_stretch} = 'Effected'
-            else
-                condition_effectedSide_list_session{i_stretch} = 'Non-Effected'
-            end
+             condition_affectedSide_list_session{i_stretch} = 'L';               
+        elseif most_affected == 'R'            
+            condition_affectedSide_list_session{i_stretch} = 'R';            
         end
-        
     end
         % save
     variables_to_save = loaded_data;
-    variables_to_save.conditions_session.condition_effectedSide_list = condition_effectedSide_list_session;
+    variables_to_save.conditions_session.condition_affectedSide_list = condition_affectedSide_list_session;
     save(results_file_name, '-struct', 'variables_to_save');
 end
