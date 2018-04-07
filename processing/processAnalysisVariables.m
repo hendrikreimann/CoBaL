@@ -362,7 +362,7 @@ function processAnalysisVariables(varargin)
         eval(['names_source = ' this_variable_source_type '_names_session;']);
         eval(['directions_source = ' this_variable_source_type '_directions_session;']);
               
-        this_affected_side_info = conditions_session.source_affected_side_info; % check this
+        this_affected_side_info = conditions_session.condition_affectedSide_list; % check this
         
         % only need to check one index for this type of variable
         if strcmp(this_affected_side_info{1}, 'L')

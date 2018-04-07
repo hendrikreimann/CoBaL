@@ -2604,6 +2604,7 @@ classdef WalkingDataCustodian < handle
                 end
                 if strcmp(variable_name, 'left_delt_post')
                     this.basic_variable_data.left_delt_post = this.basic_variable_data.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'left_delt_post'));
+                    this.basic_variable_directions.left_delt_post = this.basic_variable_directions.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'left_delt_post'));
                     this.time_data.left_delt_post = this.time_data.emg_trajectories;
                 end
                 if strcmp(variable_name, 'left_tibi_ant')
@@ -2655,6 +2656,7 @@ classdef WalkingDataCustodian < handle
                 end
                 if strcmp(variable_name, 'right_delt_post')
                     this.basic_variable_data.right_delt_post = this.basic_variable_data.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'right_delt_post'));
+                    this.basic_variable_directions.right_delt_post = this.basic_variable_directions.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'right_delt_post'));
                     this.time_data.right_delt_post = this.time_data.emg_trajectories;
                 end
                 if strcmp(variable_name, 'right_tibi_ant')
@@ -3355,6 +3357,10 @@ classdef WalkingDataCustodian < handle
                 % TODO: not tested yet
                 stretch_directions_new = this.basic_variable_directions.left_delt_ant;
             end
+            if strcmp(variable_name, 'left_delt_post_rescaled')
+                % TODO: not tested yet
+                stretch_directions_new = this.basic_variable_directions.left_delt_post;
+            end
             if strcmp(variable_name, 'left_tibi_ant_rescaled')
                 % TODO: not tested yet
                 stretch_directions_new = this.basic_variable_directions.left_tibi_ant;
@@ -3384,6 +3390,10 @@ classdef WalkingDataCustodian < handle
             if strcmp(variable_name, 'right_delt_ant_rescaled')
                 % TODO: not tested yet
                 stretch_directions_new = this.basic_variable_directions.right_delt_ant;
+            end
+            if strcmp(variable_name, 'right_delt_post_rescaled')
+                % TODO: not tested yet
+                stretch_directions_new = this.basic_variable_directions.right_delt_post;
             end
             if strcmp(variable_name, 'right_tibi_ant_rescaled')
                 % TODO: not tested yet
