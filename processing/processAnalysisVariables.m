@@ -464,58 +464,58 @@ function processAnalysisVariables(varargin)
     for i_variable = 1 : size(variables_to_invert, 1)
         error(['analysis_variables_from_inversion_by_perturbation is in the process of being phased out, look for another solution '])
         % get data
-%         this_variable_name = variables_to_invert{i_variable, 1};
-%         this_variable_source_name = variables_to_invert{i_variable, 2};
-%         this_variable_source_type = variables_to_invert{i_variable, 3};
-%         if strcmp(this_variable_source_type, 'response')
-%             this_variable_source_index = find(strcmp(response_names_session, this_variable_source_name), 1, 'first');
-%             if isempty(this_variable_source_index)
-%                 error(['Data not found: ' this_variable_source_name])
-%             end
-%             this_variable_source_data = response_data_session{this_variable_source_index};
-%         end
-%         if strcmp(this_variable_source_type, 'analysis')
-%             this_variable_source_index = find(strcmp(analysis_names_session, this_variable_source_name), 1, 'first');
-%             if isempty(this_variable_source_index)
-%                 error(['Data not found: ' this_variable_source_name])
-%             end
-%             this_variable_source_data = analysis_data_session{this_variable_source_index};
-%         end
-%         
-%         % get signs
-%         if strcmp(variables_to_invert{i_variable, 4}, '+')
-%             sign_illusion_left = 1;
-%         elseif strcmp(variables_to_invert{i_variable, 4}, '-')
-%             sign_illusion_left = -1;
-%         else
-%             error('Sign must be either "+" or "-"')
-%         end
-%         if strcmp(variables_to_invert{i_variable, 5}, '+')
-%             sign_illusion_right = 1;
-%         elseif strcmp(variables_to_invert{i_variable, 5}, '-')
-%             sign_illusion_right = -1;
-%         else
-%             error('Sign must be either "+" or "-"')
-%         end
-%         
-%         % invert
-%         this_variable_data = this_variable_source_data;
-%         for i_stretch = 1 : number_of_stretches
-%             perturbation_list = conditions_session.(condition_source_variables{strcmp(condition_labels, 'perturbation')});
-%             if strcmp(perturbation_list{i_stretch}, 'ILLUSION_LEFT')
+        this_variable_name = variables_to_invert{i_variable, 1};
+        this_variable_source_name = variables_to_invert{i_variable, 2};
+        this_variable_source_type = variables_to_invert{i_variable, 3};
+        if strcmp(this_variable_source_type, 'response')
+            this_variable_source_index = find(strcmp(response_names_session, this_variable_source_name), 1, 'first');
+            if isempty(this_variable_source_index)
+                error(['Data not found: ' this_variable_source_name])
+            end
+            this_variable_source_data = response_data_session{this_variable_source_index};
+        end
+        if strcmp(this_variable_source_type, 'analysis')
+            this_variable_source_index = find(strcmp(analysis_names_session, this_variable_source_name), 1, 'first');
+            if isempty(this_variable_source_index)
+                error(['Data not found: ' this_variable_source_name])
+            end
+            this_variable_source_data = analysis_data_session{this_variable_source_index};
+        end
+        
+        % get signs
+        if strcmp(variables_to_invert{i_variable, 4}, '+')
+            sign_illusion_left = 1;
+        elseif strcmp(variables_to_invert{i_variable, 4}, '-')
+            sign_illusion_left = -1;
+        else
+            error('Sign must be either "+" or "-"')
+        end
+        if strcmp(variables_to_invert{i_variable, 5}, '+')
+            sign_illusion_right = 1;
+        elseif strcmp(variables_to_invert{i_variable, 5}, '-')
+            sign_illusion_right = -1;
+        else
+            error('Sign must be either "+" or "-"')
+        end
+        
+        % invert
+        this_variable_data = this_variable_source_data;
+        for i_stretch = 1 : number_of_stretches
+            perturbation_list = conditions_session.(condition_source_variables{strcmp(condition_labels, 'perturbation')});
+            if strcmp(perturbation_list{i_stretch}, 'ILLUSION_LEFT')
+                this_variable_data(:, i_stretch) = sign_illusion_left * this_variable_source_data(:, i_stretch);
+            elseif strcmp(perturbation_list{i_stretch}, 'ILLUSION_RIGHT')
+                this_variable_data(:, i_stretch) = sign_illusion_right * this_variable_source_data(:, i_stretch);
+            end
+%             if strcmp(loaded_data.condition_perturbation_list_session{i_stretch}, 'ILLUSION_LEFT')
 %                 this_variable_data(:, i_stretch) = sign_illusion_left * this_variable_source_data(:, i_stretch);
-%             elseif strcmp(perturbation_list{i_stretch}, 'ILLUSION_RIGHT')
+%             elseif strcmp(loaded_data.condition_perturbation_list_session{i_stretch}, 'ILLUSION_RIGHT')
 %                 this_variable_data(:, i_stretch) = sign_illusion_right * this_variable_source_data(:, i_stretch);
 %             end
-% %             if strcmp(loaded_data.condition_perturbation_list_session{i_stretch}, 'ILLUSION_LEFT')
-% %                 this_variable_data(:, i_stretch) = sign_illusion_left * this_variable_source_data(:, i_stretch);
-% %             elseif strcmp(loaded_data.condition_perturbation_list_session{i_stretch}, 'ILLUSION_RIGHT')
-% %                 this_variable_data(:, i_stretch) = sign_illusion_right * this_variable_source_data(:, i_stretch);
-% %             end
-%         end
-%         
-%         % store
-%         [analysis_data_session, analysis_names_session] = addOrOverwriteData(analysis_data_session, analysis_names_session, this_variable_data, this_variable_name);
+        end
+        
+        % store
+        [analysis_data_session, analysis_names_session] = addOrOverwriteData(analysis_data_session, analysis_names_session, this_variable_data, this_variable_name);
     end
     
     %% gather variables with inversion by direction
@@ -524,54 +524,54 @@ function processAnalysisVariables(varargin)
     variables_to_invert = study_settings.get('analysis_variables_from_inversion_by_direction');
     for i_variable = 1 : size(variables_to_invert, 1)
         error(['analysis_variables_from_inversion_by_direction is in the process of being phased out, look for another solution '])
-%         % get data
-%         this_variable_name = variables_to_invert{i_variable, 1};
-%         this_variable_source_name = variables_to_invert{i_variable, 2};
-%         this_variable_source_type = variables_to_invert{i_variable, 3};
-%         if strcmp(this_variable_source_type, 'response')
-%             this_variable_source_index = find(strcmp(response_names_session, this_variable_source_name), 1, 'first');
-%             this_variable_source_data = response_data_session{this_variable_source_index};
-%         end
-%         if strcmp(this_variable_source_type, 'analysis')
-%             this_variable_source_index = find(strcmp(analysis_names_session, this_variable_source_name), 1, 'first');
-%             this_variable_source_data = analysis_data_session{this_variable_source_index};
-%         end
-%         
-%         % get signs
-%         if strcmp(variables_to_invert{i_variable, 4}, '+')
-%             sign_illusion_left = 1;
-%         elseif strcmp(variables_to_invert{i_variable, 4}, '-')
-%             sign_illusion_left = -1;
-%         else
-%             error('Sign must be either "+" or "-"')
-%         end
-%         if strcmp(variables_to_invert{i_variable, 5}, '+')
-%             sign_illusion_right = 1;
-%         elseif strcmp(variables_to_invert{i_variable, 5}, '-')
-%             sign_illusion_right = -1;
-%         else
-%             error('Sign must be either "+" or "-"')
-%         end
-%         
-%         % invert
-%         this_variable_data = this_variable_source_data;
-%         for i_stretch = 1 : number_of_stretches
-%             direction_list = conditions_session.(condition_source_variables{strcmp(condition_labels, 'direction')});
-%             if strcmp(direction_list{i_stretch}, 'TOWARDS')
+        % get data
+        this_variable_name = variables_to_invert{i_variable, 1};
+        this_variable_source_name = variables_to_invert{i_variable, 2};
+        this_variable_source_type = variables_to_invert{i_variable, 3};
+        if strcmp(this_variable_source_type, 'response')
+            this_variable_source_index = find(strcmp(response_names_session, this_variable_source_name), 1, 'first');
+            this_variable_source_data = response_data_session{this_variable_source_index};
+        end
+        if strcmp(this_variable_source_type, 'analysis')
+            this_variable_source_index = find(strcmp(analysis_names_session, this_variable_source_name), 1, 'first');
+            this_variable_source_data = analysis_data_session{this_variable_source_index};
+        end
+        
+        % get signs
+        if strcmp(variables_to_invert{i_variable, 4}, '+')
+            sign_illusion_left = 1;
+        elseif strcmp(variables_to_invert{i_variable, 4}, '-')
+            sign_illusion_left = -1;
+        else
+            error('Sign must be either "+" or "-"')
+        end
+        if strcmp(variables_to_invert{i_variable, 5}, '+')
+            sign_illusion_right = 1;
+        elseif strcmp(variables_to_invert{i_variable, 5}, '-')
+            sign_illusion_right = -1;
+        else
+            error('Sign must be either "+" or "-"')
+        end
+        
+        % invert
+        this_variable_data = this_variable_source_data;
+        for i_stretch = 1 : number_of_stretches
+            direction_list = conditions_session.(condition_source_variables{strcmp(condition_labels, 'direction')});
+            if strcmp(direction_list{i_stretch}, 'TOWARDS')
+                this_variable_data(:, i_stretch) = sign_illusion_left * this_variable_source_data(:, i_stretch);
+            elseif strcmp(direction_list{i_stretch}, 'AWAY')
+                this_variable_data(:, i_stretch) = sign_illusion_right * this_variable_source_data(:, i_stretch);
+            end
+            
+%             if strcmp(condition_direction_list_session{i_stretch}, 'TOWARDS')
 %                 this_variable_data(:, i_stretch) = sign_illusion_left * this_variable_source_data(:, i_stretch);
-%             elseif strcmp(direction_list{i_stretch}, 'AWAY')
+%             elseif strcmp(condition_direction_list_session{i_stretch}, 'AWAY')
 %                 this_variable_data(:, i_stretch) = sign_illusion_right * this_variable_source_data(:, i_stretch);
 %             end
-%             
-% %             if strcmp(condition_direction_list_session{i_stretch}, 'TOWARDS')
-% %                 this_variable_data(:, i_stretch) = sign_illusion_left * this_variable_source_data(:, i_stretch);
-% %             elseif strcmp(condition_direction_list_session{i_stretch}, 'AWAY')
-% %                 this_variable_data(:, i_stretch) = sign_illusion_right * this_variable_source_data(:, i_stretch);
-% %             end
-%         end
-%         
-%         % store
-%         [analysis_data_session, analysis_names_session] = addOrOverwriteData(analysis_data_session, analysis_names_session, this_variable_data, this_variable_name);
+        end
+        
+        % store
+        [analysis_data_session, analysis_names_session] = addOrOverwriteData(analysis_data_session, analysis_names_session, this_variable_data, this_variable_name);
         
     end
 
@@ -582,75 +582,75 @@ function processAnalysisVariables(varargin)
     for i_variable = 1 : size(variables_to_select, 1)
         error(['analysis_variables_from_selection is in the process of being phased out, look for another solution '])
         
-%         % get signs
-%         if strcmp(variables_to_select{i_variable, 5}, '+')
-%             sign_trigger_left = 1;
-%         elseif strcmp(variables_to_select{i_variable, 5}, '-')
-%             sign_trigger_left = -1;
-%         else
-%             error('Sign must be either "+" or "-"')
-%         end
-%         if strcmp(variables_to_select{i_variable, 6}, '+')
-%             sign_trigger_right = 1;
-%         elseif strcmp(variables_to_select{i_variable, 6}, '-')
-%             sign_trigger_right = -1;
-%         else
-%             error('Sign must be either "+" or "-"')
-%         end
-%         
-%         % get data
-%         this_variable_name = variables_to_select{i_variable, 1};
-%         this_variable_source_name_triggerLeft = variables_to_select{i_variable, 3};
-%         this_variable_source_name_triggerRight = variables_to_select{i_variable, 4};
-%         this_variable_source_type = variables_to_select{i_variable, 2};
-%         if strcmp(this_variable_source_type, 'response')
-%             this_variable_source_index_triggerLeft = find(strcmp(response_names_session, this_variable_source_name_triggerLeft), 1, 'first');
-%             this_variable_source_index_triggerRight = find(strcmp(response_names_session, this_variable_source_name_triggerRight), 1, 'first');
-%             if isempty(this_variable_source_index_triggerLeft)
-%                 error(['Data not found: ' this_variable_source_name_triggerLeft])
-%             end
-%             if isempty(this_variable_source_index_triggerRight)
-%                 error(['Data not found: ' this_variable_source_name_triggerRight])
-%             end
-%             this_variable_source_data_triggerLeft = response_data_session{this_variable_source_index_triggerLeft};
-%             this_variable_source_data_triggerRight = response_data_session{this_variable_source_index_triggerRight};
-%         end
-%         if strcmp(this_variable_source_type, 'analysis')
-%             this_variable_source_index_triggerLeft = find(strcmp(analysis_names_session, this_variable_source_name_triggerLeft), 1, 'first');
-%             this_variable_source_index_triggerRight = find(strcmp(analysis_names_session, this_variable_source_name_triggerRight), 1, 'first');
-%             if isempty(this_variable_source_index_triggerLeft)
-%                 error(['Data not found: ' this_variable_source_name_triggerLeft])
-%             end
-%             if isempty(this_variable_source_index_triggerRight)
-%                 error(['Data not found: ' this_variable_source_name_triggerRight])
-%             end
-%             this_variable_source_data_triggerLeft = analysis_data_session{this_variable_source_index_triggerLeft};
-%             this_variable_source_data_triggerRight = analysis_data_session{this_variable_source_index_triggerRight};
-%         end
-%         
-%         % select
-%         this_variable_data = zeros(size(this_variable_source_data_triggerLeft));
-%         stance_foot_list = conditions_session.(condition_source_variables{strcmp(condition_labels, 'stance_foot')});
-%         index_list = conditions_session.(condition_source_variables{strcmp(condition_labels, 'index')});
-%         for i_stretch = 1 : number_of_stretches
-%             if ...
-%               (strcmp(stance_foot_list{i_stretch}, 'STANCE_LEFT') && strcmp(index_list{i_stretch}, 'ONE')) || ...
-%               (strcmp(stance_foot_list{i_stretch}, 'STANCE_RIGHT') && strcmp(index_list{i_stretch}, 'TWO')) || ...
-%               (strcmp(stance_foot_list{i_stretch}, 'STANCE_LEFT') && strcmp(index_list{i_stretch}, 'THREE')) || ...
-%               (strcmp(stance_foot_list{i_stretch}, 'STANCE_RIGHT') && strcmp(index_list{i_stretch}, 'FOUR'))
-%                 this_variable_data(:, i_stretch) = sign_trigger_left * this_variable_source_data_triggerLeft(:, i_stretch);
-%             end
-%             if ...
-%               (strcmp(stance_foot_list{i_stretch}, 'STANCE_RIGHT') && strcmp(index_list{i_stretch}, 'ONE')) || ...
-%               (strcmp(stance_foot_list{i_stretch}, 'STANCE_LEFT') && strcmp(index_list{i_stretch}, 'TWO')) || ...
-%               (strcmp(stance_foot_list{i_stretch}, 'STANCE_RIGHT') && strcmp(index_list{i_stretch}, 'THREE')) || ...
-%               (strcmp(stance_foot_list{i_stretch}, 'STANCE_LEFT') && strcmp(index_list{i_stretch}, 'FOUR'))
-%                 this_variable_data(:, i_stretch) = sign_trigger_right * this_variable_source_data_triggerRight(:, i_stretch);
-%             end
-%         end
-%         
-%         % store
-%         [analysis_data_session, analysis_names_session] = addOrOverwriteData(analysis_data_session, analysis_names_session, this_variable_data, this_variable_name);
+        % get signs
+        if strcmp(variables_to_select{i_variable, 5}, '+')
+            sign_trigger_left = 1;
+        elseif strcmp(variables_to_select{i_variable, 5}, '-')
+            sign_trigger_left = -1;
+        else
+            error('Sign must be either "+" or "-"')
+        end
+        if strcmp(variables_to_select{i_variable, 6}, '+')
+            sign_trigger_right = 1;
+        elseif strcmp(variables_to_select{i_variable, 6}, '-')
+            sign_trigger_right = -1;
+        else
+            error('Sign must be either "+" or "-"')
+        end
+        
+        % get data
+        this_variable_name = variables_to_select{i_variable, 1};
+        this_variable_source_name_triggerLeft = variables_to_select{i_variable, 3};
+        this_variable_source_name_triggerRight = variables_to_select{i_variable, 4};
+        this_variable_source_type = variables_to_select{i_variable, 2};
+        if strcmp(this_variable_source_type, 'response')
+            this_variable_source_index_triggerLeft = find(strcmp(response_names_session, this_variable_source_name_triggerLeft), 1, 'first');
+            this_variable_source_index_triggerRight = find(strcmp(response_names_session, this_variable_source_name_triggerRight), 1, 'first');
+            if isempty(this_variable_source_index_triggerLeft)
+                error(['Data not found: ' this_variable_source_name_triggerLeft])
+            end
+            if isempty(this_variable_source_index_triggerRight)
+                error(['Data not found: ' this_variable_source_name_triggerRight])
+            end
+            this_variable_source_data_triggerLeft = response_data_session{this_variable_source_index_triggerLeft};
+            this_variable_source_data_triggerRight = response_data_session{this_variable_source_index_triggerRight};
+        end
+        if strcmp(this_variable_source_type, 'analysis')
+            this_variable_source_index_triggerLeft = find(strcmp(analysis_names_session, this_variable_source_name_triggerLeft), 1, 'first');
+            this_variable_source_index_triggerRight = find(strcmp(analysis_names_session, this_variable_source_name_triggerRight), 1, 'first');
+            if isempty(this_variable_source_index_triggerLeft)
+                error(['Data not found: ' this_variable_source_name_triggerLeft])
+            end
+            if isempty(this_variable_source_index_triggerRight)
+                error(['Data not found: ' this_variable_source_name_triggerRight])
+            end
+            this_variable_source_data_triggerLeft = analysis_data_session{this_variable_source_index_triggerLeft};
+            this_variable_source_data_triggerRight = analysis_data_session{this_variable_source_index_triggerRight};
+        end
+        
+        % select
+        this_variable_data = zeros(size(this_variable_source_data_triggerLeft));
+        stance_foot_list = conditions_session.(condition_source_variables{strcmp(condition_labels, 'stance_foot')});
+        index_list = conditions_session.(condition_source_variables{strcmp(condition_labels, 'index')});
+        for i_stretch = 1 : number_of_stretches
+            if ...
+              (strcmp(stance_foot_list{i_stretch}, 'STANCE_LEFT') && strcmp(index_list{i_stretch}, 'ONE')) || ...
+              (strcmp(stance_foot_list{i_stretch}, 'STANCE_RIGHT') && strcmp(index_list{i_stretch}, 'TWO')) || ...
+              (strcmp(stance_foot_list{i_stretch}, 'STANCE_LEFT') && strcmp(index_list{i_stretch}, 'THREE')) || ...
+              (strcmp(stance_foot_list{i_stretch}, 'STANCE_RIGHT') && strcmp(index_list{i_stretch}, 'FOUR'))
+                this_variable_data(:, i_stretch) = sign_trigger_left * this_variable_source_data_triggerLeft(:, i_stretch);
+            end
+            if ...
+              (strcmp(stance_foot_list{i_stretch}, 'STANCE_RIGHT') && strcmp(index_list{i_stretch}, 'ONE')) || ...
+              (strcmp(stance_foot_list{i_stretch}, 'STANCE_LEFT') && strcmp(index_list{i_stretch}, 'TWO')) || ...
+              (strcmp(stance_foot_list{i_stretch}, 'STANCE_RIGHT') && strcmp(index_list{i_stretch}, 'THREE')) || ...
+              (strcmp(stance_foot_list{i_stretch}, 'STANCE_LEFT') && strcmp(index_list{i_stretch}, 'FOUR'))
+                this_variable_data(:, i_stretch) = sign_trigger_right * this_variable_source_data_triggerRight(:, i_stretch);
+            end
+        end
+        
+        % store
+        [analysis_data_session, analysis_names_session] = addOrOverwriteData(analysis_data_session, analysis_names_session, this_variable_data, this_variable_name);
     end
     
     
