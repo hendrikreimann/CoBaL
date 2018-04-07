@@ -150,7 +150,7 @@ function processAnalysisVariables(varargin)
     step_time_index_in_saved_data = find(strcmp(loaded_data.stretch_names_session, 'step_time'), 1, 'first');
     this_step_time_data = loaded_data.stretch_data_session{step_time_index_in_saved_data};
     pushoff_time_index_in_saved_data = find(strcmp(loaded_data.stretch_names_session, 'pushoff_time'), 1, 'first');
-    this_pushoff_time_data = loaded_data.stretch_data_session{pushoff_time_index_in_saved_data};
+%     this_pushoff_time_data = loaded_data.stretch_data_session{pushoff_time_index_in_saved_data};
     for i_variable = 1 : size(variables_to_integrate, 1)
         this_variable_name = variables_to_integrate{i_variable, 1};
         this_variable_source_name = variables_to_integrate{i_variable, 2};
@@ -361,8 +361,8 @@ function processAnalysisVariables(varargin)
     variables_to_affected_side = study_settings.get('variables_to_affected_side');
     for i_variable = 1 : size(variables_to_affected_side, 1)
         % get data
-        this_affected_variable_name = variables_to_affected_side{i_variable, 1};
-        this_unaffected_variable_name = variables_to_affected_side{i_variable, 2};
+        this_affected_variable_source_name = variables_to_affected_side{i_variable, 1};
+        this_unaffected_variable_source_name = variables_to_affected_side{i_variable, 2};
         source_affected_side_info =  variables_to_affected_side{i_variable, 3};
         left_sided_variable_name = variables_to_affected_side{i_variable, 4};
         right_sided_variable_name = variables_to_affected_side{i_variable, 5};
@@ -380,15 +380,16 @@ function processAnalysisVariables(varargin)
         
         % only need to check one index for this type of variable
         if strcmp(this_affected_side_info{1}, 'L')
-            this_affected_variable_name = left_sided_variable_name;
-            this_unaffected_variable_name = right_sided_variable_name;
-            this_affected_variable_data = data_source{strcmp(names_source, this_affected_variable_name)};
-            this_unaffected_variable_data = data_source{strcmp(names_source, this_unaffected_variable_name)};
+            this_affected_variable_source_name = left_sided_variable_name;
+            this_unaffected_variable_source_name = right_sided_variable_name;
+            this_affected_variable_data = data_source{strcmp(names_source, this_affected_variable_source_name)};
+            this_unaffected_variable_data = data_source{strcmp(names_source, this_unaffected_variable_source_name)};
+                        
         elseif strcmp(this_affected_side_info{1}, 'R')
-            this_affected_variable_name = right_sided_variable_name;
-            this_unaffected_variable_name = left_sided_variable_name;
-            this_affected_variable_data = data_source{strcmp(names_source, this_affected_variable_name)};
-            this_unaffected_variable_data = data_source{strcmp(names_source, this_unaffected_variable_name)};
+            this_affected_variable_source_name = right_sided_variable_name;
+            this_unaffected_variable_source_name = left_sided_variable_name;
+            this_affected_variable_data = data_source{strcmp(names_source, this_affected_variable_source_name)};
+            this_unaffected_variable_data = data_source{strcmp(names_source, this_unaffected_variable_source_name)};
         else
             Warning('Either the variable specificed in studySettings.txt cannot be processed here or the affectedSide info is innappropriate')
         end
@@ -402,14 +403,14 @@ function processAnalysisVariables(varargin)
             addOrOverwriteResultsData ...
               ( ...
                 analysis_data_session, analysis_names_session, analysis_directions_session, ...
-                this_affected_variable_data, this_affected_variable_name, new_variable_directions ...
+                this_affected_variable_data, 'affected_arm_angle', new_variable_directions ...
               );
          % store unaffected
         [analysis_data_session, analysis_names_session, analysis_directions_session] = ...
             addOrOverwriteResultsData ...
               ( ...
                 analysis_data_session, analysis_names_session, analysis_directions_session, ...
-                this_unaffected_variable_data, this_unaffected_variable_name, new_variable_directions ...
+                this_unaffected_variable_data, 'unaffected_arm_angle', new_variable_directions ...
               ); 
     end
 
@@ -419,7 +420,7 @@ function processAnalysisVariables(varargin)
     for i_variable = 1:size(special_variables_to_calculate, 1)
         this_variable_name = special_variables_to_calculate{i_variable, 1};
         this_variable_source_name = special_variables_to_calculate{i_variable, 2};
-        this_variable_source_type = inversion_variables{i_variable, 3};
+        this_variable_source_type = special_variables_to_calculate{i_variable, 3};
         
           % pick data depending on source specification
         eval(['data_source = ' this_variable_source_type '_data_session;']);

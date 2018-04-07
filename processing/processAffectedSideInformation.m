@@ -34,17 +34,39 @@ function processAffectedSideInformation(varargin)
     number_of_stretch_variables = length(loaded_data.stretch_names_session);
     number_of_stretches = size(loaded_data.stretch_data_session{1}, 2); %#ok<*USENS>
     
-    condition_affectedSide_list_session = cell(number_of_stretch_variables, 1);
-    % probably do not need a for loop here..
+    condition_affectedSide_list_session = cell(number_of_stretches, 1);
+    condition_affected_stancefoot_list_session = cell(number_of_stretches, 1);
+    
+    
+    % create new variable to replace startfoot that is
+            % affectedStartFoot or unaffectedStartFoot
+            % if affected 'L' and this stretch startfoot is 'LEFT', then
+            % this stretch is affectedStartFoot
+    
     for i_stretch = 1 : number_of_stretches
         if most_affected == 'L'
              condition_affectedSide_list_session{i_stretch} = 'L';               
+             % assign affected_startfoot
+             if strcmp(loaded_data.conditions_session.condition_startfoot_list(i_stretch), 'STANCE_LEFT')
+                 condition_affected_stancefoot_list_session{i_stretch} = 'STANCE_AFFECTED';
+             elseif strcmp(loaded_data.conditions_session.condition_startfoot_list(i_stretch), 'STANCE_RIGHT')
+                 condition_affected_stancefoot_list_session{i_stretch} = 'STANCE_UNAFFECTED';
+             end   
         elseif most_affected == 'R'            
-            condition_affectedSide_list_session{i_stretch} = 'R';            
+            condition_affectedSide_list_session{i_stretch} = 'R';
+             % assign affected_startfoot
+             if strcmp(loaded_data.conditions_session.condition_startfoot_list(i_stretch), 'STANCE_RIGHT')
+                 condition_affected_stancefoot_list_session{i_stretch} = 'STANCE_AFFECTED';
+             elseif strcmp(loaded_data.conditions_session.condition_startfoot_list(i_stretch), 'STANCE_LEFT')
+                 condition_affected_stancefoot_list_session{i_stretch} = 'STANCE_UNAFFECTED';
+             end
         end
     end
+   
+    
         % save
     variables_to_save = loaded_data;
     variables_to_save.conditions_session.condition_affectedSide_list = condition_affectedSide_list_session;
+    variables_to_save.conditions_session.condition_affected_stancefoot_list = condition_affected_stancefoot_list_session;
     save(results_file_name, '-struct', 'variables_to_save');
 end

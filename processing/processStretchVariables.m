@@ -80,10 +80,12 @@ function processStretchVariables(varargin)
                 conditions_session.(condition_source_variables{i_condition}) = [conditions_session.(condition_source_variables{i_condition}); conditions_trial.(condition_source_variables{i_condition}) ];
             end
             origin_trial_list_session = [origin_trial_list_session; ones(number_of_stretches_this_trial, 1) * i_trial]; %#ok<AGROW>
-            origin_start_time_list_session = [origin_start_time_list_session; stretch_times(:, 1)]; %#ok<AGROW>
-            origin_end_time_list_session = [origin_end_time_list_session; stretch_times(:, end)]; %#ok<AGROW>
-            time_list = ones(number_of_stretches_this_trial, 1) * (i_trial - 1) * study_settings.get('trial_length') + stretch_times(:, 1);
-            time_list_session = [time_list_session; time_list]; %#ok<AGROW>
+            if ~isempty(stretch_times)
+                origin_start_time_list_session = [origin_start_time_list_session; stretch_times(:, 1)]; %#ok<AGROW>
+                origin_end_time_list_session = [origin_end_time_list_session; stretch_times(:, end)]; %#ok<AGROW>
+                time_list = ones(number_of_stretches_this_trial, 1) * (i_trial - 1) * study_settings.get('trial_length') + stretch_times(:, 1);
+                time_list_session = [time_list_session; time_list]; %#ok<AGROW>
+            end
             disp(['Processing stretch variables: condition ' condition_list{i_type} ', Trial ' num2str(i_trial) ' completed']);
         end
     end
