@@ -357,6 +357,62 @@ function processAnalysisVariables(varargin)
                 this_variable_data, this_variable_name, new_variable_directions ...
               );
     end
+    
+    variables_to_affected_side = study_settings.get('variables_to_affected_side');
+    for i_variable = 1 : size(variables_to_affected_side, 1)
+        % get data
+        this_affected_variable_name = variables_to_affected_side{i_variable, 1};
+        this_unaffected_variable_name = variables_to_affected_side{i_variable, 2};
+        source_affected_side_info =  variables_to_affected_side{i_variable, 3};
+        left_sided_variable_name = variables_to_affected_side{i_variable, 4};
+        right_sided_variable_name = variables_to_affected_side{i_variable, 5};
+        this_variable_source_type = variables_to_affected_side{i_variable, 6};
+        
+        % may get an error here with AS data.. probably need to add
+        % arm_angle and phase variables to new code structure (add
+        % directions)
+        
+        eval(['data_source = ' this_variable_source_type '_data_session;']);
+        eval(['names_source = ' this_variable_source_type '_names_session;']);
+        eval(['directions_source = ' this_variable_source_type '_directions_session;']);
+              
+        this_affected_side_info = conditions_session.condition_affectedSide_list; % check this
+        
+        % only need to check one index for this type of variable
+        if strcmp(this_affected_side_info{1}, 'L')
+            this_affected_variable_name = left_sided_variable_name;
+            this_unaffected_variable_name = right_sided_variable_name;
+            this_affected_variable_data = data_source{strcmp(names_source, this_affected_variable_name)};
+            this_unaffected_variable_data = data_source{strcmp(names_source, this_unaffected_variable_name)};
+        elseif strcmp(this_affected_side_info{1}, 'R')
+            this_affected_variable_name = right_sided_variable_name;
+            this_unaffected_variable_name = left_sided_variable_name;
+            this_affected_variable_data = data_source{strcmp(names_source, this_affected_variable_name)};
+            this_unaffected_variable_data = data_source{strcmp(names_source, this_unaffected_variable_name)};
+        else
+            Warning('Either the variable specificed in studySettings.txt cannot be processed here or the affectedSide info is innappropriate')
+        end
+        
+        % only need to take 1 side, assuming the variables are the same
+        % type
+        new_variable_directions = directions_source(strcmp(names_source, left_sided_variable_name), :);
+        
+         % store affected
+        [analysis_data_session, analysis_names_session, analysis_directions_session] = ...
+            addOrOverwriteResultsData ...
+              ( ...
+                analysis_data_session, analysis_names_session, analysis_directions_session, ...
+                this_affected_variable_data, this_affected_variable_name, new_variable_directions ...
+              );
+         % store unaffected
+        [analysis_data_session, analysis_names_session, analysis_directions_session] = ...
+            addOrOverwriteResultsData ...
+              ( ...
+                analysis_data_session, analysis_names_session, analysis_directions_session, ...
+                this_unaffected_variable_data, this_unaffected_variable_name, new_variable_directions ...
+              ); 
+    end
+
  %% process variables where something specific happens for each variable
  % TO DO: automate the source type and data extraction
     special_variables_to_calculate = study_settings.get('analysis_variables_special');
@@ -580,7 +636,6 @@ function processAnalysisVariables(varargin)
     % TODO: deal with directions
     variables_to_select = study_settings.get('analysis_variables_from_selection');
     for i_variable = 1 : size(variables_to_select, 1)
-        error(['analysis_variables_from_selection is in the process of being phased out, look for another solution '])
         
         % get signs
         if strcmp(variables_to_select{i_variable, 5}, '+')
