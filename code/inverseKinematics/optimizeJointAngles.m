@@ -147,7 +147,11 @@ function optimizedJointAngles = optimizeJointAngles ...
 %     weight_matrix_by_indices = reshape(repmat(weight_matrix, 3, 1), 1, length(weight_matrix)*3);
 
     for i_time = 1 : number_of_time_steps
-        %
+        % give progress feedback
+        display_step = 100;
+        if (i_time / display_step) == floor(i_time / display_step)
+            disp(['Starting work on: ' num2str(i_time) ' out of ' num2str(number_of_time_steps)]);
+        end
         
         theta_0 = joint_angle_trajectories(i_time, :)';
 %         theta_0 = zeros(complete_tree.numberOfJoints, 1);
@@ -205,6 +209,7 @@ function optimizedJointAngles = optimizeJointAngles ...
 
         end
         optimizedJointAngles(i_time, :) = theta_opt;
+        
     end
 
     function f = objfun_virtual_modular(theta_virtual)
