@@ -36,8 +36,7 @@ function processAffectedSideInformation(varargin)
     
     condition_affectedSide_list_session = cell(number_of_stretches, 1);
     condition_affected_stancefoot_list_session = cell(number_of_stretches, 1);
-    
-    
+
     % create new variable to replace startfoot that is
             % affectedStartFoot or unaffectedStartFoot
             % if affected 'L' and this stretch startfoot is 'LEFT', then
