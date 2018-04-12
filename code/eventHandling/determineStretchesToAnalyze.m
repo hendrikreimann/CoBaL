@@ -52,7 +52,7 @@ function determineStretchesToAnalyze(varargin)
 
 
     %% prepare
-    load('subjectInfo.mat', 'date', 'subject_id');
+    load('subjectInfo.mat', 'date', 'subject_id', 'most_affected');
     % load settings
     study_settings_file = '';
     if exist(['..' filesep 'studySettings.txt'], 'file')
@@ -76,13 +76,14 @@ function determineStretchesToAnalyze(varargin)
 
     time_to_nearest_heelstrike_before_trigger_threshold = 0.10; % a heelstrike should happen less than this long before a trigger
     time_to_nearest_heelstrike_after_trigger_threshold = 0.3; % a heelstrike should happen less than this long after a trigger
-     
     for i_condition = 1 : length(condition_list)
         trials_to_process = trial_number_list{i_condition};
         for i_trial = trials_to_process
             %% load data
             ignore_times = [];
             load(['analysis' filesep makeFileName(date, subject_id, condition_list{i_condition}, i_trial, 'events')]);
+%             load(['analysis' filesep makeFileName(date, subject_id, condition_list{i_condition}, i_trial, 'stepEvents')]);
+%             load(['processed' filesep makeFileName(date, subject_id, condition_list{i_condition}, i_trial, 'kinematicTrajectories')]);
             
             right_pushoff_times = event_data{strcmp(event_labels, 'right_pushoff')};
             right_touchdown_times = event_data{strcmp(event_labels, 'right_touchdown')};
@@ -505,6 +506,7 @@ function determineStretchesToAnalyze(varargin)
                     stance_foot_data = {};
                     condition_experimental_list = {};
                     condition_startfoot_list = {};
+                    number_of_stretches = size(stretch_times, 1);
                     
                     % check if we have a valid stretch
                     if ~isempty(band_delimiter) && band_delimiter < this_stretch_end
@@ -513,6 +515,25 @@ function determineStretchesToAnalyze(varargin)
                         condition_experimental_list = condition_experimental;
                         condition_startfoot_list = {first_stance_foot; second_stance_foot};
                         bands_per_stretch = 2;
+                        
+                        if most_affected == 'L'
+                            condition_affectedSide_list = 'L';
+                            % assign affected_startfoot
+                            % change to first_stance_foot..
+                            if strcmp(first_stance_foot, 'STANCE_LEFT')
+                                condition_affected_stancefoot_list = 'STANCE_AFFECTED';
+                            elseif strcmp(first_stance_foot, 'STANCE_RIGHT')
+                                condition_affected_stancefoot_list = 'STANCE_UNAFFECTED';
+                            end
+                        elseif most_affected == 'R'
+                            condition_affectedSide_list = 'R';
+                            % assign affected_startfoot
+                            if strcmp(first_stance_foot, 'STANCE_RIGHT')
+                                condition_affected_stancefoot_list = 'STANCE_AFFECTED';
+                            elseif strcmp(first_stance_foot, 'STANCE_LEFT')
+                                condition_affected_stancefoot_list = 'STANCE_UNAFFECTED';
+                            end
+                        end
                     end
                     
                     % fill in stuff
@@ -545,8 +566,13 @@ function determineStretchesToAnalyze(varargin)
                     stance_foot_data = {};
                     condition_experimental_list = {};
                     condition_startfoot_list = {};
-
-                    for i_event = 1 : length(stretch_starter_events) - 1
+                    condition_affectedSide_list = cell(number_of_stretches, 1);
+                    condition_affected_stancefoot_list = cell(number_of_stretches, 1);
+                        
+                    % TO DO: what # does this yield?
+                    number_of_stretches = length(stretch_starter_events) - 1;
+                    
+                    for i_stretch = 1 : number_of_stretches % assign i_stretch to # of stretches
                         this_stretch_start = stretch_starter_events(i_event);
                         this_stretch_end = stretch_starter_events(i_event+1);
                         band_delimiter = min(band_delimiter_events(band_delimiter_events>this_stretch_start));
@@ -555,6 +581,26 @@ function determineStretchesToAnalyze(varargin)
                             this_stretch = [this_stretch_start band_delimiter this_stretch_end];
                             stretch_times = [stretch_times; this_stretch];
                             stance_foot_data = [stance_foot_data; {first_stance_foot, second_stance_foot}];
+                            
+                            if most_affected == 'L'
+                                condition_affectedSide_list{i_stretch} = 'L';
+                                % assign affected_startfoot
+                                % change to first_stance_foot..
+                                if strcmp(first_stance_foot, 'STANCE_LEFT')
+                                    condition_affected_stancefoot_list{i_stretch} = 'STANCE_AFFECTED';
+                                elseif strcmp(first_stance_foot, 'STANCE_RIGHT')
+                                    condition_affected_stancefoot_list{i_stretch} = 'STANCE_UNAFFECTED';
+                                end
+                            elseif most_affected == 'R'
+                                condition_affectedSide_list{i_stretch} = 'R';
+                                % assign affected_startfoot
+                                if strcmp(first_stance_foot, 'STANCE_RIGHT')
+                                    condition_affected_stancefoot_list{i_stretch} = 'STANCE_AFFECTED';
+                                elseif strcmp(first_stance_foot, 'STANCE_LEFT')
+                                    condition_affected_stancefoot_list{i_stretch} = 'STANCE_UNAFFECTED';
+                                end
+                            end
+                            
                             condition_startfoot_list = [condition_startfoot_list; first_stance_foot];
                             condition_experimental_list = [condition_experimental_list; condition_experimental];
                         end
@@ -583,6 +629,8 @@ function determineStretchesToAnalyze(varargin)
                 conditions_trial = struct;
                 conditions_trial.condition_experimental_list = condition_experimental_list;
                 conditions_trial.condition_startfoot_list = condition_startfoot_list;
+                conditions_trial.condition_affected_stancefoot_list = condition_affected_stancefoot_list;
+                conditions_trial.condition_affectedSide_list = condition_affectedSide_list;
                 event_variables_to_save.stretch_pushoff_times = stretch_pushoff_times;
                 event_variables_to_save.stretch_times = stretch_times;
                 
@@ -1534,7 +1582,7 @@ function determineStretchesToAnalyze(varargin)
             for i_stretch = 1 : length(subject_list)
                 subject_list{i_stretch} = subject_id;
             end
-                 conditions_trial.subject_list = subject_list;
+            conditions_trial.subject_list = subject_list;
 
             %% remove stretches where important variables are missing
 
@@ -1564,7 +1612,7 @@ function determineStretchesToAnalyze(varargin)
 %                     removal_flags(i_stretch) = 1;
 %                     disp('Removing a stretch due to gaps in essential markers')
 %                 end
-%             end
+%            end
             
             %  check data availability for markers with non-zero weight
             marker_weights = study_settings.get('marker_weights');

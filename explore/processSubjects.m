@@ -15,19 +15,23 @@ function processSubjects(varargin)
         load([data_path filesep 'subjectInfo.mat'], 'date', 'subject_id');
         disp(['Collecting from ' subject_id]);
 %         deleteAvailableVariables
-%         importAscii
-%         saveSubjectInfoToFile
-%         preprocessRawData
-%         createModel
+        deleteAnalysisVariables
+%         mkdir('analysis')
+        importAscii
+        saveSubjectInfoToFile
+        preprocessRawData
+        createModel
 % % % 
-%         findRelevantDataStretches
+        findStepEvents
+        determineStretchesToAnalyze
 %         calculateKinematicTrajectories('register_without_calculating', 1)
 % % % 
-%         findEmgNormalization
-%         processStretchVariables
-%         processAnalysisVariables
-        onset_classification
-        cd(study_path)
+        findEmgNormalization
+        calculatePhaseTrajectories
+        processStretchVariables
+        processAnalysisVariables
+%         onset_classification
+%         cd(study_path)
 %         processStimulusResponse
 %         processGroupInformation
 %         processAnalysisVariables
