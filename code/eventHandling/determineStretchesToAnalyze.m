@@ -209,7 +209,7 @@ function determineStretchesToAnalyze(varargin)
             if strcmp(experimental_paradigm, 'Vision')
                 illusion_trajectory = zeros(size(time_stimulus)); % -1 = LEFT, 1 = RIGHT
                 for i_time = 1 : length(time_stimulus)
-                    if stimulus_state_trajectory(i_time) == 2
+                    if stimulus_state_trajectory(i_time) == 3
                         % stimulus is currently active
                         if current_rotation_trajectory(i_time) < 0
                             % angle change is positive horizon rotates counter-clockwise, illusion is to the LEFT
@@ -257,7 +257,7 @@ function determineStretchesToAnalyze(varargin)
             end
             if strcmp(experimental_paradigm, 'Vision')
                 % find the time steps where the stimulus state crosses a threshold
-                stimulus_threshold = 0.5;
+                stimulus_threshold = 1.5;
                 trigger_indices_labview = find(diff(sign(stimulus_state_trajectory - stimulus_threshold)) > 0) + 2;
                 trigger_times = time_stimulus(trigger_indices_labview);
             end
@@ -299,7 +299,7 @@ function determineStretchesToAnalyze(varargin)
                 legend('toggle')
             end
 
-            %% extract event data
+            %% extract data and determine condition variables
             %
             % For each trigger, determine the conditions and the relevant step events.
             % The result is
@@ -1456,20 +1456,29 @@ function determineStretchesToAnalyze(varargin)
                         end
                     end
                     
-                    % determine stimulus amplitude
+                    % determine stimulus amplitude - HR: this is hacky, fix this in the future
                     resulting_stim_amplitude = max(abs(current_rotation_trajectory(trigger_indices_labview(i_trigger):trigger_indices_labview(i_trigger)+200)));
 
-                    if resulting_stim_amplitude < 6 & resulting_stim_amplitude > 0
-                        amplitude_list{i_trigger} = '30';
+%                     if resulting_stim_amplitude < 6 & resulting_stim_amplitude > 0
+%                         amplitude_list{i_trigger} = '30';
+%                     end
+%                     if resulting_stim_amplitude > 6 & resulting_stim_amplitude < 12
+%                         amplitude_list{i_trigger} = '60';
+%                     end  
+%                     if resulting_stim_amplitude > 12
+%                         amplitude_list{i_trigger} = '120';
+%                     end   
+
+                    if resulting_stim_amplitude < 4 & resulting_stim_amplitude > 1
+                        amplitude_list{i_trigger} = 'AMP45';
                     end
-                    if resulting_stim_amplitude > 6 & resulting_stim_amplitude < 12
-                        amplitude_list{i_trigger} = '60';
+                    if resulting_stim_amplitude > 4
+                        amplitude_list{i_trigger} = 'AMP90';
                     end  
-                    if resulting_stim_amplitude > 12
-                        amplitude_list{i_trigger} = '120';
-                    end   
+
+
                     if resulting_stim_amplitude < 1
-                        amplitude_list{i_trigger} = '0';
+                        amplitude_list{i_trigger} = 'AMP0';
                     end 
                 end
                     

@@ -150,7 +150,11 @@ function processAnalysisVariables(varargin)
     step_time_index_in_saved_data = find(strcmp(loaded_data.stretch_names_session, 'step_time'), 1, 'first');
     this_step_time_data = loaded_data.stretch_data_session{step_time_index_in_saved_data};
     pushoff_time_index_in_saved_data = find(strcmp(loaded_data.stretch_names_session, 'pushoff_time'), 1, 'first');
-    this_pushoff_time_data = loaded_data.stretch_data_session{pushoff_time_index_in_saved_data};
+    if ~isempty(pushoff_time_index_in_saved_data)
+        this_pushoff_time_data = loaded_data.stretch_data_session{pushoff_time_index_in_saved_data};
+    else
+        this_pushoff_time_data = [];
+    end
     names_source = response_names_session;
     directions_source = response_directions_session;
     for i_variable = 1 : size(variables_to_integrate, 1)
@@ -178,6 +182,7 @@ function processAnalysisVariables(varargin)
         % store
 %         [analysis_data_session, analysis_names_session] = addOrOverwriteData(analysis_data_session, analysis_names_session, integrated_data, this_variable_name);
         [analysis_data_session, analysis_names_session, analysis_directions_session] = ...
+            addOrOverwriteResultsData ...
               ( ...
                 analysis_data_session, analysis_names_session, analysis_directions_session, ...
                 integrated_data, this_variable_name, new_variable_directions ...
@@ -534,7 +539,7 @@ function processAnalysisVariables(varargin)
     % use the general solution for variables_to_invert instead
     variables_to_invert = study_settings.get('analysis_variables_from_inversion_by_perturbation');
     for i_variable = 1 : size(variables_to_invert, 1)
-        error(['analysis_variables_from_inversion_by_perturbation is in the process of being phased out, look for another solution '])
+        warning(['analysis_variables_from_inversion_by_perturbation is in the process of being phased out, look for another solution '])
         % get data
         this_variable_name = variables_to_invert{i_variable, 1};
         this_variable_source_name = variables_to_invert{i_variable, 2};
