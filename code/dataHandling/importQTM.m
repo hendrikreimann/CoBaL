@@ -76,9 +76,8 @@ for i_source = 1 : length(sources)
         
         % go through files and import
         number_of_files = length(file_name_list);
-%         for i_file = 1 : number_of_files
         importing_trial_number = 0;
-        for i_file = 1
+        for i_file = 1 : number_of_files
             % file name stuff
             data_file_name = file_name_list{i_file};
             [date, subject_id, trial_type, trial_number, file_type] = getFileParameters(data_file_name);
@@ -202,7 +201,7 @@ for i_source = 1 : length(sources)
                     %                 loop through trials within current file
                     
                     number_of_trials_in_this_qtm_file = length(start_indices);
-                    for i_trial_this_qtm_file = 1 : number_of_trials_in_this_qtm_file
+                    for i_trial_this_qtm_file = 1 : number_of_trials_in_this_qtm_file-1
                         this_trial_start_index = start_indices(i_trial_this_qtm_file);
                         this_trial_end_index = end_indices(i_trial_this_qtm_file + 1);
                         number_of_samples = this_trial_end_index - this_trial_start_index + 1;
@@ -304,12 +303,9 @@ for i_source = 1 : length(sources)
                         % align indices
                         start_indices_mocap = round(start_indices * sampling_rate_mocap/analog_fs);
                         end_indices_mocap = round(end_indices * sampling_rate_mocap/analog_fs);
-                        number_of_frames = end_indices_mocap(i_trial_this_qtm_file) - start_indices_mocap(i_trial_this_qtm_file) + 1;
-
                         this_trial_start_index_mocap = start_indices_mocap(i_trial_this_qtm_file);
                         this_trial_end_index_mocap = end_indices_mocap(i_trial_this_qtm_file + 1);
-                        number_of_samples = this_trial_end_index_mocap - this_trial_start_index_mocap + 1;
-
+                        number_of_frames = this_trial_end_index_mocap - this_trial_start_index_mocap + 1;
                         
                         temp_markers = qtm_data.Trajectories.Labeled.Data(:, 1:3, this_trial_start_index_mocap:this_trial_end_index_mocap);
                      
