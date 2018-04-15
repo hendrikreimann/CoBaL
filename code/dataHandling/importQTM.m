@@ -26,13 +26,7 @@
 % Files containing the same data in .mat format, with some additional information about where they came from.
 % Output files will be saved to folders "raw" and "processed".
 
-function importQTM(varargin)
-parser = inputParser;
-parser.KeepUnmatched = true;
-sources_default = {'qtm', 'labview'};
-addParameter(parser, 'sources', sources_default)
-parse(parser, varargin{:})
-sources = parser.Results.sources;
+function importQTM()
 
 %% prepare
 % set some parameters
@@ -58,389 +52,425 @@ current_path = pwd;
 path_split = strsplit(current_path, filesep);
 subject_code = path_split{end};
 
-%% import data
-for i_source = 1 : length(sources)
-    source_dir = sources{i_source};
-    if exist(source_dir, 'dir')
+labview_source_dir = 'labview';
+qtm_source_dir = 'qtm';
+
+%% import labview data
+% get list of files to import from this directory
+clear file_name_list;
+data_dir_csv = dir([labview_source_dir filesep '*csv']);
+[file_name_list{1:length(data_dir_csv)}] = deal(data_dir_csv.name);
+
+% import protocol
+protocol_file_available = 0;
+if any(strcmp(file_name_list, 'protocol.csv'))
+    protocol_file_available = 1;
+    
+    % we have a protocol file, so import that
+    [imported_data, delimiter, nheaderlines] = importdata([labview_source_dir filesep 'protocol.csv'], ',', 1);
+    headers = imported_data.textdata(1, :);
+    textdata = imported_data.textdata(2:end, :);
+    protocol_data = imported_data.data;
+    protocol_headers = headers(2:end);
+    protocol_trial_type = textdata(:, strcmp(headers, 'Trial Type'));
+    protocol_trial_number = protocol_data(:, strcmp(protocol_headers, 'Trial Number'));
+    protocol_trial_duration = protocol_data(:, strcmp(protocol_headers, 'Duration (s)'));
+    protocol_trial_metronome = protocol_data(:, strcmp(protocol_headers, 'Use Metronome (0/1)'));
+    protocol_trial_saved = protocol_data(:, strcmp(protocol_headers, 'save data (0/1)'));
+    protocol_counted_left_step = protocol_data(:, strcmp(protocol_headers, 'Count left steps (0/1)'));
+    protocol_counted_right_step = protocol_data(:, strcmp(protocol_headers, 'Count right steps (0/1)'));
+    protocol_trial_stim_visual_intermittent = protocol_data(:, strcmp(protocol_headers, 'Use Visual Stimulus - intermittent'));
+    protocol_trial_stim_gvs_intermittent = protocol_data(:, strcmp(protocol_headers, 'GVS intermittent'));
+    
+    % remove the protocol file from the list
+    file_name_list(strcmp(file_name_list, 'protocol.csv')) = [];
+end
+
+% import labview saved data
+number_of_files = length(file_name_list);
+% for i_file = 1 : number_of_files
+for i_file = [] % remove during development to speed things up
+    % file name stuff
+    data_file_name = file_name_list{i_file};
+    [date, subject_id, trial_type, trial_number, file_type] = getFileParameters(data_file_name);
+    imported_data = importdata([labview_source_dir filesep data_file_name], ',', 2);
+    labview_trajectories = imported_data.data;
+
+    % extract headers
+    column_name_string = imported_data.textdata{1, 1};
+    labview_header = strsplit(column_name_string, ',');
+    number_of_data_columns = size(imported_data.textdata, 2);
+
+    % extract data into properly named variables
+    variables_to_save = struct();
+    variables_to_save_list = {};
+    for i_column = 1 : number_of_data_columns
+        variable_name = [strrep(labview_header{i_column}, ' ', '_'), '_trajectory'];
+        extract_string = ['variables_to_save.' variable_name ' = labview_trajectories(:, i_column);'];
+        eval(extract_string);
+        variables_to_save_list = [variables_to_save_list; variable_name];
+    end
+
+    % take special care of time, transform to seconds and rename according to file type
+	variables_to_save.time = variables_to_save.time_trajectory * milliseconds_to_seconds; % transform to seconds
+    variables_to_save.time = variables_to_save.time - variables_to_save.time(1); % zero
+    variables_to_save = rmfield(variables_to_save, 'time_trajectory'); % this is not a variable, so remove from list
+    variables_to_save_list(strcmp(variables_to_save_list, 'time_trajectory')) = [];
+
+    % add data source
+    variables_to_save.data_source = 'labview';
+    
+    % add sampling rate
+    variables_to_save.sampling_rate = NaN;
+
+    % save
+    save_folder = 'processed';
+    save_file_name = makeFileName(date, subject_id, trial_type, trial_number, file_type);
+    save([save_folder filesep save_file_name], '-struct', 'variables_to_save');
+
+    for i_variable = 1 : length(variables_to_save_list)
+        if ~checkDataAvailability(date, subject_id, trial_type, trial_number, variables_to_save_list{i_variable})
+            addAvailableData_new ...
+              ( ...
+                variables_to_save_list{i_variable}, ...
+                'time', ...
+                'sampling_rate', ...
+                variables_to_save_list{i_variable}, ...
+                {'~', '~'}, ... % placeholder for direction
+                save_folder, ...
+                save_file_name ...
+              );
+        end
+    end
+
+    disp(['imported ' labview_source_dir filesep data_file_name ' and saved as ' save_folder filesep save_file_name])
+
+
+
+end
+
+%% import qtm data
+clear file_name_list;
+data_dir_mat = dir([qtm_source_dir filesep '*mat']);
+[file_name_list{1:length(data_dir_mat)}] = deal(data_dir_mat.name);
+
+% go through files and import
+number_of_files = length(file_name_list);
+importing_trial_number = 0;
+for i_file = 4 : number_of_files
+    % file name stuff
+    data_file_name = file_name_list{i_file};
+    disp(['Importing ' qtm_source_dir filesep data_file_name])
+    [date, subject_id, trial_type, trial_number] = getFileParameters(data_file_name);
+
+    % this is marker data from QTM
+    data_source = 'qtm';
+    var_name = whos('-file', [qtm_source_dir, filesep, data_file_name]);
+    temp_data = load([qtm_source_dir, filesep, data_file_name]);
+    qtm_data = temp_data.(var_name.name);
+    analog_fs = qtm_data.Analog.Frequency;
+
+    % this is walking data, so break up into chunks for trials if necessary
+    trigger_mask = contains(qtm_data.Analog.Labels, 'labview_sync');
+    trigger = qtm_data.Analog.Data(trigger_mask,:);
+    % normalise to the range [0,1] and round
+    trigger = round(trigger/max(trigger));
+    
+    % find edges
+    trigger_edges = [diff(trigger), 0];
+    analog_index = 1:length(qtm_data.Analog.Data);
+    % trials start on negative edge
+    start_indices = analog_index(trigger_edges == -1);
+    end_indices = analog_index(trigger_edges == 1);
+    
+%     figure; hold on;
+%     plot(trigger);
+%     plot(start_indices, 0*start_indices, '>');
+%     plot(end_indices, 0*end_indices, '<');
+    
+    % figure out protocol steps
+    protocol_step_mask = contains(qtm_data.Analog.Labels, 'currentStep');
+    protocol_step_analog = qtm_data.Analog.Data(protocol_step_mask,:);
+    % discrete map from [-10 10] --> [0 200]
+    protocol_step = round((protocol_step_analog + 10) * 10);
+
+    % fix problems with the analog --> digital conversion
+    down_edges = find(diff(protocol_step) == -1);
+    up_edges = find(diff(protocol_step) == 1);
+    
+%     figure; hold on;
+%     plot(protocol_step);
+%     plot(start_indices, protocol_step(start_indices), '>');
+%     plot(end_indices, protocol_step(end_indices), '<');
+%     plot(down_edges, protocol_step(down_edges), 'v');
+    
+    for i_down_edge = 1 : length(down_edges)-1
+        this_down_edge = down_edges(i_down_edge);
+        next_up_edge = min(up_edges(up_edges > this_down_edge));
+        problematic_indices = this_down_edge+1 : next_up_edge;
+        protocol_step(problematic_indices) = protocol_step(problematic_indices) + 1;
         
-        % get list of files to import from this directory
-        clear file_name_list_csv;
-        data_dir_csv = dir([source_dir filesep '*csv']);
-        [file_name_list_csv{1:length(data_dir_csv)}] = deal(data_dir_csv.name);
+%         plot(problematic_indices, protocol_step(problematic_indices), 'o');
+    end
+
+%     plot(protocol_step);
+
+    
+    
+    
+    if isempty(start_indices) && isempty(end_indices)
+        start_indices = 1;
+        end_indices = length(analog_index);
+    end
+
+    if length(end_indices) ~= length(start_indices)
+        sprintf('ERROR: %d start indicies ~= %d end indices\nUSING 120 s trials\n',...
+        length(start_indices), length(end_indices))
+        end_indices = start_indices + 120*analog_fs;
+    end
+
+    if end_indices(end) > length(qtm_data.Analog.Data)
+        end_indices(end) = length(qtm_data.Analog.Data);
+    end
+
+    number_of_trials_in_this_qtm_file = length(start_indices);
+    for i_trial_this_qtm_file = 1 : number_of_trials_in_this_qtm_file
+        this_trial_start_index = start_indices(i_trial_this_qtm_file);
+        this_trial_end_index = end_indices(i_trial_this_qtm_file);
+        number_of_samples = this_trial_end_index - this_trial_start_index + 1;
+        this_trial_length = number_of_samples / analog_fs;
         
-        clear file_name_list_mat;
-        data_dir_mat = dir([source_dir filesep '*mat']);
-        [file_name_list_mat{1:length(data_dir_mat)}] = deal(data_dir_mat.name);
-        
-        file_name_list = [file_name_list_mat file_name_list_csv];
-        
-        % go through files and import
-        number_of_files = length(file_name_list);
-        importing_trial_number = 0;
-        for i_file = 1 : number_of_files
-            % file name stuff
-            data_file_name = file_name_list{i_file};
-            [date, subject_id, trial_type, trial_number, file_type] = getFileParameters(data_file_name);
-            if isempty(file_type)
-                if data_file_name(end-2) == 'm'
-                    file_type = 'qualisysData';
-                else
-                    file_type = 'unknown';
-                end
+        % figure out information from protocol, or define for calibration trials
+        if strcmp(trial_type, 'calibration')
+            importing_trial_number = trial_number;
+            importing_trial_type = trial_type;
+        else
+            if ~protocol_file_available
+                error('No protocol file available, exiting for now... you can add code to fix this')
             end
+            this_trial_protocol_step_data = protocol_step(this_trial_start_index+1:this_trial_end_index-1);
+            if any(this_trial_protocol_step_data(2:end-1)~=median(this_trial_protocol_step_data))
+                warning(['Ambiguous protocol step data for trial starting at time step ' num2str(this_trial_start_index)]);
+                figure; hold on; title(['Ambiguous trial starting at time step ' num2str(this_trial_start_index)])
+                plot(protocol_step);
+                plot(start_indices, protocol_step(start_indices), '>');
+                plot(end_indices, protocol_step(end_indices), '<');
+            end
+            this_trial_protocol_index = median(this_trial_protocol_step_data) + 1;
             
-            %% qualisys
-            if strcmp(file_type, 'qualisysData')
-                % this is marker data from QTM
-                data_source = 'qtm';
-                varName = whos('-file', [source_dir, filesep, data_file_name]);
-                temp_data = load([source_dir, filesep, data_file_name]);
-                qtm_data = temp_data.(varName.name);
-                
-              
-
-                if strcmp(trial_type, 'calibration')
-                   % Markers -- only need/can access marker data from
-                   % calibration file (no Analog?.. bc labview not running?)
-                   
-                   data_type = 'markers';
-                   % deal with marker data
-                   sampling_rate_mocap = qtm_data.FrameRate;
-                   marker_labels = qtm_data.Trajectories.Labeled.Labels;
-                   sampling_rate_mocap = qtm_data.FrameRate;
-                   
-                   temp_markers = qtm_data.Trajectories.Labeled.Data ...
-                     (...
-                       :,...
-                       1:3,...
-                       : ...
-                     ) * millimeter_to_meter;
-                    
-                    marker_count = 1;
-                    marker_trajectories_raw = [];
-                    for i_marker = 1: size(temp_markers,1)
-                        this_marker = temp_markers(i_marker,:,:);
-                        marker_trajectories_raw(marker_count:marker_count+2,:) = reshape(this_marker, size(this_marker,2), size(this_marker,3));
-                        marker_count = marker_count + 3;
-                    end
-                    marker_trajectories_raw = marker_trajectories_raw';
-
-                    time_mocap = (1 : length(marker_trajectories_raw)) / sampling_rate_mocap;
-                    if isrow(time_mocap)
-                        time_mocap = time_mocap';
-                    end
-                    
-                    % triplicate labels
-                    marker_labels_loaded = marker_labels;
-                    number_of_markers = length(marker_labels_loaded);
-                    marker_labels = cell(3, number_of_markers);
-                    for i_marker = 1 : length(marker_labels)
-                        marker_labels{1, i_marker} = [marker_labels_loaded{i_marker} '_x'];
-                        marker_labels{2, i_marker} = [marker_labels_loaded{i_marker} '_y'];
-                        marker_labels{3, i_marker} = [marker_labels_loaded{i_marker} '_z'];
-                    end
-                    marker_labels = reshape(marker_labels, 1, number_of_markers*3);
-                                
-                    % make directions
-                    % NOTE: this defines directions and makes assumptions, make sure everything is right here
-                    number_of_marker_trajectories = size(marker_trajectories_raw, 2);
-                    marker_directions = cell(2, number_of_marker_trajectories);
-                    [marker_directions{1, 1 : 3 : number_of_marker_trajectories}] = deal('right');
-                    [marker_directions{2, 1 : 3 : number_of_marker_trajectories}] = deal('left');
-                    [marker_directions{1, 2 : 3 : number_of_marker_trajectories}] = deal('forward');
-                    [marker_directions{2, 2 : 3 : number_of_marker_trajectories}] = deal('backward');
-                    [marker_directions{1, 3 : 3 : number_of_marker_trajectories}] = deal('up');
-                    [marker_directions{2, 3 : 3 : number_of_marker_trajectories}] = deal('down');
-                    
-                    % save
-                    save_folder = 'raw';
-                    save_file_name = makeFileName(date, subject_id, trial_type, trial_number, 'markerTrajectoriesRaw.mat');
-                    save ...
-                      ( ...
-                        [save_folder filesep save_file_name], ...
-                        'marker_trajectories_raw', ...
-                        'time_mocap', ...
-                        'data_source', ...
-                        'sampling_rate_mocap', ...
-                        'marker_labels', ...
-                        'marker_directions' ...
-                      );
-                    addAvailableData_new('marker_trajectories_raw', 'time_mocap', 'sampling_rate_mocap', 'marker_labels','_marker_directions', save_folder, save_file_name);
-                    disp(['imported ' source_dir filesep data_file_name ' and saved as ' save_folder filesep save_file_name])
-                end                  
-                if strcmp(trial_type, 'walking')
-                    % this is walking data, so break up into chunks for trials
-                    analog_fs = qtm_data.Analog.Frequency;
-                  
-                    % Find trial start times
-                    trigger_mask = contains(qtm_data.Analog.Labels, 'labview_sync');
-                    trigger = qtm_data.Analog.Data(trigger_mask,:);
-
-                    % normalise to the range [0,1] and round
-                    trigger = round(trigger/max(trigger));
-                    % find edges
-                    trigger_edges = [diff(trigger),0];
-                    analog_index = 1:length(qtm_data.Analog.Data);
-                    % trials start on negative edge
-                    start_indices = analog_index(trigger_edges==-1);
-                    end_indices = analog_index(trigger_edges ==1);
-
-                    if length(end_indices) ~= length(start_indices)
-                        sprintf('ERROR: %d start indicies ~= %d end indices\nUSING 120 s trials\n',...
-                            length(start_indices), length(end_indices))
-                        end_indices = start_indices + 120*analog_fs;
-                    end
-                    
-                    if end_indices(end) > length(qtm_data.Analog.Data)
-                        end_indices(end) = length(qtm_data.Analog.Data);
-                    end
-
-                    %                  TO DO: Check number of start indices against number of
-                    %                  LV files -- PROBLEM: multiple qtm files
-
-                    %                 loop through trials within current file
-                    
-                    number_of_trials_in_this_qtm_file = length(start_indices);
-                    for i_trial_this_qtm_file = 1 : number_of_trials_in_this_qtm_file-1
-                        this_trial_start_index = start_indices(i_trial_this_qtm_file);
-                        this_trial_end_index = end_indices(i_trial_this_qtm_file + 1);
-                        number_of_samples = this_trial_end_index - this_trial_start_index + 1;
-                        this_trial_length = number_of_samples / analog_fs;
-                        
-                        % EMG
-                        sampling_rate_emg = analog_fs;
-                        time_emg = (1 : number_of_samples)' / sampling_rate_emg;
-                        emg_labels = qtm_data.Analog.Labels(14:29);
-                        emg_trajectories_raw = qtm_data.Analog.Data(14:29, this_trial_start_index:this_trial_end_index)';
-                        data_type = 'emg';
-                        
-                        % make directions
-                        emg_directions = cell(2, length(emg_labels));
-                        [emg_directions{1, :}] = deal('positive');
-                        [emg_directions{2, :}] = deal('negative');
-                        
-                        % save emg data
-                        if round(this_trial_length) == 120
-                            importing_trial_number = importing_trial_number + 1;
-                            trial_type = 'stimulus';
-                            save_folder = 'raw';
-                            save_file_name = makeFileName(date, subject_id, trial_type, importing_trial_number, 'emgTrajectoriesRaw.mat');
-                            save ...
-                                ( ...
-                                [save_folder filesep save_file_name], ...
-                                'emg_trajectories_raw', ...
-                                'time_emg', ...
-                                'sampling_rate_emg', ...
-                                'data_source', ...
-                                'emg_labels', ...
-                                'emg_directions' ...
-                                );
-                            addAvailableData_new('emg_trajectories_raw', 'time_emg', 'sampling_rate_emg', 'emg_labels', '_emg_directions', save_folder, save_file_name);
-                        end
-
-
-                        % Force data
-                        %Force data are in qtm_data.Force(n).Force
-                        data_type = 'forceplate';
-                        if any(any(qtm_data.Force(1).Force))
-                            forceplate_tajectories_Left = ...
-	                          [ ...
-    	                        qtm_data.Force(1).Force(:, this_trial_start_index : this_trial_end_index)', ...
-        	                    qtm_data.Force(1).Moment(:, this_trial_start_index : this_trial_end_index)' ...
-            	              ];
-                	        forceplate_tajectories_Right = ...
-                    	      [ ...
-                        	    qtm_data.Force(2).Force(:, this_trial_start_index : this_trial_end_index)', ...
-                            	qtm_data.Force(2).Moment(:, this_trial_start_index : this_trial_end_index)' ...
-                          	  ];
-	                        forceplate_trajectories_raw = [forceplate_tajectories_Left, forceplate_tajectories_Right];
-                        else % currently taking volts... need to scale accordinginly
-                            Warning('No force data found, using analog data instead. This is currently not scaling correctly.')
-                            forceplate_trajectories_raw = [qtm_data.Analog.Data(1:12, this_trial_start_index : this_trial_end_index)]';
-                        end
-                        forceplate_labels = qtm_data.Analog.Labels(1:12);
-%                         forceplate_location_Acl = qtm_data.Force(1).ForcePlateLocation(4,:)*millimeter_to_meter; % back left corner coordinates (m)
-%                         forceplate_location_Acr = qtm_data.Force(2).ForcePlateLocation(3,:)*millimeter_to_meter; % back right corner coordinates (m)
-%                         
-                        forceplate_location_left = mean(qtm_data.Force(1).ForcePlateLocation) * millimeter_to_meter; % mean of corner coordinates gives center
-                        forceplate_location_right = mean(qtm_data.Force(2).ForcePlateLocation) * millimeter_to_meter; % mean of corner coordinates gives center
-                        
-                        sampling_rate_forceplate = analog_fs;
-                        time_forceplate = (1 : number_of_samples)' / sampling_rate_forceplate;
-                        
-                        % make directions
-                        % NOTE: this defines directions and makes assumptions, make sure everything is right here
-                        forceplate_directions = cell(2, length(forceplate_labels));
-                        [forceplate_directions{1, [1 4 7 10]}] = deal('right');
-                        [forceplate_directions{2, [1 4 7 10]}] = deal('left');
-                        [forceplate_directions{1, [2 5 8 11]}] = deal('forward');
-                        [forceplate_directions{2, [2 5 8 11]}] = deal('backward');
-                        [forceplate_directions{1, [3 6 9 12]}] = deal('up');
-                        [forceplate_directions{2, [3 6 9 12]}] = deal('down');
-
-                        % save forceplate data
-                        if round(this_trial_length) == 120
-                            trial_type = 'stimulus';
-                            save_folder = 'raw';
-                            save_file_name = makeFileName(date, subject_id, trial_type, importing_trial_number, 'forceplateTrajectoriesRaw.mat');
-                            save ...
-                                ( ...
-                                [save_folder filesep save_file_name], ...
-                                'forceplate_trajectories_raw', ...
-                                'forceplate_labels', ...
-                                'data_source', ...
-                                'time_forceplate', ...
-                                'sampling_rate_forceplate', ...
-                                'forceplate_location_left', ...    
-                                'forceplate_location_right', ...    
-                                'forceplate_directions' ...
-                                );
-                            addAvailableData_new('forceplate_trajectories_raw', 'time_forceplate', 'sampling_rate_forceplate', 'forceplate_labels', '_forceplate_directions', save_folder, save_file_name);
-                        end                        
-                       
-                        % Markers
-                        sampling_rate_mocap = qtm_data.FrameRate;
-                        % align indices
-                        start_indices_mocap = round(start_indices * sampling_rate_mocap/analog_fs);
-                        end_indices_mocap = round(end_indices * sampling_rate_mocap/analog_fs);
-                        this_trial_start_index_mocap = start_indices_mocap(i_trial_this_qtm_file);
-                        this_trial_end_index_mocap = end_indices_mocap(i_trial_this_qtm_file + 1);
-                        number_of_frames = this_trial_end_index_mocap - this_trial_start_index_mocap + 1;
-                        
-                        temp_markers = qtm_data.Trajectories.Labeled.Data(:, 1:3, this_trial_start_index_mocap:this_trial_end_index_mocap);
-                     
-                        data_type = 'markers';
-                        % deal with marker data
-                        
-                        marker_labels = qtm_data.Trajectories.Labeled.Labels;
-                        sampling_rate_mocap = qtm_data.FrameRate;
-                        time_mocap = (1 : number_of_frames)' / sampling_rate_mocap;
-                        
-                        marker_count = 1;
-                        marker_trajectories_raw = [];
-                        for i_marker = 1: size(temp_markers,1)
-                            this_marker = temp_markers(i_marker,:,:);
-                            marker_trajectories_raw(marker_count:marker_count+2,:) = reshape(this_marker, size(this_marker,2), size(this_marker,3)) * millimeter_to_meter; 
-                            marker_count = marker_count + 3;
-                        end
-                        marker_trajectories_raw = marker_trajectories_raw';
-                         
-                        % triplicate labels
-                        marker_labels_loaded = marker_labels;
-                        number_of_markers = length(marker_labels_loaded);
-                        marker_labels = cell(3, number_of_markers);
-                        for i_marker = 1 : length(marker_labels)
-                            marker_labels{1, i_marker} = [marker_labels_loaded{i_marker} '_x'];
-                            marker_labels{2, i_marker} = [marker_labels_loaded{i_marker} '_y'];
-                            marker_labels{3, i_marker} = [marker_labels_loaded{i_marker} '_z'];
-                        end
-                        marker_labels = reshape(marker_labels, 1, number_of_markers*3);
-                        
-                        % make directions
-                        % NOTE: this defines directions and makes assumptions, make sure everything is right here
-                        number_of_marker_trajectories = size(marker_trajectories_raw, 2);
-                        marker_directions = cell(2, number_of_marker_trajectories);
-                        [marker_directions{1, 1 : 3 : number_of_marker_trajectories}] = deal('right');
-                        [marker_directions{2, 1 : 3 : number_of_marker_trajectories}] = deal('left');
-                        [marker_directions{1, 2 : 3 : number_of_marker_trajectories}] = deal('forward');
-                        [marker_directions{2, 2 : 3 : number_of_marker_trajectories}] = deal('backward');
-                        [marker_directions{1, 3 : 3 : number_of_marker_trajectories}] = deal('up');
-                        [marker_directions{2, 3 : 3 : number_of_marker_trajectories}] = deal('down');
-
-                        
-                        % save
-                        if round(this_trial_length) == 120
-                            trial_type = 'stimulus';
-                            save_folder = 'raw';
-                            save_file_name = makeFileName(date, subject_id, trial_type, importing_trial_number, 'markerTrajectoriesRaw.mat');
-                            save ...
-                                ( ...
-                                [save_folder filesep save_file_name], ...
-                                'marker_trajectories_raw', ...
-                                'time_mocap', ...
-                                'data_source', ...
-                                'sampling_rate_mocap', ...
-                                'marker_labels', ...
-                                'marker_directions' ...
-                                );
-                            addAvailableData_new('marker_trajectories_raw', 'time_mocap', 'sampling_rate_mocap', 'marker_labels', '_marker_directions', save_folder, save_file_name);
-                        end
-                        disp(['imported ' source_dir filesep data_file_name])
-                    end
-                    total_number_of_trials_extracted_this_subject = total_number_of_trials_extracted_this_subject + number_of_trials_in_this_qtm_file;
-                end
-                %% unknown
-            elseif strcmp(file_type, 'unknown')
-                disp(['FAILED to import ' data_file_name])
-                
-                %% labview
-            else
-                % assume this is labview data
-                [imported_data, delimiter, nheaderlines] = importdata([source_dir filesep data_file_name], ',', 3);
-                labview_trajectories = imported_data.data;
-                
-                % extract headers
-                column_name_string = imported_data.textdata{1, 1};
-                labview_header = strsplit(column_name_string, ',');
-                number_of_data_columns = size(imported_data.textdata, 2);
-                
-                % extract data into properly named variables
-                variables_to_save = struct();
-                variables_to_save_list = {};
-                for i_column = 1 : number_of_data_columns
-                    variable_name = [strrep(labview_header{i_column}, ' ', '_'), '_trajectory'];
-                    extract_string = ['variables_to_save.' variable_name ' = labview_trajectories(:, i_column);'];
-                    eval(extract_string);
-                    variables_to_save_list = [variables_to_save_list; variable_name];
-                end
-                
-                % electrodes were inverted for subject STD (red was left, should be right), so correct this
-                if strcmp(subject_code, 'STD')
-                    figure; hold on;
-                    plot(variables_to_save.GVS_out_trajectory);
-                    variables_to_save.GVS_out_trajectory = -variables_to_save.GVS_out_trajectory;
-                    plot(variables_to_save.GVS_out_trajectory);
-                end
-                
-                % take special care of time, transform to seconds and rename according to file type
-                if isrow(variables_to_save.time_trajectory)
-                    variables_to_save.time_trajectory = variables_to_save.time_trajectory';
-                end
-                eval(['variables_to_save.time = variables_to_save.time_trajectory * milliseconds_to_seconds;']);
-                variables_to_save.time = variables_to_save.time - variables_to_save.time(1);
-                variables_to_save = rmfield(variables_to_save, 'time_trajectory');
-                variables_to_save_list(strcmp(variables_to_save_list, 'time_trajectory')) = [];
-                
-                % add data source
-                variables_to_save.data_source = 'labview'; % not tested yet
-                
-                % add sampling rate
-                variables_to_save.sampling_rate = NaN;
-                
-                % save
-                save_folder = 'processed';
-                save_file_name = makeFileName(date, subject_id, trial_type, trial_number, file_type);
-                save([save_folder filesep save_file_name], '-struct', 'variables_to_save');
-                
-                for i_variable = 1 : length(variables_to_save_list)
-                    if ~checkDataAvailability(date, subject_id, trial_type, trial_number, variables_to_save_list{i_variable})
-                        addAvailableData_new ...
-                          ( ...
-                            variables_to_save_list{i_variable}, ...
-                            'time', ...
-                            'sampling_rate', ...
-                            variables_to_save_list{i_variable}, ...
-                            {'~', '~'}, ... % placeholder for direction
-                            save_folder, ...
-                            save_file_name ...
-                          );
-                    end
-                end
-                
-                disp(['imported ' source_dir filesep data_file_name ' and saved as ' save_folder filesep save_file_name])
+            importing_trial_type = protocol_trial_type{this_trial_protocol_index};
+            importing_trial_number = protocol_trial_number(this_trial_protocol_index);
+            this_trial_duration = protocol_trial_duration(this_trial_protocol_index);
+            save_this_trial = protocol_trial_saved(this_trial_protocol_index);
+            
+            % sanity check: recorded data should be within 0.1% of expected duration
+            if this_trial_duration < this_trial_length*0.999 || this_trial_duration > this_trial_length*1.001
+                warning ...
+                  ( ...
+                    [ ...
+                      'Problem with trial starting at time step ' ...
+                      num2str(this_trial_start_index) ...
+                      ', expected duration is ' ...
+                      num2str(this_trial_duration) ...
+                      's, but data is ' ...
+                      num2str(this_trial_length) ...
+                      's long.' ...
+                    ] ...
+                  );
             end
             
         end
+        
+        % EMG
+        sampling_rate_emg = analog_fs;
+        time_emg = (1 : number_of_samples)' / sampling_rate_emg;
+        emg_labels = qtm_data.Analog.Labels(14:29);
+        emg_trajectories_raw = qtm_data.Analog.Data(14:29, this_trial_start_index:this_trial_end_index)';
+        data_type = 'emg';
+
+        % make directions
+        emg_directions = cell(2, length(emg_labels));
+        [emg_directions{1, :}] = deal('positive');
+        [emg_directions{2, :}] = deal('negative');
+
+        % save emg data
+        if save_this_trial
+            save_folder = 'raw';
+            save_file_name = makeFileName(date, subject_id, importing_trial_type, importing_trial_number, 'emgTrajectoriesRaw.mat');
+            save ...
+                ( ...
+                [save_folder filesep save_file_name], ...
+                'emg_trajectories_raw', ...
+                'time_emg', ...
+                'sampling_rate_emg', ...
+                'data_source', ...
+                'emg_labels', ...
+                'emg_directions' ...
+                );
+            addAvailableData_new('emg_trajectories_raw', 'time_emg', 'sampling_rate_emg', 'emg_labels', '_emg_directions', save_folder, save_file_name);
+        end
+
+        % Force data - data are in qtm_data.Force(n).Force
+        data_type = 'forceplate';
+        if any(any(qtm_data.Force(1).Force))
+            forceplate_tajectories_Left = ...
+              [ ...
+                qtm_data.Force(1).Force(:, this_trial_start_index : this_trial_end_index)', ...
+                qtm_data.Force(1).Moment(:, this_trial_start_index : this_trial_end_index)' ...
+              ];
+            forceplate_tajectories_Right = ...
+              [ ...
+                qtm_data.Force(2).Force(:, this_trial_start_index : this_trial_end_index)', ...
+                qtm_data.Force(2).Moment(:, this_trial_start_index : this_trial_end_index)' ...
+              ];
+            forceplate_trajectories_raw = [forceplate_tajectories_Left, forceplate_tajectories_Right];
+        else % currently taking volts... need to scale accordinginly
+            Warning('No force data found, using analog data instead. This is currently not scaling correctly.')
+            forceplate_trajectories_raw = [qtm_data.Analog.Data(1:12, this_trial_start_index : this_trial_end_index)]';
+        end
+        forceplate_labels = qtm_data.Analog.Labels(1:12);
+%                         
+        forceplate_location_left = mean(qtm_data.Force(1).ForcePlateLocation) * millimeter_to_meter; % mean of corner coordinates gives center
+        forceplate_location_right = mean(qtm_data.Force(2).ForcePlateLocation) * millimeter_to_meter; % mean of corner coordinates gives center
+
+        sampling_rate_forceplate = analog_fs;
+        time_forceplate = (1 : number_of_samples)' / sampling_rate_forceplate;
+
+        % make directions
+        % NOTE: this defines directions and makes assumptions, make sure everything is right here
+        forceplate_directions = cell(2, length(forceplate_labels));
+        [forceplate_directions{1, [1 4 7 10]}] = deal('right');
+        [forceplate_directions{2, [1 4 7 10]}] = deal('left');
+        [forceplate_directions{1, [2 5 8 11]}] = deal('forward');
+        [forceplate_directions{2, [2 5 8 11]}] = deal('backward');
+        [forceplate_directions{1, [3 6 9 12]}] = deal('up');
+        [forceplate_directions{2, [3 6 9 12]}] = deal('down');
+
+        % save forceplate data
+        if save_this_trial
+            save_folder = 'raw';
+            save_file_name = makeFileName(date, subject_id, importing_trial_type, importing_trial_number, 'forceplateTrajectoriesRaw.mat');
+            save ...
+                ( ...
+                [save_folder filesep save_file_name], ...
+                'forceplate_trajectories_raw', ...
+                'forceplate_labels', ...
+                'data_source', ...
+                'time_forceplate', ...
+                'sampling_rate_forceplate', ...
+                'forceplate_location_left', ...    
+                'forceplate_location_right', ...    
+                'forceplate_directions' ...
+                );
+            addAvailableData_new('forceplate_trajectories_raw', 'time_forceplate', 'sampling_rate_forceplate', 'forceplate_labels', '_forceplate_directions', save_folder, save_file_name);
+        end
+        
+        % Markers
+        sampling_rate_mocap = qtm_data.FrameRate;
+        % align indices
+        start_indices_mocap = round(start_indices * sampling_rate_mocap/analog_fs);
+        if start_indices_mocap == 0
+            start_indices_mocap = 1;
+        end
+        end_indices_mocap = round(end_indices * sampling_rate_mocap/analog_fs);
+        this_trial_start_index_mocap = start_indices_mocap(i_trial_this_qtm_file);
+        this_trial_end_index_mocap = end_indices_mocap(i_trial_this_qtm_file);
+        number_of_frames = this_trial_end_index_mocap - this_trial_start_index_mocap + 1;
+
+        temp_markers = qtm_data.Trajectories.Labeled.Data(:, 1:3, this_trial_start_index_mocap:this_trial_end_index_mocap);
+
+        data_type = 'markers';
+        % deal with marker data
+
+        marker_labels = qtm_data.Trajectories.Labeled.Labels;
+        sampling_rate_mocap = qtm_data.FrameRate;
+        time_mocap = (1 : number_of_frames)' / sampling_rate_mocap;
+
+        marker_count = 1;
+        marker_trajectories_raw = [];
+        for i_marker = 1: size(temp_markers,1)
+            this_marker = temp_markers(i_marker,:,:);
+            marker_trajectories_raw(marker_count:marker_count+2,:) = reshape(this_marker, size(this_marker,2), size(this_marker,3)) * millimeter_to_meter; 
+            marker_count = marker_count + 3;
+        end
+        marker_trajectories_raw = marker_trajectories_raw';
+
+        % triplicate labels
+        marker_labels_loaded = marker_labels;
+        number_of_markers = length(marker_labels_loaded);
+        marker_labels = cell(3, number_of_markers);
+        for i_marker = 1 : length(marker_labels)
+            marker_labels{1, i_marker} = [marker_labels_loaded{i_marker} '_x'];
+            marker_labels{2, i_marker} = [marker_labels_loaded{i_marker} '_y'];
+            marker_labels{3, i_marker} = [marker_labels_loaded{i_marker} '_z'];
+        end
+        marker_labels = reshape(marker_labels, 1, number_of_markers*3);
+
+        % make directions
+        % NOTE: this defines directions and makes assumptions, make sure everything is right here
+        number_of_marker_trajectories = size(marker_trajectories_raw, 2);
+        marker_directions = cell(2, number_of_marker_trajectories);
+        [marker_directions{1, 1 : 3 : number_of_marker_trajectories}] = deal('right');
+        [marker_directions{2, 1 : 3 : number_of_marker_trajectories}] = deal('left');
+        [marker_directions{1, 2 : 3 : number_of_marker_trajectories}] = deal('forward');
+        [marker_directions{2, 2 : 3 : number_of_marker_trajectories}] = deal('backward');
+        [marker_directions{1, 3 : 3 : number_of_marker_trajectories}] = deal('up');
+        [marker_directions{2, 3 : 3 : number_of_marker_trajectories}] = deal('down');
+
+
+        % save
+        if save_this_trial
+            save_folder = 'raw';
+            save_file_name = makeFileName(date, subject_id, importing_trial_type, importing_trial_number, 'markerTrajectoriesRaw.mat');
+            save ...
+                ( ...
+                [save_folder filesep save_file_name], ...
+                'marker_trajectories_raw', ...
+                'time_mocap', ...
+                'data_source', ...
+                'sampling_rate_mocap', ...
+                'marker_labels', ...
+                'marker_directions' ...
+                );
+            addAvailableData_new('marker_trajectories_raw', 'time_mocap', 'sampling_rate_mocap', 'marker_labels', '_marker_directions', save_folder, save_file_name);
+        end
+        
+        if save_this_trial
+            disp(['  Saved data files for type ' importing_trial_type ', trial ' num2str(importing_trial_number)])
+        end
     end
+    total_number_of_trials_extracted_this_subject = total_number_of_trials_extracted_this_subject + number_of_trials_in_this_qtm_file;
     
+
 end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
