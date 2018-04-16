@@ -75,7 +75,7 @@ if any(strcmp(file_name_list, 'protocol.csv'))
     protocol_trial_type = textdata(:, strcmp(headers, 'Trial Type'));
     protocol_trial_number = protocol_data(:, strcmp(protocol_headers, 'Trial Number'));
     protocol_trial_duration = protocol_data(:, strcmp(protocol_headers, 'Duration (s)'));
-    protocol_trial_metronome = protocol_data(:, strcmp(protocol_headers, 'Use Metronome (0/1)'));
+    protocol_trial_metronome = protocol_data(:, strcmp(protocol_headers, 'Metronome'));
     protocol_trial_saved = protocol_data(:, strcmp(protocol_headers, 'save data (0/1)'));
     protocol_counted_left_step = protocol_data(:, strcmp(protocol_headers, 'Count left steps (0/1)'));
     protocol_counted_right_step = protocol_data(:, strcmp(protocol_headers, 'Count right steps (0/1)'));
@@ -88,8 +88,8 @@ end
 
 % import labview saved data
 number_of_files = length(file_name_list);
-% for i_file = 1 : number_of_files
-for i_file = [] % remove during development to speed things up
+for i_file = 1 : number_of_files
+% for i_file = [] % remove during development to speed things up
     % file name stuff
     data_file_name = file_name_list{i_file};
     [date, subject_id, trial_type, trial_number, file_type] = getFileParameters(data_file_name);
@@ -157,7 +157,7 @@ data_dir_mat = dir([qtm_source_dir filesep '*mat']);
 % go through files and import
 number_of_files = length(file_name_list);
 importing_trial_number = 0;
-for i_file = 4 : number_of_files
+for i_file = 1 : number_of_files
     % file name stuff
     data_file_name = file_name_list{i_file};
     disp(['Importing ' qtm_source_dir filesep data_file_name])
@@ -244,6 +244,7 @@ for i_file = 4 : number_of_files
         if strcmp(trial_type, 'calibration')
             importing_trial_number = trial_number;
             importing_trial_type = trial_type;
+            save_this_trial = 1;
         else
             if ~protocol_file_available
                 error('No protocol file available, exiting for now... you can add code to fix this')
