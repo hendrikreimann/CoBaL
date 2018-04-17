@@ -95,5 +95,14 @@ function [conditions_to_analyze, trials_to_analyze, calibration_trials, emg_tria
     trials_to_analyze(strcmp(conditions_to_analyze, 'emg')) = [];
     conditions_to_analyze(strcmp(conditions_to_analyze, 'emg')) = [];
     
+    % exclude metronome
+    emg_trials = trials_to_analyze(strcmp(conditions_to_analyze, 'metronome'));
+    trials_to_analyze(strcmp(conditions_to_analyze, 'metronome')) = [];
+    conditions_to_analyze(strcmp(conditions_to_analyze, 'metronome')) = [];
+    
+    % exclude washout
+    emg_trials = trials_to_analyze(strcmp(conditions_to_analyze, 'washout'));
+    trials_to_analyze(strcmp(conditions_to_analyze, 'washout')) = [];
+    conditions_to_analyze(strcmp(conditions_to_analyze, 'washout')) = [];
     
 end

@@ -160,7 +160,8 @@ function determineStretchesToAnalyze(varargin)
             end
             if strcmp(experimental_paradigm, 'Vision')
                 % this is for UD data
-                current_rotation_trajectory = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'current_rotation_trajectory');
+%                 current_rotation_trajectory = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'current_rotation_trajectory');
+                current_rotation_trajectory = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'visual_rotation_angle_trajectory');
                 [stimulus_state_trajectory, time_stimulus] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'stimulus_state_trajectory');
             end
             if strcmp(experimental_paradigm, 'GVS')

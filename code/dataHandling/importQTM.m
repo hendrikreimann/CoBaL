@@ -262,6 +262,9 @@ for i_file = 1 : number_of_files
             importing_trial_type = protocol_trial_type{this_trial_protocol_index};
             importing_trial_number = protocol_trial_number(this_trial_protocol_index);
             this_trial_duration = protocol_trial_duration(this_trial_protocol_index);
+            
+            this_trial_metronome = protocol_trial_metronome(this_trial_protocol_index);
+            
             save_this_trial = protocol_trial_saved(this_trial_protocol_index);
             
             % sanity check: recorded data should be within 0.1% of expected duration
