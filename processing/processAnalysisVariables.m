@@ -102,19 +102,26 @@ function processAnalysisVariables(varargin)
             % determine applicable control condition index
             if strcmp(study_settings.get('experimental_paradigm'), 'Vision')
                 if strcmp(this_stretch_condition_string{strcmp(condition_combination_labels, 'trigger_foot')}, 'TRIGGER_LEFT')
-                    applicable_control_condition = find(strcmp(condition_combinations_control_unique(:, strcmp(condition_combination_labels, 'trigger_foot')), 'TRIGGER_LEFT'));
+                    applicable_control_condition_index = find(strcmp(condition_combinations_control_unique(:, strcmp(condition_combination_labels, 'trigger_foot')), 'TRIGGER_LEFT'));
                 end
                 if strcmp(this_stretch_condition_string{strcmp(condition_combination_labels, 'trigger_foot')}, 'TRIGGER_RIGHT')
-                    applicable_control_condition = find(strcmp(condition_combinations_control_unique(:, strcmp(condition_combination_labels, 'trigger_foot')), 'TRIGGER_RIGHT'));
+                    applicable_control_condition_index = find(strcmp(condition_combinations_control_unique(:, strcmp(condition_combination_labels, 'trigger_foot')), 'TRIGGER_RIGHT'));
                 end
-%                 applicable_control_condition = 1;
+            end
+            if strcmp(study_settings.get('experimental_paradigm'), 'CadenceVision')
+                if strcmp(this_stretch_condition_string{strcmp(condition_combination_labels, 'cadence')}, '90BPM')
+                    applicable_control_condition_index = find(strcmp(condition_combinations_control_unique(:, strcmp(condition_combination_labels, 'cadence')), '90BPM'));
+                end
+                if strcmp(this_stretch_condition_string{strcmp(condition_combination_labels, 'cadence')}, '110BPM')
+                    applicable_control_condition_index = find(strcmp(condition_combinations_control_unique(:, strcmp(condition_combination_labels, 'cadence')), '110BPM'));
+                end
             end
             if strcmp(study_settings.get('stimulus_condition'), 'VISUAL') || strcmp(study_settings.get('stimulus_condition'), 'GVS_old')
                 if strcmp(this_stretch_condition_string{strcmp(condition_combination_labels, 'stance_foot')}, 'STANCE_LEFT')
-                    applicable_control_condition = find(strcmp(condition_combinations_control_unique(:, strcmp(condition_combination_labels, 'stance_foot')), 'STANCE_LEFT'));
+                    applicable_control_condition_index = find(strcmp(condition_combinations_control_unique(:, strcmp(condition_combination_labels, 'stance_foot')), 'STANCE_LEFT'));
                 end
                 if strcmp(this_stretch_condition_string{strcmp(condition_combination_labels, 'stance_foot')}, 'STANCE_RIGHT')
-                    applicable_control_condition = find(strcmp(condition_combinations_control_unique(:, strcmp(condition_combination_labels, 'stance_foot')), 'STANCE_RIGHT'));
+                    applicable_control_condition_index = find(strcmp(condition_combinations_control_unique(:, strcmp(condition_combination_labels, 'stance_foot')), 'STANCE_RIGHT'));
                 end
             end
             
@@ -123,7 +130,7 @@ function processAnalysisVariables(varargin)
             for i_label = 1 : length(condition_combination_labels)
                 this_label = condition_combination_labels{i_label};
                 this_label_list = condition_data_all(:, strcmp(conditions_settings(:, 1), this_label));
-                this_label_indicator = strcmp(this_label_list, condition_combinations_control_unique(applicable_control_condition, i_label));
+                this_label_indicator = strcmp(this_label_list, condition_combinations_control_unique(applicable_control_condition_index, i_label));
                 control_condition_indicator = control_condition_indicator .* this_label_indicator;
             end        
             control_condition_indicator = logical(control_condition_indicator);            
