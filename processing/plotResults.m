@@ -327,7 +327,8 @@ function plotResults(varargin)
     levels_to_remove = plot_settings.get('levels_to_remove');
     preferred_level_order = plot_settings.get('preferred_level_order');
     [condition_combination_labels, condition_combinations_stimulus, condition_combinations_control] = determineConditionCombinations(condition_data_all, conditions_settings, labels_to_ignore, levels_to_remove);
-    condition_combinations_stimulus = sortConditionCombinations(condition_combinations_stimulus, condition_combination_labels, condition_to_compare, preferred_level_order);
+%     condition_combinations_stimulus = sortConditionCombinations(condition_combinations_stimulus, condition_combination_labels, condition_to_compare, preferred_level_order);
+    [condition_combinations_stimulus, condition_combinations_control] = sortConditionCombinations(condition_combinations_stimulus, condition_combinations_control, condition_combination_labels, condition_to_compare, preferred_level_order);
     
     %% determine subjects and data folders
     [comparison_indices, conditions_per_comparison_max] = determineComparisons(condition_combinations_stimulus, condition_combination_labels, plot_settings);

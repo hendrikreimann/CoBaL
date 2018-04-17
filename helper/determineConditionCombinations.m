@@ -78,7 +78,7 @@ function [condition_combination_labels, condition_combinations_stimulus, conditi
         end
     end
     
-    % make control conditions cell
+    % make emg conditions cell
     if nargout > 3
         condition_combinations_emg = {};
         if any(~strcmp(conditions_settings(:, 4), '~'))
