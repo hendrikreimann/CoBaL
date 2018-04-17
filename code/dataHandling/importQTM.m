@@ -73,14 +73,31 @@ if any(strcmp(file_name_list, 'protocol.csv'))
     protocol_data = imported_data.data;
     protocol_headers = headers(2:end);
     protocol_trial_type = textdata(:, strcmp(headers, 'Trial Type'));
+    if strcmp(protocol_trial_type{end}, '(stop)')
+        protocol_trial_type(end) = [];
+    end
     protocol_trial_number = protocol_data(:, strcmp(protocol_headers, 'Trial Number'));
     protocol_trial_duration = protocol_data(:, strcmp(protocol_headers, 'Duration (s)'));
-    protocol_trial_metronome = protocol_data(:, strcmp(protocol_headers, 'Metronome'));
+    protocol_metronome_cadence = protocol_data(:, strcmp(protocol_headers, 'Metronome'));
     protocol_trial_saved = protocol_data(:, strcmp(protocol_headers, 'save data (0/1)'));
-    protocol_counted_left_step = protocol_data(:, strcmp(protocol_headers, 'Count left steps (0/1)'));
-    protocol_counted_right_step = protocol_data(:, strcmp(protocol_headers, 'Count right steps (0/1)'));
-    protocol_trial_stim_visual_intermittent = protocol_data(:, strcmp(protocol_headers, 'Use Visual Stimulus - intermittent'));
-    protocol_trial_stim_gvs_intermittent = protocol_data(:, strcmp(protocol_headers, 'GVS intermittent'));
+    protocol_count_left_step = protocol_data(:, strcmp(protocol_headers, 'Count left steps (0/1)'));
+    protocol_count_right_step = protocol_data(:, strcmp(protocol_headers, 'Count right steps (0/1)'));
+    protocol_stim_visual_intermittent = protocol_data(:, strcmp(protocol_headers, 'Use Visual Stimulus - intermittent'));
+    protocol_stim_gvs_intermittent = protocol_data(:, strcmp(protocol_headers, 'GVS intermittent'));
+    
+    % save protocol data
+    protocol_data = struct;
+    protocol_data.trial_type = protocol_trial_type;
+    protocol_data.trial_number = protocol_trial_number;
+    protocol_data.trial_duration = protocol_trial_duration;
+    protocol_data.metronome_cadence = protocol_metronome_cadence;
+    protocol_data.trial_saved = protocol_trial_saved;
+    protocol_data.count_left_step = protocol_count_left_step;
+    protocol_data.count_right_step = protocol_count_right_step;
+    protocol_data.stim_visual_intermittent = protocol_stim_visual_intermittent;
+    protocol_data.stim_gvs_intermittent = protocol_stim_gvs_intermittent;
+    save_file_name = 'protocolInfo.mat';
+    save(save_file_name, '-struct', 'protocol_data');
     
     % remove the protocol file from the list
     file_name_list(strcmp(file_name_list, 'protocol.csv')) = [];
@@ -117,12 +134,6 @@ for i_file = 1 : number_of_files
     variables_to_save = rmfield(variables_to_save, 'time_trajectory'); % this is not a variable, so remove from list
     variables_to_save_list(strcmp(variables_to_save_list, 'time_trajectory')) = [];
 
-        % add metronome value to protocolData.mat
-    if strcmp(file_type, 'protocolData')
-        metronome_trajectory = ones(length(variables_to_save.time),1)* protocol_trial_metronome(trial_number);
-        variables_to_save.metronome_trajectory = metronome_trajectory;
-    end
-    
     % add data source
     variables_to_save.data_source = 'labview';
     
