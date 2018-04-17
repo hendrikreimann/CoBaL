@@ -73,6 +73,11 @@ function determineStretchesToAnalyze(varargin)
     
     subject_settings = SettingsCustodian('subjectSettings.txt');
     acceptable_number_of_zeros_per_stretch = subject_settings.get('acceptable_number_of_zeros_per_stretch');
+    experimental_paradigm = study_settings.get('experimental_paradigm');
+    
+    if strcmp(experimental_paradigm, 'CadenceVision')
+        protocol_data = load('protocolInfo.mat');
+    end
 
     time_to_nearest_heelstrike_before_trigger_threshold = 0.10; % a heelstrike should happen less than this long before a trigger
     time_to_nearest_heelstrike_after_trigger_threshold = 0.3; % a heelstrike should happen less than this long after a trigger
@@ -89,10 +94,6 @@ function determineStretchesToAnalyze(varargin)
             right_touchdown_times = event_data{strcmp(event_labels, 'right_touchdown')};
             left_pushoff_times = event_data{strcmp(event_labels, 'left_pushoff')};
             left_touchdown_times = event_data{strcmp(event_labels, 'left_touchdown')};
-            
-            
-            
-            experimental_paradigm = study_settings.get('experimental_paradigm');
 
             % determine experimental condition
             this_trial_type = condition_list{i_condition};
@@ -158,8 +159,7 @@ function determineStretchesToAnalyze(varargin)
                 visual_scene_ml_translation_trajectory = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'visual_scene_ml_translation__trajectory'); %take note of the double "_"
                 [stimulus_state_trajectory, time_stimulus] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'stimulus_state_trajectory');
             end
-            if strcmp(experimental_paradigm, 'Vision')
-                % this is for UD data
+            if strcmp(experimental_paradigm, 'Vision') || strcmp(experimental_paradigm, 'CadenceVision')
 %                 current_rotation_trajectory = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'current_rotation_trajectory');
                 current_rotation_trajectory = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'visual_rotation_angle_trajectory');
                 [stimulus_state_trajectory, time_stimulus] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'stimulus_state_trajectory');
@@ -212,7 +212,7 @@ function determineStretchesToAnalyze(varargin)
                     end
                 end
             end
-            if strcmp(experimental_paradigm, 'Vision')
+            if strcmp(experimental_paradigm, 'Vision') || strcmp(experimental_paradigm, 'CadenceVision')
                 illusion_trajectory = zeros(size(time_stimulus)); % -1 = LEFT, 1 = RIGHT
                 for i_time = 1 : length(time_stimulus)
                     if stimulus_state_trajectory(i_time) == 3
@@ -261,13 +261,12 @@ function determineStretchesToAnalyze(varargin)
                 
                 trigger_times = time_stimulus(trigger_indices_labview);
             end
-            if strcmp(experimental_paradigm, 'Vision')
+            if strcmp(experimental_paradigm, 'Vision') || strcmp(experimental_paradigm, 'CadenceVision')
                 % find the time steps where the stimulus state crosses a threshold
                 stimulus_threshold = 1.5;
                 trigger_indices_labview = find(diff(sign(stimulus_state_trajectory - stimulus_threshold)) > 0) + 2;
                 trigger_times = time_stimulus(trigger_indices_labview);
             end
-            
             if strcmp(condition_stimulus, 'OBSTACLE')
                 trigger_times = [];
             end
@@ -1241,7 +1240,7 @@ function determineStretchesToAnalyze(varargin)
                 event_variables_to_save.stance_foot_data = condition_stance_foot_list;
             end
             
-            if strcmp(experimental_paradigm, 'Vision')
+            if strcmp(experimental_paradigm, 'Vision') || strcmp(experimental_paradigm, 'CadenceVision')
                 bands_per_stretch = 4;
                 
                 number_of_triggers = length(trigger_indices_mocap);
@@ -1529,6 +1528,21 @@ function determineStretchesToAnalyze(varargin)
                 % put in placeholder for group
                 group_list = cell(size(direction_list));
                 [group_list{:}] = deal('to be determined');
+                
+                % add cadence list
+                if strcmp(experimental_paradigm, 'CadenceVision')
+                    % determine cadence for this trial
+                    this_trial_type = condition_list{i_condition};
+                    this_trial_number = i_trial;
+                    this_trial_protocol_index = find(strcmp(protocol_data.trial_type, this_trial_type) & protocol_data.trial_number==this_trial_number);
+                    if isempty(this_trial_protocol_index)
+                        error(['Condition ' this_trial_type ', trial ' num2str(this_trial_number) ' - not found in protocol'])
+                    end
+                    this_trial_cadence = protocol_data.metronome_cadence(this_trial_protocol_index);
+                    
+                end
+                cadence_list = cell(size(direction_list));
+                [cadence_list{:}] = deal([num2str(this_trial_cadence) 'BPM']);
 
                 % restructure for saving
                 conditions_trial = struct;
@@ -1537,6 +1551,7 @@ function determineStretchesToAnalyze(varargin)
                 conditions_trial.trigger_foot_list = trigger_foot_list;
                 conditions_trial.direction_list = direction_list;
                 conditions_trial.group_list = group_list;
+                conditions_trial.cadence_list = cadence_list;
                 
                 event_variables_to_save.stretch_times = stretch_times;
                 event_variables_to_save.stance_foot_data = stance_foot_data;
