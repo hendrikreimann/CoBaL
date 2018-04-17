@@ -110,13 +110,19 @@ for i_file = 1 : number_of_files
         eval(extract_string);
         variables_to_save_list = [variables_to_save_list; variable_name];
     end
-
+       
     % take special care of time, transform to seconds and rename according to file type
 	variables_to_save.time = variables_to_save.time_trajectory * milliseconds_to_seconds; % transform to seconds
     variables_to_save.time = variables_to_save.time - variables_to_save.time(1); % zero
     variables_to_save = rmfield(variables_to_save, 'time_trajectory'); % this is not a variable, so remove from list
     variables_to_save_list(strcmp(variables_to_save_list, 'time_trajectory')) = [];
 
+        % add metronome value to protocolData.mat
+    if strcmp(file_type, 'protocolData')
+        metronome_trajectory = ones(length(variables_to_save.time),1)* protocol_trial_metronome(trial_number);
+        variables_to_save.metronome_trajectory = metronome_trajectory;
+    end
+    
     % add data source
     variables_to_save.data_source = 'labview';
     
@@ -261,10 +267,7 @@ for i_file = 1 : number_of_files
             
             importing_trial_type = protocol_trial_type{this_trial_protocol_index};
             importing_trial_number = protocol_trial_number(this_trial_protocol_index);
-            this_trial_duration = protocol_trial_duration(this_trial_protocol_index);
-            
-            this_trial_metronome = protocol_trial_metronome(this_trial_protocol_index);
-            
+            this_trial_duration = protocol_trial_duration(this_trial_protocol_index);           
             save_this_trial = protocol_trial_saved(this_trial_protocol_index);
             
             % sanity check: recorded data should be within 0.1% of expected duration
@@ -284,6 +287,7 @@ for i_file = 1 : number_of_files
             end
             
         end
+       
         
         % EMG
         sampling_rate_emg = analog_fs;
