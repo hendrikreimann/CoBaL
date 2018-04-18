@@ -90,6 +90,7 @@ function processAnalysisVariables(varargin)
         
         % go stretch by stretch
         for i_stretch = 1 : number_of_stretches
+            i_stretch
             % extract this stretches relevant conditions
             this_stretch_condition_string = cell(1, length(condition_combination_labels));
             for i_label = 1 : length(condition_combination_labels)

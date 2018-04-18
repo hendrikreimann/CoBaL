@@ -49,6 +49,7 @@ function processStretchVariables(varargin)
     for i_condition = 1 : number_of_condition_labels
         conditions_session.(condition_source_variables{i_condition}) = {};
     end
+    conditions_session.stance_foot_data = {};
 
     % make containers to store origin information for the stretches
     origin_trial_list_session = [];
@@ -83,6 +84,7 @@ function processStretchVariables(varargin)
             for i_condition = 1 : number_of_condition_labels
                 conditions_session.(condition_source_variables{i_condition}) = [conditions_session.(condition_source_variables{i_condition}); conditions_trial.(condition_source_variables{i_condition}) ];
             end
+            conditions_session.stance_foot_data = [conditions_session.stance_foot_data; stance_foot_data];
             origin_trial_list_session = [origin_trial_list_session; ones(number_of_stretches_this_trial, 1) * i_trial]; %#ok<AGROW>
             if ~isempty(stretch_times)
                 origin_start_time_list_session = [origin_start_time_list_session; stretch_times(:, 1)]; %#ok<AGROW>

@@ -42,6 +42,7 @@ function processStimulusResponse(varargin)
     
     results_file_name = ['analysis' filesep makeFileName(date, subject_id, 'results')];
     loaded_data = load(results_file_name);
+    number_of_stretches = length(loaded_data.time_list_session);
     
     % find relevant conditions
     conditions_session = loaded_data.conditions_session;
@@ -87,6 +88,50 @@ function processStimulusResponse(varargin)
     com_x_vel_midstance_means = zeros(1, number_of_conditions_control);
     
     for i_condition = 1 : number_of_conditions_control
+        % get relevant control condition
+        this_condition_combination = condition_combinations_control_unique(i_condition, :);
+        this_condition_indicator = true(number_of_stretches, 1);
+        for i_label = 1 : length(condition_combination_labels)
+            this_label = condition_combination_labels{i_label};
+            this_label_list = condition_data_all(:, strcmp(conditions_settings(:, 1), this_label));
+            this_label_indicator = strcmp(this_label_list, this_condition_combination{i_label});
+            this_condition_indicator = this_condition_indicator .* this_label_indicator;
+        end
+        condition_representant_index = find(this_condition_indicator, 1);
+        this_condition_indicator = logical(this_condition_indicator);            
+        this_condition_stance_foot_data = conditions_session.stance_foot_data(condition_representant_index, :);
+        
+        % determine stance ankle data
+        stance_ankle_x_data = zeros(size(lanklex_data));
+        for i_band = 1 : loaded_data.bands_per_stretch
+            if strcmp(this_condition_stance_foot_data{i_band}, 'STANCE_LEFT')
+                stance_ankle_x_data(i_band, :) = lanklex_data;
+            end
+            if strcmp(this_condition_stance_foot_data{i_band}, 'STANCE_RIGHT')
+                stance_ankle_x_data(i_band, :) = ranklex_data(i_band, :);
+            end
+            
+            
+            
+            
+        end
+        
+        % extract condition data
+        step_placement_x_this_condition = step_placement_x_data(:, this_condition_indicator);
+        mpsis_x_this_condition = mpsis_x_data(:, this_condition_indicator);
+        com_x_this_condition = com_x_data(:, this_condition_indicator);
+        mpsis_x_vel_this_condition = mpsis_x_vel_data(:, this_condition_indicator);
+        com_x_vel_this_condition = com_x_vel_data(:, this_condition_indicator);
+        stance_ankle_x_this_condition = stance_ankle_x_data(:, this_condition_indicator);
+        cop_x_this_condition = cop_x_data(:, this_condition_indicator);
+        
+        
+        return
+        
+        
+        
+        
+        
         % determine stance foot
         stance_ankle_x_data = [];
         if strcmp(condition_combinations_control_unique{i_condition, strcmp(condition_combination_labels, 'stance_foot')}, 'STANCE_LEFT')
@@ -96,7 +141,7 @@ function processStimulusResponse(varargin)
             stance_ankle_x_data = ranklex_data;
         end
         
-        % get control indicators
+        % get condition indicators
         this_condition_indicator = true(number_of_stretches_session, 1);
         for i_label = 1 : length(condition_combination_labels)
             this_label = condition_combination_labels{i_label};
