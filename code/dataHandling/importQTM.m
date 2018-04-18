@@ -185,71 +185,91 @@ for i_file = 1 : number_of_files
     var_name = whos('-file', [qtm_source_dir, filesep, data_file_name]);
     temp_data = load([qtm_source_dir, filesep, data_file_name]);
     qtm_data = temp_data.(var_name.name);
-    analog_fs = qtm_data.Analog.Frequency;
-
-    % this is walking data, so break up into chunks for trials if necessary
-    trigger_mask = contains(qtm_data.Analog.Labels, 'labview_sync');
-    trigger = qtm_data.Analog.Data(trigger_mask,:);
-    % normalise to the range [0,1] and round
-    trigger = round(trigger/max(trigger));
-    
-    % find edges
-    trigger_edges = [diff(trigger), 0];
-    analog_index = 1:length(qtm_data.Analog.Data);
-    % trials start on negative edge
-    start_indices = analog_index(trigger_edges == -1);
-    end_indices = analog_index(trigger_edges == 1);
-    
-%     figure; hold on;
-%     plot(trigger);
-%     plot(start_indices, 0*start_indices, '>');
-%     plot(end_indices, 0*end_indices, '<');
-    
-    % figure out protocol steps
-    protocol_step_mask = contains(qtm_data.Analog.Labels, 'currentStep');
-    protocol_step_analog = qtm_data.Analog.Data(protocol_step_mask,:);
-    % discrete map from [-10 10] --> [0 200]
-    protocol_step = round((protocol_step_analog + 10) * 10);
-
-    % fix problems with the analog --> digital conversion
-    down_edges = find(diff(protocol_step) == -1);
-    up_edges = find(diff(protocol_step) == 1);
-    
-%     figure; hold on;
-%     plot(protocol_step);
-%     plot(start_indices, protocol_step(start_indices), '>');
-%     plot(end_indices, protocol_step(end_indices), '<');
-%     plot(down_edges, protocol_step(down_edges), 'v');
-    
-    for i_down_edge = 1 : length(down_edges)-1
-        this_down_edge = down_edges(i_down_edge);
-        next_up_edge = min(up_edges(up_edges > this_down_edge));
-        problematic_indices = this_down_edge+1 : next_up_edge;
-        protocol_step(problematic_indices) = protocol_step(problematic_indices) + 1;
-        
-%         plot(problematic_indices, protocol_step(problematic_indices), 'o');
-    end
-
-%     plot(protocol_step);
-
-    
-    
-    
-    if isempty(start_indices) && isempty(end_indices)
+    if strcmp(trial_type, 'calibration')
+        analog_fs = 2000;
         start_indices = 1;
-        end_indices = length(analog_index);
+        if trial_number == 1
+            end_indices = 2000;
+        else
+            end_indices = 20000;
+        end
+    else
+        analog_fs = qtm_data.Analog.Frequency;
+    
+        % this is walking data, so break up into chunks for trials if necessary
+        trigger_mask = contains(qtm_data.Analog.Labels, 'labview_sync');
+        trigger = qtm_data.Analog.Data(trigger_mask,:);
+        % normalise to the range [0,1] and round
+        trigger = round(trigger/max(trigger));
+        
+        % find edges
+        trigger_edges = [diff(trigger), 0];
+        analog_index = 1:length(qtm_data.Analog.Data);
+        % trials start on negative edge
+        start_indices = analog_index(trigger_edges == -1);
+        end_indices = analog_index(trigger_edges == 1);
+        
+        %     figure; hold on;
+        %     plot(trigger);
+        %     plot(start_indices, 0*start_indices, '>');
+        %     plot(end_indices, 0*end_indices, '<');
+        
+        % figure out protocol steps
+        protocol_step_mask = contains(qtm_data.Analog.Labels, 'currentStep');
+        protocol_step_analog = qtm_data.Analog.Data(protocol_step_mask,:);
+        % discrete map from [-10 10] --> [0 200]
+        protocol_step = round((protocol_step_analog + 10) * 10);
+        
+        % fix problems with the analog --> digital conversion
+        down_edges = find(diff(protocol_step) == -1);
+        up_edges = find(diff(protocol_step) == 1);
+        
+        %     figure; hold on;
+        %     plot(protocol_step);
+        %     plot(start_indices, protocol_step(start_indices), '>');
+        %     plot(end_indices, protocol_step(end_indices), '<');
+        %     plot(down_edges, protocol_step(down_edges), 'v');
+        
+        % find NaNs in the case of an Analog Zap!
+        if any(isnan(protocol_step))
+%             
+            last_step_index = find(~isnan(protocol_step),1,'last')
+            last_step = protocol_step(last_step_index);
+            
+            protocol_step_Nans_indices = isnan(protocol_step);
+            protocol_step(protocol_step_Nans_indices) = last_step;
+        end
+        
+        
+        for i_down_edge = 1 : length(down_edges)-1
+            this_down_edge = down_edges(i_down_edge);
+            next_up_edge = min(up_edges(up_edges > this_down_edge));
+            problematic_indices = this_down_edge+1 : next_up_edge;
+            protocol_step(problematic_indices) = protocol_step(problematic_indices) + 1;
+            
+            %         plot(problematic_indices, protocol_step(problematic_indices), 'o');
+        end
+        
+        %     plot(protocol_step);
+        
+        
+        
+        
+        if isempty(start_indices) && isempty(end_indices)
+            start_indices = 1;
+            end_indices = length(analog_index);
+        end
+        
+        if length(end_indices) ~= length(start_indices)
+            sprintf('ERROR: %d start indicies ~= %d end indices\nUSING 120 s trials\n',...
+                length(start_indices), length(end_indices))
+            end_indices = start_indices + 120*analog_fs;
+        end
+        
+        if end_indices(end) > length(qtm_data.Analog.Data)
+            end_indices(end) = length(qtm_data.Analog.Data);
+        end
     end
-
-    if length(end_indices) ~= length(start_indices)
-        sprintf('ERROR: %d start indicies ~= %d end indices\nUSING 120 s trials\n',...
-        length(start_indices), length(end_indices))
-        end_indices = start_indices + 120*analog_fs;
-    end
-
-    if end_indices(end) > length(qtm_data.Analog.Data)
-        end_indices(end) = length(qtm_data.Analog.Data);
-    end
-
     number_of_trials_in_this_qtm_file = length(start_indices);
     for i_trial_this_qtm_file = 1 : number_of_trials_in_this_qtm_file
         this_trial_start_index = start_indices(i_trial_this_qtm_file);
@@ -271,8 +291,8 @@ for i_file = 1 : number_of_files
                 warning(['Ambiguous protocol step data for trial starting at time step ' num2str(this_trial_start_index)]);
                 figure; hold on; title(['Ambiguous trial starting at time step ' num2str(this_trial_start_index)])
                 plot(protocol_step);
-                plot(start_indices, protocol_step(start_indices), '>');
-                plot(end_indices, protocol_step(end_indices), '<');
+%                 plot(start_indices, protocol_step(start_indices), '>');
+%                 plot(end_indices, protocol_step(end_indices), '<');
             end
             this_trial_protocol_index = median(this_trial_protocol_step_data) + 1;
             
@@ -299,91 +319,91 @@ for i_file = 1 : number_of_files
             
         end
        
-        
-        % EMG
-        sampling_rate_emg = analog_fs;
-        time_emg = (1 : number_of_samples)' / sampling_rate_emg;
-        emg_labels = qtm_data.Analog.Labels(14:29);
-        emg_trajectories_raw = qtm_data.Analog.Data(14:29, this_trial_start_index:this_trial_end_index)';
-        data_type = 'emg';
-
-        % make directions
-        emg_directions = cell(2, length(emg_labels));
-        [emg_directions{1, :}] = deal('positive');
-        [emg_directions{2, :}] = deal('negative');
-
-        % save emg data
-        if save_this_trial
-            save_folder = 'raw';
-            save_file_name = makeFileName(date, subject_id, importing_trial_type, importing_trial_number, 'emgTrajectoriesRaw.mat');
-            save ...
-                ( ...
-                [save_folder filesep save_file_name], ...
-                'emg_trajectories_raw', ...
-                'time_emg', ...
-                'sampling_rate_emg', ...
-                'data_source', ...
-                'emg_labels', ...
-                'emg_directions' ...
-                );
-            addAvailableData_new('emg_trajectories_raw', 'time_emg', 'sampling_rate_emg', 'emg_labels', '_emg_directions', save_folder, save_file_name);
+        if ~strcmp(trial_type, 'calibration')
+            % EMG
+            sampling_rate_emg = analog_fs;
+            time_emg = (1 : number_of_samples)' / sampling_rate_emg;
+            emg_labels = qtm_data.Analog.Labels(14:29);
+            emg_trajectories_raw = qtm_data.Analog.Data(14:29, this_trial_start_index:this_trial_end_index)';
+            data_type = 'emg';
+            
+            % make directions
+            emg_directions = cell(2, length(emg_labels));
+            [emg_directions{1, :}] = deal('positive');
+            [emg_directions{2, :}] = deal('negative');
+            
+            % save emg data
+            if save_this_trial
+                save_folder = 'raw';
+                save_file_name = makeFileName(date, subject_id, importing_trial_type, importing_trial_number, 'emgTrajectoriesRaw.mat');
+                save ...
+                    ( ...
+                    [save_folder filesep save_file_name], ...
+                    'emg_trajectories_raw', ...
+                    'time_emg', ...
+                    'sampling_rate_emg', ...
+                    'data_source', ...
+                    'emg_labels', ...
+                    'emg_directions' ...
+                    );
+                addAvailableData_new('emg_trajectories_raw', 'time_emg', 'sampling_rate_emg', 'emg_labels', '_emg_directions', save_folder, save_file_name);
+            end
+            
+            % Force data - data are in qtm_data.Force(n).Force
+            data_type = 'forceplate';
+            if any(any(qtm_data.Force(1).Force))
+                forceplate_tajectories_Left = ...
+                    [ ...
+                    qtm_data.Force(1).Force(:, this_trial_start_index : this_trial_end_index)', ...
+                    qtm_data.Force(1).Moment(:, this_trial_start_index : this_trial_end_index)' ...
+                    ];
+                forceplate_tajectories_Right = ...
+                    [ ...
+                    qtm_data.Force(2).Force(:, this_trial_start_index : this_trial_end_index)', ...
+                    qtm_data.Force(2).Moment(:, this_trial_start_index : this_trial_end_index)' ...
+                    ];
+                forceplate_trajectories_raw = [forceplate_tajectories_Left, forceplate_tajectories_Right];
+            else % currently taking volts... need to scale accordinginly
+                Warning('No force data found, using analog data instead. This is currently not scaling correctly.')
+                forceplate_trajectories_raw = [qtm_data.Analog.Data(1:12, this_trial_start_index : this_trial_end_index)]';
+            end
+            forceplate_labels = qtm_data.Analog.Labels(1:12);
+            %
+            forceplate_location_left = mean(qtm_data.Force(1).ForcePlateLocation) * millimeter_to_meter; % mean of corner coordinates gives center
+            forceplate_location_right = mean(qtm_data.Force(2).ForcePlateLocation) * millimeter_to_meter; % mean of corner coordinates gives center
+            
+            sampling_rate_forceplate = analog_fs;
+            time_forceplate = (1 : number_of_samples)' / sampling_rate_forceplate;
+            
+            % make directions
+            % NOTE: this defines directions and makes assumptions, make sure everything is right here
+            forceplate_directions = cell(2, length(forceplate_labels));
+            [forceplate_directions{1, [1 4 7 10]}] = deal('right');
+            [forceplate_directions{2, [1 4 7 10]}] = deal('left');
+            [forceplate_directions{1, [2 5 8 11]}] = deal('forward');
+            [forceplate_directions{2, [2 5 8 11]}] = deal('backward');
+            [forceplate_directions{1, [3 6 9 12]}] = deal('up');
+            [forceplate_directions{2, [3 6 9 12]}] = deal('down');
+            
+            % save forceplate data
+            if save_this_trial
+                save_folder = 'raw';
+                save_file_name = makeFileName(date, subject_id, importing_trial_type, importing_trial_number, 'forceplateTrajectoriesRaw.mat');
+                save ...
+                    ( ...
+                    [save_folder filesep save_file_name], ...
+                    'forceplate_trajectories_raw', ...
+                    'forceplate_labels', ...
+                    'data_source', ...
+                    'time_forceplate', ...
+                    'sampling_rate_forceplate', ...
+                    'forceplate_location_left', ...
+                    'forceplate_location_right', ...
+                    'forceplate_directions' ...
+                    );
+                addAvailableData_new('forceplate_trajectories_raw', 'time_forceplate', 'sampling_rate_forceplate', 'forceplate_labels', '_forceplate_directions', save_folder, save_file_name);
+            end
         end
-
-        % Force data - data are in qtm_data.Force(n).Force
-        data_type = 'forceplate';
-        if any(any(qtm_data.Force(1).Force))
-            forceplate_tajectories_Left = ...
-              [ ...
-                qtm_data.Force(1).Force(:, this_trial_start_index : this_trial_end_index)', ...
-                qtm_data.Force(1).Moment(:, this_trial_start_index : this_trial_end_index)' ...
-              ];
-            forceplate_tajectories_Right = ...
-              [ ...
-                qtm_data.Force(2).Force(:, this_trial_start_index : this_trial_end_index)', ...
-                qtm_data.Force(2).Moment(:, this_trial_start_index : this_trial_end_index)' ...
-              ];
-            forceplate_trajectories_raw = [forceplate_tajectories_Left, forceplate_tajectories_Right];
-        else % currently taking volts... need to scale accordinginly
-            Warning('No force data found, using analog data instead. This is currently not scaling correctly.')
-            forceplate_trajectories_raw = [qtm_data.Analog.Data(1:12, this_trial_start_index : this_trial_end_index)]';
-        end
-        forceplate_labels = qtm_data.Analog.Labels(1:12);
-%                         
-        forceplate_location_left = mean(qtm_data.Force(1).ForcePlateLocation) * millimeter_to_meter; % mean of corner coordinates gives center
-        forceplate_location_right = mean(qtm_data.Force(2).ForcePlateLocation) * millimeter_to_meter; % mean of corner coordinates gives center
-
-        sampling_rate_forceplate = analog_fs;
-        time_forceplate = (1 : number_of_samples)' / sampling_rate_forceplate;
-
-        % make directions
-        % NOTE: this defines directions and makes assumptions, make sure everything is right here
-        forceplate_directions = cell(2, length(forceplate_labels));
-        [forceplate_directions{1, [1 4 7 10]}] = deal('right');
-        [forceplate_directions{2, [1 4 7 10]}] = deal('left');
-        [forceplate_directions{1, [2 5 8 11]}] = deal('forward');
-        [forceplate_directions{2, [2 5 8 11]}] = deal('backward');
-        [forceplate_directions{1, [3 6 9 12]}] = deal('up');
-        [forceplate_directions{2, [3 6 9 12]}] = deal('down');
-
-        % save forceplate data
-        if save_this_trial
-            save_folder = 'raw';
-            save_file_name = makeFileName(date, subject_id, importing_trial_type, importing_trial_number, 'forceplateTrajectoriesRaw.mat');
-            save ...
-                ( ...
-                [save_folder filesep save_file_name], ...
-                'forceplate_trajectories_raw', ...
-                'forceplate_labels', ...
-                'data_source', ...
-                'time_forceplate', ...
-                'sampling_rate_forceplate', ...
-                'forceplate_location_left', ...    
-                'forceplate_location_right', ...    
-                'forceplate_directions' ...
-                );
-            addAvailableData_new('forceplate_trajectories_raw', 'time_forceplate', 'sampling_rate_forceplate', 'forceplate_labels', '_forceplate_directions', save_folder, save_file_name);
-        end
-        
         % Markers
         sampling_rate_mocap = qtm_data.FrameRate;
         % align indices
