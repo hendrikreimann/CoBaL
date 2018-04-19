@@ -100,12 +100,9 @@ function analyzeUcmVariance(varargin)
                     end
                     event_times{i_event} = loaded_data.event_data{strcmp(loaded_data.event_labels, expected_event_labels{i_event})};
                     event_indices_mocap{i_event} = findClosestIndex(event_times{i_event}, time_mocap);
-                end
                 
-                % extract and analyze data
-                for i_event = 1 : number_of_events
+                    % extract data
                     joint_angle_data_to_analyze{i_event} = joint_angle_trajectories(event_indices_mocap{i_event}, :)';
-                    
                     
                     % analyze data
                     joint_angle_data_to_analyze_this_event = joint_angle_trajectories(event_indices_mocap{i_event}, :)';
