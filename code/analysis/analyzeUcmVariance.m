@@ -75,24 +75,41 @@ function analyzeUcmVariance(varargin)
         if any(strcmp(this_block_label, across_events_conditions))
             % analyze across events
             number_of_trials_this_block = length(this_block_trials);
-            V_para_trial = zeros(number_of_ucm_variables, number_of_trials_this_block);
-            V_perp_trial = zeros(number_of_ucm_variables, number_of_trials_this_block);
+            expected_event_labels = {'oscillation_peaks';'oscillation_vales'};
+            number_of_events = length(expected_event_labels);
+            joint_angle_data_to_analyze = cell(number_of_events, 1);
+            
             for i_trial = 1 : number_of_trials_this_block
                 % load data
                 loaded_data = load(['processed' filesep makeFileName(date, subject_id, trial_type, this_block_trials(i_trial), 'kinematicTrajectories.mat')]);
                 joint_angle_trajectories = loaded_data.joint_angle_trajectories;
                 time_mocap = loaded_data.time_mocap;
                 
-                % load indices
+                % load and check events
                 loaded_data = load(['analysis' filesep makeFileName(date, subject_id, trial_type, this_block_trials(i_trial), 'events.mat')]);
-                event_times = loaded_data.event_data{strcmp(loaded_data.event_labels, 'oscillation_peaks')};
-                if ~isempty(event_times)
+                if ~(length(loaded_data.event_data)==number_of_events)
+                    error(['Trial ' num2str(this_block_trials(i_trial)) ' - expected ' num2str(number_of_events) ' events, but found ' num2str(length(event_indices_mocap))]);
+                end
                 
-                    event_indices_mocap = findClosestIndex(event_times, time_mocap);
-
-                    % calculate variance measures
-                    joint_angle_data_to_analyze = joint_angle_trajectories(event_indices_mocap, :);
-                    theta_mean = mean(joint_angle_data_to_analyze)';
+                % extract events
+                event_times = cell(1, number_of_events);
+                event_indices_mocap = cell(1, number_of_events);
+                for i_event = 1 : number_of_events
+                    if ~(any(strcmp(expected_event_labels{i_event}, loaded_data.event_labels)))
+                        error(['Trial ' num2str(this_block_trials(i_trial)) ' - event label "' expected_event_labels{i_event} '" not found']);
+                    end
+                    event_times{i_event} = loaded_data.event_data{strcmp(loaded_data.event_labels, expected_event_labels{i_event})};
+                    event_indices_mocap{i_event} = findClosestIndex(event_times{i_event}, time_mocap);
+                end
+                
+                % extract and analyze data
+                for i_event = 1 : number_of_events
+                    joint_angle_data_to_analyze{i_event} = joint_angle_trajectories(event_indices_mocap{i_event}, :)';
+                    
+                    
+                    % analyze data
+                    joint_angle_data_to_analyze_this_event = joint_angle_trajectories(event_indices_mocap{i_event}, :)';
+                    theta_mean = mean(joint_angle_data_to_analyze_this_event);
                     kinematic_tree.jointAngles = theta_mean;
                     kinematic_tree.updateConfiguration;
                     for i_variable = 1 : number_of_ucm_variables
@@ -111,28 +128,67 @@ function analyzeUcmVariance(varargin)
                         end
 
                         % calculate variance measures
-                        [V_para, V_perp] = calculateUcmVariance(joint_angle_data_to_analyze', jacobian);
-    %                     V_para_trial(i_variable, i_trial) = V_para;
-    %                     V_perp_trial(i_variable, i_trial) = V_perp;
-                        stretch_data_session{i_variable} = [stretch_data_session{i_variable} [V_para; V_perp]];
+                        [V_para_this_block_this_variable, V_perp_this_block_this_variable] = calculateUcmVariance(joint_angle_data_to_analyze_this_event, jacobian);
+                        stretch_data_session{i_variable} = [stretch_data_session{i_variable} [V_para_this_block_this_variable; V_perp_this_block_this_variable]];
                     end
                     subject_list = [subject_list; subject_id]; %#ok<AGROW>
-                    time_point_list = [time_point_list; 'NA']; %#ok<AGROW>
+                    time_point_list = [time_point_list; expected_event_labels{i_event}]; %#ok<AGROW>
                     condition_list = [condition_list; this_block_label]; %#ok<AGROW>
-                    origin_trial_list_session = [origin_trial_list_session; this_block_trials(i_trial)];
+                    origin_trial_list_session = [origin_trial_list_session; this_block_trials(1)]; %#ok<AGROW>                            
+                    
                 end
-            end
-%             % store data for this block as mean across trials
-%             for i_variable = 1 : number_of_ucm_variables
-%                 V_para_this_block_this_variable = mean(V_para_trial(i_variable, :));
-%                 V_perp_this_block_this_variable = mean(V_perp_trial(i_variable, :));
+                
+        
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+%                 % load indices
+%                 loaded_data = load(['analysis' filesep makeFileName(date, subject_id, trial_type, this_block_trials(i_trial), 'events.mat')]);
+%                 event_times = loaded_data.event_data{strcmp(loaded_data.event_labels, 'oscillation_peaks')};
+%                 if ~isempty(event_times)
 %                 
-%                 stretch_data_session{i_variable} = [stretch_data_session{i_variable} [V_para_this_block_this_variable; V_perp_this_block_this_variable]];
-%             end
-%             
-%             subject_list = [subject_list; subject_id]; %#ok<AGROW>
-%             time_point_list = [time_point_list; 'NA']; %#ok<AGROW>
-%             condition_list = [condition_list; this_block_label]; %#ok<AGROW>
+%                     event_indices_mocap = findClosestIndex(event_times, time_mocap);
+% 
+%                     % calculate variance measures
+%                     joint_angle_data_to_analyze = joint_angle_trajectories(event_indices_mocap, :);
+%                     theta_mean = mean(joint_angle_data_to_analyze)';
+%                     kinematic_tree.jointAngles = theta_mean;
+%                     kinematic_tree.updateConfiguration;
+%                     for i_variable = 1 : number_of_ucm_variables
+%                         % calculate Jacobian
+%                         if strcmp(ucm_variables{i_variable}, 'com_ap')
+%                             J_com = kinematic_tree.calculateCenterOfMassJacobian;
+%                             jacobian = J_com(1, :);
+%                         end
+%                         if strcmp(ucm_variables{i_variable}, 'com_vert')
+%                             J_com = kinematic_tree.calculateCenterOfMassJacobian;
+%                             jacobian = J_com(3, :);
+%                         end
+%                         if strcmp(ucm_variables{i_variable}, 'com_2d')
+%                             J_com = kinematic_tree.calculateCenterOfMassJacobian;
+%                             jacobian = J_com([1 3], :);
+%                         end
+% 
+%                         % calculate variance measures
+%                         [V_para, V_perp] = calculateUcmVariance(joint_angle_data_to_analyze', jacobian);
+%     %                     V_para_trial(i_variable, i_trial) = V_para;
+%     %                     V_perp_trial(i_variable, i_trial) = V_perp;
+%                         stretch_data_session{i_variable} = [stretch_data_session{i_variable} [V_para; V_perp]];
+%                     end
+%                     subject_list = [subject_list; subject_id]; %#ok<AGROW>
+%                     time_point_list = [time_point_list; 'NA']; %#ok<AGROW>
+%                     condition_list = [condition_list; this_block_label]; %#ok<AGROW>
+%                     origin_trial_list_session = [origin_trial_list_session; this_block_trials(i_trial)];
+%                 end
+            end
         end
         if any(strcmp(this_block_label, across_trials_conditions))
             % analyze across trials
