@@ -171,6 +171,25 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('rheel_x')
                 this.addStretchVariable('rheel_x')
             end
+%             heel position relative to mpsis
+            if this.isVariableToAnalyze('lheel_from_mpsis_initial_x')
+                this.addBasicVariable('marker_trajectories')
+                this.addBasicVariable('lheel_x')
+                this.addBasicVariable('mpsis_x')
+                this.addStretchVariable('lheel_from_mpsis_initial_x')                
+            end
+            if this.isVariableToAnalyze('rheel_from_mpsis_initial_x')
+                this.addBasicVariable('marker_trajectories')
+                this.addBasicVariable('rheel_x')
+                this.addBasicVariable('mpsis_x')
+                this.addStretchVariable('rheel_from_mpsis_initial_x')
+            end
+            if this.isVariableToAnalyze('mpsis_from_mpsis_initial_x')
+                this.addBasicVariable('marker_trajectories')
+                this.addBasicVariable('mpsis_x')
+                this.addStretchVariable('mpsis_from_mpsis_initial_x')
+            end            
+%             
             if this.isVariableToAnalyze('lheel_y')
                 this.addBasicVariable('marker_trajectories')
                 this.addBasicVariable('lheel_y')
@@ -2808,6 +2827,26 @@ classdef WalkingDataCustodian < handle
                 
                     % calculate stretch variables that are not basic variables or need special attention
                     % REMINDER: if you add a variable here, make sure to also add it below in registerStretchVariableDirections
+%                     
+                    if strcmp(variable_name, 'lheel_from_mpsis_initial_x')
+                        lheel_x = this.getTimeNormalizedData('lheel_x', this_stretch_times);
+                        mpsis_x = this.getTimeNormalizedData('mpsis_x', this_stretch_times);
+                        stretch_data = lheel_x - mpsis_x(1);
+                    end
+
+                    if strcmp(variable_name, 'rheel_from_mpsis_initial_x')
+                        rheel_x = this.getTimeNormalizedData('rheel_x', this_stretch_times);
+                        mpsis_x = this.getTimeNormalizedData('mpsis_x', this_stretch_times);
+                        stretch_data = rheel_x - mpsis_x(1);
+                    end
+                    if strcmp(variable_name, 'mpsis_from_mpsis_initial_x')
+                        mpsis_x = this.getTimeNormalizedData('mpsis_x', this_stretch_times);
+                        stretch_data = mpsis_x - mpsis_x(1);
+                    end
+                    
+
+
+% 
                     if strcmp(variable_name, 'step_length')
                         lheel_y = this.getTimeNormalizedData('lheel_y', this_stretch_times);
                         rheel_y = this.getTimeNormalizedData('rheel_y', this_stretch_times);
@@ -3346,6 +3385,7 @@ classdef WalkingDataCustodian < handle
             if this.isBasicVariable(variable_name)
                 stretch_directions_new = this.basic_variable_directions.(variable_name);
             end
+
             % check if this is a compound name, listing a loaded variable and a label
             if any(variable_name==':')
                 this_variable_split = strsplit(variable_name, ':');
@@ -3357,6 +3397,35 @@ classdef WalkingDataCustodian < handle
                 
                 stretch_directions_new = this_type_directions(:, strcmp(this_type_labels, this_variable_label));
             end
+
+            if strcmp(variable_name, 'lheel_from_mpsis_initial_x')
+                lheel_x_directions = this.basic_variable_directions.lheel_x;
+                mpsis_x_directions = this.basic_variable_directions.mpsis_x;
+                if ~strcmp(lheel_x_directions{1}, mpsis_x_directions{1})
+                    error('lheel_x and mpsis_x directions are different from each other')
+                end
+                if ~strcmp(lheel_x_directions{2}, mpsis_x_directions{2})
+                    error('lheel_x and mpsis_x directions are different from each other')
+                end
+                stretch_directions_new = lheel_x_directions;
+            end
+            if strcmp(variable_name, 'rheel_from_mpsis_initial_x')
+                rheel_x_directions = this.basic_variable_directions.rheel_x;
+                mpsis_x_directions = this.basic_variable_directions.mpsis_x;
+                if ~strcmp(rheel_x_directions{1}, mpsis_x_directions{1})
+                    error('rheel_x and mpsis_x directions are different from each other')
+                end
+                if ~strcmp(rheel_x_directions{2}, mpsis_x_directions{2})
+                    error('rheel_x and mpsis_x directions are different from each other')
+                end
+                stretch_directions_new = rheel_x_directions;
+            end
+            if strcmp(variable_name, 'mpsis_from_mpsis_initial_x')
+                mpsis_x_directions = this.basic_variable_directions.mpsis_x;
+                stretch_directions_new = mpsis_x_directions;
+            end
+
+
             
             if strcmp(variable_name, 'step_length')
                 lheel_y_directions = this.basic_variable_directions.lheel_y;
