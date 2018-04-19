@@ -109,9 +109,9 @@ function processAnalysisVariables(varargin)
                     applicable_control_condition_index = find(strcmp(condition_combinations_control_unique(:, strcmp(condition_combination_labels, 'trigger_foot')), 'TRIGGER_RIGHT'));
                 end
             end
-            if strcmp(study_settings.get('experimental_paradigm'), 'CadenceVision')
-                if strcmp(this_stretch_condition_string{strcmp(condition_combination_labels, 'cadence')}, '90BPM')
-                    applicable_control_condition_index = find(strcmp(condition_combinations_control_unique(:, strcmp(condition_combination_labels, 'cadence')), '90BPM'));
+            if strcmp(study_settings.get('experimental_paradigm'), 'CadenceGVS')
+                if strcmp(this_stretch_condition_string{strcmp(condition_combination_labels, 'cadence')}, '80BPM')
+                    applicable_control_condition_index = find(strcmp(condition_combinations_control_unique(:, strcmp(condition_combination_labels, 'cadence')), '80BPM'));
                 end
                 if strcmp(this_stretch_condition_string{strcmp(condition_combination_labels, 'cadence')}, '110BPM')
                     applicable_control_condition_index = find(strcmp(condition_combinations_control_unique(:, strcmp(condition_combination_labels, 'cadence')), '110BPM'));

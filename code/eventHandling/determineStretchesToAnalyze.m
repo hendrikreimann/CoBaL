@@ -75,7 +75,7 @@ function determineStretchesToAnalyze(varargin)
     acceptable_number_of_zeros_per_stretch = subject_settings.get('acceptable_number_of_zeros_per_stretch');
     experimental_paradigm = study_settings.get('experimental_paradigm');
     
-    if strcmp(experimental_paradigm, 'CadenceVision')
+    if strcmp(experimental_paradigm, 'CadenceVision') || strcmp(experimental_paradigm, 'CadenceGVS')
         protocol_data = load('protocolInfo.mat');
     end
 
@@ -164,10 +164,9 @@ function determineStretchesToAnalyze(varargin)
                 current_rotation_trajectory = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'visual_rotation_angle_trajectory');
                 [stimulus_state_trajectory, time_stimulus] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'stimulus_state_trajectory');
             end
-            if strcmp(experimental_paradigm, 'GVS')
-                % didn't save the GVS output for GVS01 pilot, somewhat stupidly...
-%                 current_rotation_trajectory = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'current_rotation_trajectory');
-%                 [stimulus_state_trajectory, time_stimulus] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'stimulus_state_trajectory');
+            if strcmp(experimental_paradigm, 'GVS') || strcmp(experimental_paradigm, 'CadenceGVS')
+                gvs_trajectory = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'GVS_current_trajectory');
+                [stimulus_state_trajectory, time_stimulus] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'stimulus_state_trajectory');
             end
 
 
@@ -218,12 +217,28 @@ function determineStretchesToAnalyze(varargin)
                     if stimulus_state_trajectory(i_time) == 3
                         % stimulus is currently active
                         if current_rotation_trajectory(i_time) < 0
-                            % angle change is positive horizon rotates counter-clockwise, illusion is to the LEFT
+                            % angle is negative, horizon rotates clockwise, illusion is to the LEFT
                             illusion_trajectory(i_time) = -1;
                         end
                         if current_rotation_trajectory(i_time) > 0
-                            % angle change is negative, horizon rotates clockwise, illusion is to the LEFT
+                            % angle is positive, horizon rotates counter-clockwise, illusion is to the RIGHT
                             illusion_trajectory(i_time) = 1;
+                        end
+                    end
+                end
+            end
+            if strcmp(experimental_paradigm, 'GVS') || strcmp(experimental_paradigm, 'CadenceGVS')
+                illusion_trajectory = zeros(size(time_stimulus)); % -1 = LEFT, 1 = RIGHT
+                for i_time = 1 : length(time_stimulus)
+                    if stimulus_state_trajectory(i_time) == 3
+                        % stimulus is currently active
+                        if gvs_trajectory(i_time) < 0
+                            % negative current = anode on the left = illusory fall to the right
+                            illusion_trajectory(i_time) = 1;
+                        end
+                        if gvs_trajectory(i_time) > 0
+                            % positive current = anode on the right = illusory fall to the left
+                            illusion_trajectory(i_time) = -1;
                         end
                     end
                 end
@@ -262,6 +277,12 @@ function determineStretchesToAnalyze(varargin)
                 trigger_times = time_stimulus(trigger_indices_labview);
             end
             if strcmp(experimental_paradigm, 'Vision') || strcmp(experimental_paradigm, 'CadenceVision')
+                % find the time steps where the stimulus state crosses a threshold
+                stimulus_threshold = 1.5;
+                trigger_indices_labview = find(diff(sign(stimulus_state_trajectory - stimulus_threshold)) > 0) + 2;
+                trigger_times = time_stimulus(trigger_indices_labview);
+            end
+            if strcmp(experimental_paradigm, 'GVS') || strcmp(experimental_paradigm, 'CadenceGVS')
                 % find the time steps where the stimulus state crosses a threshold
                 stimulus_threshold = 1.5;
                 trigger_indices_labview = find(diff(sign(stimulus_state_trajectory - stimulus_threshold)) > 0) + 2;
@@ -1240,7 +1261,7 @@ function determineStretchesToAnalyze(varargin)
                 event_variables_to_save.stance_foot_data = condition_stance_foot_list;
             end
             
-            if strcmp(experimental_paradigm, 'Vision') || strcmp(experimental_paradigm, 'CadenceVision')
+            if strcmp(experimental_paradigm, 'Vision') || strcmp(experimental_paradigm, 'CadenceVision') || strcmp(experimental_paradigm, 'GVS') || strcmp(experimental_paradigm, 'CadenceGVS')
                 bands_per_stretch = 4;
                 
                 number_of_triggers = length(trigger_indices_mocap);
@@ -1462,7 +1483,7 @@ function determineStretchesToAnalyze(varargin)
                     end
                     
                     % determine stimulus amplitude - HR: this is hacky, fix this in the future
-                    resulting_stim_amplitude = max(abs(current_rotation_trajectory(trigger_indices_labview(i_trigger):trigger_indices_labview(i_trigger)+200)));
+%                     resulting_stim_amplitude = max(abs(current_rotation_trajectory(trigger_indices_labview(i_trigger):trigger_indices_labview(i_trigger)+200)));
 
 %                     if resulting_stim_amplitude < 6 & resulting_stim_amplitude > 0
 %                         amplitude_list{i_trigger} = '30';
@@ -1474,17 +1495,17 @@ function determineStretchesToAnalyze(varargin)
 %                         amplitude_list{i_trigger} = '120';
 %                     end   
 
-                    if resulting_stim_amplitude < 4 & resulting_stim_amplitude > 1
-                        amplitude_list{i_trigger} = 'AMP45';
-                    end
-                    if resulting_stim_amplitude > 4
-                        amplitude_list{i_trigger} = 'AMP90';
-                    end  
-
-
-                    if resulting_stim_amplitude < 1
-                        amplitude_list{i_trigger} = 'AMP0';
-                    end 
+%                     if resulting_stim_amplitude < 4 & resulting_stim_amplitude > 1
+%                         amplitude_list{i_trigger} = 'AMP45';
+%                     end
+%                     if resulting_stim_amplitude > 4
+%                         amplitude_list{i_trigger} = 'AMP90';
+%                     end  
+% 
+% 
+%                     if resulting_stim_amplitude < 1
+%                         amplitude_list{i_trigger} = 'AMP0';
+%                     end 
                 end
                     
                 % remove flagged triggers
@@ -1530,7 +1551,8 @@ function determineStretchesToAnalyze(varargin)
                 [group_list{:}] = deal('to be determined');
                 
                 % add cadence list
-                if strcmp(experimental_paradigm, 'CadenceVision')
+                this_trial_cadence = '~';
+                if strcmp(experimental_paradigm, 'CadenceVision') || strcmp(experimental_paradigm, 'CadenceGVS')
                     % determine cadence for this trial
                     this_trial_type = condition_list{i_condition};
                     this_trial_number = i_trial;
