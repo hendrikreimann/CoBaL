@@ -100,21 +100,28 @@ function findEvents_MS(varargin)
             condition_experimental = loadConditionFromFile(conditions_file_name, 'condition', i_trial);
             if strcmp(condition_experimental(1:end-3), 'continuous')
                 [~, platform_pos_peak_indices] = findpeaks(platform_trajectory, 'MinPeakProminence', subject_settings.get('platform_pos_peak_prominence_threshold'), 'MinPeakDistance', subject_settings.get('platform_pos_peak_distance_threshold') * sampling_rate_marker);
-                [~, surround_pos_peak_indices] = findpeaks(surround_trajectory, 'MinPeakProminence', subject_settings.get('platform_pos_peak_prominence_threshold'), 'MinPeakDistance', subject_settings.get('platform_pos_peak_distance_threshold') * sampling_rate_marker);
+                [~, platform_neg_peak_indices] = findpeaks(-platform_trajectory, 'MinPeakProminence', subject_settings.get('platform_pos_peak_prominence_threshold'), 'MinPeakDistance', subject_settings.get('platform_pos_peak_distance_threshold') * sampling_rate_marker);
+%                 [~, surround_pos_peak_indices] = findpeaks(surround_trajectory, 'MinPeakProminence', subject_settings.get('platform_pos_peak_prominence_threshold'), 'MinPeakDistance', subject_settings.get('platform_pos_peak_distance_threshold') * sampling_rate_marker);
                 
                 platform_pos_peak_indices = platform_pos_peak_indices';
-                surround_pos_peak_indices = surround_pos_peak_indices';
+                platform_neg_peak_indices = platform_neg_peak_indices';
+%                 surround_pos_peak_indices = surround_pos_peak_indices';
 
-                platform_event_indices = platform_pos_peak_indices;
-                platform_events = time_marker(platform_event_indices);
+                platform_event_indices = [platform_pos_peak_indices platform_neg_peak_indices];
+                platform_peak_indices = platform_pos_peak_indices;
+                platform_peak_events = time_marker(platform_peak_indices);
+                platform_vale_indices = platform_neg_peak_indices;
+                platform_vale_events = time_marker(platform_vale_indices);
                 
                 event_data = ...
                   { ...
-                    platform_events; ...
+                    platform_peak_events; ...
+                    platform_vale_events; ...
                   };
                 event_labels = ...
                   { ...
                     'oscillation_peaks'; ...
+                    'oscillation_vales'; ...
                   };
             end
             
