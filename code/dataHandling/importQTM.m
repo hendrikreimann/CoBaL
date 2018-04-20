@@ -189,11 +189,13 @@ function importQTM()
         if strcmp(trial_type, 'calibration')
             analog_fs = 2000;
             start_indices = 1;
-            if trial_number == 1
-                end_indices = 2000;
-            else
-                end_indices = 20000;
-            end
+            end_indices = 20000;
+            this_trial_duration = 10;
+%             if trial_number == 1
+%                 end_indices = 2000;
+%             else
+%                 end_indices = 20000;
+%             end
         else
             analog_fs = qtm_data.Analog.Frequency;
 
