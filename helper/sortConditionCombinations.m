@@ -52,8 +52,13 @@ function [condition_combinations_stimulus_sorted, condition_combinations_control
         condition_combinations_stimulus_sorted = [condition_combinations_stimulus_sorted; condition_combinations_stimulus(this_level_rows, :)]; %#ok<AGROW>
         sortmap = [sortmap; find(this_level_rows)]; %#ok<AGROW>
     end
-    
-    condition_combinations_control_sorted = condition_combinations_control(sortmap, :);
+    % TF: what happens if condition_combinations_control is empty?
+    if isempty(condition_combinations_control)
+        condition_combinations_control_sorted = {};
+    else
+        condition_combinations_control_sorted = condition_combinations_control(sortmap, :);
+    end
+
 end
 
 
