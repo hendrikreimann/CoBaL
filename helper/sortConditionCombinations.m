@@ -53,7 +53,11 @@ function [condition_combinations_stimulus_sorted, condition_combinations_control
         sortmap = [sortmap; find(this_level_rows)]; %#ok<AGROW>
     end
     
-    condition_combinations_control_sorted = condition_combinations_control(sortmap, :);
+    if ~isempty(condition_combinations_control)
+        condition_combinations_control_sorted = condition_combinations_control(sortmap, :);
+    else
+        condition_combinations_control_sorted = [];
+    end
 end
 
 
