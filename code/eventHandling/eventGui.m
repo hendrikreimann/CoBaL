@@ -69,26 +69,24 @@ function eventGui(varargin)
         study_settings.get('scene_bound_z_min') study_settings.get('scene_bound_z_max') ...
       ];
   
-    
-  
-  
-  
-%     positions = trial_data.marker_positions(1, :);
-%     headers = trial_data.marker_labels;
-%     if trial_data.kinematic_data_available
-%         positions = [positions trial_data.joint_center_positions(1, :)];
-%         headers = [headers trial_data.joint_center_labels(1, :)];
-%     end
-%     if trial_data.com_data_available
-%         positions = [positions trial_data.com_positions(1, :)];
-%         headers = [headers trial_data.com_labels(1, :)];
-%     end
-%     
-%     % stick figure
-%     controller.scene_figure = stickFigure(positions, headers, scene_bound);
-%     controller.scene_figure.setColors('extended plug-in gait');
-%     controller.scene_figure.addLines('extended plug-in gait');
-%     
+    if gui_settings.get('show_simple_stick_figure')
+        marker_trajectories = data_custodian.getBasicVariableData('marker_trajectories');
+        joint_center_trajectories = data_custodian.getBasicVariableData('joint_center_trajectories');
+        com_trajectories = data_custodian.getBasicVariableData('com_trajectories');
+        % TODO: deal with cases where we have only marker data and no kinematic data yet
+
+        marker_labels = data_custodian.basic_variable_labels.marker_trajectories;
+        joint_center_labels = data_custodian.basic_variable_labels.joint_center_trajectories;
+        com_labels = data_custodian.basic_variable_labels.com_trajectories;
+
+        positions = [marker_trajectories(1, :), joint_center_trajectories(1, :), com_trajectories(1, :)];
+        labels = [marker_labels joint_center_labels com_labels];
+
+        % stick figure
+        controller.scene_figure = stickFigure(positions, labels, scene_bound);
+        controller.scene_figure.setColors('extended plug-in gait');
+        controller.scene_figure.addLines('extended plug-in gait');
+    end    
 %     % kinematic tree figure
 %     if trial_data.joint_angle_data_available
 %         positions = trial_data.marker_positions(1, :);
@@ -167,6 +165,7 @@ function figures_list = getFiguresListFromSettings(settings)
 end
 
 function variable_names = getVariableListFromSettings(settings, figure_list)
+    % get variables for trajectory figures
     variable_names = {};
     for i_figure = 1 : length(figure_list)
         this_figure_settings = settings.get(figure_list{i_figure});
@@ -178,6 +177,14 @@ function variable_names = getVariableListFromSettings(settings, figure_list)
             end
         end
     end
+    
+    % get variables for simple stick figure
+    if settings.get('show_simple_stick_figure')
+        variable_names = [variable_names; 'marker_trajectories'];
+        variable_names = [variable_names; 'joint_center_trajectories'];
+        variable_names = [variable_names; 'com_trajectories'];
+    end
+
 
 end
 

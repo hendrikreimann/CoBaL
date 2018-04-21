@@ -352,7 +352,8 @@ function optimizeKinematicTrajectories(varargin)
 
             % determine time steps to optimize
             time_steps_to_optimize = determineTimeStepsToProcess(date, subject_id, condition, i_trial, study_settings.get('data_stretch_padding'));
-% time_steps_to_optimize = 40;
+% time_steps_to_optimize = 421;
+% time_steps_to_optimize = time_steps_to_optimize(1:100);
             if strcmp(mode, 'default')
                 if exist('joint_angle_trajectories', 'var')
                     joint_angle_trajectories_calculated = joint_angle_trajectories;
@@ -382,9 +383,6 @@ function optimizeKinematicTrajectories(varargin)
 
             if use_parallel
                 joint_angle_trajectories_optimized_pool = zeros(size(joint_angle_trajectories_optimized));
-                
-
-
                 spmd
                     % create a copy of the kinematic_tree for each worker
                     kinematic_tree_pool = kinematic_tree.copy;
@@ -523,6 +521,13 @@ function optimizeKinematicTrajectories(varargin)
             if ~use_parallel
                 for i_time_step = 1 : length(time_steps_to_optimize)
                     i_time = time_steps_to_optimize(i_time_step);
+                    
+                    % give progress feedback
+                    display_step = 100;
+                    if (i_time_step / display_step) == floor(i_time_step / display_step)
+                        disp(['Starting work om: ' num2str(i_time_step) '(' num2str(length(time_steps_to_optimize)) '), time_step = ' num2str(i_time)]);
+                    end
+                    
                     if any(any(isnan(joint_angle_trajectories_optimized(i_time, :))))
                         joint_center_trajectories_optimized(i_time, :) = NaN;
                         com_trajectories_optimized(i_time, :) = NaN;
@@ -575,11 +580,6 @@ function optimizeKinematicTrajectories(varargin)
                         com_trajectories_optimized(i_time, end-2 : end) = kinematic_tree.calculateCenterOfMassPosition;
                     end
                     
-                    % give progress feedback
-                    display_step = 1;
-                    if (i_time_step / display_step) == floor(i_time_step / display_step)
-                        disp([num2str(i_time_step) '(' num2str(length(time_steps_to_optimize)) ')']);
-                    end                        
                     
                 end                
             end

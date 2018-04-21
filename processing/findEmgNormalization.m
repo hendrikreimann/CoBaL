@@ -42,13 +42,19 @@ function findEmgNormalization(varargin)
     subject_settings = SettingsCustodian('subjectSettings.txt');
     emg_variable_names = subject_settings.get('emg_labels')';
     data_custodian = WalkingDataCustodian(emg_variable_names);
-    number_of_stretch_variables = length(emg_variable_names);
+%     number_of_stretch_variables = length(emg_variable_names);
+    number_of_stretch_variables = length(data_custodian.stretch_variable_names);
+   
     
     % find relevant conditions
     conditions_settings = study_settings.get('conditions');
     condition_labels = conditions_settings(:, 1)';
     condition_source_variables = conditions_settings(:, 2)';
     number_of_condition_labels = length(condition_labels);
+   
+    condition_relevant_for_analysis = study_settings.get('condition_relevant_for_analysis');
+    condition_relevant_name = conditions_settings{strcmp(conditions_settings(:, 1), condition_relevant_for_analysis), 2};
+%     condition_stimulus_data = conditions_trial.(condition_relevant_name);
     
     % make containers to hold the data
     data_session = cell(number_of_stretch_variables, 1);
@@ -77,9 +83,12 @@ function findEmgNormalization(varargin)
             data_custodian.prepareBasicVariables(condition, i_trial, [{'emg_trajectories'}; emg_variable_names]);
             
             load(['analysis' filesep makeFileName(date, subject_id, condition, i_trial, 'relevantDataStretches')]);
-            data_trial = data_custodian.calculateStretchVariables(stretch_times, stance_foot_data, conditions_trial.condition_experimental_list, stretch_pushoff_times, emg_variable_names);
+            data_trial = data_custodian.calculateStretchVariables(stretch_times, stance_foot_data, conditions_trial.(condition_relevant_name), emg_variable_names);
             
             % append the data and condition lists from this trial to the total lists
+%             if length(data_trial) ~= length(emg_variable_names) % this only happens when botched trial results in no stretches
+%                 data_trial = cell(length(emg_variable_names),1);
+%             end
             for i_variable = 1 : number_of_stretch_variables
                 data_session{i_variable} = [data_session{i_variable} data_trial{i_variable}];
             end

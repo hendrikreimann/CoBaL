@@ -44,13 +44,13 @@ function importAscii(varargin)
     qtm_emg_scale = 1;
 
     % create folders if necessary
-    if ~exist('raw', 'dir')
+    if ~directoryExists('raw', 'dir')
         mkdir('raw')
     end
-    if ~exist('processed', 'dir')
+    if ~directoryExists('processed', 'dir')
         mkdir('processed')
     end
-    if ~exist('analysis', 'dir')
+    if ~directoryExists('analysis', 'dir')
         mkdir('analysis')
     end
     current_path = pwd;
@@ -382,10 +382,10 @@ function importAscii(varargin)
 
                     emg_trajectories_raw = imported_data.data(:, 3:end) * qtm_emg_scale;
                     
-                    % check for column of zeros and remove                    
-                    columns_to_remove = ~any(emg_trajectories_raw);
-                    emg_trajectories_raw(:,columns_to_remove) = [];
-                    emg_labels(columns_to_remove) = [];
+%                     % check for column of zeros and remove                    
+%                     columns_to_remove = ~any(emg_trajectories_raw);
+%                     emg_trajectories_raw(:,columns_to_remove) = [];
+%                     emg_labels(columns_to_remove) = [];
                     
                     sampling_rate_field = imported_data.textdata{3, 1};
                     sampling_rate_strings = strsplit(sampling_rate_field);

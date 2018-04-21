@@ -45,13 +45,13 @@ qtm_emg_scale = 1;
 total_number_of_trials_extracted_this_subject = 0;
 
 % create folders if necessary
-if ~exist('raw', 'dir')
+if ~directoryExists('raw')
     mkdir('raw')
 end
-if ~exist('processed', 'dir')
+if ~directoryExists('processed')
     mkdir('processed')
 end
-if ~exist('analysis', 'dir')
+if ~directoryExists('analysis')
     mkdir('analysis')
 end
 current_path = pwd;
@@ -91,10 +91,6 @@ for i_source = 1 : length(sources)
             %% qualisys
             if strcmp(file_type, 'qualisysData')
                 % this is marker data from QTM
-                % UNTESTED -- do stuff here (David)
-                % note -- need to be able to handle multiple files, each
-                %      with multiple trials
-                
                 data_source = 'qtm';
                 varName = whos('-file', [source_dir, filesep, data_file_name]);
                 temp_data = load([source_dir, filesep, data_file_name]);
@@ -170,13 +166,12 @@ for i_source = 1 : length(sources)
                       );
                     addAvailableData_new('marker_trajectories_raw', 'time_mocap', 'sampling_rate_mocap', 'marker_labels','_marker_directions', save_folder, save_file_name);
                     disp(['imported ' source_dir filesep data_file_name ' and saved as ' save_folder filesep save_file_name])
-                                      
-                else
-                    % this is not calibration data, so break up into 2min chunks
+                end                  
+                if strcmp(trial_type, 'walking')
+                    % this is walking data, so break up into chunks for trials
                     analog_fs = qtm_data.Analog.Frequency;
                   
                     % Find trial start times
-
                     trigger_mask = contains(qtm_data.Analog.Labels, 'labview_sync');
                     trigger = qtm_data.Analog.Data(trigger_mask,:);
 

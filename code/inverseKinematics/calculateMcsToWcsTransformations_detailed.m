@@ -16,17 +16,17 @@
 
 
 function transformations = calculateMcsToWcsTransformations_detailed(marker_positions, marker_headers, segment_labels)
-
+    % TODO: sort out when this is used vs. calculateMcsToWcsTransformations_new
     
     transformations = cell(length(segment_labels), 1);
     for i_segment = 1 : length(segment_labels)
         this_segment_label = segment_labels{i_segment};
 
         if strcmp(this_segment_label, 'PELVIS')
-            LASI = extractMarkerTrajectories(marker_positions, marker_headers, 'LASI')';
-            RASI = extractMarkerTrajectories(marker_positions, marker_headers, 'RASI')';
-            LPSI = extractMarkerTrajectories(marker_positions, marker_headers, 'LPSI')';
-            RPSI = extractMarkerTrajectories(marker_positions, marker_headers, 'RPSI')';
+            LASI = extractMarkerData(marker_positions, marker_headers, 'LASI')';
+            RASI = extractMarkerData(marker_positions, marker_headers, 'RASI')';
+            LPSI = extractMarkerData(marker_positions, marker_headers, 'LPSI')';
+            RPSI = extractMarkerData(marker_positions, marker_headers, 'RPSI')';
             
             pelvis_base_point = mean([LASI, RASI, LPSI, RPSI], 2);
             pelvis_left = (LASI + LPSI) / 2;
@@ -73,20 +73,25 @@ function transformations = calculateMcsToWcsTransformations_detailed(marker_posi
             
             % find marker numbers
             number_of_markers_this_segment = length(this_segment_markers);
-            marker_numbers = zeros(1, number_of_markers_this_segment);
-            for i_marker = 1 : number_of_markers_this_segment
-                marker_numbers(i_marker) = find(strcmp(marker_headers, this_segment_markers(i_marker)));
-            end
+%             marker_numbers = zeros(1, number_of_markers_this_segment);
+%             for i_marker = 1 : number_of_markers_this_segment
+%                 marker_numbers(i_marker) = find(strcmp(marker_headers, this_segment_markers(i_marker)));
+%             end
 
             % find marker indices
-            marker_indices_x = zeros(1, length(marker_numbers));
-            marker_indices_y = zeros(1, length(marker_numbers));
-            marker_indices_z = zeros(1, length(marker_numbers));
+            marker_indices_x = zeros(1, number_of_markers_this_segment);
+            marker_indices_y = zeros(1, number_of_markers_this_segment);
+            marker_indices_z = zeros(1, number_of_markers_this_segment);
             for i_marker = 1 : number_of_markers_this_segment
-                marker_number = marker_numbers(i_marker);
-                marker_indices_x(i_marker) = (marker_number - 1) * 3 + 1;
-                marker_indices_y(i_marker) = (marker_number - 1) * 3 + 2;
-                marker_indices_z(i_marker) = (marker_number - 1) * 3 + 3;
+                marker_indices = extractMarkerData([], marker_headers, this_segment_markers{i_marker}, 'indices');
+                marker_indices_x(i_marker) = marker_indices(1);
+                marker_indices_y(i_marker) = marker_indices(2);
+                marker_indices_z(i_marker) = marker_indices(3);
+                
+%                 marker_number = marker_numbers(i_marker);
+%                 marker_indices_x(i_marker) = (marker_number - 1) * 3 + 1;
+%                 marker_indices_y(i_marker) = (marker_number - 1) * 3 + 2;
+%                 marker_indices_z(i_marker) = (marker_number - 1) * 3 + 3;
             end
 
             % extract marker positions

@@ -93,8 +93,11 @@ function plotResults(varargin)
     % load data
     data_folder_list = determineDataStructure(subjects);
     variables_to_plot = plot_settings.get('variables_to_plot');
+    paths_to_plot = plot_settings.get('paths_to_plot');
+
     number_of_variables_to_plot = size(variables_to_plot, 1);
-    if size(variables_to_plot, 2) ~= 7
+    number_of_paths_to_plot = size(paths_to_plot, 1);
+    if ~isempty(variables_to_plot) & size(variables_to_plot, 2) ~= 7
         disp('Expected entries in variables_to_plot in plot settings file are:')
         disp('variable name, variable_source, variable label, y-axis label, save file string, y-axis lower limit, y-axis upper limit')
         error('Wrong number of columns in variables_to_plot in plot settings file. ');
@@ -105,6 +108,8 @@ function plotResults(varargin)
     origin_end_time_list_all = [];
     data_all = cell(number_of_variables_to_plot, 1);
     directions = cell(number_of_variables_to_plot, 2);
+    path_data = cell(number_of_paths_to_plot, 2);
+    path_directions = cell(number_of_paths_to_plot, 4);
     
     step_time_data = [];
     pushoff_time_data = [];
@@ -131,24 +136,59 @@ function plotResults(varargin)
         origin_start_time_list_all = [origin_start_time_list_all; loaded_data.origin_start_time_list_session]; %#ok<AGROW>
         origin_end_time_list_all = [origin_end_time_list_all; loaded_data.origin_end_time_list_session]; %#ok<AGROW>
         
+        % determine data to get
+        get_stretch_data = false;
+        if ~isempty(variables_to_plot) & any(strcmp(variables_to_plot(:, 2), 'stretch'))
+            get_stretch_data = true;
+        end
+        if number_of_paths_to_plot > 0 && any(strcmp(paths_to_plot(:, 2), 'stretch'))
+            get_stretch_data = true;
+        end        
+        if number_of_paths_to_plot > 0 && any(strcmp(paths_to_plot(:, 4), 'stretch'))
+            get_stretch_data = true;
+        end        
         
-        if any(strcmp(variables_to_plot(:, 2), 'stretch'))
+        get_response_data = false;
+        if ~isempty(variables_to_plot) & any(strcmp(variables_to_plot(:, 2), 'response'))
+            get_response_data = true;
+        end
+        if number_of_paths_to_plot > 0 && any(strcmp(paths_to_plot(:, 2), 'response'))
+            get_response_data = true;
+        end        
+        if number_of_paths_to_plot > 0 && any(strcmp(paths_to_plot(:, 4), 'response'))
+            get_response_data = true;
+        end
+        
+        get_analysis_data = false;
+        if ~isempty(variables_to_plot) & any(strcmp(variables_to_plot(:, 2), 'analysis'))
+            get_analysis_data = true;
+        end
+        if number_of_paths_to_plot > 0 && any(strcmp(paths_to_plot(:, 2), 'analysis'))
+            get_analysis_data = true;
+        end        
+        if number_of_paths_to_plot > 0 && any(strcmp(paths_to_plot(:, 4), 'analysis'))
+            get_analysis_data = true;
+        end        
+
+        % get data
+        if get_stretch_data
             stretch_names_session = loaded_data.stretch_names_session;
             stretch_data_session = loaded_data.stretch_data_session;
             stretch_directions_session = loaded_data.stretch_directions_session;
         end
-        if any(strcmp(variables_to_plot(:, 2), 'response'))
+        if get_response_data
             response_names_session = loaded_data.response_names_session;
             response_data_session = loaded_data.response_data_session;
             response_directions_session = loaded_data.response_directions_session;
         end
-        if any(strcmp(variables_to_plot(:, 2), 'analysis'))
+        if get_analysis_data
             analysis_names_session = loaded_data.analysis_names_session;
             analysis_data_session = loaded_data.analysis_data_session;
             analysis_directions_session = loaded_data.analysis_directions_session;
         end
+        
+        % extract data
         for i_variable = 1 : number_of_variables_to_plot
-            % load and extract data
             this_variable_name = variables_to_plot{i_variable, 1};
             this_variable_source = variables_to_plot{i_variable, 2};
             if strcmp(this_variable_source, 'stretch')
@@ -186,6 +226,7 @@ function plotResults(varargin)
             data_all{i_variable} = [data_all{i_variable} this_variable_data];
             directions(i_variable, :) = this_variable_directions;
         end
+        
         % get time variables
         if any(find(strcmp(loaded_data.stretch_names_session, 'step_time')))
             index_in_saved_data = find(strcmp(loaded_data.stretch_names_session, 'step_time'), 1, 'first');
@@ -204,6 +245,75 @@ function plotResults(varargin)
                warning('Different sessions have different numbers of bands per stretch') 
             end
         end
+        
+        % get path data
+        for i_path = 1 : number_of_paths_to_plot
+            % get x-data
+            this_path_name_x = paths_to_plot{i_path, 1};
+            this_path_source_x = paths_to_plot{i_path, 2};
+            if strcmp(this_path_source_x, 'stretch')
+                index_in_saved_data = find(strcmp(stretch_names_session, this_path_name_x), 1, 'first');
+            end
+            if strcmp(this_path_source_x, 'response')
+                index_in_saved_data = find(strcmp(response_names_session, this_path_name_x), 1, 'first');
+            end
+            if strcmp(this_path_source_x, 'analysis')
+                index_in_saved_data = find(strcmp(analysis_names_session, this_path_name_x), 1, 'first');
+            end
+            if isempty(index_in_saved_data)
+                error(['Data not found: ' this_path_name])
+            end
+            
+            if strcmp(this_path_source_x, 'stretch')
+                this_path_data_x = stretch_data_session{index_in_saved_data};
+                this_path_directions_x = stretch_directions_session(index_in_saved_data, :);
+            end
+            if strcmp(this_path_source_x, 'response')
+                this_path_data_x = response_data_session{index_in_saved_data};
+                this_path_directions_x = response_directions_session(index_in_saved_data, :);
+            end
+            if strcmp(this_path_source_x, 'analysis')
+                this_path_data_x = analysis_data_session{index_in_saved_data};
+                this_path_directions_x = analysis_directions_session(index_in_saved_data, :);
+            end
+            
+            % store x-data
+            path_data{i_path, 1} = [path_data{i_path, 1} this_path_data_x];
+            path_directions(i_path, 1:2) = this_path_directions_x;
+
+            % get y-data
+            this_path_name_y = paths_to_plot{i_path, 3};
+            this_path_source_y = paths_to_plot{i_path, 4};
+            if strcmp(this_path_source_y, 'stretch')
+                index_in_saved_data = find(strcmp(stretch_names_session, this_path_name_y), 1, 'first');
+            end
+            if strcmp(this_path_source_y, 'response')
+                index_in_saved_data = find(strcmp(response_names_session, this_path_name_y), 1, 'first');
+            end
+            if strcmp(this_path_source_y, 'analysis')
+                index_in_saved_data = find(strcmp(analysis_names_session, this_path_name_y), 1, 'first');
+            end
+            if isempty(index_in_saved_data)
+                error(['Data not found: ' this_path_name])
+            end
+            
+            if strcmp(this_path_source_y, 'stretch')
+                this_path_data_y = stretch_data_session{index_in_saved_data};
+                this_path_directions_y = stretch_directions_session(index_in_saved_data, :);
+            end
+            if strcmp(this_path_source_y, 'response')
+                this_path_data_y = response_data_session{index_in_saved_data};
+                this_path_directions_y = response_directions_session(index_in_saved_data, :);
+            end
+            if strcmp(this_path_source_y, 'analysis')
+                this_path_data_y = analysis_data_session{index_in_saved_data};
+                this_path_directions_y = analysis_directions_session(index_in_saved_data, :);
+            end
+            
+            % store y-data
+            path_data{i_path, 2} = [path_data{i_path, 2} this_path_data_y];
+            path_directions(i_path, 3:4) = this_path_directions_y;
+        end
     end
     % calculate mean pushoff index
     if mark_pushoff
@@ -217,7 +327,8 @@ function plotResults(varargin)
     levels_to_remove = plot_settings.get('levels_to_remove');
     preferred_level_order = plot_settings.get('preferred_level_order');
     [condition_combination_labels, condition_combinations_stimulus, condition_combinations_control] = determineConditionCombinations(condition_data_all, conditions_settings, labels_to_ignore, levels_to_remove);
-    condition_combinations_stimulus = sortConditionCombinations(condition_combinations_stimulus, condition_combination_labels, condition_to_compare, preferred_level_order);
+%     condition_combinations_stimulus = sortConditionCombinations(condition_combinations_stimulus, condition_combination_labels, condition_to_compare, preferred_level_order);
+    [condition_combinations_stimulus, condition_combinations_control] = sortConditionCombinations(condition_combinations_stimulus, condition_combinations_control, condition_combination_labels, condition_to_compare, preferred_level_order);
     
     %% determine subjects and data folders
     [comparison_indices, conditions_per_comparison_max] = determineComparisons(condition_combinations_stimulus, condition_combination_labels, plot_settings);
@@ -230,7 +341,7 @@ function plotResults(varargin)
     %% create figures and determine abscissae for each comparison
     comparison_variable_to_axes_index_map = zeros(number_of_comparisons, 1);
     abscissae_cell = cell(number_of_comparisons, number_of_variables_to_plot);
-%     comparison_path_to_axes_index_map = zeros(number_of_comparisons, 1);
+    comparison_path_to_axes_index_map = zeros(number_of_comparisons, 1);
     
     % time plots
     if strcmp(plot_mode, 'detailed') || strcmp(plot_mode, 'overview')
@@ -272,11 +383,16 @@ function plotResults(varargin)
                     end
                     if strcmp(plot_mode, 'overview')
                         this_comparison = comparison_indices{i_comparison};
+                        number_of_entries = length(this_comparison);
+                        if plot_settings.get('plot_control')
+                            number_of_entries = number_of_entries + 1;
+                        end
+                        
                         if plot_settings.get('group_bands_within_conditions')
                             gap_between_conditions = 1;
                             
                             abscissae_stimulus = repmat((1 : bands_per_stretch)', 1, length(this_comparison));
-                            shifter = (0:length(this_comparison)-1) * (bands_per_stretch + gap_between_conditions);
+                            shifter = (0:number_of_entries-1) * (bands_per_stretch + gap_between_conditions);
                             abscissae_stimulus = abscissae_stimulus + repmat(shifter, bands_per_stretch, 1);
                             if plot_settings.get('merge_bands')
                                 abscissae_stimulus = abscissae_stimulus(1, :);
@@ -285,7 +401,8 @@ function plotResults(varargin)
                         else
                             gap_between_bands = 1;
 
-                            abscissae_stimulus = repmat((1 : length(this_comparison)), bands_per_stretch, 1);
+%                             ab
+                            abscissae_stimulus = repmat((1 : number_of_entries), bands_per_stretch, 1);
                             shifter = (0:bands_per_stretch-1)' * (conditions_per_comparison_max + gap_between_bands);
                             abscissae_stimulus = abscissae_stimulus + repmat(shifter, 1, conditions_per_comparison_max);
                             if plot_settings.get('merge_bands')
@@ -301,7 +418,7 @@ function plotResults(varargin)
                     conditions_this_comparison = comparison_indices{i_comparison};
                     step_time_means_this_comparison = zeros(bands_per_stretch, size(conditions_this_comparison, 2));
                     for i_condition = 1 : length(conditions_this_comparison)
-                        this_condition_combination = condition_combinations_stimulus(i_condition, :);
+                        this_condition_combination = condition_combinations_stimulus(conditions_this_comparison(i_condition), :);
                         this_condition_indicator = getConditionIndicator(this_condition_combination, condition_combination_labels, condition_data_all, condition_labels);
                         step_time_data_this_condition = step_time_data(:, this_condition_indicator);
                         step_time_means_this_comparison(:, i_condition) = mean(step_time_data_this_condition, 2);
@@ -500,8 +617,9 @@ function plotResults(varargin)
                         abscissae_cell{this_episode(i_comparison), i_variable} = abscissae;
                         
 %                         if ~isempty(conditions_control) && plot_settings.get('plot_control') && strcmp(data_source, 'stretch')
-%                             xtick = [xtick abscissae{1}]; %#ok<AGROW>
-%                         end
+                        if plot_settings.get('plot_control')
+                            xtick = [xtick abscissae{1}]; %#ok<AGROW>
+                        end
                         xtick = [xtick abscissae{2}]; %#ok<AGROW>
 
 
@@ -824,57 +942,32 @@ function plotResults(varargin)
         
     end
     
-    % path plots - removed for now by if false, check back later
-    if false
-        if strcmp(plot_mode, 'detailed') || strcmp(plot_mode, 'overview') %#ok<UNRCH>
-            % make one figure per comparison and variable
-            path_figure_handles = zeros(number_of_comparisons, number_of_variables_to_plot);
-            path_axes_handles = zeros(number_of_comparisons, number_of_variables_to_plot);
-            for i_path = 1 : number_of_paths_to_plot
-                for i_comparison = 1 : number_of_comparisons
-                    % make figure and axes
-                    new_figure = figure; new_axes = axes; hold on;
+    % path plots
+    if strcmp(plot_mode, 'detailed')
+        % make one figure per comparison and variable
+        path_figure_handles = zeros(number_of_comparisons, number_of_paths_to_plot);
+        path_axes_handles = zeros(number_of_comparisons, number_of_paths_to_plot);
+        for i_path = 1 : number_of_paths_to_plot
+            for i_comparison = 1 : number_of_comparisons
+                % make figure and axes
+                new_figure = figure; new_axes = axes; hold on;
 
-                    % store handles and determine abscissa data
-                    path_figure_handles(i_comparison, i_path) = new_figure;
-                    path_axes_handles(i_comparison, i_path) = new_axes;
-                    comparison_path_to_axes_index_map(i_comparison) = i_comparison;
+                % store handles and determine abscissa data
+                path_figure_handles(i_comparison, i_path) = new_figure;
+                path_axes_handles(i_comparison, i_path) = new_axes;
+                comparison_path_to_axes_index_map(i_comparison) = i_comparison;
 
-                    % determine title
-                    title_string = paths_to_plot{i_path, 2};
-                    filename_string = paths_to_plot{i_path, 6};
-                    for i_label = 1 : length(study_settings.get('condition_labels'))
-                        if (i_label ~= plot_settings.get('comparison_to_make')) ...
-                            && (i_label ~= 1) ...
-                            && (i_label ~= 3) ...
-                            && (i_label ~= 5) ...
-                            && (i_label ~= 6) ...
-                            && (i_label ~= 7)
-                            this_condition_label = strrep(conditions_to_plot{comparison_indices{i_comparison}(1), i_label}, '_', ' ');
-                            if i_label ~= plot_settings.get('comparison_to_make')
-                                title_string = [title_string ' - ' this_condition_label];
-                                filename_string = [filename_string '_' this_condition_label];
-                            end
-                        end
-                    end
-                    stance_label = conditions_to_plot{comparison_indices{i_comparison}(1), 1};
-                    if strcmp(stance_label, 'STANCE_RIGHT')
-                        title_string = [title_string ' - first step stance leg RIGHT'];
-                        filename_string = [filename_string '_stanceR'];
-                    end
-                    if strcmp(stance_label, 'STANCE_LEFT')
-                        title_string = [title_string ' - first step stance leg LEFT'];
-                        filename_string = [filename_string '_stanceL'];
-                    end
-                    title(title_string); set(gca, 'Fontsize', 12)
-                    set(gcf, 'UserData', filename_string)
+                % determine title
+                title_string = paths_to_plot{i_path, 5};
+                filename_string = paths_to_plot{i_path, 8};
+                
+                % TODO: fix title
 
 
-                end
             end
-
-
         end
+
+
     end
     
     %% plot data
@@ -900,55 +993,142 @@ function plotResults(varargin)
                 
                 if ~isempty(data_to_plot_this_condition)
                     if isDiscreteVariable(i_variable, data_all, bands_per_stretch)
-                        target_abscissa = abscissae_cell{i_comparison, i_variable};
-                        if strcmp(plot_mode, 'detailed')
-                            histogram ...
-                              ( ...
-                                target_axes_handle, ...
-                                data_to_plot_this_condition, ...
-                                'binEdges', target_abscissa, ...
-                                'edgecolor', plot_settings.get('color_control'), ...
-                                'facecolor', lightenColor(plot_settings.get('color_control'), 0.5), ...
-                                'DisplayName', 'CONTROL' ...
-                              );
+                        if plot_settings.get('merge_bands')
+                            data_to_plot_this_condition = reshape(data_to_plot_this_condition, 1, numel(data_to_plot_this_condition));
                         end
-                        if strcmp(plot_mode, 'overview') || strcmp(plot_mode, 'episodes')
-                            if strcmp(plot_settings.get('discrete_data_plot_style'), 'box')
-                                singleBoxPlot ...
-                                  ( ...
-                                    target_axes_handle, ...
-                                    target_abscissa{1}, ...
-                                    data_to_plot_this_condition, ...
-                                    plot_settings.get('color_control'), ...
-                                    'CONTROL', ...
-                                    show_outliers ...
-                                  )
+                        % ----------------------------------------------------------------------------------------------
+                        % start of fix
+                        % ----------------------------------------------------------------------------------------------
+                        for i_band = 1 : size(data_to_plot_this_condition, 1)
+                            if ~isempty(band_labels)
+                                label_string_this_band = ['control -' band_labels{i_band}];
+                            else
+                                label_string_this_band = 'control';
                             end
-                            if strcmp(plot_settings.get('discrete_data_plot_style'), 'bar')
-                               singleBarPlot ...
-                                   ( ...
-                                     target_axes_handle, ...
-                                     target_abscissa{1}, ...
-                                     data_to_plot_this_condition, ...
-                                     plot_settings.get('color_control'), ...
-                                     'CONTROL' ...
-                                   ) 
+                            if strcmp(plot_mode, 'episodes')
+                                % TODO: copied over from stimulus, fix this later
+                                this_cell = abscissae_cell{i_comparison, i_variable};
+                                target_abscissa = this_cell{1};
+                            else
+                                target_abscissa = abscissae_cell{i_comparison, i_variable}(i_band, end);
                             end
-                            if strcmp(plot_settings.get('discrete_data_plot_style'), 'violin')
-                                singleViolinPlot ...
-                                  ( ...
-                                    data_to_plot_this_condition, ...
-                                    'axes', target_axes_handle, ...
-                                    'abscissa', target_abscissa{1}, ...
-                                    'facecolor', plot_settings.get('color_control'), ...
-                                    'plot_mean', false, ...
-                                    'plot_median', true, ...
-                                    'mediancolor', [0 0 0], ...
-                                    'show_outliers', show_outliers, ...
-                                    'xlabel', 'CONTROL' ...
-                                  );
+                            data_to_plot_this_band = data_to_plot_this_condition(i_band, :);
+                            if strcmp(plot_mode, 'detailed')
+                                % TODO: copied over from stimulus, fix this later
+%                                 histogram ...
+%                                   ( ...
+%                                     target_axes_handle, ...
+%                                     data_to_plot_this_band, ...
+%                                     target_abscissa, ...
+%                                     'edgecolor', colors_comparison(i_condition, :), ...
+%                                     'facecolor', lightenColor(colors_comparison(i_condition, :), 0.5), ...
+%                                     'DisplayName', label_string ...
+%                                   );
+                            end
+                            if strcmp(plot_mode, 'overview') || strcmp(plot_mode, 'episodes')
+                                if ~any(isnan(data_to_plot_this_band))
+                                    if plot_settings.get('group_bands_within_conditions')
+                                        this_color = colors_bands(i_band, :);
+                                    else
+                                        this_color = plot_settings.get('color_control');
+                                    end
+
+                                    if strcmp(plot_settings.get('discrete_data_plot_style'), 'box')
+                                        singleBoxPlot ...
+                                          ( ...
+                                            target_axes_handle, ...
+                                            target_abscissa, ...
+                                            data_to_plot_this_band, ...
+                                            this_color, ...
+                                            label_string_this_band, ...
+                                            show_outliers ...
+                                          )
+                                    end
+                                    if strcmp(plot_settings.get('discrete_data_plot_style'), 'bar')
+                                        singleBarPlot ...
+                                          ( ...
+                                            target_axes_handle, ...
+                                            target_abscissa, ...
+                                            data_to_plot_this_band, ...
+                                            this_color, ...
+                                            label_string_this_band ...
+                                          )
+                                    end
+                                    if strcmp(plot_settings.get('discrete_data_plot_style'), 'violin')
+                                        singleViolinPlot ...
+                                          ( ...
+                                            data_to_plot_this_band, ...
+                                            'axes', target_axes_handle, ...
+                                            'abscissa', target_abscissa, ...
+                                            'facecolor', this_color, ...
+                                            'plot_mean', false, ...
+                                            'plot_median', true, ...
+                                            'mediancolor', [0 0 0], ...
+                                            'show_outliers', show_outliers, ...
+                                            'xlabel', label_string_this_band ...
+                                          );
+                                    end
+                                end
                             end
                         end
+                        
+                        
+                        % ----------------------------------------------------------------------------------------------
+                        % HR: before fixing this, leaving this around because this hasn't been tested thoroughly
+                        % ----------------------------------------------------------------------------------------------
+                        
+%                         target_abscissa = abscissae_cell{i_comparison, i_variable};
+%                         if strcmp(plot_mode, 'detailed')
+%                             histogram ...
+%                               ( ...
+%                                 target_axes_handle, ...
+%                                 data_to_plot_this_condition, ...
+%                                 'binEdges', target_abscissa, ...
+%                                 'edgecolor', plot_settings.get('color_control'), ...
+%                                 'facecolor', lightenColor(plot_settings.get('color_control'), 0.5), ...
+%                                 'DisplayName', 'CONTROL' ...
+%                               );
+%                         end
+%                         if strcmp(plot_mode, 'overview') || strcmp(plot_mode, 'episodes')
+%                             if strcmp(plot_settings.get('discrete_data_plot_style'), 'box')
+%                                 singleBoxPlot ...
+%                                   ( ...
+%                                     target_axes_handle, ...
+%                                     target_abscissa{1}, ...
+%                                     data_to_plot_this_condition, ...
+%                                     plot_settings.get('color_control'), ...
+%                                     'CONTROL', ...
+%                                     show_outliers ...
+%                                   )
+%                             end
+%                             if strcmp(plot_settings.get('discrete_data_plot_style'), 'bar')
+%                                singleBarPlot ...
+%                                    ( ...
+%                                      target_axes_handle, ...
+%                                      target_abscissa{1}, ...
+%                                      data_to_plot_this_condition, ...
+%                                      plot_settings.get('color_control'), ...
+%                                      'CONTROL' ...
+%                                    ) 
+%                             end
+%                             if strcmp(plot_settings.get('discrete_data_plot_style'), 'violin')
+%                                 singleViolinPlot ...
+%                                   ( ...
+%                                     data_to_plot_this_condition, ...
+%                                     'axes', target_axes_handle, ...
+%                                     'abscissa', target_abscissa{1}, ...
+%                                     'facecolor', plot_settings.get('color_control'), ...
+%                                     'plot_mean', false, ...
+%                                     'plot_median', true, ...
+%                                     'mediancolor', [0 0 0], ...
+%                                     'show_outliers', show_outliers, ...
+%                                     'xlabel', 'CONTROL' ...
+%                                   );
+%                             end
+%                         end
+                        % ----------------------------------------------------------------------------------------------
+                        % end
+                        % ----------------------------------------------------------------------------------------------
                     end
                     if isContinuousVariable(i_variable, data_all, bands_per_stretch)
                         target_abscissa = abscissae_cell{i_comparison, i_variable}(i_condition, :);
@@ -1162,124 +1342,112 @@ function plotResults(varargin)
             end
         end
     end
-    if false % removed for now, look back later
-%      for i_path = 1 : number_of_paths_to_plot
-%         if plot_settings.get('plot_response')
-%             data_to_plot_x = path_response_data_all{i_path, 1};
-%             data_to_plot_y = path_response_data_all{i_path, 2};
-%         else
-%             data_to_plot_x = path_data_all{i_path, 1};
-%             data_to_plot_y = path_data_all{i_path, 2};
-%         end
-%         
-%         for i_comparison = 1 : length(comparison_indices)
-%             % find correct condition indicator for control
-%             conditions_this_comparison = comparison_indices{i_comparison};
-%             top_level_plots = [];
-%             target_axes_handle = path_axes_handles(comparison_path_to_axes_index_map(i_comparison), i_path);
-%             
-%             % plot control
-%             if plot_settings.get('plot_control') && ~isempty(conditions_control) && ~plot_settings.get('plot_response')
-%                 % determine which control condition applies here
-%                 representant_condition_index = conditions_this_comparison(1);
-%                 applicable_control_condition_index = findApplicableControlConditionIndex(conditions_to_plot(representant_condition_index, :), conditions_control);
-%                 applicable_control_condition_labels = conditions_control(applicable_control_condition_index, :);
-%                 
-%                 % extract data for control condition
-%                 stance_foot_indicator = strcmp(condition_stance_foot_list_all, applicable_control_condition_labels{1});
-%                 perturbation_indicator = strcmp(condition_perturbation_list_all, applicable_control_condition_labels{2});
-%                 delay_indicator = strcmp(condition_delay_list_all, applicable_control_condition_labels{3});
-%                 index_indicator = strcmp(condition_index_list_all, applicable_control_condition_labels{4});
-%                 experimental_indicator = strcmp(condition_experimental_list_all, applicable_control_condition_labels{5});
-%                 stimulus_indicator = strcmp(condition_stimulus_list_all, applicable_control_condition_labels{6});
-%                 day_indicator = strcmp(condition_day_list_all, applicable_control_condition_labels{7});
-%                 this_condition_indicator = stance_foot_indicator & perturbation_indicator & delay_indicator & index_indicator & experimental_indicator & stimulus_indicator & day_indicator;
-%                 data_to_plot_this_condition_x = data_to_plot_x(:, this_condition_indicator);
-%                 data_to_plot_this_condition_y = data_to_plot_y(:, this_condition_indicator);
-% %                 origin_indices = find(this_condition_indicator);
-%                 
-%                 if ~isempty(data_to_plot_this_condition_x)
-%                     if strcmp(plot_mode, 'detailed')
-%                         % individual trajectories
-%                         for i_stretch = 1 : size(data_to_plot_this_condition_x, 2)
-% %                             origin_index_data = ones(size(target_abscissa)) * origin_indices(i_stretch);
-%                             plot ...
-%                               ( ...
-%                                 target_axes_handle, ...
-%                                 data_to_plot_this_condition_x(:, i_stretch), ...
-%                                 data_to_plot_this_condition_y(:, i_stretch), ...
-%                                 'HandleVisibility', 'off', ...
-%                                 'color', lightenColor(plot_settings.get('color_control'), 0.5) ...
-%                               );
-%                         end
-%                         % condition average
-%                         control_mean_plot = plot ...
-%                           ( ...
-%                             target_axes_handle, ...
-%                             mean(data_to_plot_this_condition_x, 2), ...
-%                             mean(data_to_plot_this_condition_y, 2), ...
-%                             'DisplayName', 'CONTROL', ...
-%                             'linewidth', 5, ...
-%                             'color', plot_settings.get('color_control') ...
-%                           );
-%                         top_level_plots = [top_level_plots control_mean_plot]; %#ok<AGROW>
-%                     end
-%                 end
-%             end
-%             
-%             % plot stimulus
-%             for i_condition = 1 : length(conditions_this_comparison)
-%                 label_string = strrep(conditions_to_plot{comparison_indices{i_comparison}(i_condition), plot_settings.get('comparison_to_make')}, '_', ' ');
-%                 
-%                 % find correct condition indicator
-%                 condition_identifier = conditions_to_plot(conditions_this_comparison(i_condition), :);
-%                 stance_foot_indicator = strcmp(condition_stance_foot_list_all, condition_identifier{1});
-%                 perturbation_indicator = strcmp(condition_perturbation_list_all, condition_identifier{2});
-%                 delay_indicator = strcmp(condition_delay_list_all, condition_identifier{3});
-%                 index_indicator = strcmp(condition_index_list_all, condition_identifier{4});
-%                 experimental_indicator = strcmp(condition_experimental_list_all, condition_identifier{5});
-%                 stimulus_indicator = strcmp(condition_stimulus_list_all, condition_identifier{6});
-%                 day_indicator = strcmp(condition_day_list_all, condition_identifier{7});
-%                 this_condition_indicator = stance_foot_indicator & perturbation_indicator & delay_indicator & index_indicator & experimental_indicator & stimulus_indicator & day_indicator;
-%                 data_to_plot_this_condition_x = data_to_plot_x(:, this_condition_indicator);
-%                 data_to_plot_this_condition_y = data_to_plot_y(:, this_condition_indicator);
-% %                 origin_trial_list_this_condition = origin_trial_list_all(this_condition_indicator);
+    for i_path = 1 : number_of_paths_to_plot
+        path_to_plot_x = path_data{i_path, 1};
+        path_to_plot_y = path_data{i_path, 2};
+
+        for i_comparison = 1 : length(comparison_indices)
+            % find correct condition indicator for control
+            conditions_this_comparison = comparison_indices{i_comparison};
+            target_axes_handle = path_axes_handles(comparison_path_to_axes_index_map(i_comparison), i_path);
+        
+            % plot control
+            if plot_settings.get('plot_control')
+                % determine which control condition applies here
+                representant_condition_index = conditions_this_comparison(1);
+                this_condition = condition_combinations_control(representant_condition_index, :);
+                
+                this_condition_indicator = getConditionIndicator(this_condition, condition_combination_labels, condition_data_all, condition_labels);
+                path_to_plot_x_this_condition = path_to_plot_x(:, this_condition_indicator);
+                path_to_plot_y_this_condition = path_to_plot_y(:, this_condition_indicator);
 %                 origin_indices = find(this_condition_indicator);
-%                 if strcmp(plot_mode, 'detailed')
-%                     for i_stretch = 1 : size(data_to_plot_this_condition_x, 2)
-% %                             origin_trial_data = ones(size(target_abscissa)) * origin_trial_list_this_condition(i_stretch);
-% %                         origin_index_data = ones(size(target_abscissa)) * origin_indices(i_stretch);
+                
+%                 if ~isempty(path_to_plot_x_this_condition)
+                if strcmp(plot_mode, 'detailed')
+                    for i_stretch = 1 : size(path_to_plot_x_this_condition, 2)
+                        % TODO: get origin information back in here
+                        for i_band = 1 : bands_per_stretch
+                            if ~ismember(i_band, plot_settings.get('bands_to_remove'))
+                                [band_start_index, band_end_index] = getBandIndices(i_band, number_of_time_steps_normalized);
+                                plot ...
+                                  ( ...
+                                    target_axes_handle, ...
+                                    path_to_plot_x_this_condition(band_start_index : band_end_index, i_stretch), ...
+                                    path_to_plot_y_this_condition(band_start_index : band_end_index, i_stretch), ...
+                                    'HandleVisibility', 'off', ...
+                                    'color', lightenColor(plot_settings.get('color_control'), 0.5) ...
+                                  );
+                            end
+                        end
+                        for i_band = 2 : bands_per_stretch
+                            band_index = getBandIndices(i_band, number_of_time_steps_normalized);
+                            plot ...
+                              ( ...
+                                target_axes_handle, ...
+                                path_to_plot_x_this_condition(band_index, i_stretch), ...
+                                path_to_plot_y_this_condition(band_index, i_stretch), ...
+                                'HandleVisibility', 'off', ...
+                                'marker', 'o', ...
+                                'markersize', 2, ...
+                                'color', lightenColor(plot_settings.get('color_control'), 0.5) ...
+                              );
+                        end
+                    end
+                end
+%             end
+            end
+        
+            % plot stimulus
+            for i_condition = 1 : length(conditions_this_comparison)
+                this_condition_index = conditions_this_comparison(i_condition);
+                this_condition = condition_combinations_stimulus(this_condition_index, :);
+                label_string = strrep(this_condition{strcmp(condition_combination_labels, condition_to_compare)}, '_', ' ');
+                this_condition_indicator = getConditionIndicator(this_condition, condition_combination_labels, condition_data_all, condition_labels);
+                path_to_plot_x_this_condition = path_to_plot_x(:, this_condition_indicator);
+                path_to_plot_y_this_condition = path_to_plot_y(:, this_condition_indicator);
+                
+                if strcmp(plot_mode, 'detailed')
+                    for i_stretch = 1 : size(path_to_plot_x_this_condition, 2)
 %                         plot ...
 %                           ( ...
 %                             target_axes_handle, ...
-%                             data_to_plot_this_condition_x(:, i_stretch), ...
-%                             data_to_plot_this_condition_y(:, i_stretch), ...
+%                             path_to_plot_x_this_condition(:, i_stretch), ...
+%                             path_to_plot_y_this_condition(:, i_stretch), ...
 %                             'HandleVisibility', 'off', ...
 %                             'color', lightenColor(colors_comparison(i_condition, :), 0.5) ...
 %                           );
-%                     end
-%                     condition_mean_plot = plot ...
-%                       ( ...
-%                         target_axes_handle, ...
-%                         mean(data_to_plot_this_condition_x, 2), ...
-%                         mean(data_to_plot_this_condition_y, 2), ...
-%                         'linewidth', 5, ...
-%                         'color', colors_comparison(i_condition, :) ...
-%                       );
-%                     top_level_plots = [top_level_plots condition_mean_plot]; %#ok<AGROW>
-%                 end
-%             end
-% 
-%             % reorder to bring mean plots on top
-%             for i_plot = 1 : length(top_level_plots)
-%                 uistack(top_level_plots(i_plot), 'top');
-%             end
-%             
-%             % toggle legend
-%             if show_legend && ~(isDiscreteVariable(i_variable, data_all, bands_per_stretch) && (strcmp(plot_mode, 'overview') || strcmp(plot_mode, 'episodes')))
-%                 legend(target_axes_handle, 'show')
-%             end
-%         end
+                        for i_band = 1 : bands_per_stretch
+                            if ~ismember(i_band, plot_settings.get('bands_to_remove'))
+                                [band_start_index, band_end_index] = getBandIndices(i_band, number_of_time_steps_normalized);
+                                plot ...
+                                  ( ...
+                                    target_axes_handle, ...
+                                    path_to_plot_x_this_condition(band_start_index : band_end_index, i_stretch), ...
+                                    path_to_plot_y_this_condition(band_start_index : band_end_index, i_stretch), ...
+                                    'HandleVisibility', 'off', ...
+                                    'color', lightenColor(colors_comparison(i_condition, :), 0.5) ...
+                                  );
+                            end
+                        end
+                        for i_band = 2 : bands_per_stretch
+                            band_index = getBandIndices(i_band, number_of_time_steps_normalized);
+                            plot ...
+                              ( ...
+                                target_axes_handle, ...
+                                path_to_plot_x_this_condition(band_index, i_stretch), ...
+                                path_to_plot_y_this_condition(band_index, i_stretch), ...
+                                'HandleVisibility', 'off', ...
+                                'marker', 'o', ...
+                                'markersize', 2, ...
+                                'color', lightenColor(colors_comparison(i_condition, :), 0.5) ...
+                              );
+                        end
+                    end
+                end
+            end
+        
+        end
+        
     end
     
     %% update label positions
@@ -1326,10 +1494,32 @@ function plotResults(varargin)
             end
         end    
     end
+    if plot_settings.get('plot_diagonals')
+        for i_path = 1 : number_of_paths_to_plot
+            for i_axes = 1 : size(path_axes_handles, 1)
+                these_axes = path_axes_handles(i_axes, i_path);
+                xlimits = get(these_axes, 'xlim');
+                ylimits = get(these_axes, 'ylim');
+                
+                xlimits = [-1 1] * max(abs(xlimits));
+                ylimits = [-1 1] * max(abs(ylimits));
+                
+                diagonal_plot = plot(these_axes, [0 xlimits(1)], [0 ylimits(1)], 'color', [0.7 0.7 0.7]); set(diagonal_plot, 'HandleVisibility', 'off'); uistack(diagonal_plot, 'bottom')
+                diagonal_plot = plot(these_axes, [0 xlimits(1)], [0 ylimits(2)], 'color', [0.7 0.7 0.7]); set(diagonal_plot, 'HandleVisibility', 'off'); uistack(diagonal_plot, 'bottom')
+                diagonal_plot = plot(these_axes, [0 xlimits(2)], [0 ylimits(1)], 'color', [0.7 0.7 0.7]); set(diagonal_plot, 'HandleVisibility', 'off'); uistack(diagonal_plot, 'bottom')
+                diagonal_plot = plot(these_axes, [0 xlimits(2)], [0 ylimits(2)], 'color', [0.7 0.7 0.7]); set(diagonal_plot, 'HandleVisibility', 'off'); uistack(diagonal_plot, 'bottom')
+                set(these_axes, 'xlim', xlimits);
+                set(these_axes, 'ylim', ylimits);
+                
+                
+            end
+        end    
+        
+    end
     
     %% shade steps
-    if mark_bands
-        if strcmp(plot_mode, 'overview')
+    if mark_bands && ~strcmp(plot_mode, 'episodes')
+%         if strcmp(plot_mode, 'overview')
             for i_comparison = 1 : number_of_comparisons
                 for i_variable = 1 : number_of_variables_to_plot
                     if isContinuousVariable(i_variable, data_all, bands_per_stretch)
@@ -1395,7 +1585,7 @@ function plotResults(varargin)
                     end
                 end
             end
-        end
+%         end
     end
     
     if mark_pushoff

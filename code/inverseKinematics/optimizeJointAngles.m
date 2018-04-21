@@ -102,11 +102,35 @@ function optimizedJointAngles = optimizeJointAngles ...
     marker_map_left_arm = left_arm_chain.markerExportMap;
     marker_map_right_arm = right_arm_chain.markerExportMap;
     pelvis_markers_modular = find(marker_map_pelvis(1, :)==pelvis_joints(end));
-    left_leg_markers_modular = [find(marker_map_left_leg(1, :)==last_left_hip_joint_index_in_limb_plant) find(marker_map_left_leg(1, :)==last_left_knee_joint_index_in_limb_plant) find(marker_map_left_leg(1, :)==last_left_ankle_joint_index_in_limb_plant)];
-    right_leg_markers_modular = [find(marker_map_right_leg(1, :)==last_right_hip_joint_index_in_limb_plant) find(marker_map_right_leg(1, :)==last_right_knee_joint_index_in_limb_plant) find(marker_map_right_leg(1, :)==last_right_ankle_joint_index_in_limb_plant)];
-    trunk_and_head_markers_modular = [find(marker_map_trunk_and_head(1, :)==last_lumbar_joint_index_in_limb_plant) find(marker_map_trunk_and_head(1, :)==last_cervix_joint_index_in_limb_plant)];
-    left_arm_markers_modular = [find(marker_map_left_arm(1, :)==last_left_shoulder_joint_index_in_limb_plant) find(marker_map_left_arm(1, :)==last_left_elbow_joint_index_in_limb_plant) find(marker_map_left_arm(1, :)==last_left_wrist_joint_index_in_limb_plant)];
-    right_arm_markers_modular = [find(marker_map_right_arm(1, :)==last_right_shoulder_joint_index_in_limb_plant) find(marker_map_right_arm(1, :)==last_right_elbow_joint_index_in_limb_plant) find(marker_map_right_arm(1, :)==last_right_wrist_joint_index_in_limb_plant)];
+    left_leg_markers_modular = ...
+        [ ...
+          find(marker_map_left_leg(1, :)==last_left_hip_joint_index_in_limb_plant) ...
+          find(marker_map_left_leg(1, :)==last_left_knee_joint_index_in_limb_plant) ...
+          find(marker_map_left_leg(1, :)==last_left_ankle_joint_index_in_limb_plant) ...
+        ];
+    right_leg_markers_modular = ...
+        [ ...
+          find(marker_map_right_leg(1, :)==last_right_hip_joint_index_in_limb_plant) ...
+          find(marker_map_right_leg(1, :)==last_right_knee_joint_index_in_limb_plant) ...
+          find(marker_map_right_leg(1, :)==last_right_ankle_joint_index_in_limb_plant) ...
+        ];
+    trunk_and_head_markers_modular = ...
+        [ ...
+          find(marker_map_trunk_and_head(1, :)==last_lumbar_joint_index_in_limb_plant) ...
+          find(marker_map_trunk_and_head(1, :)==last_cervix_joint_index_in_limb_plant) ...
+        ];
+    left_arm_markers_modular = ...
+        [ ...
+          find(marker_map_left_arm(1, :)==last_left_shoulder_joint_index_in_limb_plant) ...
+          find(marker_map_left_arm(1, :)==last_left_elbow_joint_index_in_limb_plant) ...
+          find(marker_map_left_arm(1, :)==last_left_wrist_joint_index_in_limb_plant) ...
+        ];
+    right_arm_markers_modular = ...
+        [ ...
+          find(marker_map_right_arm(1, :)==last_right_shoulder_joint_index_in_limb_plant) ...
+          find(marker_map_right_arm(1, :)==last_right_elbow_joint_index_in_limb_plant) ...
+          find(marker_map_right_arm(1, :)==last_right_wrist_joint_index_in_limb_plant) ...
+        ];
 
     % trunk_and_head_markers(6 : 19) = []; % Achtung! hard-coded to remove the arm markers
     % trunk_and_head_markers_modular(6 : 19) = [];
@@ -123,7 +147,11 @@ function optimizedJointAngles = optimizeJointAngles ...
 %     weight_matrix_by_indices = reshape(repmat(weight_matrix, 3, 1), 1, length(weight_matrix)*3);
 
     for i_time = 1 : number_of_time_steps
-        %
+        % give progress feedback
+        display_step = 100;
+        if (i_time / display_step) == floor(i_time / display_step)
+            disp(['Starting work on: ' num2str(i_time) ' out of ' num2str(number_of_time_steps)]);
+        end
         
         theta_0 = joint_angle_trajectories(i_time, :)';
 %         theta_0 = zeros(complete_tree.numberOfJoints, 1);
@@ -181,6 +209,7 @@ function optimizedJointAngles = optimizeJointAngles ...
 
         end
         optimizedJointAngles(i_time, :) = theta_opt;
+        
     end
 
     function f = objfun_virtual_modular(theta_virtual)
@@ -198,11 +227,12 @@ function optimizedJointAngles = optimizeJointAngles ...
             marker_position_reconstr = current_marker_positions_reconstr(marker_indices_modular);
 
             error_vector = marker_position_measured - marker_position_reconstr;
-            marker_reconstruction_error(i_marker) = norm(error_vector * weight_matrix(pelvis_markers(i_marker)));
+%             marker_reconstruction_error(i_marker) = norm(error_vector * weight_matrix(pelvis_markers(i_marker)));
+            marker_reconstruction_error(i_marker) = norm(error_vector .* weight_matrix(marker_indices));
         end
 
         % remove weightless markers
-        marker_reconstruction_error(weight_matrix(pelvis_markers)==0) = [];
+%         marker_reconstruction_error(weight_matrix(pelvis_markers)==0) = [];
 
         % calculate sum of squares
         f = sum(marker_reconstruction_error.^2);
@@ -226,11 +256,12 @@ function optimizedJointAngles = optimizeJointAngles ...
             marker_position_reconstr_world = marker_position_reconstr_world_homogeneous(1:3)';
 
             error_vector = marker_position_measured - marker_position_reconstr_world;
-            marker_reconstruction_error(i_marker) = norm(error_vector * weight_matrix(right_leg_markers(i_marker)));
+%             marker_reconstruction_error(i_marker) = norm(error_vector * weight_matrix(right_leg_markers(i_marker)));
+            marker_reconstruction_error(i_marker) = norm(error_vector .* weight_matrix(marker_indices));
         end
 
         % remove weightless markers
-        marker_reconstruction_error(weight_matrix(right_leg_markers)==0) = [];
+%         marker_reconstruction_error(weight_matrix(right_leg_markers)==0) = [];
 
         % calculate sum of squares
         f = sum(marker_reconstruction_error.^2);
@@ -254,11 +285,12 @@ function optimizedJointAngles = optimizeJointAngles ...
             marker_position_reconstr_world = marker_position_reconstr_world_homogeneous(1:3)';
 
             error_vector = marker_position_measured - marker_position_reconstr_world;
-            marker_reconstruction_error(i_marker) = norm(error_vector * weight_matrix(left_leg_markers(i_marker)));
+%             marker_reconstruction_error(i_marker) = norm(error_vector * weight_matrix(left_leg_markers(i_marker)));
+            marker_reconstruction_error(i_marker) = norm(error_vector .* weight_matrix(marker_indices));
         end
         
         % remove weightless markers
-        marker_reconstruction_error(weight_matrix(left_leg_markers)==0) = [];
+%         marker_reconstruction_error(weight_matrix(left_leg_markers)==0) = [];
 
         % calculate sum of squares
         f = sum(marker_reconstruction_error.^2);
@@ -282,11 +314,12 @@ function optimizedJointAngles = optimizeJointAngles ...
             marker_position_reconstr_world = marker_position_reconstr_world_homogeneous(1:3)';
 
             error_vector = marker_position_measured - marker_position_reconstr_world;
-            marker_reconstruction_error(i_marker) = norm(error_vector * weight_matrix(trunk_and_head_markers(i_marker)));
+%             marker_reconstruction_error(i_marker) = norm(error_vector * weight_matrix(trunk_and_head_markers(i_marker)));
+            marker_reconstruction_error(i_marker) = norm(error_vector .* weight_matrix(marker_indices));
         end
 
         % remove weightless markers
-        marker_reconstruction_error(weight_matrix(trunk_and_head_markers)==0) = [];
+%         marker_reconstruction_error(weight_matrix(trunk_and_head_markers)==0) = [];
 
         % calculate sum of squares
         f = sum(marker_reconstruction_error.^2);
@@ -310,11 +343,12 @@ function optimizedJointAngles = optimizeJointAngles ...
             marker_position_reconstr_world = marker_position_reconstr_world_homogeneous(1:3)';
 
             error_vector = marker_position_measured - marker_position_reconstr_world;
-            marker_reconstruction_error(i_marker) = norm(error_vector * weight_matrix(right_arm_markers(i_marker)));
+%             marker_reconstruction_error(i_marker) = norm(error_vector * weight_matrix(right_arm_markers(i_marker)));
+            marker_reconstruction_error(i_marker) = norm(error_vector .* weight_matrix(marker_indices));
         end
 
         % remove weightless markers
-        marker_reconstruction_error(weight_matrix(right_arm_markers)==0) = [];
+%         marker_reconstruction_error(weight_matrix(right_arm_markers)==0) = [];
 
         % calculate sum of squares
         f = sum(marker_reconstruction_error.^2);
@@ -338,11 +372,12 @@ function optimizedJointAngles = optimizeJointAngles ...
             marker_position_reconstr_world = marker_position_reconstr_world_homogeneous(1:3)';
 
             error_vector = marker_position_measured - marker_position_reconstr_world;
-            marker_reconstruction_error(i_marker) = norm(error_vector * weight_matrix(left_arm_markers(i_marker)));
+%             marker_reconstruction_error(i_marker) = norm(error_vector * weight_matrix(left_arm_markers(i_marker)));
+            marker_reconstruction_error(i_marker) = norm(error_vector .* weight_matrix(marker_indices));
         end
 
         % remove weightless markers
-        marker_reconstruction_error(weight_matrix(left_arm_markers)==0) = [];
+%         marker_reconstruction_error(weight_matrix(left_arm_markers)==0) = [];
 
         % calculate sum of squares
         f = sum(marker_reconstruction_error.^2);

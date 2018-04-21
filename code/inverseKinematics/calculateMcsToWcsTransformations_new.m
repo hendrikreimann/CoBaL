@@ -16,7 +16,7 @@
 
 
 function transformations = calculateMcsToWcsTransformations_new(marker_positions, marker_labels, segment_labels, subject_settings)
-
+    % TODO: sort out when this is used vs. calculateMcsToWcsTransformations_detailed
     
     transformations = cell(length(segment_labels), 1);
     for i_segment = 1 : length(segment_labels)

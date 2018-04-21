@@ -447,8 +447,15 @@ function preprocessRawData(varargin)
             end
         end
     end
+    
     %% marker data
     if strcmp(type, 'marker') || strcmp(type, 'all')
+        % load static reference trial
+        load(['raw' filesep makeFileName(date, subject_id, subject_settings.get('static_reference_trial_type'), subject_settings.get('static_reference_trial_number'), 'markerTrajectoriesRaw.mat')]);
+        marker_labels_reference = marker_labels;
+        marker_directions_reference = marker_directions;
+        
+        
         data_dir = dir(['raw' filesep '*_markerTrajectoriesRaw.mat']);
         clear file_name_list;
         [file_name_list{1:length(data_dir)}] = deal(data_dir.name);
@@ -473,7 +480,35 @@ function preprocessRawData(varargin)
                         marker_trajectories = marker_trajectories_raw;
                     end
 
-
+                    
+                    % compare marker labels to reference trial
+                    marker_labels_equal = 0;
+                    if length(marker_labels) == length(marker_labels_reference)
+                        marker_labels_equal = 1;
+                        % length is the same, now compare individual labels
+                        for i_label = 1 : length(marker_labels_reference)
+                            if ~strcmp(marker_labels{i_label}, marker_labels_reference{i_label})
+                                marker_labels_equal = 0;
+                            end
+                        end
+                    end
+                    
+                    if ~marker_labels_equal
+                        marker_trajectories_unsorted = marker_trajectories;
+                        marker_labels_unsorted = marker_labels;
+                        marker_trajectories = zeros(size(marker_trajectories, 1), length(marker_labels_reference)) * NaN;
+                        marker_labels = marker_labels_reference;
+                        marker_directions = marker_directions_reference;
+                        
+                        for i_label = 1 : length(marker_labels_reference)
+                            this_label = marker_labels{i_label};
+                            this_label_index = find(strcmp(marker_labels_unsorted, this_label));
+                            if ~isempty(this_label_index)
+                                marker_trajectories(:, i_label) = marker_trajectories_unsorted(:, this_label_index);
+                            end
+                        end
+                    end
+                    
 
                     % save
                     save_folder = 'processed';

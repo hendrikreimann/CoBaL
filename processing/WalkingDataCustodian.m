@@ -147,6 +147,15 @@ classdef WalkingDataCustodian < handle
             
             
             % for each possible variable to analyze, list the basic and required variables required to calculate it
+            if this.isVariableToAnalyze('marker_trajectories')
+                this.addBasicVariable('marker_trajectories')
+            end
+            if this.isVariableToAnalyze('joint_center_trajectories')
+                this.addBasicVariable('joint_center_trajectories')
+            end
+            if this.isVariableToAnalyze('com_trajectories')
+                this.addBasicVariable('com_trajectories')
+            end
             
             
             
@@ -162,6 +171,25 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('rheel_x')
                 this.addStretchVariable('rheel_x')
             end
+%             heel position relative to mpsis
+            if this.isVariableToAnalyze('lheel_from_mpsis_initial_x')
+                this.addBasicVariable('marker_trajectories')
+                this.addBasicVariable('lheel_x')
+                this.addBasicVariable('mpsis_x')
+                this.addStretchVariable('lheel_from_mpsis_initial_x')                
+            end
+            if this.isVariableToAnalyze('rheel_from_mpsis_initial_x')
+                this.addBasicVariable('marker_trajectories')
+                this.addBasicVariable('rheel_x')
+                this.addBasicVariable('mpsis_x')
+                this.addStretchVariable('rheel_from_mpsis_initial_x')
+            end
+            if this.isVariableToAnalyze('mpsis_from_mpsis_initial_x')
+                this.addBasicVariable('marker_trajectories')
+                this.addBasicVariable('mpsis_x')
+                this.addStretchVariable('mpsis_from_mpsis_initial_x')
+            end            
+%             
             if this.isVariableToAnalyze('lheel_y')
                 this.addBasicVariable('marker_trajectories')
                 this.addBasicVariable('lheel_y')
@@ -305,6 +333,43 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('com_y')
                 this.addStretchVariable('com_y')
                 this.addStretchVariable('cop_to_com_y')
+            end
+            if this.isVariableToAnalyze('init_heel_to_com_x')
+                this.addBasicVariable('marker_trajectories')
+                this.addBasicVariable('lheel_x')
+                this.addStretchVariable('lheel_x')
+                this.addBasicVariable('rheel_x')
+                this.addStretchVariable('rheel_x')
+                this.addBasicVariable('com_trajectories')
+                this.addBasicVariable('com_x')
+                this.addStretchVariable('com_x')
+                this.addStretchVariable('init_heel_to_com_x')
+            end
+            if this.isVariableToAnalyze('cop_to_com_vel_scaled_x')
+                this.addBasicVariable('com_trajectories')
+                this.addBasicVariable('com_x')
+                this.addBasicVariable('com_x_vel')
+                this.addStretchVariable('com_x_vel')
+                this.addBasicVariable('com_z')
+                this.addStretchVariable('com_z')
+                this.addBasicVariable('total_forceplate_cop_world')
+                this.addBasicVariable('cop_x')
+                this.addBasicVariable('cop_x_vel')
+                this.addStretchVariable('cop_x_vel')
+                this.addStretchVariable('cop_to_com_vel_scaled_x')
+            end
+            if this.isVariableToAnalyze('cop_to_com_vel_scaled_y')
+                this.addBasicVariable('com_trajectories')
+                this.addBasicVariable('com_y')
+                this.addBasicVariable('com_y_vel')
+                this.addStretchVariable('com_y_vel')
+                this.addBasicVariable('com_z')
+                this.addStretchVariable('com_z')
+                this.addBasicVariable('total_forceplate_cop_world')
+                this.addBasicVariable('cop_y')
+                this.addBasicVariable('cop_y_vel')
+                this.addStretchVariable('cop_y_vel')
+                this.addStretchVariable('cop_to_com_vel_scaled_y')
             end
             if this.isVariableToAnalyze('head_angle_ap')
                 this.addBasicVariable('marker_trajectories')
@@ -468,6 +533,18 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('com_x_vel')
                 this.addStretchVariable('com_x_vel')
             end
+            if this.isVariableToAnalyze('com_x_vel_scaled')
+                this.addBasicVariable('com_trajectories')
+                this.addBasicVariable('com_x')
+                this.addBasicVariable('com_x_vel')
+                this.addStretchVariable('com_x_vel')
+                this.addBasicVariable('com_z')
+                this.addStretchVariable('com_z')
+                this.addStretchVariable('com_x_vel_scaled')
+            end
+            
+            
+            
             if this.isVariableToAnalyze('com_y_vel')
                 this.addBasicVariable('com_trajectories')
                 this.addBasicVariable('com_y')
@@ -902,6 +979,16 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('left_tfl')
                 this.addStretchVariable('left_tfl')
             end
+            if this.isVariableToAnalyze('left_rect_fem')
+                this.addBasicVariable('emg_trajectories')
+                this.addBasicVariable('left_rect_fem')
+                this.addStretchVariable('left_rect_fem')
+            end
+            if this.isVariableToAnalyze('left_bic_fem')
+                this.addBasicVariable('emg_trajectories')
+                this.addBasicVariable('left_bic_fem')
+                this.addStretchVariable('left_bic_fem')
+            end
             if this.isVariableToAnalyze('right_glut_med')
                 this.addBasicVariable('emg_trajectories')
                 this.addBasicVariable('right_glut_med')
@@ -936,6 +1023,16 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('emg_trajectories')
                 this.addBasicVariable('right_tfl')
                 this.addStretchVariable('right_tfl')
+            end
+            if this.isVariableToAnalyze('right_rect_fem')
+                this.addBasicVariable('emg_trajectories')
+                this.addBasicVariable('right_rect_fem')
+                this.addStretchVariable('right_rect_fem')
+            end
+            if this.isVariableToAnalyze('right_bic_fem')
+                this.addBasicVariable('emg_trajectories')
+                this.addBasicVariable('right_bic_fem')
+                this.addStretchVariable('right_bic_fem')
             end
             if this.isVariableToAnalyze('left_glut_med_rescaled')
                 this.addBasicVariable('emg_trajectories')
@@ -979,6 +1076,18 @@ classdef WalkingDataCustodian < handle
                 this.addStretchVariable('left_tfl')
                 this.addStretchVariable('left_tfl_rescaled')
             end
+            if this.isVariableToAnalyze('left_rect_fem_rescaled')
+                this.addBasicVariable('emg_trajectories')
+                this.addBasicVariable('left_rect_fem')
+                this.addStretchVariable('left_rect_fem')
+                this.addStretchVariable('left_rect_fem_rescaled')
+            end
+            if this.isVariableToAnalyze('left_bic_fem_rescaled')
+                this.addBasicVariable('emg_trajectories')
+                this.addBasicVariable('left_bic_fem')
+                this.addStretchVariable('left_bic_fem')
+                this.addStretchVariable('left_bic_fem_rescaled')
+            end
             if this.isVariableToAnalyze('right_glut_med_rescaled')
                 this.addBasicVariable('emg_trajectories')
                 this.addBasicVariable('right_glut_med')
@@ -1021,6 +1130,18 @@ classdef WalkingDataCustodian < handle
                 this.addStretchVariable('right_tfl')
                 this.addStretchVariable('right_tfl_rescaled')
             end
+            if this.isVariableToAnalyze('right_rect_fem_rescaled')
+                this.addBasicVariable('emg_trajectories')
+                this.addBasicVariable('right_rect_fem')
+                this.addStretchVariable('right_rect_fem')
+                this.addStretchVariable('right_rect_fem_rescaled')
+            end
+            if this.isVariableToAnalyze('right_bic_fem_rescaled')
+                this.addBasicVariable('emg_trajectories')
+                this.addBasicVariable('right_bic_fem')
+                this.addStretchVariable('right_bic_fem')
+                this.addStretchVariable('right_bic_fem_rescaled')
+            end
    end
         
         % interface
@@ -1046,7 +1167,7 @@ classdef WalkingDataCustodian < handle
                 T = min([this_variable_time(end), T]);
             end
         end
-        function time_data = getTimeData(this, variable_name) %#ok<STOUT,INUSL>
+        function time_data = getTimeData(this, variable_name)
             % check if this is a sub-variable
             if any(variable_name==':')
                 this_variable_split = strsplit(variable_name, ':');
@@ -2560,6 +2681,7 @@ classdef WalkingDataCustodian < handle
                 end
                 if strcmp(variable_name, 'left_delt_post')
                     this.basic_variable_data.left_delt_post = this.basic_variable_data.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'left_delt_post'));
+                    this.basic_variable_directions.left_delt_post = this.basic_variable_directions.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'left_delt_post'));
                     this.time_data.left_delt_post = this.time_data.emg_trajectories;
                 end
                 if strcmp(variable_name, 'left_tibi_ant')
@@ -2589,6 +2711,16 @@ classdef WalkingDataCustodian < handle
                         disp(['Warning: variable ''' variable_name ''' not available, used NaN as data']);
                     end
                 end
+                if strcmp(variable_name, 'left_rect_fem')
+                    this.basic_variable_data.left_rect_fem = this.basic_variable_data.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'left_rect_fem'));
+                    this.basic_variable_directions.left_rect_fem = this.basic_variable_directions.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'left_rect_fem'));
+                    this.time_data.left_rect_fem = this.time_data.emg_trajectories;
+                end
+                if strcmp(variable_name, 'left_bic_fem')
+                    this.basic_variable_data.left_bic_fem = this.basic_variable_data.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'left_bic_fem'));
+                    this.basic_variable_directions.left_bic_fem = this.basic_variable_directions.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'left_bic_fem'));
+                    this.time_data.left_bic_fem = this.time_data.emg_trajectories;
+                end
                 if strcmp(variable_name, 'right_glut_med')
                     this.basic_variable_data.right_glut_med = this.basic_variable_data.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'right_glut_med'));
                     this.basic_variable_directions.right_glut_med = this.basic_variable_directions.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'right_glut_med'));
@@ -2601,6 +2733,7 @@ classdef WalkingDataCustodian < handle
                 end
                 if strcmp(variable_name, 'right_delt_post')
                     this.basic_variable_data.right_delt_post = this.basic_variable_data.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'right_delt_post'));
+                    this.basic_variable_directions.right_delt_post = this.basic_variable_directions.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'right_delt_post'));
                     this.time_data.right_delt_post = this.time_data.emg_trajectories;
                 end
                 if strcmp(variable_name, 'right_tibi_ant')
@@ -2619,7 +2752,7 @@ classdef WalkingDataCustodian < handle
                     this.time_data.right_pero_lng = this.time_data.emg_trajectories;
                 end
                 if strcmp(variable_name, 'right_tfl')
-                    if any(strcmp(this.basic_variable_labels.emg_trajectories, 'left_tfl'))
+                    if any(strcmp(this.basic_variable_labels.emg_trajectories, 'right_tfl'))
                         this.basic_variable_data.right_tfl = this.basic_variable_data.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'right_tfl'));
                         this.basic_variable_directions.right_tfl = this.basic_variable_directions.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'right_tfl'));
                         this.time_data.right_tfl = this.time_data.emg_trajectories;
@@ -2630,9 +2763,19 @@ classdef WalkingDataCustodian < handle
                         disp(['Warning: variable ''' variable_name ''' not available, used NaN as data']);
                     end
                 end
+                if strcmp(variable_name, 'right_rect_fem')
+                    this.basic_variable_data.right_rect_fem = this.basic_variable_data.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'right_rect_fem'));
+                    this.basic_variable_directions.right_rect_fem = this.basic_variable_directions.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'right_rect_fem'));
+                    this.time_data.right_rect_fem = this.time_data.emg_trajectories;
+                end
+                if strcmp(variable_name, 'right_bic_fem')
+                    this.basic_variable_data.right_bic_fem = this.basic_variable_data.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'right_bic_fem'));
+                    this.basic_variable_directions.right_bic_fem = this.basic_variable_directions.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'right_bic_fem'));
+                    this.time_data.right_bic_fem = this.time_data.emg_trajectories;
+                end
             end
         end
-        function stretch_variables = calculateStretchVariables(this, stretch_times, stance_foot_data, condition_data, variables_to_calculate)
+        function stretch_variables = calculateStretchVariables(this, stretch_times, stance_foot_data, relevant_condition_data, variables_to_calculate)
             if nargin < 6
                 variables_to_calculate = this.stretch_variable_names;
             end
@@ -2641,6 +2784,18 @@ classdef WalkingDataCustodian < handle
             number_of_stretches = size(stretch_times, 1);
             number_of_bands = size(stance_foot_data, 2);
             stretch_variables = cell(number_of_stretch_variables, 1);
+            
+            % as a hack to get things working for legacy data of the Vision and GVS projects, load push-off data
+            try
+                loaded_data = load(['analysis' filesep makeFileName(this.date, this.subject_id, this.trial_type, this.trial_number, 'relevantDataStretches')], 'stretch_pushoff_times');
+                pushoff_times = loaded_data.stretch_pushoff_times;
+            catch exception
+                if strcmp(exception.identifier, 'MATLAB:nonExistentField')
+                    pushoff_times = zeros(number_of_stretches, 1);
+                else
+                    throw(exception);
+                end
+            end
             
             for i_variable = 1 : number_of_stretch_variables
                 variable_name = variables_to_calculate{i_variable};
@@ -2656,14 +2811,42 @@ classdef WalkingDataCustodian < handle
                     this_stretch_times = stretch_times(i_stretch, :);
                     this_stretch_start_time = this_stretch_times(1);
                     this_stretch_end_time = this_stretch_times(end);
+                    this_stretch_pushoff_time = pushoff_times(i_stretch);
+                    % determine applicable push-off
+                    
                     
                     % calculate normalized stretch data for the basic variables
-                    if this.isBasicVariable(variable_name)
+                    if this.isBasicVariable(variable_name) || any(variable_name==':')
                         stretch_data = this.getTimeNormalizedData(variable_name, this_stretch_times);
                     end
+                    
+                    
+                    
+                    
+                    
                 
                     % calculate stretch variables that are not basic variables or need special attention
                     % REMINDER: if you add a variable here, make sure to also add it below in registerStretchVariableDirections
+%                     
+                    if strcmp(variable_name, 'lheel_from_mpsis_initial_x')
+                        lheel_x = this.getTimeNormalizedData('lheel_x', this_stretch_times);
+                        mpsis_x = this.getTimeNormalizedData('mpsis_x', this_stretch_times);
+                        stretch_data = lheel_x - mpsis_x(1);
+                    end
+
+                    if strcmp(variable_name, 'rheel_from_mpsis_initial_x')
+                        rheel_x = this.getTimeNormalizedData('rheel_x', this_stretch_times);
+                        mpsis_x = this.getTimeNormalizedData('mpsis_x', this_stretch_times);
+                        stretch_data = rheel_x - mpsis_x(1);
+                    end
+                    if strcmp(variable_name, 'mpsis_from_mpsis_initial_x')
+                        mpsis_x = this.getTimeNormalizedData('mpsis_x', this_stretch_times);
+                        stretch_data = mpsis_x - mpsis_x(1);
+                    end
+                    
+
+
+% 
                     if strcmp(variable_name, 'step_length')
                         lheel_y = this.getTimeNormalizedData('lheel_y', this_stretch_times);
                         rheel_y = this.getTimeNormalizedData('rheel_y', this_stretch_times);
@@ -2846,6 +3029,66 @@ classdef WalkingDataCustodian < handle
                         cop_y = stretch_variables{strcmp(this.stretch_variable_names, 'cop_y')}(:, i_stretch);
                         stretch_data = com_y - cop_y;
                     end
+                    if strcmp(variable_name, 'init_heel_to_com_x')
+                        com_x = stretch_variables{strcmp(this.stretch_variable_names, 'com_x')}(:, i_stretch);
+                        
+                        lheel_x = this.getTimeNormalizedData('lheel_x', this_stretch_times);
+                        rheel_x = this.getTimeNormalizedData('rheel_x', this_stretch_times);
+                        stretch_data = zeros(size(rheel_x)) * NaN;
+                        
+                        
+                        for i_band = 1 : number_of_bands
+                            [band_start_index, band_end_index] = getBandIndices(i_band, this.number_of_time_steps_normalized);
+                            
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_RIGHT')
+                                stretch_data(band_start_index : band_end_index) = com_x(band_start_index : band_end_index) - rheel_x(band_start_index);
+                            end
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_LEFT')
+                                stretch_data(band_start_index : band_end_index) = com_x(band_start_index : band_end_index) - lheel_x(band_start_index);
+                            end
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_BOTH')
+                                % do nothing, leave NaNs
+                            end
+                        end
+                    end
+                    
+                    
+                    if strcmp(variable_name, 'cop_to_com_vel_scaled_x')
+                        com_z = stretch_variables{strcmp(this.stretch_variable_names, 'com_z')}(:, i_stretch);
+                        com_x_vel = stretch_variables{strcmp(this.stretch_variable_names, 'com_x_vel')}(:, i_stretch);
+                        cop_x_vel = stretch_variables{strcmp(this.stretch_variable_names, 'cop_x_vel')}(:, i_stretch);
+                        
+                        g = 9.81;
+                        omega = (g./com_z).^(0.5);
+                        
+                        stretch_data = (com_x_vel - cop_x_vel) ./ omega;
+                        
+                        
+                        com_x = stretch_variables{strcmp(this.stretch_variable_names, 'com_x')}(:, i_stretch);
+                        cop_x = stretch_variables{strcmp(this.stretch_variable_names, 'cop_x')}(:, i_stretch);
+                        pos = com_x - cop_x;
+                        
+                        
+                    end
+                    if strcmp(variable_name, 'cop_to_com_vel_scaled_y')
+                        com_y_vel = stretch_variables{strcmp(this.stretch_variable_names, 'com_y_vel')}(:, i_stretch);
+                        cop_y_vel = stretch_variables{strcmp(this.stretch_variable_names, 'cop_y_vel')}(:, i_stretch);
+                        stretch_data = com_y_vel - cop_y_vel;
+                    end
+                    if strcmp(variable_name, 'com_x_vel_scaled')
+                        com_z = stretch_variables{strcmp(this.stretch_variable_names, 'com_z')}(:, i_stretch);
+                        com_x_vel = stretch_variables{strcmp(this.stretch_variable_names, 'com_x_vel')}(:, i_stretch);
+                        
+                        g = 9.81;
+                        omega = (g./com_z).^(0.5);
+                        
+                        stretch_data = com_x_vel ./ omega;
+                    end
+                    
+                                        
+
+                    
+                    
                     if strcmp(variable_name, 'heel_clearance')
                         stretch_data = zeros(number_of_bands, 1);
                         for i_band = 1 : number_of_bands
@@ -2872,16 +3115,16 @@ classdef WalkingDataCustodian < handle
 
                                 % find time step of obstacle crossing
                                 obstacle_pos_y = NaN;
-                                if strcmp(condition_data{i_stretch}, 'OBS_NEAR')
+                                if strcmp(relevant_condition_data{i_stretch}, 'OBS_NEAR')
                                     obstacle_pos_y = this.subject_info.near_distance;
                                 end
-                                if strcmp(condition_data{i_stretch}, 'OBS_FAR')
+                                if strcmp(relevant_condition_data{i_stretch}, 'OBS_FAR')
                                     obstacle_pos_y = this.subject_info.far_distance;
                                 end
                                 [~, crossing_time_step] = min(abs(swing_heel_marker_y - obstacle_pos_y));
 
                                 % extract swing foot heel marker
-                                if strcmp(condition_data{i_stretch}, 'OBS_NO')
+                                if strcmp(relevant_condition_data{i_stretch}, 'OBS_NO')
                                     stretch_data(i_band) = NaN;
                                 else
                                     stretch_data(i_band) = swing_heel_marker_z(crossing_time_step) - this.subject_info.obstacle_height;
@@ -2915,16 +3158,16 @@ classdef WalkingDataCustodian < handle
 
                                 % find time step of obstacle crossing
                                 obstacle_pos_y = NaN;
-                                if strcmp(condition_data{i_stretch}, 'OBS_NEAR')
+                                if strcmp(relevant_condition_data{i_stretch}, 'OBS_NEAR')
                                     obstacle_pos_y = this.subject_info.toe_marker + this.subject_info.near_distance;
                                 end
-                                if strcmp(condition_data{i_stretch}, 'OBS_FAR')
+                                if strcmp(relevant_condition_data{i_stretch}, 'OBS_FAR')
                                     obstacle_pos_y = this.subject_info.toe_marker + this.subject_info.far_distance;
                                 end
                                 [~, crossing_time_step] = min(abs(swing_toes_marker_y - obstacle_pos_y));
 
                                 % extract swing foot toes marker
-                                if strcmp(condition_data{i_stretch}, 'OBS_NO')
+                                if strcmp(relevant_condition_data{i_stretch}, 'OBS_NO')
                                     stretch_data(i_band) = NaN;
                                 else
                                     stretch_data(i_band) = swing_toes_marker_z(crossing_time_step) - this.subject_info.obstacle_height;
@@ -2970,6 +3213,16 @@ classdef WalkingDataCustodian < handle
                         end
                         stretch_data = left_tfl * 1 / normalization_value;
                     end
+                    if strcmp(variable_name, 'left_rect_fem_rescaled')
+                        left_rect_fem = this.getTimeNormalizedData('left_rect_fem', this_stretch_times);
+                        normalization_value = this.emg_normalization_values(strcmp(this.emg_normalization_labels, 'left_rect_fem'));
+                        stretch_data = left_rect_fem * 1 / normalization_value;
+                    end
+                    if strcmp(variable_name, 'left_bic_fem_rescaled')
+                        left_bic_fem = this.getTimeNormalizedData('left_bic_fem', this_stretch_times);
+                        normalization_value = this.emg_normalization_values(strcmp(this.emg_normalization_labels, 'left_bic_fem'));
+                        stretch_data = left_bic_fem * 1 / normalization_value;
+                    end
                     if strcmp(variable_name, 'right_glut_med_rescaled')
                         right_glut_med = this.getTimeNormalizedData('right_glut_med', this_stretch_times);
                         normalization_value = this.emg_normalization_values(strcmp(this.emg_normalization_labels, 'right_glut_med'));
@@ -3007,6 +3260,16 @@ classdef WalkingDataCustodian < handle
                             normalization_value = 1;
                         end
                         stretch_data = right_tfl * 1 / normalization_value;
+                    end
+                    if strcmp(variable_name, 'right_rect_fem_rescaled')
+                        right_rect_fem = this.getTimeNormalizedData('right_rect_fem', this_stretch_times);
+                        normalization_value = this.emg_normalization_values(strcmp(this.emg_normalization_labels, 'right_rect_fem'));
+                        stretch_data = right_rect_fem * 1 / normalization_value;
+                    end
+                    if strcmp(variable_name, 'right_bic_fem_rescaled')
+                        right_bic_fem = this.getTimeNormalizedData('right_bic_fem', this_stretch_times);
+                        normalization_value = this.emg_normalization_values(strcmp(this.emg_normalization_labels, 'right_bic_fem'));
+                        stretch_data = right_bic_fem * 1 / normalization_value;
                     end
                     if strcmp(variable_name, 'copl_x') || strcmp(variable_name, 'copl_y') || strcmp(variable_name, 'copr_x') || strcmp(variable_name, 'copr_y')
                         % whole stretches might be zero, deal with this in a special way.
@@ -3073,10 +3336,10 @@ classdef WalkingDataCustodian < handle
                 time_extracted = variable_time(band_time_indices(1) : band_time_indices(end));
                 data_extracted = variable_data(band_time_indices(1) : band_time_indices(end));
                 band_time_indices_local = band_time_indices - band_time_indices(1) + 1;
-                if any(isnan(data_extracted))
-                    exception = MException('CoBaL:NaN', 'Data contains NaN values.');
-                    throw(exception)
-                end
+%                 if any(isnan(data_extracted))
+%                     exception = MException('CoBaL:NaN', 'Data contains NaN values.');
+%                     throw(exception)
+%                 end
             catch error
                 disp(['Error while processing variable ''' variable_name ''''])
                 throw(error)
@@ -3122,6 +3385,47 @@ classdef WalkingDataCustodian < handle
             if this.isBasicVariable(variable_name)
                 stretch_directions_new = this.basic_variable_directions.(variable_name);
             end
+
+            % check if this is a compound name, listing a loaded variable and a label
+            if any(variable_name==':')
+                this_variable_split = strsplit(variable_name, ':');
+                this_variable_type = this_variable_split{1};
+                this_variable_label = this_variable_split{2};
+                
+                this_type_labels = this.basic_variable_labels.([this_variable_type '_trajectories']);
+                this_type_directions = this.basic_variable_directions.([this_variable_type '_trajectories']);
+                
+                stretch_directions_new = this_type_directions(:, strcmp(this_type_labels, this_variable_label));
+            end
+
+            if strcmp(variable_name, 'lheel_from_mpsis_initial_x')
+                lheel_x_directions = this.basic_variable_directions.lheel_x;
+                mpsis_x_directions = this.basic_variable_directions.mpsis_x;
+                if ~strcmp(lheel_x_directions{1}, mpsis_x_directions{1})
+                    error('lheel_x and mpsis_x directions are different from each other')
+                end
+                if ~strcmp(lheel_x_directions{2}, mpsis_x_directions{2})
+                    error('lheel_x and mpsis_x directions are different from each other')
+                end
+                stretch_directions_new = lheel_x_directions;
+            end
+            if strcmp(variable_name, 'rheel_from_mpsis_initial_x')
+                rheel_x_directions = this.basic_variable_directions.rheel_x;
+                mpsis_x_directions = this.basic_variable_directions.mpsis_x;
+                if ~strcmp(rheel_x_directions{1}, mpsis_x_directions{1})
+                    error('rheel_x and mpsis_x directions are different from each other')
+                end
+                if ~strcmp(rheel_x_directions{2}, mpsis_x_directions{2})
+                    error('rheel_x and mpsis_x directions are different from each other')
+                end
+                stretch_directions_new = rheel_x_directions;
+            end
+            if strcmp(variable_name, 'mpsis_from_mpsis_initial_x')
+                mpsis_x_directions = this.basic_variable_directions.mpsis_x;
+                stretch_directions_new = mpsis_x_directions;
+            end
+
+
             
             if strcmp(variable_name, 'step_length')
                 lheel_y_directions = this.basic_variable_directions.lheel_y;
@@ -3241,6 +3545,36 @@ classdef WalkingDataCustodian < handle
                 end
                 stretch_directions_new = com_y_directions;
             end
+            if strcmp(variable_name, 'init_heel_to_com_x')
+                com_x_directions = this.stretch_variable_directions(strcmp(this.stretch_variable_names, 'com_x'), :);
+                stretch_directions_new = com_x_directions;
+            end
+            if strcmp(variable_name, 'com_x_vel_scaled')
+                com_x_directions = this.stretch_variable_directions(strcmp(this.stretch_variable_names, 'com_x'), :);
+                stretch_directions_new = com_x_directions;
+            end
+            if strcmp(variable_name, 'cop_to_com_vel_scaled_x')
+                com_x_directions = this.stretch_variable_directions(strcmp(this.stretch_variable_names, 'com_x'), :);
+                cop_x_directions = this.stretch_variable_directions(strcmp(this.stretch_variable_names, 'cop_x'), :);
+                if ~strcmp(com_x_directions{1}, cop_x_directions{1})
+                    error('com_x and cop_x directions are different from each other')
+                end
+                if ~strcmp(com_x_directions{2}, cop_x_directions{2})
+                    error('com_x and cop_x directions are different from each other')
+                end
+                stretch_directions_new = com_x_directions;
+            end
+            if strcmp(variable_name, 'cop_to_com_vel_scaled_y')
+                com_y_directions = this.stretch_variable_directions(strcmp(this.stretch_variable_names, 'com_y'), :);
+                cop_y_directions = this.stretch_variable_directions(strcmp(this.stretch_variable_names, 'cop_y'), :);
+                if ~strcmp(com_y_directions{1}, cop_y_directions{1})
+                    error('com_y and cop_y directions are different from each other')
+                end
+                if ~strcmp(com_y_directions{2}, cop_y_directions{2})
+                    error('com_y and cop_y directions are different from each other')
+                end
+                stretch_directions_new = com_y_directions;
+            end
             if strcmp(variable_name, 'heel_clearance')
                 lheel_z_directions = this.basic_variable_directions.lheel_z;
                 rheel_z_directions = this.basic_variable_directions.rheel_z;
@@ -3271,6 +3605,10 @@ classdef WalkingDataCustodian < handle
                 % TODO: not tested yet
                 stretch_directions_new = this.basic_variable_directions.left_delt_ant;
             end
+            if strcmp(variable_name, 'left_delt_post_rescaled')
+                % TODO: not tested yet
+                stretch_directions_new = this.basic_variable_directions.left_delt_post;
+            end
             if strcmp(variable_name, 'left_tibi_ant_rescaled')
                 % TODO: not tested yet
                 stretch_directions_new = this.basic_variable_directions.left_tibi_ant;
@@ -3287,6 +3625,12 @@ classdef WalkingDataCustodian < handle
                 % TODO: not tested yet
                 stretch_directions_new = this.basic_variable_directions.left_tfl;
             end
+            if strcmp(variable_name, 'left_rect_fem_rescaled')
+                stretch_directions_new = this.basic_variable_directions.left_rect_fem;
+            end
+            if strcmp(variable_name, 'left_bic_fem_rescaled')
+                stretch_directions_new = this.basic_variable_directions.left_bic_fem;
+            end
             if strcmp(variable_name, 'right_glut_med_rescaled')
                 % TODO: not tested yet
                 stretch_directions_new = this.basic_variable_directions.right_glut_med;
@@ -3294,6 +3638,10 @@ classdef WalkingDataCustodian < handle
             if strcmp(variable_name, 'right_delt_ant_rescaled')
                 % TODO: not tested yet
                 stretch_directions_new = this.basic_variable_directions.right_delt_ant;
+            end
+            if strcmp(variable_name, 'right_delt_post_rescaled')
+                % TODO: not tested yet
+                stretch_directions_new = this.basic_variable_directions.right_delt_post;
             end
             if strcmp(variable_name, 'right_tibi_ant_rescaled')
                 % TODO: not tested yet
@@ -3311,9 +3659,15 @@ classdef WalkingDataCustodian < handle
                 % TODO: not tested yet
                 stretch_directions_new = this.basic_variable_directions.right_tfl;
             end
+            if strcmp(variable_name, 'right_rect_fem_rescaled')
+                stretch_directions_new = this.basic_variable_directions.right_rect_fem;
+            end
+            if strcmp(variable_name, 'right_bic_fem_rescaled')
+                stretch_directions_new = this.basic_variable_directions.right_bic_fem;
+            end
             if strcmp(variable_name, 'copl_x') || strcmp(variable_name, 'copl_y') || strcmp(variable_name, 'copr_x') || strcmp(variable_name, 'copr_y')
                 stretch_directions_new = this.basic_variable_directions.(variable_name);
-            end                    
+            end
             
             % compare against what is already on file
             stretch_directions_on_file = this.stretch_variable_directions(this_variable_index, :);

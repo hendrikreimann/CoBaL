@@ -17,7 +17,14 @@ function onset_time = estimateOnsetTime(data_mean, data_cinv, time)
     cinv_lower = data_mean - data_cinv;
     cinv_upper = data_mean + data_cinv;
     cinv_excludes_zero = (cinv_lower > 0) | cinv_upper < 0;
-    critical_index = find((cinv_excludes_zero & (1:length(time))>exclude_range_start), 1, 'first');
+    % error here
+    critical_index = find(cinv_excludes_zero' & (1:length(time)>exclude_range_start), 1, 'first');
+    % error here
+    if isempty(critical_index) || critical_index >= 98
+        onset_time = 0;
+        return;
+    end
+    
     data_of_interest = data_mean(critical_index : end);
     data_dot_of_interest = data_here_dot(critical_index : end);
     if max(data_of_interest) > abs(min(data_of_interest))
@@ -51,8 +58,5 @@ function onset_time = estimateOnsetTime(data_mean, data_cinv, time)
     plot(time(peak_index_localPeak), data_here_dot(peak_index_localPeak), 'o');
     plot(time, time*data_here_slope_at_localPeak + data_here_slope_intersect_localPeak)
     plot(onset_time, 0, 'o')
-
-
-
 
 end

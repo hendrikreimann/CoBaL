@@ -18,7 +18,11 @@
 
 function condition = loadConditionFromFile(filename, condition_label, trial_number)
     % read file
+    if isempty(filename)
+        error('no condition file name provided');
+    end
     fileID = fopen(filename, 'r');
+        
     header_line = fgetl(fileID);
     text_cell = {};
     text_line = fgetl(fileID);
