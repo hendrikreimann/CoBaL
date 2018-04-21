@@ -193,19 +193,39 @@ function optimizedJointAngles = optimizeJointAngles ...
                 theta_right_arm_init = zeros(size(theta_right_arm_init));
             end
             
-            % use modular plant
-            theta_virtual = fminunc(@objfun_virtual_modular, theta_pelvis_init, options);
-            pelvis_chain.jointAngles = theta_virtual;
-            pelvis_chain.updateConfiguration();
+            % check functions
             pelvis_to_world_poe = pelvis_chain.productsOfExponentials{6};
-            theta_left_leg = fminunc(@objfun_left_leg_modular, theta_left_leg_init, options);
-            theta_right_leg = fminunc(@objfun_right_leg_modular, theta_right_leg_init, options);
-            theta_trunk_and_head = fminunc(@objfun_trunk_modular, theta_trunk_and_head_init, options);
             trunk_to_world_poe = pelvis_chain.productsOfExponentials{6} * torso_chain.productsOfExponentials{3};
-            theta_left_arm = fminunc(@objfun_left_arm_modular, theta_left_arm_init, options);
-            theta_right_arm = fminunc(@objfun_right_arm_modular, theta_right_arm_init, options);
+            theta_virtual_test = objfun_virtual_modular(theta_pelvis_init);
+            theta_left_leg_test = objfun_left_leg_modular(theta_left_leg_init);
+            theta_right_leg_test = objfun_right_leg_modular(theta_right_leg_init);
+            theta_trunk_and_head_test = objfun_trunk_modular(theta_trunk_and_head_init);
+            theta_left_arm_test = objfun_left_arm_modular(theta_left_arm_init);
+            theta_right_arm_test = objfun_right_arm_modular(theta_right_arm_init);
+            theta_test = [theta_virtual_test' theta_left_leg_test' theta_right_leg_test' theta_trunk_and_head_test' theta_left_arm_test' theta_right_arm_test'];
+            
+            if any(isnan(theta_test))
+                theta_opt = zeros(size(theta_0)) * NaN;
+            else
+                % optimize free DoFs
+                theta_virtual = fminunc(@objfun_virtual_modular, theta_pelvis_init, options);
+                
+                % update pelvis chain as base for limb chains
+                pelvis_chain.jointAngles = theta_virtual;
+                pelvis_chain.updateConfiguration();
+                pelvis_to_world_poe = pelvis_chain.productsOfExponentials{6};
+                theta_left_leg = fminunc(@objfun_left_leg_modular, theta_left_leg_init, options);
+                theta_right_leg = fminunc(@objfun_right_leg_modular, theta_right_leg_init, options);
+                theta_trunk_and_head = fminunc(@objfun_trunk_modular, theta_trunk_and_head_init, options);
+                trunk_to_world_poe = pelvis_chain.productsOfExponentials{6} * torso_chain.productsOfExponentials{3};
+                theta_left_arm = fminunc(@objfun_left_arm_modular, theta_left_arm_init, options);
+                theta_right_arm = fminunc(@objfun_right_arm_modular, theta_right_arm_init, options);
 
-            theta_opt = [theta_virtual' theta_left_leg' theta_right_leg' theta_trunk_and_head' theta_left_arm' theta_right_arm'];
+                theta_opt = [theta_virtual' theta_left_leg' theta_right_leg' theta_trunk_and_head' theta_left_arm' theta_right_arm'];
+            end
+            
+            
+            
 
         end
         optimizedJointAngles(i_time, :) = theta_opt;
