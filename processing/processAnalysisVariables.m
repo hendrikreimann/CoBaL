@@ -90,7 +90,6 @@ function processAnalysisVariables(varargin)
         
         % go stretch by stretch
         for i_stretch = 1 : number_of_stretches
-            i_stretch
             % extract this stretches relevant conditions
             this_stretch_condition_string = cell(1, length(condition_combination_labels));
             for i_label = 1 : length(condition_combination_labels)
@@ -547,7 +546,7 @@ function processAnalysisVariables(varargin)
     % use the general solution for variables_to_invert instead
     variables_to_invert = study_settings.get('analysis_variables_from_inversion_by_perturbation');
     for i_variable = 1 : size(variables_to_invert, 1)
-        warning(['analysis_variables_from_inversion_by_perturbation is in the process of being phased out, look for another solution '])
+        warning('analysis_variables_from_inversion_by_perturbation is in the process of being phased out, look for another solution.')
         % get data
         this_variable_name = variables_to_invert{i_variable, 1};
         this_variable_source_name = variables_to_invert{i_variable, 2};
