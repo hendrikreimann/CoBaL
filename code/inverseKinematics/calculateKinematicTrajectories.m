@@ -186,7 +186,8 @@ function calculateKinematicTrajectories(varargin)
                             i_time = time_steps_to_process(i_time_index);
                             % check for missing markers
                             marker_positions_current = marker_trajectories_trial(i_time, :);
-                            if any(isnan(marker_positions_current))
+                            if any(any(isnan(marker_trajectories_trial(i_time, essential_marker_indicator))))
+                                
                                 joint_center_trajectories_pool(i_time, :) = NaN;
                                 com_trajectories_pool(i_time, :) = NaN;
                                 joint_angle_trajectories_pool(i_time, :) = NaN;
@@ -286,6 +287,10 @@ function calculateKinematicTrajectories(varargin)
 
                         % check for missing markers
                         if any(any(isnan(marker_trajectories_trial(i_time, essential_marker_indicator))))
+                            % determine problematic marker
+                            
+                            
+                            
                             joint_center_trajectories(i_time, :) = NaN;
                             com_trajectories(i_time, :) = NaN;
                             joint_angle_trajectories(i_time, :) = NaN;
