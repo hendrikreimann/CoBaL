@@ -20,19 +20,19 @@ function ...
       rngSeed ...
     )
 
-    if nargin == 0
-        alphaXiDot = 5;
-        gamma_p = 1e-1;
-        gamma_v = 2e-2;
-        gamma_a = 5e-3;
-        sigma_motor = 1e-6;
-        sigma_head_pos = 4.9e-5;
-        sigma_head_vel = 3.7e-5;
-        sigma_head_acc = 3.7e-5;
-        time_step = 0.001;
-        T_total = 2;
-        rngSeed = 0;
-    end
+%     if nargin == 0
+%         alphaXiDot = 5;
+%         gamma_p = 1e-1;
+%         gamma_v = 2e-2;
+%         gamma_a = 5e-3;
+%         sigma_motor = 1e-6;
+%         sigma_head_pos = 4.9e-5;
+%         sigma_head_vel = 3.7e-5;
+%         sigma_head_acc = 3.7e-5;
+%         time_step = 0.001;
+%         T_total = 2;
+%         rngSeed = 0;
+%     end
     
     if nargin == 0
         alphaXiDot = 5;
@@ -113,6 +113,7 @@ function ...
     gvs_bias_a_trajectory(time > gvs_bias_start) = gamma_a;
     gvs_bias_a_trajectory(gvs_bias_ramp_time_steps) = gvs_bias_ramp*gamma_a;
     
+    % % TF: what exactly is happening here?
     % Kalman filter
     F_kalman = eye(3) + time_step * A_system;
     B_kalman = time_step * B_system;
@@ -306,10 +307,7 @@ function ...
                     p_new = xi_hat - b_offset * (-1)^step_number_trajectory(j_time) + k_proportional * (xi_hat - x_reference);
                 else
                     error('Control style not valid.')
-                end
-                
-                
-                
+                end     
                 a_new = omega^2*(x_predict_nonlinear(1) - p_new);
                 x_predict_nonlinear(3) = a_new;
             end
@@ -344,8 +342,6 @@ function ...
         set(my_legend, 'Interpreter', 'Latex', 'fontsize', 12);
         xlabel('time (s)', 'fontsize', 24)
         ylabel('lateral position', 'fontsize', 24)
-
-
     end
 
 

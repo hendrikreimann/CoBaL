@@ -1,7 +1,7 @@
 
 
 % data_folder = '/Users/reimajbi/Neuro/walking/BalanceBeam/model/data/10_gainSearch';
-data_folder = '/Users/reimajbi/Neuro/walking/BalanceBeam/model/data/13_withCopModulation';
+% data_folder = '/Users/reimajbi/Neuro/walking/BalanceBeam/model/data/13_withCopModulation';
 % data_folder = '/Users/reimajbi/Neuro/walking/BalanceBeam/model/data/13_noCopModulation';
 % data_folder = '/Users/reimajbi/Neuro/walking/BalanceBeam/model/data/13_proportionalControl';
 
