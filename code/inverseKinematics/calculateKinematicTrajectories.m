@@ -104,14 +104,31 @@ function calculateKinematicTrajectories(varargin)
             end
             
             % determine indices for optional markers
-            optional_marker_indices = [];
-            optional_marker_list = study_settings.get('optional_markers');
-            for i_marker = 1 : length(optional_marker_list)
-                marker = find(strcmp(marker_labels, optional_marker_list{i_marker}));
-                marker_indices = reshape([(marker - 1) * 3 + 1; (marker - 1) * 3 + 2; (marker - 1) * 3 + 3], 1, length(marker)*3);
-                optional_marker_indices = [optional_marker_indices marker_indices];
+%             optional_marker_indices = [];
+%             optional_marker_list = study_settings.get('optional_markers');
+%             for i_marker = 1 : length(optional_marker_list)
+%                 marker = find(strcmp(marker_labels, optional_marker_list{i_marker}));
+%                 marker_indices = reshape([(marker - 1) * 3 + 1; (marker - 1) * 3 + 2; (marker - 1) * 3 + 3], 1, length(marker)*3);
+%                 optional_marker_indices = [optional_marker_indices marker_indices];
+%             end
+%             essential_marker_indicator = ~ismember(1 : size(marker_trajectories_trial, 2), optional_marker_indices);
+            
+            % this is a slightly hacky way to replace the above, not thoroughly tested
+            marker_labels = kinematic_tree.markerLabels;
+            weight_matrix = ones(1, length(marker_labels));
+            marker_weight_table = study_settings.get('marker_weights');
+            for i_weight = 1 : size(marker_weight_table, 1)
+                this_weight_marker_label = marker_weight_table{i_weight, 1};
+                this_weight = str2double(marker_weight_table{i_weight, 2});
+
+                for i_label = 1 : length(marker_labels)
+                    this_label = marker_labels{i_label};
+                    if strcmp(this_weight_marker_label, this_label(1:end-2))
+                        weight_matrix(i_label) = this_weight;
+                    end
+                end
             end
-            essential_marker_indicator = ~ismember(1 : size(marker_trajectories_trial, 2), optional_marker_indices);
+            essential_marker_indicator = logical(weight_matrix);
             
             %% process
             new_ignore_times = [];
@@ -169,7 +186,8 @@ function calculateKinematicTrajectories(varargin)
                             i_time = time_steps_to_process(i_time_index);
                             % check for missing markers
                             marker_positions_current = marker_trajectories_trial(i_time, :);
-                            if any(isnan(marker_positions_current))
+                            if any(any(isnan(marker_trajectories_trial(i_time, essential_marker_indicator))))
+                                
                                 joint_center_trajectories_pool(i_time, :) = NaN;
                                 com_trajectories_pool(i_time, :) = NaN;
                                 joint_angle_trajectories_pool(i_time, :) = NaN;
@@ -269,6 +287,10 @@ function calculateKinematicTrajectories(varargin)
 
                         % check for missing markers
                         if any(any(isnan(marker_trajectories_trial(i_time, essential_marker_indicator))))
+                            % determine problematic marker
+                            
+                            
+                            
                             joint_center_trajectories(i_time, :) = NaN;
                             com_trajectories(i_time, :) = NaN;
                             joint_angle_trajectories(i_time, :) = NaN;

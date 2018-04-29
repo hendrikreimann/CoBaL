@@ -547,7 +547,7 @@ function processAnalysisVariables(varargin)
     % use the general solution for variables_to_invert instead
     variables_to_invert = study_settings.get('analysis_variables_from_inversion_by_perturbation');
     for i_variable = 1 : size(variables_to_invert, 1)
-        warning(['analysis_variables_from_inversion_by_perturbation is in the process of being phased out, look for another solution '])
+        warning('analysis_variables_from_inversion_by_perturbation is in the process of being phased out, look for another solution.')
         % get data
         this_variable_name = variables_to_invert{i_variable, 1};
         this_variable_source_name = variables_to_invert{i_variable, 2};
