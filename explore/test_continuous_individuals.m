@@ -5,6 +5,7 @@ trigger_leg_ankle_dorsiflexion_max = 0;
 
 % load data and settings
 load('D:\DataStorage\Vision_HY\results.mat')
+load('')
 
 % subjects = {'DJB';'DXT';'EFU';'FNA';'GHJ';'IDA';'MTB';'NGY';'ONT';'PAG';'RON';'RRB';'SLL';'SPA';'UJD';'VQN';'WHO';'XDY';'YMU';'ZKY'}
 
