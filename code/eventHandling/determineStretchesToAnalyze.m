@@ -1630,11 +1630,11 @@ function determineStretchesToAnalyze(varargin)
             end
             
             % add subject
-            subject_list = cell(size(event_variables_to_save.stance_foot_data, 1), 1);
-            for i_stretch = 1 : length(subject_list)
-                subject_list{i_stretch} = subject_id;
+            condition_subject_list = cell(size(event_variables_to_save.stance_foot_data, 1), 1);
+            for i_stretch = 1 : length(condition_subject_list)
+                condition_subject_list{i_stretch} = subject_id;
             end
-            conditions_trial.subject_list = subject_list;
+            conditions_trial.condition_subject_list = condition_subject_list;
 
             %% remove stretches where important variables are missing
 
