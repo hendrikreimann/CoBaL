@@ -248,7 +248,11 @@ function optimizedJointAngles = optimizeJointAngles ...
 
             error_vector = marker_position_measured - marker_position_reconstr;
 %             marker_reconstruction_error(i_marker) = norm(error_vector * weight_matrix(pelvis_markers(i_marker)));
-            marker_reconstruction_error(i_marker) = norm(error_vector .* weight_matrix(marker_indices));
+            if sum(weight_matrix(marker_indices)) == 0
+                marker_reconstruction_error(i_marker) = 0;
+            else
+                marker_reconstruction_error(i_marker) = norm(error_vector .* weight_matrix(marker_indices));
+            end
         end
 
         % remove weightless markers
@@ -277,7 +281,11 @@ function optimizedJointAngles = optimizeJointAngles ...
 
             error_vector = marker_position_measured - marker_position_reconstr_world;
 %             marker_reconstruction_error(i_marker) = norm(error_vector * weight_matrix(right_leg_markers(i_marker)));
-            marker_reconstruction_error(i_marker) = norm(error_vector .* weight_matrix(marker_indices));
+            if sum(weight_matrix(marker_indices)) == 0
+                marker_reconstruction_error(i_marker) = 0;
+            else
+                marker_reconstruction_error(i_marker) = norm(error_vector .* weight_matrix(marker_indices));
+            end
         end
 
         % remove weightless markers
@@ -306,7 +314,11 @@ function optimizedJointAngles = optimizeJointAngles ...
 
             error_vector = marker_position_measured - marker_position_reconstr_world;
 %             marker_reconstruction_error(i_marker) = norm(error_vector * weight_matrix(left_leg_markers(i_marker)));
-            marker_reconstruction_error(i_marker) = norm(error_vector .* weight_matrix(marker_indices));
+            if sum(weight_matrix(marker_indices)) == 0
+                marker_reconstruction_error(i_marker) = 0;
+            else
+                marker_reconstruction_error(i_marker) = norm(error_vector .* weight_matrix(marker_indices));
+            end
         end
         
         % remove weightless markers
@@ -334,8 +346,11 @@ function optimizedJointAngles = optimizeJointAngles ...
             marker_position_reconstr_world = marker_position_reconstr_world_homogeneous(1:3)';
 
             error_vector = marker_position_measured - marker_position_reconstr_world;
-%             marker_reconstruction_error(i_marker) = norm(error_vector * weight_matrix(trunk_and_head_markers(i_marker)));
-            marker_reconstruction_error(i_marker) = norm(error_vector .* weight_matrix(marker_indices));
+            if sum(weight_matrix(marker_indices)) == 0
+                marker_reconstruction_error(i_marker) = 0;
+            else
+                marker_reconstruction_error(i_marker) = norm(error_vector .* weight_matrix(marker_indices));
+            end
         end
 
         % remove weightless markers
@@ -364,7 +379,11 @@ function optimizedJointAngles = optimizeJointAngles ...
 
             error_vector = marker_position_measured - marker_position_reconstr_world;
 %             marker_reconstruction_error(i_marker) = norm(error_vector * weight_matrix(right_arm_markers(i_marker)));
-            marker_reconstruction_error(i_marker) = norm(error_vector .* weight_matrix(marker_indices));
+            if sum(weight_matrix(marker_indices)) == 0
+                marker_reconstruction_error(i_marker) = 0;
+            else
+                marker_reconstruction_error(i_marker) = norm(error_vector .* weight_matrix(marker_indices));
+            end
         end
 
         % remove weightless markers
@@ -393,7 +412,11 @@ function optimizedJointAngles = optimizeJointAngles ...
 
             error_vector = marker_position_measured - marker_position_reconstr_world;
 %             marker_reconstruction_error(i_marker) = norm(error_vector * weight_matrix(left_arm_markers(i_marker)));
-            marker_reconstruction_error(i_marker) = norm(error_vector .* weight_matrix(marker_indices));
+            if sum(weight_matrix(marker_indices)) == 0
+                marker_reconstruction_error(i_marker) = 0;
+            else
+                marker_reconstruction_error(i_marker) = norm(error_vector .* weight_matrix(marker_indices));
+            end
         end
 
         % remove weightless markers
