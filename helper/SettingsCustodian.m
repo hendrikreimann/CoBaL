@@ -25,6 +25,10 @@ classdef SettingsCustodian < handle
           { ...
             'preferred_level_order'; ...
           }
+        force_cell_list = ...
+          {
+            'band_labels'; ...
+          }
     end
     methods
         function this = SettingsCustodian(settings_file)
@@ -100,6 +104,12 @@ classdef SettingsCustodian < handle
                 end
             end
             
+            % force cell
+            if any(strcmp(this.force_cell_list, property_name))
+                if ~iscell(data)
+                    data = {data};
+                end
+            end
         end
         
         function default_data = getDefaultSetting(this, property_name)

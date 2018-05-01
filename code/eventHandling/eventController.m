@@ -312,7 +312,9 @@ classdef eventController < handle
                 
                 % apply for controller and stick figure
                 this.control_figure.Position = control_figure_setting.position;
-                this.scene_figure.scene_figure.Position = scene_figure_setting.position;
+                if ~isempty(this.scene_figure)
+                    this.scene_figure.scene_figure.Position = scene_figure_setting.position;
+                end
                 if ~isempty(this.kinematic_tree_stick_figure) && any(strcmp(fieldnames(kinematic_tree_figure_setting), 'position'))
                     this.kinematic_tree_stick_figure.sceneFigure.Position = kinematic_tree_figure_setting.position;
                 end

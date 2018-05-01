@@ -87,6 +87,7 @@ function processStimulusResponse(varargin)
     com_from_ankle_x_midstance_means = zeros(1, number_of_conditions_control);
     com_x_vel_midstance_means = zeros(1, number_of_conditions_control);
     
+    % TODO: make this work for bands
     for i_condition = 1 : number_of_conditions_control
         % get relevant control condition
         this_condition_combination = condition_combinations_control_unique(i_condition, :);
@@ -103,17 +104,11 @@ function processStimulusResponse(varargin)
         
         % determine stance ankle data
         stance_ankle_x_data = zeros(size(lanklex_data));
-        for i_band = 1 : loaded_data.bands_per_stretch
-            if strcmp(this_condition_stance_foot_data{i_band}, 'STANCE_LEFT')
-                stance_ankle_x_data(i_band, :) = lanklex_data;
-            end
-            if strcmp(this_condition_stance_foot_data{i_band}, 'STANCE_RIGHT')
-                stance_ankle_x_data(i_band, :) = ranklex_data(i_band, :);
-            end
-            
-            
-            
-            
+        if strcmp(this_condition_stance_foot_data, 'STANCE_LEFT')
+            stance_ankle_x_data = lanklex_data;
+        end
+        if strcmp(this_condition_stance_foot_data, 'STANCE_RIGHT')
+            stance_ankle_x_data = ranklex_data;
         end
         
         % extract condition data
@@ -126,7 +121,7 @@ function processStimulusResponse(varargin)
         cop_x_this_condition = cop_x_data(:, this_condition_indicator);
         
         
-        return
+        
         
         
         

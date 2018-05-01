@@ -49,7 +49,11 @@ for i_variable = 1 : number_of_variables_to_export
         data_cell(:, this_band_column) = this_variable_data_cell;
         
         % make and store label
-        data_header{this_band_column} = [this_variable_name '_' band_labels{i_band}];
+        if number_of_bands > 1
+            data_header{this_band_column} = [this_variable_name '_' band_labels{i_band}];
+        else
+            data_header{this_band_column} = this_variable_name;
+        end
     end
 end
 % time_data_strings = num2str(time_list);
@@ -75,11 +79,25 @@ origin_stretch_end_time_data_cell = strtrim(cellstr(num2str(origin_stretch_end_t
 origin_cell = [origin_session_folder_data origin_trial_number_data_cell origin_stretch_start_time_data_cell origin_stretch_end_time_data_cell];
 origin_header = {'origin folder', 'origin trial number', 'stretch start time within trial', 'stretch end time within trial'};
 
-% join to export cell
+% join cells
+header_cell = [condition_header, origin_header, data_header];
+body_cell = [condition_cell, origin_cell, data_cell];
+
+% remove levels
+levels_to_remove = study_settings.get('levels_to_remove_for_export');
+for i_level = 1 : size(levels_to_remove, 1)
+    this_condition_label = levels_to_remove{i_level, 1};
+    this_level_label = levels_to_remove{i_level, 2};
+    relevant_column = strcmp(header_cell, this_condition_label);
+    rows_to_remove = strcmp(body_cell(:, relevant_column), this_level_label);
+    body_cell(rows_to_remove, :) = [];
+end
+
+% join header and body
 export_cell = ...
   [ ...
-    condition_header, origin_header, data_header; ...
-    condition_cell, origin_cell, data_cell ...
+    header_cell; ...
+    body_cell ...
   ];
 
 % save as .csv
