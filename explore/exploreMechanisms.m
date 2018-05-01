@@ -45,12 +45,12 @@ elseif strcmp(data_type, 'gvs')
     index_indicator_450 = index_indicator & strcmp(conditions.condition_delay_list,'450ms');
     
     
-    index_indicator_right_0_illRight = index_indicator_right_0 & strcmp(conditions.condition_perturbation_list,'ILLUSION_RIGHT');
-    index_indicator_right_0_illLeft = index_indicator_right_0 & strcmp(conditions.condition_perturbation_list,'ILLUSION_LEFT');
-    index_indicator_right_150_illRight = index_indicator_right_150 & strcmp(conditions.condition_perturbation_list,'ILLUSION_RIGHT');
-    index_indicator_right_150_illLeft = index_indicator_right_150 & strcmp(conditions.condition_perturbation_list,'ILLUSION_LEFT');
-    index_indicator_right_450_illRight = index_indicator_right_450 & strcmp(conditions.condition_perturbation_list,'ILLUSION_RIGHT');
-    index_indicator_right_450_illLeft = index_indicator_right_450 & strcmp(conditions.condition_perturbation_list,'ILLUSION_LEFT');
+    index_indicator_right_0_illusionRight = index_indicator_right_0 & strcmp(conditions.condition_perturbation_list,'ILLUSION_RIGHT');
+    index_indicator_right_0_illusionLeft = index_indicator_right_0 & strcmp(conditions.condition_perturbation_list,'ILLUSION_LEFT');
+    index_indicator_right_150_illusionRight = index_indicator_right_150 & strcmp(conditions.condition_perturbation_list,'ILLUSION_RIGHT');
+    index_indicator_right_150_illusionLeft = index_indicator_right_150 & strcmp(conditions.condition_perturbation_list,'ILLUSION_LEFT');
+    index_indicator_right_450_illusionRight = index_indicator_right_450 & strcmp(conditions.condition_perturbation_list,'ILLUSION_RIGHT');
+    index_indicator_right_450_illusionLeft = index_indicator_right_450 & strcmp(conditions.condition_perturbation_list,'ILLUSION_LEFT');
     
 end
 
@@ -67,17 +67,17 @@ for i_variable = 1 : number_of_variables_to_test
     % TO DO: plot shadedError without occlusion..
     
     if plot_cop_step
-        plot(variable_data{find(strcmp(variable_names, 'cop_from_com_x_step_end_inverted'))}(:,index_indicator_right_0_illRight), variable_data{find(strcmp(variable_names, 'step_placement_x_inverted'))}(:,index_indicator_right_0_illRight),'*');
+        plot(variable_data{find(strcmp(variable_names, 'cop_from_com_x_step_end_inverted'))}(:,index_indicator_right_0_illusionRight), variable_data{find(strcmp(variable_names, 'step_placement_x_inverted'))}(:,index_indicator_right_0_illusionRight),'*');
         hold on;
-        plot(variable_data{find(strcmp(variable_names, 'cop_from_com_x_step_end_inverted'))}(:,index_indicator_right_0_illLeft), variable_data{find(strcmp(variable_names, 'step_placement_x_inverted'))}(:,index_indicator_right_0_illLeft),'*');
+        plot(variable_data{find(strcmp(variable_names, 'cop_from_com_x_step_end_inverted'))}(:,index_indicator_right_0_illusionLeft), variable_data{find(strcmp(variable_names, 'step_placement_x_inverted'))}(:,index_indicator_right_0_illusionLeft),'*');
     
-        plot(variable_data{find(strcmp(variable_names, 'cop_from_com_x_step_end_inverted'))}(:,index_indicator_right_150_illRight), variable_data{find(strcmp(variable_names, 'step_placement_x_inverted'))}(:,index_indicator_right_150_illRight),'*');
+        plot(variable_data{find(strcmp(variable_names, 'cop_from_com_x_step_end_inverted'))}(:,index_indicator_right_150_illusionRight), variable_data{find(strcmp(variable_names, 'step_placement_x_inverted'))}(:,index_indicator_right_150_illusionRight),'*');
         hold on;
-        plot(variable_data{find(strcmp(variable_names, 'cop_from_com_x_step_end_inverted'))}(:,index_indicator_right_150_illLeft), variable_data{find(strcmp(variable_names, 'step_placement_x_inverted'))}(:,index_indicator_right_150_illLeft),'*');
+        plot(variable_data{find(strcmp(variable_names, 'cop_from_com_x_step_end_inverted'))}(:,index_indicator_right_150_illusionLeft), variable_data{find(strcmp(variable_names, 'step_placement_x_inverted'))}(:,index_indicator_right_150_illusionLeft),'*');
         
-        plot(variable_data{find(strcmp(variable_names, 'cop_from_com_x_step_end_inverted'))}(:,index_indicator_right_450_illRight), variable_data{find(strcmp(variable_names, 'step_placement_x_inverted'))}(:,index_indicator_right_450_illRight),'*');
+        plot(variable_data{find(strcmp(variable_names, 'cop_from_com_x_step_end_inverted'))}(:,index_indicator_right_450_illusionRight), variable_data{find(strcmp(variable_names, 'step_placement_x_inverted'))}(:,index_indicator_right_450_illusionRight),'*');
         hold on;
-        plot(variable_data{find(strcmp(variable_names, 'cop_from_com_x_step_end_inverted'))}(:,index_indicator_right_450_illLeft), variable_data{find(strcmp(variable_names, 'step_placement_x_inverted'))}(:,index_indicator_right_450_illLeft),'*');    
+        plot(variable_data{find(strcmp(variable_names, 'cop_from_com_x_step_end_inverted'))}(:,index_indicator_right_450_illusionLeft), variable_data{find(strcmp(variable_names, 'step_placement_x_inverted'))}(:,index_indicator_right_450_illusionLeft),'*');    
     end
     
     if plot_icop_step
