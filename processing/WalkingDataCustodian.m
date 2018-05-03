@@ -2070,6 +2070,139 @@ classdef WalkingDataCustodian < handle
                     
                     this.time_data.right_foot_angle_ml = this.time_data.marker_trajectories;
                 end
+                if strcmp(variable_name, 'right_foot_angle_yaw')
+                    % TODO: test this
+                    % calculate angle trajectory
+                    RTOE_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RTOE');
+                    RHEE_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RHEE');
+                    foot_vector_x = RHEE_trajectory(:, 1) - RTOE_trajectory(:, 1);
+                    foot_vector_y = RHEE_trajectory(:, 2) - RTOE_trajectory(:, 2);
+                    foot_vector_z = RHEE_trajectory(:, 3) - RTOE_trajectory(:, 3);
+                    foot_vector_xy = (foot_vector_x.^2 + foot_vector_y.^2).^(0.5);
+                    this.basic_variable_data.right_foot_angle_yaw = -rad2deg(atan2(1, foot_vector_xy));
+                    
+                    % determine directions
+                    RTOE_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RTOE',  'indices');
+                    RHEE_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RHEE',  'indices');
+                    RTOE_directions_x = this.basic_variable_directions.marker_trajectories(:, RTOE_indices(1));
+                    RHEE_directions_x = this.basic_variable_directions.marker_trajectories(:, RHEE_indices(1));
+                    RTOE_directions_y = this.basic_variable_directions.marker_trajectories(:, RTOE_indices(2));
+                    RHEE_directions_y = this.basic_variable_directions.marker_trajectories(:, RHEE_indices(2));
+                    RTOE_directions_z = this.basic_variable_directions.marker_trajectories(:, RTOE_indices(3));
+                    RHEE_directions_z = this.basic_variable_directions.marker_trajectories(:, RHEE_indices(3));
+                    
+                    % check whether directions of markers are the same
+                    if ~strcmp(RTOE_directions_x{1}, RTOEL_directions_x{1})
+                        error('RTOE and RTOEL directions found in marker data are different from each other')
+                    end
+                    if ~strcmp(RTOE_directions_x{2}, RTOEL_directions_x{2})
+                        error('RTOE and RTOEL directions found in marker data are different from each other')
+                    end
+                    if ~strcmp(RTOE_directions_y{1}, RTOEL_directions_y{1})
+                        error('RTOE and RTOEL directions found in marker data are different from each other')
+                    end
+                    if ~strcmp(RTOE_directions_y{2}, RTOEL_directions_y{2})
+                        error('RTOE and RTOEL directions found in marker data are different from each other')
+                    end
+                    if ~strcmp(RTOE_directions_z{1}, RTOEL_directions_z{1})
+                        error('RTOE and RTOEL directions found in marker data are different from each other')
+                    end
+                    if ~strcmp(RTOE_directions_z{2}, RTOEL_directions_z{2})
+                        error('RTOE and RTOEL directions found in marker data are different from each other')
+                    end
+                    
+                    % check assumption that y is left-right and z is down-up
+                    if ~strcmp(RTOEL_directions_x{1}, 'right')
+                        error('Assuming positive y-direction for markers RTOE and RTOEL is "right"')
+                    end                  
+                    if ~strcmp(RTOEL_directions_x{2}, 'left')
+                        error('Assuming negative y-direction for markers RTOE and RTOEL is "left"')
+                    end                  
+                    if ~strcmp(RTOEL_directions_y{1}, 'forward')
+                        error('Assuming positive y-direction for markers RTOE and RTOEL is "down"')
+                    end                  
+                    if ~strcmp(RTOEL_directions_y{2}, 'backward')
+                        error('Assuming negative y-direction for markers RTOE and RTOEL is "backward"')
+                    end                  
+                    if ~strcmp(RTOEL_directions_z{1}, 'up')
+                        error('Assuming positive z-direction for markers RTOE and RTOEL is "up"')
+                    end                  
+                    if ~strcmp(RTOEL_directions_z{2}, 'down')
+                        error('Assuming negative z-direction for markers RTOE and RTOEL is "down"')
+                    end
+                    
+                    % all assumptions are met, define directions
+                    this.basic_variable_directions.right_foot_angle_yaw = {'right'; 'left'};
+                    
+                    this.time_data.right_foot_angle_yaw = this.time_data.marker_trajectories;
+                end
+                if strcmp(variable_name, 'left_foot_angle_yaw')
+                    % TODO: test this
+                    % calculate angle trajectory
+                    LTOE_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LTOE');
+                    LHEE_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LHEE');
+                    foot_vector_x = LHEE_trajectory(:, 1) - RTOE_trajectory(:, 1);
+                    foot_vector_y = LHEE_trajectory(:, 2) - RTOE_trajectory(:, 2);
+                    foot_vector_z = LHEE_trajectory(:, 3) - RTOE_trajectory(:, 3);
+                    foot_vector_xy = (foot_vector_x.^2 + foot_vector_y.^2).^(0.5);
+                    this.basic_variable_data.right_foot_angle_yaw = -rad2deg(atan2(1, foot_vector_xy));
+                    
+                    % determine directions
+                    LTOE_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LTOE',  'indices');
+                    LHEE_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LHEE',  'indices');
+                    LTOE_directions_x = this.basic_variable_directions.marker_trajectories(:, LTOE_indices(1));
+                    LHEE_directions_x = this.basic_variable_directions.marker_trajectories(:, LHEE_indices(1));
+                    LTOE_directions_y = this.basic_variable_directions.marker_trajectories(:, LTOE_indices(2));
+                    LHEE_directions_y = this.basic_variable_directions.marker_trajectories(:, LHEE_indices(2));
+                    LTOE_directions_z = this.basic_variable_directions.marker_trajectories(:, LTOE_indices(3));
+                    LHEE_directions_z = this.basic_variable_directions.marker_trajectories(:, LHEE_indices(3));
+                    
+                    % check whether directions of markers are the same
+                    if ~strcmp(RTOE_directions_x{1}, LTOEL_directions_x{1})
+                        error('RTOE and RTOEL directions found in marker data are different from each other')
+                    end
+                    if ~strcmp(RTOE_directions_x{2}, LTOEL_directions_x{2})
+                        error('RTOE and RTOEL directions found in marker data are different from each other')
+                    end
+                    if ~strcmp(RTOE_directions_y{1}, LTOEL_directions_y{1})
+                        error('RTOE and RTOEL directions found in marker data are different from each other')
+                    end
+                    if ~strcmp(RTOE_directions_y{2}, LTOEL_directions_y{2})
+                        error('RTOE and RTOEL directions found in marker data are different from each other')
+                    end
+                    if ~strcmp(RTOE_directions_z{1}, LTOEL_directions_z{1})
+                        error('RTOE and RTOEL directions found in marker data are different from each other')
+                    end
+                    if ~strcmp(RTOE_directions_z{2}, LTOEL_directions_z{2})
+                        error('RTOE and RTOEL directions found in marker data are different from each other')
+                    end
+                    
+                    % check assumption that y is left-right and z is down-up
+                    if ~strcmp(LTOEL_directions_x{1}, 'right')
+                        error('Assuming positive y-direction for markers RTOE and RTOEL is "right"')
+                    end                  
+                    if ~strcmp(LTOEL_directions_x{2}, 'left')
+                        error('Assuming negative y-direction for markers RTOE and RTOEL is "left"')
+                    end                  
+                    if ~strcmp(LTOEL_directions_y{1}, 'forward')
+                        error('Assuming positive y-direction for markers RTOE and RTOEL is "down"')
+                    end                  
+                    if ~strcmp(LTOEL_directions_y{2}, 'backward')
+                        error('Assuming negative y-direction for markers RTOE and RTOEL is "backward"')
+                    end                  
+                    if ~strcmp(LTOEL_directions_z{1}, 'up')
+                        error('Assuming positive z-direction for markers RTOE and RTOEL is "up"')
+                    end                  
+                    if ~strcmp(LTOEL_directions_z{2}, 'down')
+                        error('Assuming negative z-direction for markers RTOE and RTOEL is "down"')
+                    end
+                    
+                    % all assumptions are met, define directions
+                    this.basic_variable_directions.left_foot_angle_yaw = {'right'; 'left'};
+                    
+                    this.time_data.left_foot_angle_yaw = this.time_data.marker_trajectories;
+                end
+                
                 if strcmp(variable_name, 'left_arm_right_leg_relative_phase')
                     left_arm_phase = this.getBasicVariableData('left_arm_phase');
                     right_leg_phase = this.getBasicVariableData('right_leg_phase');
