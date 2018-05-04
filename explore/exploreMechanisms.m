@@ -7,57 +7,39 @@ plot_i2cop_step = 0;
 trigger_leg_ankle_dorsiflexion_max = 0;
 
 % load data and settings
-if strcmp(data_type, 'vision')
-    load('D:\DataStorage\Vision_HY\results.mat')
-elseif strcmp(data_type, 'gvs')
-    load('D:\DataStorage\GVS\results.mat')
-end
+load('D:\DataStorage\Vision_HY\results.mat')
+
 
 % subjects = {'DJB';'DXT';'EFU';'FNA';'GHJ';'IDA';'MTB';'NGY';'ONT';'PAG';'RON';'RRB';'SLL';'SPA';'UJD';'VQN';'WHO';'XDY';'YMU';'ZKY'}
 %     subject_indicator = ismember(conditions.subject_list,subjects(i_subject));
 
-index_indicator = strcmp(conditions.condition_index_list, 'ONE');
-stance_foot_indicator_left = strcmp(conditions.condition_stance_foot_list, 'STANCE_LEFT');
-stance_foot_indicator_right = strcmp(conditions.condition_stance_foot_list, 'STANCE_RIGHT');
-index_indicator_left = stance_foot_indicator_left & index_indicator;
-index_indicator_right = stance_foot_indicator_right & index_indicator;
+% TO DO.. clean up index 
+index_indicator_step_one = strcmp(conditions.condition_index_list, 'ONE');
+index_indicator_step_two = strcmp(conditions.condition_index_list, 'TWO');
 
+stanceleft_indicator = strcmp(conditions.condition_stance_foot_list, 'STANCE_LEFT');
+stanceright_indicator = strcmp(conditions.condition_stance_foot_list, 'STANCE_RIGHT');
 
-if strcmp(data_type, 'vision')
-    group_indicator_early = strcmp(conditions.condition_group_list,'Early');
-    group_indicator_late = strcmp(conditions.condition_group_list, 'Late');
-    group_indicator_no = strcmp(conditions.condition_group_list, 'None');
+illusionleft_indicator = strcmp(conditions.condition_perturbation_list,'ILLUSION_LEFT');
+illusionright_indicator = strcmp(conditions.condition_perturbation_list,'ILLUSION_RIGHT');
+
+index_stanceleft_one = stanceleft_indicator & index_indicator_step_one;
+index_stanceright_one = stanceright_indicator & index_indicator_step_one;
+
+group_indicator_early = strcmp(conditions.condition_group_list,'Early');
+group_indicator_late = strcmp(conditions.condition_group_list, 'Late');
+group_indicator_no = strcmp(conditions.condition_group_list, 'None');
+
+index_indicator_early = index_indicator_step_one & group_indicator_early;
+index_indicator_late = index_indicator_step_one & group_indicator_late;
+index_indicator_no = index_indicator_step_one & group_indicator_no;
     
-    index_indicator_early = index_indicator & group_indicator_early;
-    index_indicator_late = index_indicator & group_indicator_late;
-    index_indicator_no = index_indicator & group_indicator_no;
-elseif strcmp(data_type, 'gvs')
-    index_indicator_left_0 = index_indicator_left & strcmp(conditions.condition_delay_list,'0ms');
-    index_indicator_left_150 = index_indicator_left & strcmp(conditions.condition_delay_list,'150ms');
-    index_indicator_left_450 = index_indicator_left & strcmp(conditions.condition_delay_list,'450ms');
-    
-    index_indicator_right_0 = index_indicator_right & strcmp(conditions.condition_delay_list,'0ms');
-    index_indicator_right_150 = index_indicator_right & strcmp(conditions.condition_delay_list,'150ms');
-    index_indicator_right_450 = index_indicator_right & strcmp(conditions.condition_delay_list,'450ms');
-    
-    index_indicator_0 = index_indicator & strcmp(conditions.condition_delay_list,'0ms');
-    index_indicator_150 = index_indicator  & strcmp(conditions.condition_delay_list,'150ms');
-    index_indicator_450 = index_indicator & strcmp(conditions.condition_delay_list,'450ms');
-    
-    
-    index_indicator_right_0_illRight = index_indicator_right_0 & strcmp(conditions.condition_perturbation_list,'ILLUSION_RIGHT');
-    index_indicator_right_0_illLeft = index_indicator_right_0 & strcmp(conditions.condition_perturbation_list,'ILLUSION_LEFT');
-    index_indicator_right_150_illRight = index_indicator_right_150 & strcmp(conditions.condition_perturbation_list,'ILLUSION_RIGHT');
-    index_indicator_right_150_illLeft = index_indicator_right_150 & strcmp(conditions.condition_perturbation_list,'ILLUSION_LEFT');
-    index_indicator_right_450_illRight = index_indicator_right_450 & strcmp(conditions.condition_perturbation_list,'ILLUSION_RIGHT');
-    index_indicator_right_450_illLeft = index_indicator_right_450 & strcmp(conditions.condition_perturbation_list,'ILLUSION_LEFT');
-    
-end
 
 
 for i_variable = 1 : number_of_variables_to_test
     
-    % TO DO: check cop_inverted
+    % TO DO: check for NaNs in Cop_step_end
+    % TO DO: integrated is less predictive than step end??
     % TO DO: check cop_integrated
     % TO DO: properly label the xticks on the bar graphs
     % TO DO: label the x and y axes
@@ -65,37 +47,71 @@ for i_variable = 1 : number_of_variables_to_test
     % TO DO: check the conditions with which plotting cop and others..
     % may be combining conditions that should not be combined
     % TO DO: plot shadedError without occlusion..
+    % TO DO: add step trigger pushoff correlation with step length on step
+    % two
+    % TO DO; HAVE to uninvert triggerleg dorsiflexion for comparison to
+    % step length
     
     if plot_cop_step
-        plot(variable_data{find(strcmp(variable_names, 'cop_from_com_x_step_end_inverted'))}(:,index_indicator_right_0_illRight), variable_data{find(strcmp(variable_names, 'step_placement_x_inverted'))}(:,index_indicator_right_0_illRight),'*');
-        hold on;
-        plot(variable_data{find(strcmp(variable_names, 'cop_from_com_x_step_end_inverted'))}(:,index_indicator_right_0_illLeft), variable_data{find(strcmp(variable_names, 'step_placement_x_inverted'))}(:,index_indicator_right_0_illLeft),'*');
-    
-        plot(variable_data{find(strcmp(variable_names, 'cop_from_com_x_step_end_inverted'))}(:,index_indicator_right_150_illRight), variable_data{find(strcmp(variable_names, 'step_placement_x_inverted'))}(:,index_indicator_right_150_illRight),'*');
-        hold on;
-        plot(variable_data{find(strcmp(variable_names, 'cop_from_com_x_step_end_inverted'))}(:,index_indicator_right_150_illLeft), variable_data{find(strcmp(variable_names, 'step_placement_x_inverted'))}(:,index_indicator_right_150_illLeft),'*');
+        this_x_data = variable_data{find(strcmp(variable_names, 'cop_from_com_x_step_end_inverted'))}(:,index_indicator_step_one);
+        this_y_data = variable_data{find(strcmp(variable_names, 'step_placement_x_inverted'))}(:,index_indicator_step_one);
         
-        plot(variable_data{find(strcmp(variable_names, 'cop_from_com_x_step_end_inverted'))}(:,index_indicator_right_450_illRight), variable_data{find(strcmp(variable_names, 'step_placement_x_inverted'))}(:,index_indicator_right_450_illRight),'*');
+        this_x_data = variable_data{find(strcmp(variable_names, 'cop_from_com_x_integrated_inverted'))}(:,index_indicator_step_one);
+        this_y_data = variable_data{find(strcmp(variable_names, 'step_placement_x_inverted'))}(:,index_indicator_step_one);
+        
+        this_x_data = variable_data{find(strcmp(variable_names, 'trigger_leg_ankle_dorsiflexion_step_end_inverted'))}(:,index_indicator_step_one);
+        this_y_data = variable_data{find(strcmp(variable_names, 'step_placement_x_inverted'))}(:,index_indicator_step_one);
+        
+        this_x_data = variable_data{find(strcmp(variable_names, 'cop_from_com_x_step_end_inverted'))}(:,index_indicator_step_one);
+        this_y_data = variable_data{find(strcmp(variable_names, 'trigger_leg_ankle_dorsiflexion_step_end_inverted'))}(:,index_indicator_step_one);
+        
+        this_x_data = variable_data{find(strcmp(variable_names, 'trigger_leg_ankle_dorsiflexion_step_end_inverted'))}(:,index_indicator_step_one);
+        this_y_data = variable_data{find(strcmp(variable_names, 'step_length'))}(:,index_indicator_step_two);
+        
+%         this_x_data = variable_data{find(strcmp(variable_names, 'trigger_leg_ankle_dorsiflexion_step_end'))}(:,index_indicator_step_two);
+%         this_y_data = variable_data{find(strcmp(variable_names, 'step_length'))}(:,index_indicator_step_two);
+        
+        if any(isnan(this_x_data)) | any(isnan(this_y_data))
+            indices_to_remove = find(isnan(this_x_data));
+            indicies_to_remove = [indices_to_remove find(isnan(this_x_data))];
+            this_x_data(indices_to_remove)=[]
+            this_y_data(indices_to_remove)=[]
+            [r , p] = corr(this_x_data', this_y_data')
+            r2 = r^2
+        end
+        figure;
+        plot(this_x_data, this_y_data,'*');
+        
+        
+        
         hold on;
-        plot(variable_data{find(strcmp(variable_names, 'cop_from_com_x_step_end_inverted'))}(:,index_indicator_right_450_illLeft), variable_data{find(strcmp(variable_names, 'step_placement_x_inverted'))}(:,index_indicator_right_450_illLeft),'*');    
+        plot(variable_data{find(strcmp(variable_names, 'cop_from_com_x_step_end_inverted'))}(:,index_indicator_right_0_illusionLeft), variable_data{find(strcmp(variable_names, 'step_placement_x_inverted'))}(:,index_indicator_right_0_illusionLeft),'*');
+    
+        plot(variable_data{find(strcmp(variable_names, 'cop_from_com_x_step_end_inverted'))}(:,index_indicator_right_150_illusionRight), variable_data{find(strcmp(variable_names, 'step_placement_x_inverted'))}(:,index_indicator_right_150_illusionRight),'*');
+        hold on;
+        plot(variable_data{find(strcmp(variable_names, 'cop_from_com_x_step_end_inverted'))}(:,index_indicator_right_150_illusionLeft), variable_data{find(strcmp(variable_names, 'step_placement_x_inverted'))}(:,index_indicator_right_150_illusionLeft),'*');
+        
+        plot(variable_data{find(strcmp(variable_names, 'cop_from_com_x_step_end_inverted'))}(:,index_indicator_right_450_illusionRight), variable_data{find(strcmp(variable_names, 'step_placement_x_inverted'))}(:,index_indicator_right_450_illusionRight),'*');
+        hold on;
+        plot(variable_data{find(strcmp(variable_names, 'cop_from_com_x_step_end_inverted'))}(:,index_indicator_right_450_illusionLeft), variable_data{find(strcmp(variable_names, 'step_placement_x_inverted'))}(:,index_indicator_right_450_illusionLeft),'*');    
     end
     
     if plot_icop_step
-        plot(variable_data{find(strcmp(variable_names, 'cop_from_com_x_integrated_inverted'))}(:,index_indicator), variable_data{find(strcmp(variable_names, 'step_placement_x_inverted'))}(:,index_indicator),'*');
+        plot(variable_data{find(strcmp(variable_names, 'cop_from_com_x_integrated_inverted'))}(:,index_indicator_step_one), variable_data{find(strcmp(variable_names, 'step_placement_x_inverted'))}(:,index_indicator_step_one),'*');
     end
     
     if plot_i2cop_step
-        plot(variable_data{find(strcmp(variable_names, 'cop_from_com_x_integrated_twice_inverted'))}(:,index_indicator), variable_data{find(strcmp(variable_names, 'step_placement_x_inverted'))}(:,index_indicator),'*');
+        plot(variable_data{find(strcmp(variable_names, 'cop_from_com_x_integrated_twice_inverted'))}(:,index_indicator_step_one), variable_data{find(strcmp(variable_names, 'step_placement_x_inverted'))}(:,index_indicator_step_one),'*');
     end
     
     if plot_pushoff_step
-        plot(variable_data{find(strcmp(variable_names, 'left_ankle_dorsiflexion_step_end_inverted'))}(:,index_indicator_left), variable_data{find(strcmp(variable_names, 'step_placement_x_inverted'))}(:,index_indicator_left),'*');
+        plot(variable_data{find(strcmp(variable_names, 'left_ankle_dorsiflexion_step_end_inverted'))}(:,index_stanceleft_one), variable_data{find(strcmp(variable_names, 'step_placement_x_inverted'))}(:,index_stanceleft_one),'*');
         hold on;
-        plot(variable_data{find(strcmp(variable_names, 'right_ankle_dorsiflexion_step_end_inverted'))}(:,index_indicator_right), variable_data{find(strcmp(variable_names, 'step_placement_x_inverted'))}(:,index_indicator_right),'*');
+        plot(variable_data{find(strcmp(variable_names, 'right_ankle_dorsiflexion_step_end_inverted'))}(:,index_stanceright_one), variable_data{find(strcmp(variable_names, 'step_placement_x_inverted'))}(:,index_stanceright_one),'*');
     end
     
     if plot_pushoff_step
-        plot(variable_data{find(strcmp(variable_names, 'trigger_leg_ankle_dorsiflexion_step_end_inverted'))}(:,index_indicator), variable_data{find(strcmp(variable_names, 'step_placement_x_inverted'))}(:,index_indicator),'*');
+        plot(variable_data{find(strcmp(variable_names, 'trigger_leg_ankle_dorsiflexion_step_end_inverted'))}(:,index_indicator_step_one), variable_data{find(strcmp(variable_names, 'step_placement_x_inverted'))}(:,index_indicator_step_one),'*');
     end
     
     time_vector = linspace(0,100,100);

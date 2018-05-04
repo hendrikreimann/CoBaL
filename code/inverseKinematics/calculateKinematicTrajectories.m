@@ -463,7 +463,9 @@ function calculateKinematicTrajectories(varargin)
           
             if ~isempty(new_ignore_times)
                 save_folder = 'analysis';
-                events_file_name = makeFileName(date, subject_id, condition, i_trial, 'events.mat');
+                events_file_name = makeFileName(date, subject_id, condition, i_trial, 'stepEvents.mat');
+                
+%                 events_file_name = makeFileName(date, subject_id, condition, i_trial, 'events.mat');
                 events = load(['analysis' filesep events_file_name]);
                 if isfield(events, 'ignore_times')
                     events.ignore_times = [events.ignore_times; new_ignore_times];
