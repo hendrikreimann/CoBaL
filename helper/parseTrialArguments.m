@@ -105,4 +105,9 @@ function [conditions_to_analyze, trials_to_analyze, calibration_trials, emg_tria
     trials_to_analyze(strcmp(conditions_to_analyze, 'washout')) = [];
     conditions_to_analyze(strcmp(conditions_to_analyze, 'washout')) = [];
     
+    % exclude adaptation
+    emg_trials = trials_to_analyze(strcmp(conditions_to_analyze, 'adaptation'));
+    trials_to_analyze(strcmp(conditions_to_analyze, 'adaptation')) = [];
+    conditions_to_analyze(strcmp(conditions_to_analyze, 'adaptation')) = [];
+    
 end
