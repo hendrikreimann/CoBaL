@@ -86,14 +86,14 @@ function determineStretchesToAnalyze(varargin)
         for i_trial = trials_to_process
             %% load data
             ignore_times = [];
-%             load(['analysis' filesep makeFileName(date, subject_id, condition_list{i_condition}, i_trial, 'events')]);
-            load(['analysis' filesep makeFileName(date, subject_id, condition_list{i_condition}, i_trial, 'stepEvents')]);
+            load(['analysis' filesep makeFileName(date, subject_id, condition_list{i_condition}, i_trial, 'events')]);
+%             load(['analysis' filesep makeFileName(date, subject_id, condition_list{i_condition}, i_trial, 'stepEvents')]);
 %             load(['processed' filesep makeFileName(date, subject_id, condition_list{i_condition}, i_trial, 'kinematicTrajectories')]);
             
-%             right_pushoff_times = event_data{strcmp(event_labels, 'right_pushoff')};
-%             right_touchdown_times = event_data{strcmp(event_labels, 'right_touchdown')};
-%             left_pushoff_times = event_data{strcmp(event_labels, 'left_pushoff')};
-%             left_touchdown_times = event_data{strcmp(event_labels, 'left_touchdown')};
+            right_pushoff_times = event_data{strcmp(event_labels, 'right_pushoff')};
+            right_touchdown_times = event_data{strcmp(event_labels, 'right_touchdown')};
+            left_pushoff_times = event_data{strcmp(event_labels, 'left_pushoff')};
+            left_touchdown_times = event_data{strcmp(event_labels, 'left_touchdown')};
 
             % determine experimental condition
             this_trial_type = condition_list{i_condition};
@@ -1630,11 +1630,11 @@ function determineStretchesToAnalyze(varargin)
             end
             
             % add subject
-            condition_subject_list = cell(size(event_variables_to_save.stance_foot_data, 1), 1);
-            for i_stretch = 1 : length(condition_subject_list)
-                condition_subject_list{i_stretch} = subject_id;
+            subject_list = cell(size(event_variables_to_save.stance_foot_data, 1), 1);
+            for i_stretch = 1 : length(subject_list)
+                subject_list{i_stretch} = subject_id;
             end
-            conditions_trial.condition_subject_list = condition_subject_list;
+            conditions_trial.subject_list = subject_list;
 
             %% remove stretches where important variables are missing
 
