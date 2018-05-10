@@ -1762,7 +1762,7 @@ function determineStretchesToAnalyze(varargin)
                             removed_indices_step_one = removed_indices_step_three;
                             removed_indices_step_two = removed_indices_step_three;
                             removed_indices_step_four = removed_indices_step_three;
-                        else max_index_step == 4
+                        elseif max_index_step == 4
                             removed_indices_step_one = removed_indices_step_four;
                             removed_indices_step_two = removed_indices_step_four;
                             removed_indices_step_three = removed_indices_step_four;
