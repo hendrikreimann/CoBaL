@@ -23,12 +23,12 @@ function processSubjects(varargin)
 %         createModel
 % % % 
 %         findStepEvents
-%         determineStretchesToAnalyze
+        determineStretchesToAnalyze
 %         calculateKinematicTrajectories('register_without_calculating', 1)
 % % % 
 %         findEmgNormalization
 %         calculatePhaseTrajectories
-%         processStretchVariables
+        processStretchVariables
         processAnalysisVariables
 %         onset_classification
         cd(study_path)

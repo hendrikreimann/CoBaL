@@ -1713,7 +1713,7 @@ function determineStretchesToAnalyze(varargin)
             % condition_index,'ONE', 'THREE', and 'FOUR'
             if study_settings.get('equate_step_indices')
                 removal_flag_indices = find(removal_flags);
-                this_step_condition_type = conditions_trial.condition_index_list(removal_flag_indices)
+                this_step_condition_type = conditions_trial.condition_index_list(removal_flag_indices);
                 if any(~strcmp(this_step_condition_type, 'CONTROL'))
                     indices_step_one = find(strcmp(conditions_trial.condition_index_list, 'ONE'));
                     indices_step_two = find(strcmp(conditions_trial.condition_index_list, 'TWO'));
@@ -1738,10 +1738,17 @@ function determineStretchesToAnalyze(varargin)
                         number_removed_indices_step_three = length(removed_indices_step_three);
                         number_removed_indices_step_four = length(removed_indices_step_four);
                         
+                        
+                        concat_removed_step_indices = [number_removed_indices_step_one, number_removed_indices_step_two, number_removed_indices_step_three, number_removed_indices_step_four];
+                        
                         % TF: probably a way to shorten this process
                         % TF: this does not work..
-                        max_index_step = find(max([number_removed_indices_step_one, number_removed_indices_step_two, number_removed_indices_step_three, number_removed_indices_step_four]));
-                        % what happens if two are equal...
+                        max_index_step = find(concat_removed_step_indices == max(concat_removed_step_indices));
+                        % what happens if two are equal?.. just take the
+                        % first
+                        if length(max_index_step) > 1
+                           max_index_step = max_index_step(1); 
+                        end
                         
                         if max_index_step == 1
                             removed_indices_step_two = removed_indices_step_one;
