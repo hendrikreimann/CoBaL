@@ -1646,6 +1646,8 @@ function determineStretchesToAnalyze(varargin)
             removal_flags = zeros(number_of_stretches, 1);
             
             % take care of stretches with very large or small stretch duration
+            % TO DO: TF: this is most likely where asymmetric indices are
+            % created
             if study_settings.get('prune_step_time_outliers')
                 for i_stretch = 1 : number_of_stretches
                     stretch_durations = stretch_times(i_stretch, end) - stretch_times(i_stretch, 1);
@@ -1702,9 +1704,68 @@ function determineStretchesToAnalyze(varargin)
                             end
                         end
                     end
-                end
-                
+                end         
             end
+            
+            % find index of step index in this subject and remove that
+            % index in other step indices (i.e if 2nd index of
+            % condition_index,'TWO' is flagged, remove 2nd index of
+            % condition_index,'ONE', 'THREE', and 'FOUR'
+            if study_settings.get('equate_step_indices')
+                removal_flag_indices = find(removal_flags);
+                this_step_condition_type = conditions_trial.condition_index_list(removal_flag_indices)
+                if any(~strcmp(this_step_condition_type, 'CONTROL'))
+                    indices_step_one = find(strcmp(conditions_trial.condition_index_list, 'ONE'));
+                    indices_step_two = find(strcmp(conditions_trial.condition_index_list, 'TWO'));
+                    indices_step_three = find(strcmp(conditions_trial.condition_index_list, 'THREE'));
+                    indices_step_four = find(strcmp(conditions_trial.condition_index_list, 'FOUR'));
+                    
+                    removed_indices_step_one = ismember(indices_step_one,removal_flag_indices);
+                    removed_indices_step_two = ismember(indices_step_two,removal_flag_indices);
+                    removed_indices_step_three = ismember(indices_step_three,removal_flag_indices);
+                    removed_indices_step_four = ismember(indices_step_four,removal_flag_indices);
+                    
+                    removed_indices_step_one = find(removed_indices_step_one);
+                    removed_indices_step_two = find(removed_indices_step_two);
+                    removed_indices_step_three = find(removed_indices_step_three);
+                    removed_indices_step_four = find(removed_indices_step_four);
+                    
+                    % find which index has the most removals.. only if
+                    % not equal..
+                    if ~isequal(removed_indices_step_one,removed_indices_step_two, removed_indices_step_three, removed_indices_step_four)
+                        number_removed_indices_step_one = length(removed_indices_step_one);
+                        number_removed_indices_step_two = length(removed_indices_step_two);
+                        number_removed_indices_step_three = length(removed_indices_step_three);
+                        number_removed_indices_step_four = length(removed_indices_step_four);
+                        
+                        % TF: probably a way to shorten this process
+                        % TF: this does not work..
+                        max_index_step = find(max([number_removed_indices_step_one, number_removed_indices_step_two, number_removed_indices_step_three, number_removed_indices_step_four]));
+                        % what happens if two are equal...
+                        
+                        if max_index_step == 1
+                            removed_indices_step_two = removed_indices_step_one;
+                            removed_indices_step_three = removed_indices_step_one;
+                            removed_indices_step_four = removed_indices_step_one;
+                        elseif max_index_step == 2
+                            removed_indices_step_one = removed_indices_step_two;
+                            removed_indices_step_three = removed_indices_step_two;
+                            removed_indices_step_four = removed_indices_step_two;
+                        elseif max_index_step == 3
+                            removed_indices_step_one = removed_indices_step_three;
+                            removed_indices_step_two = removed_indices_step_three;
+                            removed_indices_step_four = removed_indices_step_three;
+                        else max_index_step == 4
+                            removed_indices_step_one = removed_indices_step_four;
+                            removed_indices_step_two = removed_indices_step_four;
+                            removed_indices_step_three = removed_indices_step_four;
+                        end
+                    end
+                    removal_flag_indices = [indices_step_one(removed_indices_step_one); indices_step_two(removed_indices_step_two); indices_step_three(removed_indices_step_three); indices_step_four(removed_indices_step_four)];
+                    removal_flags(removal_flag_indices) = 1;
+                end
+            end
+            
 
             % remove flagged stretches
             unflagged_indices = ~removal_flags;
