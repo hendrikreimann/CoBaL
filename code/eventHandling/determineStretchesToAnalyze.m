@@ -1725,60 +1725,27 @@ function determineStretchesToAnalyze(varargin)
                     indices_step_two = find(strcmp(conditions_trial.condition_index_list, 'TWO'));
                     indices_step_three = find(strcmp(conditions_trial.condition_index_list, 'THREE'));
                     indices_step_four = find(strcmp(conditions_trial.condition_index_list, 'FOUR'));
+                    indices_step_control = find(strcmp(conditions_trial.condition_index_list, 'CONTROL'));
                     
-                    removed_indices_step_one = ismember(indices_step_one,removal_flag_indices);
-                    removed_indices_step_two = ismember(indices_step_two,removal_flag_indices);
-                    removed_indices_step_three = ismember(indices_step_three,removal_flag_indices);
-                    removed_indices_step_four = ismember(indices_step_four,removal_flag_indices);
+                    removed_indices_step_one = ismember(indices_step_one,removal_flag_indices, 'rows');
+                    removed_indices_step_two = ismember(indices_step_two,removal_flag_indices, 'rows');
+                    removed_indices_step_three = ismember(indices_step_three,removal_flag_indices, 'rows');
+                    removed_indices_step_four = ismember(indices_step_four,removal_flag_indices, 'rows');
+                    removed_indices_control = ismember(indices_step_control, removal_flag_indices, 'rows');
+    
+                    removal_flags_reshaped = [removed_indices_step_one removed_indices_step_two removed_indices_step_three removed_indices_step_four];
                     
-                    removed_indices_step_one = find(removed_indices_step_one);
-                    removed_indices_step_two = find(removed_indices_step_two);
-                    removed_indices_step_three = find(removed_indices_step_three);
-                    removed_indices_step_four = find(removed_indices_step_four);
-                    
-                    % find which index has the most removals.. only if
-                    % not equal..
-                    if ~isequal(removed_indices_step_one,removed_indices_step_two, removed_indices_step_three, removed_indices_step_four)
-                        number_removed_indices_step_one = length(removed_indices_step_one);
-                        number_removed_indices_step_two = length(removed_indices_step_two);
-                        number_removed_indices_step_three = length(removed_indices_step_three);
-                        number_removed_indices_step_four = length(removed_indices_step_four);
-                        
-                        concat_removed_step_indices = [number_removed_indices_step_one, number_removed_indices_step_two, number_removed_indices_step_three, number_removed_indices_step_four];
-                        
-                        % TF: probably a way to shorten this process
-                        % TF: this does not work..
-                        max_index_step = find(concat_removed_step_indices == max(concat_removed_step_indices));
-                        % what happens if two are equal?.. just take the
-                        % first
-                        if length(max_index_step) > 1
-                           max_index_step = max_index_step(1); 
-                        end
-                        
-                        if max_index_step == 1
-                            removed_indices_step_two = removed_indices_step_one;
-                            removed_indices_step_three = removed_indices_step_one;
-                            removed_indices_step_four = removed_indices_step_one;
-                        elseif max_index_step == 2
-                            removed_indices_step_one = removed_indices_step_two;
-                            removed_indices_step_three = removed_indices_step_two;
-                            removed_indices_step_four = removed_indices_step_two;
-                        elseif max_index_step == 3
-                            removed_indices_step_one = removed_indices_step_three;
-                            removed_indices_step_two = removed_indices_step_three;
-                            removed_indices_step_four = removed_indices_step_three;
-                        elseif max_index_step == 4
-                            removed_indices_step_one = removed_indices_step_four;
-                            removed_indices_step_two = removed_indices_step_four;
-                            removed_indices_step_three = removed_indices_step_four;
-                        end
+                    for i_trigger = 1 : size(removal_flags_reshaped, 1)
+                       if any(removal_flags_reshaped(i_trigger,:))
+                          removal_flags_reshaped(i_trigger, :) = [1 1 1 1]; 
+                       end
                     end
-%                     if any(isempty(indices_step_three))
-%                         removal_flags(:) = 1;
-%                     else
-                        removal_flag_indices = [indices_step_one(removed_indices_step_one); indices_step_two(removed_indices_step_two); indices_step_three(removed_indices_step_three); indices_step_four(removed_indices_step_four)];
-                        removal_flags(removal_flag_indices) = 1;
-%                     end
+                    
+                    % reshape back to original structure
+                    removal_flag_indices = reshape(removal_flags_reshaped, [size(removal_flags_reshaped , 1) * 4, 1]);
+                    % add control back in
+                    removal_flags = [removal_flag_indices; removed_indices_control];
+                    
                 end
             end
             
