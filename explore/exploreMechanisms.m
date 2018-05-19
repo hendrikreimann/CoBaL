@@ -1,11 +1,68 @@
+%% this script is currently choose as you go.. does not run as a functional script.. hacked together for DW and NIH grant
+
+
+% load data and settings
+
+loaded_data_OA1 = load('G:\My Drive\Vision_OA\results_grant1.mat');
+loaded_data_OA2 = load('G:\My Drive\CoBaL_Test_Data\Vision_OA\results_grant1.mat');
+
+
+%% invert OA and PD data
+% OA1
+
+index_indicator_step_one_OA1 =  strcmp(loaded_data_OA1.conditions.condition_index_list, 'ONE');
+illusionleft_indicator_OA1 = strcmp(loaded_data_OA1.conditions.condition_perturbation_list,'ILLUSION_LEFT');
+illusionright_indicator_OA1 = strcmp(loaded_data_OA1.conditions.condition_perturbation_list,'ILLUSION_RIGHT');
+this_cop_data_OA1 = loaded_data_OA1.variable_data{find(strcmp(loaded_data_OA1.variable_names, 'cop_from_mpsis_x'))}(end,:)
+this_cop_data_step_one_inverted_OA1 = [this_cop_data_OA1(:, illusionright_indicator_OA1 & index_indicator_step_one_OA1), this_cop_data_OA1(:, illusionleft_indicator_OA1 & index_indicator_step_one_OA1) * -1];
+
+
+this_step_data_OA1 = loaded_data_OA1.variable_data{find(strcmp(loaded_data_OA1.variable_names, 'step_placement_x'))};
+this_step_step_one_inverted_OA1 = [this_step_data_OA1(:, illusionright_indicator_OA1 & index_indicator_step_one_OA1), this_step_data_OA1(:, illusionleft_indicator_OA1 & index_indicator_step_one_OA1) * -1];
+
+% OA2
+% index_indicator_step_one_OA2 =  strcmp(loaded_data_OA2.conditions.condition_index_list, 'ONE');
+illusionleft_indicator_OA2 = strcmp(loaded_data_OA2.conditions.stimulus_list,'STIM_LEFT');
+illusionright_indicator_OA2 = strcmp(loaded_data_OA2.conditions.stimulus_list,'STIM_RIGHT');
+this_cop_data_OA2 = loaded_data_OA2.variable_data{find(strcmp(loaded_data_OA2.variable_names, 'cop_from_mpsis_x'))}(100,:); % this index is for step one end
+this_cop_data_step_one_inverted_OA2 = [this_cop_data_OA2(:, illusionright_indicator_OA2), this_cop_data_OA2(:, illusionleft_indicator_OA2) * -1];
+
+this_step_data_OA2 = loaded_data_OA2.variable_data{find(strcmp(loaded_data_OA2.variable_names, 'step_placement_x'))}(1,:); % this index is for step one index
+this_step_step_one_inverted_OA2 = [this_step_data_OA2(:, illusionright_indicator_OA2), this_step_data_OA2(:, illusionleft_indicator_OA2) * -1];
+
+% concat OA1 and OA2
+this_cop_data_OA = [this_cop_data_step_one_inverted_OA1 this_cop_data_step_one_inverted_OA2];
+this_step_data_OA = [this_step_step_one_inverted_OA1 this_step_step_one_inverted_OA2];
+
+% plot OA
+[r , p] = corr(this_cop_data_OA', this_step_data_OA')
+r2 = r^2
+
+figure;
+plot(this_cop_data_OA, this_step_data_OA,'o', 'color','k');
+
+
+
+%% HY Data
+
 plot_cop_step = 0;
 plot_icop_step = 0;
 plot_i2cop_step = 0;
 trigger_leg_ankle_dorsiflexion_max = 0;
-
-% load data and settings
+% TO DO: check for NaNs in Cop_step_end
+% TO DO: integrated is less predictive than step end??
+% TO DO: check cop_integrated
+% TO DO: properly label the xticks on the bar graphs
+% TO DO: label the x and y axes
+% TO DO: transform heel trajectories into contra heel
+% TO DO: check the conditions with which plotting cop and others..
+% may be combining conditions that should not be combined
+% TO DO: plot shadedError without occlusion..
+% TO DO: add step trigger pushoff correlation with step length on step
+% two
+% TO DO; HAVE to uninvert triggerleg dorsiflexion for comparison to
+% step length
 load('D:\DataStorage\Vision_HY\results.mat')
-
 index_indicator_step_one = strcmp(conditions.condition_index_list, 'ONE');
 index_indicator_step_two = strcmp(conditions.condition_index_list, 'TWO');
 
@@ -25,20 +82,6 @@ group_indicator_no = strcmp(conditions.condition_group_list, 'None');
 index_indicator_early = index_indicator_step_one & group_indicator_early;
 index_indicator_late = index_indicator_step_one & group_indicator_late;
 index_indicator_no = index_indicator_step_one & group_indicator_no;
-
-% TO DO: check for NaNs in Cop_step_end
-% TO DO: integrated is less predictive than step end??
-% TO DO: check cop_integrated
-% TO DO: properly label the xticks on the bar graphs
-% TO DO: label the x and y axes
-% TO DO: transform heel trajectories into contra heel
-% TO DO: check the conditions with which plotting cop and others..
-% may be combining conditions that should not be combined
-% TO DO: plot shadedError without occlusion..
-% TO DO: add step trigger pushoff correlation with step length on step
-% two
-% TO DO; HAVE to uninvert triggerleg dorsiflexion for comparison to
-% step length
 
 if plot_cop_step
     this_x_data = variable_data{find(strcmp(variable_names, 'cop_from_com_x_step_end_inverted'))}(:,index_indicator_step_one);
@@ -73,19 +116,6 @@ if plot_cop_step
     end
     figure;
     plot(this_x_data, this_y_data,'o', 'color','k');
-
-
-
-    hold on;
-    plot(variable_data{find(strcmp(variable_names, 'cop_from_com_x_step_end_inverted'))}(:,index_indicator_right_0_illusionLeft), variable_data{find(strcmp(variable_names, 'step_placement_x_inverted'))}(:,index_indicator_right_0_illusionLeft),'*');
-
-    plot(variable_data{find(strcmp(variable_names, 'cop_from_com_x_step_end_inverted'))}(:,index_indicator_right_150_illusionRight), variable_data{find(strcmp(variable_names, 'step_placement_x_inverted'))}(:,index_indicator_right_150_illusionRight),'*');
-    hold on;
-    plot(variable_data{find(strcmp(variable_names, 'cop_from_com_x_step_end_inverted'))}(:,index_indicator_right_150_illusionLeft), variable_data{find(strcmp(variable_names, 'step_placement_x_inverted'))}(:,index_indicator_right_150_illusionLeft),'*');
-
-    plot(variable_data{find(strcmp(variable_names, 'cop_from_com_x_step_end_inverted'))}(:,index_indicator_right_450_illusionRight), variable_data{find(strcmp(variable_names, 'step_placement_x_inverted'))}(:,index_indicator_right_450_illusionRight),'*');
-    hold on;
-    plot(variable_data{find(strcmp(variable_names, 'cop_from_com_x_step_end_inverted'))}(:,index_indicator_right_450_illusionLeft), variable_data{find(strcmp(variable_names, 'step_placement_x_inverted'))}(:,index_indicator_right_450_illusionLeft),'*');
 end
 
 if plot_icop_step
