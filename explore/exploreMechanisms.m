@@ -1,21 +1,17 @@
 %% this script is currently choose as you go.. does not run as a functional script.. hacked together for DW and NIH grant
 
-
 % load data and settings
-
 loaded_data_OA1 = load('G:\My Drive\Vision_OA\results_grant1.mat');
 loaded_data_OA2 = load('G:\My Drive\CoBaL_Test_Data\Vision_OA\results_grant1.mat');
 
 
 %% invert OA and PD data
 % OA1
-
 index_indicator_step_one_OA1 =  strcmp(loaded_data_OA1.conditions.condition_index_list, 'ONE');
 illusionleft_indicator_OA1 = strcmp(loaded_data_OA1.conditions.condition_perturbation_list,'ILLUSION_LEFT');
 illusionright_indicator_OA1 = strcmp(loaded_data_OA1.conditions.condition_perturbation_list,'ILLUSION_RIGHT');
 this_cop_data_OA1 = loaded_data_OA1.variable_data{find(strcmp(loaded_data_OA1.variable_names, 'cop_from_mpsis_x'))}(end,:)
 this_cop_data_step_one_inverted_OA1 = [this_cop_data_OA1(:, illusionright_indicator_OA1 & index_indicator_step_one_OA1), this_cop_data_OA1(:, illusionleft_indicator_OA1 & index_indicator_step_one_OA1) * -1];
-
 
 this_step_data_OA1 = loaded_data_OA1.variable_data{find(strcmp(loaded_data_OA1.variable_names, 'step_placement_x'))};
 this_step_step_one_inverted_OA1 = [this_step_data_OA1(:, illusionright_indicator_OA1 & index_indicator_step_one_OA1), this_step_data_OA1(:, illusionleft_indicator_OA1 & index_indicator_step_one_OA1) * -1];
@@ -40,7 +36,6 @@ r2 = r^2
 
 figure;
 plot(this_cop_data_OA, this_step_data_OA,'o', 'color','k');
-
 
 
 %% HY Data
