@@ -1,11 +1,19 @@
 %% this script is currently choose as you go.. does not run as a functional script.. hacked together for DW and NIH grant
 
+
+% load data and settings
+loaded_data_PD1 = load('G:\My Drive\Vision_OA\results_grant1.mat');
+loaded_data_PD2 = load('G:\My Drive\CoBaL_Test_Data\Vision_OA\results_grant1.mat');
+
+
+
+
+
+%% OA coordination plot 
 % load data and settings
 loaded_data_OA1 = load('G:\My Drive\Vision_OA\results_grant1.mat');
 loaded_data_OA2 = load('G:\My Drive\CoBaL_Test_Data\Vision_OA\results_grant1.mat');
 
-
-%% invert OA and PD data
 % OA1
 index_indicator_step_one_OA1 =  strcmp(loaded_data_OA1.conditions.condition_index_list, 'ONE');
 illusionleft_indicator_OA1 = strcmp(loaded_data_OA1.conditions.condition_perturbation_list,'ILLUSION_LEFT');
