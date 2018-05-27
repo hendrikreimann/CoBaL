@@ -34,8 +34,9 @@ this_step_data_OA = [this_step_step_one_inverted_OA1 this_step_step_one_inverted
 [r , p] = corr(this_cop_data_OA', this_step_data_OA')
 r2 = r^2
 
-figure;
-plot(this_cop_data_OA, this_step_data_OA,'o', 'color','k');
+% figure;
+hold on;
+plot(this_cop_data_OA, this_step_data_OA,'o', 'color',[83/255, 80/255, 162/255],'LineWidth',2);
 
 
 %% HY Data
@@ -110,7 +111,7 @@ if plot_cop_step
         r2 = r^2
     end
     figure;
-    plot(this_x_data, this_y_data,'o', 'color','k');
+    plot(this_x_data, this_y_data,'o', 'color',[203/255, 219/255, 42/255],'LineWidth',2);
 end
 
 if plot_icop_step
