@@ -2,8 +2,8 @@
 
 
 % load data and settings
-loaded_data_PD1 = load('G:\My Drive\Vision_OA\results_grant1.mat');
-loaded_data_PD2 = load('G:\My Drive\CoBaL_Test_Data\Vision_OA\results_grant1.mat');
+loaded_data_PD1 = load('G:\My Drive\CoBaL_Test_Data\PD_pilot\results_PD01.mat');
+loaded_data_PD2 = load('G:\My Drive\CoBaL_Test_Data\PD_pilot\results_PD02.mat');
 
 
 
@@ -45,7 +45,7 @@ r2 = r^2
 % figure;
 hold on;
 plot(this_cop_data_OA, this_step_data_OA,'o', 'color',[83/255, 80/255, 162/255],'LineWidth',2);
-
+lsline('LineWidth', 3); 
 
 %% HY Data
 
@@ -120,6 +120,7 @@ if plot_cop_step
     end
     figure;
     plot(this_x_data, this_y_data,'o', 'color',[203/255, 219/255, 42/255],'LineWidth',2);
+    lsline;
 end
 
 if plot_icop_step
