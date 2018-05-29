@@ -5,9 +5,43 @@
 loaded_data_PD1 = load('G:\My Drive\CoBaL_Test_Data\PD_pilot\results_PD01.mat');
 loaded_data_PD2 = load('G:\My Drive\CoBaL_Test_Data\PD_pilot\results_PD02.mat');
 
+% PD1
+% index_indicator_step_one_PD1 =  strcmp(loaded_data_PD1.conditions.condition_index_list, 'ONE');
+illusionleft_indicator_PD1 = strcmp(loaded_data_PD1.conditions.stimulus_list,'STIM_LEFT');
+illusionright_indicator_PD1 = strcmp(loaded_data_PD1.conditions.stimulus_list,'STIM_RIGHT');
+this_cop_data_PD1 = loaded_data_PD1.variable_data{find(strcmp(loaded_data_PD1.variable_names, 'cop_from_mpsis_x'))}(100,:);
+this_cop_data_step_one_inverted_PD1 = [this_cop_data_PD1(:, illusionright_indicator_PD1 ), this_cop_data_PD1(:, illusionleft_indicator_PD1) * -1];
 
+this_step_data_PD1 = loaded_data_PD1.variable_data{find(strcmp(loaded_data_PD1.variable_names, 'step_placement_x'))}(1,:);
+this_step_step_one_inverted_PD1 = [this_step_data_PD1(:, illusionright_indicator_PD1), this_step_data_PD1(:, illusionleft_indicator_PD1) * -1];
 
+% PD1
+% index_indicator_step_one_PD2 =  strcmp(loaded_data_PD2.conditions.condition_index_list, 'ONE');
+illusionleft_indicator_PD2 = strcmp(loaded_data_PD2.conditions.stimulus_list,'STIM_LEFT');
+illusionright_indicator_PD2 = strcmp(loaded_data_PD2.conditions.stimulus_list,'STIM_RIGHT');
+this_cop_data_PD2 = loaded_data_PD2.variable_data{find(strcmp(loaded_data_PD2.variable_names, 'cop_from_mpsis_x'))}(100,:)
+this_cop_data_step_one_inverted_PD2 = [this_cop_data_PD2(:, illusionright_indicator_PD2 ), this_cop_data_PD2(:, illusionleft_indicator_PD2 ) * -1];
 
+this_step_data_PD2 = loaded_data_PD2.variable_data{find(strcmp(loaded_data_PD2.variable_names, 'step_placement_x'))}(1,:);
+this_step_step_one_inverted_PD2 = [this_step_data_PD2(:, illusionright_indicator_PD2 ), this_step_data_PD2(:, illusionleft_indicator_PD2 ) * -1];
+
+% concat OA1 and OA2
+this_cop_data_PD = [this_cop_data_step_one_inverted_PD1 this_cop_data_step_one_inverted_PD2];
+this_step_data_PD = [this_step_step_one_inverted_PD1 this_step_step_one_inverted_PD2];
+
+% plot OA
+[r , p] = corr(this_cop_data_PD', this_step_data_PD')
+r2 = r^2
+
+% figure;
+hold on;
+plot(this_cop_data_PD, this_step_data_PD,'o', 'color',[241/255, 90/255, 34/255],'LineWidth',2);
+% lsline; 
+line(1).Color = [241/255, 90/255, 34/255];
+line(1).LineWidth = 3;
+
+coefs = polyfit(this_cop_data_PD,this_step_data_PD, 1);
+coefs(1)
 
 %% OA coordination plot 
 % load data and settings
@@ -18,7 +52,7 @@ loaded_data_OA2 = load('G:\My Drive\CoBaL_Test_Data\Vision_OA\results_grant1.mat
 index_indicator_step_one_OA1 =  strcmp(loaded_data_OA1.conditions.condition_index_list, 'ONE');
 illusionleft_indicator_OA1 = strcmp(loaded_data_OA1.conditions.condition_perturbation_list,'ILLUSION_LEFT');
 illusionright_indicator_OA1 = strcmp(loaded_data_OA1.conditions.condition_perturbation_list,'ILLUSION_RIGHT');
-this_cop_data_OA1 = loaded_data_OA1.variable_data{find(strcmp(loaded_data_OA1.variable_names, 'cop_from_mpsis_x'))}(end,:)
+this_cop_data_OA1 = loaded_data_OA1.variable_data{find(strcmp(loaded_data_OA1.variable_names, 'cop_from_mpsis_x'))}(end,:);
 this_cop_data_step_one_inverted_OA1 = [this_cop_data_OA1(:, illusionright_indicator_OA1 & index_indicator_step_one_OA1), this_cop_data_OA1(:, illusionleft_indicator_OA1 & index_indicator_step_one_OA1) * -1];
 
 this_step_data_OA1 = loaded_data_OA1.variable_data{find(strcmp(loaded_data_OA1.variable_names, 'step_placement_x'))};
@@ -45,7 +79,15 @@ r2 = r^2
 % figure;
 hold on;
 plot(this_cop_data_OA, this_step_data_OA,'o', 'color',[83/255, 80/255, 162/255],'LineWidth',2);
-lsline('LineWidth', 3); 
+% oa1 = fitlm(this_cop_data_OA, this_step_data_OA);
+% plotAdded(oa1)
+
+coefs = polyfit(this_cop_data_OA,this_step_data_OA, 1);
+coefs(1)
+
+%  oaline = lsline;
+ line(2).Color = [83/255, 80/255, 162/255];
+ line(2).LineWidth = 3;
 
 %% HY Data
 
@@ -118,9 +160,35 @@ if plot_cop_step
         [r , p] = corr(this_x_data', this_y_data')
         r2 = r^2
     end
-    figure;
-    plot(this_x_data, this_y_data,'o', 'color',[203/255, 219/255, 42/255],'LineWidth',2);
-    lsline;
+    figure; hold on;
+    plot(this_x_data, this_y_data,'o', 'MarkerEdgeColor',[203/255, 219/255, 42/255],'LineWidth',2);
+    
+    coefs = polyfit(this_x_data,this_y_data, 1);
+    coefs(1)
+%     hy1 = fitlm(this_x_data, this_y_data);
+%     hy1 = fitlm(tb1,'this_y_data ~ this_x_data');
+%     plotAdded(hy1)
+    line = lsline;
+    line(3).Color = [203/255, 219/255, 42/255];
+    line(3).LineWidth = 3;
+%     
+%     HY_line = lsline(HY_scatter);
+%     HY_line.LineWidth = 3;
+%     c = polyfit(this_x_data,this_y_data,1);
+%     y_est = polyval(c,this_x_data);
+    
+    
+    
+    % find limits of fig and linspace between for x of linear reg line
+%     xLimits = get(gca,'XLim');
+%     yLimits = get(gca,'YLIm');
+%     this_x_data_4_regline = linspace(xLimits(1), xLimits(2), length(this_x_data));
+% 
+%     b = this_x_data/this_y_data;
+%     yhat = b*[0 this_x_data];
+    
+%     plot(this_x_data_4_regline, y_est, 'LineStyle', '-', 'color',[203/255, 219/255, 42/255], 'LineWidth',2)
+%     plot([xLimits(1) xLimits(2), yLimits(1) yhat], 'color',[203/255, 219/255, 42/255], 'LineWidth',2)
 end
 
 if plot_icop_step
