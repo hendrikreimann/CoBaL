@@ -1,19 +1,114 @@
-% data_type = 'vision';
-data_type = 'gvs';
+%% this script is currently choose as you go.. does not run as a functional script.. hacked together for DW and NIH grant
+
+
+% load data and settings
+loaded_data_PD1 = load('G:\My Drive\CoBaL_Test_Data\PD_pilot\results_PD01.mat');
+loaded_data_PD2 = load('G:\My Drive\CoBaL_Test_Data\PD_pilot\results_PD02.mat');
+
+% PD1
+% index_indicator_step_one_PD1 =  strcmp(loaded_data_PD1.conditions.condition_index_list, 'ONE');
+illusionleft_indicator_PD1 = strcmp(loaded_data_PD1.conditions.stimulus_list,'STIM_LEFT');
+illusionright_indicator_PD1 = strcmp(loaded_data_PD1.conditions.stimulus_list,'STIM_RIGHT');
+this_cop_data_PD1 = loaded_data_PD1.variable_data{find(strcmp(loaded_data_PD1.variable_names, 'cop_from_mpsis_x'))}(100,:);
+this_cop_data_step_one_inverted_PD1 = [this_cop_data_PD1(:, illusionright_indicator_PD1 ), this_cop_data_PD1(:, illusionleft_indicator_PD1) * -1];
+
+this_step_data_PD1 = loaded_data_PD1.variable_data{find(strcmp(loaded_data_PD1.variable_names, 'step_placement_x'))}(1,:);
+this_step_step_one_inverted_PD1 = [this_step_data_PD1(:, illusionright_indicator_PD1), this_step_data_PD1(:, illusionleft_indicator_PD1) * -1];
+
+% PD1
+% index_indicator_step_one_PD2 =  strcmp(loaded_data_PD2.conditions.condition_index_list, 'ONE');
+illusionleft_indicator_PD2 = strcmp(loaded_data_PD2.conditions.stimulus_list,'STIM_LEFT');
+illusionright_indicator_PD2 = strcmp(loaded_data_PD2.conditions.stimulus_list,'STIM_RIGHT');
+this_cop_data_PD2 = loaded_data_PD2.variable_data{find(strcmp(loaded_data_PD2.variable_names, 'cop_from_mpsis_x'))}(100,:)
+this_cop_data_step_one_inverted_PD2 = [this_cop_data_PD2(:, illusionright_indicator_PD2 ), this_cop_data_PD2(:, illusionleft_indicator_PD2 ) * -1];
+
+this_step_data_PD2 = loaded_data_PD2.variable_data{find(strcmp(loaded_data_PD2.variable_names, 'step_placement_x'))}(1,:);
+this_step_step_one_inverted_PD2 = [this_step_data_PD2(:, illusionright_indicator_PD2 ), this_step_data_PD2(:, illusionleft_indicator_PD2 ) * -1];
+
+% concat OA1 and OA2
+this_cop_data_PD = [this_cop_data_step_one_inverted_PD1 this_cop_data_step_one_inverted_PD2];
+this_step_data_PD = [this_step_step_one_inverted_PD1 this_step_step_one_inverted_PD2];
+
+% plot OA
+[r , p] = corr(this_cop_data_PD', this_step_data_PD')
+r2 = r^2
+
+% figure;
+hold on;
+plot(this_cop_data_PD, this_step_data_PD,'o', 'color',[241/255, 90/255, 34/255],'LineWidth',2);
+% lsline; 
+line(1).Color = [241/255, 90/255, 34/255];
+line(1).LineWidth = 3;
+
+coefs = polyfit(this_cop_data_PD,this_step_data_PD, 1);
+coefs(1)
+
+%% OA coordination plot 
+% load data and settings
+loaded_data_OA1 = load('G:\My Drive\Vision_OA\results_grant1.mat');
+loaded_data_OA2 = load('G:\My Drive\CoBaL_Test_Data\Vision_OA\results_grant1.mat');
+
+% OA1
+index_indicator_step_one_OA1 =  strcmp(loaded_data_OA1.conditions.condition_index_list, 'ONE');
+illusionleft_indicator_OA1 = strcmp(loaded_data_OA1.conditions.condition_perturbation_list,'ILLUSION_LEFT');
+illusionright_indicator_OA1 = strcmp(loaded_data_OA1.conditions.condition_perturbation_list,'ILLUSION_RIGHT');
+this_cop_data_OA1 = loaded_data_OA1.variable_data{find(strcmp(loaded_data_OA1.variable_names, 'cop_from_mpsis_x'))}(end,:);
+this_cop_data_step_one_inverted_OA1 = [this_cop_data_OA1(:, illusionright_indicator_OA1 & index_indicator_step_one_OA1), this_cop_data_OA1(:, illusionleft_indicator_OA1 & index_indicator_step_one_OA1) * -1];
+
+this_step_data_OA1 = loaded_data_OA1.variable_data{find(strcmp(loaded_data_OA1.variable_names, 'step_placement_x'))};
+this_step_step_one_inverted_OA1 = [this_step_data_OA1(:, illusionright_indicator_OA1 & index_indicator_step_one_OA1), this_step_data_OA1(:, illusionleft_indicator_OA1 & index_indicator_step_one_OA1) * -1];
+
+% OA2
+% index_indicator_step_one_OA2 =  strcmp(loaded_data_OA2.conditions.condition_index_list, 'ONE');
+illusionleft_indicator_OA2 = strcmp(loaded_data_OA2.conditions.stimulus_list,'STIM_LEFT');
+illusionright_indicator_OA2 = strcmp(loaded_data_OA2.conditions.stimulus_list,'STIM_RIGHT');
+this_cop_data_OA2 = loaded_data_OA2.variable_data{find(strcmp(loaded_data_OA2.variable_names, 'cop_from_mpsis_x'))}(100,:); % this index is for step one end
+this_cop_data_step_one_inverted_OA2 = [this_cop_data_OA2(:, illusionright_indicator_OA2), this_cop_data_OA2(:, illusionleft_indicator_OA2) * -1];
+
+this_step_data_OA2 = loaded_data_OA2.variable_data{find(strcmp(loaded_data_OA2.variable_names, 'step_placement_x'))}(1,:); % this index is for step one index
+this_step_step_one_inverted_OA2 = [this_step_data_OA2(:, illusionright_indicator_OA2), this_step_data_OA2(:, illusionleft_indicator_OA2) * -1];
+
+% concat OA1 and OA2
+this_cop_data_OA = [this_cop_data_step_one_inverted_OA1 this_cop_data_step_one_inverted_OA2];
+this_step_data_OA = [this_step_step_one_inverted_OA1 this_step_step_one_inverted_OA2];
+
+% plot OA
+[r , p] = corr(this_cop_data_OA', this_step_data_OA')
+r2 = r^2
+
+% figure;
+hold on;
+plot(this_cop_data_OA, this_step_data_OA,'o', 'color',[83/255, 80/255, 162/255],'LineWidth',2);
+% oa1 = fitlm(this_cop_data_OA, this_step_data_OA);
+% plotAdded(oa1)
+
+coefs = polyfit(this_cop_data_OA,this_step_data_OA, 1);
+coefs(1)
+
+%  oaline = lsline;
+ line(2).Color = [83/255, 80/255, 162/255];
+ line(2).LineWidth = 3;
+
+%% HY Data
 
 plot_cop_step = 0;
 plot_icop_step = 0;
 plot_i2cop_step = 0;
 trigger_leg_ankle_dorsiflexion_max = 0;
-
-% load data and settings
+% TO DO: check for NaNs in Cop_step_end
+% TO DO: integrated is less predictive than step end??
+% TO DO: check cop_integrated
+% TO DO: properly label the xticks on the bar graphs
+% TO DO: label the x and y axes
+% TO DO: transform heel trajectories into contra heel
+% TO DO: check the conditions with which plotting cop and others..
+% may be combining conditions that should not be combined
+% TO DO: plot shadedError without occlusion..
+% TO DO: add step trigger pushoff correlation with step length on step
+% two
+% TO DO; HAVE to uninvert triggerleg dorsiflexion for comparison to
+% step length
 load('D:\DataStorage\Vision_HY\results.mat')
-
-
-% subjects = {'DJB';'DXT';'EFU';'FNA';'GHJ';'IDA';'MTB';'NGY';'ONT';'PAG';'RON';'RRB';'SLL';'SPA';'UJD';'VQN';'WHO';'XDY';'YMU';'ZKY'}
-%     subject_indicator = ismember(conditions.subject_list,subjects(i_subject));
-
-% TO DO.. clean up index 
 index_indicator_step_one = strcmp(conditions.condition_index_list, 'ONE');
 index_indicator_step_two = strcmp(conditions.condition_index_list, 'TWO');
 
@@ -33,231 +128,232 @@ group_indicator_no = strcmp(conditions.condition_group_list, 'None');
 index_indicator_early = index_indicator_step_one & group_indicator_early;
 index_indicator_late = index_indicator_step_one & group_indicator_late;
 index_indicator_no = index_indicator_step_one & group_indicator_no;
-    
 
+if plot_cop_step
+    this_x_data = variable_data{find(strcmp(variable_names, 'cop_from_com_x_step_end_inverted'))}(:,index_indicator_step_one);
+    this_y_data = variable_data{find(strcmp(variable_names, 'step_placement_x_inverted'))}(:,index_indicator_step_one);
 
-for i_variable = 1 : number_of_variables_to_test
-    
-    % TO DO: check for NaNs in Cop_step_end
-    % TO DO: integrated is less predictive than step end??
-    % TO DO: check cop_integrated
-    % TO DO: properly label the xticks on the bar graphs
-    % TO DO: label the x and y axes
-    % TO DO: transform heel trajectories into contra heel
-    % TO DO: check the conditions with which plotting cop and others..
-    % may be combining conditions that should not be combined
-    % TO DO: plot shadedError without occlusion..
-    % TO DO: add step trigger pushoff correlation with step length on step
-    % two
-    % TO DO; HAVE to uninvert triggerleg dorsiflexion for comparison to
-    % step length
-    
-    if plot_cop_step
-        this_x_data = variable_data{find(strcmp(variable_names, 'cop_from_com_x_step_end_inverted'))}(:,index_indicator_step_one);
-        this_y_data = variable_data{find(strcmp(variable_names, 'step_placement_x_inverted'))}(:,index_indicator_step_one);
-        
-        this_x_data = variable_data{find(strcmp(variable_names, 'cop_from_com_x_integrated_inverted'))}(:,index_indicator_step_one);
-        this_y_data = variable_data{find(strcmp(variable_names, 'step_placement_x_inverted'))}(:,index_indicator_step_one);
-        
-        this_x_data = variable_data{find(strcmp(variable_names, 'trigger_leg_ankle_dorsiflexion_step_end_inverted'))}(:,index_indicator_step_one);
-        this_y_data = variable_data{find(strcmp(variable_names, 'step_placement_x_inverted'))}(:,index_indicator_step_one);
-        
-        this_x_data = variable_data{find(strcmp(variable_names, 'cop_from_com_x_step_end_inverted'))}(:,index_indicator_step_one);
-        this_y_data = variable_data{find(strcmp(variable_names, 'trigger_leg_ankle_dorsiflexion_step_end_inverted'))}(:,index_indicator_step_one);
-        
-        this_x_data = variable_data{find(strcmp(variable_names, 'trigger_leg_ankle_dorsiflexion_step_end_inverted'))}(:,index_indicator_step_one);
-        this_y_data = variable_data{find(strcmp(variable_names, 'step_length'))}(:,index_indicator_step_two);
-        
-%         this_x_data = variable_data{find(strcmp(variable_names, 'trigger_leg_ankle_dorsiflexion_step_end'))}(:,index_indicator_step_two);
-%         this_y_data = variable_data{find(strcmp(variable_names, 'step_length'))}(:,index_indicator_step_two);
-        
-        if any(isnan(this_x_data)) | any(isnan(this_y_data))
-            indices_to_remove = find(isnan(this_x_data));
-            indicies_to_remove = [indices_to_remove find(isnan(this_x_data))];
-            this_x_data(indices_to_remove)=[]
-            this_y_data(indices_to_remove)=[]
-            [r , p] = corr(this_x_data', this_y_data')
-            r2 = r^2
-        end
-        figure;
-        plot(this_x_data, this_y_data,'*');
-        
-        
-        
-        hold on;
-        plot(variable_data{find(strcmp(variable_names, 'cop_from_com_x_step_end_inverted'))}(:,index_indicator_right_0_illusionLeft), variable_data{find(strcmp(variable_names, 'step_placement_x_inverted'))}(:,index_indicator_right_0_illusionLeft),'*');
-    
-        plot(variable_data{find(strcmp(variable_names, 'cop_from_com_x_step_end_inverted'))}(:,index_indicator_right_150_illusionRight), variable_data{find(strcmp(variable_names, 'step_placement_x_inverted'))}(:,index_indicator_right_150_illusionRight),'*');
-        hold on;
-        plot(variable_data{find(strcmp(variable_names, 'cop_from_com_x_step_end_inverted'))}(:,index_indicator_right_150_illusionLeft), variable_data{find(strcmp(variable_names, 'step_placement_x_inverted'))}(:,index_indicator_right_150_illusionLeft),'*');
-        
-        plot(variable_data{find(strcmp(variable_names, 'cop_from_com_x_step_end_inverted'))}(:,index_indicator_right_450_illusionRight), variable_data{find(strcmp(variable_names, 'step_placement_x_inverted'))}(:,index_indicator_right_450_illusionRight),'*');
-        hold on;
-        plot(variable_data{find(strcmp(variable_names, 'cop_from_com_x_step_end_inverted'))}(:,index_indicator_right_450_illusionLeft), variable_data{find(strcmp(variable_names, 'step_placement_x_inverted'))}(:,index_indicator_right_450_illusionLeft),'*');    
-    end
-    
-    if plot_icop_step
-        plot(variable_data{find(strcmp(variable_names, 'cop_from_com_x_integrated_inverted'))}(:,index_indicator_step_one), variable_data{find(strcmp(variable_names, 'step_placement_x_inverted'))}(:,index_indicator_step_one),'*');
-    end
-    
-    if plot_i2cop_step
-        plot(variable_data{find(strcmp(variable_names, 'cop_from_com_x_integrated_twice_inverted'))}(:,index_indicator_step_one), variable_data{find(strcmp(variable_names, 'step_placement_x_inverted'))}(:,index_indicator_step_one),'*');
-    end
-    
-    if plot_pushoff_step
-        plot(variable_data{find(strcmp(variable_names, 'left_ankle_dorsiflexion_step_end_inverted'))}(:,index_stanceleft_one), variable_data{find(strcmp(variable_names, 'step_placement_x_inverted'))}(:,index_stanceleft_one),'*');
-        hold on;
-        plot(variable_data{find(strcmp(variable_names, 'right_ankle_dorsiflexion_step_end_inverted'))}(:,index_stanceright_one), variable_data{find(strcmp(variable_names, 'step_placement_x_inverted'))}(:,index_stanceright_one),'*');
-    end
-    
-    if plot_pushoff_step
-        plot(variable_data{find(strcmp(variable_names, 'trigger_leg_ankle_dorsiflexion_step_end_inverted'))}(:,index_indicator_step_one), variable_data{find(strcmp(variable_names, 'step_placement_x_inverted'))}(:,index_indicator_step_one),'*');
-    end
-    
-    time_vector = linspace(0,100,100);
-    bar_group_xaxis = ['Early','Late', 'None'];
-    
-    if plot_group_cop
-        figure; hold on;
-        if strcmp(data_type, 'vision')
-            mean_cop_early = mean(variable_data{find(strcmp(variable_names, 'cop_from_com_x_inverted'))}(:,index_indicator_early),2);
-            cinv_cop_early = cinv(variable_data{find(strcmp(variable_names, 'cop_from_com_x_inverted'))}(:,index_indicator_early),2);
-            mean_cop_late = mean(variable_data{find(strcmp(variable_names, 'cop_from_com_x_inverted'))}(:,index_indicator_late),2);
-            cinv_cop_late = cinv(variable_data{find(strcmp(variable_names, 'cop_from_com_x_inverted'))}(:,index_indicator_late),2);
-            mean_cop_no = mean(variable_data{find(strcmp(variable_names, 'cop_from_com_x_inverted'))}(:,index_indicator_no),2);
-            cinv_cop_no = cinv(variable_data{find(strcmp(variable_names, 'cop_from_com_x_inverted'))}(:,index_indicator_no),2);
+    this_x_data = variable_data{find(strcmp(variable_names, 'cop_from_com_x_integrated_inverted'))}(:,index_indicator_step_one);
+    this_y_data = variable_data{find(strcmp(variable_names, 'step_placement_x_inverted'))}(:,index_indicator_step_one);
 
-            shadedErrorBar(time_vector, mean_cop_early, cinv_cop_early, 'm');
-            shadedErrorBar(time_vector, mean_cop_late, cinv_cop_late, 'c');
-            shadedErrorBar(time_vector, mean_cop_no, cinv_cop_no, 'b');
-        elseif strcmp(data_type, 'gvs')
-            mean_cop_0 = mean(variable_data{find(strcmp(variable_names, 'cop_from_com_x_inverted'))}(:,index_indicator_0),2);
-            cinv_cop_0 = cinv(variable_data{find(strcmp(variable_names, 'cop_from_com_x_inverted'))}(:,index_indicator_0),2);
-            mean_cop_150 = mean(variable_data{find(strcmp(variable_names, 'cop_from_com_x_inverted'))}(:,index_indicator_150),2);
-            cinv_cop_150 = cinv(variable_data{find(strcmp(variable_names, 'cop_from_com_x_inverted'))}(:,index_indicator_150),2);
-            mean_cop_450 = mean(variable_data{find(strcmp(variable_names, 'cop_from_com_x_inverted'))}(:,index_indicator_450),2);
-            cinv_cop_450 = cinv(variable_data{find(strcmp(variable_names, 'cop_from_com_x_inverted'))}(:,index_indicator_450),2);
+    this_x_data = variable_data{find(strcmp(variable_names, 'trigger_leg_ankle_dorsiflexion_step_end_inverted'))}(:,index_indicator_step_one);
+    this_y_data = variable_data{find(strcmp(variable_names, 'step_placement_x_inverted'))}(:,index_indicator_step_one);
 
-            shadedErrorBar(time_vector, mean_cop_0, cinv_cop_0, 'm');
-            shadedErrorBar(time_vector, mean_cop_150, cinv_cop_150, 'c');
-            shadedErrorBar(time_vector, mean_cop_450, cinv_cop_450, 'b');
-        end
-        
+    this_x_data = variable_data{find(strcmp(variable_names, 'trigger_leg_ankle_dorsiflexion_step_end_inverted'))}(:,index_indicator_step_one);
+    this_y_data = variable_data{find(strcmp(variable_names, 'cop_from_com_x_step_end_inverted'))}(:,index_indicator_step_one);
+
+    this_x_data = variable_data{find(strcmp(variable_names, 'trigger_leg_ankle_dorsiflexion_inverted_max'))}(:,index_indicator_step_two);
+    this_y_data = variable_data{find(strcmp(variable_names, 'cop_from_com_x_step_end_inverted'))}(:,index_indicator_step_one);
+
+    this_x_data = variable_data{find(strcmp(variable_names, 'trigger_leg_ankle_dorsiflexion_step_end_inverted'))}(:,index_indicator_step_one);
+    this_y_data = variable_data{find(strcmp(variable_names, 'step_length'))}(:,index_indicator_step_two);
+
+    %         this_x_data = variable_data{find(strcmp(variable_names, 'trigger_leg_ankle_dorsiflexion_step_end'))}(:,index_indicator_step_two);
+    %         this_y_data = variable_data{find(strcmp(variable_names, 'step_length'))}(:,index_indicator_step_two);
+
+    if any(isnan(this_x_data)) | any(isnan(this_y_data))
+        indices_to_remove = find(isnan(this_x_data));
+        indicies_to_remove = [indices_to_remove find(isnan(this_y_data))];
+        indicies_to_remove = unique(indices_to_remove);
+        this_x_data(indices_to_remove)=[]
+        this_y_data(indices_to_remove)=[]
+        [r , p] = corr(this_x_data', this_y_data')
+        r2 = r^2
     end
+    figure; hold on;
+    plot(this_x_data, this_y_data,'o', 'MarkerEdgeColor',[203/255, 219/255, 42/255],'LineWidth',2);
     
-    if plot_group_step
-        figure; hold on;
-        %             mean_step_early = mean(variable_data{find(strcmp(variable_names, 'step_placement_x_inverted'))}(:,index_indicator_early),2);
-        %             cinv_step_early = cinv(variable_data{find(strcmp(variable_names, 'step_placement_x_inverted'))}(:,index_indicator_early),2);
-        %             mean_step_late = mean(variable_data{find(strcmp(variable_names, 'step_placement_x_inverted'))}(:,index_indicator_late),2);
-        %             cinv_step_late = cinv(variable_data{find(strcmp(variable_names, 'step_placement_x_inverted'))}(:,index_indicator_late),2);
-        %             mean_step_no = mean(variable_data{find(strcmp(variable_names, 'step_placement_x_inverted'))}(:,index_indicator_no),2);
-        %             cinv_step_no = cinv(variable_data{find(strcmp(variable_names, 'step_placement_x_inverted'))}(:,index_indicator_no),2);
-        
-        shadedErrorBar(time_vector, mean_step_early, cinv_step_early, 'm');
-        shadedErrorBar(time_vector, mean_step_late, cinv_step_late, 'c');
-        shadedErrorBar(time_vector, mean_step_no, cinv_step_no, 'b');
-        
-    end
+    coefs = polyfit(this_x_data,this_y_data, 1);
+    coefs(1)
+%     hy1 = fitlm(this_x_data, this_y_data);
+%     hy1 = fitlm(tb1,'this_y_data ~ this_x_data');
+%     plotAdded(hy1)
+    line = lsline;
+    line(3).Color = [203/255, 219/255, 42/255];
+    line(3).LineWidth = 3;
+%     
+%     HY_line = lsline(HY_scatter);
+%     HY_line.LineWidth = 3;
+%     c = polyfit(this_x_data,this_y_data,1);
+%     y_est = polyval(c,this_x_data);
     
-    if plot_group_pushoff
-        figure; hold on;
-        mean_pushoff_early = mean(variable_data{find(strcmp(variable_names, 'trigger_leg_ankle_dorsiflexion_inverted'))}(:,index_indicator_early),2);
-        cinv_pushoff_early = cinv(variable_data{find(strcmp(variable_names, 'trigger_leg_ankle_dorsiflexion_inverted'))}(:,index_indicator_early),2);
-        mean_pushoff_late = mean(variable_data{find(strcmp(variable_names, 'trigger_leg_ankle_dorsiflexion_inverted'))}(:,index_indicator_late),2);
-        cinv_pushoff_late = cinv(variable_data{find(strcmp(variable_names, 'trigger_leg_ankle_dorsiflexion_inverted'))}(:,index_indicator_late),2);
-        mean_pushoff_no = mean(variable_data{find(strcmp(variable_names, 'trigger_leg_ankle_dorsiflexion_inverted'))}(:,index_indicator_no),2);
-        cinv_pushoff_no = cinv(variable_data{find(strcmp(variable_names, 'trigger_leg_ankle_dorsiflexion_inverted'))}(:,index_indicator_no),2);
-        
-        shadedErrorBar(time_vector, mean_pushoff_early, cinv_pushoff_early, 'm');
-        shadedErrorBar(time_vector, mean_pushoff_late, cinv_pushoff_late, 'c');
-        shadedErrorBar(time_vector, mean_pushoff_no, cinv_pushoff_no, 'b');
-    end
     
-    if plot_group_com
-        figure; hold on;
-        mean_com_early = mean(variable_data{find(strcmp(variable_names, 'com_x_inverted'))}(:,index_indicator_early),2);
-        cinv_com_early = cinv(variable_data{find(strcmp(variable_names, 'com_x_inverted'))}(:,index_indicator_early),2);
-        mean_com_late = mean(variable_data{find(strcmp(variable_names, 'com_x_inverted'))}(:,index_indicator_late),2);
-        cinv_com_late = cinv(variable_data{find(strcmp(variable_names, 'com_x_inverted'))}(:,index_indicator_late),2);
-        mean_com_no = mean(variable_data{find(strcmp(variable_names, 'com_x_inverted'))}(:,index_indicator_no),2);
-        cinv_com_no = cinv(variable_data{find(strcmp(variable_names, 'com_x_inverted'))}(:,index_indicator_no),2);
-        
-        shadedErrorBar(time_vector, mean_com_early, cinv_com_early, 'm');
-        shadedErrorBar(time_vector, mean_com_late, cinv_com_late, 'c');
-        shadedErrorBar(time_vector, mean_com_no, cinv_com_no, 'b');
-    end
     
-    if plot_group_com_init
-        figure; hold on;
-        mean_com_init_early = mean(variable_data{find(strcmp(variable_names, 'com_from_com_init_x_inverted'))}(:,index_indicator_early),2);
-        cinv_com_init_early = cinv(variable_data{find(strcmp(variable_names, 'com_from_com_init_x_inverted'))}(:,index_indicator_early),2);
-        mean_com_init_late = mean(variable_data{find(strcmp(variable_names, 'com_from_com_init_x_inverted'))}(:,index_indicator_late),2);
-        cinv_com_init_late = cinv(variable_data{find(strcmp(variable_names, 'com_from_com_init_x_inverted'))}(:,index_indicator_late),2);
-        mean_com_init_no = mean(variable_data{find(strcmp(variable_names, 'com_from_com_init_x_inverted'))}(:,index_indicator_no),2);
-        cinv_com_init_no = cinv(variable_data{find(strcmp(variable_names, 'com_from_com_init_x_inverted'))}(:,index_indicator_no),2);
-        
-        shadedErrorBar(time_vector, mean_com_init_early, cinv_com_init_early, 'm');
-        shadedErrorBar(time_vector, mean_com_init_late, cinv_com_init_late, 'c');
-        shadedErrorBar(time_vector, mean_com_init_no, cinv_com_init_no, 'b');
-    end
+    % find limits of fig and linspace between for x of linear reg line
+%     xLimits = get(gca,'XLim');
+%     yLimits = get(gca,'YLIm');
+%     this_x_data_4_regline = linspace(xLimits(1), xLimits(2), length(this_x_data));
+% 
+%     b = this_x_data/this_y_data;
+%     yhat = b*[0 this_x_data];
     
-    if plot_group_com_vel
-        figure; hold on;
-        mean_com_vel_early = mean(variable_data{find(strcmp(variable_names, 'com_x_vel_inverted'))}(:,index_indicator_early),2);
-        cinv_com_vel_early = cinv(variable_data{find(strcmp(variable_names, 'com_x_vel_inverted'))}(:,index_indicator_early),2);
-        mean_com_vel_late = mean(variable_data{find(strcmp(variable_names, 'com_x_vel_inverted'))}(:,index_indicator_late),2);
-        cinv_com_vel_late = cinv(variable_data{find(strcmp(variable_names, 'com_x_vel_inverted'))}(:,index_indicator_late),2);
-        mean_com_vel_no = mean(variable_data{find(strcmp(variable_names, 'com_x_vel_inverted'))}(:,index_indicator_no),2);
-        cinv_com_vel_no = cinv(variable_data{find(strcmp(variable_names, 'com_x_vel_inverted'))}(:,index_indicator_no),2);
-        
-        shadedErrorBar(time_vector, mean_com_vel_early, cinv_com_vel_early, 'm');
-        shadedErrorBar(time_vector, mean_com_vel_late, cinv_com_vel_late, 'c');
-        shadedErrorBar(time_vector, mean_com_vel_no, cinv_com_vel_no, 'b');
-    end
-    
-    if bar_group_cop
-        figure; hold on;
-        cop_means = [mean(variable_data{find(strcmp(variable_names, 'cop_from_com_x_step_end_inverted'))}(:,index_indicator_early),2), ...
-            mean(variable_data{find(strcmp(variable_names, 'cop_from_com_x_step_end_inverted'))}(:,index_indicator_late),2), ...
-            mean(variable_data{find(strcmp(variable_names, 'cop_from_com_x_step_end_inverted'))}(:,index_indicator_no),2)];
-        cop_cinv = [cinv(variable_data{find(strcmp(variable_names, 'cop_from_com_x_step_end_inverted'))}(:,index_indicator_early),2), ...
-            cinv(variable_data{find(strcmp(variable_names, 'cop_from_com_x_step_end_inverted'))}(:,index_indicator_late),2), ...
-            cinv(variable_data{find(strcmp(variable_names, 'cop_from_com_x_step_end_inverted'))}(:,index_indicator_no),2)];
-        
-        bar([1:3],cop_means);
-        errorbar(cop_means, cop_cinv, 'LineStyle', 'none','color', 'k');
-        set(gca,'xticklabel',bar_group_xaxis)
-    end
-    
-    if bar_group_step
-        figure; hold on;
-        step_means = [mean(variable_data{find(strcmp(variable_names, 'step_placement_x_inverted'))}(:,index_indicator_early),2), ...
-            mean(variable_data{find(strcmp(variable_names, 'step_placement_x_inverted'))}(:,index_indicator_late),2), ...
-            mean(variable_data{find(strcmp(variable_names, 'step_placement_x_inverted'))}(:,index_indicator_no),2)];
-        step_cinv = [cinv(variable_data{find(strcmp(variable_names, 'step_placement_x_inverted'))}(:,index_indicator_early),2), ...
-            cinv(variable_data{find(strcmp(variable_names, 'step_placement_x_inverted'))}(:,index_indicator_late),2), ...
-            cinv(variable_data{find(strcmp(variable_names, 'step_placement_x_inverted'))}(:,index_indicator_no),2)];
-        bar([1:3],step_means);
-        errorbar(step_means, step_cinv, 'LineStyle', 'none','color', 'k');
-        set(gca,'xticklabel',bar_group_xaxis)
-    end
-    
-    if bar_group_pushoff
-        figure; hold on;
-        pushoff_means = [mean(variable_data{find(strcmp(variable_names, 'trigger_leg_ankle_dorsiflexion_step_end_inverted'))}(:,index_indicator_early),2), ...
-            mean(variable_data{find(strcmp(variable_names, 'trigger_leg_ankle_dorsiflexion_step_end_inverted'))}(:,index_indicator_late),2), ...
-            mean(variable_data{find(strcmp(variable_names, 'trigger_leg_ankle_dorsiflexion_step_end_inverted'))}(:,index_indicator_no),2)];
-        pushoff_cinv =  [cinv(variable_data{find(strcmp(variable_names, 'trigger_leg_ankle_dorsiflexion_step_end_inverted'))}(:,index_indicator_early),2), ...
-            cinv(variable_data{find(strcmp(variable_names, 'trigger_leg_ankle_dorsiflexion_step_end_inverted'))}(:,index_indicator_late),2), ...
-            cinv(variable_data{find(strcmp(variable_names, 'trigger_leg_ankle_dorsiflexion_step_end_inverted'))}(:,index_indicator_no),2)];
-        bar(pushoff_means);
-        errorbar(pushoff_means,pushoff_cinv, 'LineStyle', 'none','color', 'k');
-        set(gca, 'XTick', [1, 2, 3])
-        %             set(gca,'xticklabel',bar_group_xaxis)
-    end
-    
+%     plot(this_x_data_4_regline, y_est, 'LineStyle', '-', 'color',[203/255, 219/255, 42/255], 'LineWidth',2)
+%     plot([xLimits(1) xLimits(2), yLimits(1) yhat], 'color',[203/255, 219/255, 42/255], 'LineWidth',2)
 end
+
+if plot_icop_step
+    plot(variable_data{find(strcmp(variable_names, 'cop_from_com_x_integrated_inverted'))}(:,index_indicator_step_one), variable_data{find(strcmp(variable_names, 'step_placement_x_inverted'))}(:,index_indicator_step_one),'*');
+end
+
+if plot_i2cop_step
+    plot(variable_data{find(strcmp(variable_names, 'cop_from_com_x_integrated_twice_inverted'))}(:,index_indicator_step_one), variable_data{find(strcmp(variable_names, 'step_placement_x_inverted'))}(:,index_indicator_step_one),'*');
+end
+
+if plot_pushoff_step
+    plot(variable_data{find(strcmp(variable_names, 'left_ankle_dorsiflexion_step_end_inverted'))}(:,index_stanceleft_one), variable_data{find(strcmp(variable_names, 'step_placement_x_inverted'))}(:,index_stanceleft_one),'*');
+    hold on;
+    plot(variable_data{find(strcmp(variable_names, 'right_ankle_dorsiflexion_step_end_inverted'))}(:,index_stanceright_one), variable_data{find(strcmp(variable_names, 'step_placement_x_inverted'))}(:,index_stanceright_one),'*');
+end
+
+if plot_pushoff_step
+    plot(variable_data{find(strcmp(variable_names, 'trigger_leg_ankle_dorsiflexion_step_end_inverted'))}(:,index_indicator_step_one), variable_data{find(strcmp(variable_names, 'step_placement_x_inverted'))}(:,index_indicator_step_one),'*');
+end
+
+time_vector = linspace(0,100,100);
+bar_group_xaxis = ['Early','Late'];
+
+if plot_group_cop
+    figure; hold on;
+    if strcmp(data_type, 'vision')
+        mean_cop_early = mean(variable_data{find(strcmp(variable_names, 'cop_from_com_x_inverted'))}(:,index_indicator_early),2);
+        cinv_cop_early = cinv(variable_data{find(strcmp(variable_names, 'cop_from_com_x_inverted'))}(:,index_indicator_early),2);
+        mean_cop_late = mean(variable_data{find(strcmp(variable_names, 'cop_from_com_x_inverted'))}(:,index_indicator_late),2);
+        cinv_cop_late = cinv(variable_data{find(strcmp(variable_names, 'cop_from_com_x_inverted'))}(:,index_indicator_late),2);
+        mean_cop_no = mean(variable_data{find(strcmp(variable_names, 'cop_from_com_x_inverted'))}(:,index_indicator_no),2);
+        cinv_cop_no = cinv(variable_data{find(strcmp(variable_names, 'cop_from_com_x_inverted'))}(:,index_indicator_no),2);
+
+        shadedErrorBar(time_vector, mean_cop_early, cinv_cop_early, 'm');
+        shadedErrorBar(time_vector, mean_cop_late, cinv_cop_late, 'c');
+        shadedErrorBar(time_vector, mean_cop_no, cinv_cop_no, 'b');
+    elseif strcmp(data_type, 'gvs')
+        mean_cop_0 = mean(variable_data{find(strcmp(variable_names, 'cop_from_com_x_inverted'))}(:,index_indicator_0),2);
+        cinv_cop_0 = cinv(variable_data{find(strcmp(variable_names, 'cop_from_com_x_inverted'))}(:,index_indicator_0),2);
+        mean_cop_150 = mean(variable_data{find(strcmp(variable_names, 'cop_from_com_x_inverted'))}(:,index_indicator_150),2);
+        cinv_cop_150 = cinv(variable_data{find(strcmp(variable_names, 'cop_from_com_x_inverted'))}(:,index_indicator_150),2);
+        mean_cop_450 = mean(variable_data{find(strcmp(variable_names, 'cop_from_com_x_inverted'))}(:,index_indicator_450),2);
+        cinv_cop_450 = cinv(variable_data{find(strcmp(variable_names, 'cop_from_com_x_inverted'))}(:,index_indicator_450),2);
+
+        shadedErrorBar(time_vector, mean_cop_0, cinv_cop_0, 'm');
+        shadedErrorBar(time_vector, mean_cop_150, cinv_cop_150, 'c');
+        shadedErrorBar(time_vector, mean_cop_450, cinv_cop_450, 'b');
+    end
+
+end
+
+if plot_group_step
+    figure; hold on;
+    mean_step_early = mean(variable_data{find(strcmp(variable_names, 'contra_leg_heel_x_inverted'))}(:,index_indicator_early),2);
+    cinv_step_early = cinv(variable_data{find(strcmp(variable_names, 'contra_leg_heel_x_inverted'))}(:,index_indicator_early),2);
+    mean_step_late = mean(variable_data{find(strcmp(variable_names, 'contra_leg_heel_x_inverted'))}(:,index_indicator_late),2);
+    cinv_step_late = cinv(variable_data{find(strcmp(variable_names, 'contra_leg_heel_x_inverted'))}(:,index_indicator_late),2);
+    mean_step_no = mean(variable_data{find(strcmp(variable_names, 'contra_leg_heel_x_inverted'))}(:,index_indicator_no),2);
+    cinv_step_no = cinv(variable_data{find(strcmp(variable_names, 'contra_leg_heel_x_inverted'))}(:,index_indicator_no),2);
+
+    shadedErrorBar(time_vector, mean_step_early, cinv_step_early, 'm');
+    shadedErrorBar(time_vector, mean_step_late, cinv_step_late, 'c');
+    shadedErrorBar(time_vector, mean_step_no, cinv_step_no, 'b');
+
+end
+
+if plot_group_pushoff
+    figure; hold on;
+    mean_pushoff_early = mean(variable_data{find(strcmp(variable_names, 'trigger_leg_ankle_dorsiflexion_inverted'))}(:,index_indicator_early),2);
+    cinv_pushoff_early = cinv(variable_data{find(strcmp(variable_names, 'trigger_leg_ankle_dorsiflexion_inverted'))}(:,index_indicator_early),2);
+    mean_pushoff_late = mean(variable_data{find(strcmp(variable_names, 'trigger_leg_ankle_dorsiflexion_inverted'))}(:,index_indicator_late),2);
+    cinv_pushoff_late = cinv(variable_data{find(strcmp(variable_names, 'trigger_leg_ankle_dorsiflexion_inverted'))}(:,index_indicator_late),2);
+    mean_pushoff_no = mean(variable_data{find(strcmp(variable_names, 'trigger_leg_ankle_dorsiflexion_inverted'))}(:,index_indicator_no),2);
+    cinv_pushoff_no = cinv(variable_data{find(strcmp(variable_names, 'trigger_leg_ankle_dorsiflexion_inverted'))}(:,index_indicator_no),2);
+
+    shadedErrorBar(time_vector, mean_pushoff_early, cinv_pushoff_early, 'm');
+    shadedErrorBar(time_vector, mean_pushoff_late, cinv_pushoff_late, 'c');
+    shadedErrorBar(time_vector, mean_pushoff_no, cinv_pushoff_no, 'b');
+end
+
+if plot_group_com
+    figure; hold on;
+    mean_com_early = mean(variable_data{find(strcmp(variable_names, 'com_x_inverted'))}(:,index_indicator_early),2);
+    cinv_com_early = cinv(variable_data{find(strcmp(variable_names, 'com_x_inverted'))}(:,index_indicator_early),2);
+    mean_com_late = mean(variable_data{find(strcmp(variable_names, 'com_x_inverted'))}(:,index_indicator_late),2);
+    cinv_com_late = cinv(variable_data{find(strcmp(variable_names, 'com_x_inverted'))}(:,index_indicator_late),2);
+    mean_com_no = mean(variable_data{find(strcmp(variable_names, 'com_x_inverted'))}(:,index_indicator_no),2);
+    cinv_com_no = cinv(variable_data{find(strcmp(variable_names, 'com_x_inverted'))}(:,index_indicator_no),2);
+
+    shadedErrorBar(time_vector, mean_com_early, cinv_com_early, 'm');
+    shadedErrorBar(time_vector, mean_com_late, cinv_com_late, 'c');
+    shadedErrorBar(time_vector, mean_com_no, cinv_com_no, 'b');
+end
+
+if plot_group_com_init
+    figure; hold on;
+    mean_com_init_early = mean(variable_data{find(strcmp(variable_names, 'com_from_com_init_x_inverted'))}(:,index_indicator_early),2);
+    cinv_com_init_early = cinv(variable_data{find(strcmp(variable_names, 'com_from_com_init_x_inverted'))}(:,index_indicator_early),2);
+    mean_com_init_late = mean(variable_data{find(strcmp(variable_names, 'com_from_com_init_x_inverted'))}(:,index_indicator_late),2);
+    cinv_com_init_late = cinv(variable_data{find(strcmp(variable_names, 'com_from_com_init_x_inverted'))}(:,index_indicator_late),2);
+    mean_com_init_no = mean(variable_data{find(strcmp(variable_names, 'com_from_com_init_x_inverted'))}(:,index_indicator_no),2);
+    cinv_com_init_no = cinv(variable_data{find(strcmp(variable_names, 'com_from_com_init_x_inverted'))}(:,index_indicator_no),2);
+
+    shadedErrorBar(time_vector, mean_com_init_early, cinv_com_init_early, 'm');
+    shadedErrorBar(time_vector, mean_com_init_late, cinv_com_init_late, 'c');
+    shadedErrorBar(time_vector, mean_com_init_no, cinv_com_init_no, 'b');
+end
+
+if plot_group_com_vel
+    figure; hold on;
+    mean_com_vel_early = mean(variable_data{find(strcmp(variable_names, 'com_x_vel_inverted'))}(:,index_indicator_early),2);
+    cinv_com_vel_early = cinv(variable_data{find(strcmp(variable_names, 'com_x_vel_inverted'))}(:,index_indicator_early),2);
+    mean_com_vel_late = mean(variable_data{find(strcmp(variable_names, 'com_x_vel_inverted'))}(:,index_indicator_late),2);
+    cinv_com_vel_late = cinv(variable_data{find(strcmp(variable_names, 'com_x_vel_inverted'))}(:,index_indicator_late),2);
+    mean_com_vel_no = mean(variable_data{find(strcmp(variable_names, 'com_x_vel_inverted'))}(:,index_indicator_no),2);
+    cinv_com_vel_no = cinv(variable_data{find(strcmp(variable_names, 'com_x_vel_inverted'))}(:,index_indicator_no),2);
+
+    shadedErrorBar(time_vector, mean_com_vel_early, cinv_com_vel_early, 'm');
+    shadedErrorBar(time_vector, mean_com_vel_late, cinv_com_vel_late, 'c');
+    shadedErrorBar(time_vector, mean_com_vel_no, cinv_com_vel_no, 'b');
+end
+
+if bar_group_cop
+    figure; hold on;
+    cop_means = [mean(variable_data{find(strcmp(variable_names, 'cop_from_com_x_step_end_inverted'))}(:,index_indicator_early),2), ...
+        mean(variable_data{find(strcmp(variable_names, 'cop_from_com_x_step_end_inverted'))}(:,index_indicator_late),2)];
+    cop_cinv = [cinv(variable_data{find(strcmp(variable_names, 'cop_from_com_x_step_end_inverted'))}(:,index_indicator_early),2), ...
+        cinv(variable_data{find(strcmp(variable_names, 'cop_from_com_x_step_end_inverted'))}(:,index_indicator_late),2)];
+
+    this_bar_early = bar([1],cop_means(1));
+    this_bar_late = bar([2], cop_means(2));
+    errorbar(cop_means, cop_cinv, 'LineStyle', 'none','color', 'k');
+    
+    this_bar_early.FaceColor = [0, 0, 1];
+    this_bar_late.FaceColor = [0, 0.4470, 0.7410];
+end
+
+if bar_group_step
+    figure; hold on;
+    step_means = [mean(variable_data{find(strcmp(variable_names, 'step_placement_x_inverted'))}(:,index_indicator_early),2), ...
+        mean(variable_data{find(strcmp(variable_names, 'step_placement_x_inverted'))}(:,index_indicator_late),2)];
+    step_cinv = [cinv(variable_data{find(strcmp(variable_names, 'step_placement_x_inverted'))}(:,index_indicator_early),2), ...
+        cinv(variable_data{find(strcmp(variable_names, 'step_placement_x_inverted'))}(:,index_indicator_late),2)];
+    bar_step_early = bar([1],step_means(1));
+    bar_step_late = bar([2], step_means(2));
+    
+    errorbar(step_means, step_cinv, 'LineStyle', 'none','color', 'k');
+    bar_step_early.FaceColor = [0, 0, 1];
+    bar_step_late.FaceColor = [0, 0.4470, 0.7410];
+end
+
+if bar_group_pushoff
+    figure; hold on;
+    pushoff_means = [mean(variable_data{find(strcmp(variable_names, 'trigger_leg_ankle_dorsiflexion_step_end_inverted'))}(:,index_indicator_early),2), ...
+        mean(variable_data{find(strcmp(variable_names, 'trigger_leg_ankle_dorsiflexion_step_end_inverted'))}(:,index_indicator_late),2), ...
+        mean(variable_data{find(strcmp(variable_names, 'trigger_leg_ankle_dorsiflexion_step_end_inverted'))}(:,index_indicator_no),2)];
+    pushoff_cinv =  [cinv(variable_data{find(strcmp(variable_names, 'trigger_leg_ankle_dorsiflexion_step_end_inverted'))}(:,index_indicator_early),2), ...
+        cinv(variable_data{find(strcmp(variable_names, 'trigger_leg_ankle_dorsiflexion_step_end_inverted'))}(:,index_indicator_late),2), ...
+        cinv(variable_data{find(strcmp(variable_names, 'trigger_leg_ankle_dorsiflexion_step_end_inverted'))}(:,index_indicator_no),2)];
+    bar(pushoff_means);
+    errorbar(pushoff_means,pushoff_cinv, 'LineStyle', 'none','color', 'k');
+    set(gca, 'XTick', [1, 2, 3])
+    %             set(gca,'xticklabel',bar_group_xaxis)
+end
+
 
 
 

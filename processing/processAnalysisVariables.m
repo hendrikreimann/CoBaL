@@ -140,6 +140,12 @@ function processAnalysisVariables(varargin)
                 % calculate control mean
                 data_this_variable = loaded_data.stretch_data_session{i_variable};
                 this_condition_control_data = data_this_variable(:, control_condition_indicator);
+                % why are there nans in the control data??
+                if any(any(isnan(this_condition_control_data)))
+                    [rows, col_to_remove] = find(isnan(this_condition_control_data));
+                    col_to_remove = unique(col_to_remove);
+                    this_condition_control_data(:, col_to_remove) = []; 
+                end
                 this_condition_control_mean = mean(this_condition_control_data, 2);
                 
                 % calculate response

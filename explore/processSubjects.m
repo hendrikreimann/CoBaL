@@ -28,7 +28,7 @@ function processSubjects(varargin)
 % % % 
 %         findEmgNormalization
 %         calculatePhaseTrajectories
-%         processStretchVariables
+        processStretchVariables
         processAnalysisVariables
 %         onset_classification
         cd(study_path)

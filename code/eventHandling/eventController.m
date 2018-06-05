@@ -144,10 +144,10 @@ classdef eventController < handle
                 % extract marker data
                 marker_trajectories = this.data_custodian.getBasicVariableData('marker_trajectories');
                 marker_data = marker_trajectories(index_mocap, :);
-                joint_center_trajectories = this.data_custodian.getBasicVariableData('joint_center_trajectories');
-                joint_center_data = joint_center_trajectories(index_mocap, :);
-                com_trajectories = this.data_custodian.getBasicVariableData('com_trajectories');
-                com_data = com_trajectories(index_mocap, :);
+%                 joint_center_trajectories = this.data_custodian.getBasicVariableData('joint_center_trajectories');
+%                 joint_center_data = joint_center_trajectories(index_mocap, :);
+%                 com_trajectories = this.data_custodian.getBasicVariableData('com_trajectories');
+%                 com_data = com_trajectories(index_mocap, :);
                 % TODO: deal with cases where we have only marker data and no kinematic data yet
             
 %             
@@ -159,7 +159,7 @@ classdef eventController < handle
 %             end
 %             
 %             % update scene figure
-                this.scene_figure.update([marker_data joint_center_data com_data]);
+%                 this.scene_figure.update([marker_data joint_center_data com_data]);
 %             
 %             % update kinematic chain stick figure
 %             if ~isempty(this.kinematic_tree_controller)

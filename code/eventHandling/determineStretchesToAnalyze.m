@@ -86,14 +86,14 @@ function determineStretchesToAnalyze(varargin)
         for i_trial = trials_to_process
             %% load data
             ignore_times = [];
-%             load(['analysis' filesep makeFileName(date, subject_id, condition_list{i_condition}, i_trial, 'events')]);
-            load(['analysis' filesep makeFileName(date, subject_id, condition_list{i_condition}, i_trial, 'stepEvents')]);
+            load(['analysis' filesep makeFileName(date, subject_id, condition_list{i_condition}, i_trial, 'events')]);
+%             load(['analysis' filesep makeFileName(date, subject_id, condition_list{i_condition}, i_trial, 'stepEvents')]);
 %             load(['processed' filesep makeFileName(date, subject_id, condition_list{i_condition}, i_trial, 'kinematicTrajectories')]);
             
-%             right_pushoff_times = event_data{strcmp(event_labels, 'right_pushoff')};
-%             right_touchdown_times = event_data{strcmp(event_labels, 'right_touchdown')};
-%             left_pushoff_times = event_data{strcmp(event_labels, 'left_pushoff')};
-%             left_touchdown_times = event_data{strcmp(event_labels, 'left_touchdown')};
+            right_pushoff_times = event_data{strcmp(event_labels, 'right_pushoff')};
+            right_touchdown_times = event_data{strcmp(event_labels, 'right_touchdown')};
+            left_pushoff_times = event_data{strcmp(event_labels, 'left_pushoff')};
+            left_touchdown_times = event_data{strcmp(event_labels, 'left_touchdown')};
 
             % determine experimental condition
             this_trial_type = condition_list{i_condition};
@@ -1161,29 +1161,32 @@ function determineStretchesToAnalyze(varargin)
                 condition_stimulus_list = reshape(condition_stimulus_list, numel(condition_stimulus_list), 1);
                 condition_day_list = reshape(condition_day_list, numel(condition_day_list), 1);
                 
-                % we now have a neatly ordered list of stretches which we can prune
-                % check step times and flag outliers
-                number_of_stretches = length(stretch_start_times);
-                stretch_durations = stretch_end_times - stretch_start_times;
-                stretch_duration_outlier_limits = median(stretch_durations) * [0.8 1.2];
-
-                removal_flags = zeros(number_of_stretches, 1);
-                removal_flags(stretch_durations < stretch_duration_outlier_limits(1)) = 1;
-                removal_flags(stretch_durations > stretch_duration_outlier_limits(2)) = 1;
-
-                % remove flagged triggers
-                unflagged_indices = ~removal_flags;
-                stretch_start_times = stretch_start_times(unflagged_indices, :);
-                stretch_pushoff_times = stretch_pushoff_times(unflagged_indices, :);
-                stretch_end_times = stretch_end_times(unflagged_indices, :);
-                condition_stance_foot_list = condition_stance_foot_list(unflagged_indices, :);
-                condition_perturbation_list = condition_perturbation_list(unflagged_indices, :);
-                condition_delay_list = condition_delay_list(unflagged_indices, :);
-                condition_index_list = condition_index_list(unflagged_indices, :);
-                condition_experimental_list = condition_experimental_list(unflagged_indices, :);
-%                 condition_startfoot_list = condition_startfoot_list(unflagged_indices, :);
-                condition_stimulus_list = condition_stimulus_list(unflagged_indices, :);
-                condition_day_list = condition_day_list(unflagged_indices, :);
+                
+                
+                
+%                 % we now have a neatly ordered list of stretches which we can prune
+%                 % check step times and flag outliers
+%                 number_of_stretches = length(stretch_start_times);
+%                 stretch_durations = stretch_end_times - stretch_start_times;
+%                 stretch_duration_outlier_limits = median(stretch_durations) * [0.8 1.2];
+% 
+%                 removal_flags = zeros(number_of_stretches, 1);
+%                 removal_flags(stretch_durations < stretch_duration_outlier_limits(1)) = 1;
+%                 removal_flags(stretch_durations > stretch_duration_outlier_limits(2)) = 1;
+% 
+%                 % remove flagged triggers
+%                 unflagged_indices = ~removal_flags;
+%                 stretch_start_times = stretch_start_times(unflagged_indices, :);
+%                 stretch_pushoff_times = stretch_pushoff_times(unflagged_indices, :);
+%                 stretch_end_times = stretch_end_times(unflagged_indices, :);
+%                 condition_stance_foot_list = condition_stance_foot_list(unflagged_indices, :);
+%                 condition_perturbation_list = condition_perturbation_list(unflagged_indices, :);
+%                 condition_delay_list = condition_delay_list(unflagged_indices, :);
+%                 condition_index_list = condition_index_list(unflagged_indices, :);
+%                 condition_experimental_list = condition_experimental_list(unflagged_indices, :);
+% %                 condition_startfoot_list = condition_startfoot_list(unflagged_indices, :);
+%                 condition_stimulus_list = condition_stimulus_list(unflagged_indices, :);
+%                 condition_day_list = condition_day_list(unflagged_indices, :);
 
                 % restructure for saving
                 stretch_times = [stretch_start_times stretch_end_times];
@@ -1204,6 +1207,9 @@ function determineStretchesToAnalyze(varargin)
                 
                 event_variables_to_save.stance_foot_data = condition_stance_foot_list; % TODO: haven't tested this yet. Adapted during the stretch rework, which is currently in development for Obstacle data
 
+                
+                
+                
                 % determine trigger foot
                 condition_trigger_foot_list = cell(size(condition_stance_foot_list));
                 for i_stretch = 1 : length(condition_trigger_foot_list)
@@ -1630,11 +1636,11 @@ function determineStretchesToAnalyze(varargin)
             end
             
             % add subject
-            condition_subject_list = cell(size(event_variables_to_save.stance_foot_data, 1), 1);
-            for i_stretch = 1 : length(condition_subject_list)
-                condition_subject_list{i_stretch} = subject_id;
+            subject_list = cell(size(event_variables_to_save.stance_foot_data, 1), 1);
+            for i_stretch = 1 : length(subject_list)
+                subject_list{i_stretch} = subject_id;
             end
-            conditions_trial.condition_subject_list = condition_subject_list;
+            conditions_trial.subject_list = subject_list;
 
             %% remove stretches where important variables are missing
 
@@ -1646,14 +1652,16 @@ function determineStretchesToAnalyze(varargin)
             removal_flags = zeros(number_of_stretches, 1);
             
             % take care of stretches with very large or small stretch duration
+            % TO DO: TF: this is most likely where asymmetric indices are
+            % created
             if study_settings.get('prune_step_time_outliers')
-                for i_stretch = 1 : number_of_stretches
-                    stretch_durations = stretch_times(i_stretch, end) - stretch_times(i_stretch, 1);
-                    stretch_duration_outlier_limits = median(stretch_durations) * [0.5 2.0];
+%                 for i_stretch = 1 : number_of_stretches
+                    stretch_durations = stretch_times(:,2) - stretch_times(:,1);
+                    stretch_duration_outlier_limits = median(stretch_durations) * [.75 1.25];
                     removal_flags(stretch_durations < stretch_duration_outlier_limits(1)) = 1;
                     removal_flags(stretch_durations > stretch_duration_outlier_limits(2)) = 1;
                     disp(['Removing a stretch due to innappropriate step length']);
-                end
+%                 end
             end
             
 %             % check data availability for markers and flag stretches with gaps.. not really doing this anymore...
@@ -1702,9 +1710,45 @@ function determineStretchesToAnalyze(varargin)
                             end
                         end
                     end
-                end
-                
+                end         
             end
+            
+            % find index of step index in this subject and remove that
+            % index in other step indices (i.e if 2nd index of
+            % condition_index,'TWO' is flagged, remove 2nd index of
+            % condition_index,'ONE', 'THREE', and 'FOUR'
+            if study_settings.get('equate_step_indices')
+                removal_flag_indices = find(removal_flags);
+                this_step_condition_type = conditions_trial.condition_index_list(removal_flag_indices);
+                if any(~strcmp(this_step_condition_type, 'CONTROL'))
+                    indices_step_one = find(strcmp(conditions_trial.condition_index_list, 'ONE'));
+                    indices_step_two = find(strcmp(conditions_trial.condition_index_list, 'TWO'));
+                    indices_step_three = find(strcmp(conditions_trial.condition_index_list, 'THREE'));
+                    indices_step_four = find(strcmp(conditions_trial.condition_index_list, 'FOUR'));
+                    indices_step_control = find(strcmp(conditions_trial.condition_index_list, 'CONTROL'));
+                    
+                    removed_indices_step_one = ismember(indices_step_one,removal_flag_indices, 'rows');
+                    removed_indices_step_two = ismember(indices_step_two,removal_flag_indices, 'rows');
+                    removed_indices_step_three = ismember(indices_step_three,removal_flag_indices, 'rows');
+                    removed_indices_step_four = ismember(indices_step_four,removal_flag_indices, 'rows');
+                    removed_indices_control = ismember(indices_step_control, removal_flag_indices, 'rows');
+    
+                    removal_flags_reshaped = [removed_indices_step_one removed_indices_step_two removed_indices_step_three removed_indices_step_four];
+                    
+                    for i_trigger = 1 : size(removal_flags_reshaped, 1)
+                       if any(removal_flags_reshaped(i_trigger,:))
+                          removal_flags_reshaped(i_trigger, :) = [1 1 1 1]; 
+                       end
+                    end
+                    
+                    % reshape back to original structure
+                    removal_flag_indices = reshape(removal_flags_reshaped, [size(removal_flags_reshaped , 1) * 4, 1]);
+                    % add control back in
+                    removal_flags = [removal_flag_indices; removed_indices_control];
+                    
+                end
+            end
+            
 
             % remove flagged stretches
             unflagged_indices = ~removal_flags;
