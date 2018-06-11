@@ -157,8 +157,14 @@ function processStretchVariables(varargin)
     assigned_stretch_indicator = sum([conditions_stimulus_indicators conditions_control_indicators], 2);
     unassigned_stretch_indicator = ~assigned_stretch_indicator;
     unassigned_stretch_indices = find(unassigned_stretch_indicator);
-    if ~isempty(unassigned_stretch_indices)
-        disp(['There were ' num2str(length(unassigned_stretch_indices)) ' unassigned stretches. Code to display more details needs to be updated (l. 206f).'])
+    if isempty(unassigned_stretch_indices)
+        disp('There were no unassigned stretches.');
+    else
+        unassigned_stretches_conditions = condition_data_all(unassigned_stretch_indicator, :);
+        unassigned_stretches_conditions_unique = table2cell(unique(cell2table(unassigned_stretches_conditions), 'rows'));
+        
+        disp(['There were ' num2str(length(unassigned_stretch_indices)) ' unassigned stretches, with condition combinations as follows:']);
+        disp(unassigned_stretches_conditions_unique);
     end
 
     disp(['Number of control stretches: ' num2str(sum(trials_per_condition_control))]);

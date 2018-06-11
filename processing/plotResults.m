@@ -1526,8 +1526,15 @@ function plotResults(varargin)
                         these_axes = trajectory_axes_handles(i_comparison, i_variable);
                         these_abscissae = abscissae_cell{i_comparison, i_variable};
                         ylimits = get(these_axes, 'ylim');
+                        
+                        if mark_bands == 1
+                            bands_to_mark = 2 : 2 : bands_per_stretch;
+                        end
+                        if mark_bands == 2
+                            bands_to_mark = 1 : 2 : bands_per_stretch;
+                        end
 
-                        for i_band = 2 : 2 : bands_per_stretch
+                        for i_band = bands_to_mark
                             % double stance patch
                             double_stance_patch_color = plot_settings.get('stance_double_color');
 
