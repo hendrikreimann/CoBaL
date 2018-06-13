@@ -57,6 +57,7 @@ function plotLongData(varargin)
         plot_settings_file = ['..' filesep '..' filesep settings_file];
     end
     plot_settings = SettingsCustodian(plot_settings_file);
+    mark_bands = plot_settings.get('mark_bands');
     
     number_of_time_steps_normalized = study_settings.get('number_of_time_steps_normalized');
 
@@ -373,6 +374,79 @@ function plotLongData(varargin)
         end
     end
     
+    %% shade bands
+    if mark_bands
+        for i_comparison = 1 : number_of_comparisons
+            for i_variable = 1 : number_of_variables_to_plot
+                these_axes = trajectory_axes_handles(i_comparison, i_variable);
+                these_abscissae = abscissae_cell{i_comparison, i_variable};
+                ylimits = get(these_axes, 'ylim');
+
+                if mark_bands == 1
+                    bands_to_mark = 2 : 2 : bands_per_stretch;
+                end
+                if mark_bands == 2
+                    bands_to_mark = 1 : 2 : bands_per_stretch;
+                end
+
+                for i_band = bands_to_mark
+                    % double stance patch
+                    double_stance_patch_color = plot_settings.get('stance_double_color');
+
+                    [start_index, end_index] = getBandIndices(i_band, number_of_time_steps_normalized);
+
+                    band_start_times = these_abscissae(:, start_index);
+                    band_end_times = these_abscissae(:, end_index);
+
+                    % if these rows are all the same, then we're good and we can mark only a single box.
+
+                    % for testing
+                    if length(unique(band_start_times)) == 1 && length(unique(band_end_times)) == 1
+                        patch_x = [band_start_times(1) band_end_times(1) band_end_times(1) band_start_times(1)];
+                        patch_y = [ylimits(1) ylimits(1) ylimits(2) ylimits(2)];
+                        patch_handle = ...
+                            patch ...
+                              ( ...
+                                patch_x, ...
+                                patch_y, ...
+                                double_stance_patch_color, ...
+                                'parent', these_axes, ...
+                                'EdgeColor', 'none', ...
+                                'FaceAlpha', plot_settings.get('stance_alpha'), ...
+                                'HandleVisibility', 'off' ...
+                              ); 
+                        uistack(patch_handle, 'bottom')                    
+                    end
+
+                    % otherwise we'll have to do something else
+                    if length(unique(band_start_times)) > 1 || length(unique(band_end_times)) > 1
+                        number_of_conditions = length(band_start_times);
+                        y_values = linspace(ylimits(1), ylimits(2), number_of_conditions+1);
+                        for i_condition = 1 : number_of_conditions
+                            patch_x = [band_start_times(i_condition) band_end_times(i_condition) band_end_times(i_condition) band_start_times(i_condition)];
+                            patch_y = [y_values(i_condition) y_values(i_condition) y_values(i_condition+1) y_values(i_condition+1)];
+                            patch_handle = ...
+                                patch ...
+                                  ( ...
+                                    patch_x, ...
+                                    patch_y, ...
+                                    colors_comparison(i_condition, :), ...
+                                    'parent', these_axes, ...
+                                    'EdgeColor', 'none', ...
+                                    'FaceAlpha', plot_settings.get('stance_alpha'), ...
+                                    'HandleVisibility', 'off' ...
+                                  ); 
+                            uistack(patch_handle, 'bottom')                    
+
+                        end
+
+                    end
+
+
+                end
+            end
+        end
+    end
     
     
     
@@ -382,6 +456,14 @@ end
 
 
 
+function s = spread(data, method)
+    if strcmp(method, 'cinv')
+        s = cinv(data, 2);
+    end
+    if strcmp(method, 'sem')
+        s = std(data, 0, 2) * 1 / sqrt(size(data, 1));
+    end
+end
 
 function [scaled_abscissa, band_limits] = createScaledAbscissa(band_scales, number_of_time_steps_normalized)
     number_of_bands = length(band_scales);

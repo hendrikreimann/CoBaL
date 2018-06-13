@@ -1755,7 +1755,6 @@ function s = spread(data, method)
     if strcmp(method, 'sem')
         s = std(data, 0, 2) * 1 / sqrt(size(data, 1));
     end
-    
 end
 
 function [scaled_abscissa, band_limits] = createScaledAbscissa(band_scales, number_of_time_steps_normalized)
