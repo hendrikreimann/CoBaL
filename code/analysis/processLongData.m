@@ -38,12 +38,13 @@ function processLongData(varargin)
 
     % create containers
     long_stretch_times_session = [];
-    long_stretch_data_session = {[]};
     long_stretch_control_times_session = [];
-    long_stretch_control_data_session = {[]};
-    long_stretch_data_labels_session = {'mpsis_x'};
+    long_stretch_data_labels_session = {'mpsis_x', 'mpsis_x_vel'};
     long_stretch_conditions_session = struct;
     long_stretch_control_conditions_session = struct;
+    number_of_variables = length(long_stretch_data_labels_session);
+    long_stretch_data_session = cell(number_of_variables, 1);
+    long_stretch_control_data_session = cell(number_of_variables, 1);
     
     for i_condition = 1 : length(condition_list)
         trials_to_process = trial_number_list{i_condition};
@@ -167,26 +168,49 @@ function processLongData(varargin)
             [lpsi_x_data_base, time, sampling_rate, labels, directions, success] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'marker_trajectories:LPSI_x'); %#ok<ASGLU>
             [rpsi_x_data_base, time, sampling_rate, labels, directions, success] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'marker_trajectories:RPSI_x'); %#ok<ASGLU>
             mpsis_x_data_base = (lpsi_x_data_base + rpsi_x_data_base) * 0.5;
+            mpsis_x_vel_data_base = deriveByTime(mpsis_x_data_base, time);
+            
+            
+%             if study_settings.get('filter_marker_data')
+%                 filter_order = study_settings.get('filter_order_com_vel');
+%                 cutoff_frequency = study_settings.get('filter_cutoff_com_vel'); % in Hz
+%                 [b_marker, a_marker] = butter(filter_order, cutoff_frequency/(sampling_rate/2));
+%                 
+%                 mpsis_x_vel_data_filtered = nanfiltfilt(b_marker, a_marker, mpsis_x_vel_data_base);
+% 
+%                 figure; hold on
+%                 plot(mpsis_x_vel_data_base)
+%                 plot(mpsis_x_vel_data_filtered);
+%             end
+            
             
             number_of_long_stretches_trial = size(long_stretch_times_trial, 2);
-            long_stretch_data_trial = zeros(number_of_strides * 2 * (number_of_time_steps_normalized-1) + 1, number_of_long_stretches_trial);
+            long_stretch_data_trial = cell(number_of_variables, 1);
+            long_stretch_data_trial{1} = zeros(number_of_strides * 2 * (number_of_time_steps_normalized-1) + 1, number_of_long_stretches_trial);
+            long_stretch_data_trial{2} = zeros(number_of_strides * 2 * (number_of_time_steps_normalized-1) + 1, number_of_long_stretches_trial);
             for i_stretch = 1 : number_of_long_stretches_trial
                 this_stretch_times = long_stretch_times_trial(:, i_stretch);
-                long_stretch_data_trial(:, i_stretch) = getTimeNormalizedData(time, mpsis_x_data_base, this_stretch_times, number_of_time_steps_normalized);
+                long_stretch_data_trial{1}(:, i_stretch) = getTimeNormalizedData(time, mpsis_x_data_base, this_stretch_times, number_of_time_steps_normalized);
+                long_stretch_data_trial{2}(:, i_stretch) = getTimeNormalizedData(time, mpsis_x_vel_data_base, this_stretch_times, number_of_time_steps_normalized);
             end
             
             number_of_long_control_stretches_trial = size(long_stretch_control_times_trial, 2);
-            long_stretch_control_data_trial = zeros(2 * (number_of_time_steps_normalized-1) + 1, number_of_long_control_stretches_trial);
+            long_stretch_control_data_trial = cell(number_of_variables, 1);
+            long_stretch_control_data_trial{1} = zeros(2 * (number_of_time_steps_normalized-1) + 1, number_of_long_control_stretches_trial);
+            long_stretch_control_data_trial{2} = zeros(2 * (number_of_time_steps_normalized-1) + 1, number_of_long_control_stretches_trial);
             for i_stretch = 1 : number_of_long_control_stretches_trial
                 this_stretch_times = long_stretch_control_times_trial(:, i_stretch);
-                long_stretch_control_data_trial(:, i_stretch) = getTimeNormalizedData(time, mpsis_x_data_base, this_stretch_times, number_of_time_steps_normalized);
+                long_stretch_control_data_trial{1}(:, i_stretch) = getTimeNormalizedData(time, mpsis_x_data_base, this_stretch_times, number_of_time_steps_normalized);
+                long_stretch_control_data_trial{2}(:, i_stretch) = getTimeNormalizedData(time, mpsis_x_vel_data_base, this_stretch_times, number_of_time_steps_normalized);
             end
             
             %% store
             long_stretch_times_session = [long_stretch_times_session long_stretch_times_trial];
-            long_stretch_data_session{1} = [long_stretch_data_session{1}  long_stretch_data_trial];
             long_stretch_control_times_session = [long_stretch_control_times_session long_stretch_control_times_trial];
-            long_stretch_control_data_session{1} = [long_stretch_control_data_session{1} long_stretch_control_data_trial];
+            for i_variable = 1 : number_of_variables
+                long_stretch_data_session{i_variable} = [long_stretch_data_session{i_variable}  long_stretch_data_trial{i_variable}];
+                long_stretch_control_data_session{i_variable} = [long_stretch_control_data_session{i_variable} long_stretch_control_data_trial{i_variable}];
+            end
             for i_field = 1 : numel(condition_labels)
                 long_stretch_conditions_session.(condition_labels{i_field}) = ...
                   [ ...
@@ -269,7 +293,7 @@ function processLongData(varargin)
         control_condition_indicator = logical(control_condition_indicator);            
 
         % calculate responses
-        for i_variable = 1 : length(long_stretch_data_labels_session)
+        for i_variable = 1 : number_of_variables
             % calculate control mean
             this_variable_data = long_stretch_data_session{i_variable}(:, i_stretch);
             this_variable_control_data = long_stretch_control_data_session{i_variable}(:, control_condition_indicator);
@@ -281,22 +305,63 @@ function processLongData(varargin)
             for i_band = 2 : (bands_per_long_stretch / 2)
                 this_variable_control_mean_long = [this_variable_control_mean_long; this_variable_control_mean(2:end)]; %#ok<AGROW>
             end
-            long_stretch_response_data_session{i_variable}(:, i_stretch) = this_variable_data - this_variable_control_mean_long;
+            
+            % smooth connection points
+            this_variable_control_mean_long_filtered = this_variable_control_mean_long;
+            this_variable_control_mean_long_replaced = this_variable_control_mean_long;
+
+            filter_order = 6;
+            cutoff_frequency = 10; % in Hz
+            sampling_rate = (0.6 / 100)^(-1);
+            [b_filter, a_filter] = butter(filter_order, cutoff_frequency/(sampling_rate/2), 'low');
+            smooth_range_width = 10;
+            sinusoid_original = (cos(linspace(0, 2*pi, smooth_range_width*2+1)') + 1) * 0.5;
+            sinusoid_filtered = 1 - sinusoid_original;
+            for i_band = 2 : 2 : bands_per_long_stretch-1
+                merge_index = (number_of_time_steps_normalized-1) * i_band + 1;
+                merge_range = merge_index-smooth_range_width : merge_index+smooth_range_width;
+
+%                 this_variable_control_mean_range = this_variable_control_mean_long(merge_range);
+%                 this_variable_control_mean_range_filtered = filtfilt(b_filter, a_filter, this_variable_control_mean_range);
+%                 this_variable_control_mean_range_replace = this_variable_control_mean_range .* sinusoid_original + this_variable_control_mean_range_filtered .* sinusoid_filtered;
+%                 this_variable_control_mean_long_filtered(merge_range) = this_variable_control_mean_range_filtered;
+%                 this_variable_control_mean_long_replaced(merge_range) = this_variable_control_mean_range_replace;
+                
+                this_variable_control_mean_long_gap = this_variable_control_mean_long;
+                this_variable_control_mean_long_gap(merge_range) = NaN;
+                warning('off', 'MATLAB:chckxy:IgnoreNaN')
+                this_variable_control_mean_long_splined = spline((1:length(this_variable_control_mean_long_gap))', this_variable_control_mean_long_gap, (1:length(this_variable_control_mean_long_gap))');
+                warning('on', 'MATLAB:chckxy:IgnoreNaN')
+
+                this_variable_control_mean_long_replaced(merge_range) = this_variable_control_mean_long_splined(merge_range);
+
+            end
+
+%             figure; hold on
+%             plot(this_variable_control_mean_long)
+%             plot(this_variable_control_mean_long_replaced)
+            
+            % calculate maximal splining error
+            maximal_smoothing_error = max(abs(this_variable_control_mean_long_replaced - this_variable_control_mean_long));
+%             disp(['maximal smoothing error: ' num2str(maximal_smoothing_error)])
+            
+            % store
+            long_stretch_response_data_session{i_variable}(:, i_stretch) = this_variable_data - this_variable_control_mean_long_replaced;
             
         end
 
     end
 
-    % plot some things
-    figure; hold on;
-    plot(this_variable_control_data)
-    plot(this_variable_control_mean, 'linewidth', 3)
-    
-    
-    % plot some things
-    figure; hold on;
-    plot(long_stretch_data_session{1})
-    plot(this_variable_control_mean_long, 'linewidth', 3)
+%     % plot some things
+%     figure; hold on;
+%     plot(this_variable_control_data)
+%     plot(this_variable_control_mean, 'linewidth', 3)
+%     
+%     
+%     % plot some things
+%     figure; hold on;
+%     plot(long_stretch_data_session{1})
+%     plot(this_variable_control_mean_long_replaced, 'linewidth', 3)
     
     %% save
     results_file_name = ['analysis' filesep makeFileName(date, subject_id, 'longStretchResults')];
