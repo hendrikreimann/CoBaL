@@ -71,6 +71,80 @@ function analyzeUcmVariance(varargin)
         
         if any(strcmp(this_block_label, across_time_conditions))
             % analyze across time
+            number_of_trials_this_block = length(this_block_trials);
+            expected_event_labels = {'trial_start_time';'trial_end_time'};
+            number_of_events = length(expected_event_labels);
+            joint_angle_data_to_analyze = [];
+
+            
+            
+            
+            
+            
+            
+            
+            for i_trial = 1 : number_of_trials_this_block
+                % load data
+                loaded_data = load(['processed' filesep makeFileName(date, subject_id, trial_type, this_block_trials(i_trial), 'kinematicTrajectories.mat')]);
+                joint_angle_trajectories = loaded_data.joint_angle_trajectories;
+                time_mocap = loaded_data.time_mocap;
+                
+                % load and check events
+                loaded_data = load(['analysis' filesep makeFileName(date, subject_id, trial_type, this_block_trials(i_trial), 'events.mat')]);
+                if ~(length(loaded_data.event_data)==number_of_events)
+                    error(['Trial ' num2str(this_block_trials(i_trial)) ' - expected ' num2str(number_of_events) ' events, but found ' num2str(length(event_indices_mocap))]);
+                end
+                
+                % extract events
+                event_times = zeros(1, number_of_events);
+                event_indices_mocap = zeros(1, number_of_events);
+                for i_event = 1 : number_of_events
+                    if ~(any(strcmp(expected_event_labels{i_event}, loaded_data.event_labels)))
+                        error(['Trial ' num2str(this_block_trials(i_trial)) ' - event label "' expected_event_labels{i_event} '" not found']);
+                    end
+                    event_times(i_event) = loaded_data.event_data{strcmp(loaded_data.event_labels, expected_event_labels{i_event})};
+                    event_indices_mocap(i_event) = findClosestIndex(event_times(i_event), time_mocap);
+                end
+                % extract data
+                joint_angle_data_to_analyze = joint_angle_trajectories(event_indices_mocap(1) : event_indices_mocap(2), :)';
+
+                % analyze data
+                theta_mean = mean(joint_angle_data_to_analyze, 2);
+                kinematic_tree.jointAngles = theta_mean;
+                kinematic_tree.updateConfiguration;
+                for i_variable = 1 : number_of_ucm_variables
+                    % calculate Jacobian
+                    if strcmp(ucm_variables{i_variable}, 'com_ap')
+                        J_com = kinematic_tree.calculateCenterOfMassJacobian;
+                        jacobian = J_com(1, :);
+                    end
+                    if strcmp(ucm_variables{i_variable}, 'com_vert')
+                        J_com = kinematic_tree.calculateCenterOfMassJacobian;
+                        jacobian = J_com(3, :);
+                    end
+                    if strcmp(ucm_variables{i_variable}, 'com_2d')
+                        J_com = kinematic_tree.calculateCenterOfMassJacobian;
+                        jacobian = J_com([1 3], :);
+                    end
+
+                    % calculate variance measures
+                    [V_para_this_block_this_variable, V_perp_this_block_this_variable] = calculateUcmVariance(joint_angle_data_to_analyze, jacobian);
+                    stretch_data_session{i_variable} = [stretch_data_session{i_variable} [V_para_this_block_this_variable; V_perp_this_block_this_variable]];
+                end
+                subject_list = [subject_list; subject_id]; %#ok<AGROW>
+                time_point_list = [time_point_list; 'quiet stance across time']; %#ok<AGROW>
+                condition_list = [condition_list; this_block_label]; %#ok<AGROW>
+                origin_trial_list_session = [origin_trial_list_session; this_block_trials(1)]; %#ok<AGROW>                            
+                    
+                
+            end
+            
+            
+            
+            
+            
+            
+            
         end
         if any(strcmp(this_block_label, across_events_conditions))
             % analyze across events
