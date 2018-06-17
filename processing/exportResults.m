@@ -24,12 +24,14 @@ if ~exist('studySettings.txt', 'file')
 end    
 study_settings = SettingsCustodian('studySettings.txt');
 variables_to_export = study_settings.get('variables_to_export');
+variables_to_export_means = study_settings.get('variables_to_export_means');
 band_labels = study_settings.get('band_labels');
 number_of_variables_to_export = size(variables_to_export, 1);
+number_of_variables_to_export_means = size(variables_to_export_means, 1);
 number_of_data_points = size(time_list, 1);
 number_of_bands = length(band_labels);
 
-% make data export cell
+% export univariate data for each band
 data_cell = cell(number_of_data_points, number_of_variables_to_export * number_of_bands);
 data_header = cell(1, number_of_variables_to_export * number_of_bands);
 for i_variable = 1 : number_of_variables_to_export
@@ -38,7 +40,7 @@ for i_variable = 1 : number_of_variables_to_export
     variable_index_in_data_cell = find(strcmp(this_variable_name, variable_names));
     this_variable_data = variable_data{variable_index_in_data_cell}';
     
-    % export
+    % export data
     for i_band = 1 : number_of_bands
         % extract band data and transform to strings
         data_strings = num2str(this_variable_data(:, i_band));
@@ -56,8 +58,16 @@ for i_variable = 1 : number_of_variables_to_export
         end
     end
 end
-% time_data_strings = num2str(time_list);
-% time_data_cell = strtrim(cellstr(time_data_strings));
+
+% gather trajectory data
+source_data_cell_for_means = cell(number_of_variables_to_export_means, 1);
+for i_variable = 1 : number_of_variables_to_export_means
+    % load and assemble data
+    this_variable_name = variables_to_export_means{i_variable};
+    variable_index_in_data_cell = find(strcmp(this_variable_name, variable_names));
+    source_data_cell_for_means{i_variable} = variable_data{variable_index_in_data_cell}';
+end
+number_of_time_points_per_stretch = size(source_data_cell_for_means{1}, 2);
 
 % gather condition cell
 conditions_settings = study_settings.get('conditions');
@@ -90,19 +100,71 @@ for i_level = 1 : size(levels_to_remove, 1)
     this_level_label = levels_to_remove{i_level, 2};
     relevant_column = strcmp(header_cell, this_condition_label);
     rows_to_remove = strcmp(body_cell(:, relevant_column), this_level_label);
+    
+    % remove from univariate data
     body_cell(rows_to_remove, :) = [];
+    
+    % remove from trajectory data
+    for i_variable = 1 : number_of_variables_to_export_means
+        source_data_cell_for_means{i_variable}(rows_to_remove, :) = [];
+    end
+    
+    % remove from condition and origin data
+    condition_cell(rows_to_remove, :) = [];
+    origin_cell(rows_to_remove, :) = [];
 end
 
-% join header and body
+
+
+% calculate means across repetitions for each condition
+[unique_condition_combination_labels, unique_condition_combination_indicators] = getUniqueConditionInformation(condition_cell, condition_header);
+number_of_condition_combinations = size(unique_condition_combination_labels, 1);
+mean_data_cell = cell(number_of_variables_to_export_means, 1);
+for i_variable = 1 : number_of_variables_to_export_means
+    this_variable_mean_data = zeros(number_of_time_points_per_stretch, number_of_condition_combinations);
+    
+    source_data_this_variable = source_data_cell_for_means{i_variable};
+    for i_combination = 1 : number_of_condition_combinations
+        indicator_this_combination = unique_condition_combination_indicators(:, i_combination);
+        data_this_variable_this_combination = source_data_this_variable(indicator_this_combination, :);
+        this_variable_mean_data(:, i_combination) = mean(data_this_variable_this_combination);
+    end
+    mean_data_cell{i_variable} = this_variable_mean_data;
+end
+
+% repackage means for export
+time_point_strings = num2str((1 : number_of_time_points_per_stretch)');
+time_point_cell = strtrim(cellstr(time_point_strings));
+mean_header_cell = [condition_header time_point_cell'];
+for i_variable = 1 : number_of_variables_to_export_means
+    % get data in shape
+    this_variable_mean_data = mean_data_cell{i_variable};
+    this_variable_mean_data_flat = reshape(this_variable_mean_data, numel(this_variable_mean_data), 1);
+    this_variable_mean_data_strings = num2str(this_variable_mean_data_flat);
+    this_variable_mean_data_cell_flat = cellstr(this_variable_mean_data_strings);
+    this_variable_mean_data_cell = strtrim(reshape(this_variable_mean_data_cell_flat, number_of_time_points_per_stretch, size(this_variable_mean_data, 2)))';
+    
+    mean_body_cell = [unique_condition_combination_labels this_variable_mean_data_cell];
+    export_cell = ...
+      [ ...
+        mean_header_cell; ...
+        mean_body_cell ...
+      ];
+    save_file_name = ['results_' variables_to_export_means{i_variable} '.csv'];
+    cell2csv(save_file_name, export_cell);
+end
+
+
+
+
+% save as .csv
 export_cell = ...
   [ ...
     header_cell; ...
     body_cell ...
   ];
-
-% save as .csv
-% export_cell = [header; export_cell];
 cell2csv('results.csv', export_cell);
+
 
 
 
