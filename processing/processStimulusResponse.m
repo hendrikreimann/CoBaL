@@ -100,7 +100,8 @@ function processStimulusResponse(varargin)
         end
         condition_representant_index = find(this_condition_indicator, 1);
         this_condition_indicator = logical(this_condition_indicator);            
-        this_condition_stance_foot_data = conditions_session.stance_foot_data(condition_representant_index, :);
+%         this_condition_stance_foot_data = conditions_session.stance_foot_data(condition_representant_index, :);
+        this_condition_stance_foot_data = conditions_session.condition_stance_foot_list(condition_representant_index, :);
         
         % determine stance ankle data
         stance_ankle_x_data = zeros(size(lanklex_data));
@@ -217,8 +218,18 @@ function processStimulusResponse(varargin)
             Jacobian = output_matrix * pinv(input_matrix);
             [correlation_c, correlation_p] = corr(input_matrix', output_matrix');
 
-            figure; plot(com_from_ankle_x_midstance_delta, step_placement_x_this_condition_delta, 'x')
-            title(['com from ankle - pos, J = ' num2str(Jacobian(1)) ', c = ' num2str(correlation_c(1)) ', p = ' num2str(correlation_p(1))]); axis equal
+            figure; hold on;
+            plot(com_from_ankle_x_midstance_delta, step_placement_x_this_condition_delta, 'o')
+            plot([-0.04, 0.04], [0, 0], 'color', [1 1 1]*0.5);
+            plot([0, 0], [-0.15, 0.15], 'color', [1 1 1]*0.5);
+            xlabel('\Delta CoM at midstance')
+            ylabel('\Delta foot placement')
+            title(['J = ' num2str(Jacobian(1)) ', c = ' num2str(correlation_c(1)) ', p = ' num2str(correlation_p(1))]);
+%             title(['com from ankle - pos, J = ' num2str(Jacobian(1)) ', c = ' num2str(correlation_c(1)) ', p = ' num2str(correlation_p(1))]);
+            set(gca, 'xlim', [-0.04, 0.04], 'ylim', [-0.15, 0.15])
+            
+            
+            axis equal
             figure; plot(com_x_vel_midstance_delta, step_placement_x_this_condition_delta, 'x')
             title(['com - vel, J = ' num2str(Jacobian(2)) ', c = ' num2str(correlation_c(2)) ', p = ' num2str(correlation_p(2))]); axis equal
 
