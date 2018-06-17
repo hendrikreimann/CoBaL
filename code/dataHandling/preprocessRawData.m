@@ -167,8 +167,8 @@ function preprocessRawData(varargin)
                     load(['raw' filesep raw_forceplate_file_name]);
 
                     % define filter
-                    filter_order_low = 4;
-                    cutoff_frequency_low = 50; % in Hz
+                    filter_order_low = study_settings.get('force_plate_filter_order');
+                    cutoff_frequency_low = study_settings.get('force_plate_filter_cutoff');
                     [b_lowpass, a_lowpass] = butter(filter_order_low, cutoff_frequency_low/(sampling_rate_forceplate/2), 'low');
                     forceplate_trajectories_filtered = filtfilt(b_lowpass, a_lowpass, forceplate_trajectories_raw);
 
