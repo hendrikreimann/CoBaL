@@ -24,6 +24,7 @@ function saveSubjectInfoToFile(varargin)
     
     % get subject settings
     subject_settings = SettingsCustodian('subjectSettings.txt');
+    trial_types_to_ignore = subject_settings.get('trial_types_to_ignore');
     
     % get subject code
     current_path = pwd;
@@ -176,6 +177,7 @@ function saveSubjectInfoToFile(varargin)
     end
     variables_to_save.condition_list = condition_list;
     variables_to_save.trial_number_list = trial_number_list; %#ok<STRNU>
+    variables_to_save.trial_types_to_ignore = trial_types_to_ignore;
     
     
     % save

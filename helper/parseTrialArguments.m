@@ -14,8 +14,8 @@
 %     You should have received a copy of the GNU General Public License
 %     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-function [conditions_to_analyze, trials_to_analyze, calibration_trials, emg_trials] = parseTrialArguments(varargin)
-    load('subjectInfo.mat', 'condition_list', 'trial_number_list');
+function [types_to_analyze, trials_to_analyze, types_to_exclude, trials_to_exclude] = parseTrialArguments(varargin)
+    load('subjectInfo.mat', 'condition_list', 'trial_number_list', 'trial_types_to_ignore');
 
     parser = inputParser;
     parser.KeepUnmatched = true;
@@ -32,12 +32,12 @@ function [conditions_to_analyze, trials_to_analyze, calibration_trials, emg_tria
     
     % list of conditions
     if strcmp(condition, 'all')
-        conditions_to_analyze = condition_list;
+        types_to_analyze = condition_list;
     else
         if iscell(condition)
-            conditions_to_analyze = condition;
+            types_to_analyze = condition;
         else 
-            conditions_to_analyze = {condition};
+            types_to_analyze = {condition};
         end
     end
     
@@ -47,9 +47,9 @@ function [conditions_to_analyze, trials_to_analyze, calibration_trials, emg_tria
     else
         if trials == 0
             % find list of available trials for this condition
-            trials_to_analyze = cell(size(conditions_to_analyze));
-            for i_condition = 1 : length(conditions_to_analyze)
-                condition_label = conditions_to_analyze{i_condition};
+            trials_to_analyze = cell(size(types_to_analyze));
+            for i_condition = 1 : length(types_to_analyze)
+                condition_label = types_to_analyze{i_condition};
                 condition_index_in_complete_list = find(strcmp(condition_list, condition_label));
                 trials_to_analyze_in_this_condition = trial_number_list{condition_index_in_complete_list};
                 trials_to_analyze{i_condition} = trials_to_analyze_in_this_condition;
@@ -60,11 +60,11 @@ function [conditions_to_analyze, trials_to_analyze, calibration_trials, emg_tria
     end
         
     % was there one list of trials given for several conditions?
-    if length(conditions_to_analyze) > 1 && length(trials_to_analyze) == 1
+    if length(types_to_analyze) > 1 && length(trials_to_analyze) == 1
         requested_trials = trials_to_analyze{1};
-        trials_to_analyze = cell(size(conditions_to_analyze));
-        for i_condition = 1 : length(conditions_to_analyze)
-            condition_label = conditions_to_analyze{i_condition};
+        trials_to_analyze = cell(size(types_to_analyze));
+        for i_condition = 1 : length(types_to_analyze)
+            condition_label = types_to_analyze{i_condition};
             condition_index_in_complete_list = find(strcmp(condition_list, condition_label));
             trials_to_analyze_in_this_condition = [];
             available_trials_in_this_condition = trial_number_list{condition_index_in_complete_list};
@@ -80,29 +80,44 @@ function [conditions_to_analyze, trials_to_analyze, calibration_trials, emg_tria
         end
     end
         
-    % exclude calibration
-    calibration_trials = trials_to_analyze(strcmp(conditions_to_analyze, 'calibration'));
-    trials_to_analyze(strcmp(conditions_to_analyze, 'calibration')) = [];
-    conditions_to_analyze(strcmp(conditions_to_analyze, 'calibration')) = [];
-
-    % exclude dance
-    dance_trials = trials_to_analyze(strcmp(conditions_to_analyze, 'dance'));
-    trials_to_analyze(strcmp(conditions_to_analyze, 'dance')) = [];
-    conditions_to_analyze(strcmp(conditions_to_analyze, 'dance')) = [];
+    trials_to_exclude = {};
+    types_to_exclude = {};
+    for i_type = 1 : length(trial_types_to_ignore)
+        this_type_label = trial_types_to_ignore{i_type};
+        this_type_trials = trials_to_analyze(strcmp(types_to_analyze, this_type_label));
+        if ~isempty(this_type_trials)
+            trials_to_exclude = [trials_to_exclude; this_type_trials];
+            types_to_exclude = [types_to_exclude; this_type_label];
+            trials_to_analyze(strcmp(types_to_analyze, this_type_label)) = [];
+            types_to_analyze(strcmp(types_to_analyze, this_type_label)) = [];
+        end
+    end
     
-    % exclude emg
-    emg_trials = trials_to_analyze(strcmp(conditions_to_analyze, 'emg'));
-    trials_to_analyze(strcmp(conditions_to_analyze, 'emg')) = [];
-    conditions_to_analyze(strcmp(conditions_to_analyze, 'emg')) = [];
     
-    % exclude metronome
-    emg_trials = trials_to_analyze(strcmp(conditions_to_analyze, 'metronome'));
-    trials_to_analyze(strcmp(conditions_to_analyze, 'metronome')) = [];
-    conditions_to_analyze(strcmp(conditions_to_analyze, 'metronome')) = [];
     
-    % exclude washout
-    emg_trials = trials_to_analyze(strcmp(conditions_to_analyze, 'washout'));
-    trials_to_analyze(strcmp(conditions_to_analyze, 'washout')) = [];
-    conditions_to_analyze(strcmp(conditions_to_analyze, 'washout')) = [];
+%     % exclude calibration
+%     calibration_trials = trials_to_analyze(strcmp(types_to_analyze, 'calibration'));
+%     trials_to_analyze(strcmp(types_to_analyze, 'calibration')) = [];
+%     types_to_analyze(strcmp(types_to_analyze, 'calibration')) = [];
+% 
+%     % exclude dance
+%     dance_trials = trials_to_analyze(strcmp(types_to_analyze, 'dance'));
+%     trials_to_analyze(strcmp(types_to_analyze, 'dance')) = [];
+%     types_to_analyze(strcmp(types_to_analyze, 'dance')) = [];
+%     
+%     % exclude emg
+%     emg_trials = trials_to_analyze(strcmp(types_to_analyze, 'emg'));
+%     trials_to_analyze(strcmp(types_to_analyze, 'emg')) = [];
+%     types_to_analyze(strcmp(types_to_analyze, 'emg')) = [];
+%     
+%     % exclude metronome
+%     emg_trials = trials_to_analyze(strcmp(types_to_analyze, 'metronome'));
+%     trials_to_analyze(strcmp(types_to_analyze, 'metronome')) = [];
+%     types_to_analyze(strcmp(types_to_analyze, 'metronome')) = [];
+%     
+%     % exclude washout
+%     emg_trials = trials_to_analyze(strcmp(types_to_analyze, 'washout'));
+%     trials_to_analyze(strcmp(types_to_analyze, 'washout')) = [];
+%     types_to_analyze(strcmp(types_to_analyze, 'washout')) = [];
     
 end

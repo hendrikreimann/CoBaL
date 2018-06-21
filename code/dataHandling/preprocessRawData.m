@@ -27,7 +27,7 @@ function preprocessRawData(varargin)
     load('subjectInfo.mat');
     
     % parse arguments
-    [condition_list, trial_number_list, calibration_trials, emg_trials] = parseTrialArguments(varargin{:});
+    [types_to_analyze, trials_to_analyze, types_to_exclude, trials_to_exclude] = parseTrialArguments(varargin{:});
     parser = inputParser;
     parser.KeepUnmatched = true;
     addParameter(parser, 'type', 'all')
@@ -36,15 +36,19 @@ function preprocessRawData(varargin)
     visualize = parser.Results.visualize;
     type = parser.Results.type;
 
-    % add calibration and EMG trials if no specific condition was specified
-    if ~isempty(calibration_trials)
-        condition_list = [condition_list; 'calibration'];
-        trial_number_list = [trial_number_list; calibration_trials];
-    end
-    if ~isempty(emg_trials)
-        condition_list = [condition_list; 'emg'];
-        trial_number_list = [trial_number_list; emg_trials];
-    end
+    % add excluded trials back in, because while we don't want to analyze them, we still want to pre-process them
+    types_to_analyze = [types_to_analyze; types_to_exclude];
+    trials_to_analyze = [trials_to_analyze; trials_to_exclude];
+    
+%     % add calibration and EMG trials if no specific condition was specified
+%     if ~isempty(calibration_trials)
+%         types_to_analyze = [types_to_analyze; 'calibration'];
+%         trials_to_analyze = [trials_to_analyze; calibration_trials];
+%     end
+%     if ~isempty(emg_trials)
+%         types_to_analyze = [types_to_analyze; 'emg'];
+%         trials_to_analyze = [trials_to_analyze; emg_trials];
+%     end
     
     % load settings
     study_settings_file = '';
@@ -69,9 +73,9 @@ function preprocessRawData(varargin)
             [date, subject_id, trial_type, trial_number, file_type] = getFileParameters(raw_emg_file_name);
 
             % does the caller want to process this file?
-            if any(strcmp(trial_type, condition_list))
+            if any(strcmp(trial_type, types_to_analyze))
                 % condition is set to be processed, now check trial number
-                trial_number_list_this_condition = trial_number_list{strcmp(trial_type, condition_list)};
+                trial_number_list_this_condition = trials_to_analyze{strcmp(trial_type, types_to_analyze)};
                 if ismember(trial_number, trial_number_list_this_condition)
                     % process file
                     load(['raw' filesep raw_emg_file_name]);
@@ -159,9 +163,9 @@ function preprocessRawData(varargin)
             [date, subject_id, trial_type, trial_number, file_type] = getFileParameters(raw_forceplate_file_name);
 
             % does the caller want to process this file?
-            if any(strcmp(trial_type, condition_list))
+            if any(strcmp(trial_type, types_to_analyze))
                 % condition is set to be processed, now check trial number
-                trial_number_list_this_condition = trial_number_list{strcmp(trial_type, condition_list)};
+                trial_number_list_this_condition = trials_to_analyze{strcmp(trial_type, types_to_analyze)};
                 if ismember(trial_number, trial_number_list_this_condition)
                     % load raw data
                     load(['raw' filesep raw_forceplate_file_name]);
@@ -169,8 +173,10 @@ function preprocessRawData(varargin)
                     % define filter
                     filter_order_low = study_settings.get('force_plate_filter_order');
                     cutoff_frequency_low = study_settings.get('force_plate_filter_cutoff');
-                    [b_lowpass, a_lowpass] = butter(filter_order_low, cutoff_frequency_low/(sampling_rate_forceplate/2), 'low');
-                    forceplate_trajectories_filtered = filtfilt(b_lowpass, a_lowpass, forceplate_trajectories_raw);
+                    if ~isempty(filter_order_low) && ~isempty(cutoff_frequency_low)
+                        [b_lowpass, a_lowpass] = butter(filter_order_low, cutoff_frequency_low/(sampling_rate_forceplate/2), 'low');
+                        forceplate_trajectories_filtered = filtfilt(b_lowpass, a_lowpass, forceplate_trajectories_raw);
+                    end
 
                     % extract
                     fxl_trajectory = forceplate_trajectories_filtered(:, 1);
@@ -465,9 +471,9 @@ function preprocessRawData(varargin)
             raw_marker_file_name = file_name_list{i_trial};
             [date, subject_id, trial_type, trial_number, file_type] = getFileParameters(raw_marker_file_name);
             % does the caller want to process this file?
-            if any(strcmp(trial_type, condition_list))
+            if any(strcmp(trial_type, types_to_analyze))
                 % condition is set to be processed, now check trial number
-                trial_number_list_this_condition = trial_number_list{strcmp(trial_type, condition_list)};
+                trial_number_list_this_condition = trials_to_analyze{strcmp(trial_type, types_to_analyze)};
                 if ismember(trial_number, trial_number_list_this_condition)
                     load(['raw' filesep raw_marker_file_name]);
 
@@ -539,11 +545,11 @@ function preprocessRawData(varargin)
         end
     
         %% transform to belt space
-        for i_condition = 1 : length(condition_list)
-            trials_to_process = trial_number_list{i_condition};
+        for i_condition = 1 : length(types_to_analyze)
+            trials_to_process = trials_to_analyze{i_condition};
             for i_trial = trials_to_process
                 % load data
-                this_condition = condition_list{i_condition};
+                this_condition = types_to_analyze{i_condition};
                 if any(strcmp(study_settings.get('conditions_to_transform_to_belt_space'), this_condition))
                     % extract data for new structure
                     if exist(['processed' filesep makeFileName(date, subject_id, trial_type, i_trial, 'plcData')], 'file')

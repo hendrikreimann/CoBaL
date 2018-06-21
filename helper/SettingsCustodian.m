@@ -232,6 +232,9 @@ classdef SettingsCustodian < handle
             if strcmp(property_name, 'emg_time_offset')
                 default_data = 0;
             end
+            if strcmp(property_name, 'trial_types_to_ignore')
+                default_data = {'calibration', 'emg'};
+            end
             
             
             
