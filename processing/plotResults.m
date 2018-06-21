@@ -1757,21 +1757,5 @@ function s = spread(data, method)
     end
 end
 
-function [scaled_abscissa, band_limits] = createScaledAbscissa(band_scales, number_of_time_steps_normalized)
-    number_of_bands = length(band_scales);
-    scaled_abscissa = [];
-    band_limits = 0;
-    for i_band = 1 : number_of_bands
-        scaled_abscissa_this_band = linspace(0, band_scales(i_band), number_of_time_steps_normalized)';
-        if i_band > 1
-            % start time of this band is end time of the last band, so remove the duplicate point
-            scaled_abscissa_this_band = scaled_abscissa_this_band + scaled_abscissa(end);
-            scaled_abscissa_this_band = scaled_abscissa_this_band(2:end);
-        end
-        scaled_abscissa = [scaled_abscissa; scaled_abscissa_this_band]; %#ok<AGROW>
-        band_limits = [band_limits scaled_abscissa(end)]; %#ok<AGROW>
-    end
-    
-end
 
 
