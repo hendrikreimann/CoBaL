@@ -108,8 +108,7 @@ function importQTM()
 
     % import labview saved data
     number_of_files = length(file_name_list);
-%     for i_file = 1 : number_of_files
-    for i_file = [] % remove during development to speed things up
+    for i_file = 1 : number_of_files
         % file name stuff
         data_file_name = file_name_list{i_file};
         [date, subject_id, trial_type, trial_number, file_type] = getFileParameters(data_file_name);
@@ -177,8 +176,8 @@ function importQTM()
     % go through files and import
     number_of_files = length(file_name_list);
     importing_trial_number = 0;
-%     for i_file = 1 : number_of_files
-    for i_file = 3 : number_of_files % XXX to speed things up during bug-fixing
+    for i_file = 1 : number_of_files
+%     for i_file = 3 : number_of_files % XXX to speed things up during bug-fixing
         % file name stuff
         data_file_name = file_name_list{i_file};
         disp(['Importing ' qtm_source_dir filesep data_file_name])
@@ -243,7 +242,7 @@ function importQTM()
             plot(time_analog(protocol_step_up_indices), protocol_step_analog(protocol_step_up_indices), '^');
             plot(time_analog(start_indices), protocol_step_analog(start_indices), '>');
             plot(time_analog(end_indices), protocol_step_analog(end_indices), '<');
-            
+            drawnow
             
             if end_indices(end) > length(qtm_data.Analog.Data)
                 end_indices(end) = length(qtm_data.Analog.Data);
@@ -436,6 +435,15 @@ function importQTM()
             end
             marker_trajectories_raw = marker_trajectories_raw';
 
+            
+            % replace marker labels if necessary
+            marker_label_replacement_map = subject_settings.get('marker_label_replacement_map');
+            for i_label = 1 : size(marker_label_replacement_map, 1)
+                old_label = marker_label_replacement_map{i_label, 1};
+                new_label = marker_label_replacement_map{i_label, 2};
+                marker_labels{strcmp(marker_labels, old_label)} = new_label;
+            end
+            
             % triplicate labels
             marker_labels_loaded = marker_labels;
             number_of_markers = length(marker_labels_loaded);

@@ -175,22 +175,22 @@ function preprocessRawData(varargin)
                     cutoff_frequency_low = study_settings.get('force_plate_filter_cutoff');
                     if ~isempty(filter_order_low) && ~isempty(cutoff_frequency_low)
                         [b_lowpass, a_lowpass] = butter(filter_order_low, cutoff_frequency_low/(sampling_rate_forceplate/2), 'low');
-                        forceplate_trajectories_filtered = filtfilt(b_lowpass, a_lowpass, forceplate_trajectories_raw);
+                        forceplate_trajectories = filtfilt(b_lowpass, a_lowpass, forceplate_trajectories_raw);
                     end
 
                     % extract
-                    fxl_trajectory = forceplate_trajectories_filtered(:, 1);
-                    fyl_trajectory = forceplate_trajectories_filtered(:, 2);
-                    fzl_trajectory = forceplate_trajectories_filtered(:, 3);
-                    mxl_trajectory = forceplate_trajectories_filtered(:, 4);
-                    myl_trajectory = forceplate_trajectories_filtered(:, 5);
-                    mzl_trajectory = forceplate_trajectories_filtered(:, 6);
-                    fxr_trajectory = forceplate_trajectories_filtered(:, 7);
-                    fyr_trajectory = forceplate_trajectories_filtered(:, 8);
-                    fzr_trajectory = forceplate_trajectories_filtered(:, 9);
-                    mxr_trajectory = forceplate_trajectories_filtered(:, 10);
-                    myr_trajectory = forceplate_trajectories_filtered(:, 11);
-                    mzr_trajectory = forceplate_trajectories_filtered(:, 12);
+                    fxl_trajectory = forceplate_trajectories(:, 1);
+                    fyl_trajectory = forceplate_trajectories(:, 2);
+                    fzl_trajectory = forceplate_trajectories(:, 3);
+                    mxl_trajectory = forceplate_trajectories(:, 4);
+                    myl_trajectory = forceplate_trajectories(:, 5);
+                    mzl_trajectory = forceplate_trajectories(:, 6);
+                    fxr_trajectory = forceplate_trajectories(:, 7);
+                    fyr_trajectory = forceplate_trajectories(:, 8);
+                    fzr_trajectory = forceplate_trajectories(:, 9);
+                    mxr_trajectory = forceplate_trajectories(:, 10);
+                    myr_trajectory = forceplate_trajectories(:, 11);
+                    mzr_trajectory = forceplate_trajectories(:, 12);
 
                     % apply offset for cases where forceplate wasn't set to zero
                     if subject_settings.get('apply_forceplate_offset')
