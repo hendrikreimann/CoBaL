@@ -3092,8 +3092,26 @@ classdef WalkingDataCustodian < handle
                         stretch_data = diff(this_stretch_times)';
                     end
                     if strcmp(variable_name, 'pushoff_time')
-                        % TODO: not updated to new subdivision of stretches into bands yet... don't really know what to do here yet
-                        stretch_data = this_stretch_pushoff_time - this_stretch_start_time;
+                        % load events
+                        event_data = load(['analysis' filesep makeFileName(this.date, this.subject_id, this.trial_type, this.trial_number, 'stepEvents.mat')]);
+                        stretch_data = zeros(number_of_bands, 1);
+                        for i_band = 1 : number_of_bands
+                            [band_start_index, band_end_index] = getBandIndices(i_band, this.number_of_time_steps_normalized);
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_RIGHT')
+                                % find first left push-off after band start
+                                band_start_time = this_stretch_times(i_band);
+                                this_pushoff_time = min(event_data.left_pushoff_times(event_data.left_pushoff_times>band_start_time));
+                                stretch_data(i_band) = this_pushoff_time - band_start_time;
+                            end
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_LEFT')
+                                band_start_time = this_stretch_times(i_band);
+                                this_pushoff_time = min(event_data.right_pushoff_times(event_data.right_pushoff_times>band_start_time));
+                                stretch_data(i_band) = this_pushoff_time - band_start_time;
+                            end
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_BOTH')
+                                stretch_data(i_band) = NaN;
+                            end
+                        end
                     end
                     if strcmp(variable_name, 'midstance_index')
                         lankle_x = this.getTimeNormalizedData('lankle_y', this_stretch_times);

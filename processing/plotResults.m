@@ -318,7 +318,7 @@ function plotResults(varargin)
     % calculate mean pushoff index
     if mark_pushoff
         pushoff_time_ratio = pushoff_time_data ./ step_time_data;
-        mean_pushoff_ratio = mean(pushoff_time_ratio);
+        mean_pushoff_ratio = mean(pushoff_time_ratio, 2);
         pushoff_index = round(mean_pushoff_ratio * 100);
     end
     
@@ -559,9 +559,9 @@ function plotResults(varargin)
                     step_start_times_cell{i_comparison, i_variable} = step_abscissa(1, 1);
                     step_end_times_cell{i_comparison, i_variable} = step_abscissa(1, end);
                     
-                    if mark_pushoff
-                        step_pushoff_times_cell{i_comparison, i_variable} = step_abscissa(1, pushoff_index);
-                    end
+%                     if mark_pushoff
+%                         step_pushoff_times_cell{i_comparison, i_variable} = step_abscissa(1, pushoff_index);
+%                     end
                 end
             end
         end        
@@ -910,9 +910,9 @@ function plotResults(varargin)
                         this_comparison = this_episode(i_comparison);
                         step_abscissa = abscissae_cell{this_comparison, i_variable};
                         step_start_times(i_comparison) = step_abscissa(1, 1);
-                        if mark_pushoff
-                            step_pushoff_times(i_comparison) = step_abscissa(1, pushoff_index);
-                        end
+%                         if mark_pushoff
+%                             step_pushoff_times(i_comparison) = step_abscissa(1, pushoff_index);
+%                         end
                         step_end_times(i_comparison) = step_abscissa(1, end);
 
                         % determine stance foot
@@ -1518,83 +1518,121 @@ function plotResults(varargin)
     
     %% shade steps
     if mark_bands && ~strcmp(plot_mode, 'episodes')
-%         if strcmp(plot_mode, 'overview')
-            for i_comparison = 1 : number_of_comparisons
-                for i_variable = 1 : number_of_variables_to_plot
-                    if isContinuousVariable(i_variable, data_all, bands_per_stretch)
-                        these_axes = trajectory_axes_handles(i_comparison, i_variable);
-                        these_abscissae = abscissae_cell{i_comparison, i_variable};
-                        ylimits = get(these_axes, 'ylim');
-                        
-                        if mark_bands == 1
-                            bands_to_mark = 2 : 2 : bands_per_stretch;
+        for i_comparison = 1 : number_of_comparisons
+            for i_variable = 1 : number_of_variables_to_plot
+                if isContinuousVariable(i_variable, data_all, bands_per_stretch)
+                    these_axes = trajectory_axes_handles(i_comparison, i_variable);
+                    these_abscissae = abscissae_cell{i_comparison, i_variable};
+                    ylimits = get(these_axes, 'ylim');
+
+                    if mark_bands == 1
+                        bands_to_mark = 2 : 2 : bands_per_stretch;
+                    end
+                    if mark_bands == 2
+                        bands_to_mark = 1 : 2 : bands_per_stretch;
+                    end
+
+                    for i_band = bands_to_mark
+                        % double stance patch
+                        double_stance_patch_color = plot_settings.get('stance_double_color');
+
+                        [start_index, end_index] = getBandIndices(i_band, number_of_time_steps_normalized);
+
+                        band_start_times = these_abscissae(:, start_index);
+                        band_end_times = these_abscissae(:, end_index);
+
+                        % if these rows are all the same, then we're good and we can mark only a single box.
+
+                        % for testing
+                        if length(unique(band_start_times)) == 1 && length(unique(band_end_times)) == 1
+                            patch_x = [band_start_times(1) band_end_times(1) band_end_times(1) band_start_times(1)];
+                            patch_y = [ylimits(1) ylimits(1) ylimits(2) ylimits(2)];
+                            patch_handle = ...
+                                patch ...
+                                  ( ...
+                                    patch_x, ...
+                                    patch_y, ...
+                                    double_stance_patch_color, ...
+                                    'parent', these_axes, ...
+                                    'EdgeColor', 'none', ...
+                                    'FaceAlpha', plot_settings.get('stance_alpha'), ...
+                                    'HandleVisibility', 'off' ...
+                                  ); 
+                            uistack(patch_handle, 'bottom')                    
                         end
-                        if mark_bands == 2
-                            bands_to_mark = 1 : 2 : bands_per_stretch;
-                        end
 
-                        for i_band = bands_to_mark
-                            % double stance patch
-                            double_stance_patch_color = plot_settings.get('stance_double_color');
-
-                            [start_index, end_index] = getBandIndices(i_band, number_of_time_steps_normalized);
-
-                            band_start_times = these_abscissae(:, start_index);
-                            band_end_times = these_abscissae(:, end_index);
-
-                            % if these rows are all the same, then we're good and we can mark only a single box.
-
-                            % for testing
-                            if length(unique(band_start_times)) == 1 && length(unique(band_end_times)) == 1
-                                patch_x = [band_start_times(1) band_end_times(1) band_end_times(1) band_start_times(1)];
-                                patch_y = [ylimits(1) ylimits(1) ylimits(2) ylimits(2)];
+                        % otherwise we'll have to do something else
+                        if length(unique(band_start_times)) > 1 || length(unique(band_end_times)) > 1
+                            number_of_conditions = length(band_start_times);
+                            y_values = linspace(ylimits(1), ylimits(2), number_of_conditions+1);
+                            for i_condition = 1 : number_of_conditions
+                                patch_x = [band_start_times(i_condition) band_end_times(i_condition) band_end_times(i_condition) band_start_times(i_condition)];
+                                patch_y = [y_values(i_condition) y_values(i_condition) y_values(i_condition+1) y_values(i_condition+1)];
                                 patch_handle = ...
                                     patch ...
                                       ( ...
                                         patch_x, ...
                                         patch_y, ...
-                                        double_stance_patch_color, ...
+                                        colors_comparison(i_condition, :), ...
                                         'parent', these_axes, ...
                                         'EdgeColor', 'none', ...
                                         'FaceAlpha', plot_settings.get('stance_alpha'), ...
                                         'HandleVisibility', 'off' ...
                                       ); 
                                 uistack(patch_handle, 'bottom')                    
-                            end
-
-                            % otherwise we'll have to do something else
-                            if length(unique(band_start_times)) > 1 || length(unique(band_end_times)) > 1
-                                number_of_conditions = length(band_start_times);
-                                y_values = linspace(ylimits(1), ylimits(2), number_of_conditions+1);
-                                for i_condition = 1 : number_of_conditions
-                                    patch_x = [band_start_times(i_condition) band_end_times(i_condition) band_end_times(i_condition) band_start_times(i_condition)];
-                                    patch_y = [y_values(i_condition) y_values(i_condition) y_values(i_condition+1) y_values(i_condition+1)];
-                                    patch_handle = ...
-                                        patch ...
-                                          ( ...
-                                            patch_x, ...
-                                            patch_y, ...
-                                            colors_comparison(i_condition, :), ...
-                                            'parent', these_axes, ...
-                                            'EdgeColor', 'none', ...
-                                            'FaceAlpha', plot_settings.get('stance_alpha'), ...
-                                            'HandleVisibility', 'off' ...
-                                          ); 
-                                    uistack(patch_handle, 'bottom')                    
-
-                                end
 
                             end
-
 
                         end
+
+
                     end
                 end
             end
-%         end
+        end
     end
     
+    %% shade steps
     if mark_pushoff
+        for i_comparison = 1 : number_of_comparisons
+            for i_variable = 1 : number_of_variables_to_plot
+                if isContinuousVariable(i_variable, data_all, bands_per_stretch)
+                    these_axes = trajectory_axes_handles(i_comparison, i_variable);
+                    these_abscissae = abscissae_cell{i_comparison, i_variable};
+                    ylimits = get(these_axes, 'ylim');
+                    
+                    for i_band = 1 : bands_per_stretch
+                        % double stance patch
+                        double_stance_patch_color = plot_settings.get('stance_double_color');
+
+                        [start_index, end_index] = getBandIndices(i_band, number_of_time_steps_normalized);
+                        pushoff_index_here = start_index + pushoff_index(i_band);
+                        
+
+                        band_start_times = these_abscissae(:, start_index);
+                        band_end_times = these_abscissae(:, pushoff_index_here);
+
+                        patch_x = [band_start_times(1) band_end_times(1) band_end_times(1) band_start_times(1)];
+                        patch_y = [ylimits(1) ylimits(1) ylimits(2) ylimits(2)];
+                        patch_handle = ...
+                            patch ...
+                              ( ...
+                                patch_x, ...
+                                patch_y, ...
+                                double_stance_patch_color, ...
+                                'parent', these_axes, ...
+                                'EdgeColor', 'none', ...
+                                'FaceAlpha', plot_settings.get('stance_alpha'), ...
+                                'HandleVisibility', 'off' ...
+                              ); 
+                        uistack(patch_handle, 'bottom')                    
+                    end
+                end
+            end
+        end
+    end
+    
+    if false % mark_pushoff
         if strcmp(plot_mode, 'overview')
             for i_variable = 1 : number_of_variables_to_plot
                 if isContinuousVariable(i_variable, data_all, bands_per_stretch)
