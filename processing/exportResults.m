@@ -25,9 +25,11 @@ end
 study_settings = SettingsCustodian('studySettings.txt');
 variables_to_export = study_settings.get('variables_to_export');
 variables_to_export_means = study_settings.get('variables_to_export_means');
+variables_to_export_trajectories = study_settings.get('variables_to_export_trajectories');
 band_labels = study_settings.get('band_labels');
 number_of_variables_to_export = size(variables_to_export, 1);
 number_of_variables_to_export_means = size(variables_to_export_means, 1);
+number_of_variables_to_export_trajectories = size(variables_to_export_trajectories, 1);
 number_of_data_points = size(time_list, 1);
 number_of_bands = length(band_labels);
 number_of_time_points_normalized = study_settings.get('number_of_time_steps_normalized');
@@ -60,15 +62,22 @@ for i_variable = 1 : number_of_variables_to_export
     end
 end
 
-% gather trajectory data
-source_data_cell_for_means = cell(number_of_variables_to_export_means, 1);
+% resample normalized time to get equidistant samples
+step_time_means = mean(step_time_data, 2);
+time_normalized = createScaledAbscissa(step_time_means, number_of_time_points_normalized);
+time_rescaled = linspace(time_normalized(1), time_normalized(end), length(time_normalized))';
+
+% gather and resample trajectory data
+trajectory_data_cell_wide = cell(number_of_variables_to_export_means, 1);
 for i_variable = 1 : number_of_variables_to_export_means
     % load and assemble data
     this_variable_name = variables_to_export_means{i_variable};
     variable_index_in_data_cell = find(strcmp(this_variable_name, variable_names));
-    source_data_cell_for_means{i_variable} = variable_data{variable_index_in_data_cell}';
+    this_variable_data = variable_data{variable_index_in_data_cell}';
+    this_variable_data_resampled = spline(time_normalized, this_variable_data, time_rescaled);
+    trajectory_data_cell_wide{i_variable} = this_variable_data_resampled;
 end
-number_of_time_points_per_stretch = size(source_data_cell_for_means{1}, 2);
+number_of_time_points_per_stretch = size(trajectory_data_cell_wide{1}, 2);
 
 % gather condition cell
 conditions_settings = study_settings.get('conditions');
@@ -107,7 +116,7 @@ for i_level = 1 : size(levels_to_remove, 1)
     
     % remove from trajectory data
     for i_variable = 1 : number_of_variables_to_export_means
-        source_data_cell_for_means{i_variable}(rows_to_remove, :) = [];
+        trajectory_data_cell_wide{i_variable}(rows_to_remove, :) = [];
     end
     
     % remove from condition and origin data
@@ -123,7 +132,7 @@ mean_data_cell_wide = cell(number_of_variables_to_export_means, 1);
 for i_variable = 1 : number_of_variables_to_export_means
     this_variable_mean_data = zeros(number_of_time_points_per_stretch, number_of_condition_combinations);
     
-    source_data_this_variable = source_data_cell_for_means{i_variable};
+    source_data_this_variable = trajectory_data_cell_wide{i_variable};
     for i_combination = 1 : number_of_condition_combinations
         indicator_this_combination = unique_condition_combination_indicators(:, i_combination);
         data_this_variable_this_combination = source_data_this_variable(indicator_this_combination, :);
@@ -134,9 +143,7 @@ end
 
 % repackage means for export
 mean_header_cell = [condition_header 'time' variables_to_export_means'];
-step_time_means = mean(step_time_data, 2);
-time_normalized = createScaledAbscissa(step_time_means, number_of_time_points_normalized);
-time_point_strings = num2str(time_normalized);
+time_point_strings = num2str(time_rescaled);
 time_point_cell_single = strtrim(cellstr(time_point_strings));
 time_point_cell_long = repmat(time_point_cell_single, number_of_condition_combinations, 1);
 condition_cell_long = cell(number_of_condition_combinations * number_of_time_points_per_stretch, 4);
@@ -145,7 +152,6 @@ for i_combination = 1 : number_of_condition_combinations
     condition_cell_long((i_combination-1)*number_of_time_points_per_stretch+1 : i_combination*number_of_time_points_per_stretch, :) ...
         = repmat(this_combination, number_of_time_points_per_stretch, 1);
 end
-
 
 mean_data_cell = cell(number_of_condition_combinations * number_of_time_points_per_stretch, number_of_variables_to_export_means);
 for i_variable = 1 : number_of_variables_to_export_means
@@ -157,6 +163,30 @@ for i_variable = 1 : number_of_variables_to_export_means
     mean_data_cell(:, i_variable) = this_variable_mean_data_cell;
 end
 mean_body_cell = [condition_cell_long time_point_cell_long mean_data_cell];
+
+
+
+% repackage trajectories for export
+number_of_stretches = size(trajectory_data_cell_wide{1}, 1);
+trajectory_header_cell = [condition_header 'time' variables_to_export_means'];
+trajectory_data_cell = cell(number_of_stretches * number_of_time_points_per_stretch, number_of_variables_to_export_trajectories);
+time_point_cell_verylong = repmat(time_point_cell_single, number_of_stretches, 1);
+condition_cell_verylong = cell(number_of_stretches * number_of_time_points_per_stretch, 4);
+for i_stretch = 1 : number_of_stretches
+    this_combination = condition_cell(i_stretch, :);
+    condition_cell_verylong((i_stretch-1)*number_of_time_points_per_stretch+1 : i_stretch*number_of_time_points_per_stretch, :) ...
+        = repmat(this_combination, number_of_time_points_per_stretch, 1);
+end
+for i_variable = 1 : number_of_variables_to_export_trajectories
+    % get data in shape
+    this_variable_trajectory_data = trajectory_data_cell_wide{i_variable};
+    this_variable_trajectory_data_flat = reshape(this_variable_trajectory_data', numel(this_variable_trajectory_data), 1);
+    this_variable_trajectory_data_strings = num2str(this_variable_trajectory_data_flat);
+    this_variable_trajectory_data_cell = strtrim(cellstr(this_variable_trajectory_data_strings));
+    trajectory_data_cell(:, i_variable) = this_variable_trajectory_data_cell;
+end
+trajectory_body_cell = [condition_cell_verylong time_point_cell_verylong trajectory_data_cell];
+
 
 % save as .csv
 export_cell = ...
@@ -171,10 +201,18 @@ export_cell = ...
     mean_header_cell; ...
     mean_body_cell ...
   ];
-save_file_name = ['results_trajectories.csv'];
+save_file_name = 'results_trajectory_means.csv';
 cell2csv(save_file_name, export_cell);
 
-
+if ~isempty(trajectory_data_cell)
+    export_cell = ...
+      [ ...
+        trajectory_header_cell; ...
+        trajectory_body_cell ...
+      ];
+    save_file_name = 'results_trajectories.csv';
+    cell2csv(save_file_name, export_cell);
+end
 
 
 
