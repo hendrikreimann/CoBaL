@@ -17,15 +17,6 @@
 % This function uses the previously calculated stretch variables to process analysis variables. For all stretch variables,
 % the response is calculated, i.e. the difference from the control mean.
 
-% A stretch variable is somethings that can be calculated for each stretch or band of data separately. An analysis variable
-% can depend upon other data. There are several standard types of analysis variables that are pre-defined, along with ways
-% to calculate them. These are:
-% - analysis_variables_from_integration: integrate a variable over the whole band
-% - analysis_variables_from_step_end: take the value of a variable at the end of the band
-% - analysis_variables_from_inversion_by_perturbation: invert the variable depending on the value of the perturbation condition
-% - analysis_variables_from_inversion_by_direction: invert the variable depending on the value of the direction condition
-% - analysis_variables_from_selection: select variables from different sources, depending on the trigger_foot and index conditions
-
 % note: the inversion could be automated more elegantly, but that's for a later date
 
 function processAnalysisVariables(varargin)
@@ -77,7 +68,6 @@ function processAnalysisVariables(varargin)
     end
     
     %% calculate response (i.e. difference from control mean)
-    % TODO: deal with bands
     response_data_session = {};
     response_directions_session = loaded_data.stretch_directions_session;
     response_names_session = loaded_data.stretch_names_session;
@@ -100,7 +90,7 @@ function processAnalysisVariables(varargin)
             end
             
             % determine applicable control condition index
-            if strcmp(study_settings.get('experimental_paradigm'), 'Vision') || strcmp(study_settings.get('experimental_paradigm'), 'GVS')
+            if strcmp(study_settings.get('experimental_paradigm'), 'Vision') || strcmp(study_settings.get('experimental_paradigm'), 'GVS') || strcmp(study_settings.get('experimental_paradigm'), 'GVS_old')
                 if strcmp(this_stretch_condition_string{strcmp(condition_combination_labels, 'trigger_foot')}, 'TRIGGER_LEFT')
                     applicable_control_condition_index = find(strcmp(condition_combinations_control_unique(:, strcmp(condition_combination_labels, 'trigger_foot')), 'TRIGGER_LEFT'));
                 end
@@ -116,7 +106,7 @@ function processAnalysisVariables(varargin)
                     applicable_control_condition_index = find(strcmp(condition_combinations_control_unique(:, strcmp(condition_combination_labels, 'cadence')), '110BPM'));
                 end
             end
-            if strcmp(study_settings.get('stimulus_condition'), 'VISUAL') || strcmp(study_settings.get('stimulus_condition'), 'GVS_old')
+            if strcmp(study_settings.get('stimulus_condition'), 'VISUAL') || strcmp(study_settings.get('stimulus_condition'), 'GVS')
                 if strcmp(this_stretch_condition_string{strcmp(condition_combination_labels, 'stance_foot')}, 'STANCE_LEFT')
                     applicable_control_condition_index = find(strcmp(condition_combinations_control_unique(:, strcmp(condition_combination_labels, 'stance_foot')), 'STANCE_LEFT'));
                 end
@@ -179,7 +169,6 @@ function processAnalysisVariables(varargin)
         step_end_data = this_variable_response_data(end, :);
         
         % store
-%         [analysis_data_session, analysis_names_session] = addOrOverwriteData(analysis_data_session, analysis_names_session, step_end_data, this_variable_name);
         [analysis_data_session, analysis_names_session, analysis_directions_session] = ...
             addOrOverwriteResultsData ...
               ( ...
@@ -213,6 +202,39 @@ function processAnalysisVariables(varargin)
                 step_end_data, this_variable_name, new_variable_directions ...
               );
     end
+    
+    %% calculate variables referenced by stretch
+    variables_referenced_by_stretch = study_settings.get('analysis_variables_referenced_by_stretch');
+    for i_variable = 1 : size(variables_referenced_by_stretch, 1)
+        this_variable_name = variables_referenced_by_stretch{i_variable, 1};
+        this_variable_source_name = variables_referenced_by_stretch{i_variable, 2};
+        this_variable_source_type = variables_referenced_by_stretch{i_variable, 3};
+        this_variable_reference_band_index = str2num(variables_referenced_by_stretch{i_variable, 4});
+        this_variable_reference_point_percentage_within_band = str2num(variables_referenced_by_stretch{i_variable, 5});
+        
+        % pick data depending on source specification
+        eval(['data_source = ' this_variable_source_type '_data_session;']);
+        eval(['names_source = ' this_variable_source_type '_names_session;']);
+        eval(['directions_source = ' this_variable_source_type '_directions_session;']);
+        this_variable_source_data = data_source{strcmp(names_source, this_variable_source_name)};
+        new_variable_directions = directions_source(strcmp(names_source, this_variable_source_name), :);
+        new_variable_data = zeros(size(this_variable_source_data));
+        reference_index_within_band = round((number_of_time_steps_normalized-1)*this_variable_reference_point_percentage_within_band * 1/100) + 1;
+        relevant_band_start_index = getBandIndices(this_variable_reference_band_index, number_of_time_steps_normalized);
+        reference_index = relevant_band_start_index + reference_index_within_band - 1;
+        
+        for i_stretch = 1 : size(new_variable_data, 2)
+            new_variable_data(:, i_stretch) = this_variable_source_data(:, i_stretch) - this_variable_source_data(reference_index, i_stretch);
+        end
+        % store
+        [analysis_data_session, analysis_names_session, analysis_directions_session] = ...
+            addOrOverwriteResultsData ...
+              ( ...
+                analysis_data_session, analysis_names_session, analysis_directions_session, ...
+                new_variable_data, this_variable_name, new_variable_directions ...
+              );
+    end
+    
     %% calculate integrated variables
     % TODO: deal with bands
     % TODO: deal with directions .. check this
@@ -252,7 +274,7 @@ function processAnalysisVariables(varargin)
 
     end
     
-        %% calculate inversion variables
+    %% calculate inversion variables
     inversion_variables = study_settings.get('inversion_variables');
     for i_variable = 1 : size(inversion_variables, 1)
         % get data
@@ -302,6 +324,7 @@ function processAnalysisVariables(varargin)
                 this_variable_data, this_variable_name, new_variable_directions ...
               );
     end
+    
     %% gather variables that are selected from different sources depending on condition
     % TODO: deal with bands
     % TODO: deal with directions
@@ -388,7 +411,7 @@ function processAnalysisVariables(varargin)
     end
     
     %% process variables where something specific happens for each variable
- % TO DO: automate the source type and data extraction
+    % TO DO: automate the source type and data extraction
     special_variables_to_calculate = study_settings.get('analysis_variables_special');
     for i_variable = 1:size(special_variables_to_calculate, 1)
         this_variable_name = special_variables_to_calculate{i_variable, 1};
@@ -483,7 +506,6 @@ function processAnalysisVariables(varargin)
               );
     end
     
-
     %% calculate variables from extrema
     variables_from_extrema = study_settings.get('analysis_variables_from_extrema');
     for i_variable = 1 : size(variables_from_extrema, 1)
@@ -627,7 +649,6 @@ function processAnalysisVariables(varargin)
                 this_unaffected_variable_data, 'unaffected_arm_angle', new_variable_directions ...
               ); 
     end
-    
     
     %% gather variables with inversion by perturbation
     % THIS IS LEGACY CODE

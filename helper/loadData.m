@@ -28,6 +28,18 @@ function [data, time, sampling_rate, labels, directions, success] = loadData(dat
     info_file_name = makeFileName(date, subject_id, trial_type, trial_number, 'availableVariables.mat');
     load(['analysis' filesep info_file_name], 'available_variables');
     
+    % check if this is a compound
+    if any(data_name==':')
+        data_label = data_name;
+        this_variable_split = strsplit(data_name, ':');
+        data_name = this_variable_split{1};
+        data_sublabel = this_variable_split{2};
+        is_compound = true;
+    else
+        is_compound = false;
+    end
+    
+    
     % load requested data
     if ~any(any(strcmp(data_name, available_variables)))
         if ~strcmp(optional, 'optional')
@@ -78,7 +90,7 @@ function [data, time, sampling_rate, labels, directions, success] = loadData(dat
         loaded_data = load([data_folder filesep data_file_name], data_name, data_time, data_sampling_rate);
     end
 
-    % hand over
+    % hand over to output arguments
     eval(['data = loaded_data.' data_name ';'])
     eval(['time = loaded_data.' data_time ';'])
     eval(['sampling_rate = loaded_data.' data_sampling_rate ';'])
@@ -92,6 +104,13 @@ function [data, time, sampling_rate, labels, directions, success] = loadData(dat
         eval(['directions = loaded_data.' data_directions_variable ';'])
     else
         directions = data_directions;
+    end
+
+    % 
+    if is_compound
+        data = data(:, strcmp(labels, data_sublabel)); %#ok<NODEF>
+        directions = directions(:, strcmp(labels, data_sublabel)); %#ok<NODEF>
+        labels = data_label;
     end
     
 %     if isempty(data_labels)

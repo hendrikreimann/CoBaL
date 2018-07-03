@@ -35,6 +35,9 @@ function importQTM()
     milliseconds_to_seconds = 1e-3;
     qtm_emg_scale = 1;
 
+    subject_settings = SettingsCustodian('subjectSettings.txt');
+    analog_to_protocol_mapping = subject_settings.get('analog_to_protocol_mapping');
+    
     % initialize
     total_number_of_trials_extracted_this_subject = 0;
 
@@ -106,7 +109,6 @@ function importQTM()
     % import labview saved data
     number_of_files = length(file_name_list);
     for i_file = 1 : number_of_files
-    % for i_file = [] % remove during development to speed things up
         % file name stuff
         data_file_name = file_name_list{i_file};
         [date, subject_id, trial_type, trial_number, file_type] = getFileParameters(data_file_name);
@@ -175,6 +177,7 @@ function importQTM()
     number_of_files = length(file_name_list);
     importing_trial_number = 0;
     for i_file = 1 : number_of_files
+%     for i_file = 3 : number_of_files % XXX to speed things up during bug-fixing
         % file name stuff
         data_file_name = file_name_list{i_file};
         disp(['Importing ' qtm_source_dir filesep data_file_name])
@@ -186,16 +189,11 @@ function importQTM()
         temp_data = load([qtm_source_dir, filesep, data_file_name]);
         qtm_data = temp_data.(var_name.name);
         % TODO: this was a hack for having data missing, fix this!
-        if strcmp(trial_type, 'calibration')
+        if strcmp(trial_type, 'calibration') || strcmp(trial_type, 'static')
             analog_fs = 2000;
             start_indices = 1;
             end_indices = 20000;
             this_trial_duration = 10;
-%             if trial_number == 1
-%                 end_indices = 2000;
-%             else
-%                 end_indices = 20000;
-%             end
         else
             analog_fs = qtm_data.Analog.Frequency;
 
@@ -208,60 +206,15 @@ function importQTM()
             % find edges
             trigger_edges = [diff(trigger), 0];
             analog_index = 1:length(qtm_data.Analog.Data);
-            % trials start on negative edge
-            start_indices = analog_index(trigger_edges == -1);
-            end_indices = analog_index(trigger_edges == 1);
-
-            %     figure; hold on;
-            %     plot(trigger);
-            %     plot(start_indices, 0*start_indices, '>');
-            %     plot(end_indices, 0*end_indices, '<');
+            start_indices = analog_index(trigger_edges == -1); % trials start on negative edge
+            end_indices = analog_index(trigger_edges == 1); % trials end on positive edge
 
             % figure out protocol steps
             protocol_step_mask = contains(qtm_data.Analog.Labels, 'currentStep');
             protocol_step_analog = qtm_data.Analog.Data(protocol_step_mask,:);
-            [~, protocol_step_up_indices] = findpeaks([diff(protocol_step_analog), 0], 'MinPeakProminence', 0.08);
+%             [~, protocol_step_up_indices] = findpeaks([diff(protocol_step_analog), 0], 'MinPeakProminence', 0.08);
+            protocol_step_up_indices = find([diff(protocol_step_analog), 0] > 0.08); % TODO: changed this to a simple thresholding because of increased noise level, revisit this at some point!
             
-            
-            
-            
-            
-            
-            
-            
-%             % discrete map from [-10 10] --> [0 200]
-%             protocol_step = round((protocol_step_analog + 10) * 10);
-% 
-%             % fix problems with the analog --> digital conversion
-%             down_edges = find(diff(protocol_step) == -1);
-%             up_edges = find(diff(protocol_step) == 1);
-% 
-% 
-%             % find NaNs in the case of an Analog Zap!
-%             if any(isnan(protocol_step))
-%     %             
-%                 last_step_index = find(~isnan(protocol_step),1,'last')
-%                 last_step = protocol_step(last_step_index);
-% 
-%                 protocol_step_Nans_indices = isnan(protocol_step);
-%                 protocol_step(protocol_step_Nans_indices) = last_step;
-%             end
-% 
-% 
-%             for i_down_edge = 1 : length(down_edges)-1
-%                 this_down_edge = down_edges(i_down_edge);
-%                 next_up_edge = min(up_edges(up_edges > this_down_edge));
-%                 problematic_indices = this_down_edge+1 : next_up_edge;
-%                 protocol_step(problematic_indices) = protocol_step(problematic_indices) + 1;
-% 
-%                 %         plot(problematic_indices, protocol_step(problematic_indices), 'o');
-%             end
-
-            %     plot(protocol_step);
-
-
-
-
             if isempty(start_indices) && isempty(end_indices)
                 start_indices = 1;
                 end_indices = length(analog_index);
@@ -284,11 +237,12 @@ function importQTM()
             end
 
             figure; hold on;
-            plot(protocol_step_analog);
-            plot(protocol_step_up_indices, protocol_step_analog(protocol_step_up_indices), '^');
-            plot(start_indices, protocol_step_analog(start_indices), '>');
-            plot(end_indices, protocol_step_analog(end_indices), '<');
-            
+            time_analog = (1 : length(protocol_step_analog)) * 1/analog_fs;
+            plot(time_analog, protocol_step_analog);
+            plot(time_analog(protocol_step_up_indices), protocol_step_analog(protocol_step_up_indices), '^');
+            plot(time_analog(start_indices), protocol_step_analog(start_indices), '>');
+            plot(time_analog(end_indices), protocol_step_analog(end_indices), '<');
+            drawnow
             
             if end_indices(end) > length(qtm_data.Analog.Data)
                 end_indices(end) = length(qtm_data.Analog.Data);
@@ -302,32 +256,46 @@ function importQTM()
             this_trial_length = number_of_samples / analog_fs;
 
             % figure out information from protocol, or define for calibration trials
-            if strcmp(trial_type, 'calibration')
+            if strcmp(trial_type, 'calibration') || strcmp(trial_type, 'static')
                 importing_trial_number = trial_number;
                 importing_trial_type = trial_type;
                 save_this_trial = 1;
+                this_trial_duration = 10;
             else
                 if ~protocol_file_available
-                    error('No protocol file available, exiting for now... you can add code to fix this')
+                    error('Failed to locate protocol.csv in the labview folder, exiting.')
                 end
                 
-                % figure out protocol step from the analog signal
-                this_trial_protocol_step_analog = protocol_step_analog(this_trial_start_index:this_trial_end_index);
+                % check if a mapping was provided for this step
+                use_analog_signal = true;
+                trial_type_matches = strcmp(analog_to_protocol_mapping(:, 1), trial_type);
+                trial_number_matches = strcmp(analog_to_protocol_mapping(:, 2), num2str(trial_number));
+                index_number_matches = strcmp(analog_to_protocol_mapping(:, 3), num2str(i_trial_this_qtm_file));
                 
-                analog_to_step_range = (-10 : 0.1 : 10)';
-                offset = analogOffset();
-                this_trial_offset = interp1(analog_to_step_range, offset, this_trial_protocol_step_analog);
-                this_trial_protocol_step_analog_corrected = this_trial_protocol_step_analog + this_trial_offset;
-                
-                % discrete map from [-10 10] --> [0 200]
-                this_trial_protocol_step_digital = round((this_trial_protocol_step_analog_corrected + 10) * 10);
-                this_trial_protocol_step = median(this_trial_protocol_step_digital);
-                
-                if sum(this_trial_protocol_step_digital(2:end-1)~=median(this_trial_protocol_step_digital)) > 20
-                    warning(['Ambiguous protocol step data for trial starting at time step ' num2str(this_trial_start_index)]);
+                if any(trial_type_matches & trial_number_matches & index_number_matches)
+                    use_analog_signal = false;
+                    this_trial_protocol_index = str2num(analog_to_protocol_mapping{trial_type_matches & trial_number_matches & index_number_matches, 4});
                 end
-                this_trial_protocol_index = median(this_trial_protocol_step) + 1;
+                    
+                if use_analog_signal
+                    % figure out protocol step from the analog signal
+                    this_trial_protocol_step_analog = protocol_step_analog(this_trial_start_index:this_trial_end_index);
 
+                    analog_to_step_range = (-10 : 0.1 : 10)';
+                    offset = analogOffset();
+                    this_trial_offset = interp1(analog_to_step_range, offset, this_trial_protocol_step_analog);
+                    this_trial_protocol_step_analog_corrected = this_trial_protocol_step_analog + this_trial_offset;
+
+                    % discrete map from [-10 10] --> [0 200]
+                    this_trial_protocol_step_digital = round((this_trial_protocol_step_analog_corrected + 10) * 10);
+                    this_trial_protocol_step = median(this_trial_protocol_step_digital);
+
+                    if sum(this_trial_protocol_step_digital(2:end-1)~=median(this_trial_protocol_step_digital)) > 20
+                        warning(['Ambiguous protocol step data for trial starting at time step ' num2str(this_trial_start_index)]);
+                    end
+                    this_trial_protocol_index = median(this_trial_protocol_step) + 1;
+                end
+                    
                 importing_trial_type = protocol_trial_type{this_trial_protocol_index};
                 importing_trial_number = protocol_trial_number(this_trial_protocol_index);
                 this_trial_duration = protocol_trial_duration(this_trial_protocol_index);           
@@ -352,7 +320,7 @@ function importQTM()
 
             end
 
-            if ~strcmp(trial_type, 'calibration')
+            if ~strcmp(trial_type, 'calibration') && ~strcmp(trial_type, 'static')
                 % EMG
                 sampling_rate_emg = analog_fs;
                 time_emg = (1 : number_of_samples)' / sampling_rate_emg;
@@ -467,6 +435,15 @@ function importQTM()
             end
             marker_trajectories_raw = marker_trajectories_raw';
 
+            
+            % replace marker labels if necessary
+            marker_label_replacement_map = subject_settings.get('marker_label_replacement_map');
+            for i_label = 1 : size(marker_label_replacement_map, 1)
+                old_label = marker_label_replacement_map{i_label, 1};
+                new_label = marker_label_replacement_map{i_label, 2};
+                marker_labels{strcmp(marker_labels, old_label)} = new_label;
+            end
+            
             % triplicate labels
             marker_labels_loaded = marker_labels;
             number_of_markers = length(marker_labels_loaded);
@@ -508,8 +485,17 @@ function importQTM()
             end
 
             if save_this_trial
-%                 disp(['  Saved data files for type ' importing_trial_type ', trial ' num2str(importing_trial_number)])
-                disp(['  Saved data files for type ' importing_trial_type ', trial ' num2str(importing_trial_number) ' with duration ' num2str(this_trial_duration) 's'])
+%                 disp(['  Saved data files for type ' importing_trial_type ', trial ' num2str(importing_trial_number) ' with duration ' num2str(this_trial_duration) 's'])
+                disp( ...
+                      [ ...
+                        '  Saved data files for type ' importing_trial_type ...
+                        ', trial ' num2str(importing_trial_number) ...
+                        ' with duration ' num2str(this_trial_duration) ...
+                        's (' num2str(this_trial_start_index_mocap * 1/sampling_rate_mocap) ...
+                        '-' num2str(this_trial_end_index_mocap * 1/sampling_rate_mocap) ...
+                        ')' ...
+                      ] ...
+                    )
             end
         end
         total_number_of_trials_extracted_this_subject = total_number_of_trials_extracted_this_subject + number_of_trials_in_this_qtm_file;

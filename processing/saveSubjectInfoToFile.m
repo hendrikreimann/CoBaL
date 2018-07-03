@@ -24,6 +24,7 @@ function saveSubjectInfoToFile(varargin)
     
     % get subject settings
     subject_settings = SettingsCustodian('subjectSettings.txt');
+    trial_types_to_ignore = subject_settings.get('trial_types_to_ignore');
     
     % get subject code
     current_path = pwd;
@@ -102,17 +103,20 @@ function saveSubjectInfoToFile(varargin)
     trial_number_list = {};
     for i_file = 1 : length(file_name_list)
         data_file_name = file_name_list{i_file};
-        [date, subject_id, trial_type, trial_number, file_type] = getFileParameters(data_file_name); %#ok<ASGLU>
-        
-        if ~any(strcmp(condition_list, trial_type))
-            condition_list = [condition_list; trial_type]; %#ok<AGROW>
-            trial_number_list = [trial_number_list; trial_number]; %#ok<AGROW>
-        else
-            % add current trial to trial number list
-            condition_index = find(strcmp(condition_list, trial_type), 1);
-            trial_number_list{condition_index} = [trial_number_list{condition_index} trial_number]; %#ok<AGROW>
-            % remove duplicates
-            trial_number_list{condition_index} = unique(trial_number_list{condition_index}); %#ok<AGROW>
+        % is this a data file?
+        if sum(data_file_name=='_') == 4
+            [date, subject_id, trial_type, trial_number, file_type] = getFileParameters(data_file_name); %#ok<ASGLU>
+
+            if ~any(strcmp(condition_list, trial_type))
+                condition_list = [condition_list; trial_type]; %#ok<AGROW>
+                trial_number_list = [trial_number_list; trial_number]; %#ok<AGROW>
+            else
+                % add current trial to trial number list
+                condition_index = find(strcmp(condition_list, trial_type), 1);
+                trial_number_list{condition_index} = [trial_number_list{condition_index} trial_number]; %#ok<AGROW>
+                % remove duplicates
+                trial_number_list{condition_index} = unique(trial_number_list{condition_index}); %#ok<AGROW>
+            end
         end
     end
     
@@ -176,6 +180,7 @@ function saveSubjectInfoToFile(varargin)
     end
     variables_to_save.condition_list = condition_list;
     variables_to_save.trial_number_list = trial_number_list; %#ok<STRNU>
+    variables_to_save.trial_types_to_ignore = trial_types_to_ignore;
     
     
     % save

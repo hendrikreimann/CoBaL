@@ -42,7 +42,6 @@ function findEmgNormalization(varargin)
     subject_settings = SettingsCustodian('subjectSettings.txt');
     emg_variable_names = subject_settings.get('emg_labels')';
     data_custodian = WalkingDataCustodian(emg_variable_names);
-%     number_of_stretch_variables = length(emg_variable_names);
     number_of_stretch_variables = length(data_custodian.stretch_variable_names);
    
     
@@ -62,14 +61,6 @@ function findEmgNormalization(varargin)
     for i_condition = 1 : number_of_condition_labels
         conditions_session.(condition_source_variables{i_condition}) = {};
     end
-%     condition_stance_foot_list_subject = {};
-%     condition_perturbation_list_subject = {};
-%     condition_delay_list_subject = {};
-%     condition_index_list_subject = {};
-%     condition_experimental_list_subject = {};
-%     condition_stimulus_list_subject = {};
-%     condition_day_list_subject = {};
-    
     
     % analyze and store data
     for i_type = 1 : length(condition_list)
@@ -100,6 +91,7 @@ function findEmgNormalization(varargin)
     
     %% calculate some subject-level data and report
     number_of_stretches_session = size(data_session{1}, 2);
+    variable_names = data_custodian.stretch_variable_names;
     
     % make condition data tables
     condition_data_all = cell(number_of_stretches_session, number_of_condition_labels);
@@ -109,12 +101,13 @@ function findEmgNormalization(varargin)
     labels_to_ignore = study_settings.get('conditions_to_ignore');
     levels_to_remove = study_settings.get('levels_to_remove');
     
-    % make an adjustment to condition_data_all "control" emg condition
-    % this is a hack and should think about a way to automate this
-    % intelligently
-    if any(strcmp(condition_data_all(:, 2), 'post4'))
-        conditions_settings(2,4) = {'post4'};
-    end
+%     % make an adjustment to condition_data_all "control" emg condition
+%     % this is a hack and should think about a way to automate this
+%     % intelligently
+%     if any(strcmp(condition_data_all(:, 2), 'post4'))
+%         conditions_settings(2,4) = {'post4'};
+%     end
+% HR: no idea what this was for, but I do not think it is needed anymore
     
     [condition_combination_labels, condition_combinations_stimulus, condition_combinations_control, condition_combinations_emg_unique] = determineConditionCombinations(condition_data_all, conditions_settings, labels_to_ignore, levels_to_remove);
 
@@ -140,61 +133,30 @@ function findEmgNormalization(varargin)
     disp('EMG normalization conditions:')
     disp(conditions_emg_with_labels);
     
-%     % calculate some subject-level data and report
-%     number_of_stretches_subject = length(condition_stance_foot_list_subject);
-%     
-%     % extract indicators for emg normalization
-%     conditions_emg_normalization = study_settings.get('conditions_emg_normalization');
-%     number_of_conditions_emg_normalization = size(conditions_emg_normalization, 1);
-%     conditions_emg_normalization_indicators = false(number_of_stretches_subject, number_of_conditions_emg_normalization);
-%     for i_condition = 1 : number_of_conditions_emg_normalization
-%         stance_foot_indicator = strcmp(condition_stance_foot_list_subject, conditions_emg_normalization(i_condition, 1));
-%         perturbation_indicator = strcmp(condition_perturbation_list_subject, conditions_emg_normalization(i_condition, 2));
-%         delay_indicator = strcmp(condition_delay_list_subject, conditions_emg_normalization(i_condition, 3));
-%         index_indicator = strcmp(condition_index_list_subject, conditions_emg_normalization(i_condition, 4));
-%         experimental_indicator = strcmp(condition_experimental_list_subject, conditions_emg_normalization(i_condition, 5));
-%         stimulus_indicator = strcmp(condition_stimulus_list_subject, conditions_emg_normalization(i_condition, 6));
-%         day_indicator = strcmp(condition_day_list_subject, conditions_emg_normalization(i_condition, 7));
-% 
-%         this_condition_indicator = stance_foot_indicator & perturbation_indicator & delay_indicator & index_indicator & experimental_indicator & stimulus_indicator & day_indicator;
-%         conditions_emg_normalization_indicators(:, i_condition) = this_condition_indicator;
-%     end
-
-%     % report conditions for emg normalization
-%     trials_per_condition_emg_normalization = sum(conditions_emg_normalization_indicators)';
-%     conditions_emg_normalization_with_number = conditions_emg_normalization;
-%     for i_condition = 1 : number_of_conditions_emg_normalization
-%         conditions_emg_normalization_with_number{i_condition, size(conditions_emg_normalization, 2)+1} = num2str(trials_per_condition_emg_normalization(i_condition));
-%     end
-%     conditions_emg_normalization_with_labels = [study_settings.get('condition_labels') 'number of stretches'; conditions_emg_normalization_with_number];
-%     disp('EMG normalization conditions:')
-%     disp(conditions_emg_normalization_with_labels);
-
     % average across stretches
-    emg_normalization_values = zeros(length(emg_variable_names), 1) * NaN;
+    emg_normalization_values = zeros(length(variable_names), 1) * NaN;
     for i_variable = 1 : number_of_stretch_variables
         data_this_variable = data_session{i_variable};
         condition_averages_this_variable = zeros(1, number_of_conditions_emg) * NaN;
         
-        if ~(strcmp(emg_variable_names{i_variable}, 'empty') || strcmp(emg_variable_names{i_variable}, '~'))
-            for i_condition = 1 : number_of_conditions_emg
-                this_condition_indicator = conditions_emg_indicators(:, i_condition);
-                data_this_condition = data_this_variable(:, this_condition_indicator);
-                average_this_condition = median(data_this_condition, 2); % average across trials
-                condition_averages_this_variable(i_condition) = mean(average_this_condition); % average across time
+        for i_condition = 1 : number_of_conditions_emg
+            this_condition_indicator = conditions_emg_indicators(:, i_condition);
+            data_this_condition = data_this_variable(:, this_condition_indicator);
+            average_this_condition = median(data_this_condition, 2); % average across trials
+            condition_averages_this_variable(i_condition) = mean(average_this_condition); % average across time
 
-                if visualize
-                    figure; hold on;
-                    title(emg_variable_names{i_variable});
-                    plot(data_this_condition);
-                    plot(average_this_condition, 'linewidth', 5);
-                end
+            if visualize
+                figure; hold on;
+                title(variable_names{i_variable});
+                plot(data_this_condition);
+                plot(average_this_condition, 'linewidth', 5);
             end
-            emg_normalization_values(i_variable) = mean(condition_averages_this_variable);
         end
+        emg_normalization_values(i_variable) = mean(condition_averages_this_variable);
     end
     
     % save data
+    emg_variable_names = variable_names;
     results_file_name = ['analysis' filesep makeFileName(date, subject_id, 'emgNormalization')];
     save ...
       ( ...
