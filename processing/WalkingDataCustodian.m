@@ -2173,6 +2173,7 @@ classdef WalkingDataCustodian < handle
                     
                     this.time_data.right_foot_angle_ml = this.time_data.marker_trajectories;
                 end
+                if strcmp(variable_name, 'right_foot_angle_yaw')
                     % calculate angle trajectory
                     RTOE_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RTOE');
                     RTOEL_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RTOEL');
