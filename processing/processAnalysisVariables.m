@@ -17,15 +17,6 @@
 % This function uses the previously calculated stretch variables to process analysis variables. For all stretch variables,
 % the response is calculated, i.e. the difference from the control mean.
 
-% A stretch variable is somethings that can be calculated for each stretch or band of data separately. An analysis variable
-% can depend upon other data. There are several standard types of analysis variables that are pre-defined, along with ways
-% to calculate them. These are:
-% - analysis_variables_from_integration: integrate a variable over the whole band
-% - analysis_variables_from_step_end: take the value of a variable at the end of the band
-% - analysis_variables_from_inversion_by_perturbation: invert the variable depending on the value of the perturbation condition
-% - analysis_variables_from_inversion_by_direction: invert the variable depending on the value of the direction condition
-% - analysis_variables_from_selection: select variables from different sources, depending on the trigger_foot and index conditions
-
 % note: the inversion could be automated more elegantly, but that's for a later date
 
 function processAnalysisVariables(varargin)

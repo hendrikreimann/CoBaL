@@ -244,8 +244,26 @@ classdef WalkingDataCustodian < handle
                 this.addStretchVariable('rheel_x')
                 this.addStretchVariable('step_placement_x')
             end
+            if this.isVariableToAnalyze('stimulus_response_x')
+                this.addBasicVariable('marker_trajectories')
+                this.addBasicVariable('lheel_x')
+                this.addBasicVariable('rheel_x')
+                this.addBasicVariable('lankle_y')
+                this.addBasicVariable('rankle_y')
+                this.addBasicVariable('pelvis_y')
+                this.addStretchVariable('step_time')
+                this.addStretchVariable('pushoff_time')
+                this.addStretchVariable('midstance_index')
+                this.addStretchVariable('lheel_x')
+                this.addStretchVariable('rheel_x')
+                this.addStretchVariable('step_placement_x')
+            end
             if this.isVariableToAnalyze('step_time')
                 this.addStretchVariable('step_time')
+            end
+            if this.isVariableToAnalyze('step_duration')
+                this.addStretchVariable('step_time')
+                this.addStretchVariable('step_duration')
             end
             if this.isVariableToAnalyze('pushoff_time')
                 this.addBasicVariable('marker_trajectories')
@@ -3012,10 +3030,6 @@ classdef WalkingDataCustodian < handle
                         mpsis_x = this.getTimeNormalizedData('mpsis_x', this_stretch_times);
                         stretch_data = mpsis_x - mpsis_x(1);
                     end
-                    
-
-
-% 
                     if strcmp(variable_name, 'step_length')
                         lheel_y = this.getTimeNormalizedData('lheel_y', this_stretch_times);
                         rheel_y = this.getTimeNormalizedData('rheel_y', this_stretch_times);
@@ -3034,8 +3048,6 @@ classdef WalkingDataCustodian < handle
                                 stretch_data(i_band) = NaN;
                             end
                         end
-                        
-                        
                     end
                     if strcmp(variable_name, 'step_width')
                         lheel_x = this.getTimeNormalizedData('lheel_x', this_stretch_times);
@@ -3054,7 +3066,6 @@ classdef WalkingDataCustodian < handle
                                 stretch_data(i_band) = NaN;
                             end
                         end
-                        
                     end
                     if strcmp(variable_name, 'step_placement_x')
                         lheel_x = this.getTimeNormalizedData('lheel_x', this_stretch_times);
@@ -3073,9 +3084,11 @@ classdef WalkingDataCustodian < handle
                                 stretch_data(i_band) = NaN;
                             end
                         end
-
                     end
                     if strcmp(variable_name, 'step_time')
+                        stretch_data = diff(this_stretch_times)';
+                    end
+                    if strcmp(variable_name, 'band_duration')
                         stretch_data = diff(this_stretch_times)';
                     end
                     if strcmp(variable_name, 'pushoff_time')
@@ -3083,19 +3096,40 @@ classdef WalkingDataCustodian < handle
                         stretch_data = this_stretch_pushoff_time - this_stretch_start_time;
                     end
                     if strcmp(variable_name, 'midstance_index')
-                        % TODO: not updated to new subdivision of stretches into bands yet... don't really know what to do here yet
-                        % get trajectories
+                        lankle_x = this.getTimeNormalizedData('lankle_y', this_stretch_times);
+                        rankle_x = this.getTimeNormalizedData('rankle_y', this_stretch_times);
                         pelvis_y = this.getTimeNormalizedData('pelvis_y', this_stretch_times);
-                        if strcmp(stance_foot_data{i_stretch}, 'STANCE_RIGHT')
-                            stance_ankle_y = this.getTimeNormalizedData('rankle_y', this_stretch_times);
+                        stretch_data = zeros(number_of_bands, 1);
+                        for i_band = 1 : number_of_bands
+                            [band_start_index, band_end_index] = getBandIndices(i_band, this.number_of_time_steps_normalized);
+                            
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_RIGHT')
+                                stance_ankle_this_band = rankle_x(band_start_index : band_end_index);
+                                pelvis_this_band = pelvis_y(band_start_index : band_end_index);
+                                [~, zero_crossing_index] = min(abs(stance_ankle_this_band - pelvis_this_band));
+                                stretch_data(i_band) = band_start_index - 1 + zero_crossing_index;
+                            end
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_LEFT')
+                                stance_ankle_this_band = lankle_x(band_start_index : band_end_index);
+                                pelvis_this_band = pelvis_y(band_start_index : band_end_index);
+                                [~, zero_crossing_index] = min(abs(stance_ankle_this_band - pelvis_this_band));
+                                stretch_data(i_band) = band_start_index - 1 + zero_crossing_index;
+                            end
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_BOTH')
+                                stretch_data(i_band) = NaN;
+                            end
                         end
-                        if strcmp(stance_foot_data{i_stretch}, 'STANCE_LEFT')
-                            stance_ankle_y = this.getTimeNormalizedData('lankle_y', this_stretch_times);
-                        end
-                        if strcmp(stance_foot_data{i_stretch}, 'STANCE_BOTH')
-                            stance_ankle_y = NaN;
-                        end
-                        stretch_data = find(stance_ankle_y < pelvis_y, 1, 'first');
+                        
+%                         if strcmp(stance_foot_data{i_stretch}, 'STANCE_RIGHT')
+%                             stance_ankle_y = this.getTimeNormalizedData('rankle_y', this_stretch_times);
+%                         end
+%                         if strcmp(stance_foot_data{i_stretch}, 'STANCE_LEFT')
+%                             stance_ankle_y = this.getTimeNormalizedData('lankle_y', this_stretch_times);
+%                         end
+%                         if strcmp(stance_foot_data{i_stretch}, 'STANCE_BOTH')
+%                             stance_ankle_y = NaN;
+%                         end
+%                         stretch_data = find(stance_ankle_y < pelvis_y, 1, 'first');
                     end                        
                     if strcmp(variable_name, 'cadence')
                         second_to_minute = 1/60;
