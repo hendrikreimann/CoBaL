@@ -68,7 +68,8 @@ function preprocessRawData(varargin)
         clear file_name_list;
         [file_name_list{1:length(data_dir)}] = deal(data_dir.name);
         number_of_files = length(file_name_list);
-        for i_trial = 1 : number_of_files
+%         for i_trial = 1 : number_of_files
+        for i_trial = 5 : number_of_files
             raw_emg_file_name = file_name_list{i_trial};
             [date, subject_id, trial_type, trial_number, file_type] = getFileParameters(raw_emg_file_name);
 
@@ -102,6 +103,56 @@ function preprocessRawData(varargin)
 
                     % apply time offset
                     time_emg = time_emg + study_settings.get('emg_time_offset');
+                    
+                    % remove the piecewise linear oscillation in the Delsys data
+                    if study_settings.get('remove_emg_oscillation')
+                        aggressive_filter_order = 4; 
+                        aggressive_filter_cutoff = 0.1; [aggressive_filter_b, aggressive_filter_a] = butter(aggressive_filter_order, aggressive_filter_cutoff/(sampling_rate_emg/2), 'low'); 
+                        data_filtered_aggressive = filtfilt(aggressive_filter_b, aggressive_filter_a, emg_trajectories); 
+                        data_filtered_aggressive = data_filtered_aggressive * 1e6;
+                        
+%                         plot(time_emg, emg_trajectories(:, 3)); hold on; plot(time_emg, data_filtered_aggressive(:, 3), 'linewidth', 2)
+                        
+                        channels_to_filter = find(emg_trajectories(1, :) ~= 0);
+                        periods = zeros(1, length(channels_to_filter));
+                        offsets = zeros(1, length(channels_to_filter));
+                        minima = zeros(1, length(channels_to_filter));
+                        for i_channel = 1 : length(channels_to_filter)
+                            this_channel_data = data_filtered_aggressive(:, channels_to_filter(i_channel));
+                            
+                            emg_labels = subject_settings.get('emg_labels');
+                            figure; hold on; title(strrep(emg_labels{channels_to_filter(i_channel)}, '_', ' '))
+                            plot(time_emg, emg_trajectories(:, channels_to_filter(i_channel)) * 1e6);
+                            plot(time_emg, this_channel_data, 'linewidth', 2);
+                            
+                            % median filter
+                            median_window_size_seconds = 20;
+                            median_window_size = median_window_size_seconds * sampling_rate_emg;
+                            this_channel_data_median_filtered = movmedian(emg_trajectories(:, channels_to_filter(i_channel)) * 1e6, median_window_size);
+                            plot(time_emg, this_channel_data_median_filtered, 'linewidth', 2);
+                            
+                            
+                            % fit
+%                             [fit_data, fit_period, fit_offset, fit_amplitude] = sawtoothFit(time_emg, this_channel_data, 70, 10, 0, 1);
+%                             periods(i_channel) = fit_period;
+%                             offsets(i_channel) = fit_offset;
+%                             minima(i_channel) = min(fit_data);
+%                             
+%                             plot(time_emg, fit_data, 'linewidth', 2);
+%                             plot([time_emg(1) time_emg(end)], [minima(i_channel) minima(i_channel)])
+                            
+                        end
+                        
+                        
+                        
+                        figure; 
+                        plot(time_emg, test_channel_data);
+                        
+                    end
+                    
+                    
+                    
+                    
 
                     % save
                     emg_labels = subject_settings.get('emg_labels');
