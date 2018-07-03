@@ -1581,7 +1581,7 @@ function determineStretchesToAnalyze(varargin)
             end
             
             if strcmp(experimental_paradigm, 'GVS_old')
-                bands_per_stretch = 4;
+                bands_per_stretch = 2;
                 
                 number_of_triggers = length(trigger_indices_mocap);
                 closest_heelstrike_distance_times = zeros(number_of_triggers, 1);
@@ -1758,22 +1758,38 @@ function determineStretchesToAnalyze(varargin)
                     % collect event times to form stretches
                     if ~removal_flags(i_trigger) == 1
                         if strcmp(trigger_foot, 'right')
-                            stretch_times_stim(i_trigger, :) = [right_foot_heelstrike_0 left_foot_pushoff_0 left_foot_heelstrike_0 right_foot_pushoff_0 right_foot_heelstrike_1];
-                            stance_foot_data_stim(i_trigger, :) = {'STANCE_BOTH', 'STANCE_RIGHT', 'STANCE_BOTH', 'STANCE_LEFT'};
+%                             stretch_times_stim(i_trigger, :) = [right_foot_heelstrike_0 left_foot_pushoff_0 left_foot_heelstrike_0 right_foot_pushoff_0 right_foot_heelstrike_1];
+%                             stance_foot_data_stim(i_trigger, :) = {'STANCE_BOTH', 'STANCE_RIGHT', 'STANCE_BOTH', 'STANCE_LEFT'};
+%                             trigger_foot_list_stim{i_trigger} = 'TRIGGER_RIGHT';
+%                             
+%                             stretch_times_ctrl(i_trigger, :) = [right_foot_heelstrike_pre left_foot_pushoff_pre left_foot_heelstrike_pre right_foot_pushoff_pre right_foot_heelstrike_0];
+%                             stance_foot_data_ctrl(i_trigger, :) = {'STANCE_BOTH', 'STANCE_RIGHT', 'STANCE_BOTH', 'STANCE_LEFT'};
+%                             trigger_foot_list_ctrl{i_trigger} = 'TRIGGER_RIGHT';
+
+                            stretch_times_stim(i_trigger, :) = [right_foot_heelstrike_0 left_foot_heelstrike_0 right_foot_heelstrike_1];
+                            stance_foot_data_stim(i_trigger, :) = {'STANCE_RIGHT', 'STANCE_LEFT'};
                             trigger_foot_list_stim{i_trigger} = 'TRIGGER_RIGHT';
                             
-                            stretch_times_ctrl(i_trigger, :) = [right_foot_heelstrike_pre left_foot_pushoff_pre left_foot_heelstrike_pre right_foot_pushoff_pre right_foot_heelstrike_0];
-                            stance_foot_data_ctrl(i_trigger, :) = {'STANCE_BOTH', 'STANCE_RIGHT', 'STANCE_BOTH', 'STANCE_LEFT'};
+                            stretch_times_ctrl(i_trigger, :) = [right_foot_heelstrike_pre left_foot_heelstrike_pre right_foot_heelstrike_0];
+                            stance_foot_data_ctrl(i_trigger, :) = {'STANCE_RIGHT', 'STANCE_LEFT'};
                             trigger_foot_list_ctrl{i_trigger} = 'TRIGGER_RIGHT';
                             
                         end
                         if strcmp(trigger_foot, 'left')
-                            stretch_times_stim(i_trigger, :) = [left_foot_heelstrike_0 right_foot_pushoff_0 right_foot_heelstrike_0 left_foot_pushoff_0 left_foot_heelstrike_1];
-                            stance_foot_data_stim(i_trigger, :) = {'STANCE_BOTH', 'STANCE_LEFT', 'STANCE_BOTH', 'STANCE_RIGHT'};
+%                             stretch_times_stim(i_trigger, :) = [left_foot_heelstrike_0 right_foot_pushoff_0 right_foot_heelstrike_0 left_foot_pushoff_0 left_foot_heelstrike_1];
+%                             stance_foot_data_stim(i_trigger, :) = {'STANCE_BOTH', 'STANCE_LEFT', 'STANCE_BOTH', 'STANCE_RIGHT'};
+%                             trigger_foot_list_stim{i_trigger} = 'TRIGGER_LEFT';
+%                             
+%                             stretch_times_ctrl(i_trigger, :) = [left_foot_heelstrike_pre right_foot_pushoff_pre right_foot_heelstrike_pre left_foot_pushoff_pre left_foot_heelstrike_0];
+%                             stance_foot_data_ctrl(i_trigger, :) = {'STANCE_BOTH', 'STANCE_LEFT', 'STANCE_BOTH', 'STANCE_RIGHT'};
+%                             trigger_foot_list_ctrl{i_trigger} = 'TRIGGER_LEFT';
+                            
+                            stretch_times_stim(i_trigger, :) = [left_foot_heelstrike_0 right_foot_heelstrike_0 left_foot_heelstrike_1];
+                            stance_foot_data_stim(i_trigger, :) = {'STANCE_LEFT', 'STANCE_RIGHT'};
                             trigger_foot_list_stim{i_trigger} = 'TRIGGER_LEFT';
                             
-                            stretch_times_ctrl(i_trigger, :) = [left_foot_heelstrike_pre right_foot_pushoff_pre right_foot_heelstrike_pre left_foot_pushoff_pre left_foot_heelstrike_0];
-                            stance_foot_data_ctrl(i_trigger, :) = {'STANCE_BOTH', 'STANCE_LEFT', 'STANCE_BOTH', 'STANCE_RIGHT'};
+                            stretch_times_ctrl(i_trigger, :) = [left_foot_heelstrike_pre right_foot_heelstrike_pre left_foot_heelstrike_0];
+                            stance_foot_data_ctrl(i_trigger, :) = {'STANCE_LEFT', 'STANCE_RIGHT'};
                             trigger_foot_list_ctrl{i_trigger} = 'TRIGGER_LEFT';
                             
                         end

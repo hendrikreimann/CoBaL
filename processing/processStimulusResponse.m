@@ -52,7 +52,6 @@ function processStimulusResponse(varargin)
     condition_labels = conditions_settings(:, 1)';
     condition_source_variables = conditions_settings(:, 2)';
     number_of_condition_labels = length(condition_labels);
-    number_of_bands_per_stretch = length(study_settings.get('band_labels'));
     
     % extract data
     step_placement_x_data = loaded_data.stretch_data_session{strcmp(loaded_data.stretch_names_session, 'step_placement_x')};
@@ -62,6 +61,7 @@ function processStimulusResponse(varargin)
     lankle_x_data = loaded_data.stretch_data_session{strcmp(loaded_data.stretch_names_session, 'lankle_x')};
     rankle_x_data = loaded_data.stretch_data_session{strcmp(loaded_data.stretch_names_session, 'rankle_x')};
     midstance_index_data = loaded_data.stretch_data_session{strcmp(loaded_data.stretch_names_session, 'midstance_index')};
+    number_of_bands_per_stretch = size(step_placement_x_data, 1);
     
     % make condition data tables
     condition_data_all = cell(number_of_stretches, number_of_condition_labels);
