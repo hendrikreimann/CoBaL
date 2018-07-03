@@ -1763,11 +1763,11 @@ function determineStretchesToAnalyze(varargin)
                         end
                         if strcmp(trigger_foot, 'left')
                             stretch_times_stim(i_trigger, :) = [left_foot_heelstrike_0 right_foot_pushoff_0 right_foot_heelstrike_0 left_foot_pushoff_0 left_foot_heelstrike_1];
-                            stance_foot_data_stim(i_trigger, :) = {'STANCE_BOTH', 'STANCE_LEFT', 'STANCE_LEFT', 'STANCE_RIGHT'};
+                            stance_foot_data_stim(i_trigger, :) = {'STANCE_BOTH', 'STANCE_LEFT', 'STANCE_BOTH', 'STANCE_RIGHT'};
                             trigger_foot_list_stim{i_trigger} = 'TRIGGER_LEFT';
                             
                             stretch_times_ctrl(i_trigger, :) = [left_foot_heelstrike_pre right_foot_pushoff_pre right_foot_heelstrike_pre left_foot_pushoff_pre left_foot_heelstrike_0];
-                            stance_foot_data_ctrl(i_trigger, :) = {'STANCE_BOTH', 'STANCE_LEFT', 'STANCE_LEFT', 'STANCE_RIGHT'};
+                            stance_foot_data_ctrl(i_trigger, :) = {'STANCE_BOTH', 'STANCE_LEFT', 'STANCE_BOTH', 'STANCE_RIGHT'};
                             trigger_foot_list_ctrl{i_trigger} = 'TRIGGER_LEFT';
                             
                         end
