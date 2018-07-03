@@ -96,6 +96,11 @@ function [text_cell, settings] = parseNextBlock(text_cell, settings)
             % deal with array entries
             for i_entry = 1 : length(this_line_cell)
                 entry_to_process = this_line_cell{i_entry};
+                % remove leading spaces
+                while ~isempty(entry_to_process) && entry_to_process(1) == ' '
+                    entry_to_process(1) = [];
+                end
+                
                 % are there spaces, but all non-spaces numbers?
                 if any(entry_to_process == ' ') && ~strcmp(entry_to_process, '-') && all(ismember(strrep(entry_to_process, ' ', ''), '0123456789-.'))
                     % treat this as a numerical array
