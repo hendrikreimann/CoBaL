@@ -31,7 +31,7 @@ number_of_variables_to_export = size(variables_to_export, 1);
 number_of_variables_to_export_means = size(variables_to_export_means, 1);
 number_of_variables_to_export_trajectories = size(variables_to_export_trajectories, 1);
 number_of_data_points = size(time_list, 1);
-number_of_bands = length(band_labels);
+number_of_bands = size(step_time_data, 1);
 number_of_time_points_normalized = study_settings.get('number_of_time_steps_normalized');
 
 % export univariate data for each band
@@ -166,27 +166,49 @@ mean_body_cell = [condition_cell_long time_point_cell_long mean_data_cell];
 
 
 
-% repackage trajectories for export
-number_of_stretches = size(trajectory_data_cell_wide{1}, 1);
+% repackage trajectories for export - separate export for each subject
+unique_subjects = table2cell(unique(cell2table(condition_cell(:, strcmp(condition_header, 'subject'))), 'rows'));
 trajectory_header_cell = [condition_header 'time' variables_to_export_means'];
-trajectory_data_cell = cell(number_of_stretches * number_of_time_points_per_stretch, number_of_variables_to_export_trajectories);
-time_point_cell_verylong = repmat(time_point_cell_single, number_of_stretches, 1);
-condition_cell_verylong = cell(number_of_stretches * number_of_time_points_per_stretch, 4);
-for i_stretch = 1 : number_of_stretches
-    this_combination = condition_cell(i_stretch, :);
-    condition_cell_verylong((i_stretch-1)*number_of_time_points_per_stretch+1 : i_stretch*number_of_time_points_per_stretch, :) ...
-        = repmat(this_combination, number_of_time_points_per_stretch, 1);
-end
-for i_variable = 1 : number_of_variables_to_export_trajectories
-    % get data in shape
-    this_variable_trajectory_data = trajectory_data_cell_wide{i_variable};
-    this_variable_trajectory_data_flat = reshape(this_variable_trajectory_data', numel(this_variable_trajectory_data), 1);
-    this_variable_trajectory_data_strings = num2str(this_variable_trajectory_data_flat);
-    this_variable_trajectory_data_cell = strtrim(cellstr(this_variable_trajectory_data_strings));
-    trajectory_data_cell(:, i_variable) = this_variable_trajectory_data_cell;
-end
-trajectory_body_cell = [condition_cell_verylong time_point_cell_verylong trajectory_data_cell];
+for i_subject = 1 : length(unique_subjects)
+    % get indicators for this subject's data
+    this_subject_label = unique_subjects{i_subject};
+    this_subject_indicator = strcmp(condition_cell(:, strcmp(condition_header, 'subject')), this_subject_label);
+    
+    % create long containers for this subject's data
+    number_of_stretches_this_subject = sum(this_subject_indicator);
+    trajectory_data_cell_this_subject = cell(number_of_stretches_this_subject * number_of_time_points_per_stretch, number_of_variables_to_export_trajectories);
 
+    % redistribute this subject's data into long containers, stretch by stretch
+    time_point_cell_this_subject = repmat(time_point_cell_single, number_of_stretches_this_subject, 1);
+    condition_cell_this_subject = condition_cell(this_subject_indicator, :);
+    condition_cell_this_subject_long = cell(length(time_point_cell_this_subject), size(condition_cell_this_subject, 2));
+    for i_stretch = 1 : number_of_stretches_this_subject
+        this_combination = condition_cell_this_subject(i_stretch, :);
+        condition_cell_this_subject_long((i_stretch-1)*number_of_time_points_per_stretch+1 : i_stretch*number_of_time_points_per_stretch, :) ...
+            = repmat(this_combination, number_of_time_points_per_stretch, 1);
+    end
+    for i_variable = 1 : number_of_variables_to_export_trajectories
+        % get data in shape
+        this_variable_trajectory_data = trajectory_data_cell_wide{i_variable};
+        this_variable_this_subject_trajectory_data = this_variable_trajectory_data(this_subject_indicator, :);
+        
+        this_variable_this_subject_trajectory_data_flat = reshape(this_variable_this_subject_trajectory_data', numel(this_variable_this_subject_trajectory_data), 1);
+        this_variable_this_subject_trajectory_data_strings = num2str(this_variable_this_subject_trajectory_data_flat);
+        this_variable_this_subject_trajectory_data_cell = strtrim(cellstr(this_variable_this_subject_trajectory_data_strings));
+        trajectory_data_cell_this_subject(:, i_variable) = this_variable_this_subject_trajectory_data_cell;
+    end
+    trajectory_body_cell = [condition_cell_this_subject_long time_point_cell_this_subject trajectory_data_cell_this_subject];
+    
+    % save as .csv
+    export_cell = ...
+      [ ...
+        trajectory_header_cell; ...
+        trajectory_body_cell ...
+      ];
+    save_file_name = ['results_trajectories_' this_subject_label '.csv'];
+    cell2csv(save_file_name, export_cell);
+    disp(['Exported trajectory data for subject ' this_subject_label]);
+end
 
 % save as .csv
 export_cell = ...
@@ -204,15 +226,6 @@ export_cell = ...
 save_file_name = 'results_trajectory_means.csv';
 cell2csv(save_file_name, export_cell);
 
-if ~isempty(trajectory_data_cell)
-    export_cell = ...
-      [ ...
-        trajectory_header_cell; ...
-        trajectory_body_cell ...
-      ];
-    save_file_name = 'results_trajectories.csv';
-    cell2csv(save_file_name, export_cell);
-end
 
 
 
