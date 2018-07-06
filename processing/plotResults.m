@@ -327,7 +327,6 @@ function plotResults(varargin)
     levels_to_remove = plot_settings.get('levels_to_remove');
     preferred_level_order = plot_settings.get('preferred_level_order');
     [condition_combination_labels, condition_combinations_stimulus, condition_combinations_control] = determineConditionCombinations(condition_data_all, conditions_settings, labels_to_ignore, levels_to_remove);
-%     condition_combinations_stimulus = sortConditionCombinations(condition_combinations_stimulus, condition_combination_labels, condition_to_compare, preferred_level_order);
     [condition_combinations_stimulus, condition_combinations_control] = sortConditionCombinations(condition_combinations_stimulus, condition_combinations_control, condition_combination_labels, condition_to_compare, preferred_level_order);
     
     %% determine subjects and data folders
@@ -1526,8 +1525,15 @@ function plotResults(varargin)
                         these_axes = trajectory_axes_handles(i_comparison, i_variable);
                         these_abscissae = abscissae_cell{i_comparison, i_variable};
                         ylimits = get(these_axes, 'ylim');
+                        
+                        if mark_bands == 1
+                            bands_to_mark = 2 : 2 : bands_per_stretch;
+                        end
+                        if mark_bands == 2
+                            bands_to_mark = 1 : 2 : bands_per_stretch;
+                        end
 
-                        for i_band = 2 : 2 : bands_per_stretch
+                        for i_band = bands_to_mark
                             % double stance patch
                             double_stance_patch_color = plot_settings.get('stance_double_color');
 
@@ -1748,24 +1754,7 @@ function s = spread(data, method)
     if strcmp(method, 'sem')
         s = std(data, 0, 2) * 1 / sqrt(size(data, 1));
     end
-    
 end
 
-function [scaled_abscissa, band_limits] = createScaledAbscissa(band_scales, number_of_time_steps_normalized)
-    number_of_bands = length(band_scales);
-    scaled_abscissa = [];
-    band_limits = 0;
-    for i_band = 1 : number_of_bands
-        scaled_abscissa_this_band = linspace(0, band_scales(i_band), number_of_time_steps_normalized)';
-        if i_band > 1
-            % start time of this band is end time of the last band, so remove the duplicate point
-            scaled_abscissa_this_band = scaled_abscissa_this_band + scaled_abscissa(end);
-            scaled_abscissa_this_band = scaled_abscissa_this_band(2:end);
-        end
-        scaled_abscissa = [scaled_abscissa; scaled_abscissa_this_band]; %#ok<AGROW>
-        band_limits = [band_limits scaled_abscissa(end)]; %#ok<AGROW>
-    end
-    
-end
 
 

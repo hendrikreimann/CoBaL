@@ -60,7 +60,7 @@ classdef eventController < handle
 
             figure_height = 600;
             figure_width = 420;
-            this.control_figure = figure('position', [1600 300 figure_width figure_height], 'Units', 'pixels', 'KeyPressFcn', @this.processKeyPress);
+            this.control_figure = figure('position', [100 100 figure_width figure_height], 'Units', 'pixels', 'KeyPressFcn', @this.processKeyPress);
 
             % figure control
             figures_panel_height = 100;

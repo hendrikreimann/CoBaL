@@ -75,26 +75,27 @@ function collectPopulationResults(varargin)
         
         for i_variable = 1 : number_of_variables_to_collect
             % load and extract data
-            this_variable_name = variables_to_collect{i_variable, 1};
-            this_variable_source_type = variables_to_collect{i_variable, 2};
+            new_variable_name = variables_to_collect{i_variable, 1};
+            source_variable_name = variables_to_collect{i_variable, 2};
+            this_variable_source_type = variables_to_collect{i_variable, 3};
             if strcmp(this_variable_source_type, 'stretch')
-                this_variable_source_index = find(strcmp(stretch_names_session, this_variable_name), 1, 'first');
+                this_variable_source_index = find(strcmp(stretch_names_session, source_variable_name), 1, 'first');
                 if isempty(this_variable_source_index)
-                    error(['Variable not found: ' this_variable_name])
+                    error(['Variable not found: ' source_variable_name])
                 end
                 this_variable_data = stretch_data_session{this_variable_source_index}; %#ok<IDISVAR,USENS>
             end
             if strcmp(this_variable_source_type, 'response')
-                this_variable_source_index = find(strcmp(response_names_session, this_variable_name), 1, 'first');
+                this_variable_source_index = find(strcmp(response_names_session, source_variable_name), 1, 'first');
                 if isempty(this_variable_source_index)
-                    error(['Variable not found: ' this_variable_name])
+                    error(['Variable not found: ' source_variable_name])
                 end
                 this_variable_data = response_data_session{this_variable_source_index}; %#ok<IDISVAR,USENS>
             end
             if strcmp(this_variable_source_type, 'analysis')
-                this_variable_source_index = find(strcmp(analysis_names_session, this_variable_name), 1, 'first');
+                this_variable_source_index = find(strcmp(analysis_names_session, source_variable_name), 1, 'first');
                 if isempty(this_variable_source_index)
-                    error(['Variable not found: ' this_variable_name])
+                    error(['Variable not found: ' source_variable_name])
                 end
                 this_variable_data = analysis_data_session{this_variable_source_index}; %#ok<IDISVAR,USENS>
             end
@@ -113,13 +114,6 @@ function collectPopulationResults(varargin)
         session_folder = data_path_split{end};
         [session_folder_list{:}] = deal(session_folder);
         origin_session_folder_data = [origin_session_folder_data; session_folder_list]; %#ok<AGROW>
-
-        
-        
-        % HR: removed, because the whole pushoff thing shouldn't have to be treated in a special way
-        % this might generate problems for legacy formats in Vision and GVS, resolve then
-%         pushoff_time_source_index = find(strcmp(response_names_session, 'pushoff_time'), 1, 'first');
-%         pushoff_time_data = [pushoff_time_data stretch_data_session{pushoff_time_source_index}];
 
     end
     

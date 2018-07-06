@@ -86,11 +86,29 @@ function [text_cell, settings] = parseNextBlock(text_cell, settings)
         variable_value = {};
         for i_line = 1 : length(variable_data_lines)
             this_line_text = variable_data_lines{i_line};
+            % remove leading white space
             while ~isempty(this_line_text) && this_line_text(1) == ' '
                 this_line_text(1) = [];
             end
             this_line_text = strrep(this_line_text, ', ', ',');
+            % break up by commas
             this_line_cell = strsplit(this_line_text, ',');
+            % deal with array entries
+            for i_entry = 1 : length(this_line_cell)
+                entry_to_process = this_line_cell{i_entry};
+                % remove leading spaces
+                while ~isempty(entry_to_process) && entry_to_process(1) == ' '
+                    entry_to_process(1) = [];
+                end
+                
+                % are there spaces, but all non-spaces numbers?
+                if any(entry_to_process == ' ') && ~strcmp(entry_to_process, '-') && all(ismember(strrep(entry_to_process, ' ', ''), '0123456789-.'))
+                    % treat this as a numerical array
+                    this_entry_cell = strsplit(entry_to_process, ' ');
+                    this_entry_mat = cell2mat(cellfun(@str2num, this_entry_cell, 'un', 0));
+                    this_line_cell{i_entry} = this_entry_mat;
+                end
+            end
             variable_value(i_line, :) = this_line_cell; %#ok<AGROW>
         end
                 
@@ -98,8 +116,10 @@ function [text_cell, settings] = parseNextBlock(text_cell, settings)
         variable_array = zeros(size(variable_value)) * NaN;
         for i_row = 1 : size(variable_value, 1)
             for i_col = 1 : size(variable_value, 2)
-                if ~strcmp(variable_value{i_row, i_col}, '-') && all(ismember(variable_value{i_row, i_col}, '0123456789-.'))
-                    variable_array(i_row, i_col) = str2num(variable_value{i_row, i_col}); %#ok<ST2NM>
+                entry_to_process = variable_value{i_row, i_col};
+                % are these exclusively numbers (and decimal points and minus signs)?
+                if ~strcmp(entry_to_process, '-') && all(ismember(entry_to_process, '0123456789-.'))
+                    variable_array(i_row, i_col) = str2num(entry_to_process); %#ok<ST2NM>
                 end
             end
         end
@@ -117,7 +137,7 @@ function [text_cell, settings] = parseNextBlock(text_cell, settings)
         return
     end
     
-    % parse first line as a single entry
+    % parse single entry
     line_split = strsplit(text_line, ':');
     variable_name = strrep(line_split{1}, ' ', '_');
     variable_value_string = line_split{2};
@@ -139,8 +159,10 @@ function [text_cell, settings] = parseNextBlock(text_cell, settings)
         % try to transform to a double array
         variable_value_array = zeros(size(variable_value)) * NaN;
         for i_entry = 1 : length(variable_value)
-            if ~isempty(str2num(variable_value{i_entry})) %#ok<ST2NM>
-                variable_value_array(i_entry) = str2num(variable_value{i_entry}); %#ok<ST2NM>
+            entry_to_process = variable_value{i_entry};
+            entry_to_process = strrep(entry_to_process, 'step', ''); % remove the word "step" to avoid output when trying to transform a string containing it to a number
+            if ~isempty(str2num(entry_to_process)) %#ok<ST2NM>
+                variable_value_array(i_entry) = str2num(entry_to_process); %#ok<ST2NM>
             end
         end
         if ~any(isnan(variable_value_array))
