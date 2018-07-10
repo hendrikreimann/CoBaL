@@ -68,8 +68,8 @@ function preprocessRawData(varargin)
         clear file_name_list;
         [file_name_list{1:length(data_dir)}] = deal(data_dir.name);
         number_of_files = length(file_name_list);
-%         for i_trial = 1 : number_of_files
-        for i_trial = 5 : number_of_files
+        for i_trial = 1 : number_of_files
+%         for i_trial = 5 : number_of_files
             raw_emg_file_name = file_name_list{i_trial};
             [date, subject_id, trial_type, trial_number, file_type] = getFileParameters(raw_emg_file_name);
 
@@ -227,6 +227,8 @@ function preprocessRawData(varargin)
                     if ~isempty(filter_order_low) && ~isempty(cutoff_frequency_low)
                         [b_lowpass, a_lowpass] = butter(filter_order_low, cutoff_frequency_low/(sampling_rate_forceplate/2), 'low');
                         forceplate_trajectories = filtfilt(b_lowpass, a_lowpass, forceplate_trajectories_raw);
+                    else
+                        forceplate_trajectories = forceplate_trajectories_raw;
                     end
 
                     % extract
@@ -590,7 +592,7 @@ function preprocessRawData(varargin)
                         save_file_name ...
                       );
 %                     addAvailableData('marker_trajectories', 'time_mocap', 'sampling_rate_mocap', 'marker_labels', save_folder, save_file_name);
-                    disp(['processed ' raw_marker_file_name ' and saved as ' save_file_name])
+                    cleadisp(['processed ' raw_marker_file_name ' and saved as ' save_file_name])
                 end
             end
         end
