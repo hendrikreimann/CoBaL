@@ -108,14 +108,26 @@ function plotLongData(varargin)
         step_time_data = [step_time_data this_step_time_data]; %#ok<AGROW>
         for i_variable = 1 : number_of_variables_to_plot
             this_variable_name = variables_to_plot{i_variable, 1};
-            index_in_saved_data = find(strcmp(loaded_data.long_stretch_data_labels_session, this_variable_name), 1, 'first');
-            this_variable_data = loaded_data.long_stretch_data_session{index_in_saved_data};
-            this_variable_control_data = loaded_data.long_stretch_control_data_session{index_in_saved_data};
-            this_variable_response_data = loaded_data.long_stretch_response_data_session{index_in_saved_data};
+            this_variable_source = variables_to_plot{i_variable, 2};
             
-            data_all{i_variable} = [data_all{i_variable} this_variable_data];
-            data_control_all{i_variable} = [data_control_all{i_variable} this_variable_control_data];
-            data_response_all{i_variable} = [data_response_all{i_variable} this_variable_response_data];
+            if strcmp(this_variable_source, 'stretch')
+                index_in_saved_data = find(strcmp(loaded_data.long_stretch_data_labels_session, this_variable_name), 1, 'first');
+                this_variable_data = loaded_data.long_stretch_data_session{index_in_saved_data};
+                data_all{i_variable} = [data_all{i_variable} this_variable_data];
+            end
+            if strcmp(this_variable_source, 'response')
+                index_in_saved_data = find(strcmp(loaded_data.long_stretch_data_labels_session, this_variable_name), 1, 'first');
+                this_variable_response_data = loaded_data.long_stretch_response_data_session{index_in_saved_data};
+                data_all{i_variable} = [data_all{i_variable} this_variable_response_data];
+            end
+            if strcmp(this_variable_source, 'analysis')
+                index_in_saved_data = find(strcmp(loaded_data.analysis_names_session, this_variable_name), 1, 'first');
+                this_variable_data = loaded_data.analysis_data_session{index_in_saved_data};
+                data_all{i_variable} = [data_all{i_variable} this_variable_data];
+            end
+            
+%             data_all{i_variable} = [data_all{i_variable} this_variable_data];
+%             data_response_all{i_variable} = [data_response_all{i_variable} this_variable_response_data];
         end
     end
 
@@ -165,7 +177,7 @@ function plotLongData(varargin)
                 this_condition_combination = condition_combinations_stimulus(conditions_this_comparison(i_condition), :);
                 this_condition_indicator = getConditionIndicator(this_condition_combination, condition_combination_labels, condition_data_all, condition_labels);
                 step_time_data_this_condition = step_time_data(:, this_condition_indicator);
-                step_time_means_this_comparison(:, i_condition) = mean(step_time_data_this_condition, 2);
+                step_time_means_this_comparison(:, i_condition) = nanmean(step_time_data_this_condition, 2);
             end
             for i_condition = 1 : length(conditions_this_comparison)
                 if strcmp(plot_settings.get('time_plot_style'), 'scaled_to_comparison_mean')
@@ -275,7 +287,7 @@ function plotLongData(varargin)
     for i_variable = 1 : number_of_variables_to_plot
         for i_comparison = 1 : number_of_comparisons
             target_abscissae = abscissae_cell{i_comparison, i_variable};
-            xlim = [min(target_abscissae(:, 1)) max(target_abscissae(:, end))];
+            xlim = [nanmin(target_abscissae(:, 1)) nanmax(target_abscissae(:, end))];
             % set x-limits accordingly
             set(trajectory_axes_handles(i_comparison, i_variable), 'xlim', xlim);
         end
@@ -297,11 +309,7 @@ function plotLongData(varargin)
     colors_comparison = plot_settings.get('colors_comparison');
     colors_bands = plot_settings.get('colors_bands');
     for i_variable = 1 : number_of_variables_to_plot
-        if strcmp(variables_to_plot{i_variable, 2}, 'stretch')
-            data_to_plot = data_all{i_variable, 1};
-        elseif strcmp(variables_to_plot{i_variable, 2}, 'response')
-            data_to_plot = data_response_all{i_variable, 1};
-        end
+        data_to_plot = data_all{i_variable, 1};
         
         for i_comparison = 1 : length(comparison_indices)
             % find correct condition indicator for control
@@ -342,7 +350,7 @@ function plotLongData(varargin)
                     plot_handles = shadedErrorBar ...
                       ( ...
                         target_abscissa, ...
-                        mean(data_to_plot_this_condition, 2), ...
+                        nanmean(data_to_plot_this_condition, 2), ...
                         spread(data_to_plot_this_condition, spread_method), ...
                         { ...
                           'color', colors_comparison(i_condition, :), ...

@@ -36,15 +36,18 @@ function processLongData(varargin)
     study_settings = SettingsCustodian(study_settings_file);
     number_of_time_steps_normalized = study_settings.get('number_of_time_steps_normalized');
 
+    % define labels - ACHTUNG! these are hard-coded. Changes here must be reflected by changes below.
+    long_stretch_data_labels_session = {'mpsis_x', 'mpsis_x_vel', 'pelvis_angle_roll', 'trunk_angle_roll', 'head_angle_roll'};
+
     % create containers
     long_stretch_times_session = [];
     long_stretch_control_times_session = [];
-    long_stretch_data_labels_session = {'mpsis_x', 'mpsis_x_vel'};
     long_stretch_conditions_session = struct;
     long_stretch_control_conditions_session = struct;
     number_of_variables = length(long_stretch_data_labels_session);
     long_stretch_data_session = cell(number_of_variables, 1);
     long_stretch_control_data_session = cell(number_of_variables, 1);
+    
     
     for i_condition = 1 : length(condition_list)
         trials_to_process = trial_number_list{i_condition};
@@ -165,10 +168,33 @@ function processLongData(varargin)
             end
             
             %% extract data
-            [lpsi_x_data_base, time, sampling_rate, labels, directions, success] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'marker_trajectories:LPSI_x'); %#ok<ASGLU>
-            [rpsi_x_data_base, time, sampling_rate, labels, directions, success] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'marker_trajectories:RPSI_x'); %#ok<ASGLU>
-            mpsis_x_data_base = (lpsi_x_data_base + rpsi_x_data_base) * 0.5;
-            mpsis_x_vel_data_base = deriveByTime(mpsis_x_data_base, time);
+            markers_to_load = {'LPSI', 'RPSI', 'LASI', 'RASI', 'C7', 'LFHD', 'RFHD', 'LBHD', 'RBHD'};
+            marker_data = struct;
+            time_data = struct;
+            for i_marker = 1 : length(markers_to_load)
+                [marker_trajectory, time, sampling_rate, labels, directions, success] = loadData(date, subject_id, condition_list{i_condition}, i_trial, ['marker_trajectories:' markers_to_load{i_marker} '_x']); %#ok<ASGLU>
+                marker_data.([markers_to_load{i_marker} '_x']) = marker_trajectory;
+                time_data.([markers_to_load{i_marker} '_x']) = time;
+                
+                [marker_trajectory, time, sampling_rate, labels, directions, success] = loadData(date, subject_id, condition_list{i_condition}, i_trial, ['marker_trajectories:' markers_to_load{i_marker} '_y']); %#ok<ASGLU>
+                marker_data.([markers_to_load{i_marker} '_y']) = marker_trajectory;
+                time_data.([markers_to_load{i_marker} '_y']) = time;
+                
+                [marker_trajectory, time, sampling_rate, labels, directions, success] = loadData(date, subject_id, condition_list{i_condition}, i_trial, ['marker_trajectories:' markers_to_load{i_marker} '_z']); %#ok<ASGLU>
+                marker_data.([markers_to_load{i_marker} '_z']) = marker_trajectory;
+                time_data.([markers_to_load{i_marker} '_z']) = time;
+            end
+            
+            marker_data.MPSI_x = (marker_data.LPSI_x + marker_data.RPSI_x) * 0.5;
+            time_data.MPSI_x = time_data.LPSI_x;
+            marker_data.MPSI_z = (marker_data.LPSI_z + marker_data.RPSI_z) * 0.5;
+            time_data.MPSI_z = time_data.LPSI_z;
+            marker_data.MPSI_x_vel = deriveByTime(marker_data.MPSI_x, time);
+            time_data.MPSI_x_vel = time_data.MPSI_x;
+            marker_data.MBHD_x = (marker_data.LBHD_x + marker_data.RBHD_x) * 0.5;
+            time_data.MBHD_x = time_data.LBHD_x;
+            marker_data.MBHD_z = (marker_data.LBHD_z + marker_data.RBHD_z) * 0.5;
+            time_data.MBHD_z = time_data.LBHD_z;
             
             
 %             if study_settings.get('filter_marker_data')
@@ -183,26 +209,47 @@ function processLongData(varargin)
 %                 plot(mpsis_x_vel_data_filtered);
 %             end
             
-            
+            % calculate stretch variables
             number_of_long_stretches_trial = size(long_stretch_times_trial, 2);
             long_stretch_data_trial = cell(number_of_variables, 1);
-            long_stretch_data_trial{1} = zeros(number_of_strides * 2 * (number_of_time_steps_normalized-1) + 1, number_of_long_stretches_trial);
-            long_stretch_data_trial{2} = zeros(number_of_strides * 2 * (number_of_time_steps_normalized-1) + 1, number_of_long_stretches_trial);
-            for i_stretch = 1 : number_of_long_stretches_trial
-                this_stretch_times = long_stretch_times_trial(:, i_stretch);
-                long_stretch_data_trial{1}(:, i_stretch) = getTimeNormalizedData(time, mpsis_x_data_base, this_stretch_times, number_of_time_steps_normalized);
-                long_stretch_data_trial{2}(:, i_stretch) = getTimeNormalizedData(time, mpsis_x_vel_data_base, this_stretch_times, number_of_time_steps_normalized);
-            end
-            
             number_of_long_control_stretches_trial = size(long_stretch_control_times_trial, 2);
             long_stretch_control_data_trial = cell(number_of_variables, 1);
-            long_stretch_control_data_trial{1} = zeros(2 * (number_of_time_steps_normalized-1) + 1, number_of_long_control_stretches_trial);
-            long_stretch_control_data_trial{2} = zeros(2 * (number_of_time_steps_normalized-1) + 1, number_of_long_control_stretches_trial);
-            for i_stretch = 1 : number_of_long_control_stretches_trial
-                this_stretch_times = long_stretch_control_times_trial(:, i_stretch);
-                long_stretch_control_data_trial{1}(:, i_stretch) = getTimeNormalizedData(time, mpsis_x_data_base, this_stretch_times, number_of_time_steps_normalized);
-                long_stretch_control_data_trial{2}(:, i_stretch) = getTimeNormalizedData(time, mpsis_x_vel_data_base, this_stretch_times, number_of_time_steps_normalized);
+            for i_variable = 1 : number_of_variables
+                this_variable_name = long_stretch_data_labels_session{i_variable};
+                
+                % stimulus
+                long_stretch_data_trial{i_variable} = zeros(number_of_strides * 2 * (number_of_time_steps_normalized-1) + 1, number_of_long_stretches_trial);
+                [this_variable_data, this_variable_time] = getVariableData(this_variable_name, marker_data, time_data);
+                for i_stretch = 1 : number_of_long_stretches_trial
+                    this_stretch_times = long_stretch_times_trial(:, i_stretch);
+                    long_stretch_data_trial{i_variable}(:, i_stretch) = getTimeNormalizedData(this_variable_time, this_variable_data, this_stretch_times, number_of_time_steps_normalized);
+                end
+                
+                % control
+                long_stretch_control_data_trial{i_variable} = zeros(2 * (number_of_time_steps_normalized-1) + 1, number_of_long_control_stretches_trial);
+                for i_stretch = 1 : number_of_long_control_stretches_trial
+                    this_stretch_times = long_stretch_control_times_trial(:, i_stretch);
+                    long_stretch_control_data_trial{i_variable}(:, i_stretch) = getTimeNormalizedData(this_variable_time, this_variable_data, this_stretch_times, number_of_time_steps_normalized);
+                end
+                
             end
+%             long_stretch_data_trial{1} = zeros(number_of_strides * 2 * (number_of_time_steps_normalized-1) + 1, number_of_long_stretches_trial);
+%             long_stretch_data_trial{2} = zeros(number_of_strides * 2 * (number_of_time_steps_normalized-1) + 1, number_of_long_stretches_trial);
+%             for i_stretch = 1 : number_of_long_stretches_trial
+%                 this_stretch_times = long_stretch_times_trial(:, i_stretch);
+%                 long_stretch_data_trial{1}(:, i_stretch) = getTimeNormalizedData(time, marker_data.MPSI_x, this_stretch_times, number_of_time_steps_normalized);
+%                 long_stretch_data_trial{2}(:, i_stretch) = getTimeNormalizedData(time, marker_data.MPSI_x_vel, this_stretch_times, number_of_time_steps_normalized);
+%             end
+            
+            
+%             long_stretch_control_data_trial = cell(number_of_variables, 1);
+%             long_stretch_control_data_trial{1} = zeros(2 * (number_of_time_steps_normalized-1) + 1, number_of_long_control_stretches_trial);
+%             long_stretch_control_data_trial{2} = zeros(2 * (number_of_time_steps_normalized-1) + 1, number_of_long_control_stretches_trial);
+%             for i_stretch = 1 : number_of_long_control_stretches_trial
+%                 this_stretch_times = long_stretch_control_times_trial(:, i_stretch);
+%                 long_stretch_control_data_trial{1}(:, i_stretch) = getTimeNormalizedData(time, marker_data.MPSI_x, this_stretch_times, number_of_time_steps_normalized);
+%                 long_stretch_control_data_trial{2}(:, i_stretch) = getTimeNormalizedData(time, marker_data.MPSI_x_vel, this_stretch_times, number_of_time_steps_normalized);
+%             end
             
             %% store
             long_stretch_times_session = [long_stretch_times_session long_stretch_times_trial];
@@ -237,7 +284,7 @@ function processLongData(varargin)
         long_stretch_response_data_session{i_variable} = zeros(size(long_stretch_data_session{i_variable}));
     end
     
-    bands_per_long_stretch = size(long_stretch_times_session, 1) - 1; %#ok<NASGU>
+    bands_per_long_stretch = size(long_stretch_times_session, 1) - 1;
     conditions_settings = study_settings.get('conditions');
     condition_labels = conditions_settings(:, 1)';
     number_of_condition_labels = length(condition_labels);
@@ -363,6 +410,14 @@ function processLongData(varargin)
 %     plot(long_stretch_data_session{1})
 %     plot(this_variable_control_mean_long_replaced, 'linewidth', 3)
     
+    %% reformat for saving
+    condition_labels = fieldnames(conditions_trial);
+    for i_field = 1 : numel(condition_labels)
+        long_stretch_conditions_session.(condition_labels{i_field}) = long_stretch_conditions_session.(condition_labels{i_field})';
+        long_stretch_control_conditions_session.(condition_labels{i_field}) = long_stretch_control_conditions_session.(condition_labels{i_field})';
+    end
+    long_stretch_data_labels_session = long_stretch_data_labels_session';
+    
     %% save
     results_file_name = ['analysis' filesep makeFileName(date, subject_id, 'longStretchResults')];
     save ...
@@ -379,7 +434,42 @@ function processLongData(varargin)
         'long_stretch_data_labels_session', ...
         'bands_per_long_stretch' ...
       )
-    
+
+  
+end
+
+function [this_variable_data, this_time_data] = getVariableData(variable_name, marker_data, time_data)
+    if strcmp(variable_name, 'mpsis_x')
+        this_variable_data = marker_data.MPSI_x;
+        this_time_data = time_data.MPSI_x;
+    end
+    if strcmp(variable_name, 'mpsis_x_vel')
+        this_variable_data = marker_data.MPSI_x_vel;
+        this_time_data = time_data.MPSI_x_vel;
+    end
+    if strcmp(variable_name, 'pelvis_angle_roll')
+        % calculate angle trajectory
+        pelvis_vector_x = marker_data.RASI_x - marker_data.LASI_x;
+        pelvis_vector_z = marker_data.RASI_z - marker_data.LASI_z;
+        this_variable_data = -rad2deg(atan2(pelvis_vector_z, pelvis_vector_x));
+        
+        this_time_data = time_data.RASI_x;
+    end
+    if strcmp(variable_name, 'trunk_angle_roll')
+        % calculate angle trajectory
+        trunk_vector_x = marker_data.C7_x - marker_data.MPSI_x;
+        trunk_vector_z = marker_data.C7_z - marker_data.MPSI_z;
+        this_variable_data = rad2deg(atan2(trunk_vector_x, trunk_vector_z));
+        this_time_data = time_data.MPSI_x;
+    end
+    if strcmp(variable_name, 'head_angle_roll')
+        % calculate angle trajectory
+        head_vector_x = marker_data.MBHD_x - marker_data.C7_x;
+        head_vector_z = marker_data.MBHD_z - marker_data.C7_z;
+        this_variable_data = rad2deg(atan2(head_vector_x, head_vector_z));
+        this_time_data = time_data.MBHD_x;
+    end
+
 end
 
 function data_normalized = getTimeNormalizedData(variable_time, variable_data, stretch_times, number_of_time_steps_normalized)
@@ -414,7 +504,7 @@ function data_normalized = getTimeNormalizedData(variable_time, variable_data, s
         number_of_stretches = length(stretch_time_indices_local) - 1;
         time_normalized = [];
         for i_stretch = 1 : number_of_stretches
-            time_normalized_this_stretch = linspace(time_extracted(stretch_time_indices_local(i_stretch)), time_extracted(stretch_time_indices_local(i_stretch+1)), this.number_of_time_steps_normalized)';
+            time_normalized_this_stretch = linspace(time_extracted(stretch_time_indices_local(i_stretch)), time_extracted(stretch_time_indices_local(i_stretch+1)), number_of_time_steps_normalized)';
             if i_stretch > 1
                 % start time of this stretch is end time of the last stretch, so remove the duplicate point
                 time_normalized_this_stretch = time_normalized_this_stretch(2:end);

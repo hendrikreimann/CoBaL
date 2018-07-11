@@ -3007,11 +3007,6 @@ classdef WalkingDataCustodian < handle
                         stretch_data = this.getTimeNormalizedData(variable_name, this_stretch_times);
                     end
                     
-                    
-                    
-                    
-                    
-                
                     % calculate stretch variables that are not basic variables or need special attention
                     % REMINDER: if you add a variable here, make sure to also add it below in registerStretchVariableDirections
 %                     
@@ -3020,7 +3015,6 @@ classdef WalkingDataCustodian < handle
                         mpsis_x = this.getTimeNormalizedData('mpsis_x', this_stretch_times);
                         stretch_data = lheel_x - mpsis_x(1);
                     end
-
                     if strcmp(variable_name, 'rheel_from_mpsis_initial_x')
                         rheel_x = this.getTimeNormalizedData('rheel_x', this_stretch_times);
                         mpsis_x = this.getTimeNormalizedData('mpsis_x', this_stretch_times);
@@ -3305,10 +3299,6 @@ classdef WalkingDataCustodian < handle
                         
                         stretch_data = com_x_vel ./ omega;
                     end
-                    
-                                        
-
-                    
                     
                     if strcmp(variable_name, 'heel_clearance')
                         stretch_data = zeros(number_of_bands, 1);

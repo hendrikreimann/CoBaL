@@ -43,8 +43,8 @@ function singleBoxPlot(target_axes_handle, abscissa, data, color, label, show_ou
     end
     
     % extract data
-    data_median = median(data);
-    data_mean = mean(data);
+    data_median = nanmedian(data);
+    data_mean = nanmean(data);
     data_quartile_1 = prctile(data, 25);
     data_quartile_3 = prctile(data, 75);
     data_iqr = iqr(data);

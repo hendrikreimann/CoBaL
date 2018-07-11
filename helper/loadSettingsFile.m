@@ -50,16 +50,18 @@ function settings = loadSettingsFile(filename)
         while length(this_line) > 0 && strcmp(this_line(1), ' ')
             this_line(1) = [];
         end
+        text_cell{i_line} = this_line;
         
         % remove comments
         if length(this_line) > 1 && strcmp(this_line(1:2), '//')
             lines_to_prune(i_line) = true;
         end
         
-        % remove lines consisting only of white space
+        % flag lines consisting only of white space
         if all(ismember(this_line, ' ') | double(this_line) == 9)
             lines_to_prune(i_line) = true;
         end
+        
         
     end
     text_cell(lines_to_prune) = [];
