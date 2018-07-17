@@ -162,6 +162,7 @@ function determineStretchesToAnalyze(varargin)
             if strcmp(experimental_paradigm, 'Vision') || strcmp(experimental_paradigm, 'CadenceVision')
 %                 current_rotation_trajectory = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'current_rotation_trajectory');
                 current_rotation_trajectory = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'visual_rotation_angle_trajectory');
+                current_acceleration_trajectory = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'visual_rotation_acceleration_trajectory');
                 [stimulus_state_trajectory, time_stimulus] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'stimulus_state_trajectory');
             end
             if strcmp(experimental_paradigm, 'GVS') || strcmp(experimental_paradigm, 'CadenceGVS')
@@ -1263,7 +1264,7 @@ function determineStretchesToAnalyze(varargin)
             end
             
             if strcmp(experimental_paradigm, 'Vision') || strcmp(experimental_paradigm, 'CadenceVision') || strcmp(experimental_paradigm, 'GVS') || strcmp(experimental_paradigm, 'CadenceGVS')
-                bands_per_stretch = 4;
+                bands_per_stretch = study_settings.get('number_of_steps_to_analyze');
                 
                 number_of_triggers = length(trigger_indices_mocap);
                 removal_flags = zeros(number_of_triggers, 1);
@@ -1482,6 +1483,13 @@ function determineStretchesToAnalyze(varargin)
                             plot([stretch_times(i_trigger, 4) stretch_times(i_trigger, 5)], [-1 1]*+0.01, 'color', 'm', 'linewidth', 3);
                         end
                     end
+                    
+                    % determine amplitude of this stimulus
+                    if strcmp(experimental_paradigm, 'Vision')
+                        amplitude = current_acceleration_trajectory(trigger_indices_labview(i_trigger));
+                        amplitude_list{i_trigger} = num2str(amplitude);
+                    end
+                    
                     
                     % determine stimulus amplitude - HR: this is hacky, fix this in the future
 %                     resulting_stim_amplitude = max(abs(current_rotation_trajectory(trigger_indices_labview(i_trigger):trigger_indices_labview(i_trigger)+200)));
