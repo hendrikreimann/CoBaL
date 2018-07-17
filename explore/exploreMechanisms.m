@@ -1,100 +1,142 @@
 %% this script is currently choose as you go.. does not run as a functional script.. hacked together for DW and NIH grant
+% 
+% 
+% % load data and settings
+% loaded_data_PD1 = load('G:\My Drive\CoBaL_Test_Data\PD_pilot\results_PD01.mat');
+% loaded_data_PD2 = load('G:\My Drive\CoBaL_Test_Data\PD_pilot\results_PD02.mat');
+% 
+% % PD1
+% % index_indicator_step_one_PD1 =  strcmp(loaded_data_PD1.conditions.condition_index_list, 'ONE');
+% illusionleft_indicator_PD1 = strcmp(loaded_data_PD1.conditions.stimulus_list,'STIM_LEFT');
+% illusionright_indicator_PD1 = strcmp(loaded_data_PD1.conditions.stimulus_list,'STIM_RIGHT');
+% this_cop_data_PD1 = loaded_data_PD1.variable_data{find(strcmp(loaded_data_PD1.variable_names, 'cop_from_mpsis_x'))}(100,:);
+% this_cop_data_step_one_inverted_PD1 = [this_cop_data_PD1(:, illusionright_indicator_PD1 ), this_cop_data_PD1(:, illusionleft_indicator_PD1) * -1];
+% 
+% this_step_data_PD1 = loaded_data_PD1.variable_data{find(strcmp(loaded_data_PD1.variable_names, 'step_placement_x'))}(1,:);
+% this_step_step_one_inverted_PD1 = [this_step_data_PD1(:, illusionright_indicator_PD1), this_step_data_PD1(:, illusionleft_indicator_PD1) * -1];
+% 
+% % PD1
+% % index_indicator_step_one_PD2 =  strcmp(loaded_data_PD2.conditions.condition_index_list, 'ONE');
+% illusionleft_indicator_PD2 = strcmp(loaded_data_PD2.conditions.stimulus_list,'STIM_LEFT');
+% illusionright_indicator_PD2 = strcmp(loaded_data_PD2.conditions.stimulus_list,'STIM_RIGHT');
+% this_cop_data_PD2 = loaded_data_PD2.variable_data{find(strcmp(loaded_data_PD2.variable_names, 'cop_from_mpsis_x'))}(100,:)
+% this_cop_data_step_one_inverted_PD2 = [this_cop_data_PD2(:, illusionright_indicator_PD2 ), this_cop_data_PD2(:, illusionleft_indicator_PD2 ) * -1];
+% 
+% this_step_data_PD2 = loaded_data_PD2.variable_data{find(strcmp(loaded_data_PD2.variable_names, 'step_placement_x'))}(1,:);
+% this_step_step_one_inverted_PD2 = [this_step_data_PD2(:, illusionright_indicator_PD2 ), this_step_data_PD2(:, illusionleft_indicator_PD2 ) * -1];
+% 
+% % concat OA1 and OA2
+% this_cop_data_PD = [this_cop_data_step_one_inverted_PD1 this_cop_data_step_one_inverted_PD2];
+% this_step_data_PD = [this_step_step_one_inverted_PD1 this_step_step_one_inverted_PD2];
+% 
+% % plot OA
+% [r , p] = corr(this_cop_data_PD', this_step_data_PD')
+% r2 = r^2
+% 
+% % figure;
+% hold on;
+% plot(this_cop_data_PD, this_step_data_PD,'o', 'color',[241/255, 90/255, 34/255],'LineWidth',2);
+% % lsline; 
+% line(1).Color = [241/255, 90/255, 34/255];
+% line(1).LineWidth = 3;
+% 
+% coefs = polyfit(this_cop_data_PD,this_step_data_PD, 1);
+% coefs(1)
+% 
+% %% OA coordination plot 
+% % load data and settings
+% loaded_data_OA1 = load('G:\My Drive\Vision_OA\results_grant1.mat');
+% loaded_data_OA2 = load('G:\My Drive\CoBaL_Test_Data\Vision_OA\results_grant1.mat');
+% 
+% % OA1
+% index_indicator_step_one_OA1 =  strcmp(loaded_data_OA1.conditions.condition_index_list, 'ONE');
+% illusionleft_indicator_OA1 = strcmp(loaded_data_OA1.conditions.condition_perturbation_list,'ILLUSION_LEFT');
+% illusionright_indicator_OA1 = strcmp(loaded_data_OA1.conditions.condition_perturbation_list,'ILLUSION_RIGHT');
+% this_cop_data_OA1 = loaded_data_OA1.variable_data{find(strcmp(loaded_data_OA1.variable_names, 'cop_from_mpsis_x'))}(end,:);
+% this_cop_data_step_one_inverted_OA1 = [this_cop_data_OA1(:, illusionright_indicator_OA1 & index_indicator_step_one_OA1), this_cop_data_OA1(:, illusionleft_indicator_OA1 & index_indicator_step_one_OA1) * -1];
+% 
+% this_step_data_OA1 = loaded_data_OA1.variable_data{find(strcmp(loaded_data_OA1.variable_names, 'step_placement_x'))};
+% this_step_step_one_inverted_OA1 = [this_step_data_OA1(:, illusionright_indicator_OA1 & index_indicator_step_one_OA1), this_step_data_OA1(:, illusionleft_indicator_OA1 & index_indicator_step_one_OA1) * -1];
+% 
+% % OA2
+% % index_indicator_step_one_OA2 =  strcmp(loaded_data_OA2.conditions.condition_index_list, 'ONE');
+% illusionleft_indicator_OA2 = strcmp(loaded_data_OA2.conditions.stimulus_list,'STIM_LEFT');
+% illusionright_indicator_OA2 = strcmp(loaded_data_OA2.conditions.stimulus_list,'STIM_RIGHT');
+% this_cop_data_OA2 = loaded_data_OA2.variable_data{find(strcmp(loaded_data_OA2.variable_names, 'cop_from_mpsis_x'))}(100,:); % this index is for step one end
+% this_cop_data_step_one_inverted_OA2 = [this_cop_data_OA2(:, illusionright_indicator_OA2), this_cop_data_OA2(:, illusionleft_indicator_OA2) * -1];
+% 
+% this_step_data_OA2 = loaded_data_OA2.variable_data{find(strcmp(loaded_data_OA2.variable_names, 'step_placement_x'))}(1,:); % this index is for step one index
+% this_step_step_one_inverted_OA2 = [this_step_data_OA2(:, illusionright_indicator_OA2), this_step_data_OA2(:, illusionleft_indicator_OA2) * -1];
+% 
+% % concat OA1 and OA2
+% this_cop_data_OA = [this_cop_data_step_one_inverted_OA1 this_cop_data_step_one_inverted_OA2];
+% this_step_data_OA = [this_step_step_one_inverted_OA1 this_step_step_one_inverted_OA2];
+% 
+% % plot OA
+% [r , p] = corr(this_cop_data_OA', this_step_data_OA')
+% r2 = r^2
+% 
+% % figure;
+% hold on;
+% plot(this_cop_data_OA, this_step_data_OA,'o', 'color',[83/255, 80/255, 162/255],'LineWidth',2);
+% % oa1 = fitlm(this_cop_data_OA, this_step_data_OA);
+% % plotAdded(oa1)
+% 
+% coefs = polyfit(this_cop_data_OA,this_step_data_OA, 1);
+% coefs(1)
+% 
+% %  oaline = lsline;
+%  line(2).Color = [83/255, 80/255, 162/255];
+%  line(2).LineWidth = 3;
+% 
+
+% HY GVS DATA
+load('D:\DataStorage\GVS\results.mat')
+index_indicator_step_one = strcmp(conditions.condition_index_list, 'ONE');
+index_indicator_step_two = strcmp(conditions.condition_index_list, 'TWO');
 
 
-% load data and settings
-loaded_data_PD1 = load('G:\My Drive\CoBaL_Test_Data\PD_pilot\results_PD01.mat');
-loaded_data_PD2 = load('G:\My Drive\CoBaL_Test_Data\PD_pilot\results_PD02.mat');
+stanceleft_indicator = strcmp(conditions.condition_stance_foot_list, 'STANCE_LEFT');
+stanceright_indicator = strcmp(conditions.condition_stance_foot_list, 'STANCE_RIGHT');
 
-% PD1
-% index_indicator_step_one_PD1 =  strcmp(loaded_data_PD1.conditions.condition_index_list, 'ONE');
-illusionleft_indicator_PD1 = strcmp(loaded_data_PD1.conditions.stimulus_list,'STIM_LEFT');
-illusionright_indicator_PD1 = strcmp(loaded_data_PD1.conditions.stimulus_list,'STIM_RIGHT');
-this_cop_data_PD1 = loaded_data_PD1.variable_data{find(strcmp(loaded_data_PD1.variable_names, 'cop_from_mpsis_x'))}(100,:);
-this_cop_data_step_one_inverted_PD1 = [this_cop_data_PD1(:, illusionright_indicator_PD1 ), this_cop_data_PD1(:, illusionleft_indicator_PD1) * -1];
+illusionleft_indicator = strcmp(conditions.condition_perturbation_list,'ILLUSION_LEFT');
+illusionright_indicator = strcmp(conditions.condition_perturbation_list,'ILLUSION_RIGHT');
 
-this_step_data_PD1 = loaded_data_PD1.variable_data{find(strcmp(loaded_data_PD1.variable_names, 'step_placement_x'))}(1,:);
-this_step_step_one_inverted_PD1 = [this_step_data_PD1(:, illusionright_indicator_PD1), this_step_data_PD1(:, illusionleft_indicator_PD1) * -1];
+index_stanceleft_one = stanceleft_indicator & index_indicator_step_one;
+index_stanceright_one = stanceright_indicator & index_indicator_step_one;
 
-% PD1
-% index_indicator_step_one_PD2 =  strcmp(loaded_data_PD2.conditions.condition_index_list, 'ONE');
-illusionleft_indicator_PD2 = strcmp(loaded_data_PD2.conditions.stimulus_list,'STIM_LEFT');
-illusionright_indicator_PD2 = strcmp(loaded_data_PD2.conditions.stimulus_list,'STIM_RIGHT');
-this_cop_data_PD2 = loaded_data_PD2.variable_data{find(strcmp(loaded_data_PD2.variable_names, 'cop_from_mpsis_x'))}(100,:)
-this_cop_data_step_one_inverted_PD2 = [this_cop_data_PD2(:, illusionright_indicator_PD2 ), this_cop_data_PD2(:, illusionleft_indicator_PD2 ) * -1];
+this_x_data = variable_data{find(strcmp(variable_names, 'cop_from_com_x_step_end_inverted'))}(:,index_indicator_step_one);
+this_y_data = variable_data{find(strcmp(variable_names, 'step_placement_x_inverted'))}(:,index_indicator_step_one);
 
-this_step_data_PD2 = loaded_data_PD2.variable_data{find(strcmp(loaded_data_PD2.variable_names, 'step_placement_x'))}(1,:);
-this_step_step_one_inverted_PD2 = [this_step_data_PD2(:, illusionright_indicator_PD2 ), this_step_data_PD2(:, illusionleft_indicator_PD2 ) * -1];
+this_x_data = variable_data{find(strcmp(variable_names, 'trigger_leg_ankle_dorsiflexion_step_end_inverted'))}(:,index_indicator_step_one);
+this_y_data = variable_data{find(strcmp(variable_names, 'step_placement_x_inverted'))}(:,index_indicator_step_one);
 
-% concat OA1 and OA2
-this_cop_data_PD = [this_cop_data_step_one_inverted_PD1 this_cop_data_step_one_inverted_PD2];
-this_step_data_PD = [this_step_step_one_inverted_PD1 this_step_step_one_inverted_PD2];
-
-% plot OA
-[r , p] = corr(this_cop_data_PD', this_step_data_PD')
+this_x_data = variable_data{find(strcmp(variable_names, 'trigger_leg_ankle_dorsiflexion_inverted'))}(:,index_indicator_step_two);
+this_x_data = fillmissing(this_x_data,  'nearest', 2);
+this_x_data = max(this_x_data(1:30,:));
+this_y_data = variable_data{find(strcmp(variable_names, 'cop_from_com_x_step_end_inverted'))}(:,index_indicator_step_one);
+    
+[r , p] = corr(this_x_data', this_y_data')
 r2 = r^2
+coefficients = polyfit(this_x_data, this_y_data, 1);
+slope = coefficients(1)
 
-% figure;
-hold on;
-plot(this_cop_data_PD, this_step_data_PD,'o', 'color',[241/255, 90/255, 34/255],'LineWidth',2);
-% lsline; 
-line(1).Color = [241/255, 90/255, 34/255];
-line(1).LineWidth = 3;
+figure; hold on;
+plot(this_x_data, this_y_data,'o', 'MarkerEdgeColor',[203/255, 219/255, 42/255],'LineWidth',2);
 
-coefs = polyfit(this_cop_data_PD,this_step_data_PD, 1);
-coefs(1)
+% coefs = polyfit(this_x_data,this_y_data, 1);
+% coefs(1)
 
-%% OA coordination plot 
-% load data and settings
-loaded_data_OA1 = load('G:\My Drive\Vision_OA\results_grant1.mat');
-loaded_data_OA2 = load('G:\My Drive\CoBaL_Test_Data\Vision_OA\results_grant1.mat');
+line = lsline;
+line.Color = [0, 0, 0];
+line.LineWidth = 3;
 
-% OA1
-index_indicator_step_one_OA1 =  strcmp(loaded_data_OA1.conditions.condition_index_list, 'ONE');
-illusionleft_indicator_OA1 = strcmp(loaded_data_OA1.conditions.condition_perturbation_list,'ILLUSION_LEFT');
-illusionright_indicator_OA1 = strcmp(loaded_data_OA1.conditions.condition_perturbation_list,'ILLUSION_RIGHT');
-this_cop_data_OA1 = loaded_data_OA1.variable_data{find(strcmp(loaded_data_OA1.variable_names, 'cop_from_mpsis_x'))}(end,:);
-this_cop_data_step_one_inverted_OA1 = [this_cop_data_OA1(:, illusionright_indicator_OA1 & index_indicator_step_one_OA1), this_cop_data_OA1(:, illusionleft_indicator_OA1 & index_indicator_step_one_OA1) * -1];
-
-this_step_data_OA1 = loaded_data_OA1.variable_data{find(strcmp(loaded_data_OA1.variable_names, 'step_placement_x'))};
-this_step_step_one_inverted_OA1 = [this_step_data_OA1(:, illusionright_indicator_OA1 & index_indicator_step_one_OA1), this_step_data_OA1(:, illusionleft_indicator_OA1 & index_indicator_step_one_OA1) * -1];
-
-% OA2
-% index_indicator_step_one_OA2 =  strcmp(loaded_data_OA2.conditions.condition_index_list, 'ONE');
-illusionleft_indicator_OA2 = strcmp(loaded_data_OA2.conditions.stimulus_list,'STIM_LEFT');
-illusionright_indicator_OA2 = strcmp(loaded_data_OA2.conditions.stimulus_list,'STIM_RIGHT');
-this_cop_data_OA2 = loaded_data_OA2.variable_data{find(strcmp(loaded_data_OA2.variable_names, 'cop_from_mpsis_x'))}(100,:); % this index is for step one end
-this_cop_data_step_one_inverted_OA2 = [this_cop_data_OA2(:, illusionright_indicator_OA2), this_cop_data_OA2(:, illusionleft_indicator_OA2) * -1];
-
-this_step_data_OA2 = loaded_data_OA2.variable_data{find(strcmp(loaded_data_OA2.variable_names, 'step_placement_x'))}(1,:); % this index is for step one index
-this_step_step_one_inverted_OA2 = [this_step_data_OA2(:, illusionright_indicator_OA2), this_step_data_OA2(:, illusionleft_indicator_OA2) * -1];
-
-% concat OA1 and OA2
-this_cop_data_OA = [this_cop_data_step_one_inverted_OA1 this_cop_data_step_one_inverted_OA2];
-this_step_data_OA = [this_step_step_one_inverted_OA1 this_step_step_one_inverted_OA2];
-
-% plot OA
-[r , p] = corr(this_cop_data_OA', this_step_data_OA')
-r2 = r^2
-
-% figure;
-hold on;
-plot(this_cop_data_OA, this_step_data_OA,'o', 'color',[83/255, 80/255, 162/255],'LineWidth',2);
-% oa1 = fitlm(this_cop_data_OA, this_step_data_OA);
-% plotAdded(oa1)
-
-coefs = polyfit(this_cop_data_OA,this_step_data_OA, 1);
-coefs(1)
-
-%  oaline = lsline;
- line(2).Color = [83/255, 80/255, 162/255];
- line(2).LineWidth = 3;
-
-%% HY Data
-
-plot_cop_step = 0;
-plot_icop_step = 0;
-plot_i2cop_step = 0;
-trigger_leg_ankle_dorsiflexion_max = 0;
+% %% HY Vision Data
+% 
+% plot_cop_step = 0;
+% plot_icop_step = 0;
+% plot_i2cop_step = 0;
+% trigger_leg_ankle_dorsiflexion_max = 0;
 % TO DO: check for NaNs in Cop_step_end
 % TO DO: integrated is less predictive than step end??
 % TO DO: check cop_integrated
@@ -109,6 +151,7 @@ trigger_leg_ankle_dorsiflexion_max = 0;
 % TO DO; HAVE to uninvert triggerleg dorsiflexion for comparison to
 % step length
 load('D:\DataStorage\Vision_HY\results.mat')
+
 index_indicator_step_one = strcmp(conditions.condition_index_list, 'ONE');
 index_indicator_step_two = strcmp(conditions.condition_index_list, 'TWO');
 
@@ -129,24 +172,27 @@ index_indicator_early = index_indicator_step_one & group_indicator_early;
 index_indicator_late = index_indicator_step_one & group_indicator_late;
 index_indicator_no = index_indicator_step_one & group_indicator_no;
 
-if plot_cop_step
+% if plot_cop_step
     this_x_data = variable_data{find(strcmp(variable_names, 'cop_from_com_x_step_end_inverted'))}(:,index_indicator_step_one);
     this_y_data = variable_data{find(strcmp(variable_names, 'step_placement_x_inverted'))}(:,index_indicator_step_one);
 
-    this_x_data = variable_data{find(strcmp(variable_names, 'cop_from_com_x_integrated_inverted'))}(:,index_indicator_step_one);
-    this_y_data = variable_data{find(strcmp(variable_names, 'step_placement_x_inverted'))}(:,index_indicator_step_one);
+%     this_x_data = variable_data{find(strcmp(variable_names, 'cop_from_com_x_integrated_inverted'))}(:,index_indicator_step_one);
+%     this_y_data = variable_data{find(strcmp(variable_names, 'step_placement_x_inverted'))}(:,index_indicator_step_one);
 
     this_x_data = variable_data{find(strcmp(variable_names, 'trigger_leg_ankle_dorsiflexion_step_end_inverted'))}(:,index_indicator_step_one);
     this_y_data = variable_data{find(strcmp(variable_names, 'step_placement_x_inverted'))}(:,index_indicator_step_one);
 
-    this_x_data = variable_data{find(strcmp(variable_names, 'trigger_leg_ankle_dorsiflexion_step_end_inverted'))}(:,index_indicator_step_one);
+    this_x_data = variable_data{find(strcmp(variable_names, 'trigger_leg_ankle_dorsiflexion_inverted'))}(:,index_indicator_step_two);
+    this_x_data = fillmissing(this_x_data,  'nearest', 2);
+    this_x_data = max(this_x_data(1:30,:));
     this_y_data = variable_data{find(strcmp(variable_names, 'cop_from_com_x_step_end_inverted'))}(:,index_indicator_step_one);
+    
 
     this_x_data = variable_data{find(strcmp(variable_names, 'trigger_leg_ankle_dorsiflexion_inverted_max'))}(:,index_indicator_step_two);
     this_y_data = variable_data{find(strcmp(variable_names, 'cop_from_com_x_step_end_inverted'))}(:,index_indicator_step_one);
 
     this_x_data = variable_data{find(strcmp(variable_names, 'trigger_leg_ankle_dorsiflexion_step_end_inverted'))}(:,index_indicator_step_one);
-    this_y_data = variable_data{find(strcmp(variable_names, 'step_length'))}(:,index_indicator_step_two);
+    this_y_data = variable_data{find(strcmp(variable_names, 'step_length'))}(:,index_indicator_step_one);
 
     %         this_x_data = variable_data{find(strcmp(variable_names, 'trigger_leg_ankle_dorsiflexion_step_end'))}(:,index_indicator_step_two);
     %         this_y_data = variable_data{find(strcmp(variable_names, 'step_length'))}(:,index_indicator_step_two);
@@ -159,6 +205,8 @@ if plot_cop_step
         this_y_data(indices_to_remove)=[]
         [r , p] = corr(this_x_data', this_y_data')
         r2 = r^2
+        coefficients = polyfit(this_x_data, this_y_data, 1);
+        slope = coefficients(1)
     end
     figure; hold on;
     plot(this_x_data, this_y_data,'o', 'MarkerEdgeColor',[203/255, 219/255, 42/255],'LineWidth',2);
@@ -169,8 +217,8 @@ if plot_cop_step
 %     hy1 = fitlm(tb1,'this_y_data ~ this_x_data');
 %     plotAdded(hy1)
     line = lsline;
-    line(3).Color = [203/255, 219/255, 42/255];
-    line(3).LineWidth = 3;
+    line.Color = [0, 0, 0];
+    line.LineWidth = 3;
 %     
 %     HY_line = lsline(HY_scatter);
 %     HY_line.LineWidth = 3;
@@ -189,7 +237,7 @@ if plot_cop_step
     
 %     plot(this_x_data_4_regline, y_est, 'LineStyle', '-', 'color',[203/255, 219/255, 42/255], 'LineWidth',2)
 %     plot([xLimits(1) xLimits(2), yLimits(1) yhat], 'color',[203/255, 219/255, 42/255], 'LineWidth',2)
-end
+% end
 
 if plot_icop_step
     plot(variable_data{find(strcmp(variable_names, 'cop_from_com_x_integrated_inverted'))}(:,index_indicator_step_one), variable_data{find(strcmp(variable_names, 'step_placement_x_inverted'))}(:,index_indicator_step_one),'*');

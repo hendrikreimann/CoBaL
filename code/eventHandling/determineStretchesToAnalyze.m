@@ -150,9 +150,11 @@ function determineStretchesToAnalyze(varargin)
             
             % stimulus data
             if strcmp(experimental_paradigm, 'GVS_old')
-                GVS_out_trajectory = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'GVS_out_trajectory');
+                load(['processed' filesep makeFileName(date, subject_id, condition_list{i_condition}, i_trial, 'labviewData')]);
+%                 GVS_out_trajectory = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'GVS_out_trajectory');
                 GVS_stim_trajectory = GVS_out_trajectory + subject_settings.get('gvs_offset');
-                [stimulus_state_trajectory, time_stimulus] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'stimulus_state_trajectory');
+%                 [stimulus_state_trajectory, time_stimulus] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'stimulus_state_trajectory');
+                time_stimulus = time;
             end
             if strcmp(condition_stimulus, 'VISUAL')
                 % this if for TU data
@@ -1915,11 +1917,11 @@ function determineStretchesToAnalyze(varargin)
             end
             
             % add subject
-            subject_list = cell(size(event_variables_to_save.stance_foot_data, 1), 1);
-            for i_stretch = 1 : length(subject_list)
-                subject_list{i_stretch} = subject_id;
+            condition_subject_list = cell(size(event_variables_to_save.stance_foot_data, 1), 1);
+            for i_stretch = 1 : length(condition_subject_list)
+                condition_subject_list{i_stretch} = subject_id;
             end
-            conditions_trial.subject_list = subject_list;
+            conditions_trial.subject_list = condition_subject_list;
 
             %% remove stretches where important variables are missing
 
