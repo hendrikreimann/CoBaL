@@ -36,7 +36,11 @@ classdef SettingsCustodian < handle
             this.settings_file = settings_file;
             this.settings_struct = loadSettingsFile(settings_file);
         end
-        function data = get(this, property_name)
+        function data = get(this, property_name, optional)
+            if nargin < 3
+                optional = false;
+            end
+            
             % set to default
             data = this.getDefaultSetting(property_name);
             used_default = true;
@@ -81,7 +85,7 @@ classdef SettingsCustodian < handle
                 end
                 
                 if ~any(strcmp(property_name, this.property_not_found_list))
-                    if this.verbose
+                    if this.verbose && ~optional
                         disp(report_string)
                     end
                     this.property_not_found_list = [this.property_not_found_list; property_name];

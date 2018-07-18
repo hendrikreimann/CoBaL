@@ -93,7 +93,7 @@ function plotResults(varargin)
     % load data
     data_folder_list = determineDataStructure(subjects);
     variables_to_plot = plot_settings.get('variables_to_plot');
-    paths_to_plot = plot_settings.get('paths_to_plot');
+    paths_to_plot = plot_settings.get('paths_to_plot', true);
 
     number_of_variables_to_plot = size(variables_to_plot, 1);
     number_of_paths_to_plot = size(paths_to_plot, 1);
