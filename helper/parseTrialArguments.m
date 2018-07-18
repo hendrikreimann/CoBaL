@@ -123,5 +123,7 @@ function [types_to_analyze, trials_to_analyze, types_to_exclude, trials_to_exclu
 %     % exclude adaptation
 %     emg_trials = trials_to_analyze(strcmp(types_to_analyze, 'adaptation'));
 %     trials_to_analyze(strcmp(types_to_analyze, 'adaptation')) = [];
+%     types_to_analyze(strcmp(types_to_analyze, 'adaptation')) = [];
+%     types_to_analyze(strcmp(types_to_analyze, 'adaptation')) = [];
     
 end
