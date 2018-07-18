@@ -3117,19 +3117,22 @@ classdef WalkingDataCustodian < handle
                     end
                     if strcmp(variable_name, 'pushoff_time')
                         % load events
-                        event_data = load(['analysis' filesep makeFileName(this.date, this.subject_id, this.trial_type, this.trial_number, 'stepEvents.mat')]);
+                        event_data = load(['analysis' filesep makeFileName(this.date, this.subject_id, this.trial_type, this.trial_number, 'events.mat')]);
+                        left_pushoff_times = event_data.event_data{strcmp(event_data.event_labels, 'left_pushoff')};
+                        right_pushoff_times = event_data.event_data{strcmp(event_data.event_labels, 'right_pushoff')};
+                        
                         stretch_data = zeros(number_of_bands, 1);
                         for i_band = 1 : number_of_bands
                             [band_start_index, band_end_index] = getBandIndices(i_band, this.number_of_time_steps_normalized);
                             if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_RIGHT')
                                 % find first left push-off after band start
                                 band_start_time = this_stretch_times(i_band);
-                                this_pushoff_time = min(event_data.left_pushoff_times(event_data.left_pushoff_times>band_start_time));
+                                this_pushoff_time = min(left_pushoff_times(left_pushoff_times>band_start_time));
                                 stretch_data(i_band) = this_pushoff_time - band_start_time;
                             end
                             if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_LEFT')
                                 band_start_time = this_stretch_times(i_band);
-                                this_pushoff_time = min(event_data.right_pushoff_times(event_data.right_pushoff_times>band_start_time));
+                                this_pushoff_time = min(right_pushoff_times(right_pushoff_times>band_start_time));
                                 stretch_data(i_band) = this_pushoff_time - band_start_time;
                             end
                             if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_BOTH')
