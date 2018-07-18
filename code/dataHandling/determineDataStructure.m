@@ -52,8 +52,6 @@ function [data_folder_list, subject_list] = determineDataStructure(subjects)
         % extract only those that are directories.
         dir_name = {things_in_current_folder.name};
         folder_list = dir_name(dir_flags);
-        % remove pointers to upper level directories
-        folder_list(1:2) = [];
         % remove folders called 'figures'
         folder_list(strcmp(folder_list, 'figures')) = [];
         
@@ -69,27 +67,24 @@ function [data_folder_list, subject_list] = determineDataStructure(subjects)
         end
     end
     if strcmp(current_folder_type, 'study')
-        % if no list was passed, load from subjects.csv
-        if isempty(subjects)
-            % no list passed, but current folder is a data folder, so plot this data
-            subject_data_file = 'subjects.csv';
-            format = '%s';
-            fid = fopen(subject_data_file);
-            fgetl(fid);
-            fgetl(fid);
-            data_raw = textscan(fid, format);
-            fclose(fid);
-
-            % transform to cell
-            data_lines = data_raw{1};
-            data_cell = {};
-            for i_line = 1 : length(data_lines)
-                line_split = strsplit(data_lines{i_line}, ',');
-                data_cell = [data_cell; line_split]; %#ok<AGROW>
+        % no list was passed, so go through folders
+        
+        % get list of everything in the current directory
+        things_in_current_folder = dir;
+        % get a logical vector that tells which is a directory
+        dir_flags = [things_in_current_folder.isdir];
+        % extract only those that are directories.
+        dir_name = {things_in_current_folder.name};
+        folder_list = dir_name(dir_flags);
+        
+        number_of_data_folders = length(folder_list);
+        subjects = {};
+        for i_folder = 1 : number_of_data_folders
+            this_folder_name = folder_list{i_folder};
+            if exist([current_file_path filesep this_folder_name filesep 'subjectSettings.txt'], 'file')
+                subjects = [subjects; this_folder_name];
             end
-
-            subjects = data_cell(:, 1);
-        end            
+        end
         
         % check each subject folder for data folders
         subject_list = {};
