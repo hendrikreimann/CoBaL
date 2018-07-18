@@ -168,7 +168,7 @@ function preprocessRawData(varargin)
                         'emg_labels', ...
                         'emg_directions' ...
                       );
-                    addAvailableData_new ...
+                    addAvailableData ...
                       ( ...
                         'emg_trajectories', ...
                         'time_emg', ...
@@ -480,27 +480,27 @@ function preprocessRawData(varargin)
                         'total_cop_labels' ...
                       );
 
-                    addAvailableData_new('left_foot_wrench_world', 'time_forceplate', 'sampling_rate_forceplate', '_left_foot_wrench_labels', '_wrench_directions', save_folder, save_file_name);
-                    addAvailableData_new('left_foot_cop_world', 'time_forceplate', 'sampling_rate_forceplate', '_left_foot_cop_labels', '_cop_directions', save_folder, save_file_name);
-                    addAvailableData_new('right_foot_wrench_world', 'time_forceplate', 'sampling_rate_forceplate', '_right_foot_wrench_labels', '_wrench_directions', save_folder, save_file_name);
-                    addAvailableData_new('right_foot_cop_world', 'time_forceplate', 'sampling_rate_forceplate', '_right_foot_cop_labels', '_cop_directions', save_folder, save_file_name);
+                    addAvailableData('left_foot_wrench_world', 'time_forceplate', 'sampling_rate_forceplate', '_left_foot_wrench_labels', '_wrench_directions', save_folder, save_file_name);
+                    addAvailableData('left_foot_cop_world', 'time_forceplate', 'sampling_rate_forceplate', '_left_foot_cop_labels', '_cop_directions', save_folder, save_file_name);
+                    addAvailableData('right_foot_wrench_world', 'time_forceplate', 'sampling_rate_forceplate', '_right_foot_wrench_labels', '_wrench_directions', save_folder, save_file_name);
+                    addAvailableData('right_foot_cop_world', 'time_forceplate', 'sampling_rate_forceplate', '_right_foot_cop_labels', '_cop_directions', save_folder, save_file_name);
 
-                    addAvailableData_new('total_forceplate_wrench_world', 'time_forceplate', 'sampling_rate_forceplate', '_total_wrench_labels', '_wrench_directions', save_folder, save_file_name);
-                    addAvailableData_new('total_forceplate_cop_world', 'time_forceplate', 'sampling_rate_forceplate', '_total_cop_labels', '_cop_directions', save_folder, save_file_name);
+                    addAvailableData('total_forceplate_wrench_world', 'time_forceplate', 'sampling_rate_forceplate', '_total_wrench_labels', '_wrench_directions', save_folder, save_file_name);
+                    addAvailableData('total_forceplate_cop_world', 'time_forceplate', 'sampling_rate_forceplate', '_total_cop_labels', '_cop_directions', save_folder, save_file_name);
 
-                    addAvailableData_new('fxl_trajectory', 'time_forceplate', 'sampling_rate_forceplate', 'fxl_trajectory', {'right', 'left'}, save_folder, save_file_name);
-                    addAvailableData_new('fyl_trajectory', 'time_forceplate', 'sampling_rate_forceplate', 'fyl_trajectory', {'forward', 'backward'}, save_folder, save_file_name);
-                    addAvailableData_new('fzl_trajectory', 'time_forceplate', 'sampling_rate_forceplate', 'fzl_trajectory', {'up', 'down'}, save_folder, save_file_name);
-                    addAvailableData_new('mxl_trajectory', 'time_forceplate', 'sampling_rate_forceplate', 'mxl_trajectory', {'right', 'left'}, save_folder, save_file_name);
-                    addAvailableData_new('myl_trajectory', 'time_forceplate', 'sampling_rate_forceplate', 'myl_trajectory', {'forward', 'backward'}, save_folder, save_file_name);
-                    addAvailableData_new('mzl_trajectory', 'time_forceplate', 'sampling_rate_forceplate', 'mzl_trajectory', {'up', 'down'}, save_folder, save_file_name);
+                    addAvailableData('fxl_trajectory', 'time_forceplate', 'sampling_rate_forceplate', 'fxl_trajectory', {'right', 'left'}, save_folder, save_file_name);
+                    addAvailableData('fyl_trajectory', 'time_forceplate', 'sampling_rate_forceplate', 'fyl_trajectory', {'forward', 'backward'}, save_folder, save_file_name);
+                    addAvailableData('fzl_trajectory', 'time_forceplate', 'sampling_rate_forceplate', 'fzl_trajectory', {'up', 'down'}, save_folder, save_file_name);
+                    addAvailableData('mxl_trajectory', 'time_forceplate', 'sampling_rate_forceplate', 'mxl_trajectory', {'right', 'left'}, save_folder, save_file_name);
+                    addAvailableData('myl_trajectory', 'time_forceplate', 'sampling_rate_forceplate', 'myl_trajectory', {'forward', 'backward'}, save_folder, save_file_name);
+                    addAvailableData('mzl_trajectory', 'time_forceplate', 'sampling_rate_forceplate', 'mzl_trajectory', {'up', 'down'}, save_folder, save_file_name);
 
-                    addAvailableData_new('fxr_trajectory', 'time_forceplate', 'sampling_rate_forceplate', 'fxr_trajectory', {'right', 'left'}, save_folder, save_file_name);
-                    addAvailableData_new('fyr_trajectory', 'time_forceplate', 'sampling_rate_forceplate', 'fyr_trajectory', {'forward', 'backward'}, save_folder, save_file_name);
-                    addAvailableData_new('fzr_trajectory', 'time_forceplate', 'sampling_rate_forceplate', 'fzr_trajectory', {'up', 'down'}, save_folder, save_file_name);
-                    addAvailableData_new('mxr_trajectory', 'time_forceplate', 'sampling_rate_forceplate', 'mxr_trajectory', {'right', 'left'}, save_folder, save_file_name);
-                    addAvailableData_new('myr_trajectory', 'time_forceplate', 'sampling_rate_forceplate', 'myr_trajectory', {'forward', 'backward'}, save_folder, save_file_name);
-                    addAvailableData_new('mzr_trajectory', 'time_forceplate', 'sampling_rate_forceplate', 'mzr_trajectory', {'up', 'down'}, save_folder, save_file_name);
+                    addAvailableData('fxr_trajectory', 'time_forceplate', 'sampling_rate_forceplate', 'fxr_trajectory', {'right', 'left'}, save_folder, save_file_name);
+                    addAvailableData('fyr_trajectory', 'time_forceplate', 'sampling_rate_forceplate', 'fyr_trajectory', {'forward', 'backward'}, save_folder, save_file_name);
+                    addAvailableData('fzr_trajectory', 'time_forceplate', 'sampling_rate_forceplate', 'fzr_trajectory', {'up', 'down'}, save_folder, save_file_name);
+                    addAvailableData('mxr_trajectory', 'time_forceplate', 'sampling_rate_forceplate', 'mxr_trajectory', {'right', 'left'}, save_folder, save_file_name);
+                    addAvailableData('myr_trajectory', 'time_forceplate', 'sampling_rate_forceplate', 'myr_trajectory', {'forward', 'backward'}, save_folder, save_file_name);
+                    addAvailableData('mzr_trajectory', 'time_forceplate', 'sampling_rate_forceplate', 'mzr_trajectory', {'up', 'down'}, save_folder, save_file_name);
                     disp(['processed ' raw_forceplate_file_name ' and saved as ' [save_folder filesep save_file_name]])        
                 end
             end
@@ -581,7 +581,7 @@ function preprocessRawData(varargin)
                         'marker_labels',  ...
                         'marker_directions' ...
                       );
-                    addAvailableData_new ...
+                    addAvailableData ...
                       ( ...
                         'marker_trajectories', ...
                         'time_mocap', ...

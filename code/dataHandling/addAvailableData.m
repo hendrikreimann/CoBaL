@@ -21,8 +21,7 @@
 % file: identifier of the file in which this information is saved
 % folder: folder containing the file
 
-% function addAvailableData(name, time, sampling_rate, labels, folder, file_name)
-function addAvailableData_new(name, time, sampling_rate, labels, directions, folder, file_name)
+function addAvailableData(name, time, sampling_rate, labels, directions, folder, file_name)
     [date, subject_id, trial_type, trial_number] = getFileParameters(file_name);
     
     % load list of already available variables if existing
