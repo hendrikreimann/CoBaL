@@ -1021,6 +1021,12 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('left_erect_spin')
                 this.addStretchVariable('left_erect_spin')
             end
+            if this.isVariableToAnalyze('left_soleus')
+                this.addBasicVariable('emg_trajectories')
+                this.addBasicVariable('left_soleus')
+                this.addStretchVariable('left_soleus')
+            end
+            
             if this.isVariableToAnalyze('right_glut_med')
                 this.addBasicVariable('emg_trajectories')
                 this.addBasicVariable('right_glut_med')
@@ -1070,6 +1076,11 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('emg_trajectories')
                 this.addBasicVariable('right_erect_spin')
                 this.addStretchVariable('right_erect_spin')
+            end
+            if this.isVariableToAnalyze('right_soleus')
+                this.addBasicVariable('emg_trajectories')
+                this.addBasicVariable('right_soleus')
+                this.addStretchVariable('right_soleus')
             end
             if this.isVariableToAnalyze('left_glut_med_rescaled')
                 this.addBasicVariable('emg_trajectories')
@@ -1130,6 +1141,11 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('left_erect_spin')
                 this.addStretchVariable('left_erect_spin_rescaled')
             end
+             if this.isVariableToAnalyze('left_soleus_rescaled')
+                this.addBasicVariable('emg_trajectories')
+                this.addBasicVariable('left_soleus')
+                this.addStretchVariable('left_soleus_rescaled')
+            end
             if this.isVariableToAnalyze('right_glut_med_rescaled')
                 this.addBasicVariable('emg_trajectories')
                 this.addBasicVariable('right_glut_med')
@@ -1188,6 +1204,11 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('emg_trajectories')
                 this.addBasicVariable('right_erect_spin')
                 this.addStretchVariable('right_erect_spin_rescaled')
+            end
+            if this.isVariableToAnalyze('right_soleus_rescaled')
+                this.addBasicVariable('emg_trajectories')
+                this.addBasicVariable('right_soleus')
+                this.addStretchVariable('right_soleus_rescaled')
             end
    end
         
@@ -2932,6 +2953,11 @@ classdef WalkingDataCustodian < handle
                     this.basic_variable_directions.left_erect_spin = this.basic_variable_directions.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'left_erect_spin'));
                     this.time_data.left_erect_spin = this.time_data.emg_trajectories;
                 end
+                if strcmp(variable_name, 'left_erect_spin')
+                    this.basic_variable_data.left_soleus = this.basic_variable_data.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'left_soleus'));
+                    this.basic_variable_directions.left_soleus = this.basic_variable_directions.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'left_soleus'));
+                    this.time_data.left_soleus = this.time_data.emg_trajectories;
+                end
                 if strcmp(variable_name, 'right_glut_med')
                     this.basic_variable_data.right_glut_med = this.basic_variable_data.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'right_glut_med'));
                     this.basic_variable_directions.right_glut_med = this.basic_variable_directions.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'right_glut_med'));
@@ -2988,6 +3014,11 @@ classdef WalkingDataCustodian < handle
                     this.basic_variable_data.right_erect_spin = this.basic_variable_data.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'right_erect_spin'));
                     this.basic_variable_directions.right_erect_spin = this.basic_variable_directions.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'right_erect_spin'));
                     this.time_data.right_erect_spin = this.time_data.emg_trajectories;
+                end
+                if strcmp(variable_name, 'right_soleus')
+                    this.basic_variable_data.right_soleus = this.basic_variable_data.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'right_soleus'));
+                    this.basic_variable_directions.right_soleus = this.basic_variable_directions.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'right_soleus'));
+                    this.time_data.right_soleus = this.time_data.emg_trajectories;
                 end
             end
         end
@@ -3472,6 +3503,11 @@ classdef WalkingDataCustodian < handle
                         normalization_value = this.emg_normalization_values(strcmp(this.emg_normalization_labels, 'left_erect_spin'));
                         stretch_data = left_erect_spin * 1 / normalization_value;
                     end
+                    if strcmp(variable_name, 'left_soleus_rescaled')
+                        left_erect_spin = this.getTimeNormalizedData('left_soleus', this_stretch_times);
+                        normalization_value = this.emg_normalization_values(strcmp(this.emg_normalization_labels, 'left_soleus'));
+                        stretch_data = left_soleus * 1 / normalization_value;
+                    end
                     if strcmp(variable_name, 'right_glut_med_rescaled')
                         right_glut_med = this.getTimeNormalizedData('right_glut_med', this_stretch_times);
                         normalization_value = this.emg_normalization_values(strcmp(this.emg_normalization_labels, 'right_glut_med'));
@@ -3523,6 +3559,11 @@ classdef WalkingDataCustodian < handle
                     if strcmp(variable_name, 'right_erect_spin_rescaled')
                         right_erect_spin = this.getTimeNormalizedData('right_erect_spin', this_stretch_times);
                         normalization_value = this.emg_normalization_values(strcmp(this.emg_normalization_labels, 'right_erect_spin'));
+                        stretch_data = right_erect_spin * 1 / normalization_value;
+                    end
+                    if strcmp(variable_name, 'right_soleus_rescaled')
+                        right_erect_spin = this.getTimeNormalizedData('right_soleus', this_stretch_times);
+                        normalization_value = this.emg_normalization_values(strcmp(this.emg_normalization_labels, 'right_soleus'));
                         stretch_data = right_erect_spin * 1 / normalization_value;
                     end
                     if strcmp(variable_name, 'copl_x') || strcmp(variable_name, 'copl_y') || strcmp(variable_name, 'copr_x') || strcmp(variable_name, 'copr_y')
@@ -3886,6 +3927,9 @@ classdef WalkingDataCustodian < handle
             if strcmp(variable_name, 'left_erect_spin_rescaled')
                 stretch_directions_new = this.basic_variable_directions.left_erect_spin;
             end
+            if strcmp(variable_name, 'left_soleus_rescaled')
+                stretch_directions_new = this.basic_variable_directions.left_soleus;
+            end
             if strcmp(variable_name, 'right_glut_med_rescaled')
                 % TODO: not tested yet
                 stretch_directions_new = this.basic_variable_directions.right_glut_med;
@@ -3922,6 +3966,9 @@ classdef WalkingDataCustodian < handle
             end
             if strcmp(variable_name, 'right_erect_spin_rescaled')
                 stretch_directions_new = this.basic_variable_directions.right_erect_spin;
+            end
+            if strcmp(variable_name, 'right_soleus_rescaled')
+                stretch_directions_new = this.basic_variable_directions.right_soleus;
             end
             if strcmp(variable_name, 'copl_x') || strcmp(variable_name, 'copl_y') || strcmp(variable_name, 'copr_x') || strcmp(variable_name, 'copr_y')
                 stretch_directions_new = this.basic_variable_directions.(variable_name);
