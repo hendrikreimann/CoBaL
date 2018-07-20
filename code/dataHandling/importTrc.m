@@ -1,5 +1,5 @@
 %     This file is part of the CoBaL code base
-%     Copyright (C) 2017 Hendrik Reimann <hendrikreimann@gmail.com>
+%     Copyright (C) 2018 Hendrik Reimann <hendrikreimann@gmail.com>
 % 
 %     This program is free software: you can redistribute it and/or modify
 %     it under the terms of the GNU General Public License as published by
