@@ -112,7 +112,7 @@ function exportToOpenSim(varargin)
                         wrench_right_opensim(:, 4:6) ...
                       ];
 
-                    save_folder = 'opensim';
+                    save_folder = ['opensim' filesep 'forceplate'];
                     save_file_name =  makeFileName(date, subject_id, trial_type, trial_number, 'grf.mot');
                     fid = fopen([save_folder filesep save_file_name],'w');
 
@@ -205,7 +205,7 @@ function exportToOpenSim(varargin)
                     
                     % save
                     time_mocap = time_mocap - time_mocap(1); % first entry has to be zero or OpenSim will throw an exception
-                    save_folder = 'opensim';
+                    save_folder = ['opensim' filesep 'marker'];
                     save_file_name = [save_folder filesep makeFileName(date, subject_id, trial_type, trial_number, 'marker.trc')];
                     fid = fopen(save_file_name,'w');
                     fid_1 = fopen(save_file_name, 'w');
