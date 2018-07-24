@@ -67,12 +67,32 @@ function exportToOpensim(varargin)
     trial_number_list = [trial_number_list; static_trial_number];
     
     % setup model scaling 
-    static_file_name = ['processed' filesep makeFileName(subject_info.date, subject_info.subject_id, static_trial_type, static_trial_number, 'markerTrajectories.mat')];
+    static_file_name = ['marker' filesep makeFileName(subject_info.date, subject_info.subject_id, static_trial_type, static_trial_number, 'marker.trc')];
     generic_setup_file_scale = [getCobalPath filesep 'resources' filesep 'opensim' filesep 'CoBaLWalker50_setupScale.xml'];
     data_root = [pwd filesep 'opensim'];
     DOMnode = xmlread(generic_setup_file_scale);
-    % ... not done yet, have to do this by hand for now
-    
+
+    % set name of resulting model
+    document_node = DOMnode.getFirstChild;
+    scale_tool_node = document_node.getElementsByTagName("ScaleTool").item(0);
+    scale_tool_node.setAttribute("name", makeFileName(subject_info.date, subject_info.subject_id, '.osim'))
+
+    % set marker file name for model scaler
+    model_scaler_node = scale_tool_node.getElementsByTagName("ModelScaler").item(0);
+    marker_file_node = model_scaler_node.getElementsByTagName("marker_file").item(0);
+    child = marker_file_node.getFirstChild;
+    child.setData(static_file_name)
+
+    % set marker file name for marker placer
+    model_scaler_node = scale_tool_node.getElementsByTagName("MarkerPlacer").item(0);
+    marker_file_node = model_scaler_node.getElementsByTagName("marker_file").item(0);
+    child = marker_file_node.getFirstChild;
+    child.setData(static_file_name)
+
+    % save
+    setup_file_scale = [pwd filesep 'opensim' filesep makeFileName(subject_info.date, subject_info.subject_id, 'setupScale.xml')];
+    xmlwrite(setup_file_scale, DOMnode);
+
     % define transformations
     world_to_opensim_rotation = [0 0 1; 1 0 0; 0 1 0];
     world_to_opensim_translation = [0; 0; 0];

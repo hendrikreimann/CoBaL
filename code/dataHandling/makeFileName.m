@@ -15,7 +15,11 @@
 %     along with this program.  If not, see <http://www.gnu.org/licenses/>.% compare the kinematic tree against the kinematic chain
 
 function fileName = makeFileName(date, subject_id, trial_type, trial_number, file_type)
-    fileName = [date '_' subject_id '_' trial_type];
+    if trial_type(1) == '.'
+        fileName = [date '_' subject_id trial_type];
+    else
+        fileName = [date '_' subject_id '_' trial_type];
+    end
     if nargin > 3
         if ~isnumeric(trial_number)
             trial_number = str2num(trial_number);
