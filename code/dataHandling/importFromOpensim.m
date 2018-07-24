@@ -26,23 +26,30 @@
 % Files containing the same data in .mat format, with some additional information about where they came from.
 % Output files will be saved to folders "raw" and "processed".
 
-function importMot(varargin)
-
+function importFromOpensim(varargin)
+    % parse arguments
+    [trial_type_list, trial_number_list, excluded_trial_type_list, excluded_trial_number_list] = parseTrialArguments(varargin{:});
     parser = inputParser;
-    parser.KeepUnmatched = true;
+    addParameter(parser, 'type', 'all')
     sources_default = {['opensim' filesep 'inverseKinematics']};
     addParameter(parser, 'sources', sources_default)
+    parser.KeepUnmatched = true;
     parse(parser, varargin{:})
+    type = parser.Results.type;
     sources = parser.Results.sources;
-    
-    
-    %% prepare
-    current_path = pwd;
-    path_split = strsplit(current_path, filesep);
-    subject_code = path_split{end};
 
-    %% import data
-    
+    % load settings
+    study_settings_file = '';
+    if exist(['..' filesep 'studySettings.txt'], 'file')
+        study_settings_file = ['..' filesep 'studySettings.txt'];
+    end    
+    if exist(['..' filesep '..' filesep 'studySettings.txt'], 'file')
+        study_settings_file = ['..' filesep '..' filesep 'studySettings.txt'];
+    end
+    study_settings = SettingsCustodian(study_settings_file);
+    subject_settings = SettingsCustodian('subjectSettings.txt');
+    subject_info = load('subjectInfo.mat');
+
     
     for i_source = 1 : length(sources)
         source_dir = sources{i_source};
@@ -68,14 +75,14 @@ function importMot(varargin)
                 number_of_samples_split = strsplit(imported_data.textdata{3, 1}, '=');
                 number_of_samples = str2num(number_of_samples_split{2});
 
-                trajectories = imported_data.data(:, 2:end);
+                joint_angle_trajectories = imported_data.data(:, 2:end);
                 time =imported_data.data(:, 1);
                 sampling_rate = 1/median(diff(time));
 
                 labels = data_headers(2:end);
 
                 % directions
-                number_of_trajectories = size(trajectories, 2);
+                number_of_trajectories = size(joint_angle_trajectories, 2);
                 directions = cell(2, number_of_trajectories);
                 [directions{:, :}] = deal('TBD');
 
@@ -85,7 +92,7 @@ function importMot(varargin)
                 save ...
                   ( ...
                     [save_folder filesep save_file_name], ...
-                    'trajectories', ...
+                    'joint_angle_trajectories', ...
                     'time', ...
                     'sampling_rate', ...
                     'labels',  ...
@@ -93,7 +100,7 @@ function importMot(varargin)
                   );
                 addAvailableData ...
                   ( ...
-                    'trajectories', ...
+                    'joint_angle_trajectories', ...
                     'time', ...
                     'sampling_rate', ...
                     '_labels', ...
