@@ -35,9 +35,9 @@ function processInverseKinematicsInOpensim(varargin)
     
     %% set up
     import org.opensim.modeling.*
-    setup_file_ik = [getCobalPath filesep 'resources' filesep 'opensim' filesep 'CoBaLWalker50_setupInverseKinematics.xml'];
+    generic_setup_file_ik = [getCobalPath filesep 'resources' filesep 'opensim' filesep 'CoBaLWalker50_setupInverseKinematics.xml'];
     data_root = [pwd filesep 'opensim'];
-    ikTool = InverseKinematicsTool(setup_file_ik);
+    ikTool = InverseKinematicsTool(generic_setup_file_ik);
     model_file = [data_root filesep subject_info.subject_id '.osim'];
 
     % Load the model and initialize

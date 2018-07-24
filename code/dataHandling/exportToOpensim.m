@@ -17,18 +17,27 @@
 
 function exportToOpensim(varargin)
     % parse arguments
-    [condition_list, trial_number_list, calibration_trials, emg_trials] = parseTrialArguments(varargin{:});
+    [trial_type_list, trial_number_list, excluded_trial_type_list, excluded_trial_number_list] = parseTrialArguments(varargin{:});
     parser = inputParser;
-    parser.KeepUnmatched = true;
     addParameter(parser, 'type', 'all')
-%     addParameter(parser, 'type', 'marker')
-    addParameter(parser, 'visualize', false)
+    parser.KeepUnmatched = true;
     parse(parser, varargin{:})
-    visualize = parser.Results.visualize;
     type = parser.Results.type;
-
+    
     if ~directoryExists('opensim')
         mkdir('opensim')
+    end
+    if ~directoryExists(['opensim' filesep 'forceplate'])
+        mkdir(['opensim' filesep 'forceplate'])
+    end
+    if ~directoryExists(['opensim' filesep 'marker'])
+        mkdir(['opensim' filesep 'marker'])
+    end
+    if ~directoryExists(['opensim' filesep 'setupFiles'])
+        mkdir(['opensim' filesep 'setupFiles'])
+    end
+    if ~directoryExists(['opensim' filesep 'inverseKinematics'])
+        mkdir(['opensim' filesep 'inverseKinematics'])
     end
     meter_to_millimeter = 1e3;
     
@@ -42,7 +51,27 @@ function exportToOpensim(varargin)
     end
     study_settings = SettingsCustodian(study_settings_file);
     subject_settings = SettingsCustodian('subjectSettings.txt');
-    load('subjectInfo.mat');
+    subject_info = load('subjectInfo.mat');
+    
+    % add static trial to list
+    static_trial_type = subject_settings.get('static_reference_trial_type');
+    static_trial_number = subject_settings.get('static_reference_trial_number');
+    static_trial_index_in_type_list = strcmp(excluded_trial_type_list, static_trial_type);
+    if ~any(static_trial_index_in_type_list)
+        error(['Trial type "' static_trial_type '" specified as static reference in subjectSettings.txt, but no data found for this type.'])
+    end
+    if ~any(static_trial_number == excluded_trial_number_list{static_trial_index_in_type_list})
+        error(['Trial number ' num2str(static_trial_number) ' of type "' static_trial_type '" specified as static reference in subjectSettings.txt, but no data found for this combination.'])
+    end
+    trial_type_list = [trial_type_list; static_trial_type];
+    trial_number_list = [trial_number_list; static_trial_number];
+    
+    % setup model scaling 
+    static_file_name = ['processed' filesep makeFileName(subject_info.date, subject_info.subject_id, static_trial_type, static_trial_number, 'markerTrajectories.mat')];
+    generic_setup_file_scale = [getCobalPath filesep 'resources' filesep 'opensim' filesep 'CoBaLWalker50_setupScale.xml'];
+    data_root = [pwd filesep 'opensim'];
+    DOMnode = xmlread(generic_setup_file_scale);
+    % ... not done yet, have to do this by hand for now
     
     % define transformations
     world_to_opensim_rotation = [0 0 1; 1 0 0; 0 1 0];
@@ -61,9 +90,9 @@ function exportToOpensim(varargin)
             [date, subject_id, trial_type, trial_number, file_type] = getFileParameters(forceplate_file_name);
 
             % does the caller want to process this file?
-            if any(strcmp(trial_type, condition_list))
+            if any(strcmp(trial_type, trial_type_list))
                 % condition is set to be processed, now check trial number
-                trial_number_list_this_condition = trial_number_list{strcmp(trial_type, condition_list)};
+                trial_number_list_this_condition = trial_number_list{strcmp(trial_type, trial_type_list)};
                 if ismember(trial_number, trial_number_list_this_condition)
                     % load data
                     load(['processed' filesep forceplate_file_name]);
@@ -167,9 +196,9 @@ function exportToOpensim(varargin)
 
             [date, subject_id, trial_type, trial_number, file_type] = getFileParameters(marker_file_name);
             % does the caller want to process this file?
-            if any(strcmp(trial_type, condition_list))
+            if any(strcmp(trial_type, trial_type_list))
                 % condition is set to be processed, now check trial number
-                trial_number_list_this_condition = trial_number_list{strcmp(trial_type, condition_list)};
+                trial_number_list_this_condition = trial_number_list{strcmp(trial_type, trial_type_list)};
                 if ismember(trial_number, trial_number_list_this_condition)
                     load(['processed' filesep marker_file_name]);
 
