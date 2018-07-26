@@ -525,7 +525,7 @@ function optimizeKinematicTrajectories(varargin)
                     % give progress feedback
                     display_step = 100;
                     if (i_time_step / display_step) == floor(i_time_step / display_step)
-                        disp(['Starting work om: ' num2str(i_time_step) '(' num2str(length(time_steps_to_optimize)) '), time_step = ' num2str(i_time)]);
+                        disp(['Starting work on: ' num2str(i_time_step) '(' num2str(length(time_steps_to_optimize)) '), time_step = ' num2str(i_time)]);
                     end
                     
                     if any(any(isnan(joint_angle_trajectories_optimized(i_time, :))))
