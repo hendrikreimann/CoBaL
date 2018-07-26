@@ -1,0 +1,22 @@
+
+emg_labels:
+{
+  left_glut_med
+  right_glut_med
+
+  left_tibi_ant
+  right_tibi_ant
+  
+  left_gastroc_med
+  right_gastroc_med
+  
+  left_pero_lng
+  right_pero_lng
+
+  left_tfl
+  right_tfl
+
+  left_rect_fem
+  right_rect_fem
+}
+
