@@ -28,7 +28,7 @@ function eventGui(varargin)
     trial_to_process = trial_number_list{1}(1);
     
     %% load
-    load('subjectModel.mat');
+%     load('subjectModel.mat');
     
     % load settings
     study_settings_file = '';

@@ -27,7 +27,7 @@ function preprocessRawData(varargin)
     load('subjectInfo.mat');
     
     % parse arguments
-    [condition_list, trial_number_list, calibration_trials, emg_trials] = parseTrialArguments(varargin{:});
+    [types_to_analyze, trials_to_analyze, types_to_exclude, trials_to_exclude] = parseTrialArguments(varargin{:});
     parser = inputParser;
     parser.KeepUnmatched = true;
     addParameter(parser, 'type', 'all')
@@ -36,15 +36,19 @@ function preprocessRawData(varargin)
     visualize = parser.Results.visualize;
     type = parser.Results.type;
 
-    % add calibration and EMG trials if no specific condition was specified
-    if ~isempty(calibration_trials)
-        condition_list = [condition_list; 'calibration'];
-        trial_number_list = [trial_number_list; calibration_trials];
-    end
-    if ~isempty(emg_trials)
-        condition_list = [condition_list; 'emg'];
-        trial_number_list = [trial_number_list; emg_trials];
-    end
+    % add excluded trials back in, because while we don't want to analyze them, we still want to pre-process them
+    types_to_analyze = [types_to_analyze; types_to_exclude];
+    trials_to_analyze = [trials_to_analyze; trials_to_exclude];
+    
+%     % add calibration and EMG trials if no specific condition was specified
+%     if ~isempty(calibration_trials)
+%         types_to_analyze = [types_to_analyze; 'calibration'];
+%         trials_to_analyze = [trials_to_analyze; calibration_trials];
+%     end
+%     if ~isempty(emg_trials)
+%         types_to_analyze = [types_to_analyze; 'emg'];
+%         trials_to_analyze = [trials_to_analyze; emg_trials];
+%     end
     
     % load settings
     study_settings_file = '';
@@ -65,13 +69,14 @@ function preprocessRawData(varargin)
         [file_name_list{1:length(data_dir)}] = deal(data_dir.name);
         number_of_files = length(file_name_list);
         for i_trial = 1 : number_of_files
+%         for i_trial = 5 : number_of_files
             raw_emg_file_name = file_name_list{i_trial};
             [date, subject_id, trial_type, trial_number, file_type] = getFileParameters(raw_emg_file_name);
 
             % does the caller want to process this file?
-            if any(strcmp(trial_type, condition_list))
+            if any(strcmp(trial_type, types_to_analyze))
                 % condition is set to be processed, now check trial number
-                trial_number_list_this_condition = trial_number_list{strcmp(trial_type, condition_list)};
+                trial_number_list_this_condition = trials_to_analyze{strcmp(trial_type, types_to_analyze)};
                 if ismember(trial_number, trial_number_list_this_condition)
                     % process file
                     load(['raw' filesep raw_emg_file_name]);
@@ -98,6 +103,56 @@ function preprocessRawData(varargin)
 
                     % apply time offset
                     time_emg = time_emg + study_settings.get('emg_time_offset');
+                    
+                    % remove the piecewise linear oscillation in the Delsys data
+                    if study_settings.get('remove_emg_oscillation')
+                        aggressive_filter_order = 4; 
+                        aggressive_filter_cutoff = 0.1; [aggressive_filter_b, aggressive_filter_a] = butter(aggressive_filter_order, aggressive_filter_cutoff/(sampling_rate_emg/2), 'low'); 
+                        data_filtered_aggressive = filtfilt(aggressive_filter_b, aggressive_filter_a, emg_trajectories); 
+                        data_filtered_aggressive = data_filtered_aggressive * 1e6;
+                        
+%                         plot(time_emg, emg_trajectories(:, 3)); hold on; plot(time_emg, data_filtered_aggressive(:, 3), 'linewidth', 2)
+                        
+                        channels_to_filter = find(emg_trajectories(1, :) ~= 0);
+                        periods = zeros(1, length(channels_to_filter));
+                        offsets = zeros(1, length(channels_to_filter));
+                        minima = zeros(1, length(channels_to_filter));
+                        for i_channel = 1 : length(channels_to_filter)
+                            this_channel_data = data_filtered_aggressive(:, channels_to_filter(i_channel));
+                            
+                            emg_labels = subject_settings.get('emg_labels');
+                            figure; hold on; title(strrep(emg_labels{channels_to_filter(i_channel)}, '_', ' '))
+                            plot(time_emg, emg_trajectories(:, channels_to_filter(i_channel)) * 1e6);
+                            plot(time_emg, this_channel_data, 'linewidth', 2);
+                            
+                            % median filter
+                            median_window_size_seconds = 20;
+                            median_window_size = median_window_size_seconds * sampling_rate_emg;
+                            this_channel_data_median_filtered = movmedian(emg_trajectories(:, channels_to_filter(i_channel)) * 1e6, median_window_size);
+                            plot(time_emg, this_channel_data_median_filtered, 'linewidth', 2);
+                            
+                            
+                            % fit
+%                             [fit_data, fit_period, fit_offset, fit_amplitude] = sawtoothFit(time_emg, this_channel_data, 70, 10, 0, 1);
+%                             periods(i_channel) = fit_period;
+%                             offsets(i_channel) = fit_offset;
+%                             minima(i_channel) = min(fit_data);
+%                             
+%                             plot(time_emg, fit_data, 'linewidth', 2);
+%                             plot([time_emg(1) time_emg(end)], [minima(i_channel) minima(i_channel)])
+                            
+                        end
+                        
+                        
+                        
+                        figure; 
+                        plot(time_emg, test_channel_data);
+                        
+                    end
+                    
+                    
+                    
+                    
 
                     % save
                     emg_labels = subject_settings.get('emg_labels');
@@ -113,7 +168,7 @@ function preprocessRawData(varargin)
                         'emg_labels', ...
                         'emg_directions' ...
                       );
-                    addAvailableData_new ...
+                    addAvailableData ...
                       ( ...
                         'emg_trajectories', ...
                         'time_emg', ...
@@ -159,32 +214,36 @@ function preprocessRawData(varargin)
             [date, subject_id, trial_type, trial_number, file_type] = getFileParameters(raw_forceplate_file_name);
 
             % does the caller want to process this file?
-            if any(strcmp(trial_type, condition_list))
+            if any(strcmp(trial_type, types_to_analyze))
                 % condition is set to be processed, now check trial number
-                trial_number_list_this_condition = trial_number_list{strcmp(trial_type, condition_list)};
+                trial_number_list_this_condition = trials_to_analyze{strcmp(trial_type, types_to_analyze)};
                 if ismember(trial_number, trial_number_list_this_condition)
                     % load raw data
                     load(['raw' filesep raw_forceplate_file_name]);
 
                     % define filter
-                    filter_order_low = 4;
-                    cutoff_frequency_low = 50; % in Hz
-                    [b_lowpass, a_lowpass] = butter(filter_order_low, cutoff_frequency_low/(sampling_rate_forceplate/2), 'low');
-                    forceplate_trajectories_filtered = filtfilt(b_lowpass, a_lowpass, forceplate_trajectories_raw);
+                    filter_order_low = study_settings.get('force_plate_filter_order');
+                    cutoff_frequency_low = study_settings.get('force_plate_filter_cutoff');
+                    if ~isempty(filter_order_low) && ~isempty(cutoff_frequency_low)
+                        [b_lowpass, a_lowpass] = butter(filter_order_low, cutoff_frequency_low/(sampling_rate_forceplate/2), 'low');
+                        forceplate_trajectories = filtfilt(b_lowpass, a_lowpass, forceplate_trajectories_raw);
+                    else
+                        forceplate_trajectories = forceplate_trajectories_raw;
+                    end
 
                     % extract
-                    fxl_trajectory = forceplate_trajectories_filtered(:, 1);
-                    fyl_trajectory = forceplate_trajectories_filtered(:, 2);
-                    fzl_trajectory = forceplate_trajectories_filtered(:, 3);
-                    mxl_trajectory = forceplate_trajectories_filtered(:, 4);
-                    myl_trajectory = forceplate_trajectories_filtered(:, 5);
-                    mzl_trajectory = forceplate_trajectories_filtered(:, 6);
-                    fxr_trajectory = forceplate_trajectories_filtered(:, 7);
-                    fyr_trajectory = forceplate_trajectories_filtered(:, 8);
-                    fzr_trajectory = forceplate_trajectories_filtered(:, 9);
-                    mxr_trajectory = forceplate_trajectories_filtered(:, 10);
-                    myr_trajectory = forceplate_trajectories_filtered(:, 11);
-                    mzr_trajectory = forceplate_trajectories_filtered(:, 12);
+                    fxl_trajectory = forceplate_trajectories(:, 1);
+                    fyl_trajectory = forceplate_trajectories(:, 2);
+                    fzl_trajectory = forceplate_trajectories(:, 3);
+                    mxl_trajectory = forceplate_trajectories(:, 4);
+                    myl_trajectory = forceplate_trajectories(:, 5);
+                    mzl_trajectory = forceplate_trajectories(:, 6);
+                    fxr_trajectory = forceplate_trajectories(:, 7);
+                    fyr_trajectory = forceplate_trajectories(:, 8);
+                    fzr_trajectory = forceplate_trajectories(:, 9);
+                    mxr_trajectory = forceplate_trajectories(:, 10);
+                    myr_trajectory = forceplate_trajectories(:, 11);
+                    mzr_trajectory = forceplate_trajectories(:, 12);
 
                     % apply offset for cases where forceplate wasn't set to zero
                     if subject_settings.get('apply_forceplate_offset')
@@ -421,27 +480,27 @@ function preprocessRawData(varargin)
                         'total_cop_labels' ...
                       );
 
-                    addAvailableData_new('left_foot_wrench_world', 'time_forceplate', 'sampling_rate_forceplate', '_left_foot_wrench_labels', '_wrench_directions', save_folder, save_file_name);
-                    addAvailableData_new('left_foot_cop_world', 'time_forceplate', 'sampling_rate_forceplate', '_left_foot_cop_labels', '_cop_directions', save_folder, save_file_name);
-                    addAvailableData_new('right_foot_wrench_world', 'time_forceplate', 'sampling_rate_forceplate', '_right_foot_wrench_labels', '_wrench_directions', save_folder, save_file_name);
-                    addAvailableData_new('right_foot_cop_world', 'time_forceplate', 'sampling_rate_forceplate', '_right_foot_cop_labels', '_cop_directions', save_folder, save_file_name);
+                    addAvailableData('left_foot_wrench_world', 'time_forceplate', 'sampling_rate_forceplate', '_left_foot_wrench_labels', '_wrench_directions', save_folder, save_file_name);
+                    addAvailableData('left_foot_cop_world', 'time_forceplate', 'sampling_rate_forceplate', '_left_foot_cop_labels', '_cop_directions', save_folder, save_file_name);
+                    addAvailableData('right_foot_wrench_world', 'time_forceplate', 'sampling_rate_forceplate', '_right_foot_wrench_labels', '_wrench_directions', save_folder, save_file_name);
+                    addAvailableData('right_foot_cop_world', 'time_forceplate', 'sampling_rate_forceplate', '_right_foot_cop_labels', '_cop_directions', save_folder, save_file_name);
 
-                    addAvailableData_new('total_forceplate_wrench_world', 'time_forceplate', 'sampling_rate_forceplate', '_total_wrench_labels', '_wrench_directions', save_folder, save_file_name);
-                    addAvailableData_new('total_forceplate_cop_world', 'time_forceplate', 'sampling_rate_forceplate', '_total_cop_labels', '_cop_directions', save_folder, save_file_name);
+                    addAvailableData('total_forceplate_wrench_world', 'time_forceplate', 'sampling_rate_forceplate', '_total_wrench_labels', '_wrench_directions', save_folder, save_file_name);
+                    addAvailableData('total_forceplate_cop_world', 'time_forceplate', 'sampling_rate_forceplate', '_total_cop_labels', '_cop_directions', save_folder, save_file_name);
 
-                    addAvailableData_new('fxl_trajectory', 'time_forceplate', 'sampling_rate_forceplate', 'fxl_trajectory', {'right', 'left'}, save_folder, save_file_name);
-                    addAvailableData_new('fyl_trajectory', 'time_forceplate', 'sampling_rate_forceplate', 'fyl_trajectory', {'forward', 'backward'}, save_folder, save_file_name);
-                    addAvailableData_new('fzl_trajectory', 'time_forceplate', 'sampling_rate_forceplate', 'fzl_trajectory', {'up', 'down'}, save_folder, save_file_name);
-                    addAvailableData_new('mxl_trajectory', 'time_forceplate', 'sampling_rate_forceplate', 'mxl_trajectory', {'right', 'left'}, save_folder, save_file_name);
-                    addAvailableData_new('myl_trajectory', 'time_forceplate', 'sampling_rate_forceplate', 'myl_trajectory', {'forward', 'backward'}, save_folder, save_file_name);
-                    addAvailableData_new('mzl_trajectory', 'time_forceplate', 'sampling_rate_forceplate', 'mzl_trajectory', {'up', 'down'}, save_folder, save_file_name);
+                    addAvailableData('fxl_trajectory', 'time_forceplate', 'sampling_rate_forceplate', 'fxl_trajectory', {'right', 'left'}, save_folder, save_file_name);
+                    addAvailableData('fyl_trajectory', 'time_forceplate', 'sampling_rate_forceplate', 'fyl_trajectory', {'forward', 'backward'}, save_folder, save_file_name);
+                    addAvailableData('fzl_trajectory', 'time_forceplate', 'sampling_rate_forceplate', 'fzl_trajectory', {'up', 'down'}, save_folder, save_file_name);
+                    addAvailableData('mxl_trajectory', 'time_forceplate', 'sampling_rate_forceplate', 'mxl_trajectory', {'right', 'left'}, save_folder, save_file_name);
+                    addAvailableData('myl_trajectory', 'time_forceplate', 'sampling_rate_forceplate', 'myl_trajectory', {'forward', 'backward'}, save_folder, save_file_name);
+                    addAvailableData('mzl_trajectory', 'time_forceplate', 'sampling_rate_forceplate', 'mzl_trajectory', {'up', 'down'}, save_folder, save_file_name);
 
-                    addAvailableData_new('fxr_trajectory', 'time_forceplate', 'sampling_rate_forceplate', 'fxr_trajectory', {'right', 'left'}, save_folder, save_file_name);
-                    addAvailableData_new('fyr_trajectory', 'time_forceplate', 'sampling_rate_forceplate', 'fyr_trajectory', {'forward', 'backward'}, save_folder, save_file_name);
-                    addAvailableData_new('fzr_trajectory', 'time_forceplate', 'sampling_rate_forceplate', 'fzr_trajectory', {'up', 'down'}, save_folder, save_file_name);
-                    addAvailableData_new('mxr_trajectory', 'time_forceplate', 'sampling_rate_forceplate', 'mxr_trajectory', {'right', 'left'}, save_folder, save_file_name);
-                    addAvailableData_new('myr_trajectory', 'time_forceplate', 'sampling_rate_forceplate', 'myr_trajectory', {'forward', 'backward'}, save_folder, save_file_name);
-                    addAvailableData_new('mzr_trajectory', 'time_forceplate', 'sampling_rate_forceplate', 'mzr_trajectory', {'up', 'down'}, save_folder, save_file_name);
+                    addAvailableData('fxr_trajectory', 'time_forceplate', 'sampling_rate_forceplate', 'fxr_trajectory', {'right', 'left'}, save_folder, save_file_name);
+                    addAvailableData('fyr_trajectory', 'time_forceplate', 'sampling_rate_forceplate', 'fyr_trajectory', {'forward', 'backward'}, save_folder, save_file_name);
+                    addAvailableData('fzr_trajectory', 'time_forceplate', 'sampling_rate_forceplate', 'fzr_trajectory', {'up', 'down'}, save_folder, save_file_name);
+                    addAvailableData('mxr_trajectory', 'time_forceplate', 'sampling_rate_forceplate', 'mxr_trajectory', {'right', 'left'}, save_folder, save_file_name);
+                    addAvailableData('myr_trajectory', 'time_forceplate', 'sampling_rate_forceplate', 'myr_trajectory', {'forward', 'backward'}, save_folder, save_file_name);
+                    addAvailableData('mzr_trajectory', 'time_forceplate', 'sampling_rate_forceplate', 'mzr_trajectory', {'up', 'down'}, save_folder, save_file_name);
                     disp(['processed ' raw_forceplate_file_name ' and saved as ' [save_folder filesep save_file_name]])        
                 end
             end
@@ -465,9 +524,9 @@ function preprocessRawData(varargin)
             raw_marker_file_name = file_name_list{i_trial};
             [date, subject_id, trial_type, trial_number, file_type] = getFileParameters(raw_marker_file_name);
             % does the caller want to process this file?
-            if any(strcmp(trial_type, condition_list))
+            if any(strcmp(trial_type, types_to_analyze))
                 % condition is set to be processed, now check trial number
-                trial_number_list_this_condition = trial_number_list{strcmp(trial_type, condition_list)};
+                trial_number_list_this_condition = trials_to_analyze{strcmp(trial_type, types_to_analyze)};
                 if ismember(trial_number, trial_number_list_this_condition)
                     load(['raw' filesep raw_marker_file_name]);
 
@@ -522,7 +581,7 @@ function preprocessRawData(varargin)
                         'marker_labels',  ...
                         'marker_directions' ...
                       );
-                    addAvailableData_new ...
+                    addAvailableData ...
                       ( ...
                         'marker_trajectories', ...
                         'time_mocap', ...
@@ -539,11 +598,11 @@ function preprocessRawData(varargin)
         end
     
         %% transform to belt space
-        for i_condition = 1 : length(condition_list)
-            trials_to_process = trial_number_list{i_condition};
+        for i_condition = 1 : length(types_to_analyze)
+            trials_to_process = trials_to_analyze{i_condition};
             for i_trial = trials_to_process
                 % load data
-                this_condition = condition_list{i_condition};
+                this_condition = types_to_analyze{i_condition};
                 if any(strcmp(study_settings.get('conditions_to_transform_to_belt_space'), this_condition))
                     % extract data for new structure
                     if exist(['processed' filesep makeFileName(date, subject_id, trial_type, i_trial, 'plcData')], 'file')
