@@ -135,15 +135,20 @@ if fit_sinusoids
             offset_y_data(i_channel, i_trial) = fit_offset_y * 1/numeric_scale;
             amplitude_data(i_channel, i_trial) = fit_amplitude * 1/numeric_scale;
             
-%             figure; hold on;
-%             plot(time, raw_data_average)
-%             plot(time, filtered_average, 'linewidth', 2)
-%             plot(time, fit_data * 1/numeric_scale, 'linewidth', 2)
+            if i_trial == 1
+                figure; hold on; title(['trial ' num2str(i_trial) ', channel ' num2str(i_channel)])
+                plot(time, raw_data_average)
+                plot(time, filtered_average, 'linewidth', 2)
+                plot(time, fit_data * 1/numeric_scale, 'linewidth', 2)
+                legend('raw', 'filtered', 'sinusoid fit')
+                savefig(['t' num2str(i_trial) 'c' num2str(i_channel)]);
+                saveas(gcf, ['t' num2str(i_trial) 'c' num2str(i_channel) '.jpg'], 'jpg');
+            end
         end    
-    %     figure; plot(period_data{i_channel, 1}); title('period')
-    %     figure; plot(offset_x_data{i_channel, 1}); title('offset_x_data')
-    %     figure; plot(offset_y_data{i_channel, 1}); title('offset_y_data')
-    %     figure; plot(amplitude_data{i_channel, 1}); title('amplitude_data')
+%         figure; plot(period_data{i_channel, 1}); title('period')
+%         figure; plot(offset_x_data{i_channel, 1}); title('offset_x_data')
+%         figure; plot(offset_y_data{i_channel, 1}); title('offset_y_data')
+%         figure; plot(amplitude_data{i_channel, 1}); title('amplitude_data')
     end    
 end
 
@@ -222,10 +227,10 @@ if visualize
     % time offset for specific channels
     
 %     offset_x_data_clean(abs(offset_x_data_clean) > 50) = NaN;
-    figure; hold on;
-    for i_channel = 1 : length(channels_to_analyze_for_time_offset)
-        plot(1:number_of_trials, offset_x_data(channels_to_analyze_for_time_offset(i_channel), :))
-    end
+%     figure; hold on;
+%     for i_channel = 1 : length(channels_to_analyze_for_time_offset)
+%         plot(1:number_of_trials, offset_x_data(channels_to_analyze_for_time_offset(i_channel), :))
+%     end
     
 %     surf(offset_x_data_clean); title([subject ' - x-offset']); xlabel('trial'); ylabel('channel');
 %     for ...
