@@ -139,7 +139,11 @@ function eventGui(varargin)
     controller.updateStretchPatches();
     
     % select event (first left touchdown is default
-    event_label = controller.event_data.event_labels{1};
+    if ~isempty(controller.event_data.event_labels)
+        event_label = controller.event_data.event_labels{1};
+    else
+        event_label = '';
+    end
     event_times = controller.event_data.getEventTimes(event_label);
     if isempty(event_times)
         event_time = 0;
