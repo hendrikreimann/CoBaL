@@ -165,9 +165,10 @@ function findEvents_MS(varargin)
             end
 
             if any(strcmp(this_trial_type, study_settings.get('quiet_stance_conditions')))
-%             if length(condition_experimental) >= 5 && strcmp(condition_experimental(1:5), 'QUIET')
-                trial_start_time = time_marker(1);
-                trial_end_time = time_marker(end);
+                first_nanless_data_point = find(sum(isnan(marker_trajectories), 2) == 0, 1, 'first');
+                last_nanless_data_point = find(sum(isnan(marker_trajectories), 2) == 0, 1, 'last');
+                trial_start_time = time_marker(first_nanless_data_point);
+                trial_end_time = time_marker(last_nanless_data_point);
                 
                 event_data = ...
                   { ...
