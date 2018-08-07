@@ -38,7 +38,7 @@ function processInverseKinematicsInOpensim(varargin)
     generic_setup_file_ik = [getCobalPath filesep 'resources' filesep 'opensim' filesep 'CoBaLWalker50_setupInverseKinematics.xml'];
     data_root = [pwd filesep 'opensim'];
     ikTool = InverseKinematicsTool(generic_setup_file_ik);
-    model_file = [data_root filesep subject_info.subject_id '.osim'];
+    model_file = [data_root filesep subject_info.date '_' subject_info.subject_id '.osim'];
 
     % Load the model and initialize
     model = Model(model_file);
@@ -75,6 +75,12 @@ function processInverseKinematicsInOpensim(varargin)
             % Run IK
             ikTool.run();
             disp(['Performing inverse kinematics: condition ' trial_type_list{i_condition} ', Trial ' num2str(i_trial) ' completed']);                
+            
+            % move log file
+            error_file_source = [pwd filesep makeFileName(subject_info.date, subject_info.subject_id, trial_type, i_trial, 'marker.trc') '_ik_marker_errors.sto'];
+            error_file_destination = [data_root filesep 'logs' filesep makeFileName(subject_info.date, subject_info.subject_id, trial_type, i_trial, 'ikErrors.sto')];
+            movefile(error_file_source, error_file_destination);
+            
             
         end
     end

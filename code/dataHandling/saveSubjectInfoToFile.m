@@ -15,6 +15,7 @@
 %     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 function saveSubjectInfoToFile(varargin)
+    variables_to_save = struct;
 
     parser = inputParser;
     parser.KeepUnmatched = true;
@@ -25,69 +26,6 @@ function saveSubjectInfoToFile(varargin)
     % get subject settings
     subject_settings = SettingsCustodian('subjectSettings.txt');
     trial_types_to_ignore = subject_settings.get('trial_types_to_ignore');
-    
-    % get subject code
-    current_path = pwd;
-    path_split = strsplit(current_path, filesep);
-
-%     % open subject list from root and extract subject data
-%     subject_data_file = '';
-%     if exist(['..' filesep 'subjects.csv'], 'file')
-%         subject_data_file = ['..' filesep 'subjects.csv'];
-%         subject_code = path_split{end};
-%     end    
-%     if exist(['..' filesep '..' filesep 'subjects.csv'], 'file')
-%         subject_data_file = ['..' filesep '..' filesep 'subjects.csv'];
-%         subject_code = path_split{end-1};
-%     end
-%     if isempty(subject_data_file)
-%         disp('Failed to load "subjects.csv".')
-%         return
-%     end
-%     
-%     format = '%s';
-%     fid = fopen(subject_data_file);
-% 
-%     header_string = fgetl(fid);
-%     unit_string = fgetl(fid); %#ok<NASGU>
-%     data_raw = textscan(fid, format);
-%     fclose(fid);
-
-    variables_to_save = struct;
-    
-    
-    % find header info
-%     header = strsplit(header_string, ',');
-    
-    % find line for this subject
-%     data_lines = data_raw{1};
-%     data_cell = {};
-%     for i_line = 1 : size(data_lines, 1)
-%         line_split = strsplit(data_lines{i_line}, ',');
-%         data_cell = [data_cell; line_split]; %#ok<AGROW>
-%     end
-%     subject_row = find(strcmp(data_cell(:, strcmp(header, 'ID')), subject_code));
-%     
-%     % extract data
-%     for i_column = 2 : length(header)
-%         variable_name = strrep(header{i_column}, ' ', '_');
-%         variable_value = data_cell{subject_row, i_column};
-%         if all(ismember(variable_value, '0123456789-.'))
-%             variable_value = str2num(variable_value); %#ok<ST2NM,NASGU>
-%         end
-%         evalstring = ['variables_to_save.' variable_name ' = variable_value;'];
-%         eval(evalstring);
-%     end
-    
-%     % find entries mapping EMG headers to muscle codes
-%     emg_sensor_map = {};
-%     for i_column = 1 : length(header)
-%         if length(header{i_column}) >=3 && strcmp(header{i_column}(1:3), 'EMG')
-%             muscle_code = data_cell{subject_row, i_column};
-%             emg_sensor_map = [emg_sensor_map, {header{i_column}; muscle_code}]; %#ok<AGROW>
-%         end
-%     end
-%     variables_to_save.emg_sensor_map = emg_sensor_map;
     
     % get parameters from settings file
     parameters_cell = subject_settings.get('subject_info', 1);

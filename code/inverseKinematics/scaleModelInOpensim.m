@@ -75,7 +75,7 @@ function scaleModelInOpensim()
     
     % remove local copy of the generic model
     delete(['opensim' filesep generic_model_file]);
-
+    
 end
 
 

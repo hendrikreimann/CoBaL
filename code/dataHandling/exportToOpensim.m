@@ -39,6 +39,9 @@ function exportToOpensim(varargin)
     if ~directoryExists(['opensim' filesep 'inverseKinematics'])
         mkdir(['opensim' filesep 'inverseKinematics'])
     end
+    if ~directoryExists(['opensim' filesep 'logs'])
+        mkdir(['opensim' filesep 'logs'])
+    end
     meter_to_millimeter = 1e3;
     
     % load settings
