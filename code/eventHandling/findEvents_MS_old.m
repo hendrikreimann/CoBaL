@@ -71,39 +71,43 @@ function findEvents_MS(varargin)
         for i_trial = trials_to_process
             %% prepare
             % load data
-            this_trial_type = condition_list{i_condition};
-            [marker_trajectories, time_marker, sampling_rate_marker, marker_labels] = loadData(date, subject_id, this_trial_type, i_trial, 'marker_trajectories');
-            [left_foot_wrench_world, time_left_forceplate, ~, ~, ~, left_forceplate_available] = loadData(date, subject_id, this_trial_type, i_trial, 'left_foot_wrench_world', 'optional');
-            [right_foot_wrench_world, time_right_forceplate, ~, ~, ~, right_forceplate_available] = loadData(date, subject_id, this_trial_type, i_trial, 'right_foot_wrench_world', 'optional');
+            condition = condition_list{i_condition};
+            [marker_trajectories, time_marker, sampling_rate_marker, marker_labels] = loadData(date, subject_id, condition, i_trial, 'marker_trajectories');
+            [left_foot_wrench_world, time_left_forceplate, ~, ~, ~, left_forceplate_available] = loadData(date, subject_id, condition, i_trial, 'left_foot_wrench_world', 'optional');
+            [right_foot_wrench_world, time_right_forceplate, ~, ~, ~, right_forceplate_available] = loadData(date, subject_id, condition, i_trial, 'right_foot_wrench_world', 'optional');
             if left_forceplate_available & right_forceplate_available
                 left_fz_trajectory = left_foot_wrench_world(:, 3);
                 right_fz_trajectory = right_foot_wrench_world(:, 3);
             end
             
-            platform_marker_label = subject_settings.get('platform marker', true);
-            if ~isempty(platform_marker_label)
-                platform_trajectory = extractMarkerData(marker_trajectories, marker_labels, platform_marker_label);
-                platform_trajectory = platform_trajectory(:, 1);
-
-                % calculate derivatives
-                filter_order = 2;
-                cutoff_frequency = 20; % cutoff frequency, in Hz
-                [b, a] = butter(filter_order, cutoff_frequency/(sampling_rate_marker/2));	% set filter parameters for butterworth filter: 2=order of filter;
-                platform_vel_trajectory = deriveByTime(nanfiltfilt(b, a, platform_trajectory), 1/sampling_rate_marker);
-                platform_acc_trajectory = deriveByTime(nanfiltfilt(b, a, platform_vel_trajectory), 1/sampling_rate_marker);
-            end
-
+            % ... works until here. Problem is that the events are hard-coded
+            
+            platform_trajectory = extractMarkerData(marker_trajectories, marker_labels, 'BackPlatform');
+            platform_trajectory = platform_trajectory(:, 1);
+            surround_trajectory = extractMarkerData(marker_trajectories, marker_labels, 'BackSurround');
+            surround_trajectory = surround_trajectory(:, 1);
+            
+            % calculate derivatives
+            filter_order = 2;
+            cutoff_frequency = 20; % cutoff frequency, in Hz
+            [b, a] = butter(filter_order, cutoff_frequency/(sampling_rate_marker/2));	% set filter parameters for butterworth filter: 2=order of filter;
+            platform_vel_trajectory = deriveByTime(nanfiltfilt(b, a, platform_trajectory), 1/sampling_rate_marker);
+            surround_vel_trajectory = deriveByTime(nanfiltfilt(b, a, surround_trajectory), 1/sampling_rate_marker);
+            platform_acc_trajectory = deriveByTime(nanfiltfilt(b, a, platform_vel_trajectory), 1/sampling_rate_marker);
+            surround_acc_trajectory = deriveByTime(nanfiltfilt(b, a, surround_vel_trajectory), 1/sampling_rate_marker);
             
 
             %% find events
             platform_events = [];
-            if any(strcmp(this_trial_type, study_settings.get('continuous_perturbation_conditions')))
-%             if strcmp(condition_experimental(1:end-3), 'continuous')
+            condition_experimental = loadConditionFromFile(conditions_file_name, 'condition', i_trial);
+            if strcmp(condition_experimental(1:end-3), 'continuous')
                 [~, platform_pos_peak_indices] = findpeaks(platform_trajectory, 'MinPeakProminence', subject_settings.get('platform_pos_peak_prominence_threshold'), 'MinPeakDistance', subject_settings.get('platform_pos_peak_distance_threshold') * sampling_rate_marker);
                 [~, platform_neg_peak_indices] = findpeaks(-platform_trajectory, 'MinPeakProminence', subject_settings.get('platform_pos_peak_prominence_threshold'), 'MinPeakDistance', subject_settings.get('platform_pos_peak_distance_threshold') * sampling_rate_marker);
+%                 [~, surround_pos_peak_indices] = findpeaks(surround_trajectory, 'MinPeakProminence', subject_settings.get('platform_pos_peak_prominence_threshold'), 'MinPeakDistance', subject_settings.get('platform_pos_peak_distance_threshold') * sampling_rate_marker);
                 
                 platform_pos_peak_indices = platform_pos_peak_indices';
                 platform_neg_peak_indices = platform_neg_peak_indices';
+%                 surround_pos_peak_indices = surround_pos_peak_indices';
 
                 platform_event_indices = [platform_pos_peak_indices platform_neg_peak_indices];
                 platform_peak_indices = platform_pos_peak_indices;
@@ -123,8 +127,7 @@ function findEvents_MS(varargin)
                   };
             end
             
-            if any(strcmp(this_trial_type, study_settings.get('ramp_perturbation_conditions')))
-%             if length(condition_experimental) >= 4 && strcmp(condition_experimental(1:4), 'RAMP')
+            if length(condition_experimental) >= 4 && strcmp(condition_experimental(1:4), 'RAMP')
                 distance_threshold = subject_settings.get('platform_acc_peak_distance_threshold') * sampling_rate_marker;
                 if distance_threshold > length(platform_acc_trajectory) - 2
                     distance_threshold = length(platform_acc_trajectory) - 2;
@@ -164,8 +167,7 @@ function findEvents_MS(varargin)
               
             end
 
-            if any(strcmp(this_trial_type, study_settings.get('quiet_stance_conditions')))
-%             if length(condition_experimental) >= 5 && strcmp(condition_experimental(1:5), 'QUIET')
+            if length(condition_experimental) >= 5 && strcmp(condition_experimental(1:5), 'QUIET')
                 trial_start_time = time_marker(1);
                 trial_end_time = time_marker(end);
                 
@@ -200,7 +202,7 @@ function findEvents_MS(varargin)
                 % position
                 event_figures(1) = figure; axes_pos = axes; hold on; title('marker positions')
                 plot(time_marker, platform_trajectory, 'linewidth', 1, 'displayname', 'platform position');
-%                 plot(time_marker, surround_trajectory, 'linewidth', 1, 'displayname', 'surround position');
+                plot(time_marker, surround_trajectory, 'linewidth', 1, 'displayname', 'surround position');
                 
                 plot(time_marker(platform_event_indices), platform_trajectory(platform_event_indices), 'v', 'linewidth', 2, 'color', color_heelstrike, 'displayname', 'oscillation peaks');
 %                 plot(time_marker(left_pushoff_indices_mocap), LTOE_z_trajectory(left_pushoff_indices_mocap), 'o', 'linewidth', 2, 'color', color_pushoff, 'displayname', 'left pushoff');
@@ -209,7 +211,7 @@ function findEvents_MS(varargin)
                 % velocities
                 event_figures(2) = figure; axes_vel = axes; hold on;  title('marker velocities')
                 plot(time_marker, platform_vel_trajectory, 'linewidth', 1, 'displayname', 'platform velocity');
-%                 plot(time_marker, surround_vel_trajectory, 'linewidth', 1, 'displayname', 'surround velocity');
+                plot(time_marker, surround_vel_trajectory, 'linewidth', 1, 'displayname', 'surround velocity');
 %                 plot(time_marker(left_touchdown_indices_mocap), platform_acc_trajectory(left_touchdown_indices_mocap)*acc_scaler, 'v', 'linewidth', 2, 'color', color_heelstrike, 'displayname', 'left touchdown');
 %                 plot(time_marker(left_pushoff_indices_mocap), LTOE_z_vel_trajectory(left_pushoff_indices_mocap)*vel_scaler, '^', 'linewidth', 2, 'color', color_pushoff, 'displayname', 'left pushoff');
                 legend('toggle');
@@ -217,7 +219,7 @@ function findEvents_MS(varargin)
                 % accelerations
                 event_figures(3) = figure; axes_acc = axes; hold on;  title('marker accelerations')
                 plot(time_marker, platform_acc_trajectory, 'linewidth', 1, 'displayname', 'platform acceleration');
-%                 plot(time_marker, surround_acc_trajectory, 'linewidth', 1, 'displayname', 'surround acceleration');
+                plot(time_marker, surround_acc_trajectory, 'linewidth', 1, 'displayname', 'surround acceleration');
                 plot(time_marker(platform_event_indices), platform_acc_trajectory(platform_event_indices), 'v', 'linewidth', 2, 'color', color_heelstrike, 'displayname', 'oscillation peaks');
                 legend('toggle');
                 
@@ -233,10 +235,10 @@ function findEvents_MS(varargin)
             variables_to_save.event_data = event_data;
             variables_to_save.event_labels = event_labels;
             
-            step_events_file_name = ['analysis' filesep makeFileName(date, subject_id, this_trial_type, i_trial, 'events')];
+            step_events_file_name = ['analysis' filesep makeFileName(date, subject_id, condition, i_trial, 'events')];
             saveDataToFile(step_events_file_name, variables_to_save);
 
-            disp(['Finding Events: condition ' this_trial_type ', Trial ' num2str(i_trial) ' completed, saved as ' step_events_file_name]);
+            disp(['Finding Events: condition ' condition ', Trial ' num2str(i_trial) ' completed, saved as ' step_events_file_name]);
         end
     end
 end

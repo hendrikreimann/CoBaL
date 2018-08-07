@@ -127,7 +127,7 @@ function saveSubjectInfoToFile(varargin)
     end
     
     % remove trials listed in subjectSettings.txt
-    trials_to_exclude = subject_settings.get('trials_to_exclude');
+    trials_to_exclude = subject_settings.get('trials_to_exclude', true);
     for i_trial = 1 : size(trials_to_exclude, 1)
         condition_index = find(strcmp(condition_list, trials_to_exclude{i_trial, 1}));
         if ~isempty(condition_index)

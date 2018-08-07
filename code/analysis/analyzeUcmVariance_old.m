@@ -47,17 +47,9 @@ function analyzeUcmVariance(varargin)
     ucm_variables = study_settings.get('ucm_variables');
     number_of_ucm_variables = length(ucm_variables);
     
-    % determine blocks -- this is somewhat silly, since I'm re-formatting the information into how I already have it, but keep it around for now
-    condition_header = {'trial', 'condition'};
-    condition_cell = {};
-    for i_type = 1 : length(condition_list)
-        this_type_label = condition_list{i_type};
-        this_type_trial_list = trial_number_list{i_type};
-        for i_trial = 1 : length(this_type_trial_list)
-            condition_cell = [condition_cell; {num2str(this_type_trial_list(i_trial)), this_type_label}];
-        end
-    end
-    [block_labels, trials_by_block] = determineTrialsByBlock(condition_cell, condition_header);
+    % determine blocks
+    [condition_table, condition_header] = loadConditionTableFromFile(conditions_file_name);
+    [block_labels, trials_by_block] = determineTrialsByBlock(condition_table, condition_header);
     number_of_blocks = length(block_labels);
     
     % make containers to hold the data
