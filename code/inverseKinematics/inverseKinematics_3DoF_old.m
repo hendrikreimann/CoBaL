@@ -32,36 +32,44 @@
 function inverseKinematics_3DoF(varargin)
     % parse arguments
     [condition_list, trial_number_list] = parseTrialArguments(varargin{:});
+    parser = inputParser;
+    parser.KeepUnmatched = true;
+    addParameter(parser, 'use_parallel', false)
+    parse(parser, varargin{:})
+    use_parallel = parser.Results.use_parallel;
     
     load('subjectInfo.mat', 'date', 'subject_id');
     load('subjectModel.mat');
-%     study_settings_file = '';
-%     if exist(['..' filesep 'studySettings.txt'], 'file')
-%         study_settings_file = ['..' filesep 'studySettings.txt'];
-%     end    
-%     if exist(['..' filesep '..' filesep 'studySettings.txt'], 'file')
-%         study_settings_file = ['..' filesep '..' filesep 'studySettings.txt'];
-%     end
-%     study_settings = SettingsCustodian(study_settings_file);
-%     subject_settings = SettingsCustodian('subjectSettings.txt');
+    study_settings_file = '';
+    if exist(['..' filesep 'studySettings.txt'], 'file')
+        study_settings_file = ['..' filesep 'studySettings.txt'];
+    end    
+    if exist(['..' filesep '..' filesep 'studySettings.txt'], 'file')
+        study_settings_file = ['..' filesep '..' filesep 'studySettings.txt'];
+    end
+    study_settings = SettingsCustodian(study_settings_file);
+    subject_settings = SettingsCustodian('subjectSettings.txt');
     
     % extract references
     number_of_joint_angles = kinematic_tree.numberOfJoints;
-    shoulder_L_reference = extractMarkerData(marker_reference, marker_labels, 'LACR')';
-    shoulder_R_reference = extractMarkerData(marker_reference, marker_labels, 'RACR')';
-    hip_L_reference = extractMarkerData(marker_reference, marker_labels, 'LGTR')';
-    knee_L_reference = extractMarkerData(marker_reference, marker_labels, 'LCND')';
-    ankle_L_reference = extractMarkerData(marker_reference, marker_labels, 'LMAL')';
-    hip_R_reference = extractMarkerData(marker_reference, marker_labels, 'RGTR')';
-    knee_R_reference = extractMarkerData(marker_reference, marker_labels, 'RCND')';
-    ankle_R_reference = extractMarkerData(marker_reference, marker_labels, 'RMAL')';
-    
+    REAR_reference = extractMarkerData(marker_reference, marker_labels, 'R_ear')';
+    LEAR_reference = extractMarkerData(marker_reference, marker_labels, 'L_ear')';
+    LSHO_reference = extractMarkerData(marker_reference, marker_labels, 'L_shoulder')';
+    RSHO_reference = extractMarkerData(marker_reference, marker_labels, 'R_shoulder')';
+    LIC_reference = extractMarkerData(marker_reference, marker_labels, 'L_ic')';
+    RIC_reference = extractMarkerData(marker_reference, marker_labels, 'R_ic')';
+    LGT_reference = extractMarkerData(marker_reference, marker_labels, 'L_gt')';
+    LKNE_reference = extractMarkerData(marker_reference, marker_labels, 'L_knee')';
+    LANK_reference = extractMarkerData(marker_reference, marker_labels, 'L_ankle')';
+    RGT_reference = extractMarkerData(marker_reference, marker_labels, 'R_gt')';
+    RKNE_reference = extractMarkerData(marker_reference, marker_labels, 'R_knee')';
+    RANK_reference = extractMarkerData(marker_reference, marker_labels, 'R_ankle')';
     
     % calculate segment angles for reference
-    ankle_reference = mean([ankle_L_reference ankle_R_reference], 2);
-    knee_reference = mean([knee_L_reference knee_R_reference], 2);
-    hip_reference = mean([hip_L_reference hip_R_reference], 2);
-    shoulder_reference = mean([shoulder_L_reference shoulder_R_reference], 2);
+    ankle_reference = mean([LANK_reference RANK_reference], 2);
+    knee_reference = mean([LKNE_reference RKNE_reference], 2);
+    hip_reference = mean([LGT_reference RGT_reference], 2);
+    shoulder_reference = mean([LSHO_reference RSHO_reference], 2);
     
     lower_leg_vector_reference = knee_reference - ankle_reference;
     thigh_vector_reference = hip_reference - knee_reference;
@@ -90,25 +98,42 @@ function inverseKinematics_3DoF(varargin)
             time_steps_to_process = 1 : number_of_time_steps;
             number_of_time_steps_to_process = length(time_steps_to_process);
             
+            com_labels = [segment_labels 'BODY'];
+            for i_label = 1 : length(com_labels)
+                com_labels{i_label} = [com_labels{i_label} 'COM'];
+            end
+            
+            % calculate
+            joint_center_labels = joint_center_labels; % TODO: fix this
+            com_trajectories = zeros(number_of_time_steps, length(com_labels)*3);
+            
             % extract marker positions
-            shoulder_L_position = extractMarkerData(marker_trajectories, marker_labels, 'LACR');
-            shoulder_R_position = extractMarkerData(marker_trajectories, marker_labels, 'RACR');
-            hip_L_position = extractMarkerData(marker_trajectories, marker_labels, 'LGTR');
-            knee_L_position = extractMarkerData(marker_trajectories, marker_labels, 'LCND');
-            ankle_L_position = extractMarkerData(marker_trajectories, marker_labels, 'LMAL');
-            hip_R_position = extractMarkerData(marker_trajectories, marker_labels, 'RGTR');
-            knee_R_position = extractMarkerData(marker_trajectories, marker_labels, 'RCND');
-            ankle_R_position = extractMarkerData(marker_trajectories, marker_labels, 'RMAL');
-    
+            REAR_position = extractMarkerData(marker_trajectories, marker_labels, 'R_ear');
+            LEAR_position = extractMarkerData(marker_trajectories, marker_labels, 'L_ear');
+            LSHO_position = extractMarkerData(marker_trajectories, marker_labels, 'L_shoulder');
+            RSHO_position = extractMarkerData(marker_trajectories, marker_labels, 'R_shoulder');
+            LIC_position = extractMarkerData(marker_trajectories, marker_labels, 'L_ic');
+            RIC_position = extractMarkerData(marker_trajectories, marker_labels, 'R_ic');
+            LGT_position = extractMarkerData(marker_trajectories, marker_labels, 'L_gt');
+            LKNE_position = extractMarkerData(marker_trajectories, marker_labels, 'L_knee');
+            LANK_position = extractMarkerData(marker_trajectories, marker_labels, 'L_ankle');
+            RGT_position = extractMarkerData(marker_trajectories, marker_labels, 'R_gt');
+            RKNE_position = extractMarkerData(marker_trajectories, marker_labels, 'R_knee');
+            RANK_position = extractMarkerData(marker_trajectories, marker_labels, 'R_ankle');
+
             % calculate segment angles for reference
-            ankle_cor = (ankle_L_position + ankle_R_position) * 0.5;
-            knee_cor = (knee_L_position + knee_R_position) * 0.5;
-            hip_cor = (hip_L_position + hip_R_position) * 0.5;
-            shoulders_mid = (shoulder_L_position + shoulder_R_position) * 0.5;
+            ankle_cor = (LANK_position + RANK_position) * 0.5;
+            knee_cor = (LKNE_position + RKNE_position) * 0.5;
+            hip_cor = (LGT_position + RGT_position) * 0.5;
+            lumbar_cor = (LIC_position + RIC_position) * 0.5;
+            shoulders_mid = (LSHO_position + RSHO_position) * 0.5;
+            ears_mid = (LEAR_position + REAR_position) * 0.5;
 
             lower_leg_vector = knee_cor - ankle_cor;
             thigh_vector = hip_cor - knee_cor;
-            trunk_vector = shoulders_mid - hip_cor;
+            pelvis_vector = lumbar_cor - hip_cor;
+            trunk_vector = shoulders_mid - lumbar_cor;
+            head_vector = ears_mid - shoulders_mid;
 
             lower_leg_segment_angle_position = atan2(lower_leg_vector(:, 3), -lower_leg_vector(:, 1));
             thigh_segment_angle_position = atan2(thigh_vector(:, 3), -thigh_vector(:, 1));
@@ -143,7 +168,7 @@ function inverseKinematics_3DoF(varargin)
             save_file_name = makeFileName(date, subject_id, condition, i_trial, 'kinematicTrajectories.mat');
             saveDataToFile([save_folder filesep save_file_name], variables_to_save);
 
-            addAvailableData ...
+            addAvailableData_new ...
               ( ...
                 'joint_center_trajectories', ...
                 'time_mocap', ...
@@ -153,7 +178,7 @@ function inverseKinematics_3DoF(varargin)
                 save_folder, ...
                 save_file_name ...
               );
-            addAvailableData ...
+            addAvailableData_new ...
               ( ...
                 'joint_angle_trajectories', ...
                 'time_mocap', ...
