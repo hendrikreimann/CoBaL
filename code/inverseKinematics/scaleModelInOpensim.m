@@ -67,7 +67,6 @@ function scaleModelInOpensim()
     setup_file_scale = [pwd filesep 'opensim' filesep makeFileName(subject_info.date, subject_info.subject_id, 'setupScale.xml')];
     xmlwrite(setup_file_scale, DOMnode);    
     
-    
     % scale
     scale_tool = ScaleTool(setup_file_scale);
     scale_tool.setPrintResultFiles(1)

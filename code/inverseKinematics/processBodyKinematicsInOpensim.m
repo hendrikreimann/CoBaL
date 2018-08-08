@@ -32,59 +32,56 @@ function processBodyKinematicsInOpensim(varargin)
     study_settings = SettingsCustodian(study_settings_file);
     subject_settings = SettingsCustodian('subjectSettings.txt');
     subject_info = load('subjectInfo.mat');
+
+    if ~directoryExists(['opensim' filesep 'bodyKinematics'])
+        mkdir(['opensim' filesep 'bodyKinematics'])
+    end
     
     %% set up
     import org.opensim.modeling.*
-    generic_setup_file_ik = [getCobalPath filesep 'resources' filesep 'opensim' filesep 'CoBaLWalker50_setupInverseKinematics.xml'];
-    data_root = [pwd filesep 'opensim'];
+    generic_setup_file_analysis = [getCobalPath filesep 'resources' filesep 'opensim' filesep 'CoBaLWalker50_setupAnalysis.xml'];
+    DOMnode = xmlread(generic_setup_file_analysis);
+    document_node = DOMnode.getFirstChild;
     
+    % set name of resulting model
+    analyze_tool_node = document_node.getElementsByTagName("AnalyzeTool").item(0);
+    analyze_tool_node.setAttribute("name", makeFileName(subject_info.date, subject_info.subject_id, 'setupAnalysis.xml'))
     
+    % set results directory
+    analyze_tool_node.getElementsByTagName("model_file").item(0).getFirstChild.setData(makeFileName(subject_info.date, subject_info.subject_id, '.osim'));
+    analyze_tool_node.getElementsByTagName("force_set_files").item(0).getFirstChild.setData('');
+    analyze_tool_node.getElementsByTagName("results_directory").item(0).getFirstChild.setData(['opensim' filesep 'bodyKinematics']);
     
+    % save subject-specific scale file
+    setup_file_analysis = [pwd filesep 'opensim' filesep makeFileName(subject_info.date, subject_info.subject_id, 'setupAnalysis.xml')];
+    xmlwrite(setup_file_analysis, DOMnode);       
     
-    
-    
-    
-    
-    
-    ikTool = InverseKinematicsTool(generic_setup_file_ik);
-    model_file = [data_root filesep subject_info.subject_id '.osim'];
-
-    % Load the model and initialize
-    model = Model(model_file);
-    model.initSystem();
-
-    % Tell Tool to use the loaded model
-    ikTool.setModel(model);
-
     %% process
+    analysis_tool = AnalyzeTool(setup_file_analysis);
+    data_root = [pwd filesep 'opensim'];
     for i_condition = 1 : length(trial_type_list)
         trials_to_process = trial_number_list{i_condition};
         for i_trial = trials_to_process
-            %% load data
+            % load data to get initial and final time
             trial_type = trial_type_list{i_condition};
-            marker_file = [data_root filesep 'marker' filesep makeFileName(subject_info.date, subject_info.subject_id, trial_type, i_trial, 'marker.trc')];
-            marker_data = MarkerData(marker_file);
-            output_file = [data_root filesep 'inverseKinematics' filesep makeFileName(subject_info.date, subject_info.subject_id, trial_type, i_trial, 'inverseKinematics.mot')];
+            marker_file = ['processed' filesep makeFileName(subject_info.date, subject_info.subject_id, trial_type, i_trial, 'markerTrajectories.mat')];
+            load(marker_file, 'time_mocap');
+            time_start = time_mocap(1);
+            time_end = time_mocap(end);
+            analysis_tool.setInitialTime(time_start);
+            analysis_tool.setFinalTime(time_end);
             
-            % Get initial and final time 
-            time_start = marker_data.getStartFrameTime();
-            time_end = marker_data.getLastFrameTime();
-
-            % Setup the ikTool for this trial
-            ikTool.setName(makeFileName(subject_info.date, subject_info.subject_id, trial_type, i_trial, 'marker.trc'));
-            ikTool.setMarkerDataFileName(marker_file);
-            ikTool.setStartTime(time_start);
-            ikTool.setEndTime(time_end);
-            ikTool.setOutputMotionFileName(output_file);
-
-            % Save the settings in a setup file
-            setup_file = [data_root filesep 'setupFiles' filesep makeFileName(subject_info.date, subject_info.subject_id, trial_type, i_trial, 'setupIK.xml')];
-            ikTool.print(setup_file);
-
-            % Run IK
-            ikTool.run();
-            disp(['Performing inverse kinematics: condition ' trial_type_list{i_condition} ', Trial ' num2str(i_trial) ' completed']);                
+            % run the tool for this trial
+            inverse_kinematics_file_name = ['opensim' filesep 'inverseKinematics' filesep makeFileName(subject_info.date, subject_info.subject_id, trial_type, i_trial, 'inverseKinematics.mot')];
+            analysis_tool.setCoordinatesFileName(inverse_kinematics_file_name);
+            analysis_tool.run();
             
+            % print and rename results
+            output_file = ['opensim' filesep 'bodyKinematics' filesep makeFileName(subject_info.date, subject_info.subject_id, trial_type, i_trial, 'bodyKinematics')];
+            analysis_tool.printResults(output_file);
+            movefile([output_file '_BodyKinematics_pos_global.sto'], [output_file 'Pos.sto']);
+            movefile([output_file '_BodyKinematics_vel_global.sto'], [output_file 'Vel.sto']);
+            movefile([output_file '_BodyKinematics_acc_global.sto'], [output_file 'Acc.sto']);
         end
     end
 

@@ -21,16 +21,7 @@ function processInverseKinematicsInOpensim(varargin)
     parser.KeepUnmatched = true;
     parse(parser, varargin{:})
     
-    % load settings
-    study_settings_file = '';
-    if exist(['..' filesep 'studySettings.txt'], 'file')
-        study_settings_file = ['..' filesep 'studySettings.txt'];
-    end    
-    if exist(['..' filesep '..' filesep 'studySettings.txt'], 'file')
-        study_settings_file = ['..' filesep '..' filesep 'studySettings.txt'];
-    end
-    study_settings = SettingsCustodian(study_settings_file);
-    subject_settings = SettingsCustodian('subjectSettings.txt');
+    % load info
     subject_info = load('subjectInfo.mat');
     
     %% set up
@@ -80,11 +71,6 @@ function processInverseKinematicsInOpensim(varargin)
             error_file_source = [pwd filesep makeFileName(subject_info.date, subject_info.subject_id, trial_type, i_trial, 'marker.trc') '_ik_marker_errors.sto'];
             error_file_destination = [data_root filesep 'logs' filesep makeFileName(subject_info.date, subject_info.subject_id, trial_type, i_trial, 'ikErrors.sto')];
             movefile(error_file_source, error_file_destination);
-            
-            
         end
     end
-
-
-
 end
