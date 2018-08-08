@@ -73,7 +73,7 @@ function processStretchVariables(varargin)
                 condition_relevant_data = [];
             else
                 condition_relevant_name = conditions_settings{strcmp(conditions_settings(:, 1), condition_relevant_for_analysis), 2};
-                condition_relevant_data = conditions_trial.(condition_relevant_name);
+                    condition_relevant_data = conditions_trial.(condition_relevant_name);
             end
             data_trial = data_custodian.calculateStretchVariables(stretch_times, stance_foot_data, condition_relevant_data);
 
