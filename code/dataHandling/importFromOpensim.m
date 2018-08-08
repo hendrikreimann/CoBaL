@@ -28,90 +28,131 @@
 
 function importFromOpensim(varargin)
     % parse arguments
-    [trial_type_list, trial_number_list, excluded_trial_type_list, excluded_trial_number_list] = parseTrialArguments(varargin{:});
     parser = inputParser;
     addParameter(parser, 'type', 'all')
-    sources_default = {['opensim' filesep 'inverseKinematics']};
+    sources_default = {['opensim' filesep 'inverseKinematics'], ['opensim' filesep 'bodyKinematics']};
     addParameter(parser, 'sources', sources_default)
     parser.KeepUnmatched = true;
     parse(parser, varargin{:})
-    type = parser.Results.type;
     sources = parser.Results.sources;
-
-    % load settings
-    study_settings_file = '';
-    if exist(['..' filesep 'studySettings.txt'], 'file')
-        study_settings_file = ['..' filesep 'studySettings.txt'];
-    end    
-    if exist(['..' filesep '..' filesep 'studySettings.txt'], 'file')
-        study_settings_file = ['..' filesep '..' filesep 'studySettings.txt'];
-    end
-    study_settings = SettingsCustodian(study_settings_file);
-    subject_settings = SettingsCustodian('subjectSettings.txt');
-    subject_info = load('subjectInfo.mat');
-
     
     for i_source = 1 : length(sources)
         source_dir = sources{i_source};
         if exist(source_dir, 'dir')
             % get list of files to import from this directory
-            clear file_name_list;
-            data_dir = dir([source_dir filesep '*.mot']);
-            [file_name_list{1:length(data_dir)}] = deal(data_dir.name);
+            clear file_name_list_mot;
+            clear file_name_list_sto;
+            data_dir_mot = dir([source_dir filesep '*.mot']);
+            [file_name_list_mot{1:length(data_dir_mot)}] = deal(data_dir_mot.name);
+            data_dir_sto = dir([source_dir filesep '*.sto']);
+            [file_name_list_sto{1:length(data_dir_sto)}] = deal(data_dir_sto.name);
+            file_name_list = [file_name_list_mot; file_name_list_sto];
 
             % go through files and import
             number_of_files = length(file_name_list);
             for i_file = 1 : number_of_files
                 % file name stuff
                 data_file_name = file_name_list{i_file};
-                [date, subject_id, trial_type, trial_number, file_type] = getFileParameters(data_file_name);
+                
+                if strcmp(data_file_name(end-3:end), '.mot')
+                    [date, subject_id, trial_type, trial_number, file_type] = getFileParameters(data_file_name);
+                    number_of_header_lines = 11;
 
-                number_of_header_lines = 11;
+                    % import data
+                    [imported_data, delimiter, number_of_header_lines_returned] = importdata([source_dir filesep data_file_name], '\t', number_of_header_lines);
+                    data_headers = imported_data.textdata(9, :);
+                    data_type = reformatDataType(imported_data.textdata{1, 1});
 
-                % import data
-                [imported_data, delimiter, number_of_header_lines_returned] = importdata([source_dir filesep data_file_name], '\t', number_of_header_lines);
-                data_headers = imported_data.textdata(9, :);
+                    number_of_samples_split = strsplit(imported_data.textdata{3, 1}, '=');
+                    number_of_samples = str2num(number_of_samples_split{2});
 
-                number_of_samples_split = strsplit(imported_data.textdata{3, 1}, '=');
-                number_of_samples = str2num(number_of_samples_split{2});
+                    data_trajectories = imported_data.data(:, 2:end);
+                    time =imported_data.data(:, 1);
+                    sampling_rate = 1/median(diff(time));
 
-                joint_angle_trajectories = imported_data.data(:, 2:end);
-                time =imported_data.data(:, 1);
-                sampling_rate = 1/median(diff(time));
+                    labels = data_headers(2:end);
 
-                labels = data_headers(2:end);
+                    % directions
+                    number_of_trajectories = size(data_trajectories, 2);
+                    directions = cell(2, number_of_trajectories);
+                    [directions{:, :}] = deal('TBD');
 
-                % directions
-                number_of_trajectories = size(joint_angle_trajectories, 2);
-                directions = cell(2, number_of_trajectories);
-                [directions{:, :}] = deal('TBD');
-
-                % save
-                save_folder = 'processed';
-                save_file_name = makeFileName(date, subject_id, trial_type, trial_number, 'inverseKinematics.mat');
-                save ...
-                  ( ...
-                    [save_folder filesep save_file_name], ...
-                    'joint_angle_trajectories', ...
-                    'time', ...
-                    'sampling_rate', ...
-                    'labels',  ...
-                    'directions' ...
-                  );
-                addAvailableData ...
-                  ( ...
-                    'joint_angle_trajectories', ...
-                    'time', ...
-                    'sampling_rate', ...
-                    '_labels', ...
-                    '_directions', ...
-                    save_folder, ...
-                    save_file_name ...
-                  );
+                    % save
+                    variables_to_save = struct;
+                    variables_to_save.(data_type) = data_trajectories;
+                    variables_to_save.time = time;
+                    variables_to_save.sampling_rate = sampling_rate;
+                    variables_to_save.labels = labels;
+                    variables_to_save.directions = directions;
+                    
+                    save_folder = 'processed';
+                    save_file_name = makeFileName(date, subject_id, trial_type, trial_number, [file_type '.mat']);
+                    save([save_folder filesep save_file_name], '-struct', 'variables_to_save');
+                    addAvailableData ...
+                      ( ...
+                        data_type, ...
+                        'time', ...
+                        'sampling_rate', ...
+                        '_labels', ...
+                        '_directions', ...
+                        save_folder, ...
+                        save_file_name ...
+                      );
 
 
-                disp(['imported ' source_dir filesep data_file_name])
+                    disp(['imported ' source_dir filesep data_file_name])
+                end
+                
+                if strcmp(data_file_name(end-3:end), '.sto')
+                    [date, subject_id, trial_type, trial_number, file_type] = getFileParameters(data_file_name);
+                    number_of_header_lines = 19;
 
+                    % import data
+                    [imported_data, delimiter, number_of_header_lines_returned] = importdata([source_dir filesep data_file_name], '\t', number_of_header_lines);
+                    data_headers = imported_data.textdata(14, :);
+                    data_type = reformatDataType(imported_data.textdata{1, 1});
+
+                    number_of_samples_split = strsplit(imported_data.textdata{3, 1}, '=');
+                    number_of_samples = str2num(number_of_samples_split{2});
+
+                    data_trajectories = imported_data.data(:, 2:end);
+                    time =imported_data.data(:, 1);
+                    sampling_rate = 1/median(diff(time));
+
+                    labels = data_headers(2:end);
+
+                    % directions
+                    number_of_trajectories = size(data_trajectories, 2);
+                    directions = cell(2, number_of_trajectories);
+                    [directions{:, :}] = deal('TBD');
+
+                    % save
+                    variables_to_save = struct;
+                    variables_to_save.(data_type) = data_trajectories;
+                    variables_to_save.time = time;
+                    variables_to_save.sampling_rate = sampling_rate;
+                    variables_to_save.labels = labels;
+                    variables_to_save.directions = directions;
+                    
+                    save_folder = 'processed';
+                    save_file_name = makeFileName(date, subject_id, trial_type, trial_number, [file_type '.mat']);
+                    save([save_folder filesep save_file_name], '-struct', 'variables_to_save');
+                    addAvailableData ...
+                      ( ...
+                        data_type, ...
+                        'time', ...
+                        'sampling_rate', ...
+                        '_labels', ...
+                        '_directions', ...
+                        save_folder, ...
+                        save_file_name ...
+                      );
+
+
+                    disp(['imported ' source_dir filesep data_file_name])
+                end
+                
+                
             end
 
             disp(['imported ' num2str(number_of_files) ' files'])        
@@ -127,7 +168,22 @@ function importFromOpensim(varargin)
 end
 
 
+function variable_name_out = reformatDataType(data_type_in)
+    variable_name_out = 'DataNotSpecified';
+    if strcmp(data_type_in, 'Coordinates')
+        variable_name_out = 'joint_angle_trajectories';
+    end
+    if strcmp(data_type_in, 'Positions')
+        variable_name_out = 'com_position_trajectories';
+    end
+    if strcmp(data_type_in, 'Velocities')
+        variable_name_out = 'com_velocity_trajectories';
+    end
+    if strcmp(data_type_in, 'Accelerations')
+        variable_name_out = 'com_acceleration_trajectories';
+    end
 
+end
 
 
 
