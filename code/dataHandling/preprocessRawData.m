@@ -40,16 +40,6 @@ function preprocessRawData(varargin)
     types_to_analyze = [types_to_analyze; types_to_exclude];
     trials_to_analyze = [trials_to_analyze; trials_to_exclude];
     
-%     % add calibration and EMG trials if no specific condition was specified
-%     if ~isempty(calibration_trials)
-%         types_to_analyze = [types_to_analyze; 'calibration'];
-%         trials_to_analyze = [trials_to_analyze; calibration_trials];
-%     end
-%     if ~isempty(emg_trials)
-%         types_to_analyze = [types_to_analyze; 'emg'];
-%         trials_to_analyze = [trials_to_analyze; emg_trials];
-%     end
-    
     % load settings
     study_settings_file = '';
     if exist(['..' filesep 'studySettings.txt'], 'file')
@@ -80,6 +70,70 @@ function preprocessRawData(varargin)
                 if ismember(trial_number, trial_number_list_this_condition)
                     % process file
                     load(['raw' filesep raw_emg_file_name]);
+                    
+                    
+                    if strcmp(data_source, 'nexus')
+                        % remove the weird oscillation
+                        
+                        % filter
+                        filter_order = 4;
+                        cutoff_frequency_low = 1; % in Hz
+                        [b_low, a_low] = butter(filter_order, cutoff_frequency_low/(sampling_rate_emg/2), 'low');
+                        
+                        new_indices = (14 : 27 : length(time_emg))';
+                        for i_channel = 1 : size(emg_trajectories_raw, 2)
+                            raw_data = emg_trajectories_raw(:, i_channel);
+                            new_data_from_min = zeros(size(new_indices));
+                            new_data_from_max = zeros(size(new_indices));
+
+                            for i_index = 1 : length(new_indices)
+                                index_center = new_indices(i_index);
+                                index_range = (-13 : 13) + index_center;
+                                index_range(index_range > length(raw_data)) = [];
+                                new_data_from_min(i_index) = min(raw_data(index_range));
+                                new_data_from_max(i_index) = max(raw_data(index_range));
+                            end
+                        
+                            
+                            raw_data_average = (new_data_from_max - new_data_from_min)/2;
+                            filtered_average = filtfilt(b_low, a_low, raw_data_average);
+
+                            % treat filtered oscillation as gain and remove
+                            cleaned_time = time_emg(new_indices);
+                            cleaned_data = raw_data_average .* filtered_average.^(-1);
+                            
+                            % upsample
+                            time_padded = [time_emg(1); cleaned_time; time_emg(end)];
+                            data_padded = [cleaned_data(1); cleaned_data; cleaned_data(end)];
+
+                            if any(~isnan(data_padded))
+                                data_upsampled = spline(time_padded, data_padded, time_emg);
+                            else
+                                data_upsampled = raw_data;
+                            end
+                            emg_trajectories_raw(:, i_channel) = data_upsampled;
+                            
+%                             if visualize
+%                                 figure; hold on
+%                                 plot(raw_data)
+%                                 plot(new_indices, -new_data_from_min)
+%                                 plot(new_indices, new_data_from_max)
+%                                 plot(new_indices, (new_data_from_max - new_data_from_min)/2)
+%                                 plot(new_indices, filtered_average, 'linewidth', 3)
+% 
+% 
+%                                 figure; hold on;
+%                                 plot(cleaned_time, cleaned_data)                        
+%                             end
+                            
+                        end
+                        
+                        
+
+
+                        
+                    end
+                    
 
                     % define filters
                     % initial low pass filter
@@ -145,8 +199,8 @@ function preprocessRawData(varargin)
                         
                         
                         
-                        figure; 
-                        plot(time_emg, test_channel_data);
+%                         figure; 
+%                         plot(time_emg, test_channel_data);
                         
                     end
                     
@@ -185,7 +239,7 @@ function preprocessRawData(varargin)
 
                     % visualize
                     if visualize
-                        i_channel = 3;
+                        i_channel = 5;
                         figure; axes; hold on; title(['EMG, condition ' trial_type ', trial ' num2str(trial_number)])
                         plot(time_emg, emg_trajectories_raw(:, i_channel), 'DisplayName', 'raw');
                         plot(time_emg, emg_trajectories_rectified(:, i_channel), 'DisplayName', 'rectified');
