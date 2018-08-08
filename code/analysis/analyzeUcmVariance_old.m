@@ -21,6 +21,7 @@
 
 function analyzeUcmVariance(varargin)
     [condition_list, trial_number_list] = parseTrialArguments(varargin{:});
+    trial_type = condition_list{1}; % we assume that we have a single type only for now
     load('subjectInfo.mat', 'date', 'subject_id');
     % load settings
     study_settings_file = '';
@@ -46,17 +47,9 @@ function analyzeUcmVariance(varargin)
     ucm_variables = study_settings.get('ucm_variables');
     number_of_ucm_variables = length(ucm_variables);
     
-    % determine blocks -- this is somewhat silly, since I'm re-formatting the information into how I already have it, but keep it around for now
-    condition_header = {'trial', 'condition'};
-    condition_cell = {};
-    for i_type = 1 : length(condition_list)
-        this_type_label = condition_list{i_type};
-        this_type_trial_list = trial_number_list{i_type};
-        for i_trial = 1 : length(this_type_trial_list)
-            condition_cell = [condition_cell; {num2str(this_type_trial_list(i_trial)), this_type_label}];
-        end
-    end
-    [block_labels, trials_by_block] = determineTrialsByBlock(condition_cell, condition_header);
+    % determine blocks
+    [condition_table, condition_header] = loadConditionTableFromFile(conditions_file_name);
+    [block_labels, trials_by_block] = determineTrialsByBlock(condition_table, condition_header);
     number_of_blocks = length(block_labels);
     
     % make containers to hold the data
@@ -81,15 +74,23 @@ function analyzeUcmVariance(varargin)
             number_of_trials_this_block = length(this_block_trials);
             expected_event_labels = {'trial_start_time';'trial_end_time'};
             number_of_events = length(expected_event_labels);
+            joint_angle_data_to_analyze = [];
 
+            
+            
+            
+            
+            
+            
+            
             for i_trial = 1 : number_of_trials_this_block
                 % load data
-                loaded_data = load(['processed' filesep makeFileName(date, subject_id, this_block_label, this_block_trials(i_trial), 'kinematicTrajectories.mat')]);
+                loaded_data = load(['processed' filesep makeFileName(date, subject_id, trial_type, this_block_trials(i_trial), 'kinematicTrajectories.mat')]);
                 joint_angle_trajectories = loaded_data.joint_angle_trajectories;
                 time_mocap = loaded_data.time_mocap;
                 
                 % load and check events
-                loaded_data = load(['analysis' filesep makeFileName(date, subject_id, this_block_label, this_block_trials(i_trial), 'events.mat')]);
+                loaded_data = load(['analysis' filesep makeFileName(date, subject_id, trial_type, this_block_trials(i_trial), 'events.mat')]);
                 if ~(length(loaded_data.event_data)==number_of_events)
                     error(['Trial ' num2str(this_block_trials(i_trial)) ' - expected ' num2str(number_of_events) ' events, but found ' num2str(length(event_indices_mocap))]);
                 end
