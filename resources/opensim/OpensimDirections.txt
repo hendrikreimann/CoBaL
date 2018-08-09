@@ -1,0 +1,14 @@
+
+// positive label, negative label
+generic_directions:
+{
+  forward, backward
+  up, down
+  right, left
+}
+
+// coordinate label, positive label, negative label
+specific_directions:
+{
+  pelvis_tilt, blub, later
+}

@@ -42,7 +42,6 @@ function exportToOpensim(varargin)
     if ~directoryExists(['opensim' filesep 'logs'])
         mkdir(['opensim' filesep 'logs'])
     end
-    meter_to_millimeter = 1e3;
     
     % load settings
     study_settings_file = '';
@@ -78,6 +77,9 @@ function exportToOpensim(varargin)
 %     cobal_to_opensim_translation = [0; 0; 0];
     cobal_to_opensim_trafo = [cobal_to_opensim_rotation cobal_to_opensim_translation; 0 0 0 1];
     cobal_to_opensim_adjoint = rigidToAdjointTransformation(cobal_to_opensim_trafo);
+    % TODO: the naming is appropriate for moving points, but not for changing coordinate frames (opposite). Leave this
+    % for now, but be aware that this might cause confusion
+    cobal_to_opensim_scale = transformation_settings.get('cobal_to_opensim_scale');
     
     %% process
     for i_condition = 1 : length(trial_type_list)
@@ -188,7 +190,7 @@ function exportToOpensim(varargin)
                     number_of_markers = size(marker_trajectories, 2) / 3;
 
                     % transform to mm
-                    marker_trajectories = marker_trajectories * meter_to_millimeter;
+                    marker_trajectories = marker_trajectories * cobal_to_opensim_scale;
 
                     % transform to OpenSim coordinate frame
                     marker_trajectories_opensim = zeros(size(marker_trajectories));
