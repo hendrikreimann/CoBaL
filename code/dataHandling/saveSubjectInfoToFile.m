@@ -43,7 +43,7 @@ function saveSubjectInfoToFile(varargin)
     variables_to_save.subject_id = subject_id;
 
     % get list of conditions
-    condition_list = {};
+    trial_type_list = {};
     trial_number_list = {};
     for i_file = 1 : length(file_name_list)
         data_file_name = file_name_list{i_file};
@@ -51,12 +51,12 @@ function saveSubjectInfoToFile(varargin)
         if sum(data_file_name=='_') == 4
             [date, subject_id, trial_type, trial_number, file_type] = getFileParameters(data_file_name); %#ok<ASGLU>
 
-            if ~any(strcmp(condition_list, trial_type))
-                condition_list = [condition_list; trial_type]; %#ok<AGROW>
+            if ~any(strcmp(trial_type_list, trial_type))
+                trial_type_list = [trial_type_list; trial_type]; %#ok<AGROW>
                 trial_number_list = [trial_number_list; trial_number]; %#ok<AGROW>
             else
                 % add current trial to trial number list
-                condition_index = find(strcmp(condition_list, trial_type), 1);
+                condition_index = find(strcmp(trial_type_list, trial_type), 1);
                 trial_number_list{condition_index} = [trial_number_list{condition_index} trial_number]; %#ok<AGROW>
                 % remove duplicates
                 trial_number_list{condition_index} = unique(trial_number_list{condition_index}); %#ok<AGROW>
@@ -67,7 +67,7 @@ function saveSubjectInfoToFile(varargin)
     % remove trials listed in subjectSettings.txt
     trials_to_exclude = subject_settings.get('trials_to_exclude', true);
     for i_trial = 1 : size(trials_to_exclude, 1)
-        condition_index = find(strcmp(condition_list, trials_to_exclude{i_trial, 1}));
+        condition_index = find(strcmp(trial_type_list, trials_to_exclude{i_trial, 1}));
         if ~isempty(condition_index)
             trial_number_list_this_condition = trial_number_list{condition_index};
             matches = ismember(trial_number_list_this_condition, str2num(trials_to_exclude{i_trial, 2})); %#ok<ST2NM>
@@ -112,7 +112,7 @@ function saveSubjectInfoToFile(varargin)
             condition_cell(i_trial, :) = line_split(2:end);
         end
         
-        walking_condition_index = find(strcmp(condition_list, 'walking'));
+        walking_condition_index = find(strcmp(trial_type_list, 'walking'));
         if ~isempty(walking_condition_index)
             trial_number_list_walking = trial_number_list{walking_condition_index};
             matches = ismember(trial_number_list_walking, trials_from_condition_file_list);
@@ -122,12 +122,11 @@ function saveSubjectInfoToFile(varargin)
         end
         
     end
-    variables_to_save.condition_list = condition_list;
-    variables_to_save.trial_number_list = trial_number_list; %#ok<STRNU>
-    variables_to_save.trial_types_to_ignore = trial_types_to_ignore;
-    
     
     % save
+    variables_to_save.condition_list = trial_type_list;
+    variables_to_save.trial_number_list = trial_number_list;
+    variables_to_save.trial_types_to_ignore = trial_types_to_ignore; %#ok<STRNU>
     save_file_name = 'subjectInfo.mat';
     save(save_file_name, '-struct', 'variables_to_save');
     
