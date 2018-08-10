@@ -20,9 +20,11 @@ function collectPopulationResults(varargin)
 
     parser = inputParser;
     parser.KeepUnmatched = true;
+    addParameter(parser, 'output', 'results')
     addParameter(parser, 'subjects', [])
     parse(parser, varargin{:})
     subjects = parser.Results.subjects;
+    save_file = parser.Results.output;
 
     % load settings
     if ~exist('studySettings.txt', 'file')
@@ -187,7 +189,7 @@ function collectPopulationResults(varargin)
         variables_to_save.conditions_long = conditions_long;
     end
     
-    save('results', '-struct', 'variables_to_save');
+    save(save_file, '-struct', 'variables_to_save');
 
 
 
