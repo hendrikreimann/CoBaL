@@ -77,6 +77,12 @@ function [data_folder_list, subject_list] = determineDataStructure(subjects)
         dir_name = {things_in_current_folder.name};
         folder_list = dir_name(dir_flags);
         
+        % include only folders that were specified in subject argument
+        if ~isempty(subjects)
+            similar_folders = find(ismember(folder_list,subjects));
+            folder_list = folder_list(similar_folders);
+        end
+        
         number_of_data_folders = length(folder_list);
         subjects = {};
         for i_folder = 1 : number_of_data_folders
