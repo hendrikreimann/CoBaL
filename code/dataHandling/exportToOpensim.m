@@ -39,7 +39,9 @@ function exportToOpensim(varargin)
     if ~directoryExists(['opensim' filesep 'inverseKinematics'])
         mkdir(['opensim' filesep 'inverseKinematics'])
     end
-    meter_to_millimeter = 1e3;
+    if ~directoryExists(['opensim' filesep 'logs'])
+        mkdir(['opensim' filesep 'logs'])
+    end
     
     % load settings
     study_settings_file = '';
@@ -66,74 +68,47 @@ function exportToOpensim(varargin)
     trial_type_list = [trial_type_list; static_trial_type];
     trial_number_list = [trial_number_list; static_trial_number];
     
-    % model scaling was moved to scaleModelInOpensim.m
-%     % setup model scaling 
-%     static_file_name = ['marker' filesep makeFileName(subject_info.date, subject_info.subject_id, static_trial_type, static_trial_number, 'marker.trc')];
-%     generic_setup_file_scale = [getCobalPath filesep 'resources' filesep 'opensim' filesep 'CoBaLWalker50_setupScale.xml'];
-%     data_root = [pwd filesep 'opensim'];
-%     DOMnode = xmlread(generic_setup_file_scale);
-% 
-%     % set name of resulting model
-%     document_node = DOMnode.getFirstChild;
-%     scale_tool_node = document_node.getElementsByTagName("ScaleTool").item(0);
-%     scale_tool_node.setAttribute("name", makeFileName(subject_info.date, subject_info.subject_id, '.osim'))
-% 
-%     % set marker file name for model scaler
-%     model_scaler_node = scale_tool_node.getElementsByTagName("ModelScaler").item(0);
-%     marker_file_node = model_scaler_node.getElementsByTagName("marker_file").item(0);
-%     child = marker_file_node.getFirstChild;
-%     child.setData(static_file_name)
-% 
-%     % set marker file name for marker placer
-%     model_scaler_node = scale_tool_node.getElementsByTagName("MarkerPlacer").item(0);
-%     marker_file_node = model_scaler_node.getElementsByTagName("marker_file").item(0);
-%     child = marker_file_node.getFirstChild;
-%     child.setData(static_file_name)
-% 
-%     % save
-%     setup_file_scale = [pwd filesep 'opensim' filesep makeFileName(subject_info.date, subject_info.subject_id, 'setupScale.xml')];
-%     xmlwrite(setup_file_scale, DOMnode);
-
     % define transformations
-    world_to_opensim_rotation = [0 0 1; 1 0 0; 0 1 0];
-    world_to_opensim_translation = [0; 0; 0];
-    world_to_opensim_trafo = [world_to_opensim_rotation world_to_opensim_translation; 0 0 0 1];
-    world_to_opensim_adjoint = rigidToAdjointTransformation(world_to_opensim_trafo);
+    transformation_file = [getCobalPath filesep 'resources' filesep 'opensim' filesep 'CobalOpensimTransformations.txt'];
+    transformation_settings = SettingsCustodian(transformation_file);
+    cobal_to_opensim_rotation = [transformation_settings.get('opensim_x_in_cobal')', transformation_settings.get('opensim_y_in_cobal')', transformation_settings.get('opensim_z_in_cobal')'];
+    cobal_to_opensim_translation = transformation_settings.get('cobal_to_opensim_translation')';
+%     cobal_to_opensim_rotation = [0 0 1; 1 0 0; 0 1 0];
+%     cobal_to_opensim_translation = [0; 0; 0];
+    cobal_to_opensim_trafo = [cobal_to_opensim_rotation cobal_to_opensim_translation; 0 0 0 1];
+    cobal_to_opensim_adjoint = rigidToAdjointTransformation(cobal_to_opensim_trafo);
+    % TODO: the naming is appropriate for moving points, but not for changing coordinate frames (opposite). Leave this
+    % for now, but be aware that this might cause confusion
+    cobal_to_opensim_scale = transformation_settings.get('cobal_to_opensim_scale');
     
-    %% forceplate data
-    if strcmp(type, 'forceplate') || strcmp(type, 'all')
-        data_dir = dir(['processed' filesep '*_forceplateTrajectories.mat']);
-        clear file_name_list;
-        [file_name_list{1:length(data_dir)}] = deal(data_dir.name);
-        number_of_files = length(file_name_list);
-        for i_trial = 1 : number_of_files
-            forceplate_file_name = file_name_list{i_trial};
-            [date, subject_id, trial_type, trial_number, file_type] = getFileParameters(forceplate_file_name);
+    %% process
+    for i_condition = 1 : length(trial_type_list)
+        trials_to_process = trial_number_list{i_condition};
+        for i_trial = trials_to_process
+            this_trial_type = trial_type_list{i_condition};
+            % forceplate data
+            if strcmp(type, 'forceplate') || strcmp(type, 'all')
+                % load data
+                forceplate_file_name = makeFileName(subject_info.date, subject_info.subject_id, this_trial_type, i_trial, 'forceplateTrajectories.mat');
+                if exist(['processed' filesep forceplate_file_name], 'file')
+                    load(['processed' filesep forceplate_file_name]); %#ok<LOAD>
 
-            % does the caller want to process this file?
-            if any(strcmp(trial_type, trial_type_list))
-                % condition is set to be processed, now check trial number
-                trial_number_list_this_condition = trial_number_list{strcmp(trial_type, trial_type_list)};
-                if ismember(trial_number, trial_number_list_this_condition)
-                    % load data
-                    load(['processed' filesep forceplate_file_name]);
-                    
                     % load time information from associated marker file
-                    marker_file_name = makeFileName(date, subject_id, trial_type, trial_number, 'markerTrajectories.mat');
+                    marker_file_name = makeFileName(subject_info.date, subject_info.subject_id, this_trial_type, i_trial, 'markerTrajectories.mat');
                     load(['processed' filesep marker_file_name], 'time_mocap');
-                    
+
                     % resample force trajectories to mocap time
                     wrench_left_world = spline(time_forceplate, left_forceplate_wrench_world', time_mocap)';
                     wrench_right_world = spline(time_forceplate, right_forceplate_wrench_world', time_mocap)';
                     cop_left_world = [spline(time_forceplate, left_forceplate_cop_world', time_mocap)', zeros(size(time_mocap))];
                     cop_right_world = [spline(time_forceplate, right_forceplate_cop_world', time_mocap)', zeros(size(time_mocap))];
-                    
-                    % transform wrenches and CoP trajectories from world to opensim coordinate frame
-                    wrench_left_opensim = (world_to_opensim_adjoint' * wrench_left_world')';
-                    wrench_right_opensim = (world_to_opensim_adjoint' * wrench_right_world')';
 
-                    cop_left_opensim = (world_to_opensim_rotation' * cop_left_world')';
-                    cop_right_opensim = (world_to_opensim_rotation' * cop_right_world')';
+                    % transform wrenches and CoP trajectories from world to opensim coordinate frame
+                    wrench_left_opensim = (cobal_to_opensim_adjoint' * wrench_left_world')';
+                    wrench_right_opensim = (cobal_to_opensim_adjoint' * wrench_right_world')';
+
+                    cop_left_opensim = (cobal_to_opensim_rotation' * cop_left_world')';
+                    cop_right_opensim = (cobal_to_opensim_rotation' * cop_right_world')';
 
                     % invert to change from human-generated-forces to ground-reaction-forces
                     wrench_left_opensim = - wrench_left_opensim;
@@ -155,7 +130,7 @@ function exportToOpensim(varargin)
                       ];
 
                     save_folder = ['opensim' filesep 'forceplate'];
-                    save_file_name =  makeFileName(date, subject_id, trial_type, trial_number, 'grf.mot');
+                    save_file_name =  makeFileName(subject_info.date, subject_info.subject_id, this_trial_type, i_trial, 'grf.mot');
                     fid = fopen([save_folder filesep save_file_name],'w');
 
                     fprintf(fid, 'name %s\n', save_file_name);
@@ -199,61 +174,49 @@ function exportToOpensim(varargin)
 
                     fclose(fid);
                     disp(['processed ' forceplate_file_name ' and saved as ' save_file_name])
-        
+                else
+                    disp(['failed to load ' forceplate_file_name ' - skipped'])
                 end
-            end
-        end
-    end
-    
-    %% marker data
-    if strcmp(type, 'marker') || strcmp(type, 'all')
-        data_dir = dir(['processed' filesep '*_markerTrajectories.mat']);
-        clear file_name_list;
-        [file_name_list{1:length(data_dir)}] = deal(data_dir.name);
-        number_of_files = length(file_name_list);
-        for i_trial = 1 : number_of_files
-            % load data
-            marker_file_name = file_name_list{i_trial};
-
-            [date, subject_id, trial_type, trial_number, file_type] = getFileParameters(marker_file_name);
-            % does the caller want to process this file?
-            if any(strcmp(trial_type, trial_type_list))
-                % condition is set to be processed, now check trial number
-                trial_number_list_this_condition = trial_number_list{strcmp(trial_type, trial_type_list)};
-                if ismember(trial_number, trial_number_list_this_condition)
+            end    
+            
+            % marker data
+            if strcmp(type, 'marker') || strcmp(type, 'all')
+                % load time information from associated marker file
+                marker_file_name = makeFileName(subject_info.date, subject_info.subject_id, this_trial_type, i_trial, 'markerTrajectories.mat');
+                if exist(['processed' filesep marker_file_name], 'file')
                     load(['processed' filesep marker_file_name]);
 
                     number_of_data_points = size(marker_trajectories, 1);
                     number_of_markers = size(marker_trajectories, 2) / 3;
-                    
+
                     % transform to mm
-                    marker_trajectories = marker_trajectories * meter_to_millimeter;
-                    
+                    marker_trajectories = marker_trajectories * cobal_to_opensim_scale;
+
                     % transform to OpenSim coordinate frame
                     marker_trajectories_opensim = zeros(size(marker_trajectories));
                     for i_marker = 1 : number_of_markers
                         this_marker_trajectory_world = marker_trajectories(:, (i_marker-1)*3 + [1 2 3]);
-                        this_marker_trajectory_opensim = (world_to_opensim_rotation' * this_marker_trajectory_world')';
+                        this_marker_trajectory_opensim = (cobal_to_opensim_rotation' * this_marker_trajectory_world')'; 
+                        % TODO: this implicitly assumes that the translation is zero, which is explicitly coded in the
+                        % forceplate transformation above. If that is ever changed, it has to be changed here as well
                         marker_trajectories_opensim(:, (i_marker-1)*3 + [1 2 3]) = this_marker_trajectory_opensim;
                     end
-                    
 
-                    
                     % extract marker names
                     marker_names = marker_labels(1 : 3 : end);
                     for i_marker = 1 : number_of_markers
                         marker_names{i_marker} = marker_names{i_marker}(1:end-2);
                     end
-                    
+
                     % save
                     time_mocap = time_mocap - time_mocap(1); % first entry has to be zero or OpenSim will throw an exception
                     save_folder = ['opensim' filesep 'marker'];
-                    save_file_name = [save_folder filesep makeFileName(date, subject_id, trial_type, trial_number, 'marker.trc')];
+                    save_file_name = [save_folder filesep makeFileName(subject_info.date, subject_info.subject_id, this_trial_type, i_trial, 'marker.trc')];
                     fid = fopen(save_file_name,'w');
                     fid_1 = fopen(save_file_name, 'w');
 
                     % first write the header data
-                    fprintf(fid_1,'PathFileType\t4\t(X/Y/Z)\t %s\n',save_file_name);
+                    fprintf(fid_1,'PathFileType\t4\t(X/Y/Z)\t %s\n', save_file_name);
                     fprintf(fid_1,'DataRate\tCameraRate\tNumFrames\tNumMarkers\tUnits\tOrigDataRate\tOrigDataStartFrame\tOrigNumFrames\n');
                     fprintf(fid_1,'%d\t%d\t%d\t%d\t%s\t%d\t%d\t%d\n', sampling_rate_mocap, sampling_rate_mocap, number_of_data_points, number_of_markers, 'mm', sampling_rate_mocap, 1, number_of_data_points); 
 
@@ -283,22 +246,10 @@ function exportToOpensim(varargin)
                     % close the file
                     fclose(fid_1);
                     disp(['processed ' marker_file_name ' and saved as ' save_file_name])
+                else
+                    disp(['failed to load ' marker_file_name ' - skipped'])
                 end
             end
         end
-    
     end
-
-    
-    
-
-
-    
-    
-    
-    
-    
-    
-    
-    
 end

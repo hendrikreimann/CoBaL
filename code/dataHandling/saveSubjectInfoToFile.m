@@ -15,6 +15,7 @@
 %     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 function saveSubjectInfoToFile(varargin)
+    variables_to_save = struct;
 
     parser = inputParser;
     parser.KeepUnmatched = true;
@@ -25,69 +26,6 @@ function saveSubjectInfoToFile(varargin)
     % get subject settings
     subject_settings = SettingsCustodian('subjectSettings.txt');
     trial_types_to_ignore = subject_settings.get('trial_types_to_ignore');
-    
-    % get subject code
-    current_path = pwd;
-    path_split = strsplit(current_path, filesep);
-
-%     % open subject list from root and extract subject data
-%     subject_data_file = '';
-%     if exist(['..' filesep 'subjects.csv'], 'file')
-%         subject_data_file = ['..' filesep 'subjects.csv'];
-%         subject_code = path_split{end};
-%     end    
-%     if exist(['..' filesep '..' filesep 'subjects.csv'], 'file')
-%         subject_data_file = ['..' filesep '..' filesep 'subjects.csv'];
-%         subject_code = path_split{end-1};
-%     end
-%     if isempty(subject_data_file)
-%         disp('Failed to load "subjects.csv".')
-%         return
-%     end
-%     
-%     format = '%s';
-%     fid = fopen(subject_data_file);
-% 
-%     header_string = fgetl(fid);
-%     unit_string = fgetl(fid); %#ok<NASGU>
-%     data_raw = textscan(fid, format);
-%     fclose(fid);
-
-    variables_to_save = struct;
-    
-    
-    % find header info
-%     header = strsplit(header_string, ',');
-    
-    % find line for this subject
-%     data_lines = data_raw{1};
-%     data_cell = {};
-%     for i_line = 1 : size(data_lines, 1)
-%         line_split = strsplit(data_lines{i_line}, ',');
-%         data_cell = [data_cell; line_split]; %#ok<AGROW>
-%     end
-%     subject_row = find(strcmp(data_cell(:, strcmp(header, 'ID')), subject_code));
-%     
-%     % extract data
-%     for i_column = 2 : length(header)
-%         variable_name = strrep(header{i_column}, ' ', '_');
-%         variable_value = data_cell{subject_row, i_column};
-%         if all(ismember(variable_value, '0123456789-.'))
-%             variable_value = str2num(variable_value); %#ok<ST2NM,NASGU>
-%         end
-%         evalstring = ['variables_to_save.' variable_name ' = variable_value;'];
-%         eval(evalstring);
-%     end
-    
-%     % find entries mapping EMG headers to muscle codes
-%     emg_sensor_map = {};
-%     for i_column = 1 : length(header)
-%         if length(header{i_column}) >=3 && strcmp(header{i_column}(1:3), 'EMG')
-%             muscle_code = data_cell{subject_row, i_column};
-%             emg_sensor_map = [emg_sensor_map, {header{i_column}; muscle_code}]; %#ok<AGROW>
-%         end
-%     end
-%     variables_to_save.emg_sensor_map = emg_sensor_map;
     
     % get parameters from settings file
     parameters_cell = subject_settings.get('subject_info', 1);
@@ -105,7 +43,7 @@ function saveSubjectInfoToFile(varargin)
     variables_to_save.subject_id = subject_id;
 
     % get list of conditions
-    condition_list = {};
+    trial_type_list = {};
     trial_number_list = {};
     for i_file = 1 : length(file_name_list)
         data_file_name = file_name_list{i_file};
@@ -113,12 +51,12 @@ function saveSubjectInfoToFile(varargin)
         if sum(data_file_name=='_') == 4
             [date, subject_id, trial_type, trial_number, file_type] = getFileParameters(data_file_name); %#ok<ASGLU>
 
-            if ~any(strcmp(condition_list, trial_type))
-                condition_list = [condition_list; trial_type]; %#ok<AGROW>
+            if ~any(strcmp(trial_type_list, trial_type))
+                trial_type_list = [trial_type_list; trial_type]; %#ok<AGROW>
                 trial_number_list = [trial_number_list; trial_number]; %#ok<AGROW>
             else
                 % add current trial to trial number list
-                condition_index = find(strcmp(condition_list, trial_type), 1);
+                condition_index = find(strcmp(trial_type_list, trial_type), 1);
                 trial_number_list{condition_index} = [trial_number_list{condition_index} trial_number]; %#ok<AGROW>
                 % remove duplicates
                 trial_number_list{condition_index} = unique(trial_number_list{condition_index}); %#ok<AGROW>
@@ -129,7 +67,7 @@ function saveSubjectInfoToFile(varargin)
     % remove trials listed in subjectSettings.txt
     trials_to_exclude = subject_settings.get('trials_to_exclude', true);
     for i_trial = 1 : size(trials_to_exclude, 1)
-        condition_index = find(strcmp(condition_list, trials_to_exclude{i_trial, 1}));
+        condition_index = find(strcmp(trial_type_list, trials_to_exclude{i_trial, 1}));
         if ~isempty(condition_index)
             trial_number_list_this_condition = trial_number_list{condition_index};
             matches = ismember(trial_number_list_this_condition, str2num(trials_to_exclude{i_trial, 2})); %#ok<ST2NM>
@@ -174,7 +112,7 @@ function saveSubjectInfoToFile(varargin)
             condition_cell(i_trial, :) = line_split(2:end);
         end
         
-        walking_condition_index = find(strcmp(condition_list, 'walking'));
+        walking_condition_index = find(strcmp(trial_type_list, 'walking'));
         if ~isempty(walking_condition_index)
             trial_number_list_walking = trial_number_list{walking_condition_index};
             matches = ismember(trial_number_list_walking, trials_from_condition_file_list);
@@ -184,12 +122,11 @@ function saveSubjectInfoToFile(varargin)
         end
         
     end
-    variables_to_save.condition_list = condition_list;
-    variables_to_save.trial_number_list = trial_number_list; %#ok<STRNU>
-    variables_to_save.trial_types_to_ignore = trial_types_to_ignore;
-    
     
     % save
+    variables_to_save.condition_list = trial_type_list;
+    variables_to_save.trial_number_list = trial_number_list;
+    variables_to_save.trial_types_to_ignore = trial_types_to_ignore; %#ok<STRNU>
     save_file_name = 'subjectInfo.mat';
     save(save_file_name, '-struct', 'variables_to_save');
     

@@ -158,9 +158,6 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('com_trajectories')
             end
             
-            
-            
-            
             % kinematics
             if this.isVariableToAnalyze('lheel_x')
                 this.addBasicVariable('marker_trajectories')
@@ -321,7 +318,9 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('total_forceplate_cop_world')
                 this.addBasicVariable('cop_x')
                 this.addStretchVariable('cop_x')
-                this.addBasicVariable('com_trajectories')
+%                 this.addBasicVariable('com_trajectories') % in-house kinematics
+%                 this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                this.addBasicVariable('com')
                 this.addBasicVariable('com_x')
                 this.addStretchVariable('com_x')
                 this.addStretchVariable('cop_from_com_x')
@@ -330,7 +329,9 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('total_forceplate_cop_world')
                 this.addBasicVariable('cop_y')
                 this.addStretchVariable('cop_y')
-                this.addBasicVariable('com_trajectories')
+%                 this.addBasicVariable('com_trajectories') % in-house kinematics
+%                 this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                this.addBasicVariable('com')
                 this.addBasicVariable('com_y')
                 this.addStretchVariable('com_y')
                 this.addStretchVariable('cop_from_com_y')
@@ -339,7 +340,9 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('total_forceplate_cop_world')
                 this.addBasicVariable('cop_x')
                 this.addStretchVariable('cop_x')
-                this.addBasicVariable('com_trajectories')
+%                 this.addBasicVariable('com_trajectories') % in-house kinematics
+%                 this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                this.addBasicVariable('com')
                 this.addBasicVariable('com_x')
                 this.addStretchVariable('com_x')
                 this.addStretchVariable('cop_to_com_x')
@@ -348,7 +351,9 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('total_forceplate_cop_world')
                 this.addBasicVariable('cop_y')
                 this.addStretchVariable('cop_y')
-                this.addBasicVariable('com_trajectories')
+%                 this.addBasicVariable('com_trajectories') % in-house kinematics
+%                 this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                this.addBasicVariable('com')
                 this.addBasicVariable('com_y')
                 this.addStretchVariable('com_y')
                 this.addStretchVariable('cop_to_com_y')
@@ -359,13 +364,17 @@ classdef WalkingDataCustodian < handle
                 this.addStretchVariable('lheel_x')
                 this.addBasicVariable('rheel_x')
                 this.addStretchVariable('rheel_x')
-                this.addBasicVariable('com_trajectories')
+%                 this.addBasicVariable('com_trajectories') % in-house kinematics
+%                 this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                this.addBasicVariable('com')
                 this.addBasicVariable('com_x')
                 this.addStretchVariable('com_x')
                 this.addStretchVariable('init_heel_to_com_x')
             end
             if this.isVariableToAnalyze('cop_to_com_vel_scaled_x')
-                this.addBasicVariable('com_trajectories')
+%                 this.addBasicVariable('com_trajectories') % in-house kinematics
+%                 this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                this.addBasicVariable('com')
                 this.addBasicVariable('com_x')
                 this.addBasicVariable('com_x_vel')
                 this.addStretchVariable('com_x_vel')
@@ -380,7 +389,9 @@ classdef WalkingDataCustodian < handle
                 this.addStretchVariable('cop_to_com_vel_scaled_x')
             end
             if this.isVariableToAnalyze('cop_to_com_vel_scaled_y')
-                this.addBasicVariable('com_trajectories')
+%                 this.addBasicVariable('com_trajectories') % in-house kinematics
+%                 this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                this.addBasicVariable('com')
                 this.addBasicVariable('com_y')
                 this.addBasicVariable('com_y_vel')
                 this.addStretchVariable('com_y_vel')
@@ -544,28 +555,37 @@ classdef WalkingDataCustodian < handle
                 this.addStretchVariable('right_arm_phase_at_heelstrike')
             end
             if this.isVariableToAnalyze('com_x')
-                this.addBasicVariable('com_trajectories')
+%                 this.addBasicVariable('com_trajectories') % in-house kinematics
+%                 this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                this.addBasicVariable('com')
                 this.addBasicVariable('com_x')
                 this.addStretchVariable('com_x')
             end
             if this.isVariableToAnalyze('com_y')
-                this.addBasicVariable('com_trajectories')
+%                 this.addBasicVariable('com_trajectories') % in-house kinematics
+%                 this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                this.addBasicVariable('com')
                 this.addBasicVariable('com_y')
                 this.addStretchVariable('com_y')
             end
             if this.isVariableToAnalyze('com_z')
-                this.addBasicVariable('com_trajectories')
+                this.addBasicVariable('com_trajectories') % in-house kinematics
+                this.addBasicVariable('com_position_trajectories') % opensim kinematics
                 this.addBasicVariable('com_z')
                 this.addStretchVariable('com_z')
             end
             if this.isVariableToAnalyze('com_x_vel')
-                this.addBasicVariable('com_trajectories')
+%                 this.addBasicVariable('com_trajectories') % in-house kinematics
+%                 this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                this.addBasicVariable('com')
                 this.addBasicVariable('com_x')
                 this.addBasicVariable('com_x_vel')
                 this.addStretchVariable('com_x_vel')
             end
             if this.isVariableToAnalyze('com_x_vel_scaled')
-                this.addBasicVariable('com_trajectories')
+%                 this.addBasicVariable('com_trajectories') % in-house kinematics
+%                 this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                this.addBasicVariable('com')
                 this.addBasicVariable('com_x')
                 this.addBasicVariable('com_x_vel')
                 this.addStretchVariable('com_x_vel')
@@ -574,33 +594,43 @@ classdef WalkingDataCustodian < handle
                 this.addStretchVariable('com_x_vel_scaled')
             end
             if this.isVariableToAnalyze('com_y_vel')
-                this.addBasicVariable('com_trajectories')
+%                 this.addBasicVariable('com_trajectories') % in-house kinematics
+%                 this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                this.addBasicVariable('com')
                 this.addBasicVariable('com_y')
                 this.addBasicVariable('com_y_vel')
                 this.addStretchVariable('com_y_vel')
             end
             if this.isVariableToAnalyze('com_z_vel')
-                this.addBasicVariable('com_trajectories')
+%                 this.addBasicVariable('com_trajectories') % in-house kinematics
+%                 this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                this.addBasicVariable('com')
                 this.addBasicVariable('com_z')
                 this.addBasicVariable('com_z_vel')
                 this.addStretchVariable('com_z_vel')
             end
             if this.isVariableToAnalyze('com_x_acc')
-                this.addBasicVariable('com_trajectories')
+%                 this.addBasicVariable('com_trajectories') % in-house kinematics
+%                 this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                this.addBasicVariable('com')
                 this.addBasicVariable('com_x')
                 this.addBasicVariable('com_x_vel')
                 this.addBasicVariable('com_x_acc')
                 this.addStretchVariable('com_x_acc')
             end
             if this.isVariableToAnalyze('com_y_acc')
-                this.addBasicVariable('com_trajectories')
+%                 this.addBasicVariable('com_trajectories') % in-house kinematics
+%                 this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                this.addBasicVariable('com')
                 this.addBasicVariable('com_y')
                 this.addBasicVariable('com_y_vel')
                 this.addBasicVariable('com_y_acc')
                 this.addStretchVariable('com_y_acc')
             end
             if this.isVariableToAnalyze('com_z_acc')
-                this.addBasicVariable('com_trajectories')
+%                 this.addBasicVariable('com_trajectories') % in-house kinematics
+%                 this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                this.addBasicVariable('com')
                 this.addBasicVariable('com_z')
                 this.addBasicVariable('com_z_vel')
                 this.addBasicVariable('com_z_acc')
@@ -621,210 +651,6 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('rtoes_y')
                 this.addBasicVariable('rtoes_z')
                 this.addStretchVariable('toes_clearance')
-            end
-            % joint angles
-            if false
-                if this.isVariableToAnalyze('lumbar_roll_angle')
-                    this.addBasicVariable('joint_angle_trajectories')
-                    this.addBasicVariable('lumbar_roll_angle')
-                    this.addStretchVariable('lumbar_roll_angle')
-                end
-                if this.isVariableToAnalyze('lumbar_pitch_angle')
-                    this.addBasicVariable('joint_angle_trajectories')
-                    this.addBasicVariable('lumbar_pitch_angle')
-                    this.addStretchVariable('lumbar_pitch_angle')
-                end
-                if this.isVariableToAnalyze('lumbar_yaw_angle')
-                    this.addBasicVariable('joint_angle_trajectories')
-                    this.addBasicVariable('lumbar_yaw_angle')
-                    this.addStretchVariable('lumbar_yaw_angle')
-                end
-                if this.isVariableToAnalyze('cervical_roll_angle')
-                    this.addBasicVariable('joint_angle_trajectories')
-                    this.addBasicVariable('cervical_roll_angle')
-                    this.addStretchVariable('cervical_roll_angle')
-                end
-                if this.isVariableToAnalyze('cervical_pitch_angle')
-                    this.addBasicVariable('joint_angle_trajectories')
-                    this.addBasicVariable('cervical_pitch_angle')
-                    this.addStretchVariable('cervical_pitch_angle')
-                end
-                if this.isVariableToAnalyze('cervical_yaw_angle')
-                    this.addBasicVariable('joint_angle_trajectories')
-                    this.addBasicVariable('cervical_yaw_angle')
-                    this.addStretchVariable('cervical_yaw_angle')
-                end
-                if this.isVariableToAnalyze('left_hip_abduction_angle')
-                    this.addBasicVariable('joint_angle_trajectories')
-                    this.addBasicVariable('left_hip_abduction_angle')
-                    this.addStretchVariable('left_hip_abduction_angle')
-                end
-                if this.isVariableToAnalyze('left_hip_flexion_angle')
-                    this.addBasicVariable('joint_angle_trajectories')
-                    this.addBasicVariable('left_hip_flexion_angle')
-                    this.addStretchVariable('left_hip_flexion_angle')
-                end
-                if this.isVariableToAnalyze('left_hip_introtation_angle')
-                    this.addBasicVariable('joint_angle_trajectories')
-                    this.addBasicVariable('left_hip_introtation_angle')
-                    this.addStretchVariable('left_hip_introtation_angle')
-                end
-                if this.isVariableToAnalyze('left_knee_flexion_angle')
-                    this.addBasicVariable('joint_angle_trajectories')
-                    this.addBasicVariable('left_knee_flexion_angle')
-                    this.addStretchVariable('left_knee_flexion_angle')
-                end
-                if this.isVariableToAnalyze('left_knee_extrotation_angle')
-                    this.addBasicVariable('joint_angle_trajectories')
-                    this.addBasicVariable('left_knee_extrotation_angle')
-                    this.addStretchVariable('left_knee_extrotation_angle')
-                end
-                if this.isVariableToAnalyze('left_ankle_eversion_angle')
-                    this.addBasicVariable('joint_angle_trajectories')
-                    this.addBasicVariable('left_ankle_eversion_angle')
-                    this.addStretchVariable('left_ankle_eversion_angle')
-                end
-                if this.isVariableToAnalyze('left_ankle_dorsiflexion_angle')
-                    this.addBasicVariable('joint_angle_trajectories')
-                    this.addBasicVariable('left_ankle_dorsiflexion_angle')
-                    this.addStretchVariable('left_ankle_dorsiflexion_angle')
-                end
-                if this.isVariableToAnalyze('right_hip_abduction_angle')
-                    this.addBasicVariable('joint_angle_trajectories')
-                    this.addBasicVariable('right_hip_abduction_angle')
-                    this.addStretchVariable('right_hip_abduction_angle')
-                end
-                if this.isVariableToAnalyze('right_hip_flexion_angle')
-                    this.addBasicVariable('joint_angle_trajectories')
-                    this.addBasicVariable('right_hip_flexion_angle')
-                    this.addStretchVariable('right_hip_flexion_angle')
-                end
-                if this.isVariableToAnalyze('right_hip_introtation_angle')
-                    this.addBasicVariable('joint_angle_trajectories')
-                    this.addBasicVariable('right_hip_introtation_angle')
-                    this.addStretchVariable('right_hip_introtation_angle')
-                end
-                if this.isVariableToAnalyze('right_knee_flexion_angle')
-                    this.addBasicVariable('joint_angle_trajectories')
-                    this.addBasicVariable('right_knee_flexion_angle')
-                    this.addStretchVariable('right_knee_flexion_angle')
-                end
-                if this.isVariableToAnalyze('right_knee_extrotation_angle')
-                    this.addBasicVariable('joint_angle_trajectories')
-                    this.addBasicVariable('right_knee_extrotation_angle')
-                    this.addStretchVariable('right_knee_extrotation_angle')
-                end
-                if this.isVariableToAnalyze('right_ankle_eversion_angle')
-                    this.addBasicVariable('joint_angle_trajectories')
-                    this.addBasicVariable('right_ankle_eversion_angle')
-                    this.addStretchVariable('right_ankle_eversion_angle')
-                end
-                if this.isVariableToAnalyze('right_ankle_dorsiflexion_angle')
-                    this.addBasicVariable('joint_angle_trajectories')
-                    this.addBasicVariable('right_ankle_dorsiflexion_angle')
-                    this.addStretchVariable('right_ankle_dorsiflexion_angle')
-                end    
-                % joint torques
-                if this.isVariableToAnalyze('lumbar_roll_torque')
-                    this.addBasicVariable('joint_torque_trajectories')
-                    this.addBasicVariable('lumbar_roll_torque')
-                    this.addStretchVariable('lumbar_roll_torque')
-                end
-                if this.isVariableToAnalyze('lumbar_pitch_torque')
-                    this.addBasicVariable('joint_torque_trajectories')
-                    this.addBasicVariable('lumbar_pitch_torque')
-                    this.addStretchVariable('lumbar_pitch_torque')
-                end
-                if this.isVariableToAnalyze('lumbar_yaw_torque')
-                    this.addBasicVariable('joint_torque_trajectories')
-                    this.addBasicVariable('lumbar_yaw_torque')
-                    this.addStretchVariable('lumbar_yaw_torque')
-                end
-                if this.isVariableToAnalyze('cervical_roll_torque')
-                    this.addBasicVariable('joint_torque_trajectories')
-                    this.addBasicVariable('cervical_roll_torque')
-                    this.addStretchVariable('cervical_roll_torque')
-                end
-                if this.isVariableToAnalyze('cervical_pitch_torque')
-                    this.addBasicVariable('joint_torque_trajectories')
-                    this.addBasicVariable('cervical_pitch_torque')
-                    this.addStretchVariable('cervical_pitch_torque')
-                end
-                if this.isVariableToAnalyze('cervical_yaw_torque')
-                    this.addBasicVariable('joint_torque_trajectories')
-                    this.addBasicVariable('cervical_yaw_torque')
-                    this.addStretchVariable('cervical_yaw_torque')
-                end
-                if this.isVariableToAnalyze('left_hip_abduction_torque')
-                    this.addBasicVariable('joint_torque_trajectories')
-                    this.addBasicVariable('left_hip_abduction_torque')
-                    this.addStretchVariable('left_hip_abduction_torque')
-                end
-                if this.isVariableToAnalyze('left_hip_flexion_torque')
-                    this.addBasicVariable('joint_torque_trajectories')
-                    this.addBasicVariable('left_hip_flexion_torque')
-                    this.addStretchVariable('left_hip_flexion_torque')
-                end
-                if this.isVariableToAnalyze('left_hip_introtation_torque')
-                    this.addBasicVariable('joint_torque_trajectories')
-                    this.addBasicVariable('left_hip_introtation_torque')
-                    this.addStretchVariable('left_hip_introtation_torque')
-                end
-                if this.isVariableToAnalyze('left_knee_flexion_torque')
-                    this.addBasicVariable('joint_torque_trajectories')
-                    this.addBasicVariable('left_knee_flexion_torque')
-                    this.addStretchVariable('left_knee_flexion_torque')
-                end
-                if this.isVariableToAnalyze('left_knee_extrotation_torque')
-                    this.addBasicVariable('joint_torque_trajectories')
-                    this.addBasicVariable('left_knee_extrotation_torque')
-                    this.addStretchVariable('left_knee_extrotation_torque')
-                end
-                if this.isVariableToAnalyze('left_ankle_eversion_torque')
-                    this.addBasicVariable('joint_torque_trajectories')
-                    this.addBasicVariable('left_ankle_eversion_torque')
-                    this.addStretchVariable('left_ankle_eversion_torque')
-                end
-                if this.isVariableToAnalyze('left_ankle_dorsiflexion_torque')
-                    this.addBasicVariable('joint_torque_trajectories')
-                    this.addBasicVariable('left_ankle_dorsiflexion_torque')
-                    this.addStretchVariable('left_ankle_dorsiflexion_torque')
-                end
-                if this.isVariableToAnalyze('right_hip_abduction_torque')
-                    this.addBasicVariable('joint_torque_trajectories')
-                    this.addBasicVariable('right_hip_abduction_torque')
-                    this.addStretchVariable('right_hip_abduction_torque')
-                end
-                if this.isVariableToAnalyze('right_hip_flexion_torque')
-                    this.addBasicVariable('joint_torque_trajectories')
-                    this.addBasicVariable('right_hip_flexion_torque')
-                    this.addStretchVariable('right_hip_flexion_torque')
-                end
-                if this.isVariableToAnalyze('right_hip_introtation_torque')
-                    this.addBasicVariable('joint_torque_trajectories')
-                    this.addBasicVariable('right_hip_introtation_torque')
-                    this.addStretchVariable('right_hip_introtation_torque')
-                end
-                if this.isVariableToAnalyze('right_knee_flexion_torque')
-                    this.addBasicVariable('joint_torque_trajectories')
-                    this.addBasicVariable('right_knee_flexion_torque')
-                    this.addStretchVariable('right_knee_flexion_torque')
-                end
-                if this.isVariableToAnalyze('right_knee_extrotation_torque')
-                    this.addBasicVariable('joint_torque_trajectories')
-                    this.addBasicVariable('right_knee_extrotation_torque')
-                    this.addStretchVariable('right_knee_extrotation_torque')
-                end
-                if this.isVariableToAnalyze('right_ankle_eversion_torque')
-                    this.addBasicVariable('joint_torque_trajectories')
-                    this.addBasicVariable('right_ankle_eversion_torque')
-                    this.addStretchVariable('right_ankle_eversion_torque')
-                end
-                if this.isVariableToAnalyze('right_ankle_dorsiflexion_torque')
-                    this.addBasicVariable('joint_torque_trajectories')
-                    this.addBasicVariable('right_ankle_dorsiflexion_torque')
-                    this.addStretchVariable('right_ankle_dorsiflexion_torque')
-                end
             end
             % force plate
             if this.isVariableToAnalyze('copl_y')
@@ -973,248 +799,6 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('mz')
                 this.addStretchVariable('mz')
             end
-            % emg
-            if false
-                if this.isVariableToAnalyze('left_glut_med')
-                    this.addBasicVariable('emg_trajectories')
-                    this.addBasicVariable('left_glut_med')
-                    this.addStretchVariable('left_glut_med')
-                end
-                if this.isVariableToAnalyze('left_delt_ant')
-                    this.addBasicVariable('emg_trajectories')
-                    this.addBasicVariable('left_delt_ant')
-                    this.addStretchVariable('left_delt_ant')
-                end
-                if this.isVariableToAnalyze('left_delt_post')
-                    this.addBasicVariable('emg_trajectories')
-                    this.addBasicVariable('left_delt_post')
-                    this.addStretchVariable('left_delt_post')
-                end
-                if this.isVariableToAnalyze('left_tibi_ant')
-                    this.addBasicVariable('emg_trajectories')
-                    this.addBasicVariable('left_tibi_ant')
-                    this.addStretchVariable('left_tibi_ant')
-                end
-                if this.isVariableToAnalyze('left_gastroc_med')
-                    this.addBasicVariable('emg_trajectories')
-                    this.addBasicVariable('left_gastroc_med')
-                    this.addStretchVariable('left_gastroc_med')
-                end
-                if this.isVariableToAnalyze('left_pero_lng')
-                    this.addBasicVariable('emg_trajectories')
-                    this.addBasicVariable('left_pero_lng')
-                    this.addStretchVariable('left_pero_lng')
-                end
-                if this.isVariableToAnalyze('left_tfl')
-                    this.addBasicVariable('emg_trajectories')
-                    this.addBasicVariable('left_tfl')
-                    this.addStretchVariable('left_tfl')
-                end
-                if this.isVariableToAnalyze('left_rect_fem')
-                    this.addBasicVariable('emg_trajectories')
-                    this.addBasicVariable('left_rect_fem')
-                    this.addStretchVariable('left_rect_fem')
-                end
-                if this.isVariableToAnalyze('left_bic_fem')
-                    this.addBasicVariable('emg_trajectories')
-                    this.addBasicVariable('left_bic_fem')
-                    this.addStretchVariable('left_bic_fem')
-                end
-                if this.isVariableToAnalyze('left_erect_spin')
-                    this.addBasicVariable('emg_trajectories')
-                    this.addBasicVariable('left_erect_spin')
-                    this.addStretchVariable('left_erect_spin')
-                end
-                if this.isVariableToAnalyze('left_soleus')
-                    this.addBasicVariable('emg_trajectories')
-                    this.addBasicVariable('left_soleus')
-                    this.addStretchVariable('left_soleus')
-                end
-
-                if this.isVariableToAnalyze('right_glut_med')
-                    this.addBasicVariable('emg_trajectories')
-                    this.addBasicVariable('right_glut_med')
-                    this.addStretchVariable('right_glut_med')
-                end
-                if this.isVariableToAnalyze('right_delt_ant')
-                    this.addBasicVariable('emg_trajectories')
-                    this.addBasicVariable('right_delt_ant')
-                    this.addStretchVariable('right_delt_ant')
-                end
-                if this.isVariableToAnalyze('right_delt_post')
-                    this.addBasicVariable('emg_trajectories')
-                    this.addBasicVariable('right_delt_post')
-                    this.addStretchVariable('right_delt_post')
-                end
-                if this.isVariableToAnalyze('right_tibi_ant')
-                    this.addBasicVariable('emg_trajectories')
-                    this.addBasicVariable('right_tibi_ant')
-                    this.addStretchVariable('right_tibi_ant')
-                end
-                if this.isVariableToAnalyze('right_gastroc_med')
-                    this.addBasicVariable('emg_trajectories')
-                    this.addBasicVariable('right_gastroc_med')
-                    this.addStretchVariable('right_gastroc_med')
-                end
-                if this.isVariableToAnalyze('right_pero_lng')
-                    this.addBasicVariable('emg_trajectories')
-                    this.addBasicVariable('right_pero_lng')
-                    this.addStretchVariable('right_pero_lng')
-                end
-                if this.isVariableToAnalyze('right_tfl')
-                    this.addBasicVariable('emg_trajectories')
-                    this.addBasicVariable('right_tfl')
-                    this.addStretchVariable('right_tfl')
-                end
-                if this.isVariableToAnalyze('right_rect_fem')
-                    this.addBasicVariable('emg_trajectories')
-                    this.addBasicVariable('right_rect_fem')
-                    this.addStretchVariable('right_rect_fem')
-                end
-                if this.isVariableToAnalyze('right_bic_fem')
-                    this.addBasicVariable('emg_trajectories')
-                    this.addBasicVariable('right_bic_fem')
-                    this.addStretchVariable('right_bic_fem')
-                end
-                if this.isVariableToAnalyze('right_erect_spin')
-                    this.addBasicVariable('emg_trajectories')
-                    this.addBasicVariable('right_erect_spin')
-                    this.addStretchVariable('right_erect_spin')
-                end
-                if this.isVariableToAnalyze('right_soleus')
-                    this.addBasicVariable('emg_trajectories')
-                    this.addBasicVariable('right_soleus')
-                    this.addStretchVariable('right_soleus')
-                end
-                if this.isVariableToAnalyze('left_glut_med_rescaled')
-                    this.addBasicVariable('emg_trajectories')
-                    this.addBasicVariable('left_glut_med')
-                    this.addStretchVariable('left_glut_med')
-                    this.addStretchVariable('left_glut_med_rescaled')
-                end
-                if this.isVariableToAnalyze('left_delt_ant_rescaled')
-                    this.addBasicVariable('emg_trajectories')
-                    this.addBasicVariable('left_delt_ant')
-                    this.addStretchVariable('left_delt_ant')
-                    this.addStretchVariable('left_delt_ant_rescaled')
-                end
-                if this.isVariableToAnalyze('left_delt_post_rescaled')
-                    this.addBasicVariable('emg_trajectories')
-                    this.addBasicVariable('left_delt_post')
-                    this.addStretchVariable('left_delt_post')
-                    this.addStretchVariable('left_delt_post_rescaled')
-                end
-                if this.isVariableToAnalyze('left_tibi_ant_rescaled')
-                    this.addBasicVariable('emg_trajectories')
-                    this.addBasicVariable('left_tibi_ant')
-                    this.addStretchVariable('left_tibi_ant')
-                    this.addStretchVariable('left_tibi_ant_rescaled')
-                end
-                if this.isVariableToAnalyze('left_gastroc_med_rescaled')
-                    this.addBasicVariable('emg_trajectories')
-                    this.addBasicVariable('left_gastroc_med')
-                    this.addStretchVariable('left_gastroc_med')
-                    this.addStretchVariable('left_gastroc_med_rescaled')
-                end
-                if this.isVariableToAnalyze('left_pero_lng_rescaled')
-                    this.addBasicVariable('emg_trajectories')
-                    this.addBasicVariable('left_pero_lng')
-                    this.addStretchVariable('left_pero_lng')
-                    this.addStretchVariable('left_pero_lng_rescaled')
-                end
-                if this.isVariableToAnalyze('left_tfl_rescaled')
-                    this.addBasicVariable('emg_trajectories')
-                    this.addBasicVariable('left_tfl')
-                    this.addStretchVariable('left_tfl')
-                    this.addStretchVariable('left_tfl_rescaled')
-                end
-                if this.isVariableToAnalyze('left_rect_fem_rescaled')
-                    this.addBasicVariable('emg_trajectories')
-                    this.addBasicVariable('left_rect_fem')
-                    this.addStretchVariable('left_rect_fem')
-                    this.addStretchVariable('left_rect_fem_rescaled')
-                end
-                if this.isVariableToAnalyze('left_bic_fem_rescaled')
-                    this.addBasicVariable('emg_trajectories')
-                    this.addBasicVariable('left_bic_fem')
-                    this.addStretchVariable('left_bic_fem')
-                    this.addStretchVariable('left_bic_fem_rescaled')
-                end
-                if this.isVariableToAnalyze('left_erect_spin_rescaled')
-                    this.addBasicVariable('emg_trajectories')
-                    this.addBasicVariable('left_erect_spin')
-                    this.addStretchVariable('left_erect_spin_rescaled')
-                end
-                if this.isVariableToAnalyze('left_soleus_rescaled')
-                    this.addBasicVariable('emg_trajectories')
-                    this.addBasicVariable('left_soleus')
-                    this.addStretchVariable('left_soleus_rescaled')
-                end
-                if this.isVariableToAnalyze('right_glut_med_rescaled')
-                    this.addBasicVariable('emg_trajectories')
-                    this.addBasicVariable('right_glut_med')
-                    this.addStretchVariable('right_glut_med')
-                    this.addStretchVariable('right_glut_med_rescaled')
-                end
-                if this.isVariableToAnalyze('right_delt_ant_rescaled')
-                    this.addBasicVariable('emg_trajectories')
-                    this.addBasicVariable('right_delt_ant')
-                    this.addStretchVariable('right_delt_ant')
-                    this.addStretchVariable('right_delt_ant_rescaled')
-                end
-                if this.isVariableToAnalyze('right_delt_post_rescaled')
-                    this.addBasicVariable('emg_trajectories')
-                    this.addBasicVariable('right_delt_post')
-                    this.addStretchVariable('right_delt_post')
-                    this.addStretchVariable('right_delt_post_rescaled')
-                end
-                if this.isVariableToAnalyze('right_tibi_ant_rescaled')
-                    this.addBasicVariable('emg_trajectories')
-                    this.addBasicVariable('right_tibi_ant')
-                    this.addStretchVariable('right_tibi_ant')
-                    this.addStretchVariable('right_tibi_ant_rescaled')
-                end
-                if this.isVariableToAnalyze('right_gastroc_med_rescaled')
-                    this.addBasicVariable('emg_trajectories')
-                    this.addBasicVariable('right_gastroc_med')
-                    this.addStretchVariable('right_gastroc_med')
-                    this.addStretchVariable('right_gastroc_med_rescaled')
-                end
-                if this.isVariableToAnalyze('right_pero_lng_rescaled')
-                    this.addBasicVariable('emg_trajectories')
-                    this.addBasicVariable('right_pero_lng')
-                    this.addStretchVariable('right_pero_lng')
-                    this.addStretchVariable('right_pero_lng_rescaled')
-                end
-                if this.isVariableToAnalyze('right_tfl_rescaled')
-                    this.addBasicVariable('emg_trajectories')
-                    this.addBasicVariable('right_tfl')
-                    this.addStretchVariable('right_tfl')
-                    this.addStretchVariable('right_tfl_rescaled')
-                end
-                if this.isVariableToAnalyze('right_rect_fem_rescaled')
-                    this.addBasicVariable('emg_trajectories')
-                    this.addBasicVariable('right_rect_fem')
-                    this.addStretchVariable('right_rect_fem')
-                    this.addStretchVariable('right_rect_fem_rescaled')
-                end
-                if this.isVariableToAnalyze('right_bic_fem_rescaled')
-                    this.addBasicVariable('emg_trajectories')
-                    this.addBasicVariable('right_bic_fem')
-                    this.addStretchVariable('right_bic_fem')
-                    this.addStretchVariable('right_bic_fem_rescaled')
-                end
-                if this.isVariableToAnalyze('right_erect_spin_rescaled')
-                    this.addBasicVariable('emg_trajectories')
-                    this.addBasicVariable('right_erect_spin')
-                    this.addStretchVariable('right_erect_spin_rescaled')
-                end
-                if this.isVariableToAnalyze('right_soleus_rescaled')
-                    this.addBasicVariable('emg_trajectories')
-                    this.addBasicVariable('right_soleus')
-                    this.addStretchVariable('right_soleus_rescaled')
-                end
-            end
         end
         
         % interface
@@ -1281,7 +865,7 @@ classdef WalkingDataCustodian < handle
             data_to_remove_header = this.subject_settings.get('data_to_remove_header');
             data_to_remove = this.subject_settings.get('data_to_remove');
             if ~isempty(data_to_remove)
-                this_trial_rows = strcmp(data_to_remove(:, strcmp(data_to_remove_header, 'trial to remove')), num2str(trial_number));
+                this_trial_rows = strcmp(data_to_remove(:, strcmp(data_to_remove_header, 'trial_number')), num2str(trial_number));
                 data_to_remove_this_trial = data_to_remove(this_trial_rows, 1);
             else
                 data_to_remove_this_trial = [];
@@ -1317,9 +901,6 @@ classdef WalkingDataCustodian < handle
                 % check if this is a compound name, listing a loaded variable and a label
                 if any(variable_name==':')
                     this_variable_split = strsplit(variable_name, ':');
-%                     this.
-
-
                     this_variable_type = this_variable_split{1};
                     this_variable_label = this_variable_split{2};
                     if any(strcmp(this.basic_variable_labels.([this_variable_type '_trajectories']), this_variable_label))
@@ -2374,37 +1955,43 @@ classdef WalkingDataCustodian < handle
                     this.time_data.right_arm_left_leg_relative_phase = this.time_data.marker_trajectories;
                     success = 1;
                 end
+                
+                if strcmp(variable_name, 'com')
+                    if dataIsAvailable(this.subject_info.date, this.subject_info.subject_id, trial_type, trial_number, 'com_trajectories')
+                        % in-house kinematics - TODO: not tested yet
+                        [data, time, ~, labels, directions] = loadData(this.subject_info.date, this.subject_info.subject_id, trial_type, trial_number, 'com_trajectories');
+                        this.basic_variable_data.com = extractMarkerData(data, labels, 'BODYCOM');
+                        com_indices = extractMarkerData(data, labels, 'BODYCOM',  'indices');
+                        this.basic_variable_directions.com = directions(:, com_indices);
+                        this.time_data.com = time;
+                        success = 1;
+                    elseif dataIsAvailable(this.subject_info.date, this.subject_info.subject_id, trial_type, trial_number, 'com_position_trajectories')
+                        [data, time, ~, labels, directions] = loadData(this.subject_info.date, this.subject_info.subject_id, trial_type, trial_number, 'com_position_trajectories');
+                        this.basic_variable_data.com = extractMarkerData(data, labels, 'center_of_mass');
+                        com_indices = extractMarkerData(data, labels, 'center_of_mass',  'indices');
+                        this.basic_variable_directions.com = directions(:, com_indices);
+                        this.time_data.com = time;
+                        success = 1;
+                    else
+                        error('CoM data needed, but found neither in-house nor OpenSim data')
+                    end
+                end
                 if strcmp(variable_name, 'com_x')
-                    com_trajectory = extractMarkerData(this.basic_variable_data.com_trajectories, this.basic_variable_labels.com_trajectories, 'BODYCOM');
-                    this.basic_variable_data.com_x = com_trajectory(:, 1);
-
-                    com_indices = extractMarkerData(this.basic_variable_data.com_trajectories, this.basic_variable_labels.com_trajectories, 'BODYCOM',  'indices');
-                    com_directions_x = this.basic_variable_directions.com_trajectories(:, com_indices(1));
-                    this.basic_variable_directions.com_x = com_directions_x;
-                    
-                    this.time_data.com_x = this.time_data.com_trajectories;
+                    this.basic_variable_data.com_x = this.basic_variable_data.com(:, 1);
+                    this.basic_variable_directions.com_x = this.basic_variable_directions.com(:, 1);
+                    this.time_data.com_x = this.time_data.com;
                     success = 1;
                 end
                 if strcmp(variable_name, 'com_y')
-                    com_trajectory = extractMarkerData(this.basic_variable_data.com_trajectories, this.basic_variable_labels.com_trajectories, 'BODYCOM');
-                    this.basic_variable_data.com_y = com_trajectory(:, 2);
-
-                    com_indices = extractMarkerData(this.basic_variable_data.com_trajectories, this.basic_variable_labels.com_trajectories, 'BODYCOM',  'indices');
-                    com_directions_y = this.basic_variable_directions.com_trajectories(:, com_indices(2));
-                    this.basic_variable_directions.com_y = com_directions_y;
-                    
-                    this.time_data.com_y = this.time_data.com_trajectories;
+                    this.basic_variable_data.com_y = this.basic_variable_data.com(:, 2);
+                    this.basic_variable_directions.com_y = this.basic_variable_directions.com(:, 2);
+                    this.time_data.com_y = this.time_data.com;
                     success = 1;
                 end
                 if strcmp(variable_name, 'com_z')
-                    com_trajectory = extractMarkerData(this.basic_variable_data.com_trajectories, this.basic_variable_labels.com_trajectories, 'BODYCOM');
-                    this.basic_variable_data.com_z = com_trajectory(:, 3);
-
-                    com_indices = extractMarkerData(this.basic_variable_data.com_trajectories, this.basic_variable_labels.com_trajectories, 'BODYCOM',  'indices');
-                    com_directions_z = this.basic_variable_directions.com_trajectories(:, com_indices(3));
-                    this.basic_variable_directions.com_z = com_directions_z;
-                    
-                    this.time_data.com_z = this.time_data.com_trajectories;
+                    this.basic_variable_data.com_z = this.basic_variable_data.com(:, 3);
+                    this.basic_variable_directions.com_z = this.basic_variable_directions.com(:, 3);
+                    this.time_data.com_z = this.time_data.com;
                     success = 1;
                 end
                 if strcmp(variable_name, 'com_x_vel')
@@ -2511,251 +2098,6 @@ classdef WalkingDataCustodian < handle
                     this.basic_variable_directions.com_z_acc = this.basic_variable_directions.com_z_vel;
                     this.time_data.com_z_acc = time;
                     success = 1;
-                end
-%                 % joint angles
-                if false % this is being processed automatically now, but keeping around for a while
-%                 if strcmp(variable_name, 'lumbar_roll_angle')
-%                     joint_indicator = strcmp(this.basic_variable_labels.joint_angle_trajectories, 'lumbar joint - sideways bending (right/left)');
-%                     this.basic_variable_data.lumbar_roll_angle = rad2deg(this.basic_variable_data.joint_angle_trajectories(:, joint_indicator));
-%                     this.basic_variable_directions.lumbar_roll_angle = this.basic_variable_directions.joint_angle_trajectories(:, joint_indicator);
-%                     this.time_data.lumbar_roll_angle = this.time_data.joint_angle_trajectories;
-%                 end
-%                 if strcmp(variable_name, 'lumbar_pitch_angle')
-%                     joint_indicator = strcmp(this.basic_variable_labels.joint_angle_trajectories, 'lumbar joint - forward/backward bending');
-%                     this.basic_variable_data.lumbar_pitch_angle = rad2deg(this.basic_variable_data.joint_angle_trajectories(:, joint_indicator));
-%                     this.basic_variable_directions.lumbar_pitch_angle = this.basic_variable_directions.joint_angle_trajectories(:, joint_indicator);
-%                     this.time_data.lumbar_pitch_angle = this.time_data.joint_angle_trajectories;
-%                 end
-%                 if strcmp(variable_name, 'lumbar_yaw_angle')
-%                     joint_indicator = strcmp(this.basic_variable_labels.joint_angle_trajectories, 'lumbar joint - internal rotation (right/left)');
-%                     this.basic_variable_data.lumbar_yaw_angle = rad2deg(this.basic_variable_data.joint_angle_trajectories(:, joint_indicator));
-%                     this.basic_variable_directions.lumbar_yaw_angle = this.basic_variable_directions.joint_angle_trajectories(:, joint_indicator);
-%                     this.time_data.lumbar_yaw_angle = this.time_data.joint_angle_trajectories;
-%                 end
-%                 if strcmp(variable_name, 'cervical_roll_angle')
-%                     joint_indicator = strcmp(this.basic_variable_labels.joint_angle_trajectories, 'cervical joint - sideways bending (right/left)');
-%                     this.basic_variable_data.cervical_roll_angle = rad2deg(this.basic_variable_data.joint_angle_trajectories(:, joint_indicator));
-%                     this.basic_variable_directions.cervical_roll_angle = this.basic_variable_directions.joint_angle_trajectories(:, joint_indicator);
-%                     this.time_data.cervical_roll_angle = this.time_data.joint_angle_trajectories;
-%                 end
-%                 if strcmp(variable_name, 'cervical_pitch_angle')
-%                     joint_indicator = strcmp(this.basic_variable_labels.joint_angle_trajectories, 'cervical joint - forward/backward bending');
-%                     this.basic_variable_data.cervical_pitch_angle = rad2deg(this.basic_variable_data.joint_angle_trajectories(:, joint_indicator));
-%                     this.basic_variable_directions.cervical_pitch_angle = this.basic_variable_directions.joint_angle_trajectories(:, joint_indicator);
-%                     this.time_data.cervical_pitch_angle = this.time_data.joint_angle_trajectories;
-%                 end
-%                 if strcmp(variable_name, 'cervical_yaw_angle')
-%                     joint_indicator = strcmp(this.basic_variable_labels.joint_angle_trajectories, 'cervical joint - internal rotation (right/left)');
-%                     this.basic_variable_data.cervical_yaw_angle = rad2deg(this.basic_variable_data.joint_angle_trajectories(:, joint_indicator));
-%                     this.basic_variable_directions.cervical_yaw_angle = this.basic_variable_directions.joint_angle_trajectories(:, joint_indicator);
-%                     this.time_data.cervical_yaw_angle = this.time_data.joint_angle_trajectories;
-%                 end
-%                 if strcmp(variable_name, 'left_hip_abduction_angle')
-%                     joint_indicator = strcmp(this.basic_variable_labels.joint_angle_trajectories, 'left hip ab/adduction');
-%                     this.basic_variable_data.left_hip_abduction_angle = rad2deg(this.basic_variable_data.joint_angle_trajectories(:, joint_indicator));
-%                     this.basic_variable_directions.left_hip_abduction_angle = this.basic_variable_directions.joint_angle_trajectories(:, joint_indicator);
-%                     this.time_data.left_hip_abduction_angle = this.time_data.joint_angle_trajectories;
-%                 end
-%                 if strcmp(variable_name, 'left_hip_flexion_angle')
-%                     joint_indicator = strcmp(this.basic_variable_labels.joint_angle_trajectories, 'left hip flexion/extension');
-%                     this.basic_variable_data.left_hip_flexion_angle = rad2deg(this.basic_variable_data.joint_angle_trajectories(:, joint_indicator));
-%                     this.basic_variable_directions.left_hip_flexion_angle = this.basic_variable_directions.joint_angle_trajectories(:, joint_indicator);
-%                     this.time_data.left_hip_flexion_angle = this.time_data.joint_angle_trajectories;
-%                 end
-%                 if strcmp(variable_name, 'left_hip_introtation_angle')
-%                     joint_indicator = strcmp(this.basic_variable_labels.joint_angle_trajectories, 'left hip internal/external rotation');
-%                     this.basic_variable_data.left_hip_introtation_angle = rad2deg(this.basic_variable_data.joint_angle_trajectories(:, joint_indicator));
-%                     this.basic_variable_directions.left_hip_introtation_angle = this.basic_variable_directions.joint_angle_trajectories(:, joint_indicator);
-%                     this.time_data.left_hip_introtation_angle = this.time_data.joint_angle_trajectories;
-%                 end
-%                 if strcmp(variable_name, 'left_knee_flexion_angle')
-%                     joint_indicator = strcmp(this.basic_variable_labels.joint_angle_trajectories, 'left knee flexion/extension');
-%                     this.basic_variable_data.left_knee_flexion_angle = rad2deg(this.basic_variable_data.joint_angle_trajectories(:, joint_indicator));
-%                     this.basic_variable_directions.left_knee_flexion_angle = this.basic_variable_directions.joint_angle_trajectories(:, joint_indicator);
-%                     this.time_data.left_knee_flexion_angle = this.time_data.joint_angle_trajectories;
-%                 end
-%                 if strcmp(variable_name, 'left_knee_extrotation_angle')
-%                     joint_indicator = strcmp(this.basic_variable_labels.joint_angle_trajectories, 'left knee external/internal rotation');
-%                     this.basic_variable_data.left_knee_extrotation_angle = rad2deg(this.basic_variable_data.joint_angle_trajectories(:, joint_indicator));
-%                     this.basic_variable_directions.left_knee_extrotation_angle = this.basic_variable_directions.joint_angle_trajectories(:, joint_indicator);
-%                     this.time_data.left_knee_extrotation_angle = this.time_data.joint_angle_trajectories;
-%                 end
-%                 if strcmp(variable_name, 'left_ankle_eversion_angle')
-%                     joint_indicator = strcmp(this.basic_variable_labels.joint_angle_trajectories, 'left ankle eversion/inversion');
-%                     this.basic_variable_data.left_ankle_eversion_angle = rad2deg(this.basic_variable_data.joint_angle_trajectories(:, joint_indicator));
-%                     this.basic_variable_directions.left_ankle_eversion_angle = this.basic_variable_directions.joint_angle_trajectories(:, joint_indicator);
-%                     this.time_data.left_ankle_eversion_angle = this.time_data.joint_angle_trajectories;
-%                 end
-%                 if strcmp(variable_name, 'left_ankle_dorsiflexion_angle')
-%                     joint_indicator = strcmp(this.basic_variable_labels.joint_angle_trajectories, 'left ankle dorsi/plantarflexion');
-%                     this.basic_variable_data.left_ankle_dorsiflexion_angle = rad2deg(this.basic_variable_data.joint_angle_trajectories(:, joint_indicator));
-%                     this.basic_variable_directions.left_ankle_dorsiflexion_angle = this.basic_variable_directions.joint_angle_trajectories(:, joint_indicator);
-%                     this.time_data.left_ankle_dorsiflexion_angle = this.time_data.joint_angle_trajectories;
-%                 end
-%                 if strcmp(variable_name, 'right_hip_abduction_angle')
-%                     joint_indicator = strcmp(this.basic_variable_labels.joint_angle_trajectories, 'right hip ab/adduction');
-%                     this.basic_variable_data.right_hip_abduction_angle = rad2deg(this.basic_variable_data.joint_angle_trajectories(:, joint_indicator));
-%                     this.basic_variable_directions.right_hip_abduction_angle = this.basic_variable_directions.joint_angle_trajectories(:, joint_indicator);
-%                     this.time_data.right_hip_abduction_angle = this.time_data.joint_angle_trajectories;
-%                 end
-%                 if strcmp(variable_name, 'right_hip_flexion_angle')
-%                     joint_indicator = strcmp(this.basic_variable_labels.joint_angle_trajectories, 'right hip flexion/extension');
-%                     this.basic_variable_data.right_hip_flexion_angle = rad2deg(this.basic_variable_data.joint_angle_trajectories(:, joint_indicator));
-%                     this.basic_variable_directions.right_hip_flexion_angle = this.basic_variable_directions.joint_angle_trajectories(:, joint_indicator);
-%                     this.time_data.right_hip_flexion_angle = this.time_data.joint_angle_trajectories;
-%                 end
-%                 if strcmp(variable_name, 'right_hip_introtation_angle')
-%                     joint_indicator = strcmp(this.basic_variable_labels.joint_angle_trajectories, 'right hip internal/external rotation');
-%                     this.basic_variable_data.right_hip_introtation_angle = rad2deg(this.basic_variable_data.joint_angle_trajectories(:, joint_indicator));
-%                     this.basic_variable_directions.right_hip_introtation_angle = this.basic_variable_directions.joint_angle_trajectories(:, joint_indicator);
-%                     this.time_data.right_hip_introtation_angle = this.time_data.joint_angle_trajectories;
-%                 end
-%                 if strcmp(variable_name, 'right_knee_flexion_angle')
-%                     joint_indicator = strcmp(this.basic_variable_labels.joint_angle_trajectories, 'right knee flexion/extension');
-%                     this.basic_variable_data.right_knee_flexion_angle = rad2deg(this.basic_variable_data.joint_angle_trajectories(:, joint_indicator));
-%                     this.basic_variable_directions.right_knee_flexion_angle = this.basic_variable_directions.joint_angle_trajectories(:, joint_indicator);
-%                     this.time_data.right_knee_flexion_angle = this.time_data.joint_angle_trajectories;
-%                 end
-%                 if strcmp(variable_name, 'right_knee_extrotation_angle')
-%                     joint_indicator = strcmp(this.basic_variable_labels.joint_angle_trajectories, 'right knee external/internal rotation');
-%                     this.basic_variable_data.right_knee_extrotation_angle = rad2deg(this.basic_variable_data.joint_angle_trajectories(:, joint_indicator));
-%                     this.basic_variable_directions.right_knee_extrotation_angle = this.basic_variable_directions.joint_angle_trajectories(:, joint_indicator);
-%                     this.time_data.right_knee_extrotation_angle = this.time_data.joint_angle_trajectories;
-%                 end
-%                 if strcmp(variable_name, 'right_ankle_eversion_angle')
-%                     joint_indicator = strcmp(this.basic_variable_labels.joint_angle_trajectories, 'right ankle eversion/inversion');
-%                     this.basic_variable_data.right_ankle_eversion_angle = rad2deg(this.basic_variable_data.joint_angle_trajectories(:, joint_indicator));
-%                     this.basic_variable_directions.right_ankle_eversion_angle = this.basic_variable_directions.joint_angle_trajectories(:, joint_indicator);
-%                     this.time_data.right_ankle_eversion_angle = this.time_data.joint_angle_trajectories;
-%                 end
-%                 if strcmp(variable_name, 'right_ankle_dorsiflexion_angle')
-%                     joint_indicator = strcmp(this.basic_variable_labels.joint_angle_trajectories, 'right ankle dorsi/plantarflexion');
-%                     this.basic_variable_data.right_ankle_dorsiflexion_angle = rad2deg(this.basic_variable_data.joint_angle_trajectories(:, joint_indicator));
-%                     this.basic_variable_directions.right_ankle_dorsiflexion_angle = this.basic_variable_directions.joint_angle_trajectories(:, joint_indicator);
-%                     this.time_data.right_ankle_dorsiflexion_angle = this.time_data.joint_angle_trajectories;
-%                 end
-%                 
-%                 % joint torques
-%                 if strcmp(variable_name, 'lumbar_roll_torque')
-%                     joint_indicator = strcmp(this.basic_variable_labels.joint_torque_trajectories, 'lumbar joint - sideways bending (right/left)');
-%                     this.basic_variable_data.lumbar_roll_torque = this.basic_variable_data.joint_torque_trajectories(:, joint_indicator);
-%                     this.basic_variable_directions.lumbar_roll_torque = this.basic_variable_directions.joint_angle_trajectories(:, joint_indicator);
-%                     this.time_data.lumbar_roll_torque = this.time_data.joint_torque_trajectories;
-%                 end
-%                 if strcmp(variable_name, 'lumbar_pitch_torque')
-%                     joint_indicator = strcmp(this.basic_variable_labels.joint_torque_trajectories, 'lumbar joint - forward/backward bending');
-%                     this.basic_variable_data.lumbar_pitch_torque = this.basic_variable_data.joint_torque_trajectories(:, joint_indicator);
-%                     this.basic_variable_directions.lumbar_pitch_torque = this.basic_variable_directions.joint_angle_trajectories(:, joint_indicator);
-%                     this.time_data.lumbar_pitch_torque = this.time_data.joint_torque_trajectories;
-%                 end
-%                 if strcmp(variable_name, 'lumbar_yaw_torque')
-%                     joint_indicator = strcmp(this.basic_variable_labels.joint_torque_trajectories, 'lumbar joint - internal rotation (right/left)');
-%                     this.basic_variable_data.lumbar_yaw_torque = this.basic_variable_data.joint_torque_trajectories(:, joint_indicator);
-%                     this.basic_variable_directions.lumbar_yaw_torque = this.basic_variable_directions.joint_angle_trajectories(:, joint_indicator);
-%                     this.time_data.lumbar_yaw_torque = this.time_data.joint_torque_trajectories;
-%                 end
-%                 if strcmp(variable_name, 'cervical_roll_torque')
-%                     joint_indicator = strcmp(this.basic_variable_labels.joint_torque_trajectories, 'cervical joint - sideways bending (right/left)');
-%                     this.basic_variable_data.cervical_roll_torque = this.basic_variable_data.joint_torque_trajectories(:, joint_indicator);
-%                     this.basic_variable_directions.cervical_roll_torque = this.basic_variable_directions.joint_angle_trajectories(:, joint_indicator);
-%                     this.time_data.cervical_roll_torque = this.time_data.joint_torque_trajectories;
-%                 end
-%                 if strcmp(variable_name, 'cervical_pitch_torque')
-%                     joint_indicator = strcmp(this.basic_variable_labels.joint_torque_trajectories, 'cervical joint - forward/backward bending');
-%                     this.basic_variable_data.cervical_pitch_torque = this.basic_variable_data.joint_torque_trajectories(:, joint_indicator);
-%                     this.basic_variable_directions.cervical_pitch_torque = this.basic_variable_directions.joint_angle_trajectories(:, joint_indicator);
-%                     this.time_data.cervical_pitch_torque = this.time_data.joint_torque_trajectories;
-%                 end
-%                 if strcmp(variable_name, 'cervical_yaw_torque')
-%                     joint_indicator = strcmp(this.basic_variable_labels.joint_torque_trajectories, 'cervical joint - internal rotation (right/left)');
-%                     this.basic_variable_data.cervical_yaw_torque = this.basic_variable_data.joint_torque_trajectories(:, joint_indicator);
-%                     this.basic_variable_directions.cervical_yaw_torque = this.basic_variable_directions.joint_angle_trajectories(:, joint_indicator);
-%                     this.time_data.cervical_yaw_torque = this.time_data.joint_torque_trajectories;
-%                 end
-%                 if strcmp(variable_name, 'left_hip_abduction_torque')
-%                     joint_indicator = strcmp(this.basic_variable_labels.joint_torque_trajectories, 'left hip ab/adduction');
-%                     this.basic_variable_data.left_hip_abduction_torque = this.basic_variable_data.joint_torque_trajectories(:, joint_indicator);
-%                     this.basic_variable_directions.left_hip_abduction_torque = this.basic_variable_directions.joint_angle_trajectories(:, joint_indicator);
-%                     this.time_data.left_hip_abduction_torque = this.time_data.joint_torque_trajectories;
-%                 end
-%                 if strcmp(variable_name, 'left_hip_flexion_torque')
-%                     joint_indicator = strcmp(this.basic_variable_labels.joint_torque_trajectories, 'left hip flexion/extension');
-%                     this.basic_variable_data.left_hip_flexion_torque = this.basic_variable_data.joint_torque_trajectories(:, joint_indicator);
-%                     this.basic_variable_directions.left_hip_flexion_torque = this.basic_variable_directions.joint_angle_trajectories(:, joint_indicator);
-%                     this.time_data.left_hip_flexion_torque = this.time_data.joint_torque_trajectories;
-%                 end
-%                 if strcmp(variable_name, 'left_hip_introtation_torque')
-%                     joint_indicator = strcmp(this.basic_variable_labels.joint_torque_trajectories, 'left hip internal/external rotation');
-%                     this.basic_variable_data.left_hip_introtation_torque = this.basic_variable_data.joint_torque_trajectories(:, joint_indicator);
-%                     this.basic_variable_directions.left_hip_introtation_torque = this.basic_variable_directions.joint_angle_trajectories(:, joint_indicator);
-%                     this.time_data.left_hip_introtation_torque = this.time_data.joint_torque_trajectories;
-%                 end
-%                 if strcmp(variable_name, 'left_knee_flexion_torque')
-%                     joint_indicator = strcmp(this.basic_variable_labels.joint_torque_trajectories, 'left knee flexion/extension');
-%                     this.basic_variable_data.left_knee_flexion_torque = this.basic_variable_data.joint_torque_trajectories(:, joint_indicator);
-%                     this.basic_variable_directions.left_knee_flexion_torque = this.basic_variable_directions.joint_angle_trajectories(:, joint_indicator);
-%                     this.time_data.left_knee_flexion_torque = this.time_data.joint_torque_trajectories;
-%                 end
-%                 if strcmp(variable_name, 'left_knee_extrotation_torque')
-%                     joint_indicator = strcmp(this.basic_variable_labels.joint_torque_trajectories, 'left knee external/internal rotation');
-%                     this.basic_variable_data.left_knee_extrotation_torque = this.basic_variable_data.joint_torque_trajectories(:, joint_indicator);
-%                     this.basic_variable_directions.left_knee_extrotation_torque = this.basic_variable_directions.joint_angle_trajectories(:, joint_indicator);
-%                     this.time_data.left_knee_extrotation_torque = this.time_data.joint_torque_trajectories;
-%                 end
-%                 if strcmp(variable_name, 'left_ankle_eversion_torque')
-%                     joint_indicator = strcmp(this.basic_variable_labels.joint_torque_trajectories, 'left ankle eversion/inversion');
-%                     this.basic_variable_data.left_ankle_eversion_torque = this.basic_variable_data.joint_torque_trajectories(:, joint_indicator);
-%                     this.basic_variable_directions.left_ankle_eversion_torque = this.basic_variable_directions.joint_angle_trajectories(:, joint_indicator);
-%                     this.time_data.left_ankle_eversion_torque = this.time_data.joint_torque_trajectories;
-%                 end
-%                 if strcmp(variable_name, 'left_ankle_dorsiflexion_torque')
-%                     joint_indicator = strcmp(this.basic_variable_labels.joint_torque_trajectories, 'left ankle dorsi/plantarflexion');
-%                     this.basic_variable_data.left_ankle_dorsiflexion_torque = this.basic_variable_data.joint_torque_trajectories(:, joint_indicator);
-%                     this.basic_variable_directions.left_ankle_dorsiflexion_torque = this.basic_variable_directions.joint_angle_trajectories(:, joint_indicator);
-%                     this.time_data.left_ankle_dorsiflexion_torque = this.time_data.joint_torque_trajectories;
-%                 end
-%                 if strcmp(variable_name, 'right_hip_abduction_torque')
-%                     joint_indicator = strcmp(this.basic_variable_labels.joint_torque_trajectories, 'right hip ab/adduction');
-%                     this.basic_variable_data.right_hip_abduction_torque = this.basic_variable_data.joint_torque_trajectories(:, joint_indicator);
-%                     this.basic_variable_directions.right_hip_abduction_torque = this.basic_variable_directions.joint_angle_trajectories(:, joint_indicator);
-%                     this.time_data.right_hip_abduction_torque = this.time_data.joint_torque_trajectories;
-%                 end
-%                 if strcmp(variable_name, 'right_hip_flexion_torque')
-%                     joint_indicator = strcmp(this.basic_variable_labels.joint_torque_trajectories, 'right hip flexion/extension');
-%                     this.basic_variable_data.right_hip_flexion_torque = this.basic_variable_data.joint_torque_trajectories(:, joint_indicator);
-%                     this.basic_variable_directions.right_hip_flexion_torque = this.basic_variable_directions.joint_angle_trajectories(:, joint_indicator);
-%                     this.time_data.right_hip_flexion_torque = this.time_data.joint_torque_trajectories;
-%                 end
-%                 if strcmp(variable_name, 'right_hip_introtation_torque')
-%                     joint_indicator = strcmp(this.basic_variable_labels.joint_torque_trajectories, 'right hip internal/external rotation');
-%                     this.basic_variable_data.right_hip_introtation_torque = this.basic_variable_data.joint_torque_trajectories(:, joint_indicator);
-%                     this.basic_variable_directions.right_hip_introtation_torque = this.basic_variable_directions.joint_angle_trajectories(:, joint_indicator);
-%                     this.time_data.right_hip_introtation_torque = this.time_data.joint_torque_trajectories;
-%                 end
-%                 if strcmp(variable_name, 'right_knee_flexion_torque')
-%                     joint_indicator = strcmp(this.basic_variable_labels.joint_torque_trajectories, 'right knee flexion/extension');
-%                     this.basic_variable_data.right_knee_flexion_torque = this.basic_variable_data.joint_torque_trajectories(:, joint_indicator);
-%                     this.basic_variable_directions.right_knee_flexion_torque = this.basic_variable_directions.joint_angle_trajectories(:, joint_indicator);
-%                     this.time_data.right_knee_flexion_torque = this.time_data.joint_torque_trajectories;
-%                 end
-%                 if strcmp(variable_name, 'right_knee_extrotation_torque')
-%                     joint_indicator = strcmp(this.basic_variable_labels.joint_torque_trajectories, 'right knee external/internal rotation');
-%                     this.basic_variable_data.right_knee_extrotation_torque = this.basic_variable_data.joint_torque_trajectories(:, joint_indicator);
-%                     this.basic_variable_directions.right_knee_extrotation_torque = this.basic_variable_directions.joint_angle_trajectories(:, joint_indicator);
-%                     this.time_data.right_knee_extrotation_torque = this.time_data.joint_torque_trajectories;
-%                 end
-%                 if strcmp(variable_name, 'right_ankle_eversion_torque')
-%                     joint_indicator = strcmp(this.basic_variable_labels.joint_torque_trajectories, 'right ankle eversion/inversion');
-%                     this.basic_variable_data.right_ankle_eversion_torque = this.basic_variable_data.joint_torque_trajectories(:, joint_indicator);
-%                     this.basic_variable_directions.right_ankle_eversion_torque = this.basic_variable_directions.joint_angle_trajectories(:, joint_indicator);
-%                     this.time_data.right_ankle_eversion_torque = this.time_data.joint_torque_trajectories;
-%                 end
-%                 if strcmp(variable_name, 'right_ankle_dorsiflexion_torque')
-%                     joint_indicator = strcmp(this.basic_variable_labels.joint_torque_trajectories, 'right ankle dorsi/plantarflexion');
-%                     this.basic_variable_data.right_ankle_dorsiflexion_torque = this.basic_variable_data.joint_torque_trajectories(:, joint_indicator);
-%                     this.basic_variable_directions.right_ankle_dorsiflexion_torque = this.basic_variable_directions.joint_angle_trajectories(:, joint_indicator);
-%                     this.time_data.right_ankle_dorsiflexion_torque = this.time_data.joint_torque_trajectories;
-%                 end                
                 end
             
                 % force plate
@@ -2987,134 +2329,6 @@ classdef WalkingDataCustodian < handle
                     this.time_data.mz = this.time_data.total_forceplate_wrench_world;
                     success = 1;
                 end
-                % emg
-                if false % this is being processed automatically now, but keeping around for a while
-                % TODO: added directions, but didn't test yet
-%                 if strcmp(variable_name, 'left_glut_med')
-%                     this.basic_variable_data.left_glut_med = this.basic_variable_data.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'left_glut_med'));
-%                     this.basic_variable_directions.left_glut_med = this.basic_variable_directions.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'left_glut_med'));
-%                     this.time_data.left_glut_med = this.time_data.emg_trajectories;
-%                 end
-%                 if strcmp(variable_name, 'left_delt_ant')
-%                     this.basic_variable_data.left_delt_ant = this.basic_variable_data.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'left_delt_ant'));
-%                     this.basic_variable_directions.left_delt_ant = this.basic_variable_directions.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'left_delt_ant'));
-%                     this.time_data.left_delt_ant = this.time_data.emg_trajectories;
-%                 end
-%                 if strcmp(variable_name, 'left_delt_post')
-%                     this.basic_variable_data.left_delt_post = this.basic_variable_data.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'left_delt_post'));
-%                     this.basic_variable_directions.left_delt_post = this.basic_variable_directions.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'left_delt_post'));
-%                     this.time_data.left_delt_post = this.time_data.emg_trajectories;
-%                 end
-%                 if strcmp(variable_name, 'left_tibi_ant')
-%                     this.basic_variable_data.left_tibi_ant = this.basic_variable_data.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'left_tibi_ant'));
-%                     this.basic_variable_directions.left_tibi_ant = this.basic_variable_directions.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'left_tibi_ant'));
-%                     this.time_data.left_tibi_ant = this.time_data.emg_trajectories;
-%                 end
-%                 if strcmp(variable_name, 'left_gastroc_med')
-%                     this.basic_variable_data.left_gastroc_med = this.basic_variable_data.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'left_gastroc_med'));
-%                     this.basic_variable_directions.left_gastroc_med = this.basic_variable_directions.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'left_gastroc_med'));
-%                     this.time_data.left_gastroc_med = this.time_data.emg_trajectories;
-%                 end
-%                 if strcmp(variable_name, 'left_pero_lng')
-%                     this.basic_variable_data.left_pero_lng = this.basic_variable_data.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'left_pero_lng'));
-%                     this.basic_variable_directions.left_pero_lng = this.basic_variable_directions.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'left_pero_lng'));
-%                     this.time_data.left_pero_lng = this.time_data.emg_trajectories;
-%                 end
-%                 if strcmp(variable_name, 'left_tfl')
-%                     if any(strcmp(this.basic_variable_labels.emg_trajectories, 'left_tfl'))
-%                         this.basic_variable_data.left_tfl = this.basic_variable_data.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'left_tfl'));
-%                         this.basic_variable_directions.left_tfl = this.basic_variable_directions.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'left_tfl'));
-%                         this.time_data.left_tfl = this.time_data.emg_trajectories;
-%                     else
-%                         this.time_data.left_tfl = this.time_data.emg_trajectories;
-%                         this.basic_variable_data.left_tfl = this.time_data.emg_trajectories * NaN;
-%                         this.basic_variable_directions.left_tfl = {'N/A', 'N/A'};
-%                         disp(['Warning: variable ''' variable_name ''' not available, used NaN as data']);
-%                     end
-%                 end
-%                 if strcmp(variable_name, 'left_rect_fem')
-%                     this.basic_variable_data.left_rect_fem = this.basic_variable_data.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'left_rect_fem'));
-%                     this.basic_variable_directions.left_rect_fem = this.basic_variable_directions.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'left_rect_fem'));
-%                     this.time_data.left_rect_fem = this.time_data.emg_trajectories;
-%                 end
-%                 if strcmp(variable_name, 'left_bic_fem')
-%                     this.basic_variable_data.left_bic_fem = this.basic_variable_data.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'left_bic_fem'));
-%                     this.basic_variable_directions.left_bic_fem = this.basic_variable_directions.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'left_bic_fem'));
-%                     this.time_data.left_bic_fem = this.time_data.emg_trajectories;
-%                 end
-%                 if strcmp(variable_name, 'left_erect_spin')
-%                     this.basic_variable_data.left_erect_spin = this.basic_variable_data.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'left_erect_spin'));
-%                     this.basic_variable_directions.left_erect_spin = this.basic_variable_directions.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'left_erect_spin'));
-%                     this.time_data.left_erect_spin = this.time_data.emg_trajectories;
-%                 end
-%                 if strcmp(variable_name, 'left_erect_spin')
-%                     this.basic_variable_data.left_soleus = this.basic_variable_data.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'left_soleus'));
-%                     this.basic_variable_directions.left_soleus = this.basic_variable_directions.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'left_soleus'));
-%                     this.time_data.left_soleus = this.time_data.emg_trajectories;
-%                 end
-%                 if strcmp(variable_name, 'right_glut_med')
-%                     this.basic_variable_data.right_glut_med = this.basic_variable_data.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'right_glut_med'));
-%                     this.basic_variable_directions.right_glut_med = this.basic_variable_directions.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'right_glut_med'));
-%                     this.time_data.right_glut_med = this.time_data.emg_trajectories;
-%                 end
-%                 if strcmp(variable_name, 'right_delt_ant')
-%                     this.basic_variable_data.right_delt_ant = this.basic_variable_data.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'right_delt_ant'));
-%                     this.basic_variable_directions.right_delt_ant = this.basic_variable_directions.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'right_delt_ant'));
-%                     this.time_data.right_delt_ant = this.time_data.emg_trajectories;
-%                 end
-%                 if strcmp(variable_name, 'right_delt_post')
-%                     this.basic_variable_data.right_delt_post = this.basic_variable_data.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'right_delt_post'));
-%                     this.basic_variable_directions.right_delt_post = this.basic_variable_directions.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'right_delt_post'));
-%                     this.time_data.right_delt_post = this.time_data.emg_trajectories;
-%                 end
-%                 if strcmp(variable_name, 'right_tibi_ant')
-%                     this.basic_variable_data.right_tibi_ant = this.basic_variable_data.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'right_tibi_ant'));
-%                     this.basic_variable_directions.right_tibi_ant = this.basic_variable_directions.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'right_tibi_ant'));
-%                     this.time_data.right_tibi_ant = this.time_data.emg_trajectories;
-%                 end
-%                 if strcmp(variable_name, 'right_gastroc_med')
-%                     this.basic_variable_data.right_gastroc_med = this.basic_variable_data.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'right_gastroc_med'));
-%                     this.basic_variable_directions.right_gastroc_med = this.basic_variable_directions.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'right_gastroc_med'));
-%                     this.time_data.right_gastroc_med = this.time_data.emg_trajectories;
-%                 end
-%                 if strcmp(variable_name, 'right_pero_lng')
-%                     this.basic_variable_data.right_pero_lng = this.basic_variable_data.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'right_pero_lng'));
-%                     this.basic_variable_directions.right_pero_lng = this.basic_variable_directions.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'right_pero_lng'));
-%                     this.time_data.right_pero_lng = this.time_data.emg_trajectories;
-%                 end
-%                 if strcmp(variable_name, 'right_tfl')
-%                     if any(strcmp(this.basic_variable_labels.emg_trajectories, 'right_tfl'))
-%                         this.basic_variable_data.right_tfl = this.basic_variable_data.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'right_tfl'));
-%                         this.basic_variable_directions.right_tfl = this.basic_variable_directions.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'right_tfl'));
-%                         this.time_data.right_tfl = this.time_data.emg_trajectories;
-%                     else
-%                         this.time_data.right_tfl = this.time_data.emg_trajectories;
-%                         this.basic_variable_data.right_tfl = this.time_data.emg_trajectories * NaN;
-%                         this.basic_variable_directions.right_tfl = {'N/A', 'N/A'};
-%                         disp(['Warning: variable ''' variable_name ''' not available, used NaN as data']);
-%                     end
-%                 end
-%                 if strcmp(variable_name, 'right_rect_fem')
-%                     this.basic_variable_data.right_rect_fem = this.basic_variable_data.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'right_rect_fem'));
-%                     this.basic_variable_directions.right_rect_fem = this.basic_variable_directions.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'right_rect_fem'));
-%                     this.time_data.right_rect_fem = this.time_data.emg_trajectories;
-%                 end
-%                 if strcmp(variable_name, 'right_bic_fem')
-%                     this.basic_variable_data.right_bic_fem = this.basic_variable_data.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'right_bic_fem'));
-%                     this.basic_variable_directions.right_bic_fem = this.basic_variable_directions.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'right_bic_fem'));
-%                     this.time_data.right_bic_fem = this.time_data.emg_trajectories;
-%                 end
-%                 if strcmp(variable_name, 'right_erect_spin')
-%                     this.basic_variable_data.right_erect_spin = this.basic_variable_data.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'right_erect_spin'));
-%                     this.basic_variable_directions.right_erect_spin = this.basic_variable_directions.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'right_erect_spin'));
-%                     this.time_data.right_erect_spin = this.time_data.emg_trajectories;
-%                 end
-%                 if strcmp(variable_name, 'right_soleus')
-%                     this.basic_variable_data.right_soleus = this.basic_variable_data.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'right_soleus'));
-%                     this.basic_variable_directions.right_soleus = this.basic_variable_directions.emg_trajectories(:, strcmp(this.basic_variable_labels.emg_trajectories, 'right_soleus'));
-%                     this.time_data.right_soleus = this.time_data.emg_trajectories;
-%                 end
-                end
                 
                 % remove data flagged in subject settings
                 if any(strcmp(data_to_remove_this_trial, variable_name))
@@ -3125,7 +2339,7 @@ classdef WalkingDataCustodian < handle
                         column = strcmp(this.basic_variable_labels.([this_variable_type '_trajectories']), this_variable_label);
                         this.basic_variable_data.([this_variable_type '_trajectories'])(:, column) = NaN;
                     else
-                        warning('trying to remove something, but Hendrik did not code this properly. Scold him, please.')
+                        this.basic_variable_data.(variable_name)(:) = NaN;
                     end
                 end
                 
@@ -3148,18 +2362,18 @@ classdef WalkingDataCustodian < handle
             number_of_bands = size(stance_foot_data, 2);
             stretch_variables = cell(number_of_stretch_variables, 1);
             
-            % as a hack to get things working for legacy data of the Vision and GVS projects, load push-off data
-            try
-                loaded_data = load(['analysis' filesep makeFileName(this.date, this.subject_id, this.trial_type, this.trial_number, 'relevantDataStretches')], 'stretch_pushoff_times');
-                warning('off', 'MATLAB:load:variableNotFound')
-                pushoff_times = loaded_data.stretch_pushoff_times;
-            catch exception
-                if strcmp(exception.identifier, 'MATLAB:nonExistentField')
-                    pushoff_times = zeros(number_of_stretches, 1);
-                else
-                    throw(exception);
-                end
-            end
+%             % as a hack to get things working for legacy data of the Vision and GVS projects, load push-off data
+%             try
+%                 loaded_data = load(['analysis' filesep makeFileName(this.date, this.subject_id, this.trial_type, this.trial_number, 'relevantDataStretches')], 'stretch_pushoff_times');
+%                 warning('off', 'MATLAB:load:variableNotFound')
+%                 pushoff_times = loaded_data.stretch_pushoff_times;
+%             catch exception
+%                 if strcmp(exception.identifier, 'MATLAB:nonExistentField')
+%                     pushoff_times = zeros(number_of_stretches, 1);
+%                 else
+%                     throw(exception);
+%                 end
+%             end
             
             for i_variable = 1 : number_of_stretch_variables
                 variable_name = variables_to_calculate{i_variable};
@@ -3580,124 +2794,6 @@ classdef WalkingDataCustodian < handle
                             end
                         end
                     end
-                    if false
-                        if strcmp(variable_name, 'left_glut_med_rescaled')
-                            left_glut_med = this.getTimeNormalizedData('left_glut_med', this_stretch_times);
-                            normalization_value = this.emg_normalization_values(strcmp(this.emg_normalization_labels, 'left_glut_med'));
-                            stretch_data = left_glut_med * 1 / normalization_value;
-                        end
-                        if strcmp(variable_name, 'left_delt_ant_rescaled')
-                            left_delt_ant = this.getTimeNormalizedData('left_delt_ant', this_stretch_times);
-                            normalization_value = this.emg_normalization_values(strcmp(this.emg_normalization_labels, 'left_delt_ant'));
-                            stretch_data = left_delt_ant * 1 / normalization_value;
-                        end
-                        if strcmp(variable_name, 'left_delt_post_rescaled')
-                            left_delt_post = this.getTimeNormalizedData('left_delt_post', this_stretch_times);
-                            normalization_value = this.emg_normalization_values(strcmp(this.emg_normalization_labels, 'left_delt_post'));
-                            stretch_data = left_delt_post * 1 / normalization_value;
-                        end
-                        if strcmp(variable_name, 'left_tibi_ant_rescaled')
-                            left_tibi_ant = this.getTimeNormalizedData('left_tibi_ant', this_stretch_times);
-                            normalization_value = this.emg_normalization_values(strcmp(this.emg_normalization_labels, 'left_tibi_ant'));
-                            stretch_data = left_tibi_ant * 1 / normalization_value;
-                        end
-                        if strcmp(variable_name, 'left_gastroc_med_rescaled')
-                            left_gastroc_med = this.getTimeNormalizedData('left_gastroc_med', this_stretch_times);
-                            normalization_value = this.emg_normalization_values(strcmp(this.emg_normalization_labels, 'left_gastroc_med'));
-                            stretch_data = left_gastroc_med * 1 / normalization_value;
-                        end
-                        if strcmp(variable_name, 'left_pero_lng_rescaled')
-                            left_pero_lng = this.getTimeNormalizedData('left_pero_lng', this_stretch_times);
-                            normalization_value = this.emg_normalization_values(strcmp(this.emg_normalization_labels, 'left_pero_lng'));
-                            stretch_data = left_pero_lng * 1 / normalization_value;
-                        end
-                        if strcmp(variable_name, 'left_tfl_rescaled')
-                            left_tfl = this.getTimeNormalizedData('left_tfl', this_stretch_times);
-                            normalization_value = this.emg_normalization_values(strcmp(this.emg_normalization_labels, 'left_tfl'));
-                            if isempty(normalization_value)
-                                normalization_value = 1;
-                            end
-                            stretch_data = left_tfl * 1 / normalization_value;
-                        end
-                        if strcmp(variable_name, 'left_rect_fem_rescaled')
-                            left_rect_fem = this.getTimeNormalizedData('left_rect_fem', this_stretch_times);
-                            normalization_value = this.emg_normalization_values(strcmp(this.emg_normalization_labels, 'left_rect_fem'));
-                            stretch_data = left_rect_fem * 1 / normalization_value;
-                        end
-                        if strcmp(variable_name, 'left_bic_fem_rescaled')
-                            left_bic_fem = this.getTimeNormalizedData('left_bic_fem', this_stretch_times);
-                            normalization_value = this.emg_normalization_values(strcmp(this.emg_normalization_labels, 'left_bic_fem'));
-                            stretch_data = left_bic_fem * 1 / normalization_value;
-                        end
-                        if strcmp(variable_name, 'left_erect_spin_rescaled')
-                            left_erect_spin = this.getTimeNormalizedData('left_erect_spin', this_stretch_times);
-                            normalization_value = this.emg_normalization_values(strcmp(this.emg_normalization_labels, 'left_erect_spin'));
-                            stretch_data = left_erect_spin * 1 / normalization_value;
-                        end
-                        if strcmp(variable_name, 'left_soleus_rescaled')
-                            left_erect_spin = this.getTimeNormalizedData('left_soleus', this_stretch_times);
-                            normalization_value = this.emg_normalization_values(strcmp(this.emg_normalization_labels, 'left_soleus'));
-                            stretch_data = left_soleus * 1 / normalization_value;
-                        end
-                        if strcmp(variable_name, 'right_glut_med_rescaled')
-                            right_glut_med = this.getTimeNormalizedData('right_glut_med', this_stretch_times);
-                            normalization_value = this.emg_normalization_values(strcmp(this.emg_normalization_labels, 'right_glut_med'));
-                            stretch_data = right_glut_med * 1 / normalization_value;
-                        end
-                        if strcmp(variable_name, 'right_delt_ant_rescaled')
-                            right_delt_ant = this.getTimeNormalizedData('right_delt_ant', this_stretch_times);
-                            normalization_value = this.emg_normalization_values(strcmp(this.emg_normalization_labels, 'right_delt_ant'));
-                            stretch_data = right_delt_ant * 1 / normalization_value;
-                        end
-                        if strcmp(variable_name, 'right_delt_post_rescaled')
-                            right_delt_post = this.getTimeNormalizedData('right_delt_post', this_stretch_times);
-                            normalization_value = this.emg_normalization_values(strcmp(this.emg_normalization_labels, 'right_delt_post'));
-                            stretch_data = right_delt_post * 1 / normalization_value;
-                        end
-                        if strcmp(variable_name, 'right_tibi_ant_rescaled')
-                            right_tibi_ant = this.getTimeNormalizedData('right_tibi_ant', this_stretch_times);
-                            normalization_value = this.emg_normalization_values(strcmp(this.emg_normalization_labels, 'right_tibi_ant'));
-                            stretch_data = right_tibi_ant * 1 / normalization_value;
-                        end
-                        if strcmp(variable_name, 'right_gastroc_med_rescaled')
-                            right_gastroc_med = this.getTimeNormalizedData('right_gastroc_med', this_stretch_times);
-                            normalization_value = this.emg_normalization_values(strcmp(this.emg_normalization_labels, 'right_gastroc_med'));
-                            stretch_data = right_gastroc_med * 1 / normalization_value;
-                        end
-                        if strcmp(variable_name, 'right_pero_lng_rescaled')
-                            right_pero_lng = this.getTimeNormalizedData('right_pero_lng', this_stretch_times);
-                            normalization_value = this.emg_normalization_values(strcmp(this.emg_normalization_labels, 'right_pero_lng'));
-                            stretch_data = right_pero_lng * 1 / normalization_value;
-                        end
-                        if strcmp(variable_name, 'right_tfl_rescaled')
-                            right_tfl = this.getTimeNormalizedData('right_tfl', this_stretch_times);
-                            normalization_value = this.emg_normalization_values(strcmp(this.emg_normalization_labels, 'right_tfl'));
-                            if isempty(normalization_value)
-                                normalization_value = 1;
-                            end
-                            stretch_data = right_tfl * 1 / normalization_value;
-                        end
-                        if strcmp(variable_name, 'right_rect_fem_rescaled')
-                            right_rect_fem = this.getTimeNormalizedData('right_rect_fem', this_stretch_times);
-                            normalization_value = this.emg_normalization_values(strcmp(this.emg_normalization_labels, 'right_rect_fem'));
-                            stretch_data = right_rect_fem * 1 / normalization_value;
-                        end
-                        if strcmp(variable_name, 'right_bic_fem_rescaled')
-                            right_bic_fem = this.getTimeNormalizedData('right_bic_fem', this_stretch_times);
-                            normalization_value = this.emg_normalization_values(strcmp(this.emg_normalization_labels, 'right_bic_fem'));
-                            stretch_data = right_bic_fem * 1 / normalization_value;
-                        end
-                        if strcmp(variable_name, 'right_erect_spin_rescaled')
-                            right_erect_spin = this.getTimeNormalizedData('right_erect_spin', this_stretch_times);
-                            normalization_value = this.emg_normalization_values(strcmp(this.emg_normalization_labels, 'right_erect_spin'));
-                            stretch_data = right_erect_spin * 1 / normalization_value;
-                        end
-                        if strcmp(variable_name, 'right_soleus_rescaled')
-                        right_erect_spin = this.getTimeNormalizedData('right_soleus', this_stretch_times);
-                        normalization_value = this.emg_normalization_values(strcmp(this.emg_normalization_labels, 'right_soleus'));
-                        stretch_data = right_erect_spin * 1 / normalization_value;
-                    end
-                    end
                     if strcmp(variable_name, 'copl_x') || strcmp(variable_name, 'copl_y') || strcmp(variable_name, 'copr_x') || strcmp(variable_name, 'copr_y')
                         % whole stretches might be zero, deal with this in a special way.
                         band_times = this_stretch_times;
@@ -4019,86 +3115,6 @@ classdef WalkingDataCustodian < handle
                     error('ltoes_z and rtoes_z directions are different from each other')
                 end
                 stretch_directions_new = ltoes_z_directions;
-            end
-            if strcmp(variable_name, 'left_glut_med_rescaled')
-                % TODO: not tested yet
-                stretch_directions_new = this.basic_variable_directions.left_glut_med;
-            end
-            if strcmp(variable_name, 'left_delt_ant_rescaled')
-                % TODO: not tested yet
-                stretch_directions_new = this.basic_variable_directions.left_delt_ant;
-            end
-            if strcmp(variable_name, 'left_delt_post_rescaled')
-                % TODO: not tested yet
-                stretch_directions_new = this.basic_variable_directions.left_delt_post;
-            end
-            if strcmp(variable_name, 'left_tibi_ant_rescaled')
-                % TODO: not tested yet
-                stretch_directions_new = this.basic_variable_directions.left_tibi_ant;
-            end
-            if strcmp(variable_name, 'left_gastroc_med_rescaled')
-                % TODO: not tested yet
-                stretch_directions_new = this.basic_variable_directions.left_gastroc_med;
-            end
-            if strcmp(variable_name, 'left_pero_lng_rescaled')
-                % TODO: not tested yet
-                stretch_directions_new = this.basic_variable_directions.left_pero_lng;
-            end
-            if strcmp(variable_name, 'left_tfl_rescaled')
-                % TODO: not tested yet
-                stretch_directions_new = this.basic_variable_directions.left_tfl;
-            end
-            if strcmp(variable_name, 'left_rect_fem_rescaled')
-                stretch_directions_new = this.basic_variable_directions.left_rect_fem;
-            end
-            if strcmp(variable_name, 'left_bic_fem_rescaled')
-                stretch_directions_new = this.basic_variable_directions.left_bic_fem;
-            end
-            if strcmp(variable_name, 'left_erect_spin_rescaled')
-                stretch_directions_new = this.basic_variable_directions.left_erect_spin;
-            end
-            if strcmp(variable_name, 'left_soleus_rescaled')
-                stretch_directions_new = this.basic_variable_directions.left_soleus;
-            end
-            if strcmp(variable_name, 'right_glut_med_rescaled')
-                % TODO: not tested yet
-                stretch_directions_new = this.basic_variable_directions.right_glut_med;
-            end
-            if strcmp(variable_name, 'right_delt_ant_rescaled')
-                % TODO: not tested yet
-                stretch_directions_new = this.basic_variable_directions.right_delt_ant;
-            end
-            if strcmp(variable_name, 'right_delt_post_rescaled')
-                % TODO: not tested yet
-                stretch_directions_new = this.basic_variable_directions.right_delt_post;
-            end
-            if strcmp(variable_name, 'right_tibi_ant_rescaled')
-                % TODO: not tested yet
-                stretch_directions_new = this.basic_variable_directions.right_tibi_ant;
-            end
-            if strcmp(variable_name, 'right_gastroc_med_rescaled')
-                % TODO: not tested yet
-                stretch_directions_new = this.basic_variable_directions.right_gastroc_med;
-            end
-            if strcmp(variable_name, 'right_pero_lng_rescaled')
-                % TODO: not tested yet
-                stretch_directions_new = this.basic_variable_directions.right_pero_lng;
-            end
-            if strcmp(variable_name, 'right_tfl_rescaled')
-                % TODO: not tested yet
-                stretch_directions_new = this.basic_variable_directions.right_tfl;
-            end
-            if strcmp(variable_name, 'right_rect_fem_rescaled')
-                stretch_directions_new = this.basic_variable_directions.right_rect_fem;
-            end
-            if strcmp(variable_name, 'right_bic_fem_rescaled')
-                stretch_directions_new = this.basic_variable_directions.right_bic_fem;
-            end
-            if strcmp(variable_name, 'right_erect_spin_rescaled')
-                stretch_directions_new = this.basic_variable_directions.right_erect_spin;
-            end
-            if strcmp(variable_name, 'right_soleus_rescaled')
-                stretch_directions_new = this.basic_variable_directions.right_soleus;
             end
             if strcmp(variable_name, 'copl_x') || strcmp(variable_name, 'copl_y') || strcmp(variable_name, 'copr_x') || strcmp(variable_name, 'copr_y')
                 stretch_directions_new = this.basic_variable_directions.(variable_name);

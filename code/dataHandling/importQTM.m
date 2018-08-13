@@ -188,8 +188,8 @@ function importQTM()
         var_name = whos('-file', [qtm_source_dir, filesep, data_file_name]);
         temp_data = load([qtm_source_dir, filesep, data_file_name]);
         qtm_data = temp_data.(var_name.name);
-        % TODO: this was a hack for having data missing, fix this!
         if strcmp(trial_type, 'calibration') || strcmp(trial_type, 'static')
+            % TODO: this was a hack for having data missing, fix this! - need actual example data to fix this
             analog_fs = 2000;
             start_indices = 1;
             end_indices = 20000;
