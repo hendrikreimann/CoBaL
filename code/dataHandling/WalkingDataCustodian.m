@@ -2362,18 +2362,18 @@ classdef WalkingDataCustodian < handle
             number_of_bands = size(stance_foot_data, 2);
             stretch_variables = cell(number_of_stretch_variables, 1);
             
-            % as a hack to get things working for legacy data of the Vision and GVS projects, load push-off data
-            try
-                loaded_data = load(['analysis' filesep makeFileName(this.date, this.subject_id, this.trial_type, this.trial_number, 'relevantDataStretches')], 'stretch_pushoff_times');
-                warning('off', 'MATLAB:load:variableNotFound')
-                pushoff_times = loaded_data.stretch_pushoff_times;
-            catch exception
-                if strcmp(exception.identifier, 'MATLAB:nonExistentField')
-                    pushoff_times = zeros(number_of_stretches, 1);
-                else
-                    throw(exception);
-                end
-            end
+%             % as a hack to get things working for legacy data of the Vision and GVS projects, load push-off data
+%             try
+%                 loaded_data = load(['analysis' filesep makeFileName(this.date, this.subject_id, this.trial_type, this.trial_number, 'relevantDataStretches')], 'stretch_pushoff_times');
+%                 warning('off', 'MATLAB:load:variableNotFound')
+%                 pushoff_times = loaded_data.stretch_pushoff_times;
+%             catch exception
+%                 if strcmp(exception.identifier, 'MATLAB:nonExistentField')
+%                     pushoff_times = zeros(number_of_stretches, 1);
+%                 else
+%                     throw(exception);
+%                 end
+%             end
             
             for i_variable = 1 : number_of_stretch_variables
                 variable_name = variables_to_calculate{i_variable};

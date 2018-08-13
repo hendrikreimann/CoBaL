@@ -316,19 +316,8 @@ function preprocessRawData(varargin)
                     end
 
 
-    %                 % calculate CoP
-    %                 copxl_trajectory = - myl_trajectory ./ fzl_trajectory;
-    %                 copyl_trajectory = mxl_trajectory ./ fzl_trajectory;
-    %                 copxr_trajectory = - myr_trajectory ./ fzr_trajectory;
-    %                 copyr_trajectory = mxr_trajectory ./ fzr_trajectory;
-    % 
-    %                 % zero CoP for no contact times
-    %                 fz_threshold = 60;
+                    % calculate CoP
                     fz_threshold = subject_settings.get('forceplate_load_threshold');
-    %                 copxl_trajectory(fzl_trajectory < fz_threshold) = 0;
-    %                 copyl_trajectory(fzl_trajectory < fz_threshold) = 0;
-    %                 copxr_trajectory(fzr_trajectory < fz_threshold) = 0;
-    %                 copyr_trajectory(fzr_trajectory < fz_threshold) = 0;
 
                     if strcmp(data_source, 'nexus')
                         % transform forceplate data to CoBaL world frame A_cw
@@ -492,7 +481,12 @@ function preprocessRawData(varargin)
                     total_wrench_labels = {'fx', 'fy', 'fz', 'mx', 'my', 'mz'};
                     left_foot_cop_labels = {'copxl', 'copyl'};
                     right_foot_cop_labels = {'copxr', 'copyr'};
-                    total_cop_labels = {'copx', 'copy', 'fz'};
+                    total_cop_labels = {'copx', 'copy'};
+                    
+                    % combine
+                    cop_trajectories = [total_forceplate_cop_world left_foot_cop_world right_foot_cop_world];
+                    cop_labels = {'total_x', 'total_y', 'left_x', 'left_y', 'right_x', 'right_y'};
+                    cop_all_directions = [cop_directions cop_directions cop_directions];
 
                     % save
                     save_folder = 'processed';
@@ -531,7 +525,10 @@ function preprocessRawData(varargin)
                         'total_wrench_labels', ...
                         'left_foot_cop_labels', ...
                         'right_foot_cop_labels', ...
-                        'total_cop_labels' ...
+                        'total_cop_labels', ...
+                        'cop_trajectories', ...
+                        'cop_labels', ...
+                        'cop_all_directions' ...
                       );
 
                     addAvailableData('left_foot_wrench_world', 'time_forceplate', 'sampling_rate_forceplate', '_left_foot_wrench_labels', '_wrench_directions', save_folder, save_file_name);
@@ -555,6 +552,8 @@ function preprocessRawData(varargin)
                     addAvailableData('mxr_trajectory', 'time_forceplate', 'sampling_rate_forceplate', 'mxr_trajectory', {'right', 'left'}, save_folder, save_file_name);
                     addAvailableData('myr_trajectory', 'time_forceplate', 'sampling_rate_forceplate', 'myr_trajectory', {'forward', 'backward'}, save_folder, save_file_name);
                     addAvailableData('mzr_trajectory', 'time_forceplate', 'sampling_rate_forceplate', 'mzr_trajectory', {'up', 'down'}, save_folder, save_file_name);
+                    
+                    addAvailableData('cop_trajectories', 'time_forceplate', 'sampling_rate_forceplate', '_cop_labels', cop_all_directions, save_folder, save_file_name);
                     disp(['processed ' raw_forceplate_file_name ' and saved as ' [save_folder filesep save_file_name]])        
                 end
             end
