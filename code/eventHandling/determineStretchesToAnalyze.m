@@ -1678,7 +1678,7 @@ function determineStretchesToAnalyze(varargin)
                     
                     % extract relevant events in order
                     if strcmp(trigger_foot, 'left')
-                        if length(left_touchdown_times) < index_left + 1 || removal_flags(i_trigger) == 1
+                        if length(left_touchdown_times) < index_left + 1 || removal_flags(i_trigger) == 1 || index_left == 1
                             % data doesn't include the required number of steps after the trigger
                             removal_flags(i_trigger) = 1;
                             left_foot_heelstrike_0  = NaN;
@@ -1712,7 +1712,7 @@ function determineStretchesToAnalyze(varargin)
                             end
                         end
                     elseif strcmp(trigger_foot, 'right')
-                        if length(right_touchdown_times) < index_right + 1 || removal_flags(i_trigger) == 1
+                        if length(right_touchdown_times) < index_right + 1 || removal_flags(i_trigger) == 1 || index_right == 1
                             % data doesn't include the required number of steps after the trigger
                             right_foot_heelstrike_pre = NaN;
                             right_foot_heelstrike_0 = NaN;

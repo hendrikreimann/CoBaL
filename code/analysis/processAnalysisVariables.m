@@ -268,12 +268,22 @@ function processAnalysisVariables(varargin)
                 this_band_data_full = this_variable_source_data(band_start_index : band_end_index, i_stretch);
 
                 range = start_data_percent(i_band, i_stretch) : end_data_percent(i_band, i_stretch);
-                this_band_time_range = this_band_time_full(range);
-                this_band_data_range = this_band_data_full(range);
                 
-                % integrate
-                this_band_data_integrated = cumtrapz(this_band_time_range, this_band_data_range);
-                integrated_data(i_band, i_stretch) = this_band_data_integrated(end);
+                if ~any(isnan(this_band_time_full)) & ~isempty(this_band_time_full) & ~isnan(range)
+                    
+                    this_band_time_range = this_band_time_full(range);
+                    this_band_data_range = this_band_data_full(range);
+
+                    % integrate
+                    this_band_data_integrated = cumtrapz(this_band_time_range, this_band_data_range);
+                end
+                % % % idk what is going on here, but matlab does not like some type of data that is being created from cumtrapz (don't know how to isolate it) %
+               
+                if any(isnan(this_band_data_integrated)) || isempty(this_band_data_integrated)
+                    integrated_data(i_band, i_stretch) = nan;
+                else
+                    integrated_data(i_band, i_stretch) = this_band_data_integrated(end);
+                end
             end
         end        
         

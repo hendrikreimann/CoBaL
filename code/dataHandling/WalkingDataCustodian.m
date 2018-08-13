@@ -3281,12 +3281,20 @@ classdef WalkingDataCustodian < handle
                                 % find first left push-off after band start
                                 band_start_time = this_stretch_times(i_band);
                                 this_pushoff_time = min(left_pushoff_times(left_pushoff_times>band_start_time));
-                                stretch_data(i_band) = this_pushoff_time - band_start_time;
+                                if ~isempty(this_pushoff_time) && ~isnan(band_start_time)
+                                    stretch_data(i_band) = this_pushoff_time - band_start_time;
+                                else
+                                    stretch_data(i_band) = NaN;
+                                end
                             end
                             if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_LEFT')
                                 band_start_time = this_stretch_times(i_band);
                                 this_pushoff_time = min(right_pushoff_times(right_pushoff_times>band_start_time));
-                                stretch_data(i_band) = this_pushoff_time - band_start_time;
+                                if ~isempty(this_pushoff_time) && ~isnan(band_start_time)
+                                    stretch_data(i_band) = this_pushoff_time - band_start_time;
+                                else
+                                    stretch_data(i_band) = NaN;
+                                end
                             end
                             if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_BOTH')
                                 stretch_data(i_band) = NaN;
@@ -3763,7 +3771,7 @@ classdef WalkingDataCustodian < handle
             end
                 
             % normalize data in time
-            if ~isempty(time_extracted) && ~any(isnan(data_extracted))
+            if ~isempty(time_extracted) && ~any(isnan(data_extracted))  && length(time_extracted) > 1
                 % create normalized time
                 number_of_bands = length(band_time_indices_local) - 1;
                 time_normalized = [];
