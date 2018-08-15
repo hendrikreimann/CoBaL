@@ -37,10 +37,10 @@ function stanceModel_3DoF(varargin)
     parse(parser, varargin{:})
     visualize = parser.Results.visualize;
     
-    subject_settings = SettingsCustodian('subjectSettings.txt');
-
-
     load('subjectInfo.mat', 'date', 'subject_id');
+    
+    subject_settings = SettingsCustodian('subjectSettings.txt');
+    weight = subject_settings.get('weight');
 
     %% create static reference
 
@@ -57,48 +57,38 @@ function stanceModel_3DoF(varargin)
     %% extract marker reference positions
     
     % head
-    REAR_reference = extractMarkerData(marker_reference, marker_labels, 'R_ear')';
-    LEAR_reference = extractMarkerData(marker_reference, marker_labels, 'L_ear')';
-    
-    % trunk
-    XYPH_reference = extractMarkerData(marker_reference, marker_labels, 'Xyphoid')';
+    eye_L_reference = extractMarkerData(marker_reference, marker_labels, 'LEYE')';
+    eye_R_reference = extractMarkerData(marker_reference, marker_labels, 'REYE')';
+    ear_L_reference = extractMarkerData(marker_reference, marker_labels, 'LMAS')';
+    ear_R_reference = extractMarkerData(marker_reference, marker_labels, 'RMAS')';
 
     % left arm
-    LSHO_reference = extractMarkerData(marker_reference, marker_labels, 'L_shoulder')';
-    LELB_reference = extractMarkerData(marker_reference, marker_labels, 'L_elbow')';
-    LWRI_reference = extractMarkerData(marker_reference, marker_labels, 'L_wrist')';
-
-    % right arm
-    RSHO_reference = extractMarkerData(marker_reference, marker_labels, 'R_shoulder')';
-    RELB_reference = extractMarkerData(marker_reference, marker_labels, 'R_elbow')';
-    RWRI_reference = extractMarkerData(marker_reference, marker_labels, 'R_wrist')';
+    shoulder_L_reference = extractMarkerData(marker_reference, marker_labels, 'LACR')';
+    shoulder_R_reference = extractMarkerData(marker_reference, marker_labels, 'RACR')';
 
     % pelvis
-    LASI_reference = extractMarkerData(marker_reference, marker_labels, 'L_asis')';
-    RASI_reference = extractMarkerData(marker_reference, marker_labels, 'R_asis')';
-    LIC_reference = extractMarkerData(marker_reference, marker_labels, 'L_ic')';
-    RIC_reference = extractMarkerData(marker_reference, marker_labels, 'R_ic')';
+    lumbar_joint_reference = extractMarkerData(marker_reference, marker_labels, 'L5S1')';
 
     % left leg
-    LGT_reference = extractMarkerData(marker_reference, marker_labels, 'L_gt')';
-    LKNE_reference = extractMarkerData(marker_reference, marker_labels, 'L_knee')';
-    LANK_reference = extractMarkerData(marker_reference, marker_labels, 'L_ankle')';
-    LTOE_reference = extractMarkerData(marker_reference, marker_labels, 'L_toe')';
+    hip_L_reference = extractMarkerData(marker_reference, marker_labels, 'LGTR')';
+    knee_L_reference = extractMarkerData(marker_reference, marker_labels, 'LCND')';
+    ankle_L_reference = extractMarkerData(marker_reference, marker_labels, 'LMAL')';
+    toe_L_reference = extractMarkerData(marker_reference, marker_labels, 'L5MT')';
 
     % right leg
-    RGT_reference = extractMarkerData(marker_reference, marker_labels, 'R_gt')';
-    RKNE_reference = extractMarkerData(marker_reference, marker_labels, 'R_knee')';
-    RANK_reference = extractMarkerData(marker_reference, marker_labels, 'R_ankle')';
-    RTOE_reference = extractMarkerData(marker_reference, marker_labels, 'R_toe')';
+    hip_R_reference = extractMarkerData(marker_reference, marker_labels, 'RGTR')';
+    knee_R_reference = extractMarkerData(marker_reference, marker_labels, 'RCND')';
+    ankle_R_reference = extractMarkerData(marker_reference, marker_labels, 'RMAL')';
+    toe_R_reference = extractMarkerData(marker_reference, marker_labels, 'R5MT')';
 
-    inter_ASIS_distance = norm(LASI_reference - RASI_reference);
+%     inter_ASIS_distance = norm(LASI_reference - RASI_reference);
     
     % define directions
     e_1 = [1; 0; 0];
     e_2 = [0; 1; 0];
     e_3 = [0; 0; 1];
-    right_direction = -e_2;
-    anterior_direction = e_1;
+    right_direction = e_2;
+    anterior_direction = -e_1;
     proximal_direction = e_3;
 
     left_direction = - right_direction;
@@ -108,28 +98,14 @@ function stanceModel_3DoF(varargin)
     down_direction = distal_direction;
 
     %% estimate joint centers
-    ankle_cor = mean([LANK_reference RANK_reference], 2);
-    knee_cor = mean([LKNE_reference RKNE_reference], 2);
-    hip_cor = mean([LGT_reference RGT_reference], 2);
-    toe_mid = mean([LTOE_reference RTOE_reference], 2);
-    shoulders_mid = mean([LSHO_reference RSHO_reference], 2);
-    ears_mid = mean([LEAR_reference REAR_reference], 2);
+    ankle_cor = mean([ankle_L_reference ankle_R_reference], 2);
+    knee_cor = mean([knee_L_reference knee_R_reference], 2);
+    hip_cor = mean([hip_L_reference hip_R_reference], 2);
+    toe_mid = mean([toe_L_reference toe_R_reference], 2);
+    shoulders_mid = mean([shoulder_L_reference shoulder_R_reference], 2);
+    ears_mid = mean([ear_L_reference ear_R_reference], 2);
 
-    if isempty(gender) || strcmp(gender, '~')
-        disp('Gender not defined in subjects.csv, using "male" as default for now. Please fix.')
-        gender = 'male';
-    end
-    if strcmp(gender, 'male')
-        ljc_correction_factor_frontal = 0.264;
-        ljc_correction_factor_vertical = 0.126;
-    elseif strcmp(gender, 'female')
-        ljc_correction_factor_frontal = 0.289;
-        ljc_correction_factor_vertical = 0.172;
-    else
-        error('Gender must be either male or female');
-    end
-    pelvis_acs_origin = mean([LASI_reference RASI_reference], 2);
-    lumbar_cor = mean([LIC_reference RIC_reference], 2);
+    lumbar_cor = lumbar_joint_reference;
 
     ankle_dorsiflexion_axis = left_direction;
     knee_flexion_axis = left_direction;
@@ -138,87 +114,38 @@ function stanceModel_3DoF(varargin)
     %% define scaling factors
     % according to R. Dumas , L. Cheze, J.-P. Verriest: "Adjustments to McConville et al. and Young et al. body
     % segment inertial parameters", Journal of Biomechanics 40 (2007) 543?553
-    if strcmp(gender, 'male')
-        % mass
-        head_mass_scaling_factor      = 0.067;
-        trunk_mass_scaling_factor     = 0.333;
-        arm_mass_scaling_factor       = 0.024;
-        forearm_mass_scaling_factor   = 0.017;
-        hand_mass_scaling_factor      = 0.006;
-        pelvis_mass_scaling_factor    = 0.142;
-        thigh_mass_scaling_factor     = 0.123;
-        shank_mass_scaling_factor     = 0.048;
-        foot_mass_scaling_factor      = 0.012;
+    % mass
+    head_mass_scaling_factor      = 0.067;
+    trunk_mass_scaling_factor     = 0.333;
+    arm_mass_scaling_factor       = 0.024;
+    forearm_mass_scaling_factor   = 0.017;
+    hand_mass_scaling_factor      = 0.006;
+    pelvis_mass_scaling_factor    = 0.142;
+    thigh_mass_scaling_factor     = 0.123;
+    shank_mass_scaling_factor     = 0.048;
+    foot_mass_scaling_factor      = 0.012;
 
-        % CoM
-        head_com_scaling_factor_x    = -0.062;  head_com_scaling_factor_y    =  0.555;  head_com_scaling_factor_z    =  0.001;
-        trunk_com_scaling_factor_x   = -0.036;  trunk_com_scaling_factor_y   = -0.420;  trunk_com_scaling_factor_z   = -0.002;
-        arm_com_scaling_factor_x     =  0.017;  arm_com_scaling_factor_y     = -0.452;  arm_com_scaling_factor_z     = -0.026;
-        forearm_com_scaling_factor_x =  0.010;  forearm_com_scaling_factor_y = -0.417;  forearm_com_scaling_factor_z =  0.014;
-        hand_com_scaling_factor_x    =  0.082;  hand_com_scaling_factor_y    = -0.839;  hand_com_scaling_factor_z    =  0.074;
-        pelvis_com_scaling_factor_x  =  0.028;  pelvis_com_scaling_factor_y  = -0.280;  pelvis_com_scaling_factor_z  = -0.006;
-        thigh_com_scaling_factor_x   = -0.041;  thigh_com_scaling_factor_y   = -0.429;  thigh_com_scaling_factor_z   =  0.033;
-        shank_com_scaling_factor_x   = -0.048;  shank_com_scaling_factor_y   = -0.410;  shank_com_scaling_factor_z   =  0.007;
-        foot_com_scaling_factor_x    =  0.382;  foot_com_scaling_factor_y    = -0.151;  foot_com_scaling_factor_z    =  0.026;
+    % CoM
+    head_com_scaling_factor_x    = -0.062;  head_com_scaling_factor_y    =  0.555;  head_com_scaling_factor_z    =  0.001;
+    trunk_com_scaling_factor_x   = -0.036;  trunk_com_scaling_factor_y   = -0.420;  trunk_com_scaling_factor_z   = -0.002;
+    pelvis_com_scaling_factor_x  =  0.028;  pelvis_com_scaling_factor_y  = -0.280;  pelvis_com_scaling_factor_z  = -0.006;
+    thigh_com_scaling_factor_x   = -0.041;  thigh_com_scaling_factor_y   = -0.429;
+    shank_com_scaling_factor_x   = -0.048;  shank_com_scaling_factor_y   = -0.410;
+    foot_com_scaling_factor_x    =  0.382;  foot_com_scaling_factor_y    = -0.151;
 
-        % rog
-        head_rxx_scaling_factor    = 0.31;  head_ryy_scaling_factor    = 0.25;  head_rzz_scaling_factor    = 0.33;  head_rxy_scaling_factor    = 0.09*1i;	head_rxz_scaling_factor    = 0.02*1i;   head_ryz_scaling_factor    = 0.03;
-        trunk_rxx_scaling_factor   = 0.27;  trunk_ryy_scaling_factor   = 0.25;  trunk_rzz_scaling_factor   = 0.28;  trunk_rxy_scaling_factor   = 0.18;      trunk_rxz_scaling_factor   = 0.02;      trunk_ryz_scaling_factor   = 0.04*1i;
-        arm_rxx_scaling_factor     = 0.31;  arm_ryy_scaling_factor     = 0.14;  arm_rzz_scaling_factor     = 0.32;  arm_rxy_scaling_factor     = 0.06;      arm_rxz_scaling_factor     = 0.05;      arm_ryz_scaling_factor     = 0.02;
-        forearm_rxx_scaling_factor = 0.28;  forearm_ryy_scaling_factor = 0.11;  forearm_rzz_scaling_factor = 0.27;  forearm_rxy_scaling_factor = 0.03;      forearm_rxz_scaling_factor = 0.02;      forearm_ryz_scaling_factor = 0.08*1i;
-        hand_rxx_scaling_factor    = 0.61;  hand_ryy_scaling_factor    = 0.38;  hand_rzz_scaling_factor    = 0.56;  hand_rxy_scaling_factor    = 0.22;      hand_rxz_scaling_factor    = 0.15;      hand_ryz_scaling_factor    = 0.20*1i;
-        pelvis_rxx_scaling_factor  = 1.01;  pelvis_ryy_scaling_factor  = 1.06;  pelvis_rzz_scaling_factor  = 0.95;  pelvis_rxy_scaling_factor  = 0.25*1i;   pelvis_rxz_scaling_factor  = 0.12*1i;   pelvis_ryz_scaling_factor  = 0.08*1i;
-        thigh_rxx_scaling_factor   = 0.29;  thigh_ryy_scaling_factor   = 0.15;  thigh_rzz_scaling_factor   = 0.30;  thigh_rxy_scaling_factor   = 0.07;      thigh_rxz_scaling_factor   = 0.02*1i;   thigh_ryz_scaling_factor   = 0.07*1i;
-        shank_rxx_scaling_factor   = 0.28;  shank_ryy_scaling_factor   = 0.10;  shank_rzz_scaling_factor   = 0.28;  shank_rxy_scaling_factor   = 0.04*1i;   shank_rxz_scaling_factor   = 0.02*1i;   shank_ryz_scaling_factor   = 0.05;
-        foot_rxx_scaling_factor    = 0.17;  foot_ryy_scaling_factor    = 0.37;	foot_rzz_scaling_factor    = 0.36;  foot_rxy_scaling_factor    = 0.13;      foot_rxz_scaling_factor    = 0.08*1i;	foot_ryz_scaling_factor    = 0.00;
-    elseif strcmp(gender, 'female')
-        % mass
-        head_mass_scaling_factor    = 0.067;
-        trunk_mass_scaling_factor   = 0.304;
-        arm_mass_scaling_factor     = 0.022;
-        forearm_mass_scaling_factor = 0.013;
-        hand_mass_scaling_factor    = 0.005;
-        pelvis_mass_scaling_factor  = 0.146;
-        thigh_mass_scaling_factor   = 0.146;
-        shank_mass_scaling_factor   = 0.045;
-        foot_mass_scaling_factor    = 0.010;
+    % rog
+    head_rxx_scaling_factor    = 0.31;  head_ryy_scaling_factor    = 0.25;  head_rzz_scaling_factor    = 0.33;
+    trunk_rxx_scaling_factor   = 0.27;  trunk_ryy_scaling_factor   = 0.25;  trunk_rzz_scaling_factor   = 0.28;
+    pelvis_rxx_scaling_factor  = 1.01;  pelvis_ryy_scaling_factor  = 1.06;  pelvis_rzz_scaling_factor  = 0.95;
+    thigh_rxx_scaling_factor   = 0.29;  thigh_ryy_scaling_factor   = 0.15;  thigh_rzz_scaling_factor   = 0.30;
+    shank_rxx_scaling_factor   = 0.28;  shank_ryy_scaling_factor   = 0.10;  shank_rzz_scaling_factor   = 0.28;
+    foot_rxx_scaling_factor    = 0.17;  foot_ryy_scaling_factor    = 0.37;	foot_rzz_scaling_factor    = 0.36;
 
-        % CoM
-        head_com_scaling_factor_x    = -0.070;  head_com_scaling_factor_y    =  0.597;  head_com_scaling_factor_z    =  0.000;
-        trunk_com_scaling_factor_x   = -0.016;  trunk_com_scaling_factor_y   = -0.436;  trunk_com_scaling_factor_z   = -0.006;
-        arm_com_scaling_factor_x     =  0.073;  arm_com_scaling_factor_y     = -0.454;  arm_com_scaling_factor_z     = -0.028;
-        forearm_com_scaling_factor_x =  0.021;  forearm_com_scaling_factor_y = -0.411;  forearm_com_scaling_factor_z =  0.019;
-        hand_com_scaling_factor_x    =  0.077;  hand_com_scaling_factor_y    = -0.768;  hand_com_scaling_factor_z    =  0.048;
-        pelvis_com_scaling_factor_x  = -0.009;  pelvis_com_scaling_factor_y  = -0.232;  pelvis_com_scaling_factor_z  =  0.002;
-        thigh_com_scaling_factor_x   = -0.077;  thigh_com_scaling_factor_y   = -0.377;  thigh_com_scaling_factor_z   =  0.009;
-        shank_com_scaling_factor_x   = -0.049;  shank_com_scaling_factor_y   = -0.404;  shank_com_scaling_factor_z   =  0.031;
-        foot_com_scaling_factor_x    =  0.270;  foot_com_scaling_factor_y    = -0.218;  foot_com_scaling_factor_z    =  0.039;
-
-        % rog
-        head_rxx_scaling_factor  = 0.32;         head_ryy_scaling_factor = 0.27;         head_rzz_scaling_factor = 0.34;
-        head_rxy_scaling_factor  = 0.06*1i;      head_rxz_scaling_factor = 0.01;         head_ryz_scaling_factor = 0.01*1i;
-        trunk_rxx_scaling_factor = 0.29;        trunk_ryy_scaling_factor = 0.27;        trunk_rzz_scaling_factor = 0.29;    trunk_rxy_scaling_factor = 0.22;        trunk_rxz_scaling_factor = 0.05;        trunk_ryz_scaling_factor = 0.05*1i;
-        % ACHTUNG: used the values for males here because the values for females fails to visualize as an ellipsoid.
-        % Explore later!
-        trunk_rxx_scaling_factor = 0.27;        trunk_ryy_scaling_factor = 0.25;        trunk_rzz_scaling_factor = 0.28;    trunk_rxy_scaling_factor = 0.18;        trunk_rxz_scaling_factor = 0.02;        trunk_ryz_scaling_factor = 0.04*1i;
-
-%         arm_rxx_scaling_factor     = 0.33;  arm_ryy_scaling_factor     = 0.17;  arm_rzz_scaling_factor     = 0.33;  arm_rxy_scaling_factor     = 0.03;      arm_rxz_scaling_factor     = 0.05*1i;   arm_ryz_scaling_factor     = 0.14;
-%         forearm_rxx_scaling_factor = 0.26;  forearm_ryy_scaling_factor = 0.14;  forearm_rzz_scaling_factor = 0.25;  forearm_rxy_scaling_factor = 0.10;      forearm_rxz_scaling_factor = 0.04;      forearm_ryz_scaling_factor = 0.14*1i;
-        % ACHTUNG: used the values for males here because the values for females give rather weird looking results
-        arm_rxx_scaling_factor     = 0.31;  arm_ryy_scaling_factor     = 0.14;  arm_rzz_scaling_factor     = 0.32;  arm_rxy_scaling_factor     = 0.06;      arm_rxz_scaling_factor     = 0.05;      arm_ryz_scaling_factor     = 0.02;
-        forearm_rxx_scaling_factor = 0.28;  forearm_ryy_scaling_factor = 0.11;  forearm_rzz_scaling_factor = 0.27;  forearm_rxy_scaling_factor = 0.03;      forearm_rxz_scaling_factor = 0.02;      forearm_ryz_scaling_factor = 0.08*1i;
-        hand_rxx_scaling_factor    = 0.63;  hand_ryy_scaling_factor    = 0.43;  hand_rzz_scaling_factor    = 0.56;  hand_rxy_scaling_factor    = 0.29;      hand_rxz_scaling_factor    = 0.23;      hand_ryz_scaling_factor    = 0.28*1i;
-
-        pelvis_rxx_scaling_factor = 0.91;       pelvis_ryy_scaling_factor = 1.00;       pelvis_rzz_scaling_factor = 0.79;   pelvis_rxy_scaling_factor = 0.34*1i;    pelvis_rxz_scaling_factor = 0.01*1i;    pelvis_ryz_scaling_factor = 0.01*1i;
-        thigh_rxx_scaling_factor  = 0.31;        thigh_ryy_scaling_factor = 0.19;        thigh_rzz_scaling_factor = 0.32;    thigh_rxy_scaling_factor = 0.07;        thigh_rxz_scaling_factor = 0.02*1i;     thigh_ryz_scaling_factor = 0.07*1i;
-        shank_rxx_scaling_factor  = 0.28;        shank_ryy_scaling_factor = 0.10;        shank_rzz_scaling_factor = 0.28;    shank_rxy_scaling_factor = 0.02;        shank_rxz_scaling_factor = 0.01;        shank_ryz_scaling_factor = 0.06;
-        foot_rxx_scaling_factor   = 0.17;         foot_ryy_scaling_factor = 0.36;         foot_rzz_scaling_factor = 0.35;     foot_rxy_scaling_factor = 0.10*1i;      foot_rxz_scaling_factor = 0.06;         foot_ryz_scaling_factor = 0.04*1i;
-    end
 
     %% set up the segment coordinate systems (SCS)
 
     % pelvis
-    pelvis_scs_z = normVector(RASI_reference - LASI_reference);
+    pelvis_scs_z = right_direction;
     pelvis_scs_y = up_direction;
     pelvis_scs_x = cross(pelvis_scs_y, pelvis_scs_z);
 
@@ -307,16 +234,16 @@ function stanceModel_3DoF(varargin)
     %% calculate inertia tensors
 
     % pelvis
-    pelvis_I_xx = (pelvis_rxx_scaling_factor*pelvis_segment_length)^2 * pelvis_segment_mass;
-    pelvis_I_yy = (pelvis_ryy_scaling_factor*pelvis_segment_length)^2 * pelvis_segment_mass;
-    pelvis_I_zz = (pelvis_rzz_scaling_factor*pelvis_segment_length)^2 * pelvis_segment_mass;
-    pelvis_I_xy = (pelvis_rxy_scaling_factor*pelvis_segment_length)^2 * pelvis_segment_mass;
-    pelvis_I_xz = (pelvis_rxz_scaling_factor*pelvis_segment_length)^2 * pelvis_segment_mass;
-    pelvis_I_yz = (pelvis_ryz_scaling_factor*pelvis_segment_length)^2 * pelvis_segment_mass;
-    pelvis_inertia_tensor = [pelvis_I_xx pelvis_I_xy pelvis_I_xz; pelvis_I_xy pelvis_I_yy pelvis_I_yz; pelvis_I_xz pelvis_I_yz pelvis_I_zz];
-    correction_factor_pelvis = 0.2;
-    disp(['Correcting pelvis inertia tensor by factor ' num2str(correction_factor_pelvis)]);
-    pelvis_inertia_tensor = pelvis_inertia_tensor * correction_factor_pelvis;
+%     pelvis_I_xx = (pelvis_rxx_scaling_factor*pelvis_segment_length)^2 * pelvis_segment_mass;
+%     pelvis_I_yy = (pelvis_ryy_scaling_factor*pelvis_segment_length)^2 * pelvis_segment_mass;
+%     pelvis_I_zz = (pelvis_rzz_scaling_factor*pelvis_segment_length)^2 * pelvis_segment_mass;
+%     pelvis_I_xy = (pelvis_rxy_scaling_factor*pelvis_segment_length)^2 * pelvis_segment_mass;
+%     pelvis_I_xz = (pelvis_rxz_scaling_factor*pelvis_segment_length)^2 * pelvis_segment_mass;
+%     pelvis_I_yz = (pelvis_ryz_scaling_factor*pelvis_segment_length)^2 * pelvis_segment_mass;
+%     pelvis_inertia_tensor = [pelvis_I_xx pelvis_I_xy pelvis_I_xz; pelvis_I_xy pelvis_I_yy pelvis_I_yz; pelvis_I_xz pelvis_I_yz pelvis_I_zz];
+%     correction_factor_pelvis = 0.2;
+%     disp(['Correcting pelvis inertia tensor by factor ' num2str(correction_factor_pelvis)]);
+%     pelvis_inertia_tensor = pelvis_inertia_tensor * correction_factor_pelvis;
 
     % thigh
     thigh_I_xx = (thigh_rxx_scaling_factor*thigh_segment_length)^2 * thigh_segment_mass;
@@ -343,25 +270,25 @@ function stanceModel_3DoF(varargin)
     leg_inertia_tensor = [leg_I_xx leg_I_xy leg_I_xz; leg_I_xy leg_I_yy leg_I_yz; leg_I_xz leg_I_yz leg_I_zz];
 
     % foot
-    foot_I_xx = (foot_rxx_scaling_factor*foot_segment_length)^2 * foot_segment_mass;
-    foot_I_yy = (foot_ryy_scaling_factor*foot_segment_length)^2 * foot_segment_mass;
-    foot_I_zz = (foot_rzz_scaling_factor*foot_segment_length)^2 * foot_segment_mass;
-    foot_I_xy = (foot_rxy_scaling_factor*foot_segment_length)^2 * foot_segment_mass;
-    foot_I_xz = -(foot_rxz_scaling_factor*foot_segment_length)^2 * foot_segment_mass;
-    foot_I_yz = -(foot_ryz_scaling_factor*foot_segment_length)^2 * foot_segment_mass;
-    foot_I_xy = 0;
-    foot_I_xz = 0;
-    foot_I_yz = 0;
-    foot_inertia_tensor = [foot_I_xx foot_I_xy foot_I_xz; foot_I_xy foot_I_yy foot_I_yz; foot_I_xz foot_I_yz foot_I_zz];
+%     foot_I_xx = (foot_rxx_scaling_factor*foot_segment_length)^2 * foot_segment_mass;
+%     foot_I_yy = (foot_ryy_scaling_factor*foot_segment_length)^2 * foot_segment_mass;
+%     foot_I_zz = (foot_rzz_scaling_factor*foot_segment_length)^2 * foot_segment_mass;
+%     foot_I_xy = (foot_rxy_scaling_factor*foot_segment_length)^2 * foot_segment_mass;
+%     foot_I_xz = -(foot_rxz_scaling_factor*foot_segment_length)^2 * foot_segment_mass;
+%     foot_I_yz = -(foot_ryz_scaling_factor*foot_segment_length)^2 * foot_segment_mass;
+%     foot_I_xy = 0;
+%     foot_I_xz = 0;
+%     foot_I_yz = 0;
+%     foot_inertia_tensor = [foot_I_xx foot_I_xy foot_I_xz; foot_I_xy foot_I_yy foot_I_yz; foot_I_xz foot_I_yz foot_I_zz];
 
     % trunk
     disp('Calculation of inertia tensor for HAT segment is made up, replace with values from Winter textbook when available later.')
     trunk_I_xx = (trunk_rxx_scaling_factor*trunk_segment_length)^2 * trunk_segment_mass;
     trunk_I_yy = (trunk_ryy_scaling_factor*trunk_segment_length)^2 * trunk_segment_mass;
     trunk_I_zz = (trunk_rzz_scaling_factor*trunk_segment_length)^2 * trunk_segment_mass;
-    trunk_I_xy = (trunk_rxy_scaling_factor*trunk_segment_length)^2 * trunk_segment_mass;
-    trunk_I_xz = (trunk_rxz_scaling_factor*trunk_segment_length)^2 * trunk_segment_mass;
-    trunk_I_yz = (trunk_ryz_scaling_factor*trunk_segment_length)^2 * trunk_segment_mass;
+%     trunk_I_xy = (trunk_rxy_scaling_factor*trunk_segment_length)^2 * trunk_segment_mass;
+%     trunk_I_xz = (trunk_rxz_scaling_factor*trunk_segment_length)^2 * trunk_segment_mass;
+%     trunk_I_yz = (trunk_ryz_scaling_factor*trunk_segment_length)^2 * trunk_segment_mass;
     trunk_I_xy = 0;
     trunk_I_xz = 0;
     trunk_I_yz = 0;
@@ -370,9 +297,9 @@ function stanceModel_3DoF(varargin)
     head_I_xx = (head_rxx_scaling_factor*head_segment_length)^2 * head_segment_mass;
     head_I_yy = (head_ryy_scaling_factor*head_segment_length)^2 * head_segment_mass;
     head_I_zz = (head_rzz_scaling_factor*head_segment_length)^2 * head_segment_mass;
-    head_I_xy = (head_rxy_scaling_factor*head_segment_length)^2 * head_segment_mass;
-    head_I_xz = -(head_rxz_scaling_factor*head_segment_length)^2 * head_segment_mass;
-    head_I_yz = -(head_ryz_scaling_factor*head_segment_length)^2 * head_segment_mass;
+%     head_I_xy = (head_rxy_scaling_factor*head_segment_length)^2 * head_segment_mass;
+%     head_I_xz = -(head_rxz_scaling_factor*head_segment_length)^2 * head_segment_mass;
+%     head_I_yz = -(head_ryz_scaling_factor*head_segment_length)^2 * head_segment_mass;
     head_I_xy = 0;
     head_I_xz = 0;
     head_I_yz = 0;
@@ -533,9 +460,9 @@ function stanceModel_3DoF(varargin)
     kinematic_tree.addSegmentLabel('TRUNK', 3);
     
     % define markers
-    marker_segment_list = createMarkerSegmentList(marker_labels);
-    marker_color_list = createMarkerColorList(marker_labels);
-    number_of_markers = length(marker_segment_list)/3;
+    marker_segment_list = createMarkerSegmentList(marker_labels, subject_settings);
+    marker_color_list = createMarkerColorList(marker_labels, subject_settings);
+    number_of_markers = length(marker_segment_list);
     for i_marker = 1 : number_of_markers
         kinematic_tree.addMarker(marker_segment_list(i_marker), marker_reference((i_marker-1)*3+1 : (i_marker-1)*3+3)', marker_color_list{i_marker});
     end
@@ -582,111 +509,34 @@ function stanceModel_3DoF(varargin)
 
 end
 
-
-function marker_segments = createMarkerSegmentList(marker_labels)
-    marker_segments = zeros(1, length(marker_labels));
-    marker_segments(strcmp(marker_labels, 'R_ear')) = 5;
-    marker_segments(strcmp(marker_labels, 'L_ear')) = 5;
-    marker_segments(strcmp(marker_labels, 'R_shoulder')) = 4;
-    marker_segments(strcmp(marker_labels, 'L_shoulder')) = 4;
-    marker_segments(strcmp(marker_labels, 'Xyphoid')) = 4;
-    marker_segments(strcmp(marker_labels, 'R_elbow')) = 4;
-    marker_segments(strcmp(marker_labels, 'L_elbow')) = 4;
-    marker_segments(strcmp(marker_labels, 'R_wrist')) = 4;
-    marker_segments(strcmp(marker_labels, 'L_wrist')) = 4;
-    marker_segments(strcmp(marker_labels, 'R_ic')) = 4;
-    marker_segments(strcmp(marker_labels, 'L_ic')) = 4;
-    marker_segments(strcmp(marker_labels, 'R_asis')) = 3;
-    marker_segments(strcmp(marker_labels, 'L_asis')) = 3;
-    marker_segments(strcmp(marker_labels, 'R_gt')) = 2;
-    marker_segments(strcmp(marker_labels, 'L_gt')) = 2;
-    marker_segments(strcmp(marker_labels, 'R_knee')) = 1;
-    marker_segments(strcmp(marker_labels, 'L_knee')) = 1;
-    marker_segments(strcmp(marker_labels, 'R_ankle')) = 1;
-    marker_segments(strcmp(marker_labels, 'L_ankle')) = 1;
-    marker_segments(strcmp(marker_labels, 'R_toe')) = 0;
-    marker_segments(strcmp(marker_labels, 'L_toe')) = 0;
-    marker_segments(strcmp(marker_labels, 'BackPlatform')) = 0;
-    marker_segments(strcmp(marker_labels, 'BackSurround')) = 0;
-    marker_segments(strcmp(marker_labels, 'R_eye')) = 5;
-    marker_segments(strcmp(marker_labels, 'L_eye')) = 5;
-    marker_segments(strcmp(marker_labels, 'C7')) = 4;
-    marker_segments(strcmp(marker_labels, 'L5')) = 3;
-
-    
-    
-end
-
-function marker_color_list = createMarkerColorList(marker_labels)
-    red = [1 0 0];
-    green = [0 1 0];
-    blue = [0 0 1];
-    yellow = [1 0.9 0];
-
-    marker_color_array = zeros(length(marker_labels), 3) * 0.3;
-    if any(strcmp(marker_labels, 'LFHD')) marker_color_array(strcmp(marker_labels, 'LFHD'), :) = red; end
-    if any(strcmp(marker_labels, 'RFHD')) marker_color_array(strcmp(marker_labels, 'RFHD'), :) = green; end
-    if any(strcmp(marker_labels, 'LBHD')) marker_color_array(strcmp(marker_labels, 'LBHD'), :) = red; end
-    if any(strcmp(marker_labels, 'RBHD')) marker_color_array(strcmp(marker_labels, 'RBHD'), :) = green; end
-
-    if any(strcmp(marker_labels, 'C7')) marker_color_array(strcmp(marker_labels, 'C7'), :) = blue; end
-    if any(strcmp(marker_labels, 'T10')) marker_color_array(strcmp(marker_labels, 'T10'), :) = blue; end
-    if any(strcmp(marker_labels, 'CLAV')) marker_color_array(strcmp(marker_labels, 'CLAV'), :) = blue; end
-    if any(strcmp(marker_labels, 'STRN')) marker_color_array(strcmp(marker_labels, 'STRN'), :) = blue; end
-    if any(strcmp(marker_labels, 'RBAK')) marker_color_array(strcmp(marker_labels, 'RBAK'), :) = blue; end
-
-    if any(strcmp(marker_labels, 'LSHO')) marker_color_array(strcmp(marker_labels, 'LSHO'), :) = red; end
-    if any(strcmp(marker_labels, 'LUPA')) marker_color_array(strcmp(marker_labels, 'LUPA'), :) = red; end
-    if any(strcmp(marker_labels, 'LELB')) marker_color_array(strcmp(marker_labels, 'LELB'), :) = red; end
-    if any(strcmp(marker_labels, 'LFRA')) marker_color_array(strcmp(marker_labels, 'LFRA'), :) = red; end
-    if any(strcmp(marker_labels, 'LFRM')) marker_color_array(strcmp(marker_labels, 'LFRM'), :) = red; end
-    if any(strcmp(marker_labels, 'LWRA')) marker_color_array(strcmp(marker_labels, 'LWRA'), :) = red; end
-    if any(strcmp(marker_labels, 'LWRB')) marker_color_array(strcmp(marker_labels, 'LWRB'), :) = red; end
-    if any(strcmp(marker_labels, 'LFIN')) marker_color_array(strcmp(marker_labels, 'LFIN'), :) = red; end
-
-    if any(strcmp(marker_labels, 'RSHO')) marker_color_array(strcmp(marker_labels, 'RSHO'), :) = green; end
-    if any(strcmp(marker_labels, 'RUPA')) marker_color_array(strcmp(marker_labels, 'RUPA'), :) = green; end
-    if any(strcmp(marker_labels, 'RELB')) marker_color_array(strcmp(marker_labels, 'RELB'), :) = green; end
-    if any(strcmp(marker_labels, 'RFRA')) marker_color_array(strcmp(marker_labels, 'RFRA'), :) = green; end
-    if any(strcmp(marker_labels, 'RFRM')) marker_color_array(strcmp(marker_labels, 'RFRM'), :) = green; end
-    if any(strcmp(marker_labels, 'RWRA')) marker_color_array(strcmp(marker_labels, 'RWRA'), :) = green; end
-    if any(strcmp(marker_labels, 'RWRB')) marker_color_array(strcmp(marker_labels, 'RWRB'), :) = green; end
-    if any(strcmp(marker_labels, 'RFIN')) marker_color_array(strcmp(marker_labels, 'RFIN'), :) = green; end
-
-    if any(strcmp(marker_labels, 'LASI')) marker_color_array(strcmp(marker_labels, 'LASI'), :) = red; end
-    if any(strcmp(marker_labels, 'RASI')) marker_color_array(strcmp(marker_labels, 'RASI'), :) = green; end
-    if any(strcmp(marker_labels, 'LPSI')) marker_color_array(strcmp(marker_labels, 'LPSI'), :) = red; end
-    if any(strcmp(marker_labels, 'RPSI')) marker_color_array(strcmp(marker_labels, 'RPSI'), :) = green; end
-
-    if any(strcmp(marker_labels, 'LTHI')) marker_color_array(strcmp(marker_labels, 'LTHI'), :) = red; end
-    if any(strcmp(marker_labels, 'LTHIA')) marker_color_array(strcmp(marker_labels, 'LTHIA'), :) = red; end
-    if any(strcmp(marker_labels, 'LKNE')) marker_color_array(strcmp(marker_labels, 'LKNE'), :) = red; end
-    if any(strcmp(marker_labels, 'LTIB')) marker_color_array(strcmp(marker_labels, 'LTIB'), :) = red; end
-    if any(strcmp(marker_labels, 'LTIBA')) marker_color_array(strcmp(marker_labels, 'LTIBA'), :) = red; end
-    if any(strcmp(marker_labels, 'LANK')) marker_color_array(strcmp(marker_labels, 'LANK'), :) = red; end
-    if any(strcmp(marker_labels, 'LHEE')) marker_color_array(strcmp(marker_labels, 'LHEE'), :) = red; end
-    if any(strcmp(marker_labels, 'LTOE')) marker_color_array(strcmp(marker_labels, 'LTOE'), :) = red; end
-    if any(strcmp(marker_labels, 'LTOEL')) marker_color_array(strcmp(marker_labels, 'LTOEL'), :) = red; end
-
-    if any(strcmp(marker_labels, 'RTHI')) marker_color_array(strcmp(marker_labels, 'RTHI'), :) = green; end
-    if any(strcmp(marker_labels, 'RTHIA')) marker_color_array(strcmp(marker_labels, 'RTHIA'), :) = green; end
-    if any(strcmp(marker_labels, 'RKNE')) marker_color_array(strcmp(marker_labels, 'RKNE'), :) = green; end
-    if any(strcmp(marker_labels, 'RTIB')) marker_color_array(strcmp(marker_labels, 'RTIB'), :) = green; end
-    if any(strcmp(marker_labels, 'RTIBA')) marker_color_array(strcmp(marker_labels, 'RTIBA'), :) = green; end
-    if any(strcmp(marker_labels, 'RANK')) marker_color_array(strcmp(marker_labels, 'RANK'), :) = green; end
-    if any(strcmp(marker_labels, 'RHEE')) marker_color_array(strcmp(marker_labels, 'RHEE'), :) = green; end
-    if any(strcmp(marker_labels, 'RTOE')) marker_color_array(strcmp(marker_labels, 'RTOE'), :) = green; end
-    if any(strcmp(marker_labels, 'RTOEL')) marker_color_array(strcmp(marker_labels, 'RTOEL'), :) = green; end
-
-    % export to list
-    marker_color_list = cell(1, length(marker_labels));
-    for i_marker = 1 : length(marker_labels)
-        marker_color_list{i_marker} = marker_color_array(i_marker, :);
+function marker_segments = createMarkerSegmentList(marker_labels, subject_settings)
+    marker_to_segment_map = subject_settings.get('marker_to_segment_map');
+    number_of_markers = length(marker_labels) / 3;
+    marker_segments = zeros(1, number_of_markers);
+    for i_label = 1 : number_of_markers
+        this_marker_label = marker_labels{i_label*3};
+        this_marker_id = this_marker_label(1:end-2);
+        marker_segments(i_label) = str2num(marker_to_segment_map{strcmp(marker_to_segment_map(:, 1), this_marker_id), 2}); %#ok<ST2NM>
     end
-
 end
 
+function marker_color_list = createMarkerColorList(marker_labels, subject_settings)
+    marker_to_color_map = subject_settings.get('marker_to_color_map');
+    number_of_markers = length(marker_labels) / 3;
 
+    marker_color_list = cell(1, number_of_markers);
+    for i_marker = 1 : number_of_markers
+        this_marker_label = marker_labels{i_marker*3};
+        this_marker_id = this_marker_label(1:end-2);
+        this_marker_color = ...
+          [
+            str2num(marker_to_color_map{strcmp(marker_to_color_map(:, 1), this_marker_id), 2}) ...
+            str2num(marker_to_color_map{strcmp(marker_to_color_map(:, 1), this_marker_id), 3}) ...
+            str2num(marker_to_color_map{strcmp(marker_to_color_map(:, 1), this_marker_id), 4}) ...
+          ]; %#ok<ST2NM>
+        marker_color_list{i_marker} = this_marker_color;
+    end
+end
 
 
 
