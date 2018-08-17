@@ -134,12 +134,7 @@ function processAnalysisVariables(varargin)
                 % calculate control mean
                 data_this_variable = loaded_data.stretch_data_session{i_variable};
                 this_condition_control_data = data_this_variable(:, control_condition_indicator);
-                % why are there nans in the control data??
-                if any(any(isnan(this_condition_control_data)))
-                    [rows, col_to_remove] = find(isnan(this_condition_control_data));
-                    col_to_remove = unique(col_to_remove);
-                    this_condition_control_data(:, col_to_remove) = []; 
-                end
+                
                 this_condition_control_mean = mean(this_condition_control_data, 2);
                 
                 % calculate response
@@ -269,21 +264,13 @@ function processAnalysisVariables(varargin)
 
                 range = start_data_percent(i_band, i_stretch) : end_data_percent(i_band, i_stretch);
                 
-                if ~any(isnan(this_band_time_full)) & ~isempty(this_band_time_full) & ~isnan(range)
-                    
-                    this_band_time_range = this_band_time_full(range);
-                    this_band_data_range = this_band_data_full(range);
+                this_band_time_range = this_band_time_full(range);
+                this_band_data_range = this_band_data_full(range);
+                
+                % integrate
+                this_band_data_integrated = cumtrapz(this_band_time_range, this_band_data_range);               
+                integrated_data(i_band, i_stretch) = this_band_data_integrated(end);
 
-                    % integrate
-                    this_band_data_integrated = cumtrapz(this_band_time_range, this_band_data_range);
-                end
-                % % % idk what is going on here, but matlab does not like some type of data that is being created from cumtrapz (don't know how to isolate it) %
-               
-                if any(isnan(this_band_data_integrated)) || isempty(this_band_data_integrated)
-                    integrated_data(i_band, i_stretch) = nan;
-                else
-                    integrated_data(i_band, i_stretch) = this_band_data_integrated(end);
-                end
             end
         end        
         
