@@ -2390,7 +2390,7 @@ classdef WalkingDataCustodian < handle
                     this_stretch_times = stretch_times(i_stretch, :);
                     this_stretch_start_time = this_stretch_times(1);
                     this_stretch_end_time = this_stretch_times(end);
-                    this_stretch_pushoff_time = pushoff_times(i_stretch);
+%                     this_stretch_pushoff_time = pushoff_times(i_stretch);
                     % determine applicable push-off
                     
                     
