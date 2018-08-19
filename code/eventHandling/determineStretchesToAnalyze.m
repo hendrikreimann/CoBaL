@@ -75,7 +75,7 @@ function determineStretchesToAnalyze(varargin)
     acceptable_number_of_zeros_per_stretch = subject_settings.get('acceptable_number_of_zeros_per_stretch');
     experimental_paradigm = study_settings.get('experimental_paradigm');
     
-    if strcmp(experimental_paradigm, 'CadenceVision') || strcmp(experimental_paradigm, 'CadenceGVS') || strcmp(condition_stimulus, 'ATR') 
+    if strcmp(experimental_paradigm, 'CadenceVision') || strcmp(experimental_paradigm, 'CadenceGVS') || strcmp(experimental_paradigm, 'ATR') 
         protocol_data = load('protocolInfo.mat');
     end
 
@@ -167,7 +167,7 @@ function determineStretchesToAnalyze(varargin)
                 current_acceleration_trajectory = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'visual_rotation_acceleration_trajectory');
                 [stimulus_state_trajectory, time_stimulus] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'stimulus_state_trajectory');
             end
-            if strcmp(experimental_paradigm, 'GVS') || strcmp(experimental_paradigm, 'CadenceGVS') ||  strcmp(condition_stimulus, 'ATR') 
+            if strcmp(experimental_paradigm, 'GVS') || strcmp(experimental_paradigm, 'CadenceGVS') ||  strcmp(experimental_paradigm, 'ATR') 
                 gvs_trajectory = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'GVS_current_trajectory');
                 [stimulus_state_trajectory, time_stimulus] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'stimulus_state_trajectory');
             end
@@ -230,7 +230,7 @@ function determineStretchesToAnalyze(varargin)
                     end
                 end
             end
-            if strcmp(experimental_paradigm, 'GVS') || strcmp(experimental_paradigm, 'CadenceGVS') ||  strcmp(condition_stimulus, 'ATR') 
+            if strcmp(experimental_paradigm, 'GVS') || strcmp(experimental_paradigm, 'CadenceGVS') ||  strcmp(experimental_paradigm, 'ATR') 
                 illusion_trajectory = zeros(size(time_stimulus)); % -1 = LEFT, 1 = RIGHT
                 for i_time = 1 : length(time_stimulus)
                     if stimulus_state_trajectory(i_time) == 3
@@ -285,7 +285,7 @@ function determineStretchesToAnalyze(varargin)
                 trigger_indices_labview = find(diff(sign(stimulus_state_trajectory - stimulus_threshold)) > 0) + 2;
                 trigger_times = time_stimulus(trigger_indices_labview);
             end
-            if strcmp(experimental_paradigm, 'GVS') || strcmp(experimental_paradigm, 'CadenceGVS') || strcmp(condition_stimulus, 'ATR') 
+            if strcmp(experimental_paradigm, 'GVS') || strcmp(experimental_paradigm, 'CadenceGVS') || strcmp(experimental_paradigm, 'ATR') 
                 % find the time steps where the stimulus state crosses a threshold
                 stimulus_threshold = 1.5;
                 trigger_indices_labview = find(diff(sign(stimulus_state_trajectory - stimulus_threshold)) > 0) + 2;
@@ -662,7 +662,7 @@ function determineStretchesToAnalyze(varargin)
                        
             end
             
-            if strcmp(condition_stimulus, 'GVS') || strcmp(condition_stimulus, 'ATR') 
+            if strcmp(condition_stimulus, 'GVS')
                 bands_per_stretch = 1;
                 
                 % for each trigger, extract conditions and relevant step events
@@ -1230,24 +1230,7 @@ function determineStretchesToAnalyze(varargin)
                     end
                 end
                 conditions_trial.condition_trigger_foot_list = condition_trigger_foot_list;
-                
-                if strcmp(condition_stimulus, 'ATR') 
-                    for i_stretch = 1 : length(condition_trigger_foot_list)
-                        if most_affected == 'L'
-                            if strcmp(first_stance_foot, 'STANCE_LEFT')
-                                condition_affected_stancefoot_list{i_stretch} = 'STANCE_AFFECTED';
-                            elseif strcmp(first_stance_foot, 'STANCE_RIGHT')
-                                condition_affected_stancefoot_list{i_stretch} = 'STANCE_UNAFFECTED';
-                            end
-                        elseif most_affected == 'R'
-                            if strcmp(first_stance_foot, 'STANCE_RIGHT')
-                                condition_affected_stancefoot_list{i_stretch} = 'STANCE_AFFECTED';
-                            elseif strcmp(first_stance_foot, 'STANCE_LEFT')
-                                condition_affected_stancefoot_list{i_stretch} = 'STANCE_UNAFFECTED';
-                            end
-                        end
-                    end
-                end
+
                 
                 % determine direction
                 condition_direction_list = cell(size(condition_stance_foot_list));
@@ -1874,6 +1857,24 @@ function determineStretchesToAnalyze(varargin)
                     end
                 end
                 
+                                
+                if strcmp(experimental_paradigm, 'ATR') 
+                    for i_stretch = 1 : length(condition_trigger_foot_list)
+                        if most_affected == 'L'
+                            if strcmp(first_stance_foot, 'STANCE_LEFT')
+                                condition_affected_stancefoot_list{i_stretch} = 'STANCE_AFFECTED';
+                            elseif strcmp(first_stance_foot, 'STANCE_RIGHT')
+                                condition_affected_stancefoot_list{i_stretch} = 'STANCE_UNAFFECTED';
+                            end
+                        elseif most_affected == 'R'
+                            if strcmp(first_stance_foot, 'STANCE_RIGHT')
+                                condition_affected_stancefoot_list{i_stretch} = 'STANCE_AFFECTED';
+                            elseif strcmp(first_stance_foot, 'STANCE_LEFT')
+                                condition_affected_stancefoot_list{i_stretch} = 'STANCE_UNAFFECTED';
+                            end
+                        end
+                    end
+                end
                     
                     
                 % put in placeholder for group
