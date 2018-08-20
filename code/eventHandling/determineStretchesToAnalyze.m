@@ -52,7 +52,7 @@ function determineStretchesToAnalyze(varargin)
 
 
     %% prepare
-    load('subjectInfo.mat', 'date', 'subject_id', 'most_affected');
+    load('subjectInfo.mat', 'date', 'subject_id', 'affected_side');
     % load settings
     study_settings_file = '';
     if exist(['..' filesep 'studySettings.txt'], 'file')
@@ -1266,7 +1266,7 @@ function determineStretchesToAnalyze(varargin)
                 event_variables_to_save.stance_foot_data = condition_stance_foot_list;
             end
             
-            if strcmp(experimental_paradigm, 'Vision') || strcmp(experimental_paradigm, 'CadenceVision') || strcmp(experimental_paradigm, 'GVS') || strcmp(experimental_paradigm, 'CadenceGVS') ||  strcmp(condition_stimulus, 'ATR') 
+            if strcmp(experimental_paradigm, 'Vision') || strcmp(experimental_paradigm, 'CadenceVision') || strcmp(experimental_paradigm, 'GVS') || strcmp(experimental_paradigm, 'CadenceGVS') ||  strcmp(experimental_paradigm, 'ATR') 
                 bands_per_stretch = study_settings.get('number_of_steps_to_analyze');
                 
                 number_of_triggers = length(trigger_indices_mocap);
@@ -1577,6 +1577,25 @@ function determineStretchesToAnalyze(varargin)
                 end
                 cadence_list = cell(size(direction_list));
                 [cadence_list{:}] = deal([num2str(this_trial_cadence) 'BPM']);
+                
+                                  
+                if strcmp(experimental_paradigm, 'ATR') 
+                    for i_stretch = 1 : length(trigger_foot_list)
+                        if strcmp(affected_side, 'Left')
+                            if strcmp(trigger_foot_list(i_stretch), 'TRIGGER_LEFT')
+                                condition_affected_stancefoot_list{i_stretch} = 'TRIGGER_AFFECTED';
+                            elseif strcmp(trigger_foot_list(i_stretch), 'TRIGGER_RIGHT')
+                                condition_affected_stancefoot_list{i_stretch} = 'TRIGGER_UNAFFECTED';
+                            end
+                        elseif strcmp(affected_side, 'Right')
+                            if strcmp(trigger_foot_list(i_stretch), 'TRIGGER_RIGHT')
+                                condition_affected_stancefoot_list{i_stretch} = 'TRIGGER_AFFECTED';
+                            elseif strcmp(trigger_foot_list(i_stretch), 'TRIGGER_LEFT')
+                                condition_affected_stancefoot_list{i_stretch} = 'TRIGGER_UNAFFECTED';
+                            end
+                        end
+                    end
+                end
 
                 % restructure for saving
                 conditions_trial = struct;
@@ -1586,6 +1605,9 @@ function determineStretchesToAnalyze(varargin)
                 conditions_trial.direction_list = direction_list;
                 conditions_trial.group_list = group_list;
                 conditions_trial.cadence_list = cadence_list;
+                if strcmp(experimental_paradigm, 'ATR')
+                    conditions_trial.affected_stancefoot_list = condition_affected_stancefoot_list';
+                end
                 
                 event_variables_to_save.stretch_times = stretch_times;
                 event_variables_to_save.stance_foot_data = stance_foot_data;
@@ -1856,26 +1878,6 @@ function determineStretchesToAnalyze(varargin)
                         end
                     end
                 end
-                
-                                
-                if strcmp(experimental_paradigm, 'ATR') 
-                    for i_stretch = 1 : length(condition_trigger_foot_list)
-                        if most_affected == 'L'
-                            if strcmp(first_stance_foot, 'STANCE_LEFT')
-                                condition_affected_stancefoot_list{i_stretch} = 'STANCE_AFFECTED';
-                            elseif strcmp(first_stance_foot, 'STANCE_RIGHT')
-                                condition_affected_stancefoot_list{i_stretch} = 'STANCE_UNAFFECTED';
-                            end
-                        elseif most_affected == 'R'
-                            if strcmp(first_stance_foot, 'STANCE_RIGHT')
-                                condition_affected_stancefoot_list{i_stretch} = 'STANCE_AFFECTED';
-                            elseif strcmp(first_stance_foot, 'STANCE_LEFT')
-                                condition_affected_stancefoot_list{i_stretch} = 'STANCE_UNAFFECTED';
-                            end
-                        end
-                    end
-                end
-                    
                     
                 % put in placeholder for group
                 group_list = cell(size(direction_list));
@@ -1886,6 +1888,7 @@ function determineStretchesToAnalyze(varargin)
                 conditions_trial.stimulus_list = stimulus_list;
                 conditions_trial.trigger_foot_list = trigger_foot_list;
                 conditions_trial.direction_list = direction_list;
+                
 %                 conditions_trial.group_list = group_list;
 %                 conditions_trial.delay_list = delay_list;
                 

@@ -20,7 +20,7 @@
 % note: the inversion could be automated more elegantly, but that's for a later date
 
 function processAnalysisVariables(varargin)
-    load('subjectInfo.mat', 'date', 'subject_id');
+    load('subjectInfo.mat', 'date', 'subject_id', 'affected_side');
     % load settings and existing results
     study_settings_file = '';
     if exist(['..' filesep 'studySettings.txt'], 'file')
@@ -90,7 +90,7 @@ function processAnalysisVariables(varargin)
             end
             
             % determine applicable control condition index
-            if strcmp(study_settings.get('experimental_paradigm'), 'Vision') || strcmp(study_settings.get('experimental_paradigm'), 'GVS') || strcmp(study_settings.get('experimental_paradigm'), 'GVS_old')
+            if strcmp(study_settings.get('experimental_paradigm'), 'Vision') || strcmp(study_settings.get('experimental_paradigm'), 'GVS') || strcmp(study_settings.get('experimental_paradigm'), 'GVS_old') 
                 if strcmp(this_stretch_condition_string{strcmp(condition_combination_labels, 'trigger_foot')}, 'TRIGGER_LEFT')
                     applicable_control_condition_index = find(strcmp(condition_combinations_control_unique(:, strcmp(condition_combination_labels, 'trigger_foot')), 'TRIGGER_LEFT'));
                 end
@@ -98,6 +98,16 @@ function processAnalysisVariables(varargin)
                     applicable_control_condition_index = find(strcmp(condition_combinations_control_unique(:, strcmp(condition_combination_labels, 'trigger_foot')), 'TRIGGER_RIGHT'));
                 end
             end
+            
+            if strcmp(study_settings.get('experimental_paradigm'), 'ATR')
+                if strcmp(this_stretch_condition_string{strcmp(condition_combination_labels, 'affected_side')}, 'TRIGGER_AFFECTED')
+                    applicable_control_condition_index = find(strcmp(condition_combinations_control_unique(:, strcmp(condition_combination_labels, 'affected_side')), 'TRIGGER_AFFECTED'));
+                end
+                if strcmp(this_stretch_condition_string{strcmp(condition_combination_labels, 'affected_side')}, 'TRIGGER_UNAFFECTED')
+                    applicable_control_condition_index = find(strcmp(condition_combinations_control_unique(:, strcmp(condition_combination_labels, 'affected_side')), 'TRIGGER_UNAFFECTED'));
+                end
+            end
+            
             if strcmp(study_settings.get('experimental_paradigm'), 'CadenceGVS')
                 if strcmp(this_stretch_condition_string{strcmp(condition_combination_labels, 'cadence')}, '80BPM') && strcmp(this_stretch_condition_string{strcmp(condition_combination_labels, 'trigger_foot')}, 'TRIGGER_LEFT')
                     applicable_control_condition_index = find(strcmp(condition_combinations_control_unique(:, strcmp(condition_combination_labels, 'cadence')), '80BPM') & strcmp(condition_combinations_control_unique(:, strcmp(condition_combination_labels, 'trigger_foot')), 'TRIGGER_LEFT'));
@@ -609,38 +619,31 @@ function processAnalysisVariables(varargin)
     variables_to_affected_side = study_settings.get('variables_to_affected_side');
     for i_variable = 1 : size(variables_to_affected_side, 1)
         % get data
-        this_affected_variable_source_name = variables_to_affected_side{i_variable, 1};
-        this_unaffected_variable_source_name = variables_to_affected_side{i_variable, 2};
-        source_affected_side_info =  variables_to_affected_side{i_variable, 3};
-        left_sided_variable_name = variables_to_affected_side{i_variable, 4};
-        right_sided_variable_name = variables_to_affected_side{i_variable, 5};
-        this_variable_source_type = variables_to_affected_side{i_variable, 6};
-        
-        % may get an error here with AS data.. probably need to add
-        % arm_angle and phase variables to new code structure (add
-        % directions)
+        this_affected_variable_save_name = variables_to_affected_side{i_variable, 1};
+        this_unaffected_variable_save_name = variables_to_affected_side{i_variable, 2};
+        left_sided_variable_name = variables_to_affected_side{i_variable, 3};
+        right_sided_variable_name = variables_to_affected_side{i_variable, 4};
+        this_variable_source_type = variables_to_affected_side{i_variable, 5};
         
         eval(['data_source = ' this_variable_source_type '_data_session;']);
         eval(['names_source = ' this_variable_source_type '_names_session;']);
         eval(['directions_source = ' this_variable_source_type '_directions_session;']);
               
-        this_affected_side_info = conditions_session.condition_affectedSide_list; % check this
+        this_affected_side_info = conditions_session.affected_stancefoot_list; % check this
         
-        % only need to check one index for this type of variable
-        if strcmp(this_affected_side_info{1}, 'L')
+        if strcmp(affected_side, 'Left')
             this_affected_variable_source_name = left_sided_variable_name;
             this_unaffected_variable_source_name = right_sided_variable_name;
-            this_affected_variable_data = data_source{strcmp(names_source, this_affected_variable_source_name)};
-            this_unaffected_variable_data = data_source{strcmp(names_source, this_unaffected_variable_source_name)};
-                        
-        elseif strcmp(this_affected_side_info{1}, 'R')
+        elseif strcmp(affected_side, 'Right')
             this_affected_variable_source_name = right_sided_variable_name;
             this_unaffected_variable_source_name = left_sided_variable_name;
-            this_affected_variable_data = data_source{strcmp(names_source, this_affected_variable_source_name)};
-            this_unaffected_variable_data = data_source{strcmp(names_source, this_unaffected_variable_source_name)};
-        else
-            Warning('Either the variable specificed in studySettings.txt cannot be processed here or the affectedSide info is innappropriate')
         end
+        
+        affected_variable_indicator = strcmp(this_affected_side_info, 'TRIGGER_AFFECTED');
+        unaffected_variable_indicator = strcmp(this_affected_side_info, 'TRIGGER_UNAFFECTED');
+        
+        this_affected_variable_data = data_source{strcmp(names_source, this_affected_variable_source_name)}(:, affected_variable_indicator);
+        this_unaffected_variable_data = data_source{strcmp(names_source, this_unaffected_variable_source_name)}(:, unaffected_variable_indicator);
         
         % only need to take 1 side, assuming the variables are the same
         % type
@@ -651,14 +654,14 @@ function processAnalysisVariables(varargin)
             addOrReplaceResultsData ...
               ( ...
                 analysis_data_session, analysis_names_session, analysis_directions_session, ...
-                this_affected_variable_data, 'affected_arm_angle', new_variable_directions ...
+                this_affected_variable_data, this_affected_variable_save_name, new_variable_directions ...
               );
          % store unaffected
         [analysis_data_session, analysis_names_session, analysis_directions_session] = ...
             addOrReplaceResultsData ...
               ( ...
                 analysis_data_session, analysis_names_session, analysis_directions_session, ...
-                this_unaffected_variable_data, 'unaffected_arm_angle', new_variable_directions ...
+                this_unaffected_variable_data, this_unaffected_variable_save_name, new_variable_directions ...
               ); 
     end
     

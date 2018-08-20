@@ -1310,9 +1310,9 @@ classdef WalkingDataCustodian < handle
                     if any(~strcmp(C7_directions_z{1}, {LPSI_directions_z{1}, RPSI_directions_z{1}}))
                         error('C7, LPSI and RPSI directions found in marker data are different from each other')
                     end
-                    if any(~strcmp(C7_directions_z{2}, {LBHD_directions_z{2}, RPSI_directions_z{2}}))
-                        error('C7, LPSI and RPSI directions found in marker data are different from each other')
-                    end
+%                     if any(~strcmp(C7_directions_z{2}, {LBHD_directions_z{2}, RPSI_directions_z{2}}))
+%                         error('C7, LPSI and RPSI directions found in marker data are different from each other')
+%                     end
                     
                     % check assumption that y is left-right and z is down-up
                     if ~strcmp(LPSI_directions_x{1}, 'right')
@@ -2390,7 +2390,7 @@ classdef WalkingDataCustodian < handle
                     this_stretch_times = stretch_times(i_stretch, :);
                     this_stretch_start_time = this_stretch_times(1);
                     this_stretch_end_time = this_stretch_times(end);
-                    this_stretch_pushoff_time = pushoff_times(i_stretch);
+%                     this_stretch_pushoff_time = pushoff_times(i_stretch);
                     % determine applicable push-off
                     
                     
