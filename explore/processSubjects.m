@@ -18,17 +18,18 @@ function processSubjects(varargin)
 %         deleteAnalysisVariables
 %         mkdir('analysis')
 %         importAscii
-%         saveSubjectInfoToFile
+        saveSubjectInfoToFile
 %         preprocessRawData
 %         createModel
 % % % 
 %         findStepEvents
-%         determineStretchesToAnalyze
+        determineStretchesToAnalyze
 %         calculateKinematicTrajectories('register_without_calculating', 1)
 % % % 
-%         findEmgNormalization
+        processEmgNormalization
 %         calculatePhaseTrajectories
         processStretchVariables
+        processStimulusResponse
         processAnalysisVariables
 %         onset_classification
         cd(study_path)

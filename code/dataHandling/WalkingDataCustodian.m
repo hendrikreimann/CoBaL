@@ -2494,8 +2494,9 @@ classdef WalkingDataCustodian < handle
                             if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_RIGHT')
                                 % find first left push-off after band start
                                 band_start_time = this_stretch_times(i_band);
-                                this_pushoff_time = min(left_pushoff_times(left_pushoff_times>band_start_time));
+                                this_pushoff_time = min(left_pushoff_times(left_pushoff_times>band_start_time));           
                                 stretch_data(i_band) = this_pushoff_time - band_start_time;
+                                
                             end
                             if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_LEFT')
                                 band_start_time = this_stretch_times(i_band);

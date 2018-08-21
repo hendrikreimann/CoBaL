@@ -144,12 +144,7 @@ function processAnalysisVariables(varargin)
                 % calculate control mean
                 data_this_variable = loaded_data.stretch_data_session{i_variable};
                 this_condition_control_data = data_this_variable(:, control_condition_indicator);
-                % why are there nans in the control data??
-                if any(any(isnan(this_condition_control_data)))
-                    [rows, col_to_remove] = find(isnan(this_condition_control_data));
-                    col_to_remove = unique(col_to_remove);
-                    this_condition_control_data(:, col_to_remove) = []; 
-                end
+                
                 this_condition_control_mean = mean(this_condition_control_data, 2);
                 
                 % calculate response
@@ -278,12 +273,14 @@ function processAnalysisVariables(varargin)
                 this_band_data_full = this_variable_source_data(band_start_index : band_end_index, i_stretch);
 
                 range = start_data_percent(i_band, i_stretch) : end_data_percent(i_band, i_stretch);
+                
                 this_band_time_range = this_band_time_full(range);
                 this_band_data_range = this_band_data_full(range);
                 
                 % integrate
-                this_band_data_integrated = cumtrapz(this_band_time_range, this_band_data_range);
+                this_band_data_integrated = cumtrapz(this_band_time_range, this_band_data_range);               
                 integrated_data(i_band, i_stretch) = this_band_data_integrated(end);
+
             end
         end        
         

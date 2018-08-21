@@ -131,8 +131,17 @@ function determineStretchesToAnalyze(varargin)
             
             % marker data
             [marker_trajectories, time_marker, sampling_rate_marker, marker_labels, marker_directions] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'marker_trajectories');
-%             [com_trajectories, time_marker, sampling_rate_marker, com_labels, com_directions] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'com_trajectories');
-                
+            if study_settings.get('prune_gaps_com')
+                [com_trajectories, time_marker, sampling_rate_marker, com_labels, com_directions] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'com_trajectories');
+            
+%                 [com_trajectories, time_marker, sampling_rate_marker, com_labels, com_directions] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'com_trajectories_optimized')
+            end
+            if study_settings.get('prune_gaps_angles')
+                [joint_angle_trajectories, time_marker, sampling_rate_marker, joint_labels, joint_directions] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'joint_angle_trajectories');
+%                 [joint_angle_trajectories, time_marker, sampling_rate_marker, com_labels, joint_directions] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'joint_trajectories_optimized')
+            
+            end
+            
             % forceplate data
             [left_forceplate_cop_world_trajectory, time_left_forceplate, ~, ~, ~, left_forceplate_available] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'left_foot_cop_world', 'optional');
             [right_forceplate_cop_world_trajectory, time_right_forceplate, ~, ~, ~, right_forceplate_available] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'right_foot_cop_world', 'optional');
@@ -1701,7 +1710,7 @@ function determineStretchesToAnalyze(varargin)
                     
                     % extract relevant events in order
                     if strcmp(trigger_foot, 'left')
-                        if length(left_touchdown_times) < index_left + 1 || removal_flags(i_trigger) == 1
+                        if length(left_touchdown_times) < index_left + 1 || removal_flags(i_trigger) == 1 || index_left == 1
                             % data doesn't include the required number of steps after the trigger
                             removal_flags(i_trigger) = 1;
                             left_foot_heelstrike_0  = NaN;
@@ -1735,7 +1744,7 @@ function determineStretchesToAnalyze(varargin)
                             end
                         end
                     elseif strcmp(trigger_foot, 'right')
-                        if length(right_touchdown_times) < index_right + 1 || removal_flags(i_trigger) == 1
+                        if length(right_touchdown_times) < index_right + 1 || removal_flags(i_trigger) == 1 || index_right == 1
                             % data doesn't include the required number of steps after the trigger
                             right_foot_heelstrike_pre = NaN;
                             right_foot_heelstrike_0 = NaN;
@@ -2246,11 +2255,7 @@ function determineStretchesToAnalyze(varargin)
             number_of_stretches = size(stretch_times, 1);
             removal_flags = zeros(number_of_stretches, 1);
             
-            % take care of stretches with very large or small stretch duration
-            % TO DO: TF: this is most likely where asymmetric indices are
-            % created
             if study_settings.get('prune_step_time_outliers')
-%                 for i_stretch = 1 : number_of_stretches
                     stretch_durations = stretch_times(:,2) - stretch_times(:,1);
                     stretch_duration_outlier_limits = median(stretch_durations) * [.75 1.25];
                     removal_flags(stretch_durations < stretch_duration_outlier_limits(1)) = 1;
@@ -2260,16 +2265,27 @@ function determineStretchesToAnalyze(varargin)
                     end
             end
             
-%             % check data availability for markers and flag stretches with gaps.. not really doing this anymore...
-%             for i_stretch = 1 : number_of_stretches
-%                 [~, start_index_mocap] = min(abs(time_marker - stretch_times(i_stretch, 1)));
-%                 [~, end_index_mocap] = min(abs(time_marker - stretch_times(i_stretch, end)));
-%                 if any(any(isnan(marker_trajectories(start_index_mocap : end_index_mocap, essential_marker_indicator))))
-%                     removal_flags(i_stretch) = 1;
-%                     disp('Removing a stretch due to gaps in essential markers')
-%                 end
-%            end
+            if study_settings.get('prune_gaps_com')
+                for i_stretch = 1 : number_of_stretches
+                    [~, start_index_mocap] = min(abs(time_marker - stretch_times(i_stretch, 1)));
+                    [~, end_index_mocap] = min(abs(time_marker - stretch_times(i_stretch, end)));
+                    if any(any(isnan(com_trajectories(start_index_mocap : end_index_mocap,:))))
+                        removal_flags(i_stretch) = 1;
+                        disp('Removing a stretch due to gaps in com trajectories')
+                    end
+                end
+            end
             
+            if study_settings.get('prune_gaps_angles')
+                for i_stretch = 1 : number_of_stretches
+                    [~, start_index_mocap] = min(abs(time_marker - stretch_times(i_stretch, 1)));
+                    [~, end_index_mocap] = min(abs(time_marker - stretch_times(i_stretch, end)));
+                    if any(any(isnan(joint_angle_trajectories(start_index_mocap : end_index_mocap,:))))
+                        removal_flags(i_stretch) = 1;
+                        disp('Removing a stretch due to gaps in joint trajectories')
+                    end
+                end
+            end
             %  check data availability for markers with non-zero weight
             marker_weights = study_settings.get('marker_weights');
             for i_marker = 1 : 3 : length(marker_labels)
