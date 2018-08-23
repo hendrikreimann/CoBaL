@@ -431,14 +431,47 @@ function processAnalysisVariables(varargin)
                 this_stretch_data_single_integrated_twice = cumtrapz(this_stretch_time_single, this_stretch_data_single_integrated);
                 this_variable_data(i_stretch) = this_stretch_data_single_integrated_twice(end);
             end 
+            
        end
-              % store
+       
+       if strcmp(this_variable_name, 'trigger_leg_ankle_dorsiflexion_dsmid')
+           this_variable_source_index = find(strcmp(analysis_names_session, this_variable_source_name), 1, 'first');
+           this_variable_source_data = response_data_session{this_variable_source_index};
+           number_of_stretches = size(this_variable_source_data, 2);
+           
+           end_data_time_within_band = this_pushoff_time_data;
+           end_data_ratio = end_data_time_within_band ./ this_step_time_data;
+           end_data_percent = round(end_data_ratio * 100);
+           
+           picked_data = zeros(bands_per_stretch, number_of_stretches);
+           for i_stretch = 1 : number_of_stretches
+               for i_band = 1 : bands_per_stretch
+                   [band_start_index, band_end_index] = getBandIndices(i_band, number_of_time_steps_normalized);
+                   this_band_time_full = linspace(0, this_step_time_data(i_band), 100);
+                   this_band_data_full = this_variable_source_data(band_start_index : band_end_index, i_stretch);
+                   
+                   range = start_data_percent(i_band, i_stretch) : end_data_percent(i_band, i_stretch);
+                   
+%                    this_band_time_range = this_band_time_full(range);
+                   this_band_data_range = this_band_data_full(range);
+                   
+                   % pick mid
+%                    this_band_data_integrated =  this_band_data_range);
+                   this_band_mid_index = round(length(this_band_data_range)/2);
+                   picked_data(i_band, i_stretch) = this_band_data_range(this_band_mid_index);
+                   
+               end
+           end
+       end
+       
+        % store
         [analysis_data_session, analysis_names_session, analysis_directions_session] = ...
             addOrReplaceResultsData ...
               ( ...
                 analysis_data_session, analysis_names_session, analysis_directions_session, ...
-                this_variable_data, this_variable_name, new_variable_directions ...
+                picked_data, this_variable_name, this_variable_source_directions ...
               );
+        
     end
     
     %% calculate variables from extrema
