@@ -75,7 +75,7 @@ function determineStretchesToAnalyze(varargin)
     acceptable_number_of_zeros_per_stretch = subject_settings.get('acceptable_number_of_zeros_per_stretch');
     experimental_paradigm = study_settings.get('experimental_paradigm');
     
-    if strcmp(experimental_paradigm, 'CadenceVision') || strcmp(experimental_paradigm, 'CadenceGVS') || strcmp(experimental_paradigm, 'ATR') 
+    if strcmp(experimental_paradigm, 'CadenceVision') || strcmp(experimental_paradigm, 'CadenceGVS')
         protocol_data = load('protocolInfo.mat');
     end
 
@@ -176,7 +176,7 @@ function determineStretchesToAnalyze(varargin)
                 current_acceleration_trajectory = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'visual_rotation_acceleration_trajectory');
                 [stimulus_state_trajectory, time_stimulus] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'stimulus_state_trajectory');
             end
-            if strcmp(experimental_paradigm, 'GVS') || strcmp(experimental_paradigm, 'CadenceGVS') ||  strcmp(experimental_paradigm, 'ATR') 
+            if strcmp(experimental_paradigm, 'GVS') || strcmp(experimental_paradigm, 'CadenceGVS') 
                 gvs_trajectory = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'GVS_current_trajectory');
                 [stimulus_state_trajectory, time_stimulus] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'stimulus_state_trajectory');
             end
@@ -239,7 +239,7 @@ function determineStretchesToAnalyze(varargin)
                     end
                 end
             end
-            if strcmp(experimental_paradigm, 'GVS') || strcmp(experimental_paradigm, 'CadenceGVS') ||  strcmp(experimental_paradigm, 'ATR') 
+            if strcmp(experimental_paradigm, 'GVS') || strcmp(experimental_paradigm, 'CadenceGVS')
                 illusion_trajectory = zeros(size(time_stimulus)); % -1 = LEFT, 1 = RIGHT
                 for i_time = 1 : length(time_stimulus)
                     if stimulus_state_trajectory(i_time) == 3
@@ -294,7 +294,7 @@ function determineStretchesToAnalyze(varargin)
                 trigger_indices_labview = find(diff(sign(stimulus_state_trajectory - stimulus_threshold)) > 0) + 2;
                 trigger_times = time_stimulus(trigger_indices_labview);
             end
-            if strcmp(experimental_paradigm, 'GVS') || strcmp(experimental_paradigm, 'CadenceGVS') || strcmp(experimental_paradigm, 'ATR') 
+            if strcmp(experimental_paradigm, 'GVS') || strcmp(experimental_paradigm, 'CadenceGVS') 
                 % find the time steps where the stimulus state crosses a threshold
                 stimulus_threshold = 1.5;
                 trigger_indices_labview = find(diff(sign(stimulus_state_trajectory - stimulus_threshold)) > 0) + 2;
@@ -1275,7 +1275,7 @@ function determineStretchesToAnalyze(varargin)
                 event_variables_to_save.stance_foot_data = condition_stance_foot_list;
             end
             
-            if strcmp(experimental_paradigm, 'Vision') || strcmp(experimental_paradigm, 'CadenceVision') || strcmp(experimental_paradigm, 'GVS') || strcmp(experimental_paradigm, 'CadenceGVS') ||  strcmp(experimental_paradigm, 'ATR') 
+            if strcmp(experimental_paradigm, 'Vision') || strcmp(experimental_paradigm, 'CadenceVision') || strcmp(experimental_paradigm, 'GVS') || strcmp(experimental_paradigm, 'CadenceGVS')  
                 bands_per_stretch = study_settings.get('number_of_steps_to_analyze');
                 
                 number_of_triggers = length(trigger_indices_mocap);
@@ -1478,13 +1478,23 @@ function determineStretchesToAnalyze(varargin)
                     % collect event times to form stretches
                     if ~removal_flags(i_trigger) == 1
                         if strcmp(trigger_foot, 'right')
-                            stretch_times(i_trigger, :) = [right_foot_heelstrike_0 left_foot_heelstrike_0 right_foot_heelstrike_1 left_foot_heelstrike_1 right_foot_heelstrike_2];
-                            stance_foot_data(i_trigger, :) = {'STANCE_RIGHT', 'STANCE_LEFT', 'STANCE_RIGHT', 'STANCE_LEFT'};
+                            if bands_per_stretch == 4
+                                stretch_times(i_trigger, :) = [right_foot_heelstrike_0 left_foot_heelstrike_0 right_foot_heelstrike_1 left_foot_heelstrike_1 right_foot_heelstrike_2];
+                                stance_foot_data(i_trigger, :) = {'STANCE_RIGHT', 'STANCE_LEFT', 'STANCE_RIGHT', 'STANCE_LEFT'};
+                            elseif bands_per_stretch == 2
+                                stretch_times(i_trigger, :) = [right_foot_heelstrike_0 left_foot_heelstrike_0 right_foot_heelstrike_1];
+                                stance_foot_data(i_trigger, :) = {'STANCE_RIGHT', 'STANCE_LEFT'};
+                            end
                             trigger_foot_list{i_trigger} = 'TRIGGER_RIGHT';
                         end
                         if strcmp(trigger_foot, 'left')
-                            stretch_times(i_trigger, :) = [left_foot_heelstrike_0 right_foot_heelstrike_0  left_foot_heelstrike_1 right_foot_heelstrike_1 left_foot_heelstrike_2];
-                            stance_foot_data(i_trigger, :) = {'STANCE_LEFT', 'STANCE_RIGHT', 'STANCE_LEFT', 'STANCE_RIGHT'};
+                            if bands_per_stretch == 4
+                                stretch_times(i_trigger, :) = [left_foot_heelstrike_0 right_foot_heelstrike_0  left_foot_heelstrike_1 right_foot_heelstrike_1 left_foot_heelstrike_2];
+                                stance_foot_data(i_trigger, :) = {'STANCE_LEFT', 'STANCE_RIGHT', 'STANCE_LEFT', 'STANCE_RIGHT'};
+                            elseif bands_per_stretch == 2
+                                stretch_times(i_trigger, :) = [left_foot_heelstrike_0 right_foot_heelstrike_0  left_foot_heelstrike_1];
+                                stance_foot_data(i_trigger, :) = {'STANCE_LEFT', 'STANCE_RIGHT'};
+                            end
                             trigger_foot_list{i_trigger} = 'TRIGGER_LEFT';
                         end
                         % visualize
@@ -1588,7 +1598,7 @@ function determineStretchesToAnalyze(varargin)
                 [cadence_list{:}] = deal([num2str(this_trial_cadence) 'BPM']);
                 
                                   
-                if strcmp(experimental_paradigm, 'ATR') 
+                if ~isempty(affected_side)
                     for i_stretch = 1 : length(trigger_foot_list)
                         if strcmp(affected_side, 'Left')
                             if strcmp(trigger_foot_list(i_stretch), 'TRIGGER_LEFT')
@@ -1605,6 +1615,7 @@ function determineStretchesToAnalyze(varargin)
                         end
                     end
                 end
+                
 
                 % restructure for saving
                 conditions_trial = struct;
@@ -1614,7 +1625,7 @@ function determineStretchesToAnalyze(varargin)
                 conditions_trial.direction_list = direction_list;
                 conditions_trial.group_list = group_list;
                 conditions_trial.cadence_list = cadence_list;
-                if strcmp(experimental_paradigm, 'ATR')
+                if ~isempty(affected_side)
                     conditions_trial.affected_stancefoot_list = condition_affected_stancefoot_list';
                 end
                 

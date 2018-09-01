@@ -346,7 +346,6 @@ function processAnalysisVariables(varargin)
     end
     
     %% process variables where something specific happens for each variable
-    % TO DO: automate the source type and data extraction
     special_variables_to_calculate = study_settings.get('analysis_variables_special');
     for i_variable = 1:size(special_variables_to_calculate, 1)
         this_variable_name = special_variables_to_calculate{i_variable, 1};
@@ -360,90 +359,96 @@ function processAnalysisVariables(varargin)
 %         this_variable_source_data = data_source{strcmp(names_source, this_variable_source_name)};
         this_variable_source_directions = directions_source(strcmp(names_source, this_variable_source_name), :);
         new_variable_directions = this_variable_source_directions;
+        
+        % TO DO: need to automate the data type loading and storage
           
-        if strcmp(this_variable_name, 'step_symmetry_index')
-            this_variable_source_index = find(strcmp(stretch_names_session, this_variable_source_name), 1, 'first');
-            this_variable_source_data = stretch_data_session{this_variable_source_index};
-
-            average_step_time = mean(reshape(this_variable_source_data, 1, length(this_variable_source_data)*2));
-            for i_stretch = 1:  length(this_variable_source_data)
-                % find the left and right stance data
-                if strcmp(condition_data_all(i_stretch,3), 'STANCE_LEFT')
-                    left_step_index = 2;
-                    right_step_index = 1;
-                else
-                    left_step_index = 1;
-                    right_step_index = 2;
-                end
-                this_left_step_time = this_variable_source_data(left_step_index,i_stretch);
-                this_right_step_time = this_variable_source_data(right_step_index,i_stretch);
-                this_variable_data(1:2,i_stretch) = (this_left_step_time - this_right_step_time) / average_step_time;
-            end
-        end
-        if strcmp(this_variable_name, 'com_from_com_init_x')
-            % should we be looking at response or stretch variable here??
-            this_variable_source_index = find(strcmp(response_names_session, this_variable_source_name), 1, 'first');
-            this_variable_source_data = response_data_session{this_variable_source_index};  
-            this_variable_data = [];
-            for i_stretch = 1:length(this_variable_source_data)
-                this_variable_data(:,i_stretch) = this_variable_source_data(:,i_stretch) - this_variable_source_data(1,i_stretch);
-            end
-        end
-       if strcmp(this_variable_name, 'trigger_leg_ankle_dorsiflexion_inverted_max')
-            this_variable_source_index = find(strcmp(analysis_names_session, this_variable_source_name), 1, 'first');
-            this_variable_source_data = analysis_data_session{this_variable_source_index};
-            
-            
-            for i_stretch = 1:length(this_variable_source_data)
-                % create time
-                this_stretch_time_full = linspace(0, this_step_time_data(i_stretch), 100);
-                this_stretch_data_full = this_variable_source_data(:, i_stretch);
-
-                % interpolate double stance to 100 data points
-                this_stretch_time_double = linspace(0, this_pushoff_time_data(i_stretch), 100);       
-                this_stretch_data_double = interp1(this_stretch_time_full, this_stretch_data_full, this_stretch_time_double);
-
-
-                this_dorsi_angle_value = max(findpeaks(this_stretch_data_double));
-                if ~isempty(this_dorsi_angle_value)
-                    this_variable_data(i_stretch) = this_dorsi_angle_value;
-                else
-                    this_variable_data(i_stretch) = NaN;
-                end
-            end
-       end
-       if strcmp(this_variable_name, 'cop_from_com_x_integrated_twice')
-            this_variable_source_index = find(strcmp(response_names_session, this_variable_source_name), 1, 'first');
-            this_variable_source_data = response_data_session{this_variable_source_index};
-            number_of_stretches = size(this_variable_source_data, 2);
-
-            for i_stretch = 1 : number_of_stretches
-                % get data for full step
-                this_stretch_time_full = linspace(0, this_step_time_data(i_stretch), 100);
-                this_stretch_data_full = this_variable_source_data(:, i_stretch);
-
-                % interpolate single stance to 100 data points
-                this_stretch_time_single = linspace(this_pushoff_time_data(i_stretch), this_step_time_data(i_stretch), 100);
-                this_stretch_data_single = interp1(this_stretch_time_full, this_stretch_data_full, this_stretch_time_single);
-
-                % integrate data in single stance
-                this_stretch_data_single_integrated = cumtrapz(this_stretch_time_single, this_stretch_data_single);
-                this_stretch_data_single_integrated_twice = cumtrapz(this_stretch_time_single, this_stretch_data_single_integrated);
-                this_variable_data(i_stretch) = this_stretch_data_single_integrated_twice(end);
-            end 
-            
-       end
+%         if strcmp(this_variable_name, 'step_symmetry_index')
+%             % TO DO: adjust for bands
+%             this_variable_source_index = find(strcmp(stretch_names_session, this_variable_source_name), 1, 'first');
+%             this_variable_source_data = stretch_data_session{this_variable_source_index};
+% 
+%             average_step_time = mean(reshape(this_variable_source_data, 1, length(this_variable_source_data)*2));
+%             for i_stretch = 1:  length(this_variable_source_data)
+%                 % find the left and right stance data
+%                 if strcmp(condition_data_all(i_stretch,3), 'STANCE_LEFT')
+%                     left_step_index = 2;
+%                     right_step_index = 1;
+%                 else
+%                     left_step_index = 1;
+%                     right_step_index = 2;
+%                 end
+%                 this_left_step_time = this_variable_source_data(left_step_index,i_stretch);
+%                 this_right_step_time = this_variable_source_data(right_step_index,i_stretch);
+%                 this_variable_data(1:2,i_stretch) = (this_left_step_time - this_right_step_time) / average_step_time;
+%             end
+%         end
+%         if strcmp(this_variable_name, 'com_from_com_init_x')
+%             % TO DO: adjust for bands
+%             % should we be looking at response or stretch variable here??
+%             this_variable_source_index = find(strcmp(response_names_session, this_variable_source_name), 1, 'first');
+%             this_variable_source_data = response_data_session{this_variable_source_index};  
+%             this_variable_data = [];
+%             for i_stretch = 1:length(this_variable_source_data)
+%                 this_variable_data(:,i_stretch) = this_variable_source_data(:,i_stretch) - this_variable_source_data(1,i_stretch);
+%             end
+%         end
+%        if strcmp(this_variable_name, 'trigger_leg_ankle_dorsiflexion_inverted_max')
+%            % TO DO: adjust for bands
+%             this_variable_source_index = find(strcmp(analysis_names_session, this_variable_source_name), 1, 'first');
+%             this_variable_source_data = analysis_data_session{this_variable_source_index};
+%             
+%             
+%             for i_stretch = 1:length(this_variable_source_data)
+%                 % create time
+%                 this_stretch_time_full = linspace(0, this_step_time_data(i_stretch), 100);
+%                 this_stretch_data_full = this_variable_source_data(:, i_stretch);
+% 
+%                 % interpolate double stance to 100 data points
+%                 this_stretch_time_double = linspace(0, this_pushoff_time_data(i_stretch), 100);       
+%                 this_stretch_data_double = interp1(this_stretch_time_full, this_stretch_data_full, this_stretch_time_double);
+% 
+% 
+%                 this_dorsi_angle_value = max(findpeaks(this_stretch_data_double));
+%                 if ~isempty(this_dorsi_angle_value)
+%                     this_variable_data(i_stretch) = this_dorsi_angle_value;
+%                 else
+%                     this_variable_data(i_stretch) = NaN;
+%                 end
+%             end
+%        end
+%        if strcmp(this_variable_name, 'cop_from_com_x_integrated_twice')
+%            % TO DO: adjust for bands
+%             this_variable_source_index = find(strcmp(response_names_session, this_variable_source_name), 1, 'first');
+%             this_variable_source_data = response_data_session{this_variable_source_index};
+%             number_of_stretches = size(this_variable_source_data, 2);
+% 
+%             for i_stretch = 1 : number_of_stretches
+%                 % get data for full step
+%                 this_stretch_time_full = linspace(0, this_step_time_data(i_stretch), 100);
+%                 this_stretch_data_full = this_variable_source_data(:, i_stretch);
+% 
+%                 % interpolate single stance to 100 data points
+%                 this_stretch_time_single = linspace(this_pushoff_time_data(i_stretch), this_step_time_data(i_stretch), 100);
+%                 this_stretch_data_single = interp1(this_stretch_time_full, this_stretch_data_full, this_stretch_time_single);
+% 
+%                 % integrate data in single stance
+%                 this_stretch_data_single_integrated = cumtrapz(this_stretch_time_single, this_stretch_data_single);
+%                 this_stretch_data_single_integrated_twice = cumtrapz(this_stretch_time_single, this_stretch_data_single_integrated);
+%                 this_variable_data(i_stretch) = this_stretch_data_single_integrated_twice(end);
+%             end 
+%             
+%        end
        
        if strcmp(this_variable_name, 'trigger_leg_ankle_dorsiflexion_dsmid')
            this_variable_source_index = find(strcmp(analysis_names_session, this_variable_source_name), 1, 'first');
-           this_variable_source_data = response_data_session{this_variable_source_index};
+           this_variable_source_data = analysis_data_session{this_variable_source_index};
            number_of_stretches = size(this_variable_source_data, 2);
            
            end_data_time_within_band = this_pushoff_time_data;
            end_data_ratio = end_data_time_within_band ./ this_step_time_data;
            end_data_percent = round(end_data_ratio * 100);
            
-           picked_data = zeros(bands_per_stretch, number_of_stretches);
+           this_variable_data = zeros(bands_per_stretch, number_of_stretches);
            for i_stretch = 1 : number_of_stretches
                for i_band = 1 : bands_per_stretch
                    [band_start_index, band_end_index] = getBandIndices(i_band, number_of_time_steps_normalized);
@@ -458,8 +463,50 @@ function processAnalysisVariables(varargin)
                    % pick mid
 %                    this_band_data_integrated =  this_band_data_range);
                    this_band_mid_index = round(length(this_band_data_range)/2);
-                   picked_data(i_band, i_stretch) = this_band_data_range(this_band_mid_index);
+                   this_variable_data(i_band, i_stretch) = this_band_data_range(this_band_mid_index);
                    
+               end
+           end
+       end
+       
+       if strcmp(this_variable_name,'com_x_inverted_pushoff_end')
+           this_variable_source_index = find(strcmp(analysis_names_session, this_variable_source_name), 1, 'first');
+           this_variable_source_data = analysis_data_session{this_variable_source_index};
+           number_of_stretches = size(this_variable_source_data, 2);
+           
+           end_data_time_within_band = this_pushoff_time_data;
+           end_data_ratio = end_data_time_within_band ./ this_step_time_data;
+           end_data_percent = round(end_data_ratio * 100);
+           
+            for i_stretch = 1 : number_of_stretches
+               for i_band = 1 : bands_per_stretch
+                   [band_start_index, band_end_index] = getBandIndices(i_band, number_of_time_steps_normalized);
+%                    this_band_time_full = linspace(0, this_step_time_data(i_band), 100);
+                   this_band_data_full = this_variable_source_data(band_start_index : band_end_index, i_stretch);
+                   
+                   this_variable_data(i_band, i_stretch) = this_band_data_full(end_data_percent(i_band, i_stretch));
+                    
+               end
+           end
+       end
+       
+       if strcmp(this_variable_name,'com_x_inverted_band_end')
+           this_variable_source_index = find(strcmp(analysis_names_session, this_variable_source_name), 1, 'first');
+           this_variable_source_data = analysis_data_session{this_variable_source_index};
+           number_of_stretches = size(this_variable_source_data, 2);
+           
+           end_data_time_within_band = this_pushoff_time_data;
+           end_data_ratio = end_data_time_within_band ./ this_step_time_data;
+           end_data_percent = round(end_data_ratio * 100);
+           
+            for i_stretch = 1 : number_of_stretches
+               for i_band = 1 : bands_per_stretch
+                   [band_start_index, band_end_index] = getBandIndices(i_band, number_of_time_steps_normalized);
+%                    this_band_time_full = linspace(0, this_step_time_data(i_band), 100);
+                   this_band_data_full = this_variable_source_data(band_start_index : band_end_index, i_stretch);
+                   
+                   this_variable_data(i_band, i_stretch) = this_band_data_full(end);
+                    
                end
            end
        end
@@ -469,7 +516,7 @@ function processAnalysisVariables(varargin)
             addOrReplaceResultsData ...
               ( ...
                 analysis_data_session, analysis_names_session, analysis_directions_session, ...
-                picked_data, this_variable_name, this_variable_source_directions ...
+                this_variable_data, this_variable_name, new_variable_directions ...
               );
         
     end
