@@ -91,7 +91,7 @@ function processAnalysisVariables(varargin)
             
             % determine applicable control condition index
             if strcmp(study_settings.get('experimental_paradigm'), 'Vision') || strcmp(study_settings.get('experimental_paradigm'), 'GVS') || strcmp(study_settings.get('experimental_paradigm'), 'GVS_old') 
-                 if ~isempty(affected_side)
+                 if exist('affected_side')
                      if strcmp(this_stretch_condition_string{strcmp(condition_combination_labels, 'affected_side')}, 'TRIGGER_AFFECTED')
                          applicable_control_condition_index = find(strcmp(condition_combinations_control_unique(:, strcmp(condition_combination_labels, 'affected_side')), 'TRIGGER_AFFECTED'));
                      end
