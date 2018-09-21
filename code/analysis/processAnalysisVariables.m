@@ -371,6 +371,19 @@ function processAnalysisVariables(varargin)
         this_variable_source_name_triggerLeft = variables_to_select{i_variable, 3};
         this_variable_source_name_triggerRight = variables_to_select{i_variable, 4};
         this_variable_source_type = variables_to_select{i_variable, 2};
+        if strcmp(this_variable_source_type, 'stretch')
+            this_variable_source_index_triggerLeft = find(strcmp(stretch_names_session, this_variable_source_name_triggerLeft), 1, 'first');
+            this_variable_source_index_triggerRight = find(strcmp(stretch_names_session, this_variable_source_name_triggerRight), 1, 'first');
+            if isempty(this_variable_source_index_triggerLeft)
+                error(['Data not found: ' this_variable_source_name_triggerLeft])
+            end
+            if isempty(this_variable_source_index_triggerRight)
+                error(['Data not found: ' this_variable_source_name_triggerRight])
+            end
+            this_variable_source_data_triggerLeft = stretch_data_session{this_variable_source_index_triggerLeft};
+            this_variable_source_data_triggerRight = stretch_data_session{this_variable_source_index_triggerRight};
+            new_variable_directions = stretch_directions_session(strcmp(stretch_names_session, this_variable_source_name_triggerLeft), :);
+        end
         if strcmp(this_variable_source_type, 'response')
             this_variable_source_index_triggerLeft = find(strcmp(response_names_session, this_variable_source_name_triggerLeft), 1, 'first');
             this_variable_source_index_triggerRight = find(strcmp(response_names_session, this_variable_source_name_triggerRight), 1, 'first');
