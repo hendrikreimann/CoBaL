@@ -52,7 +52,7 @@ function determineStretchesToAnalyze(varargin)
 
 
     %% prepare
-    load('subjectInfo.mat', 'date', 'subject_id', 'most_affected');
+    load('subjectInfo.mat', 'date', 'subject_id', 'affected_side');
     % load settings
     study_settings_file = '';
     if exist(['..' filesep 'studySettings.txt'], 'file')
@@ -131,8 +131,17 @@ function determineStretchesToAnalyze(varargin)
             
             % marker data
             [marker_trajectories, time_marker, sampling_rate_marker, marker_labels, marker_directions] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'marker_trajectories');
-%             [com_trajectories, time_marker, sampling_rate_marker, com_labels, com_directions] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'com_trajectories');
-                
+            if study_settings.get('prune_gaps_com')
+                [com_trajectories, time_marker, sampling_rate_marker, com_labels, com_directions] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'com_trajectories');
+            
+%                 [com_trajectories, time_marker, sampling_rate_marker, com_labels, com_directions] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'com_trajectories_optimized')
+            end
+            if study_settings.get('prune_gaps_angles')
+                [joint_angle_trajectories, time_marker, sampling_rate_marker, joint_labels, joint_directions] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'joint_angle_trajectories');
+%                 [joint_angle_trajectories, time_marker, sampling_rate_marker, com_labels, joint_directions] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'joint_trajectories_optimized')
+            
+            end
+            
             % forceplate data
             [left_forceplate_cop_world_trajectory, time_left_forceplate, ~, ~, ~, left_forceplate_available] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'left_foot_cop_world', 'optional');
             [right_forceplate_cop_world_trajectory, time_right_forceplate, ~, ~, ~, right_forceplate_available] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'right_foot_cop_world', 'optional');
@@ -167,7 +176,7 @@ function determineStretchesToAnalyze(varargin)
                 current_acceleration_trajectory = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'visual_rotation_acceleration_trajectory');
                 [stimulus_state_trajectory, time_stimulus] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'stimulus_state_trajectory');
             end
-            if strcmp(experimental_paradigm, 'GVS') || strcmp(experimental_paradigm, 'CadenceGVS')
+            if strcmp(experimental_paradigm, 'GVS') || strcmp(experimental_paradigm, 'CadenceGVS') 
                 gvs_trajectory = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'GVS_current_trajectory');
                 [stimulus_state_trajectory, time_stimulus] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'stimulus_state_trajectory');
             end
@@ -285,7 +294,7 @@ function determineStretchesToAnalyze(varargin)
                 trigger_indices_labview = find(diff(sign(stimulus_state_trajectory - stimulus_threshold)) > 0) + 2;
                 trigger_times = time_stimulus(trigger_indices_labview);
             end
-            if strcmp(experimental_paradigm, 'GVS') || strcmp(experimental_paradigm, 'CadenceGVS')
+            if strcmp(experimental_paradigm, 'GVS') || strcmp(experimental_paradigm, 'CadenceGVS') 
                 % find the time steps where the stimulus state crosses a threshold
                 stimulus_threshold = 1.5;
                 trigger_indices_labview = find(diff(sign(stimulus_state_trajectory - stimulus_threshold)) > 0) + 2;
@@ -1230,6 +1239,7 @@ function determineStretchesToAnalyze(varargin)
                     end
                 end
                 conditions_trial.condition_trigger_foot_list = condition_trigger_foot_list;
+
                 
                 % determine direction
                 condition_direction_list = cell(size(condition_stance_foot_list));
@@ -1265,7 +1275,7 @@ function determineStretchesToAnalyze(varargin)
                 event_variables_to_save.stance_foot_data = condition_stance_foot_list;
             end
             
-            if strcmp(experimental_paradigm, 'Vision') || strcmp(experimental_paradigm, 'CadenceVision') || strcmp(experimental_paradigm, 'GVS') || strcmp(experimental_paradigm, 'CadenceGVS')
+            if strcmp(experimental_paradigm, 'Vision') || strcmp(experimental_paradigm, 'CadenceVision') || strcmp(experimental_paradigm, 'GVS') || strcmp(experimental_paradigm, 'CadenceGVS')  
                 bands_per_stretch = study_settings.get('number_of_steps_to_analyze');
                 
                 number_of_triggers = length(trigger_indices_mocap);
@@ -1468,13 +1478,23 @@ function determineStretchesToAnalyze(varargin)
                     % collect event times to form stretches
                     if ~removal_flags(i_trigger) == 1
                         if strcmp(trigger_foot, 'right')
-                            stretch_times(i_trigger, :) = [right_foot_heelstrike_0 left_foot_heelstrike_0 right_foot_heelstrike_1 left_foot_heelstrike_1 right_foot_heelstrike_2];
-                            stance_foot_data(i_trigger, :) = {'STANCE_RIGHT', 'STANCE_LEFT', 'STANCE_RIGHT', 'STANCE_LEFT'};
+                            if bands_per_stretch == 4
+                                stretch_times(i_trigger, :) = [right_foot_heelstrike_0 left_foot_heelstrike_0 right_foot_heelstrike_1 left_foot_heelstrike_1 right_foot_heelstrike_2];
+                                stance_foot_data(i_trigger, :) = {'STANCE_RIGHT', 'STANCE_LEFT', 'STANCE_RIGHT', 'STANCE_LEFT'};
+                            elseif bands_per_stretch == 2
+                                stretch_times(i_trigger, :) = [right_foot_heelstrike_0 left_foot_heelstrike_0 right_foot_heelstrike_1];
+                                stance_foot_data(i_trigger, :) = {'STANCE_RIGHT', 'STANCE_LEFT'};
+                            end
                             trigger_foot_list{i_trigger} = 'TRIGGER_RIGHT';
                         end
                         if strcmp(trigger_foot, 'left')
-                            stretch_times(i_trigger, :) = [left_foot_heelstrike_0 right_foot_heelstrike_0  left_foot_heelstrike_1 right_foot_heelstrike_1 left_foot_heelstrike_2];
-                            stance_foot_data(i_trigger, :) = {'STANCE_LEFT', 'STANCE_RIGHT', 'STANCE_LEFT', 'STANCE_RIGHT'};
+                            if bands_per_stretch == 4
+                                stretch_times(i_trigger, :) = [left_foot_heelstrike_0 right_foot_heelstrike_0  left_foot_heelstrike_1 right_foot_heelstrike_1 left_foot_heelstrike_2];
+                                stance_foot_data(i_trigger, :) = {'STANCE_LEFT', 'STANCE_RIGHT', 'STANCE_LEFT', 'STANCE_RIGHT'};
+                            elseif bands_per_stretch == 2
+                                stretch_times(i_trigger, :) = [left_foot_heelstrike_0 right_foot_heelstrike_0  left_foot_heelstrike_1];
+                                stance_foot_data(i_trigger, :) = {'STANCE_LEFT', 'STANCE_RIGHT'};
+                            end
                             trigger_foot_list{i_trigger} = 'TRIGGER_LEFT';
                         end
                         % visualize
@@ -1576,6 +1596,26 @@ function determineStretchesToAnalyze(varargin)
                 end
                 cadence_list = cell(size(direction_list));
                 [cadence_list{:}] = deal([num2str(this_trial_cadence) 'BPM']);
+                
+                                  
+                if ~isempty(affected_side)
+                    for i_stretch = 1 : length(trigger_foot_list)
+                        if strcmp(affected_side, 'Left')
+                            if strcmp(trigger_foot_list(i_stretch), 'TRIGGER_LEFT')
+                                condition_affected_stancefoot_list{i_stretch} = 'TRIGGER_AFFECTED';
+                            elseif strcmp(trigger_foot_list(i_stretch), 'TRIGGER_RIGHT')
+                                condition_affected_stancefoot_list{i_stretch} = 'TRIGGER_UNAFFECTED';
+                            end
+                        elseif strcmp(affected_side, 'Right')
+                            if strcmp(trigger_foot_list(i_stretch), 'TRIGGER_RIGHT')
+                                condition_affected_stancefoot_list{i_stretch} = 'TRIGGER_AFFECTED';
+                            elseif strcmp(trigger_foot_list(i_stretch), 'TRIGGER_LEFT')
+                                condition_affected_stancefoot_list{i_stretch} = 'TRIGGER_UNAFFECTED';
+                            end
+                        end
+                    end
+                end
+                
 
                 % restructure for saving
                 conditions_trial = struct;
@@ -1585,6 +1625,9 @@ function determineStretchesToAnalyze(varargin)
                 conditions_trial.direction_list = direction_list;
                 conditions_trial.group_list = group_list;
                 conditions_trial.cadence_list = cadence_list;
+                if ~isempty(affected_side)
+                    conditions_trial.affected_stancefoot_list = condition_affected_stancefoot_list';
+                end
                 
                 event_variables_to_save.stretch_times = stretch_times;
                 event_variables_to_save.stance_foot_data = stance_foot_data;
@@ -1678,7 +1721,7 @@ function determineStretchesToAnalyze(varargin)
                     
                     % extract relevant events in order
                     if strcmp(trigger_foot, 'left')
-                        if length(left_touchdown_times) < index_left + 1 || removal_flags(i_trigger) == 1
+                        if length(left_touchdown_times) < index_left + 1 || removal_flags(i_trigger) == 1 || index_left == 1
                             % data doesn't include the required number of steps after the trigger
                             removal_flags(i_trigger) = 1;
                             left_foot_heelstrike_0  = NaN;
@@ -1712,7 +1755,7 @@ function determineStretchesToAnalyze(varargin)
                             end
                         end
                     elseif strcmp(trigger_foot, 'right')
-                        if length(right_touchdown_times) < index_right + 1 || removal_flags(i_trigger) == 1
+                        if length(right_touchdown_times) < index_right + 1 || removal_flags(i_trigger) == 1 || index_right == 1
                             % data doesn't include the required number of steps after the trigger
                             right_foot_heelstrike_pre = NaN;
                             right_foot_heelstrike_0 = NaN;
@@ -1855,8 +1898,6 @@ function determineStretchesToAnalyze(varargin)
                         end
                     end
                 end
-                
-                    
                     
                 % put in placeholder for group
                 group_list = cell(size(direction_list));
@@ -1867,6 +1908,7 @@ function determineStretchesToAnalyze(varargin)
                 conditions_trial.stimulus_list = stimulus_list;
                 conditions_trial.trigger_foot_list = trigger_foot_list;
                 conditions_trial.direction_list = direction_list;
+                
 %                 conditions_trial.group_list = group_list;
 %                 conditions_trial.delay_list = delay_list;
                 
@@ -2224,11 +2266,7 @@ function determineStretchesToAnalyze(varargin)
             number_of_stretches = size(stretch_times, 1);
             removal_flags = zeros(number_of_stretches, 1);
             
-            % take care of stretches with very large or small stretch duration
-            % TO DO: TF: this is most likely where asymmetric indices are
-            % created
             if study_settings.get('prune_step_time_outliers')
-%                 for i_stretch = 1 : number_of_stretches
                     stretch_durations = stretch_times(:,2) - stretch_times(:,1);
                     stretch_duration_outlier_limits = median(stretch_durations) * [.75 1.25];
                     removal_flags(stretch_durations < stretch_duration_outlier_limits(1)) = 1;
@@ -2238,16 +2276,27 @@ function determineStretchesToAnalyze(varargin)
                     end
             end
             
-%             % check data availability for markers and flag stretches with gaps.. not really doing this anymore...
-%             for i_stretch = 1 : number_of_stretches
-%                 [~, start_index_mocap] = min(abs(time_marker - stretch_times(i_stretch, 1)));
-%                 [~, end_index_mocap] = min(abs(time_marker - stretch_times(i_stretch, end)));
-%                 if any(any(isnan(marker_trajectories(start_index_mocap : end_index_mocap, essential_marker_indicator))))
-%                     removal_flags(i_stretch) = 1;
-%                     disp('Removing a stretch due to gaps in essential markers')
-%                 end
-%            end
+            if study_settings.get('prune_gaps_com')
+                for i_stretch = 1 : number_of_stretches
+                    [~, start_index_mocap] = min(abs(time_marker - stretch_times(i_stretch, 1)));
+                    [~, end_index_mocap] = min(abs(time_marker - stretch_times(i_stretch, end)));
+                    if any(any(isnan(com_trajectories(start_index_mocap : end_index_mocap,:))))
+                        removal_flags(i_stretch) = 1;
+                        disp('Removing a stretch due to gaps in com trajectories')
+                    end
+                end
+            end
             
+            if study_settings.get('prune_gaps_angles')
+                for i_stretch = 1 : number_of_stretches
+                    [~, start_index_mocap] = min(abs(time_marker - stretch_times(i_stretch, 1)));
+                    [~, end_index_mocap] = min(abs(time_marker - stretch_times(i_stretch, end)));
+                    if any(any(isnan(joint_angle_trajectories(start_index_mocap : end_index_mocap,:))))
+                        removal_flags(i_stretch) = 1;
+                        disp('Removing a stretch due to gaps in joint trajectories')
+                    end
+                end
+            end
             %  check data availability for markers with non-zero weight
             marker_weights = study_settings.get('marker_weights');
             for i_marker = 1 : 3 : length(marker_labels)

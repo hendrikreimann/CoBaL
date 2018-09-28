@@ -137,22 +137,25 @@ function preprocessRawData(varargin)
 
                     % define filters
                     % initial low pass filter
-%                     filter_order_low = 4;
-%                     cutoff_frequency_low = 500; % in Hz
-%                     [b_low, a_low] = butter(filter_order_low, cutoff_frequency_low/(sampling_rate_emg/2), 'low');
-% 
-%                     % high pass filter at 20 hz to get rid of DC offset
-%                     filter_order_high = 4;
-%                     cutoff_frequency_high = 20; % in Hz
-%                     [b_high, a_high] = butter(filter_order_high, cutoff_frequency_high/(sampling_rate_emg/2), 'high');
-% 
+                    filter_order_low = 4;
+                    cutoff_frequency_low = 500; % in Hz
+                    [b_low, a_low] = butter(filter_order_low, cutoff_frequency_low/(sampling_rate_emg/2), 'low');
+
+                    % high pass filter at 20 hz to get rid of DC offset
+                    filter_order_high = 4;
+                    cutoff_frequency_high = 20; % in Hz
+                    [b_high, a_high] = butter(filter_order_high, cutoff_frequency_high/(sampling_rate_emg/2), 'high');
+
+                    emg_trajectories_preRect_low = filtfilt(b_low, a_low, emg_trajectories_raw);
+                    emg_trajectories_preRect_high = filtfilt(b_high, a_high, emg_trajectories_preRect_low);
+                    
                     % low pass filter below 10 Hz -- aggressive smoothing after rectification
                     filter_order_final = 4;
                     cutoff_frequency_final = 6; % in Hz
                     [b_final, a_final] = butter(filter_order_final, cutoff_frequency_final/(sampling_rate_emg/2), 'low');
 
                     % rectify, then filter
-                    emg_trajectories_rectified = abs(emg_trajectories_raw);
+                    emg_trajectories_rectified = abs(emg_trajectories_preRect_high);
                     emg_trajectories = filtfilt(b_final, a_final, emg_trajectories_rectified);
 
                     % apply time offset
@@ -239,19 +242,19 @@ function preprocessRawData(varargin)
 
                     % visualize
                     if visualize
-                        i_channel = 5;
+                        i_channel = 12;
                         figure; axes; hold on; title(['EMG, condition ' trial_type ', trial ' num2str(trial_number)])
                         plot(time_emg, emg_trajectories_raw(:, i_channel), 'DisplayName', 'raw');
                         plot(time_emg, emg_trajectories_rectified(:, i_channel), 'DisplayName', 'rectified');
     %                     plot(time_emg, emg_rms_rectified(:, i_channel), 'DisplayName', 'rms rectified', 'linewidth', 2);
-    %                     plot(time_emg, emg_rms_smoothed(:, i_channel), 'DisplayName', 'rms smoothed', 'linewidth', 2);
-                %         plot(time_emg, emg_trajectories_filtered_lowpass(:, i_channel), 'DisplayName', 'lowpass');
-                %         plot(time_emg, emg_trajectories_filtered_highpass(:, i_channel), 'DisplayName', 'highpass');
+%                         plot(time_emg, emg_rms_smoothed(:, i_channel), 'DisplayName', 'rms smoothed', 'linewidth', 2);
+%                         plot(time_emg, emg_trajectories_filtered_lowpass(:, i_channel), 'DisplayName', 'lowpass');
+%                         plot(time_emg, emg_trajectories_filtered_highpass(:, i_channel), 'DisplayName', 'highpass');
+                        plot(time_emg,emg_trajectories_preRect_high(:, i_channel), 'DisplayName', 'preRectified')
                         plot(time_emg, emg_trajectories(:, i_channel), 'linewidth', 2, 'DisplayName', 'final');
                         legend('toggle');
+                        input('Continue?')
                     end                        
-
-
                 end
             end
         end

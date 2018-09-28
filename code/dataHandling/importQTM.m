@@ -82,9 +82,9 @@ function importQTM()
 
         table_headers = imported_table.Properties.VariableNames;
         protocol_trial_type = imported_table.(table_headers{strcmp(headers, 'Trial Type')});
-        if strcmp(protocol_trial_type{end}, '(stop)')
-            protocol_trial_type(end) = [];
-        end
+%         if strcmp(protocol_trial_type{end}, '(stop)')
+%             protocol_trial_type(end) = [];
+%         end
         protocol_trial_number = imported_table.(table_headers{strcmp(headers, 'Trial Number')});
         protocol_trial_duration = imported_table.(table_headers{strcmp(headers, 'Duration (s)')});
         protocol_metronome_cadence = imported_table.(table_headers{strcmp(headers, 'Use Metronome (0/1)')});
