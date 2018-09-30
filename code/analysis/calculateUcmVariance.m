@@ -14,7 +14,7 @@
 %     You should have received a copy of the GNU General Public License
 %     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-function [V_para, V_perp, S, k_para, k_perp, E_para, E_perp, SigmaHat] = calculateUcmVariance(data, taskJacobian)
+function [V_para, V_perp, S, k_para, k_perp, E_para, E_perp, SigmaHat] = calculateUcmVariance(data, taskJacobian, analyticCovarianceMatrix)
 %
 % Input
 % data = (numberOfDofs x numberOfTrials) matrix containing numberOfTrials rows of observations
@@ -39,8 +39,13 @@ k_para = numberOfDofs - k_perp;                             % number of uncontro
 [~, ~, V] = svd(taskJacobian);                              % use singular value decomposition to get the basis
 E_perp = V(:, 1:k_perp);                                    % E_perp contains the base vectors of the range space
 E_para = V(:, k_perp+1:end);                                % E_para contains the base vectors of the null space
-V_perp = 1/k_perp * trace(E_perp' * SigmaHat * E_perp);
-V_para = 1/k_para * trace(E_para' * SigmaHat * E_para);
+if nargin < 3
+    V_perp = 1/k_perp * trace(E_perp' * SigmaHat * E_perp);
+    V_para = 1/k_para * trace(E_para' * SigmaHat * E_para);
+else
+    V_perp = 1/k_perp * trace(E_perp' * analyticCovarianceMatrix * E_perp);
+    V_para = 1/k_para * trace(E_para' * analyticCovarianceMatrix * E_para);
+end
 S = V_para / V_perp;
 
 
