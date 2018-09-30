@@ -87,13 +87,18 @@ function importQTM()
 %         end
         protocol_trial_number = imported_table.(table_headers{strcmp(headers, 'Trial Number')});
         protocol_trial_duration = imported_table.(table_headers{strcmp(headers, 'Duration (s)')});
-        protocol_metronome_cadence = imported_table.(table_headers{strcmp(headers, 'Use Metronome (0/1)')});
         protocol_trial_saved = imported_table.(table_headers{strcmp(headers, 'save data (0/1)')});
         protocol_count_left_step = imported_table.(table_headers{strcmp(headers, 'Count left steps (0/1)')});
         protocol_count_right_step = imported_table.(table_headers{strcmp(headers, 'Count right steps (0/1)')});
         protocol_stim_visual_intermittent = imported_table.(table_headers{strcmp(headers, 'Use Visual Stimulus - intermittent')});
+       
+%         new protocol
+        protocol_metronome_cadence = imported_table.(table_headers{strcmp(headers, 'Use Metronome (0/1)')});
         protocol_stim_gvs_intermittent = imported_table.(table_headers{strcmp(headers, 'GVS intermittent')});
-        
+
+        % old protocol
+%         protocol_metronome_cadence = imported_table.(table_headers{strcmp(headers, 'Metronome')});
+%         protocol_stim_gvs_intermittent = imported_table.(table_headers{strcmp(headers, 'Use GVS - intermittent')});
         
         
 %         [imported_data, delimiter, nheaderlines] = importdata([labview_source_dir filesep 'protocol.csv'], ',', 1);
@@ -293,7 +298,7 @@ function importQTM()
                 end
                 
                 % check if a mapping was provided for this step
-                use_analog_signal = true;
+                use_analog_signal = false;
                 trial_type_matches = strcmp(analog_to_protocol_mapping(:, 1), trial_type);
                 trial_number_matches = strcmp(analog_to_protocol_mapping(:, 2), num2str(trial_number));
                 index_number_matches = strcmp(analog_to_protocol_mapping(:, 3), num2str(i_trial_this_qtm_file));

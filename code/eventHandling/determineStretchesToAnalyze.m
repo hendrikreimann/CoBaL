@@ -1342,6 +1342,10 @@ function determineStretchesToAnalyze(varargin)
                         removal_flags(i_trigger) = 1;
                     end                    
                     
+                    % store acceptable heelstrikes from trigger foot
+                    % reporting
+                    
+                    
                     % extract relevant events in order
                     if strcmp(trigger_foot, 'left')
                         if length(left_touchdown_times) < index_left + 2 || removal_flags(i_trigger) == 1
@@ -1389,7 +1393,7 @@ function determineStretchesToAnalyze(varargin)
                                 % have checked that
                             end                
                         end
-                        elseif strcmp(trigger_foot, 'right')
+                    elseif strcmp(trigger_foot, 'right')
                         if length(right_touchdown_times) < index_right + 2 || removal_flags(i_trigger) == 1
                             % data doesn't include the required number of steps after the trigger
                             removal_flags(i_trigger) = 1;
@@ -1539,6 +1543,8 @@ function determineStretchesToAnalyze(varargin)
 %                     end 
                 end
                     
+                
+                
                 % remove flagged triggers
                 unflagged_indices = ~removal_flags;
                 trigger_times = trigger_times(unflagged_indices);
@@ -1598,7 +1604,7 @@ function determineStretchesToAnalyze(varargin)
                 [cadence_list{:}] = deal([num2str(this_trial_cadence) 'BPM']);
                 
                                   
-                if ~isempty(affected_side)
+                if exist('affected_side')
                     for i_stretch = 1 : length(trigger_foot_list)
                         if strcmp(affected_side, 'Left')
                             if strcmp(trigger_foot_list(i_stretch), 'TRIGGER_LEFT')
@@ -1625,7 +1631,7 @@ function determineStretchesToAnalyze(varargin)
                 conditions_trial.direction_list = direction_list;
                 conditions_trial.group_list = group_list;
                 conditions_trial.cadence_list = cadence_list;
-                if ~isempty(affected_side)
+                if exist('affected_side')
                     conditions_trial.affected_stancefoot_list = condition_affected_stancefoot_list';
                 end
                 
@@ -2370,7 +2376,11 @@ function determineStretchesToAnalyze(varargin)
             stretches_file_name = ['analysis' filesep makeFileName(date, subject_id, condition_list{i_condition}, i_trial, 'relevantDataStretches')];
             saveDataToFile(stretches_file_name, event_variables_to_save);
             
+            
             disp(['Finding Relevant Data Stretches: condition ' condition_list{i_condition} ', Trial ' num2str(i_trial) ' completed, found ' num2str(size(event_variables_to_save.stretch_times, 1)) ' relevant stretches, saved as ' stretches_file_name]);                
+            % display average heelstrike distance
+            disp(['Finding Relevant Data Stretches: condition ' condition_list{i_condition} ', Trial ' num2str(i_trial) ' completed, average discrepancy between trigger and stimulus' num2str(mean(closest_heelstrike_distance_times))])
+            
         end
 
     end
