@@ -50,7 +50,10 @@ function determineStretchesToAnalyze(varargin)
     visualize = parser.Results.visualize;
     [condition_list, trial_number_list] = parseTrialArguments(varargin{:});
 
-
+    
+    variables_to_save_latency_check = struct;
+    latency_value_list = {};
+    
     %% prepare
     load('subjectInfo.mat', 'date', 'subject_id', 'affected_side');
     % load settings
@@ -2379,11 +2382,19 @@ function determineStretchesToAnalyze(varargin)
             
             disp(['Finding Relevant Data Stretches: condition ' condition_list{i_condition} ', Trial ' num2str(i_trial) ' completed, found ' num2str(size(event_variables_to_save.stretch_times, 1)) ' relevant stretches, saved as ' stretches_file_name]);                
             % display average heelstrike distance
-            disp(['Finding Relevant Data Stretches: condition ' condition_list{i_condition} ', Trial ' num2str(i_trial) ' completed, average discrepancy between trigger and stimulus' num2str(mean(closest_heelstrike_distance_times))])
+            disp(['Finding Relevant Data Stretches: condition ' condition_list{i_condition} ', Trial ' num2str(i_trial) ' completed, average discrepancy between trigger and heelstrike: ' num2str(mean(closest_heelstrike_distance_times))])
             
+            % create a storage variable for latency values for each subject
+%             trial_type_list = [trial_type_list; condition_list{i_condition}];
+%             trial_number_list = {trial_number_list; (i_trial)};
+            latency_value_list = [latency_value_list; closest_heelstrike_distance_times'];  
         end
-
     end
+%     variables_to_save_latency_check.condition_list = trial_type_list;
+    variables_to_save_latency_check.trial_number_list = trial_number_list;
+    variables_to_save_latency_check.latency_value_list = latency_value_list;
+    save_file_name = 'latency_check.mat';
+    save(save_file_name, '-struct', 'variables_to_save_latency_check');
 end
 
 
