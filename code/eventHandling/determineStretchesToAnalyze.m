@@ -52,7 +52,7 @@ function determineStretchesToAnalyze(varargin)
 
 
     %% prepare
-    load('subjectInfo.mat', 'date', 'subject_id', 'most_affected');
+    load('subjectInfo.mat', 'date', 'subject_id', 'most_affected', 'gender');
     % load settings
     study_settings_file = '';
     if exist(['..' filesep 'studySettings.txt'], 'file')
@@ -2214,6 +2214,14 @@ function determineStretchesToAnalyze(varargin)
                 condition_subject_list{i_stretch} = subject_id;
             end
             conditions_trial.subject_list = condition_subject_list;
+            
+            % add gender
+            condition_gender_list = cell(size(event_variables_to_save.stance_foot_data, 1), 1);
+            for i_stretch = 1 : length(condition_gender_list)
+                condition_gender_list{i_stretch} = gender;
+            end
+            conditions_trial.gender_list = condition_gender_list;
+            
 
             %% remove stretches where important variables are missing
 
