@@ -319,18 +319,28 @@ function determineStretchesToAnalyze(varargin)
 
             % visualize triggers
             if visualize
-
-                figure; axes; hold on
-%                 plot(time_stimulus, stimulus_state_trajectory*0.02);
-                if left_forceplate_available
-                    left_cop_x_trajectory_relevant = left_copx_trajectory; left_cop_x_trajectory_relevant(left_cop_x_trajectory_relevant==0) = NaN;
-                    plot(time_left_forceplate, left_cop_x_trajectory_relevant, 'linewidth', 2, 'Displayname', 'cop left');
-                end
+                LHEE = extractMarkerData(marker_trajectories, marker_labels, 'LHEE');
+                RHEE = extractMarkerData(marker_trajectories, marker_labels, 'RHEE');
+                [left_forceplate_wrench_world_trajectory, time_left_forceplate] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'left_foot_wrench_world', 'optional');
+                [right_forceplate_wrench_world_trajectory, time_right_forceplate] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'right_foot_wrench_world', 'optional');
                 
-                if right_forceplate_available
-                    right_cop_x_trajectory_relevant = right_copx_trajectory; right_cop_x_trajectory_relevant(right_cop_x_trajectory_relevant==0) = NaN;
-                    plot(time_right_forceplate, right_cop_x_trajectory_relevant, 'linewidth', 2, 'Displayname', 'cop right');
-                end
+                figure; axes; hold on
+                plot(time_stimulus, stimulus_state_trajectory*0.02);
+                plot(time_marker, LHEE(:, 3), 'Displayname', 'left heel z')
+                plot(time_marker, RHEE(:, 3), 'Displayname', 'right heel z')
+                
+                plot(time_marker, LHEE(:, 2), 'Displayname', 'left heel y')
+                plot(time_marker, RHEE(:, 2), 'Displayname', 'right heel y')
+                
+                
+%                 if left_forceplate_available
+%                     left_cop_x_trajectory_relevant = left_copx_trajectory; left_cop_x_trajectory_relevant(left_cop_x_trajectory_relevant==0) = NaN;
+%                     plot(time_left_forceplate, left_cop_x_trajectory_relevant, 'linewidth', 2, 'Displayname', 'cop left');
+%                 end
+%                 if right_forceplate_available
+%                     right_cop_x_trajectory_relevant = right_copx_trajectory; right_cop_x_trajectory_relevant(right_cop_x_trajectory_relevant==0) = NaN;
+%                     plot(time_right_forceplate, right_cop_x_trajectory_relevant, 'linewidth', 2, 'Displayname', 'cop right');
+%                 end
                 plot(time_marker(trigger_indices_mocap), zeros(size(trigger_indices_mocap)), 'x', 'Displayname', 'triggers')
 %                 plot(time_stimulus, illusion_trajectory, 'Displayname', 'illusion')
 %                 legend('stimulus state', 'left cop', 'right cop', 'left touchdown', 'right touchdown', 'trigger', 'stim start')
