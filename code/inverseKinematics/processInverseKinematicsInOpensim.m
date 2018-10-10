@@ -70,7 +70,9 @@ function processInverseKinematicsInOpensim(varargin)
             % move log file
             error_file_source = [pwd filesep makeFileName(subject_info.date, subject_info.subject_id, trial_type, i_trial, 'marker.trc') '_ik_marker_errors.sto'];
             error_file_destination = [data_root filesep 'logs' filesep makeFileName(subject_info.date, subject_info.subject_id, trial_type, i_trial, 'ikErrors.sto')];
-            movefile(error_file_source, error_file_destination);
+            if isfile(error_file_source)
+                movefile(error_file_source, error_file_destination);
+            end
         end
     end
 end
