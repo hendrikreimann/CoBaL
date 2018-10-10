@@ -41,6 +41,7 @@ function plotResults(varargin)
     addParameter(parser, 'dictate_axes', false)
     addParameter(parser, 'show_legend', false)
     addParameter(parser, 'save', false)
+    addParameter(parser, 'close', false)
     addParameter(parser, 'format', 'tiff')
     addParameter(parser, 'settings', 'plotSettings.txt')
     addParameter(parser, 'spread_method', 'cinv')
@@ -1787,11 +1788,15 @@ function plotResults(varargin)
             legend(trajectory_axes_handles(i_figure), 'hide');
             filename = ['figures' filesep 'noLabels' filesep get(trajectory_figure_handles(i_figure), 'UserData')];
             saveas(trajectory_figure_handles(i_figure), filename, parser.Results.format);
-
-            close(trajectory_figure_handles(i_figure))            
         end
     end
     
+    %% save figures
+    if parser.Results.close
+        for i_figure = 1 : numel(trajectory_figure_handles)
+            close(trajectory_figure_handles(i_figure))            
+        end
+    end    
 end
 
 %% helper functions
