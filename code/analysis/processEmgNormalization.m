@@ -19,7 +19,8 @@
 % input
 % relevantDataStretches.mat
 
-function findEmgNormalization(varargin)
+function processEmgNormalization(varargin)
+    %% prepare
     [condition_list, trial_number_list] = parseTrialArguments(varargin{:});
     
     parser = inputParser;
@@ -28,9 +29,9 @@ function findEmgNormalization(varargin)
     parse(parser, varargin{:})
     visualize = parser.Results.visualize;
     
-    
     load('subjectInfo.mat', 'date', 'subject_id');
     % load settings
+    subject_settings = SettingsCustodian('subjectSettings.txt');
     study_settings_file = '';
     if exist(['..' filesep 'studySettings.txt'], 'file')
         study_settings_file = ['..' filesep 'studySettings.txt'];
@@ -39,11 +40,17 @@ function findEmgNormalization(varargin)
         study_settings_file = ['..' filesep '..' filesep 'studySettings.txt'];
     end
     study_settings = SettingsCustodian(study_settings_file);
-    subject_settings = SettingsCustodian('subjectSettings.txt');
-    emg_variable_names = subject_settings.get('emg_labels')';
-    data_custodian = WalkingDataCustodian(emg_variable_names);
+    
+    global_settings = SettingsCustodian([getCobalPath filesep 'resources' filesep 'globalSettings.txt']);
+    emg_labels_normalization = global_settings.get('emg_labels');
+    for i_label = 1 : length(emg_labels_normalization)
+        emg_labels_normalization{i_label} = ['emg:' emg_labels_normalization{i_label}];
+    end
+    
+
+    %% collect data for normalization
+    data_custodian = WalkingDataCustodian(emg_labels_normalization);
     number_of_stretch_variables = length(data_custodian.stretch_variable_names);
-   
     
     % find relevant conditions
     conditions_settings = study_settings.get('conditions');
@@ -53,7 +60,6 @@ function findEmgNormalization(varargin)
    
     condition_relevant_for_analysis = study_settings.get('condition_relevant_for_analysis');
     condition_relevant_name = conditions_settings{strcmp(conditions_settings(:, 1), condition_relevant_for_analysis), 2};
-%     condition_stimulus_data = conditions_trial.(condition_relevant_name);
     
     % make containers to hold the data
     data_session = cell(number_of_stretch_variables, 1);
@@ -64,22 +70,19 @@ function findEmgNormalization(varargin)
     
     % analyze and store data
     for i_type = 1 : length(condition_list)
-        condition = condition_list{i_type};
+        this_type = condition_list{i_type};
         trials_to_process = trial_number_list{i_type};
         for i_trial = trials_to_process
             % TODO: check whether this trial contains any stretches relevant for EMG normalization
             disp(['Finding EMG normalization: condition ' condition_list{i_type} ', Trial ' num2str(i_trial) ' completed']);
             
             % load and prepare data
-            data_custodian.prepareBasicVariables(condition, i_trial, [{'emg_trajectories'}; emg_variable_names]);
+            data_custodian.prepareBasicVariables(this_type, i_trial, [{'emg_trajectories'}; emg_labels_normalization]);
             
-            load(['analysis' filesep makeFileName(date, subject_id, condition, i_trial, 'relevantDataStretches')]);
-            data_trial = data_custodian.calculateStretchVariables(stretch_times, stance_foot_data, conditions_trial.(condition_relevant_name), emg_variable_names);
+            load(['analysis' filesep makeFileName(date, subject_id, this_type, i_trial, 'relevantDataStretches')], 'stretch_times', 'stance_foot_data', 'conditions_trial');
+            data_trial = data_custodian.calculateStretchVariables(stretch_times, stance_foot_data, conditions_trial.(condition_relevant_name), emg_labels_normalization);
             
             % append the data and condition lists from this trial to the total lists
-%             if length(data_trial) ~= length(emg_variable_names) % this only happens when botched trial results in no stretches
-%                 data_trial = cell(length(emg_variable_names),1);
-%             end
             for i_variable = 1 : number_of_stretch_variables
                 data_session{i_variable} = [data_session{i_variable} data_trial{i_variable}];
             end
@@ -89,7 +92,7 @@ function findEmgNormalization(varargin)
         end
     end
     
-    %% calculate some subject-level data and report
+    %% calculate normalization values
     number_of_stretches_session = size(data_session{1}, 2);
     variable_names = data_custodian.stretch_variable_names;
     
@@ -101,15 +104,7 @@ function findEmgNormalization(varargin)
     labels_to_ignore = study_settings.get('conditions_to_ignore');
     levels_to_remove = study_settings.get('levels_to_remove');
     
-%     % make an adjustment to condition_data_all "control" emg condition
-%     % this is a hack and should think about a way to automate this
-%     % intelligently
-%     if any(strcmp(condition_data_all(:, 2), 'post4'))
-%         conditions_settings(2,4) = {'post4'};
-%     end
-% HR: no idea what this was for, but I do not think it is needed anymore
-    
-    [condition_combination_labels, condition_combinations_stimulus, condition_combinations_control, condition_combinations_emg_unique] = determineConditionCombinations(condition_data_all, conditions_settings, labels_to_ignore, levels_to_remove);
+    [condition_combination_labels, ~, ~, condition_combinations_emg_unique] = determineConditionCombinations(condition_data_all, conditions_settings, labels_to_ignore, levels_to_remove);
 
     % extract indicators for emg
     number_of_conditions_emg = size(condition_combinations_emg_unique, 1);
@@ -142,7 +137,7 @@ function findEmgNormalization(varargin)
         for i_condition = 1 : number_of_conditions_emg
             this_condition_indicator = conditions_emg_indicators(:, i_condition);
             data_this_condition = data_this_variable(:, this_condition_indicator);
-            average_this_condition = median(data_this_condition, 2); % average across trials
+            average_this_condition = nanmedian(data_this_condition, 2); % average across trials
             condition_averages_this_variable(i_condition) = mean(average_this_condition); % average across time
 
             if visualize
@@ -155,15 +150,72 @@ function findEmgNormalization(varargin)
         emg_normalization_values(i_variable) = mean(condition_averages_this_variable);
     end
     
-    % save data
-    emg_variable_names = variable_names;
-    results_file_name = ['analysis' filesep makeFileName(date, subject_id, 'emgNormalization')];
-    save ...
-      ( ...
-        results_file_name, ...
-        'emg_normalization_values', ...
-        'emg_variable_names' ...
-      )
+    %% scale EMG data
+    data_to_remove_header = subject_settings.get('data_to_remove_header');
+    data_to_remove = subject_settings.get('data_to_remove');
+    for i_type = 1 : length(condition_list)
+        this_type = condition_list{i_type};
+        trials_to_process = trial_number_list{i_type};
+        this_trial_type_to_remove_rows = strcmp(data_to_remove(:, strcmp(data_to_remove_header, 'trial_type')), this_type);
+        for i_trial = trials_to_process
+            this_trial_number_to_remove_rows = strcmp(data_to_remove(:, strcmp(data_to_remove_header, 'trial_number')), num2str(i_trial));
+            if isempty(data_to_remove)
+                data_to_remove_this_trial = [];
+            else
+                data_to_remove_this_trial = data_to_remove(this_trial_number_to_remove_rows & this_trial_type_to_remove_rows, 1);
+            end
+            
+            % load
+            [emg_trajectories, time_emg, sampling_rate_emg, emg_labels_trial, emg_directions] = loadData(date, subject_id, this_type, i_trial, 'emg_trajectories'); %#ok<ASGLU>
+            
+            % scale
+            emg_scaled_trajectories = zeros(size(emg_trajectories)) * NaN;
+            for i_channel = 1 : size(emg_scaled_trajectories, 2)
+                if i_channel <= length(emg_labels_trial) && any(strcmp(emg_labels_normalization, ['emg:' emg_labels_trial{i_channel}]))
+                    this_label = emg_labels_trial{i_channel};
+                    this_channel_weight = 1 / emg_normalization_values(strcmp(emg_labels_normalization, ['emg:' emg_labels_trial{i_channel}]));
+                else
+                    this_label = '';
+                    this_channel_weight = NaN;
+                end
+                if any(strcmp(data_to_remove_this_trial, ['emg:' this_label]))
+                    this_channel_weight = NaN;
+                end
+                emg_scaled_trajectories(:, i_channel) = emg_trajectories(:, i_channel) * this_channel_weight;
+            end
+            emg_labels = emg_labels_trial; %#ok<NASGU>
+            
+            % save
+            save_folder = 'processed';
+            emg_normalization_labels = variable_names; %#ok<NASGU>
+            save_file_name = makeFileName(date, subject_id, this_type, i_trial, 'emgScaledTrajectories.mat');
+            save ...
+              ( ...
+                [save_folder filesep save_file_name], ...
+                'emg_scaled_trajectories', ...
+                'time_emg', ...
+                'sampling_rate_emg', ...
+                'emg_labels', ...
+                'emg_directions', ...
+                'emg_normalization_values', ...
+                'emg_normalization_labels' ...
+              );
+            addAvailableData ...
+              ( ...
+                'emg_scaled_trajectories', ...
+                'time_emg', ...
+                'sampling_rate_emg', ...
+                '_emg_labels', ...
+                '_emg_directions', ...
+                save_folder, ...
+                save_file_name ...
+              );
+            
+            disp(['normalized EMG data for trial ' num2str(i_trial) ' of type ' this_type ' and saved as ' save_file_name])
+        end
+    end
+    
+    
 end
 
           

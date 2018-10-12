@@ -23,9 +23,6 @@ function rigidBodyFillTrialFromReference(marker_to_fill, marker_source_1, marker
     parse(parser, varargin{:})
     visualize = parser.Results.visualize;
     
-    
-    
-    
     % load settings
 %     study_settings_file = '';
 %     if exist(['..' filesep 'studySettings.txt'], 'file')
@@ -35,18 +32,28 @@ function rigidBodyFillTrialFromReference(marker_to_fill, marker_source_1, marker
 %         study_settings_file = ['..' filesep '..' filesep 'studySettings.txt'];
 %     end
 %     study_settings = SettingsCustodian(study_settings_file);
-    
+     subject_settings = SettingsCustodian('subjectSettings.txt');
+
     load('subjectInfo.mat', 'date', 'subject_id');
-    load('subjectModel.mat');
 
     % get reference positions
-    marker_reference = kinematic_tree.exportMarkerPositions;
-    marker_labels = kinematic_tree.markerLabels;
+%     marker_reference = load(['processed' filesep makeFileName(date, subject_id, 'calibration', '1', 'markerTrajectories')]);
+     % load static reference file
+    load(['processed' filesep makeFileName(date, subject_id, subject_settings.get('static_reference_trial_type'), subject_settings.get('static_reference_trial_number'), 'markerTrajectories')]);
+
+        % find first time step where all markers are available
+    i_time = 1;
+    while any(isnan(marker_trajectories(i_time, :)))
+        i_time = i_time + 1;
+    end
+    marker_reference = marker_trajectories(i_time, :);
+    
+    % marker_vlabels = 
     marker_to_fill_reference = extractMarkerData(marker_reference, marker_labels, marker_to_fill)';
-    marker_source_1_reference = extractMarkerData(marker_reference, marker_labels, marker_source_1)';
+    marker_source_1_reference = extractMarkerData(marker_reference,marker_labels, marker_source_1)';
     marker_source_2_reference = extractMarkerData(marker_reference, marker_labels, marker_source_2)';
     marker_source_3_reference = extractMarkerData(marker_reference, marker_labels, marker_source_3)';
-    
+
     % define coordinate frame based on positions
     p = mean([marker_source_1_reference marker_source_2_reference marker_source_3_reference], 2);
     u1 = marker_source_1_reference - p;
@@ -137,7 +144,4 @@ function rigidBodyFillTrialFromReference(marker_to_fill, marker_source_1, marker
             
         end
     end
-    
-
-
 end

@@ -1,0 +1,57 @@
+
+// positive label, negative label
+generic_directions:
+{
+  forward, backward
+  up, down
+  right, left
+}
+
+// coordinate label, positive label, negative label
+specific_directions:
+{
+  // pelvis
+  pelvis_tilt, forward, backward
+  pelvis_list, rightward, leftward
+  pelvis_rotation, left, right
+
+  // right leg
+  hip_flexion_r, flexion, extension
+  hip_adduction_r, adduction, abduction
+  hip_rotation_r, internal, external
+  knee_flexion_r, flexion, extension
+  knee_rotation_r, external, internal
+  ankle_angle_r, dorsiflexion, plantarflexion
+  subtalar_angle_r, inversion, eversion
+
+  // left leg
+  hip_flexion_l, flexion, extension
+  hip_adduction_l, adduction, abduction
+  hip_rotation_l, internal, external
+  knee_flexion_l, flexion, extension
+  knee_rotation_l, external, internal
+  ankle_angle_l, dorsiflexion, plantarflexion
+  subtalar_angle_l, inversion, eversion
+  
+  // trunk and neck
+  lumbar_extension, backward, forward
+  lumbar_bending, rightward, leftward
+  lumbar_rotation, left, right
+  neck_pitch, forward, backward
+  neck_roll, rightward, leftward
+  neck_yaw, right, left
+  
+  // right arm
+  arm_flex_r, flexion, extension
+  arm_add_r, adduction, abduction
+  arm_rot_r, internal, external
+  elbow_flex_r, flexion, extension
+  pro_sup_r, pronation, supination
+  
+  // left arm
+  arm_flex_l, flexion, extension
+  arm_add_l, adduction, abduction
+  arm_rot_l, internal, external
+  elbow_flex_l, flexion, extension
+  pro_sup_l, pronation, supination
+}

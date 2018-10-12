@@ -17,7 +17,7 @@
 % function exportResults
 
 %% load data
-load results.mat
+% load results.mat
 
 %% load settings
 if ~exist('studySettings.txt', 'file')
@@ -29,16 +29,19 @@ variables_to_export_long = study_settings.get('variables_to_export_long');
 variables_to_export_long_means = study_settings.get('variables_to_export_long_means');
 variables_to_export_trajectories = study_settings.get('variables_to_export_trajectories');
 band_labels = study_settings.get('band_labels');
+process_long_data = ~isempty(variables_to_export_long) || ~isempty(variables_to_export_long_means);
 number_of_variables_to_export = size(variables_to_export, 1);
 number_of_variables_to_export_long = size(variables_to_export_long, 1);
 number_of_variables_to_export_long_means = size(variables_to_export_long_means, 1);
 number_of_variables_to_export_trajectories = size(variables_to_export_trajectories, 1);
 number_of_data_points = size(time_list, 1);
-number_of_bands_long = size(step_time_data_long, 1);
-number_of_data_points_long = size(step_time_data_long, 2);
+if number_of_variables_to_export_long > 0
+    number_of_bands_long = size(step_time_data_long, 1);
+    number_of_data_points_long = size(step_time_data_long, 2);
+end
 number_of_bands = size(step_time_data, 1);
 number_of_time_points_normalized = study_settings.get('number_of_time_steps_normalized');
-
+process_trajectory_data = number_of_variables_to_export_trajectories > 0;
 
 %% gather univariate data for each band
 data_cell = cell(number_of_data_points, number_of_variables_to_export * number_of_bands);
@@ -69,51 +72,58 @@ for i_variable = 1 : number_of_variables_to_export
 end
 
 %% gather univariate data for long stretch
-data_cell_long = cell(number_of_data_points_long, number_of_variables_to_export_long);
-data_header_long = cell(1, number_of_variables_to_export_long);
-for i_variable = 1 : number_of_variables_to_export_long
-    % load and assemble data
-    this_variable_name = variables_to_export_long{i_variable};
-    variable_index_in_data_cell = find(strcmp(this_variable_name, variable_names_long));
-    this_variable_data = variable_data_long{variable_index_in_data_cell}';
-    
-    % export data
+if process_long_data
+    data_cell_long = cell(number_of_data_points_long, number_of_variables_to_export_long);
+    data_header_long = cell(1, number_of_variables_to_export_long);
+    for i_variable = 1 : number_of_variables_to_export_long
+        % load and assemble data
+        this_variable_name = variables_to_export_long{i_variable};
+        variable_index_in_data_cell = find(strcmp(this_variable_name, variable_names_long));
+        this_variable_data = variable_data_long{variable_index_in_data_cell}';
 
-    data_strings = num2str(this_variable_data);
-    data_cell_long(:, i_variable) = strtrim(cellstr(data_strings));
-    data_header_long{:, i_variable} = this_variable_name;
+        % export data
+
+        data_strings = num2str(this_variable_data);
+        data_cell_long(:, i_variable) = strtrim(cellstr(data_strings));
+        data_header_long{:, i_variable} = this_variable_name;
+    end
 end
 
 %% resample normalized time to get equidistant samples
 step_time_means = mean(step_time_data, 2);
 time_normalized = createScaledAbscissa(step_time_means, number_of_time_points_normalized);
 time_rescaled = linspace(time_normalized(1), time_normalized(end), length(time_normalized))';
-
-step_time_means_long = mean(step_time_data_long, 2);
-time_normalized_long = createScaledAbscissa(step_time_means_long, number_of_time_points_normalized);
+if process_long_data
+    step_time_means_long = mean(step_time_data_long, 2);
+    time_normalized_long = createScaledAbscissa(step_time_means_long, number_of_time_points_normalized);
+end
 
 %% gather and resample trajectory data
-trajectory_data_cell_wide = cell(number_of_variables_to_export_trajectories, 1);
-for i_variable = 1 : number_of_variables_to_export_trajectories
-    % load and assemble data
-    this_variable_name = variables_to_export_trajectories{i_variable};
-    variable_index_in_data_cell = find(strcmp(this_variable_name, variable_names));
-    this_variable_data = variable_data{variable_index_in_data_cell}';
-    this_variable_data_resampled = spline(time_normalized, this_variable_data, time_rescaled);
-    trajectory_data_cell_wide{i_variable} = this_variable_data_resampled;
+if process_trajectory_data
+    trajectory_data_cell_wide = cell(number_of_variables_to_export_trajectories, 1);
+    for i_variable = 1 : number_of_variables_to_export_trajectories
+        % load and assemble data
+        this_variable_name = variables_to_export_trajectories{i_variable};
+        variable_index_in_data_cell = find(strcmp(this_variable_name, variable_names));
+        this_variable_data = variable_data{variable_index_in_data_cell}';
+        this_variable_data_resampled = spline(time_normalized, this_variable_data, time_rescaled);
+        trajectory_data_cell_wide{i_variable} = this_variable_data_resampled;
+    end
+    number_of_time_points_per_stretch = size(trajectory_data_cell_wide{1}, 2);
 end
-number_of_time_points_per_stretch = size(trajectory_data_cell_wide{1}, 2);
 
 %% gather long trajectory data
-trajectory_data_long_cell_wide = cell(number_of_variables_to_export_long_means, 1);
-for i_variable = 1 : number_of_variables_to_export_long_means
-    % load and assemble data
-    this_variable_name = variables_to_export_long_means{i_variable};
-    variable_index_in_data_cell = find(strcmp(this_variable_name, variable_names_long));
-    this_variable_data = variable_data_long{variable_index_in_data_cell}';
-    trajectory_data_long_cell_wide{i_variable} = this_variable_data;
+if process_long_data
+    trajectory_data_long_cell_wide = cell(number_of_variables_to_export_long_means, 1);
+    for i_variable = 1 : number_of_variables_to_export_long_means
+        % load and assemble data
+        this_variable_name = variables_to_export_long_means{i_variable};
+        variable_index_in_data_cell = find(strcmp(this_variable_name, variable_names_long));
+        this_variable_data = variable_data_long{variable_index_in_data_cell}';
+        trajectory_data_long_cell_wide{i_variable} = this_variable_data;
+    end
+    number_of_time_points_per_stretch_long = size(trajectory_data_long_cell_wide{1}, 2);
 end
-number_of_time_points_per_stretch_long = size(trajectory_data_long_cell_wide{1}, 2);
 
 %% gather condition cell
 conditions_settings = study_settings.get('conditions');
@@ -121,14 +131,18 @@ condition_labels = conditions_settings(:, 1)';
 condition_source_variables = conditions_settings(:, 2)';
 number_of_conditions = length(condition_labels);
 condition_cell = cell(number_of_data_points, number_of_conditions);
-condition_cell_long = cell(number_of_data_points_long, number_of_conditions);
+if process_long_data
+    condition_cell_long = cell(number_of_data_points_long, number_of_conditions);
+end
 condition_header = cell(1, number_of_conditions);
 for i_condition = 1 : number_of_conditions
     this_condition_data = conditions.(condition_source_variables{i_condition});
     condition_cell(:, i_condition) = this_condition_data;
     
-    this_condition_data_long = conditions_long.(condition_source_variables{i_condition});
-    condition_cell_long(:, i_condition) = this_condition_data_long;
+    if process_long_data
+        this_condition_data_long = conditions_long.(condition_source_variables{i_condition});
+        condition_cell_long(:, i_condition) = this_condition_data_long;
+    end
     
     condition_header(:, i_condition) = condition_labels(i_condition);
 end
@@ -143,8 +157,10 @@ origin_header = {'origin folder', 'origin trial number', 'stretch start time wit
 %% join cells
 header_cell = [condition_header, origin_header, data_header];
 body_cell = [condition_cell, origin_cell, data_cell];
-header_cell_long = [condition_header, data_header_long];
-body_cell_long = [condition_cell_long, data_cell_long];
+if process_long_data
+    header_cell_long = [condition_header, data_header_long];
+    body_cell_long = [condition_cell_long, data_cell_long];
+end
 
 %% remove levels
 levels_to_remove = study_settings.get('levels_to_remove_for_export');
@@ -167,22 +183,26 @@ for i_level = 1 : size(levels_to_remove, 1)
     origin_cell(rows_to_remove, :) = [];
     
     % remove from long data
-    relevant_column = strcmp(header_cell_long, this_condition_label);
-    rows_to_remove_long = strcmp(body_cell_long(:, relevant_column), this_level_label);
-    body_cell_long(rows_to_remove_long, :) = [];
-    condition_cell_long(rows_to_remove_long, :) = [];
-    for i_variable = 1 : number_of_variables_to_export_long_means
-        trajectory_data_long_cell_wide{i_variable}(rows_to_remove_long, :) = [];
+    if process_long_data
+        relevant_column = strcmp(header_cell_long, this_condition_label);
+        rows_to_remove_long = strcmp(body_cell_long(:, relevant_column), this_level_label);
+        body_cell_long(rows_to_remove_long, :) = [];
+        condition_cell_long(rows_to_remove_long, :) = [];
+        for i_variable = 1 : number_of_variables_to_export_long_means
+            trajectory_data_long_cell_wide{i_variable}(rows_to_remove_long, :) = [];
+        end
     end
 end
 
 %% remove data points containing NaNs for long data
-stretches_to_remove = [];
-nan_stretches = find(any(strcmp(body_cell_long, 'NaN'), 2));
-body_cell_long(nan_stretches, :) = [];
-condition_cell_long(nan_stretches, :) = [];
-for i_variable = 1 : number_of_variables_to_export_long_means
-    trajectory_data_long_cell_wide{i_variable}(nan_stretches, :) = [];
+if process_long_data
+    stretches_to_remove = [];
+    nan_stretches = find(any(strcmp(body_cell_long, 'NaN'), 2));
+    body_cell_long(nan_stretches, :) = [];
+    condition_cell_long(nan_stretches, :) = [];
+    for i_variable = 1 : number_of_variables_to_export_long_means
+        trajectory_data_long_cell_wide{i_variable}(nan_stretches, :) = [];
+    end
 end
 
 %% calculate means across repetitions for each condition
@@ -273,44 +293,47 @@ if study_settings.get('export_trajectories_by_subject')
 end
 
 %% calculate means across repetitions for each condition long
-[unique_condition_combination_labels, unique_condition_combination_indicators] = getUniqueConditionInformation(condition_cell_long, condition_header);
-number_of_condition_combinations = size(unique_condition_combination_labels, 1);
-long_mean_data_cell_wide = cell(number_of_variables_to_export_long_means, 1);
-for i_variable = 1 : number_of_variables_to_export_long_means
-    this_variable_mean_data = zeros(number_of_time_points_per_stretch_long, number_of_condition_combinations);
-    
-    source_data_this_variable = trajectory_data_long_cell_wide{i_variable};
-    for i_combination = 1 : number_of_condition_combinations
-        indicator_this_combination = unique_condition_combination_indicators(:, i_combination);
-        data_this_variable_this_combination = source_data_this_variable(indicator_this_combination, :);
-        this_variable_mean_data(:, i_combination) = mean(data_this_variable_this_combination);
+if process_long_data
+    [unique_condition_combination_labels, unique_condition_combination_indicators] = getUniqueConditionInformation(condition_cell_long, condition_header);
+    number_of_condition_combinations = size(unique_condition_combination_labels, 1);
+    long_mean_data_cell_wide = cell(number_of_variables_to_export_long_means, 1);
+    for i_variable = 1 : number_of_variables_to_export_long_means
+        this_variable_mean_data = zeros(number_of_time_points_per_stretch_long, number_of_condition_combinations);
+
+        source_data_this_variable = trajectory_data_long_cell_wide{i_variable};
+        for i_combination = 1 : number_of_condition_combinations
+            indicator_this_combination = unique_condition_combination_indicators(:, i_combination);
+            data_this_variable_this_combination = source_data_this_variable(indicator_this_combination, :);
+            this_variable_mean_data(:, i_combination) = mean(data_this_variable_this_combination);
+        end
+        long_mean_data_cell_wide{i_variable} = this_variable_mean_data;
     end
-    long_mean_data_cell_wide{i_variable} = this_variable_mean_data;
 end
 
 %% repackage long means for export
-mean_header_cell_long = [condition_header 'time' variables_to_export_long_means'];
-time_point_strings = num2str(time_normalized_long);
-time_point_cell_single = strtrim(cellstr(time_point_strings));
-time_point_cell_extended_long = repmat(time_point_cell_single, number_of_condition_combinations, 1);
-condition_cell_extended_long = cell(number_of_condition_combinations * number_of_time_points_per_stretch_long, 4);
-for i_combination = 1 : number_of_condition_combinations
-    this_combination = unique_condition_combination_labels(i_combination, :);
-    condition_cell_extended_long((i_combination-1)*number_of_time_points_per_stretch_long+1 : i_combination*number_of_time_points_per_stretch_long, :) ...
-        = repmat(this_combination, number_of_time_points_per_stretch_long, 1);
-end
+if process_long_data
+    mean_header_cell_long = [condition_header 'time' variables_to_export_long_means'];
+    time_point_strings = num2str(time_normalized_long);
+    time_point_cell_single = strtrim(cellstr(time_point_strings));
+    time_point_cell_extended_long = repmat(time_point_cell_single, number_of_condition_combinations, 1);
+    condition_cell_extended_long = cell(number_of_condition_combinations * number_of_time_points_per_stretch_long, 4);
+    for i_combination = 1 : number_of_condition_combinations
+        this_combination = unique_condition_combination_labels(i_combination, :);
+        condition_cell_extended_long((i_combination-1)*number_of_time_points_per_stretch_long+1 : i_combination*number_of_time_points_per_stretch_long, :) ...
+            = repmat(this_combination, number_of_time_points_per_stretch_long, 1);
+    end
 
-mean_data_cell_long = cell(number_of_condition_combinations * number_of_time_points_per_stretch_long, number_of_variables_to_export_long_means);
-for i_variable = 1 : number_of_variables_to_export_long_means
-    % get data in shape
-    this_variable_mean_data = long_mean_data_cell_wide{i_variable};
-    this_variable_mean_data_flat = reshape(this_variable_mean_data, numel(this_variable_mean_data), 1);
-    this_variable_mean_data_strings = num2str(this_variable_mean_data_flat);
-    this_variable_mean_data_cell = strtrim(cellstr(this_variable_mean_data_strings));
-    mean_data_cell_long(:, i_variable) = this_variable_mean_data_cell;
+    mean_data_cell_long = cell(number_of_condition_combinations * number_of_time_points_per_stretch_long, number_of_variables_to_export_long_means);
+    for i_variable = 1 : number_of_variables_to_export_long_means
+        % get data in shape
+        this_variable_mean_data = long_mean_data_cell_wide{i_variable};
+        this_variable_mean_data_flat = reshape(this_variable_mean_data, numel(this_variable_mean_data), 1);
+        this_variable_mean_data_strings = num2str(this_variable_mean_data_flat);
+        this_variable_mean_data_cell = strtrim(cellstr(this_variable_mean_data_strings));
+        mean_data_cell_long(:, i_variable) = this_variable_mean_data_cell;
+    end
+    mean_body_cell_long = [condition_cell_extended_long time_point_cell_extended_long mean_data_cell_long];
 end
-mean_body_cell_long = [condition_cell_extended_long time_point_cell_extended_long mean_data_cell_long];
-
 
 
 %% save bands
@@ -322,30 +345,35 @@ export_cell = ...
 cell2csv('results.csv', export_cell);
 
 %% save means
-export_cell = ...
-  [ ...
-    mean_header_cell; ...
-    mean_body_cell ...
-  ];
-save_file_name = 'results_trajectory_means.csv';
-cell2csv(save_file_name, export_cell);
+if process_trajectory_data
+    export_cell = ...
+      [ ...
+        mean_header_cell; ...
+        mean_body_cell ...
+      ];
+    save_file_name = 'results_trajectory_means.csv';
+    cell2csv(save_file_name, export_cell);
+end
 
 %% save long
-export_cell = ...
-  [ ...
-    header_cell_long; ...
-    body_cell_long ...
-  ];
-cell2csv('results_long.csv', export_cell);
+if process_long_data
+    export_cell = ...
+      [ ...
+        header_cell_long; ...
+        body_cell_long ...
+      ];
+    cell2csv('results_long.csv', export_cell);
+end
 
 %% save long means
-export_cell = ...
-  [ ...
-    mean_header_cell_long; ...
-    mean_body_cell_long ...
-  ];
-cell2csv('results_trajectory_means_long.csv', export_cell);
-
+if process_long_data
+    export_cell = ...
+      [ ...
+        mean_header_cell_long; ...
+        mean_body_cell_long ...
+      ];
+    cell2csv('results_trajectory_means_long.csv', export_cell);
+end
 
 
 

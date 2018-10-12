@@ -70,23 +70,49 @@ function importQTM()
         protocol_file_available = 1;
 
         % we have a protocol file, so import that
-        [imported_data, delimiter, nheaderlines] = importdata([labview_source_dir filesep 'protocol.csv'], ',', 1);
-        headers = imported_data.textdata(1, :);
-        textdata = imported_data.textdata(2:end, :);
-        protocol_data = imported_data.data;
-        protocol_headers = headers(2:end);
-        protocol_trial_type = textdata(:, strcmp(headers, 'Trial Type'));
-        if strcmp(protocol_trial_type{end}, '(stop)')
-            protocol_trial_type(end) = [];
-        end
-        protocol_trial_number = protocol_data(:, strcmp(protocol_headers, 'Trial Number'));
-        protocol_trial_duration = protocol_data(:, strcmp(protocol_headers, 'Duration (s)'));
-        protocol_metronome_cadence = protocol_data(:, strcmp(protocol_headers, 'Metronome'));
-        protocol_trial_saved = protocol_data(:, strcmp(protocol_headers, 'save data (0/1)'));
-        protocol_count_left_step = protocol_data(:, strcmp(protocol_headers, 'Count left steps (0/1)'));
-        protocol_count_right_step = protocol_data(:, strcmp(protocol_headers, 'Count right steps (0/1)'));
-        protocol_stim_visual_intermittent = protocol_data(:, strcmp(protocol_headers, 'Use Visual Stimulus - intermittent'));
-        protocol_stim_gvs_intermittent = protocol_data(:, strcmp(protocol_headers, 'GVS intermittent'));
+        warning('off', 'MATLAB:table:ModifiedAndSavedVarnames')
+        imported_table = readtable([labview_source_dir filesep 'protocol.csv']);
+        warning('on', 'MATLAB:table:ModifiedAndSavedVarnames')
+        
+        % read header line manually, since readtable doesn't deal with it properly
+        fileID = fopen([labview_source_dir filesep 'protocol.csv'], 'r');
+        header_line = fgetl(fileID);
+        fclose(fileID);
+        headers = strsplit(header_line, ',');
+
+        table_headers = imported_table.Properties.VariableNames;
+        protocol_trial_type = imported_table.(table_headers{strcmp(headers, 'Trial Type')});
+%         if strcmp(protocol_trial_type{end}, '(stop)')
+%             protocol_trial_type(end) = [];
+%         end
+        protocol_trial_number = imported_table.(table_headers{strcmp(headers, 'Trial Number')});
+        protocol_trial_duration = imported_table.(table_headers{strcmp(headers, 'Duration (s)')});
+        protocol_metronome_cadence = imported_table.(table_headers{strcmp(headers, 'Use Metronome (0/1)')});
+        protocol_trial_saved = imported_table.(table_headers{strcmp(headers, 'save data (0/1)')});
+        protocol_count_left_step = imported_table.(table_headers{strcmp(headers, 'Count left steps (0/1)')});
+        protocol_count_right_step = imported_table.(table_headers{strcmp(headers, 'Count right steps (0/1)')});
+        protocol_stim_visual_intermittent = imported_table.(table_headers{strcmp(headers, 'Use Visual Stimulus - intermittent')});
+        protocol_stim_gvs_intermittent = imported_table.(table_headers{strcmp(headers, 'GVS intermittent')});
+        
+        
+        
+%         [imported_data, delimiter, nheaderlines] = importdata([labview_source_dir filesep 'protocol.csv'], ',', 1);
+%         headers = imported_data.textdata(1, :);
+%         textdata = imported_data.textdata(2:end, :);
+%         protocol_data = imported_data.data;
+%         protocol_headers = headers(2:end);
+%         protocol_trial_type = textdata(:, strcmp(headers, 'Trial Type'));
+%         if strcmp(protocol_trial_type{end}, '(stop)')
+%             protocol_trial_type(end) = [];
+%         end
+%         protocol_trial_number = protocol_data(:, strcmp(protocol_headers, 'Trial Number'));
+%         protocol_trial_duration = protocol_data(:, strcmp(protocol_headers, 'Duration (s)'));
+%         protocol_metronome_cadence = protocol_data(:, strcmp(protocol_headers, 'Metronome'));
+%         protocol_trial_saved = protocol_data(:, strcmp(protocol_headers, 'save data (0/1)'));
+%         protocol_count_left_step = protocol_data(:, strcmp(protocol_headers, 'Count left steps (0/1)'));
+%         protocol_count_right_step = protocol_data(:, strcmp(protocol_headers, 'Count right steps (0/1)'));
+%         protocol_stim_visual_intermittent = protocol_data(:, strcmp(protocol_headers, 'Use Visual Stimulus - intermittent'));
+%         protocol_stim_gvs_intermittent = protocol_data(:, strcmp(protocol_headers, 'GVS intermittent'));
 
         % save protocol data
         protocol_data = struct;
@@ -188,8 +214,8 @@ function importQTM()
         var_name = whos('-file', [qtm_source_dir, filesep, data_file_name]);
         temp_data = load([qtm_source_dir, filesep, data_file_name]);
         qtm_data = temp_data.(var_name.name);
-        % TODO: this was a hack for having data missing, fix this!
         if strcmp(trial_type, 'calibration') || strcmp(trial_type, 'static')
+            % TODO: this was a hack for having data missing, fix this! - need actual example data to fix this
             analog_fs = 2000;
             start_indices = 1;
             end_indices = 20000;

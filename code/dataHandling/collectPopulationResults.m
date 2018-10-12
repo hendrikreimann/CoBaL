@@ -20,9 +20,11 @@ function collectPopulationResults(varargin)
 
     parser = inputParser;
     parser.KeepUnmatched = true;
+    addParameter(parser, 'output', 'results')
     addParameter(parser, 'subjects', [])
     parse(parser, varargin{:})
     subjects = parser.Results.subjects;
+    save_file = parser.Results.output;
 
     % load settings
     if ~exist('studySettings.txt', 'file')
@@ -70,7 +72,9 @@ function collectPopulationResults(varargin)
         load([data_path filesep 'subjectInfo.mat'], 'date', 'subject_id');
         disp(['Collecting from ' subject_id]);
         results_data = load([data_path filesep 'analysis' filesep date '_' subject_id '_results.mat']);
-        results_data_long = load([data_path filesep 'analysis' filesep date '_' subject_id '_longStretchResults.mat']);
+        if ~isempty(variables_to_collect_long)
+            results_data_long = load([data_path filesep 'analysis' filesep date '_' subject_id '_longStretchResults.mat']);
+        end
 
         % extract and store results
         for i_condition = 1 : number_of_condition_labels
@@ -124,42 +128,43 @@ function collectPopulationResults(varargin)
         origin_session_folder_data = [origin_session_folder_data; session_folder_list]; %#ok<AGROW>
 
         % extract and store long stretches
-        for i_condition = 1 : number_of_condition_labels
-            conditions_long.(condition_source_variables{i_condition}) = [conditions_long.(condition_source_variables{i_condition}); results_data_long.long_stretch_conditions_session.(condition_source_variables{i_condition}) ];
-        end
+        if ~isempty(variables_to_collect_long)
+            for i_condition = 1 : number_of_condition_labels
+                conditions_long.(condition_source_variables{i_condition}) = [conditions_long.(condition_source_variables{i_condition}); results_data_long.long_stretch_conditions_session.(condition_source_variables{i_condition}) ];
+            end
         
-        for i_variable = 1 : number_of_variables_to_collect_long
-            % load and extract data
-            new_variable_name = variables_to_collect_long{i_variable, 1};
-            source_variable_name = variables_to_collect_long{i_variable, 2};
-            this_variable_source_type = variables_to_collect_long{i_variable, 3};
-            if strcmp(this_variable_source_type, 'stretch')
-                this_variable_source_index = find(strcmp(results_data_long.long_stretch_data_labels_session, source_variable_name), 1, 'first');
-                if isempty(this_variable_source_index)
-                    error(['Variable not found: ' source_variable_name])
+            for i_variable = 1 : number_of_variables_to_collect_long
+                % load and extract data
+                new_variable_name = variables_to_collect_long{i_variable, 1};
+                source_variable_name = variables_to_collect_long{i_variable, 2};
+                this_variable_source_type = variables_to_collect_long{i_variable, 3};
+                if strcmp(this_variable_source_type, 'stretch')
+                    this_variable_source_index = find(strcmp(results_data_long.long_stretch_data_labels_session, source_variable_name), 1, 'first');
+                    if isempty(this_variable_source_index)
+                        error(['Variable not found: ' source_variable_name])
+                    end
+                    this_variable_data = results_data_long.long_stretch_data_session{this_variable_source_index};
                 end
-                this_variable_data = results_data_long.long_stretch_data_session{this_variable_source_index};
-            end
-            if strcmp(this_variable_source_type, 'response')
-                this_variable_source_index = find(strcmp(results_data_long.long_stretch_data_labels_session, source_variable_name), 1, 'first');
-                if isempty(this_variable_source_index)
-                    error(['Variable not found: ' source_variable_name])
+                if strcmp(this_variable_source_type, 'response')
+                    this_variable_source_index = find(strcmp(results_data_long.long_stretch_data_labels_session, source_variable_name), 1, 'first');
+                    if isempty(this_variable_source_index)
+                        error(['Variable not found: ' source_variable_name])
+                    end
+                    this_variable_data = results_data_long.long_stretch_response_data_session{this_variable_source_index};
                 end
-                this_variable_data = results_data_long.long_stretch_response_data_session{this_variable_source_index};
-            end
-            if strcmp(this_variable_source_type, 'analysis')
-                this_variable_source_index = find(strcmp(results_data_long.analysis_names_session, source_variable_name), 1, 'first');
-                if isempty(this_variable_source_index)
-                    error(['Variable not found: ' source_variable_name])
+                if strcmp(this_variable_source_type, 'analysis')
+                    this_variable_source_index = find(strcmp(results_data_long.analysis_names_session, source_variable_name), 1, 'first');
+                    if isempty(this_variable_source_index)
+                        error(['Variable not found: ' source_variable_name])
+                    end
+                    this_variable_data = results_data_long.analysis_data_session{this_variable_source_index};
                 end
-                this_variable_data = results_data_long.analysis_data_session{this_variable_source_index};
+
+                % store
+                variable_data_long{i_variable} = [variable_data_long{i_variable} this_variable_data];
             end
-            
-            % store
-            variable_data_long{i_variable} = [variable_data_long{i_variable} this_variable_data];
+            step_time_data_long = [step_time_data_long results_data_long.step_time_data_session]; %#ok<AGROW>
         end
-        step_time_data_long = [step_time_data_long results_data_long.step_time_data_session]; %#ok<AGROW>
-        
 
         
     end
@@ -177,12 +182,14 @@ function collectPopulationResults(varargin)
     variables_to_save.origin_stretch_start_time_data = origin_stretch_start_time_data;
     variables_to_save.origin_stretch_end_time_data = origin_stretch_end_time_data; %#ok<STRNU>
     
-    variables_to_save.variable_data_long = variable_data_long;
-    variables_to_save.variable_names_long = variables_to_collect_long(:, 1);
-    variables_to_save.step_time_data_long = step_time_data_long;
-    variables_to_save.conditions_long = conditions_long;
+    if ~isempty(variables_to_collect_long)
+        variables_to_save.variable_data_long = variable_data_long;
+        variables_to_save.variable_names_long = variables_to_collect_long(:, 1);
+        variables_to_save.step_time_data_long = step_time_data_long;
+        variables_to_save.conditions_long = conditions_long;
+    end
     
-    save('results', '-struct', 'variables_to_save');
+    save(save_file, '-struct', 'variables_to_save');
 
 
 
