@@ -26,7 +26,16 @@
 % Files containing the same data in .mat format, with some additional information about where they came from.
 % Output files will be saved to folders "raw" and "processed".
 
-function importQTM()
+function importQTM(varargin)
+    % parse arguments
+    parser = inputParser;
+    parser.KeepUnmatched = true;
+    addParameter(parser, 'visualize', false)
+    addParameter(parser, 'SyncronizationMode', 'time') % options are 'time', 'table', 'encoded'
+    parse(parser, varargin{:})
+    visualize = parser.Results.visualize;
+    sync_mode = parser.Results.SyncronizationMode;
+
 
     %% prepare
     % set some parameters
@@ -82,9 +91,6 @@ function importQTM()
 
         table_headers = imported_table.Properties.VariableNames;
         protocol_trial_type = imported_table.(table_headers{strcmp(headers, 'Trial Type')});
-%         if strcmp(protocol_trial_type{end}, '(stop)')
-%             protocol_trial_type(end) = [];
-%         end
         protocol_trial_number = imported_table.(table_headers{strcmp(headers, 'Trial Number')});
         protocol_trial_duration = imported_table.(table_headers{strcmp(headers, 'Duration (s)')});
         protocol_metronome_cadence = imported_table.(table_headers{strcmp(headers, 'Use Metronome (0/1)')});
@@ -93,27 +99,8 @@ function importQTM()
         protocol_count_right_step = imported_table.(table_headers{strcmp(headers, 'Count right steps (0/1)')});
         protocol_stim_visual_intermittent = imported_table.(table_headers{strcmp(headers, 'Use Visual Stimulus - intermittent')});
         protocol_stim_gvs_intermittent = imported_table.(table_headers{strcmp(headers, 'GVS intermittent')});
+        protocol_randomization = imported_table.(table_headers{strcmp(headers, 'Randomization')});
         
-        
-        
-%         [imported_data, delimiter, nheaderlines] = importdata([labview_source_dir filesep 'protocol.csv'], ',', 1);
-%         headers = imported_data.textdata(1, :);
-%         textdata = imported_data.textdata(2:end, :);
-%         protocol_data = imported_data.data;
-%         protocol_headers = headers(2:end);
-%         protocol_trial_type = textdata(:, strcmp(headers, 'Trial Type'));
-%         if strcmp(protocol_trial_type{end}, '(stop)')
-%             protocol_trial_type(end) = [];
-%         end
-%         protocol_trial_number = protocol_data(:, strcmp(protocol_headers, 'Trial Number'));
-%         protocol_trial_duration = protocol_data(:, strcmp(protocol_headers, 'Duration (s)'));
-%         protocol_metronome_cadence = protocol_data(:, strcmp(protocol_headers, 'Metronome'));
-%         protocol_trial_saved = protocol_data(:, strcmp(protocol_headers, 'save data (0/1)'));
-%         protocol_count_left_step = protocol_data(:, strcmp(protocol_headers, 'Count left steps (0/1)'));
-%         protocol_count_right_step = protocol_data(:, strcmp(protocol_headers, 'Count right steps (0/1)'));
-%         protocol_stim_visual_intermittent = protocol_data(:, strcmp(protocol_headers, 'Use Visual Stimulus - intermittent'));
-%         protocol_stim_gvs_intermittent = protocol_data(:, strcmp(protocol_headers, 'GVS intermittent'));
-
         % save protocol data
         protocol_data = struct;
         protocol_data.trial_type = protocol_trial_type;
@@ -128,8 +115,13 @@ function importQTM()
         save_file_name = 'protocolInfo.mat';
         save(save_file_name, '-struct', 'protocol_data');
 
-        % remove the protocol file from the list
+        % remove the protocol files from the list
         file_name_list(strcmp(file_name_list, 'protocol.csv')) = [];
+        protocol_randomization(strcmp(protocol_randomization, '(none)')) = [];
+        for i_randomization_file = 1 : length(protocol_randomization)
+            file_name_list(strcmp(file_name_list, protocol_randomization{i_randomization_file})) = [];
+            
+        end
     end
 
     % import labview saved data
@@ -189,9 +181,6 @@ function importQTM()
         end
 
         disp(['imported ' labview_source_dir filesep data_file_name ' and saved as ' save_folder filesep save_file_name])
-
-
-
     end
 
     %% import qtm data
