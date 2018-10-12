@@ -31,7 +31,7 @@ function importQTM(varargin)
     parser = inputParser;
     parser.KeepUnmatched = true;
     addParameter(parser, 'visualize', false)
-    addParameter(parser, 'SyncronizationMode', 'time') % options are 'time', 'table', 'encoded'
+    addParameter(parser, 'SyncronizationMode', 'events') % options are 'events', 'table', 'encoded'
     addParameter(parser, 'labview', true)
     addParameter(parser, 'qtm', true)
     parse(parser, varargin{:})
@@ -130,8 +130,6 @@ function importQTM(varargin)
 
         % import labview saved data
         number_of_files = length(file_name_list);
-        qtm_time_stamp_in_labview_list = [];
-        
         for i_file = 1 : number_of_files
             % file name stuff
             data_file_name = file_name_list{i_file};
@@ -165,8 +163,6 @@ function importQTM(varargin)
                 variables_to_save_list{strcmp(variables_to_save_list, 'QTM_time_stamp_trajectory')} = 'qtmTimeStamp';
                 first_qtm_time_stamp_first = variables_to_save.qtmTimeStamp(find(~isnan(variables_to_save.qtmTimeStamp), 1, 'first'));
                 first_qtm_time_stamp_last = variables_to_save.qtmTimeStamp(find(~isnan(variables_to_save.qtmTimeStamp), 1, 'last'));
-                
-                qtm_time_stamp_in_labview_list = [qtm_time_stamp_in_labview_list; variables_to_save.qtmTimeStamp(1), variables_to_save.qtmTimeStamp(end)];
             end
             
             % add data source
@@ -220,6 +216,44 @@ function importQTM(varargin)
             var_name = whos('-file', [qtm_source_dir, filesep, data_file_name]);
             temp_data = load([qtm_source_dir, filesep, data_file_name]);
             qtm_data = temp_data.(var_name.name);
+            
+            % process events in this data file
+            events = qtm_data.Events;
+            event_times = [events(:).Time]';
+            event_frames = [events(:).Frame]';
+            event_labels = {events(:).Label}';
+            event_labels_type = cell(size(events));
+            event_labels_number = cell(size(events));
+            event_labels_suffix = cell(size(events));
+            for i_event = 1 : length(events)
+                this_event_label = event_labels{i_event};
+                this_event_label_split = strsplit(this_event_label, '_');
+                event_labels_type{i_event} = this_event_label_split{1};
+                event_labels_number{i_event} = this_event_label_split{2};
+                event_labels_suffix{i_event} = this_event_label_split{3};
+            end
+            
+            % re-structure events into start and end events
+            start_event_types = {};
+            start_event_numbers = [];
+            start_event_times = [];
+            end_event_types = {};
+            end_event_numbers = [];
+            end_event_times = [];
+            for i_event = 1 : length(events)
+                if strcmp(event_labels_suffix{i_event}, 'start')
+                    start_event_types = [start_event_types; event_labels_type{i_event}];
+                    start_event_numbers = [start_event_numbers; event_labels_number(i_event)];
+                    start_event_times = [start_event_times; event_times(i_event)];
+                end
+                if strcmp(event_labels_suffix{i_event}, 'end')
+                    end_event_types = [end_event_types; event_labels_type{i_event}];
+                    end_event_numbers = [end_event_numbers; event_labels_number(i_event)];
+                    end_event_times = [end_event_times; event_times(i_event)];
+                end
+            end
+            
+            
             if strcmp(trial_type, 'calibration') || strcmp(trial_type, 'static')
                 % TODO: this was a hack for having data missing, fix this! - need actual example data to fix this
                 analog_fs = 2000;
@@ -237,9 +271,11 @@ function importQTM(varargin)
 
                 % find edges
                 trigger_edges = [diff(trigger), 0];
-                analog_index = 1:length(qtm_data.Analog.Data);
-                start_indices = analog_index(trigger_edges == -1); % trials start on negative edge
-                end_indices = analog_index(trigger_edges == 1); % trials end on positive edge
+                analog_indices = 1:length(qtm_data.Analog.Data);
+                start_indices = analog_indices(trigger_edges == -1); % trials start on negative edge
+                end_indices = analog_indices(trigger_edges == 1); % trials end on positive edge
+                analog_time = (1 : qtm_data.Analog.NrOfSamples)' / qtm_data.Analog.Frequency;
+
 
                 % figure out protocol steps
                 protocol_step_mask = contains(qtm_data.Analog.Labels, 'currentStep');
@@ -249,7 +285,7 @@ function importQTM(varargin)
 
                 if isempty(start_indices) && isempty(end_indices)
                     start_indices = 1;
-                    end_indices = length(analog_index);
+                    end_indices = length(analog_indices);
                 end
 
                 % check whether each start index has a matching end index
@@ -281,6 +317,7 @@ function importQTM(varargin)
                 end
             end
             number_of_trials_in_this_qtm_file = length(start_indices);
+            delays_to_closest_event = [];
             for i_trial_this_qtm_file = 1 : number_of_trials_in_this_qtm_file
                 this_trial_start_index = start_indices(i_trial_this_qtm_file);
                 this_trial_end_index = end_indices(i_trial_this_qtm_file);
@@ -294,11 +331,10 @@ function importQTM(varargin)
                     save_this_trial = 1;
                     this_trial_duration = 10;
                 else
-                    if ~protocol_file_available
-                        error('Failed to locate protocol.csv in the labview folder, exiting.')
-                    end
-
                     if strcmp(sync_mode, 'encoded')
+                        if ~protocol_file_available
+                            error('Failed to locate protocol.csv in the labview folder, exiting.')
+                        end
                         % figure out protocol step from the analog signal
                         this_trial_protocol_step_analog = protocol_step_analog(this_trial_start_index:this_trial_end_index);
 
@@ -315,26 +351,56 @@ function importQTM(varargin)
                             warning(['Ambiguous protocol step data for trial starting at time step ' num2str(this_trial_start_index)]);
                         end
                         this_trial_protocol_index = median(this_trial_protocol_step) + 1;
+                        importing_trial_type = protocol_trial_type{this_trial_protocol_index};
+                        importing_trial_number = protocol_trial_number(this_trial_protocol_index);
+                        this_trial_duration = protocol_trial_duration(this_trial_protocol_index);           
+                        save_this_trial = protocol_trial_saved(this_trial_protocol_index);
                     end
                     if strcmp(sync_mode, 'table')
+                        if ~protocol_file_available
+                            error('Failed to locate protocol.csv in the labview folder, exiting.')
+                        end
                         trial_type_matches = strcmp(analog_to_protocol_mapping(:, 1), trial_type);
                         trial_number_matches = strcmp(analog_to_protocol_mapping(:, 2), num2str(trial_number));
                         index_number_matches = strcmp(analog_to_protocol_mapping(:, 3), num2str(i_trial_this_qtm_file));
                         this_trial_protocol_index = str2num(analog_to_protocol_mapping{trial_type_matches & trial_number_matches & index_number_matches, 4});
+                        importing_trial_type = protocol_trial_type{this_trial_protocol_index};
+                        importing_trial_number = protocol_trial_number(this_trial_protocol_index);
+                        this_trial_duration = protocol_trial_duration(this_trial_protocol_index);           
+                        save_this_trial = protocol_trial_saved(this_trial_protocol_index);
                     end
-                    if strcmp(sync_mode, 'time')
-
+                    if strcmp(sync_mode, 'events')
+                        this_trial_start_time = analog_time(this_trial_start_index);
+                        this_trial_end_time = analog_time(this_trial_end_index);
+                        
+                        [delay_to_closest_start_event, closest_start_event_index] = min(abs(start_event_times - this_trial_start_time));
+                        [delay_to_closest_end_event, closest_end_event_index] = min(abs(end_event_times - this_trial_end_time));
+                        closest_start_event_time = start_event_times(closest_start_event_index);
+                        closest_end_event_time = end_event_times(closest_end_event_index);
+                        type_from_start = start_event_types{closest_start_event_index};
+                        type_from_end = start_event_types{closest_end_event_index};
+                        number_from_start = str2num(start_event_numbers{closest_start_event_index});
+                        number_from_end = str2num(start_event_numbers{closest_end_event_index});
+                        
+                        this_trial_duration = closest_end_event_time - closest_start_event_time;
+                        if ~strcmp(type_from_start, type_from_end)
+                            Error('Trial type from start and end events do not match');
+                        end                        
+                        if ~(number_from_start == number_from_end)
+                            Error('Trial number from start and end events do not match');
+                        end                        
+                        importing_trial_type = type_from_start;
+                        importing_trial_number = number_from_start;
+                        save_this_trial = 1;
+                        
+                        delays_to_closest_event = [delays_to_closest_event; [delay_to_closest_start_event, delay_to_closest_end_event]]
                     end
 
 
-                    importing_trial_type = protocol_trial_type{this_trial_protocol_index};
-                    importing_trial_number = protocol_trial_number(this_trial_protocol_index);
-                    this_trial_duration = protocol_trial_duration(this_trial_protocol_index);           
-                    save_this_trial = protocol_trial_saved(this_trial_protocol_index);
 
 
-                    % sanity check: recorded data should be within 0.1% of expected duration
-                    if this_trial_duration < this_trial_length*0.999 || this_trial_duration > this_trial_length*1.001
+                    % sanity check: recorded data should be within 1% of expected duration
+                    if this_trial_duration < this_trial_length*0.99 || this_trial_duration > this_trial_length*1.01
                         warning ...
                           ( ...
                             [ ...
