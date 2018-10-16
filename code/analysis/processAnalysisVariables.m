@@ -442,7 +442,7 @@ function processAnalysisVariables(varargin)
         this_variable_source_name = special_variables_to_calculate{i_variable, 2};
         this_variable_source_type = special_variables_to_calculate{i_variable, 3};
         
-          % pick data depending on source specification
+        % pick data depending on source specification
         eval(['data_source = ' this_variable_source_type '_data_session;']);
         eval(['names_source = ' this_variable_source_type '_names_session;']);
         eval(['directions_source = ' this_variable_source_type '_directions_session;']);
@@ -559,7 +559,7 @@ function processAnalysisVariables(varargin)
            end
        end
        
-       if strcmp(this_variable_name,'com_x_inverted_pushoff_end')
+       if strcmp(this_variable_name,'com_x_inverted_pushoff_end') || strcmp(this_variable_name,'com_x_vel_inverted_pushoff_end') 
            this_variable_source_index = find(strcmp(analysis_names_session, this_variable_source_name), 1, 'first');
            this_variable_source_data = analysis_data_session{this_variable_source_index};
            number_of_stretches = size(this_variable_source_data, 2);
@@ -580,9 +580,15 @@ function processAnalysisVariables(varargin)
            end
        end
        
-       if strcmp(this_variable_name,'com_x_inverted_band_end')
-           this_variable_source_index = find(strcmp(analysis_names_session, this_variable_source_name), 1, 'first');
-           this_variable_source_data = analysis_data_session{this_variable_source_index};
+       if strcmp(this_variable_name,'com_x_inverted_band_end') || strcmp(this_variable_name,'com_x_vel_inverted_band_end') || strcmp(this_variable_name,'fy_band_end')
+           
+           if strcmp(this_variable_name,'com_x_inverted_band_end') || strcmp(this_variable_name,'com_x_vel_inverted_band_end') 
+               this_variable_source_index = find(strcmp(analysis_names_session, this_variable_source_name), 1, 'first');
+               this_variable_source_data = analysis_data_session{this_variable_source_index};
+           else
+               this_variable_source_index = find(strcmp(response_names_session, this_variable_source_name), 1, 'first');
+               this_variable_source_data = response_data_session{this_variable_source_index};
+           end
            number_of_stretches = size(this_variable_source_data, 2);
            
            end_data_time_within_band = this_pushoff_time_data;

@@ -455,7 +455,11 @@ function plotResults(varargin)
 %                         xtick = [abscissae_cell{i_comparison, i_variable}{1} xtick]; %#ok<AGROW>
 %                     end
                     xtick = sort(reshape(abscissae_cell{i_comparison, i_variable}, 1, numel(abscissae_cell{i_comparison, i_variable})));
-                    set(gca, 'xlim', [-0.5 + min(xtick) 0.5 + max(xtick(end))]);
+                    if plot_settings.get('cutoff_2nd_doublestance')
+                        set(gca, 'xlim', [-0.5 + min(xtick) 0.5 + xtick(4)]);
+                    else   
+                        set(gca, 'xlim', [-0.5 + min(xtick) 0.5 + max(xtick(end))]);
+                    end
                     set(gca, 'xtick', xtick);
                 end
                 
@@ -543,7 +547,12 @@ function plotResults(varargin)
             if isContinuousVariable(i_variable, data_all, bands_per_stretch)
                 for i_comparison = 1 : number_of_comparisons
                     target_abscissae = abscissae_cell{i_comparison, i_variable};
-                    xlim = [min(target_abscissae(:, 1)) max(target_abscissae(:, end))];
+                    
+                    if plot_settings.get('cutoff_2nd_doublestance')
+                        xlim = [min(target_abscissae(:, 1)) 100 + pushoff_index(2)];
+                    else
+                        xlim = [min(target_abscissae(:, 1)) max(target_abscissae(:, end))];
+                    end
                     % set x-limits accordingly
                     set(trajectory_axes_handles(i_comparison, i_variable), 'xlim', xlim);
                 end
