@@ -1777,6 +1777,7 @@ function plotResults(varargin)
 %             set(postext, 'visible', 'off');
 %             set(negtext, 'visible', 'off');
             
+            % remove text and marks to save graphs only
             set(get(trajectory_axes_handles(i_figure), 'xaxis'), 'visible', 'off');
             set(get(trajectory_axes_handles(i_figure), 'yaxis'), 'visible', 'off');
             set(get(trajectory_axes_handles(i_figure), 'xlabel'), 'visible', 'off');
@@ -1788,10 +1789,14 @@ function plotResults(varargin)
             legend(trajectory_axes_handles(i_figure), 'hide');
             filename = ['figures' filesep 'noLabels' filesep get(trajectory_figure_handles(i_figure), 'UserData')];
             saveas(trajectory_figure_handles(i_figure), filename, parser.Results.format);
+            
+            % put some marks back
+            set(get(trajectory_axes_handles(i_figure), 'title'), 'visible', 'on');
+            set(trajectory_axes_handles(i_figure), 'position', [0.05 0.05 0.9 0.9]);
         end
     end
     
-    %% save figures
+    %% close figures
     if parser.Results.close
         for i_figure = 1 : numel(trajectory_figure_handles)
             close(trajectory_figure_handles(i_figure))            
