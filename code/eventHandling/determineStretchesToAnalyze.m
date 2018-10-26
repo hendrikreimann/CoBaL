@@ -135,8 +135,9 @@ function determineStretchesToAnalyze(varargin)
             % marker data
             [marker_trajectories, time_marker, sampling_rate_marker, marker_labels, marker_directions] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'marker_trajectories');
             if study_settings.get('prune_gaps_com')
-                [com_trajectories, time_marker, sampling_rate_marker, com_labels, com_directions] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'com_trajectories');
-            
+%                   [com_position_trajectories, sampling_rate, com_labels, com_directions] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'bodyKinematicsPos');
+                
+                [com_trajectories, time_marker, sampling_rate_marker, com_labels, com_directions] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'com_position_trajectories');
 %                 [com_trajectories, time_marker, sampling_rate_marker, com_labels, com_directions] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'com_trajectories_optimized')
             end
             if study_settings.get('prune_gaps_angles')
