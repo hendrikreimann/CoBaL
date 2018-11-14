@@ -273,14 +273,18 @@ function processAnalysisVariables(varargin)
                 this_band_data_full = this_variable_source_data(band_start_index : band_end_index, i_stretch);
 
                 range = start_data_percent(i_band, i_stretch) : end_data_percent(i_band, i_stretch);
+                if (isempty(range) && strcmp(subject_id, 'CAD16')) || length(range) > 100
+                    range = 20:100;
+                end
                 
                 this_band_time_range = this_band_time_full(range);
                 this_band_data_range = this_band_data_full(range);
                 
                 % integrate
-                this_band_data_integrated = cumtrapz(this_band_time_range, this_band_data_range);               
+                this_band_data_integrated = cumtrapz(this_band_time_range, this_band_data_range);             
                 integrated_data(i_band, i_stretch) = this_band_data_integrated(end);
-
+                
+                dbstop if error
             end
         end        
         
