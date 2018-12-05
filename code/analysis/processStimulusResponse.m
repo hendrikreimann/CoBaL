@@ -157,7 +157,7 @@ function processStimulusResponse(varargin)
             this_stance_foot_ankle_x_data = rankle_x_midstance_control_data(this_stance_foot_indicator);
         end
         this_stance_com_from_stance_ankle_data = this_stance_com_x_pos_midstance_data - this_stance_foot_ankle_x_data;
-
+        
         % calculate and remove means
         com_from_ankle_means(i_stance) = mean(this_stance_com_from_stance_ankle_data);
         com_vel_means(i_stance) = mean(this_stance_com_x_vel_midstance_data);
@@ -165,6 +165,9 @@ function processStimulusResponse(varargin)
         this_stance_com_from_stance_ankle_data_mean_free = this_stance_com_from_stance_ankle_data - mean(this_stance_com_from_stance_ankle_data);
         this_stance_com_x_vel_midstance_data_mean_free = this_stance_com_x_vel_midstance_data - mean(this_stance_com_x_vel_midstance_data);
         this_stance_step_placement_x_data_mean_free = this_stance_step_placement_x_data - mean(this_stance_step_placement_x_data);
+        
+        % remove nans
+        
         
         % fit regression model
 %         input_matrix = [this_stance_com_from_stance_ankle_data_mean_free'; this_stance_com_x_vel_midstance_data_mean_free'];

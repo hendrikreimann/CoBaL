@@ -1,6 +1,7 @@
 
 emg_labels:
 {
+
   // hip
   left_glut_med
   right_glut_med
@@ -10,7 +11,9 @@ emg_labels:
   // thighs
   left_rect_fem
   right_rect_fem
-
+  left_bic_fem
+  right_bic_fem
+  
   // lower leg
   left_tibi_ant
   right_tibi_ant
@@ -18,6 +21,8 @@ emg_labels:
   right_gastroc_med
   left_pero_lng
   right_pero_lng
+  left_soleus
+  right_soleus
 
 
 }

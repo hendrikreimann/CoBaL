@@ -47,10 +47,10 @@ function settings = loadSettingsFile(filename)
         this_line = text_cell{i_line};
         
         % remove initial white space
-        while length(this_line) > 0 && strcmp(this_line(1), ' ')
+        while ~isempty(this_line) && (this_line(1) == ' ' || double(this_line(1)) == 9)
             this_line(1) = [];
         end
-        text_cell{i_line} = this_line;
+        text_cell{i_line} = this_line; %#ok<AGROW>
         
         % remove comments
         if length(this_line) > 1 && strcmp(this_line(1:2), '//')
@@ -89,7 +89,7 @@ function [text_cell, settings] = parseNextBlock(text_cell, settings)
         for i_line = 1 : length(variable_data_lines)
             this_line_text = variable_data_lines{i_line};
             % remove leading white space
-            while ~isempty(this_line_text) && this_line_text(1) == ' '
+            while ~isempty(this_line_text) && (this_line_text(1) == ' ' || double(this_line_text(1)) == 9)
                 this_line_text(1) = [];
             end
             this_line_text = strrep(this_line_text, ', ', ',');
@@ -99,7 +99,7 @@ function [text_cell, settings] = parseNextBlock(text_cell, settings)
             for i_entry = 1 : length(this_line_cell)
                 entry_to_process = this_line_cell{i_entry};
                 % remove leading spaces
-                while ~isempty(entry_to_process) && entry_to_process(1) == ' '
+                while ~isempty(entry_to_process) && (entry_to_process(1) == ' ' || double(entry_to_process(1)) == 9)
                     entry_to_process(1) = [];
                 end
                 
@@ -143,7 +143,7 @@ function [text_cell, settings] = parseNextBlock(text_cell, settings)
     line_split = strsplit(text_line, ':');
     variable_name = strrep(line_split{1}, ' ', '_');
     variable_value_string = line_split{2};
-    while ~isempty(variable_value_string) && variable_value_string(1) == ' '
+    while ~isempty(variable_value_string) && (variable_value_string(1) == ' ' || double(variable_value_string(1)) == 9)
         variable_value_string(1) = [];
     end
     variable_value_string = strrep(variable_value_string, ', ', ',');

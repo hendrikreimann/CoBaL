@@ -17,8 +17,6 @@
 % input
 % name: name of the variable containing the data
 
-% TODO: this should be merged into the WalkingData object
-
 function [data, time, sampling_rate, labels, directions, success] = loadData(date, subject_id, trial_type, trial_number, data_name, optional)
     if nargin < 6
         optional = 'required';

@@ -19,18 +19,15 @@ function exists = directoryExists(directory_name, path)
         path = pwd;
     end
     
-    try 
-        x = ls([path filesep directory_name]);
-       
-    catch exception
-        if strcmp(exception.identifier, 'MATLAB:ls:OSError')
-            exists = false;
-            return
-        else
-            rethrow(exception)
-        end
+    if any(directory_name == filesep)
+        last_separator_index = find(directory_name == filesep, 1, 'last');
+        path = [path filesep directory_name(1 : last_separator_index-1)];
+        directory_name = directory_name(last_separator_index+1 : end);
     end
     
-    exists = true;
+    path_contents = dir(path);
+    list_of_directories = {path_contents([path_contents.isdir]).name};
+    exists = any(strcmp(list_of_directories, directory_name));
     
+
 end

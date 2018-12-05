@@ -137,22 +137,25 @@ function preprocessRawData(varargin)
 
                     % define filters
                     % initial low pass filter
-%                     filter_order_low = 4;
-%                     cutoff_frequency_low = 500; % in Hz
-%                     [b_low, a_low] = butter(filter_order_low, cutoff_frequency_low/(sampling_rate_emg/2), 'low');
-% 
-%                     % high pass filter at 20 hz to get rid of DC offset
-%                     filter_order_high = 4;
-%                     cutoff_frequency_high = 20; % in Hz
-%                     [b_high, a_high] = butter(filter_order_high, cutoff_frequency_high/(sampling_rate_emg/2), 'high');
-% 
+                    filter_order_low = 4;
+                    cutoff_frequency_low = 500; % in Hz
+                    [b_low, a_low] = butter(filter_order_low, cutoff_frequency_low/(sampling_rate_emg/2), 'low');
+
+                    % high pass filter at 20 hz to get rid of DC offset
+                    filter_order_high = 4;
+                    cutoff_frequency_high = 20; % in Hz
+                    [b_high, a_high] = butter(filter_order_high, cutoff_frequency_high/(sampling_rate_emg/2), 'high');
+
+                    emg_trajectories_preRect_low = filtfilt(b_low, a_low, emg_trajectories_raw);
+                    emg_trajectories_preRect_high = filtfilt(b_high, a_high, emg_trajectories_preRect_low);
+                    
                     % low pass filter below 10 Hz -- aggressive smoothing after rectification
                     filter_order_final = 4;
                     cutoff_frequency_final = 6; % in Hz
                     [b_final, a_final] = butter(filter_order_final, cutoff_frequency_final/(sampling_rate_emg/2), 'low');
 
                     % rectify, then filter
-                    emg_trajectories_rectified = abs(emg_trajectories_raw);
+                    emg_trajectories_rectified = abs(emg_trajectories_preRect_high);
                     emg_trajectories = filtfilt(b_final, a_final, emg_trajectories_rectified);
 
                     % apply time offset
@@ -239,19 +242,19 @@ function preprocessRawData(varargin)
 
                     % visualize
                     if visualize
-                        i_channel = 5;
+                        i_channel = 12;
                         figure; axes; hold on; title(['EMG, condition ' trial_type ', trial ' num2str(trial_number)])
                         plot(time_emg, emg_trajectories_raw(:, i_channel), 'DisplayName', 'raw');
                         plot(time_emg, emg_trajectories_rectified(:, i_channel), 'DisplayName', 'rectified');
     %                     plot(time_emg, emg_rms_rectified(:, i_channel), 'DisplayName', 'rms rectified', 'linewidth', 2);
-    %                     plot(time_emg, emg_rms_smoothed(:, i_channel), 'DisplayName', 'rms smoothed', 'linewidth', 2);
-                %         plot(time_emg, emg_trajectories_filtered_lowpass(:, i_channel), 'DisplayName', 'lowpass');
-                %         plot(time_emg, emg_trajectories_filtered_highpass(:, i_channel), 'DisplayName', 'highpass');
+%                         plot(time_emg, emg_rms_smoothed(:, i_channel), 'DisplayName', 'rms smoothed', 'linewidth', 2);
+%                         plot(time_emg, emg_trajectories_filtered_lowpass(:, i_channel), 'DisplayName', 'lowpass');
+%                         plot(time_emg, emg_trajectories_filtered_highpass(:, i_channel), 'DisplayName', 'highpass');
+                        plot(time_emg,emg_trajectories_preRect_high(:, i_channel), 'DisplayName', 'preRectified')
                         plot(time_emg, emg_trajectories(:, i_channel), 'linewidth', 2, 'DisplayName', 'final');
                         legend('toggle');
+                        input('Continue?')
                     end                        
-
-
                 end
             end
         end
@@ -316,19 +319,8 @@ function preprocessRawData(varargin)
                     end
 
 
-    %                 % calculate CoP
-    %                 copxl_trajectory = - myl_trajectory ./ fzl_trajectory;
-    %                 copyl_trajectory = mxl_trajectory ./ fzl_trajectory;
-    %                 copxr_trajectory = - myr_trajectory ./ fzr_trajectory;
-    %                 copyr_trajectory = mxr_trajectory ./ fzr_trajectory;
-    % 
-    %                 % zero CoP for no contact times
-    %                 fz_threshold = 60;
+                    % calculate CoP
                     fz_threshold = subject_settings.get('forceplate_load_threshold');
-    %                 copxl_trajectory(fzl_trajectory < fz_threshold) = 0;
-    %                 copyl_trajectory(fzl_trajectory < fz_threshold) = 0;
-    %                 copxr_trajectory(fzr_trajectory < fz_threshold) = 0;
-    %                 copyr_trajectory(fzr_trajectory < fz_threshold) = 0;
 
                     if strcmp(data_source, 'nexus')
                         % transform forceplate data to CoBaL world frame A_cw
@@ -492,7 +484,12 @@ function preprocessRawData(varargin)
                     total_wrench_labels = {'fx', 'fy', 'fz', 'mx', 'my', 'mz'};
                     left_foot_cop_labels = {'copxl', 'copyl'};
                     right_foot_cop_labels = {'copxr', 'copyr'};
-                    total_cop_labels = {'copx', 'copy', 'fz'};
+                    total_cop_labels = {'copx', 'copy'};
+                    
+                    % combine
+                    cop_trajectories = [total_forceplate_cop_world left_foot_cop_world right_foot_cop_world];
+                    cop_labels = {'total_x', 'total_y', 'left_x', 'left_y', 'right_x', 'right_y'};
+                    cop_all_directions = [cop_directions cop_directions cop_directions];
 
                     % save
                     save_folder = 'processed';
@@ -531,7 +528,10 @@ function preprocessRawData(varargin)
                         'total_wrench_labels', ...
                         'left_foot_cop_labels', ...
                         'right_foot_cop_labels', ...
-                        'total_cop_labels' ...
+                        'total_cop_labels', ...
+                        'cop_trajectories', ...
+                        'cop_labels', ...
+                        'cop_all_directions' ...
                       );
 
                     addAvailableData('left_foot_wrench_world', 'time_forceplate', 'sampling_rate_forceplate', '_left_foot_wrench_labels', '_wrench_directions', save_folder, save_file_name);
@@ -555,6 +555,8 @@ function preprocessRawData(varargin)
                     addAvailableData('mxr_trajectory', 'time_forceplate', 'sampling_rate_forceplate', 'mxr_trajectory', {'right', 'left'}, save_folder, save_file_name);
                     addAvailableData('myr_trajectory', 'time_forceplate', 'sampling_rate_forceplate', 'myr_trajectory', {'forward', 'backward'}, save_folder, save_file_name);
                     addAvailableData('mzr_trajectory', 'time_forceplate', 'sampling_rate_forceplate', 'mzr_trajectory', {'up', 'down'}, save_folder, save_file_name);
+                    
+                    addAvailableData('cop_trajectories', 'time_forceplate', 'sampling_rate_forceplate', '_cop_labels', cop_all_directions, save_folder, save_file_name);
                     disp(['processed ' raw_forceplate_file_name ' and saved as ' [save_folder filesep save_file_name]])        
                 end
             end
