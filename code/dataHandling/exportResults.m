@@ -17,7 +17,7 @@
 % function exportResults
 
 %% load data
-% load results.mat
+load results.mat
 
 %% load settings
 if ~exist('studySettings.txt', 'file')

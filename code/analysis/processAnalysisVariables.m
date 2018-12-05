@@ -187,6 +187,35 @@ function processAnalysisVariables(varargin)
               );
     end
     
+    %% calculate band percent variables
+    variables_band_percent_header = study_settings.get('analysis_variables_from_band_percent_header');
+    variables_band_percent = study_settings.get('analysis_variables_from_band_percent');
+    for i_variable = 1 : size(variables_band_percent, 1)
+        this_variable_name = variables_band_percent{i_variable, strcmp(variables_band_percent_header, 'new_variable_name')};
+        this_variable_source_name = variables_band_percent{i_variable, strcmp(variables_band_percent_header, 'source_variable_name')};
+        this_variable_source_type = variables_band_percent{i_variable, strcmp(variables_band_percent_header, 'source_variable_type')};
+        this_variable_source_percent = str2num(variables_band_percent{i_variable, strcmp(variables_band_percent_header, 'percentage')});
+        % pick data depending on source specification
+        eval(['data_source = ' this_variable_source_type '_data_session;']);
+        eval(['names_source = ' this_variable_source_type '_names_session;']);
+        eval(['directions_source = ' this_variable_source_type '_directions_session;']);
+        this_variable_source_data = data_source{strcmp(names_source, this_variable_source_name)};
+        new_variable_directions = directions_source(strcmp(names_source, this_variable_source_name), :);
+        band_percent_data = zeros(bands_per_stretch, number_of_stretches);
+        for i_band = 1 : bands_per_stretch
+            [start_index, end_index] = getBandIndices(i_band, number_of_time_steps_normalized);
+            this_index = start_index + this_variable_source_percent/100 * (end_index - start_index);
+            band_percent_data(i_band, :) = this_variable_source_data(this_index, :);
+        end
+        % store
+        [analysis_data_session, analysis_names_session, analysis_directions_session] = ...
+            addOrReplaceResultsData ...
+              ( ...
+                analysis_data_session, analysis_names_session, analysis_directions_session, ...
+                band_percent_data, this_variable_name, new_variable_directions ...
+              );
+    end
+    
     %% calculate variables referenced by stretch
     variables_referenced_by_stretch = study_settings.get('analysis_variables_referenced_by_stretch');
     for i_variable = 1 : size(variables_referenced_by_stretch, 1)
@@ -430,11 +459,9 @@ function processAnalysisVariables(varargin)
         this_variable_source_name = special_variables_to_calculate{i_variable, 2};
         this_variable_source_type = special_variables_to_calculate{i_variable, 3};
         
-          % pick data depending on source specification
-        eval(['data_source = ' this_variable_source_type '_data_session;']);
+        % pick data depending on source specification
         eval(['names_source = ' this_variable_source_type '_names_session;']);
         eval(['directions_source = ' this_variable_source_type '_directions_session;']);
-%         this_variable_source_data = data_source{strcmp(names_source, this_variable_source_name)};
         this_variable_source_directions = directions_source(strcmp(names_source, this_variable_source_name), :);
         new_variable_directions = this_variable_source_directions;
           
@@ -466,11 +493,9 @@ function processAnalysisVariables(varargin)
                 this_variable_data(:,i_stretch) = this_variable_source_data(:,i_stretch) - this_variable_source_data(1,i_stretch);
             end
         end
-       if strcmp(this_variable_name, 'trigger_leg_ankle_dorsiflexion_inverted_max')
+        if strcmp(this_variable_name, 'trigger_leg_ankle_dorsiflexion_inverted_max')
             this_variable_source_index = find(strcmp(analysis_names_session, this_variable_source_name), 1, 'first');
             this_variable_source_data = analysis_data_session{this_variable_source_index};
-            
-            
             for i_stretch = 1:length(this_variable_source_data)
                 % create time
                 this_stretch_time_full = linspace(0, this_step_time_data(i_stretch), 100);
@@ -488,8 +513,8 @@ function processAnalysisVariables(varargin)
                     this_variable_data(i_stretch) = NaN;
                 end
             end
-       end
-       if strcmp(this_variable_name, 'cop_from_com_x_integrated_twice')
+        end
+        if strcmp(this_variable_name, 'cop_from_com_x_integrated_twice')
             this_variable_source_index = find(strcmp(response_names_session, this_variable_source_name), 1, 'first');
             this_variable_source_data = response_data_session{this_variable_source_index};
             number_of_stretches = size(this_variable_source_data, 2);
@@ -508,8 +533,41 @@ function processAnalysisVariables(varargin)
                 this_stretch_data_single_integrated_twice = cumtrapz(this_stretch_time_single, this_stretch_data_single_integrated);
                 this_variable_data(i_stretch) = this_stretch_data_single_integrated_twice(end);
             end 
-       end
-              % store
+        end
+        if strcmp(this_variable_name, 'cop_from_com_x_onset_plus_60percent')
+            this_variable_data = zeros(bands_per_stretch, number_of_stretches);
+            source_index_60 = find(strcmp(analysis_names_session, 'cop_from_com_x_60percent'), 1, 'first');
+            source_index_85 = find(strcmp(analysis_names_session, 'cop_from_com_x_85percent'), 1, 'first');
+            source_index_34 = find(strcmp(analysis_names_session, 'cop_from_com_x_34percent'), 1, 'first');
+            source_data_60 = analysis_data_session{source_index_60};
+            source_data_85 = analysis_data_session{source_index_85};
+            source_data_34 = analysis_data_session{source_index_34};
+            number_of_stretches = size(this_variable_source_data, 2);
+        
+            for i_stretch = 1 : number_of_stretches
+                % pick source data and band depending on delay
+                this_delay = conditions_session.delay_list{i_stretch};
+                if strcmp(this_delay, '0ms')
+                    this_data = source_data_60(1, i_stretch);
+                end
+                if strcmp(this_delay, '150ms')
+                    this_data = source_data_85(1, i_stretch);
+                end
+                if strcmp(this_delay, '450ms')
+                    this_data = source_data_34(2, i_stretch);
+                end
+                
+                % invert for STIM_LEFT
+                this_stimulus = conditions_session.stimulus_list{i_stretch};
+                if strcmp(this_stimulus, 'STIM_LEFT')
+                    this_data = -this_data;
+                end
+                
+                this_variable_data(:, i_stretch) = this_data * ones(1, bands_per_stretch);
+            end
+        end
+        
+        % store
         [analysis_data_session, analysis_names_session, analysis_directions_session] = ...
             addOrReplaceResultsData ...
               ( ...
