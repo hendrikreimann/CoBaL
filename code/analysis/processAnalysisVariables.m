@@ -374,7 +374,7 @@ function processAnalysisVariables(varargin)
               );
     end
     
-     %% gather variables that are selected from different sources depending on condition
+    %% gather variables that are selected from different sources depending on condition
     % TODO: deal with bands
     % TODO: deal with directions
     variables_to_select = study_settings.get('analysis_variables_from_selection');
@@ -476,7 +476,8 @@ function processAnalysisVariables(varargin)
         eval(['directions_source = ' this_variable_source_type '_directions_session;']);
         this_variable_source_directions = directions_source(strcmp(names_source, this_variable_source_name), :);
         new_variable_directions = this_variable_source_directions;
-        
+        % HR: something went wrong here during merge on 5. December, 2018, fix later
+
         % TO DO: need to automate the data type loading and storage
           
 %         if strcmp(this_variable_name, 'step_symmetry_index')
@@ -556,58 +557,59 @@ function processAnalysisVariables(varargin)
 %             
 %        end
        
-       if strcmp(this_variable_name, 'trigger_leg_ankle_dorsiflexion_dsmid')
-           this_variable_source_index = find(strcmp(analysis_names_session, this_variable_source_name), 1, 'first');
-           this_variable_source_data = analysis_data_session{this_variable_source_index};
-           number_of_stretches = size(this_variable_source_data, 2);
-           
-           end_data_time_within_band = this_pushoff_time_data;
-           end_data_ratio = end_data_time_within_band ./ this_step_time_data;
-           end_data_percent = round(end_data_ratio * 100);
-           
-           this_variable_data = zeros(bands_per_stretch, number_of_stretches);
-           for i_stretch = 1 : number_of_stretches
-               for i_band = 1 : bands_per_stretch
-                   [band_start_index, band_end_index] = getBandIndices(i_band, number_of_time_steps_normalized);
-                   this_band_time_full = linspace(0, this_step_time_data(i_band), 100);
-                   this_band_data_full = this_variable_source_data(band_start_index : band_end_index, i_stretch);
-                   
-                   range = start_data_percent(i_band, i_stretch) : end_data_percent(i_band, i_stretch);
-                   
-%                    this_band_time_range = this_band_time_full(range);
-                   this_band_data_range = this_band_data_full(range);
-                   
-                   % pick mid
-%                    this_band_data_integrated =  this_band_data_range);
-                   this_band_mid_index = round(length(this_band_data_range)/2);
-                   this_variable_data(i_band, i_stretch) = this_band_data_range(this_band_mid_index);
-                   
+        if strcmp(this_variable_name, 'trigger_leg_ankle_dorsiflexion_dsmid')
+            this_variable_source_index = find(strcmp(analysis_names_session, this_variable_source_name), 1, 'first');
+            this_variable_source_data = analysis_data_session{this_variable_source_index};
+            number_of_stretches = size(this_variable_source_data, 2);
+
+            end_data_time_within_band = this_pushoff_time_data;
+            end_data_ratio = end_data_time_within_band ./ this_step_time_data;
+            end_data_percent = round(end_data_ratio * 100);
+
+            this_variable_data = zeros(bands_per_stretch, number_of_stretches);
+            for i_stretch = 1 : number_of_stretches
+                for i_band = 1 : bands_per_stretch
+                    [band_start_index, band_end_index] = getBandIndices(i_band, number_of_time_steps_normalized);
+                    this_band_time_full = linspace(0, this_step_time_data(i_band), 100);
+                    this_band_data_full = this_variable_source_data(band_start_index : band_end_index, i_stretch);
+
+                    range = start_data_percent(i_band, i_stretch) : end_data_percent(i_band, i_stretch);
+
+                    %                    this_band_time_range = this_band_time_full(range);
+                    this_band_data_range = this_band_data_full(range);
+
+                    % pick mid
+                    %                    this_band_data_integrated =  this_band_data_range);
+                    this_band_mid_index = round(length(this_band_data_range)/2);
+                    this_variable_data(i_band, i_stretch) = this_band_data_range(this_band_mid_index);
+
                end
-           end
-       end
+            end
+        end
        
-       if strcmp(this_variable_name,'com_x_inverted_pushoff_end')
+        if strcmp(this_variable_name,'com_x_inverted_pushoff_end')
            this_variable_source_index = find(strcmp(analysis_names_session, this_variable_source_name), 1, 'first');
            this_variable_source_data = analysis_data_session{this_variable_source_index};
            number_of_stretches = size(this_variable_source_data, 2);
-           
+
            end_data_time_within_band = this_pushoff_time_data;
            end_data_ratio = end_data_time_within_band ./ this_step_time_data;
            end_data_percent = round(end_data_ratio * 100);
-           
+
         end
         if strcmp(this_variable_name, 'cop_from_com_x_integrated_twice')
             for i_stretch = 1 : number_of_stretches
-               for i_band = 1 : bands_per_stretch
-                   [band_start_index, band_end_index] = getBandIndices(i_band, number_of_time_steps_normalized);
-%                    this_band_time_full = linspace(0, this_step_time_data(i_band), 100);
-                   this_band_data_full = this_variable_source_data(band_start_index : band_end_index, i_stretch);
-                   
-                   this_variable_data(i_band, i_stretch) = this_band_data_full(end_data_percent(i_band, i_stretch));
-                    
-               end
-           end
-       if strcmp(this_variable_name, 'cop_from_com_x_integrated_twice')
+                for i_band = 1 : bands_per_stretch
+                    [band_start_index, band_end_index] = getBandIndices(i_band, number_of_time_steps_normalized);
+            %                    this_band_time_full = linspace(0, this_step_time_data(i_band), 100);
+                    this_band_data_full = this_variable_source_data(band_start_index : band_end_index, i_stretch);
+
+                    this_variable_data(i_band, i_stretch) = this_band_data_full(end_data_percent(i_band, i_stretch));
+
+                end
+            end
+        end
+        if strcmp(this_variable_name, 'cop_from_com_x_integrated_twice')
             this_variable_source_index = find(strcmp(response_names_session, this_variable_source_name), 1, 'first');
             this_variable_source_data = response_data_session{this_variable_source_index};
             number_of_stretches = size(this_variable_source_data, 2);
@@ -615,27 +617,27 @@ function processAnalysisVariables(varargin)
             this_variable_source_index = find(strcmp(response_names_session, this_variable_source_name), 1, 'first');
             this_variable_source_data = response_data_session{this_variable_source_index};
             number_of_stretches = size(this_variable_source_data, 2);
-
+       end
        
-       if strcmp(this_variable_name,'com_x_inverted_band_end')
-           this_variable_source_index = find(strcmp(analysis_names_session, this_variable_source_name), 1, 'first');
-           this_variable_source_data = analysis_data_session{this_variable_source_index};
-           number_of_stretches = size(this_variable_source_data, 2);
-           
-           end_data_time_within_band = this_pushoff_time_data;
-           end_data_ratio = end_data_time_within_band ./ this_step_time_data;
-           end_data_percent = round(end_data_ratio * 100);
-           
+        if strcmp(this_variable_name,'com_x_inverted_band_end')
+            this_variable_source_index = find(strcmp(analysis_names_session, this_variable_source_name), 1, 'first');
+            this_variable_source_data = analysis_data_session{this_variable_source_index};
+            number_of_stretches = size(this_variable_source_data, 2);
+
+            end_data_time_within_band = this_pushoff_time_data;
+            end_data_ratio = end_data_time_within_band ./ this_step_time_data;
+            end_data_percent = round(end_data_ratio * 100);
+
             for i_stretch = 1 : number_of_stretches
-               for i_band = 1 : bands_per_stretch
-                   [band_start_index, band_end_index] = getBandIndices(i_band, number_of_time_steps_normalized);
-%                    this_band_time_full = linspace(0, this_step_time_data(i_band), 100);
-                   this_band_data_full = this_variable_source_data(band_start_index : band_end_index, i_stretch);
-                   
-                   this_variable_data(i_band, i_stretch) = this_band_data_full(end);
-                    
-               end
-           end
+                for i_band = 1 : bands_per_stretch
+                    [band_start_index, band_end_index] = getBandIndices(i_band, number_of_time_steps_normalized);
+        %                    this_band_time_full = linspace(0, this_step_time_data(i_band), 100);
+                    this_band_data_full = this_variable_source_data(band_start_index : band_end_index, i_stretch);
+
+                    this_variable_data(i_band, i_stretch) = this_band_data_full(end);
+
+                end
+            end
         end
         if strcmp(this_variable_name, 'cop_from_com_x_onset_plus_60percent')
             this_variable_data = zeros(bands_per_stretch, number_of_stretches);

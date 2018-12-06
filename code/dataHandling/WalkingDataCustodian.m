@@ -329,7 +329,7 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('cop_x')
                 this.addStretchVariable('cop_x')
 %                 this.addBasicVariable('com_trajectories') % in-house kinematics
-%                 this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                this.addBasicVariable('com_position_trajectories') % opensim kinematics
                 this.addBasicVariable('com')
                 this.addBasicVariable('com_x')
                 this.addStretchVariable('com_x')
@@ -340,7 +340,7 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('cop_y')
                 this.addStretchVariable('cop_y')
 %                 this.addBasicVariable('com_trajectories') % in-house kinematics
-%                 this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                this.addBasicVariable('com_position_trajectories') % opensim kinematics
                 this.addBasicVariable('com')
                 this.addBasicVariable('com_y')
                 this.addStretchVariable('com_y')
@@ -351,7 +351,7 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('cop_x')
                 this.addStretchVariable('cop_x')
 %                 this.addBasicVariable('com_trajectories') % in-house kinematics
-%                 this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                this.addBasicVariable('com_position_trajectories') % opensim kinematics
                 this.addBasicVariable('com')
                 this.addBasicVariable('com_x')
                 this.addStretchVariable('com_x')
@@ -362,7 +362,7 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('cop_y')
                 this.addStretchVariable('cop_y')
 %                 this.addBasicVariable('com_trajectories') % in-house kinematics
-%                 this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                this.addBasicVariable('com_position_trajectories') % opensim kinematics
                 this.addBasicVariable('com')
                 this.addBasicVariable('com_y')
                 this.addStretchVariable('com_y')
@@ -375,7 +375,7 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('rheel_x')
                 this.addStretchVariable('rheel_x')
 %                 this.addBasicVariable('com_trajectories') % in-house kinematics
-%                 this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                this.addBasicVariable('com_position_trajectories') % opensim kinematics
                 this.addBasicVariable('com')
                 this.addBasicVariable('com_x')
                 this.addStretchVariable('com_x')
@@ -383,7 +383,7 @@ classdef WalkingDataCustodian < handle
             end
             if this.isVariableToAnalyze('cop_to_com_vel_scaled_x')
 %                 this.addBasicVariable('com_trajectories') % in-house kinematics
-%                 this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                this.addBasicVariable('com_position_trajectories') % opensim kinematics
                 this.addBasicVariable('com')
                 this.addBasicVariable('com_x')
                 this.addBasicVariable('com_x_vel')
@@ -400,7 +400,7 @@ classdef WalkingDataCustodian < handle
             end
             if this.isVariableToAnalyze('cop_to_com_vel_scaled_y')
 %                 this.addBasicVariable('com_trajectories') % in-house kinematics
-%                 this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                this.addBasicVariable('com_position_trajectories') % opensim kinematics
                 this.addBasicVariable('com')
                 this.addBasicVariable('com_y')
                 this.addBasicVariable('com_y_vel')
@@ -576,27 +576,27 @@ classdef WalkingDataCustodian < handle
             end
             if this.isVariableToAnalyze('com_x')
 %                 this.addBasicVariable('com_trajectories') % in-house kinematics
-%                 this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                this.addBasicVariable('com_position_trajectories') % opensim kinematics
                 this.addBasicVariable('com')
                 this.addBasicVariable('com_x')
                 this.addStretchVariable('com_x')
             end
             if this.isVariableToAnalyze('com_y')
 %                 this.addBasicVariable('com_trajectories') % in-house kinematics
-%                 this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                this.addBasicVariable('com_position_trajectories') % opensim kinematics
                 this.addBasicVariable('com')
                 this.addBasicVariable('com_y')
                 this.addStretchVariable('com_y')
             end
             if this.isVariableToAnalyze('com_z')
-                this.addBasicVariable('com_trajectories') % in-house kinematics
+%                 this.addBasicVariable('com_trajectories') % in-house kinematics
                 this.addBasicVariable('com_position_trajectories') % opensim kinematics
                 this.addBasicVariable('com_z')
                 this.addStretchVariable('com_z')
             end
             if this.isVariableToAnalyze('com_x_vel')
 %                 this.addBasicVariable('com_trajectories') % in-house kinematics
-%                 this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                this.addBasicVariable('com_position_trajectories') % opensim kinematics
                 this.addBasicVariable('com')
                 this.addBasicVariable('com_x')
                 this.addBasicVariable('com_x_vel')
@@ -604,7 +604,7 @@ classdef WalkingDataCustodian < handle
             end
             if this.isVariableToAnalyze('com_x_vel_scaled')
 %                 this.addBasicVariable('com_trajectories') % in-house kinematics
-%                 this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                this.addBasicVariable('com_position_trajectories') % opensim kinematics
                 this.addBasicVariable('com')
                 this.addBasicVariable('com_x')
                 this.addBasicVariable('com_x_vel')
@@ -615,7 +615,7 @@ classdef WalkingDataCustodian < handle
             end
             if this.isVariableToAnalyze('com_y_vel')
 %                 this.addBasicVariable('com_trajectories') % in-house kinematics
-%                 this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                this.addBasicVariable('com_position_trajectories') % opensim kinematics
                 this.addBasicVariable('com')
                 this.addBasicVariable('com_y')
                 this.addBasicVariable('com_y_vel')
@@ -623,7 +623,7 @@ classdef WalkingDataCustodian < handle
             end
             if this.isVariableToAnalyze('com_z_vel')
 %                 this.addBasicVariable('com_trajectories') % in-house kinematics
-%                 this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                this.addBasicVariable('com_position_trajectories') % opensim kinematics
                 this.addBasicVariable('com')
                 this.addBasicVariable('com_z')
                 this.addBasicVariable('com_z_vel')
@@ -631,7 +631,7 @@ classdef WalkingDataCustodian < handle
             end
             if this.isVariableToAnalyze('com_x_acc')
 %                 this.addBasicVariable('com_trajectories') % in-house kinematics
-%                 this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                this.addBasicVariable('com_position_trajectories') % opensim kinematics
                 this.addBasicVariable('com')
                 this.addBasicVariable('com_x')
                 this.addBasicVariable('com_x_vel')
@@ -640,7 +640,7 @@ classdef WalkingDataCustodian < handle
             end
             if this.isVariableToAnalyze('com_y_acc')
 %                 this.addBasicVariable('com_trajectories') % in-house kinematics
-%                 this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                this.addBasicVariable('com_position_trajectories') % opensim kinematics
                 this.addBasicVariable('com')
                 this.addBasicVariable('com_y')
                 this.addBasicVariable('com_y_vel')
@@ -649,7 +649,7 @@ classdef WalkingDataCustodian < handle
             end
             if this.isVariableToAnalyze('com_z_acc')
 %                 this.addBasicVariable('com_trajectories') % in-house kinematics
-%                 this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                this.addBasicVariable('com_position_trajectories') % opensim kinematics
                 this.addBasicVariable('com')
                 this.addBasicVariable('com_z')
                 this.addBasicVariable('com_z_vel')

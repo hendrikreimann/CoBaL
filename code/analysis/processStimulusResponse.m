@@ -202,7 +202,7 @@ function processStimulusResponse(varargin)
             figure; 
             plot(fit_object, [this_stance_com_from_stance_ankle_data_mean_free, this_stance_com_x_vel_midstance_data_mean_free], this_stance_step_placement_x_data_mean_free)
             xlabel('\Delta CoM from stance ankle'); ylabel('\Delta CoM vel'); zlabel('\Delta foot placement')
-            title(['slopes = [' num2str(linear_model_slopes(1)) ', ' num2str(linear_model_slopes(2)) '], r^2 = ' num2str(fit_stats.rsquare)]);
+%             title(['slopes = [' num2str(linear_model_slopes(1)) ', ' num2str(linear_model_slopes(2)) '], r^2 = ' num2str(fit_stats.rsquare)]);
             
 %             figure; hold on; 
 %             plot(this_stance_com_from_stance_ankle_data_mean_free, this_stance_step_placement_x_data_mean_free, 'o')
