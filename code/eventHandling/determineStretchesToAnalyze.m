@@ -324,13 +324,13 @@ function determineStretchesToAnalyze(varargin)
                 [left_forceplate_wrench_world_trajectory, time_left_forceplate] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'left_foot_wrench_world', 'optional');
                 [right_forceplate_wrench_world_trajectory, time_right_forceplate] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'right_foot_wrench_world', 'optional');
                 
-                figure; axes; hold on
-                plot(time_stimulus, stimulus_state_trajectory*0.02);
-                plot(time_marker, LHEE(:, 3), 'Displayname', 'left heel z')
-                plot(time_marker, RHEE(:, 3), 'Displayname', 'right heel z')
-                
-                plot(time_marker, LHEE(:, 2), 'Displayname', 'left heel y')
-                plot(time_marker, RHEE(:, 2), 'Displayname', 'right heel y')
+%                 figure; axes; hold on
+%                 plot(time_stimulus, stimulus_state_trajectory*0.02);
+%                 plot(time_marker, LHEE(:, 3), 'Displayname', 'left heel z')
+%                 plot(time_marker, RHEE(:, 3), 'Displayname', 'right heel z')
+%                 
+%                 plot(time_marker, LHEE(:, 2), 'Displayname', 'left heel y')
+%                 plot(time_marker, RHEE(:, 2), 'Displayname', 'right heel y')
                 
                 
 %                 if left_forceplate_available
@@ -341,10 +341,10 @@ function determineStretchesToAnalyze(varargin)
 %                     right_cop_x_trajectory_relevant = right_copx_trajectory; right_cop_x_trajectory_relevant(right_cop_x_trajectory_relevant==0) = NaN;
 %                     plot(time_right_forceplate, right_cop_x_trajectory_relevant, 'linewidth', 2, 'Displayname', 'cop right');
 %                 end
-                plot(time_marker(trigger_indices_mocap), zeros(size(trigger_indices_mocap)), 'x', 'Displayname', 'triggers')
+%                 plot(time_marker(trigger_indices_mocap), zeros(size(trigger_indices_mocap)), 'x', 'Displayname', 'triggers')
 %                 plot(time_stimulus, illusion_trajectory, 'Displayname', 'illusion')
 %                 legend('stimulus state', 'left cop', 'right cop', 'left touchdown', 'right touchdown', 'trigger', 'stim start')
-                legend('toggle')
+%                 legend('toggle')
             end
 
             %% extract data and determine condition variables
@@ -1927,7 +1927,8 @@ function determineStretchesToAnalyze(varargin)
             end
             
             if strcmp(experimental_paradigm, 'GVS_old')
-                bands_per_stretch = 2;
+                bands_per_stretch = study_settings.get('strides_to_process') * 2;
+%                 bands_per_stretch = 4;
                 
                 number_of_triggers = length(trigger_indices_mocap);
                 closest_heelstrike_distance_times = zeros(number_of_triggers, 1);
@@ -2014,73 +2015,79 @@ function determineStretchesToAnalyze(varargin)
                     
                     % extract relevant events in order
                     if strcmp(trigger_foot, 'left')
-                        if length(left_touchdown_times) < index_left + 1 || removal_flags(i_trigger) == 1
-                            % data doesn't include the required number of steps after the trigger
+                        if length(left_touchdown_times) < index_left + 2 || removal_flags(i_trigger) == 1
                             removal_flags(i_trigger) = 1;
-                            left_foot_heelstrike_0  = NaN;
-                            left_foot_heelstrike_1  = NaN;
-                            left_foot_pushoff_0     = NaN;
-                            right_foot_heelstrike_0 = NaN;
-                            right_foot_pushoff_0    = NaN;
                         else
-                            left_foot_heelstrike_pre  = left_touchdown_times(index_left-1);
-                            left_foot_heelstrike_0  = left_touchdown_times(index_left);
-                            left_foot_heelstrike_1  = left_touchdown_times(index_left+1);
+                            left_foot_heelstrike_m2 = left_touchdown_times(index_left-2);
+                            left_foot_heelstrike_m1 = left_touchdown_times(index_left-1);
+                            left_foot_heelstrike_t0 = left_touchdown_times(index_left);
+                            left_foot_heelstrike_p1 = left_touchdown_times(index_left+1);
+                            left_foot_heelstrike_p2 = left_touchdown_times(index_left+2);
                             
-                            left_foot_pushoff_pre     = max(left_pushoff_times(left_pushoff_times < left_foot_heelstrike_0));
-                            left_foot_pushoff_0     = min(left_pushoff_times(left_pushoff_times >= left_foot_heelstrike_0));
+                            left_foot_pushoff_m2    = min(left_pushoff_times(left_pushoff_times >= left_foot_heelstrike_m2));
+                            left_foot_pushoff_m1    = min(left_pushoff_times(left_pushoff_times >= left_foot_heelstrike_m1));
+                            left_foot_pushoff_t0    = min(left_pushoff_times(left_pushoff_times >= left_foot_heelstrike_t0));
+                            left_foot_pushoff_p1    = min(left_pushoff_times(left_pushoff_times >= left_foot_heelstrike_p1));
                             
-                            right_foot_heelstrike_pre = max(right_touchdown_times(right_touchdown_times < left_foot_heelstrike_0));
-                            right_foot_heelstrike_0 = min(right_touchdown_times(right_touchdown_times >= left_foot_heelstrike_0));
-                            right_foot_pushoff_pre    = max(right_pushoff_times(right_pushoff_times <= left_foot_heelstrike_0));
-                            right_foot_pushoff_0    = max(right_pushoff_times(right_pushoff_times <= left_foot_pushoff_0));
+                            right_foot_heelstrike_m2  = min(right_touchdown_times(right_touchdown_times >= left_foot_heelstrike_m2));
+                            right_foot_heelstrike_m1  = min(right_touchdown_times(right_touchdown_times >= left_foot_heelstrike_m1));
+                            right_foot_heelstrike_t0  = min(right_touchdown_times(right_touchdown_times >= left_foot_heelstrike_t0));
+                            right_foot_heelstrike_p1  = min(right_touchdown_times(right_touchdown_times >= left_foot_heelstrike_p1));
+                            
+                            right_foot_pushoff_m2     = min(right_pushoff_times(right_pushoff_times >= left_foot_heelstrike_m2));
+                            right_foot_pushoff_m1     = min(right_pushoff_times(right_pushoff_times >= left_foot_heelstrike_m1));
+                            right_foot_pushoff_t0     = min(right_pushoff_times(right_pushoff_times >= left_foot_heelstrike_t0));
+                            right_foot_pushoff_p1     = min(right_pushoff_times(right_pushoff_times >= left_foot_heelstrike_p1));
 
                             % notify if events are not sorted properly
                             if ~issorted ...
                                   ( ...
                                     [ ...
-                                      left_foot_heelstrike_pre right_foot_pushoff_pre right_foot_heelstrike_pre left_foot_pushoff_pre ...
-                                      left_foot_heelstrike_0 right_foot_pushoff_0 right_foot_heelstrike_0 left_foot_pushoff_0 ...
-                                      left_foot_heelstrike_1 ...
+                                      left_foot_heelstrike_m2 right_foot_pushoff_m2 right_foot_heelstrike_m2 left_foot_pushoff_m2 ...
+                                      left_foot_heelstrike_m1 right_foot_pushoff_m1 right_foot_heelstrike_m1 left_foot_pushoff_m1 ...
+                                      left_foot_heelstrike_t0 right_foot_pushoff_t0 right_foot_heelstrike_t0 left_foot_pushoff_t0 ...
+                                      left_foot_heelstrike_p1 right_foot_pushoff_p1 right_foot_heelstrike_p1 left_foot_pushoff_p1 ...
+                                      left_foot_heelstrike_p2 ...
                                     ] ...
                                   )
                                 disp(['Trial ' num2str(i_trial) ': Problem with order of events, please check trigger at ' num2str(time_stimulus(trigger_indices_labview(i_trigger)))]);
                             end
+
                         end
                     elseif strcmp(trigger_foot, 'right')
-                        if length(right_touchdown_times) < index_right + 1 || removal_flags(i_trigger) == 1
-                            % data doesn't include the required number of steps after the trigger
-                            right_foot_heelstrike_pre = NaN;
-                            right_foot_heelstrike_0 = NaN;
-                            right_foot_heelstrike_1 = NaN;
-                            
-                            right_foot_pushoff_pre  = NaN;
-                            right_foot_pushoff_0    = NaN;
-
-                            left_foot_heelstrike_pre  = NaN;
-                            left_foot_heelstrike_0  = NaN;
-                            left_foot_pushoff_pre     = NaN;
-                            left_foot_pushoff_0     = NaN;
+                        if length(right_touchdown_times) < index_left + 2 || removal_flags(i_trigger) == 1
+                            removal_flags(i_trigger) = 1;
                         else
-                            right_foot_heelstrike_pre = right_touchdown_times(index_right-1);
-                            right_foot_heelstrike_0 = right_touchdown_times(index_right);
-                            right_foot_heelstrike_1 = right_touchdown_times(index_right+1);
+                            right_foot_heelstrike_m2 = right_touchdown_times(index_right-2);
+                            right_foot_heelstrike_m1 = right_touchdown_times(index_right-1);
+                            right_foot_heelstrike_t0 = right_touchdown_times(index_right);
+                            right_foot_heelstrike_p1 = right_touchdown_times(index_right+1);
+                            right_foot_heelstrike_p2 = right_touchdown_times(index_right+2);
                             
-                            right_foot_pushoff_pre    = max(right_pushoff_times(right_pushoff_times < right_foot_heelstrike_0));
-                            right_foot_pushoff_0    = min(right_pushoff_times(right_pushoff_times >= right_foot_heelstrike_0));
-
-                            left_foot_heelstrike_pre  = max(left_touchdown_times(left_touchdown_times < right_foot_heelstrike_0));
-                            left_foot_heelstrike_0  = min(left_touchdown_times(left_touchdown_times >= right_foot_heelstrike_0));
-                            left_foot_pushoff_pre     = max(left_pushoff_times(left_pushoff_times <= right_foot_heelstrike_0));
-                            left_foot_pushoff_0     = max(left_pushoff_times(left_pushoff_times <= right_foot_pushoff_0));
+                            right_foot_pushoff_m2    = min(right_pushoff_times(right_pushoff_times >= right_foot_heelstrike_m2));
+                            right_foot_pushoff_m1    = min(right_pushoff_times(right_pushoff_times >= right_foot_heelstrike_m1));
+                            right_foot_pushoff_t0    = min(right_pushoff_times(right_pushoff_times >= right_foot_heelstrike_t0));
+                            right_foot_pushoff_p1    = min(right_pushoff_times(right_pushoff_times >= right_foot_heelstrike_p1));
+                            
+                            left_foot_heelstrike_m2  = min(left_touchdown_times(left_touchdown_times >= right_foot_heelstrike_m2));
+                            left_foot_heelstrike_m1  = min(left_touchdown_times(left_touchdown_times >= right_foot_heelstrike_m1));
+                            left_foot_heelstrike_t0  = min(left_touchdown_times(left_touchdown_times >= right_foot_heelstrike_t0));
+                            left_foot_heelstrike_p1  = min(left_touchdown_times(left_touchdown_times >= right_foot_heelstrike_p1));
+                            
+                            left_foot_pushoff_m2     = min(left_pushoff_times(left_pushoff_times >= right_foot_heelstrike_m2));
+                            left_foot_pushoff_m1     = min(left_pushoff_times(left_pushoff_times >= right_foot_heelstrike_m1));
+                            left_foot_pushoff_t0     = min(left_pushoff_times(left_pushoff_times >= right_foot_heelstrike_t0));
+                            left_foot_pushoff_p1     = min(left_pushoff_times(left_pushoff_times >= right_foot_heelstrike_p1));
 
                             % notify if events are not sorted properly
                             if ~issorted ...
                                   ( ...
                                     [ ...
-                                      right_foot_heelstrike_pre left_foot_pushoff_pre left_foot_heelstrike_pre right_foot_pushoff_pre ...
-                                      right_foot_heelstrike_0 left_foot_pushoff_0 left_foot_heelstrike_0 right_foot_pushoff_0 ...
-                                      right_foot_heelstrike_1 ...
+                                      right_foot_heelstrike_m2 left_foot_pushoff_m2 left_foot_heelstrike_m2 right_foot_pushoff_m2 ...
+                                      right_foot_heelstrike_m1 left_foot_pushoff_m1 left_foot_heelstrike_m1 right_foot_pushoff_m1 ...
+                                      right_foot_heelstrike_t0 left_foot_pushoff_t0 left_foot_heelstrike_t0 right_foot_pushoff_t0 ...
+                                      right_foot_heelstrike_p1 left_foot_pushoff_p1 left_foot_heelstrike_p1 right_foot_pushoff_p1 ...
+                                      right_foot_heelstrike_p2 ...
                                     ] ...
                                   )
                                 disp(['Trial ' num2str(i_trial) ': Problem with order of events, please check trigger at ' num2str(time_stimulus(trigger_indices_labview(i_trigger)))]);
@@ -2090,52 +2097,69 @@ function determineStretchesToAnalyze(varargin)
                     else
                         trigger_foot = 'unclear';
                         disp(['Trial ' num2str(i_trial) ': something went wrong at time ' num2str(time_stimulus(trigger_indices_labview(i_trigger))) ' - triggering heelstrike unclear']);
-                        left_foot_heelstrike_0  = 0;
-                        left_foot_heelstrike_1  = 0;
-                        left_foot_pushoff_0     = 0;
-
-                        right_foot_heelstrike_0 = 0;
-                        right_foot_heelstrike_1 = 0;
-                        right_foot_pushoff_0    = 0;
-
                         removal_flags(i_trigger) = 1;
                     end
                     
                     % collect event times to form stretches
                     if ~removal_flags(i_trigger) == 1
-                        if strcmp(trigger_foot, 'right')
-%                             stretch_times_stim(i_trigger, :) = [right_foot_heelstrike_0 left_foot_pushoff_0 left_foot_heelstrike_0 right_foot_pushoff_0 right_foot_heelstrike_1];
-%                             stance_foot_data_stim(i_trigger, :) = {'STANCE_BOTH', 'STANCE_RIGHT', 'STANCE_BOTH', 'STANCE_LEFT'};
-%                             trigger_foot_list_stim{i_trigger} = 'TRIGGER_RIGHT';
-%                             
-%                             stretch_times_ctrl(i_trigger, :) = [right_foot_heelstrike_pre left_foot_pushoff_pre left_foot_heelstrike_pre right_foot_pushoff_pre right_foot_heelstrike_0];
-%                             stance_foot_data_ctrl(i_trigger, :) = {'STANCE_BOTH', 'STANCE_RIGHT', 'STANCE_BOTH', 'STANCE_LEFT'};
-%                             trigger_foot_list_ctrl{i_trigger} = 'TRIGGER_RIGHT';
-
-                            stretch_times_stim(i_trigger, :) = [right_foot_heelstrike_0 left_foot_heelstrike_0 right_foot_heelstrike_1];
+                        if strcmp(trigger_foot, 'right') && study_settings.get('strides_to_process') == 1
+        
+                            stretch_times_stim(i_trigger, :) = [right_foot_heelstrike_t0 left_foot_heelstrike_t0 right_foot_heelstrike_p1];
                             stance_foot_data_stim(i_trigger, :) = {'STANCE_RIGHT', 'STANCE_LEFT'};
                             trigger_foot_list_stim{i_trigger} = 'TRIGGER_RIGHT';
                             
-                            stretch_times_ctrl(i_trigger, :) = [right_foot_heelstrike_pre left_foot_heelstrike_pre right_foot_heelstrike_0];
+                            stretch_times_ctrl(i_trigger, :) = [right_foot_heelstrike_p0 left_foot_heelstrike_p0 right_foot_heelstrike_t0];
                             stance_foot_data_ctrl(i_trigger, :) = {'STANCE_RIGHT', 'STANCE_LEFT'};
                             trigger_foot_list_ctrl{i_trigger} = 'TRIGGER_RIGHT';
                             
                         end
-                        if strcmp(trigger_foot, 'left')
-%                             stretch_times_stim(i_trigger, :) = [left_foot_heelstrike_0 right_foot_pushoff_0 right_foot_heelstrike_0 left_foot_pushoff_0 left_foot_heelstrike_1];
-%                             stance_foot_data_stim(i_trigger, :) = {'STANCE_BOTH', 'STANCE_LEFT', 'STANCE_BOTH', 'STANCE_RIGHT'};
-%                             trigger_foot_list_stim{i_trigger} = 'TRIGGER_LEFT';
-%                             
-%                             stretch_times_ctrl(i_trigger, :) = [left_foot_heelstrike_pre right_foot_pushoff_pre right_foot_heelstrike_pre left_foot_pushoff_pre left_foot_heelstrike_0];
-%                             stance_foot_data_ctrl(i_trigger, :) = {'STANCE_BOTH', 'STANCE_LEFT', 'STANCE_BOTH', 'STANCE_RIGHT'};
-%                             trigger_foot_list_ctrl{i_trigger} = 'TRIGGER_LEFT';
-                            
-                            stretch_times_stim(i_trigger, :) = [left_foot_heelstrike_0 right_foot_heelstrike_0 left_foot_heelstrike_1];
+                        if strcmp(trigger_foot, 'left') && study_settings.get('strides_to_process') == 1
+                            stretch_times_stim(i_trigger, :) = [left_foot_heelstrike_t0 right_foot_heelstrike_t0 left_foot_heelstrike_p1];
                             stance_foot_data_stim(i_trigger, :) = {'STANCE_LEFT', 'STANCE_RIGHT'};
                             trigger_foot_list_stim{i_trigger} = 'TRIGGER_LEFT';
                             
-                            stretch_times_ctrl(i_trigger, :) = [left_foot_heelstrike_pre right_foot_heelstrike_pre left_foot_heelstrike_0];
+                            stretch_times_ctrl(i_trigger, :) = [left_foot_heelstrike_p0 right_foot_heelstrike_p0 left_foot_heelstrike_t0];
                             stance_foot_data_ctrl(i_trigger, :) = {'STANCE_LEFT', 'STANCE_RIGHT'};
+                            trigger_foot_list_ctrl{i_trigger} = 'TRIGGER_LEFT';
+                            
+                        end
+                        if strcmp(trigger_foot, 'right') && study_settings.get('strides_to_process') == 2
+                            stretch_times_stim(i_trigger, :) = ...
+                              [ ...
+                                right_foot_heelstrike_t0 left_foot_heelstrike_t0 ...
+                                right_foot_heelstrike_p1 left_foot_heelstrike_p1 ...
+                                right_foot_heelstrike_p2 ...
+                              ];
+                            stance_foot_data_stim(i_trigger, :) = {'STANCE_RIGHT', 'STANCE_LEFT', 'STANCE_RIGHT', 'STANCE_LEFT'};
+                            trigger_foot_list_stim{i_trigger} = 'TRIGGER_RIGHT';
+                            
+                            stretch_times_ctrl(i_trigger, :) = ...
+                              [ ...
+                                right_foot_heelstrike_m2 left_foot_heelstrike_m2 ...
+                                right_foot_heelstrike_m1 left_foot_heelstrike_m1 ...
+                                right_foot_heelstrike_t0 ...
+                              ];
+                            stance_foot_data_ctrl(i_trigger, :) = {'STANCE_RIGHT', 'STANCE_LEFT', 'STANCE_RIGHT', 'STANCE_LEFT'};
+                            trigger_foot_list_ctrl{i_trigger} = 'TRIGGER_RIGHT';
+                            
+                        end
+                        if strcmp(trigger_foot, 'left') && study_settings.get('strides_to_process') == 2
+                            stretch_times_stim(i_trigger, :) = ...
+                              [ ...
+                                left_foot_heelstrike_t0 right_foot_heelstrike_t0 ...
+                                left_foot_heelstrike_p1 right_foot_heelstrike_p1 ...
+                                left_foot_heelstrike_p2 ...
+                              ];
+                            stance_foot_data_stim(i_trigger, :) = {'STANCE_LEFT', 'STANCE_RIGHT', 'STANCE_LEFT', 'STANCE_RIGHT'};
+                            trigger_foot_list_stim{i_trigger} = 'TRIGGER_LEFT';
+                            
+                            stretch_times_ctrl(i_trigger, :) = ...
+                              [ ...
+                                left_foot_heelstrike_m2 right_foot_heelstrike_m2 ...
+                                left_foot_heelstrike_m1 right_foot_heelstrike_m1 ...
+                                left_foot_heelstrike_t0 ...
+                              ];
+                            stance_foot_data_ctrl(i_trigger, :) = {'STANCE_LEFT', 'STANCE_RIGHT', 'STANCE_LEFT', 'STANCE_RIGHT'};
                             trigger_foot_list_ctrl{i_trigger} = 'TRIGGER_LEFT';
                             
                         end
