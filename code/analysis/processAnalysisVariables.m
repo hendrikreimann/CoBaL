@@ -66,6 +66,15 @@ function processAnalysisVariables(varargin)
         analysis_directions_session = {};
         analysis_names_session = {};
     end
+    if isfield(loaded_data, 'range_data_session')
+        range_data_session = loaded_data.range_data_session;
+        range_directions_session = loaded_data.range_directions_session;
+        range_names_session = loaded_data.range_names_session;
+    else
+        range_data_session = {};
+        range_directions_session = {};
+        range_names_session = {};
+    end
     
     %% calculate response (i.e. difference from control mean)
     response_data_session = {};
@@ -463,7 +472,6 @@ function processAnalysisVariables(varargin)
         % TODO: check whether the directions are actually still correct here
     end
     
-    
     %% process variables where something specific happens for each variable
     special_variables_to_calculate = study_settings.get('analysis_variables_special');
     for i_variable = 1:size(special_variables_to_calculate, 1)
@@ -720,7 +728,38 @@ function processAnalysisVariables(varargin)
               );
     end
     
-    
+    %% calculate variables from extrema for range
+    variables_from_extrema_range = study_settings.get('analysis_variables_from_extrema_range');
+    for i_variable = 1 : size(variables_from_extrema_range, 1)
+        % get data
+        this_variable_name = variables_from_extrema_range{i_variable, 1};
+        this_variable_source_name = variables_from_extrema_range{i_variable, 2};
+        this_variable_source_type = variables_from_extrema_range{i_variable, 3};
+        this_variable_extremum_type = variables_from_extrema_range{i_variable, 4};
+        % pick data depending on source specification
+        eval(['data_source = ' this_variable_source_type '_data_session;']);
+        eval(['names_source = ' this_variable_source_type '_names_session;']);
+        eval(['directions_source = ' this_variable_source_type '_directions_session;']);
+        this_variable_source_data = data_source{strcmp(names_source, this_variable_source_name)};
+        new_variable_directions = directions_source(strcmp(names_source, this_variable_source_name), :);
+        
+        if strcmp(this_variable_extremum_type, 'min')
+            extrema_data = min(this_variable_source_data);
+        end
+        if strcmp(this_variable_extremum_type, 'max')
+            extrema_data = max(this_variable_source_data);
+        end
+        if ~strcmp(this_variable_extremum_type, 'min') && ~strcmp(this_variable_extremum_type, 'max')
+            error(['"' this_variable_extremum_type '" is not a valid type for variables_from_extrema. Acceptable types are "min" or "max".']);
+        end
+        % store
+        [range_data_session, range_names_session, range_directions_session] = ...
+            addOrReplaceResultsData ...
+              ( ...
+                range_data_session, range_names_session, range_directions_session, ...
+                extrema_data, this_variable_name, new_variable_directions ...
+              );
+    end
     
 %% LEGACY CODE
     
@@ -968,6 +1007,7 @@ function processAnalysisVariables(varargin)
               );
     end
     
+%% SAVE TO DISK    
     %% save data
     variables_to_save = loaded_data;
     variables_to_save.response_data_session = response_data_session;
@@ -976,6 +1016,9 @@ function processAnalysisVariables(varargin)
     variables_to_save.analysis_data_session = analysis_data_session;
     variables_to_save.analysis_directions_session = analysis_directions_session;
     variables_to_save.analysis_names_session = analysis_names_session;
+    variables_to_save.range_data_session = range_data_session;
+    variables_to_save.range_directions_session = range_directions_session;
+    variables_to_save.range_names_session = range_names_session;
     save(results_file_name, '-struct', 'variables_to_save');    
 
     

@@ -171,6 +171,17 @@ function plotResults(varargin)
             get_analysis_data = true;
         end        
 
+        get_range_data = false;
+        if ~isempty(variables_to_plot) & any(strcmp(variables_to_plot(:, 2), 'range'))
+            get_range_data = true;
+        end
+        if number_of_paths_to_plot > 0 && any(strcmp(paths_to_plot(:, 2), 'range'))
+            get_range_data = true;
+        end        
+        if number_of_paths_to_plot > 0 && any(strcmp(paths_to_plot(:, 4), 'range'))
+            get_range_data = true;
+        end        
+
         % get data
         if get_stretch_data
             stretch_names_session = loaded_data.stretch_names_session;
@@ -187,6 +198,11 @@ function plotResults(varargin)
             analysis_data_session = loaded_data.analysis_data_session;
             analysis_directions_session = loaded_data.analysis_directions_session;
         end
+        if get_range_data
+            range_names_session = loaded_data.range_names_session;
+            range_data_session = loaded_data.range_data_session;
+            range_directions_session = loaded_data.range_directions_session;
+        end
         
         % extract data
         for i_variable = 1 : number_of_variables_to_plot
@@ -200,6 +216,9 @@ function plotResults(varargin)
             end
             if strcmp(this_variable_source, 'analysis')
                 index_in_saved_data = find(strcmp(analysis_names_session, this_variable_name), 1, 'first');
+            end
+            if strcmp(this_variable_source, 'range')
+                index_in_saved_data = find(strcmp(range_names_session, this_variable_name), 1, 'first');
             end
             
             if isempty(index_in_saved_data)
@@ -217,6 +236,10 @@ function plotResults(varargin)
             if strcmp(this_variable_source, 'analysis')
                 this_variable_data = analysis_data_session{index_in_saved_data};
                 this_variable_directions = analysis_directions_session(index_in_saved_data, :);
+            end
+            if strcmp(this_variable_source, 'range')
+                this_variable_data = range_data_session{index_in_saved_data};
+                this_variable_directions = range_directions_session(index_in_saved_data, :);
             end
             
             if plot_settings.get('convert_to_mm') && (strcmp(this_variable_name,'cop_from_com_x') || strcmp(this_variable_name, 'step_placement_x'))
@@ -1811,11 +1834,14 @@ function discrete = isDiscreteVariable(variable_index, variable_data, bands_per_
     if size(variable_data{variable_index}, 1) == bands_per_stretch
         discrete = true;
     end
+    if size(variable_data{variable_index}, 1) == 1
+        discrete = true;
+    end
 end
 
 function continuous = isContinuousVariable(variable_index, variable_data, bands_per_stretch)
     continuous = false;
-    if size(variable_data{variable_index}, 1) ~= bands_per_stretch
+    if size(variable_data{variable_index}, 1) > bands_per_stretch
         continuous = true;
     end
 end
