@@ -110,7 +110,7 @@ function analyzeUcmVariance(varargin)
                 % analyze data
                 theta_mean = mean(joint_angle_data_to_analyze, 2);
                 kinematic_tree.jointAngles = theta_mean;
-                kinematic_tree.updateConfiguration;
+                kinematic_tree.updateInternals;
                 for i_variable = 1 : number_of_ucm_variables
                     % calculate Jacobian
                     if strcmp(ucm_variables{i_variable}, 'com_ap')
