@@ -383,6 +383,70 @@ function processAnalysisVariables(varargin)
               );
     end
     
+    %% calculate selection variables
+    selection_variables_header = study_settings.get('selection_variables_header');
+    selection_variables = study_settings.get('selection_variables');
+    for i_variable = 1 : size(selection_variables, 1)
+        % get data
+        this_variable_name = selection_variables{i_variable, strcmp(selection_variables_header, 'new_variable_name')};
+        this_variable_source_type = selection_variables{i_variable, strcmp(selection_variables_header, 'source_type')};
+        this_variable_relevant_condition = selection_variables{i_variable, strcmp(selection_variables_header, 'relevant_condition')};
+        this_variable_information_table = selection_variables{i_variable, strcmp(selection_variables_header, 'information_table')};
+        % pick data depending on source specification
+        eval(['data_source = ' this_variable_source_type '_data_session;']);
+        eval(['names_source = ' this_variable_source_type '_names_session;']);
+        eval(['directions_source = ' this_variable_source_type '_directions_session;']);
+        
+        selection_table = study_settings.get(this_variable_information_table);
+        
+        
+        
+        
+        
+        
+        
+%         this_variable_source_data = data_source{strcmp(names_source, this_variable_source_name)};
+%         this_variable_source_directions = directions_source(strcmp(names_source, this_variable_source_name), :);
+%         new_variable_directions = selection_variables(i_variable, 6:7);
+        
+        
+        % go through levels and select
+        this_variable_data = [];
+        new_variable_directions = [];
+        level_list = conditions_session.(condition_source_variables{strcmp(condition_labels, this_variable_relevant_condition)});
+        for i_level = 1 : size(selection_table, 1)
+            % extract level info
+            label_this_level = selection_table(i_level, 1);
+            data_source_this_level = selection_table(i_level, 2);
+            % get data
+            source_data_this_level = data_source{strcmp(names_source, data_source_this_level)};
+            source_directions_this_level = directions_source(strcmp(names_source, data_source_this_level), :);
+            % extract data
+            match_this_level = strcmp(level_list, label_this_level);
+            if isempty(this_variable_data)
+                this_variable_data = source_data_this_level;
+                this_variable_data(:, ~match_this_level) = NaN;
+            else
+                this_variable_data(:, match_this_level) = source_data_this_level(:, match_this_level);
+            end
+            if isempty(new_variable_directions)
+                new_variable_directions = source_directions_this_level;
+            else
+                if any(~(strcmp(new_variable_directions, source_directions_this_level)))
+                    error('Trying to combine variables with different directions')
+                end
+            end
+        end
+
+        % store
+        [analysis_data_session, analysis_names_session, analysis_directions_session] = ...
+            addOrReplaceResultsData ...
+              ( ...
+                analysis_data_session, analysis_names_session, analysis_directions_session, ...
+                this_variable_data, this_variable_name, new_variable_directions ...
+              );
+    end    
+    
     %% gather variables that are selected from different sources depending on condition
     % TODO: deal with bands
     % TODO: deal with directions
