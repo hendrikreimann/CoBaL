@@ -42,6 +42,7 @@ function singleBoxPlot(data, varargin)
     
     addParameter(parser, 'ShowOutliers', true)
     addParameter(parser, 'ShowData', false)
+    addParameter(parser, 'seed', 0)
     parse(parser, varargin{:})
     abscissa = parser.Results.abscissa;
     axes_handle = parser.Results.axes;
@@ -63,6 +64,7 @@ function singleBoxPlot(data, varargin)
     bandwidth = parser.Results.BandWidth;
     show_outliers = parser.Results.ShowOutliers;    
     show_data = parser.Results.ShowData;
+    seed = parser.Results.seed;
 
     if length(data) == 1
         bar ...
@@ -123,7 +125,14 @@ function singleBoxPlot(data, varargin)
     end
     
     if show_data
-        scatter(axes_handle, ones(size(data))*abscissa, data, 'jitter', 1, 'jitterAmount', width/2, 'MarkerFaceColor', markercolor, 'MarkerEdgeColor', 'none')
+        old_stream = RandStream.getGlobalStream;
+        new_stream = RandStream.create('mrg32k3a', 'seed', seed);
+        RandStream.setGlobalStream(new_stream);
+        jitter = (rand(size(data)) * width) - width/2;
+        scatterplot = scatter(axes_handle, ones(size(data))*abscissa, data, 'MarkerFaceColor', markercolor, 'MarkerEdgeColor', 'none');
+        set(scatterplot, 'xdata', ones(size(data))*abscissa + jitter)
+%         scatter(axes_handle, ones(size(data))*abscissa, data, 'jitter', 1, 'jitterAmount', width/2, 'MarkerFaceColor', markercolor, 'MarkerEdgeColor', 'none')
+        RandStream.setGlobalStream(old_stream);
     end
     
     
