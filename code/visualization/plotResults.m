@@ -971,6 +971,9 @@ function plotResults(varargin)
     
     %% plot data
     colors_comparison = plot_settings.get('colors_comparison');
+    if size(colors_comparison, 2) == 1
+        colors_comparison = hex2rgb(colors_comparison);
+    end
     colors_bands = plot_settings.get('colors_bands');
     for i_variable = 1 : number_of_variables_to_plot
         data_to_plot = data_all{i_variable, 1};
