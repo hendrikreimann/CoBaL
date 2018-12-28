@@ -1285,8 +1285,10 @@ function determineStretchesToAnalyze(varargin)
                 number_of_triggers = length(trigger_indices_mocap);
                 removal_flags = zeros(number_of_triggers, 1);
                 stretch_times = zeros(number_of_triggers, bands_per_stretch+1);
+                stretch_times_minus_1 = zeros(number_of_triggers, bands_per_stretch+2);
                 closest_heelstrike_distance_times = zeros(number_of_triggers, 1);
                 stance_foot_data = cell(number_of_triggers, bands_per_stretch);
+                stance_foot_data_minus_1 = cell(number_of_triggers, bands_per_stretch+1);
                 stimulus_list = cell(number_of_triggers, 1); % stimulus STIM_LEFT, STIM_RIGHT or STIM_NONE
                 amplitude_list = cell(number_of_triggers, 1); % amplitude 30, 60, 120
                 trigger_foot_list = cell(number_of_triggers, 1); % triggering foot TRIGGER_LEFT or TRIGGER_RIGHT
@@ -1361,6 +1363,11 @@ function determineStretchesToAnalyze(varargin)
                             left_foot_heelstrike_0 = NaN;
                             left_foot_heelstrike_plus_1 = NaN;
                             left_foot_heelstrike_plus_2 = NaN;
+                            
+                            if study_settings.get('gather_step_minus_one')
+                                right_foot_heelstrike_minus_1 = NaN;
+                                left_foot_heelstrike_minus_1 = NaN;
+                            end
                         else
                             left_foot_heelstrike_0  = left_touchdown_times(index_left);
                             left_foot_heelstrike_1  = left_touchdown_times(index_left+1);
@@ -1376,6 +1383,9 @@ function determineStretchesToAnalyze(varargin)
                             right_foot_pushoff_1    = max(right_pushoff_times(right_pushoff_times <= left_foot_pushoff_1));
                             right_foot_pushoff_2    = max(right_pushoff_times(right_pushoff_times <= left_foot_pushoff_2));
 
+                             if study_settings.get('gather_step_minus_one')
+                                right_foot_heelstrike_minus_1 = max(right_touchdown_times(right_touchdown_times <= left_foot_heelstrike_0));
+                             end
                             % notify if events are not sorted properly
                             if ~issorted ...
                                   ( ...
@@ -1385,6 +1395,7 @@ function determineStretchesToAnalyze(varargin)
                                       left_foot_heelstrike_2 right_foot_pushoff_2 right_foot_heelstrike_2 left_foot_pushoff_2 ...
                                     ] ...
                                   )
+                              
                                 disp(['Trial ' num2str(i_trial) ': Problem with order of events, please check trigger at ' num2str(time_stimulus(trigger_indices_labview(i_trigger)))]);
                             end
                             % check check
@@ -1407,6 +1418,11 @@ function determineStretchesToAnalyze(varargin)
                             right_foot_heelstrike_0 = NaN;
                             right_foot_heelstrike_1 = NaN;
                             right_foot_heelstrike_2 = NaN;
+                            
+                            if study_settings.get('gather_step_minus_one')
+                                left_foot_heelstrike_minus_1 = NaN;
+                                right_foot_heelstrike_minus_1 = NaN;
+                            end
                         else
                             right_foot_heelstrike_0 = right_touchdown_times(index_right);
                             right_foot_heelstrike_1 = right_touchdown_times(index_right+1);
@@ -1423,6 +1439,9 @@ function determineStretchesToAnalyze(varargin)
                             left_foot_pushoff_1     = max(left_pushoff_times(left_pushoff_times <= right_foot_pushoff_1));
                             left_foot_pushoff_2     = max(left_pushoff_times(left_pushoff_times <= right_foot_pushoff_2));
 
+                            if study_settings.get('gather_step_minus_one')
+                                left_foot_heelstrike_minus_1  = max(left_touchdown_times(left_touchdown_times <= right_foot_heelstrike_0));
+                            end
                             % notify if events are not sorted properly
                             if ~issorted ...
                                   ( ...
@@ -1489,19 +1508,36 @@ function determineStretchesToAnalyze(varargin)
                             if bands_per_stretch == 4
                                 stretch_times(i_trigger, :) = [right_foot_heelstrike_0 left_foot_heelstrike_0 right_foot_heelstrike_1 left_foot_heelstrike_1 right_foot_heelstrike_2];
                                 stance_foot_data(i_trigger, :) = {'STANCE_RIGHT', 'STANCE_LEFT', 'STANCE_RIGHT', 'STANCE_LEFT'};
+                                if study_settings.get('gather_step_minus_one')
+                                    stretch_times_minus_1(i_trigger, :) = [left_foot_heelstrike_minus_1 right_foot_heelstrike_0 left_foot_heelstrike_0 right_foot_heelstrike_1 left_foot_heelstrike_1 right_foot_heelstrike_2];
+                                    stance_foot_data_minus_1(i_trigger, :) = {'STANCE_LEFT', 'STANCE_RIGHT', 'STANCE_LEFT', 'STANCE_RIGHT', 'STANCE_LEFT'};
+                                end
                             elseif bands_per_stretch == 2
                                 stretch_times(i_trigger, :) = [right_foot_heelstrike_0 left_foot_heelstrike_0 right_foot_heelstrike_1];
                                 stance_foot_data(i_trigger, :) = {'STANCE_RIGHT', 'STANCE_LEFT'};
+                                if study_settings.get('gather_step_minus_one')
+                                    stretch_times_minus_1(i_trigger, :) = [left_foot_heelstrike_minus_1 right_foot_heelstrike_0 left_foot_heelstrike_0 right_foot_heelstrike_1];
+                                    stance_foot_data_minus_1(i_trigger, :) = {'STANCE_LEFT', 'STANCE_RIGHT', 'STANCE_LEFT'};
+                                end
                             end
+                            
                             trigger_foot_list{i_trigger} = 'TRIGGER_RIGHT';
                         end
                         if strcmp(trigger_foot, 'left')
                             if bands_per_stretch == 4
                                 stretch_times(i_trigger, :) = [left_foot_heelstrike_0 right_foot_heelstrike_0  left_foot_heelstrike_1 right_foot_heelstrike_1 left_foot_heelstrike_2];
                                 stance_foot_data(i_trigger, :) = {'STANCE_LEFT', 'STANCE_RIGHT', 'STANCE_LEFT', 'STANCE_RIGHT'};
+                                if study_settings.get('gather_step_minus_one')
+                                    stretch_times_minus_1(i_trigger, :) = [right_foot_heelstrike_minus_1, left_foot_heelstrike_0 right_foot_heelstrike_0  left_foot_heelstrike_1 right_foot_heelstrike_1 left_foot_heelstrike_2];
+                                    stance_foot_data_minus_1(i_trigger, :) = {'STANCE_RIGHT', 'STANCE_LEFT', 'STANCE_RIGHT', 'STANCE_LEFT', 'STANCE_RIGHT'};
+                                end
                             elseif bands_per_stretch == 2
                                 stretch_times(i_trigger, :) = [left_foot_heelstrike_0 right_foot_heelstrike_0  left_foot_heelstrike_1];
                                 stance_foot_data(i_trigger, :) = {'STANCE_LEFT', 'STANCE_RIGHT'};
+                                if study_settings.get('gather_step_minus_one')
+                                     stretch_times_minus_1(i_trigger, :) = [right_foot_heelstrike_minus_1 left_foot_heelstrike_0 right_foot_heelstrike_0  left_foot_heelstrike_1];
+                                     stance_foot_data_minus_1(i_trigger, :) = {'STANCE_RIGHT', 'STANCE_LEFT', 'STANCE_RIGHT'};
+                                end
                             end
                             trigger_foot_list{i_trigger} = 'TRIGGER_LEFT';
                         end
@@ -1557,6 +1593,8 @@ function determineStretchesToAnalyze(varargin)
                 stance_foot_data = stance_foot_data(unflagged_indices, :);
                 stimulus_list = stimulus_list(unflagged_indices, :);
                 trigger_foot_list = trigger_foot_list(unflagged_indices, :);
+                stretch_times_minus_1 = stretch_times_minus_1(unflagged_indices, :);
+                stance_foot_data_minus_1 = stance_foot_data_minus_1(unflagged_indices, :);
                 
                 % determine direction
                 direction_list = cell(size(trigger_foot_list));
@@ -1641,6 +1679,8 @@ function determineStretchesToAnalyze(varargin)
                 
                 event_variables_to_save.stretch_times = stretch_times;
                 event_variables_to_save.stance_foot_data = stance_foot_data;
+                event_variables_to_save.stretch_times_minus_1 = stretch_times_minus_1;
+                event_variables_to_save.stance_foot_data_minus_1 = stance_foot_data_minus_1;
             end
             
             if strcmp(condition_stimulus, 'VISUAL')

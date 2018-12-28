@@ -66,6 +66,10 @@ function processStretchVariables(varargin)
             % load and prepare data
             data_custodian.prepareBasicVariables(condition, i_trial);
             load(['analysis' filesep makeFileName(date, subject_id, condition, i_trial, 'relevantDataStretches')]);
+            if study_settings.get('gather_step_minus_one')
+               stretch_times = stretch_times_minus_1; 
+               stance_foot_data = stance_foot_data_minus_1;
+            end
             number_of_stretches_this_trial = size(stretch_times, 1);
             bands_per_stretch_session = [bands_per_stretch_session; bands_per_stretch];
             condition_relevant_for_analysis = study_settings.get('condition_relevant_for_analysis');

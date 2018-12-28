@@ -123,6 +123,9 @@ function plotResults(varargin)
         loaded_data = load(results_file_name);
         number_of_stretches_this_session = length(loaded_data.time_list_session);
         bands_per_stretch_this_session = loaded_data.bands_per_stretch;
+        if study_settings.get('gather_step_minus_one')
+            bands_per_stretch_this_session = bands_per_stretch_this_session+1;
+        end
 
         % transform conditions into cell array
         conditions_session = loaded_data.conditions_session;
