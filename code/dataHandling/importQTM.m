@@ -127,6 +127,30 @@ function importQTM(varargin)
 
             end
         end
+        
+        if any(strcmp(file_name_list, 'ObjectRandomization.csv'))
+
+            imported_table = readtable([labview_source_dir filesep 'ObjectRandomization.csv']);
+            
+            fileID = fopen([labview_source_dir filesep 'ObjectRandomization.csv'], 'r');
+            header_line = fgetl(fileID);
+            fclose(fileID);
+            headers = strsplit(header_line, ',');
+            
+            table_headers = imported_table.Properties.VariableNames;
+            
+            virtual_object_info = struct;
+            protocol_virtual_object_ap_location = imported_table.(table_headers{strcmp(headers, 'LaneCenters')});
+            protocol_virtual_ojbect_ml_location =  imported_table.(table_headers{strcmp(headers, 'Color')});
+            virtual_object_info.virtual_object_ap_location = protocol_virtual_object_ap_location;
+            virtual_object_info.virtual_object_ml_location = protocol_virtual_ojbect_ml_location;
+            
+            save_file_name = 'virtualobjectInfo.mat';
+            save(save_file_name, '-struct', 'virtual_object_info');
+            
+            file_name_list(strcmp(file_name_list, 'ObjectRandomization.csv')) = [];
+        end
+            
 
         % import labview saved data
         number_of_files = length(file_name_list);

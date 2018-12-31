@@ -180,7 +180,12 @@ function determineStretchesToAnalyze(varargin)
                 gvs_trajectory = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'GVS_current_trajectory');
                 [stimulus_state_trajectory, time_stimulus] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'stimulus_state_trajectory');
             end
-
+            if strcmp(experimental_paradigm, 'OculusLaneRestriction')
+                gvs_trajectory = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'visual_rotation_angle_trajectory');%'GVS_current_trajectory');
+                [stimulus_state_trajectory, time_stimulus] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'stimulus_state_trajectory');
+                scene_translation_trajectory = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'SceneTranslation_trajectory');
+                load('virtualobjectInfo')
+            end
 
             
             % determine indices for optional markers
@@ -255,6 +260,22 @@ function determineStretchesToAnalyze(varargin)
                     end
                 end
             end
+            if strcmp(experimental_paradigm, 'OculusLaneRestriction')
+                illusion_trajectory = zeros(size(time_stimulus)); % -1 = LEFT, 1 = RIGHT
+                for i_time = 1 : length(time_stimulus)
+                    if stimulus_state_trajectory(i_time) == 4
+                        % stimulus is currently active
+                        if gvs_trajectory(i_time) < 0
+                            % negative current = anode on the left = illusory fall to the right
+                            illusion_trajectory(i_time) = 1;
+                        end
+                        if gvs_trajectory(i_time) > 0
+                            % positive current = anode on the right = illusory fall to the left
+                            illusion_trajectory(i_time) = -1;
+                        end
+                    end
+                end
+            end
             
             %% find triggers
             %
@@ -294,9 +315,15 @@ function determineStretchesToAnalyze(varargin)
                 trigger_indices_labview = find(diff(sign(stimulus_state_trajectory - stimulus_threshold)) > 0) + 2;
                 trigger_times = time_stimulus(trigger_indices_labview);
             end
-            if strcmp(experimental_paradigm, 'GVS') || strcmp(experimental_paradigm, 'CadenceGVS') 
+            if strcmp(experimental_paradigm, 'GVS') || strcmp(experimental_paradigm, 'CadenceGVS')
                 % find the time steps where the stimulus state crosses a threshold
                 stimulus_threshold = 1.5;
+                trigger_indices_labview = find(diff(sign(stimulus_state_trajectory - stimulus_threshold)) > 0) + 2;
+                trigger_times = time_stimulus(trigger_indices_labview);
+            end
+            if strcmp(experimental_paradigm, 'OculusLaneRestriction') 
+                % find the time steps where the stimulus state crosses a threshold
+                stimulus_threshold = 2.5;
                 trigger_indices_labview = find(diff(sign(stimulus_state_trajectory - stimulus_threshold)) > 0) + 2;
                 trigger_times = time_stimulus(trigger_indices_labview);
             end
@@ -1285,7 +1312,7 @@ function determineStretchesToAnalyze(varargin)
                 event_variables_to_save.stance_foot_data = condition_stance_foot_list;
             end
             
-            if strcmp(experimental_paradigm, 'Vision') || strcmp(experimental_paradigm, 'CadenceVision') || strcmp(experimental_paradigm, 'GVS') || strcmp(experimental_paradigm, 'CadenceGVS')  
+            if strcmp(experimental_paradigm, 'Vision') || strcmp(experimental_paradigm, 'CadenceVision') || strcmp(experimental_paradigm, 'GVS') || strcmp(experimental_paradigm, 'CadenceGVS') || strcmp(experimental_paradigm, 'OculusLaneRestriction') 
                 bands_per_stretch = study_settings.get('number_of_steps_to_analyze');
                 
                 number_of_triggers = length(trigger_indices_mocap);
@@ -1299,16 +1326,19 @@ function determineStretchesToAnalyze(varargin)
                 
                 for i_trigger = 1 : number_of_triggers
                     % determine stimulus
-                    if illusion_trajectory(trigger_indices_labview(i_trigger)+1) > 0
-                        stimulus_list{i_trigger} = 'STIM_RIGHT';
+                    if trigger_indices_labview(i_trigger) == length(illusion_trajectory)
+                        removal_flags(i_trigger) = 1;
+                    else
+                        if illusion_trajectory(trigger_indices_labview(i_trigger)+1) > 0
+                            stimulus_list{i_trigger} = 'STIM_RIGHT';
+                        end
+                        if illusion_trajectory(trigger_indices_labview(i_trigger)+1) < 0
+                            stimulus_list{i_trigger} = 'STIM_LEFT';
+                        end
+                        if illusion_trajectory(trigger_indices_labview(i_trigger)+1) == 0
+                            stimulus_list{i_trigger} = 'STIM_NONE';
+                        end
                     end
-                    if illusion_trajectory(trigger_indices_labview(i_trigger)+1) < 0
-                        stimulus_list{i_trigger} = 'STIM_LEFT';
-                    end
-                    if illusion_trajectory(trigger_indices_labview(i_trigger)+1) == 0
-                        stimulus_list{i_trigger} = 'STIM_NONE';
-                    end
-                    
                     % determine trigger foot
                     
                     % get closest heelstrike on either side
@@ -1522,31 +1552,7 @@ function determineStretchesToAnalyze(varargin)
                         amplitude_list{i_trigger} = num2str(amplitude);
                     end
                     
-                    
-                    % determine stimulus amplitude - HR: this is hacky, fix this in the future
-%                     resulting_stim_amplitude = max(abs(current_rotation_trajectory(trigger_indices_labview(i_trigger):trigger_indices_labview(i_trigger)+200)));
 
-%                     if resulting_stim_amplitude < 6 & resulting_stim_amplitude > 0
-%                         amplitude_list{i_trigger} = '30';
-%                     end
-%                     if resulting_stim_amplitude > 6 & resulting_stim_amplitude < 12
-%                         amplitude_list{i_trigger} = '60';
-%                     end  
-%                     if resulting_stim_amplitude > 12
-%                         amplitude_list{i_trigger} = '120';
-%                     end   
-
-%                     if resulting_stim_amplitude < 4 & resulting_stim_amplitude > 1
-%                         amplitude_list{i_trigger} = 'AMP45';
-%                     end
-%                     if resulting_stim_amplitude > 4
-%                         amplitude_list{i_trigger} = 'AMP90';
-%                     end  
-% 
-% 
-%                     if resulting_stim_amplitude < 1
-%                         amplitude_list{i_trigger} = 'AMP0';
-%                     end 
                 end
                     
                 % remove flagged triggers
@@ -1585,6 +1591,23 @@ function determineStretchesToAnalyze(varargin)
                     end
                 end
                 
+                if strcmp(experimental_paradigm, 'OculusLaneRestriction')
+                    % determine where the "no step zone" was at stretch
+                    % trigger
+                    scene_translation_mod100 = mod(scene_translation_trajectory,100);
+                    
+                    for i_stretch = 1:length(trigger_indices_labview)
+                        [~,scene_translation_mod100_index] = min(abs(virtual_object_ap_location - scene_translation_mod100(trigger_indices_labview(i_stretch))));
+                        % how many conditions do we have? if 
+                        if virtual_object_ml_location(scene_translation_mod100_index) == 2 && strcmp(trigger_foot_list{i_stretch}, 'TRIGGER_LEFT') || ...
+                                virtual_object_ml_location(scene_translation_mod100_index) == 0 && strcmp(trigger_foot_list{i_stretch}, 'TRIGGER_RIGHT')
+                            zone_direction_list{i_stretch} = 'STIM_TOWARDS_ZONE';
+                        else virtual_object_ml_location(scene_translation_mod100_index) == 0 && strcmp(trigger_foot_list{i_stretch}, 'TRIGGER_LEFT') || ...
+                                virtual_object_ml_location(scene_translation_mod100_index) == 2 && strcmp(trigger_foot_list{i_stretch}, 'TRIGGER_RIGHT') 
+                            zone_direction_list{i_stretch} = 'STIM_AWAY_ZONE';
+                        end
+                    end
+                end
                     
                     
                 % put in placeholder for group
@@ -1638,7 +1661,9 @@ function determineStretchesToAnalyze(varargin)
                 if ~isempty(affected_side)
                     conditions_trial.affected_stancefoot_list = condition_affected_stancefoot_list';
                 end
-                
+                if strcmp(experimental_paradigm, 'OculusLaneRestriction')
+                    conditions_trial.zone_direction_list = zone_direction_list;
+                end
                 event_variables_to_save.stretch_times = stretch_times;
                 event_variables_to_save.stance_foot_data = stance_foot_data;
             end
