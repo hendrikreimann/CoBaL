@@ -1608,7 +1608,7 @@ function determineStretchesToAnalyze(varargin)
                 [cadence_list{:}] = deal([num2str(this_trial_cadence) 'BPM']);
                 
                                   
-                if ~isempty(affected_side)
+                if exist('affected_side')
                     for i_stretch = 1 : length(trigger_foot_list)
                         if strcmp(affected_side, 'Left')
                             if strcmp(trigger_foot_list(i_stretch), 'TRIGGER_LEFT')
@@ -1635,7 +1635,7 @@ function determineStretchesToAnalyze(varargin)
                 conditions_trial.direction_list = direction_list;
                 conditions_trial.group_list = group_list;
                 conditions_trial.cadence_list = cadence_list;
-                if ~isempty(affected_side)
+                if exist('affected_side')
                     conditions_trial.affected_stancefoot_list = condition_affected_stancefoot_list';
                 end
                 
