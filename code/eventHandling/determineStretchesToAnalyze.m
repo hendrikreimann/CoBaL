@@ -184,7 +184,7 @@ function determineStretchesToAnalyze(varargin)
                 gvs_trajectory = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'visual_rotation_angle_trajectory');%'GVS_current_trajectory');
                 [stimulus_state_trajectory, time_stimulus] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'stimulus_state_trajectory');
                 scene_translation_trajectory = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'SceneTranslation_trajectory');
-                load('virtualobjectInfo')
+                load('virtualobjectInfo');
             end
 
             
@@ -1594,17 +1594,20 @@ function determineStretchesToAnalyze(varargin)
                 if strcmp(experimental_paradigm, 'OculusLaneRestriction')
                     % determine where the "no step zone" was at stretch
                     % trigger
-                    scene_translation_mod100 = mod(scene_translation_trajectory,100);
+                    zone_direction_list = cell(size(trigger_foot_list));
+                    scene_translation_mod100 = mod(scene_translation_trajectory + 25,100); % the origin of the scene is +25 relative to the end of the virtual objects
                     
                     for i_stretch = 1:length(trigger_indices_labview)
                         [~,scene_translation_mod100_index] = min(abs(virtual_object_ap_location - scene_translation_mod100(trigger_indices_labview(i_stretch))));
                         % how many conditions do we have? if 
-                        if virtual_object_ml_location(scene_translation_mod100_index) == 2 && strcmp(trigger_foot_list{i_stretch}, 'TRIGGER_LEFT') || ...
-                                virtual_object_ml_location(scene_translation_mod100_index) == 0 && strcmp(trigger_foot_list{i_stretch}, 'TRIGGER_RIGHT')
+                        if (virtual_object_ml_location(scene_translation_mod100_index) == 2 && strcmp(trigger_foot_list{i_stretch}, 'TRIGGER_LEFT') && ~strcmp(stimulus_list{i_stretch}, 'STIM_NONE')) || ...
+                                (virtual_object_ml_location(scene_translation_mod100_index) == 0 && strcmp(trigger_foot_list{i_stretch}, 'TRIGGER_RIGHT') && ~strcmp(stimulus_list{i_stretch}, 'STIM_NONE'))
                             zone_direction_list{i_stretch} = 'STIM_TOWARDS_ZONE';
-                        else virtual_object_ml_location(scene_translation_mod100_index) == 0 && strcmp(trigger_foot_list{i_stretch}, 'TRIGGER_LEFT') || ...
-                                virtual_object_ml_location(scene_translation_mod100_index) == 2 && strcmp(trigger_foot_list{i_stretch}, 'TRIGGER_RIGHT') 
+                        elseif (virtual_object_ml_location(scene_translation_mod100_index) == 0 && strcmp(trigger_foot_list{i_stretch}, 'TRIGGER_LEFT') && ~strcmp(stimulus_list{i_stretch}, 'STIM_NONE')) || ...
+                                (virtual_object_ml_location(scene_translation_mod100_index) == 2 && strcmp(trigger_foot_list{i_stretch}, 'TRIGGER_RIGHT') && ~strcmp(stimulus_list{i_stretch}, 'STIM_NONE'))
                             zone_direction_list{i_stretch} = 'STIM_AWAY_ZONE';
+                        else
+                            zone_direction_list{i_stretch} = 'STIM_NONE';
                         end
                     end
                 end
@@ -1631,7 +1634,7 @@ function determineStretchesToAnalyze(varargin)
                 [cadence_list{:}] = deal([num2str(this_trial_cadence) 'BPM']);
                 
                                   
-                if ~isempty(affected_side)
+                if exist('affected_side')
                     for i_stretch = 1 : length(trigger_foot_list)
                         if strcmp(affected_side, 'Left')
                             if strcmp(trigger_foot_list(i_stretch), 'TRIGGER_LEFT')
@@ -1649,7 +1652,6 @@ function determineStretchesToAnalyze(varargin)
                     end
                 end
                 
-
                 % restructure for saving
                 conditions_trial = struct;
                 conditions_trial.stimulus_list = stimulus_list;
@@ -1658,7 +1660,7 @@ function determineStretchesToAnalyze(varargin)
                 conditions_trial.direction_list = direction_list;
                 conditions_trial.group_list = group_list;
                 conditions_trial.cadence_list = cadence_list;
-                if ~isempty(affected_side)
+                if exist('affected_side')
                     conditions_trial.affected_stancefoot_list = condition_affected_stancefoot_list';
                 end
                 if strcmp(experimental_paradigm, 'OculusLaneRestriction')
