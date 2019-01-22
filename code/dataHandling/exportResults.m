@@ -228,7 +228,7 @@ if study_settings.get('export_trajectories_means')
     time_point_strings = num2str(time_rescaled);
     time_point_cell_single = strtrim(cellstr(time_point_strings));
     time_point_cell_extended = repmat(time_point_cell_single, number_of_condition_combinations, 1);
-    condition_cell_extended = cell(number_of_condition_combinations * number_of_time_points_per_stretch, 4);
+    condition_cell_extended = cell(number_of_condition_combinations * number_of_time_points_per_stretch, 5);
     for i_combination = 1 : number_of_condition_combinations
         this_combination = unique_condition_combination_labels(i_combination, :);
         condition_cell_extended((i_combination-1)*number_of_time_points_per_stretch+1 : i_combination*number_of_time_points_per_stretch, :) ...
