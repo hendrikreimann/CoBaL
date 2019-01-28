@@ -181,7 +181,7 @@ function determineStretchesToAnalyze(varargin)
                 [stimulus_state_trajectory, time_stimulus] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'stimulus_state_trajectory');
             end
             if strcmp(experimental_paradigm, 'OculusLaneRestriction')
-                gvs_trajectory = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'visual_rotation_angle_trajectory');%'GVS_current_trajectory');
+                gvs_trajectory = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'GVS_current_trajectory');%'GVS_current_trajectory');
                 [stimulus_state_trajectory, time_stimulus] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'stimulus_state_trajectory');
                 scene_translation_trajectory = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'SceneTranslation_trajectory');
                 load('virtualobjectInfo');
@@ -263,7 +263,7 @@ function determineStretchesToAnalyze(varargin)
             if strcmp(experimental_paradigm, 'OculusLaneRestriction')
                 illusion_trajectory = zeros(size(time_stimulus)); % -1 = LEFT, 1 = RIGHT
                 for i_time = 1 : length(time_stimulus)
-                    if stimulus_state_trajectory(i_time) == 4
+                    if stimulus_state_trajectory(i_time) == 5
                         % stimulus is currently active
                         if gvs_trajectory(i_time) < 0
                             % negative current = anode on the left = illusory fall to the right
@@ -323,7 +323,7 @@ function determineStretchesToAnalyze(varargin)
             end
             if strcmp(experimental_paradigm, 'OculusLaneRestriction') 
                 % find the time steps where the stimulus state crosses a threshold
-                stimulus_threshold = 2.5;
+                stimulus_threshold = 4.5;
                 trigger_indices_labview = find(diff(sign(stimulus_state_trajectory - stimulus_threshold)) > 0) + 2;
                 trigger_times = time_stimulus(trigger_indices_labview);
             end
