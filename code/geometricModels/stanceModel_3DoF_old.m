@@ -27,8 +27,10 @@
 % output:
 % subjectModel.mat
 
-function stanceModel_3DoF(varargin)
+function stanceModel_3DoF_old(varargin)
     load('subjectInfo.mat');
+    
+    weight = 80; % TODO: hard coded for now, change this
     
     % parse arguments
     parser = inputParser;
@@ -115,19 +117,8 @@ function stanceModel_3DoF(varargin)
     shoulders_mid = mean([LSHO_reference RSHO_reference], 2);
     ears_mid = mean([LEAR_reference REAR_reference], 2);
 
-    if isempty(gender) || strcmp(gender, '~')
-        disp('Gender not defined in subjects.csv, using "male" as default for now. Please fix.')
-        gender = 'male';
-    end
-    if strcmp(gender, 'male')
-        ljc_correction_factor_frontal = 0.264;
-        ljc_correction_factor_vertical = 0.126;
-    elseif strcmp(gender, 'female')
-        ljc_correction_factor_frontal = 0.289;
-        ljc_correction_factor_vertical = 0.172;
-    else
-        error('Gender must be either male or female');
-    end
+    ljc_correction_factor_frontal = 0.264;
+    ljc_correction_factor_vertical = 0.126;
     pelvis_acs_origin = mean([LASI_reference RASI_reference], 2);
     lumbar_cor = mean([LIC_reference RIC_reference], 2);
 
@@ -138,82 +129,39 @@ function stanceModel_3DoF(varargin)
     %% define scaling factors
     % according to R. Dumas , L. Cheze, J.-P. Verriest: "Adjustments to McConville et al. and Young et al. body
     % segment inertial parameters", Journal of Biomechanics 40 (2007) 543?553
-    if strcmp(gender, 'male')
-        % mass
-        head_mass_scaling_factor      = 0.067;
-        trunk_mass_scaling_factor     = 0.333;
-        arm_mass_scaling_factor       = 0.024;
-        forearm_mass_scaling_factor   = 0.017;
-        hand_mass_scaling_factor      = 0.006;
-        pelvis_mass_scaling_factor    = 0.142;
-        thigh_mass_scaling_factor     = 0.123;
-        shank_mass_scaling_factor     = 0.048;
-        foot_mass_scaling_factor      = 0.012;
+    % mass
+    head_mass_scaling_factor      = 0.067;
+    trunk_mass_scaling_factor     = 0.333;
+    arm_mass_scaling_factor       = 0.024;
+    forearm_mass_scaling_factor   = 0.017;
+    hand_mass_scaling_factor      = 0.006;
+    pelvis_mass_scaling_factor    = 0.142;
+    thigh_mass_scaling_factor     = 0.123;
+    shank_mass_scaling_factor     = 0.048;
+    foot_mass_scaling_factor      = 0.012;
 
-        % CoM
-        head_com_scaling_factor_x    = -0.062;  head_com_scaling_factor_y    =  0.555;  head_com_scaling_factor_z    =  0.001;
-        trunk_com_scaling_factor_x   = -0.036;  trunk_com_scaling_factor_y   = -0.420;  trunk_com_scaling_factor_z   = -0.002;
-        arm_com_scaling_factor_x     =  0.017;  arm_com_scaling_factor_y     = -0.452;  arm_com_scaling_factor_z     = -0.026;
-        forearm_com_scaling_factor_x =  0.010;  forearm_com_scaling_factor_y = -0.417;  forearm_com_scaling_factor_z =  0.014;
-        hand_com_scaling_factor_x    =  0.082;  hand_com_scaling_factor_y    = -0.839;  hand_com_scaling_factor_z    =  0.074;
-        pelvis_com_scaling_factor_x  =  0.028;  pelvis_com_scaling_factor_y  = -0.280;  pelvis_com_scaling_factor_z  = -0.006;
-        thigh_com_scaling_factor_x   = -0.041;  thigh_com_scaling_factor_y   = -0.429;  thigh_com_scaling_factor_z   =  0.033;
-        shank_com_scaling_factor_x   = -0.048;  shank_com_scaling_factor_y   = -0.410;  shank_com_scaling_factor_z   =  0.007;
-        foot_com_scaling_factor_x    =  0.382;  foot_com_scaling_factor_y    = -0.151;  foot_com_scaling_factor_z    =  0.026;
+    % CoM
+    head_com_scaling_factor_x    = -0.062;  head_com_scaling_factor_y    =  0.555;  head_com_scaling_factor_z    =  0.001;
+    trunk_com_scaling_factor_x   = -0.036;  trunk_com_scaling_factor_y   = -0.420;  trunk_com_scaling_factor_z   = -0.002;
+    arm_com_scaling_factor_x     =  0.017;  arm_com_scaling_factor_y     = -0.452;  arm_com_scaling_factor_z     = -0.026;
+    forearm_com_scaling_factor_x =  0.010;  forearm_com_scaling_factor_y = -0.417;  forearm_com_scaling_factor_z =  0.014;
+    hand_com_scaling_factor_x    =  0.082;  hand_com_scaling_factor_y    = -0.839;  hand_com_scaling_factor_z    =  0.074;
+    pelvis_com_scaling_factor_x  =  0.028;  pelvis_com_scaling_factor_y  = -0.280;  pelvis_com_scaling_factor_z  = -0.006;
+    thigh_com_scaling_factor_x   = -0.041;  thigh_com_scaling_factor_y   = -0.429;  thigh_com_scaling_factor_z   =  0.033;
+    shank_com_scaling_factor_x   = -0.048;  shank_com_scaling_factor_y   = -0.410;  shank_com_scaling_factor_z   =  0.007;
+    foot_com_scaling_factor_x    =  0.382;  foot_com_scaling_factor_y    = -0.151;  foot_com_scaling_factor_z    =  0.026;
 
-        % rog
-        head_rxx_scaling_factor    = 0.31;  head_ryy_scaling_factor    = 0.25;  head_rzz_scaling_factor    = 0.33;  head_rxy_scaling_factor    = 0.09*1i;	head_rxz_scaling_factor    = 0.02*1i;   head_ryz_scaling_factor    = 0.03;
-        trunk_rxx_scaling_factor   = 0.27;  trunk_ryy_scaling_factor   = 0.25;  trunk_rzz_scaling_factor   = 0.28;  trunk_rxy_scaling_factor   = 0.18;      trunk_rxz_scaling_factor   = 0.02;      trunk_ryz_scaling_factor   = 0.04*1i;
-        arm_rxx_scaling_factor     = 0.31;  arm_ryy_scaling_factor     = 0.14;  arm_rzz_scaling_factor     = 0.32;  arm_rxy_scaling_factor     = 0.06;      arm_rxz_scaling_factor     = 0.05;      arm_ryz_scaling_factor     = 0.02;
-        forearm_rxx_scaling_factor = 0.28;  forearm_ryy_scaling_factor = 0.11;  forearm_rzz_scaling_factor = 0.27;  forearm_rxy_scaling_factor = 0.03;      forearm_rxz_scaling_factor = 0.02;      forearm_ryz_scaling_factor = 0.08*1i;
-        hand_rxx_scaling_factor    = 0.61;  hand_ryy_scaling_factor    = 0.38;  hand_rzz_scaling_factor    = 0.56;  hand_rxy_scaling_factor    = 0.22;      hand_rxz_scaling_factor    = 0.15;      hand_ryz_scaling_factor    = 0.20*1i;
-        pelvis_rxx_scaling_factor  = 1.01;  pelvis_ryy_scaling_factor  = 1.06;  pelvis_rzz_scaling_factor  = 0.95;  pelvis_rxy_scaling_factor  = 0.25*1i;   pelvis_rxz_scaling_factor  = 0.12*1i;   pelvis_ryz_scaling_factor  = 0.08*1i;
-        thigh_rxx_scaling_factor   = 0.29;  thigh_ryy_scaling_factor   = 0.15;  thigh_rzz_scaling_factor   = 0.30;  thigh_rxy_scaling_factor   = 0.07;      thigh_rxz_scaling_factor   = 0.02*1i;   thigh_ryz_scaling_factor   = 0.07*1i;
-        shank_rxx_scaling_factor   = 0.28;  shank_ryy_scaling_factor   = 0.10;  shank_rzz_scaling_factor   = 0.28;  shank_rxy_scaling_factor   = 0.04*1i;   shank_rxz_scaling_factor   = 0.02*1i;   shank_ryz_scaling_factor   = 0.05;
-        foot_rxx_scaling_factor    = 0.17;  foot_ryy_scaling_factor    = 0.37;	foot_rzz_scaling_factor    = 0.36;  foot_rxy_scaling_factor    = 0.13;      foot_rxz_scaling_factor    = 0.08*1i;	foot_ryz_scaling_factor    = 0.00;
-    elseif strcmp(gender, 'female')
-        % mass
-        head_mass_scaling_factor    = 0.067;
-        trunk_mass_scaling_factor   = 0.304;
-        arm_mass_scaling_factor     = 0.022;
-        forearm_mass_scaling_factor = 0.013;
-        hand_mass_scaling_factor    = 0.005;
-        pelvis_mass_scaling_factor  = 0.146;
-        thigh_mass_scaling_factor   = 0.146;
-        shank_mass_scaling_factor   = 0.045;
-        foot_mass_scaling_factor    = 0.010;
+    % rog
+    head_rxx_scaling_factor    = 0.31;  head_ryy_scaling_factor    = 0.25;  head_rzz_scaling_factor    = 0.33;  head_rxy_scaling_factor    = 0.09*1i;	head_rxz_scaling_factor    = 0.02*1i;   head_ryz_scaling_factor    = 0.03;
+    trunk_rxx_scaling_factor   = 0.27;  trunk_ryy_scaling_factor   = 0.25;  trunk_rzz_scaling_factor   = 0.28;  trunk_rxy_scaling_factor   = 0.18;      trunk_rxz_scaling_factor   = 0.02;      trunk_ryz_scaling_factor   = 0.04*1i;
+    arm_rxx_scaling_factor     = 0.31;  arm_ryy_scaling_factor     = 0.14;  arm_rzz_scaling_factor     = 0.32;  arm_rxy_scaling_factor     = 0.06;      arm_rxz_scaling_factor     = 0.05;      arm_ryz_scaling_factor     = 0.02;
+    forearm_rxx_scaling_factor = 0.28;  forearm_ryy_scaling_factor = 0.11;  forearm_rzz_scaling_factor = 0.27;  forearm_rxy_scaling_factor = 0.03;      forearm_rxz_scaling_factor = 0.02;      forearm_ryz_scaling_factor = 0.08*1i;
+    hand_rxx_scaling_factor    = 0.61;  hand_ryy_scaling_factor    = 0.38;  hand_rzz_scaling_factor    = 0.56;  hand_rxy_scaling_factor    = 0.22;      hand_rxz_scaling_factor    = 0.15;      hand_ryz_scaling_factor    = 0.20*1i;
+    pelvis_rxx_scaling_factor  = 1.01;  pelvis_ryy_scaling_factor  = 1.06;  pelvis_rzz_scaling_factor  = 0.95;  pelvis_rxy_scaling_factor  = 0.25*1i;   pelvis_rxz_scaling_factor  = 0.12*1i;   pelvis_ryz_scaling_factor  = 0.08*1i;
+    thigh_rxx_scaling_factor   = 0.29;  thigh_ryy_scaling_factor   = 0.15;  thigh_rzz_scaling_factor   = 0.30;  thigh_rxy_scaling_factor   = 0.07;      thigh_rxz_scaling_factor   = 0.02*1i;   thigh_ryz_scaling_factor   = 0.07*1i;
+    shank_rxx_scaling_factor   = 0.28;  shank_ryy_scaling_factor   = 0.10;  shank_rzz_scaling_factor   = 0.28;  shank_rxy_scaling_factor   = 0.04*1i;   shank_rxz_scaling_factor   = 0.02*1i;   shank_ryz_scaling_factor   = 0.05;
+    foot_rxx_scaling_factor    = 0.17;  foot_ryy_scaling_factor    = 0.37;	foot_rzz_scaling_factor    = 0.36;  foot_rxy_scaling_factor    = 0.13;      foot_rxz_scaling_factor    = 0.08*1i;	foot_ryz_scaling_factor    = 0.00;
 
-        % CoM
-        head_com_scaling_factor_x    = -0.070;  head_com_scaling_factor_y    =  0.597;  head_com_scaling_factor_z    =  0.000;
-        trunk_com_scaling_factor_x   = -0.016;  trunk_com_scaling_factor_y   = -0.436;  trunk_com_scaling_factor_z   = -0.006;
-        arm_com_scaling_factor_x     =  0.073;  arm_com_scaling_factor_y     = -0.454;  arm_com_scaling_factor_z     = -0.028;
-        forearm_com_scaling_factor_x =  0.021;  forearm_com_scaling_factor_y = -0.411;  forearm_com_scaling_factor_z =  0.019;
-        hand_com_scaling_factor_x    =  0.077;  hand_com_scaling_factor_y    = -0.768;  hand_com_scaling_factor_z    =  0.048;
-        pelvis_com_scaling_factor_x  = -0.009;  pelvis_com_scaling_factor_y  = -0.232;  pelvis_com_scaling_factor_z  =  0.002;
-        thigh_com_scaling_factor_x   = -0.077;  thigh_com_scaling_factor_y   = -0.377;  thigh_com_scaling_factor_z   =  0.009;
-        shank_com_scaling_factor_x   = -0.049;  shank_com_scaling_factor_y   = -0.404;  shank_com_scaling_factor_z   =  0.031;
-        foot_com_scaling_factor_x    =  0.270;  foot_com_scaling_factor_y    = -0.218;  foot_com_scaling_factor_z    =  0.039;
-
-        % rog
-        head_rxx_scaling_factor  = 0.32;         head_ryy_scaling_factor = 0.27;         head_rzz_scaling_factor = 0.34;
-        head_rxy_scaling_factor  = 0.06*1i;      head_rxz_scaling_factor = 0.01;         head_ryz_scaling_factor = 0.01*1i;
-        trunk_rxx_scaling_factor = 0.29;        trunk_ryy_scaling_factor = 0.27;        trunk_rzz_scaling_factor = 0.29;    trunk_rxy_scaling_factor = 0.22;        trunk_rxz_scaling_factor = 0.05;        trunk_ryz_scaling_factor = 0.05*1i;
-        % ACHTUNG: used the values for males here because the values for females fails to visualize as an ellipsoid.
-        % Explore later!
-        trunk_rxx_scaling_factor = 0.27;        trunk_ryy_scaling_factor = 0.25;        trunk_rzz_scaling_factor = 0.28;    trunk_rxy_scaling_factor = 0.18;        trunk_rxz_scaling_factor = 0.02;        trunk_ryz_scaling_factor = 0.04*1i;
-
-%         arm_rxx_scaling_factor     = 0.33;  arm_ryy_scaling_factor     = 0.17;  arm_rzz_scaling_factor     = 0.33;  arm_rxy_scaling_factor     = 0.03;      arm_rxz_scaling_factor     = 0.05*1i;   arm_ryz_scaling_factor     = 0.14;
-%         forearm_rxx_scaling_factor = 0.26;  forearm_ryy_scaling_factor = 0.14;  forearm_rzz_scaling_factor = 0.25;  forearm_rxy_scaling_factor = 0.10;      forearm_rxz_scaling_factor = 0.04;      forearm_ryz_scaling_factor = 0.14*1i;
-        % ACHTUNG: used the values for males here because the values for females give rather weird looking results
-        arm_rxx_scaling_factor     = 0.31;  arm_ryy_scaling_factor     = 0.14;  arm_rzz_scaling_factor     = 0.32;  arm_rxy_scaling_factor     = 0.06;      arm_rxz_scaling_factor     = 0.05;      arm_ryz_scaling_factor     = 0.02;
-        forearm_rxx_scaling_factor = 0.28;  forearm_ryy_scaling_factor = 0.11;  forearm_rzz_scaling_factor = 0.27;  forearm_rxy_scaling_factor = 0.03;      forearm_rxz_scaling_factor = 0.02;      forearm_ryz_scaling_factor = 0.08*1i;
-        hand_rxx_scaling_factor    = 0.63;  hand_ryy_scaling_factor    = 0.43;  hand_rzz_scaling_factor    = 0.56;  hand_rxy_scaling_factor    = 0.29;      hand_rxz_scaling_factor    = 0.23;      hand_ryz_scaling_factor    = 0.28*1i;
-
-        pelvis_rxx_scaling_factor = 0.91;       pelvis_ryy_scaling_factor = 1.00;       pelvis_rzz_scaling_factor = 0.79;   pelvis_rxy_scaling_factor = 0.34*1i;    pelvis_rxz_scaling_factor = 0.01*1i;    pelvis_ryz_scaling_factor = 0.01*1i;
-        thigh_rxx_scaling_factor  = 0.31;        thigh_ryy_scaling_factor = 0.19;        thigh_rzz_scaling_factor = 0.32;    thigh_rxy_scaling_factor = 0.07;        thigh_rxz_scaling_factor = 0.02*1i;     thigh_ryz_scaling_factor = 0.07*1i;
-        shank_rxx_scaling_factor  = 0.28;        shank_ryy_scaling_factor = 0.10;        shank_rzz_scaling_factor = 0.28;    shank_rxy_scaling_factor = 0.02;        shank_rxz_scaling_factor = 0.01;        shank_ryz_scaling_factor = 0.06;
-        foot_rxx_scaling_factor   = 0.17;         foot_ryy_scaling_factor = 0.36;         foot_rzz_scaling_factor = 0.35;     foot_rxy_scaling_factor = 0.10*1i;      foot_rxz_scaling_factor = 0.06;         foot_ryz_scaling_factor = 0.04*1i;
-    end
 
     %% set up the segment coordinate systems (SCS)
 

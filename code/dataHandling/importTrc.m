@@ -108,10 +108,10 @@ function importTrc(varargin)
                     % NOTE: this defines directions and makes assumptions, make sure everything is right here
                     number_of_marker_trajectories = size(marker_trajectories_raw, 2);
                     marker_directions = cell(2, number_of_marker_trajectories);
-                    [marker_directions{1, 1 : 3 : number_of_marker_trajectories}] = deal('forward');
-                    [marker_directions{2, 1 : 3 : number_of_marker_trajectories}] = deal('backward');
-                    [marker_directions{1, 2 : 3 : number_of_marker_trajectories}] = deal('left');
-                    [marker_directions{2, 2 : 3 : number_of_marker_trajectories}] = deal('right');
+                    [marker_directions{1, 1 : 3 : number_of_marker_trajectories}] = deal('backward');
+                    [marker_directions{2, 1 : 3 : number_of_marker_trajectories}] = deal('forward');
+                    [marker_directions{1, 2 : 3 : number_of_marker_trajectories}] = deal('right');
+                    [marker_directions{2, 2 : 3 : number_of_marker_trajectories}] = deal('left');
                     [marker_directions{1, 3 : 3 : number_of_marker_trajectories}] = deal('up');
                     [marker_directions{2, 3 : 3 : number_of_marker_trajectories}] = deal('down');
 
