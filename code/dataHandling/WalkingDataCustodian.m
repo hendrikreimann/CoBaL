@@ -314,12 +314,22 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('mpsis_y')
                 this.addStretchVariable('mpsis_y')
             end
+            if this.isVariableToAnalyze('mpsis_x_vel')
+                this.addBasicVariable('mpsis_x')
+                this.addBasicVariable('mpsis_x_vel')
+                this.addStretchVariable('mpsis_x_vel')
+            end
+            if this.isVariableToAnalyze('mpsis_y_vel')
+                this.addBasicVariable('mpsis_y')
+                this.addBasicVariable('mpsis_y_vel')
+                this.addStretchVariable('mpsis_y_vel')
+            end
             if this.isVariableToAnalyze('cop_from_com_x')
                 this.addBasicVariable('total_forceplate_cop_world')
                 this.addBasicVariable('cop_x')
                 this.addStretchVariable('cop_x')
 %                 this.addBasicVariable('com_trajectories') % in-house kinematics
-%                 this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                this.addBasicVariable('com_position_trajectories') % opensim kinematics
                 this.addBasicVariable('com')
                 this.addBasicVariable('com_x')
                 this.addStretchVariable('com_x')
@@ -330,7 +340,7 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('cop_y')
                 this.addStretchVariable('cop_y')
 %                 this.addBasicVariable('com_trajectories') % in-house kinematics
-%                 this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                this.addBasicVariable('com_position_trajectories') % opensim kinematics
                 this.addBasicVariable('com')
                 this.addBasicVariable('com_y')
                 this.addStretchVariable('com_y')
@@ -341,7 +351,7 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('cop_x')
                 this.addStretchVariable('cop_x')
 %                 this.addBasicVariable('com_trajectories') % in-house kinematics
-%                 this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                this.addBasicVariable('com_position_trajectories') % opensim kinematics
                 this.addBasicVariable('com')
                 this.addBasicVariable('com_x')
                 this.addStretchVariable('com_x')
@@ -352,7 +362,7 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('cop_y')
                 this.addStretchVariable('cop_y')
 %                 this.addBasicVariable('com_trajectories') % in-house kinematics
-%                 this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                this.addBasicVariable('com_position_trajectories') % opensim kinematics
                 this.addBasicVariable('com')
                 this.addBasicVariable('com_y')
                 this.addStretchVariable('com_y')
@@ -365,7 +375,7 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('rheel_x')
                 this.addStretchVariable('rheel_x')
 %                 this.addBasicVariable('com_trajectories') % in-house kinematics
-%                 this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                this.addBasicVariable('com_position_trajectories') % opensim kinematics
                 this.addBasicVariable('com')
                 this.addBasicVariable('com_x')
                 this.addStretchVariable('com_x')
@@ -373,7 +383,7 @@ classdef WalkingDataCustodian < handle
             end
             if this.isVariableToAnalyze('cop_to_com_vel_scaled_x')
 %                 this.addBasicVariable('com_trajectories') % in-house kinematics
-%                 this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                this.addBasicVariable('com_position_trajectories') % opensim kinematics
                 this.addBasicVariable('com')
                 this.addBasicVariable('com_x')
                 this.addBasicVariable('com_x_vel')
@@ -390,7 +400,7 @@ classdef WalkingDataCustodian < handle
             end
             if this.isVariableToAnalyze('cop_to_com_vel_scaled_y')
 %                 this.addBasicVariable('com_trajectories') % in-house kinematics
-%                 this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                this.addBasicVariable('com_position_trajectories') % opensim kinematics
                 this.addBasicVariable('com')
                 this.addBasicVariable('com_y')
                 this.addBasicVariable('com_y_vel')
@@ -437,6 +447,16 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('joint_center_trajectories')
                 this.addBasicVariable('right_leg_angle_ml')
                 this.addStretchVariable('right_leg_angle_ml')
+            end           
+            if this.isVariableToAnalyze('left_leg_angle_ap')
+                this.addBasicVariable('joint_center_trajectories')
+                this.addBasicVariable('left_leg_angle_ap')
+                this.addStretchVariable('left_leg_angle_ap')
+            end
+            if this.isVariableToAnalyze('right_leg_angle_ap')
+                this.addBasicVariable('joint_center_trajectories')
+                this.addBasicVariable('right_leg_angle_ap')
+                this.addStretchVariable('right_leg_angle_ap')
             end           
             if this.isVariableToAnalyze('left_foot_angle_ap')
                 this.addBasicVariable('marker_trajectories')
@@ -556,27 +576,27 @@ classdef WalkingDataCustodian < handle
             end
             if this.isVariableToAnalyze('com_x')
 %                 this.addBasicVariable('com_trajectories') % in-house kinematics
-%                 this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                this.addBasicVariable('com_position_trajectories') % opensim kinematics
                 this.addBasicVariable('com')
                 this.addBasicVariable('com_x')
                 this.addStretchVariable('com_x')
             end
             if this.isVariableToAnalyze('com_y')
 %                 this.addBasicVariable('com_trajectories') % in-house kinematics
-%                 this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                this.addBasicVariable('com_position_trajectories') % opensim kinematics
                 this.addBasicVariable('com')
                 this.addBasicVariable('com_y')
                 this.addStretchVariable('com_y')
             end
             if this.isVariableToAnalyze('com_z')
-                this.addBasicVariable('com_trajectories') % in-house kinematics
+%                 this.addBasicVariable('com_trajectories') % in-house kinematics
                 this.addBasicVariable('com_position_trajectories') % opensim kinematics
                 this.addBasicVariable('com_z')
                 this.addStretchVariable('com_z')
             end
             if this.isVariableToAnalyze('com_x_vel')
 %                 this.addBasicVariable('com_trajectories') % in-house kinematics
-%                 this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                this.addBasicVariable('com_position_trajectories') % opensim kinematics
                 this.addBasicVariable('com')
                 this.addBasicVariable('com_x')
                 this.addBasicVariable('com_x_vel')
@@ -584,7 +604,7 @@ classdef WalkingDataCustodian < handle
             end
             if this.isVariableToAnalyze('com_x_vel_scaled')
 %                 this.addBasicVariable('com_trajectories') % in-house kinematics
-%                 this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                this.addBasicVariable('com_position_trajectories') % opensim kinematics
                 this.addBasicVariable('com')
                 this.addBasicVariable('com_x')
                 this.addBasicVariable('com_x_vel')
@@ -595,7 +615,7 @@ classdef WalkingDataCustodian < handle
             end
             if this.isVariableToAnalyze('com_y_vel')
 %                 this.addBasicVariable('com_trajectories') % in-house kinematics
-%                 this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                this.addBasicVariable('com_position_trajectories') % opensim kinematics
                 this.addBasicVariable('com')
                 this.addBasicVariable('com_y')
                 this.addBasicVariable('com_y_vel')
@@ -603,7 +623,7 @@ classdef WalkingDataCustodian < handle
             end
             if this.isVariableToAnalyze('com_z_vel')
 %                 this.addBasicVariable('com_trajectories') % in-house kinematics
-%                 this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                this.addBasicVariable('com_position_trajectories') % opensim kinematics
                 this.addBasicVariable('com')
                 this.addBasicVariable('com_z')
                 this.addBasicVariable('com_z_vel')
@@ -611,7 +631,7 @@ classdef WalkingDataCustodian < handle
             end
             if this.isVariableToAnalyze('com_x_acc')
 %                 this.addBasicVariable('com_trajectories') % in-house kinematics
-%                 this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                this.addBasicVariable('com_position_trajectories') % opensim kinematics
                 this.addBasicVariable('com')
                 this.addBasicVariable('com_x')
                 this.addBasicVariable('com_x_vel')
@@ -620,7 +640,7 @@ classdef WalkingDataCustodian < handle
             end
             if this.isVariableToAnalyze('com_y_acc')
 %                 this.addBasicVariable('com_trajectories') % in-house kinematics
-%                 this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                this.addBasicVariable('com_position_trajectories') % opensim kinematics
                 this.addBasicVariable('com')
                 this.addBasicVariable('com_y')
                 this.addBasicVariable('com_y_vel')
@@ -629,7 +649,7 @@ classdef WalkingDataCustodian < handle
             end
             if this.isVariableToAnalyze('com_z_acc')
 %                 this.addBasicVariable('com_trajectories') % in-house kinematics
-%                 this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                this.addBasicVariable('com_position_trajectories') % opensim kinematics
                 this.addBasicVariable('com')
                 this.addBasicVariable('com_z')
                 this.addBasicVariable('com_z_vel')
@@ -1078,6 +1098,42 @@ classdef WalkingDataCustodian < handle
                     this.time_data.mpsis_y = this.time_data.marker_trajectories;
                     success = 1;
                 end
+                if strcmp(variable_name, 'mpsis_x_vel')
+                    mpsis_x = this.getBasicVariableData('mpsis_x');
+                    mpsis_x(mpsis_x==0) = NaN;
+                    time = this.getTimeData('mpsis_x');
+                    filter_order = this.study_settings.get('filter_order_mpsis_vel');
+                    cutoff_frequency = this.study_settings.get('filter_cutoff_mpsis_vel');
+                    sampling_rate = 1/median(diff(time));
+                    [b, a] = butter(filter_order, cutoff_frequency/(sampling_rate/2));
+                    if any(~isnan(mpsis_x))
+                        mpsis_x_vel = deriveByTime(nanfiltfilt(b, a, mpsis_x), 1/sampling_rate);
+                    else
+                        mpsis_x_vel = ones(size(mpsis_x)) * NaN;
+                    end
+                    this.basic_variable_data.mpsis_x_vel = mpsis_x_vel;
+                    this.basic_variable_directions.mpsis_x_vel = this.basic_variable_directions.mpsis_x;
+                    this.time_data.mpsis_x_vel = time;
+                    success = 1;
+                end
+                if strcmp(variable_name, 'mpsis_y_vel')
+                    mpsis_y = this.getBasicVariableData('mpsis_y');
+                    mpsis_y(mpsis_y==0) = NaN;
+                    time = this.getTimeData('mpsis_y');
+                    filter_order = this.study_settings.get('filter_order_mpsis_vel');
+                    cutoff_frequency = this.study_settings.get('filter_cutoff_mpsis_vel');
+                    sampling_rate = 1/median(diff(time));
+                    [b, a] = butter(filter_order, cutoff_frequency/(sampling_rate/2));	% set filter parameters for butterworth filter: 2=order of filter;
+                    if any(~isnan(mpsis_y))
+                        mpsis_y_vel = deriveByTime(nanfiltfilt(b, a, mpsis_y), 1/sampling_rate);
+                    else
+                        mpsis_y_vel = ones(size(mpsis_y)) * NaN;
+                    end
+                    this.basic_variable_data.mpsis_y_vel = mpsis_y_vel;
+                    this.basic_variable_directions.mpsis_y_vel = this.basic_variable_directions.mpsis_y;
+                    this.time_data.mpsis_y_vel = time;
+                    success = 1;
+                end
                 if strcmp(variable_name, 'pelvis_y')
                     LPSI_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LPSI');
                     RPSI_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RPSI');
@@ -1483,6 +1539,106 @@ classdef WalkingDataCustodian < handle
                     this.basic_variable_directions.right_leg_angle_ml = {'right'; 'left'};
                     
                     this.time_data.right_leg_angle_ml = this.time_data.joint_center_trajectories;
+                    success = 1;
+                end               
+                if strcmp(variable_name, 'left_leg_angle_ap')
+                    % calculate angle trajectories
+                    left_hip_cor_trajectory = extractMarkerData(this.basic_variable_data.joint_center_trajectories, this.basic_variable_labels.joint_center_trajectories, 'LHIPCOR');
+                    left_ankle_cor_trajectory = extractMarkerData(this.basic_variable_data.joint_center_trajectories, this.basic_variable_labels.joint_center_trajectories, 'LANKLECOR');
+                    left_leg_vector_y = left_hip_cor_trajectory(:, 2) - left_ankle_cor_trajectory(:, 2);
+                    left_leg_vector_z = left_hip_cor_trajectory(:, 3) - left_ankle_cor_trajectory(:, 3);
+                    this.basic_variable_data.left_leg_angle_ap = -rad2deg(atan2(left_leg_vector_y, left_leg_vector_z));
+                    
+                    % determine directions
+                    LHIPCOR_indices = extractMarkerData(this.basic_variable_data.joint_center_trajectories, this.basic_variable_labels.joint_center_trajectories, 'LHIPCOR',  'indices');
+                    LANKLECOR_indices = extractMarkerData(this.basic_variable_data.joint_center_trajectories, this.basic_variable_labels.joint_center_trajectories, 'LANKLECOR',  'indices');
+                    LHIPCOR_directions_y = this.basic_variable_directions.joint_center_trajectories(:, LHIPCOR_indices(2));
+                    LANKLECOR_directions_y = this.basic_variable_directions.joint_center_trajectories(:, LANKLECOR_indices(2));
+                    LHIPCOR_directions_z = this.basic_variable_directions.joint_center_trajectories(:, LHIPCOR_indices(3));
+                    LANKLECOR_directions_z = this.basic_variable_directions.joint_center_trajectories(:, LANKLECOR_indices(3));
+                    
+                    % check whether directions of markers are the same
+                    if ~strcmp(LHIPCOR_directions_y{1}, LANKLECOR_directions_y{1})
+                        error('LHIPCOR and LANKLECOR directions found in marker data are different from each other')
+                    end
+                    if ~strcmp(LHIPCOR_directions_y{2}, LANKLECOR_directions_y{2})
+                        error('LHIPCOR and LANKLECOR directions found in marker data are different from each other')
+                    end
+                    if ~strcmp(LHIPCOR_directions_z{1}, LANKLECOR_directions_z{1})
+                        error('LHIPCOR and LANKLECOR directions found in marker data are different from each other')
+                    end
+                    if ~strcmp(LHIPCOR_directions_z{2}, LANKLECOR_directions_z{2})
+                        error('LHIPCOR and LANKLECOR directions found in marker data are different from each other')
+                    end
+                    
+                    % check assumption that y is left-right and z is down-up
+                    if ~strcmp(LHIPCOR_directions_y{1}, 'forward')
+                        error('Assuming positive y-direction for markers LHIPCOR and LANKLECOR is "forward"')
+                    end                  
+                    if ~strcmp(LHIPCOR_directions_y{2}, 'backward')
+                        error('Assuming negative y-direction for markers LHIPCOR and LANKLECOR is "backward"')
+                    end                  
+                    if ~strcmp(LHIPCOR_directions_z{1}, 'up')
+                        error('Assuming positive z-direction for markers LHIPCOR and LANKLECOR is "up"')
+                    end                  
+                    if ~strcmp(LHIPCOR_directions_z{2}, 'down')
+                        error('Assuming negative z-direction for markers LHIPCOR and LANKLECOR is "down"')
+                    end
+                    
+                    % all assumptions are met, define directions
+                    this.basic_variable_directions.left_leg_angle_ap = {'forward'; 'backward'};
+                    
+                    this.time_data.left_leg_angle_ap = this.time_data.joint_center_trajectories;
+                    success = 1;
+                end
+                if strcmp(variable_name, 'right_leg_angle_ap')
+                    % calculate angle trajectories
+                    right_hip_cor_trajectory = extractMarkerData(this.basic_variable_data.joint_center_trajectories, this.basic_variable_labels.joint_center_trajectories, 'RHIPCOR');
+                    right_ankle_cor_trajectory = extractMarkerData(this.basic_variable_data.joint_center_trajectories, this.basic_variable_labels.joint_center_trajectories, 'RANKLECOR');
+                    right_leg_vector_y = right_hip_cor_trajectory(:, 2) - right_ankle_cor_trajectory(:, 2);
+                    right_leg_vector_z = right_hip_cor_trajectory(:, 3) - right_ankle_cor_trajectory(:, 3);
+                    this.basic_variable_data.right_leg_angle_ap = -rad2deg(atan2(right_leg_vector_y, right_leg_vector_z));
+                    
+                    % determine directions
+                    RHIPCOR_indices = extractMarkerData(this.basic_variable_data.joint_center_trajectories, this.basic_variable_labels.joint_center_trajectories, 'RHIPCOR',  'indices');
+                    RANKLECOR_indices = extractMarkerData(this.basic_variable_data.joint_center_trajectories, this.basic_variable_labels.joint_center_trajectories, 'RANKLECOR',  'indices');
+                    RHIPCOR_directions_y = this.basic_variable_directions.joint_center_trajectories(:, RHIPCOR_indices(2));
+                    RANKLECOR_directions_y = this.basic_variable_directions.joint_center_trajectories(:, RANKLECOR_indices(2));
+                    RHIPCOR_directions_z = this.basic_variable_directions.joint_center_trajectories(:, RHIPCOR_indices(3));
+                    RANKLECOR_directions_z = this.basic_variable_directions.joint_center_trajectories(:, RANKLECOR_indices(3));
+                    
+                    % check whether directions of markers are the same
+                    if ~strcmp(RHIPCOR_directions_y{1}, RANKLECOR_directions_y{1})
+                        error('RHIPCOR and RANKLECOR directions found in marker data are different from each other')
+                    end
+                    if ~strcmp(RHIPCOR_directions_y{2}, RANKLECOR_directions_y{2})
+                        error('RHIPCOR and RANKLECOR directions found in marker data are different from each other')
+                    end
+                    if ~strcmp(RHIPCOR_directions_z{1}, RANKLECOR_directions_z{1})
+                        error('RHIPCOR and RANKLECOR directions found in marker data are different from each other')
+                    end
+                    if ~strcmp(RHIPCOR_directions_z{2}, RANKLECOR_directions_z{2})
+                        error('RHIPCOR and RANKLECOR directions found in marker data are different from each other')
+                    end
+                    
+                    % check assumption that y is left-right and z is down-up
+                    if ~strcmp(RHIPCOR_directions_y{1}, 'forward')
+                        error('Assuming positive x-direction for markers RHIPCOR and RANKLECOR is "forward"')
+                    end                  
+                    if ~strcmp(RHIPCOR_directions_y{2}, 'backward')
+                        error('Assuming negative x-direction for markers RHIPCOR and RANKLECOR is "backward"')
+                    end                  
+                    if ~strcmp(RHIPCOR_directions_z{1}, 'up')
+                        error('Assuming positive z-direction for markers RHIPCOR and RANKLECOR is "up"')
+                    end                  
+                    if ~strcmp(RHIPCOR_directions_z{2}, 'down')
+                        error('Assuming negative z-direction for markers RHIPCOR and RANKLECOR is "down"')
+                    end
+                    
+                    % all assumptions are met, define directions
+                    this.basic_variable_directions.right_leg_angle_ap = {'forward'; 'backward'};
+                    
+                    this.time_data.right_leg_angle_ap = this.time_data.joint_center_trajectories;
                     success = 1;
                 end               
                 if strcmp(variable_name, 'left_foot_angle_ap')

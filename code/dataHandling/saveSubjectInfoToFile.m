@@ -31,7 +31,11 @@ function saveSubjectInfoToFile(varargin)
     % get parameters from settings file
     parameters_cell = subject_settings.get('subject_info', 1);
     for i_parameter = 1 : size(parameters_cell, 1)
-        variables_to_save.(parameters_cell{i_parameter, 1}) = parameters_cell{i_parameter, 2};
+        this_parameter_value = parameters_cell{i_parameter, 2};
+        if all(isstrprop(this_parameter_value, 'digit'))
+            this_parameter_value = str2double(this_parameter_value);
+        end
+        variables_to_save.(parameters_cell{i_parameter, 1}) = this_parameter_value;
     end
 
     % get parameters

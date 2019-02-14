@@ -41,6 +41,7 @@ function plotResults(varargin)
     addParameter(parser, 'dictate_axes', false)
     addParameter(parser, 'show_legend', false)
     addParameter(parser, 'save', false)
+    addParameter(parser, 'close', false)
     addParameter(parser, 'format', 'tiff')
     addParameter(parser, 'settings', 'plotSettings.txt')
     addParameter(parser, 'spread_method', 'cinv')
@@ -170,6 +171,17 @@ function plotResults(varargin)
             get_analysis_data = true;
         end        
 
+        get_range_data = false;
+        if ~isempty(variables_to_plot) & any(strcmp(variables_to_plot(:, 2), 'range'))
+            get_range_data = true;
+        end
+        if number_of_paths_to_plot > 0 && any(strcmp(paths_to_plot(:, 2), 'range'))
+            get_range_data = true;
+        end        
+        if number_of_paths_to_plot > 0 && any(strcmp(paths_to_plot(:, 4), 'range'))
+            get_range_data = true;
+        end        
+
         % get data
         if get_stretch_data
             stretch_names_session = loaded_data.stretch_names_session;
@@ -186,6 +198,11 @@ function plotResults(varargin)
             analysis_data_session = loaded_data.analysis_data_session;
             analysis_directions_session = loaded_data.analysis_directions_session;
         end
+        if get_range_data
+            range_names_session = loaded_data.range_names_session;
+            range_data_session = loaded_data.range_data_session;
+            range_directions_session = loaded_data.range_directions_session;
+        end
         
         % extract data
         for i_variable = 1 : number_of_variables_to_plot
@@ -199,6 +216,9 @@ function plotResults(varargin)
             end
             if strcmp(this_variable_source, 'analysis')
                 index_in_saved_data = find(strcmp(analysis_names_session, this_variable_name), 1, 'first');
+            end
+            if strcmp(this_variable_source, 'range')
+                index_in_saved_data = find(strcmp(range_names_session, this_variable_name), 1, 'first');
             end
             
             if isempty(index_in_saved_data)
@@ -216,6 +236,10 @@ function plotResults(varargin)
             if strcmp(this_variable_source, 'analysis')
                 this_variable_data = analysis_data_session{index_in_saved_data};
                 this_variable_directions = analysis_directions_session(index_in_saved_data, :);
+            end
+            if strcmp(this_variable_source, 'range')
+                this_variable_data = range_data_session{index_in_saved_data};
+                this_variable_directions = range_directions_session(index_in_saved_data, :);
             end
             
             if plot_settings.get('convert_to_mm') && (strcmp(this_variable_name,'cop_from_com_x') || strcmp(this_variable_name, 'step_placement_x'))
@@ -971,6 +995,9 @@ function plotResults(varargin)
     
     %% plot data
     colors_comparison = plot_settings.get('colors_comparison');
+    if size(colors_comparison, 2) == 1
+        colors_comparison = hex2rgb(colors_comparison);
+    end
     colors_bands = plot_settings.get('colors_bands');
     for i_variable = 1 : number_of_variables_to_plot
         data_to_plot = data_all{i_variable, 1};
@@ -1035,13 +1062,22 @@ function plotResults(varargin)
                                     if strcmp(plot_settings.get('discrete_data_plot_style'), 'box')
                                         singleBoxPlot ...
                                           ( ...
-                                            target_axes_handle, ...
-                                            target_abscissa, ...
                                             data_to_plot_this_band, ...
-                                            this_color, ...
-                                            label_string_this_band, ...
-                                            show_outliers ...
+                                            'axes', target_axes_handle, ...
+                                            'abscissa', target_abscissa, ...
+                                            'FaceColor', this_color, ...
+                                            'xlabel', label_string_this_band, ...
+                                            'ShowOutliers', show_outliers ...
                                           )
+%                                         singleBoxPlot ...
+%                                           ( ...
+%                                             target_axes_handle, ...
+%                                             target_abscissa, ...
+%                                             data_to_plot_this_band, ...
+%                                             this_color, ...
+%                                             label_string_this_band, ...
+%                                             show_outliers ...
+%                                           )
                                     end
                                     if strcmp(plot_settings.get('discrete_data_plot_style'), 'bar')
                                         singleBarPlot ...
@@ -1149,11 +1185,6 @@ function plotResults(varargin)
                             % individual trajectories
                             for i_stretch = 1 : size(data_to_plot_this_condition, 2)
                                 origin_index_data = ones(size(target_abscissa)) * origin_indices(i_stretch);
-%                                 plot ...
-%                                   ( ...
-%                                     target_axes_handle, ...
-%                                     target_abscissa, ...
-%                                     data_to_plot_this_condition, ...
                                 plot3 ...
                                   ( ...
                                     target_axes_handle, ...
@@ -1258,12 +1289,12 @@ function plotResults(varargin)
                                 if strcmp(plot_settings.get('discrete_data_plot_style'), 'box')
                                     singleBoxPlot ...
                                       ( ...
-                                        target_axes_handle, ...
-                                        target_abscissa, ...
                                         data_to_plot_this_band, ...
-                                        this_color, ...
-                                        label_string_this_band, ...
-                                        show_outliers ...
+                                        'axes', target_axes_handle, ...
+                                        'abscissa', target_abscissa, ...
+                                        'FaceColor', this_color, ...
+                                        'xlabel', label_string_this_band, ...
+                                        'ShowOutliers', show_outliers ...
                                       )
                                 end
                                 if strcmp(plot_settings.get('discrete_data_plot_style'), 'bar')
@@ -1776,6 +1807,7 @@ function plotResults(varargin)
 %             set(postext, 'visible', 'off');
 %             set(negtext, 'visible', 'off');
             
+            % remove text and marks to save graphs only
             set(get(trajectory_axes_handles(i_figure), 'xaxis'), 'visible', 'off');
             set(get(trajectory_axes_handles(i_figure), 'yaxis'), 'visible', 'off');
             set(get(trajectory_axes_handles(i_figure), 'xlabel'), 'visible', 'off');
@@ -1787,11 +1819,19 @@ function plotResults(varargin)
             legend(trajectory_axes_handles(i_figure), 'hide');
             filename = ['figures' filesep 'noLabels' filesep get(trajectory_figure_handles(i_figure), 'UserData')];
             saveas(trajectory_figure_handles(i_figure), filename, parser.Results.format);
-
-            close(trajectory_figure_handles(i_figure))            
+            
+            % put some marks back
+            set(get(trajectory_axes_handles(i_figure), 'title'), 'visible', 'on');
+            set(trajectory_axes_handles(i_figure), 'position', [0.05 0.05 0.9 0.9]);
         end
     end
     
+    %% close figures
+    if parser.Results.close
+        for i_figure = 1 : numel(trajectory_figure_handles)
+            close(trajectory_figure_handles(i_figure))            
+        end
+    end    
 end
 
 %% helper functions
@@ -1801,11 +1841,14 @@ function discrete = isDiscreteVariable(variable_index, variable_data, bands_per_
     if size(variable_data{variable_index}, 1) == bands_per_stretch
         discrete = true;
     end
+    if size(variable_data{variable_index}, 1) == 1
+        discrete = true;
+    end
 end
 
 function continuous = isContinuousVariable(variable_index, variable_data, bands_per_stretch)
     continuous = false;
-    if size(variable_data{variable_index}, 1) ~= bands_per_stretch
+    if size(variable_data{variable_index}, 1) > bands_per_stretch
         continuous = true;
     end
 end

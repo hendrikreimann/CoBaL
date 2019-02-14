@@ -50,9 +50,6 @@ function collectPopulationResults(varargin)
         conditions_long.(condition_source_variables{i_condition}) = {};
     end
 
-%     origin_trial_list = [];
-%     origin_start_time_list = [];
-%     origin_end_time_list = [];
     time_list = [];
     variable_data = cell(number_of_variables_to_collect, 1);
     step_time_data = [];
@@ -80,9 +77,6 @@ function collectPopulationResults(varargin)
         for i_condition = 1 : number_of_condition_labels
             conditions.(condition_source_variables{i_condition}) = [conditions.(condition_source_variables{i_condition}); results_data.conditions_session.(condition_source_variables{i_condition}) ];
         end
-%         origin_trial_list = [origin_trial_list; results_data.origin_trial_list_session]; %#ok<AGROW>
-%         origin_start_time_list = [origin_start_time_list; results_data.origin_start_time_list_session]; %#ok<AGROW>
-%         origin_end_time_list = [origin_end_time_list; results_data.origin_end_time_list_session]; %#ok<AGROW>
         time_list = [time_list; results_data.time_list_session]; %#ok<AGROW>
         
         for i_variable = 1 : number_of_variables_to_collect
@@ -110,6 +104,13 @@ function collectPopulationResults(varargin)
                     error(['Variable not found: ' source_variable_name])
                 end
                 this_variable_data = results_data.analysis_data_session{this_variable_source_index};
+            end
+            if strcmp(this_variable_source_type, 'range')
+                this_variable_source_index = find(strcmp(results_data.range_names_session, source_variable_name), 1, 'first');
+                if isempty(this_variable_source_index)
+                    error(['Variable not found: ' source_variable_name])
+                end
+                this_variable_data = results_data.range_data_session{this_variable_source_index};
             end
             
             % store

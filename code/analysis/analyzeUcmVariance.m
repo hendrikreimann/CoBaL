@@ -72,7 +72,7 @@ function analyzeUcmVariance(varargin)
     stretch_names_session = ucm_variables;
     
     % calculate UCM variance measures
-    for i_block = 6 : number_of_blocks
+    for i_block = 1 : number_of_blocks
         this_block_label = block_labels{i_block};
         this_block_trials = trials_by_block{i_block};
         
