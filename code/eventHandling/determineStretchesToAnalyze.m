@@ -52,7 +52,7 @@ function determineStretchesToAnalyze(varargin)
 
 
     %% prepare
-    load('subjectInfo.mat', 'date', 'subject_id', 'most_affected', 'gender');
+%     load('subjectInfo.mat', 'date', 'subject_id', 'most_affected', 'gender');
     % load settings
     study_settings_file = '';
     if exist(['..' filesep 'studySettings.txt'], 'file')
@@ -62,23 +62,28 @@ function determineStretchesToAnalyze(varargin)
         study_settings_file = ['..' filesep '..' filesep 'studySettings.txt'];
     end
     study_settings = SettingsCustodian(study_settings_file);
+    experimental_paradigm = study_settings.get('experimental_paradigm');
+
+    subject_settings = SettingsCustodian('subjectSettings.txt');
+    acceptable_number_of_zeros_per_stretch = subject_settings.get('acceptable_number_of_zeros_per_stretch');
+    collection_date = num2str(subject_settings.get('collection_date'));
+    gender = subject_settings.get('gender');
+    subject_id = subject_settings.get('subject_id');
     
     conditions_file_name = [];
     if exist('conditions.csv', 'file')
         conditions_file_name = 'conditions.csv';
     end
-    if exist(makeFileName(date, subject_id, 'conditions.csv'), 'file')
-        conditions_file_name = makeFileName(date, subject_id, 'conditions.csv');
+    if exist(makeFileName(collection_date, subject_id, 'conditions.csv'), 'file')
+        conditions_file_name = makeFileName(collection_date, subject_id, 'conditions.csv');
     end
     
-    subject_settings = SettingsCustodian('subjectSettings.txt');
-    acceptable_number_of_zeros_per_stretch = subject_settings.get('acceptable_number_of_zeros_per_stretch');
-    experimental_paradigm = study_settings.get('experimental_paradigm');
     
     if strcmp(experimental_paradigm, 'CadenceVision') || strcmp(experimental_paradigm, 'CadenceGVS')
         protocol_data = load('protocolInfo.mat');
     end
 
+    %% process
     time_to_nearest_heelstrike_before_trigger_threshold = 0.10; % a heelstrike should happen less than this long before a trigger
     time_to_nearest_heelstrike_after_trigger_threshold = 0.3; % a heelstrike should happen less than this long after a trigger
     for i_condition = 1 : length(condition_list)
@@ -86,7 +91,7 @@ function determineStretchesToAnalyze(varargin)
         for i_trial = trials_to_process
             %% load data
             ignore_times = [];
-            load(['analysis' filesep makeFileName(date, subject_id, condition_list{i_condition}, i_trial, 'events')]);
+            load(['analysis' filesep makeFileName(collection_date, subject_id, condition_list{i_condition}, i_trial, 'events')]);
 %             load(['analysis' filesep makeFileName(date, subject_id, condition_list{i_condition}, i_trial, 'stepEvents')]);
 %             load(['processed' filesep makeFileName(date, subject_id, condition_list{i_condition}, i_trial, 'kinematicTrajectories')]);
             
@@ -130,22 +135,22 @@ function determineStretchesToAnalyze(varargin)
             end
             
             % marker data
-            [marker_trajectories, time_marker, sampling_rate_marker, marker_labels, marker_directions] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'marker_trajectories');
+            [marker_trajectories, time_marker, sampling_rate_marker, marker_labels, marker_directions] = loadData(collection_date, subject_id, condition_list{i_condition}, i_trial, 'marker_trajectories');
             if study_settings.get('prune_gaps_com')
-                [com_trajectories, time_marker, sampling_rate_marker, com_labels, com_directions] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'com_trajectories');
+                [com_trajectories, time_marker, sampling_rate_marker, com_labels, com_directions] = loadData(collection_date, subject_id, condition_list{i_condition}, i_trial, 'com_trajectories');
             
 %                 [com_trajectories, time_marker, sampling_rate_marker, com_labels, com_directions] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'com_trajectories_optimized')
             end
             if study_settings.get('prune_gaps_angles')
-                [joint_angle_trajectories, time_marker, sampling_rate_marker, joint_labels, joint_directions] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'joint_angle_trajectories');
+                [joint_angle_trajectories, time_marker, sampling_rate_marker, joint_labels, joint_directions] = loadData(collection_date, subject_id, condition_list{i_condition}, i_trial, 'joint_angle_trajectories');
 %                 [joint_angle_trajectories, time_marker, sampling_rate_marker, com_labels, joint_directions] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'joint_trajectories_optimized')
             
             end
             
             % forceplate data
-            [left_forceplate_cop_world_trajectory, time_left_forceplate, ~, ~, ~, left_forceplate_available] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'left_foot_cop_world', 'optional');
-            [right_forceplate_cop_world_trajectory, time_right_forceplate, ~, ~, ~, right_forceplate_available] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'right_foot_cop_world', 'optional');
-            [cop_world_trajectory, time_forceplate, ~, ~, cop_available] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'total_forceplate_cop_world', 'optional');
+            [left_forceplate_cop_world_trajectory, time_left_forceplate, ~, ~, ~, left_forceplate_available] = loadData(collection_date, subject_id, condition_list{i_condition}, i_trial, 'left_foot_cop_world', 'optional');
+            [right_forceplate_cop_world_trajectory, time_right_forceplate, ~, ~, ~, right_forceplate_available] = loadData(collection_date, subject_id, condition_list{i_condition}, i_trial, 'right_foot_cop_world', 'optional');
+            [cop_world_trajectory, time_forceplate, ~, ~, cop_available] = loadData(collection_date, subject_id, condition_list{i_condition}, i_trial, 'total_forceplate_cop_world', 'optional');
             if left_forceplate_available && right_forceplate_available
                 left_copx_trajectory = left_forceplate_cop_world_trajectory(:, 1);
                 right_copx_trajectory = right_forceplate_cop_world_trajectory(:, 1);
@@ -159,7 +164,7 @@ function determineStretchesToAnalyze(varargin)
             
             % stimulus data
             if strcmp(experimental_paradigm, 'GVS_old')
-                load(['processed' filesep makeFileName(date, subject_id, condition_list{i_condition}, i_trial, 'labviewData')]);
+                load(['processed' filesep makeFileName(collection_date, subject_id, condition_list{i_condition}, i_trial, 'labviewData')]);
 %                 GVS_out_trajectory = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'GVS_out_trajectory');
                 GVS_stim_trajectory = GVS_out_trajectory + subject_settings.get('gvs_offset');
 %                 [stimulus_state_trajectory, time_stimulus] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'stimulus_state_trajectory');
@@ -167,18 +172,18 @@ function determineStretchesToAnalyze(varargin)
             end
             if strcmp(condition_stimulus, 'VISUAL')
                 % this if for TU data
-                visual_scene_ml_translation_trajectory = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'visual_scene_ml_translation__trajectory'); %take note of the double "_"
-                [stimulus_state_trajectory, time_stimulus] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'stimulus_state_trajectory');
+                visual_scene_ml_translation_trajectory = loadData(collection_date, subject_id, condition_list{i_condition}, i_trial, 'visual_scene_ml_translation__trajectory'); %take note of the double "_"
+                [stimulus_state_trajectory, time_stimulus] = loadData(collection_date, subject_id, condition_list{i_condition}, i_trial, 'stimulus_state_trajectory');
             end
             if strcmp(experimental_paradigm, 'Vision') || strcmp(experimental_paradigm, 'CadenceVision')
 %                 current_rotation_trajectory = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'current_rotation_trajectory');
-                current_rotation_trajectory = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'visual_rotation_angle_trajectory');
-                current_acceleration_trajectory = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'visual_rotation_acceleration_trajectory');
-                [stimulus_state_trajectory, time_stimulus] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'stimulus_state_trajectory');
+                current_rotation_trajectory = loadData(collection_date, subject_id, condition_list{i_condition}, i_trial, 'visual_rotation_angle_trajectory');
+                current_acceleration_trajectory = loadData(collection_date, subject_id, condition_list{i_condition}, i_trial, 'visual_rotation_acceleration_trajectory');
+                [stimulus_state_trajectory, time_stimulus] = loadData(collection_date, subject_id, condition_list{i_condition}, i_trial, 'stimulus_state_trajectory');
             end
             if strcmp(experimental_paradigm, 'GVS') || strcmp(experimental_paradigm, 'CadenceGVS') 
-                gvs_trajectory = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'GVS_current_trajectory');
-                [stimulus_state_trajectory, time_stimulus] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'stimulus_state_trajectory');
+                gvs_trajectory = loadData(collection_date, subject_id, condition_list{i_condition}, i_trial, 'GVS_current_trajectory');
+                [stimulus_state_trajectory, time_stimulus] = loadData(collection_date, subject_id, condition_list{i_condition}, i_trial, 'stimulus_state_trajectory');
             end
 
 
@@ -321,8 +326,8 @@ function determineStretchesToAnalyze(varargin)
             if visualize
                 LHEE = extractMarkerData(marker_trajectories, marker_labels, 'LHEE');
                 RHEE = extractMarkerData(marker_trajectories, marker_labels, 'RHEE');
-                [left_forceplate_wrench_world_trajectory, time_left_forceplate] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'left_foot_wrench_world', 'optional');
-                [right_forceplate_wrench_world_trajectory, time_right_forceplate] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'right_foot_wrench_world', 'optional');
+                [left_forceplate_wrench_world_trajectory, time_left_forceplate] = loadData(collection_date, subject_id, condition_list{i_condition}, i_trial, 'left_foot_wrench_world', 'optional');
+                [right_forceplate_wrench_world_trajectory, time_right_forceplate] = loadData(collection_date, subject_id, condition_list{i_condition}, i_trial, 'right_foot_wrench_world', 'optional');
                 
 %                 figure; axes; hold on
 %                 plot(time_stimulus, stimulus_state_trajectory*0.02);
@@ -1644,7 +1649,7 @@ function determineStretchesToAnalyze(varargin)
             end
             
             if strcmp(condition_stimulus, 'VISUAL')
-               bands_per_stretch = 2;
+                bands_per_stretch = 2;
                 
                 number_of_triggers = length(trigger_indices_mocap);
                 closest_heelstrike_distance_times = zeros(number_of_triggers, 1);
@@ -1767,6 +1772,7 @@ function determineStretchesToAnalyze(varargin)
                     elseif strcmp(trigger_foot, 'right')
                         if length(right_touchdown_times) < index_right + 1 || removal_flags(i_trigger) == 1 || index_right == 1
                             % data doesn't include the required number of steps after the trigger
+                            removal_flags(i_trigger) = 1;
                             right_foot_heelstrike_pre = NaN;
                             right_foot_heelstrike_0 = NaN;
                             right_foot_heelstrike_1 = NaN;
@@ -2297,7 +2303,6 @@ function determineStretchesToAnalyze(varargin)
                 condition_gender_list{i_stretch} = gender;
             end
             conditions_trial.gender_list = condition_gender_list;
-            
 
             %% remove stretches where important variables are missing
 
@@ -2404,12 +2409,11 @@ function determineStretchesToAnalyze(varargin)
                 eval(evalstring);
             end
             
-            
             %% save
             event_variables_to_save.conditions_trial = conditions_trial;
             event_variables_to_save.bands_per_stretch = bands_per_stretch;
             
-            stretches_file_name = ['analysis' filesep makeFileName(date, subject_id, condition_list{i_condition}, i_trial, 'relevantDataStretches')];
+            stretches_file_name = ['analysis' filesep makeFileName(collection_date, subject_id, condition_list{i_condition}, i_trial, 'relevantDataStretches')];
             saveDataToFile(stretches_file_name, event_variables_to_save);
             
             disp(['Finding Relevant Data Stretches: condition ' condition_list{i_condition} ', Trial ' num2str(i_trial) ' completed, found ' num2str(size(event_variables_to_save.stretch_times, 1)) ' relevant stretches, saved as ' stretches_file_name]);                
