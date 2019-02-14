@@ -91,15 +91,10 @@ function determineStretchesToAnalyze(varargin)
         for i_trial = trials_to_process
             %% load data
             ignore_times = [];
-            load(['analysis' filesep makeFileName(collection_date, subject_id, condition_list{i_condition}, i_trial, 'events')]);
+            load(['analysis' filesep makeFileName(date, subject_id, condition_list{i_condition}, i_trial, 'events')]);
 %             load(['analysis' filesep makeFileName(date, subject_id, condition_list{i_condition}, i_trial, 'stepEvents')]);
 %             load(['processed' filesep makeFileName(date, subject_id, condition_list{i_condition}, i_trial, 'kinematicTrajectories')]);
             
-            right_pushoff_times = event_data{strcmp(event_labels, 'right_pushoff')};
-            right_touchdown_times = event_data{strcmp(event_labels, 'right_touchdown')};
-            left_pushoff_times = event_data{strcmp(event_labels, 'left_pushoff')};
-            left_touchdown_times = event_data{strcmp(event_labels, 'left_touchdown')};
-
             % determine experimental condition
             this_trial_type = condition_list{i_condition};
             condition_experimental = study_settings.get('experimental_condition');
@@ -111,6 +106,11 @@ function determineStretchesToAnalyze(varargin)
             end
             if strcmp(condition_experimental, 'determine_from_type_day_combination')
                 % do nothing, we'll deal with this depending on experiment type
+            end
+            if strcmp(experimental_paradigm, 'platformShift')            
+                [condition_table, condition_header] = loadConditionTableFromFile(conditions_file_name);
+                this_trial_line_indicator = strcmp(num2str(i_trial), condition_table(:, strcmp(condition_header, 'trial')));
+                condition_experimental = condition_table{this_trial_line_indicator, strcmp(condition_header, 'condition')};
             end
             
             % determine stimulus type
@@ -190,11 +190,15 @@ function determineStretchesToAnalyze(varargin)
             
             % determine indices for optional markers
             marker_weight_table = study_settings.get('marker_weights');
-            optional_marker_list = marker_weight_table(:, 1);
-            optional_marker_indices = [];
-            for i_marker = 1 : length(optional_marker_list)
-                marker_indices = extractMarkerData(marker_trajectories, marker_labels, optional_marker_list{i_marker}, 'indices');
-                optional_marker_indices = [optional_marker_indices marker_indices];
+            if isempty(marker_weight_table)
+                optional_marker_indices = [];
+            else
+                optional_marker_list = marker_weight_table(:, 1);
+                optional_marker_indices = [];
+                for i_marker = 1 : length(optional_marker_list)
+                    marker_indices = extractMarkerData(marker_trajectories, marker_labels, optional_marker_list{i_marker}, 'indices');
+                    optional_marker_indices = [optional_marker_indices marker_indices];
+                end
             end
             essential_marker_indicator = ~ismember(1 : size(marker_trajectories, 2), optional_marker_indices);
             
@@ -261,6 +265,24 @@ function determineStretchesToAnalyze(varargin)
                 end
             end
             
+            %% extract events
+            if strcmp(condition_stimulus, 'NONE') ...
+                    || strcmp(condition_stimulus, 'VISUAL') || strcmp(experimental_paradigm, 'GVS_old') ...
+                    || strcmp(experimental_paradigm, 'Vision') || strcmp(experimental_paradigm, 'CadenceVision') ...
+                    || strcmp(experimental_paradigm, 'GVS') || strcmp(experimental_paradigm, 'CadenceGVS') ...
+                    || strcmp(condition_stimulus, 'OBSTACLE') || strcmp(condition_stimulus, 'ARMSENSE') ...
+                    || strcmp(experimental_paradigm, 'Vision Stochastic')
+                right_pushoff_times = event_data{strcmp(event_labels, 'right_pushoff')};
+                right_touchdown_times = event_data{strcmp(event_labels, 'right_touchdown')};
+                left_pushoff_times = event_data{strcmp(event_labels, 'left_pushoff')};
+                left_touchdown_times = event_data{strcmp(event_labels, 'left_touchdown')};
+            end
+            if strcmp(experimental_paradigm, 'platformShift')
+                perturbation_start_times = event_data{strcmp(event_labels, 'perturbation_start')};
+                perturbation_end_times = event_data{strcmp(event_labels, 'perturbation_end')};
+                response_end_times = event_data{strcmp(event_labels, 'perturbation_end_plus_two')};
+            end
+            
             %% find triggers
             %
             % Find the triggering events that indicate a stretch of interest. For perturbation experiments, this is the onset of
@@ -313,6 +335,10 @@ function determineStretchesToAnalyze(varargin)
             end
             if strcmp(experimental_paradigm, 'Vision Stochastic')
                 trigger_times = [];
+            end
+            if strcmp(experimental_paradigm, 'platformShift')
+                % use all touchdown events as triggers
+                trigger_times = perturbation_start_times;
             end
             
             % calculate indices
@@ -368,7 +394,7 @@ function determineStretchesToAnalyze(varargin)
                 stretch_pushoff_times = zeros(number_of_triggers, 1);
                 closest_heelstrike_distance_times = zeros(number_of_triggers, 1);
                 condition_stance_foot_list = cell(number_of_triggers, 1);
-                condition_perturbation_list = cell(number_of_triggers, 1);
+                perturbation_list = cell(number_of_triggers, 1);
                 condition_delay_list = cell(number_of_triggers, 1);
                 condition_index_list = cell(number_of_triggers, 1);
                 condition_experimental_list = cell(number_of_triggers, 1);
@@ -376,7 +402,7 @@ function determineStretchesToAnalyze(varargin)
                 condition_day_list = cell(number_of_triggers, 1);
                 
                 for i_trigger = 1 : number_of_triggers
-                    condition_perturbation_list{i_trigger, 1} = 'N/A';
+                    perturbation_list{i_trigger, 1} = 'N/A';
                     condition_delay_list{i_trigger, 1} = 'N/A';
                     condition_experimental_list{i_trigger, 1} = condition_experimental;
                     condition_stimulus_list{i_trigger, 1} = condition_stimulus;
@@ -429,7 +455,7 @@ function determineStretchesToAnalyze(varargin)
                 stretch_end_times = stretch_end_times(unflagged_indices, :);
                 stretch_pushoff_times = stretch_pushoff_times(unflagged_indices, :);
                 condition_stance_foot_list = condition_stance_foot_list(unflagged_indices, :);
-                condition_perturbation_list = condition_perturbation_list(unflagged_indices, :);
+                perturbation_list = perturbation_list(unflagged_indices, :);
                 condition_delay_list = condition_delay_list(unflagged_indices, :);
                 condition_index_list = condition_index_list(unflagged_indices, :);
                 condition_experimental_list = condition_experimental_list(unflagged_indices, :);
@@ -453,7 +479,7 @@ function determineStretchesToAnalyze(varargin)
 
                 conditions_trial = struct;
                 conditions_trial.condition_stance_foot_list = condition_stance_foot_list;
-                conditions_trial.condition_perturbation_list = condition_perturbation_list;
+                conditions_trial.condition_perturbation_list = perturbation_list;
                 conditions_trial.condition_delay_list = condition_delay_list;
                 conditions_trial.condition_index_list = condition_index_list;
                 conditions_trial.condition_experimental_list = condition_experimental_list;
@@ -698,7 +724,7 @@ function determineStretchesToAnalyze(varargin)
                 stretch_pushoff_times = zeros(number_of_triggers, 6);
                 closest_heelstrike_distance_times = zeros(number_of_triggers, 1);
                 condition_stance_foot_list = cell(number_of_triggers, 6);
-                condition_perturbation_list = cell(number_of_triggers, 6);
+                perturbation_list = cell(number_of_triggers, 6);
                 condition_delay_list = cell(number_of_triggers, 6);
                 condition_index_list = cell(number_of_triggers, 6);
                 condition_experimental_list = cell(number_of_triggers, 6);
@@ -708,20 +734,20 @@ function determineStretchesToAnalyze(varargin)
                 for i_trigger = 1 : number_of_triggers
                    % perturbation condition
                     if illusion_trajectory(stim_start_indices_labview(i_trigger)) > 0
-                        condition_perturbation_list{i_trigger, 1} = 'ILLUSION_RIGHT';
-                        condition_perturbation_list{i_trigger, 2} = 'ILLUSION_RIGHT';
-                        condition_perturbation_list{i_trigger, 3} = 'ILLUSION_RIGHT';
-                        condition_perturbation_list{i_trigger, 4} = 'ILLUSION_RIGHT';
+                        perturbation_list{i_trigger, 1} = 'ILLUSION_RIGHT';
+                        perturbation_list{i_trigger, 2} = 'ILLUSION_RIGHT';
+                        perturbation_list{i_trigger, 3} = 'ILLUSION_RIGHT';
+                        perturbation_list{i_trigger, 4} = 'ILLUSION_RIGHT';
                     elseif illusion_trajectory(stim_start_indices_labview(i_trigger)) < 0
-                        condition_perturbation_list{i_trigger, 1} = 'ILLUSION_LEFT';
-                        condition_perturbation_list{i_trigger, 2} = 'ILLUSION_LEFT';
-                        condition_perturbation_list{i_trigger, 3} = 'ILLUSION_LEFT';
-                        condition_perturbation_list{i_trigger, 4} = 'ILLUSION_LEFT';
+                        perturbation_list{i_trigger, 1} = 'ILLUSION_LEFT';
+                        perturbation_list{i_trigger, 2} = 'ILLUSION_LEFT';
+                        perturbation_list{i_trigger, 3} = 'ILLUSION_LEFT';
+                        perturbation_list{i_trigger, 4} = 'ILLUSION_LEFT';
                     else
         %                 disp(['Trial ' num2str(i_trial) ': something went wrong at time ' num2str(time_stimulus(trigger_indices_labview(i_trigger))) ' - no stim']);
                     end
-                    condition_perturbation_list{i_trigger, 5} = 'CONTROL';
-                    condition_perturbation_list{i_trigger, 6} = 'CONTROL';
+                    perturbation_list{i_trigger, 5} = 'CONTROL';
+                    perturbation_list{i_trigger, 6} = 'CONTROL';
                 
                     % delay condition
                     wait_time_stim = time_stimulus(stim_start_indices_labview(i_trigger)) - time_stimulus(trigger_indices_labview(i_trigger));
@@ -1160,7 +1186,7 @@ function determineStretchesToAnalyze(varargin)
                 stretch_pushoff_times = stretch_pushoff_times(unflagged_indices, :);
                 stretch_end_times = stretch_end_times(unflagged_indices, :);
                 condition_stance_foot_list = condition_stance_foot_list(unflagged_indices, :);
-                condition_perturbation_list = condition_perturbation_list(unflagged_indices, :);
+                perturbation_list = perturbation_list(unflagged_indices, :);
                 condition_delay_list = condition_delay_list(unflagged_indices, :);
                 condition_index_list = condition_index_list(unflagged_indices, :);
                 condition_experimental_list = condition_experimental_list(unflagged_indices, :); % XXX needs to be updated
@@ -1175,7 +1201,7 @@ function determineStretchesToAnalyze(varargin)
                 stretch_end_times = reshape(stretch_end_times, numel(stretch_end_times), 1);
                 
                 condition_stance_foot_list = reshape(condition_stance_foot_list, numel(condition_stance_foot_list), 1);
-                condition_perturbation_list = reshape(condition_perturbation_list, numel(condition_perturbation_list), 1);
+                perturbation_list = reshape(perturbation_list, numel(perturbation_list), 1);
                 condition_delay_list = reshape(condition_delay_list, numel(condition_delay_list), 1);
                 condition_index_list = reshape(condition_index_list, numel(condition_index_list), 1);
                 condition_experimental_list = reshape(condition_experimental_list, numel(condition_experimental_list), 1);
@@ -1214,7 +1240,7 @@ function determineStretchesToAnalyze(varargin)
                 stretch_times = [stretch_start_times stretch_end_times];
                 conditions_trial = struct;
                 conditions_trial.condition_stance_foot_list = condition_stance_foot_list;
-                conditions_trial.condition_perturbation_list = condition_perturbation_list;
+                conditions_trial.condition_perturbation_list = perturbation_list;
                 conditions_trial.condition_delay_list = condition_delay_list;
                 conditions_trial.condition_index_list = condition_index_list;
                 conditions_trial.condition_experimental_list = condition_experimental_list;
@@ -1260,18 +1286,18 @@ function determineStretchesToAnalyze(varargin)
                 condition_direction_list = cell(size(condition_stance_foot_list));
                 for i_stretch = 1 : length(condition_direction_list)
                     if strcmp(condition_trigger_foot_list{i_stretch}, 'TRIGGER_RIGHT')
-                        if strcmp(condition_perturbation_list{i_stretch}, 'ILLUSION_RIGHT')
+                        if strcmp(perturbation_list{i_stretch}, 'ILLUSION_RIGHT')
                             condition_direction_list{i_stretch} = 'TOWARDS';
                         end
-                        if strcmp(condition_perturbation_list{i_stretch}, 'ILLUSION_LEFT')
+                        if strcmp(perturbation_list{i_stretch}, 'ILLUSION_LEFT')
                             condition_direction_list{i_stretch} = 'AWAY';
                         end
                     end
                     if strcmp(condition_trigger_foot_list{i_stretch}, 'TRIGGER_LEFT')
-                        if strcmp(condition_perturbation_list{i_stretch}, 'ILLUSION_RIGHT')
+                        if strcmp(perturbation_list{i_stretch}, 'ILLUSION_RIGHT')
                             condition_direction_list{i_stretch} = 'AWAY';
                         end
-                        if strcmp(condition_perturbation_list{i_stretch}, 'ILLUSION_LEFT')
+                        if strcmp(perturbation_list{i_stretch}, 'ILLUSION_LEFT')
                             condition_direction_list{i_stretch} = 'TOWARDS';
                         end
                     end
@@ -2290,8 +2316,31 @@ function determineStretchesToAnalyze(varargin)
                 conditions_trial.block_list = block_list;
             end
             
+            if strcmp(experimental_paradigm, 'platformShift')
+                stance_foot_data = {'STANCE_BOTH', 'STANCE_BOTH'};
+                bands_per_stretch = 2;
+                % determine start and end
+                
+                perturbation_list = cell(number_of_triggers, 1);
+                
+                for i_trigger = 1 : number_of_triggers
+                    perturbation_list{i_trigger, 1} = condition_experimental;
+                    stretch_times(i_trigger, :) = [perturbation_start_times(i_trigger); perturbation_end_times(i_trigger); response_end_times(i_trigger)];
+                end
+                
+                     
+
+                conditions_trial = struct;
+                conditions_trial.perturbation_list = perturbation_list;
+                
+                event_variables_to_save.stretch_start_times = stretch_times(:, 1);
+                event_variables_to_save.stretch_end_times = stretch_times(:, end);
+                event_variables_to_save.stretch_times = stretch_times;
+                event_variables_to_save.stance_foot_data = stance_foot_data;
+            end
+
             % add subject
-            condition_subject_list = cell(size(event_variables_to_save.stance_foot_data, 1), 1);
+            condition_subject_list = cell(size(event_variables_to_save.stretch_times, 1), 1);
             for i_stretch = 1 : length(condition_subject_list)
                 condition_subject_list{i_stretch} = subject_id;
             end
@@ -2346,6 +2395,9 @@ function determineStretchesToAnalyze(varargin)
             end
             %  check data availability for markers with non-zero weight
             marker_weights = study_settings.get('marker_weights');
+            if isempty(marker_weights)
+                marker_weights = ones(size(marker_labels));
+            end
             for i_marker = 1 : 3 : length(marker_labels)
                 this_marker_weight = 1; % 1 is default
                 
