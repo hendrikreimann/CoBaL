@@ -132,7 +132,7 @@ function determineStretchesToAnalyze(varargin)
             % marker data
             [marker_trajectories, time_marker, sampling_rate_marker, marker_labels, marker_directions] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'marker_trajectories');
             if study_settings.get('prune_gaps_com')
-                [com_trajectories, time_marker, sampling_rate_marker, com_labels, com_directions] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'com_trajectories');
+                [com_trajectories, time_marker, sampling_rate_marker, com_labels, com_directions] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'com_position_trajectories');
             
 %                 [com_trajectories, time_marker, sampling_rate_marker, com_labels, com_directions] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'com_trajectories_optimized')
             end
@@ -638,8 +638,7 @@ function determineStretchesToAnalyze(varargin)
                     condition_startfoot_list = {};
                     condition_affectedSide_list = cell(number_of_stretches, 1);
                     condition_affected_stancefoot_list = cell(number_of_stretches, 1);
-                        
-                    % TO DO: what # does this yield?
+                  
                     number_of_stretches = length(stretch_starter_events) - 1;
                     
                     for i_stretch = 1 : number_of_stretches % assign i_stretch to # of stretches
@@ -1595,16 +1594,24 @@ function determineStretchesToAnalyze(varargin)
                     % determine where the "no step zone" was at stretch
                     % trigger
                     zone_direction_list = cell(size(trigger_foot_list));
-                    scene_translation_mod100 = mod(scene_translation_trajectory + 25,100); % the origin of the scene is +25 relative to the end of the virtual objects
+                    scene_translation_mod100 = mod(scene_translation_trajectory + 25, 100); %TO DO the origin of the scene is +25 relative to the end of the virtual objects
                     
                     for i_stretch = 1:length(trigger_indices_labview)
                         [~,scene_translation_mod100_index] = min(abs(virtual_object_ap_location - scene_translation_mod100(trigger_indices_labview(i_stretch))));
                         % how many conditions do we have? if 
-                        if (virtual_object_ml_location(scene_translation_mod100_index) == 2 && strcmp(trigger_foot_list{i_stretch}, 'TRIGGER_LEFT') && ~strcmp(stimulus_list{i_stretch}, 'STIM_NONE')) || ...
-                                (virtual_object_ml_location(scene_translation_mod100_index) == 0 && strcmp(trigger_foot_list{i_stretch}, 'TRIGGER_RIGHT') && ~strcmp(stimulus_list{i_stretch}, 'STIM_NONE'))
+                        
+                        %% CHECK THIS %
+                        % 2 = NO STEP ZONE RIGHT
+                        % 0 = NO STEP ZONE LEFT
+                        if (virtual_object_ml_location(scene_translation_mod100_index) == 2 && strcmp(trigger_foot_list{i_stretch}, 'TRIGGER_LEFT') && strcmp(direction_list{i_stretch}, 'STIM_TOWARDS')) || ...
+                                (virtual_object_ml_location(scene_translation_mod100_index) == 2 && strcmp(trigger_foot_list{i_stretch}, 'TRIGGER_RIGHT') && strcmp(direction_list{i_stretch}, 'STIM_AWAY')) || ...
+                                (virtual_object_ml_location(scene_translation_mod100_index) == 0 && strcmp(trigger_foot_list{i_stretch}, 'TRIGGER_RIGHT') && strcmp(direction_list{i_stretch}, 'STIM_TOWARDS')) ||...
+                                (virtual_object_ml_location(scene_translation_mod100_index) == 0 && strcmp(trigger_foot_list{i_stretch}, 'TRIGGER_LEFT') && strcmp(direction_list{i_stretch}, 'STIM_AWAY'))
                             zone_direction_list{i_stretch} = 'STIM_TOWARDS_ZONE';
-                        elseif (virtual_object_ml_location(scene_translation_mod100_index) == 0 && strcmp(trigger_foot_list{i_stretch}, 'TRIGGER_LEFT') && ~strcmp(stimulus_list{i_stretch}, 'STIM_NONE')) || ...
-                                (virtual_object_ml_location(scene_translation_mod100_index) == 2 && strcmp(trigger_foot_list{i_stretch}, 'TRIGGER_RIGHT') && ~strcmp(stimulus_list{i_stretch}, 'STIM_NONE'))
+                        elseif (virtual_object_ml_location(scene_translation_mod100_index) == 0 && strcmp(trigger_foot_list{i_stretch}, 'TRIGGER_LEFT') && strcmp(direction_list{i_stretch}, 'STIM_TOWARDS')) || ...
+                                (virtual_object_ml_location(scene_translation_mod100_index) == 0 && strcmp(trigger_foot_list{i_stretch}, 'TRIGGER_RIGHT') && strcmp(direction_list{i_stretch}, 'STIM_AWAY')) || ...
+                                (virtual_object_ml_location(scene_translation_mod100_index) == 2 && strcmp(trigger_foot_list{i_stretch}, 'TRIGGER_RIGHT') && strcmp(direction_list{i_stretch}, 'STIM_TOWARDS')) || ...
+                                (virtual_object_ml_location(scene_translation_mod100_index) == 2 && strcmp(trigger_foot_list{i_stretch}, 'TRIGGER_LEFT') && strcmp(direction_list{i_stretch}, 'STIM_AWAY'))
                             zone_direction_list{i_stretch} = 'STIM_AWAY_ZONE';
                         else
                             zone_direction_list{i_stretch} = 'STIM_NONE';
