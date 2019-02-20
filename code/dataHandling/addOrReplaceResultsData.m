@@ -14,7 +14,7 @@
 %     You should have received a copy of the GNU General Public License
 %     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-function [data, names, directions] = addOrOverwriteResultsData(data, names, directions, new_data, new_name, new_directions)
+function [data, names, directions] = addOrReplaceResultsData(data, names, directions, new_data, new_name, new_directions)
     index_in_existing_data = find(strcmp(names, new_name));
     if isempty(index_in_existing_data)
         data = [data; new_data];
@@ -22,7 +22,7 @@ function [data, names, directions] = addOrOverwriteResultsData(data, names, dire
         directions = [directions; new_directions];
     else
         data{index_in_existing_data} = new_data;
-        directions(1,:) = new_directions;
+        directions(index_in_existing_data,:) = new_directions;
         % TODO: check whether directions are different
     end
 end

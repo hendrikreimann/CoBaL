@@ -17,7 +17,7 @@
 % function exportResults
 
 %% load data
-% load results.mat
+load results.mat
 
 %% load settings
 if ~exist('studySettings.txt', 'file')
@@ -44,8 +44,8 @@ number_of_time_points_normalized = study_settings.get('number_of_time_steps_norm
 process_trajectory_data = number_of_variables_to_export_trajectories > 0;
 
 %% gather univariate data for each band
-data_cell = cell(number_of_data_points, number_of_variables_to_export * number_of_bands);
-data_header = cell(1, number_of_variables_to_export * number_of_bands);
+data_cell = {};
+data_header = {};
 for i_variable = 1 : number_of_variables_to_export
     % load and assemble data
     this_variable_name = variables_to_export{i_variable};
@@ -53,21 +53,22 @@ for i_variable = 1 : number_of_variables_to_export
     this_variable_data = variable_data{variable_index_in_data_cell}';
     
     % export data
-    for i_band = 1 : number_of_bands
+    number_of_entries = size(this_variable_data, 2);
+    for i_entry = 1 : number_of_entries
         % extract band data and transform to strings
-        data_strings = num2str(this_variable_data(:, i_band));
+        data_strings = num2str(this_variable_data(:, i_entry));
         this_variable_data_cell = strtrim(cellstr(data_strings));
         
         % store in appropriate location in data cell
-        this_band_column = (i_variable-1)*number_of_bands + i_band;
-        data_cell(:, this_band_column) = this_variable_data_cell;
+        data_cell = [data_cell this_variable_data_cell];
         
         % make and store label
-        if number_of_bands > 1
-            data_header{this_band_column} = [this_variable_name '_' band_labels{i_band}];
+        if number_of_entries > 1
+            this_label = [this_variable_name '_' band_labels{i_entry}];
         else
-            data_header{this_band_column} = this_variable_name;
+            this_label = this_variable_name;
         end
+        data_header = [data_header this_label];
     end
 end
 
@@ -227,7 +228,7 @@ if study_settings.get('export_trajectories_means')
     time_point_strings = num2str(time_rescaled);
     time_point_cell_single = strtrim(cellstr(time_point_strings));
     time_point_cell_extended = repmat(time_point_cell_single, number_of_condition_combinations, 1);
-    condition_cell_extended = cell(number_of_condition_combinations * number_of_time_points_per_stretch, 4);
+    condition_cell_extended = cell(number_of_condition_combinations * number_of_time_points_per_stretch, 5);
     for i_combination = 1 : number_of_condition_combinations
         this_combination = unique_condition_combination_labels(i_combination, :);
         condition_cell_extended((i_combination-1)*number_of_time_points_per_stretch+1 : i_combination*number_of_time_points_per_stretch, :) ...
