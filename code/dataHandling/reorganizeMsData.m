@@ -223,10 +223,10 @@ function condition_label = determineConditionLabel(trial_number)
         condition_label = 'calibration';
     end
     if trial_number == 3
-        condition_label = 'QSEO';
+        condition_label = 'quietEO';
     end
     if trial_number == 4
-        condition_label = 'QSEC';
+        condition_label = 'quietEC';
     end
     if ismember(trial_number, 5:9)
         condition_label = 'ramp012';

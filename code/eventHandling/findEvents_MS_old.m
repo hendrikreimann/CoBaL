@@ -16,21 +16,8 @@
 
 % this function finds the heelstrike and pushoff events
 
-% input: 
-% subjectInfo.mat
-% subjectModel.mat
-% markerTrajectories
-% left_touchdown_method / right_touchdown_method in subjectSettings
-%
-% output:
-% file stepEvents.mat, containing
-% - left_pushoff_times
-% - left_touchdown_times
-% - right_pushoff_times
-% - right_touchdown_times
 
-
-function findEvents_MS(varargin)
+function findEvents_MS_old(varargin)
 
     % parse arguments
     [condition_list, trial_number_list] = parseTrialArguments(varargin{:});
@@ -56,15 +43,6 @@ function findEvents_MS(varargin)
         study_settings_file = ['..' filesep '..' filesep 'studySettings.txt'];
     end
     study_settings = SettingsCustodian(study_settings_file);
-    
-    % conditions
-    conditions_file_name = [];
-    if exist('conditions.csv', 'file')
-        conditions_file_name = 'conditions.csv';
-    end
-    if exist(makeFileName(date, subject_id, 'conditions.csv'), 'file')
-        conditions_file_name = makeFileName(date, subject_id, 'conditions.csv');
-    end    
     
     for i_condition = 1 : length(condition_list)
         trials_to_process = trial_number_list{i_condition};
@@ -99,8 +77,7 @@ function findEvents_MS(varargin)
 
             %% find events
             platform_events = [];
-            condition_experimental = loadConditionFromFile(conditions_file_name, 'condition', i_trial);
-            if strcmp(condition_experimental(1:end-3), 'continuous')
+            if strcmp(condition(1:end-2), 'continuous')
                 [~, platform_pos_peak_indices] = findpeaks(platform_trajectory, 'MinPeakProminence', subject_settings.get('platform_pos_peak_prominence_threshold'), 'MinPeakDistance', subject_settings.get('platform_pos_peak_distance_threshold') * sampling_rate_marker);
                 [~, platform_neg_peak_indices] = findpeaks(-platform_trajectory, 'MinPeakProminence', subject_settings.get('platform_pos_peak_prominence_threshold'), 'MinPeakDistance', subject_settings.get('platform_pos_peak_distance_threshold') * sampling_rate_marker);
 %                 [~, surround_pos_peak_indices] = findpeaks(surround_trajectory, 'MinPeakProminence', subject_settings.get('platform_pos_peak_prominence_threshold'), 'MinPeakDistance', subject_settings.get('platform_pos_peak_distance_threshold') * sampling_rate_marker);
@@ -127,7 +104,7 @@ function findEvents_MS(varargin)
                   };
             end
             
-            if length(condition_experimental) >= 4 && strcmp(condition_experimental(1:4), 'RAMP')
+            if length(condition) >= 4 && strcmp(condition(1:4), 'ramp')
                 distance_threshold = subject_settings.get('platform_acc_peak_distance_threshold') * sampling_rate_marker;
                 if distance_threshold > length(platform_acc_trajectory) - 2
                     distance_threshold = length(platform_acc_trajectory) - 2;
@@ -167,7 +144,7 @@ function findEvents_MS(varargin)
               
             end
 
-            if length(condition_experimental) >= 5 && strcmp(condition_experimental(1:5), 'QUIET')
+            if length(condition) >= 5 && strcmp(condition(1:5), 'quiet')
                 trial_start_time = time_marker(1);
                 trial_end_time = time_marker(end);
                 
