@@ -59,7 +59,8 @@ function reorganizeMsData(varargin)
         trial_number = zeroPrefixedIntegerString(str2num(file_name_split{3}(2:end)), 3);
         
         % condition
-        addTrialToConditionFile(date, subject_id, str2num(trial_number), PDP_condname);
+%         addTrialToConditionFile(date, subject_id, str2num(trial_number));
+        condition_label = determineConditionLabel(str2num(trial_number));
         
         % marker data
         number_of_markers = length(pos_labels);
@@ -103,7 +104,7 @@ function reorganizeMsData(varargin)
 
         % save
         save_folder = 'processed';
-        save_file_name = makeFileName(date, subject_id, trial_type, trial_number, 'markerTrajectories.mat');
+        save_file_name = makeFileName(date, subject_id, condition_label, trial_number, 'markerTrajectories.mat');
         save ...
           ( ...
             [save_folder filesep save_file_name], ...
@@ -216,66 +217,118 @@ function new_string = reformatCondition(old_string, trial_number)
     end
 end
 
-function addTrialToConditionFile(date, subject_id, trial_number, condition_string)
-    conditions_file_name = makeFileName(date, subject_id, 'conditions.csv');
-    condition = reformatCondition(condition_string, trial_number);
-    
-    if ~exist(conditions_file_name, 'file')
-        header_line = 'trial,condition\n';
-        file_id = fopen(conditions_file_name, 'w');
-        fprintf(file_id, header_line);
-        fclose(file_id);
+function condition_label = determineConditionLabel(trial_number)
+    % determine condition string
+    if trial_number == 2
+        condition_label = 'calibration';
     end
-    
-    % load conditions file
-    file_id = fopen(conditions_file_name, 'r');
-    header_line = fgetl(file_id);
-    text_cell = {};
-    text_line = fgetl(file_id);
-    while ischar(text_line)
-        text_cell = [text_cell; text_line]; %#ok<AGROW>
-        text_line = fgetl(file_id);
+    if trial_number == 3
+        condition_label = 'QSEO';
     end
-    fclose(file_id);
-    
-    % transform to arrays
-    header = strsplit(strrep(header_line, ' ', ''), ',');
-    condition_header = header(2 : end);
-    number_of_trials = size(text_cell, 1);
-    number_of_conditions = size(header, 2) - 1;
-    trials_from_condition_file_list = zeros(number_of_trials, 1) * NaN;
-    condition_cell = cell(number_of_trials, number_of_conditions);
-    for i_trial = 1 : number_of_trials
-        text_line = text_cell{i_trial};
-        line_split = strsplit(text_line, ',');
-        trials_from_condition_file_list(i_trial) = str2num(line_split{1});
-        condition_cell(i_trial, :) = line_split(2:end);
+    if trial_number == 4
+        condition_label = 'QSEC';
     end
-    
-    % check if current trial is already there
-    condition_column = find(strcmp(condition_header, 'condition'));
-    condition_fit = strcmp(condition_cell(:, condition_column), condition);
-    trial_fit = (trials_from_condition_file_list == trial_number);
-    complete_fit = trial_fit & condition_fit;
-    if ~any(complete_fit)
-        % this trial isn't listed yet, add it
-        condition_line_cell = cell(1, number_of_conditions);
-        condition_line_cell{condition_column} = condition;
-        condition_line = num2str(trial_number);
-        for i_condition = 1 : number_of_conditions
-            condition_line = [condition_line ',' condition_line_cell{i_condition}];
-        end
-        
-        % write to file
-        header_line = [condition_line '\n'];
-        file_id = fopen(conditions_file_name, 'a');
-        fprintf(file_id, header_line);
-        fclose(file_id);
+    if ismember(trial_number, 5:9)
+        condition_label = 'ramp012';
     end
-    
-    
-    
+    if ismember(trial_number, 10:14)
+        condition_label = 'ramp036';
+    end
+    if ismember(trial_number, 15:19)
+        condition_label = 'ramp060';
+    end
+    if ismember(trial_number, 20:24)
+        condition_label = 'ramp084';
+    end
+    if ismember(trial_number, 25:29)
+        condition_label = 'ramp120';
+    end
+
+    if ismember(trial_number, 31:35)
+        condition_label = 'continuous01';
+    end
+    if ismember(trial_number, 36:40)
+        condition_label = 'continuous02';
+    end
+    if ismember(trial_number, 41:45)
+        condition_label = 'continuous03';
+    end
+    if ismember(trial_number, 46:50)
+        condition_label = 'continuous04';
+    end
+    if ismember(trial_number, 51:55)
+        condition_label = 'continuous05';
+    end
 end
+
+% function addTrialToConditionFile(date, subject_id, trial_number)
+% 
+%     
+% 
+% 
+%     conditions_file_name = makeFileName(date, subject_id, 'conditions.csv');
+%     
+%     
+%     
+%     
+%     condition = reformatCondition(condition_string, trial_number);
+%     
+%     if ~exist(conditions_file_name, 'file')
+%         header_line = 'trial,condition\n';
+%         file_id = fopen(conditions_file_name, 'w');
+%         fprintf(file_id, header_line);
+%         fclose(file_id);
+%     end
+%     
+%     % load conditions file
+%     file_id = fopen(conditions_file_name, 'r');
+%     header_line = fgetl(file_id);
+%     text_cell = {};
+%     text_line = fgetl(file_id);
+%     while ischar(text_line)
+%         text_cell = [text_cell; text_line]; %#ok<AGROW>
+%         text_line = fgetl(file_id);
+%     end
+%     fclose(file_id);
+%     
+%     % transform to arrays
+%     header = strsplit(strrep(header_line, ' ', ''), ',');
+%     condition_header = header(2 : end);
+%     number_of_trials = size(text_cell, 1);
+%     number_of_conditions = size(header, 2) - 1;
+%     trials_from_condition_file_list = zeros(number_of_trials, 1) * NaN;
+%     condition_cell = cell(number_of_trials, number_of_conditions);
+%     for i_trial = 1 : number_of_trials
+%         text_line = text_cell{i_trial};
+%         line_split = strsplit(text_line, ',');
+%         trials_from_condition_file_list(i_trial) = str2num(line_split{1});
+%         condition_cell(i_trial, :) = line_split(2:end);
+%     end
+%     
+%     % check if current trial is already there
+%     condition_column = find(strcmp(condition_header, 'condition'));
+%     condition_fit = strcmp(condition_cell(:, condition_column), condition);
+%     trial_fit = (trials_from_condition_file_list == trial_number);
+%     complete_fit = trial_fit & condition_fit;
+%     if ~any(complete_fit)
+%         % this trial isn't listed yet, add it
+%         condition_line_cell = cell(1, number_of_conditions);
+%         condition_line_cell{condition_column} = condition;
+%         condition_line = num2str(trial_number);
+%         for i_condition = 1 : number_of_conditions
+%             condition_line = [condition_line ',' condition_line_cell{i_condition}];
+%         end
+%         
+%         % write to file
+%         header_line = [condition_line '\n'];
+%         file_id = fopen(conditions_file_name, 'a');
+%         fprintf(file_id, header_line);
+%         fclose(file_id);
+%     end
+%     
+%     
+%     
+% end
 
 
 
