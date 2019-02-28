@@ -32,6 +32,7 @@ function analyzeUcmVariance_old(varargin)
         study_settings_file = ['..' filesep '..' filesep 'studySettings.txt'];
     end
     study_settings = SettingsCustodian(study_settings_file);
+    subject_settings = SettingsCustodian('subjectSettings.txt');
     load('subjectModel.mat');
     
     across_time_conditions = study_settings.get('across_time_conditions');
@@ -40,20 +41,17 @@ function analyzeUcmVariance_old(varargin)
     ucm_variables = study_settings.get('ucm_variables');
     number_of_ucm_variables = length(ucm_variables);
     
-    % determine blocks
-%     [condition_table, condition_header] = loadConditionTableFromFile(conditions_file_name);
-%     [block_labels, trials_by_block] = determineTrialsByBlock(condition_table, condition_header);
-%     number_of_blocks = length(block_labels);
-    
     % make containers to hold the data
     subject_list_session = {};
     condition_list_session = {};
     time_point_list_session = {};
+    group_list_session = {};
     origin_trial_list_session = [];
     stretch_data_session = cell(number_of_ucm_variables, 1);
     stretch_directions_session = cell(number_of_ucm_variables, 2);
     [stretch_directions_session{:, :}] = deal('~');
     stretch_names_session = ucm_variables;
+    group_label = subject_settings.get('group');
     
     % calculate UCM variance measures
     for i_condition = 1 : length(across_time_conditions)
@@ -117,6 +115,7 @@ function analyzeUcmVariance_old(varargin)
             subject_list_session = [subject_list_session; subject_id]; %#ok<AGROW>
             time_point_list_session = [time_point_list_session; 'quiet stance across time']; %#ok<AGROW>
             condition_list_session = [condition_list_session; this_condition_label]; %#ok<AGROW>
+            group_list_session = [group_list_session; group_label]; %#ok<AGROW>
             origin_trial_list_session = [origin_trial_list_session; this_condition_trial_numbers(1)]; %#ok<AGROW>                            
 
 
@@ -189,7 +188,8 @@ function analyzeUcmVariance_old(varargin)
                     subject_list_session = [subject_list_session; subject_id]; %#ok<AGROW>
                     time_point_list_session = [time_point_list_session; expected_event_labels{i_event}]; %#ok<AGROW>
                     condition_list_session = [condition_list_session; this_condition_label]; %#ok<AGROW>
-                    origin_trial_list_session = [origin_trial_list_session; this_condition_trial_numbers(1)]; %#ok<AGROW>                            
+                    group_list_session = [group_list_session; group_label]; %#ok<AGROW>
+                    origin_trial_list_session = [origin_trial_list_session; this_condition_trial_numbers(i_trial)]; %#ok<AGROW>                            
 
                 end
             end
@@ -236,36 +236,38 @@ function analyzeUcmVariance_old(varargin)
             end
 
             % calculate and store variance measures
-            for i_event = 1 : number_of_events
-                joint_angle_data_to_analyze_this_event = joint_angle_data_to_analyze{i_event};
-                theta_mean = mean(joint_angle_data_to_analyze_this_event, 2);
-                kinematic_tree.jointAngles = theta_mean;
-                kinematic_tree.updateConfiguration;
-                for i_variable = 1 : number_of_ucm_variables
-                    % calculate Jacobian
-                    if strcmp(ucm_variables{i_variable}, 'com_ap')
-                        J_com = kinematic_tree.calculateCenterOfMassJacobian;
-                        jacobian = J_com(1, :);
-                    end
-                    if strcmp(ucm_variables{i_variable}, 'com_vert')
-                        J_com = kinematic_tree.calculateCenterOfMassJacobian;
-                        jacobian = J_com(3, :);
-                    end
-                    if strcmp(ucm_variables{i_variable}, 'com_2d')
-                        J_com = kinematic_tree.calculateCenterOfMassJacobian;
-                        jacobian = J_com([1 3], :);
-                    end
+            if number_of_trials_this_condition > 0
+                for i_event = 1 : number_of_events
+                    joint_angle_data_to_analyze_this_event = joint_angle_data_to_analyze{i_event};
+                    theta_mean = mean(joint_angle_data_to_analyze_this_event, 2);
+                    kinematic_tree.jointAngles = theta_mean;
+                    kinematic_tree.updateConfiguration;
+                    for i_variable = 1 : number_of_ucm_variables
+                        % calculate Jacobian
+                        if strcmp(ucm_variables{i_variable}, 'com_ap')
+                            J_com = kinematic_tree.calculateCenterOfMassJacobian;
+                            jacobian = J_com(1, :);
+                        end
+                        if strcmp(ucm_variables{i_variable}, 'com_vert')
+                            J_com = kinematic_tree.calculateCenterOfMassJacobian;
+                            jacobian = J_com(3, :);
+                        end
+                        if strcmp(ucm_variables{i_variable}, 'com_2d')
+                            J_com = kinematic_tree.calculateCenterOfMassJacobian;
+                            jacobian = J_com([1 3], :);
+                        end
 
-                    % calculate variance measures
-                    [V_para_this_block_this_variable, V_perp_this_block_this_variable] = calculateUcmVariance(joint_angle_data_to_analyze_this_event, jacobian);
-                    stretch_data_session{i_variable} = [stretch_data_session{i_variable} [V_para_this_block_this_variable; V_perp_this_block_this_variable]];
+                        % calculate variance measures
+                        [V_para_this_block_this_variable, V_perp_this_block_this_variable] = calculateUcmVariance(joint_angle_data_to_analyze_this_event, jacobian);
+                        stretch_data_session{i_variable} = [stretch_data_session{i_variable} [V_para_this_block_this_variable; V_perp_this_block_this_variable]];
+                    end
+                    subject_list_session = [subject_list_session; subject_id]; %#ok<AGROW>
+                    time_point_list_session = [time_point_list_session; expected_event_labels{i_event}]; %#ok<AGROW>
+                    condition_list_session = [condition_list_session; this_condition_label]; %#ok<AGROW>
+                    group_list_session = [group_list_session; group_label]; %#ok<AGROW>
+                    origin_trial_list_session = [origin_trial_list_session; this_condition_trial_numbers(1)]; %#ok<AGROW>
                 end
-                subject_list_session = [subject_list_session; subject_id]; %#ok<AGROW>
-                time_point_list_session = [time_point_list_session; expected_event_labels{i_event}]; %#ok<AGROW>
-                condition_list_session = [condition_list_session; this_condition_label]; %#ok<AGROW>
-                origin_trial_list_session = [origin_trial_list_session; this_condition_trial_numbers(1)]; %#ok<AGROW>
             end
-
         end
     end
 
@@ -282,6 +284,7 @@ function analyzeUcmVariance_old(varargin)
     conditions_session.subject_list = subject_list_session;
     conditions_session.condition_list = condition_list_session;
     conditions_session.time_point_list = time_point_list_session;
+    conditions_session.group_list = group_list_session;
     results_file_name = ['analysis' filesep makeFileName(date, subject_id, 'results')];
     save ...
       ( ...

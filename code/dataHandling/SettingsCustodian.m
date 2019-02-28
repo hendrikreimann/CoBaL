@@ -50,6 +50,10 @@ classdef SettingsCustodian < handle
                 eval(['data = this.settings_struct.' property_name ';']);
                 used_default = false;
             end
+
+            if used_default && ~optional
+                error(['Required setting "' property_name '" missing in file ' this.settings_file])
+            end
             
             if used_default
                 data_string = [];

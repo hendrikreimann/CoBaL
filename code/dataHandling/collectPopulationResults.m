@@ -36,7 +36,7 @@ function collectPopulationResults(varargin)
 
     %% collect data from all data folders
     variables_to_collect = study_settings.get('variables_to_collect');
-    variables_to_collect_long = study_settings.get('variables_to_collect_long');
+    variables_to_collect_long = study_settings.get('variables_to_collect_long', 1);
     number_of_variables_to_collect = size(variables_to_collect, 1);
     number_of_variables_to_collect_long = size(variables_to_collect_long, 1);
     conditions_settings = study_settings.get('conditions');

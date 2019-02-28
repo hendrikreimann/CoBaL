@@ -62,14 +62,15 @@ function eventGui(varargin)
     controller = eventController(data_custodian, event_data, figure_settings_file);
     
     %% stick figure and kinematic tree figure
-    scene_bound = ...
-      [ ...
-        study_settings.get('scene_bound_x_min') study_settings.get('scene_bound_x_max'); ...
-        study_settings.get('scene_bound_y_min') study_settings.get('scene_bound_y_max'); ...
-        study_settings.get('scene_bound_z_min') study_settings.get('scene_bound_z_max') ...
-      ];
   
-    if gui_settings.get('show_simple_stick_figure')
+    if gui_settings.get('show_simple_stick_figure', 1)
+        scene_bound = ...
+          [ ...
+            study_settings.get('scene_bound_x_min') study_settings.get('scene_bound_x_max'); ...
+            study_settings.get('scene_bound_y_min') study_settings.get('scene_bound_y_max'); ...
+            study_settings.get('scene_bound_z_min') study_settings.get('scene_bound_z_max') ...
+          ];
+      
         marker_trajectories = data_custodian.getBasicVariableData('marker_trajectories');
         joint_center_trajectories = data_custodian.getBasicVariableData('joint_center_trajectories');
         com_trajectories = data_custodian.getBasicVariableData('com_trajectories');
@@ -87,19 +88,7 @@ function eventGui(varargin)
         controller.scene_figure.setColors('extended plug-in gait');
         controller.scene_figure.addLines('extended plug-in gait');
     end    
-%     % kinematic tree figure
-%     if trial_data.joint_angle_data_available
-%         positions = trial_data.marker_positions(1, :);
-%         headers = trial_data.marker_labels;
-%         if ~isempty(trial_data.joint_center_positions)
-%             positions = [positions trial_data.joint_center_positions(1, :)];
-%             headers = [headers trial_data.joint_center_labels(1, :)];
-%         end
-%         [controller.kinematic_tree_stick_figure, controller.kinematic_tree_controller] = KinematicTreeController(kinematic_tree, scene_bound, 'none', positions);
-%         % link perspectives of the stick figures
-%         Link = linkprop([controller.kinematic_tree_stick_figure.sceneAxes controller.scene_figure.scene_axes], {'CameraUpVector', 'CameraPosition', 'CameraTarget', 'CameraViewAngle'}); 
-%         setappdata(gcf, 'StoreTheLink', Link);
-%     end
+
     
     %% trajectory figures
     % get list of figures from settings
@@ -171,7 +160,7 @@ end
 function variable_names = getVariableListFromSettings(settings, figure_list)
     % get variables for trajectory figures
     variable_names = {};
-    for i_figure = 1 : length(figure_list)
+    for i_figure = 1 : size(figure_list, 1)
         this_figure_settings = settings.get(figure_list{i_figure});
         for i_variable = 1 : size(this_figure_settings, 1);
             this_entry_type = this_figure_settings{i_variable, 1};
@@ -183,7 +172,7 @@ function variable_names = getVariableListFromSettings(settings, figure_list)
     end
     
     % get variables for simple stick figure
-    if settings.get('show_simple_stick_figure')
+    if settings.get('show_simple_stick_figure', 1)
         variable_names = [variable_names; 'marker_trajectories'];
         variable_names = [variable_names; 'joint_center_trajectories'];
         variable_names = [variable_names; 'com_trajectories'];

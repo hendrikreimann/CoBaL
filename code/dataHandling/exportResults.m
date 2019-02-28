@@ -25,9 +25,9 @@ if ~exist('studySettings.txt', 'file')
 end    
 study_settings = SettingsCustodian('studySettings.txt');
 variables_to_export = study_settings.get('variables_to_export');
-variables_to_export_long = study_settings.get('variables_to_export_long');
-variables_to_export_long_means = study_settings.get('variables_to_export_long_means');
-variables_to_export_trajectories = study_settings.get('variables_to_export_trajectories');
+variables_to_export_long = study_settings.get('variables_to_export_long', 1);
+variables_to_export_long_means = study_settings.get('variables_to_export_long_means', 1);
+variables_to_export_trajectories = study_settings.get('variables_to_export_trajectories', 1);
 band_labels = study_settings.get('band_labels');
 process_long_data = ~isempty(variables_to_export_long) || ~isempty(variables_to_export_long_means);
 number_of_variables_to_export = size(variables_to_export, 1);
@@ -93,7 +93,11 @@ end
 %% resample normalized time to get equidistant samples
 step_time_means = mean(step_time_data, 2);
 time_normalized = createScaledAbscissa(step_time_means, number_of_time_points_normalized);
-time_rescaled = linspace(time_normalized(1), time_normalized(end), length(time_normalized))';
+if ~isempty(time_normalized)
+    time_rescaled = linspace(time_normalized(1), time_normalized(end), length(time_normalized))';
+else
+    time_rescaled = [];
+end
 if process_long_data
     step_time_means_long = mean(step_time_data_long, 2);
     time_normalized_long = createScaledAbscissa(step_time_means_long, number_of_time_points_normalized);
@@ -164,7 +168,7 @@ if process_long_data
 end
 
 %% remove levels
-levels_to_remove = study_settings.get('levels_to_remove_for_export');
+levels_to_remove = study_settings.get('levels_to_remove_for_export', 1);
 for i_level = 1 : size(levels_to_remove, 1)
     this_condition_label = levels_to_remove{i_level, 1};
     this_level_label = levels_to_remove{i_level, 2};
@@ -223,7 +227,7 @@ for i_variable = 1 : number_of_variables_to_export_trajectories
 end
 
 %% repackage means for export
-if study_settings.get('export_trajectories_means')
+if study_settings.get('export_trajectories_means', 1)
     mean_header_cell = [condition_header 'time' variables_to_export_trajectories'];
     time_point_strings = num2str(time_rescaled);
     time_point_cell_single = strtrim(cellstr(time_point_strings));
@@ -250,7 +254,7 @@ end
 %% repackage trajectories for export - separate export for each subject
 unique_subjects = table2cell(unique(cell2table(condition_cell(:, strcmp(condition_header, 'subject'))), 'rows'));
 trajectory_header_cell = [condition_header 'time' variables_to_export_trajectories'];
-if study_settings.get('export_trajectories_by_subject')
+if study_settings.get('export_trajectories_by_subject', 1)
     for i_subject = 1 : length(unique_subjects)
         % get indicators for this subject's data
         this_subject_label = unique_subjects{i_subject};

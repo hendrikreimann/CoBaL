@@ -23,7 +23,7 @@ function filled_trajectory = interpolateGaps(trajectory, maximal_gap_number_of_i
             % find start and end of next gap
             this_gap_start_index = this_index + find(isnan(trajectory(this_index : end)), 1) - 1;
             this_gap_end_index = this_gap_start_index;
-            while isnan(this_gap_end_index+1)
+            while this_gap_end_index < number_of_time_steps && isnan(trajectory(this_gap_end_index+1))
                 this_gap_end_index = this_gap_end_index+1;
             end
 

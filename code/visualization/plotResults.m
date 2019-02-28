@@ -78,9 +78,9 @@ function plotResults(varargin)
     plot_settings = SettingsCustodian(plot_settings_file);
     show_outliers = plot_settings.get('show_outliers');
     plot_mode = plot_settings.get('plot_mode');
-    mark_pushoff = plot_settings.get('mark_pushoff');
-    mark_bands = plot_settings.get('mark_bands');
-    band_labels = study_settings.get('band_labels');
+    mark_pushoff = plot_settings.get('mark_pushoff', 1);
+    mark_bands = plot_settings.get('mark_bands', 1);
+    band_labels = study_settings.get('band_labels', 1);
     number_of_time_steps_normalized = study_settings.get('number_of_time_steps_normalized');
 
     %% load data
@@ -417,7 +417,7 @@ function plotResults(varargin)
                             abscissae_stimulus = repmat((1 : bands_per_stretch)', 1, length(this_comparison));
                             shifter = (0:number_of_entries-1) * (bands_per_stretch + gap_between_conditions);
                             abscissae_stimulus = abscissae_stimulus + repmat(shifter, bands_per_stretch, 1);
-                            if plot_settings.get('merge_bands')
+                            if plot_settings.get('merge_bands', 1)
                                 abscissae_stimulus = abscissae_stimulus(1, :);
                             end
                             
@@ -1251,7 +1251,7 @@ function plotResults(varargin)
                 
                 origin_indices = find(this_condition_indicator);
                 if isDiscreteVariable(i_variable, data_all, bands_per_stretch)
-                    if plot_settings.get('merge_bands')
+                    if plot_settings.get('merge_bands', 1)
                         data_to_plot_this_condition = reshape(data_to_plot_this_condition, 1, numel(data_to_plot_this_condition));
                     end
                     for i_band = 1 : size(data_to_plot_this_condition, 1)
@@ -1537,7 +1537,7 @@ function plotResults(varargin)
     end
     
     %% add zero line
-    if plot_settings.get('plot_zero')
+    if plot_settings.get('plot_zero', 1)
         for i_variable = 1 : number_of_variables_to_plot
             for i_axes = 1 : size(trajectory_axes_handles, 1)
                 these_axes = trajectory_axes_handles(i_axes, i_variable);
@@ -1549,7 +1549,7 @@ function plotResults(varargin)
             end
         end    
     end
-    if plot_settings.get('plot_diagonals')
+    if plot_settings.get('plot_diagonals', 1)
         for i_path = 1 : number_of_paths_to_plot
             for i_axes = 1 : size(path_axes_handles, 1)
                 these_axes = path_axes_handles(i_axes, i_path);

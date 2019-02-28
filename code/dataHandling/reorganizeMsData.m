@@ -38,6 +38,7 @@ function reorganizeMsData(varargin)
         study_settings_file = ['..' filesep '..' filesep 'studySettings.txt'];
     end
     study_settings = SettingsCustodian(study_settings_file);
+    subject_settings = SettingsCustodian('subjectSettings.txt');
     
     % get list of files to reorganize
     clear file_name_list;
@@ -48,13 +49,18 @@ function reorganizeMsData(varargin)
     % figure out date
     i_file = 1;
     date = [];
-    while isempty(date)
+    while isempty(date) && i_file <= length(file_name_list)
         data_file_name = file_name_list{i_file};
         loaded_data = load([source_folder filesep data_file_name]);
         if isfield(loaded_data, 'Date')
             date = reformatDate(loaded_data.Date);
             date_source_file = data_file_name;
         end
+        i_file = i_file+1;
+    end
+    if isempty(date)
+        warning('No date found in data files, trying to read from subjectSettings.txt')
+        date = subject_settings.get('date', 0);
     end
     
     % go through files and reorganize
@@ -69,6 +75,7 @@ function reorganizeMsData(varargin)
                 warning(['The two files ' data_file_name ' and ' date_source_file ' have different date information.'])
             end
         end
+        data_file_name = strrep(data_file_name, 'MKR_', '');
         file_name_split = strsplit(data_file_name, '.');
         file_name_split = strsplit(file_name_split{1}, '_');
         trial_type = file_name_split{1};
@@ -76,7 +83,6 @@ function reorganizeMsData(varargin)
         trial_number = zeroPrefixedIntegerString(str2num(file_name_split{3}(2:end)), 3);
         
         % condition
-%         addTrialToConditionFile(date, subject_id, str2num(trial_number));
         condition_label = determineConditionLabel(str2num(trial_number));
         
         % marker data
@@ -116,9 +122,6 @@ function reorganizeMsData(varargin)
                 maximal_gap_number_of_indices = floor(maximal_gap_length * sampling_rate_mocap);
                 for i_trajectory = 1 : number_of_marker_trajectories
                     marker_trajectories(:, i_trajectory) = interpolateGaps(marker_trajectories(:, i_trajectory), maximal_gap_number_of_indices);                
-                    
-                    
-                    
                 end
             end
             
@@ -153,15 +156,90 @@ function reorganizeMsData(varargin)
                 save_folder, ...
                 save_file_name ...
               );
-
-
-
             disp(['Reorganizing data, trial type ' trial_type ', number ' trial_number ' completed, saved as ' save_folder filesep save_file_name]);
+
+        elseif isfield(loaded_data, 'mkr_list')
+            number_of_markers = length(loaded_data.mkr_list);
+            number_of_time_steps = length(loaded_data.pos_time);
+            marker_trajectories = zeros(number_of_time_steps, number_of_markers*3);
+            marker_list = loaded_data.mkr_list;
+            for i_marker = 1 : number_of_markers
+                this_marker_label = marker_list{i_marker};
+                this_marker_trajectory = loaded_data.(this_marker_label);
+                marker_trajectories(:, (i_marker-1)*3 + [1 2 3]) = this_marker_trajectory * millimeter_to_meter;
+                
+                
+            end
+            time_mocap = loaded_data.pos_time * milliseconds_to_seconds;
+            sampling_rate_mocap = round(median(diff(time_mocap))^(-1));
+
+            % triplicate labels
+            marker_labels = cell(3, number_of_markers);
+            for i_marker = 1 : length(marker_labels)
+                this_marker_label = strrep(marker_list{i_marker}, '_c', '');
+                marker_labels{1, i_marker} = [this_marker_label '_x'];
+                marker_labels{2, i_marker} = [this_marker_label '_y'];
+                marker_labels{3, i_marker} = [this_marker_label '_z'];
+            end
+            marker_labels = reshape(marker_labels, 1, number_of_markers*3);
+
+            % make directions
+            % NOTE: this defines directions and makes assumptions, make sure everything is right here
+            number_of_marker_trajectories = size(marker_trajectories, 2);
+            marker_directions = cell(2, number_of_marker_trajectories);
+            [marker_directions{1, 1 : 3 : number_of_marker_trajectories}] = deal('forward');
+            [marker_directions{2, 1 : 3 : number_of_marker_trajectories}] = deal('backward');
+            [marker_directions{1, 2 : 3 : number_of_marker_trajectories}] = deal('left');
+            [marker_directions{2, 2 : 3 : number_of_marker_trajectories}] = deal('right');
+            [marker_directions{1, 3 : 3 : number_of_marker_trajectories}] = deal('up');
+            [marker_directions{2, 3 : 3 : number_of_marker_trajectories}] = deal('down');
+
+            if study_settings.get('fill_gaps')
+                maximal_gap_length = study_settings.get('maximal_gap_length');
+                maximal_gap_number_of_indices = floor(maximal_gap_length * sampling_rate_mocap);
+                for i_trajectory = 1 : number_of_marker_trajectories
+                    marker_trajectories(:, i_trajectory) = interpolateGaps(marker_trajectories(:, i_trajectory), maximal_gap_number_of_indices);                
+                end
+            end
+            
+
+            % filter
+            if study_settings.get('filter_marker_data')
+                filter_order = study_settings.get('marker_data_filter_order');
+                cutoff_frequency = study_settings.get('marker_data_cutoff_frequency'); % in Hz
+                [b_marker, a_marker] = butter(filter_order, cutoff_frequency/(sampling_rate_mocap/2));
+                marker_trajectories = nanfiltfilt(b_marker, a_marker, marker_trajectories);
+            end
+
+            % save
+            save_folder = 'processed';
+            save_file_name = makeFileName(date, subject_id, condition_label, trial_number, 'markerTrajectories.mat');
+            save ...
+              ( ...
+                [save_folder filesep save_file_name], ...
+                'marker_trajectories', ...
+                'time_mocap', ...
+                'sampling_rate_mocap', ...
+                'marker_labels',  ...
+                'marker_directions' ...
+              );
+            addAvailableData ...
+              ( ...
+                'marker_trajectories', ...
+                'time_mocap', ...
+                'sampling_rate_mocap', ...
+                '_marker_labels', ...
+                '_marker_directions', ...
+                save_folder, ...
+                save_file_name ...
+              );
+            disp(['Reorganizing data, trial type ' trial_type ', number ' trial_number ' completed, saved as ' save_folder filesep save_file_name]);
+
+
             
         else
             warning(['File ' data_file_name ' does not contain marker data. Skipping.'])
         end
-        
         
 
         
