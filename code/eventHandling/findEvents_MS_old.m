@@ -58,8 +58,6 @@ function findEvents_MS_old(varargin)
                 right_fz_trajectory = right_foot_wrench_world(:, 3);
             end
             
-            % ... works until here. Problem is that the events are hard-coded
-            
             platform_trajectory = extractMarkerData(marker_trajectories, marker_labels, 'BackPlatform');
             platform_trajectory = platform_trajectory(:, 1);
             surround_trajectory = extractMarkerData(marker_trajectories, marker_labels, 'BackSurround');
@@ -118,11 +116,27 @@ function findEvents_MS_old(varargin)
                 platform_shift_start_candidates = 2;
                 platform_shift_end_candidates = 2 + [1.2 3.6 6 8.4 12] * 1/15; % platform shifted by 15cm/s
                 
-                % determine start
-                [~, start_index] = min(abs(platform_acc_vale_times - platform_shift_start_candidates));
-                platform_shift_start_time = platform_shift_start_candidates(start_index);
-                [~, end_index] = min(abs(platform_acc_peak_times - platform_shift_end_candidates));
-                platform_shift_end_time = platform_shift_end_candidates(end_index);
+                platform_shift_start_time = 2;
+                if length(condition) >= 7 && strcmp(condition(5:7), '012')
+                    platform_shift_end_time = platform_shift_start_time + 1.2 * 1/15;
+                elseif length(condition) >= 7 && strcmp(condition(5:7), '036')
+                    platform_shift_end_time = platform_shift_start_time + 3.6 * 1/15;
+                elseif length(condition) >= 7 && strcmp(condition(5:7), '060')
+                    platform_shift_end_time = platform_shift_start_time + 6 * 1/15;
+                elseif length(condition) >= 7 && strcmp(condition(5:7), '084')
+                    platform_shift_end_time = platform_shift_start_time + 7.4 * 1/15;
+%                     platform_shift_end_time = platform_shift_start_time + 12 * 1/15;
+                elseif length(condition) >= 7 && strcmp(condition(5:7), '120')
+                    platform_shift_end_time = platform_shift_start_time + 12 * 1/15;
+                else
+                    platform_shift_end_time = platform_shift_start_time;
+                end
+                
+%                 % determine start
+%                 [~, start_index] = min(abs(platform_acc_vale_times - platform_shift_start_candidates));
+%                 platform_shift_start_time = platform_shift_start_candidates(start_index);
+%                 [~, end_index] = min(abs(platform_acc_peak_times - platform_shift_end_candidates));
+%                 platform_shift_end_time = platform_shift_end_candidates(end_index);
                 
                 event_data = ...
                   { ...
