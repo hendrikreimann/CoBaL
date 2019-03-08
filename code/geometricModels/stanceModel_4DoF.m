@@ -27,7 +27,7 @@
 % output:
 % subjectModel.mat
 
-function stanceModel_3DoF(varargin)
+function stanceModel_4DoF(varargin)
     load('subjectInfo.mat');
     
     % parse arguments
@@ -37,9 +37,10 @@ function stanceModel_3DoF(varargin)
     parse(parser, varargin{:})
     visualize = parser.Results.visualize;
     
-    load('subjectInfo.mat', 'date', 'subject_id');
-    
     subject_settings = SettingsCustodian('subjectSettings.txt');
+    
+
+    load('subjectInfo.mat', 'date', 'subject_id');
     weight = subject_settings.get('weight');
 
     %% create static reference
@@ -101,15 +102,18 @@ function stanceModel_3DoF(varargin)
     ankle_cor = mean([ankle_L_reference ankle_R_reference], 2);
     knee_cor = mean([knee_L_reference knee_R_reference], 2);
     hip_cor = mean([hip_L_reference hip_R_reference], 2);
+    
     toe_mid = mean([toe_L_reference toe_R_reference], 2);
     shoulders_mid = mean([shoulder_L_reference shoulder_R_reference], 2);
     ears_mid = mean([ear_L_reference ear_R_reference], 2);
 
     lumbar_cor = lumbar_joint_reference;
+    neck_cor = shoulders_mid;
 
     ankle_dorsiflexion_axis = left_direction;
     knee_flexion_axis = left_direction;
     hip_flexion_axis = left_direction;
+    neck_flexion_axis = left_direction;
 
     %% define scaling factors
     % according to R. Dumas , L. Cheze, J.-P. Verriest: "Adjustments to McConville et al. and Young et al. body
@@ -128,18 +132,24 @@ function stanceModel_3DoF(varargin)
     % CoM
     head_com_scaling_factor_x    = -0.062;  head_com_scaling_factor_y    =  0.555;  head_com_scaling_factor_z    =  0.001;
     trunk_com_scaling_factor_x   = -0.036;  trunk_com_scaling_factor_y   = -0.420;  trunk_com_scaling_factor_z   = -0.002;
+    arm_com_scaling_factor_x     =  0.017;  arm_com_scaling_factor_y     = -0.452;  arm_com_scaling_factor_z     = -0.026;
+    forearm_com_scaling_factor_x =  0.010;  forearm_com_scaling_factor_y = -0.417;  forearm_com_scaling_factor_z =  0.014;
+    hand_com_scaling_factor_x    =  0.082;  hand_com_scaling_factor_y    = -0.839;  hand_com_scaling_factor_z    =  0.074;
     pelvis_com_scaling_factor_x  =  0.028;  pelvis_com_scaling_factor_y  = -0.280;  pelvis_com_scaling_factor_z  = -0.006;
-    thigh_com_scaling_factor_x   = -0.041;  thigh_com_scaling_factor_y   = -0.429;
-    shank_com_scaling_factor_x   = -0.048;  shank_com_scaling_factor_y   = -0.410;
-    foot_com_scaling_factor_x    =  0.382;  foot_com_scaling_factor_y    = -0.151;
+    thigh_com_scaling_factor_x   = -0.041;  thigh_com_scaling_factor_y   = -0.429;  thigh_com_scaling_factor_z   =  0.033;
+    shank_com_scaling_factor_x   = -0.048;  shank_com_scaling_factor_y   = -0.410;  shank_com_scaling_factor_z   =  0.007;
+    foot_com_scaling_factor_x    =  0.382;  foot_com_scaling_factor_y    = -0.151;  foot_com_scaling_factor_z    =  0.026;
 
     % rog
-    head_rxx_scaling_factor    = 0.31;  head_ryy_scaling_factor    = 0.25;  head_rzz_scaling_factor    = 0.33;
-    trunk_rxx_scaling_factor   = 0.27;  trunk_ryy_scaling_factor   = 0.25;  trunk_rzz_scaling_factor   = 0.28;
-    pelvis_rxx_scaling_factor  = 1.01;  pelvis_ryy_scaling_factor  = 1.06;  pelvis_rzz_scaling_factor  = 0.95;
-    thigh_rxx_scaling_factor   = 0.29;  thigh_ryy_scaling_factor   = 0.15;  thigh_rzz_scaling_factor   = 0.30;
-    shank_rxx_scaling_factor   = 0.28;  shank_ryy_scaling_factor   = 0.10;  shank_rzz_scaling_factor   = 0.28;
-    foot_rxx_scaling_factor    = 0.17;  foot_ryy_scaling_factor    = 0.37;	foot_rzz_scaling_factor    = 0.36;
+    head_rxx_scaling_factor    = 0.31;  head_ryy_scaling_factor    = 0.25;  head_rzz_scaling_factor    = 0.33;  head_rxy_scaling_factor    = 0.09*1i;	head_rxz_scaling_factor    = 0.02*1i;   head_ryz_scaling_factor    = 0.03;
+    trunk_rxx_scaling_factor   = 0.27;  trunk_ryy_scaling_factor   = 0.25;  trunk_rzz_scaling_factor   = 0.28;  trunk_rxy_scaling_factor   = 0.18;      trunk_rxz_scaling_factor   = 0.02;      trunk_ryz_scaling_factor   = 0.04*1i;
+    arm_rxx_scaling_factor     = 0.31;  arm_ryy_scaling_factor     = 0.14;  arm_rzz_scaling_factor     = 0.32;  arm_rxy_scaling_factor     = 0.06;      arm_rxz_scaling_factor     = 0.05;      arm_ryz_scaling_factor     = 0.02;
+    forearm_rxx_scaling_factor = 0.28;  forearm_ryy_scaling_factor = 0.11;  forearm_rzz_scaling_factor = 0.27;  forearm_rxy_scaling_factor = 0.03;      forearm_rxz_scaling_factor = 0.02;      forearm_ryz_scaling_factor = 0.08*1i;
+    hand_rxx_scaling_factor    = 0.61;  hand_ryy_scaling_factor    = 0.38;  hand_rzz_scaling_factor    = 0.56;  hand_rxy_scaling_factor    = 0.22;      hand_rxz_scaling_factor    = 0.15;      hand_ryz_scaling_factor    = 0.20*1i;
+    pelvis_rxx_scaling_factor  = 1.01;  pelvis_ryy_scaling_factor  = 1.06;  pelvis_rzz_scaling_factor  = 0.95;  pelvis_rxy_scaling_factor  = 0.25*1i;   pelvis_rxz_scaling_factor  = 0.12*1i;   pelvis_ryz_scaling_factor  = 0.08*1i;
+    thigh_rxx_scaling_factor   = 0.29;  thigh_ryy_scaling_factor   = 0.15;  thigh_rzz_scaling_factor   = 0.30;  thigh_rxy_scaling_factor   = 0.07;      thigh_rxz_scaling_factor   = 0.02*1i;   thigh_ryz_scaling_factor   = 0.07*1i;
+    shank_rxx_scaling_factor   = 0.28;  shank_ryy_scaling_factor   = 0.10;  shank_rzz_scaling_factor   = 0.28;  shank_rxy_scaling_factor   = 0.04*1i;   shank_rxz_scaling_factor   = 0.02*1i;   shank_ryz_scaling_factor   = 0.05;
+    foot_rxx_scaling_factor    = 0.17;  foot_ryy_scaling_factor    = 0.37;	foot_rzz_scaling_factor    = 0.36;  foot_rxy_scaling_factor    = 0.13;      foot_rxz_scaling_factor    = 0.08*1i;	foot_ryz_scaling_factor    = 0.00;
 
 
     %% set up the segment coordinate systems (SCS)
@@ -182,11 +192,12 @@ function stanceModel_3DoF(varargin)
     leg_segment_mass = shank_mass_scaling_factor        * weight * 2;
     foot_segment_mass = foot_mass_scaling_factor        * weight * 2;
     head_segment_mass = head_mass_scaling_factor        * weight;
-    trunk_segment_mass = trunk_mass_scaling_factor      * weight;
+    trunk_segment_mass_single = trunk_mass_scaling_factor      * weight;
     arm_segment_mass = arm_mass_scaling_factor          * weight;
     forearm_segment_mass = forearm_mass_scaling_factor  * weight;
     hand_segment_mass = hand_mass_scaling_factor        * weight;
-    trunk_segment_mass = head_segment_mass + trunk_segment_mass + 2*arm_segment_mass + 2*forearm_segment_mass + 2*hand_segment_mass + pelvis_segment_mass;
+    trunk_segment_mass = head_segment_mass + trunk_segment_mass_single + 2*arm_segment_mass + 2*forearm_segment_mass + 2*hand_segment_mass + pelvis_segment_mass;
+
 
     % pelvis
     pelvis_segment_length = norm(hip_cor - lumbar_cor);
@@ -217,7 +228,6 @@ function stanceModel_3DoF(varargin)
                        - 0 * foot_segment_length * foot_scs_z;
 
     % trunk
-    disp('Calculation of CoM for trunk segment is made up, replace with values from Winter textbook when available later.')
     trunk_segment_length = norm(lumbar_cor - shoulders_mid);
     trunk_com = shoulders_mid ...
                        + trunk_com_scaling_factor_x * trunk_segment_length * trunk_scs_x ...
@@ -234,16 +244,14 @@ function stanceModel_3DoF(varargin)
     %% calculate inertia tensors
 
     % pelvis
-%     pelvis_I_xx = (pelvis_rxx_scaling_factor*pelvis_segment_length)^2 * pelvis_segment_mass;
-%     pelvis_I_yy = (pelvis_ryy_scaling_factor*pelvis_segment_length)^2 * pelvis_segment_mass;
-%     pelvis_I_zz = (pelvis_rzz_scaling_factor*pelvis_segment_length)^2 * pelvis_segment_mass;
-%     pelvis_I_xy = (pelvis_rxy_scaling_factor*pelvis_segment_length)^2 * pelvis_segment_mass;
-%     pelvis_I_xz = (pelvis_rxz_scaling_factor*pelvis_segment_length)^2 * pelvis_segment_mass;
-%     pelvis_I_yz = (pelvis_ryz_scaling_factor*pelvis_segment_length)^2 * pelvis_segment_mass;
-%     pelvis_inertia_tensor = [pelvis_I_xx pelvis_I_xy pelvis_I_xz; pelvis_I_xy pelvis_I_yy pelvis_I_yz; pelvis_I_xz pelvis_I_yz pelvis_I_zz];
-%     correction_factor_pelvis = 0.2;
-%     disp(['Correcting pelvis inertia tensor by factor ' num2str(correction_factor_pelvis)]);
-%     pelvis_inertia_tensor = pelvis_inertia_tensor * correction_factor_pelvis;
+    pelvis_I_xx = (pelvis_rxx_scaling_factor*pelvis_segment_length)^2 * pelvis_segment_mass;
+    pelvis_I_yy = (pelvis_ryy_scaling_factor*pelvis_segment_length)^2 * pelvis_segment_mass;
+    pelvis_I_zz = (pelvis_rzz_scaling_factor*pelvis_segment_length)^2 * pelvis_segment_mass;
+    pelvis_I_xy = (pelvis_rxy_scaling_factor*pelvis_segment_length)^2 * pelvis_segment_mass;
+    pelvis_I_xz = (pelvis_rxz_scaling_factor*pelvis_segment_length)^2 * pelvis_segment_mass;
+    pelvis_I_yz = (pelvis_ryz_scaling_factor*pelvis_segment_length)^2 * pelvis_segment_mass;
+    pelvis_inertia_tensor = [pelvis_I_xx pelvis_I_xy pelvis_I_xz; pelvis_I_xy pelvis_I_yy pelvis_I_yz; pelvis_I_xz pelvis_I_yz pelvis_I_zz];
+
 
     % thigh
     thigh_I_xx = (thigh_rxx_scaling_factor*thigh_segment_length)^2 * thigh_segment_mass;
@@ -270,25 +278,24 @@ function stanceModel_3DoF(varargin)
     leg_inertia_tensor = [leg_I_xx leg_I_xy leg_I_xz; leg_I_xy leg_I_yy leg_I_yz; leg_I_xz leg_I_yz leg_I_zz];
 
     % foot
-%     foot_I_xx = (foot_rxx_scaling_factor*foot_segment_length)^2 * foot_segment_mass;
-%     foot_I_yy = (foot_ryy_scaling_factor*foot_segment_length)^2 * foot_segment_mass;
-%     foot_I_zz = (foot_rzz_scaling_factor*foot_segment_length)^2 * foot_segment_mass;
-%     foot_I_xy = (foot_rxy_scaling_factor*foot_segment_length)^2 * foot_segment_mass;
-%     foot_I_xz = -(foot_rxz_scaling_factor*foot_segment_length)^2 * foot_segment_mass;
-%     foot_I_yz = -(foot_ryz_scaling_factor*foot_segment_length)^2 * foot_segment_mass;
-%     foot_I_xy = 0;
-%     foot_I_xz = 0;
-%     foot_I_yz = 0;
-%     foot_inertia_tensor = [foot_I_xx foot_I_xy foot_I_xz; foot_I_xy foot_I_yy foot_I_yz; foot_I_xz foot_I_yz foot_I_zz];
+    foot_I_xx = (foot_rxx_scaling_factor*foot_segment_length)^2 * foot_segment_mass;
+    foot_I_yy = (foot_ryy_scaling_factor*foot_segment_length)^2 * foot_segment_mass;
+    foot_I_zz = (foot_rzz_scaling_factor*foot_segment_length)^2 * foot_segment_mass;
+    foot_I_xy = (foot_rxy_scaling_factor*foot_segment_length)^2 * foot_segment_mass;
+    foot_I_xz = -(foot_rxz_scaling_factor*foot_segment_length)^2 * foot_segment_mass;
+    foot_I_yz = -(foot_ryz_scaling_factor*foot_segment_length)^2 * foot_segment_mass;
+    foot_I_xy = 0;
+    foot_I_xz = 0;
+    foot_I_yz = 0;
+    foot_inertia_tensor = [foot_I_xx foot_I_xy foot_I_xz; foot_I_xy foot_I_yy foot_I_yz; foot_I_xz foot_I_yz foot_I_zz];
 
     % trunk
-    disp('Calculation of inertia tensor for HAT segment is made up, replace with values from Winter textbook when available later.')
     trunk_I_xx = (trunk_rxx_scaling_factor*trunk_segment_length)^2 * trunk_segment_mass;
     trunk_I_yy = (trunk_ryy_scaling_factor*trunk_segment_length)^2 * trunk_segment_mass;
     trunk_I_zz = (trunk_rzz_scaling_factor*trunk_segment_length)^2 * trunk_segment_mass;
-%     trunk_I_xy = (trunk_rxy_scaling_factor*trunk_segment_length)^2 * trunk_segment_mass;
-%     trunk_I_xz = (trunk_rxz_scaling_factor*trunk_segment_length)^2 * trunk_segment_mass;
-%     trunk_I_yz = (trunk_ryz_scaling_factor*trunk_segment_length)^2 * trunk_segment_mass;
+    trunk_I_xy = (trunk_rxy_scaling_factor*trunk_segment_length)^2 * trunk_segment_mass;
+    trunk_I_xz = (trunk_rxz_scaling_factor*trunk_segment_length)^2 * trunk_segment_mass;
+    trunk_I_yz = (trunk_ryz_scaling_factor*trunk_segment_length)^2 * trunk_segment_mass;
     trunk_I_xy = 0;
     trunk_I_xz = 0;
     trunk_I_yz = 0;
@@ -297,9 +304,9 @@ function stanceModel_3DoF(varargin)
     head_I_xx = (head_rxx_scaling_factor*head_segment_length)^2 * head_segment_mass;
     head_I_yy = (head_ryy_scaling_factor*head_segment_length)^2 * head_segment_mass;
     head_I_zz = (head_rzz_scaling_factor*head_segment_length)^2 * head_segment_mass;
-%     head_I_xy = (head_rxy_scaling_factor*head_segment_length)^2 * head_segment_mass;
-%     head_I_xz = -(head_rxz_scaling_factor*head_segment_length)^2 * head_segment_mass;
-%     head_I_yz = -(head_ryz_scaling_factor*head_segment_length)^2 * head_segment_mass;
+    head_I_xy = (head_rxy_scaling_factor*head_segment_length)^2 * head_segment_mass;
+    head_I_xz = -(head_rxz_scaling_factor*head_segment_length)^2 * head_segment_mass;
+    head_I_yz = -(head_ryz_scaling_factor*head_segment_length)^2 * head_segment_mass;
     head_I_xy = 0;
     head_I_xz = 0;
     head_I_yz = 0;
@@ -313,13 +320,15 @@ function stanceModel_3DoF(varargin)
         ankle_cor', ...
         knee_cor', ...
         hip_cor', ...
+        neck_cor' ...
       ];
 
     joint_center_labels_single = ...
       { ...
         'ANKLECOR', ...
         'KNEECOR', ...
-        'HIPCOR' ...
+        'HIPCOR', ...
+        'NECKCOR' ...
       };
 
     joint_center_labels = cell(3, length(joint_center_labels_single));
@@ -344,7 +353,8 @@ function stanceModel_3DoF(varargin)
       { ...
         'LEGS', ...
         'THIGHS', ...
-        'TRUNK' ...
+        'TRUNK', ...
+        'HEAD' ...
       };
 
     number_of_segments = length(segment_labels);
@@ -354,7 +364,8 @@ function stanceModel_3DoF(varargin)
       [ ...
         leg_segment_mass, ...
         thigh_segment_mass, ...
-        trunk_segment_mass ...
+        trunk_segment_mass, ...
+        head_segment_mass ...
       ];
 
 
@@ -364,6 +375,7 @@ function stanceModel_3DoF(varargin)
         thigh_com; ...
         leg_com; ...
         trunk_com; ...
+        head_com; ...
       };
     segment_coms_mcs = cell(size(segment_coms_wcs));
 
@@ -372,24 +384,27 @@ function stanceModel_3DoF(varargin)
     { ...
         ankle_cor, ...
         knee_cor, ...
-        hip_cor ...
+        hip_cor, ...
+        neck_cor ...
     };
 
     joint_axes = ...
     { ...
         ankle_dorsiflexion_axis, ...
         knee_flexion_axis, ...
-        hip_flexion_axis ...
+        hip_flexion_axis, ...
+        neck_flexion_axis ...
     };
 
-    joint_types = [1 1 1];
+    joint_types = [1 1 1 1];
 
     % link setup
     link_com_positions =  ...
     { ...
         leg_com, ...
         thigh_com, ...
-        trunk_com ...
+        trunk_com, ...
+        head_com ...
     };
 
     link_orientations = ...
@@ -397,17 +412,20 @@ function stanceModel_3DoF(varargin)
         [leg_scs_x leg_scs_y leg_scs_z]; ...
         [thigh_scs_x thigh_scs_y thigh_scs_z]; ...
         [trunk_scs_x trunk_scs_y trunk_scs_z]; ...
+        [head_scs_x head_scs_y head_scs_z]; ...
     };
 
     generalized_inertia_matrix_shank        = [leg_segment_mass*eye(3) zeros(3); zeros(3) leg_inertia_tensor];
     generalized_inertia_matrix_thigh        = [thigh_segment_mass*eye(3) zeros(3); zeros(3) thigh_inertia_tensor];
     generalized_inertia_matrix_trunk        = [trunk_segment_mass*eye(3) zeros(3); zeros(3) trunk_inertia_tensor];
+    generalized_inertia_matrix_head         = [head_segment_mass*eye(3) zeros(3); zeros(3) head_inertia_tensor];
 
     generalized_link_inertia_matrices = ...
       { ...
         generalized_inertia_matrix_shank, ...
         generalized_inertia_matrix_thigh, ...
-        generalized_inertia_matrix_trunk ...
+        generalized_inertia_matrix_trunk, ...
+        generalized_inertia_matrix_head ...
       };
 
     end_effector_transformations = ...
@@ -415,7 +433,7 @@ function stanceModel_3DoF(varargin)
         [eye(3) ears_mid; 0 0 0 1], ...
       };
 
-    branch_matrix = [1 1 1]; % each row is a branch, listing the joints that move the end-effector of that branch
+    branch_matrix = [1 1 1 1]; % each row is a branch, listing the joints that move the end-effector of that branch
 
     kinematic_tree = GeneralKinematicTree ...
     ( ...
@@ -439,6 +457,7 @@ function stanceModel_3DoF(varargin)
         'ankle_joint', ...
         'knee_joint', ...
         'hip_joint', ...
+        'neck_joint', ...
       };
     kinematic_tree.jointLabels = joint_labels;
   
@@ -452,12 +471,14 @@ function stanceModel_3DoF(varargin)
         'forward', 'backward'; ...
         'forward', 'backward'; ...
         'forward', 'backward'; ...
-      };
+        'forward', 'backward'; ...
+      }';
 
     % add segment labels and joint centers
     kinematic_tree.addSegmentLabel('SHANKS', 1);
     kinematic_tree.addSegmentLabel('THIGHS', 2);
     kinematic_tree.addSegmentLabel('TRUNK', 3);
+    kinematic_tree.addSegmentLabel('HEAD', 4);
     
     % define markers
     marker_segment_list = createMarkerSegmentList(marker_labels, subject_settings);

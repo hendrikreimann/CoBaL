@@ -20,8 +20,10 @@
 % relevantDataStretches.mat
 
 function analyzeUcmVariance(varargin)
-    [condition_list, trial_number_list] = parseTrialArguments(varargin{:});
-    load('subjectInfo.mat', 'date', 'subject_id');
+    [condition_list_session, trial_number_list] = parseTrialArguments(varargin{:});
+    trial_type = condition_list_session{1}; % we assume that we have a single type only for now
+    load('subjectInfo.mat', 'date', 'subject_id', 'condition_list', 'trial_number_list');
+    
     % load settings
     study_settings_file = '';
     if exist(['..' filesep 'studySettings.txt'], 'file')
@@ -31,14 +33,8 @@ function analyzeUcmVariance(varargin)
         study_settings_file = ['..' filesep '..' filesep 'studySettings.txt'];
     end
     study_settings = SettingsCustodian(study_settings_file);
+    subject_settings = SettingsCustodian('subjectSettings.txt');
     load('subjectModel.mat');
-    
-    if exist('conditions.csv', 'file')
-        conditions_file_name = 'conditions.csv';
-    end
-    if exist(makeFileName(date, subject_id, 'conditions.csv'), 'file')
-        conditions_file_name = makeFileName(date, subject_id, 'conditions.csv');
-    end
     
     across_time_conditions = study_settings.get('across_time_conditions');
     across_events_conditions = study_settings.get('across_events_conditions');
@@ -46,30 +42,17 @@ function analyzeUcmVariance(varargin)
     ucm_variables = study_settings.get('ucm_variables');
     number_of_ucm_variables = length(ucm_variables);
     
-    % determine blocks -- this is somewhat silly, since I'm re-formatting the information into how I already have it, but keep it around for now
-    condition_header = {'trial', 'condition'};
-    condition_cell = {};
-    for i_type = 1 : length(condition_list)
-        this_type_label = condition_list{i_type};
-        this_type_trial_list = trial_number_list{i_type};
-        for i_trial = 1 : length(this_type_trial_list)
-            condition_cell = [condition_cell; {num2str(this_type_trial_list(i_trial)), this_type_label}];
-        end
-    end
-    [block_labels, trials_by_block] = determineTrialsByBlock(condition_cell, condition_header);
-    number_of_blocks = length(block_labels);
-    
     % make containers to hold the data
-%     V_para_session = zeros(number_of_ucm_variables, number_of_blocks);
-%     V_perp_session = zeros(number_of_ucm_variables, number_of_blocks);
-    subject_list = {};
-    condition_list = {};
-    time_point_list = {};
+    subject_list_session = {};
+    condition_list_session = {};
+    time_point_list_session = {};
+    group_list_session = {};
     origin_trial_list_session = [];
     stretch_data_session = cell(number_of_ucm_variables, 1);
     stretch_directions_session = cell(number_of_ucm_variables, 2);
     [stretch_directions_session{:, :}] = deal('~');
     stretch_names_session = ucm_variables;
+    group_label = subject_settings.get('group');
     
     % calculate UCM variance measures
     for i_block = 1 : number_of_blocks

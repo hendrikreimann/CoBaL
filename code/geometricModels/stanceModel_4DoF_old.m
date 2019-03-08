@@ -198,7 +198,6 @@ function stanceModel_4DoF_old(varargin)
     head_scs_x = cross(head_scs_y, head_scs_z);
 
     %% calculate segment mass and CoM
-
     % calculate segment masses and correct for mean rounding errors
     pelvis_segment_mass = pelvis_mass_scaling_factor    * weight;
     thigh_segment_mass = thigh_mass_scaling_factor      * weight * 2;
@@ -254,7 +253,6 @@ function stanceModel_4DoF_old(varargin)
 
 
     %% calculate inertia tensors
-
     % pelvis
     pelvis_I_xx = (pelvis_rxx_scaling_factor*pelvis_segment_length)^2 * pelvis_segment_mass;
     pelvis_I_yy = (pelvis_ryy_scaling_factor*pelvis_segment_length)^2 * pelvis_segment_mass;
@@ -468,7 +466,7 @@ function stanceModel_4DoF_old(varargin)
         'ankle_joint', ...
         'knee_joint', ...
         'hip_joint', ...
-        'necxk_joint', ...
+        'neck_joint', ...
       };
     kinematic_tree.jointLabels = joint_labels;
   

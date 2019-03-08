@@ -23,6 +23,7 @@ function analyzeUcmVariance_old(varargin)
     [condition_list_session, trial_number_list] = parseTrialArguments(varargin{:});
     trial_type = condition_list_session{1}; % we assume that we have a single type only for now
     load('subjectInfo.mat', 'date', 'subject_id', 'condition_list', 'trial_number_list');
+    
     % load settings
     study_settings_file = '';
     if exist(['..' filesep 'studySettings.txt'], 'file')
@@ -35,9 +36,9 @@ function analyzeUcmVariance_old(varargin)
     subject_settings = SettingsCustodian('subjectSettings.txt');
     load('subjectModel.mat');
     
-    across_time_conditions = study_settings.get('across_time_conditions');
-    across_events_conditions = study_settings.get('across_events_conditions');
-    across_trials_conditions = study_settings.get('across_trials_conditions');
+    across_time_conditions = study_settings.get('across_time_conditions', 1);
+    across_events_conditions = study_settings.get('across_events_conditions', 1);
+    across_trials_conditions = study_settings.get('across_trials_conditions', 1);
     ucm_variables = study_settings.get('ucm_variables');
     number_of_ucm_variables = length(ucm_variables);
     
