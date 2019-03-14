@@ -89,6 +89,7 @@ function analyzeUcmVariance_old(varargin)
             end
             % extract data
             joint_angle_data_to_analyze = joint_angle_trajectories(event_indices_mocap(1) : event_indices_mocap(2), :)';
+            joint_angle_data_to_analyze_rand = randmat(joint_angle_data_to_analyze, 2);
 
             % analyze data
             theta_mean = mean(joint_angle_data_to_analyze, 2);
@@ -111,7 +112,8 @@ function analyzeUcmVariance_old(varargin)
 
                 % calculate variance measures
                 [V_para_this_block_this_variable, V_perp_this_block_this_variable] = calculateUcmVariance(joint_angle_data_to_analyze, jacobian);
-                stretch_data_session{i_variable} = [stretch_data_session{i_variable} [V_para_this_block_this_variable; V_perp_this_block_this_variable]];
+                [V_para_rand_this_block_this_variable, V_perp_rand_this_block_this_variable] = calculateUcmVariance(joint_angle_data_to_analyze_rand, jacobian);
+                stretch_data_session{i_variable} = [stretch_data_session{i_variable} [V_para_this_block_this_variable; V_perp_this_block_this_variable; V_para_rand_this_block_this_variable; V_perp_rand_this_block_this_variable]];
             end
             subject_list_session = [subject_list_session; subject_id]; %#ok<AGROW>
             time_point_list_session = [time_point_list_session; 'quiet stance across time']; %#ok<AGROW>
@@ -133,7 +135,10 @@ function analyzeUcmVariance_old(varargin)
 
             % analyze across events
             number_of_trials_this_condition = length(this_condition_trial_numbers);
-            expected_event_labels = {'oscillation_peaks';'oscillation_vales'};
+%             expected_event_labels = {'oscillation_peaks';'oscillation_vales'};
+            expected_event_labels = study_settings.get('event_labels_sway');
+            
+            
             number_of_events = length(expected_event_labels);
             joint_angle_data_to_analyze = cell(number_of_events, 1);
 
@@ -164,6 +169,8 @@ function analyzeUcmVariance_old(varargin)
 
                     % analyze data
                     joint_angle_data_to_analyze_this_event = joint_angle_trajectories(event_indices_mocap{i_event}, :)';
+                    joint_angle_data_to_analyze_this_event_rand = randmat(joint_angle_data_to_analyze_this_event, 2);
+
                     theta_mean = mean(joint_angle_data_to_analyze_this_event, 2);
                     kinematic_tree.jointAngles = theta_mean;
                     kinematic_tree.updateConfiguration;
@@ -184,7 +191,8 @@ function analyzeUcmVariance_old(varargin)
 
                         % calculate variance measures
                         [V_para_this_block_this_variable, V_perp_this_block_this_variable] = calculateUcmVariance(joint_angle_data_to_analyze_this_event, jacobian);
-                        stretch_data_session{i_variable} = [stretch_data_session{i_variable} [V_para_this_block_this_variable; V_perp_this_block_this_variable]];
+                        [V_para_rand_this_block_this_variable, V_perp_rand_this_block_this_variable] = calculateUcmVariance(joint_angle_data_to_analyze_this_event_rand, jacobian);
+                        stretch_data_session{i_variable} = [stretch_data_session{i_variable} [V_para_this_block_this_variable; V_perp_this_block_this_variable; V_para_rand_this_block_this_variable; V_perp_rand_this_block_this_variable]];
                     end
                     subject_list_session = [subject_list_session; subject_id]; %#ok<AGROW>
                     time_point_list_session = [time_point_list_session; expected_event_labels{i_event}]; %#ok<AGROW>
@@ -204,7 +212,8 @@ function analyzeUcmVariance_old(varargin)
 
             % analyze across trials
             number_of_trials_this_condition = length(this_condition_trial_numbers);
-            expected_event_labels = {'perturbation_start'; 'perturbation_end'; 'perturbation_end_plus_one'; 'perturbation_end_plus_two'};
+%             expected_event_labels = {'perturbation_start'; 'perturbation_end'; 'perturbation_end_plus_one'; 'perturbation_end_plus_two'};
+            expected_event_labels = study_settings.get('event_labels_ramp');
             number_of_events = length(expected_event_labels);
             joint_angle_data_to_analyze = cell(number_of_events, 1);
             for i_trial = 1 : number_of_trials_this_condition
@@ -240,6 +249,7 @@ function analyzeUcmVariance_old(varargin)
             if number_of_trials_this_condition > 0
                 for i_event = 1 : number_of_events
                     joint_angle_data_to_analyze_this_event = joint_angle_data_to_analyze{i_event};
+                    joint_angle_data_to_analyze_this_event_rand = randmat(joint_angle_data_to_analyze_this_event, 2);
                     theta_mean = mean(joint_angle_data_to_analyze_this_event, 2);
                     kinematic_tree.jointAngles = theta_mean;
                     kinematic_tree.updateConfiguration;
@@ -260,7 +270,10 @@ function analyzeUcmVariance_old(varargin)
 
                         % calculate variance measures
                         [V_para_this_block_this_variable, V_perp_this_block_this_variable] = calculateUcmVariance(joint_angle_data_to_analyze_this_event, jacobian);
-                        stretch_data_session{i_variable} = [stretch_data_session{i_variable} [V_para_this_block_this_variable; V_perp_this_block_this_variable]];
+                        [V_para_rand_this_block_this_variable, V_perp_rand_this_block_this_variable] = calculateUcmVariance(joint_angle_data_to_analyze_this_event_rand, jacobian);
+                        stretch_data_session{i_variable} = [stretch_data_session{i_variable} [V_para_this_block_this_variable; V_perp_this_block_this_variable; V_para_rand_this_block_this_variable; V_perp_rand_this_block_this_variable]];
+                        
+                        
                     end
                     subject_list_session = [subject_list_session; subject_id]; %#ok<AGROW>
                     time_point_list_session = [time_point_list_session; expected_event_labels{i_event}]; %#ok<AGROW>
@@ -280,7 +293,7 @@ function analyzeUcmVariance_old(varargin)
     
 
     %% save data
-    bands_per_stretch = 2;
+    bands_per_stretch = 4;
     conditions_session = struct;
     conditions_session.subject_list = subject_list_session;
     conditions_session.condition_list = condition_list_session;
