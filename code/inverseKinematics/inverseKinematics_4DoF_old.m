@@ -99,14 +99,13 @@ function inverseKinematics_4DoF_old(varargin)
             time_steps_to_process = 1 : number_of_time_steps;
             number_of_time_steps_to_process = length(time_steps_to_process);
             
-            com_labels = [segment_labels 'BODY'];
-            for i_label = 1 : length(com_labels)
-                com_labels{i_label} = [com_labels{i_label} 'COM'];
-            end
-            
-            % calculate
-            joint_center_labels = joint_center_labels; % TODO: fix this
-            com_trajectories = zeros(number_of_time_steps, length(com_labels)*3);
+%             com_labels = [segment_labels 'BODY'];
+%             for i_label = 1 : length(com_labels)
+%                 com_labels{i_label} = [com_labels{i_label} 'COM'];
+%             end
+%             
+%             % calculate
+%             joint_center_labels = joint_center_labels; % TODO: fix this
             
             % extract marker positions
             REAR_position = extractMarkerData(marker_trajectories, marker_labels, 'R_ear');

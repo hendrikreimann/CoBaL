@@ -41,7 +41,10 @@ function stanceModel_4DoF(varargin)
     
 
     load('subjectInfo.mat', 'date', 'subject_id');
-    weight = subject_settings.get('weight');
+    weight = subject_settings.get('weight', 1);
+    if isempty(weight)
+        warning('No weight provided in subjectSettings.txt, using 80kg as defaults. This invalidates any inverse dynamics you might be running.')
+    end
 
     %% create static reference
 
