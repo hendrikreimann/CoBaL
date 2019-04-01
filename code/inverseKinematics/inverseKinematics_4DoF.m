@@ -88,24 +88,10 @@ function inverseKinematics_4DoF(varargin)
         for i_trial = trials_to_process
             condition = condition_list{i_condition};
             
-            % give feedback
-%             disp([' - Condition ' condition ', Trial ' num2str(i_trial)])
-%             fprintf([' - Calculating kinematic trajectories... \n'])
-            
             % load data
             load(['processed' filesep makeFileName(date, subject_id, condition, i_trial, 'markerTrajectories')]);
             number_of_time_steps = size(marker_trajectories, 1);
             time_steps_to_process = 1 : number_of_time_steps;
-            number_of_time_steps_to_process = length(time_steps_to_process);
-            
-            com_labels = [segment_labels 'BODY'];
-            for i_label = 1 : length(com_labels)
-                com_labels{i_label} = [com_labels{i_label} 'COM'];
-            end
-            
-            % calculate
-            joint_center_labels = joint_center_labels; % TODO: fix this
-            com_trajectories = zeros(number_of_time_steps, length(com_labels)*3);
             
             % extract marker positions
             eye_L_position = extractMarkerData(marker_trajectories, marker_labels, 'LEYE');
@@ -131,10 +117,10 @@ function inverseKinematics_4DoF(varargin)
             trunk_vector = shoulders_mid - hip_cor;
             head_vector = head_mid - shoulders_mid;
 
-            lower_leg_segment_angle_position = atan2(lower_leg_vector(:, 3), -lower_leg_vector(:, 1));
-            thigh_segment_angle_position = atan2(thigh_vector(:, 3), -thigh_vector(:, 1));
-            trunk_segment_angle_position = atan2(trunk_vector(:, 3), -trunk_vector(:, 1));
-            head_segment_angle_position = atan2(head_vector(:, 3), -head_vector(:, 1));
+            lower_leg_segment_angle_position = atan2(lower_leg_vector(:, 3), lower_leg_vector(:, 1));
+            thigh_segment_angle_position = atan2(thigh_vector(:, 3), thigh_vector(:, 1));
+            trunk_segment_angle_position = atan2(trunk_vector(:, 3), trunk_vector(:, 1));
+            head_segment_angle_position = atan2(head_vector(:, 3), head_vector(:, 1));
 
             lower_leg_segment_angle_change = lower_leg_segment_angle_position - lower_leg_segment_angle_reference;
             thigh_segment_angle_change = thigh_segment_angle_position - thigh_segment_angle_reference;

@@ -66,6 +66,18 @@ function singleBoxPlot(data, varargin)
     show_data = parser.Results.ShowData;
     seed = parser.Results.seed;
 
+    % labels
+    if ~isempty(xlabel)
+        xtick = get(axes_handle, 'xtick');
+        if ~ismember(abscissa, xtick)
+            xtick = sort([xtick, abscissa]);
+            set(axes_handle, 'xtick', xtick);
+        end
+        xticklabels = get(axes_handle, 'xticklabel');
+        xticklabels{xtick == abscissa} = xlabel;
+        set(axes_handle, 'xticklabel', xticklabels);
+    end
+    
     if length(data) == 1
         bar ...
           ( ...
@@ -140,15 +152,4 @@ function singleBoxPlot(data, varargin)
         hold(axes_handle, 'off');
     end
     
-    % labels
-    if ~isempty(xlabel)
-        xtick = get(axes_handle, 'xtick');
-        if ~ismember(abscissa, xtick)
-            xtick = sort([xtick, abscissa]);
-            set(axes_handle, 'xtick', xtick);
-        end
-        xticklabels = get(axes_handle, 'xticklabel');
-        xticklabels{xtick == abscissa} = xlabel;
-        set(axes_handle, 'xticklabel', xticklabels);
-    end
 end

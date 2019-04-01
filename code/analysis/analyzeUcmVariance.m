@@ -86,7 +86,12 @@ function analyzeUcmVariance(varargin)
     for i_condition = 1 : length(across_time_conditions)
         % get list of trials for this condition
         this_condition_label = across_time_conditions{i_condition};
-        this_condition_trial_numbers = trial_number_list{strcmp(trial_type_list, this_condition_label)};
+        this_condition_index = strcmp(trial_type_list, this_condition_label);
+        if any(this_condition_index)
+            this_condition_trial_numbers = trial_number_list{this_condition_index};
+        else
+            this_condition_trial_numbers = [];
+        end
         
         % analyze across time
         number_of_trials_this_condition = length(this_condition_trial_numbers);

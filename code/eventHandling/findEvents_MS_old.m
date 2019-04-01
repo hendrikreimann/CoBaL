@@ -16,7 +16,6 @@
 
 % this function finds the heelstrike and pushoff events
 
-
 function findEvents_MS_old(varargin)
 
     % parse arguments
@@ -49,10 +48,10 @@ function findEvents_MS_old(varargin)
         for i_trial = trials_to_process
             %% prepare
             % load data
-            condition = condition_list{i_condition};
-            [marker_trajectories, time_marker, sampling_rate_marker, marker_labels] = loadData(date, subject_id, condition, i_trial, 'marker_trajectories');
-            [left_foot_wrench_world, time_left_forceplate, ~, ~, ~, left_forceplate_available] = loadData(date, subject_id, condition, i_trial, 'left_foot_wrench_world', 'optional');
-            [right_foot_wrench_world, time_right_forceplate, ~, ~, ~, right_forceplate_available] = loadData(date, subject_id, condition, i_trial, 'right_foot_wrench_world', 'optional');
+            this_trial_type = condition_list{i_condition};
+            [marker_trajectories, time_marker, sampling_rate_marker, marker_labels] = loadData(date, subject_id, this_trial_type, i_trial, 'marker_trajectories');
+            [left_foot_wrench_world, time_left_forceplate, ~, ~, ~, left_forceplate_available] = loadData(date, subject_id, this_trial_type, i_trial, 'left_foot_wrench_world', 'optional');
+            [right_foot_wrench_world, time_right_forceplate, ~, ~, ~, right_forceplate_available] = loadData(date, subject_id, this_trial_type, i_trial, 'right_foot_wrench_world', 'optional');
             if left_forceplate_available & right_forceplate_available
                 left_fz_trajectory = left_foot_wrench_world(:, 3);
                 right_fz_trajectory = right_foot_wrench_world(:, 3);
@@ -75,7 +74,7 @@ function findEvents_MS_old(varargin)
 
             %% find events
             platform_events = [];
-            if strcmp(condition(1:end-2), 'continuous')
+            if strcmp(this_trial_type(1:end-2), 'continuous')
                 [~, platform_pos_peak_indices] = findpeaks(platform_trajectory, 'MinPeakProminence', subject_settings.get('platform_pos_peak_prominence_threshold'), 'MinPeakDistance', subject_settings.get('platform_pos_peak_distance_threshold') * sampling_rate_marker);
                 [~, platform_neg_peak_indices] = findpeaks(-platform_trajectory, 'MinPeakProminence', subject_settings.get('platform_pos_peak_prominence_threshold'), 'MinPeakDistance', subject_settings.get('platform_pos_peak_distance_threshold') * sampling_rate_marker);
 %                 [~, surround_pos_peak_indices] = findpeaks(surround_trajectory, 'MinPeakProminence', subject_settings.get('platform_pos_peak_prominence_threshold'), 'MinPeakDistance', subject_settings.get('platform_pos_peak_distance_threshold') * sampling_rate_marker);
@@ -102,7 +101,7 @@ function findEvents_MS_old(varargin)
                   };
             end
             
-            if length(condition) >= 4 && strcmp(condition(1:4), 'ramp')
+            if length(this_trial_type) >= 4 && strcmp(this_trial_type(1:4), 'ramp')
                 distance_threshold = subject_settings.get('platform_acc_peak_distance_threshold') * sampling_rate_marker;
                 if distance_threshold > length(platform_acc_trajectory) - 2
                     distance_threshold = length(platform_acc_trajectory) - 2;
@@ -118,19 +117,19 @@ function findEvents_MS_old(varargin)
                 ramp_times = subject_settings.get('ramp_times');
                 
                 platform_shift_start_time = 2;
-                if length(condition) >= 7 && strcmp(condition(5:7), '012')
+                if length(this_trial_type) >= 7 && strcmp(this_trial_type(5:7), '012')
 %                     platform_shift_end_time = platform_shift_start_time + 1.2 * 1/15;
                     platform_shift_end_time = platform_shift_start_time + ramp_times(1);
-                elseif length(condition) >= 7 && strcmp(condition(5:7), '036')
+                elseif length(this_trial_type) >= 7 && strcmp(this_trial_type(5:7), '036')
 %                     platform_shift_end_time = platform_shift_start_time + 3.6 * 1/15;
                     platform_shift_end_time = platform_shift_start_time + ramp_times(2);
-                elseif length(condition) >= 7 && strcmp(condition(5:7), '060')
+                elseif length(this_trial_type) >= 7 && strcmp(this_trial_type(5:7), '060')
 %                     platform_shift_end_time = platform_shift_start_time + 6 * 1/15;
                     platform_shift_end_time = platform_shift_start_time + ramp_times(3);
-                elseif length(condition) >= 7 && strcmp(condition(5:7), '084')
+                elseif length(this_trial_type) >= 7 && strcmp(this_trial_type(5:7), '084')
 %                     platform_shift_end_time = platform_shift_start_time + 7.4 * 1/15;
                     platform_shift_end_time = platform_shift_start_time + ramp_times(4);
-                elseif length(condition) >= 7 && strcmp(condition(5:7), '120')
+                elseif length(this_trial_type) >= 7 && strcmp(this_trial_type(5:7), '120')
 %                     platform_shift_end_time = platform_shift_start_time + 12 * 1/15;
                     platform_shift_end_time = platform_shift_start_time + ramp_times(5);
                 else
@@ -169,7 +168,7 @@ function findEvents_MS_old(varargin)
               
             end
 
-            if length(condition) >= 5 && strcmp(condition(1:5), 'quiet')
+            if length(this_trial_type) >= 5 && strcmp(this_trial_type(1:5), 'quiet')
                 trial_start_time = time_marker(1);
                 trial_end_time = time_marker(end);
                 
@@ -237,10 +236,10 @@ function findEvents_MS_old(varargin)
             variables_to_save.event_data = event_data;
             variables_to_save.event_labels = event_labels;
             
-            step_events_file_name = ['analysis' filesep makeFileName(date, subject_id, condition, i_trial, 'events')];
+            step_events_file_name = ['analysis' filesep makeFileName(date, subject_id, this_trial_type, i_trial, 'events')];
             saveDataToFile(step_events_file_name, variables_to_save);
 
-            disp(['Finding Events: condition ' condition ', Trial ' num2str(i_trial) ' completed, saved as ' step_events_file_name]);
+            disp(['Finding Events: condition ' this_trial_type ', Trial ' num2str(i_trial) ' completed, saved as ' step_events_file_name]);
         end
     end
 end

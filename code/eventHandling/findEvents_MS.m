@@ -16,20 +16,6 @@
 
 % this function finds the heelstrike and pushoff events
 
-% input: 
-% subjectInfo.mat
-% subjectModel.mat
-% markerTrajectories
-% left_touchdown_method / right_touchdown_method in subjectSettings
-%
-% output:
-% file stepEvents.mat, containing
-% - left_pushoff_times
-% - left_touchdown_times
-% - right_pushoff_times
-% - right_touchdown_times
-
-
 function findEvents_MS(varargin)
 
     % parse arguments
@@ -115,7 +101,6 @@ function findEvents_MS(varargin)
             end
             
             if any(strcmp(this_trial_type, study_settings.get('across_trials_conditions', 1)))
-%             if length(condition_experimental) >= 4 && strcmp(condition_experimental(1:4), 'RAMP')
                 distance_threshold = subject_settings.get('platform_acc_peak_distance_threshold') * sampling_rate_marker;
                 if distance_threshold > length(platform_acc_trajectory) - 2
                     distance_threshold = length(platform_acc_trajectory) - 2;
@@ -124,29 +109,35 @@ function findEvents_MS(varargin)
                 platform_acc_peak_times = time_marker(platform_acc_peak_indices);
                 [~, platform_acc_vale_indices] = findpeaks(-platform_acc_trajectory, 'MinPeakProminence', subject_settings.get('platform_acc_peak_prominence_threshold'), 'MinPeakDistance', distance_threshold);
                 platform_acc_vale_times = time_marker(platform_acc_vale_indices);
-%                 platform_event_indices = [platform_acc_peak_indices; platform_acc_vale_indices];
                 
-                % determine start
-                platform_shift_start_index = min([platform_acc_peak_indices, platform_acc_vale_indices]);
-                platform_shift_end_index = max([platform_acc_peak_indices, platform_acc_vale_indices]);
+                % determine start and end
+                platform_shift_start_index = min([platform_acc_peak_indices; platform_acc_vale_indices]);
+                platform_shift_end_index = max([platform_acc_peak_indices; platform_acc_vale_indices]);
                 platform_shift_start_time = time_marker(platform_shift_start_index);
                 platform_shift_end_time = time_marker(platform_shift_end_index);
                 
                 event_data = ...
                   { ...
+                    platform_shift_start_time - 1; ...
+                    platform_shift_start_time - 0.2; ...
                     platform_shift_start_time; ...
+                    platform_shift_start_time + 0.075; ...
                     platform_shift_end_time; ...
                     platform_shift_end_time + 1; ...
                     platform_shift_end_time + 2; ...
                   };
                 event_labels = ...
                   { ...
+                    'perturbation_start_minus_1s'; ...
+                    'perturbation_start_minus_200ms'; ...
                     'perturbation_start'; ...
+                    'perturbation_start_plus_75ms'; ...
                     'perturbation_end'; ...
-                    'perturbation_end_plus_one'; ...
-                    'perturbation_end_plus_two'; ...
+                    'perturbation_end_plus_1s'; ...
+                    'perturbation_end_plus_2s'; ...
                   };
-              
+                
+                % for visualization here
                 platform_events = [platform_shift_start_time, platform_shift_end_time, platform_shift_end_time + 1, platform_shift_end_time + 2];
                 platform_event_indices = findClosestIndex(platform_events, time_marker);
               
@@ -169,6 +160,7 @@ function findEvents_MS(varargin)
                     'trial_end_time'; ...
                   };
               
+                % for visualization here
                 platform_events = [trial_start_time, trial_end_time];
                 platform_event_indices = findClosestIndex(platform_events, time_marker);
               

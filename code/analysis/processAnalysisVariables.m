@@ -20,7 +20,7 @@
 % note: the inversion could be automated more elegantly, but that's for a later date
 
 function processAnalysisVariables(varargin)
-    load('subjectInfo.mat', 'date', 'subject_id', 'affected_side');
+    load('subjectInfo.mat', 'date', 'subject_id');
     % load settings and existing results
     study_settings_file = '';
     if exist(['..' filesep 'studySettings.txt'], 'file')
@@ -53,7 +53,7 @@ function processAnalysisVariables(varargin)
         condition_data_all(:, i_condition) = conditions_session.(condition_source_variables{i_condition});
     end
     labels_to_ignore = study_settings.get('conditions_to_ignore');
-    levels_to_remove = study_settings.get('levels_to_remove');
+    levels_to_remove = study_settings.get('levels_to_remove', 1);
     [condition_combination_labels, ~, condition_combinations_control] = determineConditionCombinations(condition_data_all, conditions_settings, labels_to_ignore, levels_to_remove);
     condition_combinations_control_unique = table2cell(unique(cell2table(condition_combinations_control), 'rows'));
     
@@ -231,7 +231,7 @@ function processAnalysisVariables(varargin)
     end
     
     %% calculate variables referenced by stretch
-    variables_referenced_by_stretch = study_settings.get('analysis_variables_referenced_by_stretch');
+    variables_referenced_by_stretch = study_settings.get('analysis_variables_referenced_by_stretch', 1);
     for i_variable = 1 : size(variables_referenced_by_stretch, 1)
         this_variable_name = variables_referenced_by_stretch{i_variable, 1};
         this_variable_source_name = variables_referenced_by_stretch{i_variable, 2};
@@ -263,8 +263,8 @@ function processAnalysisVariables(varargin)
     end
     
     %% calculate integrated variables
-    variables_to_integrate_header = study_settings.get('analysis_variables_from_integration_header');
-    variables_to_integrate = study_settings.get('analysis_variables_from_integration');
+    variables_to_integrate_header = study_settings.get('analysis_variables_from_integration_header', 1);
+    variables_to_integrate = study_settings.get('analysis_variables_from_integration', 1);
     names_source = response_names_session;
     directions_source = response_directions_session;
     for i_variable = 1 : size(variables_to_integrate, 1)
@@ -333,7 +333,7 @@ function processAnalysisVariables(varargin)
     end
     
     %% calculate inversion variables
-    inversion_variables = study_settings.get('inversion_variables');
+    inversion_variables = study_settings.get('inversion_variables', 1);
     for i_variable = 1 : size(inversion_variables, 1)
         % get data
         this_variable_name = inversion_variables{i_variable, 1};
@@ -384,8 +384,8 @@ function processAnalysisVariables(varargin)
     end
     
     %% calculate selection variables
-    selection_variables_header = study_settings.get('selection_variables_header');
-    selection_variables = study_settings.get('selection_variables');
+    selection_variables_header = study_settings.get('selection_variables_header', 1);
+    selection_variables = study_settings.get('selection_variables', 1);
     for i_variable = 1 : size(selection_variables, 1)
         % get data
         this_variable_name = selection_variables{i_variable, strcmp(selection_variables_header, 'new_variable_name')};
@@ -450,7 +450,7 @@ function processAnalysisVariables(varargin)
     %% gather variables that are selected from different sources depending on condition
     % TODO: deal with bands
     % TODO: deal with directions
-    variables_to_select = study_settings.get('analysis_variables_from_selection');
+    variables_to_select = study_settings.get('analysis_variables_from_selection', 1);
     for i_variable = 1 : size(variables_to_select, 1)
         % get signs
         if strcmp(variables_to_select{i_variable, 5}, '+')
@@ -537,7 +537,7 @@ function processAnalysisVariables(varargin)
     end
     
     %% process variables where something specific happens for each variable
-    special_variables_to_calculate = study_settings.get('analysis_variables_special');
+    special_variables_to_calculate = study_settings.get('analysis_variables_special', 1);
     for i_variable = 1:size(special_variables_to_calculate, 1)
         this_variable_name = special_variables_to_calculate{i_variable, 1};
         this_variable_source_name = special_variables_to_calculate{i_variable, 2};
@@ -793,7 +793,7 @@ function processAnalysisVariables(varargin)
     end
     
     %% calculate variables from extrema for range
-    variables_from_extrema_range = study_settings.get('analysis_variables_from_extrema_range');
+    variables_from_extrema_range = study_settings.get('analysis_variables_from_extrema_range', 1);
     for i_variable = 1 : size(variables_from_extrema_range, 1)
         % get data
         this_variable_name = variables_from_extrema_range{i_variable, 1};
@@ -828,7 +828,7 @@ function processAnalysisVariables(varargin)
 %% LEGACY CODE
     
     %% calculate step end variables
-    variables_step_end = study_settings.get('analysis_variables_from_step_end');
+    variables_step_end = study_settings.get('analysis_variables_from_step_end', 1);
     names_source = response_names_session;
     directions_source = response_directions_session;
     for i_variable = 1 : size(variables_step_end, 1)
@@ -851,7 +851,7 @@ function processAnalysisVariables(varargin)
     % THIS IS LEGACY CODE
     % used this for the Vision experiment, it doesn't deal with bands or directions
     % use the general solution for variables_to_invert instead
-    variables_to_invert = study_settings.get('analysis_variables_from_inversion_by_perturbation');
+    variables_to_invert = study_settings.get('analysis_variables_from_inversion_by_perturbation', 1);
     for i_variable = 1 : size(variables_to_invert, 1)
         warning('analysis_variables_from_inversion_by_perturbation is in the process of being phased out, look for another solution.')
         % get data
@@ -921,7 +921,7 @@ function processAnalysisVariables(varargin)
     %% gather variables with inversion by direction
     % THIS IS LEGACY CODE
     % used this for the Vision experiment, it doesn't deal with bands or directions
-    variables_to_invert = study_settings.get('analysis_variables_from_inversion_by_direction');
+    variables_to_invert = study_settings.get('analysis_variables_from_inversion_by_direction', 1);
     for i_variable = 1 : size(variables_to_invert, 1)
         warning(['analysis_variables_from_inversion_by_direction is in the process of being phased out, look for another solution '])
         % get data
@@ -985,7 +985,7 @@ function processAnalysisVariables(varargin)
     %% calculate integrated variables - old
     % TODO: deal with bands
     % TODO: deal with directions .. check this
-    variables_to_integrate = study_settings.get('analysis_variables_from_integration_old');
+    variables_to_integrate = study_settings.get('analysis_variables_from_integration_old', 1);
     names_source = response_names_session;
     directions_source = response_directions_session;
     for i_variable = 1 : size(variables_to_integrate, 1)
@@ -1023,7 +1023,7 @@ function processAnalysisVariables(varargin)
     
         %% calculate variables from inversion
     % TODO: deal with bands
-    variables_to_invert = study_settings.get('analysis_variables_from_inversion');
+    variables_to_invert = study_settings.get('analysis_variables_from_inversion', 1);
     for i_variable = 1 : size(variables_to_invert, 1)
         % get data
         this_variable_name = variables_to_invert{i_variable, 1};

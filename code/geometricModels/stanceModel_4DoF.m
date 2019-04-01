@@ -484,7 +484,7 @@ function stanceModel_4DoF(varargin)
     kinematic_tree.addSegmentLabel('HEAD', 4);
     
     % define markers
-    marker_segment_list = createMarkerSegmentList(marker_labels, subject_settings);
+    marker_segment_list = createMarkerSegmentList(marker_labels);
     marker_color_list = createMarkerColorList(marker_labels, subject_settings);
     number_of_markers = length(marker_segment_list);
     for i_marker = 1 : number_of_markers
@@ -533,17 +533,49 @@ function stanceModel_4DoF(varargin)
 
 end
 
-function marker_segments = createMarkerSegmentList(marker_labels, subject_settings)
-    marker_to_segment_map = subject_settings.get('marker_to_segment_map');
+function marker_segments = createMarkerSegmentList(marker_labels)
+    marker_to_segment_map = ...
+      {
+        'L5MT', 0; ...
+        'LMAL', 0; ...
+        'LCND', 1; ...
+        'LGTR', 2; ...
+        'LACR', 3; ...
+        'LMAS', 4; ...
+        'LEYE', 4; ...
+        'R5MT', 0; ...
+        'RMAL', 0; ...
+        'RCND', 1; ...
+        'RGTR', 2; ...
+        'RACR', 3; ...
+        'RMAS', 4; ...
+        'REYE', 4; ...
+        'L5S1', 3; ...
+        'STRN', 3; ...
+        'CER7', 3; ...
+      };
     number_of_markers = length(marker_labels) / 3;
     marker_segments = zeros(1, number_of_markers);
     for i_label = 1 : number_of_markers
         this_marker_label = marker_labels{i_label*3};
         this_marker_id = this_marker_label(1:end-2);
-        marker_segments(i_label) = str2num(marker_to_segment_map{strcmp(marker_to_segment_map(:, 1), this_marker_id), 2}); %#ok<ST2NM>
+        marker_segments(i_label) = marker_to_segment_map{strcmp(marker_to_segment_map(:, 1), this_marker_id), 2};
     end
 end
 
+
+
+% function marker_segments = createMarkerSegmentList(marker_labels, subject_settings)
+%     marker_to_segment_map = subject_settings.get('marker_to_segment_map');
+%     number_of_markers = length(marker_labels) / 3;
+%     marker_segments = zeros(1, number_of_markers);
+%     for i_label = 1 : number_of_markers
+%         this_marker_label = marker_labels{i_label*3};
+%         this_marker_id = this_marker_label(1:end-2);
+%         marker_segments(i_label) = str2num(marker_to_segment_map{strcmp(marker_to_segment_map(:, 1), this_marker_id), 2}); %#ok<ST2NM>
+%     end
+% end
+% 
 function marker_color_list = createMarkerColorList(marker_labels, subject_settings)
     marker_to_color_map = subject_settings.get('marker_to_color_map');
     number_of_markers = length(marker_labels) / 3;
