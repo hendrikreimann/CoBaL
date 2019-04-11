@@ -25,7 +25,7 @@ function saveSubjectInfoToFile(varargin)
     
     % get subject settings
     subject_settings = SettingsCustodian('subjectSettings.txt');
-    trial_types_to_ignore = subject_settings.get('trial_types_to_ignore');
+    trial_types_to_ignore = subject_settings.get('trial_types_to_ignore', 1);
    
     
     % get parameters from settings file
@@ -132,7 +132,7 @@ function saveSubjectInfoToFile(varargin)
     variables_to_save.condition_list = trial_type_list;
     variables_to_save.trial_number_list = trial_number_list;
     variables_to_save.trial_types_to_ignore = trial_types_to_ignore; %#ok<STRNU>
-    if subject_settings.get('most_affected_side')
+    if subject_settings.get('most_affected_side', 1)
         variables_to_save.affected_side = subject_settings.get('most_affected_side');
     end
     save_file_name = 'subjectInfo.mat';

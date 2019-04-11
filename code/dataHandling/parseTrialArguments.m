@@ -95,35 +95,6 @@ function [types_to_analyze, trials_to_analyze, types_to_exclude, trials_to_exclu
     
     
     
-% %     % exclude calibration
-%     calibration_trials = trials_to_analyze(strcmp(types_to_analyze, 'calibration'));
-%     trials_to_analyze(strcmp(types_to_analyze, 'calibration')) = [];
-%     types_to_analyze(strcmp(types_to_analyze, 'calibration')) = [];
-% 
-%     % exclude dance
-%     dance_trials = trials_to_analyze(strcmp(types_to_analyze, 'dance'));
-%     trials_to_analyze(strcmp(types_to_analyze, 'dance')) = [];
-%     types_to_analyze(strcmp(types_to_analyze, 'dance')) = [];
-% %     
-%     % exclude emg
-%     emg_trials = trials_to_analyze(strcmp(types_to_analyze, 'emg'));
-%     trials_to_analyze(strcmp(types_to_analyze, 'emg')) = [];
-%     types_to_analyze(strcmp(types_to_analyze, 'emg')) = [];
-% %     
-%     % exclude metronome
-%     emg_trials = trials_to_analyze(strcmp(types_to_analyze, 'metronome'));
-%     trials_to_analyze(strcmp(types_to_analyze, 'metronome')) = [];
-%     types_to_analyze(strcmp(types_to_analyze, 'metronome')) = [];
-%     
-%     % exclude washout
-%     emg_trials = trials_to_analyze(strcmp(types_to_analyze, 'washout'));
-%     trials_to_analyze(strcmp(types_to_analyze, 'washout')) = [];
-%     types_to_analyze(strcmp(types_to_analyze, 'washout')) = [];
-%     
-%     % exclude adaptation
-%     emg_trials = trials_to_analyze(strcmp(types_to_analyze, 'adaptation'));
-%     trials_to_analyze(strcmp(types_to_analyze, 'adaptation')) = [];
-%     types_to_analyze(strcmp(types_to_analyze, 'adaptation')) = [];
-%     types_to_analyze(strcmp(types_to_analyze, 'adaptation')) = [];
+
     
 end

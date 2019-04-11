@@ -16,21 +16,7 @@
 
 % this function finds the heelstrike and pushoff events
 
-% input: 
-% subjectInfo.mat
-% subjectModel.mat
-% markerTrajectories
-% left_touchdown_method / right_touchdown_method in subjectSettings
-%
-% output:
-% file stepEvents.mat, containing
-% - left_pushoff_times
-% - left_touchdown_times
-% - right_pushoff_times
-% - right_touchdown_times
-
-
-function findEvents_MS(varargin)
+function findEvents_MS_old(varargin)
 
     % parse arguments
     [condition_list, trial_number_list] = parseTrialArguments(varargin{:});
@@ -57,30 +43,19 @@ function findEvents_MS(varargin)
     end
     study_settings = SettingsCustodian(study_settings_file);
     
-    % conditions
-    conditions_file_name = [];
-    if exist('conditions.csv', 'file')
-        conditions_file_name = 'conditions.csv';
-    end
-    if exist(makeFileName(date, subject_id, 'conditions.csv'), 'file')
-        conditions_file_name = makeFileName(date, subject_id, 'conditions.csv');
-    end    
-    
     for i_condition = 1 : length(condition_list)
         trials_to_process = trial_number_list{i_condition};
         for i_trial = trials_to_process
             %% prepare
             % load data
-            condition = condition_list{i_condition};
-            [marker_trajectories, time_marker, sampling_rate_marker, marker_labels] = loadData(date, subject_id, condition, i_trial, 'marker_trajectories');
-            [left_foot_wrench_world, time_left_forceplate, ~, ~, ~, left_forceplate_available] = loadData(date, subject_id, condition, i_trial, 'left_foot_wrench_world', 'optional');
-            [right_foot_wrench_world, time_right_forceplate, ~, ~, ~, right_forceplate_available] = loadData(date, subject_id, condition, i_trial, 'right_foot_wrench_world', 'optional');
+            this_trial_type = condition_list{i_condition};
+            [marker_trajectories, time_marker, sampling_rate_marker, marker_labels] = loadData(date, subject_id, this_trial_type, i_trial, 'marker_trajectories');
+            [left_foot_wrench_world, time_left_forceplate, ~, ~, ~, left_forceplate_available] = loadData(date, subject_id, this_trial_type, i_trial, 'left_foot_wrench_world', 'optional');
+            [right_foot_wrench_world, time_right_forceplate, ~, ~, ~, right_forceplate_available] = loadData(date, subject_id, this_trial_type, i_trial, 'right_foot_wrench_world', 'optional');
             if left_forceplate_available & right_forceplate_available
                 left_fz_trajectory = left_foot_wrench_world(:, 3);
                 right_fz_trajectory = right_foot_wrench_world(:, 3);
             end
-            
-            % ... works until here. Problem is that the events are hard-coded
             
             platform_trajectory = extractMarkerData(marker_trajectories, marker_labels, 'BackPlatform');
             platform_trajectory = platform_trajectory(:, 1);
@@ -99,8 +74,7 @@ function findEvents_MS(varargin)
 
             %% find events
             platform_events = [];
-            condition_experimental = loadConditionFromFile(conditions_file_name, 'condition', i_trial);
-            if strcmp(condition_experimental(1:end-3), 'continuous')
+            if strcmp(this_trial_type(1:end-2), 'continuous')
                 [~, platform_pos_peak_indices] = findpeaks(platform_trajectory, 'MinPeakProminence', subject_settings.get('platform_pos_peak_prominence_threshold'), 'MinPeakDistance', subject_settings.get('platform_pos_peak_distance_threshold') * sampling_rate_marker);
                 [~, platform_neg_peak_indices] = findpeaks(-platform_trajectory, 'MinPeakProminence', subject_settings.get('platform_pos_peak_prominence_threshold'), 'MinPeakDistance', subject_settings.get('platform_pos_peak_distance_threshold') * sampling_rate_marker);
 %                 [~, surround_pos_peak_indices] = findpeaks(surround_trajectory, 'MinPeakProminence', subject_settings.get('platform_pos_peak_prominence_threshold'), 'MinPeakDistance', subject_settings.get('platform_pos_peak_distance_threshold') * sampling_rate_marker);
@@ -127,7 +101,7 @@ function findEvents_MS(varargin)
                   };
             end
             
-            if length(condition_experimental) >= 4 && strcmp(condition_experimental(1:4), 'RAMP')
+            if length(this_trial_type) >= 4 && strcmp(this_trial_type(1:4), 'ramp')
                 distance_threshold = subject_settings.get('platform_acc_peak_distance_threshold') * sampling_rate_marker;
                 if distance_threshold > length(platform_acc_trajectory) - 2
                     distance_threshold = length(platform_acc_trajectory) - 2;
@@ -140,26 +114,53 @@ function findEvents_MS(varargin)
                 
                 platform_shift_start_candidates = 2;
                 platform_shift_end_candidates = 2 + [1.2 3.6 6 8.4 12] * 1/15; % platform shifted by 15cm/s
+                ramp_times = subject_settings.get('ramp_times');
                 
-                % determine start
-                [~, start_index] = min(abs(platform_acc_vale_times - platform_shift_start_candidates));
-                platform_shift_start_time = platform_shift_start_candidates(start_index);
-                [~, end_index] = min(abs(platform_acc_peak_times - platform_shift_end_candidates));
-                platform_shift_end_time = platform_shift_end_candidates(end_index);
+                platform_shift_start_time = 2;
+                if length(this_trial_type) >= 7 && strcmp(this_trial_type(5:7), '012')
+%                     platform_shift_end_time = platform_shift_start_time + 1.2 * 1/15;
+                    platform_shift_end_time = platform_shift_start_time + ramp_times(1);
+                elseif length(this_trial_type) >= 7 && strcmp(this_trial_type(5:7), '036')
+%                     platform_shift_end_time = platform_shift_start_time + 3.6 * 1/15;
+                    platform_shift_end_time = platform_shift_start_time + ramp_times(2);
+                elseif length(this_trial_type) >= 7 && strcmp(this_trial_type(5:7), '060')
+%                     platform_shift_end_time = platform_shift_start_time + 6 * 1/15;
+                    platform_shift_end_time = platform_shift_start_time + ramp_times(3);
+                elseif length(this_trial_type) >= 7 && strcmp(this_trial_type(5:7), '084')
+%                     platform_shift_end_time = platform_shift_start_time + 7.4 * 1/15;
+                    platform_shift_end_time = platform_shift_start_time + ramp_times(4);
+                elseif length(this_trial_type) >= 7 && strcmp(this_trial_type(5:7), '120')
+%                     platform_shift_end_time = platform_shift_start_time + 12 * 1/15;
+                    platform_shift_end_time = platform_shift_start_time + ramp_times(5);
+                else
+                    platform_shift_end_time = platform_shift_start_time;
+                end
+                
+%                 % determine start
+%                 [~, start_index] = min(abs(platform_acc_vale_times - platform_shift_start_candidates));
+%                 platform_shift_start_time = platform_shift_start_candidates(start_index);
+%                 [~, end_index] = min(abs(platform_acc_peak_times - platform_shift_end_candidates));
+%                 platform_shift_end_time = platform_shift_end_candidates(end_index);
                 
                 event_data = ...
                   { ...
+                    platform_shift_start_time - 1; ...
+                    platform_shift_start_time - 0.2; ...
                     platform_shift_start_time; ...
+                    platform_shift_start_time + 0.075; ...
                     platform_shift_end_time; ...
                     platform_shift_end_time + 1; ...
                     platform_shift_end_time + 2; ...
                   };
                 event_labels = ...
                   { ...
+                    'perturbation_start_minus_1s'; ...
+                    'perturbation_start_minus_200ms'; ...
                     'perturbation_start'; ...
+                    'perturbation_start_plus_75ms'; ...
                     'perturbation_end'; ...
-                    'perturbation_end_plus_one'; ...
-                    'perturbation_end_plus_two'; ...
+                    'perturbation_end_plus_1s'; ...
+                    'perturbation_end_plus_2s'; ...
                   };
               
                 platform_events = [platform_shift_start_time, platform_shift_end_time, platform_shift_end_time + 1, platform_shift_end_time + 2];
@@ -167,7 +168,7 @@ function findEvents_MS(varargin)
               
             end
 
-            if length(condition_experimental) >= 5 && strcmp(condition_experimental(1:5), 'QUIET')
+            if length(this_trial_type) >= 5 && strcmp(this_trial_type(1:5), 'quiet')
                 trial_start_time = time_marker(1);
                 trial_end_time = time_marker(end);
                 
@@ -235,10 +236,10 @@ function findEvents_MS(varargin)
             variables_to_save.event_data = event_data;
             variables_to_save.event_labels = event_labels;
             
-            step_events_file_name = ['analysis' filesep makeFileName(date, subject_id, condition, i_trial, 'events')];
+            step_events_file_name = ['analysis' filesep makeFileName(date, subject_id, this_trial_type, i_trial, 'events')];
             saveDataToFile(step_events_file_name, variables_to_save);
 
-            disp(['Finding Events: condition ' condition ', Trial ' num2str(i_trial) ' completed, saved as ' step_events_file_name]);
+            disp(['Finding Events: condition ' this_trial_type ', Trial ' num2str(i_trial) ' completed, saved as ' step_events_file_name]);
         end
     end
 end

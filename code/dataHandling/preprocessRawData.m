@@ -50,7 +50,7 @@ function preprocessRawData(varargin)
     end
     study_settings = SettingsCustodian(study_settings_file);
     subject_settings = SettingsCustodian('subjectSettings.txt');
-    emg_labels = subject_settings.get('emg_labels');
+    emg_labels = subject_settings.get('emg_labels', 1);
     
     %% emg
     if strcmp(type, 'emg') || strcmp(type, 'all')
@@ -659,7 +659,7 @@ function preprocessRawData(varargin)
             for i_trial = trials_to_process
                 % load data
                 this_condition = types_to_analyze{i_condition};
-                if any(strcmp(study_settings.get('conditions_to_transform_to_belt_space'), this_condition))
+                if any(strcmp(study_settings.get('conditions_to_transform_to_belt_space', 1), this_condition))
                     % extract data for new structure
                     if exist(['processed' filesep makeFileName(date, subject_id, trial_type, i_trial, 'plcData')], 'file')
                         load(['processed' filesep makeFileName(date, subject_id, trial_type, i_trial, 'plcData')])

@@ -77,10 +77,11 @@ function plotResults(varargin)
     end
     plot_settings = SettingsCustodian(plot_settings_file);
     show_outliers = plot_settings.get('show_outliers');
+    show_single_data_points = plot_settings.get('show_single_data_points', 1);
     plot_mode = plot_settings.get('plot_mode');
-    mark_pushoff = plot_settings.get('mark_pushoff');
-    mark_bands = plot_settings.get('mark_bands');
-    band_labels = study_settings.get('band_labels');
+    mark_pushoff = plot_settings.get('mark_pushoff', 1);
+    mark_bands = plot_settings.get('mark_bands', 1);
+    band_labels = study_settings.get('band_labels', 1);
     number_of_time_steps_normalized = study_settings.get('number_of_time_steps_normalized');
 
     %% load data
@@ -349,7 +350,7 @@ function plotResults(varargin)
     %% populate condition cell
     labels_to_ignore = plot_settings.get('conditions_to_ignore');
     levels_to_remove = plot_settings.get('levels_to_remove');
-    preferred_level_order = plot_settings.get('preferred_level_order');
+    preferred_level_order = plot_settings.get('preferred_level_order', 1);
     [condition_combination_labels, condition_combinations_stimulus, condition_combinations_control] = determineConditionCombinations(condition_data_all, conditions_settings, labels_to_ignore, levels_to_remove);
     [condition_combinations_stimulus, condition_combinations_control] = sortConditionCombinations(condition_combinations_stimulus, condition_combinations_control, condition_combination_labels, condition_to_compare, preferred_level_order);
     
@@ -411,13 +412,13 @@ function plotResults(varargin)
                             number_of_entries = number_of_entries + 1;
                         end
                         
-                        if plot_settings.get('group_bands_within_conditions')
+                        if plot_settings.get('group_bands_within_conditions', 1)
                             gap_between_conditions = 1;
                             
                             abscissae_stimulus = repmat((1 : bands_per_stretch)', 1, length(this_comparison));
                             shifter = (0:number_of_entries-1) * (bands_per_stretch + gap_between_conditions);
                             abscissae_stimulus = abscissae_stimulus + repmat(shifter, bands_per_stretch, 1);
-                            if plot_settings.get('merge_bands')
+                            if plot_settings.get('merge_bands', 1)
                                 abscissae_stimulus = abscissae_stimulus(1, :);
                             end
                             
@@ -428,7 +429,7 @@ function plotResults(varargin)
                             abscissae_stimulus = repmat((1 : number_of_entries), bands_per_stretch, 1);
                             shifter = (0:bands_per_stretch-1)' * (conditions_per_comparison_max + gap_between_bands);
                             abscissae_stimulus = abscissae_stimulus + repmat(shifter, 1, conditions_per_comparison_max);
-                            if plot_settings.get('merge_bands')
+                            if plot_settings.get('merge_bands', 1)
                                 abscissae_stimulus = abscissae_stimulus(1, :);
                             end
                         end
@@ -998,7 +999,7 @@ function plotResults(varargin)
     if size(colors_comparison, 2) == 1
         colors_comparison = hex2rgb(colors_comparison);
     end
-    colors_bands = plot_settings.get('colors_bands');
+    colors_bands = plot_settings.get('colors_bands', 1);
     for i_variable = 1 : number_of_variables_to_plot
         data_to_plot = data_all{i_variable, 1};
         for i_comparison = 1 : length(comparison_indices)
@@ -1067,17 +1068,9 @@ function plotResults(varargin)
                                             'abscissa', target_abscissa, ...
                                             'FaceColor', this_color, ...
                                             'xlabel', label_string_this_band, ...
+                                            'ShowData', show_single_data_points, ...
                                             'ShowOutliers', show_outliers ...
                                           )
-%                                         singleBoxPlot ...
-%                                           ( ...
-%                                             target_axes_handle, ...
-%                                             target_abscissa, ...
-%                                             data_to_plot_this_band, ...
-%                                             this_color, ...
-%                                             label_string_this_band, ...
-%                                             show_outliers ...
-%                                           )
                                     end
                                     if strcmp(plot_settings.get('discrete_data_plot_style'), 'bar')
                                         singleBarPlot ...
@@ -1251,7 +1244,7 @@ function plotResults(varargin)
                 
                 origin_indices = find(this_condition_indicator);
                 if isDiscreteVariable(i_variable, data_all, bands_per_stretch)
-                    if plot_settings.get('merge_bands')
+                    if plot_settings.get('merge_bands', 1)
                         data_to_plot_this_condition = reshape(data_to_plot_this_condition, 1, numel(data_to_plot_this_condition));
                     end
                     for i_band = 1 : size(data_to_plot_this_condition, 1)
@@ -1280,7 +1273,7 @@ function plotResults(varargin)
                         end
                         if strcmp(plot_mode, 'overview') || strcmp(plot_mode, 'episodes')
                             if ~any(isnan(data_to_plot_this_band))
-                                if plot_settings.get('group_bands_within_conditions')
+                                if plot_settings.get('group_bands_within_conditions', 1)
                                     this_color = colors_bands(i_band, :);
                                 else
                                     this_color = colors_comparison(i_condition, :);
@@ -1294,6 +1287,7 @@ function plotResults(varargin)
                                         'abscissa', target_abscissa, ...
                                         'FaceColor', this_color, ...
                                         'xlabel', label_string_this_band, ...
+                                        'ShowData', show_single_data_points, ...
                                         'ShowOutliers', show_outliers ...
                                       )
                                 end
@@ -1528,7 +1522,7 @@ function plotResults(varargin)
             end
             if isDiscreteVariable(i_variable, data_all, bands_per_stretch)
                 % rotate labels
-                xtick_label_rotation = plot_settings.get('xtick_label_rotation');
+                xtick_label_rotation = plot_settings.get('xtick_label_rotation', 1);
                 set(these_axes, 'XTickLabelRotation', xtick_label_rotation);
                 
             end
@@ -1537,7 +1531,7 @@ function plotResults(varargin)
     end
     
     %% add zero line
-    if plot_settings.get('plot_zero')
+    if plot_settings.get('plot_zero', 1)
         for i_variable = 1 : number_of_variables_to_plot
             for i_axes = 1 : size(trajectory_axes_handles, 1)
                 these_axes = trajectory_axes_handles(i_axes, i_variable);
@@ -1549,7 +1543,7 @@ function plotResults(varargin)
             end
         end    
     end
-    if plot_settings.get('plot_diagonals')
+    if plot_settings.get('plot_diagonals', 1)
         for i_path = 1 : number_of_paths_to_plot
             for i_axes = 1 : size(path_axes_handles, 1)
                 these_axes = path_axes_handles(i_axes, i_path);

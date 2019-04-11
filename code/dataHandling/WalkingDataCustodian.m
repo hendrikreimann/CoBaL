@@ -882,8 +882,8 @@ classdef WalkingDataCustodian < handle
             if nargin < 4
                 variables_to_prepare = this.basic_variable_names;
             end
-            data_to_remove_header = this.subject_settings.get('data_to_remove_header');
-            data_to_remove = this.subject_settings.get('data_to_remove');
+            data_to_remove_header = this.subject_settings.get('data_to_remove_header', 1);
+            data_to_remove = this.subject_settings.get('data_to_remove', 1);
             if ~isempty(data_to_remove)
                 this_trial_rows = strcmp(data_to_remove(:, strcmp(data_to_remove_header, 'trial_number')), num2str(trial_number));
                 data_to_remove_this_trial = data_to_remove(this_trial_rows, 1);

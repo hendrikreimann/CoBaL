@@ -38,6 +38,7 @@ function reorganizeMsData(varargin)
         study_settings_file = ['..' filesep '..' filesep 'studySettings.txt'];
     end
     study_settings = SettingsCustodian(study_settings_file);
+    subject_settings = SettingsCustodian('subjectSettings.txt');
     
     % get list of files to reorganize
     clear file_name_list;
@@ -45,13 +46,36 @@ function reorganizeMsData(varargin)
     [file_name_list{1:length(data_dir)}] = deal(data_dir.name);
     number_of_files = length(file_name_list);
     
+    % figure out date
+    i_file = 1;
+    date = [];
+    while isempty(date) && i_file <= length(file_name_list)
+        data_file_name = file_name_list{i_file};
+        loaded_data = load([source_folder filesep data_file_name]);
+        if isfield(loaded_data, 'Date')
+            date = reformatDate(loaded_data.Date);
+            date_source_file = data_file_name;
+        end
+        i_file = i_file+1;
+    end
+    if isempty(date)
+        warning('No date found in data files, trying to read from subjectSettings.txt')
+        date = subject_settings.get('date', 0);
+    end
+    
     % go through files and reorganize
     for i_file = 1 : number_of_files
         data_file_name = file_name_list{i_file};
-        load([source_folder filesep data_file_name]);
+        loaded_data = load([source_folder filesep data_file_name]);
         
         % general items
-        date = reformatDate(Date);
+        if isfield(loaded_data, 'Date')
+            this_date = reformatDate(loaded_data.Date);
+            if ~(this_date == date)
+                warning(['The two files ' data_file_name ' and ' date_source_file ' have different date information.'])
+            end
+        end
+        data_file_name = strrep(data_file_name, 'MKR_', '');
         file_name_split = strsplit(data_file_name, '.');
         file_name_split = strsplit(file_name_split{1}, '_');
         trial_type = file_name_split{1};
@@ -59,75 +83,163 @@ function reorganizeMsData(varargin)
         trial_number = zeroPrefixedIntegerString(str2num(file_name_split{3}(2:end)), 3);
         
         % condition
-        addTrialToConditionFile(date, subject_id, str2num(trial_number), PDP_condname);
+        condition_label = determineConditionLabel(str2num(trial_number));
         
         % marker data
-        number_of_markers = length(pos_labels);
-        number_of_time_steps = length(pos_time);
-        marker_trajectories = zeros(number_of_time_steps, number_of_markers*3);
-        marker_trajectories(:, 1 : 3 : end) = pos_X * millimeter_to_meter;
-        marker_trajectories(:, 2 : 3 : end) = pos_Y * millimeter_to_meter;
-        marker_trajectories(:, 3 : 3 : end) = pos_Z * millimeter_to_meter;
-        time_mocap = pos_time * milliseconds_to_seconds;
-        sampling_rate_mocap = round(median(diff(time_mocap))^(-1));
-        
-        % triplicate labels
-        number_of_markers = length(pos_labels);
-        marker_labels = cell(3, number_of_markers);
-        for i_marker = 1 : length(marker_labels)
-            marker_labels{1, i_marker} = [pos_labels{i_marker} '_x'];
-            marker_labels{2, i_marker} = [pos_labels{i_marker} '_y'];
-            marker_labels{3, i_marker} = [pos_labels{i_marker} '_z'];
-        end
-        marker_labels = reshape(marker_labels, 1, number_of_markers*3);
-        
-        % make directions
-        % NOTE: this defines directions and makes assumptions, make sure everything is right here
-        number_of_marker_trajectories = size(marker_trajectories, 2);
-        marker_directions = cell(2, number_of_marker_trajectories);
-        [marker_directions{1, 1 : 3 : number_of_marker_trajectories}] = deal('forward');
-        [marker_directions{2, 1 : 3 : number_of_marker_trajectories}] = deal('backward');
-        [marker_directions{1, 2 : 3 : number_of_marker_trajectories}] = deal('left');
-        [marker_directions{2, 2 : 3 : number_of_marker_trajectories}] = deal('right');
-        [marker_directions{1, 3 : 3 : number_of_marker_trajectories}] = deal('up');
-        [marker_directions{2, 3 : 3 : number_of_marker_trajectories}] = deal('down');
-        
-        
-        % filter
-        if study_settings.get('filter_marker_data')
-            filter_order = study_settings.get('marker_data_filter_order');
-            cutoff_frequency = study_settings.get('marker_data_cutoff_frequency'); % in Hz
-            [b_marker, a_marker] = butter(filter_order, cutoff_frequency/(sampling_rate_mocap/2));
-            marker_trajectories = nanfiltfilt(b_marker, a_marker, marker_trajectories);
-        end
+        if isfield(loaded_data, 'pos_labels')
+            number_of_markers = length(loaded_data.pos_labels);
+            number_of_time_steps = length(loaded_data.pos_time);
+            marker_trajectories = zeros(number_of_time_steps, number_of_markers*3);
+            marker_trajectories(:, 1 : 3 : end) = loaded_data.pos_X * millimeter_to_meter;
+            marker_trajectories(:, 2 : 3 : end) = loaded_data.pos_Y * millimeter_to_meter;
+            marker_trajectories(:, 3 : 3 : end) = loaded_data.pos_Z * millimeter_to_meter;
+            time_mocap = loaded_data.pos_time * milliseconds_to_seconds;
+            sampling_rate_mocap = round(median(diff(time_mocap))^(-1));
 
-        % save
-        save_folder = 'processed';
-        save_file_name = makeFileName(date, subject_id, trial_type, trial_number, 'markerTrajectories.mat');
-        save ...
-          ( ...
-            [save_folder filesep save_file_name], ...
-            'marker_trajectories', ...
-            'time_mocap', ...
-            'sampling_rate_mocap', ...
-            'marker_labels',  ...
-            'marker_directions' ...
-          );
-        addAvailableData ...
-          ( ...
-            'marker_trajectories', ...
-            'time_mocap', ...
-            'sampling_rate_mocap', ...
-            '_marker_labels', ...
-            '_marker_directions', ...
-            save_folder, ...
-            save_file_name ...
-          );
-        
-        
-        
-        disp(['Reorganizing data, trial type ' trial_type ', number ' trial_number ' completed, saved as ' save_folder filesep save_file_name]);
-        
+            % triplicate labels
+            number_of_markers = length(loaded_data.pos_labels);
+            marker_labels = cell(3, number_of_markers);
+            for i_marker = 1 : length(marker_labels)
+                marker_labels{1, i_marker} = [loaded_data.pos_labels{i_marker} '_x'];
+                marker_labels{2, i_marker} = [loaded_data.pos_labels{i_marker} '_y'];
+                marker_labels{3, i_marker} = [loaded_data.pos_labels{i_marker} '_z'];
+            end
+            marker_labels = reshape(marker_labels, 1, number_of_markers*3);
+
+            % make directions
+            % NOTE: this defines directions and makes assumptions, make sure everything is right here
+            number_of_marker_trajectories = size(marker_trajectories, 2);
+            marker_directions = cell(2, number_of_marker_trajectories);
+            [marker_directions{1, 1 : 3 : number_of_marker_trajectories}] = deal('forward');
+            [marker_directions{2, 1 : 3 : number_of_marker_trajectories}] = deal('backward');
+            [marker_directions{1, 2 : 3 : number_of_marker_trajectories}] = deal('left');
+            [marker_directions{2, 2 : 3 : number_of_marker_trajectories}] = deal('right');
+            [marker_directions{1, 3 : 3 : number_of_marker_trajectories}] = deal('up');
+            [marker_directions{2, 3 : 3 : number_of_marker_trajectories}] = deal('down');
+
+            if study_settings.get('fill_gaps')
+                maximal_gap_length = study_settings.get('maximal_gap_length');
+                maximal_gap_number_of_indices = floor(maximal_gap_length * sampling_rate_mocap);
+                for i_trajectory = 1 : number_of_marker_trajectories
+                    marker_trajectories(:, i_trajectory) = interpolateGaps(marker_trajectories(:, i_trajectory), maximal_gap_number_of_indices);                
+                end
+            end
+            
+
+            % filter
+            if study_settings.get('filter_marker_data')
+                filter_order = study_settings.get('marker_data_filter_order');
+                cutoff_frequency = study_settings.get('marker_data_cutoff_frequency'); % in Hz
+                [b_marker, a_marker] = butter(filter_order, cutoff_frequency/(sampling_rate_mocap/2));
+                marker_trajectories = nanfiltfilt(b_marker, a_marker, marker_trajectories);
+            end
+
+            % save
+            save_folder = 'processed';
+            save_file_name = makeFileName(date, subject_id, condition_label, trial_number, 'markerTrajectories.mat');
+            save ...
+              ( ...
+                [save_folder filesep save_file_name], ...
+                'marker_trajectories', ...
+                'time_mocap', ...
+                'sampling_rate_mocap', ...
+                'marker_labels',  ...
+                'marker_directions' ...
+              );
+            addAvailableData ...
+              ( ...
+                'marker_trajectories', ...
+                'time_mocap', ...
+                'sampling_rate_mocap', ...
+                '_marker_labels', ...
+                '_marker_directions', ...
+                save_folder, ...
+                save_file_name ...
+              );
+            disp(['Reorganizing data, trial type ' trial_type ', number ' trial_number ' completed, saved as ' save_folder filesep save_file_name]);
+
+        elseif isfield(loaded_data, 'mkr_list')
+            number_of_markers = length(loaded_data.mkr_list);
+            number_of_time_steps = length(loaded_data.pos_time);
+            marker_trajectories = zeros(number_of_time_steps, number_of_markers*3);
+            marker_list = loaded_data.mkr_list;
+            for i_marker = 1 : number_of_markers
+                this_marker_label = marker_list{i_marker};
+                this_marker_trajectory = loaded_data.(this_marker_label);
+                marker_trajectories(:, (i_marker-1)*3 + [1 2 3]) = this_marker_trajectory * millimeter_to_meter;
+                
+                
+            end
+            time_mocap = loaded_data.pos_time * milliseconds_to_seconds;
+            sampling_rate_mocap = round(median(diff(time_mocap))^(-1));
+
+            % triplicate labels
+            marker_labels = cell(3, number_of_markers);
+            for i_marker = 1 : length(marker_labels)
+                this_marker_label = strrep(marker_list{i_marker}, '_c', '');
+                marker_labels{1, i_marker} = [this_marker_label '_x'];
+                marker_labels{2, i_marker} = [this_marker_label '_y'];
+                marker_labels{3, i_marker} = [this_marker_label '_z'];
+            end
+            marker_labels = reshape(marker_labels, 1, number_of_markers*3);
+
+            % make directions
+            % NOTE: this defines directions and makes assumptions, make sure everything is right here
+            number_of_marker_trajectories = size(marker_trajectories, 2);
+            marker_directions = cell(2, number_of_marker_trajectories);
+            [marker_directions{1, 1 : 3 : number_of_marker_trajectories}] = deal('forward');
+            [marker_directions{2, 1 : 3 : number_of_marker_trajectories}] = deal('backward');
+            [marker_directions{1, 2 : 3 : number_of_marker_trajectories}] = deal('left');
+            [marker_directions{2, 2 : 3 : number_of_marker_trajectories}] = deal('right');
+            [marker_directions{1, 3 : 3 : number_of_marker_trajectories}] = deal('up');
+            [marker_directions{2, 3 : 3 : number_of_marker_trajectories}] = deal('down');
+
+            if study_settings.get('fill_gaps')
+                maximal_gap_length = study_settings.get('maximal_gap_length');
+                maximal_gap_number_of_indices = floor(maximal_gap_length * sampling_rate_mocap);
+                for i_trajectory = 1 : number_of_marker_trajectories
+                    marker_trajectories(:, i_trajectory) = interpolateGaps(marker_trajectories(:, i_trajectory), maximal_gap_number_of_indices);                
+                end
+            end
+            
+
+            % filter
+            if study_settings.get('filter_marker_data')
+                filter_order = study_settings.get('marker_data_filter_order');
+                cutoff_frequency = study_settings.get('marker_data_cutoff_frequency'); % in Hz
+                [b_marker, a_marker] = butter(filter_order, cutoff_frequency/(sampling_rate_mocap/2));
+                marker_trajectories = nanfiltfilt(b_marker, a_marker, marker_trajectories);
+            end
+
+            % save
+            save_folder = 'processed';
+            save_file_name = makeFileName(date, subject_id, condition_label, trial_number, 'markerTrajectories.mat');
+            save ...
+              ( ...
+                [save_folder filesep save_file_name], ...
+                'marker_trajectories', ...
+                'time_mocap', ...
+                'sampling_rate_mocap', ...
+                'marker_labels',  ...
+                'marker_directions' ...
+              );
+            addAvailableData ...
+              ( ...
+                'marker_trajectories', ...
+                'time_mocap', ...
+                'sampling_rate_mocap', ...
+                '_marker_labels', ...
+                '_marker_directions', ...
+                save_folder, ...
+                save_file_name ...
+              );
+            disp(['Reorganizing data, trial type ' trial_type ', number ' trial_number ' completed, saved as ' save_folder filesep save_file_name]);
+
+
+            
+        else
+            warning(['File ' data_file_name ' does not contain marker data. Skipping.'])
+        end
         
 
         
@@ -216,66 +328,118 @@ function new_string = reformatCondition(old_string, trial_number)
     end
 end
 
-function addTrialToConditionFile(date, subject_id, trial_number, condition_string)
-    conditions_file_name = makeFileName(date, subject_id, 'conditions.csv');
-    condition = reformatCondition(condition_string, trial_number);
-    
-    if ~exist(conditions_file_name, 'file')
-        header_line = 'trial,condition\n';
-        file_id = fopen(conditions_file_name, 'w');
-        fprintf(file_id, header_line);
-        fclose(file_id);
+function condition_label = determineConditionLabel(trial_number)
+    % determine condition string
+    if trial_number == 2
+        condition_label = 'calibration';
     end
-    
-    % load conditions file
-    file_id = fopen(conditions_file_name, 'r');
-    header_line = fgetl(file_id);
-    text_cell = {};
-    text_line = fgetl(file_id);
-    while ischar(text_line)
-        text_cell = [text_cell; text_line]; %#ok<AGROW>
-        text_line = fgetl(file_id);
+    if trial_number == 3
+        condition_label = 'quietEO';
     end
-    fclose(file_id);
-    
-    % transform to arrays
-    header = strsplit(strrep(header_line, ' ', ''), ',');
-    condition_header = header(2 : end);
-    number_of_trials = size(text_cell, 1);
-    number_of_conditions = size(header, 2) - 1;
-    trials_from_condition_file_list = zeros(number_of_trials, 1) * NaN;
-    condition_cell = cell(number_of_trials, number_of_conditions);
-    for i_trial = 1 : number_of_trials
-        text_line = text_cell{i_trial};
-        line_split = strsplit(text_line, ',');
-        trials_from_condition_file_list(i_trial) = str2num(line_split{1});
-        condition_cell(i_trial, :) = line_split(2:end);
+    if trial_number == 4
+        condition_label = 'quietEC';
     end
-    
-    % check if current trial is already there
-    condition_column = find(strcmp(condition_header, 'condition'));
-    condition_fit = strcmp(condition_cell(:, condition_column), condition);
-    trial_fit = (trials_from_condition_file_list == trial_number);
-    complete_fit = trial_fit & condition_fit;
-    if ~any(complete_fit)
-        % this trial isn't listed yet, add it
-        condition_line_cell = cell(1, number_of_conditions);
-        condition_line_cell{condition_column} = condition;
-        condition_line = num2str(trial_number);
-        for i_condition = 1 : number_of_conditions
-            condition_line = [condition_line ',' condition_line_cell{i_condition}];
-        end
-        
-        % write to file
-        header_line = [condition_line '\n'];
-        file_id = fopen(conditions_file_name, 'a');
-        fprintf(file_id, header_line);
-        fclose(file_id);
+    if ismember(trial_number, 5:9)
+        condition_label = 'ramp012';
     end
-    
-    
-    
+    if ismember(trial_number, 10:14)
+        condition_label = 'ramp036';
+    end
+    if ismember(trial_number, 15:19)
+        condition_label = 'ramp060';
+    end
+    if ismember(trial_number, 20:24)
+        condition_label = 'ramp084';
+    end
+    if ismember(trial_number, 25:29)
+        condition_label = 'ramp120';
+    end
+
+    if ismember(trial_number, 31:35)
+        condition_label = 'continuous01';
+    end
+    if ismember(trial_number, 36:40)
+        condition_label = 'continuous02';
+    end
+    if ismember(trial_number, 41:45)
+        condition_label = 'continuous03';
+    end
+    if ismember(trial_number, 46:50)
+        condition_label = 'continuous04';
+    end
+    if ismember(trial_number, 51:55)
+        condition_label = 'continuous05';
+    end
 end
+
+% function addTrialToConditionFile(date, subject_id, trial_number)
+% 
+%     
+% 
+% 
+%     conditions_file_name = makeFileName(date, subject_id, 'conditions.csv');
+%     
+%     
+%     
+%     
+%     condition = reformatCondition(condition_string, trial_number);
+%     
+%     if ~exist(conditions_file_name, 'file')
+%         header_line = 'trial,condition\n';
+%         file_id = fopen(conditions_file_name, 'w');
+%         fprintf(file_id, header_line);
+%         fclose(file_id);
+%     end
+%     
+%     % load conditions file
+%     file_id = fopen(conditions_file_name, 'r');
+%     header_line = fgetl(file_id);
+%     text_cell = {};
+%     text_line = fgetl(file_id);
+%     while ischar(text_line)
+%         text_cell = [text_cell; text_line]; %#ok<AGROW>
+%         text_line = fgetl(file_id);
+%     end
+%     fclose(file_id);
+%     
+%     % transform to arrays
+%     header = strsplit(strrep(header_line, ' ', ''), ',');
+%     condition_header = header(2 : end);
+%     number_of_trials = size(text_cell, 1);
+%     number_of_conditions = size(header, 2) - 1;
+%     trials_from_condition_file_list = zeros(number_of_trials, 1) * NaN;
+%     condition_cell = cell(number_of_trials, number_of_conditions);
+%     for i_trial = 1 : number_of_trials
+%         text_line = text_cell{i_trial};
+%         line_split = strsplit(text_line, ',');
+%         trials_from_condition_file_list(i_trial) = str2num(line_split{1});
+%         condition_cell(i_trial, :) = line_split(2:end);
+%     end
+%     
+%     % check if current trial is already there
+%     condition_column = find(strcmp(condition_header, 'condition'));
+%     condition_fit = strcmp(condition_cell(:, condition_column), condition);
+%     trial_fit = (trials_from_condition_file_list == trial_number);
+%     complete_fit = trial_fit & condition_fit;
+%     if ~any(complete_fit)
+%         % this trial isn't listed yet, add it
+%         condition_line_cell = cell(1, number_of_conditions);
+%         condition_line_cell{condition_column} = condition;
+%         condition_line = num2str(trial_number);
+%         for i_condition = 1 : number_of_conditions
+%             condition_line = [condition_line ',' condition_line_cell{i_condition}];
+%         end
+%         
+%         % write to file
+%         header_line = [condition_line '\n'];
+%         file_id = fopen(conditions_file_name, 'a');
+%         fprintf(file_id, header_line);
+%         fclose(file_id);
+%     end
+%     
+%     
+%     
+% end
 
 
 
