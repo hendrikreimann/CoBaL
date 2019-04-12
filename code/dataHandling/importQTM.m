@@ -140,7 +140,7 @@ function importQTM(varargin)
             table_headers = imported_table.Properties.VariableNames;
             
             virtual_object_info = struct;
-            protocol_virtual_object_ap_location = imported_table.(table_headers{strcmp(headers, 'LaneCenters')});
+            protocol_virtual_object_ap_location = imported_table.(table_headers{strcmp(headers, 'LaneCenter')});
             protocol_virtual_ojbect_ml_location =  imported_table.(table_headers{strcmp(headers, 'Color')});
             virtual_object_info.virtual_object_ap_location = protocol_virtual_object_ap_location;
             virtual_object_info.virtual_object_ml_location = protocol_virtual_ojbect_ml_location;

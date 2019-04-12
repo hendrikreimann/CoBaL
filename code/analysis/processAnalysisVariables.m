@@ -128,13 +128,22 @@ function processAnalysisVariables(varargin)
                     applicable_control_condition_index = find(strcmp(condition_combinations_control_unique(:, strcmp(condition_combination_labels, 'trigger_foot')), 'TRIGGER_RIGHT'));
                 end
             end
-%             if strcmp(study_settings.get('experimental_paradigm'), 'OculusLaneRestriction')
-%                 if strcmp(this_stretch_condition_string{strcmp(condition_combination_labels, 'zone_direction')}, 'STIM_TOWARDS_ZONE') && strcmp(this_stretch_condition_string{strcmp(condition_combination_labels, 'trigger_foot')}, 'TRIGGER_LEFT')
-%                     applicable_control_condition_index = find(strcmp(condition_combinations_control_unique(:, strcmp(condition_combination_labels, 'zone_direction')), 'STIM_TOWARDS_ZONE') & strcmp(condition_combinations_control_unique(:, strcmp(condition_combination_labels, 'trigger_foot')), 'TRIGGER_LEFT'));
-%                 elseif strcmp(this_stretch_condition_string{strcmp(condition_combination_labels, 'zone_direction')}, 'STIM_AWAY_ZONE') && strcmp(this_stretch_condition_string{strcmp(condition_combination_labels, 'trigger_foot')}, 'TRIGGER_RIGHT')
-%                     applicable_control_condition_index = find(strcmp(condition_combinations_control_unique(:, strcmp(condition_combination_labels, 'zone_direction')), 'STIM_AWAY_ZONE') & strcmp(condition_combinations_control_unique(:, strcmp(condition_combination_labels, 'trigger_foot')), 'TRIGGER_RIGHT'));
+            if strcmp(study_settings.get('experimental_paradigm'), 'OculusLaneRestriction')
+                if strcmp(this_stretch_condition_string{strcmp(condition_combination_labels, 'zone_side')}, 'STIM_ZONE_LEFT') && strcmp(this_stretch_condition_string{strcmp(condition_combination_labels, 'trigger_foot')}, 'TRIGGER_LEFT')
+                    applicable_control_condition_index = find(strcmp(condition_combinations_control_unique(:, strcmp(condition_combination_labels, 'zone_side')), 'STIM_ZONE_LEFT') & strcmp(condition_combinations_control_unique(:, strcmp(condition_combination_labels, 'trigger_foot')), 'TRIGGER_LEFT'));
+                elseif strcmp(this_stretch_condition_string{strcmp(condition_combination_labels, 'zone_side')}, 'STIM_ZONE_LEFT') && strcmp(this_stretch_condition_string{strcmp(condition_combination_labels, 'trigger_foot')}, 'TRIGGER_RIGHT')
+                    applicable_control_condition_index = find(strcmp(condition_combinations_control_unique(:, strcmp(condition_combination_labels, 'zone_side')), 'STIM_ZONE_LEFT') & strcmp(condition_combinations_control_unique(:, strcmp(condition_combination_labels, 'trigger_foot')), 'TRIGGER_RIGHT'));
+                elseif strcmp(this_stretch_condition_string{strcmp(condition_combination_labels, 'zone_side')}, 'STIM_ZONE_RIGHT') && strcmp(this_stretch_condition_string{strcmp(condition_combination_labels, 'trigger_foot')}, 'TRIGGER_LEFT')
+                    applicable_control_condition_index = find(strcmp(condition_combinations_control_unique(:, strcmp(condition_combination_labels, 'zone_side')), 'STIM_ZONE_RIGHT') & strcmp(condition_combinations_control_unique(:, strcmp(condition_combination_labels, 'trigger_foot')), 'TRIGGER_LEFT'));
+                elseif strcmp(this_stretch_condition_string{strcmp(condition_combination_labels, 'zone_side')}, 'STIM_ZONE_RIGHT') && strcmp(this_stretch_condition_string{strcmp(condition_combination_labels, 'trigger_foot')}, 'TRIGGER_RIGHT')
+                    applicable_control_condition_index = find(strcmp(condition_combinations_control_unique(:, strcmp(condition_combination_labels, 'zone_side')), 'STIM_ZONE_RIGHT') & strcmp(condition_combinations_control_unique(:, strcmp(condition_combination_labels, 'trigger_foot')), 'TRIGGER_RIGHT'));
+                end
+%                 if strcmp(this_stretch_condition_string{strcmp(condition_combination_labels, 'trigger_foot')}, 'TRIGGER_LEFT')
+%                     applicable_control_condition_index = find(strcmp(condition_combinations_control_unique(:, strcmp(condition_combination_labels, 'trigger_foot')), 'TRIGGER_LEFT'));
+%                 elseif strcmp(this_stretch_condition_string{strcmp(condition_combination_labels, 'trigger_foot')}, 'TRIGGER_RIGHT') 
+%                     applicable_control_condition_index = find(strcmp(condition_combinations_control_unique(:, strcmp(condition_combination_labels, 'trigger_foot')), 'TRIGGER_RIGHT'));
 %                 end
-%             end
+            end
             % determine indicator for control
             control_condition_indicator = true(number_of_stretches, 1);
             for i_label = 1 : length(condition_combination_labels)
@@ -259,6 +268,28 @@ function processAnalysisVariables(varargin)
             start_data_time_within_band = start_data_source{strcmp(start_names_source, start_info)};
             start_data_ratio = start_data_time_within_band ./ this_step_time_data;
             start_data_percent = round(start_data_ratio * 100);
+            if strcmp(subject_id,'OLR02')
+                start_data_percent(4,128) = 30;
+            end
+            if strcmp(subject_id,'OLR03') 
+                start_data_percent(4,10) = 30;
+            end
+            if strcmp(subject_id,'OLR05') 
+                start_data_percent(3,162) = 30;
+            end
+            if strcmp(subject_id,'OLR06') 
+                start_data_percent(4,79) = 30;
+            end
+            if strcmp(subject_id,'OLR06') 
+                end_data_percent(4,108) = 30;
+            end
+            if strcmp(subject_id,'OLR06') 
+                start_data_percent(4,133) = 30;
+            end
+            if strcmp(subject_id,'OLR08') 
+                start_data_percent(4,19) = 30;
+            end
+            
         end
         if strcmp(end_variable_source_type, 'percentage')
             end_data_percent = ones(size(this_step_time_data)) * str2num(end_info);
@@ -268,6 +299,28 @@ function processAnalysisVariables(varargin)
             end_data_time_within_band = end_data_source{strcmp(end_names_source, end_info)};
             end_data_ratio = end_data_time_within_band ./ this_step_time_data;
             end_data_percent = round(end_data_ratio * 100);
+            if strcmp(subject_id,'OLR02') 
+                end_data_percent(4,128) = 30;
+            end
+            if strcmp(subject_id,'OLR03') 
+                end_data_percent(4,10) = 30;
+            end
+            if strcmp(subject_id,'OLR05') 
+                end_data_percent(3,162) = 30;
+            end
+            if strcmp(subject_id,'OLR06') 
+                end_data_percent(4,79) = 30;
+            end
+            if strcmp(subject_id,'OLR06') 
+                end_data_percent(4,27) = 30;
+            end
+            if strcmp(subject_id,'OLR06') 
+                end_data_percent(4,133) = 30;
+            end
+            if strcmp(subject_id,'OLR08') 
+                end_data_percent(4,19) = 30;
+            end
+            
         end
         
         % integrate
@@ -277,16 +330,17 @@ function processAnalysisVariables(varargin)
                 [band_start_index, band_end_index] = getBandIndices(i_band, number_of_time_steps_normalized);
                 this_band_time_full = linspace(0, this_step_time_data(i_band), 100);
                 this_band_data_full = this_variable_source_data(band_start_index : band_end_index, i_stretch);
-
+ 
                 range = start_data_percent(i_band, i_stretch) : end_data_percent(i_band, i_stretch);
                 
                 this_band_time_range = this_band_time_full(range);
                 this_band_data_range = this_band_data_full(range);
-                
+                               
                 % integrate
                 this_band_data_integrated = cumtrapz(this_band_time_range, this_band_data_range);               
                 integrated_data(i_band, i_stretch) = this_band_data_integrated(end);
-
+                
+                dbstop if error
             end
         end        
         
@@ -440,6 +494,70 @@ function processAnalysisVariables(varargin)
         % TODO: check whether the directions are actually still correct here
     end
     
+      %% gather variables with inversion by direction
+    % THIS IS LEGACY CODE
+    % used this for the Vision experiment, it doesn't deal with bands or directions
+    variables_to_invert = study_settings.get('analysis_variables_from_inversion_by_direction');
+    for i_variable = 1 : size(variables_to_invert, 1)
+        warning(['analysis_variables_from_inversion_by_direction is in the process of being phased out, look for another solution '])
+        % get data
+        this_variable_name = variables_to_invert{i_variable, 1};
+        this_variable_source_name = variables_to_invert{i_variable, 2};
+        this_variable_source_type = variables_to_invert{i_variable, 3};
+        if strcmp(this_variable_source_type, 'response')
+            this_variable_source_index = find(strcmp(response_names_session, this_variable_source_name), 1, 'first');
+            this_variable_source_data = response_data_session{this_variable_source_index};
+            new_variable_directions = response_directions_session(strcmp(response_names_session, this_variable_source_name), :);
+        end
+        if strcmp(this_variable_source_type, 'analysis')
+            this_variable_source_index = find(strcmp(analysis_names_session, this_variable_source_name), 1, 'first');
+            this_variable_source_data = analysis_data_session{this_variable_source_index};
+            new_variable_directions = analysis_directions_session(strcmp(analysis_names_session, this_variable_source_name), :);
+        end
+        
+        % get signs
+        if strcmp(variables_to_invert{i_variable, 4}, '+')
+            sign_illusion_left = 1;
+        elseif strcmp(variables_to_invert{i_variable, 4}, '-')
+            sign_illusion_left = -1;
+        else
+            error('Sign must be either "+" or "-"')
+        end
+        if strcmp(variables_to_invert{i_variable, 5}, '+')
+            sign_illusion_right = 1;
+        elseif strcmp(variables_to_invert{i_variable, 5}, '-')
+            sign_illusion_right = -1;
+        else
+            error('Sign must be either "+" or "-"')
+        end
+        
+        % invert
+        this_variable_data = this_variable_source_data;
+        for i_stretch = 1 : number_of_stretches
+            direction_list = conditions_session.(condition_source_variables{strcmp(condition_labels, 'direction')});
+            if strcmp(direction_list{i_stretch}, 'TOWARDS')
+                this_variable_data(:, i_stretch) = sign_illusion_left * this_variable_source_data(:, i_stretch);
+            elseif strcmp(direction_list{i_stretch}, 'AWAY')
+                this_variable_data(:, i_stretch) = sign_illusion_right * this_variable_source_data(:, i_stretch);
+            end
+            
+%             if strcmp(condition_direction_list_session{i_stretch}, 'TOWARDS')
+%                 this_variable_data(:, i_stretch) = sign_illusion_left * this_variable_source_data(:, i_stretch);
+%             elseif strcmp(condition_direction_list_session{i_stretch}, 'AWAY')
+%                 this_variable_data(:, i_stretch) = sign_illusion_right * this_variable_source_data(:, i_stretch);
+%             end
+        end
+        
+        % store
+        [analysis_data_session, analysis_names_session, analysis_directions_session] = ...
+            addOrReplaceResultsData ...
+              ( ...
+                analysis_data_session, analysis_names_session, analysis_directions_session, ...
+                this_variable_data, this_variable_name, new_variable_directions ...
+              );
+        % TODO: check whether the directions are actually still correct here
+    end
+
     
     %% process variables where something specific happens for each variable
     special_variables_to_calculate = study_settings.get('analysis_variables_special');
@@ -565,7 +683,7 @@ function processAnalysisVariables(varargin)
            end
        end
        
-       if strcmp(this_variable_name,'com_x_inverted_pushoff_end')
+       if strcmp(this_variable_name,'com_x_inverted_pushoff_end') || strcmp(this_variable_name,'com_x_directionSym_pushoff_end') || strcmp(this_variable_name,'com_x_vel_directionSym_pushoff_end')
            this_variable_source_index = find(strcmp(analysis_names_session, this_variable_source_name), 1, 'first');
            this_variable_source_data = analysis_data_session{this_variable_source_index};
            number_of_stretches = size(this_variable_source_data, 2);
@@ -574,6 +692,27 @@ function processAnalysisVariables(varargin)
            end_data_ratio = end_data_time_within_band ./ this_step_time_data;
            end_data_percent = round(end_data_ratio * 100);
            
+           if strcmp(subject_id,'OLR02') 
+                end_data_percent(4,128) = 30;
+            end
+            if strcmp(subject_id,'OLR03') 
+                end_data_percent(4,10) = 30;
+            end
+            if strcmp(subject_id,'OLR05') 
+                end_data_percent(3,162) = 30;
+            end
+            if strcmp(subject_id,'OLR06') 
+                end_data_percent(4,79) = 30;
+            end
+            if strcmp(subject_id,'OLR06') 
+                end_data_percent(4,27) = 30;
+            end
+            if strcmp(subject_id,'OLR06') 
+                end_data_percent(4,133) = 30;
+            end
+            if strcmp(subject_id,'OLR08') 
+                end_data_percent(4,19) = 30;
+            end
             for i_stretch = 1 : number_of_stretches
                for i_band = 1 : bands_per_stretch
                    [band_start_index, band_end_index] = getBandIndices(i_band, number_of_time_steps_normalized);
@@ -586,7 +725,7 @@ function processAnalysisVariables(varargin)
            end
        end
        
-       if strcmp(this_variable_name,'com_x_inverted_band_end')
+       if strcmp(this_variable_name,'com_x_inverted_band_end') || strcmp(this_variable_name,'com_x_directionSym_band_end') || strcmp(this_variable_name,'com_x_vel_directionSym_band_end')
            this_variable_source_index = find(strcmp(analysis_names_session, this_variable_source_name), 1, 'first');
            this_variable_source_data = analysis_data_session{this_variable_source_index};
            number_of_stretches = size(this_variable_source_data, 2);
@@ -606,6 +745,7 @@ function processAnalysisVariables(varargin)
                end
            end
        end
+       
        
         % store
         [analysis_data_session, analysis_names_session, analysis_directions_session] = ...
@@ -750,70 +890,7 @@ function processAnalysisVariables(varargin)
         % TODO: check whether the directions are actually still correct here
     end
     
-    %% gather variables with inversion by direction
-    % THIS IS LEGACY CODE
-    % used this for the Vision experiment, it doesn't deal with bands or directions
-    variables_to_invert = study_settings.get('analysis_variables_from_inversion_by_direction');
-    for i_variable = 1 : size(variables_to_invert, 1)
-        warning(['analysis_variables_from_inversion_by_direction is in the process of being phased out, look for another solution '])
-        % get data
-        this_variable_name = variables_to_invert{i_variable, 1};
-        this_variable_source_name = variables_to_invert{i_variable, 2};
-        this_variable_source_type = variables_to_invert{i_variable, 3};
-        if strcmp(this_variable_source_type, 'response')
-            this_variable_source_index = find(strcmp(response_names_session, this_variable_source_name), 1, 'first');
-            this_variable_source_data = response_data_session{this_variable_source_index};
-            new_variable_directions = response_directions_session(strcmp(response_names_session, this_variable_source_name), :);
-        end
-        if strcmp(this_variable_source_type, 'analysis')
-            this_variable_source_index = find(strcmp(analysis_names_session, this_variable_source_name), 1, 'first');
-            this_variable_source_data = analysis_data_session{this_variable_source_index};
-            new_variable_directions = analysis_directions_session(strcmp(analysis_names_session, this_variable_source_name), :);
-        end
-        
-        % get signs
-        if strcmp(variables_to_invert{i_variable, 4}, '+')
-            sign_illusion_left = 1;
-        elseif strcmp(variables_to_invert{i_variable, 4}, '-')
-            sign_illusion_left = -1;
-        else
-            error('Sign must be either "+" or "-"')
-        end
-        if strcmp(variables_to_invert{i_variable, 5}, '+')
-            sign_illusion_right = 1;
-        elseif strcmp(variables_to_invert{i_variable, 5}, '-')
-            sign_illusion_right = -1;
-        else
-            error('Sign must be either "+" or "-"')
-        end
-        
-        % invert
-        this_variable_data = this_variable_source_data;
-        for i_stretch = 1 : number_of_stretches
-            direction_list = conditions_session.(condition_source_variables{strcmp(condition_labels, 'direction')});
-            if strcmp(direction_list{i_stretch}, 'TOWARDS')
-                this_variable_data(:, i_stretch) = sign_illusion_left * this_variable_source_data(:, i_stretch);
-            elseif strcmp(direction_list{i_stretch}, 'AWAY')
-                this_variable_data(:, i_stretch) = sign_illusion_right * this_variable_source_data(:, i_stretch);
-            end
-            
-%             if strcmp(condition_direction_list_session{i_stretch}, 'TOWARDS')
-%                 this_variable_data(:, i_stretch) = sign_illusion_left * this_variable_source_data(:, i_stretch);
-%             elseif strcmp(condition_direction_list_session{i_stretch}, 'AWAY')
-%                 this_variable_data(:, i_stretch) = sign_illusion_right * this_variable_source_data(:, i_stretch);
-%             end
-        end
-        
-        % store
-        [analysis_data_session, analysis_names_session, analysis_directions_session] = ...
-            addOrReplaceResultsData ...
-              ( ...
-                analysis_data_session, analysis_names_session, analysis_directions_session, ...
-                this_variable_data, this_variable_name, new_variable_directions ...
-              );
-        % TODO: check whether the directions are actually still correct here
-    end
-
+ 
     %% calculate integrated variables - old
     % TODO: deal with bands
     % TODO: deal with directions .. check this

@@ -1593,26 +1593,33 @@ function determineStretchesToAnalyze(varargin)
                 if strcmp(experimental_paradigm, 'OculusLaneRestriction')
                     % determine where the "no step zone" was at stretch
                     % trigger
+                    zone_side_list = cell(size(trigger_foot_list));
                     zone_direction_list = cell(size(trigger_foot_list));
                     scene_translation_mod100 = mod(scene_translation_trajectory + 25, 100); %TO DO the origin of the scene is +25 relative to the end of the virtual objects
                     
                     for i_stretch = 1:length(trigger_indices_labview)
-                        [~,scene_translation_mod100_index] = min(abs(virtual_object_ap_location - scene_translation_mod100(trigger_indices_labview(i_stretch))));
-                        % how many conditions do we have? if 
+                        VR_trigger_position = scene_translation_mod100(trigger_indices_labview(i_stretch));
+                        [~,scene_translation_mod100_index] = min(abs(virtual_object_ap_location - VR_trigger_position));
+                       
                         
                         %% CHECK THIS %
                         % 2 = NO STEP ZONE RIGHT
                         % 0 = NO STEP ZONE LEFT
+                         if virtual_object_ml_location(scene_translation_mod100_index) == 2
+                            zone_side_list{i_stretch} = 'STIM_ZONE_LEFT';
+                         elseif virtual_object_ml_location(scene_translation_mod100_index) == 0
+                            zone_side_list{i_stretch} = 'STIM_ZONE_RIGHT';
+                         end
                         if (virtual_object_ml_location(scene_translation_mod100_index) == 2 && strcmp(trigger_foot_list{i_stretch}, 'TRIGGER_LEFT') && strcmp(direction_list{i_stretch}, 'STIM_TOWARDS')) || ...
                                 (virtual_object_ml_location(scene_translation_mod100_index) == 2 && strcmp(trigger_foot_list{i_stretch}, 'TRIGGER_RIGHT') && strcmp(direction_list{i_stretch}, 'STIM_AWAY')) || ...
                                 (virtual_object_ml_location(scene_translation_mod100_index) == 0 && strcmp(trigger_foot_list{i_stretch}, 'TRIGGER_RIGHT') && strcmp(direction_list{i_stretch}, 'STIM_TOWARDS')) ||...
                                 (virtual_object_ml_location(scene_translation_mod100_index) == 0 && strcmp(trigger_foot_list{i_stretch}, 'TRIGGER_LEFT') && strcmp(direction_list{i_stretch}, 'STIM_AWAY'))
-                            zone_direction_list{i_stretch} = 'STIM_TOWARDS_ZONE';
+                            zone_direction_list{i_stretch} = 'STIM_ZONE_TOWARDS';
                         elseif (virtual_object_ml_location(scene_translation_mod100_index) == 0 && strcmp(trigger_foot_list{i_stretch}, 'TRIGGER_LEFT') && strcmp(direction_list{i_stretch}, 'STIM_TOWARDS')) || ...
                                 (virtual_object_ml_location(scene_translation_mod100_index) == 0 && strcmp(trigger_foot_list{i_stretch}, 'TRIGGER_RIGHT') && strcmp(direction_list{i_stretch}, 'STIM_AWAY')) || ...
                                 (virtual_object_ml_location(scene_translation_mod100_index) == 2 && strcmp(trigger_foot_list{i_stretch}, 'TRIGGER_RIGHT') && strcmp(direction_list{i_stretch}, 'STIM_TOWARDS')) || ...
                                 (virtual_object_ml_location(scene_translation_mod100_index) == 2 && strcmp(trigger_foot_list{i_stretch}, 'TRIGGER_LEFT') && strcmp(direction_list{i_stretch}, 'STIM_AWAY'))
-                            zone_direction_list{i_stretch} = 'STIM_AWAY_ZONE';
+                            zone_direction_list{i_stretch} = 'STIM_ZONE_AWAY';
                         else
                             zone_direction_list{i_stretch} = 'STIM_NONE';
                         end
@@ -1671,6 +1678,7 @@ function determineStretchesToAnalyze(varargin)
                     conditions_trial.affected_stancefoot_list = condition_affected_stancefoot_list';
                 end
                 if strcmp(experimental_paradigm, 'OculusLaneRestriction')
+                    conditions_trial.zone_side_list = zone_side_list;
                     conditions_trial.zone_direction_list = zone_direction_list;
                 end
                 event_variables_to_save.stretch_times = stretch_times;
@@ -2341,6 +2349,91 @@ function determineStretchesToAnalyze(varargin)
                     end
                 end
             end
+            
+            if strcmp(experimental_paradigm, 'OculusLaneRestriction')
+
+                if study_settings.get('prune_step_placements')
+                    step_zone_delinquent_list = cell(size(trigger_foot_list));
+                    for i_stretch = 1 : number_of_stretches
+                        [~, trigger_start_index_mocap] = min(abs(time_marker - stretch_times(i_stretch, 1)));
+                        [~, trigger_end_index_mocap] = min(abs(time_marker - stretch_times(i_stretch, 2)));
+                        [~, remainder_start_index_mocap] = min(abs(time_marker - stretch_times(i_stretch, 1)));
+                        [~, remainder_end_index_mocap] = min(abs(time_marker - stretch_times(i_stretch, 2)));
+                        
+                        
+                        LHEE_marker_data = extractMarkerData(marker_trajectories, marker_labels, 'LHEE');
+                        RHEE_marker_data = extractMarkerData(marker_trajectories, marker_labels, 'RHEE');
+                        LTOE_marker_data = extractMarkerData(marker_trajectories, marker_labels, 'LTOE');
+                        RTOE_marker_data = extractMarkerData(marker_trajectories, marker_labels, 'RTOE');
+                        
+                        
+                         step_zone_delinquent_list{i_stretch} = 'NONE';
+                        if strcmp(zone_side_list{i_stretch}, 'STIM_ZONE_LEFT')
+                            threshold = -0.1835; % limit on left belt
+                            if any(LHEE_marker_data(trigger_start_index_mocap : trigger_end_index_mocap,1) < threshold) || any(RHEE_marker_data(trigger_start_index_mocap : trigger_end_index_mocap,1) < threshold) ||...
+                                    any(RTOE_marker_data(trigger_start_index_mocap : trigger_end_index_mocap,1) < threshold) || any(LTOE_marker_data(trigger_start_index_mocap : trigger_end_index_mocap,1) < threshold)
+                                
+                                step_zone_delinquent_list{i_stretch} = 'TRIGGER';
+                                disp('Stretch flagged due stepping in No Step Zone')
+                            end
+                            if any(LHEE_marker_data(remainder_start_index_mocap : remainder_end_index_mocap,1) < threshold) || any(RHEE_marker_data(remainder_start_index_mocap : remainder_end_index_mocap,1) < threshold) ||...
+                                    any(RTOE_marker_data(remainder_start_index_mocap : remainder_end_index_mocap,1) < threshold) || any(LTOE_marker_data(remainder_start_index_mocap : remainder_end_index_mocap,1) < threshold)
+                                
+                                if strcmp(step_zone_delinquent_list{i_stretch}, 'TRIGGER')
+                                    step_zone_delinquent_list{i_stretch} = 'ALL';
+                                else
+                                    step_zone_delinquent_list{i_stretch} = 'LATER';
+                                end
+                                disp('Stretch flagged due stepping in No Step Zone')
+                            end
+                        end
+                        if strcmp(zone_side_list{i_stretch}, 'STIM_ZONE_RIGHT')
+                        threshold = 0.1835; % limit on right belt
+                        if any(LHEE_marker_data(trigger_start_index_mocap : trigger_end_index_mocap,1) > threshold) || any(RHEE_marker_data(trigger_start_index_mocap : trigger_end_index_mocap,1) > threshold) || ...
+                                any(RTOE_marker_data(trigger_start_index_mocap : trigger_end_index_mocap,1) > threshold) || any(LTOE_marker_data(trigger_start_index_mocap : trigger_end_index_mocap,1) > threshold)
+                            
+                                step_zone_delinquent_list{i_stretch} = 'TRIGGER';
+%                                 removal_flags(i_stretch) = 1;
+                                disp('Stretch flagged due stepping in No Step Zone')
+                        end
+                        if any(LHEE_marker_data(remainder_start_index_mocap : remainder_end_index_mocap,1) > threshold) || any(RHEE_marker_data(remainder_start_index_mocap : remainder_end_index_mocap,1) > threshold) ||...
+                                    any(RTOE_marker_data(remainder_start_index_mocap : remainder_end_index_mocap,1) > threshold) || any(LTOE_marker_data(remainder_start_index_mocap : remainder_end_index_mocap,1) > threshold)
+                                
+                                if strcmp(step_zone_delinquent_list(i_stretch), 'TRIGGER')
+                                    step_zone_delinquent_list{i_stretch} = 'ALL';
+                                else
+                                    step_zone_delinquent_list{i_stretch} = 'LATER';
+                                end
+                                disp('Stretch flagged due stepping in No Step Zone')
+                        end
+                            
+                        
+%                         if strcmp(zone_side_list{i_stretch}, 'STIM_ZONE_RIGHT')
+%                             threshold = 0.1835; % limit on right belt
+%                             if any(LHEE_marker_data(trigger_start_index_mocap : trigger_end_index_mocap,1) > threshold)
+%                                 removal_flags(i_stretch) = 1;
+%                                 disp('Stretch flagged due stepping in No Step Zone')
+%                             end
+%                             if any(RHEE_marker_data(trigger_start_index_mocap : trigger_end_index_mocap,1) > threshold)
+%                                 removal_flags(i_stretch) = 1;
+%                                 disp('Stretch flagged due stepping in No Step Zone')
+%                             end
+%                             if any(RTOE_marker_data(trigger_start_index_mocap : trigger_end_index_mocap,1) > threshold)
+%                                 removal_flags(i_stretch) = 1;
+%                                 disp('Stretch flagged due stepping in No Step Zone')
+%                             end
+%                             if any(LTOE_marker_data(trigger_start_index_mocap : trigger_end_index_mocap,1) > threshold)
+%                                 removal_flags(i_stretch) = 1;
+%                                 disp('Stretch flagged due stepping in No Step Zone')
+%                             end
+%                         end
+                        
+                    end
+                    
+                        conditions_trial.step_zone_delinquent_list = step_zone_delinquent_list;
+                end
+            end
+                
             %  check data availability for markers with non-zero weight
             marker_weights = study_settings.get('marker_weights');
             for i_marker = 1 : 3 : length(marker_labels)
