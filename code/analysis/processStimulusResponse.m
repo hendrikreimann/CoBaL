@@ -60,6 +60,14 @@ function processStimulusResponse(varargin)
     com_x_vel_data = loaded_data.stretch_data_session{strcmp(loaded_data.stretch_names_session, 'com_x_vel')};
     lankle_x_data = loaded_data.stretch_data_session{strcmp(loaded_data.stretch_names_session, 'lankle_x')};
     rankle_x_data = loaded_data.stretch_data_session{strcmp(loaded_data.stretch_names_session, 'rankle_x')};
+    fx_data = loaded_data.stretch_data_session{strcmp(loaded_data.stretch_names_session, 'fx')};
+    fy_data = loaded_data.stretch_data_session{strcmp(loaded_data.stretch_names_session, 'fy')};
+    fz_data = loaded_data.stretch_data_session{strcmp(loaded_data.stretch_names_session, 'fz')};
+    cop_data = loaded_data.stretch_data_session{strcmp(loaded_data.stretch_names_session, 'cop_x')};
+    fx_directions = loaded_data.stretch_directions_session(strcmp(loaded_data.stretch_names_session, 'fx'), :);
+    fy_directions = loaded_data.stretch_directions_session(strcmp(loaded_data.stretch_names_session, 'fy'), :);
+    fz_directions = loaded_data.stretch_directions_session(strcmp(loaded_data.stretch_names_session, 'fz'), :);
+    cop_directions = loaded_data.stretch_directions_session(strcmp(loaded_data.stretch_names_session, 'cop'), :);
     midstance_index_data = loaded_data.stretch_data_session{strcmp(loaded_data.stretch_names_session, 'midstance_index')};
     number_of_bands_per_stretch = size(step_placement_x_data, 1);
     
@@ -80,6 +88,10 @@ function processStimulusResponse(varargin)
     lankle_x_midstance_control_data = [];
     rankle_x_midstance_control_data = [];
     step_placement_x_control_data = [];
+    fx_control_data = [];
+    fy_control_data = [];
+    fz_control_data = [];
+    cop_control_data = [];
     stance_foot_control_data = {};
     
     for i_condition = 1 : number_of_conditions_control
@@ -103,6 +115,10 @@ function processStimulusResponse(varargin)
             this_stretch_com_x_vel_data = com_x_vel_data(:, this_condition_indices(i_stretch));
             this_stretch_lankle_x_data = lankle_x_data(:, this_condition_indices(i_stretch));
             this_stretch_rankle_x_data = rankle_x_data(:, this_condition_indices(i_stretch));
+            this_stretch_fx_data = fx_data(:, this_condition_indices(i_stretch)); 
+            this_stretch_fy_data = fy_data(:, this_condition_indices(i_stretch));
+            this_stretch_fz_data = fz_data(:, this_condition_indices(i_stretch));
+            this_stretch_cop_data = cop_data(:, this_condition_indices(i_stretch));
             this_stretch_step_placement_x_data = step_placement_x_data(:, this_condition_indices(i_stretch));
             
             % go through bands and store data if the band is a swing
@@ -113,34 +129,19 @@ function processStimulusResponse(varargin)
                     com_x_vel_midstance_control_data = [com_x_vel_midstance_control_data; this_stretch_com_x_vel_data(this_condition_midstance_index_data(i_band))]; %#ok<AGROW>
                     lankle_x_midstance_control_data = [lankle_x_midstance_control_data; this_stretch_lankle_x_data(this_condition_midstance_index_data(i_band))]; %#ok<AGROW>
                     rankle_x_midstance_control_data = [rankle_x_midstance_control_data; this_stretch_rankle_x_data(this_condition_midstance_index_data(i_band))]; %#ok<AGROW>
+                    fx_control_data = [fx_control_data; this_stretch_fx_data(end)]; %#ok<AGROW>
+                    fy_control_data = [fy_control_data; this_stretch_fy_data(end)]; %#ok<AGROW>
+                    fz_control_data = [fz_control_data; this_stretch_fz_data(end)]; %#ok<AGROW>
+                    cop_control_data = [cop_control_data; this_stretch_cop_data(end)]; %#ok<AGROW>
                     step_placement_x_control_data = [step_placement_x_control_data; this_stretch_step_placement_x_data(i_band)]; %#ok<AGROW>
                 end
             end
         end
-    end    
-%     figure; axes; hold on; set(gca, 'ylim', [-0.1, 0.1])
-%     plot(com_x_pos_midstance_control_data(strcmp(stance_foot_control_data, 'STANCE_RIGHT')), 'rx')
-%     plot(com_x_pos_midstance_control_data(strcmp(stance_foot_control_data, 'STANCE_LEFT')), 'gx')
-% 
-%     figure; axes; hold on; set(gca, 'ylim', [-0.1, 0.1])
-%     plot(com_x_vel_midstance_control_data(strcmp(stance_foot_control_data, 'STANCE_RIGHT')), 'rx')
-%     plot(com_x_vel_midstance_control_data(strcmp(stance_foot_control_data, 'STANCE_LEFT')), 'gx')
-% 
-%     figure; axes; hold on; set(gca, 'ylim', [-0.25, 0.25])
-%     plot(step_placement_x_control_data(strcmp(stance_foot_control_data, 'STANCE_RIGHT')), 'rx')
-%     plot(step_placement_x_control_data(strcmp(stance_foot_control_data, 'STANCE_LEFT')), 'gx')
-% 
-%     figure; axes; hold on; set(gca, 'ylim', [-0.25, 0.25])
-%     plot(lankle_x_midstance_control_data(strcmp(stance_foot_control_data, 'STANCE_RIGHT')), 'rx')
-%     plot(lankle_x_midstance_control_data(strcmp(stance_foot_control_data, 'STANCE_LEFT')), 'gx')
-% 
-%     figure; axes; hold on; set(gca, 'ylim', [-0.25, 0.25])
-%     plot(rankle_x_midstance_control_data(strcmp(stance_foot_control_data, 'STANCE_RIGHT')), 'rx')
-%     plot(rankle_x_midstance_control_data(strcmp(stance_foot_control_data, 'STANCE_LEFT')), 'gx')
-
-    %% fit linear model
+    end
+    
+    %% Linear Model
     stance_styles = {'gx', 'rx'};
-    linear_models = cell(size(stance_feet));
+    step_linear_models = cell(size(stance_feet));
     com_from_ankle_means = zeros(size(stance_feet));
     com_vel_means = zeros(size(stance_feet));
     foot_placement_means = zeros(size(stance_feet));
@@ -150,6 +151,11 @@ function processStimulusResponse(varargin)
         this_stance_com_x_pos_midstance_data = com_x_pos_midstance_control_data(this_stance_foot_indicator);
         this_stance_com_x_vel_midstance_data = com_x_vel_midstance_control_data(this_stance_foot_indicator);
         this_stance_step_placement_x_data = step_placement_x_control_data(this_stance_foot_indicator);
+        this_stance_fx_data = fx_control_data(this_stance_foot_indicator);
+        this_stance_fy_data = fy_control_data(this_stance_foot_indicator);
+        this_stance_fz_data = fz_control_data(this_stance_foot_indicator);
+        this_stance_cop_data = cop_control_data(this_stance_foot_indicator);
+        
         if strcmp(stance_feet{i_stance}, 'STANCE_LEFT')
             this_stance_foot_ankle_x_data = lankle_x_midstance_control_data(this_stance_foot_indicator);
         end
@@ -166,65 +172,84 @@ function processStimulusResponse(varargin)
         this_stance_com_x_vel_midstance_data_mean_free = this_stance_com_x_vel_midstance_data - mean(this_stance_com_x_vel_midstance_data);
         this_stance_step_placement_x_data_mean_free = this_stance_step_placement_x_data - mean(this_stance_step_placement_x_data);
         
-        % remove nans
+        fx_means(i_stance) = mean(this_stance_fx_data);
+        fy_means(i_stance) = mean(this_stance_fy_data);
+        fz_means(i_stance) = mean(this_stance_fz_data);
+        cop_means(i_stance) = mean(this_stance_cop_data);
         
+        this_stance_fx_data_mean_free = this_stance_fx_data - fx_means(i_stance);
+        this_stance_fy_data_mean_free = this_stance_fy_data - fy_means(i_stance);
+        this_stance_fz_data_mean_free = this_stance_fz_data - fz_means(i_stance);
+        this_stance_cop_data_mean_free = this_stance_cop_data - cop_means(i_stance);
         
-        % fit regression model
-%         input_matrix = [this_stance_com_from_stance_ankle_data_mean_free'; this_stance_com_x_vel_midstance_data_mean_free'];
-%         output_matrix = this_stance_step_placement_x_data_mean_free';
-%         Jacobian = output_matrix * pinv(input_matrix);
-%         [correlation_c, correlation_p] = corr(input_matrix', output_matrix');
-%         Jacobians{i_stance} = Jacobian;
-%         correlations_c{i_stance} = correlation_c;
-%         correlations_p{i_stance} = correlation_p;
+        % fit step regression model
         [fit_object, fit_stats] = fit([this_stance_com_from_stance_ankle_data_mean_free, this_stance_com_x_vel_midstance_data_mean_free], this_stance_step_placement_x_data_mean_free, 'poly11');
-        linear_models{i_stance} = [fit_object.p10, fit_object.p01];
-
-%         figure; axes; hold on; set(gca, 'ylim', [-0.1, 0.1])
-%         plot(this_stance_com_from_stance_ankle_data, 'bx')
-%         plot(this_stance_com_from_stance_ankle_data_mean_free, stance_styles{i_stance})
-%         
-%         figure; axes; hold on; set(gca, 'ylim', [-0.1, 0.1])
-%         plot(this_stance_com_x_vel_midstance_data_mean_free, 'bx')
-%         plot(this_stance_com_x_vel_midstance_data, stance_styles{i_stance})
-%         
-%         figure; axes; hold on; set(gca, 'ylim', [-0.25, 0.25])
-%         plot(this_stance_step_placement_x_data_mean_free, 'bx')
-%         plot(this_stance_step_placement_x_data, stance_styles{i_stance})
-        
-%         figure; axes; hold on; 
-%         plot(this_stance_com_from_stance_ankle_data, 'bx')
-%         plot(this_stance_com_x_pos_midstance_data, 'mo')
-%         plot(this_stance_foot_ankle_x_data, 'co')
-        
+        step_linear_models{i_stance} = [fit_object.p10, fit_object.p01];
 
         if visualize
             figure; 
             plot(fit_object, [this_stance_com_from_stance_ankle_data_mean_free, this_stance_com_x_vel_midstance_data_mean_free], this_stance_step_placement_x_data_mean_free)
             xlabel('\Delta CoM from stance ankle'); ylabel('\Delta CoM vel'); zlabel('\Delta foot placement')
             title(['slopes = [' num2str(linear_model_slopes(1)) ', ' num2str(linear_model_slopes(2)) '], r^2 = ' num2str(fit_stats.rsquare)]);
-            
-%             figure; hold on; 
-%             plot(this_stance_com_from_stance_ankle_data_mean_free, this_stance_step_placement_x_data_mean_free, 'o')
-%             plot([-0.04, 0.04], [0, 0], 'color', [1 1 1]*0.5);
-%             plot([0, 0], [-0.15, 0.15], 'color', [1 1 1]*0.5);
-%             xlabel('\Delta CoM at midstance')
-%             ylabel('\Delta foot placement')
-%             title(['J = ' num2str(Jacobian(1)) ', c = ' num2str(correlation_c(1)) ', p = ' num2str(correlation_p(1))]);
-%             title(['com from ankle - pos, J = ' num2str(Jacobian(1)) ', c = ' num2str(correlation_c(1)) ', p = ' num2str(correlation_p(1))]);
-%             set(gca, 'xlim', [-0.04, 0.04], 'ylim', [-0.15, 0.15])
-%             
-%             figure; plot(this_stance_com_x_vel_midstance_data_mean_free, this_stance_step_placement_x_data_mean_free, 'x')
-%             title(['com - vel, J = ' num2str(Jacobian(2)) ', c = ' num2str(correlation_c(2)) ', p = ' num2str(correlation_p(2))]); axis equal
-%             
-%             figure; plot3(this_stance_com_from_stance_ankle_data_mean_free, this_stance_com_x_vel_midstance_data_mean_free, this_stance_step_placement_x_data_mean_free, 'x')
         end    
 
+        % fit fx regression model
+        [fit_object, fit_stats] = fit([this_stance_com_from_stance_ankle_data_mean_free, this_stance_com_x_vel_midstance_data_mean_free], this_stance_fx_data_mean_free, 'poly11');
+        fx_linear_models{i_stance} = [fit_object.p10, fit_object.p01];
+
+        if visualize
+            figure; 
+            plot(fit_object, [this_stance_com_from_stance_ankle_data_mean_free, this_stance_com_x_vel_midstance_data_mean_free], this_stance_fx_data_mean_free)
+            xlabel('\Delta CoM from stance ankle'); ylabel('\Delta CoM vel'); zlabel('\Delta foot placement')
+            title(['slopes = [' num2str(linear_model_slopes(1)) ', ' num2str(linear_model_slopes(2)) '], r^2 = ' num2str(fit_stats.rsquare)]);
+        end    
+        
+        % fit fy regression model
+        [fit_object, fit_stats] = fit([this_stance_com_from_stance_ankle_data_mean_free, this_stance_com_x_vel_midstance_data_mean_free], this_stance_fy_data_mean_free, 'poly11');
+        fy_linear_models{i_stance} = [fit_object.p10, fit_object.p01];
+
+        if visualize
+            figure; 
+            plot(fit_object, [this_stance_com_from_stance_ankle_data_mean_free, this_stance_com_x_vel_midstance_data_mean_free], this_stance_fy_data_mean_free)
+            xlabel('\Delta CoM from stance ankle'); ylabel('\Delta CoM vel'); zlabel('\Delta foot placement')
+            title(['slopes = [' num2str(linear_model_slopes(1)) ', ' num2str(linear_model_slopes(2)) '], r^2 = ' num2str(fit_stats.rsquare)]);
+        end    
+        
+        % fit fz regression model
+        [fit_object, fit_stats] = fit([this_stance_com_from_stance_ankle_data_mean_free, this_stance_com_x_vel_midstance_data_mean_free], this_stance_fz_data_mean_free, 'poly11');
+        fz_linear_models{i_stance} = [fit_object.p10, fit_object.p01];
+
+        if visualize
+            figure; 
+            plot(fit_object, [this_stance_com_from_stance_ankle_data_mean_free, this_stance_com_x_vel_midstance_data_mean_free], this_stance_fz_data_mean_free)
+            xlabel('\Delta CoM from stance ankle'); ylabel('\Delta CoM vel'); zlabel('\Delta foot placement')
+            title(['slopes = [' num2str(linear_model_slopes(1)) ', ' num2str(linear_model_slopes(2)) '], r^2 = ' num2str(fit_stats.rsquare)]);
+        end 
+        
+        % fit cop regression model
+        [fit_object, fit_stats] = fit([this_stance_com_from_stance_ankle_data_mean_free, this_stance_com_x_vel_midstance_data_mean_free], this_stance_cop_data_mean_free, 'poly11');
+        cop_linear_models{i_stance} = [fit_object.p10, fit_object.p01];
+
+        if visualize
+            figure; 
+            plot(fit_object, [this_stance_com_from_stance_ankle_data_mean_free, this_stance_com_x_vel_midstance_data_mean_free], this_stance_cop_data_mean_free)
+            xlabel('\Delta CoM from stance ankle'); ylabel('\Delta CoM vel'); zlabel('\Delta foot placement')
+            title(['slopes = [' num2str(linear_model_slopes(1)) ', ' num2str(linear_model_slopes(2)) '], r^2 = ' num2str(fit_stats.rsquare)]);
+        end 
     end
 
     %% for each data point, calculate difference from prediction
-    stimulus_response_x_data = zeros(size(step_placement_x_data)) * NaN;
-    stimulus_response_x_directions = step_placement_x_directions;
+    foot_placement_adjusted_x_data = zeros(size(step_placement_x_data)) * NaN;
+    foot_placement_adjusted_x_directions  = step_placement_x_directions;
+    fx_adjusted_data = zeros(size(fx_data)) * NaN;
+    fx_adjusted_directions = fx_directions;
+    fy_adjusted_data = zeros(size(fy_data)) * NaN;
+    fy_adjusted_directions = fy_directions;
+    fz_adjusted_data = zeros(size(fz_data)) * NaN;
+    fz_adjusted_directions = fz_directions;
+    cop_adjusted_data = zeros(size(cop_data)) * NaN;
+    cop_adjusted_directions = cop_directions;
+    
     for i_stretch = 1 : number_of_stretches
         this_stretch_stance_foot_data = conditions_session.stance_foot_data(i_stretch, :);
         this_condition_midstance_index_data = midstance_index_data(:, i_stretch);
@@ -232,6 +257,10 @@ function processStimulusResponse(varargin)
         this_stretch_com_x_vel_data = com_x_vel_data(:, i_stretch);
         this_stretch_lankle_x_data = lankle_x_data(:, i_stretch);
         this_stretch_rankle_x_data = rankle_x_data(:, i_stretch);
+        this_stretch_fx_data = fx_data(:, i_stretch);
+        this_stretch_fy_data = fy_data(:, i_stretch);
+        this_stretch_fz_data = fz_data(:, i_stretch);
+        this_stretch_cop_data = cop_data(:, i_stretch);
         this_stretch_step_placement_x_data = step_placement_x_data(:, i_stretch);
 
         % go through bands
@@ -243,6 +272,10 @@ function processStimulusResponse(varargin)
                 com_x_vel_midstance_data = this_stretch_com_x_vel_data(this_condition_midstance_index_data(i_band));
                 lankle_x_midstance_data = this_stretch_lankle_x_data(this_condition_midstance_index_data(i_band));
                 rankle_x_midstance_data = this_stretch_rankle_x_data(this_condition_midstance_index_data(i_band));
+                this_stretch_fx_data = this_stretch_fx_data(end);
+                this_stretch_fy_data = this_stretch_fy_data(end);
+                this_stretch_fz_data = this_stretch_fz_data(end);
+                this_stretch_cop_data = this_stretch_cop_data(end);
                 step_placement_x_here = this_stretch_step_placement_x_data(i_band);
                 if strcmp(this_stretch_stance_foot_data{i_band}, 'STANCE_LEFT')
                     this_stance_foot_ankle_x_data = lankle_x_midstance_data;
@@ -252,19 +285,45 @@ function processStimulusResponse(varargin)
                 end
                 com_from_stance_ankle_data = com_x_pos_midstance_data - this_stance_foot_ankle_x_data;
                 
-                % calculated deltas
+                % calculated step deltas
                 com_from_stance_ankle_delta = com_from_stance_ankle_data - com_from_ankle_means(foot_index);
                 com_vel_delta = com_x_vel_midstance_data - com_vel_means(foot_index);
                 foot_placement_delta = step_placement_x_here - foot_placement_means(foot_index);
-                model_slopes = linear_models{i_stance};
+                fx_delta = this_stretch_fx_data - fx_means(foot_index);
+                fy_delta = this_stretch_fy_data - fy_means(foot_index);
+                fz_delta = this_stretch_fz_data - fz_means(foot_index);
+                cop_delta = this_stretch_cop_data - cop_means(foot_index);
                 
-                predicted_foot_placement_change = com_from_stance_ankle_delta * model_slopes(1) + com_vel_delta * model_slopes(2);
+                step_model_slopes = step_linear_models{foot_index};
+                fx_model_slopes = fx_linear_models{foot_index};
+                fy_model_slopes = fy_linear_models{foot_index};
+                fz_model_slopes = fz_linear_models{foot_index};
+                cop_model_slopes = cop_linear_models{foot_index};
+                
+                predicted_foot_placement_change = com_from_stance_ankle_delta * step_model_slopes(1) + com_vel_delta * step_model_slopes(2);
                 actual_foot_placement_change = foot_placement_delta;
-                stimulus_response = actual_foot_placement_change - predicted_foot_placement_change;
-
-                stimulus_response_x_data(i_band, i_stretch) = stimulus_response;
+                foot_placement_adjusted = actual_foot_placement_change - predicted_foot_placement_change;
+                foot_placement_adjusted_x_data(i_band, i_stretch) = foot_placement_adjusted;
                 
+                predicted_fx_change = com_from_stance_ankle_delta * fx_model_slopes(1) + com_vel_delta * fx_model_slopes(2);
+                actual_fx_change = fx_delta;
+                fx_adjusted = actual_fx_change - predicted_fx_change;
+                fx_adjusted_data(i_band, i_stretch) = fx_adjusted;
                 
+                predicted_fy_change = com_from_stance_ankle_delta * fy_model_slopes(1) + com_vel_delta * fy_model_slopes(2);
+                actual_fy_change = fy_delta;
+                fy_adjusted = actual_fy_change - predicted_fy_change;
+                fy_adjusted_data(i_band, i_stretch) = fy_adjusted;
+                
+                predicted_fz_change = com_from_stance_ankle_delta * fz_model_slopes(1) + com_vel_delta * fz_model_slopes(2);
+                actual_fz_change = fz_delta;
+                fz_adjusted = actual_fz_change - predicted_fz_change;
+                fz_adjusted_data(i_band, i_stretch) = fz_adjusted;
+                
+                predicted_cop_change = com_from_stance_ankle_delta * cop_model_slopes(1) + com_vel_delta * cop_model_slopes(2);
+                actual_cop_change = cop_delta;
+                cop_adjusted = actual_cop_change - predicted_cop_change;
+                cop_adjusted_data(i_band, i_stretch) = cop_adjusted;
             end
         end
     end    
@@ -285,11 +344,52 @@ function processStimulusResponse(varargin)
             analysis_data_session, ...
             analysis_names_session, ...
             analysis_directions_session, ...
-            stimulus_response_x_data, ...
-            'stimulus_response_x',...
-            stimulus_response_x_directions ...
+            foot_placement_adjusted_x_data, ...
+            'foot_placement_adjusted_x',...
+            foot_placement_adjusted_x_directions ...
           );
-    
+     [analysis_data_session, analysis_names_session, analysis_directions_session] = ...
+        addOrReplaceResultsData ...
+          ( ...
+            analysis_data_session, ...
+            analysis_names_session, ...
+            analysis_directions_session, ...
+            fx_adjusted_data, ...
+            'fx_adjusted',...
+            fx_adjusted_directions ...
+          );  
+      [analysis_data_session, analysis_names_session, analysis_directions_session] = ...
+        addOrReplaceResultsData ...
+          ( ...
+            analysis_data_session, ...
+            analysis_names_session, ...
+            analysis_directions_session, ...
+            fy_adjusted_data, ...
+            'fy_adjusted',...
+            fy_adjusted_directions ...
+          );  
+         [analysis_data_session, analysis_names_session, analysis_directions_session] = ...
+        addOrReplaceResultsData ...
+          ( ...
+            analysis_data_session, ...
+            analysis_names_session, ...
+            analysis_directions_session, ...
+            fz_adjusted_data, ...
+            'fz_adjusted',...
+            fz_adjusted_directions ...
+          ); 
+      [analysis_data_session, analysis_names_session, analysis_directions_session] = ...
+        addOrReplaceResultsData ...
+          ( ...
+            analysis_data_session, ...
+            analysis_names_session, ...
+            analysis_directions_session, ...
+            cop_adjusted_data, ...
+            'cop_adjusted',...
+            cop_adjusted_directions ...
+          );
+      
+      
     variables_to_save = loaded_data;
     variables_to_save.analysis_data_session = analysis_data_session;
     variables_to_save.analysis_names_session = analysis_names_session;
