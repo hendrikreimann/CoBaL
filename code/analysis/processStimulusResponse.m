@@ -67,7 +67,7 @@ function processStimulusResponse(varargin)
     fx_directions = loaded_data.stretch_directions_session(strcmp(loaded_data.stretch_names_session, 'fx'), :);
     fy_directions = loaded_data.stretch_directions_session(strcmp(loaded_data.stretch_names_session, 'fy'), :);
     fz_directions = loaded_data.stretch_directions_session(strcmp(loaded_data.stretch_names_session, 'fz'), :);
-    cop_directions = loaded_data.stretch_directions_session(strcmp(loaded_data.stretch_names_session, 'cop'), :);
+    cop_directions = loaded_data.stretch_directions_session(strcmp(loaded_data.stretch_names_session, 'cop_x'), :);
     midstance_index_data = loaded_data.stretch_data_session{strcmp(loaded_data.stretch_names_session, 'midstance_index')};
     number_of_bands_per_stretch = size(step_placement_x_data, 1);
     

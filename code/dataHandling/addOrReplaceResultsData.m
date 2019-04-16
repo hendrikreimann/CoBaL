@@ -22,7 +22,7 @@ function [data, names, directions] = addOrOverwriteResultsData(data, names, dire
         directions = [directions; new_directions];
     else
         data{index_in_existing_data} = new_data;
-        directions(1,:) = new_directions;
+        directions(index_in_existing_data,:) = new_directions;
         % TODO: check whether directions are different
     end
 end
