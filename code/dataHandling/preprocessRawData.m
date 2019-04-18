@@ -162,7 +162,7 @@ function preprocessRawData(varargin)
                     time_emg = time_emg + study_settings.get('emg_time_offset');
                     
                     % remove the piecewise linear oscillation in the Delsys data
-                    if study_settings.get('remove_emg_oscillation')
+                    if study_settings.get('remove_emg_oscillation', 1)
                         aggressive_filter_order = 4; 
                         aggressive_filter_cutoff = 0.1; [aggressive_filter_b, aggressive_filter_a] = butter(aggressive_filter_order, aggressive_filter_cutoff/(sampling_rate_emg/2), 'low'); 
                         data_filtered_aggressive = filtfilt(aggressive_filter_b, aggressive_filter_a, emg_trajectories); 
@@ -303,7 +303,7 @@ function preprocessRawData(varargin)
                     mzr_trajectory = forceplate_trajectories(:, 12);
 
                     % apply offset for cases where forceplate wasn't set to zero
-                    if subject_settings.get('apply_forceplate_offset')
+                    if subject_settings.get('apply_forceplate_offset', 1)
                         fxl_trajectory = fxl_trajectory - subject_settings.get('offset_fxl');
                         fyl_trajectory = fyl_trajectory - subject_settings.get('offset_fyl');
                         fzl_trajectory = fzl_trajectory - subject_settings.get('offset_fzl');

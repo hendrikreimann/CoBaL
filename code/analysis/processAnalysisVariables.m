@@ -17,8 +17,6 @@
 % This function uses the previously calculated stretch variables to process analysis variables. For all stretch variables,
 % the response is calculated, i.e. the difference from the control mean.
 
-% note: the inversion could be automated more elegantly, but that's for a later date
-
 function processAnalysisVariables(varargin)
     load('subjectInfo.mat', 'date', 'subject_id');
     % load settings and existing results
@@ -99,7 +97,7 @@ function processAnalysisVariables(varargin)
             end
             
             % determine applicable control condition index
-            if strcmp(study_settings.get('experimental_paradigm'), 'Vision') || strcmp(study_settings.get('experimental_paradigm'), 'GVS') || strcmp(study_settings.get('experimental_paradigm'), 'GVS_old') 
+            if strcmp(study_settings.get('experimental_paradigm'), 'Vision') || strcmp(study_settings.get('experimental_paradigm'), 'GVS') || strcmp(study_settings.get('experimental_paradigm'), 'GVS_old')
                  if exist('affected_side')
                      if strcmp(this_stretch_condition_string{strcmp(condition_combination_labels, 'affected_side')}, 'TRIGGER_AFFECTED')
                          applicable_control_condition_index = find(strcmp(condition_combinations_control_unique(:, strcmp(condition_combination_labels, 'affected_side')), 'TRIGGER_AFFECTED'));
@@ -135,6 +133,18 @@ function processAnalysisVariables(varargin)
                 end
                 if strcmp(this_stretch_condition_string{strcmp(condition_combination_labels, 'trigger_foot')}, 'TRIGGER_RIGHT')
                     applicable_control_condition_index = find(strcmp(condition_combinations_control_unique(:, strcmp(condition_combination_labels, 'trigger_foot')), 'TRIGGER_RIGHT'));
+                end
+            end
+            if strcmp(study_settings.get('experimental_paradigm'), 'FatigueGVS')
+                if strcmp(this_stretch_condition_string{strcmp(condition_combination_labels, 'fatigue')}, 'UNFATIGUED') && strcmp(this_stretch_condition_string{strcmp(condition_combination_labels, 'trigger_foot')}, 'TRIGGER_LEFT')
+                    applicable_control_condition_index = find(strcmp(condition_combinations_control_unique(:, strcmp(condition_combination_labels, 'fatigue')), 'UNFATIGUED') & strcmp(condition_combinations_control_unique(:, strcmp(condition_combination_labels, 'trigger_foot')), 'TRIGGER_LEFT'));
+                elseif strcmp(this_stretch_condition_string{strcmp(condition_combination_labels, 'fatigue')}, 'UNFATIGUED') && strcmp(this_stretch_condition_string{strcmp(condition_combination_labels, 'trigger_foot')}, 'TRIGGER_RIGHT')
+                    applicable_control_condition_index = find(strcmp(condition_combinations_control_unique(:, strcmp(condition_combination_labels, 'fatigue')), 'UNFATIGUED') & strcmp(condition_combinations_control_unique(:, strcmp(condition_combination_labels, 'trigger_foot')), 'TRIGGER_RIGHT'));
+                end
+                if strcmp(this_stretch_condition_string{strcmp(condition_combination_labels, 'fatigue')}, 'FATIGUED') && strcmp(this_stretch_condition_string{strcmp(condition_combination_labels, 'trigger_foot')}, 'TRIGGER_LEFT')
+                    applicable_control_condition_index = find(strcmp(condition_combinations_control_unique(:, strcmp(condition_combination_labels, 'fatigue')), 'FATIGUED') & strcmp(condition_combinations_control_unique(:, strcmp(condition_combination_labels, 'trigger_foot')), 'TRIGGER_LEFT'));
+                elseif strcmp(this_stretch_condition_string{strcmp(condition_combination_labels, 'fatigue')}, 'FATIGUED') && strcmp(this_stretch_condition_string{strcmp(condition_combination_labels, 'trigger_foot')}, 'TRIGGER_RIGHT')
+                     applicable_control_condition_index = find(strcmp(condition_combinations_control_unique(:, strcmp(condition_combination_labels, 'fatigue')), 'FATIGUED') & strcmp(condition_combinations_control_unique(:, strcmp(condition_combination_labels, 'trigger_foot')), 'TRIGGER_RIGHT'));
                 end
             end
             
@@ -176,7 +186,7 @@ function processAnalysisVariables(varargin)
     end
         
     %% calculate band end variables
-    variables_step_end = study_settings.get('analysis_variables_from_band_end');
+    variables_step_end = study_settings.get('analysis_variables_from_band_end', 1);
     for i_variable = 1 : size(variables_step_end, 1)
         this_variable_name = variables_step_end{i_variable, 1};
         this_variable_source_name = variables_step_end{i_variable, 2};
@@ -202,8 +212,8 @@ function processAnalysisVariables(varargin)
     end
     
     %% calculate band percent variables
-    variables_band_percent_header = study_settings.get('analysis_variables_from_band_percent_header');
-    variables_band_percent = study_settings.get('analysis_variables_from_band_percent');
+    variables_band_percent_header = study_settings.get('analysis_variables_from_band_percent_header', 1);
+    variables_band_percent = study_settings.get('analysis_variables_from_band_percent', 1);
     for i_variable = 1 : size(variables_band_percent, 1)
         this_variable_name = variables_band_percent{i_variable, strcmp(variables_band_percent_header, 'new_variable_name')};
         this_variable_source_name = variables_band_percent{i_variable, strcmp(variables_band_percent_header, 'source_variable_name')};
@@ -453,16 +463,16 @@ function processAnalysisVariables(varargin)
     variables_to_select = study_settings.get('analysis_variables_from_selection', 1);
     for i_variable = 1 : size(variables_to_select, 1)
         % get signs
-        if strcmp(variables_to_select{i_variable, 5}, '+')
+        if strcmp(variables_to_select{i_variable, 6}, '+')
             sign_trigger_left = 1;
-        elseif strcmp(variables_to_select{i_variable, 5}, '-')
+        elseif strcmp(variables_to_select{i_variable, 6}, '-')
             sign_trigger_left = -1;
         else
             error('Sign must be either "+" or "-"')
         end
-        if strcmp(variables_to_select{i_variable, 6}, '+')
+        if strcmp(variables_to_select{i_variable, 7}, '+')
             sign_trigger_right = 1;
-        elseif strcmp(variables_to_select{i_variable, 6}, '-')
+        elseif strcmp(variables_to_select{i_variable, 7}, '-')
             sign_trigger_right = -1;
         else
             error('Sign must be either "+" or "-"')
@@ -533,7 +543,8 @@ function processAnalysisVariables(varargin)
                 analysis_data_session, analysis_names_session, analysis_directions_session, ...
                 this_variable_data, this_variable_name, new_variable_directions ...
               );
-        % TODO: check whether the directions are actually still correct here
+        % TODO: check whether the directions are actually still correct here - HR: they are not, and I'm not checking for
+        % directions. This is not good.
     end
     
     %% process variables where something specific happens for each variable
@@ -755,7 +766,7 @@ function processAnalysisVariables(varargin)
     end
     
     %% calculate variables from extrema
-    variables_from_extrema = study_settings.get('analysis_variables_from_extrema');
+    variables_from_extrema = study_settings.get('analysis_variables_from_extrema', 1);
     for i_variable = 1 : size(variables_from_extrema, 1)
         % get data
         this_variable_name = variables_from_extrema{i_variable, 1};

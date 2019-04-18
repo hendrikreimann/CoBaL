@@ -1020,7 +1020,7 @@ function plotResults(varargin)
                 
                 if ~isempty(data_to_plot_this_condition)
                     if isDiscreteVariable(i_variable, data_all, bands_per_stretch)
-                        if plot_settings.get('merge_bands')
+                        if plot_settings.get('merge_bands', 1)
                             data_to_plot_this_condition = reshape(data_to_plot_this_condition, 1, numel(data_to_plot_this_condition));
                         end
                         % ----------------------------------------------------------------------------------------------
@@ -1054,7 +1054,7 @@ function plotResults(varargin)
                             end
                             if strcmp(plot_mode, 'overview') || strcmp(plot_mode, 'episodes')
                                 if ~any(isnan(data_to_plot_this_band))
-                                    if plot_settings.get('group_bands_within_conditions')
+                                    if plot_settings.get('group_bands_within_conditions', 1)
                                         this_color = colors_bands(i_band, :);
                                     else
                                         this_color = plot_settings.get('color_control');

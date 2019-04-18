@@ -48,7 +48,7 @@ function importQTM(varargin)
     qtm_emg_scale = 1;
 
     subject_settings = SettingsCustodian('subjectSettings.txt');
-    analog_to_protocol_mapping = subject_settings.get('analog_to_protocol_mapping');
+    analog_to_protocol_mapping = subject_settings.get('analog_to_protocol_mapping', 1);
     
     % initialize
     total_number_of_trials_extracted_this_subject = 0;

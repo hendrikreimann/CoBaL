@@ -133,7 +133,7 @@ function findStepEvents(varargin)
             right_pushoff_times = [];
             
             
-            if any(strcmp(subject_settings.get('event_method'), 'cop_ap'))
+            if any(strcmp(subject_settings.get('event_method', 1), 'cop_ap'))
                 % get pushoff and touchdown indices
                 cop_ap = cop_trajectories(:, 2);
                 [~, pushoff_indices_both] = findpeaks(cop_ap, 'MinPeakProminence', subject_settings.get('peak_prominence_threshold'));

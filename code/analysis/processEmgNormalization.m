@@ -151,8 +151,8 @@ function processEmgNormalization(varargin)
     end
     
     %% scale EMG data
-    data_to_remove_header = subject_settings.get('data_to_remove_header');
-    data_to_remove = subject_settings.get('data_to_remove');
+    data_to_remove_header = subject_settings.get('data_to_remove_header', 1);
+    data_to_remove = subject_settings.get('data_to_remove', 1);
     for i_type = 1 : length(condition_list)
         this_type = condition_list{i_type};
         trials_to_process = trial_number_list{i_type};

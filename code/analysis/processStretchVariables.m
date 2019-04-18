@@ -104,8 +104,8 @@ function processStretchVariables(varargin)
     for i_condition = 1 : number_of_condition_labels
         condition_data_all(:, i_condition) = conditions_session.(condition_source_variables{i_condition});
     end
-    labels_to_ignore = study_settings.get('conditions_to_ignore');
-    levels_to_remove = study_settings.get('levels_to_remove');
+    labels_to_ignore = study_settings.get('conditions_to_ignore', 1);
+    levels_to_remove = study_settings.get('levels_to_remove', 1);
     [condition_combination_labels, condition_combinations_stimulus, condition_combinations_control] = determineConditionCombinations(condition_data_all, conditions_settings, labels_to_ignore, levels_to_remove);
 
     % extract indicators for control
