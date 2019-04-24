@@ -55,6 +55,15 @@ function processAnalysisVariables(varargin)
     [condition_combination_labels, ~, condition_combinations_control] = determineConditionCombinations(condition_data_all, conditions_settings, labels_to_ignore, levels_to_remove);
     condition_combinations_control_unique = table2cell(unique(cell2table(condition_combinations_control), 'rows'));
     
+    if isfield(loaded_data, 'response_data_session')
+        response_data_session = loaded_data.response_data_session;
+        response_directions_session = loaded_data.response_directions_session;
+        response_names_session = loaded_data.response_names_session;
+    else
+        response_data_session = {};
+        response_directions_session = {};
+        response_names_session = {};
+    end
     if isfield(loaded_data, 'analysis_data_session')
         analysis_data_session = loaded_data.analysis_data_session;
         analysis_directions_session = loaded_data.analysis_directions_session;
@@ -75,10 +84,11 @@ function processAnalysisVariables(varargin)
     end
     
     %% calculate response (i.e. difference from control mean)
-    response_data_session = {};
-    response_directions_session = loaded_data.stretch_directions_session;
-    response_names_session = loaded_data.stretch_names_session;
-    if ~isempty(condition_combinations_control)
+%     response_data_session = {};
+%     response_directions_session = loaded_data.stretch_directions_session;
+%     response_names_session = loaded_data.stretch_names_session;
+    if false
+%     if ~isempty(condition_combinations_control)
         % prepare container
         response_data_session = cell(size(loaded_data.stretch_data_session));
         for i_variable = 1 : number_of_stretch_variables
@@ -317,7 +327,7 @@ function processAnalysisVariables(varargin)
         for i_stretch = 1 : number_of_stretches
             for i_band = 1 : bands_per_stretch
                 [band_start_index, band_end_index] = getBandIndices(i_band, number_of_time_steps_normalized);
-                this_band_time_full = linspace(0, this_step_time_data(i_band), 100);
+                this_band_time_full = linspace(0, this_step_time_data(i_band), number_of_time_steps_normalized);
                 this_band_data_full = this_variable_source_data(band_start_index : band_end_index, i_stretch);
 
                 range = start_data_percent(i_band, i_stretch) : end_data_percent(i_band, i_stretch);
@@ -1085,9 +1095,9 @@ function processAnalysisVariables(varargin)
 %% SAVE TO DISK    
     %% save data
     variables_to_save = loaded_data;
-    variables_to_save.response_data_session = response_data_session;
-    variables_to_save.response_directions_session = response_directions_session;
-    variables_to_save.response_names_session = response_names_session;
+%     variables_to_save.response_data_session = response_data_session;
+%     variables_to_save.response_directions_session = response_directions_session;
+%     variables_to_save.response_names_session = response_names_session;
     variables_to_save.analysis_data_session = analysis_data_session;
     variables_to_save.analysis_directions_session = analysis_directions_session;
     variables_to_save.analysis_names_session = analysis_names_session;
