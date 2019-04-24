@@ -365,7 +365,7 @@ classdef eventController < handle
         end
         
         function findStretches(this, sender, eventdata) %#ok<INUSD>
-            if strcmp(this.data_custodian.study_settings.get('study_type'), 'MS')
+            if strcmp(this.data_custodian.study_settings.get('study_type', 1), 'MS')
                 return
             end
             

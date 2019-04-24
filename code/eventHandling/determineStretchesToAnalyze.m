@@ -62,7 +62,7 @@ function determineStretchesToAnalyze(varargin)
         study_settings_file = ['..' filesep '..' filesep 'studySettings.txt'];
     end
     study_settings = SettingsCustodian(study_settings_file);
-    experimental_paradigm = study_settings.get('experimental_paradigm');
+    experimental_paradigm = study_settings.get('experimental_paradigm', 1);
 
     subject_settings = SettingsCustodian('subjectSettings.txt');
     collection_date = num2str(subject_settings.get('collection_date'));
@@ -81,7 +81,7 @@ function determineStretchesToAnalyze(varargin)
         protocol_data = load('protocolInfo.mat');
     end
     if strcmp(experimental_paradigm, 'FatigueGVS')
-        fatigue_trials = study_settings.get('fatigue_trials');
+        fatigue_trials = subject_settings.get('fatigue_trials');
     end
 
     %% process

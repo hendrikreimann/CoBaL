@@ -396,9 +396,6 @@ function importQTM(varargin)
                         delays_to_closest_event = [delays_to_closest_event; [delay_to_closest_start_event, delay_to_closest_end_event]]
                     end
 
-
-
-
                     % sanity check: recorded data should be within 1% of expected duration
                     if this_trial_duration < this_trial_length*0.99 || this_trial_duration > this_trial_length*1.01
                         warning ...
