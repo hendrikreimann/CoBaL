@@ -340,7 +340,6 @@ if process_long_data
     mean_body_cell_long = [condition_cell_extended_long time_point_cell_extended_long mean_data_cell_long];
 end
 
-
 %% save bands
 export_cell = ...
   [ ...
