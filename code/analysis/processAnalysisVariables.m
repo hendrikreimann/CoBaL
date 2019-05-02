@@ -266,6 +266,9 @@ function processAnalysisVariables(varargin)
             eval(['start_data_source = ' start_variable_source_type '_data_session;']);
             eval(['start_names_source = ' start_variable_source_type '_names_session;']);
             start_data_time_within_band = start_data_source{strcmp(start_names_source, start_info)};
+            % find a way to take the step time per condition (maybe only
+            % for CadenceGVS) and then perform integration on only
+            % stretches within each condition
             start_data_ratio = start_data_time_within_band ./ this_step_time_data;
             start_data_percent = round(start_data_ratio * 100);
             if strcmp(subject_id,'OLR02')
@@ -290,6 +293,24 @@ function processAnalysisVariables(varargin)
                 start_data_percent(4,19) = 30;
             end
             
+            
+            if strcmp(subject_id, 'CAD09')
+                start_data_percent(1,202) = 30;
+            end
+            if strcmp(subject_id, 'CAD15')
+                start_data_percent(1,188) = 30;
+            end
+            if strcmp(subject_id, 'CAD16')
+                start_data_percent(2,132) = 30;
+            end
+            if strcmp(subject_id, 'CAD19')
+                start_data_percent(2,48) = 30;
+            end
+            
+            if strcmp(subject_id, 'CAD21')
+                start_data_percent(1,97) = 30;
+                start_data_percent(1,27) = 30;
+            end
         end
         if strcmp(end_variable_source_type, 'percentage')
             end_data_percent = ones(size(this_step_time_data)) * str2num(end_info);
@@ -321,6 +342,23 @@ function processAnalysisVariables(varargin)
                 end_data_percent(4,19) = 30;
             end
             
+            
+            if strcmp(subject_id, 'CAD09')
+                end_data_percent(1,202) = 30;
+            end
+            if strcmp(subject_id, 'CAD15')
+                end_data_percent(1,188) = 30;
+            end
+            if strcmp(subject_id, 'CAD16')
+                end_data_percent(2,132) = 30;
+            end
+            if strcmp(subject_id, 'CAD19')
+                end_data_percent(2,48) = 30;
+            end
+            if strcmp(subject_id, 'CAD21')
+                end_data_percent(1,97) = 30;
+                end_data_percent(1,27) = 30;
+            end
         end
         
         % integrate
@@ -328,19 +366,22 @@ function processAnalysisVariables(varargin)
         for i_stretch = 1 : number_of_stretches
             for i_band = 1 : bands_per_stretch
                 [band_start_index, band_end_index] = getBandIndices(i_band, number_of_time_steps_normalized);
-                this_band_time_full = linspace(0, this_step_time_data(i_band), 100);
+                %  this_band_time_full = linspace(0, this_step_time_data(i_band), 100);
+                this_band_time_full = linspace(0, this_step_time_data(i_band,i_stretch), 100);
                 this_band_data_full = this_variable_source_data(band_start_index : band_end_index, i_stretch);
- 
                 range = start_data_percent(i_band, i_stretch) : end_data_percent(i_band, i_stretch);
+ 
+%                
+%                 if (strcmp(subject_id, 'CAD21') && i_stretch == 97 && i_band == 1 )) || (strcmp(subject_id, 'CAD21') && i_stretch == 27 && i_band == 1 ))
+%                     range = 30:
+%                 end
                 
                 this_band_time_range = this_band_time_full(range);
                 this_band_data_range = this_band_data_full(range);
                                
                 % integrate
-                this_band_data_integrated = cumtrapz(this_band_time_range, this_band_data_range);               
+                this_band_data_integrated = cumtrapz(this_band_time_range, this_band_data_range);             
                 integrated_data(i_band, i_stretch) = this_band_data_integrated(end);
-                
-                dbstop if error
             end
         end        
         
@@ -495,8 +536,6 @@ function processAnalysisVariables(varargin)
     end
     
       %% gather variables with inversion by direction
-    % THIS IS LEGACY CODE
-    % used this for the Vision experiment, it doesn't deal with bands or directions
     variables_to_invert = study_settings.get('analysis_variables_from_inversion_by_direction');
     for i_variable = 1 : size(variables_to_invert, 1)
         warning(['analysis_variables_from_inversion_by_direction is in the process of being phased out, look for another solution '])
@@ -566,7 +605,6 @@ function processAnalysisVariables(varargin)
         this_variable_source_name = special_variables_to_calculate{i_variable, 2};
         this_variable_source_type = special_variables_to_calculate{i_variable, 3};
         
-          % pick data depending on source specification
         eval(['data_source = ' this_variable_source_type '_data_session;']);
         eval(['names_source = ' this_variable_source_type '_names_session;']);
         eval(['directions_source = ' this_variable_source_type '_directions_session;']);
@@ -682,8 +720,10 @@ function processAnalysisVariables(varargin)
                end
            end
        end
-       
-       if strcmp(this_variable_name,'com_x_inverted_pushoff_end') || strcmp(this_variable_name,'com_x_directionSym_pushoff_end') || strcmp(this_variable_name,'com_x_vel_directionSym_pushoff_end')
+       this_variable_data = [];
+       if strcmp(this_variable_name,'com_x_inverted_pushoff_end') || strcmp(this_variable_name,'com_x_vel_inverted_pushoff_end') || ... 
+               strcmp(this_variable_name,'com_x_sym_pushoff_end') || strcmp(this_variable_name,'com_x_vel_sym_pushoff_end') 
+           
            this_variable_source_index = find(strcmp(analysis_names_session, this_variable_source_name), 1, 'first');
            this_variable_source_data = analysis_data_session{this_variable_source_index};
            number_of_stretches = size(this_variable_source_data, 2);
@@ -713,6 +753,24 @@ function processAnalysisVariables(varargin)
             if strcmp(subject_id,'OLR08') 
                 end_data_percent(4,19) = 30;
             end
+            if strcmp(subject_id, 'CAD09')
+                end_data_percent(1,202) = 30;
+            end
+            if strcmp(subject_id, 'CAD15')
+                end_data_percent(1,188) = 30;
+            end
+            if strcmp(subject_id, 'CAD16')
+                end_data_percent(2,132) = 30;
+            end
+            if strcmp(subject_id, 'CAD19')
+                end_data_percent(2,48) = 30;
+            end
+            if strcmp(subject_id, 'CAD21')
+                end_data_percent(1,97) = 30;
+                end_data_percent(1,27) = 30;
+            end
+           
+           
             for i_stretch = 1 : number_of_stretches
                for i_band = 1 : bands_per_stretch
                    [band_start_index, band_end_index] = getBandIndices(i_band, number_of_time_steps_normalized);
@@ -725,14 +783,22 @@ function processAnalysisVariables(varargin)
            end
        end
        
-       if strcmp(this_variable_name,'com_x_inverted_band_end') || strcmp(this_variable_name,'com_x_directionSym_band_end') || strcmp(this_variable_name,'com_x_vel_directionSym_band_end')
-           this_variable_source_index = find(strcmp(analysis_names_session, this_variable_source_name), 1, 'first');
-           this_variable_source_data = analysis_data_session{this_variable_source_index};
+       if strcmp(this_variable_name,'com_x_inverted_band_end') || strcmp(this_variable_name,'com_x_vel_inverted_band_end') || strcmp(this_variable_name,'fy_band_end') || ...
+               strcmp(this_variable_name,'com_x_sym_band_end') || strcmp(this_variable_name,'com_x_vel_sym_band_end')
+           
+           if strcmp(this_variable_name,'com_x_inverted_band_end') || strcmp(this_variable_name,'com_x_vel_inverted_band_end') || ...
+                   strcmp(this_variable_name,'com_x_sym_band_end') || strcmp(this_variable_name,'com_x_vel_sym_band_end') 
+               this_variable_source_index = find(strcmp(analysis_names_session, this_variable_source_name), 1, 'first');
+               this_variable_source_data = analysis_data_session{this_variable_source_index};
+           else
+               this_variable_source_index = find(strcmp(response_names_session, this_variable_source_name), 1, 'first');
+               this_variable_source_data = response_data_session{this_variable_source_index};
+           end
            number_of_stretches = size(this_variable_source_data, 2);
            
-           end_data_time_within_band = this_pushoff_time_data;
-           end_data_ratio = end_data_time_within_band ./ this_step_time_data;
-           end_data_percent = round(end_data_ratio * 100);
+%            end_data_time_within_band = this_pushoff_time_data;
+%            end_data_ratio = end_data_time_within_band ./ this_step_time_data;
+%            end_data_percent = round(end_data_ratio * 100);
            
             for i_stretch = 1 : number_of_stretches
                for i_band = 1 : bands_per_stretch
@@ -746,6 +812,41 @@ function processAnalysisVariables(varargin)
            end
        end
        
+       if strcmp(this_variable_name,'com_x_sym_1sec') || strcmp(this_variable_name,'com_x_vel_sym_1sec')
+           this_variable_source_index = find(strcmp(analysis_names_session, this_variable_source_name), 1, 'first');
+           this_variable_source_data = analysis_data_session{this_variable_source_index};
+           
+           number_of_stretches = size(this_variable_source_data, 2);
+           
+           % need to assign end data ratio
+           % 1) take first band and determine ratio step time band one - 1
+           % (total time)
+           % what to do if time greater than 1 falls outside stride?
+           end_data_time = 1;  
+           
+           
+%            end_data_ratio = end_data_time_within_band ./ this_step_time_data;
+%           
+%            end_data_percent = round(end_data_ratio * 100);
+           
+            for i_stretch = 1 : number_of_stretches
+               i_band_one = 1;
+               i_band_two = 2;
+                   [band_one_start_index, band_one_end_index] = getBandIndices(i_band_one, number_of_time_steps_normalized);
+                   [band_two_start_index, band_two_end_index] = getBandIndices(i_band_two, number_of_time_steps_normalized);
+                   band_one_data_time = this_step_time_data(i_band_one, i_stretch);
+                   band_two_data_time = this_step_time_data(i_band_two, i_stretch);
+                   
+                   band_two_data_full = this_variable_source_data(band_two_start_index : band_two_end_index, i_stretch);
+                   
+                   end_data_ratio_two = (end_data_time - band_one_data_time) / this_step_time_data(i_band_two, i_stretch);
+                   end_data_percent_two = round(end_data_ratio_two * 100);
+                   if end_data_percent_two > 100
+                       end_data_percent_two = 100;
+                   end
+                   this_variable_data(:, i_stretch) = band_two_data_full(end_data_percent_two);
+           end
+       end
        
         % store
         [analysis_data_session, analysis_names_session, analysis_directions_session] = ...

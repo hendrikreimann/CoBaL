@@ -87,11 +87,6 @@ function importQTM(varargin)
             imported_table = readtable([labview_source_dir filesep 'protocol.csv']);
             warning('on', 'MATLAB:table:ModifiedAndSavedVarnames')
 
-            % read header line manually, since readtable doesn't deal with it properly
-            fileID = fopen([labview_source_dir filesep 'protocol.csv'], 'r');
-            header_line = fgetl(fileID);
-            fclose(fileID);
-            headers = strsplit(header_line, ',');
 
             table_headers = imported_table.Properties.VariableNames;
             protocol_trial_type = imported_table.(table_headers{strcmp(headers, 'Trial Type')});
@@ -311,13 +306,6 @@ function importQTM(varargin)
                     start_indices = 1;
                     end_indices = length(analog_indices);
                 end
-
-                % check whether each start index has a matching end index
-                for i_start_index = 1 : length(start_indices)
-                    % remove end indices that come before the start index - HR: not tested yet
-                    while length(end_indices) >= i_start_index && end_indices(i_start_index) <= start_indices(i_start_index)
-                        end_indices(i_start_index) = [];
-                    end
                 end
                 if length(end_indices) > length(start_indices)
                     disp('More end indices than start indices, removing superfluous ones')
