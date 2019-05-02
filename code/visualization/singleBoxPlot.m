@@ -66,12 +66,12 @@ function singleBoxPlot(target_axes_handle, abscissa, data, color, label, show_ou
         'EdgeColor', 'none', ...
         'HandleVisibility', 'off' ...
       );
-    plot(target_axes_handle, abscissa + width*[-0.5 0.5], [data_median data_median], 'color', 'k', 'HandleVisibility', 'off'); % median
-    plot(target_axes_handle, abscissa + width*[-0.5 0.5], [data_mean data_mean], 'color', [1 1 1]*0.5, 'HandleVisibility', 'off'); % mean
-    plot(target_axes_handle, [abscissa abscissa], [data_quartile_3 data_upper_adjacent], 'k--', 'HandleVisibility', 'off'); % upper range
-    plot(target_axes_handle, [abscissa abscissa], [data_lower_adjacent data_quartile_1], 'k--', 'HandleVisibility', 'off'); % lower range
-    plot(target_axes_handle, abscissa+width*[-0.25 0.25], [data_lower_adjacent data_lower_adjacent], 'k-', 'HandleVisibility', 'off'); % max
-    plot(target_axes_handle, abscissa+width*[-0.25 0.25], [data_upper_adjacent data_upper_adjacent], 'k-', 'HandleVisibility', 'off'); % min
+    plot(target_axes_handle, abscissa + width*[-0.5 0.5], [data_mean data_mean], 'color', [1 1 1]*0.5, 'LineWidth', 2, 'HandleVisibility', 'off'); % mean
+    plot(target_axes_handle, abscissa + width*[-0.5 0.5], [data_median data_median], 'color', 'k', 'LineWidth', 2, 'HandleVisibility', 'off'); % median
+    plot(target_axes_handle, [abscissa abscissa], [data_quartile_3 data_upper_adjacent], 'k--', 'LineWidth', 2, 'HandleVisibility', 'off'); % upper range
+    plot(target_axes_handle, [abscissa abscissa], [data_lower_adjacent data_quartile_1], 'k--', 'LineWidth', 2, 'HandleVisibility', 'off'); % lower range
+    plot(target_axes_handle, abscissa+width*[-0.25 0.25], [data_lower_adjacent data_lower_adjacent], 'k-', 'LineWidth', 2, 'HandleVisibility', 'off'); % max
+    plot(target_axes_handle, abscissa+width*[-0.25 0.25], [data_upper_adjacent data_upper_adjacent], 'k-', 'LineWidth', 2, 'HandleVisibility', 'off'); % min
     if show_outliers
         plot(target_axes_handle, abscissa * ones(size(outliers)), outliers, '+', 'color', [1; 1; 1] * 0.7, 'HandleVisibility', 'off');
     end
@@ -87,4 +87,5 @@ function singleBoxPlot(target_axes_handle, abscissa, data, color, label, show_ou
         xticklabels{xtick == abscissa} = label;
         set(target_axes_handle, 'xticklabel', xticklabels);
     end
+%     set(gca,'LineWidth',2)
 end
