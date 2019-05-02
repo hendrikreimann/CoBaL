@@ -86,6 +86,12 @@ function importQTM(varargin)
             warning('off', 'MATLAB:table:ModifiedAndSavedVarnames')
             imported_table = readtable([labview_source_dir filesep 'protocol.csv']);
             warning('on', 'MATLAB:table:ModifiedAndSavedVarnames')
+            
+            % read header line manually, since readtable doesn't deal with it properly
+            fileID = fopen([labview_source_dir filesep 'protocol.csv'], 'r');
+            header_line = fgetl(fileID);
+            fclose(fileID);
+            headers = strsplit(header_line, ',');
 
 
             table_headers = imported_table.Properties.VariableNames;
@@ -315,19 +321,20 @@ function importQTM(varargin)
                     disp('More start indices than end indices, removing superfluous ones')
                     start_indices(length(end_indices)+1 : end) = [];
                 end
+       
 
-                figure; hold on;
-                time_analog = (1 : length(protocol_step_analog)) * 1/analog_fs;
-                plot(time_analog, protocol_step_analog);
-                plot(time_analog(protocol_step_up_indices), protocol_step_analog(protocol_step_up_indices), '^');
-                plot(time_analog(start_indices), protocol_step_analog(start_indices), '>');
-                plot(time_analog(end_indices), protocol_step_analog(end_indices), '<');
-                drawnow
-
-                if end_indices(end) > length(qtm_data.Analog.Data)
-                    end_indices(end) = length(qtm_data.Analog.Data);
-                end
-            end
+%                 figure; hold on;
+%                 time_analog = (1 : length(protocol_step_analog)) * 1/analog_fs;
+%                 plot(time_analog, protocol_step_analog);
+%                 plot(time_analog(protocol_step_up_indices), protocol_step_analog(protocol_step_up_indices), '^');
+%                 plot(time_analog(start_indices), protocol_step_analog(start_indices), '>');
+%                 plot(time_analog(end_indices), protocol_step_analog(end_indices), '<');
+%                 drawnow
+% 
+%                 if end_indices(end) > length(qtm_data.Analog.Data)
+%                     end_indices(end) = length(qtm_data.Analog.Data);
+%                 end
+    
             number_of_trials_in_this_qtm_file = length(start_indices);
             delays_to_closest_event = [];
             for i_trial_this_qtm_file = 1 : number_of_trials_in_this_qtm_file
@@ -405,7 +412,7 @@ function importQTM(varargin)
                         importing_trial_number = number_from_start;
                         save_this_trial = 1;
                         
-                        delays_to_closest_event = [delays_to_closest_event; [delay_to_closest_start_event, delay_to_closest_end_event]]
+                        delays_to_closest_event = [delays_to_closest_event; [delay_to_closest_start_event, delay_to_closest_end_event]];
                     end
 
 
