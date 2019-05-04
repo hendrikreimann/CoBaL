@@ -15,7 +15,8 @@
 %     along with this program.  If not, see <http://www.gnu.org/licenses/>.% compare the kinematic tree against the kinematic chain
 
 
-new_code = 'ZRUI';
+new_code = 'COGGP01';
+spot_to_replace = 2;
 
 % find files
 clear file_name_list;
@@ -26,9 +27,9 @@ for i_file = 4 : length(file_name_list)
     data_file_name = file_name_list{i_file};
     
     file_name_split = strsplit(data_file_name, '_');
-    file_name_split{3} = new_code;
-    new_file_name = [file_name_split{1} '_' file_name_split{2} '_' new_code];
-    for i_step = 4 : length(file_name_split)
+    file_name_split{spot_to_replace} = new_code;
+    new_file_name = file_name_split{1};
+    for i_step = 2 : length(file_name_split)
         new_file_name = [new_file_name '_' file_name_split{i_step}];
     end
     

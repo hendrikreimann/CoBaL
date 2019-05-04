@@ -369,7 +369,7 @@ function importQTM(varargin)
                         this_trial_duration = protocol_trial_duration(this_trial_protocol_index);           
                         save_this_trial = protocol_trial_saved(this_trial_protocol_index);
                     end
-                    if strcmp(sync_mode, 'events')
+                    if strcmp(sync_mode, 'events') && ~isempty(start_event_types)
                         this_trial_start_time = analog_time(this_trial_start_index);
                         this_trial_end_time = analog_time(this_trial_end_index);
                         
@@ -393,7 +393,7 @@ function importQTM(varargin)
                         importing_trial_number = number_from_start;
                         save_this_trial = 1;
                         
-                        delays_to_closest_event = [delays_to_closest_event; [delay_to_closest_start_event, delay_to_closest_end_event]]
+                        delays_to_closest_event = [delays_to_closest_event; [delay_to_closest_start_event, delay_to_closest_end_event]];
                     end
 
                     % sanity check: recorded data should be within 1% of expected duration

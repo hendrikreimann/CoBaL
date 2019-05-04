@@ -204,17 +204,18 @@ function processStimulusResponse(varargin)
             xlabel('\Delta CoM from stance ankle'); ylabel('\Delta CoM vel'); zlabel('\Delta foot placement')
 %             title(['slopes = [' num2str(linear_model_slopes(1)) ', ' num2str(linear_model_slopes(2)) '], r^2 = ' num2str(fit_stats.rsquare)]);
             
-%             figure; hold on; 
-%             plot(this_stance_com_from_stance_ankle_data_mean_free, this_stance_step_placement_x_data_mean_free, 'o')
-%             plot([-0.04, 0.04], [0, 0], 'color', [1 1 1]*0.5);
-%             plot([0, 0], [-0.15, 0.15], 'color', [1 1 1]*0.5);
-%             xlabel('\Delta CoM at midstance')
-%             ylabel('\Delta foot placement')
+            figure; hold on; 
+            plot(this_stance_com_from_stance_ankle_data_mean_free, this_stance_step_placement_x_data_mean_free, 'o')
+            plot([-0.04, 0.04], [0, 0], 'color', [1 1 1]*0.5);
+            plot([0, 0], [-0.15, 0.15], 'color', [1 1 1]*0.5);
+            xlabel('\Delta CoM at midstance')
+            ylabel('\Delta foot placement')
 %             title(['J = ' num2str(Jacobian(1)) ', c = ' num2str(correlation_c(1)) ', p = ' num2str(correlation_p(1))]);
-%             title(['com from ankle - pos, J = ' num2str(Jacobian(1)) ', c = ' num2str(correlation_c(1)) ', p = ' num2str(correlation_p(1))]);
-%             set(gca, 'xlim', [-0.04, 0.04], 'ylim', [-0.15, 0.15])
+            title('com from ankle - pos');
+            set(gca, 'xlim', [-0.04, 0.04], 'ylim', [-0.15, 0.15])
 %             
-%             figure; plot(this_stance_com_x_vel_midstance_data_mean_free, this_stance_step_placement_x_data_mean_free, 'x')
+            figure; plot(this_stance_com_x_vel_midstance_data_mean_free, this_stance_step_placement_x_data_mean_free, 'x')
+            title('com from ankle - vel');
 %             title(['com - vel, J = ' num2str(Jacobian(2)) ', c = ' num2str(correlation_c(2)) ', p = ' num2str(correlation_p(2))]); axis equal
 %             
 %             figure; plot3(this_stance_com_from_stance_ankle_data_mean_free, this_stance_com_x_vel_midstance_data_mean_free, this_stance_step_placement_x_data_mean_free, 'x')

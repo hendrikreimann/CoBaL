@@ -83,6 +83,10 @@ function determineStretchesToAnalyze(varargin)
     if strcmp(experimental_paradigm, 'FatigueGVS')
         fatigue_trials = subject_settings.get('fatigue_trials');
     end
+    if strcmp(experimental_paradigm, 'CognitiveLoadVision') || strcmp(experimental_paradigm, 'CognitiveLoadGvs')
+        back_7_trials = subject_settings.get('back_7_trials');
+    end
+    
 
     %% process
     time_to_nearest_heelstrike_before_trigger_threshold = 0.10; % a heelstrike should happen less than this long before a trigger
@@ -176,13 +180,13 @@ function determineStretchesToAnalyze(varargin)
                 visual_scene_ml_translation_trajectory = loadData(collection_date, subject_id, condition_list{i_condition}, i_trial, 'visual_scene_ml_translation__trajectory'); %take note of the double "_"
                 [stimulus_state_trajectory, time_stimulus] = loadData(collection_date, subject_id, condition_list{i_condition}, i_trial, 'stimulus_state_trajectory');
             end
-            if strcmp(experimental_paradigm, 'Vision') || strcmp(experimental_paradigm, 'CadenceVision')
+            if strcmp(experimental_paradigm, 'Vision') || strcmp(experimental_paradigm, 'CadenceVision') || strcmp(experimental_paradigm, 'CognitiveLoadVision')
 %                 current_rotation_trajectory = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'current_rotation_trajectory');
                 current_rotation_trajectory = loadData(collection_date, subject_id, condition_list{i_condition}, i_trial, 'visual_rotation_angle_trajectory');
                 current_acceleration_trajectory = loadData(collection_date, subject_id, condition_list{i_condition}, i_trial, 'visual_rotation_acceleration_trajectory');
                 [stimulus_state_trajectory, time_stimulus] = loadData(collection_date, subject_id, condition_list{i_condition}, i_trial, 'stimulus_state_trajectory');
             end
-            if strcmp(experimental_paradigm, 'GVS') || strcmp(experimental_paradigm, 'CadenceGVS') || strcmp(experimental_paradigm, 'FatigueGVS') 
+            if strcmp(experimental_paradigm, 'GVS') || strcmp(experimental_paradigm, 'CadenceGVS') || strcmp(experimental_paradigm, 'FatigueGVS') || strcmp(experimental_paradigm, 'CognitiveLoadGvs')
                 gvs_trajectory = loadData(collection_date, subject_id, condition_list{i_condition}, i_trial, 'GVS_current_trajectory');
                 [stimulus_state_trajectory, time_stimulus] = loadData(collection_date, subject_id, condition_list{i_condition}, i_trial, 'stimulus_state_trajectory');
             end
@@ -231,7 +235,7 @@ function determineStretchesToAnalyze(varargin)
                     end
                 end
             end
-            if strcmp(experimental_paradigm, 'Vision') || strcmp(experimental_paradigm, 'CadenceVision')
+            if strcmp(experimental_paradigm, 'Vision') || strcmp(experimental_paradigm, 'CadenceVision') || strcmp(experimental_paradigm, 'CognitiveLoadVision')
                 illusion_trajectory = zeros(size(time_stimulus)); % -1 = LEFT, 1 = RIGHT
                 for i_time = 1 : length(time_stimulus)
                     if stimulus_state_trajectory(i_time) == 3
@@ -247,7 +251,7 @@ function determineStretchesToAnalyze(varargin)
                     end
                 end
             end
-            if strcmp(experimental_paradigm, 'GVS') || strcmp(experimental_paradigm, 'CadenceGVS') || strcmp(experimental_paradigm, 'FatigueGVS') 
+            if strcmp(experimental_paradigm, 'GVS') || strcmp(experimental_paradigm, 'CadenceGVS') || strcmp(experimental_paradigm, 'FatigueGVS') || strcmp(experimental_paradigm, 'CognitiveLoadGvs')
                 illusion_trajectory = zeros(size(time_stimulus)); % -1 = LEFT, 1 = RIGHT
                 for i_time = 1 : length(time_stimulus)
                     if stimulus_state_trajectory(i_time) == 3
@@ -267,8 +271,8 @@ function determineStretchesToAnalyze(varargin)
             %% extract events
             if strcmp(condition_stimulus, 'NONE') ...
                     || strcmp(condition_stimulus, 'VISUAL') || strcmp(experimental_paradigm, 'GVS_old') ...
-                    || strcmp(experimental_paradigm, 'Vision') || strcmp(experimental_paradigm, 'CadenceVision') ...
-                    || strcmp(experimental_paradigm, 'GVS') || strcmp(experimental_paradigm, 'CadenceGVS') || strcmp(experimental_paradigm, 'FatigueGVS')  ...
+                    || strcmp(experimental_paradigm, 'Vision') || strcmp(experimental_paradigm, 'CadenceVision') || strcmp(experimental_paradigm, 'CognitiveLoadVision') ...
+                    || strcmp(experimental_paradigm, 'GVS') || strcmp(experimental_paradigm, 'CadenceGVS') || strcmp(experimental_paradigm, 'FatigueGVS') || strcmp(experimental_paradigm, 'CognitiveLoadGvs')  ...
                     || strcmp(condition_stimulus, 'OBSTACLE') || strcmp(condition_stimulus, 'ARMSENSE') ...
                     || strcmp(experimental_paradigm, 'Vision Stochastic')
                 right_pushoff_times = event_data{strcmp(event_labels, 'right_pushoff')};
@@ -314,13 +318,13 @@ function determineStretchesToAnalyze(varargin)
                 
                 trigger_times = time_stimulus(trigger_indices_labview);
             end
-            if strcmp(experimental_paradigm, 'Vision') || strcmp(experimental_paradigm, 'CadenceVision')
+            if strcmp(experimental_paradigm, 'Vision') || strcmp(experimental_paradigm, 'CadenceVision') || strcmp(experimental_paradigm, 'CognitiveLoadVision')
                 % find the time steps where the stimulus state crosses a threshold
                 stimulus_threshold = 1.5;
                 trigger_indices_labview = find(diff(sign(stimulus_state_trajectory - stimulus_threshold)) > 0) + 2;
                 trigger_times = time_stimulus(trigger_indices_labview);
             end
-            if strcmp(experimental_paradigm, 'GVS') || strcmp(experimental_paradigm, 'CadenceGVS') || strcmp(experimental_paradigm, 'FatigueGVS') 
+            if strcmp(experimental_paradigm, 'GVS') || strcmp(experimental_paradigm, 'CadenceGVS') || strcmp(experimental_paradigm, 'FatigueGVS') || strcmp(experimental_paradigm, 'CognitiveLoadGvs')
                 % find the time steps where the stimulus state crosses a threshold
                 stimulus_threshold = 1.5;
                 trigger_indices_labview = find(diff(sign(stimulus_state_trajectory - stimulus_threshold)) > 0) + 2;
@@ -1315,8 +1319,16 @@ function determineStretchesToAnalyze(varargin)
                 event_variables_to_save.stance_foot_data = condition_stance_foot_list;
             end
             
-            if strcmp(experimental_paradigm, 'Vision') || strcmp(experimental_paradigm, 'CadenceVision') || strcmp(experimental_paradigm, 'GVS') || strcmp(experimental_paradigm, 'CadenceGVS') || strcmp(experimental_paradigm, 'FatigueGVS')
+            if strcmp(experimental_paradigm, 'Vision') ...
+                    || strcmp(experimental_paradigm, 'CadenceVision') ...
+                    || strcmp(experimental_paradigm, 'GVS') ...
+                    || strcmp(experimental_paradigm, 'CadenceGVS') ...
+                    || strcmp(experimental_paradigm, 'FatigueGVS') ...
+                    || strcmp(experimental_paradigm, 'CognitiveLoadVision') ...
+                    || strcmp(experimental_paradigm, 'CognitiveLoadGvs')
+                        
                 bands_per_stretch = study_settings.get('number_of_steps_to_analyze');
+            
                 
                 conditions_trial = struct;
                 number_of_triggers = length(trigger_indices_mocap);
@@ -1620,6 +1632,15 @@ function determineStretchesToAnalyze(varargin)
                         [fatigue_list{:}] = deal('UNFATIGUED');
                     end
                     conditions_trial.fatigue_list = fatigue_list;
+                end
+                if strcmp(experimental_paradigm, 'CognitiveLoadVision') || strcmp(experimental_paradigm, 'CognitiveLoadGvs')
+                    cognitive_load_list = cell(size(direction_list));
+                    if ismember(i_trial, back_7_trials)
+                        [cognitive_load_list{:}] = deal('BACK_7');
+                    else
+                        [cognitive_load_list{:}] = deal('NO_LOAD');
+                    end
+                    conditions_trial.cognitive_load_list = cognitive_load_list;
                 end
                 
                 if exist('affected_side')
