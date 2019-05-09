@@ -58,13 +58,14 @@ function processBodyKinematicsInOpensim(varargin)
     
     %% process
     analysis_tool = AnalyzeTool(setup_file_analysis);
+    
     data_root = [pwd filesep 'opensim'];
     for i_condition = 1 : length(trial_type_list)
         trials_to_process = trial_number_list{i_condition};
         for i_trial = trials_to_process
             % load data to get initial and final time
             trial_type = trial_type_list{i_condition};
-            marker_file = ['processed' filesep makeFileName(subject_info.date, subject_info.subject_id, trial_type, i_trial, 'markerTrajectories.mat')];
+            marker_file = [data_root filesep '..' filesep 'processed' filesep makeFileName(subject_info.date, subject_info.subject_id, trial_type, i_trial, 'markerTrajectories.mat')];
             load(marker_file, 'time_mocap');
             time_start = time_mocap(1);
             time_end = time_mocap(end);
@@ -72,7 +73,7 @@ function processBodyKinematicsInOpensim(varargin)
             analysis_tool.setFinalTime(time_end);
             
             % run the tool for this trial
-            inverse_kinematics_file_name = ['opensim' filesep 'inverseKinematics' filesep makeFileName(subject_info.date, subject_info.subject_id, trial_type, i_trial, 'inverseKinematics.mot')];
+            inverse_kinematics_file_name = [data_root filesep 'inverseKinematics' filesep makeFileName(subject_info.date, subject_info.subject_id, trial_type, i_trial, 'inverseKinematics.mot')];
             analysis_tool.setCoordinatesFileName(inverse_kinematics_file_name);
             analysis_tool.run();
             
