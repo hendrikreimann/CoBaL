@@ -2431,15 +2431,15 @@ function determineStretchesToAnalyze(varargin)
                             end
                         end
                         if strcmp(zone_side_list{i_stretch}, 'STIM_ZONE_RIGHT')
-                        threshold = 0.1835; % limit on right belt
-                        if any(LHEE_marker_data(trigger_start_index_mocap : trigger_end_index_mocap,1) > threshold) || any(RHEE_marker_data(trigger_start_index_mocap : trigger_end_index_mocap,1) > threshold) || ...
-                                any(RTOE_marker_data(trigger_start_index_mocap : trigger_end_index_mocap,1) > threshold) || any(LTOE_marker_data(trigger_start_index_mocap : trigger_end_index_mocap,1) > threshold)
-                            
+                            threshold = 0.1835; % limit on right belt
+                            if any(LHEE_marker_data(trigger_start_index_mocap : trigger_end_index_mocap,1) > threshold) || any(RHEE_marker_data(trigger_start_index_mocap : trigger_end_index_mocap,1) > threshold) || ...
+                                    any(RTOE_marker_data(trigger_start_index_mocap : trigger_end_index_mocap,1) > threshold) || any(LTOE_marker_data(trigger_start_index_mocap : trigger_end_index_mocap,1) > threshold)
+                                
                                 step_zone_delinquent_list{i_stretch} = 'TRIGGER';
-%                                 removal_flags(i_stretch) = 1;
+                                %                                 removal_flags(i_stretch) = 1;
                                 disp('Stretch flagged due stepping in No Step Zone')
-                        end
-                        if any(LHEE_marker_data(remainder_start_index_mocap : remainder_end_index_mocap,1) > threshold) || any(RHEE_marker_data(remainder_start_index_mocap : remainder_end_index_mocap,1) > threshold) ||...
+                            end
+                            if any(LHEE_marker_data(remainder_start_index_mocap : remainder_end_index_mocap,1) > threshold) || any(RHEE_marker_data(remainder_start_index_mocap : remainder_end_index_mocap,1) > threshold) ||...
                                     any(RTOE_marker_data(remainder_start_index_mocap : remainder_end_index_mocap,1) > threshold) || any(LTOE_marker_data(remainder_start_index_mocap : remainder_end_index_mocap,1) > threshold)
                                 
                                 if strcmp(step_zone_delinquent_list(i_stretch), 'TRIGGER')
@@ -2448,6 +2448,7 @@ function determineStretchesToAnalyze(varargin)
                                     step_zone_delinquent_list{i_stretch} = 'LATER';
                                 end
                                 disp('Stretch flagged due stepping in No Step Zone')
+                            end
                         end
                             
                         
