@@ -190,6 +190,10 @@ function determineStretchesToAnalyze(varargin)
                 gvs_trajectory = loadData(collection_date, subject_id, condition_list{i_condition}, i_trial, 'GVS_current_trajectory');
                 [stimulus_state_trajectory, time_stimulus] = loadData(collection_date, subject_id, condition_list{i_condition}, i_trial, 'stimulus_state_trajectory');
             end
+            if strcmp(experimental_paradigm, 'GvsOverground')
+                [analog_trajectories, time_analog, sampling_rate_analog, analog_labels, analog_directions] = loadData(collection_date, subject_id, condition_list{i_condition}, i_trial, 'analog_trajectories');
+                gvs_trajectory = analog_trajectories(:, strcmp(analog_labels, 'GVS_out'));
+            end
 
             % determine indices for optional markers
             marker_weight_table = study_settings.get('marker_weights');
@@ -267,6 +271,15 @@ function determineStretchesToAnalyze(varargin)
                     end
                 end
             end
+            if strcmp(experimental_paradigm, 'GvsOverground')
+                gvs_threshold = study_settings.get('gvs_threshold');
+                illusion_trajectory = zeros(size(time_analog)); % -1 = LEFT, 1 = RIGHT
+                
+                % positive current = anode on the right = illusory fall to the left
+                illusion_trajectory(gvs_trajectory > gvs_threshold) = -1;
+                % negative current = anode on the left = illusory fall to the right
+                illusion_trajectory(gvs_trajectory < -gvs_threshold) = 1;
+            end
             
             %% extract events
             if strcmp(condition_stimulus, 'NONE') ...
@@ -274,7 +287,7 @@ function determineStretchesToAnalyze(varargin)
                     || strcmp(experimental_paradigm, 'Vision') || strcmp(experimental_paradigm, 'CadenceVision') || strcmp(experimental_paradigm, 'CognitiveLoadVision') ...
                     || strcmp(experimental_paradigm, 'GVS') || strcmp(experimental_paradigm, 'CadenceGVS') || strcmp(experimental_paradigm, 'FatigueGVS') || strcmp(experimental_paradigm, 'CognitiveLoadGvs')  ...
                     || strcmp(condition_stimulus, 'OBSTACLE') || strcmp(condition_stimulus, 'ARMSENSE') ...
-                    || strcmp(experimental_paradigm, 'Vision Stochastic')
+                    || strcmp(experimental_paradigm, 'Vision Stochastic') || strcmp(experimental_paradigm, 'GvsOverground')
                 right_pushoff_times = event_data{strcmp(event_labels, 'right_pushoff')};
                 right_touchdown_times = event_data{strcmp(event_labels, 'right_touchdown')};
                 left_pushoff_times = event_data{strcmp(event_labels, 'left_pushoff')};
@@ -329,6 +342,15 @@ function determineStretchesToAnalyze(varargin)
                 stimulus_threshold = 1.5;
                 trigger_indices_labview = find(diff(sign(stimulus_state_trajectory - stimulus_threshold)) > 0) + 2;
                 trigger_times = time_stimulus(trigger_indices_labview);
+            end
+            if strcmp(experimental_paradigm, 'GvsOverground')
+                % find the time steps where the first forceplate vertical force crosses a threshold
+                stimulus_threshold = 20;
+                [frist_forceplate_wrench_trajectory, time_forceplate] = loadData(collection_date, subject_id, condition_list{i_condition}, i_trial, 'left_foot_wrench_world');
+                vertical_force_trajectory = frist_forceplate_wrench_trajectory(:, 3);
+                
+                trigger_indices_forceplate = find(diff(sign(-vertical_force_trajectory - stimulus_threshold)) > 0) + 2;
+                trigger_times = time_forceplate(trigger_indices_forceplate);
             end
             if strcmp(condition_stimulus, 'OBSTACLE')
                 trigger_times = [];
