@@ -29,6 +29,8 @@ classdef SettingsCustodian < handle
           {
             'band_labels'; ...
             'trial_types_to_ignore'; ...
+            'analog_data_to_import'; ...
+            'emg_data_to_import'; ...
           }
     end
     methods
@@ -118,6 +120,11 @@ classdef SettingsCustodian < handle
                 if ~iscell(data)
                     data = {data};
                 end
+            end
+            
+            % check for emptyness
+            if strcmp(data, '~')
+                data = [];
             end
         end
         
@@ -241,9 +248,16 @@ classdef SettingsCustodian < handle
             if strcmp(property_name, 'emg_time_offset')
                 default_data = 0;
             end
+            if strcmp(property_name, 'qtm_import_mode')
+                default_data = 'events';
+            end
             if strcmp(property_name, 'trial_types_to_ignore')
                 default_data = {'calibration', 'emg'};
             end
+            if strcmp(property_name, 'force_plates_to_import')
+                default_data = [1, 2];
+            end
+            
             
             
             
