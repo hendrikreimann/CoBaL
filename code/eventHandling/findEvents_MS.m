@@ -100,7 +100,7 @@ function findEvents_MS(varargin)
                   };
             end
             
-            if any(strcmp(this_trial_type, study_settings.get('across_trials_conditions', 1)))
+            if any(strcmp(this_trial_type, study_settings.get('ramp_perturbation_conditions', 1)))
                 distance_threshold = subject_settings.get('platform_acc_peak_distance_threshold') * sampling_rate_marker;
                 if distance_threshold > length(platform_acc_trajectory) - 2
                     distance_threshold = length(platform_acc_trajectory) - 2;
@@ -143,7 +143,7 @@ function findEvents_MS(varargin)
               
             end
 
-            if any(strcmp(this_trial_type, study_settings.get('across_time_conditions')))
+            if any(strcmp(this_trial_type, study_settings.get('quiet_stance_conditions')))
                 first_nanless_data_point = find(sum(isnan(marker_trajectories), 2) == 0, 1, 'first');
                 last_nanless_data_point = find(sum(isnan(marker_trajectories), 2) == 0, 1, 'last');
                 trial_start_time = time_marker(first_nanless_data_point);
