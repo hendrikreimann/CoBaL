@@ -190,6 +190,10 @@ function determineStretchesToAnalyze(varargin)
                 gvs_trajectory = loadData(collection_date, subject_id, condition_list{i_condition}, i_trial, 'GVS_current_trajectory');
                 [stimulus_state_trajectory, time_stimulus] = loadData(collection_date, subject_id, condition_list{i_condition}, i_trial, 'stimulus_state_trajectory');
             end
+            if strcmp(experimental_paradigm, 'GvsOverground')
+                [analog_trajectories, time_analog, sampling_rate_analog, analog_labels, analog_directions] = loadData(collection_date, subject_id, condition_list{i_condition}, i_trial, 'analog_trajectories');
+                gvs_trajectory = analog_trajectories(:, strcmp(analog_labels, 'GVS_out'));
+            end
 
             % determine indices for optional markers
             marker_weight_table = study_settings.get('marker_weights');
@@ -267,6 +271,15 @@ function determineStretchesToAnalyze(varargin)
                     end
                 end
             end
+            if strcmp(experimental_paradigm, 'GvsOverground')
+                gvs_threshold = study_settings.get('gvs_threshold');
+                illusion_trajectory = zeros(size(time_analog)); % -1 = LEFT, 1 = RIGHT
+                
+                % positive current = anode on the right = illusory fall to the left
+                illusion_trajectory(gvs_trajectory > gvs_threshold) = -1;
+                % negative current = anode on the left = illusory fall to the right
+                illusion_trajectory(gvs_trajectory < -gvs_threshold) = 1;
+            end
             
             %% extract events
             if strcmp(condition_stimulus, 'NONE') ...
@@ -274,7 +287,7 @@ function determineStretchesToAnalyze(varargin)
                     || strcmp(experimental_paradigm, 'Vision') || strcmp(experimental_paradigm, 'CadenceVision') || strcmp(experimental_paradigm, 'CognitiveLoadVision') ...
                     || strcmp(experimental_paradigm, 'GVS') || strcmp(experimental_paradigm, 'CadenceGVS') || strcmp(experimental_paradigm, 'FatigueGVS') || strcmp(experimental_paradigm, 'CognitiveLoadGvs')  ...
                     || strcmp(condition_stimulus, 'OBSTACLE') || strcmp(condition_stimulus, 'ARMSENSE') ...
-                    || strcmp(experimental_paradigm, 'Vision Stochastic')
+                    || strcmp(experimental_paradigm, 'Vision Stochastic') || strcmp(experimental_paradigm, 'GvsOverground')
                 right_pushoff_times = event_data{strcmp(event_labels, 'right_pushoff')};
                 right_touchdown_times = event_data{strcmp(event_labels, 'right_touchdown')};
                 left_pushoff_times = event_data{strcmp(event_labels, 'left_pushoff')};
@@ -329,6 +342,15 @@ function determineStretchesToAnalyze(varargin)
                 stimulus_threshold = 1.5;
                 trigger_indices_labview = find(diff(sign(stimulus_state_trajectory - stimulus_threshold)) > 0) + 2;
                 trigger_times = time_stimulus(trigger_indices_labview);
+            end
+            if strcmp(experimental_paradigm, 'GvsOverground')
+                % find the time steps where the first forceplate vertical force crosses a threshold
+                stimulus_threshold = 20;
+                [frist_forceplate_wrench_trajectory, time_forceplate] = loadData(collection_date, subject_id, condition_list{i_condition}, i_trial, 'left_foot_wrench_world');
+                vertical_force_trajectory = frist_forceplate_wrench_trajectory(:, 3);
+                
+                trigger_indices_forceplate = find(diff(sign(-vertical_force_trajectory - stimulus_threshold)) > 0) + 2;
+                trigger_times = time_forceplate(trigger_indices_forceplate);
             end
             if strcmp(condition_stimulus, 'OBSTACLE')
                 trigger_times = [];
@@ -536,6 +558,105 @@ function determineStretchesToAnalyze(varargin)
                 conditions_trial = struct;
                 conditions_trial.condition_experimental_list = condition_experimental_list;
                 event_variables_to_save.stretch_pushoff_times = stretch_pushoff_times;
+                event_variables_to_save.stretch_times = stretch_times;
+                event_variables_to_save.stance_foot_data = stance_foot_data;
+
+            end
+
+            if strcmp(experimental_paradigm, 'GvsOverground')
+                % determine start and end
+                stance_foot_data = {'STANCE_LEFT', 'STANCE_RIGHT', 'STANCE_LEFT', 'STANCE_RIGHT'};
+                bands_per_stretch = length(stance_foot_data);
+                
+                % find heelstrike that corresponds to the trigger
+                trigger_time = trigger_times(1);
+
+                % get closest heelstrike on either side
+                [~, index_left] = min(abs(left_touchdown_times - trigger_time));
+                [~, index_right] = min(abs(right_touchdown_times - trigger_time));
+
+                % is the closest left heelstrike within the acceptable interval?
+                closest_left_heelstrike = left_touchdown_times(index_left);
+                time_difference_left = closest_left_heelstrike - trigger_time; % where does the closest left heelstrike lie relative to the trigger?
+                if -time_to_nearest_heelstrike_before_trigger_threshold < time_difference_left && time_difference_left < time_to_nearest_heelstrike_after_trigger_threshold
+                    % left heelstrike is acceptable
+                    left_heelstrike_acceptable = true;
+                else
+                    left_heelstrike_acceptable = false;
+                end
+
+                % is the closest right heelstrike within the acceptable interval?
+                closest_right_heelstrike = right_touchdown_times(index_right);
+                time_difference_right = closest_right_heelstrike - trigger_time; % where does the closest right heelstrike lie relative to the trigger?
+                if -time_to_nearest_heelstrike_before_trigger_threshold < time_difference_right && time_difference_right < time_to_nearest_heelstrike_after_trigger_threshold
+                    % right heelstrike is acceptable
+                    right_heelstrike_acceptable = true;
+                else
+                    right_heelstrike_acceptable = false;
+                end
+
+                % flag for removal if not triggered by left foot
+                if ~(left_heelstrike_acceptable && ~right_heelstrike_acceptable)
+                    % not triggered by left heelstrike
+                    removal_flags = 1;
+                end                  
+                
+                % extract needed events
+                left_foot_heelstrike_0  = left_touchdown_times(index_left);
+                left_foot_heelstrike_1  = left_touchdown_times(index_left+1);
+                left_foot_heelstrike_2  = left_touchdown_times(index_left+2);
+                left_foot_pushoff_0     = min(left_pushoff_times(left_pushoff_times >= left_foot_heelstrike_0));
+                left_foot_pushoff_1     = min(left_pushoff_times(left_pushoff_times >= left_foot_heelstrike_1));
+                left_foot_pushoff_2     = min(left_pushoff_times(left_pushoff_times >= left_foot_heelstrike_2));
+
+                right_foot_heelstrike_0 = min(right_touchdown_times(right_touchdown_times >= left_foot_heelstrike_0));
+                right_foot_heelstrike_1 = min(right_touchdown_times(right_touchdown_times >= left_foot_heelstrike_1));
+                right_foot_heelstrike_2 = min(right_touchdown_times(right_touchdown_times >= left_foot_heelstrike_2));
+                right_foot_pushoff_0    = max(right_pushoff_times(right_pushoff_times <= left_foot_pushoff_0));
+                right_foot_pushoff_1    = max(right_pushoff_times(right_pushoff_times <= left_foot_pushoff_1));
+                right_foot_pushoff_2    = max(right_pushoff_times(right_pushoff_times <= left_foot_pushoff_2));
+
+                % notify if events are not sorted properly
+                if ~issorted ...
+                      ( ...
+                        [ ...
+                          left_foot_heelstrike_0 right_foot_pushoff_0 right_foot_heelstrike_0 left_foot_pushoff_0 ...
+                          left_foot_heelstrike_1 right_foot_pushoff_1 right_foot_heelstrike_1 left_foot_pushoff_1 ...
+                          left_foot_heelstrike_2 right_foot_pushoff_2 right_foot_heelstrike_2 left_foot_pushoff_2 ...
+                        ] ...
+                      )
+                    disp(['Trial ' num2str(i_trial) ': Problem with order of events, please check trigger at ' num2str(time_stimulus(trigger_indices_labview(i_trigger)))]);
+                end
+                % check check
+                if visualize
+                    hold on
+                    plot([left_foot_heelstrike_0 left_foot_heelstrike_1 left_foot_heelstrike_2], [0 0 0]-0.01, 'v', 'linewidth', 3);
+                    plot([ left_foot_pushoff_0 left_foot_pushoff_1 left_foot_pushoff_2], [0 0 0]-0.01, '^', 'linewidth', 3);
+                    plot([right_foot_heelstrike_0 right_foot_heelstrike_1 right_foot_heelstrike_2], [0 0 0]+0.01, 'v', 'linewidth', 3);
+                    plot([ right_foot_pushoff_0 right_foot_pushoff_1 right_foot_pushoff_2], [0 0 0]+0.01, '^', 'linewidth', 3);
+                    % note: this can crash if one of thse events is empty, because we are plotting before we
+                    % have checked that
+                end                  
+                
+                stretch_times = [left_foot_heelstrike_0 right_foot_heelstrike_0 left_foot_heelstrike_1 right_foot_heelstrike_1 left_foot_heelstrike_2];
+                
+                
+                % determine stimulus
+                check_time_delay = 0.1;
+                check_time = stretch_times(1) + check_time_delay;
+                [~, check_index] = min(abs(time_analog - check_time));
+                if illusion_trajectory(check_index) > 0
+                    stimulus_list = {'STIM_RIGHT'};
+                elseif illusion_trajectory(check_index) < 0
+                    stimulus_list = {'STIM_RIGHT'};
+                elseif illusion_trajectory(check_index) == 0
+                    stimulus_list = {'STIM_NONE'};
+                end
+                
+                % add new variables to be saved
+                conditions_trial = struct;
+                conditions_trial.stimulus_list = stimulus_list;
+%                 event_variables_to_save.stretch_pushoff_times = stretch_pushoff_times;
                 event_variables_to_save.stretch_times = stretch_times;
                 event_variables_to_save.stance_foot_data = stance_foot_data;
 
@@ -1442,7 +1563,7 @@ function determineStretchesToAnalyze(varargin)
                                 % have checked that
                             end                
                         end
-                        elseif strcmp(trigger_foot, 'right')
+                    elseif strcmp(trigger_foot, 'right')
                         if length(right_touchdown_times) < index_right + 2 || removal_flags(i_trigger) == 1
                             % data doesn't include the required number of steps after the trigger
                             removal_flags(i_trigger) = 1;
