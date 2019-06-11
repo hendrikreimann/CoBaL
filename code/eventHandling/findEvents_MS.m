@@ -50,6 +50,7 @@ function findEvents_MS(varargin)
             % load data
             this_trial_type = condition_list{i_condition};
             [marker_trajectories, time_marker, sampling_rate_marker, marker_labels] = loadData(date, subject_id, this_trial_type, i_trial, 'marker_trajectories');
+            [treadmill_trajectories, time_treadmill, sampling_rate_treadmill, treadmill_labels] = loadData(date, subject_id, this_trial_type, i_trial, 'treadmill_trajectories', 'optional');
             [left_foot_wrench_world, time_left_forceplate, ~, ~, ~, left_forceplate_available] = loadData(date, subject_id, this_trial_type, i_trial, 'left_foot_wrench_world', 'optional');
             [right_foot_wrench_world, time_right_forceplate, ~, ~, ~, right_forceplate_available] = loadData(date, subject_id, this_trial_type, i_trial, 'right_foot_wrench_world', 'optional');
             if left_forceplate_available & right_forceplate_available
@@ -57,6 +58,7 @@ function findEvents_MS(varargin)
                 right_fz_trajectory = right_foot_wrench_world(:, 3);
             end
             
+            % derive platform marker by time
             platform_marker_label = subject_settings.get('base_marker', true);
             if ~isempty(platform_marker_label)
                 platform_trajectory = extractMarkerData(marker_trajectories, marker_labels, platform_marker_label);
@@ -68,6 +70,16 @@ function findEvents_MS(varargin)
                 [b, a] = butter(filter_order, cutoff_frequency/(sampling_rate_marker/2));	% set filter parameters for butterworth filter: 2=order of filter;
                 platform_vel_trajectory = deriveByTime(nanfiltfilt(b, a, platform_trajectory), 1/sampling_rate_marker);
                 platform_acc_trajectory = deriveByTime(nanfiltfilt(b, a, platform_vel_trajectory), 1/sampling_rate_marker);
+            end
+
+            % derive treadmill markers by time
+            if ~isempty(treadmill_trajectories)
+                % calculate derivatives
+                filter_order = 2;
+                cutoff_frequency = 20; % cutoff frequency, in Hz
+                [b, a] = butter(filter_order, cutoff_frequency/(sampling_rate_marker/2));	% set filter parameters for butterworth filter: 2=order of filter;
+                treadmill_vel_trajectories = deriveByTime(nanfiltfilt(b, a, treadmill_trajectories), 1/sampling_rate_marker);
+                treadmill_acc_trajectories = deriveByTime(nanfiltfilt(b, a, treadmill_vel_trajectories), 1/sampling_rate_marker);
             end
 
             
@@ -100,31 +112,52 @@ function findEvents_MS(varargin)
                   };
             end
             
-            if any(strcmp(this_trial_type, study_settings.get('ramp_perturbation_conditions', 1)))
-                distance_threshold = subject_settings.get('platform_acc_peak_distance_threshold') * sampling_rate_marker;
-                if distance_threshold > length(platform_acc_trajectory) - 2
-                    distance_threshold = length(platform_acc_trajectory) - 2;
+            if any(strcmp(this_trial_type, study_settings.get('across_trials_conditions', 1)))
+                distance_threshold = subject_settings.get('treadmill_acc_peak_distance_threshold') * sampling_rate_marker;
+                if distance_threshold > length(treadmill_acc_trajectories) - 2
+                    distance_threshold = length(treadmill_acc_trajectories) - 2;
                 end
-                [~, platform_acc_peak_indices] = findpeaks(platform_acc_trajectory, 'MinPeakProminence', subject_settings.get('platform_acc_peak_prominence_threshold'), 'MinPeakDistance', distance_threshold);
-                platform_acc_peak_times = time_marker(platform_acc_peak_indices);
-                [~, platform_acc_vale_indices] = findpeaks(-platform_acc_trajectory, 'MinPeakProminence', subject_settings.get('platform_acc_peak_prominence_threshold'), 'MinPeakDistance', distance_threshold);
-                platform_acc_vale_times = time_marker(platform_acc_vale_indices);
                 
-                % determine start and end
-                platform_shift_start_index = min([platform_acc_peak_indices; platform_acc_vale_indices]);
-                platform_shift_end_index = max([platform_acc_peak_indices; platform_acc_vale_indices]);
-                platform_shift_start_time = time_marker(platform_shift_start_index);
-                platform_shift_end_time = time_marker(platform_shift_end_index);
+                treadmill_marker_acceleration_ap = treadmill_acc_trajectories(:, 1 : 3 : end);
+                
+                number_of_treadmill_markers = size(treadmill_marker_acceleration_ap, 2);
+                treadmill_shift_start_indices = zeros(1, number_of_treadmill_markers);
+                treadmill_shift_end_indices = zeros(1, number_of_treadmill_markers);
+                treadmill_shift_start_times = zeros(1, number_of_treadmill_markers);
+                treadmill_shift_end_times = zeros(1, number_of_treadmill_markers);
+                for i_marker = 1 : number_of_treadmill_markers
+                    [~, treadmill_acc_peak_indices] = findpeaks(treadmill_marker_acceleration_ap(:, i_marker), 'MinPeakProminence', subject_settings.get('treadmill_acc_peak_prominence_threshold'), 'MinPeakDistance', distance_threshold);
+                    treadmill_acc_peak_times = time_marker(treadmill_acc_peak_indices);
+                    [~, treadmill_acc_vale_indices] = findpeaks(-treadmill_marker_acceleration_ap(:, i_marker), 'MinPeakProminence', subject_settings.get('treadmill_acc_peak_prominence_threshold'), 'MinPeakDistance', distance_threshold);
+                    treadmill_acc_vale_times = time_marker(treadmill_acc_vale_indices);
+
+                    % determine start and end
+                    treadmill_shift_start_candidate_index = min([treadmill_acc_peak_indices; treadmill_acc_vale_indices]);
+                    treadmill_shift_end_candidate_index = max([treadmill_acc_peak_indices; treadmill_acc_vale_indices]);
+                    treadmill_shift_start_times(i_marker) = time_marker(treadmill_shift_start_candidate_index);
+                    treadmill_shift_end_times(i_marker) = time_marker(treadmill_shift_end_candidate_index);
+                    
+                end
+                if std(treadmill_shift_start_times) > subject_settings.get('treadmill_marker_timing_tolerance')
+                    warning(['Trial ' this_trial_type ' - ' num2str(i_trial) ': timing between markers exceeds tolerance'])
+                end
+                if std(treadmill_shift_end_times) > subject_settings.get('treadmill_marker_timing_tolerance')
+                    warning(['Trial ' this_trial_type ' - ' num2str(i_trial) ': timing between markers exceeds tolerance'])
+                end
+                
+                treadmill_shift_start_time = mean(treadmill_shift_start_times);
+                treadmill_shift_end_time = mean(treadmill_shift_end_times);
+                
                 
                 event_data = ...
                   { ...
-                    platform_shift_start_time - 1; ...
-                    platform_shift_start_time - 0.2; ...
-                    platform_shift_start_time; ...
-                    platform_shift_start_time + 0.075; ...
-                    platform_shift_end_time; ...
-                    platform_shift_end_time + 1; ...
-                    platform_shift_end_time + 2; ...
+                    treadmill_shift_start_time - 1; ...
+                    treadmill_shift_start_time - 0.2; ...
+                    treadmill_shift_start_time; ...
+                    treadmill_shift_start_time + 0.075; ...
+                    treadmill_shift_end_time; ...
+                    treadmill_shift_end_time + 1; ...
+                    treadmill_shift_end_time + 2; ...
                   };
                 event_labels = ...
                   { ...
@@ -138,8 +171,8 @@ function findEvents_MS(varargin)
                   };
                 
                 % for visualization here
-                platform_events = [platform_shift_start_time, platform_shift_end_time, platform_shift_end_time + 1, platform_shift_end_time + 2];
-                platform_event_indices = findClosestIndex(platform_events, time_marker);
+                treadmill_events = [treadmill_shift_start_time, treadmill_shift_end_time, treadmill_shift_end_time + 1, treadmill_shift_end_time + 2];
+                treadmill_event_indices = findClosestIndex(treadmill_events, time_marker);
               
             end
 
