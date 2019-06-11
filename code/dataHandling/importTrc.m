@@ -97,7 +97,7 @@ function importTrc(varargin)
                     marker_headers = data_headers(3:end-1);
                     number_of_markers = str2num(data_info{strcmp(data_info_headers, 'NumMarkers')});
                     marker_labels = cell(3, number_of_markers);
-                    for i_marker = 1 : length(marker_labels)
+                    for i_marker = 1 : number_of_markers
                         marker_labels{1, i_marker} = [marker_headers{i_marker} '_x'];
                         marker_labels{2, i_marker} = [marker_headers{i_marker} '_y'];
                         marker_labels{3, i_marker} = [marker_headers{i_marker} '_z'];
