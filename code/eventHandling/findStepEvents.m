@@ -272,6 +272,12 @@ function findStepEvents(varargin)
                 left_pushoff_indices_mocap(left_pushoff_indices_mocap==0) = [];
                 left_pushoff_times = [left_pushoff_times; time_marker(left_pushoff_indices_mocap)];
             end
+            if any(strcmp(subject_settings.get('left_pushoff_method'), 'heel_acceleration_minima'))
+                % find touch down indices as negative peaks of the heel marker z-position
+                [~, left_heel_acc_peak_locations] = findpeaks(-LHEE_z_acc_trajectory, 'MinPeakProminence', subject_settings.get('left_pushoff_vale_prominence_threshold'), 'MinPeakDistance', subject_settings.get('left_pushoff_vale_distance_threshold') * sampling_rate_marker);
+                left_pushoff_indices_mocap = left_heel_acc_peak_locations';
+                left_pushoff_times = [left_pushoff_times; time_marker(left_pushoff_indices_mocap)];
+            end
             if any(strcmp(subject_settings.get('left_pushoff_method'), 'forceplate_threshold'))
                 left_pushoff_diff_forceplate = diff(sign(abs(left_fz_trajectory) - subject_settings.get('forceplate_load_threshold')));
                 left_pushoff_times = [left_pushoff_times; time_left_forceplate(left_pushoff_diff_forceplate~=0)];
@@ -353,6 +359,12 @@ function findStepEvents(varargin)
                     end
                 end
                 right_pushoff_indices_mocap(right_pushoff_indices_mocap==0) = [];
+                right_pushoff_times = [right_pushoff_times; time_marker(right_pushoff_indices_mocap)];
+            end
+            if any(strcmp(subject_settings.get('right_pushoff_method'), 'heel_acceleration_minima'))
+                % find touch down indices as negative peaks of the heel marker z-position
+                [~, right_heel_acc_peak_locations] = findpeaks(-RHEE_z_acc_trajectory, 'MinPeakProminence', subject_settings.get('right_pushoff_vale_prominence_threshold'), 'MinPeakDistance', subject_settings.get('right_pushoff_vale_distance_threshold') * sampling_rate_marker);
+                right_pushoff_indices_mocap = right_heel_acc_peak_locations';
                 right_pushoff_times = [right_pushoff_times; time_marker(right_pushoff_indices_mocap)];
             end
             if any(strcmp(subject_settings.get('right_pushoff_method'), 'forceplate_threshold'))
