@@ -186,6 +186,17 @@ function processResponseVariables(varargin)
                 end
             end
             
+            if strcmp(study_settings.get('experimental_paradigm', 1), 'GvsOverground')
+                 if strcmp(this_stretch_condition_string{strcmp(condition_combination_labels, 'trigger_foot')}, 'TRIGGER_LEFT')
+                     applicable_control_condition_index = find(strcmp(condition_combinations_control_unique(:, strcmp(condition_combination_labels, 'trigger_foot')), 'TRIGGER_LEFT'));
+                 end
+                 if strcmp(this_stretch_condition_string{strcmp(condition_combination_labels, 'trigger_foot')}, 'TRIGGER_RIGHT')
+                     applicable_control_condition_index = find(strcmp(condition_combinations_control_unique(:, strcmp(condition_combination_labels, 'trigger_foot')), 'TRIGGER_RIGHT'));
+                 end
+            end       
+            
+            
+            
             % determine indicator for control
             control_condition_indicator = true(number_of_stretches, 1);
             for i_label = 1 : length(condition_combination_labels)

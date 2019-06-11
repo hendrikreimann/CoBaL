@@ -450,7 +450,7 @@ function importQTM(varargin)
                 end
 
                 % import analog data (non-emg)
-                analog_data_to_import = study_settings.get('analog_data_to_import');
+                analog_data_to_import = study_settings.get('analog_data_to_import', 1);
                 number_of_analog_channels_to_import = length(analog_data_to_import);
                 if number_of_analog_channels_to_import > 0
                     % EMG
@@ -490,19 +490,19 @@ function importQTM(varargin)
                 end
                 
                 % import emg data
-                emg_data_to_import = study_settings.get('emg_data_to_import');
+                emg_data_to_import = study_settings.get('emg_data_to_import', 1);
                 number_of_emg_channels_to_import = length(emg_data_to_import);
                 if number_of_emg_channels_to_import > 0
                     % EMG
                     sampling_rate_emg = analog_fs;
                     time_emg = (1 : number_of_samples)' / sampling_rate_emg;
                     emg_labels = emg_data_to_import;
-                    emg_trajectories = zeros(number_of_samples, number_of_emg_channels_to_import);
+                    emg_trajectories_raw = zeros(number_of_samples, number_of_emg_channels_to_import);
                     data_type = 'emg';
                     for i_channel = 1 : number_of_emg_channels_to_import
                         index_in_loaded_data = strcmp(qtm_data.Analog.Labels, emg_data_to_import(i_channel));
 
-                        emg_trajectories(:, i_channel) = qtm_data.Analog.Data(index_in_loaded_data, this_trial_start_index:this_trial_end_index)';
+                        emg_trajectories_raw(:, i_channel) = qtm_data.Analog.Data(index_in_loaded_data, this_trial_start_index:this_trial_end_index)';
                         
                     end
                     
@@ -562,7 +562,7 @@ function importQTM(varargin)
 %                     end
 
                     % Force data - data are in qtm_data.Force(n).Force
-                    force_plates_to_import = study_settings.get('force_plates_to_import');
+                    force_plates_to_import = study_settings.get('force_plates_to_import', 1);
                     data_type = 'forceplate';
                     if any(any(qtm_data.Force(force_plates_to_import(1)).Force))
                         forceplate_tajectories_Left = ...

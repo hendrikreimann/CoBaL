@@ -117,7 +117,7 @@ classdef SettingsCustodian < handle
             
             % force cell
             if any(strcmp(this.force_cell_list, property_name))
-                if ~iscell(data)
+                if ~iscell(data) & ~isempty(data)
                     data = {data};
                 end
             end
