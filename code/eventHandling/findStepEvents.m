@@ -253,9 +253,9 @@ function findStepEvents(varargin)
             end
             if any(strcmp(subject_settings.get('left_touchdown_method'), 'heel_ap_peak'))
                 % find velocity zeros
-                [~, left_heel_vel_peak_locations] = findpeaks(LHEE_y_trajectory, 'MinPeakProminence', subject_settings.get('left_touchdown_peak_prominence_threshold'));
-                left_touchdown_indices_mocap = left_heel_vel_peak_locations;
-                left_touchdown_times = [left_touchdown_times; time_marker(left_heel_vel_peak_locations)];
+                [~, left_heel_peak_locations] = findpeaks(LHEE_y_trajectory, 'MinPeakProminence', subject_settings.get('left_touchdown_peak_prominence_threshold'));
+                left_touchdown_indices_mocap = left_heel_peak_locations;
+                left_touchdown_times = [left_touchdown_times; time_marker(left_heel_peak_locations)];
             end
                 
             if any(strcmp(subject_settings.get('left_pushoff_method'), 'first_velocity_peak_after_touchdown'))
@@ -342,9 +342,9 @@ function findStepEvents(varargin)
             end
             if any(strcmp(subject_settings.get('right_touchdown_method'), 'heel_ap_peak'))
                 % find velocity zeros
-                [~, right_heel_vel_peak_locations] = findpeaks(RHEE_y_trajectory, 'MinPeakProminence', subject_settings.get('right_touchdown_peak_prominence_threshold'));
-                right_touchdown_indices_mocap = right_heel_vel_peak_locations;
-                right_touchdown_times = [right_touchdown_times; time_marker(right_heel_vel_peak_locations)];
+                [~, right_heel_peak_locations] = findpeaks(RHEE_y_trajectory, 'MinPeakProminence', subject_settings.get('right_touchdown_peak_prominence_threshold'));
+                right_touchdown_indices_mocap = right_heel_peak_locations;
+                right_touchdown_times = [right_touchdown_times; time_marker(right_heel_peak_locations)];
             end
   
             if any(strcmp(subject_settings.get('right_pushoff_method'), 'first_velocity_peak_after_touchdown'))
