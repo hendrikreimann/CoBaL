@@ -82,6 +82,10 @@ function saveSubjectInfoToFile(varargin)
         
     end
     
+    % remove conditions with no trials left
+    empty_types = cellfun(@isempty, trial_number_list);
+    trial_type_list(empty_types) = [];
+    trial_number_list(empty_types) = [];
     
     % if we have a conditions file, remove the trials not listed there
     conditions_file_name = [];

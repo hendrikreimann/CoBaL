@@ -79,7 +79,8 @@ function [types_to_analyze, trials_to_analyze, types_to_exclude, trials_to_exclu
             trials_to_analyze{i_condition} = trials_to_analyze_in_this_condition;
         end
     end
-        
+    
+    % exclude unwanted trials specified in settings
     trials_to_exclude = {};
     types_to_exclude = {};
     for i_type = 1 : length(trial_types_to_ignore)
