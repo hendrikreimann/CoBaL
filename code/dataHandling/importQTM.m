@@ -264,13 +264,14 @@ function importQTM(varargin)
             end
             
             % HR: removing this hack for now
-%             if strcmp(trial_type, 'calibration') || strcmp(trial_type, 'static')
-%                 % TODO: this was a hack for having data missing, fix this! - need actual example data to fix this
-%                 analog_fs = 2000;
-%                 start_indices = 1;
+            if strcmp(trial_type, 'calibration') || strcmp(trial_type, 'static')
+                % TODO: this was a hack for having data missing, fix this! - need actual example data to fix this
+                analog_fs = 2000;
+                start_indices = 1;
 %                 end_indices = 20000;
-%                 this_trial_duration = 10;
-%             else
+                end_indices = qtm_data.Frames * 10; % hack to get an end index for cropped files
+                this_trial_duration = 10;
+            else
                 analog_fs = qtm_data.Analog.Frequency;
                 
                 if strcmp(import_mode, 'events')
@@ -338,7 +339,7 @@ function importQTM(varargin)
                 
 
 
-%             end
+            end
             number_of_trials_in_this_qtm_file = length(start_indices);
             delays_to_closest_event = [];
             for i_trial_this_qtm_file = 1 : number_of_trials_in_this_qtm_file
