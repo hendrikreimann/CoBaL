@@ -220,7 +220,7 @@ function plotLongData(varargin)
                   ( ...
                     0, ...
                     0, ...
-                    'TBD', ...
+                    ' ', ...
                     'rotation', 90, ...
                     'Fontsize', 24, ...
                     'horizontalalignment', 'right', ...
@@ -242,7 +242,7 @@ function plotLongData(varargin)
                   ( ...
                     0, ...
                     0, ...
-                    'TBD', ...
+                    ' ', ...
                     'rotation', 90, ...
                     'Fontsize', 24, ...
                     'horizontalalignment', 'left', ...
@@ -456,6 +456,43 @@ function plotLongData(varargin)
         end
     end
     
+    %% save figures
+    if parser.Results.save
+        % figure out folders
+        if ~exist('figures', 'dir')
+            mkdir('figures')
+        end
+        if ~exist(['figures' filesep 'withLabels'], 'dir')
+            mkdir(['figures' filesep 'withLabels'])
+        end
+        if ~exist(['figures' filesep 'noLabels'], 'dir')
+            mkdir(['figures' filesep 'noLabels'])
+        end
+        for i_figure = 1 : numel(trajectory_figure_handles)
+            % save with labels
+%             legend(axes_handles(i_figure), 'show');
+            filename = ['figures' filesep 'withLabels' filesep get(trajectory_figure_handles(i_figure), 'UserData')];
+            saveas(trajectory_figure_handles(i_figure), filename, parser.Results.format)
+            
+            % save without labels
+%             set(postext, 'visible', 'off');
+%             set(negtext, 'visible', 'off');
+            
+            set(get(trajectory_axes_handles(i_figure), 'xaxis'), 'visible', 'off');
+            set(get(trajectory_axes_handles(i_figure), 'yaxis'), 'visible', 'off');
+            set(get(trajectory_axes_handles(i_figure), 'xlabel'), 'visible', 'off');
+            set(get(trajectory_axes_handles(i_figure), 'ylabel'), 'visible', 'off');
+            set(get(trajectory_axes_handles(i_figure), 'title'), 'visible', 'off');
+            set(trajectory_axes_handles(i_figure), 'xticklabel', '');
+            set(trajectory_axes_handles(i_figure), 'yticklabel', '');
+            set(trajectory_axes_handles(i_figure), 'position', [0 0 1 1]);
+            legend(trajectory_axes_handles(i_figure), 'hide');
+            filename = ['figures' filesep 'noLabels' filesep get(trajectory_figure_handles(i_figure), 'UserData')];
+            saveas(trajectory_figure_handles(i_figure), filename, parser.Results.format);
+
+            close(trajectory_figure_handles(i_figure))            
+        end
+    end
     
     
 end

@@ -96,7 +96,7 @@ function importQTM(varargin)
             warning('off', 'MATLAB:table:ModifiedAndSavedVarnames')
             imported_table = readtable([labview_source_dir filesep 'protocol.csv']);
             warning('on', 'MATLAB:table:ModifiedAndSavedVarnames')
-
+            
             % read header line manually, since readtable doesn't deal with it properly
             fileID = fopen([labview_source_dir filesep 'protocol.csv'], 'r');
             header_line = fgetl(fileID);
@@ -137,6 +137,30 @@ function importQTM(varargin)
 
             end
         end
+        
+        if any(strcmp(file_name_list, 'ObjectRandomization.csv'))
+
+            imported_table = readtable([labview_source_dir filesep 'ObjectRandomization.csv']);
+            
+            fileID = fopen([labview_source_dir filesep 'ObjectRandomization.csv'], 'r');
+            header_line = fgetl(fileID);
+            fclose(fileID);
+            headers = strsplit(header_line, ',');
+            
+            table_headers = imported_table.Properties.VariableNames;
+            
+            virtual_object_info = struct;
+            protocol_virtual_object_ap_location = imported_table.(table_headers{strcmp(headers, 'LaneCenter')});
+            protocol_virtual_ojbect_ml_location =  imported_table.(table_headers{strcmp(headers, 'Color')});
+            virtual_object_info.virtual_object_ap_location = protocol_virtual_object_ap_location;
+            virtual_object_info.virtual_object_ml_location = protocol_virtual_ojbect_ml_location;
+            
+            save_file_name = 'virtualobjectInfo.mat';
+            save(save_file_name, '-struct', 'virtual_object_info');
+            
+            file_name_list(strcmp(file_name_list, 'ObjectRandomization.csv')) = [];
+        end
+            
 
         % import labview saved data
         number_of_files = length(file_name_list);
@@ -339,7 +363,6 @@ function importQTM(varargin)
                 
 
 
-            end
             number_of_trials_in_this_qtm_file = length(start_indices);
             delays_to_closest_event = [];
             for i_trial_this_qtm_file = 1 : number_of_trials_in_this_qtm_file

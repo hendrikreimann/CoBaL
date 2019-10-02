@@ -73,6 +73,7 @@ function processBodyKinematicsInOpensim(varargin)
             analysis_tool.setFinalTime(time_end);
             
             % run the tool for this trial
+%             inverse_kinematics_file_name = ['opensim' filesep 'inverseKinematics' filesep makeFileName(subject_info.date, subject_info.subject_id, trial_type, i_trial, 'inverseKinematics.mot')];
             inverse_kinematics_file_name = [data_root filesep 'inverseKinematics' filesep makeFileName(subject_info.date, subject_info.subject_id, trial_type, i_trial, 'inverseKinematics.mot')];
             analysis_tool.setCoordinatesFileName(inverse_kinematics_file_name);
             analysis_tool.run();

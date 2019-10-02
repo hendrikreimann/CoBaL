@@ -196,6 +196,14 @@ function processLongData(varargin)
             marker_data.MBHD_z = (marker_data.LBHD_z + marker_data.RBHD_z) * 0.5;
             time_data.MBHD_z = time_data.LBHD_z;
             
+            % if com_x is part of long_stretch_data_labels_session then
+            % load com_x trajectory
+            if any(strcmp(long_stretch_data_labels_session, 'com_x'))
+                [com_trajectories, time_marker, sampling_rate_marker, com_labels, com_directions] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'com_position_trajectories');
+                marker_data.com_x = com_trajectories(:,strcmp(com_labels,'center_of_mass_x'));
+                time_data.com_x = time_marker;
+            end
+            
             
 %             if study_settings.get('filter_marker_data')
 %                 filter_order = study_settings.get('filter_order_com_vel');
@@ -326,6 +334,24 @@ function processLongData(varargin)
             end
             if strcmp(this_stretch_condition_string{strcmp(condition_combination_labels, 'trigger_foot')}, 'TRIGGER_RIGHT')
                 applicable_control_condition_index = find(strcmp(condition_combinations_control_unique(:, strcmp(condition_combination_labels, 'trigger_foot')), 'TRIGGER_RIGHT'));
+            end
+        elseif strcmp(study_settings.get('stimulus_condition'), 'VISUAL')
+            if strcmp(this_stretch_condition_string{strcmp(condition_combination_labels, 'trigger_foot')}, 'TRIGGER_LEFT')
+                applicable_control_condition_index = find(strcmp(condition_combinations_control_unique(:, strcmp(condition_combination_labels, 'trigger_foot')), 'TRIGGER_LEFT'));
+            end
+            if strcmp(this_stretch_condition_string{strcmp(condition_combination_labels, 'trigger_foot')}, 'TRIGGER_RIGHT')
+                applicable_control_condition_index = find(strcmp(condition_combinations_control_unique(:, strcmp(condition_combination_labels, 'trigger_foot')), 'TRIGGER_RIGHT'));
+            end
+        elseif strcmp(study_settings.get('experimental_paradigm'), 'CadenceGVS')
+            if strcmp(this_stretch_condition_string{strcmp(condition_combination_labels, 'cadence')}, '80BPM') && strcmp(this_stretch_condition_string{strcmp(condition_combination_labels, 'trigger_foot')}, 'TRIGGER_LEFT')
+                applicable_control_condition_index = find(strcmp(condition_combinations_control_unique(:, strcmp(condition_combination_labels, 'cadence')), '80BPM') & strcmp(condition_combinations_control_unique(:, strcmp(condition_combination_labels, 'trigger_foot')), 'TRIGGER_LEFT'));
+            elseif strcmp(this_stretch_condition_string{strcmp(condition_combination_labels, 'cadence')}, '80BPM') && strcmp(this_stretch_condition_string{strcmp(condition_combination_labels, 'trigger_foot')}, 'TRIGGER_RIGHT')
+                applicable_control_condition_index = find(strcmp(condition_combinations_control_unique(:, strcmp(condition_combination_labels, 'cadence')), '80BPM') & strcmp(condition_combinations_control_unique(:, strcmp(condition_combination_labels, 'trigger_foot')), 'TRIGGER_RIGHT'));
+            end
+            if strcmp(this_stretch_condition_string{strcmp(condition_combination_labels, 'cadence')}, '110BPM') && strcmp(this_stretch_condition_string{strcmp(condition_combination_labels, 'trigger_foot')}, 'TRIGGER_LEFT')
+                applicable_control_condition_index = find(strcmp(condition_combinations_control_unique(:, strcmp(condition_combination_labels, 'cadence')), '110BPM') & strcmp(condition_combinations_control_unique(:, strcmp(condition_combination_labels, 'trigger_foot')), 'TRIGGER_LEFT'));
+            elseif strcmp(this_stretch_condition_string{strcmp(condition_combination_labels, 'cadence')}, '110BPM') && strcmp(this_stretch_condition_string{strcmp(condition_combination_labels, 'trigger_foot')}, 'TRIGGER_RIGHT')
+                applicable_control_condition_index = find(strcmp(condition_combinations_control_unique(:, strcmp(condition_combination_labels, 'cadence')), '110BPM') & strcmp(condition_combinations_control_unique(:, strcmp(condition_combination_labels, 'trigger_foot')), 'TRIGGER_RIGHT'));
             end
         end
 
@@ -468,6 +494,10 @@ function [this_variable_data, this_time_data] = getVariableData(variable_name, m
         head_vector_z = marker_data.MBHD_z - marker_data.C7_z;
         this_variable_data = rad2deg(atan2(head_vector_x, head_vector_z));
         this_time_data = time_data.MBHD_x;
+    end
+    if strcmp(variable_name, 'com_x')
+        this_variable_data = marker_data.com_x;
+        this_time_data = time_data.com_x;
     end
 
 end

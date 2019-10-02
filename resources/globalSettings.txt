@@ -2,6 +2,10 @@
 emg_labels:
 {
 
+  //back
+  left_erect_spin
+  right_erect_spin
+
   // hip
   left_glut_med
   right_glut_med
@@ -21,9 +25,6 @@ emg_labels:
   right_gastroc_med
   left_pero_lng
   right_pero_lng
-  left_soleus
-  right_soleus
-
 
 }
 
