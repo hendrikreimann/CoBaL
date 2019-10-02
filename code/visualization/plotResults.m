@@ -125,9 +125,10 @@ function plotResults(varargin)
         loaded_data = load(results_file_name);
         number_of_stretches_this_session = length(loaded_data.time_list_session);
         bands_per_stretch_this_session = loaded_data.bands_per_stretch;
-        if study_settings.get('gather_step_minus_one')
-            bands_per_stretch_this_session = bands_per_stretch_this_session+1;
-        end
+        % HR, 2.10.2019 -- TF added this, but I don't think it's needed. Remove for now
+%         if study_settings.get('gather_step_minus_one')
+%             bands_per_stretch_this_session = bands_per_stretch_this_session+1;
+%         end
 
         % transform conditions into cell array
         conditions_session = loaded_data.conditions_session;
@@ -576,11 +577,12 @@ function plotResults(varargin)
                 for i_comparison = 1 : number_of_comparisons
                     target_abscissae = abscissae_cell{i_comparison, i_variable};
                     
-                    if plot_settings.get('cutoff_2nd_doublestance')
-                        xlim = [min(target_abscissae(:, 1)) 100 + pushoff_index(2)];
-                    else
+                    % HR, 2.10.2019 -- TF added this, but I don't think it's needed. Remove for now
+%                     if plot_settings.get('cutoff_2nd_doublestance')
+%                         xlim = [min(target_abscissae(:, 1)) 100 + pushoff_index(2)];
+%                     else
                         xlim = [min(target_abscissae(:, 1)) max(target_abscissae(:, end))];
-                    end
+%                     end
                     % set x-limits accordingly
                     set(trajectory_axes_handles(i_comparison, i_variable), 'xlim', xlim);
                 end
