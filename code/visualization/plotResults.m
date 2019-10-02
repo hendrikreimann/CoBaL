@@ -484,11 +484,7 @@ function plotResults(varargin)
 %                         xtick = [abscissae_cell{i_comparison, i_variable}{1} xtick]; %#ok<AGROW>
 %                     end
                     xtick = sort(reshape(abscissae_cell{i_comparison, i_variable}, 1, numel(abscissae_cell{i_comparison, i_variable})));
-                    if plot_settings.get('cutoff_2nd_doublestance')
-                        set(gca, 'xlim', [-0.5 + min(xtick) 0.5 + xtick(4)]);
-                    else   
-                        set(gca, 'xlim', [-0.5 + min(xtick) 0.5 + max(xtick(end))]);
-                    end
+                    set(gca, 'xlim', [-0.5 + min(xtick) 0.5 + max(xtick(end))]);
                     set(gca, 'xtick', xtick);
                 end
                 
