@@ -176,6 +176,13 @@ function importQTM(varargin)
             labview_header = strsplit(column_name_string, ',');
             number_of_data_columns = size(imported_data.textdata, 2);
 
+            % temporary fix for problematic OculusLaneRestriction data
+            % TODO: remove this fix
+            if true
+                labview_header = labview_header(1:end-1);
+                number_of_data_columns = length(labview_header);
+            end
+            
             % extract data into properly named variables
             variables_to_save = struct();
             variables_to_save_list = {};
@@ -360,7 +367,7 @@ function importQTM(varargin)
                 end                
                 
                 
-                
+            end
 
 
             number_of_trials_in_this_qtm_file = length(start_indices);

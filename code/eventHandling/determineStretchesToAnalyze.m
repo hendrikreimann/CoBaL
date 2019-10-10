@@ -198,9 +198,9 @@ function determineStretchesToAnalyze(varargin)
                 gvs_trajectory = analog_trajectories(:, strcmp(analog_labels, 'GVS_out'));
             end
             if strcmp(experimental_paradigm, 'OculusLaneRestriction')
-                gvs_trajectory = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'GVS_current_trajectory');%'GVS_current_trajectory');
-                [stimulus_state_trajectory, time_stimulus] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'stimulus_state_trajectory');
-                scene_translation_trajectory = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'SceneTranslation_trajectory');
+                gvs_trajectory = loadData(collection_date, subject_id, condition_list{i_condition}, i_trial, 'GVS_current_trajectory');%'GVS_current_trajectory');
+                [stimulus_state_trajectory, time_stimulus] = loadData(collection_date, subject_id, condition_list{i_condition}, i_trial, 'stimulus_state_trajectory');
+                scene_translation_trajectory = loadData(collection_date, subject_id, condition_list{i_condition}, i_trial, 'SceneTranslation_trajectory');
                 load('virtualobjectInfo');
             end
 
@@ -313,7 +313,8 @@ function determineStretchesToAnalyze(varargin)
                     || strcmp(experimental_paradigm, 'Vision') || strcmp(experimental_paradigm, 'CadenceVision') || strcmp(experimental_paradigm, 'CognitiveLoadVision') ...
                     || strcmp(experimental_paradigm, 'GVS') || strcmp(experimental_paradigm, 'CadenceGVS') || strcmp(experimental_paradigm, 'FatigueGVS') || strcmp(experimental_paradigm, 'CognitiveLoadGvs')  ...
                     || strcmp(condition_stimulus, 'OBSTACLE') || strcmp(condition_stimulus, 'ARMSENSE') ...
-                    || strcmp(experimental_paradigm, 'Vision Stochastic') || strcmp(experimental_paradigm, 'GvsOverground')
+                    || strcmp(experimental_paradigm, 'Vision Stochastic') || strcmp(experimental_paradigm, 'GvsOverground') ...
+                    || strcmp(experimental_paradigm, 'OculusLaneRestriction')
                 right_pushoff_times = event_data{strcmp(event_labels, 'right_pushoff')};
                 right_touchdown_times = event_data{strcmp(event_labels, 'right_touchdown')};
                 left_pushoff_times = event_data{strcmp(event_labels, 'left_pushoff')};
