@@ -484,7 +484,6 @@ function importQTM(varargin)
                 analog_data_to_import = study_settings.get('analog_data_to_import', 1);
                 number_of_analog_channels_to_import = length(analog_data_to_import);
                 if number_of_analog_channels_to_import > 0
-                    % EMG
                     sampling_rate_analog = analog_fs;
                     time_analog = (1 : number_of_samples)' / sampling_rate_analog;
                     analog_labels = analog_data_to_import;

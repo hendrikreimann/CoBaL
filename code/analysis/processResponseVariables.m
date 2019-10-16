@@ -92,7 +92,6 @@ function processResponseVariables(varargin)
                      end
                  end
             end       
-            
             if strcmp(study_settings.get('experimental_paradigm', 1), 'CadenceGVS')
                 if strcmp(this_stretch_condition_string{strcmp(condition_combination_labels, 'cadence')}, '80BPM') && strcmp(this_stretch_condition_string{strcmp(condition_combination_labels, 'trigger_foot')}, 'TRIGGER_LEFT')
                     applicable_control_condition_index = find(strcmp(condition_combinations_control_unique(:, strcmp(condition_combination_labels, 'cadence')), '80BPM') & strcmp(condition_combinations_control_unique(:, strcmp(condition_combination_labels, 'trigger_foot')), 'TRIGGER_LEFT'));
@@ -185,7 +184,6 @@ function processResponseVariables(varargin)
                            );
                 end
             end
-            
             if strcmp(study_settings.get('experimental_paradigm', 1), 'GvsOverground')
                  if strcmp(this_stretch_condition_string{strcmp(condition_combination_labels, 'trigger_foot')}, 'TRIGGER_LEFT')
                      applicable_control_condition_index = find(strcmp(condition_combinations_control_unique(:, strcmp(condition_combination_labels, 'trigger_foot')), 'TRIGGER_LEFT'));
@@ -194,8 +192,17 @@ function processResponseVariables(varargin)
                      applicable_control_condition_index = find(strcmp(condition_combinations_control_unique(:, strcmp(condition_combination_labels, 'trigger_foot')), 'TRIGGER_RIGHT'));
                  end
             end       
-            
-            
+            if strcmp(study_settings.get('experimental_paradigm'), 'OculusLaneRestriction')
+                if strcmp(this_stretch_condition_string{strcmp(condition_combination_labels, 'zone_side')}, 'STIM_ZONE_LEFT') && strcmp(this_stretch_condition_string{strcmp(condition_combination_labels, 'trigger_foot')}, 'TRIGGER_LEFT')
+                    applicable_control_condition_index = find(strcmp(condition_combinations_control_unique(:, strcmp(condition_combination_labels, 'zone_side')), 'STIM_ZONE_LEFT') & strcmp(condition_combinations_control_unique(:, strcmp(condition_combination_labels, 'trigger_foot')), 'TRIGGER_LEFT'));
+                elseif strcmp(this_stretch_condition_string{strcmp(condition_combination_labels, 'zone_side')}, 'STIM_ZONE_LEFT') && strcmp(this_stretch_condition_string{strcmp(condition_combination_labels, 'trigger_foot')}, 'TRIGGER_RIGHT')
+                    applicable_control_condition_index = find(strcmp(condition_combinations_control_unique(:, strcmp(condition_combination_labels, 'zone_side')), 'STIM_ZONE_LEFT') & strcmp(condition_combinations_control_unique(:, strcmp(condition_combination_labels, 'trigger_foot')), 'TRIGGER_RIGHT'));
+                elseif strcmp(this_stretch_condition_string{strcmp(condition_combination_labels, 'zone_side')}, 'STIM_ZONE_RIGHT') && strcmp(this_stretch_condition_string{strcmp(condition_combination_labels, 'trigger_foot')}, 'TRIGGER_LEFT')
+                    applicable_control_condition_index = find(strcmp(condition_combinations_control_unique(:, strcmp(condition_combination_labels, 'zone_side')), 'STIM_ZONE_RIGHT') & strcmp(condition_combinations_control_unique(:, strcmp(condition_combination_labels, 'trigger_foot')), 'TRIGGER_LEFT'));
+                elseif strcmp(this_stretch_condition_string{strcmp(condition_combination_labels, 'zone_side')}, 'STIM_ZONE_RIGHT') && strcmp(this_stretch_condition_string{strcmp(condition_combination_labels, 'trigger_foot')}, 'TRIGGER_RIGHT')
+                    applicable_control_condition_index = find(strcmp(condition_combinations_control_unique(:, strcmp(condition_combination_labels, 'zone_side')), 'STIM_ZONE_RIGHT') & strcmp(condition_combinations_control_unique(:, strcmp(condition_combination_labels, 'trigger_foot')), 'TRIGGER_RIGHT'));
+                end
+            end
             
             % determine indicator for control
             control_condition_indicator = true(number_of_stretches, 1);
