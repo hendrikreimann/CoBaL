@@ -2498,7 +2498,7 @@ function determineStretchesToAnalyze(varargin)
 
                 % conditions
                 %stim_frequency_list = repmat({['FRQ_' stim_frequency]}, size(stretch_times, 1), 1);
-                stim_amplitude_list = repmat({stochastic_stimulus_level_table(i_trial, stimulus_strength_column_index)}, size(stretch_times, 1), 1);
+                stim_amplitude_list = repmat({stochastic_stimulus_level_table{i_trial, stimulus_strength_column_index}}, size(stretch_times, 1), 1);
 %                 block_list = repmat({block}, size(stretch_times, 1), 1);
                 conditions_trial = struct;
 %                 conditions_trial.stim_frequency_list = stim_frequency_list;
