@@ -96,6 +96,9 @@ function determineStretchesToAnalyze(varargin)
     for i_condition = 1 : length(condition_list)
         trials_to_process = trial_number_list{i_condition};
         for i_trial = trials_to_process
+            % create empty container for relevant data
+            trial_data = struct;
+            
             %% load data
             ignore_times = [];
             load(['analysis' filesep makeFileName(collection_date, subject_id, condition_list{i_condition}, i_trial, 'events')]);
@@ -183,8 +186,11 @@ function determineStretchesToAnalyze(varargin)
             if strcmp(experimental_paradigm, 'Vision') || strcmp(experimental_paradigm, 'CadenceVision') || strcmp(experimental_paradigm, 'CognitiveLoadVision')
 %                 current_rotation_trajectory = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'current_rotation_trajectory');
                 current_rotation_trajectory = loadData(collection_date, subject_id, condition_list{i_condition}, i_trial, 'visual_rotation_angle_trajectory');
-                current_acceleration_trajectory = loadData(collection_date, subject_id, condition_list{i_condition}, i_trial, 'visual_rotation_acceleration_trajectory');
+                trial_data.current_acceleration_trajectory = loadData(collection_date, subject_id, condition_list{i_condition}, i_trial, 'visual_rotation_acceleration_trajectory');
                 [stimulus_state_trajectory, time_stimulus] = loadData(collection_date, subject_id, condition_list{i_condition}, i_trial, 'stimulus_state_trajectory');
+                
+                trial_data.stimulus_state_trajectory = stimulus_state_trajectory;
+                trial_data.time_stimulus = time_stimulus;
             end
             if strcmp(experimental_paradigm, 'GVS') || strcmp(experimental_paradigm, 'CadenceGVS') || strcmp(experimental_paradigm, 'FatigueGVS') || strcmp(experimental_paradigm, 'CognitiveLoadGvs')
                 gvs_trajectory = loadData(collection_date, subject_id, condition_list{i_condition}, i_trial, 'GVS_current_trajectory');
@@ -200,7 +206,6 @@ function determineStretchesToAnalyze(varargin)
                 scene_translation_trajectory = loadData(collection_date, subject_id, condition_list{i_condition}, i_trial, 'SceneTranslation_trajectory');
                 load('virtualobjectInfo');
             end
-
 
             % determine indices for optional markers
             marker_weight_table = study_settings.get('marker_weights');
@@ -261,6 +266,7 @@ function determineStretchesToAnalyze(varargin)
                         end
                     end
                 end
+                trial_data.illusion_trajectory = illusion_trajectory;
             end
             if strcmp(experimental_paradigm, 'GVS') || strcmp(experimental_paradigm, 'CadenceGVS') || strcmp(experimental_paradigm, 'FatigueGVS') || strcmp(experimental_paradigm, 'CognitiveLoadGvs')
                 illusion_trajectory = zeros(size(time_stimulus)); % -1 = LEFT, 1 = RIGHT
@@ -312,10 +318,10 @@ function determineStretchesToAnalyze(varargin)
                     || strcmp(condition_stimulus, 'OBSTACLE') || strcmp(condition_stimulus, 'ARMSENSE') ...
                     || strcmp(experimental_paradigm, 'Vision Stochastic') || strcmp(experimental_paradigm, 'GvsOverground') ...
                     || strcmp(experimental_paradigm, 'OculusLaneRestriction')
-                right_pushoff_times = event_data{strcmp(event_labels, 'right_pushoff')};
-                right_touchdown_times = event_data{strcmp(event_labels, 'right_touchdown')};
-                left_pushoff_times = event_data{strcmp(event_labels, 'left_pushoff')};
-                left_touchdown_times = event_data{strcmp(event_labels, 'left_touchdown')};
+                trial_data.right_pushoff_times = event_data{strcmp(event_labels, 'right_pushoff')};
+                trial_data.right_touchdown_times = event_data{strcmp(event_labels, 'right_touchdown')};
+                trial_data.left_pushoff_times = event_data{strcmp(event_labels, 'left_pushoff')};
+                trial_data.left_touchdown_times = event_data{strcmp(event_labels, 'left_touchdown')};
             end
             if strcmp(experimental_paradigm, 'platformShift')
                 perturbation_start_times = event_data{strcmp(event_labels, 'perturbation_start')};
@@ -329,6 +335,11 @@ function determineStretchesToAnalyze(varargin)
             % a perturbation. For unperturbed walking, this is any heelstrike.
             % The result is trigger_indices_labview.
             %
+            
+            % TODO: move the code below into the new function. Do this bit by bit, when able to test stuff.
+            % 
+            trigger_times = determineTriggerTimes(study_settings, trial_data);
+            
             if strcmp(condition_stimulus, 'NONE')
                 % use all touchdown events as triggers
                 trigger_times = [left_touchdown_times; right_touchdown_times];
@@ -355,12 +366,12 @@ function determineStretchesToAnalyze(varargin)
                 
                 trigger_times = time_stimulus(trigger_indices_labview);
             end
-            if strcmp(experimental_paradigm, 'Vision') || strcmp(experimental_paradigm, 'CadenceVision') || strcmp(experimental_paradigm, 'CognitiveLoadVision')
-                % find the time steps where the stimulus state crosses a threshold
-                stimulus_threshold = 1.5;
-                trigger_indices_labview = find(diff(sign(stimulus_state_trajectory - stimulus_threshold)) > 0) + 2;
-                trigger_times = time_stimulus(trigger_indices_labview);
-            end
+%             if strcmp(experimental_paradigm, 'Vision') || strcmp(experimental_paradigm, 'CadenceVision') || strcmp(experimental_paradigm, 'CognitiveLoadVision')
+%                 % find the time steps where the stimulus state crosses a threshold
+%                 stimulus_threshold = 1.5;
+%                 trigger_indices_labview = find(diff(sign(stimulus_state_trajectory - stimulus_threshold)) > 0) + 2;
+%                 trigger_times = time_stimulus(trigger_indices_labview);
+%             end
             if strcmp(experimental_paradigm, 'GVS') || strcmp(experimental_paradigm, 'CadenceGVS') || strcmp(experimental_paradigm, 'FatigueGVS') || strcmp(experimental_paradigm, 'CognitiveLoadGvs')
                 % find the time steps where the stimulus state crosses a threshold
                 stimulus_threshold = 1.5;
@@ -396,12 +407,24 @@ function determineStretchesToAnalyze(varargin)
                 trigger_times = perturbation_start_times;
             end
             
+            
+            
             % calculate indices
             trigger_indices_mocap = zeros(size(trigger_times));
             for i_index = 1 : length(trigger_times)
                 [~, index_mocap] = min(abs(time_marker - trigger_times(i_index)));
                 trigger_indices_mocap(i_index) = index_mocap;
             end
+            trigger_indices_labview = zeros(size(trigger_times));
+            for i_index = 1 : length(trigger_times)
+                [~, index_labview] = min(abs(time_marker - trigger_times(i_index)));
+                trigger_indices_labview(i_index) = index_labview;
+            end
+            
+            % store trigger data in trial_data
+            trial_data.trigger_times = trigger_times;
+            trial_data.trigger_indices_mocap = trigger_indices_mocap;
+            trial_data.trigger_indices_labview = trigger_indices_labview;
 
             % visualize triggers
             if visualize
@@ -434,11 +457,15 @@ function determineStretchesToAnalyze(varargin)
             end
 
             %% extract data and determine condition variables
+            
 
             % For each trigger, determine the conditions and the relevant step events.
             number_of_triggers = length(trigger_times);
             removal_flags = zeros(number_of_triggers, 1);
             event_variables_to_save = struct;
+            
+            [conditions_trial, event_variables_to_save] = determineConditionLevels(study_settings, trial_data);
+            
             if strcmp(condition_stimulus, 'NONE')
                 % determine start and end
                 stance_foot_data = {'STANCE_RIGHT', 'STANCE_BOTH', 'STANCE_LEFT'};
@@ -1478,6 +1505,7 @@ function determineStretchesToAnalyze(varargin)
                 event_variables_to_save.stance_foot_data = condition_stance_foot_list;
             end
             
+            if false % starting to move this out to the function determineConditionLevels()
             if strcmp(experimental_paradigm, 'Vision') ...
                     || strcmp(experimental_paradigm, 'CadenceVision') ...
                     || strcmp(experimental_paradigm, 'GVS') ...
@@ -1881,6 +1909,7 @@ function determineStretchesToAnalyze(varargin)
                 event_variables_to_save.stance_foot_data = stance_foot_data;
                 event_variables_to_save.stretch_times_minus_1 = stretch_times_minus_1;
                 event_variables_to_save.stance_foot_data_minus_1 = stance_foot_data_minus_1;
+            end
             end
             
             if strcmp(condition_stimulus, 'VISUAL')
@@ -2568,7 +2597,7 @@ function determineStretchesToAnalyze(varargin)
             stretch_variables = study_settings.get('stretch_variables');
 
             % prune
-            number_of_stretches = size(stretch_times, 1);
+            number_of_stretches = size(event_variables_to_save.stretch_times, 1);
             removal_flags = zeros(number_of_stretches, 1);
             
             if study_settings.get('prune_step_time_outliers')
@@ -2683,8 +2712,8 @@ function determineStretchesToAnalyze(varargin)
                 if this_marker_weight == 1
                     this_marker_data = extractMarkerData(marker_trajectories, marker_labels, this_marker_label);
                     for i_stretch = 1 : number_of_stretches
-                        [~, start_index] = min(abs(time_marker - stretch_times(i_stretch, 1)));
-                        [~, end_index] = min(abs(time_marker - stretch_times(i_stretch, end)));
+                        [~, start_index] = min(abs(time_marker - event_variables_to_save.stretch_times(i_stretch, 1)));
+                        [~, end_index] = min(abs(time_marker - event_variables_to_save.stretch_times(i_stretch, end)));
                         if any(any(isnan(this_marker_data(start_index : end_index, :))))
                             removal_flags(i_stretch) = 1;
                             disp(['Removing a stretch due to gap in marker "', this_marker_label '"']);
@@ -2737,7 +2766,7 @@ function determineStretchesToAnalyze(varargin)
             
             %% save
             event_variables_to_save.conditions_trial = conditions_trial;
-            event_variables_to_save.bands_per_stretch = bands_per_stretch;
+            event_variables_to_save.bands_per_stretch = study_settings.get('number_of_steps_to_analyze');
             
             stretches_file_name = ['analysis' filesep makeFileName(collection_date, subject_id, condition_list{i_condition}, i_trial, 'relevantDataStretches')];
             saveDataToFile(stretches_file_name, event_variables_to_save);
