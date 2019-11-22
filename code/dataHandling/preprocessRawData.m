@@ -50,7 +50,6 @@ function preprocessRawData(varargin)
     end
     study_settings = SettingsCustodian(study_settings_file);
     subject_settings = SettingsCustodian('subjectSettings.txt');
-    emg_labels = subject_settings.get('emg_labels', 1);
     
     %% emg
     if strcmp(type, 'emg') || strcmp(type, 'all')
@@ -212,7 +211,6 @@ function preprocessRawData(varargin)
                     
 
                     % save
-                    emg_labels = subject_settings.get('emg_labels');
                     emg_directions = emg_directions(:, 1:length(emg_labels));
                     save_folder = 'processed';
                     save_file_name = makeFileName(date, subject_id, trial_type, trial_number, 'emgTrajectories.mat');

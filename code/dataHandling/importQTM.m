@@ -40,10 +40,6 @@ function importQTM(varargin)
     %% prepare
     % set some parameters
     millimeter_to_meter = 1e-3;
-    centimeter_to_meter = 1e-2;
-    milliseconds_to_seconds = 1e-3;
-    microseconds_to_seconds = 1e-6;
-    qtm_emg_scale = 1;
 
     study_settings_file = '';
     if exist(['..' filesep 'studySettings.txt'], 'file')
@@ -71,162 +67,7 @@ function importQTM(varargin)
     if ~directoryExists('analysis')
         mkdir('analysis')
     end
-    current_path = pwd;
-    path_split = strsplit(current_path, filesep);
-    subject_code = path_split{end};
-
-    labview_source_dir = 'labview';
     qtm_source_dir = 'qtm';
-
-    %% import labview data
-%     if parser.Results.labview
-    if false % doing this in another function now
-        % get list of files to import from this directory
-        clear file_name_list;
-        data_dir_csv = dir([labview_source_dir filesep '*csv']);
-        [file_name_list{1:length(data_dir_csv)}] = deal(data_dir_csv.name);
-
-        % import protocol
-        protocol_file_available = 0;
-        if any(strcmp(file_name_list, 'protocol.csv'))
-            protocol_file_available = 1;
-
-            % we have a protocol file, so import that
-            warning('off', 'MATLAB:table:ModifiedAndSavedVarnames')
-            imported_table = readtable([labview_source_dir filesep 'protocol.csv']);
-            warning('on', 'MATLAB:table:ModifiedAndSavedVarnames')
-            
-            % read header line manually, since readtable doesn't deal with it properly
-            fileID = fopen([labview_source_dir filesep 'protocol.csv'], 'r');
-            header_line = fgetl(fileID);
-            fclose(fileID);
-            headers = strsplit(header_line, ',');
-
-            table_headers = imported_table.Properties.VariableNames;
-            protocol_trial_type = imported_table.(table_headers{strcmp(headers, 'Trial Type')});
-            protocol_trial_number = imported_table.(table_headers{strcmp(headers, 'Trial Number')});
-            protocol_trial_duration = imported_table.(table_headers{strcmp(headers, 'Duration (s)')});
-            protocol_metronome_cadence = imported_table.(table_headers{strcmp(headers, 'Use Metronome (0/1)')});
-            protocol_trial_saved = imported_table.(table_headers{strcmp(headers, 'save data (0/1)')});
-            protocol_count_left_step = imported_table.(table_headers{strcmp(headers, 'Count left steps (0/1)')});
-            protocol_count_right_step = imported_table.(table_headers{strcmp(headers, 'Count right steps (0/1)')});
-            protocol_stim_visual_intermittent = imported_table.(table_headers{strcmp(headers, 'Use Visual Stimulus - intermittent')});
-            protocol_stim_gvs_intermittent = imported_table.(table_headers{strcmp(headers, 'GVS intermittent')});
-            protocol_randomization = imported_table.(table_headers{strcmp(headers, 'Randomization')});
-
-            % save protocol data
-            protocol_data = struct;
-            protocol_data.trial_type = protocol_trial_type;
-            protocol_data.trial_number = protocol_trial_number;
-            protocol_data.trial_duration = protocol_trial_duration;
-            protocol_data.metronome_cadence = protocol_metronome_cadence;
-            protocol_data.trial_saved = protocol_trial_saved;
-            protocol_data.count_left_step = protocol_count_left_step;
-            protocol_data.count_right_step = protocol_count_right_step;
-            protocol_data.stim_visual_intermittent = protocol_stim_visual_intermittent;
-            protocol_data.stim_gvs_intermittent = protocol_stim_gvs_intermittent;
-            save_file_name = 'protocolInfo.mat';
-            save(save_file_name, '-struct', 'protocol_data');
-
-            % remove the protocol files from the list
-            file_name_list(strcmp(file_name_list, 'protocol.csv')) = [];
-            protocol_randomization(strcmp(protocol_randomization, '(none)')) = [];
-            for i_randomization_file = 1 : length(protocol_randomization)
-                file_name_list(strcmp(file_name_list, protocol_randomization{i_randomization_file})) = [];
-
-            end
-        end
-        
-        if any(strcmp(file_name_list, 'ObjectRandomization.csv'))
-
-            imported_table = readtable([labview_source_dir filesep 'ObjectRandomization.csv']);
-            
-            fileID = fopen([labview_source_dir filesep 'ObjectRandomization.csv'], 'r');
-            header_line = fgetl(fileID);
-            fclose(fileID);
-            headers = strsplit(header_line, ',');
-            
-            table_headers = imported_table.Properties.VariableNames;
-            
-            virtual_object_info = struct;
-            protocol_virtual_object_ap_location = imported_table.(table_headers{strcmp(headers, 'LaneCenter')});
-            protocol_virtual_ojbect_ml_location =  imported_table.(table_headers{strcmp(headers, 'Color')});
-            virtual_object_info.virtual_object_ap_location = protocol_virtual_object_ap_location;
-            virtual_object_info.virtual_object_ml_location = protocol_virtual_ojbect_ml_location;
-            
-            save_file_name = 'virtualobjectInfo.mat';
-            save(save_file_name, '-struct', 'virtual_object_info');
-            
-            file_name_list(strcmp(file_name_list, 'ObjectRandomization.csv')) = [];
-        end
-            
-
-        % import labview saved data
-        number_of_files = length(file_name_list);
-        for i_file = 1 : number_of_files
-            % file name stuff
-            data_file_name = file_name_list{i_file};
-            [date, subject_id, trial_type, trial_number, file_type] = getFileParameters(data_file_name);
-            imported_data = importdata([labview_source_dir filesep data_file_name], ',', 2);
-            labview_trajectories = imported_data.data;
-
-            % extract headers
-            column_name_string = imported_data.textdata{1, 1};
-            labview_header = strsplit(column_name_string, ',');
-            number_of_data_columns = size(imported_data.textdata, 2);
-            
-            % extract data into properly named variables
-            variables_to_save = struct();
-            variables_to_save_list = {};
-            for i_column = 1 : number_of_data_columns
-                variable_name = [strrep(labview_header{i_column}, ' ', '_'), '_trajectory'];
-                extract_string = ['variables_to_save.' variable_name ' = labview_trajectories(:, i_column);'];
-                eval(extract_string);
-                variables_to_save_list = [variables_to_save_list; variable_name];
-            end
-
-            % take special care of time, transform to seconds and rename according to file type
-            variables_to_save.time = variables_to_save.time_trajectory * milliseconds_to_seconds; % transform to seconds
-            variables_to_save.time = variables_to_save.time - variables_to_save.time(1); % zero
-            variables_to_save = rmfield(variables_to_save, 'time_trajectory'); % this is not a variable, so remove from list
-            variables_to_save_list(strcmp(variables_to_save_list, 'time_trajectory')) = [];
-            if isfield(variables_to_save, 'QTM_time_stamp_trajectory')
-                variables_to_save.qtmTimeStamp = variables_to_save.QTM_time_stamp_trajectory * milliseconds_to_seconds; % transform to seconds
-                variables_to_save = rmfield(variables_to_save, 'QTM_time_stamp_trajectory'); % this is not a variable, so remove from list
-                variables_to_save_list{strcmp(variables_to_save_list, 'QTM_time_stamp_trajectory')} = 'qtmTimeStamp';
-                first_qtm_time_stamp_first = variables_to_save.qtmTimeStamp(find(~isnan(variables_to_save.qtmTimeStamp), 1, 'first'));
-                first_qtm_time_stamp_last = variables_to_save.qtmTimeStamp(find(~isnan(variables_to_save.qtmTimeStamp), 1, 'last'));
-            end
-            
-            % add data source
-            variables_to_save.data_source = 'labview';
-
-            % add sampling rate
-            variables_to_save.sampling_rate = NaN;
-
-            % save
-            save_folder = 'processed';
-            save_file_name = makeFileName(date, subject_id, trial_type, trial_number, file_type);
-            save([save_folder filesep save_file_name], '-struct', 'variables_to_save');
-
-            for i_variable = 1 : length(variables_to_save_list)
-                if ~checkDataAvailability(date, subject_id, trial_type, trial_number, variables_to_save_list{i_variable})
-                    addAvailableData ...
-                      ( ...
-                        variables_to_save_list{i_variable}, ...
-                        'time', ...
-                        'sampling_rate', ...
-                        variables_to_save_list{i_variable}, ...
-                        {'~', '~'}, ... % placeholder for direction
-                        save_folder, ...
-                        save_file_name ...
-                      );
-                end
-            end
-
-            disp(['imported ' labview_source_dir filesep data_file_name ' and saved as ' save_folder filesep save_file_name])
-        end
-    end
 
     %% import data
     data_dir_mat = dir([qtm_source_dir filesep '*mat']);
@@ -494,8 +335,8 @@ function importQTM(varargin)
             end
 
 
-            % import analog data (non-emg)
             if analog_data_available
+                % import analog data (non-emg)
                 analog_data_to_import = study_settings.get('analog_data_to_import', 1);
                 number_of_analog_channels_to_import = length(analog_data_to_import);
                 if number_of_analog_channels_to_import > 0
@@ -535,13 +376,17 @@ function importQTM(varargin)
                 end
 
                 % import emg data
-                emg_data_to_import = study_settings.get('emg_data_to_import', 1);
+%                 emg_data_to_import = study_settings.get('emg_data_to_import', 1);
+                emg_import_map = subject_settings.get('emg_import_map');
+                emg_import_map_header = subject_settings.get('emg_import_map_header');
+                
+                emg_data_to_import = emg_import_map(:, strcmp(emg_import_map_header, 'label_in_qtm_file'));
                 number_of_emg_channels_to_import = length(emg_data_to_import);
                 if number_of_emg_channels_to_import > 0
                     % EMG
                     sampling_rate_emg = analog_fs;
                     time_emg = (1 : number_of_samples)' / sampling_rate_emg;
-                    emg_labels = emg_data_to_import;
+                    emg_labels = emg_import_map(:, strcmp(emg_import_map_header, 'label_in_cobal'))';
                     emg_trajectories_raw = zeros(number_of_samples, number_of_emg_channels_to_import);
                     data_type = 'emg';
                     for i_channel = 1 : number_of_emg_channels_to_import

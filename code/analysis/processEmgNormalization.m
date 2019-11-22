@@ -41,12 +41,18 @@ function processEmgNormalization(varargin)
     end
     study_settings = SettingsCustodian(study_settings_file);
     
-    global_settings = SettingsCustodian([getCobalPath filesep 'resources' filesep 'globalSettings.txt']);
-    emg_labels_normalization = global_settings.get('emg_labels');
-    for i_label = 1 : length(emg_labels_normalization)
-        emg_labels_normalization{i_label} = ['emg:' emg_labels_normalization{i_label}];
-    end
+    % removed this and loaded the subject-specific labels from the subjectSettings.txt instead
+%     global_settings = SettingsCustodian([getCobalPath filesep 'resources' filesep 'globalSettings.txt']);
+%     emg_labels_normalization = global_settings.get('emg_labels');
+%     for i_label = 1 : length(emg_labels_normalization)
+%         emg_labels_normalization{i_label} = ['emg:' emg_labels_normalization{i_label}];
+%     end
     
+    emg_labels = subject_settings.get('emg_labels');
+    emg_labels_normalization = emg_labels';
+    for i_channel = 1 : length(emg_labels_normalization)
+        emg_labels_normalization{i_channel} = ['emg:' emg_labels_normalization{i_channel}];
+    end
 
     %% collect data for normalization
     data_custodian = WalkingDataCustodian(emg_labels_normalization);
