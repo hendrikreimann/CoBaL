@@ -55,7 +55,6 @@ function determineStretchesToAnalyze(varargin)
     latency_value_list = {};
     
     %% prepare
-%     load('subjectInfo.mat', 'date', 'subject_id', 'most_affected', 'gender');
     % load settings
     study_settings_file = '';
     if exist(['..' filesep 'studySettings.txt'], 'file')
@@ -100,8 +99,6 @@ function determineStretchesToAnalyze(varargin)
             %% load data
             ignore_times = [];
             load(['analysis' filesep makeFileName(collection_date, subject_id, condition_list{i_condition}, i_trial, 'events')]);
-%             load(['analysis' filesep makeFileName(date, subject_id, condition_list{i_condition}, i_trial, 'stepEvents')]);
-%             load(['processed' filesep makeFileName(date, subject_id, condition_list{i_condition}, i_trial, 'kinematicTrajectories')]);
             
             % determine experimental condition
             this_trial_type = condition_list{i_condition};
@@ -2664,30 +2661,9 @@ function determineStretchesToAnalyze(varargin)
                             end
                         end
                             
-                        
-%                         if strcmp(zone_side_list{i_stretch}, 'STIM_ZONE_RIGHT')
-%                             threshold = 0.1835; % limit on right belt
-%                             if any(LHEE_marker_data(trigger_start_index_mocap : trigger_end_index_mocap,1) > threshold)
-%                                 removal_flags(i_stretch) = 1;
-%                                 disp('Stretch flagged due stepping in No Step Zone')
-%                             end
-%                             if any(RHEE_marker_data(trigger_start_index_mocap : trigger_end_index_mocap,1) > threshold)
-%                                 removal_flags(i_stretch) = 1;
-%                                 disp('Stretch flagged due stepping in No Step Zone')
-%                             end
-%                             if any(RTOE_marker_data(trigger_start_index_mocap : trigger_end_index_mocap,1) > threshold)
-%                                 removal_flags(i_stretch) = 1;
-%                                 disp('Stretch flagged due stepping in No Step Zone')
-%                             end
-%                             if any(LTOE_marker_data(trigger_start_index_mocap : trigger_end_index_mocap,1) > threshold)
-%                                 removal_flags(i_stretch) = 1;
-%                                 disp('Stretch flagged due stepping in No Step Zone')
-%                             end
-%                         end
-                        
                     end
                     
-                        conditions_trial.step_zone_delinquent_list = step_zone_delinquent_list;
+                    conditions_trial.step_zone_delinquent_list = step_zone_delinquent_list;
                 end
             end
                 
@@ -2768,20 +2744,8 @@ function determineStretchesToAnalyze(varargin)
             
             
             disp(['Finding Relevant Data Stretches: condition ' condition_list{i_condition} ', Trial ' num2str(i_trial) ' completed, found ' num2str(size(event_variables_to_save.stretch_times, 1)) ' relevant stretches, saved as ' stretches_file_name]);                
-            % display average heelstrike distance
-            disp(['Finding Relevant Data Stretches: condition ' condition_list{i_condition} ', Trial ' num2str(i_trial) ' completed, average discrepancy between trigger and heelstrike: ' num2str(mean(closest_heelstrike_distance_times))])
-            
-            % create a storage variable for latency values for each subject
-%             trial_type_list = [trial_type_list; condition_list{i_condition}];
-%             trial_number_list = {trial_number_list; (i_trial)};
-            latency_value_list = [latency_value_list; closest_heelstrike_distance_times'];  
         end
     end
-%     variables_to_save_latency_check.condition_list = trial_type_list;
-    variables_to_save_latency_check.trial_number_list = trial_number_list;
-    variables_to_save_latency_check.latency_value_list = latency_value_list;
-    save_file_name = 'latency_check.mat';
-    save(save_file_name, '-struct', 'variables_to_save_latency_check');
 end
 
 
