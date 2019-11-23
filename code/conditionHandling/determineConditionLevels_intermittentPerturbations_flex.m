@@ -42,94 +42,56 @@ function [conditions_trial, event_variables_to_save, removal_flags] = determineC
         stimulus_list{i_trigger} = determineStimulus(i_trigger);
         
         % determine trigger foot
-        
-
-%         % get closest heelstrike on either side
-%         [~, index_left] = min(abs(trial_data.left_touchdown_times - trial_data.trigger_times(i_trigger)));
-%         [~, index_right] = min(abs(trial_data.right_touchdown_times - trial_data.trigger_times(i_trigger)));
-% 
-%         % is the closest left heelstrike within the acceptable interval?
-%         closest_left_heelstrike = trial_data.left_touchdown_times(index_left);
-%         time_difference_left = closest_left_heelstrike - trial_data.trigger_times(i_trigger); % where does the closest left heelstrike lie relative to the trigger?
-%         if -time_to_nearest_heelstrike_before_trigger_threshold < time_difference_left && time_difference_left < time_to_nearest_heelstrike_after_trigger_threshold
-%             % left heelstrike is acceptable
-%             left_heelstrike_acceptable = true;
-%         else
-%             left_heelstrike_acceptable = false;
-%         end
-% 
-%         % is the closest right heelstrike within the acceptable interval?
-%         closest_right_heelstrike = trial_data.right_touchdown_times(index_right);
-%         time_difference_right = closest_right_heelstrike - trial_data.trigger_times(i_trigger); % where does the closest right heelstrike lie relative to the trigger?
-%         if -time_to_nearest_heelstrike_before_trigger_threshold < time_difference_right && time_difference_right < time_to_nearest_heelstrike_after_trigger_threshold
-%             % right heelstrike is acceptable
-%             right_heelstrike_acceptable = true;
-%         else
-%             right_heelstrike_acceptable = false;
-%         end
-% 
-%         % accept the acceptable one
-%         if left_heelstrike_acceptable && ~right_heelstrike_acceptable
-%             % triggered by left heelstrike
-%             trigger_foot = 'left';
-%             closest_heelstrike_distance_times(i_trigger) = time_difference_left;
-%         elseif ~left_heelstrike_acceptable && right_heelstrike_acceptable
-%             % triggered by right heelstrike
-%             trigger_foot = 'right';
-%             closest_heelstrike_distance_times(i_trigger) = time_difference_right;
-%         elseif left_heelstrike_acceptable && right_heelstrike_acceptable
-%             trigger_foot = 'unclear';
-%             removal_flags(i_trigger) = 1;
-%         elseif ~left_heelstrike_acceptable && ~right_heelstrike_acceptable
-%             trigger_foot = 'unclear';
-%             removal_flags(i_trigger) = 1;
-%         end
-        
         [trigger_foot, trigger_time] = determineTriggerFoot(i_trigger);
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        % I have successfully determined the trigger foot, now let's extract trigger foot and contra foot events
         if strcmp(trigger_foot, 'left')
-            trigger_foot_touchdown_times = trial_data.left_touchdown_times;
-            contra_foot_touchdown_times = trial_data.right_touchdown_times;
-%             stretch_times(i_trigger, 1) = trigger_foot_touchdown_times(index_left);
-            stretch_times(i_trigger, 1) = trigger_time;
-            trigger_foot_stance_label = 'STANCE_LEFT';
-            contra_foot_stance_label = 'STANCE_RIGHT';
+%             trigger_foot_stance_label = 'STANCE_LEFT';
+%             contra_foot_stance_label = 'STANCE_RIGHT';
             trigger_foot_list{i_trigger} = 'TRIGGER_LEFT';
-        end
+        end        
         if strcmp(trigger_foot, 'right')
-            trigger_foot_touchdown_times = trial_data.right_touchdown_times;
-            contra_foot_touchdown_times = trial_data.left_touchdown_times;
-%             stretch_times(i_trigger, 1) = trigger_foot_touchdown_times(index_right);
-            stretch_times(i_trigger, 1) = trigger_time;
-            trigger_foot_stance_label = 'STANCE_RIGHT';
-            contra_foot_stance_label = 'STANCE_LEFT';
+%             trigger_foot_stance_label = 'STANCE_RIGHT';
+%             contra_foot_stance_label = 'STANCE_LEFT';
             trigger_foot_list{i_trigger} = 'TRIGGER_RIGHT';
         end
         
-        % now fill the other times
-        for i_band = 1 : bands_per_stretch
-            band_start_time = stretch_times(i_trigger, i_band);
-            % find push-off time within the band
-            if mod(i_band, 2) == 0
-                swing_foot_touchdown_times = trigger_foot_touchdown_times;
-                stance_foot_data{i_trigger, i_band} = contra_foot_stance_label;
-            end
-            if mod(i_band, 2) == 1
-                swing_foot_touchdown_times = contra_foot_touchdown_times;
-                stance_foot_data{i_trigger, i_band} = trigger_foot_stance_label;
-            end
-            this_band_end_time = min(swing_foot_touchdown_times(swing_foot_touchdown_times > band_start_time));
-            stretch_times(i_trigger, i_band+1) = this_band_end_time;
-        end
+        % determine stretch times
+        
+        
+        
+%         if strcmp(trigger_foot, 'left')
+%             trigger_foot_touchdown_times = trial_data.left_touchdown_times;
+%             contra_foot_touchdown_times = trial_data.right_touchdown_times;
+%             stretch_times(i_trigger, 1) = trigger_time;
+%         end
+%         if strcmp(trigger_foot, 'right')
+%             trigger_foot_touchdown_times = trial_data.right_touchdown_times;
+%             contra_foot_touchdown_times = trial_data.left_touchdown_times;
+%             stretch_times(i_trigger, 1) = trigger_time;
+%         end
+%         
+%         % now fill the other times
+%         for i_band = 1 : bands_per_stretch
+%             band_start_time = stretch_times(i_trigger, i_band);
+%             % find push-off time within the band
+%             if mod(i_band, 2) == 0
+%                 swing_foot_touchdown_times = trigger_foot_touchdown_times;
+%                 stance_foot_data{i_trigger, i_band} = contra_foot_stance_label;
+%             end
+%             if mod(i_band, 2) == 1
+%                 swing_foot_touchdown_times = contra_foot_touchdown_times;
+%                 stance_foot_data{i_trigger, i_band} = trigger_foot_stance_label;
+%             end
+%             this_band_end_time = min(swing_foot_touchdown_times(swing_foot_touchdown_times > band_start_time));
+%             stretch_times(i_trigger, i_band+1) = this_band_end_time;
+%         end
+        
+        [stretch_times_this_trigger, stance_foot_data_this_trigger] = determineStretchTimes(trigger_time, trigger_foot);
+        stretch_times(i_trigger, :) = stretch_times_this_trigger;
+        stance_foot_data(i_trigger, :) = stance_foot_data_this_trigger;
+        
+        
+        
+        
 
         % determine amplitude of this stimulus
         if strcmp(experimental_paradigm, 'Vision')
@@ -337,6 +299,42 @@ function [trigger_foot, trigger_time] = determineTriggerFoot(trigger_index)
             removal_flags(trigger_index) = 1;
         end
 
+end
+function [stretch_times_this_trigger, stance_foot_data_this_trigger] = determineStretchTimes(trigger_time, trigger_foot)
+    stretch_times_this_trigger = zeros(1, bands_per_stretch+1);
+    stance_foot_data_this_trigger = cell(1, bands_per_stretch);
+
+    % re-label time arrays as trigger and contralateral
+    if strcmp(trigger_foot, 'left')
+        trigger_foot_touchdown_times = trial_data.left_touchdown_times;
+        contra_foot_touchdown_times = trial_data.right_touchdown_times;
+        trigger_foot_stance_label = 'STANCE_LEFT';
+        contra_foot_stance_label = 'STANCE_RIGHT';
+        stretch_times_this_trigger(1) = trigger_time;
+    end
+    if strcmp(trigger_foot, 'right')
+        trigger_foot_touchdown_times = trial_data.right_touchdown_times;
+        contra_foot_touchdown_times = trial_data.left_touchdown_times;
+        trigger_foot_stance_label = 'STANCE_RIGHT';
+        contra_foot_stance_label = 'STANCE_LEFT';
+        stretch_times_this_trigger(1) = trigger_time;
+    end
+
+    % now fill the other times
+    for i_band = 1 : bands_per_stretch
+        band_start_time = stretch_times_this_trigger(i_band);
+        % find push-off time within the band
+        if mod(i_band, 2) == 0
+            swing_foot_touchdown_times = trigger_foot_touchdown_times;
+            stance_foot_data_this_trigger{i_band} = contra_foot_stance_label;
+        end
+        if mod(i_band, 2) == 1
+            swing_foot_touchdown_times = contra_foot_touchdown_times;
+            stance_foot_data_this_trigger{i_band} = trigger_foot_stance_label;
+        end
+        this_band_end_time = min(swing_foot_touchdown_times(swing_foot_touchdown_times > band_start_time));
+        stretch_times_this_trigger(i_band+1) = this_band_end_time;
+    end    
 end
 end
 
