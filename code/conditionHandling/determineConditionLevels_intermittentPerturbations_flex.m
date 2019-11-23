@@ -31,11 +31,12 @@ function [conditions_trial, event_variables_to_save, removal_flags] = determineC
     
 
     stretch_times = zeros(number_of_triggers, bands_per_stretch+1);
-    closest_heelstrike_distance_times = zeros(number_of_triggers, 1);
+%     closest_heelstrike_distance_times = zeros(number_of_triggers, 1);
     stance_foot_data = cell(number_of_triggers, bands_per_stretch);
     stimulus_list = cell(number_of_triggers, 1); % stimulus STIM_LEFT, STIM_RIGHT or STIM_NONE
     amplitude_list = cell(number_of_triggers, 1); % amplitude of the visual stim, e.g. 30, 60, 120 deg/sec^2
     trigger_foot_list = cell(number_of_triggers, 1); % triggering foot TRIGGER_LEFT or TRIGGER_RIGHT
+    direction_list = cell(number_of_triggers, 1); % direction relative to body, STIM_TOWARDS or STIM_AWAY
 
     for i_trigger = 1 : number_of_triggers
         % determine stimulus
@@ -44,55 +45,20 @@ function [conditions_trial, event_variables_to_save, removal_flags] = determineC
         % determine trigger foot
         [trigger_foot, trigger_time] = determineTriggerFoot(i_trigger);
         if strcmp(trigger_foot, 'left')
-%             trigger_foot_stance_label = 'STANCE_LEFT';
-%             contra_foot_stance_label = 'STANCE_RIGHT';
             trigger_foot_list{i_trigger} = 'TRIGGER_LEFT';
         end        
         if strcmp(trigger_foot, 'right')
-%             trigger_foot_stance_label = 'STANCE_RIGHT';
-%             contra_foot_stance_label = 'STANCE_LEFT';
             trigger_foot_list{i_trigger} = 'TRIGGER_RIGHT';
         end
         
         % determine stretch times
-        
-        
-        
-%         if strcmp(trigger_foot, 'left')
-%             trigger_foot_touchdown_times = trial_data.left_touchdown_times;
-%             contra_foot_touchdown_times = trial_data.right_touchdown_times;
-%             stretch_times(i_trigger, 1) = trigger_time;
-%         end
-%         if strcmp(trigger_foot, 'right')
-%             trigger_foot_touchdown_times = trial_data.right_touchdown_times;
-%             contra_foot_touchdown_times = trial_data.left_touchdown_times;
-%             stretch_times(i_trigger, 1) = trigger_time;
-%         end
-%         
-%         % now fill the other times
-%         for i_band = 1 : bands_per_stretch
-%             band_start_time = stretch_times(i_trigger, i_band);
-%             % find push-off time within the band
-%             if mod(i_band, 2) == 0
-%                 swing_foot_touchdown_times = trigger_foot_touchdown_times;
-%                 stance_foot_data{i_trigger, i_band} = contra_foot_stance_label;
-%             end
-%             if mod(i_band, 2) == 1
-%                 swing_foot_touchdown_times = contra_foot_touchdown_times;
-%                 stance_foot_data{i_trigger, i_band} = trigger_foot_stance_label;
-%             end
-%             this_band_end_time = min(swing_foot_touchdown_times(swing_foot_touchdown_times > band_start_time));
-%             stretch_times(i_trigger, i_band+1) = this_band_end_time;
-%         end
-        
         [stretch_times_this_trigger, stance_foot_data_this_trigger] = determineStretchTimes(trigger_time, trigger_foot);
         stretch_times(i_trigger, :) = stretch_times_this_trigger;
         stance_foot_data(i_trigger, :) = stance_foot_data_this_trigger;
-        
-        
-        
-        
 
+        % determine stimulus direction
+        direction_list{i_trigger} = determineStimulusDirection(trigger_foot_list{i_trigger}, stimulus_list{i_trigger});
+        
         % determine amplitude of this stimulus
         if strcmp(experimental_paradigm, 'Vision')
             amplitude = trial_data.current_acceleration_trajectory(trial_data.trigger_indices_stimulus(i_trigger));
@@ -100,32 +66,32 @@ function [conditions_trial, event_variables_to_save, removal_flags] = determineC
         end
     end
 
-    % determine direction
-    direction_list = cell(size(trigger_foot_list));
-    for i_stretch = 1 : length(trigger_foot_list)
-        if strcmp(trigger_foot_list{i_stretch}, 'TRIGGER_RIGHT')
-            if strcmp(stimulus_list{i_stretch}, 'STIM_RIGHT')
-                direction_list{i_stretch} = 'STIM_TOWARDS';
-            end
-            if strcmp(stimulus_list{i_stretch}, 'STIM_LEFT')
-                direction_list{i_stretch} = 'STIM_AWAY';
-            end
-            if strcmp(stimulus_list{i_stretch}, 'STIM_NONE')
-                direction_list{i_stretch} = 'STIM_NONE';
-            end
-        end
-        if strcmp(trigger_foot_list{i_stretch}, 'TRIGGER_LEFT')
-            if strcmp(stimulus_list{i_stretch}, 'STIM_RIGHT')
-                direction_list{i_stretch} = 'STIM_AWAY';
-            end
-            if strcmp(stimulus_list{i_stretch}, 'STIM_LEFT')
-                direction_list{i_stretch} = 'STIM_TOWARDS';
-            end
-            if strcmp(stimulus_list{i_stretch}, 'STIM_NONE')
-                direction_list{i_stretch} = 'STIM_NONE';
-            end
-        end
-    end
+%     % determine direction
+%     direction_list = cell(size(trigger_foot_list));
+%     for i_stretch = 1 : length(trigger_foot_list)
+%         if strcmp(trigger_foot_list{i_stretch}, 'TRIGGER_RIGHT')
+%             if strcmp(stimulus_list{i_stretch}, 'STIM_RIGHT')
+%                 direction_list{i_stretch} = 'STIM_TOWARDS';
+%             end
+%             if strcmp(stimulus_list{i_stretch}, 'STIM_LEFT')
+%                 direction_list{i_stretch} = 'STIM_AWAY';
+%             end
+%             if strcmp(stimulus_list{i_stretch}, 'STIM_NONE')
+%                 direction_list{i_stretch} = 'STIM_NONE';
+%             end
+%         end
+%         if strcmp(trigger_foot_list{i_stretch}, 'TRIGGER_LEFT')
+%             if strcmp(stimulus_list{i_stretch}, 'STIM_RIGHT')
+%                 direction_list{i_stretch} = 'STIM_AWAY';
+%             end
+%             if strcmp(stimulus_list{i_stretch}, 'STIM_LEFT')
+%                 direction_list{i_stretch} = 'STIM_TOWARDS';
+%             end
+%             if strcmp(stimulus_list{i_stretch}, 'STIM_NONE')
+%                 direction_list{i_stretch} = 'STIM_NONE';
+%             end
+%         end
+%     end
 
     if strcmp(experimental_paradigm, 'OculusLaneRestriction')
         % determine where the "no step zone" was at stretch
@@ -335,6 +301,30 @@ function [stretch_times_this_trigger, stance_foot_data_this_trigger] = determine
         this_band_end_time = min(swing_foot_touchdown_times(swing_foot_touchdown_times > band_start_time));
         stretch_times_this_trigger(i_band+1) = this_band_end_time;
     end    
+end
+function stimulus_direction = determineStimulusDirection(trigger_foot, stimulus)
+    if strcmp(trigger_foot, 'TRIGGER_RIGHT')
+        if strcmp(stimulus, 'STIM_RIGHT')
+            stimulus_direction = 'STIM_TOWARDS';
+        end
+        if strcmp(stimulus, 'STIM_LEFT')
+            stimulus_direction = 'STIM_AWAY';
+        end
+        if strcmp(stimulus, 'STIM_NONE')
+            stimulus_direction = 'STIM_NONE';
+        end
+    end
+    if strcmp(trigger_foot, 'TRIGGER_LEFT')
+        if strcmp(stimulus, 'STIM_RIGHT')
+            stimulus_direction = 'STIM_AWAY';
+        end
+        if strcmp(stimulus, 'STIM_LEFT')
+            stimulus_direction = 'STIM_TOWARDS';
+        end
+        if strcmp(stimulus, 'STIM_NONE')
+            stimulus_direction = 'STIM_NONE';
+        end
+    end
 end
 end
 
