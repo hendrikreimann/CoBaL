@@ -94,6 +94,7 @@ function importQTM(varargin)
         if force_data_available && qtm_data.Force(1).NrOfSamples == 0
             force_data_available = false;
         end
+        event_data_available = logical(numel(qtm_data.Events));
 
         % process events in this data file
         events = qtm_data.Events;
@@ -279,18 +280,26 @@ function importQTM(varargin)
                 this_trial_length_expected = protocol_trial_duration(this_trial_protocol_index);           
                 save_this_trial = protocol_trial_saved(this_trial_protocol_index);
             end
-            if strcmp(sync_mode, 'events') && ~isempty(start_event_types)
+            if strcmp(sync_mode, 'events')
                 this_trial_start_time = analog_time(this_trial_start_index);
                 this_trial_end_time = analog_time(this_trial_end_index);
+                if ~event_data_available
+                    start_event_times = this_trial_start_time;
+                    end_event_times = this_trial_end_time;
+                    start_event_types = {trial_type};
+                    end_event_types = {trial_type};
+                    start_event_numbers = {num2str(trial_number)};
+                    end_event_numbers = {num2str(trial_number)};
+                end
 
                 [delay_to_closest_start_event, closest_start_event_index] = min(abs(start_event_times - this_trial_start_time));
                 [delay_to_closest_end_event, closest_end_event_index] = min(abs(end_event_times - this_trial_end_time));
                 closest_start_event_time = start_event_times(closest_start_event_index);
                 closest_end_event_time = end_event_times(closest_end_event_index);
                 type_from_start = start_event_types{closest_start_event_index};
-                type_from_end = start_event_types{closest_end_event_index};
+                type_from_end = end_event_types{closest_end_event_index};
                 number_from_start = str2num(start_event_numbers{closest_start_event_index});
-                number_from_end = str2num(start_event_numbers{closest_end_event_index});
+                number_from_end = str2num(end_event_numbers{closest_end_event_index});
 
                 this_trial_length_expected = closest_end_event_time - closest_start_event_time;
                 if ~strcmp(type_from_start, type_from_end)

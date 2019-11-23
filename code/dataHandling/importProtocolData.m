@@ -66,7 +66,7 @@ function importProtocol(varargin)
         protocol_count_right_step = imported_table.(table_headers{strcmp(headers, 'Count right steps (0/1)')});
         protocol_stim_visual_intermittent = imported_table.(table_headers{strcmp(headers, 'Use Visual Stimulus - intermittent')});
         protocol_stim_gvs_intermittent = imported_table.(table_headers{strcmp(headers, 'GVS intermittent')});
-        protocol_randomization = imported_table.(table_headers{strcmp(headers, 'Randomization')});
+%         protocol_randomization = imported_table.(table_headers{strcmp(headers, 'Randomization')});
 
         % save protocol data
         protocol_data = struct;
