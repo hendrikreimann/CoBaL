@@ -347,7 +347,7 @@ function determineStretchesToAnalyze(varargin)
             if strcmp(condition_stimulus, 'VISUAL') || strcmp(experimental_paradigm, 'GVS_old')
                 % find the time steps where the stimulus state crosses a threshold
                 stimulus_threshold = 0.5;
-                trigger_indices_labview = find(diff(sign(stimulus_state_trajectory - stimulus_threshold)) > 0) + 1;
+                trigger_indices_stimulus = find(diff(sign(stimulus_state_trajectory - stimulus_threshold)) > 0) + 1;
 
                 %
                 epsilon = 1e-5;
@@ -362,9 +362,9 @@ function determineStretchesToAnalyze(varargin)
                     end
                     i_stim = i_stim + 1;
                 end
-                trigger_indices_labview = trigger_indices_labview(1 : length(stim_start_indices_labview)); % in case a stim is triggered, but not recorded
+                trigger_indices_stimulus = trigger_indices_stimulus(1 : length(stim_start_indices_labview)); % in case a stim is triggered, but not recorded
                 
-                trigger_times = time_stimulus(trigger_indices_labview);
+                trigger_times = time_stimulus(trigger_indices_stimulus);
             end
 %             if strcmp(experimental_paradigm, 'Vision') || strcmp(experimental_paradigm, 'CadenceVision') || strcmp(experimental_paradigm, 'CognitiveLoadVision')
 %                 % find the time steps where the stimulus state crosses a threshold
@@ -375,8 +375,8 @@ function determineStretchesToAnalyze(varargin)
             if strcmp(experimental_paradigm, 'GVS') || strcmp(experimental_paradigm, 'CadenceGVS') || strcmp(experimental_paradigm, 'FatigueGVS') || strcmp(experimental_paradigm, 'CognitiveLoadGvs')
                 % find the time steps where the stimulus state crosses a threshold
                 stimulus_threshold = 1.5;
-                trigger_indices_labview = find(diff(sign(stimulus_state_trajectory - stimulus_threshold)) > 0) + 2;
-                trigger_times = time_stimulus(trigger_indices_labview);
+                trigger_indices_stimulus = find(diff(sign(stimulus_state_trajectory - stimulus_threshold)) > 0) + 2;
+                trigger_times = time_stimulus(trigger_indices_stimulus);
             end
             if strcmp(experimental_paradigm, 'GvsOverground')
                 % find the time steps where the first forceplate vertical force crosses a threshold
@@ -390,8 +390,8 @@ function determineStretchesToAnalyze(varargin)
             if strcmp(experimental_paradigm, 'OculusLaneRestriction') 
                 % find the time steps where the stimulus state crosses a threshold
                 stimulus_threshold = 4.5;
-                trigger_indices_labview = find(diff(sign(stimulus_state_trajectory - stimulus_threshold)) > 0) + 2;
-                trigger_times = time_stimulus(trigger_indices_labview);
+                trigger_indices_stimulus = find(diff(sign(stimulus_state_trajectory - stimulus_threshold)) > 0) + 2;
+                trigger_times = time_stimulus(trigger_indices_stimulus);
             end
             if strcmp(condition_stimulus, 'OBSTACLE')
                 trigger_times = [];
@@ -415,16 +415,16 @@ function determineStretchesToAnalyze(varargin)
                 [~, index_mocap] = min(abs(time_marker - trigger_times(i_index)));
                 trigger_indices_mocap(i_index) = index_mocap;
             end
-            trigger_indices_labview = zeros(size(trigger_times));
+            trigger_indices_stimulus = zeros(size(trigger_times));
             for i_index = 1 : length(trigger_times)
-                [~, index_labview] = min(abs(time_marker - trigger_times(i_index)));
-                trigger_indices_labview(i_index) = index_labview;
+                [~, index_labview] = min(abs(time_stimulus - trigger_times(i_index)));
+                trigger_indices_stimulus(i_index) = index_labview;
             end
             
             % store trigger data in trial_data
             trial_data.trigger_times = trigger_times;
             trial_data.trigger_indices_mocap = trigger_indices_mocap;
-            trial_data.trigger_indices_labview = trigger_indices_labview;
+            trial_data.trigger_indices_stimulus = trigger_indices_stimulus;
 
             % visualize triggers
             if visualize
@@ -939,7 +939,7 @@ function determineStretchesToAnalyze(varargin)
                     perturbation_list{i_trigger, 6} = 'CONTROL';
                 
                     % delay condition
-                    wait_time_stim = time_stimulus(stim_start_indices_labview(i_trigger)) - time_stimulus(trigger_indices_labview(i_trigger));
+                    wait_time_stim = time_stimulus(stim_start_indices_labview(i_trigger)) - time_stimulus(trigger_indices_stimulus(i_trigger));
                     delay_time_labels = study_settings.get('delay_time_labels');
                     [~, wait_condition_index] = min(abs(study_settings.get('delay_times') - wait_time_stim));
                     if iscell(study_settings.get('delay_time_labels'))
@@ -1097,7 +1097,7 @@ function determineStretchesToAnalyze(varargin)
                                       left_foot_pushoff_plus_2 ...
                                     ] ...
                                   );
-                                disp(['Trial ' num2str(i_trial) ': Problem with order of events, please check trigger at ' num2str(time_stimulus(trigger_indices_labview(i_trigger)))]);
+                                disp(['Trial ' num2str(i_trial) ': Problem with order of events, please check trigger at ' num2str(time_stimulus(trigger_indices_stimulus(i_trigger)))]);
                             end
                             % check check
                             if visualize
@@ -1178,7 +1178,7 @@ function determineStretchesToAnalyze(varargin)
                                       right_foot_pushoff_plus_2 ...
                                     ] ...
                                   );
-                              disp(['Trial ' num2str(i_trial) ': Problem with order of events, please check trigger at ' num2str(time_stimulus(trigger_indices_labview(i_trigger)))]);
+                              disp(['Trial ' num2str(i_trial) ': Problem with order of events, please check trigger at ' num2str(time_stimulus(trigger_indices_stimulus(i_trigger)))]);
 
                             end
 
@@ -1191,7 +1191,7 @@ function determineStretchesToAnalyze(varargin)
                         end            
                     else
                         trigger_foot = 'unclear';
-                        disp(['Trial ' num2str(i_trial) ': something went wrong at time ' num2str(time_stimulus(trigger_indices_labview(i_trigger))) ' - triggering heelstrike unclear']);
+                        disp(['Trial ' num2str(i_trial) ': something went wrong at time ' num2str(time_stimulus(trigger_indices_stimulus(i_trigger))) ' - triggering heelstrike unclear']);
                         left_foot_heelstrike_minus_1    = 0;
                         left_foot_heelstrike_0          = 0;
                         left_foot_heelstrike_plus_1     = 0;
@@ -1623,7 +1623,7 @@ function determineStretchesToAnalyze(varargin)
                                       left_foot_heelstrike_1 ...
                                     ] ...
                                   )
-                                disp(['Trial ' num2str(i_trial) ': Problem with order of events, please check trigger at ' num2str(time_stimulus(trigger_indices_labview(i_trigger)))]);
+                                disp(['Trial ' num2str(i_trial) ': Problem with order of events, please check trigger at ' num2str(time_stimulus(trigger_indices_stimulus(i_trigger)))]);
                             end
                         end
                     elseif strcmp(trigger_foot, 'right')
@@ -1663,13 +1663,13 @@ function determineStretchesToAnalyze(varargin)
                                       right_foot_heelstrike_1 ...
                                     ] ...
                                   )
-                                disp(['Trial ' num2str(i_trial) ': Problem with order of events, please check trigger at ' num2str(time_stimulus(trigger_indices_labview(i_trigger)))]);
+                                disp(['Trial ' num2str(i_trial) ': Problem with order of events, please check trigger at ' num2str(time_stimulus(trigger_indices_stimulus(i_trigger)))]);
                             end
 
                         end            
                     else
                         trigger_foot = 'unclear';
-                        disp(['Trial ' num2str(i_trial) ': something went wrong at time ' num2str(time_stimulus(trigger_indices_labview(i_trigger))) ' - triggering heelstrike unclear']);
+                        disp(['Trial ' num2str(i_trial) ': something went wrong at time ' num2str(time_stimulus(trigger_indices_stimulus(i_trigger))) ' - triggering heelstrike unclear']);
                         left_foot_heelstrike_0  = 0;
                         left_foot_heelstrike_1  = 0;
                         left_foot_pushoff_0     = 0;
@@ -1726,7 +1726,7 @@ function determineStretchesToAnalyze(varargin)
                 % remove flagged triggers
                 unflagged_indices = ~removal_flags;
                 trigger_times = trigger_times(unflagged_indices);
-                trigger_indices_labview = trigger_indices_labview(unflagged_indices, :);
+                trigger_indices_stimulus = trigger_indices_stimulus(unflagged_indices, :);
                 stretch_times_stim = stretch_times_stim(unflagged_indices, :);
                 stance_foot_data_stim = stance_foot_data_stim(unflagged_indices, :);
                 stimulus_list_stim = stimulus_list_stim(unflagged_indices, :);
@@ -1823,7 +1823,7 @@ function determineStretchesToAnalyze(varargin)
                     stimulus_list_ctrl{i_trigger} = 'STIM_NONE';
                     
                     % determine delay
-                    wait_time_stim = time_stimulus(stim_start_indices_labview(i_trigger)) - time_stimulus(trigger_indices_labview(i_trigger));
+                    wait_time_stim = time_stimulus(stim_start_indices_labview(i_trigger)) - time_stimulus(trigger_indices_stimulus(i_trigger));
                     delay_time_labels = study_settings.get('delay_time_labels');
                     [~, wait_condition_index] = min(abs(study_settings.get('delay_times') - wait_time_stim));
                     if iscell(study_settings.get('delay_time_labels'))
@@ -1913,7 +1913,7 @@ function determineStretchesToAnalyze(varargin)
                                       left_foot_heelstrike_p2 ...
                                     ] ...
                                   )
-                                disp(['Trial ' num2str(i_trial) ': Problem with order of events, please check trigger at ' num2str(time_stimulus(trigger_indices_labview(i_trigger)))]);
+                                disp(['Trial ' num2str(i_trial) ': Problem with order of events, please check trigger at ' num2str(time_stimulus(trigger_indices_stimulus(i_trigger)))]);
                             end
 
                         end
@@ -1953,13 +1953,13 @@ function determineStretchesToAnalyze(varargin)
                                       right_foot_heelstrike_p2 ...
                                     ] ...
                                   )
-                                disp(['Trial ' num2str(i_trial) ': Problem with order of events, please check trigger at ' num2str(time_stimulus(trigger_indices_labview(i_trigger)))]);
+                                disp(['Trial ' num2str(i_trial) ': Problem with order of events, please check trigger at ' num2str(time_stimulus(trigger_indices_stimulus(i_trigger)))]);
                             end
 
                         end            
                     else
                         trigger_foot = 'unclear';
-                        disp(['Trial ' num2str(i_trial) ': something went wrong at time ' num2str(time_stimulus(trigger_indices_labview(i_trigger))) ' - triggering heelstrike unclear']);
+                        disp(['Trial ' num2str(i_trial) ': something went wrong at time ' num2str(time_stimulus(trigger_indices_stimulus(i_trigger))) ' - triggering heelstrike unclear']);
                         removal_flags(i_trigger) = 1;
                     end
                     
@@ -2033,7 +2033,7 @@ function determineStretchesToAnalyze(varargin)
                 % remove flagged triggers
                 unflagged_indices = ~removal_flags;
                 trigger_times = trigger_times(unflagged_indices);
-                trigger_indices_labview = trigger_indices_labview(unflagged_indices, :);
+                trigger_indices_stimulus = trigger_indices_stimulus(unflagged_indices, :);
                 stretch_times_stim = stretch_times_stim(unflagged_indices, :);
                 stance_foot_data_stim = stance_foot_data_stim(unflagged_indices, :);
                 stimulus_list_stim = stimulus_list_stim(unflagged_indices, :);

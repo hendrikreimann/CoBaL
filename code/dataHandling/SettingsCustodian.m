@@ -74,13 +74,13 @@ classdef SettingsCustodian < handle
                         if isempty(data_string)
                             data_string = this_cell_string;
                         else
-                            data_string = [data_string ', ' this_cell_string];
+                            data_string = [data_string ', ' this_cell_string]; %#ok<AGROW>
                         end
                     end
                 end
                 
                 % data
-                report_string = [];
+                report_string = []; %#ok<NASGU>
                 if isempty(data_string)
                     report_string = ['Setting not found in file ' this.settings_file ' - ' property_name];
                 else
@@ -117,7 +117,7 @@ classdef SettingsCustodian < handle
             
             % force cell
             if any(strcmp(this.force_cell_list, property_name))
-                if ~iscell(data) & ~isempty(data)
+                if ~iscell(data) & ~isempty(data) %#ok<AND2>
                     data = {data};
                 end
             end
@@ -128,7 +128,7 @@ classdef SettingsCustodian < handle
             end
         end
         
-        function default_data = getDefaultSetting(this, property_name)
+        function default_data = getDefaultSetting(this, property_name) %#ok<INUSL>
             % general default is empty set
             default_data = [];
             
@@ -141,6 +141,12 @@ classdef SettingsCustodian < handle
             end
             if strcmp(property_name, 'right_fullstance_method')
                 default_data = 'first_zero_crossing_after_heelstrike';
+            end
+            if strcmp(property_name, 'time_to_nearest_heelstrike_before_trigger_threshold')
+                default_data = 0.10;
+            end
+            if strcmp(property_name, 'time_to_nearest_heelstrike_after_trigger_threshold')
+                default_data = 0.3;
             end
             if strcmp(property_name, 'left_armswing_peak_prominence_threshold')
                 default_data = 10;
