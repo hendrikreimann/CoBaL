@@ -20,12 +20,9 @@ function [conditions_trial, event_variables_to_save, removal_flags] = determineC
     experimental_paradigm = study_settings.get('experimental_paradigm');
     bands_per_stretch = study_settings.get('number_of_steps_to_analyze');
     
-    time_to_nearest_heelstrike_before_trigger_threshold = study_settings.get('time_to_nearest_heelstrike_before_trigger_threshold', 1);
-    time_to_nearest_heelstrike_after_trigger_threshold = study_settings.get('time_to_nearest_heelstrike_after_trigger_threshold', 1);
+%     time_to_nearest_heelstrike_before_trigger_threshold = study_settings.get('time_to_nearest_heelstrike_before_trigger_threshold', 1);
+%     time_to_nearest_heelstrike_after_trigger_threshold = study_settings.get('time_to_nearest_heelstrike_after_trigger_threshold', 1);
     
-%     time_to_nearest_heelstrike_before_trigger_threshold = 0.10; % a heelstrike should happen less than this long before a trigger
-%     time_to_nearest_heelstrike_after_trigger_threshold = 0.3; % a heelstrike should happen less than this long after a trigger
-
     % allocate output variables
     number_of_triggers = length(trial_data.trigger_indices_mocap);
     conditions_trial = struct;
@@ -42,70 +39,68 @@ function [conditions_trial, event_variables_to_save, removal_flags] = determineC
 
     for i_trigger = 1 : number_of_triggers
         % determine stimulus
-%         if trial_data.trigger_indices_stimulus(i_trigger) == length(trial_data.illusion_trajectory)
-%             removal_flags(i_trigger) = 1;
-%         else
-%             if trial_data.illusion_trajectory(trial_data.trigger_indices_stimulus(i_trigger)+1) > 0
-%                 stimulus_list{i_trigger} = 'STIM_RIGHT';
-%             end
-%             if trial_data.illusion_trajectory(trial_data.trigger_indices_stimulus(i_trigger)+1) < 0
-%                 stimulus_list{i_trigger} = 'STIM_LEFT';
-%             end
-%             if trial_data.illusion_trajectory(trial_data.trigger_indices_stimulus(i_trigger)+1) == 0
-%                 stimulus_list{i_trigger} = 'STIM_NONE';
-%             end
-%         end
-        
         stimulus_list{i_trigger} = determineStimulus(i_trigger);
         
         % determine trigger foot
+        
 
-        % get closest heelstrike on either side
-        [~, index_left] = min(abs(trial_data.left_touchdown_times - trial_data.trigger_times(i_trigger)));
-        [~, index_right] = min(abs(trial_data.right_touchdown_times - trial_data.trigger_times(i_trigger)));
-
-        % is the closest left heelstrike within the acceptable interval?
-        closest_left_heelstrike = trial_data.left_touchdown_times(index_left);
-        time_difference_left = closest_left_heelstrike - trial_data.trigger_times(i_trigger); % where does the closest left heelstrike lie relative to the trigger?
-        if -time_to_nearest_heelstrike_before_trigger_threshold < time_difference_left && time_difference_left < time_to_nearest_heelstrike_after_trigger_threshold
-            % left heelstrike is acceptable
-            left_heelstrike_acceptable = true;
-        else
-            left_heelstrike_acceptable = false;
-        end
-
-        % is the closest right heelstrike within the acceptable interval?
-        closest_right_heelstrike = trial_data.right_touchdown_times(index_right);
-        time_difference_right = closest_right_heelstrike - trial_data.trigger_times(i_trigger); % where does the closest right heelstrike lie relative to the trigger?
-        if -time_to_nearest_heelstrike_before_trigger_threshold < time_difference_right && time_difference_right < time_to_nearest_heelstrike_after_trigger_threshold
-            % right heelstrike is acceptable
-            right_heelstrike_acceptable = true;
-        else
-            right_heelstrike_acceptable = false;
-        end
-
-        % accept the acceptable one
-        if left_heelstrike_acceptable && ~right_heelstrike_acceptable
-            % triggered by left heelstrike
-            trigger_foot = 'left';
-            closest_heelstrike_distance_times(i_trigger) = time_difference_left;
-        elseif ~left_heelstrike_acceptable && right_heelstrike_acceptable
-            % triggered by right heelstrike
-            trigger_foot = 'right';
-            closest_heelstrike_distance_times(i_trigger) = time_difference_right;
-        elseif left_heelstrike_acceptable && right_heelstrike_acceptable
-            trigger_foot = 'unclear';
-            removal_flags(i_trigger) = 1;
-        elseif ~left_heelstrike_acceptable && ~right_heelstrike_acceptable
-            trigger_foot = 'unclear';
-            removal_flags(i_trigger) = 1;
-        end
+%         % get closest heelstrike on either side
+%         [~, index_left] = min(abs(trial_data.left_touchdown_times - trial_data.trigger_times(i_trigger)));
+%         [~, index_right] = min(abs(trial_data.right_touchdown_times - trial_data.trigger_times(i_trigger)));
+% 
+%         % is the closest left heelstrike within the acceptable interval?
+%         closest_left_heelstrike = trial_data.left_touchdown_times(index_left);
+%         time_difference_left = closest_left_heelstrike - trial_data.trigger_times(i_trigger); % where does the closest left heelstrike lie relative to the trigger?
+%         if -time_to_nearest_heelstrike_before_trigger_threshold < time_difference_left && time_difference_left < time_to_nearest_heelstrike_after_trigger_threshold
+%             % left heelstrike is acceptable
+%             left_heelstrike_acceptable = true;
+%         else
+%             left_heelstrike_acceptable = false;
+%         end
+% 
+%         % is the closest right heelstrike within the acceptable interval?
+%         closest_right_heelstrike = trial_data.right_touchdown_times(index_right);
+%         time_difference_right = closest_right_heelstrike - trial_data.trigger_times(i_trigger); % where does the closest right heelstrike lie relative to the trigger?
+%         if -time_to_nearest_heelstrike_before_trigger_threshold < time_difference_right && time_difference_right < time_to_nearest_heelstrike_after_trigger_threshold
+%             % right heelstrike is acceptable
+%             right_heelstrike_acceptable = true;
+%         else
+%             right_heelstrike_acceptable = false;
+%         end
+% 
+%         % accept the acceptable one
+%         if left_heelstrike_acceptable && ~right_heelstrike_acceptable
+%             % triggered by left heelstrike
+%             trigger_foot = 'left';
+%             closest_heelstrike_distance_times(i_trigger) = time_difference_left;
+%         elseif ~left_heelstrike_acceptable && right_heelstrike_acceptable
+%             % triggered by right heelstrike
+%             trigger_foot = 'right';
+%             closest_heelstrike_distance_times(i_trigger) = time_difference_right;
+%         elseif left_heelstrike_acceptable && right_heelstrike_acceptable
+%             trigger_foot = 'unclear';
+%             removal_flags(i_trigger) = 1;
+%         elseif ~left_heelstrike_acceptable && ~right_heelstrike_acceptable
+%             trigger_foot = 'unclear';
+%             removal_flags(i_trigger) = 1;
+%         end
+        
+        [trigger_foot, trigger_time] = determineTriggerFoot(i_trigger);
+        
+        
+        
+        
+        
+        
+        
+        
         
         % I have successfully determined the trigger foot, now let's extract trigger foot and contra foot events
         if strcmp(trigger_foot, 'left')
             trigger_foot_touchdown_times = trial_data.left_touchdown_times;
             contra_foot_touchdown_times = trial_data.right_touchdown_times;
-            stretch_times(i_trigger, 1) = trigger_foot_touchdown_times(index_left);
+%             stretch_times(i_trigger, 1) = trigger_foot_touchdown_times(index_left);
+            stretch_times(i_trigger, 1) = trigger_time;
             trigger_foot_stance_label = 'STANCE_LEFT';
             contra_foot_stance_label = 'STANCE_RIGHT';
             trigger_foot_list{i_trigger} = 'TRIGGER_LEFT';
@@ -113,7 +108,8 @@ function [conditions_trial, event_variables_to_save, removal_flags] = determineC
         if strcmp(trigger_foot, 'right')
             trigger_foot_touchdown_times = trial_data.right_touchdown_times;
             contra_foot_touchdown_times = trial_data.left_touchdown_times;
-            stretch_times(i_trigger, 1) = trigger_foot_touchdown_times(index_right);
+%             stretch_times(i_trigger, 1) = trigger_foot_touchdown_times(index_right);
+            stretch_times(i_trigger, 1) = trigger_time;
             trigger_foot_stance_label = 'STANCE_RIGHT';
             contra_foot_stance_label = 'STANCE_LEFT';
             trigger_foot_list{i_trigger} = 'TRIGGER_RIGHT';
@@ -292,23 +288,55 @@ function stimulus_label = determineStimulus(trigger_index)
             stimulus_label = 'STIM_NONE';
         end
     end
-    
-    
-%     if trial_data.trigger_indices_stimulus(trigger_index) == length(trial_data.illusion_trajectory)
-%         removal_flags(trigger_index) = 1;
-%     else
-%         if trial_data.illusion_trajectory(trial_data.trigger_indices_stimulus(trigger_index)+1) > 0
-%             stimulus_label = 'STIM_RIGHT';
-%         end
-%         if trial_data.illusion_trajectory(trial_data.trigger_indices_stimulus(trigger_index)+1) < 0
-%             stimulus_label = 'STIM_LEFT';
-%         end
-%         if trial_data.illusion_trajectory(trial_data.trigger_indices_stimulus(trigger_index)+1) == 0
-%             stimulus_label = 'STIM_NONE';
-%         end
-%     end
-
 end    
+function [trigger_foot, trigger_time] = determineTriggerFoot(trigger_index)
+        % get thresholds for what time difference is acceptable
+        time_to_nearest_heelstrike_before_trigger_threshold = study_settings.get('time_to_nearest_heelstrike_before_trigger_threshold', 1);
+        time_to_nearest_heelstrike_after_trigger_threshold = study_settings.get('time_to_nearest_heelstrike_after_trigger_threshold', 1);
     
+        % get closest heelstrike on either side
+        [~, index_candidate_left] = min(abs(trial_data.left_touchdown_times - trial_data.trigger_times(trigger_index)));
+        [~, index_candidate_right] = min(abs(trial_data.right_touchdown_times - trial_data.trigger_times(trigger_index)));
+
+        % is the closest left heelstrike within the acceptable interval?
+        time_candidate_left = trial_data.left_touchdown_times(index_candidate_left);
+        time_difference_left = time_candidate_left - trial_data.trigger_times(trigger_index); % where does the closest left heelstrike lie relative to the trigger?
+        if -time_to_nearest_heelstrike_before_trigger_threshold < time_difference_left && time_difference_left < time_to_nearest_heelstrike_after_trigger_threshold
+            % left heelstrike is acceptable
+            candidate_left_acceptable = true;
+        else
+            candidate_left_acceptable = false;
+        end
+
+        % is the closest right heelstrike within the acceptable interval?
+        time_candidate_right = trial_data.right_touchdown_times(index_candidate_right);
+        time_difference_right = time_candidate_right - trial_data.trigger_times(trigger_index); % where does the closest right heelstrike lie relative to the trigger?
+        if -time_to_nearest_heelstrike_before_trigger_threshold < time_difference_right && time_difference_right < time_to_nearest_heelstrike_after_trigger_threshold
+            % right heelstrike is acceptable
+            candidate_right_acceptable = true;
+        else
+            candidate_right_acceptable = false;
+        end
+
+        % accept the acceptable one
+        if candidate_left_acceptable && ~candidate_right_acceptable
+            % triggered by left heelstrike
+            trigger_foot = 'left';
+            trigger_time = time_candidate_left;
+        elseif ~candidate_left_acceptable && candidate_right_acceptable
+            % triggered by right heelstrike
+            trigger_foot = 'right';
+            trigger_time = time_candidate_right;
+        elseif candidate_left_acceptable && candidate_right_acceptable
+            trigger_foot = 'unclear';
+            trigger_time = 0;
+            removal_flags(trigger_index) = 1;
+        elseif ~candidate_left_acceptable && ~candidate_right_acceptable
+            trigger_foot = 'unclear';
+            trigger_time = 0;
+            removal_flags(trigger_index) = 1;
+        end
+
+end
 end
 
