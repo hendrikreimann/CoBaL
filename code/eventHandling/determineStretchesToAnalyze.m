@@ -464,7 +464,7 @@ function determineStretchesToAnalyze(varargin)
             removal_flags = zeros(number_of_triggers, 1);
             event_variables_to_save = struct;
             
-            [conditions_trial, event_variables_to_save] = determineConditionLevels(study_settings, trial_data);
+            [conditions_trial, event_variables_to_save, removal_flags] = determineConditionLevels(study_settings, trial_data);
             
             if strcmp(condition_stimulus, 'NONE')
                 % determine start and end
@@ -2191,7 +2191,7 @@ function determineStretchesToAnalyze(varargin)
 
             % prune
             number_of_stretches = size(event_variables_to_save.stretch_times, 1);
-            removal_flags = zeros(number_of_stretches, 1);
+%             removal_flags = zeros(number_of_stretches, 1);
             
             if study_settings.get('prune_step_time_outliers')
                     stretch_durations = stretch_times(:,2) - stretch_times(:,1);

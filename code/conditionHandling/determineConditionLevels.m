@@ -14,13 +14,13 @@
 %     You should have received a copy of the GNU General Public License
 %     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-function [conditions_trial, event_variables_to_save] = determineConditionLevels(study_settings, trial_data)
+function [conditions_trial, event_variables_to_save, removal_flags] = determineConditionLevels(study_settings, trial_data)
     experimental_paradigm = study_settings.get('experimental_paradigm');
     conditions_trial = struct;
     
     intermittent_perturbation_paradigms = {'Vision', 'CadenceVision', 'GVS', 'CadenceGVS', 'FatigueGVS', 'OculusLaneRestriction', 'CognitiveLoadVision', 'CognitiveLoadGvs'};
     if any(strcmp(experimental_paradigm, intermittent_perturbation_paradigms))
-        [conditions_trial, event_variables_to_save] = determineConditionLevels_intermittentPerturbations_flex(study_settings, trial_data);
+        [conditions_trial, event_variables_to_save, removal_flags] = determineConditionLevels_intermittentPerturbations_flex(study_settings, trial_data);
 %         [conditions_trial_old, event_variables_to_save_old] = determineConditionLevels_intermittentPerturbations(study_settings, trial_data);
     end
 

@@ -20,9 +20,6 @@ function [conditions_trial, event_variables_to_save, removal_flags] = determineC
     experimental_paradigm = study_settings.get('experimental_paradigm');
     bands_per_stretch = study_settings.get('number_of_steps_to_analyze');
     
-%     time_to_nearest_heelstrike_before_trigger_threshold = study_settings.get('time_to_nearest_heelstrike_before_trigger_threshold', 1);
-%     time_to_nearest_heelstrike_after_trigger_threshold = study_settings.get('time_to_nearest_heelstrike_after_trigger_threshold', 1);
-    
     % allocate output variables
     number_of_triggers = length(trial_data.trigger_indices_mocap);
     conditions_trial = struct;
@@ -31,7 +28,6 @@ function [conditions_trial, event_variables_to_save, removal_flags] = determineC
     
 
     stretch_times = zeros(number_of_triggers, bands_per_stretch+1);
-%     closest_heelstrike_distance_times = zeros(number_of_triggers, 1);
     stance_foot_data = cell(number_of_triggers, bands_per_stretch);
     stimulus_list = cell(number_of_triggers, 1); % stimulus STIM_LEFT, STIM_RIGHT or STIM_NONE
     amplitude_list = cell(number_of_triggers, 1); % amplitude of the visual stim, e.g. 30, 60, 120 deg/sec^2
@@ -52,48 +48,25 @@ function [conditions_trial, event_variables_to_save, removal_flags] = determineC
         end
         
         % determine stretch times
-        [stretch_times_this_trigger, stance_foot_data_this_trigger] = determineStretchTimes(trigger_time, trigger_foot);
+        [stretch_times_this_trigger, stance_foot_data_this_trigger, removal_flag_this_trigger] = determineStretchTimes(trigger_time, trigger_foot);
         stretch_times(i_trigger, :) = stretch_times_this_trigger;
         stance_foot_data(i_trigger, :) = stance_foot_data_this_trigger;
+        removal_flags(i_trigger) = removal_flag_this_trigger;
 
         % determine stimulus direction
         direction_list{i_trigger} = determineStimulusDirection(trigger_foot_list{i_trigger}, stimulus_list{i_trigger});
         
-        % determine amplitude of this stimulus
+        % determine stimulus amplitude
         if strcmp(experimental_paradigm, 'Vision')
             amplitude = trial_data.current_acceleration_trajectory(trial_data.trigger_indices_stimulus(i_trigger));
             amplitude_list{i_trigger} = num2str(amplitude);
         end
     end
 
-%     % determine direction
-%     direction_list = cell(size(trigger_foot_list));
-%     for i_stretch = 1 : length(trigger_foot_list)
-%         if strcmp(trigger_foot_list{i_stretch}, 'TRIGGER_RIGHT')
-%             if strcmp(stimulus_list{i_stretch}, 'STIM_RIGHT')
-%                 direction_list{i_stretch} = 'STIM_TOWARDS';
-%             end
-%             if strcmp(stimulus_list{i_stretch}, 'STIM_LEFT')
-%                 direction_list{i_stretch} = 'STIM_AWAY';
-%             end
-%             if strcmp(stimulus_list{i_stretch}, 'STIM_NONE')
-%                 direction_list{i_stretch} = 'STIM_NONE';
-%             end
-%         end
-%         if strcmp(trigger_foot_list{i_stretch}, 'TRIGGER_LEFT')
-%             if strcmp(stimulus_list{i_stretch}, 'STIM_RIGHT')
-%                 direction_list{i_stretch} = 'STIM_AWAY';
-%             end
-%             if strcmp(stimulus_list{i_stretch}, 'STIM_LEFT')
-%                 direction_list{i_stretch} = 'STIM_TOWARDS';
-%             end
-%             if strcmp(stimulus_list{i_stretch}, 'STIM_NONE')
-%                 direction_list{i_stretch} = 'STIM_NONE';
-%             end
-%         end
-%     end
-
+    % add location of the no-step zone for lane restriction paradigm
     if strcmp(experimental_paradigm, 'OculusLaneRestriction')
+        % TODO: this part probably broke when moving the code into a function, fix later
+        
         % determine where the "no step zone" was at stretch
         % trigger
         zone_side_list = cell(size(trigger_foot_list));
@@ -127,12 +100,14 @@ function [conditions_trial, event_variables_to_save, removal_flags] = determineC
                 zone_direction_list{i_stretch} = 'STIM_NONE';
             end
         end
+        conditions_trial.zone_side_list = zone_side_list;
+        conditions_trial.zone_direction_list = zone_direction_list;
     end
 
-    % add cadence list
+    % add cadence information for cadence paradigm
     if strcmp(experimental_paradigm, 'CadenceVision') || strcmp(experimental_paradigm, 'CadenceGVS')
-        this_trial_cadence = '~';
-
+        % TODO: this part probably broke when moving the code into a function, fix when necessary
+        
         % determine cadence for this trial
         this_trial_type = condition_list{i_condition};
         this_trial_number = i_trial;
@@ -146,8 +121,10 @@ function [conditions_trial, event_variables_to_save, removal_flags] = determineC
         [cadence_list{:}] = deal([num2str(this_trial_cadence) 'BPM']);
         conditions_trial.cadence_list = cadence_list;
     end
-
+    
+    % add fatigue information for fatigue paradigm
     if strcmp(experimental_paradigm, 'FatigueGVS')
+        % TODO: this part probably broke when moving the code into a function, fix when necessary
         fatigue_list = cell(size(direction_list));
         if ismember(i_trial, fatigue_trials)
             [fatigue_list{:}] = deal('FATIGUED');
@@ -156,7 +133,10 @@ function [conditions_trial, event_variables_to_save, removal_flags] = determineC
         end
         conditions_trial.fatigue_list = fatigue_list;
     end
+    
+    % add cognitive load information for cognitive load paradigm
     if strcmp(experimental_paradigm, 'CognitiveLoadVision') || strcmp(experimental_paradigm, 'CognitiveLoadGvs')
+        % TODO: this part probably broke when moving the code into a function, fix when necessary
         cognitive_load_list = cell(size(direction_list));
         if ismember(i_trial, back_7_trials)
             [cognitive_load_list{:}] = deal('BACK_7');
@@ -166,6 +146,9 @@ function [conditions_trial, event_variables_to_save, removal_flags] = determineC
         conditions_trial.cognitive_load_list = cognitive_load_list;
     end
 
+    % add information about trigger relative to more affected side 
+    % HR: I commented this out since it is legacy code and in a messy format 
+    %     if it is still needed, e.g. for the Parkinson's or CP study, I'll look at getting it back in
 %     if exist('affected_side')
 %         for i_stretch = 1 : length(trigger_foot_list)
 %             if strcmp(affected_side, 'Left')
@@ -190,10 +173,6 @@ function [conditions_trial, event_variables_to_save, removal_flags] = determineC
     conditions_trial.amplitude_list = amplitude_list;
     conditions_trial.trigger_foot_list = trigger_foot_list;
     conditions_trial.direction_list = direction_list;
-    if strcmp(experimental_paradigm, 'OculusLaneRestriction')
-        conditions_trial.zone_side_list = zone_side_list;
-        conditions_trial.zone_direction_list = zone_direction_list;
-    end
     event_variables_to_save.stretch_times = stretch_times;
     event_variables_to_save.stance_foot_data = stance_foot_data;
     
@@ -266,9 +245,10 @@ function [trigger_foot, trigger_time] = determineTriggerFoot(trigger_index)
         end
 
 end
-function [stretch_times_this_trigger, stance_foot_data_this_trigger] = determineStretchTimes(trigger_time, trigger_foot)
+function [stretch_times_this_trigger, stance_foot_data_this_trigger, removal_flag_this_trigger] = determineStretchTimes(trigger_time, trigger_foot)
     stretch_times_this_trigger = zeros(1, bands_per_stretch+1);
     stance_foot_data_this_trigger = cell(1, bands_per_stretch);
+    removal_flag_this_trigger = false;
 
     % re-label time arrays as trigger and contralateral
     if strcmp(trigger_foot, 'left')
@@ -299,7 +279,11 @@ function [stretch_times_this_trigger, stance_foot_data_this_trigger] = determine
             stance_foot_data_this_trigger{i_band} = trigger_foot_stance_label;
         end
         this_band_end_time = min(swing_foot_touchdown_times(swing_foot_touchdown_times > band_start_time));
-        stretch_times_this_trigger(i_band+1) = this_band_end_time;
+        if isempty(this_band_end_time)
+            removal_flag_this_trigger = true;
+        else
+            stretch_times_this_trigger(i_band+1) = this_band_end_time;
+        end
     end    
 end
 function stimulus_direction = determineStimulusDirection(trigger_foot, stimulus)
