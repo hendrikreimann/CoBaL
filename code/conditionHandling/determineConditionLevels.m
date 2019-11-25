@@ -16,7 +16,11 @@
 
 function [conditions_trial, event_variables_to_save, removal_flags] = determineConditionLevels(study_settings, trial_data)
     experimental_paradigm = study_settings.get('experimental_paradigm');
+    
+    % allocate
     conditions_trial = struct;
+    event_variables_to_save = struct;
+    removal_flags = zeros(size(trial_data.trigger_times));
     
     intermittent_perturbation_paradigms = {'Vision', 'CadenceVision', 'GVS', 'CadenceGVS', 'FatigueGVS', 'OculusLaneRestriction', 'CognitiveLoadVision', 'CognitiveLoadGvs'};
     if any(strcmp(experimental_paradigm, intermittent_perturbation_paradigms))

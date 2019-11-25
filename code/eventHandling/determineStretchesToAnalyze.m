@@ -402,7 +402,7 @@ function determineStretchesToAnalyze(varargin)
                 trigger_times = [];
             end
             if strcmp(experimental_paradigm, 'Stochastic Resonance')
-                trigger_times = left_touchdown_times(1:end-1);
+                trigger_times = trial_data.left_touchdown_times(1:end-1);
                 
             end
             if strcmp(experimental_paradigm, 'platformShift')
@@ -410,24 +410,27 @@ function determineStretchesToAnalyze(varargin)
                 trigger_times = perturbation_start_times;
             end
             
+            trial_data.trigger_times = trigger_times;
             
             
             % calculate indices
-            trigger_indices_mocap = zeros(size(trigger_times));
-            for i_index = 1 : length(trigger_times)
-                [~, index_mocap] = min(abs(time_marker - trigger_times(i_index)));
-                trigger_indices_mocap(i_index) = index_mocap;
-            end
-            trigger_indices_stimulus = zeros(size(trigger_times));
-            for i_index = 1 : length(trigger_times)
-                [~, index_labview] = min(abs(time_stimulus - trigger_times(i_index)));
-                trigger_indices_stimulus(i_index) = index_labview;
+            if exist('time_marker', 'var')
+                trigger_indices_mocap = zeros(size(trigger_times));
+                for i_index = 1 : length(trigger_times)
+                    [~, index_mocap] = min(abs(time_marker - trigger_times(i_index)));
+                    trigger_indices_mocap(i_index) = index_mocap;
+                end
+                trial_data.trigger_indices_mocap = trigger_indices_mocap;
             end
             
-            % store trigger data in trial_data
-            trial_data.trigger_times = trigger_times;
-            trial_data.trigger_indices_mocap = trigger_indices_mocap;
-            trial_data.trigger_indices_stimulus = trigger_indices_stimulus;
+            if exist('time_stimulus', 'var')
+                trigger_indices_stimulus = zeros(size(trigger_times));
+                for i_index = 1 : length(trigger_times)
+                    [~, index_labview] = min(abs(time_stimulus - trigger_times(i_index)));
+                    trigger_indices_stimulus(i_index) = index_labview;
+                end
+                trial_data.trigger_indices_stimulus = trigger_indices_stimulus;
+            end            
 
             % visualize triggers
             if visualize
@@ -2179,14 +2182,14 @@ function determineStretchesToAnalyze(varargin)
                 
                 bands_per_stretch = length(stance_foot_data_stretch);
                 
-                stretch_start_times = left_touchdown_times(1:end-1);
+                stretch_start_times = trial_data.left_touchdown_times(1:end-1);
                 number_of_stretches = length(stretch_start_times);
                 stretch_times = zeros(number_of_stretches, bands_per_stretch+1);
                 removal_flags = false(number_of_stretches, 1);
                 for i_stretch = 1 : number_of_stretches
                     this_stretch_start = stretch_start_times(i_stretch);
-                    this_right_touchdown = min(right_touchdown_times(right_touchdown_times > this_stretch_start));
-                    this_left_touchdown = min(left_touchdown_times(left_touchdown_times > this_stretch_start));
+                    this_right_touchdown = min(trial_data.right_touchdown_times(trial_data.right_touchdown_times > this_stretch_start));
+                    this_left_touchdown = min(trial_data.left_touchdown_times(trial_data.left_touchdown_times > this_stretch_start));
                     this_stretch_times = [this_stretch_start this_right_touchdown this_left_touchdown];
                     if ~issorted(this_stretch_times)
                         removal_flags(i_stretch) = 1;

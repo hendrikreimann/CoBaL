@@ -15,6 +15,8 @@
 %     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 function trigger_times = determineTriggerTimes(study_settings, trial_data)
+    trigger_times = [];
+
     experimental_paradigm = study_settings.get('experimental_paradigm');
     if strcmp(experimental_paradigm, 'Vision') || strcmp(experimental_paradigm, 'CadenceVision') || strcmp(experimental_paradigm, 'CognitiveLoadVision')
         % find the time steps where the stimulus state crosses a threshold
