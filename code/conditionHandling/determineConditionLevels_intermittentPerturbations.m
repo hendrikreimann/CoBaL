@@ -14,7 +14,7 @@
 %     You should have received a copy of the GNU General Public License
 %     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-function [conditions_trial, event_variables_to_save, removal_flags] = determineConditionLevels_intermittentPerturbations_flex(study_settings, trial_data)
+function [conditions_trial, event_variables_to_save, removal_flags] = determineConditionLevels_intermittentPerturbations(study_settings, trial_data)
 
     % get parameters from settings
     experimental_paradigm = study_settings.get('experimental_paradigm');

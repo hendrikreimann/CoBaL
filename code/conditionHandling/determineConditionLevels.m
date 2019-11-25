@@ -24,7 +24,7 @@ function [conditions_trial, event_variables_to_save, removal_flags] = determineC
     
     intermittent_perturbation_paradigms = {'Vision', 'CadenceVision', 'GVS', 'CadenceGVS', 'FatigueGVS', 'OculusLaneRestriction', 'CognitiveLoadVision', 'CognitiveLoadGvs'};
     if any(strcmp(experimental_paradigm, intermittent_perturbation_paradigms))
-        [conditions_trial, event_variables_to_save, removal_flags] = determineConditionLevels_intermittentPerturbations_flex(study_settings, trial_data);
+        [conditions_trial, event_variables_to_save, removal_flags] = determineConditionLevels_intermittentPerturbations(study_settings, trial_data);
     end
 
 
