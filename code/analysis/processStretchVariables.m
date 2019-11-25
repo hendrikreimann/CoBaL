@@ -19,7 +19,7 @@
 % A stretch variable is something that can be calculated for each band in a data stretch separately. Specifically, stretch
 % variables must not depend upon the mean over a variable for a certain condition, or anything else related to other data.
 
-% input
+% input..
 % relevantDataStretches.mat
 
 function processStretchVariables(varargin)
