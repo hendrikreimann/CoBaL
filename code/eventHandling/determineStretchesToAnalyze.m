@@ -105,6 +105,9 @@ function determineStretchesToAnalyze(varargin)
             
             % determine experimental condition
             this_trial_type = condition_list{i_condition};
+            trial_data.trial_type = this_trial_type;
+            trial_data.trial_number = i_trial;
+            
             condition_experimental = study_settings.get('experimental_condition');
             if strcmp(condition_experimental, 'load_from_conditions_file')
                 condition_experimental = loadConditionFromFile(conditions_file_name, 'experimental', i_trial);
@@ -401,10 +404,10 @@ function determineStretchesToAnalyze(varargin)
             if strcmp(experimental_paradigm, 'Vision Stochastic')
                 trigger_times = [];
             end
-            if strcmp(experimental_paradigm, 'Stochastic Resonance')
-                trigger_times = trial_data.left_touchdown_times(1:end-1);
-                
-            end
+%             if strcmp(experimental_paradigm, 'Stochastic Resonance')
+%                 trigger_times_old = trial_data.left_touchdown_times(1:end-1);
+%                 
+%             end
             if strcmp(experimental_paradigm, 'platformShift')
                 % use all touchdown events as triggers
                 trigger_times = perturbation_start_times;
@@ -470,7 +473,7 @@ function determineStretchesToAnalyze(varargin)
             removal_flags = zeros(number_of_triggers, 1);
             event_variables_to_save = struct;
             
-            [conditions_trial, event_variables_to_save, removal_flags] = determineConditionLevels(study_settings, trial_data);
+            [conditions_trial, event_variables_to_save, removal_flags] = determineConditionLevels(study_settings, subject_settings, trial_data);
             
             if strcmp(condition_stimulus, 'NONE')
                 % determine start and end
@@ -2153,71 +2156,72 @@ function determineStretchesToAnalyze(varargin)
                 conditions_trial.block_list = block_list;
             end
             
-            if strcmp(experimental_paradigm, 'Stochastic Resonance')
-                %stim_frequency = loadConditionFromFile(conditions_file_name, 'frequency', i_trial);
-                stochastic_stimulus_level_header = subject_settings.get('stochastic_stimulus_level_header');
-                stochastic_stimulus_level_table = subject_settings.get('stochastic_stimulus_level_table');
-                
-                
-                % get current trial type and number
-                this_trial_type = condition_list{i_condition};
-                this_trial_number = i_trial;
-                
-                % extract header information
-                trial_type_column_index = find(strcmp(stochastic_stimulus_level_header, 'trial_type'));
-                trial_number_column_index = find(strcmp(stochastic_stimulus_level_header, 'trial_number'));
-                stimulus_strength_column_index = find(strcmp(stochastic_stimulus_level_header, 'stimulus_strength'));
-                
-                % find row in stimulus level table for current trial
-                trial_type_column = stochastic_stimulus_level_table(:, trial_type_column_index);
-                trial_number_column = stochastic_stimulus_level_table(:, trial_number_column_index);
-                trial_type_indicator = strcmp(trial_type_column, this_trial_type);
-                trial_number_indicator = strcmp(trial_number_column, num2str(this_trial_number));
-                this_trial_row_index = find(trial_type_indicator & trial_number_indicator);
-                
-                % extract stimulus strength for this trial
-                this_trial_stimulus_strength = stochastic_stimulus_level_table{this_trial_row_index, stimulus_strength_column_index};
-
-                stance_foot_data_stretch = {'STANCE_LEFT', 'STANCE_RIGHT'};                
-                
-                bands_per_stretch = length(stance_foot_data_stretch);
-                
-                stretch_start_times = trial_data.left_touchdown_times(1:end-1);
-                number_of_stretches = length(stretch_start_times);
-                stretch_times = zeros(number_of_stretches, bands_per_stretch+1);
-                removal_flags = false(number_of_stretches, 1);
-                for i_stretch = 1 : number_of_stretches
-                    this_stretch_start = stretch_start_times(i_stretch);
-                    this_right_touchdown = min(trial_data.right_touchdown_times(trial_data.right_touchdown_times > this_stretch_start));
-                    this_left_touchdown = min(trial_data.left_touchdown_times(trial_data.left_touchdown_times > this_stretch_start));
-                    this_stretch_times = [this_stretch_start this_right_touchdown this_left_touchdown];
-                    if ~issorted(this_stretch_times)
-                        removal_flags(i_stretch) = 1;
-                    end
-                    stretch_times(i_stretch, :) = this_stretch_times;
-                end
-                stretch_times(removal_flags, :) = [];
-                
-                stance_foot_data = repmat(stance_foot_data_stretch, size(stretch_times, 1), 1);
-                event_variables_to_save.stretch_times = stretch_times;
-                event_variables_to_save.stance_foot_data = stance_foot_data;
-
-                % conditions
-                %stim_frequency_list = repmat({['FRQ_' stim_frequency]}, size(stretch_times, 1), 1);
-                stim_amplitude_list = repmat({this_trial_stimulus_strength}, size(stretch_times, 1), 1);
-%                 block_list = repmat({block}, size(stretch_times, 1), 1);
-                conditions_trial = struct;
-%                 conditions_trial.stim_frequency_list = stim_frequency_list;
-                conditions_trial.stim_amplitude_list = stim_amplitude_list;
-%                 conditions_trial.block_list = block_list;
-            end
-                group = subject_settings.get('group');
-                % add group:
-                condition_group_list = cell(size(event_variables_to_save.stance_foot_data, 1), 1);
-                for i_stretch = 1 : length(condition_group_list)
-                    condition_group_list{i_stretch} = group;
-                end
-                conditions_trial.group_list = condition_group_list;
+%             if strcmp(experimental_paradigm, 'Stochastic Resonance')
+%                 
+%                 %stim_frequency = loadConditionFromFile(conditions_file_name, 'frequency', i_trial);
+%                 stochastic_stimulus_level_header = subject_settings.get('stochastic_stimulus_level_header');
+%                 stochastic_stimulus_level_table = subject_settings.get('stochastic_stimulus_level_table');
+%                 
+%                 % get current trial type and number
+%                 this_trial_type = condition_list{i_condition};
+%                 this_trial_number = i_trial;
+%                 
+%                 % extract header information
+%                 trial_type_column_index = find(strcmp(stochastic_stimulus_level_header, 'trial_type'));
+%                 trial_number_column_index = find(strcmp(stochastic_stimulus_level_header, 'trial_number'));
+%                 stimulus_strength_column_index = find(strcmp(stochastic_stimulus_level_header, 'stimulus_strength'));
+%                 
+%                 % find row in stimulus level table for current trial
+%                 trial_type_column = stochastic_stimulus_level_table(:, trial_type_column_index);
+%                 trial_number_column = stochastic_stimulus_level_table(:, trial_number_column_index);
+%                 trial_type_indicator = strcmp(trial_type_column, this_trial_type);
+%                 trial_number_indicator = strcmp(trial_number_column, num2str(this_trial_number));
+%                 this_trial_row_index = find(trial_type_indicator & trial_number_indicator);
+%                 
+%                 % extract stimulus strength for this trial
+%                 this_trial_stimulus_strength = stochastic_stimulus_level_table{this_trial_row_index, stimulus_strength_column_index};
+% 
+%                 stance_foot_data_stretch = {'STANCE_LEFT', 'STANCE_RIGHT'};                
+%                 
+%                 bands_per_stretch = length(stance_foot_data_stretch);
+%                 
+%                 stretch_start_times = trial_data.left_touchdown_times(1:end-1);
+%                 number_of_stretches = length(stretch_start_times);
+%                 stretch_times = zeros(number_of_stretches, bands_per_stretch+1);
+%                 removal_flags = false(number_of_stretches, 1);
+%                 for i_stretch = 1 : number_of_stretches
+%                     this_stretch_start = stretch_start_times(i_stretch);
+%                     this_right_touchdown = min(trial_data.right_touchdown_times(trial_data.right_touchdown_times > this_stretch_start));
+%                     this_left_touchdown = min(trial_data.left_touchdown_times(trial_data.left_touchdown_times > this_stretch_start));
+%                     this_stretch_times = [this_stretch_start this_right_touchdown this_left_touchdown];
+%                     if ~issorted(this_stretch_times)
+%                         removal_flags(i_stretch) = 1;
+%                     end
+%                     stretch_times(i_stretch, :) = this_stretch_times;
+%                 end
+%                 stretch_times(removal_flags, :) = [];
+%                 
+%                 stance_foot_data = repmat(stance_foot_data_stretch, size(stretch_times, 1), 1);
+%                 event_variables_to_save.stretch_times = stretch_times;
+%                 event_variables_to_save.stance_foot_data = stance_foot_data;
+% 
+%                 % conditions
+%                 %stim_frequency_list = repmat({['FRQ_' stim_frequency]}, size(stretch_times, 1), 1);
+%                 stim_amplitude_list = repmat({this_trial_stimulus_strength}, size(stretch_times, 1), 1);
+% %                 block_list = repmat({block}, size(stretch_times, 1), 1);
+%                 conditions_trial = struct;
+% %                 conditions_trial.stim_frequency_list = stim_frequency_list;
+%                 conditions_trial.stim_amplitude_list = stim_amplitude_list;
+% %                 conditions_trial.block_list = block_list;
+% 
+%                 group = subject_settings.get('group');
+%                 % add group:
+%                 condition_group_list = cell(size(event_variables_to_save.stance_foot_data, 1), 1);
+%                 for i_stretch = 1 : length(condition_group_list)
+%                     condition_group_list{i_stretch} = group;
+%                 end
+%                 conditions_trial.group_list = condition_group_list;
+%             end
             
             if strcmp(experimental_paradigm, 'platformShift')
                 stance_foot_data = {'STANCE_BOTH', 'STANCE_BOTH'};
@@ -2433,7 +2437,7 @@ function determineStretchesToAnalyze(varargin)
             
             %% save
             event_variables_to_save.conditions_trial = conditions_trial;
-            event_variables_to_save.bands_per_stretch = study_settings.get('number_of_steps_to_analyze');
+            event_variables_to_save.bands_per_stretch = size(event_variables_to_save.stretch_times, 2) - 1;
             
             stretches_file_name = ['analysis' filesep makeFileName(collection_date, subject_id, condition_list{i_condition}, i_trial, 'relevantDataStretches')];
             saveDataToFile(stretches_file_name, event_variables_to_save);

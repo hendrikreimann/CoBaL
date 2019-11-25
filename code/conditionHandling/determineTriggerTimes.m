@@ -24,6 +24,8 @@ function trigger_times = determineTriggerTimes(study_settings, trial_data)
         trigger_indices_labview = find(diff(sign(trial_data.stimulus_state_trajectory - stimulus_threshold)) > 0) + 2;
         trigger_times = trial_data.time_stimulus(trigger_indices_labview);
     end
-
+    if strcmp(experimental_paradigm, 'Stochastic Resonance')
+        trigger_times = trial_data.left_touchdown_times(1:end-1);
+    end
 
 end
