@@ -22,7 +22,7 @@ function [conditions_trial, event_variables_to_save, removal_flags] = determineC
     event_variables_to_save = struct;
     removal_flags = zeros(size(trial_data.trigger_times));
     
-    intermittent_perturbation_paradigms = {'Vision', 'CadenceVision', 'GVS', 'CadenceGVS', 'FatigueGVS', 'OculusLaneRestriction', 'CognitiveLoadVision', 'CognitiveLoadGvs'};
+    intermittent_perturbation_paradigms = {'Vision', 'CadenceVision', 'GVS', 'CadenceGVS', 'FatigueGVS', 'OculusLaneRestriction', 'CognitiveLoadVision', 'CognitiveLoadGvs', 'SR_VisualStim'};
     if any(strcmp(experimental_paradigm, intermittent_perturbation_paradigms))
         [conditions_trial, event_variables_to_save, removal_flags] = determineConditionLevels_intermittentPerturbations(study_settings, trial_data);
     end

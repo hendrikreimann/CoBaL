@@ -18,12 +18,14 @@ function trigger_times = determineTriggerTimes(study_settings, trial_data)
     trigger_times = [];
 
     experimental_paradigm = study_settings.get('experimental_paradigm');
-    if strcmp(experimental_paradigm, 'Vision') || strcmp(experimental_paradigm, 'CadenceVision') || strcmp(experimental_paradigm, 'CognitiveLoadVision')
+    perturbation_paradigms = {'Vision', 'CadenceVision', 'CognitiveLoadVision', 'SR_VisualStim', 'GVS', 'CadenceGVS', 'FatigueGVS', 'CognitiveLoadGvs'};
+    if any(strcmp(experimental_paradigm, perturbation_paradigms))
         % find the time steps where the stimulus state crosses a threshold
         stimulus_threshold = 1.5;
         trigger_indices_labview = find(diff(sign(trial_data.stimulus_state_trajectory - stimulus_threshold)) > 0) + 2;
         trigger_times = trial_data.time_stimulus(trigger_indices_labview);
     end
+    
     if strcmp(experimental_paradigm, 'Stochastic Resonance')
         trigger_times = trial_data.left_touchdown_times(1:end-1);
     end

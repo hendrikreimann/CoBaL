@@ -187,7 +187,6 @@ function determineStretchesToAnalyze(varargin)
                 [stimulus_state_trajectory, time_stimulus] = loadData(collection_date, subject_id, condition_list{i_condition}, i_trial, 'stimulus_state_trajectory');
             end
             if strcmp(experimental_paradigm, 'Vision') || strcmp(experimental_paradigm, 'CadenceVision') || strcmp(experimental_paradigm, 'SR_VisualStim') || strcmp(experimental_paradigm, 'CognitiveLoadVision')
-%                 current_rotation_trajectory = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'current_rotation_trajectory');
                 current_rotation_trajectory = loadData(collection_date, subject_id, condition_list{i_condition}, i_trial, 'visual_rotation_angle_trajectory');
                 trial_data.current_acceleration_trajectory = loadData(collection_date, subject_id, condition_list{i_condition}, i_trial, 'visual_rotation_acceleration_trajectory');
                 [stimulus_state_trajectory, time_stimulus] = loadData(collection_date, subject_id, condition_list{i_condition}, i_trial, 'stimulus_state_trajectory');
@@ -198,6 +197,9 @@ function determineStretchesToAnalyze(varargin)
             if strcmp(experimental_paradigm, 'GVS') || strcmp(experimental_paradigm, 'CadenceGVS') || strcmp(experimental_paradigm, 'FatigueGVS') || strcmp(experimental_paradigm, 'CognitiveLoadGvs')
                 gvs_trajectory = loadData(collection_date, subject_id, condition_list{i_condition}, i_trial, 'GVS_current_trajectory');
                 [stimulus_state_trajectory, time_stimulus] = loadData(collection_date, subject_id, condition_list{i_condition}, i_trial, 'stimulus_state_trajectory');
+                
+                trial_data.stimulus_state_trajectory = stimulus_state_trajectory;
+                trial_data.time_stimulus = time_stimulus;
             end
             if strcmp(experimental_paradigm, 'GvsOverground')
                 [analog_trajectories, time_analog, sampling_rate_analog, analog_labels, analog_directions] = loadData(collection_date, subject_id, condition_list{i_condition}, i_trial, 'analog_trajectories');
@@ -286,6 +288,7 @@ function determineStretchesToAnalyze(varargin)
                         end
                     end
                 end
+                trial_data.illusion_trajectory = illusion_trajectory;
             end
             if strcmp(experimental_paradigm, 'GvsOverground')
                 gvs_threshold = study_settings.get('gvs_threshold');
@@ -366,12 +369,6 @@ function determineStretchesToAnalyze(varargin)
                 end
                 trigger_indices_stimulus = trigger_indices_stimulus(1 : length(stim_start_indices_labview)); % in case a stim is triggered, but not recorded
                 
-                trigger_times = time_stimulus(trigger_indices_stimulus);
-            end
-            if strcmp(experimental_paradigm, 'GVS') || strcmp(experimental_paradigm, 'CadenceGVS') || strcmp(experimental_paradigm, 'FatigueGVS') || strcmp(experimental_paradigm, 'CognitiveLoadGvs')
-                % find the time steps where the stimulus state crosses a threshold
-                stimulus_threshold = 1.5;
-                trigger_indices_stimulus = find(diff(sign(stimulus_state_trajectory - stimulus_threshold)) > 0) + 2;
                 trigger_times = time_stimulus(trigger_indices_stimulus);
             end
             if strcmp(experimental_paradigm, 'GvsOverground')
