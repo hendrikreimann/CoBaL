@@ -14,7 +14,7 @@
 %     You should have received a copy of the GNU General Public License
 %     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-function [conditions_trial, event_variables_to_save, removal_flags] = determineConditionLevels_intermittentPerturbations(study_settings, trial_data)
+function [conditions_trial, event_variables_to_save, removal_flags] = determineConditionLevels_intermittentPerturbations(study_settings, subject_settings, trial_data)
 
     % get parameters from settings
     experimental_paradigm = study_settings.get('experimental_paradigm');
@@ -146,6 +146,24 @@ function [conditions_trial, event_variables_to_save, removal_flags] = determineC
         conditions_trial.cognitive_load_list = cognitive_load_list;
     end
 
+    if strcmp(experimental_paradigm, 'SR_VisualStim')
+        % get stimulus strength
+        stimulus_strength = determineStochasticResonanceStrength(subject_settings, trial_data.trial_type, trial_data.trial_number);
+        stim_amplitude_list = repmat({stimulus_strength}, size(stretch_times, 1), 1);
+        conditions_trial.stim_amplitude_list = stim_amplitude_list;
+        
+        group = subject_settings.get('group');
+        % add group:
+        condition_group_list = cell(size(stim_amplitude_list, 1), 1);
+        for i_stretch = 1 : length(condition_group_list)
+            condition_group_list{i_stretch} = group;
+        end
+        conditions_trial.group_list = condition_group_list;
+        
+    end
+    
+    
+    
     % add information about trigger relative to more affected side 
     % HR: I commented this out since it is legacy code and in a messy format 
     %     if it is still needed, e.g. for the Parkinson's or CP study, I'll look at getting it back in

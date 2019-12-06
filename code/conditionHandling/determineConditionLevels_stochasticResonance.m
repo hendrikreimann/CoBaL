@@ -16,28 +16,8 @@
 
 function [conditions_trial, event_variables_to_save, removal_flags] = determineConditionLevels_stochasticResonance(subject_settings, trial_data)
 
-    % get current trial type and number
-    this_trial_type = trial_data.trial_type;
-    this_trial_number = trial_data.trial_number;
-    
-    this_trial_stimulus_strength = determineStochasticResonanceStrength(subject_settings, this_trial_type, this_trial_number);
-
-%     % extract header information
-%     stochastic_stimulus_level_header = subject_settings.get('stochastic_stimulus_level_header');
-%     stochastic_stimulus_level_table = subject_settings.get('stochastic_stimulus_level_table');
-%     trial_type_column_index = find(strcmp(stochastic_stimulus_level_header, 'trial_type'));
-%     trial_number_column_index = find(strcmp(stochastic_stimulus_level_header, 'trial_number'));
-%     stimulus_strength_column_index = find(strcmp(stochastic_stimulus_level_header, 'stimulus_strength'));
-% 
-%     % find row in stimulus level table for current trial
-%     trial_type_column = stochastic_stimulus_level_table(:, trial_type_column_index); %#ok<FNDSB>
-%     trial_number_column = stochastic_stimulus_level_table(:, trial_number_column_index); %#ok<FNDSB>
-%     trial_type_indicator = strcmp(trial_type_column, this_trial_type);
-%     trial_number_indicator = strcmp(trial_number_column, num2str(this_trial_number));
-%     this_trial_row_index = find(trial_type_indicator & trial_number_indicator);
-% 
-%     % extract stimulus strength for this trial
-%     this_trial_stimulus_strength = stochastic_stimulus_level_table{this_trial_row_index, stimulus_strength_column_index}; %#ok<FNDSB>
+    % get stimulus strength
+    this_trial_stimulus_strength = determineStochasticResonanceStrength(subject_settings, trial_data.trial_type, trial_data.trial_number);
 
     stance_foot_data_stretch = {'STANCE_LEFT', 'STANCE_RIGHT'};                
 
