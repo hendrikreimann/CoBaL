@@ -24,7 +24,7 @@ function [conditions_trial, event_variables_to_save, removal_flags] = determineC
     number_of_triggers = length(trial_data.trigger_indices_mocap);
     conditions_trial = struct;
     event_variables_to_save = struct;
-    removal_flags = zeros(number_of_triggers, 1);
+    removal_flags = false(number_of_triggers, 1);
     
 
     stretch_times = zeros(number_of_triggers, bands_per_stretch+1);
