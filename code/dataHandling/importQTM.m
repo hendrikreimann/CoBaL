@@ -520,7 +520,7 @@ function importQTM(varargin)
 
 
             % replace marker labels if necessary
-            marker_label_replacement_map = subject_settings.get('marker_label_replacement_map');
+            marker_label_replacement_map = subject_settings.get('marker_label_replacement_map', 1);
             for i_label = 1 : size(marker_label_replacement_map, 1)
                 old_label = marker_label_replacement_map{i_label, 1};
                 new_label = marker_label_replacement_map{i_label, 2};

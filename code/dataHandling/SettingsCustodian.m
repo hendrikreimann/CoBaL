@@ -263,8 +263,10 @@ classdef SettingsCustodian < handle
             if strcmp(property_name, 'force_plates_to_import')
                 default_data = [1, 2];
             end
+            if strcmp(property_name, 'emg_cutoff_frequency_low')
             
-            
+                default_data = 500;
+            end
             
             
             
