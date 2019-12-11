@@ -170,13 +170,13 @@ function [conditions_trial, event_variables_to_save, removal_flags] = determineC
         affected_side = subject_settings.get('affected_side');
         condition_affected_side_list = cell(number_of_triggers, 1);
         for i_stretch = 1 : length(trigger_foot_list)
-            if strcmp(affected_side, 'Left')
+            if strcmp(affected_side, 'left')
                 if strcmp(trigger_foot_list(i_stretch), 'TRIGGER_LEFT')
                     condition_affected_side_list{i_stretch} = 'TRIGGER_AFFECTED';
                 elseif strcmp(trigger_foot_list(i_stretch), 'TRIGGER_RIGHT')
                     condition_affected_side_list{i_stretch} = 'TRIGGER_UNAFFECTED';
                 end
-            elseif strcmp(affected_side, 'Right')
+            elseif strcmp(affected_side, 'right')
                 if strcmp(trigger_foot_list(i_stretch), 'TRIGGER_RIGHT')
                     condition_affected_side_list{i_stretch} = 'TRIGGER_AFFECTED';
                 elseif strcmp(trigger_foot_list(i_stretch), 'TRIGGER_LEFT')
