@@ -164,6 +164,40 @@ function [conditions_trial, event_variables_to_save, removal_flags] = determineC
         conditions_trial.group_list = condition_group_list;
     end
     
+%     %Ash %add affected side
+    conditions_table = study_settings.get('conditions');
+    if any(strcmp(conditions_table(:, 1), 'affected_side'))
+        affected_side = subject_settings.get('affected_side');
+        condition_affected_side_list = cell(number_of_triggers, 1);
+        for i_stretch = 1 : length(trigger_foot_list)
+            if strcmp(affected_side, 'Left')
+                if strcmp(trigger_foot_list(i_stretch), 'TRIGGER_LEFT')
+                    condition_affected_side_list{i_stretch} = 'TRIGGER_AFFECTED';
+                elseif strcmp(trigger_foot_list(i_stretch), 'TRIGGER_RIGHT')
+                    condition_affected_side_list{i_stretch} = 'TRIGGER_UNAFFECTED';
+                end
+            elseif strcmp(affected_side, 'Right')
+                if strcmp(trigger_foot_list(i_stretch), 'TRIGGER_RIGHT')
+                    condition_affected_side_list{i_stretch} = 'TRIGGER_AFFECTED';
+                elseif strcmp(trigger_foot_list(i_stretch), 'TRIGGER_LEFT')
+                    condition_affected_side_list{i_stretch} = 'TRIGGER_UNAFFECTED';
+                end
+            end
+        end
+        conditions_trial.affected_side_list = condition_affected_side_list;
+    end
+    
+%Ash %           conditions_table = study_settings.get('conditions');
+%     if any(strcmp(conditions_table(:, 1), 'affected_side'))
+%         affected_side = subject_settings.get('affected_side');
+%         condition_affected_side_list = cell(number_of_triggers, 1);
+%         for i_stretch = 1 : number_of_triggers
+%             condition_affected_side_list{i_stretch} = affected_side;
+%         end
+%         conditions_trial.affected_side_list = condition_affected_side_list;
+%     end
+%     
+    
     % add information about trigger relative to more affected side 
     % HR: I commented this out since it is legacy code and in a messy format 
     %     if it is still needed, e.g. for the Parkinson's or CP study, I'll look at getting it back in
