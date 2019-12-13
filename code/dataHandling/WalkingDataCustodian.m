@@ -838,6 +838,12 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('mz')
                 this.addStretchVariable('mz')
             end
+            
+            % protocol
+            if this.isVariableToAnalyze('stimulus_state_trajectory')
+                this.addBasicVariable('stimulus_state_trajectory')
+                this.addStretchVariable('stimulus_state_trajectory')
+            end
         end
         
         % interface

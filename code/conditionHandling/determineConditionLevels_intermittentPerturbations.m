@@ -46,6 +46,9 @@ function [conditions_trial, event_variables_to_save, removal_flags] = determineC
         if strcmp(trigger_foot, 'right')
             trigger_foot_list{i_trigger} = 'TRIGGER_RIGHT';
         end
+        if strcmp(trigger_foot, 'unclear')
+            trigger_foot_list{i_trigger} = 'unclear';
+        end
         
         % determine stretch times
         [stretch_times_this_trigger, stance_foot_data_this_trigger, removal_flag_this_trigger] = determineStretchTimes(trigger_time, trigger_foot);
@@ -283,6 +286,13 @@ function [stretch_times_this_trigger, stance_foot_data_this_trigger, removal_fla
         contra_foot_stance_label = 'STANCE_LEFT';
         stretch_times_this_trigger(1) = trigger_time;
     end
+    if strcmp(trigger_foot, 'unclear')
+        trigger_foot_touchdown_times = [];
+        contra_foot_touchdown_times = [];
+        trigger_foot_stance_label = 'unclear';
+        contra_foot_stance_label = 'unclear';
+        stretch_times_this_trigger(1) = trigger_time;
+    end
 
     % now fill the other times
     for i_band = 1 : bands_per_stretch
@@ -305,6 +315,7 @@ function [stretch_times_this_trigger, stance_foot_data_this_trigger, removal_fla
     end    
 end
 function stimulus_direction = determineStimulusDirection(trigger_foot, stimulus)
+    stimulus_direction = 'unclear';
     if strcmp(trigger_foot, 'TRIGGER_RIGHT')
         if strcmp(stimulus, 'STIM_RIGHT')
             stimulus_direction = 'STIM_TOWARDS';
