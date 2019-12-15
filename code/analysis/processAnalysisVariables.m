@@ -458,13 +458,17 @@ function processAnalysisVariables(varargin)
                 [band_start_index, band_end_index] = getBandIndices(i_band, number_of_time_steps_normalized);
                 this_band_time_full = linspace(0, this_step_time_data(i_band), number_of_time_steps_normalized);
                 this_band_data_full = this_variable_source_data(band_start_index : band_end_index, i_stretch);
-                range = start_data_percent(i_band, i_stretch) : end_data_percent(i_band, i_stretch);
-                this_band_time_range = this_band_time_full(range);
-                this_band_data_range = this_band_data_full(range);
+                range = (start_data_percent(i_band, i_stretch) : end_data_percent(i_band, i_stretch)) + 1;
+                if isempty(range)
+                    integrated_data(i_band, i_stretch) = 0;
+                else
+                    this_band_time_range = this_band_time_full(range);
+                    this_band_data_range = this_band_data_full(range);
+                    % integrate
+                    this_band_data_integrated = cumtrapz(this_band_time_range, this_band_data_range);           
+                    integrated_data(i_band, i_stretch) = this_band_data_integrated(end);
+                end
 
-                % integrate
-                this_band_data_integrated = cumtrapz(this_band_time_range, this_band_data_range);           
-                integrated_data(i_band, i_stretch) = this_band_data_integrated(end);
             end
         end        
         

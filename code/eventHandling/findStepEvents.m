@@ -77,12 +77,14 @@ function findStepEvents(varargin)
             LHEE_y_trajectory = LHEE_trajectory(:, 2);
             LHEE_z_trajectory = LHEE_trajectory(:, 3);
             LTOE_trajectory = extractMarkerData(marker_trajectories, marker_labels, 'LTOE', 'trajectories');
+            LTOE_y_trajectory = LTOE_trajectory(:, 2);
             LTOE_z_trajectory = LTOE_trajectory(:, 3);
             
             RHEE_trajectory = extractMarkerData(marker_trajectories, marker_labels, 'RHEE', 'trajectories');
             RHEE_y_trajectory = RHEE_trajectory(:, 2);
             RHEE_z_trajectory = RHEE_trajectory(:, 3);
             RTOE_trajectory = extractMarkerData(marker_trajectories, marker_labels, 'RTOE', 'trajectories');
+            RTOE_y_trajectory = RTOE_trajectory(:, 2);
             RTOE_z_trajectory = RTOE_trajectory(:, 3);
             
             LELB_trajectory = extractMarkerData(marker_trajectories, marker_labels, 'LELB', 'trajectories');
@@ -282,6 +284,12 @@ function findStepEvents(varargin)
                 left_pushoff_diff_forceplate = diff(sign(abs(left_fz_trajectory) - subject_settings.get('forceplate_load_threshold')));
                 left_pushoff_times = [left_pushoff_times; time_left_forceplate(left_pushoff_diff_forceplate~=0)];
             end
+            if any(strcmp(subject_settings.get('left_pushoff_method'), 'toes_ap_vale'))
+                % find velocity zeros
+                [~, left_toes_vale_locations] = findpeaks(-LTOE_y_trajectory, 'MinPeakProminence', subject_settings.get('left_pushoff_peak_prominence_threshold'));
+                left_pushoff_indices_mocap = left_toes_vale_locations;
+                left_pushoff_times = [left_pushoff_times; time_marker(left_toes_vale_locations)];
+            end
             
             left_fullstance_times = [];
             if any(strcmp(subject_settings.get('left_fullstance_method'), 'first_zero_crossing_after_heelstrike'))
@@ -370,6 +378,12 @@ function findStepEvents(varargin)
             if any(strcmp(subject_settings.get('right_pushoff_method'), 'forceplate_threshold'))
                 right_pushoff_diff_forceplate = diff(sign(abs(right_fz_trajectory) - subject_settings.get('forceplate_load_threshold')));
                 right_pushoff_times = [right_pushoff_times; time_right_forceplate(right_pushoff_diff_forceplate~=0)];
+            end
+            if any(strcmp(subject_settings.get('right_pushoff_method'), 'toes_ap_vale'))
+                % find velocity zeros
+                [~, right_toes_vale_locations] = findpeaks(-RTOE_y_trajectory, 'MinPeakProminence', subject_settings.get('right_pushoff_peak_prominence_threshold'));
+                right_pushoff_indices_mocap = right_toes_vale_locations;
+                right_pushoff_times = [right_pushoff_times; time_marker(right_toes_vale_locations)];
             end
 
             right_fullstance_times = [];
