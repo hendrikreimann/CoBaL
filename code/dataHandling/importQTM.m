@@ -281,8 +281,15 @@ function importQTM(varargin)
                 save_this_trial = protocol_trial_saved(this_trial_protocol_index);
             end
             if strcmp(sync_mode, 'events')
-                this_trial_start_time = analog_time(this_trial_start_index);
-                this_trial_end_time = analog_time(this_trial_end_index);
+                
+                if ~analog_data_available
+                    this_trial_start_time = 0;
+                    this_trial_end_time = this_trial_length;
+                else
+                    this_trial_start_time = analog_time(this_trial_start_index);
+                    this_trial_end_time = analog_time(this_trial_end_index);
+                end
+                
                 if ~event_data_available
                     start_event_times = this_trial_start_time;
                     end_event_times = this_trial_end_time;
