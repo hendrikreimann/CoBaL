@@ -37,7 +37,6 @@ function [conditions_trial, event_variables_to_save, removal_flags] = determineC
         end
         stretch_times(i_stretch, :) = this_stretch_times;
     end
-    stretch_times(removal_flags, :) = [];
 
     stance_foot_data = repmat(stance_foot_data_stretch, size(stretch_times, 1), 1);
     event_variables_to_save.stretch_times = stretch_times;
