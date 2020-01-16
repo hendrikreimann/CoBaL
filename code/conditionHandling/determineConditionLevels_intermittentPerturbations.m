@@ -74,30 +74,30 @@ function [conditions_trial, event_variables_to_save, removal_flags] = determineC
         % trigger
         zone_side_list = cell(size(trigger_foot_list));
         zone_direction_list = cell(size(trigger_foot_list));
-        scene_translation_mod100 = mod(scene_translation_trajectory + 25, 100); %TO DO the origin of the scene is +25 relative to the end of the virtual objects
+        scene_translation_mod100 = mod(trial_data.scene_translation_trajectory + 25, 100); %TO DO the origin of the scene is +25 relative to the end of the virtual objects
 
         for i_stretch = 1:length(trial_data.trigger_indices_stimulus)
             VR_trigger_position = scene_translation_mod100(trial_data.trigger_indices_stimulus(i_stretch));
-            [~,scene_translation_mod100_index] = min(abs(virtual_object_ap_location - VR_trigger_position));
+            [~,scene_translation_mod100_index] = min(abs(trial_data.virtual_object_ap_location - VR_trigger_position));
 
 
             %% CHECK THIS %
             % 2 = NO STEP ZONE RIGHT
             % 0 = NO STEP ZONE LEFT
-             if virtual_object_ml_location(scene_translation_mod100_index) == 2
+            if trial_data.virtual_object_ml_location(scene_translation_mod100_index) == 2
                 zone_side_list{i_stretch} = 'STIM_ZONE_LEFT';
-             elseif virtual_object_ml_location(scene_translation_mod100_index) == 0
+            elseif trial_data.virtual_object_ml_location(scene_translation_mod100_index) == 0
                 zone_side_list{i_stretch} = 'STIM_ZONE_RIGHT';
-             end
-            if (virtual_object_ml_location(scene_translation_mod100_index) == 2 && strcmp(trigger_foot_list{i_stretch}, 'TRIGGER_LEFT') && strcmp(direction_list{i_stretch}, 'STIM_TOWARDS')) || ...
-                    (virtual_object_ml_location(scene_translation_mod100_index) == 2 && strcmp(trigger_foot_list{i_stretch}, 'TRIGGER_RIGHT') && strcmp(direction_list{i_stretch}, 'STIM_AWAY')) || ...
-                    (virtual_object_ml_location(scene_translation_mod100_index) == 0 && strcmp(trigger_foot_list{i_stretch}, 'TRIGGER_RIGHT') && strcmp(direction_list{i_stretch}, 'STIM_TOWARDS')) ||...
-                    (virtual_object_ml_location(scene_translation_mod100_index) == 0 && strcmp(trigger_foot_list{i_stretch}, 'TRIGGER_LEFT') && strcmp(direction_list{i_stretch}, 'STIM_AWAY'))
+            end
+            if (trial_data.virtual_object_ml_location(scene_translation_mod100_index) == 2 && strcmp(trigger_foot_list{i_stretch}, 'TRIGGER_LEFT') && strcmp(direction_list{i_stretch}, 'STIM_TOWARDS')) || ...
+                    (trial_data.virtual_object_ml_location(scene_translation_mod100_index) == 2 && strcmp(trigger_foot_list{i_stretch}, 'TRIGGER_RIGHT') && strcmp(direction_list{i_stretch}, 'STIM_AWAY')) || ...
+                    (trial_data.virtual_object_ml_location(scene_translation_mod100_index) == 0 && strcmp(trigger_foot_list{i_stretch}, 'TRIGGER_RIGHT') && strcmp(direction_list{i_stretch}, 'STIM_TOWARDS')) ||...
+                    (trial_data.virtual_object_ml_location(scene_translation_mod100_index) == 0 && strcmp(trigger_foot_list{i_stretch}, 'TRIGGER_LEFT') && strcmp(direction_list{i_stretch}, 'STIM_AWAY'))
                 zone_direction_list{i_stretch} = 'STIM_ZONE_TOWARDS';
-            elseif (virtual_object_ml_location(scene_translation_mod100_index) == 0 && strcmp(trigger_foot_list{i_stretch}, 'TRIGGER_LEFT') && strcmp(direction_list{i_stretch}, 'STIM_TOWARDS')) || ...
-                    (virtual_object_ml_location(scene_translation_mod100_index) == 0 && strcmp(trigger_foot_list{i_stretch}, 'TRIGGER_RIGHT') && strcmp(direction_list{i_stretch}, 'STIM_AWAY')) || ...
-                    (virtual_object_ml_location(scene_translation_mod100_index) == 2 && strcmp(trigger_foot_list{i_stretch}, 'TRIGGER_RIGHT') && strcmp(direction_list{i_stretch}, 'STIM_TOWARDS')) || ...
-                    (virtual_object_ml_location(scene_translation_mod100_index) == 2 && strcmp(trigger_foot_list{i_stretch}, 'TRIGGER_LEFT') && strcmp(direction_list{i_stretch}, 'STIM_AWAY'))
+            elseif (trial_data.virtual_object_ml_location(scene_translation_mod100_index) == 0 && strcmp(trigger_foot_list{i_stretch}, 'TRIGGER_LEFT') && strcmp(direction_list{i_stretch}, 'STIM_TOWARDS')) || ...
+                    (trial_data.virtual_object_ml_location(scene_translation_mod100_index) == 0 && strcmp(trigger_foot_list{i_stretch}, 'TRIGGER_RIGHT') && strcmp(direction_list{i_stretch}, 'STIM_AWAY')) || ...
+                    (trial_data.virtual_object_ml_location(scene_translation_mod100_index) == 2 && strcmp(trigger_foot_list{i_stretch}, 'TRIGGER_RIGHT') && strcmp(direction_list{i_stretch}, 'STIM_TOWARDS')) || ...
+                    (trial_data.virtual_object_ml_location(scene_translation_mod100_index) == 2 && strcmp(trigger_foot_list{i_stretch}, 'TRIGGER_LEFT') && strcmp(direction_list{i_stretch}, 'STIM_AWAY'))
                 zone_direction_list{i_stretch} = 'STIM_ZONE_AWAY';
             else
                 zone_direction_list{i_stretch} = 'STIM_NONE';

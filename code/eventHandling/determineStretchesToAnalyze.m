@@ -210,6 +210,11 @@ function determineStretchesToAnalyze(varargin)
                 [stimulus_state_trajectory, time_stimulus] = loadData(collection_date, subject_id, condition_list{i_condition}, i_trial, 'stimulus_state_trajectory');
                 scene_translation_trajectory = loadData(collection_date, subject_id, condition_list{i_condition}, i_trial, 'SceneTranslation_trajectory');
                 load('virtualobjectInfo');
+                trial_data.scene_translation_trajectory = scene_translation_trajectory; %%%% added by SD ********
+                trial_data.virtual_object_ap_location = virtual_object_ap_location; %%%% added by SD ********
+                trial_data.virtual_object_ml_location = virtual_object_ml_location; %%%% added by SD ********
+                trial_data.stimulus_state_trajectory = stimulus_state_trajectory;
+                trial_data.time_stimulus = time_stimulus;
             end
 
             % determine indices for optional markers
@@ -314,6 +319,7 @@ function determineStretchesToAnalyze(varargin)
                         end
                     end
                 end
+                trial_data.illusion_trajectory = illusion_trajectory; %% added by SD *********
             end
             
             %% extract events
@@ -322,7 +328,8 @@ function determineStretchesToAnalyze(varargin)
                     || strcmp(experimental_paradigm, 'Vision') || strcmp(experimental_paradigm, 'CadenceVision') || strcmp(experimental_paradigm, 'SR_VisualStim') ||strcmp(experimental_paradigm, 'CognitiveLoadVision') ...
                     || strcmp(experimental_paradigm, 'GVS') || strcmp(experimental_paradigm, 'CadenceGVS') || strcmp(experimental_paradigm, 'FatigueGVS') || strcmp(experimental_paradigm, 'CognitiveLoadGvs')  ...
                     || strcmp(condition_stimulus, 'OBSTACLE') || strcmp(condition_stimulus, 'ARMSENSE') ...
-                    || strcmp(experimental_paradigm, 'Stochastic Resonance') || strcmp(experimental_paradigm, 'Vision Stochastic') || strcmp(experimental_paradigm, 'GvsOverground')
+                    || strcmp(experimental_paradigm, 'Stochastic Resonance') || strcmp(experimental_paradigm, 'Vision Stochastic') || strcmp(experimental_paradigm, 'GvsOverground')...
+                    || strcmp(experimental_paradigm, 'OculusLaneRestriction') %% added by SD ****** 
                 trial_data.right_pushoff_times = event_data{strcmp(event_labels, 'right_pushoff')};
                 trial_data.right_touchdown_times = event_data{strcmp(event_labels, 'right_touchdown')};
                 trial_data.left_pushoff_times = event_data{strcmp(event_labels, 'left_pushoff')};
@@ -2194,7 +2201,7 @@ function determineStretchesToAnalyze(varargin)
 %             removal_flags = zeros(number_of_stretches, 1);
             
             if study_settings.get('prune_step_time_outliers')
-                    stretch_durations = stretch_times(:,2) - stretch_times(:,1);
+                    stretch_durations = event_variables_to_save.stretch_times(:,2) - event_variables_to_save.stretch_times(:,1);
                     stretch_duration_outlier_limits = median(stretch_durations) * [.75 1.25];
                     removal_flags(stretch_durations < stretch_duration_outlier_limits(1)) = 1;
                     removal_flags(stretch_durations > stretch_duration_outlier_limits(2)) = 1;
@@ -2228,12 +2235,12 @@ function determineStretchesToAnalyze(varargin)
             if strcmp(experimental_paradigm, 'OculusLaneRestriction')
 
                 if study_settings.get('prune_step_placements')
-                    step_zone_delinquent_list = cell(size(trigger_foot_list));
+                    step_zone_delinquent_list = cell(size(conditions_trial.trigger_foot_list));
                     for i_stretch = 1 : number_of_stretches
-                        [~, trigger_start_index_mocap] = min(abs(time_marker - stretch_times(i_stretch, 1)));
-                        [~, trigger_end_index_mocap] = min(abs(time_marker - stretch_times(i_stretch, 2)));
-                        [~, remainder_start_index_mocap] = min(abs(time_marker - stretch_times(i_stretch, 1)));
-                        [~, remainder_end_index_mocap] = min(abs(time_marker - stretch_times(i_stretch, 2)));
+                        [~, trigger_start_index_mocap] = min(abs(time_marker - event_variables_to_save.stretch_times(i_stretch, 1)));
+                        [~, trigger_end_index_mocap] = min(abs(time_marker - event_variables_to_save.stretch_times(i_stretch, 2)));
+                        [~, remainder_start_index_mocap] = min(abs(time_marker - event_variables_to_save.stretch_times(i_stretch, 1)));
+                        [~, remainder_end_index_mocap] = min(abs(time_marker - event_variables_to_save.stretch_times(i_stretch, 2)));
                         
                         
                         LHEE_marker_data = extractMarkerData(marker_trajectories, marker_labels, 'LHEE');
@@ -2242,8 +2249,8 @@ function determineStretchesToAnalyze(varargin)
                         RTOE_marker_data = extractMarkerData(marker_trajectories, marker_labels, 'RTOE');
                         
                         
-                         step_zone_delinquent_list{i_stretch} = 'NONE';
-                        if strcmp(zone_side_list{i_stretch}, 'STIM_ZONE_LEFT')
+                        step_zone_delinquent_list{i_stretch} = 'NONE';
+                        if strcmp(conditions_trial.zone_side_list{i_stretch}, 'STIM_ZONE_LEFT')
                             threshold = -0.1835; % limit on left belt
                             if any(LHEE_marker_data(trigger_start_index_mocap : trigger_end_index_mocap,1) < threshold) || any(RHEE_marker_data(trigger_start_index_mocap : trigger_end_index_mocap,1) < threshold) ||...
                                     any(RTOE_marker_data(trigger_start_index_mocap : trigger_end_index_mocap,1) < threshold) || any(LTOE_marker_data(trigger_start_index_mocap : trigger_end_index_mocap,1) < threshold)
@@ -2262,7 +2269,7 @@ function determineStretchesToAnalyze(varargin)
                                 disp('Stretch flagged due stepping in No Step Zone')
                             end
                         end
-                        if strcmp(zone_side_list{i_stretch}, 'STIM_ZONE_RIGHT')
+                        if strcmp(conditions_trial.zone_side_list{i_stretch}, 'STIM_ZONE_RIGHT')
                             threshold = 0.1835; % limit on right belt
                             if any(LHEE_marker_data(trigger_start_index_mocap : trigger_end_index_mocap,1) > threshold) || any(RHEE_marker_data(trigger_start_index_mocap : trigger_end_index_mocap,1) > threshold) || ...
                                     any(RTOE_marker_data(trigger_start_index_mocap : trigger_end_index_mocap,1) > threshold) || any(LTOE_marker_data(trigger_start_index_mocap : trigger_end_index_mocap,1) > threshold)
