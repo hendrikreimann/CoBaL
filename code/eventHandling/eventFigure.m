@@ -49,7 +49,8 @@ classdef eventFigure < handle;
             title(figureTitle);
             hold on;
             this.selected_event_plot = plot(0, 0, 'o', 'markersize', 15, 'linewidth', 3, 'color', [1 0.5 0], 'visible', 'off', 'HandleVisibility', 'off');
-            this.selected_time_plot = plot(0, 0, '+', 'markersize', 25, 'linewidth', 1, 'color', [1 1 1]*0.7, 'ButtonDownFcn', @this.stepEventFigureClicked, 'HandleVisibility', 'off');
+%             this.selected_time_plot = plot(0, 0, '+', 'markersize', 25, 'linewidth', 1, 'color', [1 1 1]*0.7, 'ButtonDownFcn', @this.stepEventFigureClicked, 'HandleVisibility', 'off');
+            this.selected_time_plot = plot([0 0], [0 0], 'linewidth', 1, 'color', [1 1 1]*0.7, 'ButtonDownFcn', @this.stepEventFigureClicked, 'HandleVisibility', 'off');
             this.ignore_marker_plot = plot(0, 0, 'x', 'markersize', 25, 'linewidth', 2, 'color', [1 0 0.5]*0.7, 'ButtonDownFcn', @this.stepEventFigureClicked, 'HandleVisibility', 'off');
 
             % register with controller
@@ -366,12 +367,38 @@ classdef eventFigure < handle;
             end
         end
         function updateSelectedTimePlot(this)
-            set(this.selected_time_plot, 'xdata', this.event_data.selected_time);
             if isempty(this.event_data.selected_time)
                 set(this.selected_time_plot, 'visible', 'off');
             else
+                set(this.selected_time_plot, 'xdata', this.event_data.selected_time * [1 1]);
+                
+                % scale properly by hiding plot, then adjust y-data of plot and
+                % showing again
+                set(this.selected_time_plot, 'visible', 'off');
+                set(this.main_axes, 'YLimMode',  'auto');
+                ylimits = this.main_axes.YLim;
+                set(this.selected_time_plot, 'ydata', ylimits);
+                
                 set(this.selected_time_plot, 'visible', 'on');
             end
+            
+            
+        end
+        function updateTimeWindow(this, new_time_window)
+            if isempty(this.event_data.selected_time)
+                % just update xlimits
+                set(this.main_axes, 'xlim', new_time_window);
+            else
+                % hide selected time marker, then update, then update
+                % selected time marker
+                
+                set(this.selected_time_plot, 'visible', 'off');
+                set(this.main_axes, 'xlim', new_time_window);
+                ylimits = this.main_axes.YLim;
+                set(this.selected_time_plot, 'ydata', ylimits);
+                set(this.selected_time_plot, 'visible', 'on');
+            end
+            
         end
     end
     

@@ -524,7 +524,8 @@ classdef eventController < handle
             end
             
             for i_figure = 1 : size(this.figureSelectionBox.String, 1)
-                set(this.figureSelectionBox.UserData{i_figure}.main_axes, 'xlim', new_x_lim);
+                this.figureSelectionBox.UserData{i_figure}.updateTimeWindow(new_x_lim);
+%                 set(this.figureSelectionBox.UserData{i_figure}.main_axes, 'xlim', new_x_lim);
             end        
         end
         
