@@ -138,7 +138,7 @@ function singleBoxPlot(data, varargin)
         plot(axes_handle, abscissa * ones(size(outliers)), outliers, '+', 'color', [1; 1; 1] * 0.7, 'HandleVisibility', 'off');
     end
     
-    if show_data
+    if show_data && ~isempty(data)
         
         [data_density, data_range, bandwidth_used]=ksdensity(data);
         density_normalized = data_density/max(data_density); %normalize
