@@ -522,9 +522,18 @@ classdef eventController < handle
             [condition_list, trial_number_list] = parseTrialArguments();
             condition_index = find(strcmp(condition_list, current_condition));
             if current_trial_number == trial_number_list{condition_index}(1)
-                new_condition = condition_list{condition_index - 1};
-                new_trial_number = trial_number_list{condition_index - 1}(end);
+                % first trial of this type
+                if condition_index == 1
+                    % first type, so just stay at the current trial
+                    new_condition = current_condition;
+                    new_trial_number = current_trial_number;
+                else
+                    % go to next trial type, first trial
+                    new_condition = condition_list{condition_index - 1};
+                    new_trial_number = trial_number_list{condition_index - 1}(end);
+                end                    
             else
+                % go to previous trial of this type
                 new_condition = this.data_custodian.trial_type;
                 trial_index = find(trial_number_list{condition_index} == current_trial_number);
                 new_trial_number = trial_number_list{condition_index}(trial_index - 1);
@@ -552,9 +561,18 @@ classdef eventController < handle
             [condition_list, trial_number_list] = parseTrialArguments();
             condition_index = find(strcmp(condition_list, current_condition));
             if current_trial_number == trial_number_list{condition_index}(end)
-                new_condition = condition_list{condition_index + 1};
-                new_trial_number = trial_number_list{condition_index + 1}(1);
+                % last trial of this type
+                if condition_index == length(condition_list)
+                    % last type, so just stay at the current trial
+                    new_condition = current_condition;
+                    new_trial_number = current_trial_number;
+                else
+                    % go to next trial type, first trial
+                    new_condition = condition_list{condition_index + 1};
+                    new_trial_number = trial_number_list{condition_index + 1}(1);
+                end
             else
+                % go to next trial of this type
                 new_condition = this.data_custodian.trial_type;
                 trial_index = find(trial_number_list{condition_index} == current_trial_number);
                 new_trial_number = trial_number_list{condition_index}(trial_index + 1);
