@@ -359,10 +359,19 @@ classdef eventFigure < handle;
                 selected_event_plot_y_data = [selected_event_plot_y_data y_data_point];
             end
             set(this.selected_event_plot, 'xdata', selected_event_plot_x_data, 'ydata', selected_event_plot_y_data);
-            set(this.selected_event_plot, 'visible', 'on');
+            if isempty(selected_event_plot_x_data)
+                set(this.selected_event_plot, 'visible', 'off');
+            else
+                set(this.selected_event_plot, 'visible', 'on');
+            end
         end
         function updateSelectedTimePlot(this)
             set(this.selected_time_plot, 'xdata', this.event_data.selected_time);
+            if isempty(this.event_data.selected_time)
+                set(this.selected_time_plot, 'visible', 'off');
+            else
+                set(this.selected_time_plot, 'visible', 'on');
+            end
         end
     end
     
