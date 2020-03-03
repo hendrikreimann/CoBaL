@@ -459,6 +459,7 @@ function processAnalysisVariables(varargin)
                 this_band_time_full = linspace(0, this_step_time_data(i_band), number_of_time_steps_normalized);
                 this_band_data_full = this_variable_source_data(band_start_index : band_end_index, i_stretch);
                 range = (start_data_percent(i_band, i_stretch) : end_data_percent(i_band, i_stretch)) + 1;
+                range = (start_data_percent(i_band, i_stretch) : end_data_percent(i_band, i_stretch));
                 if isempty(range)
                     integrated_data(i_band, i_stretch) = 0;
                 else
@@ -481,8 +482,7 @@ function processAnalysisVariables(varargin)
               );
 
     end
-    
-    
+        
     %% calculate rms variables
     variables_to_rms_header = study_settings.get('analysis_variables_from_rms_header', 1);
     variables_to_rms = study_settings.get('analysis_variables_from_rms', 1);
@@ -640,6 +640,7 @@ function processAnalysisVariables(varargin)
               );
 
     end
+    
     %% calculate band end variables
     variables_step_end = study_settings.get('analysis_variables_from_band_end', 1);
     for i_variable = 1 : size(variables_step_end, 1)
