@@ -41,6 +41,7 @@ function analyzeUcmVariance(varargin)
     across_trials_conditions = study_settings.get('across_trials_conditions', 1);
     ucm_variables = study_settings.get('ucm_variables');
     variance_variables = study_settings.get('variance_variables');
+    block_assignment = subject_settings.get('block_assignment');
     number_of_ucm_variables = length(ucm_variables);
     number_of_variance_variables = size(variance_variables, 1);
     group_label = subject_settings.get('group');
@@ -50,6 +51,7 @@ function analyzeUcmVariance(varargin)
     condition_list_session = {};
     time_point_list_session = {};
     group_list_session = {};
+    block_list_session = {};
     origin_trial_list_session = [];
     
     % define stretch variables from list of ucm and variance variables
@@ -175,7 +177,7 @@ function analyzeUcmVariance(varargin)
                 this_variable_source_label = this_variable_split{2};
                 eval(['source_data = ' this_variable_source_type '_data_to_analyze;']);
                 eval(['source_labels = ' this_variable_source_type '_labels;']);
-                this_variable_data = source_data(:, strcmp(source_labels, this_variable_source_label));
+                this_variable_data = source_data(:, strcmp(source_labels, this_variable_source_label)); %#ok<IDISVAR,NODEF>
                 
                 % calculate variance
                 this_variable_stretch_data = var(this_variable_data);
@@ -189,6 +191,7 @@ function analyzeUcmVariance(varargin)
             time_point_list_session = [time_point_list_session; 'quiet stance across time']; %#ok<AGROW>
             condition_list_session = [condition_list_session; this_condition_label]; %#ok<AGROW>
             group_list_session = [group_list_session; group_label]; %#ok<AGROW>
+            block_list_session = [block_list_session; 'N/A']; %#ok<AGROW>
             origin_trial_list_session = [origin_trial_list_session; this_condition_trial_numbers(1)]; %#ok<AGROW>                            
         end        
     end
@@ -296,6 +299,7 @@ function analyzeUcmVariance(varargin)
                     time_point_list_session = [time_point_list_session; expected_event_labels{i_event}]; %#ok<AGROW>
                     condition_list_session = [condition_list_session; this_condition_label]; %#ok<AGROW>
                     group_list_session = [group_list_session; group_label]; %#ok<AGROW>
+                    block_list_session = [block_list_session; 'N/A']; %#ok<AGROW>
                     origin_trial_list_session = [origin_trial_list_session; this_condition_trial_numbers(i_trial)]; %#ok<AGROW>                            
 
                 end
@@ -307,6 +311,12 @@ function analyzeUcmVariance(varargin)
     for i_condition = 1 : length(across_trials_conditions)
         % get list of trials for this condition
         this_condition_label = across_trials_conditions{i_condition};
+        
+        % get block information
+        block_assignment_this_condition = block_assignment(strcmp(block_assignment(:, 1), this_condition_label), :);
+        block_labels = unique(block_assignment_this_condition(:, 2));
+        
+        
         if any(strcmp(trial_type_list, this_condition_label))
             this_condition_trial_numbers = trial_number_list{strcmp(trial_type_list, this_condition_label)};
 
@@ -317,6 +327,7 @@ function analyzeUcmVariance(varargin)
             joint_data_to_analyze = cell(number_of_events, 1);
             com_data_to_analyze = cell(number_of_events, 1);
             eef_data_to_analyze = cell(number_of_events, 1);
+            origin_trial_numbers = [];
             
             % collect data from different trials
             for i_trial = 1 : number_of_trials_this_condition
@@ -357,78 +368,91 @@ function analyzeUcmVariance(varargin)
                     eef_data_this_event = eef_trajectories(event_indices_mocap(i_event), :);
                     eef_data_to_analyze{i_event} = [eef_data_to_analyze{i_event}; eef_data_this_event];
                 end
+                origin_trial_numbers = [origin_trial_numbers; i_trial]; %#ok<AGROW>
             end
 
             % calculate and store variance measures
-            if number_of_trials_this_condition > 0
-                for i_event = 1 : number_of_events
-                    % get collected data for this event
-                    joint_angle_data_to_analyze_this_event = joint_data_to_analyze{i_event};
-                    joint_angle_data_to_analyze_this_event_rand = randmat(joint_angle_data_to_analyze_this_event, 1);
-                    com_data_to_analyze_this_event = com_data_to_analyze{i_event}; %#ok<NASGU>
-                    eef_data_to_analyze_this_event = eef_data_to_analyze{i_event}; %#ok<NASGU>
-                    
-                    % analyze joint angle variance in UCM space
-                    theta_mean = mean(joint_angle_data_to_analyze_this_event, 1)';
-                    kinematic_tree.jointAngles = theta_mean;
-                    kinematic_tree.updateConfiguration;
-                    for i_variable = 1 : number_of_ucm_variables
-                        this_variable_label = ucm_variables{i_variable};
-                        jacobian = determineJacobian(kinematic_tree, this_variable_label);
+            for i_block = 1 : length(block_labels)
+                this_block_label = block_labels(i_block);
+                this_block_trials_numbers = str2double(block_assignment_this_condition(strcmp(block_assignment_this_condition(:, 2), this_block_label), 3));
+                number_of_trials_this_block = length(this_block_trials_numbers);
+                
+                trial_indices_this_block = ismember(origin_trial_numbers, this_block_trials_numbers);
+                
+                if number_of_trials_this_block > 0
+                    for i_event = 1 : number_of_events
+                        % get collected data for this event
+                        joint_angle_data_to_analyze_this_event = joint_data_to_analyze{i_event}(trial_indices_this_block, :);
+                        joint_angle_data_to_analyze_this_event_rand = randmat(joint_angle_data_to_analyze_this_event, 1);
+                        com_data_to_analyze_this_event = com_data_to_analyze{i_event}; %#ok<NASGU>
+                        eef_data_to_analyze_this_event = eef_data_to_analyze{i_event}; %#ok<NASGU>
 
-                        % calculate variance measures
-                        [V_para_this_event_this_variable, V_perp_this_event_this_variable] = calculateUcmVariance(joint_angle_data_to_analyze_this_event', jacobian);
-                        [V_para_rand_1_this_event_this_variable, V_perp_rand_1_this_event_this_variable] = calculateUcmVarianceWithRandomization(joint_angle_data_to_analyze_this_event_rand', jacobian, 1);
-                        [V_para_rand_2_this_event_this_variable, V_perp_rand_2_this_event_this_variable] = calculateUcmVarianceWithRandomization(joint_angle_data_to_analyze_this_event_rand', jacobian, 2);
-                        [V_para_rand_3_this_event_this_variable, V_perp_rand_3_this_event_this_variable] = calculateUcmVarianceWithRandomization(joint_angle_data_to_analyze_this_event_rand', jacobian, 3);
-                        [V_para_rand_4_this_event_this_variable, V_perp_rand_4_this_event_this_variable] = calculateUcmVarianceWithRandomization(joint_angle_data_to_analyze_this_event_rand', jacobian, 4);
-                        [V_para_rand_all_this_event_this_variable, V_perp_rand_all_this_event_this_variable] = calculateUcmVarianceWithRandomization(joint_angle_data_to_analyze_this_event_rand', jacobian, 'all');
-                        
-                        % store calculated measures
-                        stretch_data_session{strcmp(stretch_names_session, [this_variable_label '_Vpara'])} = [stretch_data_session{strcmp(stretch_names_session, [this_variable_label '_Vpara'])} V_para_this_event_this_variable];
-                        stretch_data_session{strcmp(stretch_names_session, [this_variable_label '_Vperp'])} = [stretch_data_session{strcmp(stretch_names_session, [this_variable_label '_Vperp'])} V_perp_this_event_this_variable];
-                        stretch_data_session{strcmp(stretch_names_session, [this_variable_label '_Vpara_rand_ankle'])} = [stretch_data_session{strcmp(stretch_names_session, [this_variable_label '_Vpara_rand_ankle'])} V_para_rand_1_this_event_this_variable];
-                        stretch_data_session{strcmp(stretch_names_session, [this_variable_label '_Vperp_rand_ankle'])} = [stretch_data_session{strcmp(stretch_names_session, [this_variable_label '_Vperp_rand_ankle'])} V_perp_rand_1_this_event_this_variable];
-                        stretch_data_session{strcmp(stretch_names_session, [this_variable_label '_Vpara_rand_knee'])} = [stretch_data_session{strcmp(stretch_names_session, [this_variable_label '_Vpara_rand_knee'])} V_para_rand_2_this_event_this_variable];
-                        stretch_data_session{strcmp(stretch_names_session, [this_variable_label '_Vperp_rand_knee'])} = [stretch_data_session{strcmp(stretch_names_session, [this_variable_label '_Vperp_rand_knee'])} V_perp_rand_2_this_event_this_variable];
-                        stretch_data_session{strcmp(stretch_names_session, [this_variable_label '_Vpara_rand_hip'])} = [stretch_data_session{strcmp(stretch_names_session, [this_variable_label '_Vpara_rand_hip'])} V_para_rand_3_this_event_this_variable];
-                        stretch_data_session{strcmp(stretch_names_session, [this_variable_label '_Vperp_rand_hip'])} = [stretch_data_session{strcmp(stretch_names_session, [this_variable_label '_Vperp_rand_hip'])} V_perp_rand_3_this_event_this_variable];
-                        stretch_data_session{strcmp(stretch_names_session, [this_variable_label '_Vpara_rand_neck'])} = [stretch_data_session{strcmp(stretch_names_session, [this_variable_label '_Vpara_rand_neck'])} V_para_rand_4_this_event_this_variable];
-                        stretch_data_session{strcmp(stretch_names_session, [this_variable_label '_Vperp_rand_neck'])} = [stretch_data_session{strcmp(stretch_names_session, [this_variable_label '_Vperp_rand_neck'])} V_perp_rand_4_this_event_this_variable];
-                        stretch_data_session{strcmp(stretch_names_session, [this_variable_label '_Vpara_rand_all'])} = [stretch_data_session{strcmp(stretch_names_session, [this_variable_label '_Vpara_rand_all'])} V_para_rand_all_this_event_this_variable];
-                        stretch_data_session{strcmp(stretch_names_session, [this_variable_label '_Vperp_rand_all'])} = [stretch_data_session{strcmp(stretch_names_session, [this_variable_label '_Vperp_rand_all'])} V_perp_rand_all_this_event_this_variable];
-                        
-                        
-                        
+                        % analyze joint angle variance in UCM space
+                        theta_mean = mean(joint_angle_data_to_analyze_this_event, 1)';
+                        kinematic_tree.jointAngles = theta_mean;
+                        kinematic_tree.updateConfiguration;
+                        for i_variable = 1 : number_of_ucm_variables
+                            this_variable_label = ucm_variables{i_variable};
+                            jacobian = determineJacobian(kinematic_tree, this_variable_label);
+
+                            % calculate variance measures
+                            [V_para_this_event_this_variable, V_perp_this_event_this_variable] = calculateUcmVariance(joint_angle_data_to_analyze_this_event', jacobian);
+                            [V_para_rand_1_this_event_this_variable, V_perp_rand_1_this_event_this_variable] = calculateUcmVarianceWithRandomization(joint_angle_data_to_analyze_this_event_rand', jacobian, 1);
+                            [V_para_rand_2_this_event_this_variable, V_perp_rand_2_this_event_this_variable] = calculateUcmVarianceWithRandomization(joint_angle_data_to_analyze_this_event_rand', jacobian, 2);
+                            [V_para_rand_3_this_event_this_variable, V_perp_rand_3_this_event_this_variable] = calculateUcmVarianceWithRandomization(joint_angle_data_to_analyze_this_event_rand', jacobian, 3);
+                            [V_para_rand_4_this_event_this_variable, V_perp_rand_4_this_event_this_variable] = calculateUcmVarianceWithRandomization(joint_angle_data_to_analyze_this_event_rand', jacobian, 4);
+                            [V_para_rand_all_this_event_this_variable, V_perp_rand_all_this_event_this_variable] = calculateUcmVarianceWithRandomization(joint_angle_data_to_analyze_this_event_rand', jacobian, 'all');
+
+                            % store calculated measures
+                            stretch_data_session{strcmp(stretch_names_session, [this_variable_label '_Vpara'])} = [stretch_data_session{strcmp(stretch_names_session, [this_variable_label '_Vpara'])} V_para_this_event_this_variable];
+                            stretch_data_session{strcmp(stretch_names_session, [this_variable_label '_Vperp'])} = [stretch_data_session{strcmp(stretch_names_session, [this_variable_label '_Vperp'])} V_perp_this_event_this_variable];
+                            stretch_data_session{strcmp(stretch_names_session, [this_variable_label '_Vpara_rand_ankle'])} = [stretch_data_session{strcmp(stretch_names_session, [this_variable_label '_Vpara_rand_ankle'])} V_para_rand_1_this_event_this_variable];
+                            stretch_data_session{strcmp(stretch_names_session, [this_variable_label '_Vperp_rand_ankle'])} = [stretch_data_session{strcmp(stretch_names_session, [this_variable_label '_Vperp_rand_ankle'])} V_perp_rand_1_this_event_this_variable];
+                            stretch_data_session{strcmp(stretch_names_session, [this_variable_label '_Vpara_rand_knee'])} = [stretch_data_session{strcmp(stretch_names_session, [this_variable_label '_Vpara_rand_knee'])} V_para_rand_2_this_event_this_variable];
+                            stretch_data_session{strcmp(stretch_names_session, [this_variable_label '_Vperp_rand_knee'])} = [stretch_data_session{strcmp(stretch_names_session, [this_variable_label '_Vperp_rand_knee'])} V_perp_rand_2_this_event_this_variable];
+                            stretch_data_session{strcmp(stretch_names_session, [this_variable_label '_Vpara_rand_hip'])} = [stretch_data_session{strcmp(stretch_names_session, [this_variable_label '_Vpara_rand_hip'])} V_para_rand_3_this_event_this_variable];
+                            stretch_data_session{strcmp(stretch_names_session, [this_variable_label '_Vperp_rand_hip'])} = [stretch_data_session{strcmp(stretch_names_session, [this_variable_label '_Vperp_rand_hip'])} V_perp_rand_3_this_event_this_variable];
+                            stretch_data_session{strcmp(stretch_names_session, [this_variable_label '_Vpara_rand_neck'])} = [stretch_data_session{strcmp(stretch_names_session, [this_variable_label '_Vpara_rand_neck'])} V_para_rand_4_this_event_this_variable];
+                            stretch_data_session{strcmp(stretch_names_session, [this_variable_label '_Vperp_rand_neck'])} = [stretch_data_session{strcmp(stretch_names_session, [this_variable_label '_Vperp_rand_neck'])} V_perp_rand_4_this_event_this_variable];
+                            stretch_data_session{strcmp(stretch_names_session, [this_variable_label '_Vpara_rand_all'])} = [stretch_data_session{strcmp(stretch_names_session, [this_variable_label '_Vpara_rand_all'])} V_para_rand_all_this_event_this_variable];
+                            stretch_data_session{strcmp(stretch_names_session, [this_variable_label '_Vperp_rand_all'])} = [stretch_data_session{strcmp(stretch_names_session, [this_variable_label '_Vperp_rand_all'])} V_perp_rand_all_this_event_this_variable];
+
+
+
+                        end
+
+                        % analyze variance of other variables
+                        for i_variable = 1 : number_of_variance_variables
+                            % get data
+                            this_variable_label = variance_variables{i_variable, 1};
+                            this_variable_source = variance_variables{i_variable, 2};
+                            this_variable_split = strsplit(this_variable_source, ':');
+                            this_variable_source_type = this_variable_split{1};
+                            this_variable_source_label = this_variable_split{2};
+                            eval(['source_data = ' this_variable_source_type '_data_to_analyze_this_event;']);
+                            eval(['source_labels = ' this_variable_source_type '_labels;']);
+                            this_variable_data = source_data(trial_indices_this_block, strcmp(source_labels, this_variable_source_label));
+
+                            % calculate variance
+                            this_variable_stretch_data = var(this_variable_data);
+
+                            % store
+                            stretch_data_session{strcmp(stretch_names_session, this_variable_label)} = [stretch_data_session{strcmp(stretch_names_session, this_variable_label)}, this_variable_stretch_data];
+                        end            
+
+                        % store supplementary information
+                        subject_list_session = [subject_list_session; subject_id]; %#ok<AGROW>
+                        time_point_list_session = [time_point_list_session; expected_event_labels{i_event}]; %#ok<AGROW>
+                        condition_list_session = [condition_list_session; this_condition_label]; %#ok<AGROW>
+                        group_list_session = [group_list_session; group_label]; %#ok<AGROW>
+                        block_list_session = [block_list_session; this_block_label]; %#ok<AGROW>
+                        origin_trial_list_session = [origin_trial_list_session; this_condition_trial_numbers(1)]; %#ok<AGROW>
                     end
-                    
-                    % analyze variance of other variables
-                    for i_variable = 1 : number_of_variance_variables
-                        % get data
-                        this_variable_label = variance_variables{i_variable, 1};
-                        this_variable_source = variance_variables{i_variable, 2};
-                        this_variable_split = strsplit(this_variable_source, ':');
-                        this_variable_source_type = this_variable_split{1};
-                        this_variable_source_label = this_variable_split{2};
-                        eval(['source_data = ' this_variable_source_type '_data_to_analyze_this_event;']);
-                        eval(['source_labels = ' this_variable_source_type '_labels;']);
-                        this_variable_data = source_data(:, strcmp(source_labels, this_variable_source_label));
-
-                        % calculate variance
-                        this_variable_stretch_data = var(this_variable_data);
-
-                        % store
-                        stretch_data_session{strcmp(stretch_names_session, this_variable_label)} = [stretch_data_session{strcmp(stretch_names_session, this_variable_label)}, this_variable_stretch_data];
-                    end            
-                    
-                    % store supplementary information
-                    subject_list_session = [subject_list_session; subject_id]; %#ok<AGROW>
-                    time_point_list_session = [time_point_list_session; expected_event_labels{i_event}]; %#ok<AGROW>
-                    condition_list_session = [condition_list_session; this_condition_label]; %#ok<AGROW>
-                    group_list_session = [group_list_session; group_label]; %#ok<AGROW>
-                    origin_trial_list_session = [origin_trial_list_session; this_condition_trial_numbers(1)]; %#ok<AGROW>
                 end
             end
+            
+            
+            
         end
     end
 
@@ -446,6 +470,7 @@ function analyzeUcmVariance(varargin)
     conditions_session.condition_list = condition_list_session;
     conditions_session.time_point_list = time_point_list_session;
     conditions_session.group_list = group_list_session;
+    conditions_session.block_list = block_list_session;
     results_file_name = ['analysis' filesep makeFileName(date, subject_id, 'results')];
     save ...
       ( ...
