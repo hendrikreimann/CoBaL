@@ -462,7 +462,6 @@ function analyzeUcmVariance(varargin)
     origin_end_time_list_session = zeros(number_of_stretches, 1); % doesn't apply, but needs to be here for now
     time_list_session = zeros(number_of_stretches, 1); % doesn't apply, but needs to be here for now
     
-
     %% save data
     bands_per_stretch = 1;
     conditions_session = struct;
@@ -471,7 +470,7 @@ function analyzeUcmVariance(varargin)
     conditions_session.time_point_list = time_point_list_session;
     conditions_session.group_list = group_list_session;
     conditions_session.block_list = block_list_session;
-    results_file_name = ['analysis' filesep makeFileName(date, subject_id, 'results')];
+    results_file_name = ['analysis' filesep makeFileName(date, subject_id, 'resultsVariance')];
     save ...
       ( ...
         results_file_name, ...

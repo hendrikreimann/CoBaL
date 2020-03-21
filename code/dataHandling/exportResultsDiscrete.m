@@ -25,7 +25,6 @@ end
 study_settings = SettingsCustodian('studySettings.txt');
 variables_to_export = study_settings.get('variables_to_export_discrete');
 variables_to_export_discrete_header = study_settings.get('variables_to_export_discrete_header');
-band_labels = study_settings.get('band_labels');
 number_of_variables_to_export_discrete = size(variables_to_export, 1);
 number_of_data_points = size(loaded_data.time_list, 1);
 number_of_bands = size(loaded_data.step_time_data, 1);

@@ -41,7 +41,7 @@ function singleBoxPlot(data, varargin)
     addParameter(parser, 'BandWidth', '')
     
     addParameter(parser, 'ShowOutliers', true)
-    addParameter(parser, 'ShowData', false)
+    addParameter(parser, 'ShowData', 0)
     addParameter(parser, 'DataMarkerSize', 36)
     addParameter(parser, 'seed', 0)
     parse(parser, varargin{:})
