@@ -92,6 +92,8 @@ function plotResults(varargin)
     condition_labels = conditions_settings(:, 1)';
     condition_source_variables = conditions_settings(:, 2)';
     number_of_condition_labels = length(condition_labels);
+    data_source = plot_settings.get('data_source', 1);
+    file_label = ['results' data_source];
     
     % load data
     data_folder_list = determineDataStructure(subjects);
@@ -122,7 +124,7 @@ function plotResults(varargin)
         % load data
         data_path = data_folder_list{i_folder};
         load([data_path filesep 'subjectInfo.mat'], 'date', 'subject_id');
-        results_file_name = [data_path filesep 'analysis' filesep makeFileName(date, subject_id, 'results')];
+        results_file_name = [data_path filesep makeFileName(date, subject_id, file_label)];
         loaded_data = load(results_file_name);
         number_of_stretches_this_session = length(loaded_data.time_list_session);
         bands_per_stretch_this_session = loaded_data.bands_per_stretch;

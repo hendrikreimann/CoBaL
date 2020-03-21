@@ -55,7 +55,7 @@ function analyzeDisplacementVariables(varargin)
     displacement_data_session = cell(number_of_displacement_variables, 1);
     displacement_directions_session = cell(number_of_displacement_variables, 2);
     [displacement_directions_session{:, :}] = deal('~');
-    displacement_names_session = cell(number_of_displacement_variables, 1);
+    displacement_names_session = displacement_variables(:, strcmp(displacement_variables_header, 'variable name'));
     
     
     for i_type = 1 : length(displacement_conditions)
@@ -188,7 +188,7 @@ function analyzeDisplacementVariables(varargin)
     conditions_session.time_point_list = time_point_list_session;
     conditions_session.group_list = group_list_session;
     conditions_session.block_list = block_list_session;
-    results_file_name = ['analysis' filesep makeFileName(date, subject_id, 'resultsDisplacement')];
+    results_file_name = makeFileName(date, subject_id, 'resultsDisplacement');
     save ...
       ( ...
         results_file_name, ...
