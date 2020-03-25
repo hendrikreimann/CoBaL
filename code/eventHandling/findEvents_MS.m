@@ -172,15 +172,19 @@ function findEvents_MS(varargin)
                 end
 
                 if strcmp(subject_settings.get('shift_method', 1), 'acceleration_threshold')
-                    % use acceleration threshold crossing
-                    marker_acceleration_ap_abs = abs(shift_acc_trajectory(:, 1 : 3 : end));
+                    % use absolute acceleration threshold crossing for start
+                    marker_acceleration_ap = shift_acc_trajectory(:, 1 : 3 : end);
+                    marker_acceleration_ap_abs = abs(marker_acceleration_ap);
+                    acc_abs_threshold_breach = marker_acceleration_ap_abs > subject_settings.get('shift_acc_threshold', 1);
+                    shift_start_index = find(diff(acc_abs_threshold_breach) > 0, 1, 'first');
                     
-                    acc_threshold_breach = marker_acceleration_ap_abs > subject_settings.get('shift_acc_threshold', 1);
-                    shift_start_index = find(diff(acc_threshold_breach) > 0, 1, 'first');
-                    shift_end_times = find(diff(acc_threshold_breach) < 0, 1, 'last');
-
+                    % determine if this was forward or backward
+                    shift_direction = sign(shift_acc_trajectory(shift_start_index));
+                    acc_threshold_breach = (- shift_direction * marker_acceleration_ap) > subject_settings.get('shift_acc_threshold', 1);
+                    shift_end_index = find(diff(acc_threshold_breach) > 0, 1, 'first');
+                    
                     shift_start_time = time_marker(shift_start_index);
-                    shift_end_time = time_marker(shift_end_times);
+                    shift_end_time = time_marker(shift_end_index);
                 end
                 
                 event_data = ...
