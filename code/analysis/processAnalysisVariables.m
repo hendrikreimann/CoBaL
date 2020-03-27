@@ -459,7 +459,6 @@ function processAnalysisVariables(varargin)
                 this_band_time_full = linspace(0, this_step_time_data(i_band), number_of_time_steps_normalized);
                 this_band_data_full = this_variable_source_data(band_start_index : band_end_index, i_stretch);
                 range = (start_data_percent(i_band, i_stretch) : end_data_percent(i_band, i_stretch)) + 1;
-                range = (start_data_percent(i_band, i_stretch) : end_data_percent(i_band, i_stretch));
                 if isempty(range)
                     integrated_data(i_band, i_stretch) = 0;
                 else

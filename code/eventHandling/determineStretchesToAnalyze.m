@@ -2328,7 +2328,7 @@ function determineStretchesToAnalyze(varargin)
             for i_stretch = 1 : number_of_stretches
                 if ~isempty(ignore_times)
                     for i_ignore = 1 : length(ignore_times)
-                        if stretch_times(i_stretch, 1) <= ignore_times(i_ignore) && ignore_times(i_ignore) <= stretch_times(i_stretch, end)
+                        if event_variables_to_save.stretch_times(i_stretch, 1) <= ignore_times(i_ignore) && ignore_times(i_ignore) <= event_variables_to_save.stretch_times(i_stretch, end)
                             if ~removal_flags(i_stretch) == 1
                                 removal_flags(i_stretch) = 1;
                                 disp('Removing a stretch because of manually set ignore marker');
