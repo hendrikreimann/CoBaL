@@ -83,6 +83,7 @@ function plotResults(varargin)
     mark_pushoff = plot_settings.get('mark_pushoff', 1);
     mark_bands = plot_settings.get('mark_bands', 1);
     band_labels = study_settings.get('band_labels', 1);
+    group_bands_within_conditions = plot_settings.get('group_bands_within_conditions', 1);
     number_of_time_steps_normalized = study_settings.get('number_of_time_steps_normalized');
 
     %% load data
@@ -412,7 +413,7 @@ function plotResults(varargin)
                 comparison_variable_to_axes_index_map(i_comparison) = i_comparison;
                     
                 if isDiscreteVariable(i_variable, data_all, bands_per_stretch)
-                    % abscissae gives the bin edges here
+                    % abscissa gives the bin edges here
                     data_to_plot = data_all{i_variable, 1};
                     if dictate_axes
                         lower_bound = str2double(variables_to_plot{i_variable, 6});
@@ -432,7 +433,7 @@ function plotResults(varargin)
                             number_of_entries = number_of_entries + 1;
                         end
                         
-                        if plot_settings.get('group_bands_within_conditions', 1)
+                        if group_bands_within_conditions
                             gap_between_conditions = 1;
                             
                             abscissae_stimulus = repmat((1 : bands_per_stretch)', 1, length(this_comparison));
@@ -1080,7 +1081,7 @@ function plotResults(varargin)
                             end
                             if strcmp(plot_mode, 'overview') || strcmp(plot_mode, 'episodes')
                                 if ~any(isnan(data_to_plot_this_band))
-                                    if plot_settings.get('group_bands_within_conditions', 1)
+                                    if group_bands_within_conditions
                                         this_color = colors_bands(i_band, :);
                                     else
                                         this_color = plot_settings.get('color_control');
@@ -1300,7 +1301,7 @@ function plotResults(varargin)
                         end
                         if strcmp(plot_mode, 'overview') || strcmp(plot_mode, 'episodes')
                             if ~any(isnan(data_to_plot_this_band))
-                                if plot_settings.get('group_bands_within_conditions', 1)
+                                if group_bands_within_conditions
                                     this_color = colors_bands(i_band, :);
                                 else
                                     this_color = colors_comparison(i_condition, :);
