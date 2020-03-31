@@ -60,9 +60,7 @@ function singleBoxPlot(data, varargin)
     wiskcolor = parser.Results.WiskColor;
     wisk_linewidth = parser.Results.WiskLinewidth;
     plot_median = parser.Results.PlotMedian;
-    facealpha = parser.Results.FaceAlpha;
     xlabel = parser.Results.xlabel;
-    bandwidth = parser.Results.BandWidth;
     show_outliers = parser.Results.ShowOutliers;    
     show_data = parser.Results.ShowData;
     data_marker_size = parser.Results.DataMarkerSize;
@@ -143,7 +141,7 @@ function singleBoxPlot(data, varargin)
     
     if show_data && ~isempty(data)
         
-        [data_density, data_range, bandwidth_used]=ksdensity(data);
+        [data_density, data_range]=ksdensity(data);
         density_normalized = data_density/max(data_density); %normalize
         
         

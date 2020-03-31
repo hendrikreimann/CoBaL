@@ -99,7 +99,7 @@ function plotResults(varargin)
     % load data
     data_folder_list = determineDataStructure(subjects);
     variables_to_plot = plot_settings.get('variables_to_plot');
-    variables_to_plot_header = plot_settings.get('variables_to_plot_header');
+    variables_to_plot_header = plot_settings.get('variables_to_plot_header', true);
     paths_to_plot = plot_settings.get('paths_to_plot', true);
 
     number_of_variables_to_plot = size(variables_to_plot, 1);
@@ -123,10 +123,26 @@ function plotResults(varargin)
     bands_per_stretch = [];
     
     for i_folder = 1 : length(data_folder_list)
+        % get information
+        this_data_folder_path = data_folder_list{i_folder};
+        load([this_data_folder_path filesep 'subjectInfo.mat'], 'date', 'subject_id');
+        
+        % find results file
+        results_file_candidate_analysis = [this_data_folder_path filesep 'analysis' filesep makeFileName(date, subject_id, file_label) '.mat'];
+        results_file_candidate_subject = [this_data_folder_path filesep makeFileName(date, subject_id, file_label) '.mat'];
+        results_file_candidate_results = [this_data_folder_path filesep 'results' filesep  makeFileName(date, subject_id, file_label) '.mat'];
+        if exist(results_file_candidate_analysis, 'file')
+            results_file_name = results_file_candidate_analysis;
+        end    
+        if exist(results_file_candidate_subject, 'file')
+            results_file_name = results_file_candidate_subject;
+        end    
+        if exist(results_file_candidate_results, 'file')
+            results_file_name = results_file_candidate_results;
+        end    
+        
         % load data
-        data_path = data_folder_list{i_folder};
-        load([data_path filesep 'subjectInfo.mat'], 'date', 'subject_id');
-        results_file_name = [data_path filesep makeFileName(date, subject_id, file_label)];
+        disp(['loading data from ' results_file_name])
         loaded_data = load(results_file_name);
         number_of_stretches_this_session = length(loaded_data.time_list_session);
         bands_per_stretch_this_session = loaded_data.bands_per_stretch;
@@ -258,7 +274,7 @@ function plotResults(varargin)
             this_variable_type = variables_to_plot{i_variable, strcmp(variables_to_plot_header, 'variable type')};
             this_variable_source_index = find(strcmp(loaded_data.([this_variable_type '_names_session']), this_variable_name), 1, 'first');
             if isempty(this_variable_source_index)
-                error(['Variable not found: ' source_variable_name])
+                error(['Variable not found: ' this_variable_name])
             end
             this_variable_data = loaded_data.([this_variable_type '_data_session']){this_variable_source_index};
             this_variable_directions = loaded_data.([this_variable_type '_directions_session'])(this_variable_source_index, :);

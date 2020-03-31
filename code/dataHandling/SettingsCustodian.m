@@ -184,6 +184,10 @@ classdef SettingsCustodian < handle
             if strcmp(property_name, 'show_individual_data')
                 default_data = 0;
             end
+            if strcmp(property_name, 'show_single_data_points')
+                default_data = 0;
+            end
+            
             if strcmp(property_name, 'edge_color')
                 default_data = [0.4 0.4 0.4];
             end
@@ -275,6 +279,11 @@ classdef SettingsCustodian < handle
                 default_data = 500;
             end
             
+            if strcmp(property_name, 'variables_to_plot_header')
+                default_data = {'variable name', 'variable type', 'variable label', 'y-axis label', 'save file string', 'y-axis lower limit', 'y-axis upper limit'};
+            end
+
+
             
             
             if strcmp(property_name, 'marker_to_segment_map')
