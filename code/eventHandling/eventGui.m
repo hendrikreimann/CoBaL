@@ -139,7 +139,8 @@ function eventGui(varargin)
     else
         event_time = event_times(1);
     end
-    controller.setSelectedEvent(event_label, event_time);
+%     controller.setSelectedEvent(event_label, event_time);
+    controller.setSelectedEvent([], []);
 
 end
 

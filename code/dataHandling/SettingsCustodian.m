@@ -181,6 +181,13 @@ classdef SettingsCustodian < handle
             if strcmp(property_name, 'show_outliers')
                 default_data = 1;
             end
+            if strcmp(property_name, 'show_individual_data')
+                default_data = 0;
+            end
+            if strcmp(property_name, 'edge_color')
+                default_data = [0.4 0.4 0.4];
+            end
+            
             if strcmp(property_name, 'discrete_data_plot_style')
                 default_data = 'box';
             end

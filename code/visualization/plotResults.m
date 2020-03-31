@@ -78,10 +78,12 @@ function plotResults(varargin)
     plot_settings = SettingsCustodian(plot_settings_file);
     show_outliers = plot_settings.get('show_outliers');
     show_single_data_points = plot_settings.get('show_single_data_points', 1);
+    edge_color = plot_settings.get('edge_color', 1);
     plot_mode = plot_settings.get('plot_mode');
     mark_pushoff = plot_settings.get('mark_pushoff', 1);
     mark_bands = plot_settings.get('mark_bands', 1);
     band_labels = study_settings.get('band_labels', 1);
+    group_bands_within_conditions = plot_settings.get('group_bands_within_conditions', 1);
     number_of_time_steps_normalized = study_settings.get('number_of_time_steps_normalized');
 
     %% load data
@@ -91,10 +93,13 @@ function plotResults(varargin)
     condition_labels = conditions_settings(:, 1)';
     condition_source_variables = conditions_settings(:, 2)';
     number_of_condition_labels = length(condition_labels);
+    data_source = plot_settings.get('data_source', 1);
+    file_label = ['results' data_source];
     
     % load data
     data_folder_list = determineDataStructure(subjects);
     variables_to_plot = plot_settings.get('variables_to_plot');
+    variables_to_plot_header = plot_settings.get('variables_to_plot_header');
     paths_to_plot = plot_settings.get('paths_to_plot', true);
 
     number_of_variables_to_plot = size(variables_to_plot, 1);
@@ -121,7 +126,7 @@ function plotResults(varargin)
         % load data
         data_path = data_folder_list{i_folder};
         load([data_path filesep 'subjectInfo.mat'], 'date', 'subject_id');
-        results_file_name = [data_path filesep 'analysis' filesep makeFileName(date, subject_id, 'results')];
+        results_file_name = [data_path filesep makeFileName(date, subject_id, file_label)];
         loaded_data = load(results_file_name);
         number_of_stretches_this_session = length(loaded_data.time_list_session);
         bands_per_stretch_this_session = loaded_data.bands_per_stretch;
@@ -143,110 +148,122 @@ function plotResults(varargin)
         origin_end_time_list_all = [origin_end_time_list_all; loaded_data.origin_end_time_list_session]; %#ok<AGROW>
         
         % determine data to get
-        get_stretch_data = false;
-        if ~isempty(variables_to_plot) & any(strcmp(variables_to_plot(:, 2), 'stretch'))
-            get_stretch_data = true;
-        end
-        if number_of_paths_to_plot > 0 && any(strcmp(paths_to_plot(:, 2), 'stretch'))
-            get_stretch_data = true;
-        end        
-        if number_of_paths_to_plot > 0 && any(strcmp(paths_to_plot(:, 4), 'stretch'))
-            get_stretch_data = true;
-        end        
-        
-        get_response_data = false;
-        if ~isempty(variables_to_plot) & any(strcmp(variables_to_plot(:, 2), 'response'))
-            get_response_data = true;
-        end
-        if number_of_paths_to_plot > 0 && any(strcmp(paths_to_plot(:, 2), 'response'))
-            get_response_data = true;
-        end        
-        if number_of_paths_to_plot > 0 && any(strcmp(paths_to_plot(:, 4), 'response'))
-            get_response_data = true;
-        end
-        
-        get_analysis_data = false;
-        if ~isempty(variables_to_plot) & any(strcmp(variables_to_plot(:, 2), 'analysis'))
-            get_analysis_data = true;
-        end
-        if number_of_paths_to_plot > 0 && any(strcmp(paths_to_plot(:, 2), 'analysis'))
-            get_analysis_data = true;
-        end        
-        if number_of_paths_to_plot > 0 && any(strcmp(paths_to_plot(:, 4), 'analysis'))
-            get_analysis_data = true;
-        end        
+%             XXX removed generalizing types XXX
+%         get_stretch_data = false;
+%         if ~isempty(variables_to_plot) & any(strcmp(variables_to_plot(:, 2), 'stretch'))
+%             get_stretch_data = true;
+%         end
+%         if number_of_paths_to_plot > 0 && any(strcmp(paths_to_plot(:, 2), 'stretch'))
+%             get_stretch_data = true;
+%         end        
+%         if number_of_paths_to_plot > 0 && any(strcmp(paths_to_plot(:, 4), 'stretch'))
+%             get_stretch_data = true;
+%         end        
+%         
+%         get_response_data = false;
+%         if ~isempty(variables_to_plot) & any(strcmp(variables_to_plot(:, 2), 'response'))
+%             get_response_data = true;
+%         end
+%         if number_of_paths_to_plot > 0 && any(strcmp(paths_to_plot(:, 2), 'response'))
+%             get_response_data = true;
+%         end        
+%         if number_of_paths_to_plot > 0 && any(strcmp(paths_to_plot(:, 4), 'response'))
+%             get_response_data = true;
+%         end
+%         
+%         get_analysis_data = false;
+%         if ~isempty(variables_to_plot) & any(strcmp(variables_to_plot(:, 2), 'analysis'))
+%             get_analysis_data = true;
+%         end
+%         if number_of_paths_to_plot > 0 && any(strcmp(paths_to_plot(:, 2), 'analysis'))
+%             get_analysis_data = true;
+%         end        
+%         if number_of_paths_to_plot > 0 && any(strcmp(paths_to_plot(:, 4), 'analysis'))
+%             get_analysis_data = true;
+%         end        
+% 
+%         get_range_data = false;
+%         if ~isempty(variables_to_plot) & any(strcmp(variables_to_plot(:, 2), 'range'))
+%             get_range_data = true;
+%         end
+%         if number_of_paths_to_plot > 0 && any(strcmp(paths_to_plot(:, 2), 'range'))
+%             get_range_data = true;
+%         end        
+%         if number_of_paths_to_plot > 0 && any(strcmp(paths_to_plot(:, 4), 'range'))
+%             get_range_data = true;
+%         end        
 
-        get_range_data = false;
-        if ~isempty(variables_to_plot) & any(strcmp(variables_to_plot(:, 2), 'range'))
-            get_range_data = true;
-        end
-        if number_of_paths_to_plot > 0 && any(strcmp(paths_to_plot(:, 2), 'range'))
-            get_range_data = true;
-        end        
-        if number_of_paths_to_plot > 0 && any(strcmp(paths_to_plot(:, 4), 'range'))
-            get_range_data = true;
-        end        
-
-        % get data
-        if get_stretch_data
-            stretch_names_session = loaded_data.stretch_names_session;
-            stretch_data_session = loaded_data.stretch_data_session;
-            stretch_directions_session = loaded_data.stretch_directions_session;
-        end
-        if get_response_data
-            response_names_session = loaded_data.response_names_session;
-            response_data_session = loaded_data.response_data_session;
-            response_directions_session = loaded_data.response_directions_session;
-        end
-        if get_analysis_data
-            analysis_names_session = loaded_data.analysis_names_session;
-            analysis_data_session = loaded_data.analysis_data_session;
-            analysis_directions_session = loaded_data.analysis_directions_session;
-        end
-        if get_range_data
-            range_names_session = loaded_data.range_names_session;
-            range_data_session = loaded_data.range_data_session;
-            range_directions_session = loaded_data.range_directions_session;
-        end
+%         % get data
+%         if get_stretch_data
+%             stretch_names_session = loaded_data.stretch_names_session;
+%             stretch_data_session = loaded_data.stretch_data_session;
+%             stretch_directions_session = loaded_data.stretch_directions_session;
+%         end
+%         if get_response_data
+%             response_names_session = loaded_data.response_names_session;
+%             response_data_session = loaded_data.response_data_session;
+%             response_directions_session = loaded_data.response_directions_session;
+%         end
+%         if get_analysis_data
+%             analysis_names_session = loaded_data.analysis_names_session;
+%             analysis_data_session = loaded_data.analysis_data_session;
+%             analysis_directions_session = loaded_data.analysis_directions_session;
+%         end
+%         if get_range_data
+%             range_names_session = loaded_data.range_names_session;
+%             range_data_session = loaded_data.range_data_session;
+%             range_directions_session = loaded_data.range_directions_session;
+%         end
         
         % extract data
         for i_variable = 1 : number_of_variables_to_plot
-            this_variable_name = variables_to_plot{i_variable, 1};
-            this_variable_source = variables_to_plot{i_variable, 2};
-            if strcmp(this_variable_source, 'stretch')
-                index_in_saved_data = find(strcmp(stretch_names_session, this_variable_name), 1, 'first');
-            end
-            if strcmp(this_variable_source, 'response')
-                index_in_saved_data = find(strcmp(response_names_session, this_variable_name), 1, 'first');
-            end
-            if strcmp(this_variable_source, 'analysis')
-                index_in_saved_data = find(strcmp(analysis_names_session, this_variable_name), 1, 'first');
-            end
-            if strcmp(this_variable_source, 'range')
-                index_in_saved_data = find(strcmp(range_names_session, this_variable_name), 1, 'first');
-            end
+%             XXX removed generalizing types XXX
+%             this_variable_name = variables_to_plot{i_variable, 1};
+%             this_variable_source = variables_to_plot{i_variable, 2};
+%             if strcmp(this_variable_source, 'stretch')
+%                 index_in_saved_data = find(strcmp(stretch_names_session, this_variable_name), 1, 'first');
+%             end
+%             if strcmp(this_variable_source, 'response')
+%                 index_in_saved_data = find(strcmp(response_names_session, this_variable_name), 1, 'first');
+%             end
+%             if strcmp(this_variable_source, 'analysis')
+%                 index_in_saved_data = find(strcmp(analysis_names_session, this_variable_name), 1, 'first');
+%             end
+%             if strcmp(this_variable_source, 'range')
+%                 index_in_saved_data = find(strcmp(range_names_session, this_variable_name), 1, 'first');
+%             end
+%             
+%             if isempty(index_in_saved_data)
+%                 error(['Data not found: ' this_variable_name])
+%             end
+%             
+%             if strcmp(this_variable_source, 'stretch')
+%                 this_variable_data = stretch_data_session{index_in_saved_data};
+%                 this_variable_directions = stretch_directions_session(index_in_saved_data, :);
+%             end
+%             if strcmp(this_variable_source, 'response')
+%                 this_variable_data = response_data_session{index_in_saved_data};
+%                 this_variable_directions = response_directions_session(index_in_saved_data, :);
+%             end
+%             if strcmp(this_variable_source, 'analysis')
+%                 this_variable_data = analysis_data_session{index_in_saved_data};
+%                 this_variable_directions = analysis_directions_session(index_in_saved_data, :);
+%             end
+%             if strcmp(this_variable_source, 'range')
+%                 this_variable_data = range_data_session{index_in_saved_data};
+%                 this_variable_directions = range_directions_session(index_in_saved_data, :);
+%             end
             
-            if isempty(index_in_saved_data)
-                error(['Data not found: ' this_variable_name])
+            this_variable_name = variables_to_plot{i_variable, strcmp(variables_to_plot_header, 'variable name')};
+            this_variable_type = variables_to_plot{i_variable, strcmp(variables_to_plot_header, 'variable type')};
+            this_variable_source_index = find(strcmp(loaded_data.([this_variable_type '_names_session']), this_variable_name), 1, 'first');
+            if isempty(this_variable_source_index)
+                error(['Variable not found: ' source_variable_name])
             end
-            
-            if strcmp(this_variable_source, 'stretch')
-                this_variable_data = stretch_data_session{index_in_saved_data};
-                this_variable_directions = stretch_directions_session(index_in_saved_data, :);
-            end
-            if strcmp(this_variable_source, 'response')
-                this_variable_data = response_data_session{index_in_saved_data};
-                this_variable_directions = response_directions_session(index_in_saved_data, :);
-            end
-            if strcmp(this_variable_source, 'analysis')
-                this_variable_data = analysis_data_session{index_in_saved_data};
-                this_variable_directions = analysis_directions_session(index_in_saved_data, :);
-            end
-            if strcmp(this_variable_source, 'range')
-                this_variable_data = range_data_session{index_in_saved_data};
-                this_variable_directions = range_directions_session(index_in_saved_data, :);
-            end
-            
+            this_variable_data = loaded_data.([this_variable_type '_data_session']){this_variable_source_index};
+            this_variable_directions = loaded_data.([this_variable_type '_directions_session'])(this_variable_source_index, :);
+
+
             if plot_settings.get('convert_to_mm') && (strcmp(this_variable_name,'cop_from_com_x') || strcmp(this_variable_name, 'step_placement_x'))
                 this_variable_data = this_variable_data * 1000;
             end
@@ -257,12 +274,12 @@ function plotResults(varargin)
         end
         
         % get time variables
-        if any(find(strcmp(loaded_data.stretch_names_session, 'step_time')))
+        if isfield(loaded_data, 'stretch_names_session') && any(find(strcmp(loaded_data.stretch_names_session, 'step_time')))
             index_in_saved_data = find(strcmp(loaded_data.stretch_names_session, 'step_time'), 1, 'first');
             this_step_time_data = loaded_data.stretch_data_session{index_in_saved_data};
             step_time_data = [step_time_data this_step_time_data]; %#ok<AGROW>
         end
-        if any(find(strcmp(loaded_data.stretch_names_session, 'pushoff_time')))
+        if isfield(loaded_data, 'stretch_names_session') && any(find(strcmp(loaded_data.stretch_names_session, 'pushoff_time')))
             index_in_saved_data = find(strcmp(loaded_data.stretch_names_session, 'pushoff_time'), 1, 'first');
             this_pushoff_time_data = loaded_data.stretch_data_session{index_in_saved_data};
             pushoff_time_data = [pushoff_time_data this_pushoff_time_data]; %#ok<AGROW>
@@ -396,7 +413,7 @@ function plotResults(varargin)
                 comparison_variable_to_axes_index_map(i_comparison) = i_comparison;
                     
                 if isDiscreteVariable(i_variable, data_all, bands_per_stretch)
-                    % abscissae gives the bin edges here
+                    % abscissa gives the bin edges here
                     data_to_plot = data_all{i_variable, 1};
                     if dictate_axes
                         lower_bound = str2double(variables_to_plot{i_variable, 6});
@@ -416,7 +433,7 @@ function plotResults(varargin)
                             number_of_entries = number_of_entries + 1;
                         end
                         
-                        if plot_settings.get('group_bands_within_conditions', 1)
+                        if group_bands_within_conditions
                             gap_between_conditions = 1;
                             
                             abscissae_stimulus = repmat((1 : bands_per_stretch)', 1, length(this_comparison));
@@ -1064,7 +1081,7 @@ function plotResults(varargin)
                             end
                             if strcmp(plot_mode, 'overview') || strcmp(plot_mode, 'episodes')
                                 if ~any(isnan(data_to_plot_this_band))
-                                    if plot_settings.get('group_bands_within_conditions', 1)
+                                    if group_bands_within_conditions
                                         this_color = colors_bands(i_band, :);
                                     else
                                         this_color = plot_settings.get('color_control');
@@ -1284,7 +1301,7 @@ function plotResults(varargin)
                         end
                         if strcmp(plot_mode, 'overview') || strcmp(plot_mode, 'episodes')
                             if ~any(isnan(data_to_plot_this_band))
-                                if plot_settings.get('group_bands_within_conditions', 1)
+                                if group_bands_within_conditions
                                     this_color = colors_bands(i_band, :);
                                 else
                                     this_color = colors_comparison(i_condition, :);
@@ -1299,6 +1316,10 @@ function plotResults(varargin)
                                         'FaceColor', this_color, ...
                                         'xlabel', label_string_this_band, ...
                                         'ShowData', show_single_data_points, ...
+                                        'MedianColor', edge_color, ...
+                                        'MeanColor', edge_color, ...
+                                        'WiskColor', edge_color, ...
+                                        'MarkerColor', lightenColor(this_color, 0.5), ...
                                         'ShowOutliers', show_outliers ...
                                       )
                                 end
