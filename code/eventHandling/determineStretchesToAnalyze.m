@@ -180,11 +180,16 @@ function determineStretchesToAnalyze(varargin)
                 GVS_stim_trajectory = GVS_out_trajectory + subject_settings.get('gvs_offset');
 %                 [stimulus_state_trajectory, time_stimulus] = loadData(date, subject_id, condition_list{i_condition}, i_trial, 'stimulus_state_trajectory');
                 time_stimulus = time;
+                
+                trial_data.stimulus_state_trajectory = stimulus_state_trajectory;
+                trial_data.time_stimulus = time_stimulus;
             end
-            if strcmp(condition_stimulus, 'VISUAL')
+            if strcmp(experimental_paradigm, 'Vision_old')
                 % this if for TU data
                 visual_scene_ml_translation_trajectory = loadData(collection_date, subject_id, condition_list{i_condition}, i_trial, 'visual_scene_ml_translation__trajectory'); %take note of the double "_"
                 [stimulus_state_trajectory, time_stimulus] = loadData(collection_date, subject_id, condition_list{i_condition}, i_trial, 'stimulus_state_trajectory');
+                trial_data.stimulus_state_trajectory = stimulus_state_trajectory;
+                trial_data.time_stimulus = time_stimulus;
             end
             if strcmp(experimental_paradigm, 'Vision') || strcmp(experimental_paradigm, 'CadenceVision') || strcmp(experimental_paradigm, 'SR_VisualStim') || strcmp(experimental_paradigm, 'CognitiveLoadVision')
                 current_rotation_trajectory = loadData(collection_date, subject_id, condition_list{i_condition}, i_trial, 'visual_rotation_angle_trajectory');
@@ -245,8 +250,9 @@ function determineStretchesToAnalyze(varargin)
                         illusion_trajectory(i_time) = 1;
                     end
                 end
+                trial_data.illusion_trajectory = illusion_trajectory;
             end
-            if strcmp(condition_stimulus, 'VISUAL')
+            if strcmp(experimental_paradigm, 'Vision_old')
                 illusion_trajectory = zeros(size(time_stimulus)); % 1 = RIGHT, -1 = LEFT
                 for i_time = 1 : length(time_stimulus)
                     if visual_scene_ml_translation_trajectory(i_time) > 0
@@ -256,10 +262,9 @@ function determineStretchesToAnalyze(varargin)
                     if visual_scene_ml_translation_trajectory(i_time) < 0 
                         % angle change is negative, horizon rotates clockwise, illusion is to the LEFT
                         illusion_trajectory(i_time) = -1;
-                        
-                        
                     end
                 end
+                trial_data.illusion_trajectory = illusion_trajectory;
             end
             if strcmp(experimental_paradigm, 'Vision') || strcmp(experimental_paradigm, 'CadenceVision') || strcmp(experimental_paradigm, 'SR_VisualStim') || strcmp(experimental_paradigm, 'CognitiveLoadVision')
                 illusion_trajectory = zeros(size(time_stimulus)); % -1 = LEFT, 1 = RIGHT
@@ -350,33 +355,11 @@ function determineStretchesToAnalyze(varargin)
             
             % TODO: move the code below into the new function. Do this bit by bit, when able to test stuff.
             % 
-            trigger_times = determineTriggerTimes(study_settings, trial_data);
+            trial_data = determineTriggerTimes(study_settings, trial_data);
             
             if strcmp(condition_stimulus, 'NONE')
                 % use all touchdown events as triggers
-                trigger_times = [left_touchdown_times; right_touchdown_times];
-            end
-            if strcmp(condition_stimulus, 'VISUAL') || strcmp(experimental_paradigm, 'GVS_old')
-                % find the time steps where the stimulus state crosses a threshold
-                stimulus_threshold = 0.5;
-                trigger_indices_stimulus = find(diff(sign(stimulus_state_trajectory - stimulus_threshold)) > 0) + 1;
-
-                %
-                epsilon = 1e-5;
-                % remove weird noise in illusion trajectory (check labview
-                % for odd behavior i.e. wait time and illusion_trajectory)
-                stim_start_indices_labview = find(diff(sign(abs(illusion_trajectory) - epsilon)) > 0) + 1;
-                i_stim = 1;
-                while i_stim ~= length(stim_start_indices_labview)
-                    if illusion_trajectory(stim_start_indices_labview(i_stim) + 5) == 0
-                        stim_start_indices_labview(i_stim) = [];
-                        i_stim = i_stim - 1;
-                    end
-                    i_stim = i_stim + 1;
-                end
-                trigger_indices_stimulus = trigger_indices_stimulus(1 : length(stim_start_indices_labview)); % in case a stim is triggered, but not recorded
-                
-                trigger_times = time_stimulus(trigger_indices_stimulus);
+                trial_data.trigger_times = [left_touchdown_times; right_touchdown_times];
             end
             if strcmp(experimental_paradigm, 'GvsOverground')
                 % find the time steps where the first forceplate vertical force crosses a threshold
@@ -385,45 +368,44 @@ function determineStretchesToAnalyze(varargin)
                 vertical_force_trajectory = frist_forceplate_wrench_trajectory(:, 3);
                 
                 trigger_indices_forceplate = find(diff(sign(-vertical_force_trajectory - stimulus_threshold)) > 0) + 2;
-                trigger_times = time_forceplate(trigger_indices_forceplate);
+                trial_data.trigger_times = time_forceplate(trigger_indices_forceplate);
             end
             if strcmp(experimental_paradigm, 'OculusLaneRestriction') 
                 % find the time steps where the stimulus state crosses a threshold
                 stimulus_threshold = 4.5;
                 trigger_indices_stimulus = find(diff(sign(stimulus_state_trajectory - stimulus_threshold)) > 0) + 2;
-                trigger_times = time_stimulus(trigger_indices_stimulus);
+                trial_data.trigger_times = time_stimulus(trigger_indices_stimulus);
             end
             if strcmp(condition_stimulus, 'OBSTACLE')
-                trigger_times = [];
+                trial_data.trigger_times = [];
             end
             if strcmp(condition_stimulus, 'ARMSENSE')
-                 trigger_times = [];
+                 trial_data.trigger_times = [];
             end
             if strcmp(experimental_paradigm, 'Vision Stochastic')
-                trigger_times = [];
+                trial_data.trigger_times = [];
             end
             if strcmp(experimental_paradigm, 'platformShift')
                 % use all touchdown events as triggers
-                trigger_times = perturbation_start_times;
+                trial_data.trigger_times = perturbation_start_times;
             end
             
-            trial_data.trigger_times = trigger_times;
             
             
             % calculate indices
             if exist('time_marker', 'var')
-                trigger_indices_mocap = zeros(size(trigger_times));
-                for i_index = 1 : length(trigger_times)
-                    [~, index_mocap] = min(abs(time_marker - trigger_times(i_index)));
+                trigger_indices_mocap = zeros(size(trial_data.trigger_times));
+                for i_index = 1 : length(trial_data.trigger_times)
+                    [~, index_mocap] = min(abs(time_marker - trial_data.trigger_times(i_index)));
                     trigger_indices_mocap(i_index) = index_mocap;
                 end
                 trial_data.trigger_indices_mocap = trigger_indices_mocap;
             end
             
             if exist('time_stimulus', 'var')
-                trigger_indices_stimulus = zeros(size(trigger_times));
-                for i_index = 1 : length(trigger_times)
-                    [~, index_labview] = min(abs(time_stimulus - trigger_times(i_index)));
+                trigger_indices_stimulus = zeros(size(trial_data.trigger_times));
+                for i_index = 1 : length(trial_data.trigger_times)
+                    [~, index_labview] = min(abs(time_stimulus - trial_data.trigger_times(i_index)));
                     trigger_indices_stimulus(i_index) = index_labview;
                 end
                 trial_data.trigger_indices_stimulus = trigger_indices_stimulus;
@@ -463,7 +445,7 @@ function determineStretchesToAnalyze(varargin)
             
 
             % For each trigger, determine the conditions and the relevant step events.
-            number_of_triggers = length(trigger_times);
+            number_of_triggers = length(trial_data.trigger_times);
             removal_flags = zeros(number_of_triggers, 1);
             event_variables_to_save = struct;
             
@@ -1508,7 +1490,7 @@ function determineStretchesToAnalyze(varargin)
                 event_variables_to_save.stance_foot_data = condition_stance_foot_list;
             end
             
-            if strcmp(condition_stimulus, 'VISUAL')
+            if strcmp(experimental_paradigm, 'Vision_old')
                 bands_per_stretch = 2;
                 
                 number_of_triggers = length(trigger_indices_mocap);
@@ -1529,13 +1511,13 @@ function determineStretchesToAnalyze(varargin)
                 
                 for i_trigger = 1 : number_of_triggers
                     % determine stimulus
-                    if illusion_trajectory(stim_start_indices_labview(i_trigger)+1) > 0
+                    if trial_data.illusion_trajectory(trial_data.stim_start_indices_stimulus(i_trigger)+1) > 0
                         stimulus_list_stim{i_trigger} = 'STIM_RIGHT';
                     end
-                    if illusion_trajectory(stim_start_indices_labview(i_trigger)+1) < 0
+                    if trial_data.illusion_trajectory(trial_data.stim_start_indices_stimulus(i_trigger)+1) < 0
                         stimulus_list_stim{i_trigger} = 'STIM_LEFT';
                     end
-                    if illusion_trajectory(stim_start_indices_labview(i_trigger)+1) == 0
+                    if trial_data.illusion_trajectory(trial_data.stim_start_indices_stimulus(i_trigger)+1) == 0
                         stimulus_list_stim{i_trigger} = 'STIM_NONE';
                     end
                     stimulus_list_ctrl{i_trigger} = 'STIM_NONE';
@@ -1554,12 +1536,12 @@ function determineStretchesToAnalyze(varargin)
                     
                     
                     % get closest heelstrike on either side
-                    [~, index_left] = min(abs(trial_data.left_touchdown_times - trigger_times(i_trigger)));
-                    [~, index_right] = min(abs(trial_data.right_touchdown_times - trigger_times(i_trigger)));
+                    [~, index_left] = min(abs(trial_data.left_touchdown_times - trial_data.trigger_times(i_trigger)));
+                    [~, index_right] = min(abs(trial_data.right_touchdown_times - trial_data.trigger_times(i_trigger)));
                     
                     % is the closest left heelstrike within the acceptable interval?
                     closest_left_heelstrike = trial_data.left_touchdown_times(index_left);
-                    time_difference_left = closest_left_heelstrike - trigger_times(i_trigger); % where does the closest left heelstrike lie relative to the trigger?
+                    time_difference_left = closest_left_heelstrike - trial_data.trigger_times(i_trigger); % where does the closest left heelstrike lie relative to the trigger?
                     if -time_to_nearest_heelstrike_before_trigger_threshold < time_difference_left && time_difference_left < time_to_nearest_heelstrike_after_trigger_threshold
                     	% left heelstrike is acceptable
                         left_heelstrike_acceptable = true;
@@ -1569,7 +1551,7 @@ function determineStretchesToAnalyze(varargin)
                     
                     % is the closest right heelstrike within the acceptable interval?
                     closest_right_heelstrike = trial_data.right_touchdown_times(index_right);
-                    time_difference_right = closest_right_heelstrike - trigger_times(i_trigger); % where does the closest right heelstrike lie relative to the trigger?
+                    time_difference_right = closest_right_heelstrike - trial_data.trigger_times(i_trigger); % where does the closest right heelstrike lie relative to the trigger?
                     if -time_to_nearest_heelstrike_before_trigger_threshold < time_difference_right && time_difference_right < time_to_nearest_heelstrike_after_trigger_threshold
                     	% right heelstrike is acceptable
                         right_heelstrike_acceptable = true;
@@ -1728,7 +1710,7 @@ function determineStretchesToAnalyze(varargin)
                     
                 % remove flagged triggers
                 unflagged_indices = ~removal_flags;
-                trigger_times = trigger_times(unflagged_indices);
+                trial_data.trigger_times = trial_data.trigger_times(unflagged_indices);
                 trigger_indices_stimulus = trigger_indices_stimulus(unflagged_indices, :);
                 stretch_times_stim = stretch_times_stim(unflagged_indices, :);
                 stance_foot_data_stim = stance_foot_data_stim(unflagged_indices, :);
@@ -1814,19 +1796,19 @@ function determineStretchesToAnalyze(varargin)
                 
                 for i_trigger = 1 : number_of_triggers
                     % determine stimulus
-                    if illusion_trajectory(stim_start_indices_labview(i_trigger)+1) > 0
+                    if illusion_trajectory(trial_data.stim_start_indices_stimulus(i_trigger)+1) > 0
                         stimulus_list_stim{i_trigger} = 'STIM_RIGHT';
                     end
-                    if illusion_trajectory(stim_start_indices_labview(i_trigger)+1) < 0
+                    if illusion_trajectory(trial_data.stim_start_indices_stimulus(i_trigger)+1) < 0
                         stimulus_list_stim{i_trigger} = 'STIM_LEFT';
                     end
-                    if illusion_trajectory(stim_start_indices_labview(i_trigger)+1) == 0
+                    if illusion_trajectory(trial_data.stim_start_indices_stimulus(i_trigger)+1) == 0
                         stimulus_list_stim{i_trigger} = 'STIM_NONE';
                     end
                     stimulus_list_ctrl{i_trigger} = 'STIM_NONE';
                     
                     % determine delay
-                    wait_time_stim = time_stimulus(stim_start_indices_labview(i_trigger)) - time_stimulus(trigger_indices_stimulus(i_trigger));
+                    wait_time_stim = time_stimulus(trial_data.stim_start_indices_stimulus(i_trigger)) - time_stimulus(trigger_indices_stimulus(i_trigger));
                     delay_time_labels = study_settings.get('delay_time_labels');
                     [~, wait_condition_index] = min(abs(study_settings.get('delay_times') - wait_time_stim));
                     if iscell(study_settings.get('delay_time_labels'))
@@ -1839,12 +1821,12 @@ function determineStretchesToAnalyze(varargin)
                     
                     
                     % get closest heelstrike on either side
-                    [~, index_left] = min(abs(trial_data.left_touchdown_times - trigger_times(i_trigger)));
-                    [~, index_right] = min(abs(trial_data.right_touchdown_times - trigger_times(i_trigger)));
+                    [~, index_left] = min(abs(trial_data.left_touchdown_times - trial_data.trigger_times(i_trigger)));
+                    [~, index_right] = min(abs(trial_data.right_touchdown_times - trial_data.trigger_times(i_trigger)));
                     
                     % is the closest left heelstrike within the acceptable interval?
                     closest_left_heelstrike = trial_data.left_touchdown_times(index_left);
-                    time_difference_left = closest_left_heelstrike - trigger_times(i_trigger); % where does the closest left heelstrike lie relative to the trigger?
+                    time_difference_left = closest_left_heelstrike - trial_data.trigger_times(i_trigger); % where does the closest left heelstrike lie relative to the trigger?
                     if -time_to_nearest_heelstrike_before_trigger_threshold < time_difference_left && time_difference_left < time_to_nearest_heelstrike_after_trigger_threshold
                     	% left heelstrike is acceptable
                         left_heelstrike_acceptable = true;
@@ -1854,7 +1836,7 @@ function determineStretchesToAnalyze(varargin)
                     
                     % is the closest right heelstrike within the acceptable interval?
                     closest_right_heelstrike = trial_data.right_touchdown_times(index_right);
-                    time_difference_right = closest_right_heelstrike - trigger_times(i_trigger); % where does the closest right heelstrike lie relative to the trigger?
+                    time_difference_right = closest_right_heelstrike - trial_data.trigger_times(i_trigger); % where does the closest right heelstrike lie relative to the trigger?
                     if -time_to_nearest_heelstrike_before_trigger_threshold < time_difference_right && time_difference_right < time_to_nearest_heelstrike_after_trigger_threshold
                     	% right heelstrike is acceptable
                         right_heelstrike_acceptable = true;
@@ -2035,7 +2017,7 @@ function determineStretchesToAnalyze(varargin)
                     
                 % remove flagged triggers
                 unflagged_indices = ~removal_flags;
-                trigger_times = trigger_times(unflagged_indices);
+                trial_data.trigger_times = trial_data.trigger_times(unflagged_indices);
                 trigger_indices_stimulus = trigger_indices_stimulus(unflagged_indices, :);
                 stretch_times_stim = stretch_times_stim(unflagged_indices, :);
                 stance_foot_data_stim = stance_foot_data_stim(unflagged_indices, :);

@@ -14,7 +14,7 @@
 %     You should have received a copy of the GNU General Public License
 %     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-function trigger_times = determineTriggerTimes(study_settings, trial_data)
+function trial_data = determineTriggerTimes(study_settings, trial_data)
     trigger_times = [];
 
     experimental_paradigm = study_settings.get('experimental_paradigm');
@@ -27,11 +27,35 @@ function trigger_times = determineTriggerTimes(study_settings, trial_data)
         % find the time steps where the stimulus state crosses a threshold
         stimulus_threshold = 1.5;
         trigger_indices_labview = find(diff(sign(trial_data.stimulus_state_trajectory - stimulus_threshold)) > 0) + 2;
-        trigger_times = trial_data.time_stimulus(trigger_indices_labview);
+        trial_data.trigger_times = trial_data.time_stimulus(trigger_indices_labview);
     end
     
+    if strcmp(experimental_paradigm, 'Vision_old') || strcmp(experimental_paradigm, 'GVS_old')
+        % find the time steps where the stimulus state crosses a threshold
+        stimulus_threshold = 0.5;
+        trigger_indices_stimulus = find(diff(sign(trial_data.stimulus_state_trajectory - stimulus_threshold)) > 0) + 1;
+
+        %
+        epsilon = 1e-5;
+        % remove weird noise in illusion trajectory (check labview
+        % for odd behavior i.e. wait time and illusion_trajectory)
+        stim_start_indices_stimulus = find(diff(sign(abs(trial_data.illusion_trajectory) - epsilon)) > 0) + 1;
+        i_stim = 1;
+        while i_stim ~= length(stim_start_indices_stimulus)
+            if trial_data.illusion_trajectory(stim_start_indices_stimulus(i_stim) + 5) == 0
+                stim_start_indices_stimulus(i_stim) = [];
+                i_stim = i_stim - 1;
+            end
+            i_stim = i_stim + 1;
+        end
+        trigger_indices_stimulus = trigger_indices_stimulus(1 : length(stim_start_indices_stimulus)); % in case a stim is triggered, but not recorded
+
+        trial_data.trigger_times = trial_data.time_stimulus(trigger_indices_stimulus);
+        trial_data.stim_start_times = trial_data.time_stimulus(stim_start_indices_stimulus);
+        trial_data.stim_start_indices_stimulus = stim_start_indices_stimulus;
+    end
     if strcmp(experimental_paradigm, 'Stochastic Resonance')
-        trigger_times = trial_data.left_touchdown_times(1:end-1);
+        trial_data.trigger_times = trial_data.left_touchdown_times(1:end-1);
     end
 
 end
