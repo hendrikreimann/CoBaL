@@ -125,7 +125,7 @@ function determineStretchesToAnalyze(varargin)
             end
             
             % determine stimulus type
-            condition_stimulus = study_settings.get('stimulus_condition');
+            condition_stimulus = study_settings.get('stimulus_condition', true);
             if strcmp(condition_stimulus, 'load_from_conditions_file')
                 condition_stimulus = loadConditionFromFile(conditions_file_name, 'stimulus', i_trial);
             end
@@ -1554,11 +1554,11 @@ function determineStretchesToAnalyze(varargin)
                     
                     
                     % get closest heelstrike on either side
-                    [~, index_left] = min(abs(left_touchdown_times - trigger_times(i_trigger)));
-                    [~, index_right] = min(abs(right_touchdown_times - trigger_times(i_trigger)));
+                    [~, index_left] = min(abs(trial_data.left_touchdown_times - trigger_times(i_trigger)));
+                    [~, index_right] = min(abs(trial_data.right_touchdown_times - trigger_times(i_trigger)));
                     
                     % is the closest left heelstrike within the acceptable interval?
-                    closest_left_heelstrike = left_touchdown_times(index_left);
+                    closest_left_heelstrike = trial_data.left_touchdown_times(index_left);
                     time_difference_left = closest_left_heelstrike - trigger_times(i_trigger); % where does the closest left heelstrike lie relative to the trigger?
                     if -time_to_nearest_heelstrike_before_trigger_threshold < time_difference_left && time_difference_left < time_to_nearest_heelstrike_after_trigger_threshold
                     	% left heelstrike is acceptable
@@ -1568,7 +1568,7 @@ function determineStretchesToAnalyze(varargin)
                     end
                     
                     % is the closest right heelstrike within the acceptable interval?
-                    closest_right_heelstrike = right_touchdown_times(index_right);
+                    closest_right_heelstrike = trial_data.right_touchdown_times(index_right);
                     time_difference_right = closest_right_heelstrike - trigger_times(i_trigger); % where does the closest right heelstrike lie relative to the trigger?
                     if -time_to_nearest_heelstrike_before_trigger_threshold < time_difference_right && time_difference_right < time_to_nearest_heelstrike_after_trigger_threshold
                     	% right heelstrike is acceptable
@@ -1596,7 +1596,7 @@ function determineStretchesToAnalyze(varargin)
                     
                     % extract relevant events in order
                     if strcmp(trigger_foot, 'left')
-                        if length(left_touchdown_times) < index_left + 1 || removal_flags(i_trigger) == 1 || index_left == 1
+                        if length(trial_data.left_touchdown_times) < index_left + 1 || removal_flags(i_trigger) == 1 || index_left == 1
                             % data doesn't include the required number of steps after the trigger
                             removal_flags(i_trigger) = 1;
                             left_foot_heelstrike_0  = NaN;
@@ -1605,17 +1605,17 @@ function determineStretchesToAnalyze(varargin)
                             right_foot_heelstrike_0 = NaN;
                             right_foot_pushoff_0    = NaN;
                         else
-                            left_foot_heelstrike_pre  = left_touchdown_times(index_left-1);
-                            left_foot_heelstrike_0  = left_touchdown_times(index_left);
-                            left_foot_heelstrike_1  = left_touchdown_times(index_left+1);
+                            left_foot_heelstrike_pre  = trial_data.left_touchdown_times(index_left-1);
+                            left_foot_heelstrike_0  = trial_data.left_touchdown_times(index_left);
+                            left_foot_heelstrike_1  = trial_data.left_touchdown_times(index_left+1);
                             
-                            left_foot_pushoff_pre     = max(left_pushoff_times(left_pushoff_times < left_foot_heelstrike_0));
-                            left_foot_pushoff_0     = min(left_pushoff_times(left_pushoff_times >= left_foot_heelstrike_0));
+                            left_foot_pushoff_pre     = max(trial_data.left_pushoff_times(trial_data.left_pushoff_times < left_foot_heelstrike_0));
+                            left_foot_pushoff_0     = min(trial_data.left_pushoff_times(trial_data.left_pushoff_times >= left_foot_heelstrike_0));
                             
-                            right_foot_heelstrike_pre = max(right_touchdown_times(right_touchdown_times < left_foot_heelstrike_0));
-                            right_foot_heelstrike_0 = min(right_touchdown_times(right_touchdown_times >= left_foot_heelstrike_0));
-                            right_foot_pushoff_pre    = max(right_pushoff_times(right_pushoff_times <= left_foot_heelstrike_0));
-                            right_foot_pushoff_0    = max(right_pushoff_times(right_pushoff_times <= left_foot_pushoff_0));
+                            right_foot_heelstrike_pre = max(trial_data.right_touchdown_times(trial_data.right_touchdown_times < left_foot_heelstrike_0));
+                            right_foot_heelstrike_0 = min(trial_data.right_touchdown_times(trial_data.right_touchdown_times >= left_foot_heelstrike_0));
+                            right_foot_pushoff_pre    = max(trial_data.right_pushoff_times(trial_data.right_pushoff_times <= left_foot_heelstrike_0));
+                            right_foot_pushoff_0    = max(trial_data.right_pushoff_times(trial_data.right_pushoff_times <= left_foot_pushoff_0));
 
                             % notify if events are not sorted properly
                             if ~issorted ...
@@ -1630,7 +1630,7 @@ function determineStretchesToAnalyze(varargin)
                             end
                         end
                     elseif strcmp(trigger_foot, 'right')
-                        if length(right_touchdown_times) < index_right + 1 || removal_flags(i_trigger) == 1 || index_right == 1
+                        if length(trial_data.right_touchdown_times) < index_right + 1 || removal_flags(i_trigger) == 1 || index_right == 1
                             % data doesn't include the required number of steps after the trigger
                             removal_flags(i_trigger) = 1;
                             right_foot_heelstrike_pre = NaN;
@@ -1645,17 +1645,17 @@ function determineStretchesToAnalyze(varargin)
                             left_foot_pushoff_pre     = NaN;
                             left_foot_pushoff_0     = NaN;
                         else
-                            right_foot_heelstrike_pre = right_touchdown_times(index_right-1);
-                            right_foot_heelstrike_0 = right_touchdown_times(index_right);
-                            right_foot_heelstrike_1 = right_touchdown_times(index_right+1);
+                            right_foot_heelstrike_pre = trial_data.right_touchdown_times(index_right-1);
+                            right_foot_heelstrike_0 = trial_data.right_touchdown_times(index_right);
+                            right_foot_heelstrike_1 = trial_data.right_touchdown_times(index_right+1);
                             
-                            right_foot_pushoff_pre    = max(right_pushoff_times(right_pushoff_times < right_foot_heelstrike_0));
-                            right_foot_pushoff_0    = min(right_pushoff_times(right_pushoff_times >= right_foot_heelstrike_0));
+                            right_foot_pushoff_pre    = max(trial_data.right_pushoff_times(trial_data.right_pushoff_times < right_foot_heelstrike_0));
+                            right_foot_pushoff_0    = min(trial_data.right_pushoff_times(trial_data.right_pushoff_times >= right_foot_heelstrike_0));
 
-                            left_foot_heelstrike_pre  = max(left_touchdown_times(left_touchdown_times < right_foot_heelstrike_0));
-                            left_foot_heelstrike_0  = min(left_touchdown_times(left_touchdown_times >= right_foot_heelstrike_0));
-                            left_foot_pushoff_pre     = max(left_pushoff_times(left_pushoff_times <= right_foot_heelstrike_0));
-                            left_foot_pushoff_0     = max(left_pushoff_times(left_pushoff_times <= right_foot_pushoff_0));
+                            left_foot_heelstrike_pre  = max(trial_data.left_touchdown_times(trial_data.left_touchdown_times < right_foot_heelstrike_0));
+                            left_foot_heelstrike_0  = min(trial_data.left_touchdown_times(trial_data.left_touchdown_times >= right_foot_heelstrike_0));
+                            left_foot_pushoff_pre     = max(trial_data.left_pushoff_times(trial_data.left_pushoff_times <= right_foot_heelstrike_0));
+                            left_foot_pushoff_0     = max(trial_data.left_pushoff_times(trial_data.left_pushoff_times <= right_foot_pushoff_0));
 
                             % notify if events are not sorted properly
                             if ~issorted ...
@@ -1839,11 +1839,11 @@ function determineStretchesToAnalyze(varargin)
                     
                     
                     % get closest heelstrike on either side
-                    [~, index_left] = min(abs(left_touchdown_times - trigger_times(i_trigger)));
-                    [~, index_right] = min(abs(right_touchdown_times - trigger_times(i_trigger)));
+                    [~, index_left] = min(abs(trial_data.left_touchdown_times - trigger_times(i_trigger)));
+                    [~, index_right] = min(abs(trial_data.right_touchdown_times - trigger_times(i_trigger)));
                     
                     % is the closest left heelstrike within the acceptable interval?
-                    closest_left_heelstrike = left_touchdown_times(index_left);
+                    closest_left_heelstrike = trial_data.left_touchdown_times(index_left);
                     time_difference_left = closest_left_heelstrike - trigger_times(i_trigger); % where does the closest left heelstrike lie relative to the trigger?
                     if -time_to_nearest_heelstrike_before_trigger_threshold < time_difference_left && time_difference_left < time_to_nearest_heelstrike_after_trigger_threshold
                     	% left heelstrike is acceptable
@@ -1853,7 +1853,7 @@ function determineStretchesToAnalyze(varargin)
                     end
                     
                     % is the closest right heelstrike within the acceptable interval?
-                    closest_right_heelstrike = right_touchdown_times(index_right);
+                    closest_right_heelstrike = trial_data.right_touchdown_times(index_right);
                     time_difference_right = closest_right_heelstrike - trigger_times(i_trigger); % where does the closest right heelstrike lie relative to the trigger?
                     if -time_to_nearest_heelstrike_before_trigger_threshold < time_difference_right && time_difference_right < time_to_nearest_heelstrike_after_trigger_threshold
                     	% right heelstrike is acceptable
@@ -1881,29 +1881,29 @@ function determineStretchesToAnalyze(varargin)
                     
                     % extract relevant events in order
                     if strcmp(trigger_foot, 'left')
-                        if length(left_touchdown_times) < index_left + 2 || removal_flags(i_trigger) == 1
+                        if length(trial_data.left_touchdown_times) < index_left + 2 || removal_flags(i_trigger) == 1
                             removal_flags(i_trigger) = 1;
                         else
-                            left_foot_heelstrike_m2 = left_touchdown_times(index_left-2);
-                            left_foot_heelstrike_m1 = left_touchdown_times(index_left-1);
-                            left_foot_heelstrike_t0 = left_touchdown_times(index_left);
-                            left_foot_heelstrike_p1 = left_touchdown_times(index_left+1);
-                            left_foot_heelstrike_p2 = left_touchdown_times(index_left+2);
+                            left_foot_heelstrike_m2 = trial_data.left_touchdown_times(index_left-2);
+                            left_foot_heelstrike_m1 = trial_data.left_touchdown_times(index_left-1);
+                            left_foot_heelstrike_t0 = trial_data.left_touchdown_times(index_left);
+                            left_foot_heelstrike_p1 = trial_data.left_touchdown_times(index_left+1);
+                            left_foot_heelstrike_p2 = trial_data.left_touchdown_times(index_left+2);
                             
-                            left_foot_pushoff_m2    = min(left_pushoff_times(left_pushoff_times >= left_foot_heelstrike_m2));
-                            left_foot_pushoff_m1    = min(left_pushoff_times(left_pushoff_times >= left_foot_heelstrike_m1));
-                            left_foot_pushoff_t0    = min(left_pushoff_times(left_pushoff_times >= left_foot_heelstrike_t0));
-                            left_foot_pushoff_p1    = min(left_pushoff_times(left_pushoff_times >= left_foot_heelstrike_p1));
+                            left_foot_pushoff_m2    = min(trial_data.left_pushoff_times(trial_data.left_pushoff_times >= left_foot_heelstrike_m2));
+                            left_foot_pushoff_m1    = min(trial_data.left_pushoff_times(trial_data.left_pushoff_times >= left_foot_heelstrike_m1));
+                            left_foot_pushoff_t0    = min(trial_data.left_pushoff_times(trial_data.left_pushoff_times >= left_foot_heelstrike_t0));
+                            left_foot_pushoff_p1    = min(trial_data.left_pushoff_times(trial_data.left_pushoff_times >= left_foot_heelstrike_p1));
                             
-                            right_foot_heelstrike_m2  = min(right_touchdown_times(right_touchdown_times >= left_foot_heelstrike_m2));
-                            right_foot_heelstrike_m1  = min(right_touchdown_times(right_touchdown_times >= left_foot_heelstrike_m1));
-                            right_foot_heelstrike_t0  = min(right_touchdown_times(right_touchdown_times >= left_foot_heelstrike_t0));
-                            right_foot_heelstrike_p1  = min(right_touchdown_times(right_touchdown_times >= left_foot_heelstrike_p1));
+                            right_foot_heelstrike_m2  = min(trial_data.right_touchdown_times(trial_data.right_touchdown_times >= left_foot_heelstrike_m2));
+                            right_foot_heelstrike_m1  = min(trial_data.right_touchdown_times(trial_data.right_touchdown_times >= left_foot_heelstrike_m1));
+                            right_foot_heelstrike_t0  = min(trial_data.right_touchdown_times(trial_data.right_touchdown_times >= left_foot_heelstrike_t0));
+                            right_foot_heelstrike_p1  = min(trial_data.right_touchdown_times(trial_data.right_touchdown_times >= left_foot_heelstrike_p1));
                             
-                            right_foot_pushoff_m2     = min(right_pushoff_times(right_pushoff_times >= left_foot_heelstrike_m2));
-                            right_foot_pushoff_m1     = min(right_pushoff_times(right_pushoff_times >= left_foot_heelstrike_m1));
-                            right_foot_pushoff_t0     = min(right_pushoff_times(right_pushoff_times >= left_foot_heelstrike_t0));
-                            right_foot_pushoff_p1     = min(right_pushoff_times(right_pushoff_times >= left_foot_heelstrike_p1));
+                            right_foot_pushoff_m2     = min(trial_data.right_pushoff_times(trial_data.right_pushoff_times >= left_foot_heelstrike_m2));
+                            right_foot_pushoff_m1     = min(trial_data.right_pushoff_times(trial_data.right_pushoff_times >= left_foot_heelstrike_m1));
+                            right_foot_pushoff_t0     = min(trial_data.right_pushoff_times(trial_data.right_pushoff_times >= left_foot_heelstrike_t0));
+                            right_foot_pushoff_p1     = min(trial_data.right_pushoff_times(trial_data.right_pushoff_times >= left_foot_heelstrike_p1));
 
                             % notify if events are not sorted properly
                             if ~issorted ...
@@ -1921,29 +1921,29 @@ function determineStretchesToAnalyze(varargin)
 
                         end
                     elseif strcmp(trigger_foot, 'right')
-                        if length(right_touchdown_times) < index_left + 2 || removal_flags(i_trigger) == 1
+                        if length(trial_data.right_touchdown_times) < index_left + 2 || removal_flags(i_trigger) == 1
                             removal_flags(i_trigger) = 1;
                         else
-                            right_foot_heelstrike_m2 = right_touchdown_times(index_right-2);
-                            right_foot_heelstrike_m1 = right_touchdown_times(index_right-1);
-                            right_foot_heelstrike_t0 = right_touchdown_times(index_right);
-                            right_foot_heelstrike_p1 = right_touchdown_times(index_right+1);
-                            right_foot_heelstrike_p2 = right_touchdown_times(index_right+2);
+                            right_foot_heelstrike_m2 = trial_data.right_touchdown_times(index_right-2);
+                            right_foot_heelstrike_m1 = trial_data.right_touchdown_times(index_right-1);
+                            right_foot_heelstrike_t0 = trial_data.right_touchdown_times(index_right);
+                            right_foot_heelstrike_p1 = trial_data.right_touchdown_times(index_right+1);
+                            right_foot_heelstrike_p2 = trial_data.right_touchdown_times(index_right+2);
                             
-                            right_foot_pushoff_m2    = min(right_pushoff_times(right_pushoff_times >= right_foot_heelstrike_m2));
-                            right_foot_pushoff_m1    = min(right_pushoff_times(right_pushoff_times >= right_foot_heelstrike_m1));
-                            right_foot_pushoff_t0    = min(right_pushoff_times(right_pushoff_times >= right_foot_heelstrike_t0));
-                            right_foot_pushoff_p1    = min(right_pushoff_times(right_pushoff_times >= right_foot_heelstrike_p1));
+                            right_foot_pushoff_m2    = min(trial_data.right_pushoff_times(trial_data.right_pushoff_times >= right_foot_heelstrike_m2));
+                            right_foot_pushoff_m1    = min(trial_data.right_pushoff_times(trial_data.right_pushoff_times >= right_foot_heelstrike_m1));
+                            right_foot_pushoff_t0    = min(trial_data.right_pushoff_times(trial_data.right_pushoff_times >= right_foot_heelstrike_t0));
+                            right_foot_pushoff_p1    = min(trial_data.right_pushoff_times(trial_data.right_pushoff_times >= right_foot_heelstrike_p1));
                             
-                            left_foot_heelstrike_m2  = min(left_touchdown_times(left_touchdown_times >= right_foot_heelstrike_m2));
-                            left_foot_heelstrike_m1  = min(left_touchdown_times(left_touchdown_times >= right_foot_heelstrike_m1));
-                            left_foot_heelstrike_t0  = min(left_touchdown_times(left_touchdown_times >= right_foot_heelstrike_t0));
-                            left_foot_heelstrike_p1  = min(left_touchdown_times(left_touchdown_times >= right_foot_heelstrike_p1));
+                            left_foot_heelstrike_m2  = min(trial_data.left_touchdown_times(trial_data.left_touchdown_times >= right_foot_heelstrike_m2));
+                            left_foot_heelstrike_m1  = min(trial_data.left_touchdown_times(trial_data.left_touchdown_times >= right_foot_heelstrike_m1));
+                            left_foot_heelstrike_t0  = min(trial_data.left_touchdown_times(trial_data.left_touchdown_times >= right_foot_heelstrike_t0));
+                            left_foot_heelstrike_p1  = min(trial_data.left_touchdown_times(trial_data.left_touchdown_times >= right_foot_heelstrike_p1));
                             
-                            left_foot_pushoff_m2     = min(left_pushoff_times(left_pushoff_times >= right_foot_heelstrike_m2));
-                            left_foot_pushoff_m1     = min(left_pushoff_times(left_pushoff_times >= right_foot_heelstrike_m1));
-                            left_foot_pushoff_t0     = min(left_pushoff_times(left_pushoff_times >= right_foot_heelstrike_t0));
-                            left_foot_pushoff_p1     = min(left_pushoff_times(left_pushoff_times >= right_foot_heelstrike_p1));
+                            left_foot_pushoff_m2     = min(trial_data.left_pushoff_times(trial_data.left_pushoff_times >= right_foot_heelstrike_m2));
+                            left_foot_pushoff_m1     = min(trial_data.left_pushoff_times(trial_data.left_pushoff_times >= right_foot_heelstrike_m1));
+                            left_foot_pushoff_t0     = min(trial_data.left_pushoff_times(trial_data.left_pushoff_times >= right_foot_heelstrike_t0));
+                            left_foot_pushoff_p1     = min(trial_data.left_pushoff_times(trial_data.left_pushoff_times >= right_foot_heelstrike_p1));
 
                             % notify if events are not sorted properly
                             if ~issorted ...
@@ -2112,7 +2112,7 @@ function determineStretchesToAnalyze(varargin)
                 stance_foot_data_stretch = {'STANCE_BOTH', 'STANCE_LEFT', 'STANCE_BOTH', 'STANCE_RIGHT'};
                 bands_per_stretch = length(stance_foot_data_stretch);
                 
-                left_touchdown_times_relevant = ...
+                trial_data.left_touchdown_times_relevant = ...
                     left_touchdown_times ...
                       ( ...
                         left_touchdown_times > study_settings.get('analysis_start_time') ...
@@ -2124,10 +2124,10 @@ function determineStretchesToAnalyze(varargin)
                 removal_flags = false(number_of_stretches, 1);
                 for i_stretch = 1 : number_of_stretches
                     this_stretch_start = stretch_start_times(i_stretch);
-                    this_right_pushoff = min(right_pushoff_times(right_pushoff_times > this_stretch_start));
-                    this_right_touchdown = min(right_touchdown_times(right_touchdown_times > this_stretch_start));
-                    this_left_pushoff = min(left_pushoff_times(left_pushoff_times > this_stretch_start));
-                    this_left_touchdown = min(left_touchdown_times(left_touchdown_times > this_stretch_start));
+                    this_right_pushoff = min(right_pushoff_timesright_pushoff_times(right_pushoff_times > this_stretch_start));
+                    this_right_touchdown = min(right_pushoff_timesright_touchdown_times(right_touchdown_times > this_stretch_start));
+                    this_left_pushoff = min(right_pushoff_timesleft_pushoff_times(left_pushoff_times > this_stretch_start));
+                    this_left_touchdown = min(right_pushoff_timesleft_touchdown_times(left_touchdown_times > this_stretch_start));
                     this_stretch_times = [this_stretch_start this_right_pushoff this_right_touchdown this_left_pushoff this_left_touchdown];
                     if ~issorted(this_stretch_times)
                         removal_flags(i_stretch) = 1;
