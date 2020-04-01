@@ -57,5 +57,14 @@ function trial_data = determineTriggerTimes(study_settings, trial_data)
     if strcmp(experimental_paradigm, 'Stochastic Resonance')
         trial_data.trigger_times = trial_data.left_touchdown_times(1:end-1);
     end
+    if strcmp(experimental_paradigm, 'GvsOverground')
+        % find the time steps where the first forceplate vertical force crosses a threshold
+        stimulus_threshold = 20;
+%         [first_forceplate_wrench_trajectory, time_forceplate] = loadData(collection_date, subject_id, condition_list{i_condition}, i_trial, 'left_foot_wrench_world');
+%         vertical_force_trajectory = first_forceplate_wrench_trajectory(:, 3);
+
+        trigger_indices_forceplate = find(diff(sign(-trial_data.vertical_force_trajectory - stimulus_threshold)) > 0) + 2;
+        trial_data.trigger_times = trial_data.time_forceplate(trigger_indices_forceplate);
+    end
 
 end

@@ -35,6 +35,9 @@ function [conditions_trial, event_variables_to_save, removal_flags] = determineC
     if strcmp(experimental_paradigm, 'GVS_old')
         [conditions_trial, event_variables_to_save, removal_flags] = determineConditionLevels_gvsOld(study_settings, subject_settings, trial_data);
     end
+    if strcmp(experimental_paradigm, 'GvsOverground')
+        [conditions_trial, event_variables_to_save, removal_flags] = determineConditionLevels_gvsOverground(study_settings, subject_settings, trial_data);
+    end
 
 
 
