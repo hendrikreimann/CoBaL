@@ -22,8 +22,8 @@ function [conditions_trial, event_variables_to_save, removal_flags] = determineC
     event_variables_to_save = struct;
     removal_flags = zeros(size(trial_data.trigger_times));
     
-    intermittent_perturbation_paradigms = {'Vision', 'CadenceVision', 'GVS', 'CadenceGVS', 'FatigueGVS', 'OculusLaneRestriction', 'CognitiveLoadVision', 'CognitiveLoadGvs', 'SR_VisualStim'};
-    if any(strcmp(experimental_paradigm, intermittent_perturbation_paradigms))
+    paradigms_with_intermittent_perturbation = {'Vision', 'CadenceVision', 'GVS', 'CadenceGVS', 'FatigueGVS', 'OculusLaneRestriction', 'CognitiveLoadVision', 'CognitiveLoadGvs', 'SR_VisualStim'};
+    if any(strcmp(experimental_paradigm, paradigms_with_intermittent_perturbation))
         [conditions_trial, event_variables_to_save, removal_flags] = determineConditionLevels_intermittentPerturbations(study_settings, subject_settings, trial_data);
     end
     if strcmp(experimental_paradigm, 'Stochastic Resonance')
@@ -38,8 +38,9 @@ function [conditions_trial, event_variables_to_save, removal_flags] = determineC
     if strcmp(experimental_paradigm, 'GvsOverground')
         [conditions_trial, event_variables_to_save, removal_flags] = determineConditionLevels_gvsOverground(study_settings, subject_settings, trial_data);
     end
-
-
+    if strcmp(experimental_paradigm, 'GaitInitiationObstacle')
+        [conditions_trial, event_variables_to_save, removal_flags] = determineConditionLevels_gaitInitiationObstacle(study_settings, subject_settings, trial_data);
+    end
 
 
 

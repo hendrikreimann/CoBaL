@@ -104,10 +104,10 @@ function determineStretchesToAnalyze(varargin)
             
             condition_experimental = study_settings.get('experimental_condition');
             if strcmp(condition_experimental, 'load_from_conditions_file')
-                condition_experimental = loadConditionFromFile(conditions_file_name, 'experimental', i_trial);
+                trial_data.condition_experimental = loadConditionFromFile(conditions_file_name, 'experimental', i_trial);
             end
             if strcmp(condition_experimental, 'determine_from_file_name')
-                condition_experimental = condition_list{i_condition};
+                trial_data.condition_experimental = condition_list{i_condition};
             end
             if strcmp(condition_experimental, 'determine_from_type_day_combination')
                 % do nothing, we'll deal with this depending on experiment type
@@ -164,6 +164,10 @@ function determineStretchesToAnalyze(varargin)
             if strcmp(experimental_paradigm, 'GvsOverground')
                 [first_forceplate_wrench_trajectory, time_forceplate] = loadData(collection_date, subject_id, condition_list{i_condition}, i_trial, 'left_foot_wrench_world');
                 trial_data.vertical_force_trajectory = first_forceplate_wrench_trajectory(:, 3);
+                trial_data.time_forceplate = time_forceplate;
+            end
+            if strcmp(experimental_paradigm, 'GaitInitiationObstacle')
+                trial_data.cop_world_trajectory = cop_world_trajectory;
                 trial_data.time_forceplate = time_forceplate;
             end
             
@@ -419,7 +423,8 @@ function determineStretchesToAnalyze(varargin)
             % For each trigger, determine the conditions and the relevant step events.
             number_of_triggers = length(trial_data.trigger_times);
             
-            [conditions_trial, event_variables_to_save, removal_flags] = determineConditionLevels(study_settings, subject_settings, trial_data);
+%             [conditions_trial, event_variables_to_save, removal_flags] = determineConditionLevels(study_settings, subject_settings, trial_data);
+            [conditions_trial_new, event_variables_to_save_new, removal_flags_new] = determineConditionLevels(study_settings, subject_settings, trial_data);
             
             if strcmp(condition_stimulus, 'NONE')
                 % determine start and end
@@ -441,7 +446,7 @@ function determineStretchesToAnalyze(varargin)
                 for i_trigger = 1 : number_of_triggers
                     perturbation_list{i_trigger, 1} = 'N/A';
                     condition_delay_list{i_trigger, 1} = 'N/A';
-                    condition_experimental_list{i_trigger, 1} = condition_experimental;
+                    condition_experimental_list{i_trigger, 1} = trial_data.condition_experimental;
                     condition_stimulus_list{i_trigger, 1} = condition_stimulus;
                     condition_day_list{i_trigger, 1} = condition_day;
                     
@@ -529,66 +534,19 @@ function determineStretchesToAnalyze(varargin)
                 event_variables_to_save.stretch_times = stretch_times;               
             end  
             
-            if strcmp(condition_stimulus, 'OBSTACLE')
-                % determine start and end
-                stance_foot_data = {'STANCE_BOTH', 'STANCE_BOTH', 'STANCE_LEFT'};
-                bands_per_stretch = length(stance_foot_data);
-                removal_flags = 0;
-                
-                init_time = trial_data.right_pushoff_times(1) - 1; % assume heel-off happened at least one second before toes-off, so start looking at that point
-                end_time = trial_data.right_touchdown_times(1);
-                unload_time = trial_data.right_pushoff_times(1);
-                
-                % determine unload time as maximal backward-right shift of the CoP, following Halliday et al, Gait and Posture 8 (1998) 8?14
-                [~, start_time_index_forceplate] = min(abs(time_forceplate - init_time));
-                [~, unload_time_index_forceplate] = min(abs(time_forceplate - unload_time));
-                cop_data_relevant = cop_world_trajectory(start_time_index_forceplate : unload_time_index_forceplate, :);
-                time_forceplate_relevant = time_forceplate(start_time_index_forceplate : unload_time_index_forceplate);
-                [~, release_time_index_forceplate] = max(cop_data_relevant(:, 1));
-                release_time = time_forceplate_relevant(release_time_index_forceplate);
-                start_time = release_time - 0.5;
-                
-                
-                stretch_start_times = trial_data.right_pushoff_times(1) - 1; % HR: this is probably not right anymore
-                stretch_end_times = trial_data.right_touchdown_times(1);
-                stretch_pushoff_times = 0;
-                condition_experimental_list = {condition_experimental};
-                stretch_times = [start_time release_time unload_time end_time];
-                
-                if visualize
-                    for i_trigger = 1 : length(stretch_start_times)
-                        if strcmp(stance_foot_data(i_trigger), 'STANCE_LEFT')
-                            stretch_indicator_height = 0.01;
-                        else
-                            stretch_indicator_height = -0.01;
-                        end
-                            
-                        plot([stretch_start_times(i_trigger) stretch_end_times(i_trigger)], [1 1]*stretch_indicator_height, 'linewidth', 3);
-                    end
-                end
-                
-                % add new variables to be saved
-                conditions_trial = struct;
-                conditions_trial.condition_experimental_list = condition_experimental_list;
-                event_variables_to_save.stretch_pushoff_times = stretch_pushoff_times;
-                event_variables_to_save.stretch_times = stretch_times;
-                event_variables_to_save.stance_foot_data = stance_foot_data;
-
-            end
-
             if strcmp(condition_stimulus, 'ARMSENSE')
                             
                 % sort out type-day-combination
-                if strcmp(condition_experimental, 'determine_from_type_day_combination')
+                if strcmp(trial_data.condition_experimental, 'determine_from_type_day_combination')
 
                     if strcmp(condition_day, 'day1') && strcmp(this_trial_type, 'preOG')
-                        condition_experimental = 'pre';
+                        trial_data.condition_experimental = 'pre';
                     end
                     if strcmp(condition_day, 'day1') && strcmp(this_trial_type, 'postOG')
-                        condition_experimental = 'post0';
+                        trial_data.condition_experimental = 'post0';
                     end
                     if strcmp(condition_day, 'day2') && strcmp(this_trial_type, 'preOG')
-                        condition_experimental = 'post4';
+                        trial_data.condition_experimental = 'post4';
                     end
                 end
                     
@@ -624,7 +582,7 @@ function determineStretchesToAnalyze(varargin)
                     if ~isempty(band_delimiter) && band_delimiter < this_stretch_end
                         stretch_times = [this_stretch_start, band_delimiter, this_stretch_end];
                         stance_foot_data = {first_stance_foot, second_stance_foot};
-                        condition_experimental_list = condition_experimental;
+                        condition_experimental_list = trial_data.condition_experimental;
                         condition_startfoot_list = {first_stance_foot; second_stance_foot};
                         bands_per_stretch = 2;
                         
@@ -713,7 +671,7 @@ function determineStretchesToAnalyze(varargin)
                             end
                             
                             condition_startfoot_list = [condition_startfoot_list; first_stance_foot];
-                            condition_experimental_list = [condition_experimental_list; condition_experimental];
+                            condition_experimental_list = [condition_experimental_list; trial_data.condition_experimental];
                         end
 
                     end
@@ -798,6 +756,8 @@ function determineStretchesToAnalyze(varargin)
                 conditions_trial.stim_amplitude_list = stim_amplitude_list;
                 conditions_trial.block_list = block_list;
             end
+            
+% [isequal(event_variables_to_save, event_variables_to_save_new), isequal(conditions_trial, conditions_trial_new), isequal(removal_flags, removal_flags_new)]
             
             % add subject
             condition_subject_list = cell(size(event_variables_to_save.stretch_times, 1), 1);
