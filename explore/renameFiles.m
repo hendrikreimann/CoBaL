@@ -14,26 +14,46 @@
 %     You should have received a copy of the GNU General Public License
 %     along with this program.  If not, see <http://www.gnu.org/licenses/>.% compare the kinematic tree against the kinematic chain
 
+% this script renames files according to the CoBaL file naming scheme
+% it will go through all files in the current folder and replace part of
+% the name with string specified in "new_code"
+target_folder = 'analysis';
 
-new_code = 'COGGP01';
-spot_to_replace = 2;
+% 1 = date, 2 = subjectID, 3 = trial type, 4 = trial number, 5 = data type
+spot_to_replace = 5;
+code_to_replace = 'Pevents';
+new_code = 'events';
 
 % find files
 clear file_name_list;
-data_dir = dir;
+data_dir = dir([pwd filesep target_folder]);
 [file_name_list{1:length(data_dir)}] = deal(data_dir.name);
 
-for i_file = 4 : length(file_name_list)
+for i_file = 1 : length(file_name_list)
     data_file_name = file_name_list{i_file};
-    
-    file_name_split = strsplit(data_file_name, '_');
-    file_name_split{spot_to_replace} = new_code;
-    new_file_name = file_name_split{1};
-    for i_step = 2 : length(file_name_split)
-        new_file_name = [new_file_name '_' file_name_split{i_step}];
+    file_name_split_dot = strsplit(data_file_name, '.');
+    data_file_name_body = file_name_split_dot{1};
+    if length(file_name_split_dot) > 1
+        data_file_name_type = file_name_split_dot{2};
     end
     
-    movefile(data_file_name, new_file_name)
+    file_name_split = strsplit(data_file_name_body, '_');
+    if length(file_name_split) >= spot_to_replace && strcmp(file_name_split{spot_to_replace}, code_to_replace)
+        file_name_split{spot_to_replace} = new_code;
+        new_file_name_body = file_name_split{1};
+        for i_step = 2 : length(file_name_split)
+            new_file_name_body = [new_file_name_body '_' file_name_split{i_step}];
+        end
+        new_file_name = [new_file_name_body '.' data_file_name_type];
+        
+        % rename the file
+        old_file_name_with_path = [pwd filesep target_folder filesep data_file_name];
+        new_file_name_with_path = [pwd filesep target_folder filesep new_file_name];
+        movefile(old_file_name_with_path, new_file_name_with_path);
+        disp(['Moved file ' old_file_name_with_path ' --> ' new_file_name_with_path])
+    end
+    
+    
 end
 
 
