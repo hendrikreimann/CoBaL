@@ -21,8 +21,8 @@ target_folder = 'analysis';
 
 % 1 = date, 2 = subjectID, 3 = trial type, 4 = trial number, 5 = data type
 spot_to_replace = 5;
-code_to_replace = 'Pevents';
-new_code = 'events';
+code_to_replace = 'events';
+new_code = 'stepEvents';
 
 % find files
 clear file_name_list;

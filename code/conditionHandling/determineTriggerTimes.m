@@ -15,20 +15,21 @@
 %     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 function trial_data = determineTriggerTimes(study_settings, trial_data)
-    trigger_times = [];
+    trial_data.trigger_times = [];
 
     experimental_paradigm = study_settings.get('experimental_paradigm');
-    perturbation_paradigms = ...
+    paradigms_with_perturbation = ...
       { ...
         'Vision', 'CadenceVision', 'CognitiveLoadVision', 'SR_VisualStim', ...
         'GVS', 'CadenceGVS', 'FatigueGVS', 'CognitiveLoadGvs', 'OculusLaneRestriction' ...
       };
-    if any(strcmp(experimental_paradigm, perturbation_paradigms))
+    if any(strcmp(experimental_paradigm, paradigms_with_perturbation))
         % find the time steps where the stimulus state crosses a threshold
         stimulus_threshold = 1.5;
         trigger_indices_labview = find(diff(sign(trial_data.stimulus_state_trajectory - stimulus_threshold)) > 0) + 2;
         trial_data.trigger_times = trial_data.time_stimulus(trigger_indices_labview);
     end
+    
     
     if strcmp(experimental_paradigm, 'Vision_old') || strcmp(experimental_paradigm, 'GVS_old')
         % find the time steps where the stimulus state crosses a threshold

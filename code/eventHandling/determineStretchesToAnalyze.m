@@ -50,10 +50,6 @@ function determineStretchesToAnalyze(varargin)
     visualize = parser.Results.visualize;
     [condition_list, trial_number_list] = parseTrialArguments(varargin{:});
 
-    
-    variables_to_save_latency_check = struct;
-    latency_value_list = {};
-    
     %% prepare
     % load settings
     study_settings_file = '';
@@ -91,8 +87,6 @@ function determineStretchesToAnalyze(varargin)
     
 
     %% process
-    time_to_nearest_heelstrike_before_trigger_threshold = 0.10; % a heelstrike should happen less than this long before a trigger
-    time_to_nearest_heelstrike_after_trigger_threshold = 0.3; % a heelstrike should happen less than this long after a trigger
     for i_condition = 1 : length(condition_list)
         trials_to_process = trial_number_list{i_condition};
         for i_trial = trials_to_process
@@ -363,9 +357,6 @@ function determineStretchesToAnalyze(varargin)
                 trigger_indices_stimulus = find(diff(sign(stimulus_state_trajectory - stimulus_threshold)) > 0) + 2;
                 trial_data.trigger_times = time_stimulus(trigger_indices_stimulus);
             end
-            if strcmp(condition_stimulus, 'OBSTACLE')
-                trial_data.trigger_times = [];
-            end
             if strcmp(condition_stimulus, 'ARMSENSE')
                  trial_data.trigger_times = [];
             end
@@ -542,10 +533,11 @@ function determineStretchesToAnalyze(varargin)
                 % determine start and end
                 stance_foot_data = {'STANCE_BOTH', 'STANCE_BOTH', 'STANCE_LEFT'};
                 bands_per_stretch = length(stance_foot_data);
+                removal_flags = 0;
                 
-                init_time = right_pushoff_times(1) - 1; % assume heel-off happened at least one second before toes-off, so start looking at that point
-                end_time = right_touchdown_times(1);
-                unload_time = right_pushoff_times(1);
+                init_time = trial_data.right_pushoff_times(1) - 1; % assume heel-off happened at least one second before toes-off, so start looking at that point
+                end_time = trial_data.right_touchdown_times(1);
+                unload_time = trial_data.right_pushoff_times(1);
                 
                 % determine unload time as maximal backward-right shift of the CoP, following Halliday et al, Gait and Posture 8 (1998) 8?14
                 [~, start_time_index_forceplate] = min(abs(time_forceplate - init_time));
@@ -557,8 +549,8 @@ function determineStretchesToAnalyze(varargin)
                 start_time = release_time - 0.5;
                 
                 
-                stretch_start_times = right_pushoff_times(1) - 1; % HR: this is probably not right anymore
-                stretch_end_times = right_touchdown_times(1);
+                stretch_start_times = trial_data.right_pushoff_times(1) - 1; % HR: this is probably not right anymore
+                stretch_end_times = trial_data.right_touchdown_times(1);
                 stretch_pushoff_times = 0;
                 condition_experimental_list = {condition_experimental};
                 stretch_times = [start_time release_time unload_time end_time];

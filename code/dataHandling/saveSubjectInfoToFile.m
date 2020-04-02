@@ -27,7 +27,6 @@ function saveSubjectInfoToFile(varargin)
     subject_settings = SettingsCustodian('subjectSettings.txt');
     trial_types_to_ignore = subject_settings.get('trial_types_to_ignore', 1);
    
-    
     % get parameters from settings file
     parameters_cell = subject_settings.get('subject_info', 1);
     for i_parameter = 1 : size(parameters_cell, 1)
