@@ -15,6 +15,11 @@
 %     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 function trial_data = determineTriggerTimes(study_settings, trial_data)
+    %
+    % Find the triggering events that indicate a stretch of interest. For perturbation experiments, this is the onset of
+    % a perturbation. For unperturbed walking, this is any heelstrike.
+    % The result is trigger_indices_labview.
+    %
     trial_data.trigger_times = [];
 
     experimental_paradigm = study_settings.get('experimental_paradigm');
@@ -67,5 +72,40 @@ function trial_data = determineTriggerTimes(study_settings, trial_data)
         trigger_indices_forceplate = find(diff(sign(-trial_data.vertical_force_trajectory - stimulus_threshold)) > 0) + 2;
         trial_data.trigger_times = trial_data.time_forceplate(trigger_indices_forceplate);
     end
+    if strcmp(experimental_paradigm, 'OculusLaneRestriction') 
+        % find the time steps where the stimulus state crosses a threshold
+        stimulus_threshold = 4.5;
+        trigger_indices_stimulus = find(diff(sign(trial_data.stimulus_state_trajectory - stimulus_threshold)) > 0) + 2;
+        trial_data.trigger_times = trial_data.time_stimulus(trigger_indices_stimulus);
+    end
+
+    % 2020-APR-03 HR: cleaning up, but this is so old that there's no
+    % data to test the code on. Moving code from determineStretchesToAnalyze
+    % into sub-functions, I'll leave this here for historic reasons for now
+%     if strcmp(condition_stimulus, 'NONE')
+%         % use all touchdown events as triggers
+%         trial_data.trigger_times = [left_touchdown_times; right_touchdown_times];
+%     end
+
+
+
+    % calculate indices
+    if exist('trial_data', 'var') && isfield(trial_data, 'time_marker')
+        trigger_indices_mocap = zeros(size(trial_data.trigger_times));
+        for i_index = 1 : length(trial_data.trigger_times)
+            [~, index_mocap] = min(abs(trial_data.time_marker - trial_data.trigger_times(i_index)));
+            trigger_indices_mocap(i_index) = index_mocap;
+        end
+        trial_data.trigger_indices_mocap = trigger_indices_mocap;
+    end
+
+    if exist('trial_data', 'var') && isfield(trial_data, 'time_stimulus')
+        trigger_indices_stimulus = zeros(size(trial_data.trigger_times));
+        for i_index = 1 : length(trial_data.trigger_times)
+            [~, index_stimulus] = min(abs(trial_data.time_stimulus - trial_data.trigger_times(i_index)));
+            trigger_indices_stimulus(i_index) = index_stimulus;
+        end
+        trial_data.trigger_indices_stimulus = trigger_indices_stimulus;
+    end 
 
 end
