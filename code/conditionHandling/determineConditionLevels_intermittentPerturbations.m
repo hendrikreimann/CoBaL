@@ -110,9 +110,12 @@ function [conditions_trial, event_variables_to_save, removal_flags] = determineC
     % add cadence information for cadence paradigm
     if strcmp(experimental_paradigm, 'CadenceVision') || strcmp(experimental_paradigm, 'CadenceGVS')
         % TODO: this part probably broke when moving the code into a function, fix when necessary
+        protocol_data = load('protocolInfo.mat');
         
         % determine cadence for this trial
-        this_trial_type = condition_list{i_condition};
+%         this_trial_type = condition_list{i_condition}; % commented this line out
+%         because otherwise the new Matlab version won't run the code at
+%         all
         this_trial_number = i_trial;
         this_trial_protocol_index = find(strcmp(protocol_data.trial_type, this_trial_type) & protocol_data.trial_number==this_trial_number);
         if isempty(this_trial_protocol_index)
@@ -128,6 +131,7 @@ function [conditions_trial, event_variables_to_save, removal_flags] = determineC
     % add fatigue information for fatigue paradigm
     if strcmp(experimental_paradigm, 'FatigueGVS')
         % TODO: this part probably broke when moving the code into a function, fix when necessary
+        fatigue_trials = subject_settings.get('fatigue_trials');
         fatigue_list = cell(size(direction_list));
         if ismember(i_trial, fatigue_trials)
             [fatigue_list{:}] = deal('FATIGUED');
@@ -140,6 +144,7 @@ function [conditions_trial, event_variables_to_save, removal_flags] = determineC
     % add cognitive load information for cognitive load paradigm
     if strcmp(experimental_paradigm, 'CognitiveLoadVision') || strcmp(experimental_paradigm, 'CognitiveLoadGvs')
         % TODO: this part probably broke when moving the code into a function, fix when necessary
+        back_7_trials = subject_settings.get('back_7_trials');
         cognitive_load_list = cell(size(direction_list));
         if ismember(i_trial, back_7_trials)
             [cognitive_load_list{:}] = deal('BACK_7');

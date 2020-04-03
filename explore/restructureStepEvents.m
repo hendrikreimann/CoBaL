@@ -36,6 +36,7 @@ function restructureStepEvents
         [date, subject_id, trial_type, trial_number] = getFileParameters(file_name_list{i_file});
         save_file = ['analysis' filesep makeFileName(date, subject_id, trial_type, trial_number, 'events')];
         saveDataToFile(save_file, events);
+        disp(['Restructured ' load_file ' --> ' save_file])
     end
         
 end

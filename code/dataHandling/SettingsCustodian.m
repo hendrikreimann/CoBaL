@@ -24,6 +24,7 @@ classdef SettingsCustodian < handle
         force_string_list = ...
           { ...
             'preferred_level_order'; ...
+            'collection_date'; ...
           }
         force_cell_list = ...
           {
@@ -100,10 +101,17 @@ classdef SettingsCustodian < handle
             
             % force string
             if any(strcmp(this.force_string_list, property_name))
-                if ~iscell(data)
-                    data_cell = cell(size(data));
-                    for i_entry = 1 : numel(data)
-                        this_entry = data(i_entry);
+                data_old = data;
+                
+                % is this an individual number?
+                if isnumeric(data_old)
+                    data = num2str(data_old);
+                end
+                % not a single number, but not a cell?
+                if ~isnumeric(data_old) && ~iscell(data_old)
+                    data_cell = cell(size(data_old));
+                    for i_entry = 1 : numel(data_old)
+                        this_entry = data_old(i_entry);
                         if isnumeric(this_entry)
                             data_cell{i_entry} = num2str(this_entry);
                         else
