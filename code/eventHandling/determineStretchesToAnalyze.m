@@ -48,6 +48,7 @@ function determineStretchesToAnalyze(varargin)
     addParameter(parser, 'visualize', false)
     parse(parser, varargin{:})
     [condition_list, trial_number_list] = parseTrialArguments(varargin{:});
+    trials_to_process_table = makeTrialsToProcessTable(condition_list, trial_number_list);
 
     %% prepare
     study_settings = loadStudySettings();
@@ -56,44 +57,41 @@ function determineStretchesToAnalyze(varargin)
     subject_id = subject_settings.get('subject_id');
 
     %% process
-    for i_condition = 1 : length(condition_list)
-        trials_to_process = trial_number_list{i_condition};
-        for i_trial = 1 : length(trials_to_process)
-            % create empty container for relevant data
-            trial_data = struct;
-            
-            % load data
-            trial_data.loaded_events_data = load(['analysis' filesep makeFileName(collection_date, subject_id, condition_list{i_condition}, i_trial, 'events')]);
-            
-            % manage data and determine auxiliary information
-            trial_data.trial_type = condition_list{i_condition};
-            trial_data.trial_number = trials_to_process(i_trial);
-            trial_data.condition_experimental = getExperimentalCondition(study_settings, subject_settings, trial_data); % the "experimental condition" is a specially highlighted condition that will be used to make some decisions lateron
-                        
-            % load data
-            trial_data = loadKinematicData(study_settings, subject_settings, trial_data);
-            trial_data = loadForceplateData(study_settings, subject_settings, trial_data);
-            trial_data = loadStimulusData(study_settings, subject_settings, trial_data);
-            
-            % determine illusion
-            trial_data = determineIllusion(study_settings, trial_data);
-            
-            % extract events
-            trial_data = extractEvents(study_settings, trial_data);
-            
-            % find triggers that indicate that a stretch of interest starts
-            trial_data = determineTriggerTimes(study_settings, trial_data);
-            
-            % for each trigger, determine the condition levels
-            [conditions_trial, event_variables_to_save, removal_flags] = determineConditionLevels(study_settings, subject_settings, trial_data);
-                                    
-            % remove stretches where important variables are missing
-            [conditions_trial, event_variables_to_save] = removeProblematicData(study_settings, trial_data, conditions_trial, event_variables_to_save, removal_flags);
-            
-            % save
-            saveDeterminedStretchData(conditions_trial, event_variables_to_save, subject_settings, trial_data)
-            
-        end
+    
+    for i_trial = 1 : height(trials_to_process_table)
+        % create container for data
+        trial_data = struct;
+        
+        % fill in basics
+        trial_data.trial_type = trials_to_process_table{i_trial, 'trial type'};
+        trial_data.trial_number = trials_to_process_table{i_trial, 'trial number'};
+
+        % load data
+        trial_data.loaded_events_data = load(['analysis' filesep makeFileName(collection_date, subject_id, trial_data.trial_type, trial_data.trial_number, 'events')]);
+        trial_data = loadKinematicData(study_settings, subject_settings, trial_data);
+        trial_data = loadForceplateData(study_settings, subject_settings, trial_data);
+        trial_data = loadStimulusData(study_settings, subject_settings, trial_data);
+
+        %  determine auxiliary information
+        trial_data.condition_experimental = getExperimentalCondition(study_settings, subject_settings, trial_data); % the "experimental condition" is a specially highlighted condition that will be used to make some decisions lateron
+
+        % determine illusion
+        trial_data = determineIllusion(study_settings, trial_data);
+
+        % extract events
+        trial_data = extractEvents(study_settings, trial_data);
+
+        % find triggers that indicate that a stretch of interest starts
+        trial_data = determineTriggerTimes(study_settings, trial_data);
+
+        % for each trigger, determine the condition levels
+        [conditions_trial, event_variables_to_save, removal_flags] = determineConditionLevels(study_settings, subject_settings, trial_data);
+
+        % remove stretches where important variables are missing
+        [conditions_trial, event_variables_to_save] = removeProblematicData(study_settings, trial_data, conditions_trial, event_variables_to_save, removal_flags);
+
+        % save
+        saveDeterminedStretchData(conditions_trial, event_variables_to_save, subject_settings, trial_data)
     end
 end
 
@@ -506,6 +504,6 @@ function saveDeterminedStretchData(conditions_trial, event_variables_to_save, su
     saveDataToFile(stretches_file_name, event_variables_to_save);
 
 
-    disp(['Finding Relevant Data Stretches: condition ' trial_data.trial_type ', Trial ' trial_data.trial_number ' completed, found ' num2str(size(event_variables_to_save.stretch_times, 1)) ' relevant stretches, saved as ' stretches_file_name]);                
+    disp(['Finding Relevant Data Stretches: condition ' char(trial_data.trial_type) ', Trial ' trial_data.trial_number ' completed, found ' num2str(size(event_variables_to_save.stretch_times, 1)) ' relevant stretches, saved as ' stretches_file_name]);                
 end
 
