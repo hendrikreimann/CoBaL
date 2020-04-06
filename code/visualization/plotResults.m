@@ -43,7 +43,7 @@ function plotResults(varargin)
     addParameter(parser, 'save', false)
     addParameter(parser, 'close', false)
     addParameter(parser, 'format', 'tiff')
-    addParameter(parser, 'settings', 'plotSettings.txt')
+    addParameter(parser, 'settings', 'plot')
     addParameter(parser, 'spread_method', 'cinv')
     parse(parser, varargin{:})
     subjects = parser.Results.subjects;
@@ -53,29 +53,9 @@ function plotResults(varargin)
     spread_method = parser.Results.spread_method;
 
     % load settings
-    study_settings_file = '';
-    if exist('studySettings.txt', 'file')
-        study_settings_file = 'studySettings.txt';
-    end    
-    if exist(['..' filesep 'studySettings.txt'], 'file')
-        study_settings_file = ['..' filesep 'studySettings.txt'];
-    end    
-    if exist(['..' filesep '..' filesep 'studySettings.txt'], 'file')
-        study_settings_file = ['..' filesep '..' filesep 'studySettings.txt'];
-    end
-    study_settings = SettingsCustodian(study_settings_file);
+    study_settings = loadSettingsFromFile('study');
+    plot_settings = loadSettingsFromFile(settings_file);
     
-    plot_settings_file = '';
-    if exist(settings_file, 'file')
-        plot_settings_file = settings_file;
-    end    
-    if exist(['..' filesep settings_file], 'file')
-        plot_settings_file = ['..' filesep settings_file];
-    end    
-    if exist(['..' filesep '..' filesep settings_file], 'file')
-        plot_settings_file = ['..' filesep '..' filesep settings_file];
-    end
-    plot_settings = SettingsCustodian(plot_settings_file);
     show_outliers = plot_settings.get('show_outliers');
     show_single_data_points = plot_settings.get('show_single_data_points', 1);
     edge_color = plot_settings.get('edge_color', 1);

@@ -51,8 +51,8 @@ function determineStretchesToAnalyze(varargin)
     trials_to_process_table = makeTrialsToProcessTable(condition_list, trial_number_list);
 
     %% prepare
-    study_settings = loadStudySettings();
-    subject_settings = SettingsCustodian('subjectSettings.txt');
+    study_settings = loadSettingsFromFile('study');
+    subject_settings = loadSettingsFromFile('subject');
     collection_date = subject_settings.get('collection_date');
     subject_id = subject_settings.get('subject_id');
 

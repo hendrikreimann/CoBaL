@@ -14,14 +14,25 @@
 %     You should have received a copy of the GNU General Public License
 %     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-function study_settings = loadStudySettings()
-    study_settings_file = '';
-    if exist(['..' filesep 'studySettings.txt'], 'file')
-        study_settings_file = ['..' filesep 'studySettings.txt'];
-    end    
-    if exist(['..' filesep '..' filesep 'studySettings.txt'], 'file')
-        study_settings_file = ['..' filesep '..' filesep 'studySettings.txt'];
+function settings = loadSettingsFromFile(source)
+    % determine file name
+    if isequal(source(end-3:end), '.txt')
+        % source was specified as a file name, so just use that
+        settings_file_name = source;
+    else
+        % source was specified as a general type, so use default
+        settings_file_name = [source 'Settings.txt'];
     end
-    study_settings = SettingsCustodian(study_settings_file);
+
+    % look for specified file, either here or one folder up
+    if exist(settings_file_name, 'file')
+        settings_file = settings_file_name;
+    end    
+    if exist(['..' filesep settings_file_name], 'file')
+        settings_file = ['..' filesep settings_file_name];
+    end
+    
+    % load settings from this file
+    settings = SettingsCustodian(settings_file);
 end
 
