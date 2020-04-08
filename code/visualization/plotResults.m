@@ -97,6 +97,13 @@ function settings = determineSettings(varargin)
     
     settings.study_settings = study_settings;
     settings.plot_settings = plot_settings;
+    
+    % colors
+    settings.colors_comparison = settings.plot_settings.get('colors_comparison');
+    if size(settings.colors_comparison, 2) == 1
+        settings.colors_comparison = hex2rgb(colors_comparison);
+    end
+    settings.colors_bands = settings.plot_settings.get('colors_bands', 1);
 end
 
 function data = loadDataToPlot(settings)
@@ -245,8 +252,6 @@ function figure_data = createFigureData(settings, data)
         figure_data.neg_arrow_handles = zeros(data.number_of_comparisons, data.number_of_variables_to_plot);
         step_start_times_cell = cell(data.number_of_comparisons, data.number_of_variables_to_plot);
         step_end_times_cell = cell(data.number_of_comparisons, data.number_of_variables_to_plot);
-        step_pushoff_times_cell = cell(data.number_of_comparisons, data.number_of_variables_to_plot);
-%         step_stance_foot_cell = cell(data.number_of_comparisons, data.number_of_variables_to_plot);
         for i_variable = 1 : data.number_of_variables_to_plot
             for i_comparison = 1 : data.number_of_comparisons
                 this_comparison = data.comparison_indices{i_comparison};
@@ -262,8 +267,8 @@ function figure_data = createFigureData(settings, data)
                     % abscissa gives the bin edges here
                     data_to_plot = data.data_all{i_variable, 1};
                     if settings.dictate_axes
-                        lower_bound = str2double(variables_to_plot{i_variable, 6});
-                        upper_bound = str2double(variables_to_plot{i_variable, 7});
+                        lower_bound = str2double(data.variables_to_plot{i_variable, 6});
+                        upper_bound = str2double(data.variables_to_plot{i_variable, 7});
                     else
                         lower_bound = min(data_to_plot);
                         upper_bound = max(data_to_plot);
@@ -468,11 +473,6 @@ function figure_data = createFigureData(settings, data)
 end
 
 function figure_data = plotData(settings, data, figure_data)
-    colors_comparison = settings.plot_settings.get('colors_comparison');
-    if size(colors_comparison, 2) == 1
-        colors_comparison = hex2rgb(colors_comparison);
-    end
-    colors_bands = settings.plot_settings.get('colors_bands', 1);
     for i_variable = 1 : data.number_of_variables_to_plot
         data_to_plot = data.data_all{i_variable, 1};
         for i_comparison = 1 : length(data.comparison_indices)
@@ -505,12 +505,12 @@ function figure_data = plotData(settings, data, figure_data)
                             else
                                 label_string_this_band = 'control';
                             end
-                            target_abscissa = abscissae_cell{i_comparison, i_variable}(i_band, end);
+                            target_abscissa = figure_data.abscissae_cell{i_comparison, i_variable}(i_band, end);
                             data_to_plot_this_band = data_to_plot_this_condition(i_band, :);
                             if strcmp(settings.plot_mode, 'overview')
                                 if ~any(isnan(data_to_plot_this_band))
                                     if settings.group_bands_within_conditions
-                                        this_color = colors_bands(i_band, :);
+                                        this_color = settings.colors_bands(i_band, :);
                                     else
                                         this_color = settings.plot_settings.get('color_control');
                                     end
@@ -570,7 +570,7 @@ function figure_data = plotData(settings, data, figure_data)
                         end
                     end
                     if isContinuousVariable(i_variable, data.data_all, data.bands_per_stretch)
-                        target_abscissa = abscissae_cell{i_comparison, i_variable}(i_condition, :);
+                        target_abscissa = figure_data.abscissae_cell{i_comparison, i_variable}(end, :);
                         if strcmp(settings.plot_mode, 'detailed')
                             % individual trajectories
                             for i_stretch = 1 : size(data_to_plot_this_condition, 2)
@@ -648,17 +648,17 @@ function figure_data = plotData(settings, data, figure_data)
                                 target_axes_handle, ...
                                 data_to_plot_this_band, ...
                                 target_abscissa, ...
-                                'edgecolor', colors_comparison(i_condition, :), ...
-                                'facecolor', lightenColor(colors_comparison(i_condition, :), 0.5), ...
+                                'edgecolor', settings.colors_comparison(i_condition, :), ...
+                                'facecolor', lightenColor(settings.colors_comparison(i_condition, :), 0.5), ...
                                 'DisplayName', label_string ...
                               );
                         end
                         if strcmp(settings.plot_mode, 'overview')
                             if ~any(isnan(data_to_plot_this_band))
                                 if settings.group_bands_within_conditions
-                                    this_color = colors_bands(i_band, :);
+                                    this_color = settings.colors_bands(i_band, :);
                                 else
-                                    this_color = colors_comparison(i_condition, :);
+                                    this_color = settings.colors_comparison(i_condition, :);
                                 end
                                 
                                 if strcmp(settings.plot_settings.get('discrete_data_plot_style'), 'box')
@@ -730,16 +730,16 @@ function figure_data = plotData(settings, data, figure_data)
                                 origin_index_data, ... %origin_trial_data, ...
                                 'linewidth', 1, ...
                                 'HandleVisibility', 'off', ...
-                                'color', lightenColor(colors_comparison(i_condition, :), 0.5) ...
+                                'color', lightenColor(settings.colors_comparison(i_condition, :), 0.5) ...
                               );
                         end
-                        condition_mean_plot = plot ...
+                        plot ...
                           ( ...
                             target_axes_handle, ...
                             target_abscissa, ...
                             mean(data_to_plot_this_condition, 2), ...
                             'linewidth', 5, ...
-                            'color', colors_comparison(i_condition, :) ...
+                            'color', settings.colors_comparison(i_condition, :) ...
                           );                    
                     end
                     if strcmp(settings.plot_mode, 'overview')
@@ -749,7 +749,7 @@ function figure_data = plotData(settings, data, figure_data)
                             nanmean(data_to_plot_this_condition, 2), ...
                             spread(data_to_plot_this_condition, settings.spread_method), ...
                             { ...
-                              'color', colors_comparison(i_condition, :), ...
+                              'color', settings.colors_comparison(i_condition, :), ...
                               'linewidth', 6 ...
                             }, ...
                             1, ...
@@ -830,7 +830,7 @@ function figure_data = groomFigures(settings, data, figure_data)
             for i_variable = 1 : data.number_of_variables_to_plot
                 if isContinuousVariable(i_variable, data.data_all, data.bands_per_stretch)
                     these_axes = figure_data.trajectory_axes_handles(i_comparison, i_variable);
-                    these_abscissae = abscissae_cell{i_comparison, i_variable};
+                    these_abscissae = figure_data.abscissae_cell{i_comparison, i_variable};
                     ylimits = get(these_axes, 'ylim');
 
                     if settings.mark_bands == 1
@@ -881,7 +881,7 @@ function figure_data = groomFigures(settings, data, figure_data)
                                       ( ...
                                         patch_x, ...
                                         patch_y, ...
-                                        colors_comparison(i_condition, :), ...
+                                        settings.colors_comparison(i_condition, :), ...
                                         'parent', these_axes, ...
                                         'EdgeColor', 'none', ...
                                         'FaceAlpha', settings.plot_settings.get('stance_alpha'), ...
@@ -913,9 +913,8 @@ function figure_data = groomFigures(settings, data, figure_data)
                         % double stance patch
                         double_stance_patch_color = settings.plot_settings.get('stance_double_color');
 
-                        [start_index, end_index] = getBandIndices(i_band, settings.number_of_time_steps_normalized);
+                        start_index = getBandIndices(i_band, settings.number_of_time_steps_normalized);
                         pushoff_index_here = start_index + data.pushoff_index(i_band);
-                        
 
                         band_start_times = these_abscissae(:, start_index);
                         band_end_times = these_abscissae(:, pushoff_index_here);
