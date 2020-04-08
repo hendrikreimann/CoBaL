@@ -52,54 +52,9 @@ function plotResults(varargin)
     % groom axes, labels etc
     figure_data = groomFigures(settings, data, figure_data);
     
-    
-    %% save figures
-    if settings.save_results
-        % figure out folders
-        if ~exist('figures', 'dir')
-            mkdir('figures')
-        end
-        if ~exist(['figures' filesep 'withLabels'], 'dir')
-            mkdir(['figures' filesep 'withLabels'])
-        end
-        if ~exist(['figures' filesep 'noLabels'], 'dir')
-            mkdir(['figures' filesep 'noLabels'])
-        end
-        for i_figure = 1 : numel(figure_data.trajectory_figure_handles)
-            % save with labels
-%             legend(axes_handles(i_figure), 'show');
-            filename = ['figures' filesep 'withLabels' filesep get(figure_data.trajectory_figure_handles(i_figure), 'UserData')];
-            saveas(figure_data.trajectory_figure_handles(i_figure), filename, parser.Results.format)
-            
-            % save without labels
-%             set(postext, 'visible', 'off');
-%             set(negtext, 'visible', 'off');
-            
-            % remove text and marks to save graphs only
-            set(get(figure_data.trajectory_axes_handles(i_figure), 'xaxis'), 'visible', 'off');
-            set(get(figure_data.trajectory_axes_handles(i_figure), 'yaxis'), 'visible', 'off');
-            set(get(figure_data.trajectory_axes_handles(i_figure), 'xlabel'), 'visible', 'off');
-            set(get(figure_data.trajectory_axes_handles(i_figure), 'ylabel'), 'visible', 'off');
-            set(get(figure_data.trajectory_axes_handles(i_figure), 'title'), 'visible', 'off');
-            set(figure_data.trajectory_axes_handles(i_figure), 'xticklabel', '');
-            set(figure_data.trajectory_axes_handles(i_figure), 'yticklabel', '');
-            set(figure_data.trajectory_axes_handles(i_figure), 'position', [0 0 1 1]);
-            legend(figure_data.trajectory_axes_handles(i_figure), 'hide');
-            filename = ['figures' filesep 'noLabels' filesep get(figure_data.trajectory_figure_handles(i_figure), 'UserData')];
-            saveas(figure_data.trajectory_figure_handles(i_figure), filename, parser.Results.format);
-            
-            % put some marks back
-            set(get(figure_data.trajectory_axes_handles(i_figure), 'title'), 'visible', 'on');
-            set(figure_data.trajectory_axes_handles(i_figure), 'position', [0.05 0.05 0.9 0.9]);
-        end
-    end
-    
-    %% close figures
-    if settings.close
-        for i_figure = 1 : numel(figure_data.trajectory_figure_handles)
-            close(figure_data.trajectory_figure_handles(i_figure))            
-        end
-    end    
+    % save and close
+    saveFigures(settings, figure_data);
+    closeFigures(settings, figure_data);
 end
 
 %% helper functions
@@ -1214,6 +1169,60 @@ function figure_data = groomFigures(settings, data, figure_data)
         end
     end
     
+end
+
+function saveFigures(settings, figure_data)
+    % save figures
+    if settings.save_results
+        % figure out folders
+        if ~exist('figures', 'dir')
+            mkdir('figures')
+        end
+        if ~exist(['figures' filesep 'withLabels'], 'dir')
+            mkdir(['figures' filesep 'withLabels'])
+        end
+        if ~exist(['figures' filesep 'noLabels'], 'dir')
+            mkdir(['figures' filesep 'noLabels'])
+        end
+        for i_figure = 1 : numel(figure_data.trajectory_figure_handles)
+            % save with labels
+%             legend(axes_handles(i_figure), 'show');
+            filename = ['figures' filesep 'withLabels' filesep get(figure_data.trajectory_figure_handles(i_figure), 'UserData')];
+            saveas(figure_data.trajectory_figure_handles(i_figure), filename, parser.Results.format)
+            
+            % save without labels
+%             set(postext, 'visible', 'off');
+%             set(negtext, 'visible', 'off');
+            
+            % remove text and marks to save graphs only
+            set(get(figure_data.trajectory_axes_handles(i_figure), 'xaxis'), 'visible', 'off');
+            set(get(figure_data.trajectory_axes_handles(i_figure), 'yaxis'), 'visible', 'off');
+            set(get(figure_data.trajectory_axes_handles(i_figure), 'xlabel'), 'visible', 'off');
+            set(get(figure_data.trajectory_axes_handles(i_figure), 'ylabel'), 'visible', 'off');
+            set(get(figure_data.trajectory_axes_handles(i_figure), 'title'), 'visible', 'off');
+            set(figure_data.trajectory_axes_handles(i_figure), 'xticklabel', '');
+            set(figure_data.trajectory_axes_handles(i_figure), 'yticklabel', '');
+            set(figure_data.trajectory_axes_handles(i_figure), 'position', [0 0 1 1]);
+            legend(figure_data.trajectory_axes_handles(i_figure), 'hide');
+            filename = ['figures' filesep 'noLabels' filesep get(figure_data.trajectory_figure_handles(i_figure), 'UserData')];
+            saveas(figure_data.trajectory_figure_handles(i_figure), filename, parser.Results.format);
+            
+            % put some marks back
+            set(get(figure_data.trajectory_axes_handles(i_figure), 'title'), 'visible', 'on');
+            set(figure_data.trajectory_axes_handles(i_figure), 'position', [0.05 0.05 0.9 0.9]);
+        end
+    end
+
+end
+
+function closeFigures(settings, figure_data)
+    % close figures
+    if settings.close
+        for i_figure = 1 : numel(figure_data.trajectory_figure_handles)
+            close(figure_data.trajectory_figure_handles(i_figure))            
+        end
+    end    
+
 end
 
 function discrete = isDiscreteVariable(variable_index, variable_data, bands_per_stretch)
