@@ -190,7 +190,13 @@ classdef SettingsCustodian < handle
                 default_data = 1;
             end
             if strcmp(property_name, 'show_individual_data')
-                default_data = 0;
+                default_data = 1;
+            end
+            if strcmp(property_name, 'show_average_data')
+                default_data = 1;
+            end
+            if strcmp(property_name, 'show_spread_data')
+                default_data = 1;
             end
             if strcmp(property_name, 'show_single_data_points')
                 default_data = 0;

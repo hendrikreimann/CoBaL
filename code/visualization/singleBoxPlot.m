@@ -30,7 +30,7 @@ function singleBoxPlot(data, varargin)
     addParameter(parser, 'FaceAlpha', 1)
     
     addParameter(parser, 'PlotMean', true)
-    addParameter(parser, 'MeanLinewidth', 1)
+    addParameter(parser, 'MeanLinewidth', 2)
     addParameter(parser, 'MeanColor', [0.5, 0.5, 0.5])
     
     addParameter(parser, 'PlotMedian', true)
@@ -79,19 +79,7 @@ function singleBoxPlot(data, varargin)
     end
     
     if length(data) == 1
-%         plot(axes_handle, abscissa + width*[-0.5 0.5], data*[1 1], 'color', meancolor, 'linewidth', mean_linewidth, 'HandleVisibility', 'off'); % mean
         plot(axes_handle, abscissa, data, 'o', 'markerSize', data_marker_size, 'markerFaceColor', facecolor, 'MarkerEdgeColor', 'none');
-%         scatterplot = scatter(axes_handle, ones(size(data))*abscissa, data, data_marker_size, 'MarkerFaceColor', markercolor, 'MarkerEdgeColor', 'none');
-%         bar ...
-%           ( ...
-%             abscissa, ...
-%             data, ...
-%             width, ...
-%             'FaceColor', facecolor, ...
-%             'parent', axes_handle, ...
-%             'EdgeColor', 'none', ...
-%             'HandleVisibility', 'off' ...
-%           );
         return
     end
     if iscolumn(data)
@@ -125,12 +113,13 @@ function singleBoxPlot(data, varargin)
         'LineWidth', edge_linewidth, ...
         'HandleVisibility', 'off' ...
       );
-    if plot_median
-        plot(axes_handle, abscissa + width*[-0.5 0.5], [data_median data_median], 'color', median_color, 'linewidth', median_linewidth, 'HandleVisibility', 'off'); % median
-    end
     if plot_mean
         plot(axes_handle, abscissa + width*[-0.5 0.5], [data_mean data_mean], 'color', meancolor, 'linewidth', mean_linewidth, 'HandleVisibility', 'off'); % mean
     end
+    if plot_median
+        plot(axes_handle, abscissa + width*[-0.5 0.5], [data_median data_median], 'color', median_color, 'linewidth', median_linewidth, 'HandleVisibility', 'off'); % median
+    end
+    % plot wisk
     plot(axes_handle, [abscissa abscissa], [data_quartile_3 data_upper_adjacent], '--', 'color', wiskcolor, 'linewidth', wisk_linewidth, 'HandleVisibility', 'off'); % upper range
     plot(axes_handle, [abscissa abscissa], [data_lower_adjacent data_quartile_1], '--', 'color', wiskcolor, 'linewidth', wisk_linewidth, 'HandleVisibility', 'off'); % lower range
     plot(axes_handle, abscissa+width*[-0.25 0.25], [data_lower_adjacent data_lower_adjacent], '-', 'color', wiskcolor, 'linewidth', wisk_linewidth, 'HandleVisibility', 'off'); % max
