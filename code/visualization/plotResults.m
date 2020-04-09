@@ -344,7 +344,8 @@ function figure_data = createFigureData(settings, data, comparisons)
                     xlabel('normalized time (%)');
                 end
             end
-            ylabel(settings.variables_to_plot{i_variable, 4});
+            this_label = settings.variables_to_plot{i_variable, strcmp(settings.variables_to_plot_header, 'y-axis label')};
+            ylabel(this_label);
 
             % add text labels
             figure_data.pos_text_handles(i_comparison, i_variable) = ...
@@ -394,8 +395,8 @@ function figure_data = createFigureData(settings, data, comparisons)
                     'parent', new_axes ...
                   );                
             % determine title
-            title_string = settings.variables_to_plot{i_variable, 3};
-            filename_string = settings.variables_to_plot{i_variable, 5};
+            title_string = settings.variables_to_plot{i_variable, strcmp(settings.variables_to_plot_header, 'variable label')};
+            filename_string = settings.variables_to_plot{i_variable, strcmp(settings.variables_to_plot_header, 'save file string')};
 
             representative_condition = comparisons.condition_combinations_stimulus(this_comparison(1), :);
 
