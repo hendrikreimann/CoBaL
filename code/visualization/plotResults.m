@@ -25,14 +25,9 @@
 
 % A comparison is a collection of conditions that are mostly the same, but different in one factor. This code generates 
 %   a cell array "comparisons.comparison_indices", where each entry is an array of condition indices, referring to a row in 
-%   condition_combination_labels. Usually there will be one comparison per figure. When plotting episodes of multiple
-%   consecutive steps, however, there will be multiple comparisons per figure. To keep track of this, the code generates
+%   condition_combination_labels. Usually there will be one comparison per figure. To keep track of this, the code generates
 %   an array "figure_data.trajectory_axes_handles" that maps comparisons and variables to axes handles, and a cell array 
 %   "abscissae_cell" storing the x-values. For both these arrays, rows = comparisons, columns = variables
-
-% An episode is a list of comparisons
-%   (this is a bit of a mess and will be fixed eventually... I promise - HR)
-%   2020-APR-06 HR: fixing this now, fully removing the concept of episode
 
 function plotResults(varargin)
     settings = determineSettings(varargin{:});
@@ -231,13 +226,20 @@ function data = loadDataToPlot(settings)
 end
 
 function comparisons = createComparisonData(settings, data)
+    % create container and extract some settings
     comparisons = struct;
     labels_to_ignore = settings.plot_settings.get('conditions_to_ignore');
     levels_to_remove = settings.plot_settings.get('levels_to_remove');
     preferred_level_order = settings.plot_settings.get('preferred_level_order', 1);
-    [comparisons.condition_combination_labels, comparisons.condition_combinations_stimulus, comparisons.condition_combinations_control] = determineConditionCombinations(data.condition_data, settings.conditions_settings, labels_to_ignore, levels_to_remove);
-    [comparisons.condition_combinations_stimulus, comparisons.condition_combinations_control] = sortConditionCombinations(comparisons.condition_combinations_stimulus, comparisons.condition_combinations_control, comparisons.condition_combination_labels, settings.condition_to_compare, preferred_level_order);
-    [comparisons.comparison_indices, comparisons.conditions_per_comparison_max] = determineComparisons(comparisons.condition_combinations_stimulus, comparisons.condition_combination_labels, settings.plot_settings);
+    
+    % determine which condition combinations are needed for this comparison
+%     [comparisons.condition_combination_labels, comparisons.condition_combinations_stimulus, comparisons.condition_combinations_control] = determineConditionCombinations(data.condition_data, settings.conditions_settings, labels_to_ignore, levels_to_remove);
+%     [comparisons.condition_combinations_stimulus, comparisons.condition_combinations_control] = sortConditionCombinations(comparisons.condition_combinations_stimulus, comparisons.condition_combinations_control, comparisons.condition_combination_labels, settings.condition_to_compare, preferred_level_order);
+%     [comparisons.comparison_indices, comparisons.conditions_per_comparison_max] = determineComparisons(comparisons.condition_combinations_stimulus, comparisons.condition_combination_labels, settings.plot_settings);
+
+    [comparisons.condition_combination_labels, comparisons.condition_combinations] = determineConditionCombinations_new(data.condition_data, settings.conditions_settings, labels_to_ignore, levels_to_remove);
+    comparisons.condition_combinations = sortConditionCombinations_new(comparisons.condition_combinations, comparisons.condition_combination_labels, settings.condition_to_compare, preferred_level_order);
+    [comparisons.comparison_indices, comparisons.conditions_per_comparison_max] = determineComparisons_new(comparisons.condition_combinations, comparisons.condition_combination_labels, settings.plot_settings);
     comparisons.number_of_comparisons = length(comparisons.comparison_indices);
 end
 
@@ -302,7 +304,7 @@ function figure_data = createFigureData(settings, data, comparisons)
                 conditions_this_comparison = comparisons.comparison_indices{i_comparison};
                 step_time_means_this_comparison = zeros(data.bands_per_stretch, size(conditions_this_comparison, 2));
                 for i_condition = 1 : length(conditions_this_comparison)
-                    this_condition_combination = comparisons.condition_combinations_stimulus(conditions_this_comparison(i_condition), :);
+                    this_condition_combination = comparisons.condition_combinations(conditions_this_comparison(i_condition), :);
                     this_condition_indicator = getConditionIndicator(this_condition_combination, comparisons.condition_combination_labels, data.condition_data, settings.condition_labels);
                     step_time_data_this_condition = data.step_time_data(:, this_condition_indicator);
                     step_time_means_this_comparison(:, i_condition) = mean(step_time_data_this_condition, 2);
@@ -398,7 +400,7 @@ function figure_data = createFigureData(settings, data, comparisons)
             title_string = settings.variables_to_plot{i_variable, strcmp(settings.variables_to_plot_header, 'variable label')};
             filename_string = settings.variables_to_plot{i_variable, strcmp(settings.variables_to_plot_header, 'save file string')};
 
-            representative_condition = comparisons.condition_combinations_stimulus(this_comparison(1), :);
+            representative_condition = comparisons.condition_combinations(this_comparison(1), :);
 
             for i_label = 1 : length(representative_condition)
                 if ~(strcmp(comparisons.condition_combination_labels{i_label}, settings.condition_to_compare))
@@ -551,7 +553,7 @@ function figure_data = plotData(settings, data, comparisons, figure_data)
             % plot stimulus
             for i_condition = 1 : length(conditions_this_comparison)
                 this_condition_index = conditions_this_comparison(i_condition);
-                this_condition = comparisons.condition_combinations_stimulus(this_condition_index, :);
+                this_condition = comparisons.condition_combinations(this_condition_index, :);
                 label_string = strrep(this_condition{strcmp(comparisons.condition_combination_labels, settings.condition_to_compare)}, '_', ' ');
                 this_condition_indicator = getConditionIndicator(this_condition, comparisons.condition_combination_labels, data.condition_data, settings.condition_labels);
                 data_to_plot_this_condition = data_to_plot(:, this_condition_indicator);
