@@ -80,16 +80,12 @@ function settings = determineSettings(varargin)
     study_settings = loadSettingsFromFile('study');
     plot_settings = loadSettingsFromFile(settings.settings_file);
     
-    settings.show_outliers = plot_settings.get('show_outliers');
     settings.show_single_data_points = plot_settings.get('show_single_data_points', 1);
-    settings.edge_color = plot_settings.get('edge_color', 1);
-    settings.plot_mode = plot_settings.get('plot_mode');
     settings.mark_pushoff = plot_settings.get('mark_pushoff', 1);
     settings.mark_bands = plot_settings.get('mark_bands', 1);
     settings.band_labels = study_settings.get('band_labels', 1);
     settings.group_bands_within_conditions = plot_settings.get('group_bands_within_conditions', 1);
     settings.number_of_time_steps_normalized = study_settings.get('number_of_time_steps_normalized');
-    settings.show_individual_data = plot_settings.get('show_individual_data', 1);
     settings.show_average_data = plot_settings.get('show_average_data', 1);
     settings.show_spread_data = plot_settings.get('show_spread_data', 1);
     
@@ -97,12 +93,9 @@ function settings = determineSettings(varargin)
     settings.plot_settings = plot_settings;
     
     % colors
-    settings.colors_comparison = settings.plot_settings.get('colors_comparison');
-    if size(settings.colors_comparison, 2) == 1
-        settings.colors_comparison = hex2rgb(colors_comparison);
-    end
     settings.colors_bands = settings.plot_settings.get('colors_bands', 1);
-    settings.color_control = settings.plot_settings.get('color_control', 1);
+    settings.colors_header = settings.plot_settings.get('colors_header', 1);
+    settings.colors = settings.plot_settings.get('colors', 1);
     
     % extract and store settings from files
     settings.conditions_settings = settings.study_settings.get('conditions');
@@ -187,7 +180,7 @@ function data = loadDataToPlot(settings)
             this_variable_directions = loaded_data.([this_variable_type '_directions_session'])(this_variable_source_index, :);
 
 
-            if settings.plot_settings.get('convert_to_mm') && (strcmp(this_variable_name,'cop_from_com_x') || strcmp(this_variable_name, 'step_placement_x'))
+            if settings.plot_settings.get('convert_to_mm', 1) && (strcmp(this_variable_name,'cop_from_com_x') || strcmp(this_variable_name, 'step_placement_x'))
                 this_variable_data = this_variable_data * 1000;
             end
             
@@ -241,6 +234,40 @@ function comparisons = createComparisonData(settings, data)
     comparisons.condition_combinations = sortConditionCombinations_new(comparisons.condition_combinations, comparisons.condition_combination_labels, settings.condition_to_compare, preferred_level_order);
     [comparisons.comparison_indices, comparisons.conditions_per_comparison_max] = determineComparisons_new(comparisons.condition_combinations, comparisons.condition_combination_labels, settings.plot_settings);
     comparisons.number_of_comparisons = length(comparisons.comparison_indices);
+    
+    comparisons.condition_colors = determineConditionColors(settings, comparisons);
+end
+
+function condition_colors = determineConditionColors(settings, comparisons)
+    % find unique levels of condition to compare
+    levels = unique(comparisons.condition_combinations(:, strcmp(comparisons.condition_combination_labels, settings.condition_to_compare)));
+    
+    % make default color map
+    default_colors = lines(length(levels));
+    
+    % get colors from settings for this condition
+    condition_column = find(strcmp(settings.colors_header, 'condition'));
+    level_column = find(strcmp(settings.colors_header, 'level'));
+    color_column = find(strcmp(settings.colors_header, 'color'));
+    if ~isempty(settings.colors)
+        colors_from_settings = settings.colors(strcmp(settings.colors(:, condition_column), settings.condition_to_compare), [level_column color_column]); %#ok<FNDSB>
+    else
+        colors_from_settings = cell(0, 2);
+    end
+    
+    % go through levels and store default color or the one provided in the settings
+    condition_colors = [levels cell(size(levels))];
+    for i_level = 1 : length(levels)
+        this_level = levels(i_level);
+        if any(strcmp(colors_from_settings(:, 1), this_level))
+            % use color provided in settings
+            condition_colors{i_level, 2} = hex2rgb(colors_from_settings{strcmp(colors_from_settings(:, 1), this_level), 2});
+        else
+            % use default color
+            condition_colors{i_level, 2} = default_colors(i_level, :);
+        end
+        
+    end
 end
 
 function figure_data = createFigureData(settings, data, comparisons)
@@ -272,9 +299,6 @@ function figure_data = createFigureData(settings, data, comparisons)
                 % abscissa gives the bin edges here
                 this_comparison = comparisons.comparison_indices{i_comparison};
                 number_of_entries = length(this_comparison);
-                if settings.plot_settings.get('plot_control')
-                    number_of_entries = number_of_entries + 1;
-                end
 
                 if settings.group_bands_within_conditions
                     gap_between_conditions = 1;
@@ -454,7 +478,9 @@ function figure_data = plotData(settings, data, comparisons, figure_data)
             for i_condition = 1 : length(conditions_this_comparison)
                 this_condition_index = conditions_this_comparison(i_condition);
                 this_condition = comparisons.condition_combinations(this_condition_index, :);
-                label_string = strrep(this_condition{strcmp(comparisons.condition_combination_labels, settings.condition_to_compare)}, '_', ' ');
+                this_label = this_condition{strcmp(comparisons.condition_combination_labels, settings.condition_to_compare)};
+                this_color = comparisons.condition_colors{strcmp(comparisons.condition_colors(:, 1), this_label), 2};
+                label_string = strrep(this_label, '_', ' ');
                 this_condition_indicator = getConditionIndicator(this_condition, comparisons.condition_combination_labels, data.condition_data, settings.condition_labels);
                 data_to_plot_this_condition = data_to_plot(:, this_condition_indicator);
                 
@@ -473,23 +499,25 @@ function figure_data = plotData(settings, data, comparisons, figure_data)
                         data_to_plot_this_band = data_to_plot_this_condition(i_band, :);
                         if ~any(isnan(data_to_plot_this_band))
                             if settings.group_bands_within_conditions
-                                this_color = settings.colors_bands(i_band, :);
-                            else
-                                this_color = settings.colors_comparison(i_condition, :);
+                                % override color
+                                colors = copper(size(data_to_plot_this_condition, 1));
+                                this_color = colors(i_band, :);
                             end
                             plotDiscreteData ...
                               ( ...
                                 data_to_plot_this_band, ...
-                                'SpreadStyle', settings.plot_settings.get('discrete_data_plot_style'), ...
                                 'abscissa', target_abscissa, ...
                                 'axes', target_axes_handle, ...         % axes
                                 'color', this_color, ...                % color
-                                'ShowMean', true, ...
+                                'ShowMean', settings.show_average_data, ...
                                 'MeanStyle', 'd', ...
                                 'MeanColor', [1 1 1]*0.7, ...
-                                'ShowMedian', true, ...
+                                'ShowMedian', settings.show_spread_data, ...
                                 'MedianStyle', 'line', ...
-                                'label', label_string_this_band ...    % label
+                                'ShowIndividualData', settings.plot_settings.get('show_individual_discrete_data', 1), ...
+                                'ShowSpread', settings.show_spread_data, ...
+                                'SpreadStyle', settings.plot_settings.get('discrete_data_plot_style'), ...
+                                'label', label_string_this_band ...     % label
                               )
                             
                         end
@@ -497,7 +525,7 @@ function figure_data = plotData(settings, data, comparisons, figure_data)
                 end
                 if isContinuousVariable(i_variable, data.variable_data, data.bands_per_stretch)
                     target_abscissa = figure_data.abscissae_cell{i_comparison, i_variable}(i_condition, :);                    
-                    if settings.show_individual_data
+                    if settings.plot_settings.get('show_individual_trajectory_data', 1)
                         for i_stretch = 1 : size(data_to_plot_this_condition, 2)
                             origin_index_data = - ones(size(target_abscissa)) * origin_indices(i_stretch);
                             plot3 ...
@@ -508,7 +536,7 @@ function figure_data = plotData(settings, data, comparisons, figure_data)
                                 origin_index_data, ...
                                 'linewidth', 1, ...
                                 'HandleVisibility', 'off', ...
-                                'color', lightenColor(settings.colors_comparison(i_condition, :), 0.5) ...
+                                'color', lightenColor(this_color, 0.5) ...
                               );
                         end
                         
@@ -520,7 +548,7 @@ function figure_data = plotData(settings, data, comparisons, figure_data)
                             nanmean(data_to_plot_this_condition, 2), ...
                             'parent', target_axes_handle, ...
                             'DisplayName', label_string, ...
-                            'color', settings.colors_comparison(i_condition, :), ...
+                            'color', this_color, ...
                             'linewidth', 6 ...
                           );
                         top_level_plots = [top_level_plots average_plot]; %#ok<AGROW>
@@ -532,7 +560,7 @@ function figure_data = plotData(settings, data, comparisons, figure_data)
                             nanmean(data_to_plot_this_condition, 2), ...
                             spread(data_to_plot_this_condition, settings.spread_method), ...
                             { ...
-                              'color', settings.colors_comparison(i_condition, :), ...
+                              'color', this_color, ...
                               'linewidth', 6 ...
                             }, ...
                             1, ...
@@ -774,7 +802,6 @@ function closeFigures(settings, figure_data)
     end    
 
 end
-
 
 function discrete = isDiscreteVariable(variable_index, variable_data, bands_per_stretch)
     discrete = false;
