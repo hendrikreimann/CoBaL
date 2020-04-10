@@ -132,7 +132,7 @@ function analyzeUcmAcrossTrials(varargin)
                     eef_data_this_event = eef_trajectories(event_indices_mocap(i_event), :);
                     eef_data_to_analyze{i_event} = [eef_data_to_analyze{i_event}; eef_data_this_event];
                 end
-                origin_trial_numbers = [origin_trial_numbers; i_trial]; %#ok<AGROW>
+                origin_trial_numbers = [origin_trial_numbers; this_condition_trial_numbers(i_trial)]; %#ok<AGROW>
             end
 
             % calculate and store variance measures

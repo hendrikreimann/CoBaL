@@ -46,6 +46,8 @@ function findEvents_MS(varargin)
     for i_condition = 1 : length(condition_list)
         trials_to_process = trial_number_list{i_condition};
         for i_trial = trials_to_process
+            event_data = struct;
+            
             %% prepare
             % load data
             this_trial_type = condition_list{i_condition};
@@ -164,8 +166,8 @@ function findEvents_MS(varargin)
                     marker_velocity_ap_abs = abs(shift_vel_trajectory(:, 1 : 3 : end));
                     
                     vel_threshold_breach = marker_velocity_ap_abs > subject_settings.get('shift_vel_threshold', 1);
-                    shift_start_index = find(diff(vel_threshold_breach) > 0);
-                    shift_end_times = find(diff(vel_threshold_breach) < 0);
+                    shift_start_index = find(diff(vel_threshold_breach) > 0, 1);
+                    shift_end_times = find(diff(vel_threshold_breach) < 0, 1);
 
                     shift_start_time = time_marker(shift_start_index);
                     shift_end_time = time_marker(shift_end_times);

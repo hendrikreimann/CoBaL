@@ -28,7 +28,7 @@ function collectPopulationResults(varargin)
     source_label = parser.Results.source;
     save_file = parser.Results.output;
     if isempty(save_file)
-        save_file = ['results' source_label];
+        save_file = ['results_' source_label];
     end
 
     % load settings
@@ -229,7 +229,7 @@ function collectPopulationResults(varargin)
     variables_to_save.origin_session_folder_data = origin_session_folder_data;
     variables_to_save.origin_trial_number_data = origin_trial_number_data;
     variables_to_save.origin_stretch_start_time_data = origin_stretch_start_time_data;
-    variables_to_save.origin_stretch_end_time_data = origin_stretch_end_time_data; %#ok<STRNU>
+    variables_to_save.origin_stretch_end_time_data = origin_stretch_end_time_data;
     
     if ~isempty(variables_to_collect_long)
         variables_to_save.variable_data_long = variable_data_long;

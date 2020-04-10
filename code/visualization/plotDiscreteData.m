@@ -187,12 +187,14 @@ function stats = extractStatistics(settings, data)
     stats.lower_adjacent = min([data(data>=stats.lower_inner_fence) inf]);
     
 	% Calculate the kernel density
-    if ~isempty(settings.spread.density_estimate_bandwidth)
-        [stats.data_density, stats.data_range] = ksdensity(data, 'bandwidth', bandwidth);
-    else
-        [stats.data_density, stats.data_range] = ksdensity(data);
+    if ~isempty(data)
+        if ~isempty(settings.spread.density_estimate_bandwidth)
+            [stats.data_density, stats.data_range] = ksdensity(data, 'bandwidth', bandwidth);
+        else
+            [stats.data_density, stats.data_range] = ksdensity(data);
+        end
+        stats.density_normalized = stats.data_density/max(stats.data_density) * settings.width/2; %normalize
     end
-    stats.density_normalized = stats.data_density/max(stats.data_density) * settings.width/2; %normalize
 end
 
 function plotBox(settings, stats)
