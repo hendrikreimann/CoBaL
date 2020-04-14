@@ -581,6 +581,42 @@ function figure_data = plotData(settings, data, comparisons, figure_data)
 end
 
 function figure_data = groomFigures(settings, data, comparisons, figure_data)
+    % set axis limits
+    if settings.dictate_axes
+        for i_variable = 1 : settings.number_of_variables_to_plot
+            % get x-axis limits from settings
+            this_variable_x_lower = settings.variables_to_plot{i_variable, strcmp(settings.variables_to_plot_header, 'x-axis lower limit')};
+            this_variable_x_upper = settings.variables_to_plot{i_variable, strcmp(settings.variables_to_plot_header, 'x-axis upper limit')};
+            
+            % get y-axis limits from settings
+            this_variable_y_lower = settings.variables_to_plot{i_variable, strcmp(settings.variables_to_plot_header, 'y-axis lower limit')};
+            this_variable_y_upper = settings.variables_to_plot{i_variable, strcmp(settings.variables_to_plot_header, 'y-axis upper limit')};
+            
+            for i_axes = 1 : size(figure_data.trajectory_axes_handles, 1)
+                % get current axes and limits
+                these_axes = figure_data.trajectory_axes_handles(i_axes, i_variable);
+                xlimits = get(these_axes, 'xlim');
+                ylimits = get(these_axes, 'ylim');
+                
+                % apply new limits if any were set
+                if ~strcmp(this_variable_x_lower, '~')
+                    xlimits(1) = str2double(this_variable_x_lower);
+                end
+                if ~strcmp(this_variable_x_upper, '~')
+                    xlimits(2) = str2double(this_variable_x_upper);
+                end
+                if ~strcmp(this_variable_y_lower, '~')
+                    ylimits(1) = str2double(this_variable_y_lower);
+                end
+                if ~strcmp(this_variable_y_upper, '~')
+                    ylimits(2) = str2double(this_variable_y_upper);
+                end
+                set(these_axes, 'xlim', xlimits, 'ylim', ylimits);
+                
+            end
+        end
+    end
+
     % update label positions
     for i_variable = 1 : settings.number_of_variables_to_plot
         for i_axes = 1 : size(figure_data.trajectory_axes_handles, 1)
