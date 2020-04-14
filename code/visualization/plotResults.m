@@ -64,7 +64,8 @@ function settings = determineSettings(varargin)
     addParameter(parser, 'show_legend', false)
     addParameter(parser, 'save', false)
     addParameter(parser, 'close', false)
-    addParameter(parser, 'format', 'tiff')
+    addParameter(parser, 'format', 'jpeg')
+    addParameter(parser, 'resolution', '300')
     addParameter(parser, 'settings', 'plot')
     addParameter(parser, 'spread_method', 'cinv')
     parse(parser, varargin{:})
@@ -73,7 +74,11 @@ function settings = determineSettings(varargin)
     settings.show_legend = parser.Results.show_legend;
     settings.settings_file = parser.Results.settings;
     settings.spread_method = parser.Results.spread_method;
+    
+    % save format
     settings.save_results = parser.Results.save;
+    settings.save_format = ['-d' parser.Results.format];
+    settings.save_resolution = ['-r' num2str(parser.Results.resolution)];
     settings.close = parser.Results.close;
 
     % load settings
@@ -178,7 +183,6 @@ function data = loadDataToPlot(settings)
             end
             this_variable_data = loaded_data.([this_variable_type '_data_session']){this_variable_source_index};
             this_variable_directions = loaded_data.([this_variable_type '_directions_session'])(this_variable_source_index, :);
-
 
             if settings.plot_settings.get('convert_to_mm', 1) && (strcmp(this_variable_name,'cop_from_com_x') || strcmp(this_variable_name, 'step_placement_x'))
                 this_variable_data = this_variable_data * 1000;
@@ -763,16 +767,17 @@ function saveFigures(settings, figure_data)
             mkdir(['figures' filesep 'noLabels'])
         end
         for i_figure = 1 : numel(figure_data.trajectory_figure_handles)
-            % save with labels
-%             legend(axes_handles(i_figure), 'show');
-            filename = ['figures' filesep 'withLabels' filesep get(figure_data.trajectory_figure_handles(i_figure), 'UserData')];
-            saveas(figure_data.trajectory_figure_handles(i_figure), filename, parser.Results.format)
+            % remove some white space on right side and top
+            axes_position = get(figure_data.trajectory_axes_handles(i_figure), 'position');
+            axes_position(3) = 1 - axes_position(1) - 0.01;
+            axes_position(4) = 1 - axes_position(2) - 0.04;
+            set(figure_data.trajectory_axes_handles(i_figure), 'position', axes_position);
             
-            % save without labels
-%             set(postext, 'visible', 'off');
-%             set(negtext, 'visible', 'off');
+            % save with labels            
+            filename_with = ['figures' filesep 'withLabels' filesep get(figure_data.trajectory_figure_handles(i_figure), 'UserData')];
+            print(figure_data.trajectory_figure_handles(i_figure), filename_with, settings.save_format, settings.save_resolution)
             
-            % remove text and marks to save graphs only
+            % remove text and marks to save data lines only
             set(get(figure_data.trajectory_axes_handles(i_figure), 'xaxis'), 'visible', 'off');
             set(get(figure_data.trajectory_axes_handles(i_figure), 'yaxis'), 'visible', 'off');
             set(get(figure_data.trajectory_axes_handles(i_figure), 'xlabel'), 'visible', 'off');
@@ -782,8 +787,9 @@ function saveFigures(settings, figure_data)
             set(figure_data.trajectory_axes_handles(i_figure), 'yticklabel', '');
             set(figure_data.trajectory_axes_handles(i_figure), 'position', [0 0 1 1]);
             legend(figure_data.trajectory_axes_handles(i_figure), 'hide');
-            filename = ['figures' filesep 'noLabels' filesep get(figure_data.trajectory_figure_handles(i_figure), 'UserData')];
-            saveas(figure_data.trajectory_figure_handles(i_figure), filename, parser.Results.format);
+            filename_without = ['figures' filesep 'noLabels' filesep get(figure_data.trajectory_figure_handles(i_figure), 'UserData')];
+            print(figure_data.trajectory_figure_handles(i_figure), filename_without, settings.save_format, settings.save_resolution)
+            disp(['Saved as ' filename_with ' and ' filename_without])
             
             % put some marks back
             set(get(figure_data.trajectory_axes_handles(i_figure), 'title'), 'visible', 'on');
