@@ -244,9 +244,9 @@ function comparisons = createComparisonData(settings, data)
 %     comparisons.number_of_comparisons = length(comparisons.comparison_indices);
 
     % new new version
-    [comparisons.condition_combination_labels, comparisons.condition_combinations] = determineConditionCombinations_new_new(data.condition_data, settings.conditions_settings, labels_to_ignore, levels_to_remove);
-    comparisons.condition_combinations = sortConditionCombinations_new(comparisons.condition_combinations, comparisons.condition_combination_labels, settings.condition_to_compare, preferred_level_order);
-    [comparisons.comparison_indices, comparisons.conditions_per_comparison_max] = determineComparisons_new_new(comparisons.condition_combinations, comparisons.condition_combination_labels, settings);
+    [comparisons.condition_combination_labels, comparisons.condition_combinations] = determineConditionCombinations(data.condition_data, settings.conditions_settings, labels_to_ignore, levels_to_remove);
+    comparisons.condition_combinations = sortConditionCombinations(comparisons.condition_combinations, comparisons.condition_combination_labels, settings.condition_to_compare, preferred_level_order);
+    [comparisons.comparison_indices, comparisons.conditions_per_comparison_max] = determineComparisons(comparisons.condition_combinations, comparisons.condition_combination_labels, settings);
     comparisons.number_of_comparisons = length(comparisons.comparison_indices);
     
     % determine colors for the combinations

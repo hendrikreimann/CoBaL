@@ -18,27 +18,32 @@ function ...
   [ ...
     condition_combination_labels, ...
     condition_combinations_stimulus, ...
+    condition_combinations_control, ...
     condition_combinations_emg_unique ...
   ] ...
-  = determineConditionCombinations_new ...
+  = determineConditionCombinations ...
   ( ...
     condition_data_all, ...
     conditions_settings, ...
     labels_to_ignore, ...
     levels_to_remove ...
   )
-    % create containers
     condition_labels = conditions_settings(:, 1)';
     number_of_condition_labels = length(condition_labels);
     condition_combination_labels = {};
     condition_combinations_stimulus = {};
-    
-    % loop through labels
     for i_label = 1 : number_of_condition_labels
         if ~any(strcmp(condition_labels{i_label}, labels_to_ignore))
             this_label = condition_labels{i_label};
             condition_combination_labels = [condition_combination_labels this_label]; %#ok<AGROW>
             levels_this_label = unique(condition_data_all(:, i_label));
+            
+            % exclude control level if there is one
+            control_level_this_label = conditions_settings(strcmp(conditions_settings(:, 1), this_label), 3);
+            control_level_index_in_levels = find(strcmp(levels_this_label, control_level_this_label));
+            if ~isempty(control_level_index_in_levels)
+                levels_this_label(control_level_index_in_levels, :) = [];
+            end
             
             % remove levels specified in settings
             if numel(levels_to_remove) > 0
@@ -49,7 +54,7 @@ function ...
                 end
             end
             
-            % create copies of existing table for each level in this new condition to get combinations
+            % repeat stuff to get combinations
             if isempty(condition_combinations_stimulus)
                 condition_combinations_stimulus = levels_this_label;
             else
@@ -65,7 +70,27 @@ function ...
             end
         end
     end
-        
+    
+    % make control conditions cell
+    condition_combinations_control = {};
+    if any(~strcmp(conditions_settings(:, 3), '~'))
+        % we have some conditions pointing to a control condition, so process this
+        for i_combination = 1 : size(condition_combinations_stimulus,1)
+            this_combination_stimulus = condition_combinations_stimulus(i_combination, :);
+            this_combination_control = cell(size(this_combination_stimulus));
+            for i_label = 1 : length(condition_combination_labels)
+                this_label = condition_combination_labels{i_label};
+                control_level_this_label = conditions_settings{strcmp(conditions_settings(:, 1), this_label), 3};
+                if strcmp(control_level_this_label, '~')
+                    this_combination_control{i_label} = this_combination_stimulus{i_label};
+                else
+                    this_combination_control{i_label} = control_level_this_label;
+                end
+            end
+            condition_combinations_control = [condition_combinations_control; this_combination_control]; %#ok<AGROW>
+        end
+    end
+    
     % make emg conditions cell
     if nargout > 3
         condition_combinations_emg = {};
@@ -89,26 +114,3 @@ function ...
         end
     end
 end
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

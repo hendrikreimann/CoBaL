@@ -14,7 +14,7 @@
 %     You should have received a copy of the GNU General Public License
 %     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-function [comparison_indices, conditions_per_comparison_max] = determineComparisons_new(conditions_to_plot, condition_labels, plot_settings)
+function [comparison_indices, conditions_per_comparison_max] = determineComparisons(conditions_to_plot, condition_labels, plot_settings)
     % initialize
     number_of_conditions_to_plot = size(conditions_to_plot, 1);
     comparison_indices = {};
@@ -55,4 +55,8 @@ function [comparison_indices, conditions_per_comparison_max] = determineComparis
             conditions_per_comparison_max = length(this_comparison);
         end
     end    
+%     if ~isempty(study_settings.get('conditions_control'))
+    if plot_settings.get('plot_control')
+        conditions_per_comparison_max = conditions_per_comparison_max + 1;
+    end
 end
