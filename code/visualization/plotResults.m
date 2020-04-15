@@ -120,6 +120,7 @@ function data = loadDataToPlot(settings)
     condition_source_variables = settings.conditions_settings(:, 2)';
     number_of_condition_labels = length(settings.condition_labels);
     data_source_file = settings.plot_settings.get('data_source', 1);
+
     file_label = ['results' data_source_file];
     
     % load data
@@ -138,12 +139,14 @@ function data = loadDataToPlot(settings)
     for i_folder = 1 : length(data_folder_list)
         % get information
         this_data_folder_path = data_folder_list{i_folder};
-        load([this_data_folder_path filesep 'subjectInfo.mat'], 'date', 'subject_id');
+        subject_settings = loadSettingsFromFile('subject', this_data_folder_path);
+        collection_date = subject_settings.get('collection_date');
+        subject_id = subject_settings.get('subject_id');
         
         % find results file
-        results_file_candidate_analysis = [this_data_folder_path filesep 'analysis' filesep makeFileName(date, subject_id, file_label) '.mat'];
-        results_file_candidate_subject = [this_data_folder_path filesep makeFileName(date, subject_id, file_label) '.mat'];
-        results_file_candidate_results = [this_data_folder_path filesep 'results' filesep  makeFileName(date, subject_id, file_label) '.mat'];
+        results_file_candidate_analysis = [this_data_folder_path filesep 'analysis' filesep makeFileName(collection_date, subject_id, file_label) '.mat'];
+        results_file_candidate_subject = [this_data_folder_path filesep makeFileName(collection_date, subject_id, file_label) '.mat'];
+        results_file_candidate_results = [this_data_folder_path filesep 'results' filesep  makeFileName(collection_date, subject_id, file_label) '.mat'];
         if exist(results_file_candidate_analysis, 'file')
             results_file_name = results_file_candidate_analysis;
         end    
@@ -730,6 +733,18 @@ function figure_data = groomFigures(settings, data, comparisons, figure_data)
                             number_of_conditions = length(band_start_times);
                             y_values = linspace(ylimits(1), ylimits(2), number_of_conditions+1);
                             for i_condition = 1 : number_of_conditions
+% 2020-APR-15 HR: this is code to mark the double stance for each condition
+% with an individual box, with a light shade of the condition color. I
+% don't have a good way to access the condition color here, after
+% re-working the way these colors are determined. Since this is used very
+% rarely, I'll leave it as gray boxes for now, using 
+% double_stance_patch_color, to be fixed if it's actually needed
+% 
+%                                 this_condition_index = conditions_this_comparison(i_condition);
+%                                 this_condition = comparisons.condition_combinations(this_condition_index, :);
+%                                 this_label = this_condition{strcmp(comparisons.condition_combination_labels, settings.condition_to_compare)};
+%                                 this_color = comparisons.condition_colors{strcmp(comparisons.condition_colors(:, 1), this_label), 2};
+                                
                                 patch_x = [band_start_times(i_condition) band_end_times(i_condition) band_end_times(i_condition) band_start_times(i_condition)];
                                 patch_y = [y_values(i_condition) y_values(i_condition) y_values(i_condition+1) y_values(i_condition+1)];
                                 patch_handle = ...
@@ -737,7 +752,7 @@ function figure_data = groomFigures(settings, data, comparisons, figure_data)
                                       ( ...
                                         patch_x, ...
                                         patch_y, ...
-                                        settings.colors_comparison(i_condition, :), ...
+                                        double_stance_patch_color, ...
                                         'parent', these_axes, ...
                                         'EdgeColor', 'none', ...
                                         'FaceAlpha', settings.plot_settings.get('stance_alpha'), ...

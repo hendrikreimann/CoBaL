@@ -14,7 +14,11 @@
 %     You should have received a copy of the GNU General Public License
 %     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-function settings = loadSettingsFromFile(source)
+function settings = loadSettingsFromFile(source, root)
+    if nargin < 2
+        root = pwd;
+    end
+    
     % determine file name
     if isequal(source(end-3:end), '.txt')
         % source was specified as a file name, so just use that
@@ -25,11 +29,11 @@ function settings = loadSettingsFromFile(source)
     end
 
     % look for specified file, either here or one folder up
-    if exist(settings_file_name, 'file')
-        settings_file = settings_file_name;
+    if exist([root filesep settings_file_name], 'file')
+        settings_file = [root filesep settings_file_name];
     end    
-    if exist(['..' filesep settings_file_name], 'file')
-        settings_file = ['..' filesep settings_file_name];
+    if exist([root filesep '..' filesep settings_file_name], 'file')
+        settings_file = [root filesep '..' filesep settings_file_name];
     end
     
     % load settings from this file

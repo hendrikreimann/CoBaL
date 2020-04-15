@@ -21,11 +21,9 @@
 function [comparison_indices, conditions_per_comparison_max] = determineComparisons_new_new(conditions_to_plot, condition_labels, settings)
     % initialize
     number_of_conditions_to_plot = size(conditions_to_plot, 1);
-    comparison_indices = {};
     conditions_already_compared = [];
     condition_to_compare = settings.plot_settings.get('condition_to_compare');
     condition_table = settings.conditions_settings;
-
     
     % separate the control conditions out
     control_row_indicator = false(number_of_conditions_to_plot, 1);
@@ -41,10 +39,10 @@ function [comparison_indices, conditions_per_comparison_max] = determineComparis
             
         end
     end
-    conditions_to_plot_control = conditions_to_plot(control_row_indicator, :);
     conditions_to_plot_stimulus = conditions_to_plot(~control_row_indicator, :);
         
     % here, we go through all stimulus conditions and group up those that go into one comparison, i.e. one figure
+    comparison_indices_stimulus = {};
     number_of_conditions_to_plot_stimulus = size(conditions_to_plot_stimulus, 1);
     while length(conditions_already_compared) < number_of_conditions_to_plot_stimulus
         % start with the first available condition
@@ -71,16 +69,29 @@ function [comparison_indices, conditions_per_comparison_max] = determineComparis
                 end
             end
         end
-        comparison_indices = [comparison_indices; this_comparison]; %#ok<AGROW>
+        comparison_indices_stimulus = [comparison_indices_stimulus; this_comparison]; %#ok<AGROW>
         conditions_already_compared = [conditions_already_compared this_comparison]; %#ok<AGROW>
-        
     end
+    
+    % now we transform the condition indices from relating to rows in conditions_to_plot_stimulus
+    % to relate to rows in conditions_to_plot
+    comparison_indices = cell(size(comparison_indices_stimulus));
+    for i_comparison = 1 : length(comparison_indices_stimulus)
+        this_comparison_stimulus = comparison_indices_stimulus{i_comparison};
+        this_comparison = zeros(size(this_comparison_stimulus));
+        for i_entry = 1 : length(this_comparison)
+            this_entry = conditions_to_plot_stimulus(this_comparison_stimulus(i_entry), :);
+            this_entry_index_in_full_list = findMatchingRow(conditions_to_plot, this_entry);
+            this_comparison(i_entry) = this_entry_index_in_full_list;
+        end
+        comparison_indices{i_comparison} = this_comparison;
+    end    
     
     % now we need to add the relevant control conditions back to each comparison
     for i_comparison = 1 : length(comparison_indices)
         % extract information about this comparison
         this_comparison = comparison_indices{i_comparison};
-        this_comparison_conditions_stimulus = conditions_to_plot_stimulus(this_comparison, :);
+        this_comparison_conditions_stimulus = conditions_to_plot(this_comparison, :);
         
         % go through each factor, find relevant control condition and assemble
         control_combination_for_this_level = cell(1, size(this_comparison_conditions_stimulus, 2));
@@ -99,18 +110,12 @@ function [comparison_indices, conditions_per_comparison_max] = determineComparis
         end        
         
         % find the assembled control condition in the list
-        matches = false(size(conditions_to_plot, 1), length(condition_labels));
-        for i_factor = 1 : length(condition_labels)
-            control_this_factor = control_combination_for_this_level{i_factor};
-            match_this_factor = strcmp(conditions_to_plot(:, i_factor), control_this_factor);
-            matches(:, i_factor) = match_this_factor;
-        end
-        matching_row = find(all(matches, 2));
+        matching_row = findMatchingRow(conditions_to_plot, control_combination_for_this_level);
         
         % add the control condition to the comparison
         if ~isempty(matching_row)
             this_comparison = [this_comparison matching_row]; %#ok<AGROW>
-            comparison_indices{i_comparison} = this_comparison; %#ok<AGROW>
+            comparison_indices{i_comparison} = this_comparison;
         end
     end
     
@@ -125,7 +130,16 @@ function [comparison_indices, conditions_per_comparison_max] = determineComparis
 end
 
 
+function row_index = findMatchingRow(cell_array, row_to_match)
+    matches = false(size(cell_array));
+    for i_column = 1 : size(cell_array, 2)
+        entry_to_match = row_to_match{i_column};
+        match_this_factor = strcmp(cell_array(:, i_column), entry_to_match);
+        matches(:, i_column) = match_this_factor;
+    end
+    row_index = find(all(matches, 2));
 
+end
 
 
 
