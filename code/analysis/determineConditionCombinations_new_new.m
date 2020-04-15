@@ -18,7 +18,7 @@ function ...
   [ ...
     condition_combination_labels, ...
     condition_combinations, ...
-    condition_combinations_emg_unique ...
+    condition_combinations_emg ...
   ] ...
   = determineConditionCombinations_new_new ...
   ( ...
@@ -57,9 +57,24 @@ function ...
         condition_combinations(matching_rows, :) = [];
     end
     
-    
-    
-    
+    % make EMG conditions cell
+    if nargout > 2
+        condition_combinations_emg = condition_combinations;
+        
+        % for each factor, check if an EMG condition was specified
+        for i_factor = 1 : number_of_condition_labels
+            this_factor_condition_label = conditions_settings{i_factor, 1};
+            this_factor_emg_level = conditions_settings{i_factor, 4};
+            if ~strcmp(this_factor_emg_level, '~')
+                % there's a special EMG condition, so remove all others
+                this_factor_column = strcmp(condition_combination_labels, this_factor_condition_label);
+                this_factor_emg_match = strcmp(condition_combinations_emg(:, this_factor_column), this_factor_emg_level);
+                condition_combinations_emg(~this_factor_emg_match, :) = [];
+                
+            end
+        end
+        
+    end
     
     
     

@@ -30,16 +30,9 @@ function processEmgNormalization(varargin)
     visualize = parser.Results.visualize;
     
     load('subjectInfo.mat', 'date', 'subject_id');
-    % load settings
-    subject_settings = SettingsCustodian('subjectSettings.txt');
-    study_settings_file = '';
-    if exist(['..' filesep 'studySettings.txt'], 'file')
-        study_settings_file = ['..' filesep 'studySettings.txt'];
-    end    
-    if exist(['..' filesep '..' filesep 'studySettings.txt'], 'file')
-        study_settings_file = ['..' filesep '..' filesep 'studySettings.txt'];
-    end
-    study_settings = SettingsCustodian(study_settings_file);
+    % load settings   
+    study_settings = loadSettingsFromFile('study');
+    subject_settings = loadSettingsFromFile('subject');
     
     emg_import_map_header = subject_settings.get('emg_import_map_header');
     emg_import_map = subject_settings.get('emg_import_map');
@@ -105,25 +98,26 @@ function processEmgNormalization(varargin)
     labels_to_ignore = study_settings.get('conditions_to_ignore');
     levels_to_remove = study_settings.get('levels_to_remove', 1);
     
-    [condition_combination_labels, ~, ~, condition_combinations_emg_unique] = determineConditionCombinations(condition_data_all, conditions_settings, labels_to_ignore, levels_to_remove);
+%     [condition_combination_labels, ~, ~, condition_combinations_emg_old] = determineConditionCombinations(condition_data_all, conditions_settings, labels_to_ignore, levels_to_remove);
+    [condition_combination_labels, ~, condition_combinations_emg] = determineConditionCombinations_new_new(condition_data_all, conditions_settings, labels_to_ignore, levels_to_remove);
 
     % extract indicators for emg
-    number_of_conditions_emg = size(condition_combinations_emg_unique, 1);
+    number_of_conditions_emg = size(condition_combinations_emg, 1);
     conditions_emg_indicators = true(number_of_stretches_session, number_of_conditions_emg);
     for i_condition = 1 : number_of_conditions_emg
         for i_label = 1 : length(condition_combination_labels)
             this_label = condition_combination_labels{i_label};
             this_label_list = condition_data_all(:, strcmp(conditions_settings(:, 1), this_label));
-            this_label_indicator = strcmp(this_label_list, condition_combinations_emg_unique(i_condition, i_label));
+            this_label_indicator = strcmp(this_label_list, condition_combinations_emg(i_condition, i_label));
             conditions_emg_indicators(:, i_condition) = conditions_emg_indicators(:, i_condition) .* this_label_indicator;
         end
     end    
     
     % report emg
     trials_per_condition_emg = sum(conditions_emg_indicators)';
-    conditions_emg_with_number = condition_combinations_emg_unique;
+    conditions_emg_with_number = condition_combinations_emg;
     for i_condition = 1 : number_of_conditions_emg
-        conditions_emg_with_number{i_condition, size(condition_combinations_emg_unique, 2)+1} = num2str(trials_per_condition_emg(i_condition));
+        conditions_emg_with_number{i_condition, size(condition_combinations_emg, 2)+1} = num2str(trials_per_condition_emg(i_condition));
     end
     conditions_emg_with_labels = [condition_combination_labels 'number of stretches'; conditions_emg_with_number];
     disp('EMG normalization conditions:')
@@ -167,7 +161,7 @@ function processEmgNormalization(varargin)
             end
             
             % load
-            [emg_trajectories, time_emg, sampling_rate_emg, emg_labels_trial, emg_directions] = loadData(date, subject_id, this_type, i_trial, 'emg_trajectories'); %#ok<ASGLU>
+            [emg_trajectories, time_emg, sampling_rate_emg, emg_labels_trial, emg_directions] = loadData(date, subject_id, this_type, i_trial, 'emg_trajectories');
             
             % scale
             emg_scaled_trajectories = zeros(size(emg_trajectories)) * NaN;
@@ -184,11 +178,11 @@ function processEmgNormalization(varargin)
                 end
                 emg_scaled_trajectories(:, i_channel) = emg_trajectories(:, i_channel) * this_channel_weight;
             end
-            emg_labels = emg_labels_trial; %#ok<NASGU>
+            emg_labels = emg_labels_trial;
             
             % save
             save_folder = 'processed';
-            emg_normalization_labels = variable_names; %#ok<NASGU>
+            emg_normalization_labels = variable_names;
             save_file_name = makeFileName(date, subject_id, this_type, i_trial, 'emgScaledTrajectories.mat');
             save ...
               ( ...
