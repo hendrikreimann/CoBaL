@@ -504,6 +504,6 @@ function saveDeterminedStretchData(conditions_trial, event_variables_to_save, su
     saveDataToFile(stretches_file_name, event_variables_to_save);
 
 
-    disp(['Finding Relevant Data Stretches: condition ' char(trial_data.trial_type) ', Trial ' trial_data.trial_number ' completed, found ' num2str(size(event_variables_to_save.stretch_times, 1)) ' relevant stretches, saved as ' stretches_file_name]);                
+    disp(['Finding Relevant Data Stretches: condition ' char(trial_data.trial_type) ', Trial ' num2str(trial_data.trial_number) ' completed, found ' num2str(size(event_variables_to_save.stretch_times, 1)) ' relevant stretches, saved as ' stretches_file_name]);                
 end
 

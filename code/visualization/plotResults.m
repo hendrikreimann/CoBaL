@@ -229,16 +229,24 @@ function comparisons = createComparisonData(settings, data)
     levels_to_remove = settings.plot_settings.get('levels_to_remove');
     preferred_level_order = settings.plot_settings.get('preferred_level_order', 1);
     
-    % determine which condition combinations are needed for this comparison
+    % old version
 %     [comparisons.condition_combination_labels, comparisons.condition_combinations_stimulus, comparisons.condition_combinations_control] = determineConditionCombinations(data.condition_data, settings.conditions_settings, labels_to_ignore, levels_to_remove);
 %     [comparisons.condition_combinations_stimulus, comparisons.condition_combinations_control] = sortConditionCombinations(comparisons.condition_combinations_stimulus, comparisons.condition_combinations_control, comparisons.condition_combination_labels, settings.condition_to_compare, preferred_level_order);
 %     [comparisons.comparison_indices, comparisons.conditions_per_comparison_max] = determineComparisons(comparisons.condition_combinations_stimulus, comparisons.condition_combination_labels, settings.plot_settings);
 
-    [comparisons.condition_combination_labels, comparisons.condition_combinations] = determineConditionCombinations_new(data.condition_data, settings.conditions_settings, labels_to_ignore, levels_to_remove);
+    % new version
+%     [comparisons.condition_combination_labels, comparisons.condition_combinations] = determineConditionCombinations_new(data.condition_data, settings.conditions_settings, labels_to_ignore, levels_to_remove);
+%     comparisons.condition_combinations = sortConditionCombinations_new(comparisons.condition_combinations, comparisons.condition_combination_labels, settings.condition_to_compare, preferred_level_order);
+%     [comparisons.comparison_indices, comparisons.conditions_per_comparison_max] = determineComparisons_new(comparisons.condition_combinations, comparisons.condition_combination_labels, settings.plot_settings);
+%     comparisons.number_of_comparisons = length(comparisons.comparison_indices);
+
+    % new new version
+    [comparisons.condition_combination_labels, comparisons.condition_combinations] = determineConditionCombinations_new_new(data.condition_data, settings.conditions_settings, labels_to_ignore, levels_to_remove);
     comparisons.condition_combinations = sortConditionCombinations_new(comparisons.condition_combinations, comparisons.condition_combination_labels, settings.condition_to_compare, preferred_level_order);
-    [comparisons.comparison_indices, comparisons.conditions_per_comparison_max] = determineComparisons_new(comparisons.condition_combinations, comparisons.condition_combination_labels, settings.plot_settings);
+    [comparisons.comparison_indices, comparisons.conditions_per_comparison_max] = determineComparisons_new_new(comparisons.condition_combinations, comparisons.condition_combination_labels, settings);
     comparisons.number_of_comparisons = length(comparisons.comparison_indices);
     
+    % determine colors for the combinations
     comparisons.condition_colors = determineConditionColors(settings, comparisons);
 end
 
