@@ -29,23 +29,18 @@ function processAnalysisVariables(varargin)
     
     number_of_time_steps_normalized = study_settings.get('number_of_time_steps_normalized');
     bands_per_stretch = loaded_data.bands_per_stretch;
-%     stretch_names_session = loaded_data.stretch_names_session;
-%     stretch_data_session = loaded_data.stretch_data_session;
-%     stretch_directions_session = loaded_data.stretch_directions_session;
-%     
-%     number_of_stretch_variables = length(loaded_data.stretch_names_session);
     number_of_stretches = size(loaded_data.stretch_data_session{1}, 2); %#ok<*USENS>
     
     % make condition data tables
-    conditions_settings = study_settings.get('conditions');
-    condition_labels = conditions_settings(:, 1)';
-    condition_source_variables = conditions_settings(:, 2)';
-    number_of_condition_labels = length(condition_labels);
-    conditions_session = loaded_data.conditions_session;
-    condition_data_all = cell(number_of_stretches, number_of_condition_labels);
-    for i_condition = 1 : number_of_condition_labels
-        condition_data_all(:, i_condition) = conditions_session.(condition_source_variables{i_condition});
-    end
+    conditions.settings_table = study_settings.get('conditions');
+    condition.factor_labels = conditions.settings_table(:, 1)';
+    conditions.source_variables = conditions.settings_table(:, 2)';
+    conditions.number_of_factor_labels = length(condition.factor_labels);
+    conditions.conditions_session = loaded_data.conditions_session;
+%     condition_data_all = cell(number_of_stretches, conditions.number_of_factor_labels);
+%     for i_condition = 1 : conditions.number_of_factor_labels
+%         condition_data_all(:, i_condition) = conditions_session.(conditions.source_variables{i_condition});
+%     end
     
     if isfield(loaded_data, 'response_data_session')
         response_data_session = loaded_data.response_data_session;
@@ -105,7 +100,7 @@ function processAnalysisVariables(varargin)
         
         % go through levels and invert
         this_variable_data = this_variable_source_data;
-        level_list = conditions_session.(condition_source_variables{strcmp(condition_labels, relevant_condition)});
+        level_list = conditions.conditions_session.(conditions.source_variables{strcmp(condition.factor_labels, relevant_condition)});
         for i_level = 1 : size(inversion_table, 1)
             % determine whether this has to be inverted
             this_level_direction_map = inversion_table(i_level, 2:3);
@@ -165,7 +160,7 @@ function processAnalysisVariables(varargin)
         % go through levels and select
         this_variable_data = [];
         new_variable_directions = [];
-        level_list = conditions_session.(condition_source_variables{strcmp(condition_labels, this_variable_relevant_condition)});
+        level_list = conditions.conditions_session.(conditions.source_variables{strcmp(condition.factor_labels, this_variable_relevant_condition)});
         for i_level = 1 : size(selection_table, 1)
             % extract level info
             label_this_level = selection_table(i_level, 1);
