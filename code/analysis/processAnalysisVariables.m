@@ -18,26 +18,22 @@
 % the response is calculated, i.e. the difference from the control mean.
 
 function processAnalysisVariables(varargin)
-    load('subjectInfo.mat', 'date', 'subject_id');
+    study_settings = loadSettingsFromFile('study');
+    subject_settings = loadSettingsFromFile('subject');
+    collection_date = subject_settings.get('collection_date');
+    subject_id = subject_settings.get('subject_id');
+
     % load settings and existing results
-    study_settings_file = '';
-    if exist(['..' filesep 'studySettings.txt'], 'file')
-        study_settings_file = ['..' filesep 'studySettings.txt'];
-    end    
-    if exist(['..' filesep '..' filesep 'studySettings.txt'], 'file')
-        study_settings_file = ['..' filesep '..' filesep 'studySettings.txt'];
-    end
-    study_settings = SettingsCustodian(study_settings_file);
-    results_file_name = ['results' filesep makeFileName(date, subject_id, 'results')];
+    results_file_name = ['results' filesep makeFileName(collection_date, subject_id, 'results')];
     loaded_data = load(results_file_name);
     
     number_of_time_steps_normalized = study_settings.get('number_of_time_steps_normalized');
     bands_per_stretch = loaded_data.bands_per_stretch;
-    stretch_names_session = loaded_data.stretch_names_session;
-    stretch_data_session = loaded_data.stretch_data_session;
-    stretch_directions_session = loaded_data.stretch_directions_session;
-    
-    number_of_stretch_variables = length(loaded_data.stretch_names_session);
+%     stretch_names_session = loaded_data.stretch_names_session;
+%     stretch_data_session = loaded_data.stretch_data_session;
+%     stretch_directions_session = loaded_data.stretch_directions_session;
+%     
+%     number_of_stretch_variables = length(loaded_data.stretch_names_session);
     number_of_stretches = size(loaded_data.stretch_data_session{1}, 2); %#ok<*USENS>
     
     % make condition data tables
@@ -50,39 +46,32 @@ function processAnalysisVariables(varargin)
     for i_condition = 1 : number_of_condition_labels
         condition_data_all(:, i_condition) = conditions_session.(condition_source_variables{i_condition});
     end
-    labels_to_ignore = study_settings.get('conditions_to_ignore');
-    levels_to_remove = study_settings.get('levels_to_remove', 1);
     
     if isfield(loaded_data, 'response_data_session')
         response_data_session = loaded_data.response_data_session;
         response_directions_session = loaded_data.response_directions_session;
         response_names_session = loaded_data.response_names_session;
-    else
-        response_data_session = {};
-        response_directions_session = {};
-        response_names_session = {};
     end
     if isfield(loaded_data, 'analysis_data_session')
-        analysis_data_session = loaded_data.analysis_data_session;
-        analysis_directions_session = loaded_data.analysis_directions_session;
-        analysis_names_session = loaded_data.analysis_names_session;
+        analysis_data.data = loaded_data.analysis_data_session;
+        analysis_data.directions = loaded_data.analysis_directions_session;
+        analysis_data.names = loaded_data.analysis_names_session;
     else
-        analysis_data_session = {};
-        analysis_directions_session = {};
-        analysis_names_session = {};
+        analysis_data.data = {};
+        analysis_data.directions = {};
+        analysis_data.names = {};
     end
     if isfield(loaded_data, 'range_data_session')
-        range_data_session = loaded_data.range_data_session;
-        range_directions_session = loaded_data.range_directions_session;
-        range_names_session = loaded_data.range_names_session;
+        range_data.data = loaded_data.range_data_session;
+        range_data.directions = loaded_data.range_directions_session;
+        range_data.names = loaded_data.range_names_session;
     else
-        range_data_session = {};
-        range_directions_session = {};
-        range_names_session = {};
+        range_data.data = {};
+        range_data.directions = {};
+        range_data.names = {};
     end
     
     %% load necessary info
-%     variables_to_integrate = study_settings.get('analysis_variables_from_integration');
     step_time_index_in_saved_data = find(strcmp(loaded_data.stretch_names_session, 'step_time'), 1, 'first');
     this_step_time_data = loaded_data.stretch_data_session{step_time_index_in_saved_data};
     pushoff_time_index_in_saved_data = find(strcmp(loaded_data.stretch_names_session, 'pushoff_time'), 1, 'first');
@@ -99,12 +88,16 @@ function processAnalysisVariables(varargin)
         this_variable_name = inversion_variables{i_variable, 1};
         this_variable_source_name = inversion_variables{i_variable, 2};
         this_variable_source_type = inversion_variables{i_variable, 3};
+        
         % pick data depending on source specification
-        eval(['data_source = ' this_variable_source_type '_data_session;']);
-        eval(['names_source = ' this_variable_source_type '_names_session;']);
-        eval(['directions_source = ' this_variable_source_type '_directions_session;']);
-        this_variable_source_data = data_source{strcmp(names_source, this_variable_source_name)};
-        this_variable_source_directions = directions_source(strcmp(names_source, this_variable_source_name), :);
+        this_variable_source_index = find(strcmp(loaded_data.([this_variable_source_type '_names_session']), this_variable_source_name), 1, 'first');
+        this_variable_source_data = loaded_data.([this_variable_source_type '_data_session']){this_variable_source_index};
+        this_variable_source_directions = loaded_data.([this_variable_source_type '_directions_session'])(this_variable_source_index, :);
+%         eval(['data_source = loaded_data.' this_variable_source_type '_data_session;']);
+%         eval(['names_source = loaded_data.' this_variable_source_type '_names_session;']);
+%         eval(['directions_source = loaded_data.' this_variable_source_type '_directions_session;']);
+%         this_variable_source_data = data_source{strcmp(names_source, this_variable_source_name)};
+%         this_variable_source_directions = directions_source(strcmp(names_source, this_variable_source_name), :);
         new_variable_directions = inversion_variables(i_variable, 6:7);
         
         relevant_condition = inversion_variables{i_variable, 4};
@@ -135,10 +128,10 @@ function processAnalysisVariables(varargin)
         end
 
         % store
-        [analysis_data_session, analysis_names_session, analysis_directions_session] = ...
+        [analysis_data.data, analysis_data.names, analysis_data.directions] = ...
             addOrReplaceResultsData ...
               ( ...
-                analysis_data_session, analysis_names_session, analysis_directions_session, ...
+                analysis_data.data, analysis_data.names, analysis_data.directions, ...
                 this_variable_data, this_variable_name, new_variable_directions ...
               );
     end
@@ -153,9 +146,9 @@ function processAnalysisVariables(varargin)
         this_variable_relevant_condition = selection_variables{i_variable, strcmp(selection_variables_header, 'relevant_condition')};
         this_variable_information_table = selection_variables{i_variable, strcmp(selection_variables_header, 'information_table')};
         % pick data depending on source specification
-        eval(['data_source = ' this_variable_source_type '_data_session;']);
-        eval(['names_source = ' this_variable_source_type '_names_session;']);
-        eval(['directions_source = ' this_variable_source_type '_directions_session;']);
+        eval(['data_source = loaded_data.' this_variable_source_type '_data_session;']);
+        eval(['names_source = loaded_data.' this_variable_source_type '_names_session;']);
+        eval(['directions_source = loaded_data.' this_variable_source_type '_directions_session;']);
         
         selection_table = study_settings.get(this_variable_information_table);
         
@@ -199,12 +192,13 @@ function processAnalysisVariables(varargin)
         end
 
         % store
-        [analysis_data_session, analysis_names_session, analysis_directions_session] = ...
+        [analysis_data.data, analysis_data.names, analysis_data.directions] = ...
             addOrReplaceResultsData ...
               ( ...
-                analysis_data_session, analysis_names_session, analysis_directions_session, ...
+                analysis_data.data, analysis_data.names, analysis_data.directions, ...
                 this_variable_data, this_variable_name, new_variable_directions ...
               );
+          
     end    
     
     %% calculate integrated variables
@@ -221,9 +215,9 @@ function processAnalysisVariables(varargin)
         end_info = variables_to_integrate{i_variable, strcmp(variables_to_integrate_header, 'end')};
         end_variable_source_type = variables_to_integrate{i_variable, strcmp(variables_to_integrate_header, 'end_variable_type')};
         % pick data depending on source specification
-        eval(['data_source = ' this_variable_source_type '_data_session;']);
-        eval(['names_source = ' this_variable_source_type '_names_session;']);
-        eval(['directions_source = ' this_variable_source_type '_directions_session;']);
+        eval(['data_source = loaded_data.' this_variable_source_type '_data_session;']);
+        eval(['names_source = loaded_data.' this_variable_source_type '_names_session;']);
+        eval(['directions_source = loaded_data.' this_variable_source_type '_directions_session;']);
         this_variable_source_data = data_source{strcmp(names_source, this_variable_source_name)};
         this_variable_source_directions = directions_source(strcmp(names_source, this_variable_source_name), :);
         
@@ -231,8 +225,8 @@ function processAnalysisVariables(varargin)
         if strcmp(start_variable_source_type, 'percentage')
             start_data_percent = ones(size(this_step_time_data)) * str2num(start_info);
         else
-            eval(['start_data_source = ' start_variable_source_type '_data_session;']);
-            eval(['start_names_source = ' start_variable_source_type '_names_session;']);
+            eval(['start_data_source = loaded_data.' start_variable_source_type '_data_session;']);
+            eval(['start_names_source = loaded_data.' start_variable_source_type '_names_session;']);
             start_data_time_within_band = start_data_source{strcmp(start_names_source, start_info)};
             % find a way to take the step time per condition (maybe only
             % for CadenceGVS) and then perform integration on only
@@ -285,8 +279,8 @@ function processAnalysisVariables(varargin)
         if strcmp(end_variable_source_type, 'percentage')
             end_data_percent = ones(size(this_step_time_data)) * str2num(end_info);
         else
-            eval(['end_data_source = ' end_variable_source_type '_data_session;']);
-            eval(['end_names_source = ' end_variable_source_type '_names_session;']);
+            eval(['end_data_source = loaded_data.' end_variable_source_type '_data_session;']);
+            eval(['end_names_source = loaded_data.' end_variable_source_type '_names_session;']);
             end_data_time_within_band = end_data_source{strcmp(end_names_source, end_info)};
             end_data_ratio = end_data_time_within_band ./ this_step_time_data;
             end_data_percent = round(end_data_ratio * 100);
@@ -354,10 +348,10 @@ function processAnalysisVariables(varargin)
         end        
         
         % store
-        [analysis_data_session, analysis_names_session, analysis_directions_session] = ...
+        [analysis_data.data, analysis_data.names, analysis_data.directions] = ...
             addOrReplaceResultsData ...
               ( ...
-                analysis_data_session, analysis_names_session, analysis_directions_session, ...
+                analysis_data.data, analysis_data.names, analysis_data.directions, ...
                 integrated_data, this_variable_name, this_variable_source_directions ...
               );
 
@@ -377,9 +371,9 @@ function processAnalysisVariables(varargin)
         end_info = variables_to_rms{i_variable, strcmp(variables_to_rms_header, 'end')};
         end_variable_source_type = variables_to_rms{i_variable, strcmp(variables_to_rms_header, 'end_variable_type')};
         % pick data depending on source specification
-        eval(['data_source = ' this_variable_source_type '_data_session;']);
-        eval(['names_source = ' this_variable_source_type '_names_session;']);
-        eval(['directions_source = ' this_variable_source_type '_directions_session;']);
+        eval(['data_source = loaded_data.' this_variable_source_type '_data_session;']);
+        eval(['names_source = loaded_data.' this_variable_source_type '_names_session;']);
+        eval(['directions_source = loaded_data.' this_variable_source_type '_directions_session;']);
         this_variable_source_data = data_source{strcmp(names_source, this_variable_source_name)};
         this_variable_source_directions = directions_source(strcmp(names_source, this_variable_source_name), :);
         
@@ -387,8 +381,8 @@ function processAnalysisVariables(varargin)
         if strcmp(start_variable_source_type, 'percentage')
             start_data_percent = ones(size(this_step_time_data)) * str2num(start_info);
         else
-            eval(['start_data_source = ' start_variable_source_type '_data_session;']);
-            eval(['start_names_source = ' start_variable_source_type '_names_session;']);
+            eval(['start_data_source = loaded_data.' start_variable_source_type '_data_session;']);
+            eval(['start_names_source = loaded_data.' start_variable_source_type '_names_session;']);
             start_data_time_within_band = start_data_source{strcmp(start_names_source, start_info)};
             % find a way to take the step time per condition (maybe only
             % for CadenceGVS) and then perform integration on only
@@ -441,8 +435,8 @@ function processAnalysisVariables(varargin)
         if strcmp(end_variable_source_type, 'percentage')
             end_data_percent = ones(size(this_step_time_data)) * str2num(end_info);
         else
-            eval(['end_data_source = ' end_variable_source_type '_data_session;']);
-            eval(['end_names_source = ' end_variable_source_type '_names_session;']);
+            eval(['end_data_source = loaded_data.' end_variable_source_type '_data_session;']);
+            eval(['end_names_source = loaded_data.' end_variable_source_type '_names_session;']);
             end_data_time_within_band = end_data_source{strcmp(end_names_source, end_info)};
             end_data_ratio = end_data_time_within_band ./ this_step_time_data;
             end_data_percent = round(end_data_ratio * 100);
@@ -512,13 +506,13 @@ function processAnalysisVariables(varargin)
         end        
         
         % store
-        [analysis_data_session, analysis_names_session, analysis_directions_session] = ...
+        [analysis_data.data, analysis_data.names, analysis_data.directions] = ...
             addOrReplaceResultsData ...
               ( ...
-                analysis_data_session, analysis_names_session, analysis_directions_session, ...
+                analysis_data.data, analysis_data.names, analysis_data.directions, ...
                 rms_data, this_variable_name, this_variable_source_directions ...
               );
-
+          
     end
     
     %% calculate band end variables
@@ -528,9 +522,9 @@ function processAnalysisVariables(varargin)
         this_variable_source_name = variables_step_end{i_variable, 2};
         this_variable_source_type = variables_step_end{i_variable, 3};
         % pick data depending on source specification
-        eval(['data_source = ' this_variable_source_type '_data_session;']);
-        eval(['names_source = ' this_variable_source_type '_names_session;']);
-        eval(['directions_source = ' this_variable_source_type '_directions_session;']);
+        eval(['data_source = loaded_data.' this_variable_source_type '_data_session;']);
+        eval(['names_source = loaded_data.' this_variable_source_type '_names_session;']);
+        eval(['directions_source = loaded_data.' this_variable_source_type '_directions_session;']);
         this_variable_source_data = data_source{strcmp(names_source, this_variable_source_name)};
         new_variable_directions = directions_source(strcmp(names_source, this_variable_source_name), :);
         step_end_data = zeros(bands_per_stretch, number_of_stretches);
@@ -538,11 +532,12 @@ function processAnalysisVariables(varargin)
             [~, end_index] = getBandIndices(i_band, number_of_time_steps_normalized);
             step_end_data(i_band, :) = this_variable_source_data(end_index, :);
         end
+        
         % store
-        [analysis_data_session, analysis_names_session, analysis_directions_session] = ...
+        [analysis_data.data, analysis_data.names, analysis_data.directions] = ...
             addOrReplaceResultsData ...
               ( ...
-                analysis_data_session, analysis_names_session, analysis_directions_session, ...
+                analysis_data.data, analysis_data.names, analysis_data.directions, ...
                 step_end_data, this_variable_name, new_variable_directions ...
               );
     end
@@ -556,9 +551,9 @@ function processAnalysisVariables(varargin)
         this_variable_source_type = variables_band_percent{i_variable, strcmp(variables_band_percent_header, 'source_variable_type')};
         this_variable_source_percent = str2num(variables_band_percent{i_variable, strcmp(variables_band_percent_header, 'percentage')});
         % pick data depending on source specification
-        eval(['data_source = ' this_variable_source_type '_data_session;']);
-        eval(['names_source = ' this_variable_source_type '_names_session;']);
-        eval(['directions_source = ' this_variable_source_type '_directions_session;']);
+        eval(['data_source = loaded_data.' this_variable_source_type '_data_session;']);
+        eval(['names_source = loaded_data.' this_variable_source_type '_names_session;']);
+        eval(['directions_source = loaded_data.' this_variable_source_type '_directions_session;']);
         this_variable_source_data = data_source{strcmp(names_source, this_variable_source_name)};
         new_variable_directions = directions_source(strcmp(names_source, this_variable_source_name), :);
         band_percent_data = zeros(bands_per_stretch, number_of_stretches);
@@ -567,11 +562,12 @@ function processAnalysisVariables(varargin)
             this_index = start_index + this_variable_source_percent/100 * (end_index - start_index);
             band_percent_data(i_band, :) = this_variable_source_data(this_index, :);
         end
+        
         % store
-        [analysis_data_session, analysis_names_session, analysis_directions_session] = ...
+        [analysis_data.data, analysis_data.names, analysis_data.directions] = ...
             addOrReplaceResultsData ...
               ( ...
-                analysis_data_session, analysis_names_session, analysis_directions_session, ...
+                analysis_data.data, analysis_data.names, analysis_data.directions, ...
                 band_percent_data, this_variable_name, new_variable_directions ...
               );
     end
@@ -586,9 +582,9 @@ function processAnalysisVariables(varargin)
         this_variable_reference_point_percentage_within_band = str2num(variables_referenced_by_stretch{i_variable, 5});
         
         % pick data depending on source specification
-        eval(['data_source = ' this_variable_source_type '_data_session;']);
-        eval(['names_source = ' this_variable_source_type '_names_session;']);
-        eval(['directions_source = ' this_variable_source_type '_directions_session;']);
+        eval(['data_source = loaded_data.' this_variable_source_type '_data_session;']);
+        eval(['names_source = loaded_data.' this_variable_source_type '_names_session;']);
+        eval(['directions_source = loaded_data.' this_variable_source_type '_directions_session;']);
         this_variable_source_data = data_source{strcmp(names_source, this_variable_source_name)};
         new_variable_directions = directions_source(strcmp(names_source, this_variable_source_name), :);
         new_variable_data = zeros(size(this_variable_source_data));
@@ -599,11 +595,12 @@ function processAnalysisVariables(varargin)
         for i_stretch = 1 : size(new_variable_data, 2)
             new_variable_data(:, i_stretch) = this_variable_source_data(:, i_stretch) - this_variable_source_data(reference_index, i_stretch);
         end
+        
         % store
-        [analysis_data_session, analysis_names_session, analysis_directions_session] = ...
+        [analysis_data.data, analysis_data.names, analysis_data.directions] = ...
             addOrReplaceResultsData ...
               ( ...
-                analysis_data_session, analysis_names_session, analysis_directions_session, ...
+                analysis_data.data, analysis_data.names, analysis_data.directions, ...
                 new_variable_data, this_variable_name, new_variable_directions ...
               );
     end
@@ -616,9 +613,9 @@ function processAnalysisVariables(varargin)
         this_variable_source_type = special_variables_to_calculate{i_variable, 3};
         
           % pick data depending on source specification
-        eval(['data_source = ' this_variable_source_type '_data_session;']);
-        eval(['names_source = ' this_variable_source_type '_names_session;']);
-        eval(['directions_source = ' this_variable_source_type '_directions_session;']);
+        eval(['data_source = loaded_data.' this_variable_source_type '_data_session;']);
+        eval(['names_source = loaded_data.' this_variable_source_type '_names_session;']);
+        eval(['directions_source = loaded_data.' this_variable_source_type '_directions_session;']);
         this_variable_source_directions = directions_source(strcmp(names_source, this_variable_source_name), :);
         new_variable_directions = this_variable_source_directions;
         % HR: something went wrong here during merge on 5. December, 2018, fix later
@@ -862,10 +859,10 @@ function processAnalysisVariables(varargin)
        end
        
         % store
-        [analysis_data_session, analysis_names_session, analysis_directions_session] = ...
+        [analysis_data.data, analysis_data.names, analysis_data.directions] = ...
             addOrReplaceResultsData ...
               ( ...
-                analysis_data_session, analysis_names_session, analysis_directions_session, ...
+                analysis_data.data, analysis_data.names, analysis_data.directions, ...
                 this_variable_data, this_variable_name, new_variable_directions ...
               );
         
@@ -880,9 +877,9 @@ function processAnalysisVariables(varargin)
         this_variable_source_type = variables_from_extrema{i_variable, 3};
         this_variable_extremum_type = variables_from_extrema{i_variable, 4};
         % pick data depending on source specification
-        eval(['data_source = ' this_variable_source_type '_data_session;']);
-        eval(['names_source = ' this_variable_source_type '_names_session;']);
-        eval(['directions_source = ' this_variable_source_type '_directions_session;']);
+        eval(['data_source = loaded_data.' this_variable_source_type '_data_session;']);
+        eval(['names_source = loaded_data.' this_variable_source_type '_names_session;']);
+        eval(['directions_source = loaded_data.' this_variable_source_type '_directions_session;']);
         this_variable_source_data = data_source{strcmp(names_source, this_variable_source_name)};
         new_variable_directions = directions_source(strcmp(names_source, this_variable_source_name), :);
         
@@ -900,11 +897,12 @@ function processAnalysisVariables(varargin)
                 error(['"' this_variable_extremum_type '" is not a valid type for variables_from_extrema. Acceptable types are "min" or "max".']);
             end
         end
+        
         % store
-        [analysis_data_session, analysis_names_session, analysis_directions_session] = ...
+        [analysis_data.data, analysis_data.names, analysis_data.directions] = ...
             addOrReplaceResultsData ...
               ( ...
-                analysis_data_session, analysis_names_session, analysis_directions_session, ...
+                analysis_data.data, analysis_data.names, analysis_data.directions, ...
                 extrema_data, this_variable_name, new_variable_directions ...
               );
     end
@@ -918,9 +916,9 @@ function processAnalysisVariables(varargin)
         this_variable_source_type = variables_from_extrema_range{i_variable, 3};
         this_variable_extremum_type = variables_from_extrema_range{i_variable, 4};
         % pick data depending on source specification
-        eval(['data_source = ' this_variable_source_type '_data_session;']);
-        eval(['names_source = ' this_variable_source_type '_names_session;']);
-        eval(['directions_source = ' this_variable_source_type '_directions_session;']);
+        eval(['data_source = loaded_data.' this_variable_source_type '_data_session;']);
+        eval(['names_source = loaded_data.' this_variable_source_type '_names_session;']);
+        eval(['directions_source = loaded_data.' this_variable_source_type '_directions_session;']);
         this_variable_source_data = data_source{strcmp(names_source, this_variable_source_name)};
         new_variable_directions = directions_source(strcmp(names_source, this_variable_source_name), :);
         
@@ -933,23 +931,28 @@ function processAnalysisVariables(varargin)
         if ~strcmp(this_variable_extremum_type, 'min') && ~strcmp(this_variable_extremum_type, 'max')
             error(['"' this_variable_extremum_type '" is not a valid type for variables_from_extrema. Acceptable types are "min" or "max".']);
         end
+
         % store
-        [range_data_session, range_names_session, range_directions_session] = ...
+        [range_data.data, range_data.names, range_data.directions] = ...
             addOrReplaceResultsData ...
               ( ...
-                range_data_session, range_names_session, range_directions_session, ...
+                range_data.data, range_data.names, range_data.directions, ...
                 extrema_data, this_variable_name, new_variable_directions ...
               );
     end
     
+return
+    
     %% save data
     variables_to_save = loaded_data;
-    variables_to_save.analysis_data_session = analysis_data_session;
-    variables_to_save.analysis_directions_session = analysis_directions_session;
-    variables_to_save.analysis_names_session = analysis_names_session;
-    variables_to_save.range_data_session = range_data_session;
-    variables_to_save.range_directions_session = range_directions_session;
-    variables_to_save.range_names_session = range_names_session;
+
+    variables_to_save.analysis_data_session = analysis_data.data;
+    variables_to_save.analysis_directions_session = analysis_data.directions;
+    variables_to_save.analysis_names_session = analysis_data.names;
+    variables_to_save.range_data_session = range_data.data;
+    variables_to_save.range_directions_session = range_data.directions;
+    variables_to_save.range_names_session = range_data.names;
+    
     save(results_file_name, '-struct', 'variables_to_save');    
 
     
