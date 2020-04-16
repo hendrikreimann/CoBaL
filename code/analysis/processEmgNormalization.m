@@ -97,7 +97,7 @@ function processEmgNormalization(varargin)
     end
     labels_to_ignore = study_settings.get('conditions_to_ignore');
     levels_to_remove = study_settings.get('levels_to_remove', 1);
-    [condition_combination_labels, ~, condition_combinations_emg] = determineConditionCombinations(condition_data_all, conditions_settings, labels_to_ignore, levels_to_remove);
+    [condition_combination_labels, condition_combinations_emg] = determineConditionCombinations(condition_data_all, conditions_settings, labels_to_ignore, levels_to_remove, 'emg');
 
     % extract indicators for emg
     number_of_conditions_emg = size(condition_combinations_emg, 1);
