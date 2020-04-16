@@ -128,7 +128,11 @@ function processAnalysisVariables(varargin)
         end
 
         % store
-        analysis_data = addOrReplaceResultsData(analysis_data, this_variable_data, this_variable_name, new_variable_directions);
+        new_data = struct;
+        new_data.data = this_variable_data;
+        new_data.directions = new_variable_directions;
+        new_data.name = this_variable_name;
+        analysis_data = addOrReplaceResultsData(analysis_data, new_data);
     end
     
     %% calculate selection variables
@@ -187,7 +191,11 @@ function processAnalysisVariables(varargin)
         end
 
         % store
-        analysis_data = addOrReplaceResultsData(analysis_data, this_variable_data, this_variable_name, new_variable_directions);
+        new_data = struct;
+        new_data.data = this_variable_data;
+        new_data.directions = new_variable_directions;
+        new_data.name = this_variable_name;
+        analysis_data = addOrReplaceResultsData(analysis_data, new_data);
     end    
     
     %% calculate integrated variables
@@ -337,7 +345,11 @@ function processAnalysisVariables(varargin)
         end        
         
         % store
-        analysis_data = addOrReplaceResultsData(analysis_data, integrated_data, this_variable_name, this_variable_source_directions);
+        new_data = struct;
+        new_data.data = integrated_data;
+        new_data.directions = this_variable_source_directions;
+        new_data.name = this_variable_name;
+        analysis_data = addOrReplaceResultsData(analysis_data, new_data);
 
     end
         
@@ -490,7 +502,11 @@ function processAnalysisVariables(varargin)
         end        
         
         % store
-        analysis_data = addOrReplaceResultsData(analysis_data, rms_data, this_variable_name, this_variable_source_directions);
+        new_data = struct;
+        new_data.data = rms_data;
+        new_data.directions = this_variable_source_directions;
+        new_data.name = this_variable_name;
+        analysis_data = addOrReplaceResultsData(analysis_data, new_data);
           
     end
     
@@ -513,7 +529,11 @@ function processAnalysisVariables(varargin)
         end
         
         % store
-        analysis_data = addOrReplaceResultsData(analysis_data, step_end_data, this_variable_name, new_variable_directions);
+        new_data = struct;
+        new_data.data = step_end_data;
+        new_data.directions = new_variable_directions;
+        new_data.name = this_variable_name;
+        analysis_data = addOrReplaceResultsData(analysis_data, new_data);
     end
     
     %% calculate band percent variables
@@ -538,7 +558,11 @@ function processAnalysisVariables(varargin)
         end
         
         % store
-        analysis_data = addOrReplaceResultsData(analysis_data, band_percent_data, this_variable_name, new_variable_directions);
+        new_data = struct;
+        new_data.data = band_percent_data;
+        new_data.directions = new_variable_directions;
+        new_data.name = this_variable_name;
+        analysis_data = addOrReplaceResultsData(analysis_data, new_data);
     end
     
     %% calculate variables referenced by stretch
@@ -566,7 +590,11 @@ function processAnalysisVariables(varargin)
         end
         
         % store
-        analysis_data = addOrReplaceResultsData(analysis_data, new_variable_data, this_variable_name, new_variable_directions);
+        new_data = struct;
+        new_data.data = new_variable_data;
+        new_data.directions = new_variable_directions;
+        new_data.name = this_variable_name;
+        analysis_data = addOrReplaceResultsData(analysis_data, new_data);
     end
         
     %% process variables where something specific happens for each variable
@@ -823,7 +851,11 @@ function processAnalysisVariables(varargin)
        end
        
         % store
-        analysis_data = addOrReplaceResultsData(analysis_data, this_variable_data, this_variable_name, new_variable_directions);
+        new_data = struct;
+        new_data.data = this_variable_data;
+        new_data.directions = new_variable_directions;
+        new_data.name = this_variable_name;
+        analysis_data = addOrReplaceResultsData(analysis_data, new_data);
         
     end
     
@@ -858,7 +890,11 @@ function processAnalysisVariables(varargin)
         end
         
         % store
-        analysis_data = addOrReplaceResultsData(analysis_data, extrema_data, this_variable_name, new_variable_directions);
+        new_data = struct;
+        new_data.data = extrema_data;
+        new_data.directions = new_variable_directions;
+        new_data.name = this_variable_name;
+        analysis_data = addOrReplaceResultsData(analysis_data, new_data);
     end
     
     %% calculate variables from extrema for range
@@ -887,7 +923,11 @@ function processAnalysisVariables(varargin)
         end
 
         % store
-        range_data = addOrReplaceResultsData(range_data, extrema_data, this_variable_name, new_variable_directions);
+        new_data = struct;
+        new_data.data = extrema_data;
+        new_data.directions = new_variable_directions;
+        new_data.name = this_variable_name;
+        range_data = addOrReplaceResultsData(range_data, new_data);
     end
     
 return

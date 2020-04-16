@@ -14,15 +14,19 @@
 %     You should have received a copy of the GNU General Public License
 %     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-function data_struct = addOrReplaceResultsData(data_struct, new_data, new_name, new_directions)
-    index_in_existing_data = find(strcmp(data_struct.names, new_name));
+function existing_data_struct = addOrReplaceResultsData(existing_data_struct, new_data_struct)
+    new_data = new_data_struct.data;
+    new_name = new_data_struct.name;
+    new_directions = new_data_struct.directions;
+
+    index_in_existing_data = find(strcmp(existing_data_struct.names, new_name));
     if isempty(index_in_existing_data)
-        data_struct.data = [data_struct.data; new_data];
-        data_struct.names = [data_struct.names; new_name];
-        data_struct.directions = [data_struct.directions; new_directions];
+        existing_data_struct.data = [existing_data_struct.data; new_data];
+        existing_data_struct.names = [existing_data_struct.names; new_name];
+        existing_data_struct.directions = [existing_data_struct.directions; new_directions];
     else
-        data_struct.data{index_in_existing_data} = new_data;
-        data_struct.directions(index_in_existing_data,:) = new_directions;
+        existing_data_struct.data{index_in_existing_data} = new_data;
+        existing_data_struct.directions(index_in_existing_data,:) = new_directions;
         % TODO: check whether directions are different
     end
 end
