@@ -256,31 +256,38 @@ function processStimulusResponse(varargin)
     end    
     
     % save
-    if isfield(loaded_data, 'analysis_data_session')
-        analysis_data_session = loaded_data.analysis_data_session;
-        analysis_names_session = loaded_data.analysis_names_session;
-        analysis_directions_session = loaded_data.analysis_directions_session;
-    else
-        analysis_data_session = {};
-        analysis_names_session = {};
-        analysis_directions_session = {};
-    end
-    [analysis_data_session, analysis_names_session, analysis_directions_session] = ...
-        addOrReplaceResultsData ...
-          ( ...
-            analysis_data_session, ...
-            analysis_names_session, ...
-            analysis_directions_session, ...
-            stimulus_response_x_data, ...
-            'stimulus_response_x',...
-            stimulus_response_x_directions ...
-          );
+%     if isfield(loaded_data, 'analysis_data_session')
+%         analysis_data_session = loaded_data.analysis_data_session;
+%         analysis_names_session = loaded_data.analysis_names_session;
+%         analysis_directions_session = loaded_data.analysis_directions_session;
+%     else
+%         analysis_data_session = {};
+%         analysis_names_session = {};
+%         analysis_directions_session = {};
+%     end
+%     [analysis_data_session, analysis_names_session, analysis_directions_session] = ...
+%         addOrReplaceResultsData ...
+%           ( ...
+%             analysis_data_session, ...
+%             analysis_names_session, ...
+%             analysis_directions_session, ...
+%             stimulus_response_x_data, ...
+%             'stimulus_response_x',...
+%             stimulus_response_x_directions ...
+%           );
+%     variables_to_save = loaded_data;
+%     variables_to_save.analysis_data_session = analysis_data_session;
+%     variables_to_save.analysis_names_session = analysis_names_session;
+%     variables_to_save.analysis_directions_session = analysis_directions_session;
+      
+    new_data = struct;
+    new_data.data = stimulus_response_x_data;
+    new_data.directions = stimulus_response_x_directions;
+    new_data.name = 'stimulus_response_x';
+    data = addOrReplaceResultsData(loaded_data, new_data, 'analysis');
+      
     
-    variables_to_save = loaded_data;
-    variables_to_save.analysis_data_session = analysis_data_session;
-    variables_to_save.analysis_names_session = analysis_names_session;
-    variables_to_save.analysis_directions_session = analysis_directions_session;
-    save(results_file_name, '-struct', 'variables_to_save');
+    save(results_file_name, '-struct', 'data');
 end
 
 

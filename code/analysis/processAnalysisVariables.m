@@ -27,21 +27,9 @@ function processAnalysisVariables(varargin)
     results_file_name = ['results' filesep makeFileName(collection_date, subject_id, 'results')];
     data = load(results_file_name);
     
-    number_of_time_steps_normalized = study_settings.get('number_of_time_steps_normalized');
-    bands_per_stretch = data.bands_per_stretch;
-    number_of_stretches = size(data.stretch_data_session{1}, 2); %#ok<*USENS>
-    
-    % create containers for data to be used later
-    if ~isfield(data, 'analysis_data_session')
-        data.analysis_data_session = {};
-        data.analysis_directions_session = {};
-        data.analysis_names_session = {};
-    end
-    if ~isfield(data, 'range_data_session')
-        data.range_data_session = {};
-        data.range_directions_session = {};
-        data.range_names_session = {};
-    end
+%     number_of_time_steps_normalized = study_settings.get('number_of_time_steps_normalized');
+%     bands_per_stretch = data.bands_per_stretch;
+%     number_of_stretches = size(data.stretch_data_session{1}, 2); %#ok<*USENS>
     
     % make condition data tables
     conditions.settings_table = study_settings.get('conditions');
@@ -51,14 +39,14 @@ function processAnalysisVariables(varargin)
     conditions.conditions_session = data.conditions_session;
     
     % load necessary info
-    step_time_index_in_saved_data = find(strcmp(data.stretch_names_session, 'step_time'), 1, 'first');
-    this_step_time_data = data.stretch_data_session{step_time_index_in_saved_data};
-    pushoff_time_index_in_saved_data = find(strcmp(data.stretch_names_session, 'pushoff_time'), 1, 'first');
-    if ~isempty(pushoff_time_index_in_saved_data)
-        this_pushoff_time_data = data.stretch_data_session{pushoff_time_index_in_saved_data};
-    else
-        this_pushoff_time_data = [];
-    end
+%     step_time_index_in_saved_data = find(strcmp(data.stretch_names_session, 'step_time'), 1, 'first');
+%     this_step_time_data = data.stretch_data_session{step_time_index_in_saved_data};
+%     pushoff_time_index_in_saved_data = find(strcmp(data.stretch_names_session, 'pushoff_time'), 1, 'first');
+%     if ~isempty(pushoff_time_index_in_saved_data)
+%         this_pushoff_time_data = data.stretch_data_session{pushoff_time_index_in_saved_data};
+%     else
+%         this_pushoff_time_data = [];
+%     end
         
     % calculate inversion variables
     data = calculateInversionVariables(study_settings, data, conditions);
@@ -72,365 +60,16 @@ function processAnalysisVariables(varargin)
     % calculate rms variables
     data = calculateRmsVariables(study_settings, data);
     
+    % calculate band variables
+    data = calculateBandEndVariables(study_settings, data);
+    data = calculateBandPercentVariables(study_settings, data);
     
-    
-    
-    
+    % calculate extrema variables
+    data = calculateExtremaVariables(study_settings, data);
+    data = calculateExtremaOverRangeVariables(study_settings, data);
     
     % save results
     save(results_file_name, '-struct', 'data');    
-    
-return
-
-    
-    
-    
-    
-    
-    
-    
-    
-    %% calculate band end variables
-    variables_step_end = study_settings.get('analysis_variables_from_band_end', 1);
-    for i_variable = 1 : size(variables_step_end, 1)
-        this_variable_name = variables_step_end{i_variable, 1};
-        this_variable_source_name = variables_step_end{i_variable, 2};
-        this_variable_source_type = variables_step_end{i_variable, 3};
-        % pick data depending on source specification
-        eval(['data_source = loaded_data.' this_variable_source_type '_data_session;']);
-        eval(['names_source = loaded_data.' this_variable_source_type '_names_session;']);
-        eval(['directions_source = loaded_data.' this_variable_source_type '_directions_session;']);
-        this_variable_source_data = data_source{strcmp(names_source, this_variable_source_name)};
-        new_variable_directions = directions_source(strcmp(names_source, this_variable_source_name), :);
-        step_end_data = zeros(bands_per_stretch, number_of_stretches);
-        for i_band = 1 : bands_per_stretch
-            [~, end_index] = getBandIndices(i_band, number_of_time_steps_normalized);
-            step_end_data(i_band, :) = this_variable_source_data(end_index, :);
-        end
-        
-        % store
-        new_data = struct;
-        new_data.data = step_end_data;
-        new_data.directions = new_variable_directions;
-        new_data.name = this_variable_name;
-        analysis_data = addOrReplaceResultsData(analysis_data, new_data);
-    end
-    
-    %% calculate band percent variables
-    variables_band_percent_header = study_settings.get('analysis_variables_from_band_percent_header', 1);
-    variables_band_percent = study_settings.get('analysis_variables_from_band_percent', 1);
-    for i_variable = 1 : size(variables_band_percent, 1)
-        this_variable_name = variables_band_percent{i_variable, strcmp(variables_band_percent_header, 'new_variable_name')};
-        this_variable_source_name = variables_band_percent{i_variable, strcmp(variables_band_percent_header, 'source_variable_name')};
-        this_variable_source_type = variables_band_percent{i_variable, strcmp(variables_band_percent_header, 'source_variable_type')};
-        this_variable_source_percent = str2num(variables_band_percent{i_variable, strcmp(variables_band_percent_header, 'percentage')});
-        % pick data depending on source specification
-        eval(['data_source = loaded_data.' this_variable_source_type '_data_session;']);
-        eval(['names_source = loaded_data.' this_variable_source_type '_names_session;']);
-        eval(['directions_source = loaded_data.' this_variable_source_type '_directions_session;']);
-        this_variable_source_data = data_source{strcmp(names_source, this_variable_source_name)};
-        new_variable_directions = directions_source(strcmp(names_source, this_variable_source_name), :);
-        band_percent_data = zeros(bands_per_stretch, number_of_stretches);
-        for i_band = 1 : bands_per_stretch
-            [start_index, end_index] = getBandIndices(i_band, number_of_time_steps_normalized);
-            this_index = start_index + this_variable_source_percent/100 * (end_index - start_index);
-            band_percent_data(i_band, :) = this_variable_source_data(this_index, :);
-        end
-        
-        % store
-        new_data = struct;
-        new_data.data = band_percent_data;
-        new_data.directions = new_variable_directions;
-        new_data.name = this_variable_name;
-        analysis_data = addOrReplaceResultsData(analysis_data, new_data);
-    end
-    
-    %% calculate variables referenced by stretch
-    variables_referenced_by_stretch = study_settings.get('analysis_variables_referenced_by_stretch', 1);
-    for i_variable = 1 : size(variables_referenced_by_stretch, 1)
-        this_variable_name = variables_referenced_by_stretch{i_variable, 1};
-        this_variable_source_name = variables_referenced_by_stretch{i_variable, 2};
-        this_variable_source_type = variables_referenced_by_stretch{i_variable, 3};
-        this_variable_reference_band_index = str2num(variables_referenced_by_stretch{i_variable, 4});
-        this_variable_reference_point_percentage_within_band = str2num(variables_referenced_by_stretch{i_variable, 5});
-        
-        % pick data depending on source specification
-        eval(['data_source = loaded_data.' this_variable_source_type '_data_session;']);
-        eval(['names_source = loaded_data.' this_variable_source_type '_names_session;']);
-        eval(['directions_source = loaded_data.' this_variable_source_type '_directions_session;']);
-        this_variable_source_data = data_source{strcmp(names_source, this_variable_source_name)};
-        new_variable_directions = directions_source(strcmp(names_source, this_variable_source_name), :);
-        new_variable_data = zeros(size(this_variable_source_data));
-        reference_index_within_band = round((number_of_time_steps_normalized-1)*this_variable_reference_point_percentage_within_band * 1/100) + 1;
-        relevant_band_start_index = getBandIndices(this_variable_reference_band_index, number_of_time_steps_normalized);
-        reference_index = relevant_band_start_index + reference_index_within_band - 1;
-        
-        for i_stretch = 1 : size(new_variable_data, 2)
-            new_variable_data(:, i_stretch) = this_variable_source_data(:, i_stretch) - this_variable_source_data(reference_index, i_stretch);
-        end
-        
-        % store
-        new_data = struct;
-        new_data.data = new_variable_data;
-        new_data.directions = new_variable_directions;
-        new_data.name = this_variable_name;
-        analysis_data = addOrReplaceResultsData(analysis_data, new_data);
-    end
-        
-    %% process variables where something specific happens for each variable
-    special_variables_to_calculate = study_settings.get('analysis_variables_special', 1);
-    for i_variable = 1:size(special_variables_to_calculate, 1)
-        this_variable_name = special_variables_to_calculate{i_variable, 1};
-        this_variable_source_name = special_variables_to_calculate{i_variable, 2};
-        this_variable_source_type = special_variables_to_calculate{i_variable, 3};
-        
-          % pick data depending on source specification
-        eval(['data_source = loaded_data.' this_variable_source_type '_data_session;']);
-        eval(['names_source = loaded_data.' this_variable_source_type '_names_session;']);
-        eval(['directions_source = loaded_data.' this_variable_source_type '_directions_session;']);
-        this_variable_source_directions = directions_source(strcmp(names_source, this_variable_source_name), :);
-        new_variable_directions = this_variable_source_directions;
-        if strcmp(this_variable_name, 'trigger_leg_ankle_dorsiflexion_dsmid') || strcmp(this_variable_name, 'com_x_vel_sym_doublestance_mid')
-            this_variable_source_index = find(strcmp(analysis_names_session, this_variable_source_name), 1, 'first');
-            this_variable_source_data = analysis_data_session{this_variable_source_index};
-            number_of_stretches = size(this_variable_source_data, 2);
-            
-            start_data_percent = 1;
-            
-            end_data_time_within_band = this_pushoff_time_data;
-            end_data_ratio = end_data_time_within_band ./ this_step_time_data;
-            end_data_percent = round(end_data_ratio * 100);
-
-            this_variable_data = zeros(bands_per_stretch, number_of_stretches);
-            for i_stretch = 1 : number_of_stretches
-                for i_band = 1 : bands_per_stretch
-                    [band_start_index, band_end_index] = getBandIndices(i_band, number_of_time_steps_normalized);
-                    this_band_time_full = linspace(0, this_step_time_data(i_band), 100);
-                    this_band_data_full = this_variable_source_data(band_start_index : band_end_index, i_stretch);
-
-                    double_stance_mid_index = round((end_data_percent(i_band, i_stretch) - start_data_percent)/2);
-
-                    this_variable_data(i_band, i_stretch) = this_band_data_full(double_stance_mid_index);
-
-                end
-            end
-        end
-       
-        if strcmp(this_variable_name,'com_x_inverted_pushoff_end') || strcmp(this_variable_name,'com_x_vel_inverted_pushoff_end') || ... 
-               strcmp(this_variable_name,'com_x_sym_pushoff_end') || strcmp(this_variable_name,'com_x_vel_sym_pushoff_end') 
-           
-           this_variable_source_index = find(strcmp(analysis_names_session, this_variable_source_name), 1, 'first');
-           this_variable_source_data = analysis_data_session{this_variable_source_index};
-           number_of_stretches = size(this_variable_source_data, 2);
-
-           end_data_time_within_band = this_pushoff_time_data;
-           end_data_ratio = end_data_time_within_band ./ this_step_time_data;
-           end_data_percent = round(end_data_ratio * 100);
-           
-           if strcmp(subject_id,'OLR02') 
-                end_data_percent(4,128) = 30;
-            end
-            if strcmp(subject_id,'OLR03') 
-                end_data_percent(4,10) = 30;
-            end
-            if strcmp(subject_id,'OLR05') 
-                end_data_percent(3,162) = 30;
-            end
-            if strcmp(subject_id,'OLR06') 
-                end_data_percent(4,79) = 30;
-            end
-            if strcmp(subject_id,'OLR06') 
-                end_data_percent(4,27) = 30;
-            end
-            if strcmp(subject_id,'OLR06') 
-                end_data_percent(4,133) = 30;
-            end
-            if strcmp(subject_id,'OLR08') 
-                end_data_percent(4,19) = 30;
-            end
-            if strcmp(subject_id, 'CAD09')
-                end_data_percent(1,202) = 30;
-            end
-            if strcmp(subject_id, 'CAD15')
-                end_data_percent(1,188) = 30;
-            end
-            if strcmp(subject_id, 'CAD16')
-                end_data_percent(2,132) = 30;
-            end
-            if strcmp(subject_id, 'CAD19')
-                end_data_percent(2,48) = 30;
-            end
-            if strcmp(subject_id, 'CAD21')
-                end_data_percent(1,97) = 30;
-                end_data_percent(1,27) = 30;
-            end
-           
-           
-            for i_stretch = 1 : number_of_stretches
-                for i_band = 1 : bands_per_stretch
-                    [band_start_index, band_end_index] = getBandIndices(i_band, number_of_time_steps_normalized);
-            %                    this_band_time_full = linspace(0, this_step_time_data(i_band), 100);
-                    this_band_data_full = this_variable_source_data(band_start_index : band_end_index, i_stretch);
-
-                    this_variable_data(i_band, i_stretch) = this_band_data_full(end_data_percent(i_band, i_stretch));
-
-                end
-            end
-        end
-        if strcmp(this_variable_name, 'cop_from_com_x_integrated_twice')
-            this_variable_source_index = find(strcmp(response_names_session, this_variable_source_name), 1, 'first');
-            this_variable_source_data = response_data_session{this_variable_source_index};
-            number_of_stretches = size(this_variable_source_data, 2);
-
-            this_variable_source_index = find(strcmp(response_names_session, this_variable_source_name), 1, 'first');
-            this_variable_source_data = response_data_session{this_variable_source_index};
-            number_of_stretches = size(this_variable_source_data, 2);
-        end
-       
-        if strcmp(this_variable_name,'com_x_inverted_band_end') || strcmp(this_variable_name,'com_x_vel_inverted_band_end') || strcmp(this_variable_name,'fy_band_end') || ...
-               strcmp(this_variable_name,'com_x_sym_band_end') || strcmp(this_variable_name,'com_x_vel_sym_band_end')
-           
-           if strcmp(this_variable_name,'com_x_inverted_band_end') || strcmp(this_variable_name,'com_x_vel_inverted_band_end') || ...
-                   strcmp(this_variable_name,'com_x_sym_band_end') || strcmp(this_variable_name,'com_x_vel_sym_band_end') 
-               this_variable_source_index = find(strcmp(analysis_names_session, this_variable_source_name), 1, 'first');
-               this_variable_source_data = analysis_data_session{this_variable_source_index};
-           else
-               this_variable_source_index = find(strcmp(response_names_session, this_variable_source_name), 1, 'first');
-               this_variable_source_data = response_data_session{this_variable_source_index};
-           end
-%            end_data_time_within_band = this_pushoff_time_data;
-%            end_data_ratio = end_data_time_within_band ./ this_step_time_data;
-%            end_data_percent = round(end_data_ratio * 100);
-            for i_stretch = 1 : number_of_stretches
-               for i_band = 1 : bands_per_stretch
-                   [band_start_index, band_end_index] = getBandIndices(i_band, number_of_time_steps_normalized);
-%                    this_band_time_full = linspace(0, this_step_time_data(i_band), 100);
-                   this_band_data_full = this_variable_source_data(band_start_index : band_end_index, i_stretch);
-                   
-                   this_variable_data(i_band, i_stretch) = this_band_data_full(end);
-                    
-               end
-           end
-        end
-       
-        if strcmp(this_variable_name,'com_x_sym_1sec') || strcmp(this_variable_name,'com_x_vel_sym_1sec')
-           this_variable_source_index = find(strcmp(analysis_names_session, this_variable_source_name), 1, 'first');
-           this_variable_source_data = analysis_data_session{this_variable_source_index};
-           
-           number_of_stretches = size(this_variable_source_data, 2);
-           
-           % need to assign end data ratio
-           % 1) take first band and determine ratio step time band one - 1
-           % (total time)
-           % what to do if time greater than 1 falls outside stride?
-           end_data_time = 1;  
-           
-           
-%            end_data_ratio = end_data_time_within_band ./ this_step_time_data;
-%           
-%            end_data_percent = round(end_data_ratio * 100);
-           
-            for i_stretch = 1 : number_of_stretches
-               i_band_one = 1;
-               i_band_two = 2;
-                   [band_one_start_index, band_one_end_index] = getBandIndices(i_band_one, number_of_time_steps_normalized);
-                   [band_two_start_index, band_two_end_index] = getBandIndices(i_band_two, number_of_time_steps_normalized);
-                   band_one_data_time = this_step_time_data(i_band_one, i_stretch);
-                   band_two_data_time = this_step_time_data(i_band_two, i_stretch);
-                   
-                   band_two_data_full = this_variable_source_data(band_two_start_index : band_two_end_index, i_stretch);
-                   
-                   end_data_ratio_two = (end_data_time - band_one_data_time) / this_step_time_data(i_band_two, i_stretch);
-                   end_data_percent_two = round(end_data_ratio_two * 100);
-                   if end_data_percent_two > 100
-                       end_data_percent_two = 100;
-                   end
-                   this_variable_data(:, i_stretch) = band_two_data_full(end_data_percent_two);
-           end
-       end
-       
-        % store
-        new_data = struct;
-        new_data.data = this_variable_data;
-        new_data.directions = new_variable_directions;
-        new_data.name = this_variable_name;
-        analysis_data = addOrReplaceResultsData(analysis_data, new_data);
-        
-    end
-    
-    %% calculate variables from extrema
-    variables_from_extrema = study_settings.get('analysis_variables_from_extrema', 1);
-    for i_variable = 1 : size(variables_from_extrema, 1)
-        % get data
-        this_variable_name = variables_from_extrema{i_variable, 1};
-        this_variable_source_name = variables_from_extrema{i_variable, 2};
-        this_variable_source_type = variables_from_extrema{i_variable, 3};
-        this_variable_extremum_type = variables_from_extrema{i_variable, 4};
-        % pick data depending on source specification
-        eval(['data_source = loaded_data.' this_variable_source_type '_data_session;']);
-        eval(['names_source = loaded_data.' this_variable_source_type '_names_session;']);
-        eval(['directions_source = loaded_data.' this_variable_source_type '_directions_session;']);
-        this_variable_source_data = data_source{strcmp(names_source, this_variable_source_name)};
-        new_variable_directions = directions_source(strcmp(names_source, this_variable_source_name), :);
-        
-        extrema_data = zeros(bands_per_stretch, number_of_stretches);
-        for i_band = 1 : bands_per_stretch
-            [band_start_index, band_end_index] = getBandIndices(i_band, number_of_time_steps_normalized);
-            data_this_band = this_variable_source_data(band_start_index : band_end_index, :);
-            if strcmp(this_variable_extremum_type, 'min')
-                extrema_data(i_band, :) = min(data_this_band);
-            end
-            if strcmp(this_variable_extremum_type, 'max')
-                extrema_data(i_band, :) = max(data_this_band);
-            end
-            if ~strcmp(this_variable_extremum_type, 'min') && ~strcmp(this_variable_extremum_type, 'max')
-                error(['"' this_variable_extremum_type '" is not a valid type for variables_from_extrema. Acceptable types are "min" or "max".']);
-            end
-        end
-        
-        % store
-        new_data = struct;
-        new_data.data = extrema_data;
-        new_data.directions = new_variable_directions;
-        new_data.name = this_variable_name;
-        analysis_data = addOrReplaceResultsData(analysis_data, new_data);
-    end
-    
-    %% calculate variables from extrema for range
-    variables_from_extrema_range = study_settings.get('analysis_variables_from_extrema_range', 1);
-    for i_variable = 1 : size(variables_from_extrema_range, 1)
-        % get data
-        this_variable_name = variables_from_extrema_range{i_variable, 1};
-        this_variable_source_name = variables_from_extrema_range{i_variable, 2};
-        this_variable_source_type = variables_from_extrema_range{i_variable, 3};
-        this_variable_extremum_type = variables_from_extrema_range{i_variable, 4};
-        % pick data depending on source specification
-        eval(['data_source = loaded_data.' this_variable_source_type '_data_session;']);
-        eval(['names_source = loaded_data.' this_variable_source_type '_names_session;']);
-        eval(['directions_source = loaded_data.' this_variable_source_type '_directions_session;']);
-        this_variable_source_data = data_source{strcmp(names_source, this_variable_source_name)};
-        new_variable_directions = directions_source(strcmp(names_source, this_variable_source_name), :);
-        
-        if strcmp(this_variable_extremum_type, 'min')
-            extrema_data = min(this_variable_source_data);
-        end
-        if strcmp(this_variable_extremum_type, 'max')
-            extrema_data = max(this_variable_source_data);
-        end
-        if ~strcmp(this_variable_extremum_type, 'min') && ~strcmp(this_variable_extremum_type, 'max')
-            error(['"' this_variable_extremum_type '" is not a valid type for variables_from_extrema. Acceptable types are "min" or "max".']);
-        end
-
-        % store
-        new_data = struct;
-        new_data.data = extrema_data;
-        new_data.directions = new_variable_directions;
-        new_data.name = this_variable_name;
-        range_data = addOrReplaceResultsData(range_data, new_data);
-    end
-    
-    
-
 end
 
 
@@ -772,6 +411,146 @@ function data = calculateRmsVariables(study_settings, data)
           
     end
 end
+
+function data = calculateBandEndVariables(study_settings, data)
+    variables_step_end = study_settings.get('analysis_variables_from_band_end', 1);
+    number_of_stretches = size(data.stretch_data_session{1}, 2);
+    number_of_time_steps_normalized = study_settings.get('number_of_time_steps_normalized');
+    for i_variable = 1 : size(variables_step_end, 1)
+        this_variable_name = variables_step_end{i_variable, 1};
+        this_variable_source_name = variables_step_end{i_variable, 2};
+        this_variable_source_type = variables_step_end{i_variable, 3};
+        % pick data depending on source specification
+        eval(['data_source = data.' this_variable_source_type '_data_session;']);
+        eval(['names_source = data.' this_variable_source_type '_names_session;']);
+        eval(['directions_source = data.' this_variable_source_type '_directions_session;']);
+        this_variable_source_data = data_source{strcmp(names_source, this_variable_source_name)};
+        new_variable_directions = directions_source(strcmp(names_source, this_variable_source_name), :);
+        step_end_data = zeros(data.bands_per_stretch, number_of_stretches);
+        for i_band = 1 : data.bands_per_stretch
+            [~, end_index] = getBandIndices(i_band, number_of_time_steps_normalized);
+            step_end_data(i_band, :) = this_variable_source_data(end_index, :);
+        end
+        
+        % store
+        new_data = struct;
+        new_data.data = step_end_data;
+        new_data.directions = new_variable_directions;
+        new_data.name = this_variable_name;
+        data = addOrReplaceResultsData(data, new_data, 'analysis');
+    end
+
+end
+
+function data = calculateBandPercentVariables(study_settings, data)
+    variables_band_percent_header = study_settings.get('analysis_variables_from_band_percent_header', 1);
+    variables_band_percent = study_settings.get('analysis_variables_from_band_percent', 1);
+    number_of_stretches = size(data.stretch_data_session{1}, 2);
+    number_of_time_steps_normalized = study_settings.get('number_of_time_steps_normalized');
+    for i_variable = 1 : size(variables_band_percent, 1)
+        this_variable_name = variables_band_percent{i_variable, strcmp(variables_band_percent_header, 'new_variable_name')};
+        this_variable_source_name = variables_band_percent{i_variable, strcmp(variables_band_percent_header, 'source_variable_name')};
+        this_variable_source_type = variables_band_percent{i_variable, strcmp(variables_band_percent_header, 'source_variable_type')};
+        this_variable_source_percent = str2num(variables_band_percent{i_variable, strcmp(variables_band_percent_header, 'percentage')});
+        % pick data depending on source specification
+        eval(['data_source = data.' this_variable_source_type '_data_session;']);
+        eval(['names_source = data.' this_variable_source_type '_names_session;']);
+        eval(['directions_source = data.' this_variable_source_type '_directions_session;']);
+        this_variable_source_data = data_source{strcmp(names_source, this_variable_source_name)};
+        new_variable_directions = directions_source(strcmp(names_source, this_variable_source_name), :);
+        band_percent_data = zeros(data.bands_per_stretch, number_of_stretches);
+        for i_band = 1 : data.bands_per_stretch
+            [start_index, end_index] = getBandIndices(i_band, number_of_time_steps_normalized);
+            this_index = start_index + this_variable_source_percent/100 * (end_index - start_index);
+            band_percent_data(i_band, :) = this_variable_source_data(this_index, :);
+        end
+        
+        % store
+        new_data = struct;
+        new_data.data = band_percent_data;
+        new_data.directions = new_variable_directions;
+        new_data.name = this_variable_name;
+        data = addOrReplaceResultsData(data, new_data, 'analysis');
+    end
+
+end
+
+function data = calculateExtremaVariables(study_settings, data)
+    variables_from_extrema = study_settings.get('analysis_variables_from_extrema', 1);
+    number_of_stretches = size(data.stretch_data_session{1}, 2);
+    number_of_time_steps_normalized = study_settings.get('number_of_time_steps_normalized');
+    for i_variable = 1 : size(variables_from_extrema, 1)
+        % get data
+        this_variable_name = variables_from_extrema{i_variable, 1};
+        this_variable_source_name = variables_from_extrema{i_variable, 2};
+        this_variable_source_type = variables_from_extrema{i_variable, 3};
+        this_variable_extremum_type = variables_from_extrema{i_variable, 4};
+        % pick data depending on source specification
+        eval(['data_source = data.' this_variable_source_type '_data_session;']);
+        eval(['names_source = data.' this_variable_source_type '_names_session;']);
+        eval(['directions_source = data.' this_variable_source_type '_directions_session;']);
+        this_variable_source_data = data_source{strcmp(names_source, this_variable_source_name)};
+        new_variable_directions = directions_source(strcmp(names_source, this_variable_source_name), :);
+        
+        extrema_data = zeros(data.bands_per_stretch, number_of_stretches);
+        for i_band = 1 : data.bands_per_stretch
+            [band_start_index, band_end_index] = getBandIndices(i_band, number_of_time_steps_normalized);
+            data_this_band = this_variable_source_data(band_start_index : band_end_index, :);
+            if strcmp(this_variable_extremum_type, 'min')
+                extrema_data(i_band, :) = min(data_this_band);
+            end
+            if strcmp(this_variable_extremum_type, 'max')
+                extrema_data(i_band, :) = max(data_this_band);
+            end
+            if ~strcmp(this_variable_extremum_type, 'min') && ~strcmp(this_variable_extremum_type, 'max')
+                error(['"' this_variable_extremum_type '" is not a valid type for variables_from_extrema. Acceptable types are "min" or "max".']);
+            end
+        end
+        
+        % store
+        new_data = struct;
+        new_data.data = extrema_data;
+        new_data.directions = new_variable_directions;
+        new_data.name = this_variable_name;
+        data = addOrReplaceResultsData(data, new_data, 'analysis');
+    end
+end
+
+function data = calculateExtremaOverRangeVariables(study_settings, data)
+    variables_from_extrema_range = study_settings.get('analysis_variables_from_extrema_range', 1);
+    for i_variable = 1 : size(variables_from_extrema_range, 1)
+        % get data
+        this_variable_name = variables_from_extrema_range{i_variable, 1};
+        this_variable_source_name = variables_from_extrema_range{i_variable, 2};
+        this_variable_source_type = variables_from_extrema_range{i_variable, 3};
+        this_variable_extremum_type = variables_from_extrema_range{i_variable, 4};
+        % pick data depending on source specification
+        eval(['data_source = data.' this_variable_source_type '_data_session;']);
+        eval(['names_source = data.' this_variable_source_type '_names_session;']);
+        eval(['directions_source = data.' this_variable_source_type '_directions_session;']);
+        this_variable_source_data = data_source{strcmp(names_source, this_variable_source_name)};
+        new_variable_directions = directions_source(strcmp(names_source, this_variable_source_name), :);
+        
+        if strcmp(this_variable_extremum_type, 'min')
+            extrema_data = min(this_variable_source_data);
+        end
+        if strcmp(this_variable_extremum_type, 'max')
+            extrema_data = max(this_variable_source_data);
+        end
+        if ~strcmp(this_variable_extremum_type, 'min') && ~strcmp(this_variable_extremum_type, 'max')
+            error(['"' this_variable_extremum_type '" is not a valid type for variables_from_extrema. Acceptable types are "min" or "max".']);
+        end
+
+        % store
+        new_data = struct;
+        new_data.data = extrema_data;
+        new_data.directions = new_variable_directions;
+        new_data.name = this_variable_name;
+        data = addOrReplaceResultsData(data, new_data, 'range');
+    end
+end
+
+
 
 
 

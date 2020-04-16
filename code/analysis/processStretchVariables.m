@@ -23,13 +23,15 @@
 % relevantDataStretches.mat
 
 function processStretchVariables(varargin)
-    load('subjectInfo.mat', 'date', 'subject_id');
     [condition_list, trial_number_list] = parseTrialArguments(varargin{:});
 
     % load settings and prepare
     study_settings = loadSettingsFromFile('study');
+    subject_settings = loadSettingsFromFile('subject');
     data_custodian = WalkingDataCustodian();
     number_of_stretch_variables = length(data_custodian.stretch_variable_names);
+    collection_date = subject_settings.get('collection_date');
+    subject_id = subject_settings.get('subject_id');
 
     % find relevant conditions
     conditions_settings = study_settings.get('conditions');
@@ -59,7 +61,7 @@ function processStretchVariables(varargin)
         for i_trial = trials_to_process
             % load and prepare data
             data_custodian.prepareBasicVariables(condition, i_trial);
-            stretch_info = load(['analysis' filesep makeFileName(date, subject_id, condition, i_trial, 'relevantDataStretches')]);
+            stretch_info = load(['analysis' filesep makeFileName(collection_date, subject_id, condition, i_trial, 'relevantDataStretches')]);
 
             number_of_stretches_this_trial = size(stretch_info.stretch_times, 1);
             bands_per_stretch_session = [bands_per_stretch_session; stretch_info.bands_per_stretch]; %#ok<AGROW>
@@ -155,7 +157,7 @@ function processStretchVariables(varargin)
     if ~directoryExists('results')
         mkdir('results')
     end
-    results_file_name = ['results' filesep makeFileName(date, subject_id, 'results')];
+    results_file_name = ['results' filesep makeFileName(collection_date, subject_id, 'results')];
     save ...
       ( ...
         results_file_name, ...
