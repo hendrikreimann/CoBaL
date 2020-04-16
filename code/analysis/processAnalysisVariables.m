@@ -27,10 +27,6 @@ function processAnalysisVariables(varargin)
     results_file_name = ['results' filesep makeFileName(collection_date, subject_id, 'results')];
     data = load(results_file_name);
     
-%     number_of_time_steps_normalized = study_settings.get('number_of_time_steps_normalized');
-%     bands_per_stretch = data.bands_per_stretch;
-%     number_of_stretches = size(data.stretch_data_session{1}, 2); %#ok<*USENS>
-    
     % make condition data tables
     conditions.settings_table = study_settings.get('conditions');
     conditions.factor_labels = conditions.settings_table(:, 1)';
@@ -38,16 +34,6 @@ function processAnalysisVariables(varargin)
     conditions.number_of_factor_labels = length(conditions.factor_labels);
     conditions.conditions_session = data.conditions_session;
     
-    % load necessary info
-%     step_time_index_in_saved_data = find(strcmp(data.stretch_names_session, 'step_time'), 1, 'first');
-%     this_step_time_data = data.stretch_data_session{step_time_index_in_saved_data};
-%     pushoff_time_index_in_saved_data = find(strcmp(data.stretch_names_session, 'pushoff_time'), 1, 'first');
-%     if ~isempty(pushoff_time_index_in_saved_data)
-%         this_pushoff_time_data = data.stretch_data_session{pushoff_time_index_in_saved_data};
-%     else
-%         this_pushoff_time_data = [];
-%     end
-        
     % calculate inversion variables
     data = calculateInversionVariables(study_settings, data, conditions);
         
@@ -140,10 +126,9 @@ function data = calculateSelectionVariables(study_settings, data, conditions)
         this_variable_relevant_condition = selection_variables{i_variable, strcmp(selection_variables_header, 'relevant_condition')};
         this_variable_information_table = selection_variables{i_variable, strcmp(selection_variables_header, 'information_table')};
         % pick data depending on source specification
-        eval(['data_source = data.' this_variable_source_type '_data_session;']);
-        eval(['names_source = data.' this_variable_source_type '_names_session;']);
-        eval(['directions_source = data.' this_variable_source_type '_directions_session;']);
-        
+        data_source = data.([this_variable_source_type '_data_session']);
+        names_source = data.([this_variable_source_type '_names_session']);
+        directions_source = data.([this_variable_source_type '_directions_session']);
         selection_table = study_settings.get(this_variable_information_table);
         
         % go through levels and select
@@ -163,7 +148,7 @@ function data = calculateSelectionVariables(study_settings, data, conditions)
                 this_variable_data = source_data_this_level;
                 this_variable_data(:, ~match_this_level) = NaN;
             else
-                this_variable_data(:, match_this_level) = source_data_this_level(:, match_this_level);
+                this_variable_data(:, match_this_level) = source_data_this_level(:, match_this_level); %#ok<AGROW>
             end
             if isempty(new_variable_directions)
                 new_variable_directions = source_directions_this_level;
@@ -201,18 +186,19 @@ function data = calculateIntegratedVariables(study_settings, data)
         end_info = variables_to_integrate{i_variable, strcmp(variables_to_integrate_header, 'end')};
         end_variable_source_type = variables_to_integrate{i_variable, strcmp(variables_to_integrate_header, 'end_variable_type')};
         % pick data depending on source specification
-        eval(['data_source = data.' this_variable_source_type '_data_session;']);
-        eval(['names_source = data.' this_variable_source_type '_names_session;']);
-        eval(['directions_source = data.' this_variable_source_type '_directions_session;']);
+        data_source = data.([this_variable_source_type '_data_session']);
+        names_source = data.([this_variable_source_type '_names_session']);
+        directions_source = data.([this_variable_source_type '_directions_session']);
         this_variable_source_data = data_source{strcmp(names_source, this_variable_source_name)};
         this_variable_source_directions = directions_source(strcmp(names_source, this_variable_source_name), :);
         
         % determine start and end of integration in percent of band time
         if strcmp(start_variable_source_type, 'percentage')
-            start_data_percent = ones(size(this_step_time_data)) * str2num(start_info);
+            start_data_percent = ones(size(this_step_time_data)) * str2double(start_info);
         else
-            eval(['start_data_source = data.' start_variable_source_type '_data_session;']);
-            eval(['start_names_source = data.' start_variable_source_type '_names_session;']);
+            start_data_source = data.([start_variable_source_type '_data_session']);
+            start_names_source = data.([start_variable_source_type '_names_session']);
+            
             start_data_time_within_band = start_data_source{strcmp(start_names_source, start_info)};
             start_data_ratio = start_data_time_within_band ./ this_step_time_data;
             start_data_percent = round(start_data_ratio * 100);
@@ -259,10 +245,10 @@ function data = calculateIntegratedVariables(study_settings, data)
 %             end
         end
         if strcmp(end_variable_source_type, 'percentage')
-            end_data_percent = ones(size(this_step_time_data)) * str2num(end_info);
+            end_data_percent = ones(size(this_step_time_data)) * str2double(end_info);
         else
-            eval(['end_data_source = data.' end_variable_source_type '_data_session;']);
-            eval(['end_names_source = data.' end_variable_source_type '_names_session;']);
+            end_data_source = data.([end_variable_source_type '_data_session']);
+            end_names_source = data.([end_variable_source_type '_names_session']);
             end_data_time_within_band = end_data_source{strcmp(end_names_source, end_info)};
             end_data_ratio = end_data_time_within_band ./ this_step_time_data;
             end_data_percent = round(end_data_ratio * 100);
@@ -355,28 +341,30 @@ function data = calculateRmsVariables(study_settings, data)
         start_variable_source_type = variables_to_rms{i_variable, strcmp(variables_to_rms_header, 'start_variable_type')};
         end_info = variables_to_rms{i_variable, strcmp(variables_to_rms_header, 'end')};
         end_variable_source_type = variables_to_rms{i_variable, strcmp(variables_to_rms_header, 'end_variable_type')};
+
         % pick data depending on source specification
-        eval(['data_source = data.' this_variable_source_type '_data_session;']);
-        eval(['names_source = data.' this_variable_source_type '_names_session;']);
-        eval(['directions_source = data.' this_variable_source_type '_directions_session;']);
+        data_source = data.([this_variable_source_type '_data_session']);
+        names_source = data.([this_variable_source_type '_names_session']);
+        directions_source = data.([this_variable_source_type '_directions_session']);
+        
         this_variable_source_data = data_source{strcmp(names_source, this_variable_source_name)};
         this_variable_source_directions = directions_source(strcmp(names_source, this_variable_source_name), :);
         
         % determine start and end of integration in percent of band time
         if strcmp(start_variable_source_type, 'percentage')
-            start_data_percent = ones(size(this_step_time_data)) * str2num(start_info);
+            start_data_percent = ones(size(this_step_time_data)) * str2double(start_info);
         else
-            eval(['start_data_source = data.' start_variable_source_type '_data_session;']);
-            eval(['start_names_source = data.' start_variable_source_type '_names_session;']);
+            start_data_source = data.([start_variable_source_type '_data_session']);
+            start_names_source = data.([start_variable_source_type '_names_session']);
             start_data_time_within_band = start_data_source{strcmp(start_names_source, start_info)};
             start_data_ratio = start_data_time_within_band ./ this_step_time_data;
             start_data_percent = round(start_data_ratio * 100);
         end
         if strcmp(end_variable_source_type, 'percentage')
-            end_data_percent = ones(size(this_step_time_data)) * str2num(end_info);
+            end_data_percent = ones(size(this_step_time_data)) * str2double(end_info);
         else
-            eval(['end_data_source = data.' end_variable_source_type '_data_session;']);
-            eval(['end_names_source = data.' end_variable_source_type '_names_session;']);
+            end_data_source = data.([end_variable_source_type '_data_session']);
+            end_names_source = data.([end_variable_source_type '_names_session']);
             end_data_time_within_band = end_data_source{strcmp(end_names_source, end_info)};
             end_data_ratio = end_data_time_within_band ./ this_step_time_data;
             end_data_percent = round(end_data_ratio * 100);
@@ -387,7 +375,6 @@ function data = calculateRmsVariables(study_settings, data)
         for i_stretch = 1 : number_of_stretches
             for i_band = 1 : data.bands_per_stretch
                 [band_start_index, band_end_index] = getBandIndices(i_band, number_of_time_steps_normalized);
-                this_band_time_full = linspace(0, this_step_time_data(i_band), number_of_time_steps_normalized);
                 this_band_data_full = this_variable_source_data(band_start_index : band_end_index, i_stretch);
                 range = (start_data_percent(i_band, i_stretch) : end_data_percent(i_band, i_stretch)) + 1;
                 if isempty(range)
@@ -420,10 +407,12 @@ function data = calculateBandEndVariables(study_settings, data)
         this_variable_name = variables_step_end{i_variable, 1};
         this_variable_source_name = variables_step_end{i_variable, 2};
         this_variable_source_type = variables_step_end{i_variable, 3};
+        
         % pick data depending on source specification
-        eval(['data_source = data.' this_variable_source_type '_data_session;']);
-        eval(['names_source = data.' this_variable_source_type '_names_session;']);
-        eval(['directions_source = data.' this_variable_source_type '_directions_session;']);
+        data_source = data.([this_variable_source_type '_data_session']);
+        names_source = data.([this_variable_source_type '_names_session']);
+        directions_source = data.([this_variable_source_type '_directions_session']);
+        
         this_variable_source_data = data_source{strcmp(names_source, this_variable_source_name)};
         new_variable_directions = directions_source(strcmp(names_source, this_variable_source_name), :);
         step_end_data = zeros(data.bands_per_stretch, number_of_stretches);
@@ -451,11 +440,13 @@ function data = calculateBandPercentVariables(study_settings, data)
         this_variable_name = variables_band_percent{i_variable, strcmp(variables_band_percent_header, 'new_variable_name')};
         this_variable_source_name = variables_band_percent{i_variable, strcmp(variables_band_percent_header, 'source_variable_name')};
         this_variable_source_type = variables_band_percent{i_variable, strcmp(variables_band_percent_header, 'source_variable_type')};
-        this_variable_source_percent = str2num(variables_band_percent{i_variable, strcmp(variables_band_percent_header, 'percentage')});
+        this_variable_source_percent = str2double(variables_band_percent{i_variable, strcmp(variables_band_percent_header, 'percentage')});
+
         % pick data depending on source specification
-        eval(['data_source = data.' this_variable_source_type '_data_session;']);
-        eval(['names_source = data.' this_variable_source_type '_names_session;']);
-        eval(['directions_source = data.' this_variable_source_type '_directions_session;']);
+        data_source = data.([this_variable_source_type '_data_session']);
+        names_source = data.([this_variable_source_type '_names_session']);
+        directions_source = data.([this_variable_source_type '_directions_session']);
+        
         this_variable_source_data = data_source{strcmp(names_source, this_variable_source_name)};
         new_variable_directions = directions_source(strcmp(names_source, this_variable_source_name), :);
         band_percent_data = zeros(data.bands_per_stretch, number_of_stretches);
@@ -485,10 +476,12 @@ function data = calculateExtremaVariables(study_settings, data)
         this_variable_source_name = variables_from_extrema{i_variable, 2};
         this_variable_source_type = variables_from_extrema{i_variable, 3};
         this_variable_extremum_type = variables_from_extrema{i_variable, 4};
+
         % pick data depending on source specification
-        eval(['data_source = data.' this_variable_source_type '_data_session;']);
-        eval(['names_source = data.' this_variable_source_type '_names_session;']);
-        eval(['directions_source = data.' this_variable_source_type '_directions_session;']);
+        data_source = data.([this_variable_source_type '_data_session']);
+        names_source = data.([this_variable_source_type '_names_session']);
+        directions_source = data.([this_variable_source_type '_directions_session']);
+        
         this_variable_source_data = data_source{strcmp(names_source, this_variable_source_name)};
         new_variable_directions = directions_source(strcmp(names_source, this_variable_source_name), :);
         
@@ -524,10 +517,11 @@ function data = calculateExtremaOverRangeVariables(study_settings, data)
         this_variable_source_name = variables_from_extrema_range{i_variable, 2};
         this_variable_source_type = variables_from_extrema_range{i_variable, 3};
         this_variable_extremum_type = variables_from_extrema_range{i_variable, 4};
+
         % pick data depending on source specification
-        eval(['data_source = data.' this_variable_source_type '_data_session;']);
-        eval(['names_source = data.' this_variable_source_type '_names_session;']);
-        eval(['directions_source = data.' this_variable_source_type '_directions_session;']);
+        data_source = data.([this_variable_source_type '_data_session']);
+        names_source = data.([this_variable_source_type '_names_session']);
+        directions_source = data.([this_variable_source_type '_directions_session']);
         this_variable_source_data = data_source{strcmp(names_source, this_variable_source_name)};
         new_variable_directions = directions_source(strcmp(names_source, this_variable_source_name), :);
         
