@@ -1466,9 +1466,6 @@ function processAnalysisVariables(varargin)
 %% SAVE TO DISK    
     %% save data
     variables_to_save = loaded_data;
-%     variables_to_save.response_data_session = response_data_session;
-%     variables_to_save.response_directions_session = response_directions_session;
-%     variables_to_save.response_names_session = response_names_session;
     variables_to_save.analysis_data_session = analysis_data_session;
     variables_to_save.analysis_directions_session = analysis_directions_session;
     variables_to_save.analysis_names_session = analysis_names_session;

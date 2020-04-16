@@ -347,8 +347,12 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('total_forceplate_cop_world')
                 this.addBasicVariable('cop_x')
                 this.addStretchVariable('cop_x')
-%                 this.addBasicVariable('com_trajectories') % in-house kinematics
-                this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'in-house')
+                    this.addBasicVariable('com_trajectories') % in-house kinematics
+                end
+                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'opensim')
+                    this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                end
                 this.addBasicVariable('com')
                 this.addBasicVariable('com_x')
                 this.addStretchVariable('com_x')
@@ -358,8 +362,12 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('total_forceplate_cop_world')
                 this.addBasicVariable('cop_y')
                 this.addStretchVariable('cop_y')
-%                 this.addBasicVariable('com_trajectories') % in-house kinematics
-                this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'in-house')
+                    this.addBasicVariable('com_trajectories') % in-house kinematics
+                end
+                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'opensim')
+                    this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                end
                 this.addBasicVariable('com')
                 this.addBasicVariable('com_y')
                 this.addStretchVariable('com_y')
@@ -369,8 +377,12 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('total_forceplate_cop_world')
                 this.addBasicVariable('cop_x')
                 this.addStretchVariable('cop_x')
-%                 this.addBasicVariable('com_trajectories') % in-house kinematics
-                this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'in-house')
+                    this.addBasicVariable('com_trajectories') % in-house kinematics
+                end
+                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'opensim')
+                    this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                end
                 this.addBasicVariable('com')
                 this.addBasicVariable('com_x')
                 this.addStretchVariable('com_x')
@@ -380,8 +392,12 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('total_forceplate_cop_world')
                 this.addBasicVariable('cop_y')
                 this.addStretchVariable('cop_y')
-%                 this.addBasicVariable('com_trajectories') % in-house kinematics
-                this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'in-house')
+                    this.addBasicVariable('com_trajectories') % in-house kinematics
+                end
+                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'opensim')
+                    this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                end
                 this.addBasicVariable('com')
                 this.addBasicVariable('com_y')
                 this.addStretchVariable('com_y')
@@ -393,16 +409,24 @@ classdef WalkingDataCustodian < handle
                 this.addStretchVariable('lheel_x')
                 this.addBasicVariable('rheel_x')
                 this.addStretchVariable('rheel_x')
-%                 this.addBasicVariable('com_trajectories') % in-house kinematics
-                this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'in-house')
+                    this.addBasicVariable('com_trajectories') % in-house kinematics
+                end
+                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'opensim')
+                    this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                end
                 this.addBasicVariable('com')
                 this.addBasicVariable('com_x')
                 this.addStretchVariable('com_x')
                 this.addStretchVariable('init_heel_to_com_x')
             end
             if this.isVariableToAnalyze('cop_to_com_vel_scaled_x')
-%                 this.addBasicVariable('com_trajectories') % in-house kinematics
-                this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'in-house')
+                    this.addBasicVariable('com_trajectories') % in-house kinematics
+                end
+                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'opensim')
+                    this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                end
                 this.addBasicVariable('com')
                 this.addBasicVariable('com_x')
                 this.addBasicVariable('com_x_vel')
@@ -418,8 +442,12 @@ classdef WalkingDataCustodian < handle
                 this.addStretchVariable('cop_to_com_vel_scaled_x')
             end
             if this.isVariableToAnalyze('cop_to_com_vel_scaled_y')
-%                 this.addBasicVariable('com_trajectories') % in-house kinematics
-                this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'in-house')
+                    this.addBasicVariable('com_trajectories') % in-house kinematics
+                end
+                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'opensim')
+                    this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                end
                 this.addBasicVariable('com')
                 this.addBasicVariable('com_y')
                 this.addBasicVariable('com_y_vel')
@@ -594,36 +622,56 @@ classdef WalkingDataCustodian < handle
                 this.addStretchVariable('right_arm_phase_at_heelstrike')
             end
             if this.isVariableToAnalyze('com_x')
-%                 this.addBasicVariable('com_trajectories') % in-house kinematics
-                this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'in-house')
+                    this.addBasicVariable('com_trajectories') % in-house kinematics
+                end
+                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'opensim')
+                    this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                end
                 this.addBasicVariable('com')
                 this.addBasicVariable('com_x')
                 this.addStretchVariable('com_x')
             end
             if this.isVariableToAnalyze('com_y')
-%                 this.addBasicVariable('com_trajectories') % in-house kinematics
-                this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'in-house')
+                    this.addBasicVariable('com_trajectories') % in-house kinematics
+                end
+                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'opensim')
+                    this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                end
                 this.addBasicVariable('com')
                 this.addBasicVariable('com_y')
                 this.addStretchVariable('com_y')
             end
             if this.isVariableToAnalyze('com_z')
-%                 this.addBasicVariable('com_trajectories') % in-house kinematics
-                this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'in-house')
+                    this.addBasicVariable('com_trajectories') % in-house kinematics
+                end
+                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'opensim')
+                    this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                end
                 this.addBasicVariable('com_z')
                 this.addStretchVariable('com_z')
             end
             if this.isVariableToAnalyze('com_x_vel')
-%                 this.addBasicVariable('com_trajectories') % in-house kinematics
-                this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'in-house')
+                    this.addBasicVariable('com_trajectories') % in-house kinematics
+                end
+                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'opensim')
+                    this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                end
                 this.addBasicVariable('com')
                 this.addBasicVariable('com_x')
                 this.addBasicVariable('com_x_vel')
                 this.addStretchVariable('com_x_vel')
             end
             if this.isVariableToAnalyze('com_x_vel_scaled')
-%                 this.addBasicVariable('com_trajectories') % in-house kinematics
-                this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'in-house')
+                    this.addBasicVariable('com_trajectories') % in-house kinematics
+                end
+                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'opensim')
+                    this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                end
                 this.addBasicVariable('com')
                 this.addBasicVariable('com_x')
                 this.addBasicVariable('com_x_vel')
@@ -633,24 +681,36 @@ classdef WalkingDataCustodian < handle
                 this.addStretchVariable('com_x_vel_scaled')
             end
             if this.isVariableToAnalyze('com_y_vel')
-%                 this.addBasicVariable('com_trajectories') % in-house kinematics
-                this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'in-house')
+                    this.addBasicVariable('com_trajectories') % in-house kinematics
+                end
+                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'opensim')
+                    this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                end
                 this.addBasicVariable('com')
                 this.addBasicVariable('com_y')
                 this.addBasicVariable('com_y_vel')
                 this.addStretchVariable('com_y_vel')
             end
             if this.isVariableToAnalyze('com_z_vel')
-%                 this.addBasicVariable('com_trajectories') % in-house kinematics
-                this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'in-house')
+                    this.addBasicVariable('com_trajectories') % in-house kinematics
+                end
+                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'opensim')
+                    this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                end
                 this.addBasicVariable('com')
                 this.addBasicVariable('com_z')
                 this.addBasicVariable('com_z_vel')
                 this.addStretchVariable('com_z_vel')
             end
             if this.isVariableToAnalyze('com_x_acc')
-%                 this.addBasicVariable('com_trajectories') % in-house kinematics
-                this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'in-house')
+                    this.addBasicVariable('com_trajectories') % in-house kinematics
+                end
+                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'opensim')
+                    this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                end
                 this.addBasicVariable('com')
                 this.addBasicVariable('com_x')
                 this.addBasicVariable('com_x_vel')
@@ -658,8 +718,12 @@ classdef WalkingDataCustodian < handle
                 this.addStretchVariable('com_x_acc')
             end
             if this.isVariableToAnalyze('com_y_acc')
-%                 this.addBasicVariable('com_trajectories') % in-house kinematics
-                this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'in-house')
+                    this.addBasicVariable('com_trajectories') % in-house kinematics
+                end
+                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'opensim')
+                    this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                end
                 this.addBasicVariable('com')
                 this.addBasicVariable('com_y')
                 this.addBasicVariable('com_y_vel')
@@ -667,8 +731,12 @@ classdef WalkingDataCustodian < handle
                 this.addStretchVariable('com_y_acc')
             end
             if this.isVariableToAnalyze('com_z_acc')
-%                 this.addBasicVariable('com_trajectories') % in-house kinematics
-                this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'in-house')
+                    this.addBasicVariable('com_trajectories') % in-house kinematics
+                end
+                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'opensim')
+                    this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                end
                 this.addBasicVariable('com')
                 this.addBasicVariable('com_z')
                 this.addBasicVariable('com_z_vel')

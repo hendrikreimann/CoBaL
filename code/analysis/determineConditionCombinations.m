@@ -76,11 +76,11 @@ function ...
         % for each factor, check if a condition was specified in the relevant column
         for i_factor = 1 : number_of_condition_labels
             this_factor_condition_label = conditions_settings{i_factor, 1};
-            this_factor_emg_level = conditions_settings{i_factor, relevant_column_in_condition_settings};
-            if ~strcmp(this_factor_emg_level, '~')
+            this_factor_filter_level = conditions_settings{i_factor, relevant_column_in_condition_settings};
+            if ~strcmp(this_factor_filter_level, '~')
                 % there's a condition specified, so remove all others
                 this_factor_column = strcmp(condition_combination_labels, this_factor_condition_label);
-                this_factor_emg_match = strcmp(condition_combinations_filtered(:, this_factor_column), this_factor_emg_level);
+                this_factor_emg_match = strcmp(condition_combinations_filtered(:, this_factor_column), this_factor_filter_level);
                 condition_combinations_filtered(~this_factor_emg_match, :) = [];
             end
         end

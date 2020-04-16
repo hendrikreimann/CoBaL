@@ -299,6 +299,9 @@ classdef SettingsCustodian < handle
             if strcmp(property_name, 'convert_to_mm')
                 default_data = false;
             end
+            if strcmp(property_name, 'inverse_kinematics_source')
+                default_data = 'opensim';
+            end
 
 
             

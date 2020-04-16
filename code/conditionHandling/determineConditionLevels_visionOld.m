@@ -17,35 +17,27 @@
 function [conditions_trial, event_variables_to_save, removal_flags] = determineConditionLevels_visionOld(study_settings, subject_settings, trial_data)
 
     % get parameters from settings
-    experimental_paradigm = study_settings.get('experimental_paradigm');
     time_to_nearest_heelstrike_before_trigger_threshold = study_settings.get('time_to_nearest_heelstrike_before_trigger_threshold');
     time_to_nearest_heelstrike_after_trigger_threshold = study_settings.get('time_to_nearest_heelstrike_after_trigger_threshold');
     
     % allocate output variables
-    number_of_triggers = length(trial_data.trigger_indices_mocap);
-    conditions_trial = struct;
     event_variables_to_save = struct;
-    removal_flags = false(number_of_triggers, 1);
-    
-
     
     bands_per_stretch = 2;
 
     number_of_triggers = length(trial_data.trigger_indices_mocap);
     closest_heelstrike_distance_times = zeros(number_of_triggers, 1);
-    removal_flags = zeros(number_of_triggers, 1);
+    removal_flags_stim = zeros(number_of_triggers, 1);
 
     stretch_times_stim = zeros(number_of_triggers, bands_per_stretch+1);
     stance_foot_data_stim = cell(number_of_triggers, bands_per_stretch);
     stimulus_list_stim = cell(number_of_triggers, 1); % stimulus STIM_LEFT, STIM_RIGHT or STIM_NONE
     trigger_foot_list_stim = cell(number_of_triggers, 1); % triggering foot TRIGGER_LEFT or TRIGGER_RIGHT
-%                 delay_list_stim = cell(number_of_triggers, 1);
 
     stretch_times_ctrl = zeros(number_of_triggers, bands_per_stretch+1);
     stance_foot_data_ctrl = cell(number_of_triggers, bands_per_stretch);
     stimulus_list_ctrl = cell(number_of_triggers, 1); % stimulus STIM_LEFT, STIM_RIGHT or STIM_NONE
     trigger_foot_list_ctrl = cell(number_of_triggers, 1); % triggering foot TRIGGER_LEFT or TRIGGER_RIGHT
-%                 delay_list_ctrl = cell(number_of_triggers, 1);
 
     for i_trigger = 1 : number_of_triggers
         % determine stimulus
@@ -95,17 +87,17 @@ function [conditions_trial, event_variables_to_save, removal_flags] = determineC
             closest_heelstrike_distance_times(i_trigger) = time_difference_right;
         elseif left_heelstrike_acceptable && right_heelstrike_acceptable
             trigger_foot = 'unclear';
-            removal_flags(i_trigger) = 1;
+            removal_flags_stim(i_trigger) = 1;
         elseif ~left_heelstrike_acceptable && ~right_heelstrike_acceptable
             trigger_foot = 'unclear';
-            removal_flags(i_trigger) = 1;
+            removal_flags_stim(i_trigger) = 1;
         end                    
 
         % extract relevant events in order
         if strcmp(trigger_foot, 'left')
-            if length(trial_data.left_touchdown_times) < index_left + 1 || removal_flags(i_trigger) == 1 || index_left == 1
+            if length(trial_data.left_touchdown_times) < index_left + 1 || removal_flags_stim(i_trigger) == 1 || index_left == 1
                 % data doesn't include the required number of steps after the trigger
-                removal_flags(i_trigger) = 1;
+                removal_flags_stim(i_trigger) = 1;
                 left_foot_heelstrike_0  = NaN;
                 left_foot_heelstrike_1  = NaN;
                 left_foot_pushoff_0     = NaN;
@@ -137,9 +129,9 @@ function [conditions_trial, event_variables_to_save, removal_flags] = determineC
                 end
             end
         elseif strcmp(trigger_foot, 'right')
-            if length(trial_data.right_touchdown_times) < index_right + 1 || removal_flags(i_trigger) == 1 || index_right == 1
+            if length(trial_data.right_touchdown_times) < index_right + 1 || removal_flags_stim(i_trigger) == 1 || index_right == 1
                 % data doesn't include the required number of steps after the trigger
-                removal_flags(i_trigger) = 1;
+                removal_flags_stim(i_trigger) = 1;
                 right_foot_heelstrike_pre = NaN;
                 right_foot_heelstrike_0 = NaN;
                 right_foot_heelstrike_1 = NaN;
@@ -188,20 +180,12 @@ function [conditions_trial, event_variables_to_save, removal_flags] = determineC
             right_foot_heelstrike_1 = 0;
             right_foot_pushoff_0    = 0;
 
-            removal_flags(i_trigger) = 1;
+            removal_flags_stim(i_trigger) = 1;
         end
 
         % collect event times to form stretches
-        if ~removal_flags(i_trigger) == 1
+        if ~removal_flags_stim(i_trigger) == 1
             if strcmp(trigger_foot, 'right')
-%                             stretch_times_stim(i_trigger, :) = [right_foot_heelstrike_0 left_foot_pushoff_0 left_foot_heelstrike_0 right_foot_pushoff_0 right_foot_heelstrike_1];
-%                             stance_foot_data_stim(i_trigger, :) = {'STANCE_BOTH', 'STANCE_RIGHT', 'STANCE_BOTH', 'STANCE_LEFT'};
-%                             trigger_foot_list_stim{i_trigger} = 'TRIGGER_RIGHT';
-%                             
-%                             stretch_times_ctrl(i_trigger, :) = [right_foot_heelstrike_pre left_foot_pushoff_pre left_foot_heelstrike_pre right_foot_pushoff_pre right_foot_heelstrike_0];
-%                             stance_foot_data_ctrl(i_trigger, :) = {'STANCE_BOTH', 'STANCE_RIGHT', 'STANCE_BOTH', 'STANCE_LEFT'};
-%                             trigger_foot_list_ctrl{i_trigger} = 'TRIGGER_RIGHT';
-
                 stretch_times_stim(i_trigger, :) = [right_foot_heelstrike_0 left_foot_heelstrike_0 right_foot_heelstrike_1];
                 stance_foot_data_stim(i_trigger, :) = {'STANCE_RIGHT', 'STANCE_LEFT'};
                 trigger_foot_list_stim{i_trigger} = 'TRIGGER_RIGHT';
@@ -212,14 +196,6 @@ function [conditions_trial, event_variables_to_save, removal_flags] = determineC
 
             end
             if strcmp(trigger_foot, 'left')
-%                             stretch_times_stim(i_trigger, :) = [left_foot_heelstrike_0 right_foot_pushoff_0 right_foot_heelstrike_0 left_foot_pushoff_0 left_foot_heelstrike_1];
-%                             stance_foot_data_stim(i_trigger, :) = {'STANCE_BOTH', 'STANCE_LEFT', 'STANCE_BOTH', 'STANCE_RIGHT'};
-%                             trigger_foot_list_stim{i_trigger} = 'TRIGGER_LEFT';
-%                             
-%                             stretch_times_ctrl(i_trigger, :) = [left_foot_heelstrike_pre right_foot_pushoff_pre right_foot_heelstrike_pre left_foot_pushoff_pre left_foot_heelstrike_0];
-%                             stance_foot_data_ctrl(i_trigger, :) = {'STANCE_BOTH', 'STANCE_LEFT', 'STANCE_BOTH', 'STANCE_RIGHT'};
-%                             trigger_foot_list_ctrl{i_trigger} = 'TRIGGER_LEFT';
-
                 stretch_times_stim(i_trigger, :) = [left_foot_heelstrike_0 right_foot_heelstrike_0 left_foot_heelstrike_1];
                 stance_foot_data_stim(i_trigger, :) = {'STANCE_LEFT', 'STANCE_RIGHT'};
                 trigger_foot_list_stim{i_trigger} = 'TRIGGER_LEFT';
@@ -233,26 +209,10 @@ function [conditions_trial, event_variables_to_save, removal_flags] = determineC
 
     end
 
-%     % remove flagged triggers
-%     unflagged_indices = ~removal_flags;
-%     trial_data.trigger_times = trial_data.trigger_times(unflagged_indices);
-%     trigger_indices_stimulus = trigger_indices_stimulus(unflagged_indices, :);
-%     stretch_times_stim = stretch_times_stim(unflagged_indices, :);
-%     stance_foot_data_stim = stance_foot_data_stim(unflagged_indices, :);
-%     stimulus_list_stim = stimulus_list_stim(unflagged_indices, :);
-% %                 delay_list_stim = delay_list_stim(unflagged_indices, :);
-%     trigger_foot_list_stim = trigger_foot_list_stim(unflagged_indices, :);
-%     stretch_times_ctrl = stretch_times_ctrl(unflagged_indices, :);
-%     stance_foot_data_ctrl = stance_foot_data_ctrl(unflagged_indices, :);
-%     stimulus_list_ctrl = stimulus_list_ctrl(unflagged_indices, :);
-% %                 delay_list_ctrl = delay_list_ctrl(unflagged_indices, :);
-%     trigger_foot_list_ctrl = trigger_foot_list_ctrl(unflagged_indices, :);
-
     % merge stim and control
     stretch_times = [stretch_times_stim; stretch_times_ctrl];
     stance_foot_data = [stance_foot_data_stim; stance_foot_data_ctrl];
     stimulus_list = [stimulus_list_stim; stimulus_list_ctrl];
-%                 delay_list = [delay_list_stim; delay_list_ctrl];
     trigger_foot_list = [trigger_foot_list_stim; trigger_foot_list_ctrl];
 
     % determine direction
@@ -282,23 +242,16 @@ function [conditions_trial, event_variables_to_save, removal_flags] = determineC
         end
     end
 
-    % put in placeholder for group
-    group_list = cell(size(direction_list));
-    [group_list{:}] = deal('to be determined');
-
     % restructure for saving
     conditions_trial = struct;
     conditions_trial.stimulus_list = stimulus_list;
     conditions_trial.trigger_foot_list = trigger_foot_list;
     conditions_trial.direction_list = direction_list;
-
-%                 conditions_trial.group_list = group_list;
-%                 conditions_trial.delay_list = delay_list;
-
     event_variables_to_save.stretch_times = stretch_times;
     event_variables_to_save.stance_foot_data = stance_foot_data;  
     
-    
+    % removal flags
+    removal_flags = [removal_flags_stim; removal_flags_stim];
     
 end
 

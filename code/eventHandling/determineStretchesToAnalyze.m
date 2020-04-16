@@ -90,6 +90,9 @@ function determineStretchesToAnalyze(varargin)
         % remove stretches where important variables are missing
         [conditions_trial, event_variables_to_save] = removeProblematicData(study_settings, trial_data, conditions_trial, event_variables_to_save, removal_flags);
 
+        % remove stretches with levels listed in the settings to be ignored
+        [conditions_trial, event_variables_to_save] = removeLevelsSpecifiedInSettings(study_settings, conditions_trial, event_variables_to_save);
+
         % save
         saveDeterminedStretchData(conditions_trial, event_variables_to_save, subject_settings, trial_data)
     end
@@ -490,6 +493,62 @@ function [conditions_trial, event_variables_to_save] ...
         evalstring = ['conditions_trial.' this_condition_name ' = this_condition_data;'];
         eval(evalstring);
     end
+
+end
+
+function [conditions_trial, event_variables_to_save] ...
+    = removeLevelsSpecifiedInSettings ...
+      ( ...
+        study_settings, ...
+        conditions_trial, ...
+        event_variables_to_save ...
+      )
+    % get info
+    levels_to_remove = study_settings.get('levels_to_remove', 1);
+
+    % go through list of levels to remove
+    for i_entry = 1 : size(levels_to_remove, 1)
+        % get info
+        this_factor = levels_to_remove(i_entry, 1);
+        this_level = levels_to_remove(i_entry, 2);
+        conditions_table = study_settings.get('conditions');
+        
+        % find and flag conditions in the list matching this
+        this_factor_list_label = conditions_table{strcmp(conditions_table(:, 1), this_factor), 2};
+        this_factor_list = conditions_trial.(this_factor_list_label);
+        this_factor_match = strcmp(this_factor_list, this_level);
+        
+        % remove flagged stretches from data
+        unflagged_indices = ~this_factor_match;
+        event_variables_to_save_names = fieldnames(event_variables_to_save);
+        for i_variable = 1 : length(event_variables_to_save_names)
+            this_variable_name = event_variables_to_save_names{i_variable};
+
+            evalstring = ['this_variable_data = event_variables_to_save.' this_variable_name ';'];
+            eval(evalstring);
+            this_variable_data = this_variable_data(unflagged_indices, :);
+
+            evalstring = ['event_variables_to_save.' this_variable_name ' = this_variable_data;'];
+            eval(evalstring);
+        end
+        
+        % remove flagged stretches from conditions
+        conditions_trial_names = fieldnames(conditions_trial);
+        for i_label = 1 : length(conditions_trial_names)
+            this_condition_name = conditions_trial_names{i_label};
+
+            evalstring = ['this_condition_data = conditions_trial.' this_condition_name ';'];
+            eval(evalstring);
+            this_condition_data = this_condition_data(unflagged_indices, :);
+
+            evalstring = ['conditions_trial.' this_condition_name ' = this_condition_data;'];
+            eval(evalstring);
+        end
+    end
+
+
+
+
 
 end
 
