@@ -18,7 +18,7 @@ function processResponseVariables(varargin)
     load('subjectInfo.mat', 'date', 'subject_id');
     % load settings and existing results
     study_settings = loadSettingsFromFile('study');
-    results_file_name = ['analysis' filesep makeFileName(date, subject_id, 'results')];
+    results_file_name = ['results' filesep makeFileName(date, subject_id, 'results')];
     loaded_data = load(results_file_name);
     
     % get some numbers

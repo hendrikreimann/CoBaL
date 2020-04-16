@@ -31,7 +31,7 @@ function processStimulusResponse(varargin)
     collection_date = subject_settings.get('collection_date');
     subject_id = subject_settings.get('subject_id');
     
-    results_file_name = ['analysis' filesep makeFileName(collection_date, subject_id, 'results')];
+    results_file_name = ['results' filesep makeFileName(collection_date, subject_id, 'results')];
     loaded_data = load(results_file_name);
     
     number_of_stretches = length(loaded_data.time_list_session);

@@ -152,7 +152,10 @@ function processStretchVariables(varargin)
     end
 
     %% save data
-    results_file_name = ['analysis' filesep makeFileName(date, subject_id, 'results')];
+    if ~directoryExists('results')
+        mkdir('results')
+    end
+    results_file_name = ['results' filesep makeFileName(date, subject_id, 'results')];
     save ...
       ( ...
         results_file_name, ...

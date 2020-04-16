@@ -28,7 +28,7 @@ function processAnalysisVariables(varargin)
         study_settings_file = ['..' filesep '..' filesep 'studySettings.txt'];
     end
     study_settings = SettingsCustodian(study_settings_file);
-    results_file_name = ['analysis' filesep makeFileName(date, subject_id, 'results')];
+    results_file_name = ['results' filesep makeFileName(date, subject_id, 'results')];
     loaded_data = load(results_file_name);
     
     number_of_time_steps_normalized = study_settings.get('number_of_time_steps_normalized');
@@ -52,7 +52,7 @@ function processAnalysisVariables(varargin)
     end
     labels_to_ignore = study_settings.get('conditions_to_ignore');
     levels_to_remove = study_settings.get('levels_to_remove', 1);
-    [condition_combination_labels, ~, condition_combinations_control] = determineConditionCombinations(condition_data_all, conditions_settings, labels_to_ignore, levels_to_remove);
+    [condition_combination_labels, condition_combinations_control] = determineConditionCombinations(condition_data_all, conditions_settings, labels_to_ignore, levels_to_remove, 'control');
     condition_combinations_control_unique = table2cell(unique(cell2table(condition_combinations_control), 'rows'));
     
     if isfield(loaded_data, 'response_data_session')
