@@ -821,7 +821,7 @@ function saveFigures(settings, figure_data)
             axes_position(4) = 1 - axes_position(2) - 0.04;
             set(figure_data.trajectory_axes_handles(i_figure), 'position', axes_position);
             
-            % save with labels            
+            % save with labels
             filename_with = ['figures' filesep 'withLabels' filesep get(figure_data.trajectory_figure_handles(i_figure), 'UserData')];
             print(figure_data.trajectory_figure_handles(i_figure), filename_with, settings.save_format, settings.save_resolution)
             
