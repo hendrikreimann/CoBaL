@@ -236,6 +236,11 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('marker_trajectories')
                 this.addBasicVariable('rankle_y')
                 this.addStretchVariable('rankle_y')
+            end    
+            if this.isVariableToAnalyze('ltoel_x')
+                this.addBasicVariable('marker_trajectories')
+                this.addBasicVariable('ltoel_x')
+                this.addStretchVariable('ltoel_x')               
             end
             if this.isVariableToAnalyze('step_length')
                 this.addBasicVariable('marker_trajectories')
@@ -1069,6 +1074,14 @@ classdef WalkingDataCustodian < handle
                     this.time_data.rankle_y = this.time_data.marker_trajectories;
                     success = 1;
                 end
+                 if strcmp(variable_name, 'ltoel_x')
+                    LTOEL_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LTOEL');
+                    this.basic_variable_data.ltoe_x = LTOEL_trajectory(:, 1);
+                    LTOEL_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LTOEL',  'indices');
+                    this.basic_variable_directions.ltoel_x = this.basic_variable_directions.marker_trajectories(:, LTOEL_indices(1));
+                    this.time_data.ltoel_x = this.time_data.marker_trajectories;
+                    success = 1;             
+                 end
                 if strcmp(variable_name, 'lasis_y')
                     LASI_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LASI');
                     this.basic_variable_data.lasis_y = LASI_trajectory(:, 2);
