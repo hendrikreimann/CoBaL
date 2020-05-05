@@ -49,6 +49,7 @@ function processAnalysisVariables(varargin)
     % calculate band variables
     data = calculateBandEndVariables(study_settings, data);
     data = calculateBandPercentVariables(study_settings, data);
+    data = calculateTimePointVariables(study_settings, data);
     
     % calculate extrema variables
     data = calculateExtremaVariables(study_settings, data);
@@ -459,6 +460,58 @@ function data = calculateBandPercentVariables(study_settings, data)
         % store
         new_data = struct;
         new_data.data = band_percent_data;
+        new_data.directions = new_variable_directions;
+        new_data.name = this_variable_name;
+        data = addOrReplaceResultsData(data, new_data, 'analysis');
+    end
+
+end
+
+function data = calculateTimePointVariables(study_settings, data)
+    variables_time_point_header = study_settings.get('analysis_variables_from_time_point_header', 1);
+    variables_time_point = study_settings.get('analysis_variables_from_time_point', 1);
+    step_time_index_in_saved_data = find(strcmp(data.stretch_names_session, 'step_time'), 1, 'first');
+    this_step_time_data = data.stretch_data_session{step_time_index_in_saved_data};
+    number_of_stretches = size(data.stretch_data_session{1}, 2);
+    number_of_time_steps_normalized = study_settings.get('number_of_time_steps_normalized');
+    for i_variable = 1 : size(variables_time_point, 1)
+        this_variable_name = variables_time_point{i_variable, strcmp(variables_time_point_header, 'new_variable_name')};
+        this_variable_source_name = variables_time_point{i_variable, strcmp(variables_time_point_header, 'source_variable_name')};
+        this_variable_source_type = variables_time_point{i_variable, strcmp(variables_time_point_header, 'source_variable_type')};
+        time_point = variables_time_point{i_variable, strcmp(variables_time_point_header, 'time_point')};
+        time_point_source_type = variables_time_point{i_variable, strcmp(variables_time_point_header, 'time_point_specifier')};
+        % pick data depending on source specification
+        data_source = data.([this_variable_source_type '_data_session']);
+        names_source = data.([this_variable_source_type '_names_session']);
+        directions_source = data.([this_variable_source_type '_directions_session']);
+        this_variable_source_data = data_source{strcmp(names_source, this_variable_source_name)};
+        new_variable_directions = directions_source(strcmp(names_source, this_variable_source_name), :);
+        
+        % determine time point in percent of band time
+        if strcmp(time_point_source_type, 'percentage')
+            this_time_point_percent = ones(size(this_step_time_data)) * str2double(time_point);
+        else
+            time_point_data_source = data.([time_point_source_type '_data_session']);
+            time_point_names_source = data.([time_point_source_type '_names_session']);
+            
+            time_point_within_band = time_point_data_source{strcmp(time_point_names_source, time_point)};
+            time_point_ratio = time_point_within_band ./ this_step_time_data;
+            this_time_point_percent = round(time_point_ratio * 100);
+        end
+        
+        % get the data at this time point
+        time_point_data = zeros(data.bands_per_stretch, number_of_stretches);
+        for i_stretch = 1 : number_of_stretches
+            for i_band = 1 : data.bands_per_stretch
+                [start_index, end_index] = getBandIndices(i_band, number_of_time_steps_normalized);
+                this_index = round(start_index + this_time_point_percent(i_band, i_stretch)/100 * (end_index - start_index));
+                time_point_data(i_band, i_stretch) = this_variable_source_data(this_index, i_stretch);
+            end
+        end
+        
+        % store
+        new_data = struct;
+        new_data.data = time_point_data;
         new_data.directions = new_variable_directions;
         new_data.name = this_variable_name;
         data = addOrReplaceResultsData(data, new_data, 'analysis');

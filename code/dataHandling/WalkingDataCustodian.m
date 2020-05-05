@@ -212,20 +212,69 @@ classdef WalkingDataCustodian < handle
             end
             if this.isVariableToAnalyze('xcom_x')
                 this.addBasicVariable('marker_trajectories')
+                this.addBasicVariable('lankle_x')
+                this.addBasicVariable('rankle_x')
+                this.addBasicVariable('lankle_y')
+                this.addBasicVariable('rankle_y')
+                this.addBasicVariable('lankle_z')
+                this.addBasicVariable('rankle_z')
                 this.addBasicVariable('com')
                 this.addBasicVariable('com_x')
+                this.addBasicVariable('com_y')
+                this.addBasicVariable('com_z')
                 this.addBasicVariable('com_x_vel')
                 this.addStretchVariable('xcom_x')
+            end
+            if this.isVariableToAnalyze('xcom_y')
+                this.addBasicVariable('marker_trajectories')
+                this.addBasicVariable('lankle_x')
+                this.addBasicVariable('rankle_x')
+                this.addBasicVariable('lankle_y')
+                this.addBasicVariable('rankle_y')
+                this.addBasicVariable('lankle_z')
+                this.addBasicVariable('rankle_z')
+                this.addBasicVariable('com')
+                this.addBasicVariable('com_x')
+                this.addBasicVariable('com_y')
+                this.addBasicVariable('com_z')
+                this.addBasicVariable('com_y_vel')
+                this.addStretchVariable('xcom_y')
             end
             if this.isVariableToAnalyze('mos_x')
                 this.addBasicVariable('marker_trajectories')
                 this.addBasicVariable('ltoel_x')
                 this.addBasicVariable('rtoel_x')
+                this.addBasicVariable('lankle_x')
+                this.addBasicVariable('rankle_x')
+                this.addBasicVariable('lankle_y')
+                this.addBasicVariable('rankle_y')
+                this.addBasicVariable('lankle_z')
+                this.addBasicVariable('rankle_z')
                 this.addBasicVariable('com')
                 this.addBasicVariable('com_x')
+                this.addBasicVariable('com_y')
+                this.addBasicVariable('com_z')
                 this.addBasicVariable('com_x_vel')
                 this.addStretchVariable('xcom_x')
                 this.addStretchVariable('mos_x')
+            end
+            if this.isVariableToAnalyze('mos_y')
+                this.addBasicVariable('marker_trajectories')
+                this.addBasicVariable('ltoel_y')
+                this.addBasicVariable('rtoel_y')
+                this.addBasicVariable('lankle_x')
+                this.addBasicVariable('rankle_x')
+                this.addBasicVariable('lankle_y')
+                this.addBasicVariable('rankle_y')
+                this.addBasicVariable('lankle_z')
+                this.addBasicVariable('rankle_z')
+                this.addBasicVariable('com')
+                this.addBasicVariable('com_x')
+                this.addBasicVariable('com_y')
+                this.addBasicVariable('com_z')
+                this.addBasicVariable('com_y_vel')
+                this.addStretchVariable('xcom_y')
+                this.addStretchVariable('mos_y')
             end
             if this.isVariableToAnalyze('lheel_y')
                 this.addBasicVariable('marker_trajectories')
@@ -257,6 +306,16 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('rankle_y')
                 this.addStretchVariable('rankle_y')
             end    
+            if this.isVariableToAnalyze('lankle_z')
+                this.addBasicVariable('marker_trajectories')
+                this.addBasicVariable('lankle_z')
+                this.addStretchVariable('lankle_z')
+            end
+            if this.isVariableToAnalyze('rankle_z')
+                this.addBasicVariable('marker_trajectories')
+                this.addBasicVariable('rankle_z')
+                this.addStretchVariable('rankle_z')
+            end    
             if this.isVariableToAnalyze('ltoel_x')
                 this.addBasicVariable('marker_trajectories')
                 this.addBasicVariable('ltoel_x')
@@ -266,6 +325,26 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('marker_trajectories')
                 this.addBasicVariable('rtoel_x')
                 this.addStretchVariable('rtoel_x')               
+            end
+            if this.isVariableToAnalyze('ltoel_y')
+                this.addBasicVariable('marker_trajectories')
+                this.addBasicVariable('ltoel_y')
+                this.addStretchVariable('ltoel_y')               
+            end
+            if this.isVariableToAnalyze('rtoel_y')
+                this.addBasicVariable('marker_trajectories')
+                this.addBasicVariable('rtoel_y')
+                this.addStretchVariable('rtoel_y')               
+            end
+            if this.isVariableToAnalyze('ltoes_y')
+                this.addBasicVariable('marker_trajectories')
+                this.addBasicVariable('ltoes_y')
+                this.addStretchVariable('ltoes_y')               
+            end
+            if this.isVariableToAnalyze('rtoes_y')
+                this.addBasicVariable('marker_trajectories')
+                this.addBasicVariable('rtoes_y')
+                this.addStretchVariable('rtoes_y')               
             end
             if this.isVariableToAnalyze('step_length')
                 this.addBasicVariable('marker_trajectories')
@@ -324,6 +403,21 @@ classdef WalkingDataCustodian < handle
                 this.addStretchVariable('step_time')
                 this.addStretchVariable('pushoff_time')
                 this.addStretchVariable('midstance_index')
+            end
+            if this.isVariableToAnalyze('midstance_time')
+                this.addBasicVariable('lankle_y')
+                this.addBasicVariable('rankle_y')
+                this.addBasicVariable('pelvis_y')
+                this.addStretchVariable('step_time')
+                this.addStretchVariable('pushoff_time')
+                this.addStretchVariable('midstance_time')
+            end
+            if this.isVariableToAnalyze('midswing_time')
+                this.addBasicVariable('ltoes_y')
+                this.addBasicVariable('rtoes_y')
+                this.addStretchVariable('step_time')
+                this.addStretchVariable('pushoff_time')
+                this.addStretchVariable('midswing_time')
             end
             if this.isVariableToAnalyze('cadence')
                 this.addStretchVariable('step_time')
@@ -1167,6 +1261,22 @@ classdef WalkingDataCustodian < handle
                     this.time_data.rankle_y = this.time_data.marker_trajectories;
                     success = 1;
                 end
+                if strcmp(variable_name, 'lankle_z')
+                    LANK_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LANK');
+                    this.basic_variable_data.lankle_z = LANK_trajectory(:, 3);
+                    LANK_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LANK',  'indices');
+                    this.basic_variable_directions.lankle_z = this.basic_variable_directions.marker_trajectories(:, LANK_indices(3));
+                    this.time_data.lankle_z = this.time_data.marker_trajectories;
+                    success = 1;
+                end
+                if strcmp(variable_name, 'rankle_z')
+                    RANK_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RANK');
+                    this.basic_variable_data.rankle_z = RANK_trajectory(:, 3);
+                    RANK_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RANK',  'indices');
+                    this.basic_variable_directions.rankle_z = this.basic_variable_directions.marker_trajectories(:, RANK_indices(3));
+                    this.time_data.rankle_z = this.time_data.marker_trajectories;
+                    success = 1;
+                end
                 if strcmp(variable_name, 'ltoel_x')
                     LTOEL_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LTOEL');
                     this.basic_variable_data.ltoel_x = LTOEL_trajectory(:, 1);
@@ -1174,13 +1284,45 @@ classdef WalkingDataCustodian < handle
                     this.basic_variable_directions.ltoel_x = this.basic_variable_directions.marker_trajectories(:, LTOEL_indices(1));
                     this.time_data.ltoel_x = this.time_data.marker_trajectories;
                     success = 1;
-                 end
+                end
                 if strcmp(variable_name, 'rtoel_x')
                     RTOEL_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RTOEL');
                     this.basic_variable_data.rtoel_x = RTOEL_trajectory(:, 1);
                     RTOEL_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RTOEL',  'indices');
                     this.basic_variable_directions.rtoel_x = this.basic_variable_directions.marker_trajectories(:, RTOEL_indices(1));
                     this.time_data.rtoel_x = this.time_data.marker_trajectories;
+                    success = 1;
+                end
+                if strcmp(variable_name, 'ltoel_y')
+                    LTOEL_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LTOEL');
+                    this.basic_variable_data.ltoel_y = LTOEL_trajectory(:, 2);
+                    LTOEL_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LTOEL',  'indices');
+                    this.basic_variable_directions.ltoel_y = this.basic_variable_directions.marker_trajectories(:, LTOEL_indices(2));
+                    this.time_data.ltoel_y = this.time_data.marker_trajectories;
+                    success = 1;
+                end
+                if strcmp(variable_name, 'rtoel_y')
+                    RTOEL_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RTOEL');
+                    this.basic_variable_data.rtoel_y = RTOEL_trajectory(:, 2);
+                    RTOEL_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RTOEL',  'indices');
+                    this.basic_variable_directions.rtoel_y = this.basic_variable_directions.marker_trajectories(:, RTOEL_indices(2));
+                    this.time_data.rtoel_y = this.time_data.marker_trajectories;
+                    success = 1;
+                 end
+                if strcmp(variable_name, 'ltoes_y')
+                    LTOE_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LTOE');
+                    this.basic_variable_data.ltoes_y = LTOE_trajectory(:, 2);
+                    LTOE_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LTOE',  'indices');
+                    this.basic_variable_directions.ltoes_y = this.basic_variable_directions.marker_trajectories(:, LTOE_indices(2));
+                    this.time_data.ltoes_y = this.time_data.marker_trajectories;
+                    success = 1;
+                end
+                if strcmp(variable_name, 'rtoes_y')
+                    RTOE_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RTOE');
+                    this.basic_variable_data.rtoes_y = RTOE_trajectory(:, 2);
+                    RTOE_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RTOE',  'indices');
+                    this.basic_variable_directions.rtoes_y = this.basic_variable_directions.marker_trajectories(:, RTOE_indices(2));
+                    this.time_data.rtoes_y = this.time_data.marker_trajectories;
                     success = 1;
                  end
                 if strcmp(variable_name, 'lasis_y')
@@ -2715,12 +2857,106 @@ classdef WalkingDataCustodian < handle
                         stretch_data = com_x - com_x(1);
                     end
                     if strcmp(variable_name, 'xcom_x')
+                        % get CoM position
                         com_x =  this.getTimeNormalizedData('com_x', this_stretch_times);
+                        com_y =  this.getTimeNormalizedData('com_y', this_stretch_times);
+                        com_z =  this.getTimeNormalizedData('com_z', this_stretch_times);
+                        
+                        % get instantaneous leg length
+                        lankle_x = this.getTimeNormalizedData('lankle_x', this_stretch_times);
+                        rankle_x = this.getTimeNormalizedData('rankle_x', this_stretch_times);
+                        lankle_y = this.getTimeNormalizedData('lankle_y', this_stretch_times);
+                        rankle_y = this.getTimeNormalizedData('rankle_y', this_stretch_times);
+                        lankle_z = this.getTimeNormalizedData('lankle_z', this_stretch_times);
+                        rankle_z = this.getTimeNormalizedData('rankle_z', this_stretch_times);
+                        stance_ankle_x_data = zeros(size(com_x));
+                        stance_ankle_y_data = zeros(size(com_x));
+                        stance_ankle_z_data = zeros(size(com_x));
+                        for i_band = number_of_bands : -1 : 1
+                            % going backward makes a difference for the
+                            % junction points between two steps. We want to
+                            % use data from the earlier step for BoS, so we
+                            % go backward
+                            [band_start_index, band_end_index] = getBandIndices(i_band, this.number_of_time_steps_normalized);
+                            
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_RIGHT')
+                                stance_ankle_x_data(band_start_index : band_end_index) = rankle_x(band_start_index : band_end_index);
+                                stance_ankle_y_data(band_start_index : band_end_index) = rankle_y(band_start_index : band_end_index);
+                                stance_ankle_z_data(band_start_index : band_end_index) = rankle_z(band_start_index : band_end_index);
+                            end
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_LEFT')
+                                stance_ankle_x_data(band_start_index : band_end_index) = lankle_x(band_start_index : band_end_index);
+                                stance_ankle_y_data(band_start_index : band_end_index) = lankle_y(band_start_index : band_end_index);
+                                stance_ankle_z_data(band_start_index : band_end_index) = lankle_z(band_start_index : band_end_index);
+                            end
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_BOTH')
+                                stance_ankle_x_data(band_start_index : band_end_index) = NaN;
+                                stance_ankle_y_data(band_start_index : band_end_index) = NaN;
+                                stance_ankle_z_data(band_start_index : band_end_index) = NaN;
+                            end
+                        end
+                        leg_vector_x = com_x - stance_ankle_x_data;
+                        leg_vector_y = com_y - stance_ankle_y_data;
+                        leg_vector_z = com_z - stance_ankle_z_data;
+                        leg_length_data = (leg_vector_x.^2 + leg_vector_y.^2 + leg_vector_z.^2).^(0.5);
+                        
+                        % calculate XCoM
                         com_x_vel =  this.getTimeNormalizedData('com_x_vel', this_stretch_times);
-                        leg_length = 1; % TODO: this should be the reference CoM height
-                        omega_0 = sqrt(9.81/leg_length);
+                        omega_0 = (9.81 * leg_length_data.^(-1)).^(0.5);
+%                         omega_0 = sqrt(9.81/leg_length);
                        
-                        stretch_data = com_x + 1/omega_0 * com_x_vel;
+                        stretch_data = com_x + omega_0.^(-1) .* com_x_vel;
+                    end
+                    if strcmp(variable_name, 'xcom_y')
+                        % get CoM position
+                        com_x =  this.getTimeNormalizedData('com_x', this_stretch_times);
+                        com_y =  this.getTimeNormalizedData('com_y', this_stretch_times);
+                        com_z =  this.getTimeNormalizedData('com_z', this_stretch_times);
+                        
+                        % get instantaneous leg length
+                        lankle_x = this.getTimeNormalizedData('lankle_x', this_stretch_times);
+                        rankle_x = this.getTimeNormalizedData('rankle_x', this_stretch_times);
+                        lankle_y = this.getTimeNormalizedData('lankle_y', this_stretch_times);
+                        rankle_y = this.getTimeNormalizedData('rankle_y', this_stretch_times);
+                        lankle_z = this.getTimeNormalizedData('lankle_z', this_stretch_times);
+                        rankle_z = this.getTimeNormalizedData('rankle_z', this_stretch_times);
+                        stance_ankle_x_data = zeros(size(com_x));
+                        stance_ankle_y_data = zeros(size(com_x));
+                        stance_ankle_z_data = zeros(size(com_x));
+                        for i_band = number_of_bands : -1 : 1
+                            % going backward makes a difference for the
+                            % junction points between two steps. We want to
+                            % use data from the earlier step for BoS, so we
+                            % go backward
+                            [band_start_index, band_end_index] = getBandIndices(i_band, this.number_of_time_steps_normalized);
+                            
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_RIGHT')
+                                stance_ankle_x_data(band_start_index : band_end_index) = rankle_x(band_start_index : band_end_index);
+                                stance_ankle_y_data(band_start_index : band_end_index) = rankle_y(band_start_index : band_end_index);
+                                stance_ankle_z_data(band_start_index : band_end_index) = rankle_z(band_start_index : band_end_index);
+                            end
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_LEFT')
+                                stance_ankle_x_data(band_start_index : band_end_index) = lankle_x(band_start_index : band_end_index);
+                                stance_ankle_y_data(band_start_index : band_end_index) = lankle_y(band_start_index : band_end_index);
+                                stance_ankle_z_data(band_start_index : band_end_index) = lankle_z(band_start_index : band_end_index);
+                            end
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_BOTH')
+                                stance_ankle_x_data(band_start_index : band_end_index) = NaN;
+                                stance_ankle_y_data(band_start_index : band_end_index) = NaN;
+                                stance_ankle_z_data(band_start_index : band_end_index) = NaN;
+                            end
+                        end
+                        leg_vector_x = com_x - stance_ankle_x_data;
+                        leg_vector_y = com_y - stance_ankle_y_data;
+                        leg_vector_z = com_z - stance_ankle_z_data;
+                        leg_length_data = (leg_vector_x.^2 + leg_vector_y.^2 + leg_vector_z.^2).^(0.5);
+                        
+                        % calculate XCoM
+                        com_y_vel =  this.getTimeNormalizedData('com_y_vel', this_stretch_times);
+                        omega_0 = (9.81 * leg_length_data.^(-1)).^(0.5);
+%                         omega_0 = sqrt(9.81/leg_length);
+                       
+                        stretch_data = com_y + omega_0.^(-1) .* com_y_vel;                    
                     end
                     if strcmp(variable_name, 'mos_x')
                         % first calculate base of support
@@ -2748,14 +2984,33 @@ classdef WalkingDataCustodian < handle
                         % now calculate XCoM - BoS
                         xcom_x = stretch_variables{strcmp(this.stretch_variable_names, 'xcom_x')}(:, i_stretch);
                         stretch_data = xcom_x - bos_x_data;
-
+                    end
+                    if strcmp(variable_name, 'mos_y')
+                        % first calculate base of support
+                        ltoel_y = this.getTimeNormalizedData('ltoel_y', this_stretch_times);
+                        rtoel_y = this.getTimeNormalizedData('rtoel_y', this_stretch_times);
+                        bos_y_data = zeros(size(ltoel_y));
+                        for i_band = number_of_bands : -1 : 1
+                            % going backward makes a difference for the
+                            % junction points between two steps. We want to
+                            % use data from the earlier step for BoS, so we
+                            % go backward
+                            [band_start_index, band_end_index] = getBandIndices(i_band, this.number_of_time_steps_normalized);
+                            
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_RIGHT')
+                                bos_y_data(band_start_index : band_end_index) = rtoel_y(band_start_index : band_end_index);
+                            end
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_LEFT')
+                                bos_y_data(band_start_index : band_end_index) = ltoel_y(band_start_index : band_end_index);
+                            end
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_BOTH')
+                                bos_y_data(band_start_index : band_end_index) = NaN;
+                            end
+                        end
                         
-                        
-%                         com_x =  this.getTimeNormalizedData('com_x', this_stretch_times);
-%                         com_x_vel =  this.getTimeNormalizedData('com_x_vel', this_stretch_times);
-%                         leg_length = 1; % TODO: this should be the reference CoM height
-%                         omega_0 = sqrt(9.81/leg_length);
-                        
+                        % now calculate XCoM - BoS
+                        xcom_y = stretch_variables{strcmp(this.stretch_variable_names, 'xcom_y')}(:, i_stretch);
+                        stretch_data = xcom_y - bos_y_data;
                     end
                     if strcmp(variable_name, 'step_length')
                         lheel_y = this.getTimeNormalizedData('lheel_y', this_stretch_times);
@@ -2888,6 +3143,61 @@ classdef WalkingDataCustodian < handle
 %                         end
 %                         stretch_data = find(stance_ankle_y < pelvis_y, 1, 'first');
                     end                        
+                    if strcmp(variable_name, 'midstance_time')
+                        lankle_y = this.getTimeNormalizedData('lankle_y', this_stretch_times);
+                        rankle_y = this.getTimeNormalizedData('rankle_y', this_stretch_times);
+                        pelvis_y = this.getTimeNormalizedData('pelvis_y', this_stretch_times);
+                        stretch_data = zeros(number_of_bands, 1);
+                        for i_band = 1 : number_of_bands
+                            [band_start_index, band_end_index] = getBandIndices(i_band, this.number_of_time_steps_normalized);
+                            band_start_time = this_stretch_times(i_band);
+                            band_end_time = this_stretch_times(i_band+1);
+                            band_time = linspace(band_start_time, band_end_time, band_end_index-band_start_index+1);
+                            
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_RIGHT')
+                                stance_ankle_this_band = rankle_y(band_start_index : band_end_index);
+                                pelvis_this_band = pelvis_y(band_start_index : band_end_index);
+                                [~, zero_crossing_index] = min(abs(stance_ankle_this_band - pelvis_this_band));
+                                stretch_data(i_band) = band_time(zero_crossing_index) - band_start_time;
+                            end
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_LEFT')
+                                stance_ankle_this_band = lankle_y(band_start_index : band_end_index);
+                                pelvis_this_band = pelvis_y(band_start_index : band_end_index);
+                                [~, zero_crossing_index] = min(abs(stance_ankle_this_band - pelvis_this_band));
+                                stretch_data(i_band) = band_time(zero_crossing_index) - band_start_time;
+                            end
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_BOTH')
+                                stretch_data(i_band) = NaN;
+                            end
+                        end
+                    end
+                    if strcmp(variable_name, 'midswing_time')
+                        ltoes_y = this.getTimeNormalizedData('ltoes_y', this_stretch_times);
+                        rtoes_y = this.getTimeNormalizedData('rtoes_y', this_stretch_times);
+                        stretch_data = zeros(number_of_bands, 1);
+                        for i_band = 1 : number_of_bands
+                            [band_start_index, band_end_index] = getBandIndices(i_band, this.number_of_time_steps_normalized);
+                            band_start_time = this_stretch_times(i_band);
+                            band_end_time = this_stretch_times(i_band+1);
+                            band_time = linspace(band_start_time, band_end_time, band_end_index-band_start_index+1);
+                            
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_RIGHT')
+                                stance_toes_this_band = rtoes_y(band_start_index : band_end_index);
+                                swing_toes_this_band = ltoes_y(band_start_index : band_end_index);
+                                [~, zero_crossing_index] = min(abs(stance_toes_this_band - swing_toes_this_band));
+                                stretch_data(i_band) = band_time(zero_crossing_index) - band_start_time;
+                            end
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_LEFT')
+                                stance_toes_this_band = ltoes_y(band_start_index : band_end_index);
+                                swing_toes_this_band = rtoes_y(band_start_index : band_end_index);
+                                [~, zero_crossing_index] = min(abs(stance_toes_this_band - swing_toes_this_band));
+                                stretch_data(i_band) = band_time(zero_crossing_index) - band_start_time;
+                            end
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_BOTH')
+                                stretch_data(i_band) = NaN;
+                            end
+                        end
+                    end
                     if strcmp(variable_name, 'cadence')
                         second_to_minute = 1/60;
                         step_time = stretch_variables{strcmp(this.stretch_variable_names, 'step_time')}(:, i_stretch);
@@ -3314,9 +3624,17 @@ classdef WalkingDataCustodian < handle
                 com_x_directions = this.basic_variable_directions.com_x;
                 stretch_directions_new = com_x_directions;
             end
+            if strcmp(variable_name, 'xcom_y')
+                com_y_directions = this.basic_variable_directions.com_y;
+                stretch_directions_new = com_y_directions;
+            end
             if strcmp(variable_name, 'mos_x')
                 com_x_directions = this.basic_variable_directions.com_x;
                 stretch_directions_new = com_x_directions;
+            end
+            if strcmp(variable_name, 'mos_y')
+                com_y_directions = this.basic_variable_directions.com_y;
+                stretch_directions_new = com_y_directions;
             end
             if strcmp(variable_name, 'step_length')
                 lheel_y_directions = this.basic_variable_directions.lheel_y;
@@ -3358,6 +3676,12 @@ classdef WalkingDataCustodian < handle
                 stretch_directions_new = {'+'; '-'};
             end
             if strcmp(variable_name, 'midstance_index')
+                stretch_directions_new = {'+'; '-'};
+            end                        
+            if strcmp(variable_name, 'midstance_time')
+                stretch_directions_new = {'+'; '-'};
+            end                        
+            if strcmp(variable_name, 'midswing_time')
                 stretch_directions_new = {'+'; '-'};
             end                        
             if strcmp(variable_name, 'cadence')
