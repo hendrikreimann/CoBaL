@@ -30,7 +30,7 @@ function singleBoxPlot(data, varargin)
     addParameter(parser, 'FaceAlpha', 1)
     
     addParameter(parser, 'PlotMean', true)
-    addParameter(parser, 'MeanLinewidth', 1)
+    addParameter(parser, 'MeanLinewidth', 2)
     addParameter(parser, 'MeanColor', [0.5, 0.5, 0.5])
     
     addParameter(parser, 'PlotMedian', true)
@@ -41,8 +41,8 @@ function singleBoxPlot(data, varargin)
     addParameter(parser, 'BandWidth', '')
     
     addParameter(parser, 'ShowOutliers', true)
-    addParameter(parser, 'ShowData', false)
-    addParameter(parser, 'DataMarkerSize', 36)
+    addParameter(parser, 'ShowData', 0)
+    addParameter(parser, 'DataMarkerSize', 18)
     addParameter(parser, 'seed', 0)
     parse(parser, varargin{:})
     abscissa = parser.Results.abscissa;
@@ -60,9 +60,7 @@ function singleBoxPlot(data, varargin)
     wiskcolor = parser.Results.WiskColor;
     wisk_linewidth = parser.Results.WiskLinewidth;
     plot_median = parser.Results.PlotMedian;
-    facealpha = parser.Results.FaceAlpha;
     xlabel = parser.Results.xlabel;
-    bandwidth = parser.Results.BandWidth;
     show_outliers = parser.Results.ShowOutliers;    
     show_data = parser.Results.ShowData;
     data_marker_size = parser.Results.DataMarkerSize;
@@ -81,16 +79,7 @@ function singleBoxPlot(data, varargin)
     end
     
     if length(data) == 1
-        bar ...
-          ( ...
-            abscissa, ...
-            data, ...
-            width, ...
-            'FaceColor', facecolor, ...
-            'parent', axes_handle, ...
-            'EdgeColor', 'none', ...
-            'HandleVisibility', 'off' ...
-          );
+        plot(axes_handle, abscissa, data, 'o', 'markerSize', data_marker_size, 'markerFaceColor', facecolor, 'MarkerEdgeColor', 'none');
         return
     end
     if iscolumn(data)
@@ -124,12 +113,13 @@ function singleBoxPlot(data, varargin)
         'LineWidth', edge_linewidth, ...
         'HandleVisibility', 'off' ...
       );
-    if plot_median
-        plot(axes_handle, abscissa + width*[-0.5 0.5], [data_median data_median], 'color', median_color, 'linewidth', median_linewidth, 'HandleVisibility', 'off'); % median
-    end
     if plot_mean
         plot(axes_handle, abscissa + width*[-0.5 0.5], [data_mean data_mean], 'color', meancolor, 'linewidth', mean_linewidth, 'HandleVisibility', 'off'); % mean
     end
+    if plot_median
+        plot(axes_handle, abscissa + width*[-0.5 0.5], [data_median data_median], 'color', median_color, 'linewidth', median_linewidth, 'HandleVisibility', 'off'); % median
+    end
+    % plot wisk
     plot(axes_handle, [abscissa abscissa], [data_quartile_3 data_upper_adjacent], '--', 'color', wiskcolor, 'linewidth', wisk_linewidth, 'HandleVisibility', 'off'); % upper range
     plot(axes_handle, [abscissa abscissa], [data_lower_adjacent data_quartile_1], '--', 'color', wiskcolor, 'linewidth', wisk_linewidth, 'HandleVisibility', 'off'); % lower range
     plot(axes_handle, abscissa+width*[-0.25 0.25], [data_lower_adjacent data_lower_adjacent], '-', 'color', wiskcolor, 'linewidth', wisk_linewidth, 'HandleVisibility', 'off'); % max
@@ -138,9 +128,9 @@ function singleBoxPlot(data, varargin)
         plot(axes_handle, abscissa * ones(size(outliers)), outliers, '+', 'color', [1; 1; 1] * 0.7, 'HandleVisibility', 'off');
     end
     
-    if show_data
+    if show_data && ~isempty(data)
         
-        [data_density, data_range, bandwidth_used]=ksdensity(data);
+        [data_density, data_range]=ksdensity(data);
         density_normalized = data_density/max(data_density); %normalize
         
         

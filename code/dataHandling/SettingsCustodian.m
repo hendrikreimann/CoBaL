@@ -24,6 +24,7 @@ classdef SettingsCustodian < handle
         force_string_list = ...
           { ...
             'preferred_level_order'; ...
+            'collection_date'; ...
           }
         force_cell_list = ...
           {
@@ -100,10 +101,17 @@ classdef SettingsCustodian < handle
             
             % force string
             if any(strcmp(this.force_string_list, property_name))
-                if ~iscell(data)
-                    data_cell = cell(size(data));
-                    for i_entry = 1 : numel(data)
-                        this_entry = data(i_entry);
+                data_old = data;
+                
+                % is this an individual number?
+                if isnumeric(data_old)
+                    data = num2str(data_old);
+                end
+                % not a single number, but not a cell?
+                if ~isnumeric(data_old) && ~iscell(data_old)
+                    data_cell = cell(size(data_old));
+                    for i_entry = 1 : numel(data_old)
+                        this_entry = data_old(i_entry);
                         if isnumeric(this_entry)
                             data_cell{i_entry} = num2str(this_entry);
                         else
@@ -181,6 +189,23 @@ classdef SettingsCustodian < handle
             if strcmp(property_name, 'show_outliers')
                 default_data = 1;
             end
+            if strcmp(property_name, 'show_individual_data')
+                default_data = 1;
+            end
+            if strcmp(property_name, 'show_average_data')
+                default_data = 1;
+            end
+            if strcmp(property_name, 'show_spread_data')
+                default_data = 1;
+            end
+            if strcmp(property_name, 'show_single_data_points')
+                default_data = 0;
+            end
+            
+            if strcmp(property_name, 'edge_color')
+                default_data = [0.4 0.4 0.4];
+            end
+            
             if strcmp(property_name, 'discrete_data_plot_style')
                 default_data = 'box';
             end
@@ -268,6 +293,17 @@ classdef SettingsCustodian < handle
                 default_data = 500;
             end
             
+            if strcmp(property_name, 'variables_to_plot_header')
+                default_data = {'variable name', 'variable type', 'variable label', 'y-axis label', 'save file string', 'y-axis lower limit', 'y-axis upper limit'};
+            end
+            if strcmp(property_name, 'convert_to_mm')
+                default_data = false;
+            end
+            if strcmp(property_name, 'inverse_kinematics_source')
+                default_data = 'opensim';
+            end
+
+
             
             
             if strcmp(property_name, 'marker_to_segment_map')

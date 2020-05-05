@@ -20,11 +20,16 @@ function collectPopulationResults(varargin)
 
     parser = inputParser;
     parser.KeepUnmatched = true;
-    addParameter(parser, 'output', 'results')
+    addParameter(parser, 'source', '')
+    addParameter(parser, 'output', '')
     addParameter(parser, 'subjects', [])
     parse(parser, varargin{:})
     subjects = parser.Results.subjects;
+    source_label = parser.Results.source;
     save_file = parser.Results.output;
+    if isempty(save_file)
+        save_file = ['results' source_label];
+    end
 
     % load settings
     if ~exist('studySettings.txt', 'file')
@@ -34,9 +39,17 @@ function collectPopulationResults(varargin)
     
     data_folder_list = determineDataStructure(subjects);
 
-    %% collect data from all data folders
+    %% load and process settings information
     variables_to_collect = study_settings.get('variables_to_collect');
+    variables_to_collect_header = study_settings.get('variables_to_collect_header');
     variables_to_collect_long = study_settings.get('variables_to_collect_long', 1);
+    
+    % remove variables from this list that don't match the source type
+    source_column = strcmp(variables_to_collect_header, 'source file');
+    source_match = strcmp(variables_to_collect(:, source_column), source_label);
+    variables_to_collect(~source_match, :) = [];
+    
+    % prepare
     number_of_variables_to_collect = size(variables_to_collect, 1);
     number_of_variables_to_collect_long = size(variables_to_collect_long, 1);
     conditions_settings = study_settings.get('conditions');
@@ -61,16 +74,36 @@ function collectPopulationResults(varargin)
     
     variable_data_long = cell(number_of_variables_to_collect_long, 1);
     step_time_data_long = [];
-    variables_to_save_long = struct;
-   
+    
+    % determine which files have to be loaded
+%     source_labels = unique(variables_to_collect(:, strcmp(variables_to_collect_header, 'source file')));
+%     number_of_sources = length(source_labels);
+    
     for i_folder = 1 : length(data_folder_list)
         % load data
         data_path = data_folder_list{i_folder};
         load([data_path filesep 'subjectInfo.mat'], 'date', 'subject_id');
         disp(['Collecting from ' subject_id]);
-        results_data = load([data_path filesep 'analysis' filesep date '_' subject_id '_results.mat']);
+%         for i_source = 1 : number_of_sources
+%             this_source = source_labels{i_source};
+%             results_data.(this_source) = load([data_path filesep 'analysis' filesep date '_' subject_id '_results' this_source '.mat']);
+%             
+%         end
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        results_data = load([data_path filesep date '_' subject_id '_results' source_label '.mat']);
         if ~isempty(variables_to_collect_long)
-            results_data_long = load([data_path filesep 'analysis' filesep date '_' subject_id '_longStretchResults.mat']);
+            results_data_long = load([data_path filesep date '_' subject_id '_longStretchResults.mat']);
         end
 
         % extract and store results
@@ -81,43 +114,58 @@ function collectPopulationResults(varargin)
         
         for i_variable = 1 : number_of_variables_to_collect
             % load and extract data
-            new_variable_name = variables_to_collect{i_variable, 1};
-            source_variable_name = variables_to_collect{i_variable, 2};
-            this_variable_source_type = variables_to_collect{i_variable, 3};
-            if strcmp(this_variable_source_type, 'stretch')
-                this_variable_source_index = find(strcmp(results_data.stretch_names_session, source_variable_name), 1, 'first');
-                if isempty(this_variable_source_index)
-                    error(['Variable not found: ' source_variable_name])
-                end
-                this_variable_data = results_data.stretch_data_session{this_variable_source_index};
+            new_variable_name = variables_to_collect{i_variable, strcmp(variables_to_collect_header, 'new variable name')};
+            source_variable_name = variables_to_collect{i_variable, strcmp(variables_to_collect_header, 'source variable name')};
+            this_variable_source_type = variables_to_collect{i_variable, strcmp(variables_to_collect_header, 'source variable type')};
+            
+            
+            this_variable_source_index = find(strcmp(results_data.([this_variable_source_type '_names_session']), source_variable_name), 1, 'first');
+            if isempty(this_variable_source_index)
+                error(['Variable not found: ' source_variable_name])
             end
-            if strcmp(this_variable_source_type, 'response')
-                this_variable_source_index = find(strcmp(results_data.response_names_session, source_variable_name), 1, 'first');
-                if isempty(this_variable_source_index)
-                    error(['Variable not found: ' source_variable_name])
-                end
-                this_variable_data = results_data.response_data_session{this_variable_source_index};
-            end
-            if strcmp(this_variable_source_type, 'analysis')
-                this_variable_source_index = find(strcmp(results_data.analysis_names_session, source_variable_name), 1, 'first');
-                if isempty(this_variable_source_index)
-                    error(['Variable not found: ' source_variable_name])
-                end
-                this_variable_data = results_data.analysis_data_session{this_variable_source_index};
-            end
-            if strcmp(this_variable_source_type, 'range')
-                this_variable_source_index = find(strcmp(results_data.range_names_session, source_variable_name), 1, 'first');
-                if isempty(this_variable_source_index)
-                    error(['Variable not found: ' source_variable_name])
-                end
-                this_variable_data = results_data.range_data_session{this_variable_source_index};
-            end
+            this_variable_data = results_data.([this_variable_source_type '_data_session']){this_variable_source_index};
+            
+            % 21.3.2020 HR: generalized the code below with the five lines
+            % above, but keep around for now to see if this works
+%             if strcmp(this_variable_source_type, 'stretch')
+%                 this_variable_source_index = find(strcmp(results_data.stretch_names_session, source_variable_name), 1, 'first');
+%                 if isempty(this_variable_source_index)
+%                     error(['Variable not found: ' source_variable_name])
+%                 end
+%                 this_variable_data = results_data.stretch_data_session{this_variable_source_index};
+%             end
+%             if strcmp(this_variable_source_type, 'response')
+%                 this_variable_source_index = find(strcmp(results_data.response_names_session, source_variable_name), 1, 'first');
+%                 if isempty(this_variable_source_index)
+%                     error(['Variable not found: ' source_variable_name])
+%                 end
+%                 this_variable_data = results_data.response_data_session{this_variable_source_index};
+%             end
+%             if strcmp(this_variable_source_type, 'analysis')
+%                 this_variable_source_index = find(strcmp(results_data.analysis_names_session, source_variable_name), 1, 'first');
+%                 if isempty(this_variable_source_index)
+%                     error(['Variable not found: ' source_variable_name])
+%                 end
+%                 this_variable_data = results_data.analysis_data_session{this_variable_source_index};
+%             end
+%             if strcmp(this_variable_source_type, 'range')
+%                 this_variable_source_index = find(strcmp(results_data.range_names_session, source_variable_name), 1, 'first');
+%                 if isempty(this_variable_source_index)
+%                     error(['Variable not found: ' source_variable_name])
+%                 end
+%                 this_variable_data = results_data.range_data_session{this_variable_source_index};
+%             end
             
             % store
             variable_data{i_variable} = [variable_data{i_variable} this_variable_data];
         end
-        step_time_source_index = find(strcmp(results_data.stretch_names_session, 'step_time'), 1, 'first');
-        step_time_data = [step_time_data results_data.stretch_data_session{step_time_source_index}]; %#ok<AGROW>
+        % 21.3.2020 HR: step time should now be stored explicitly if
+        % needed, so this shouldn't be necessary anymore. Having it here
+        % explicitly is at odds with paradigms that don't involve stepping.
+        % But leave around commented for now in case this generates issues
+        % at some point
+%         step_time_source_index = find(strcmp(results_data.stretch_names_session, 'step_time'), 1, 'first');
+%         step_time_data = [step_time_data results_data.stretch_data_session{step_time_source_index}]; %#ok<AGROW>
         
         origin_trial_number_data = [origin_trial_number_data; results_data.origin_trial_list_session]; %#ok<AGROW>
         origin_stretch_start_time_data = [origin_stretch_start_time_data; results_data.origin_start_time_list_session]; %#ok<AGROW>

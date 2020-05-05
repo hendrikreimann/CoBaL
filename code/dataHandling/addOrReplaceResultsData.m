@@ -14,15 +14,27 @@
 %     You should have received a copy of the GNU General Public License
 %     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-function [data, names, directions] = addOrReplaceResultsData(data, names, directions, new_data, new_name, new_directions)
-    index_in_existing_data = find(strcmp(names, new_name));
+function data = addOrReplaceResultsData(data, new_data, data_label)
+    % create the data fields if they don't exist yet
+    if ~isfield(data, [data_label '_data_session'])
+        data.([data_label '_data_session']) = {};
+        data.([data_label '_directions_session']) = {};
+        data.([data_label '_names_session']) = {};
+    end
+
+    index_in_existing_data = find(strcmp(data.([data_label '_names_session']), new_data.name), 1, 'first');
     if isempty(index_in_existing_data)
-        data = [data; new_data];
-        names = [names; new_name];
-        directions = [directions; new_directions];
+        data.([data_label '_data_session']) = [data.([data_label '_data_session']); new_data.data];
+        data.([data_label '_names_session']) = [data.([data_label '_names_session']); new_data.name];
+        data.([data_label '_directions_session']) = [data.([data_label '_directions_session']); new_data.directions];
     else
-        data{index_in_existing_data} = new_data;
-        directions(index_in_existing_data,:) = new_directions;
-        % TODO: check whether directions are different
+        % update data
+        data.([data_label '_data_session']){index_in_existing_data} = new_data.data;
+
+        % compare directions and warn if they don't match
+        old_directions = data.([data_label '_directions_session'])(index_in_existing_data, :);
+        if ~isequal(old_directions, new_data.directions)
+            warning(['Updating data for variable ' new_data.name ', but directions do not match.'])
+        end
     end
 end

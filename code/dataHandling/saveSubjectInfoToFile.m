@@ -27,7 +27,6 @@ function saveSubjectInfoToFile(varargin)
     subject_settings = SettingsCustodian('subjectSettings.txt');
     trial_types_to_ignore = subject_settings.get('trial_types_to_ignore', 1);
    
-    
     % get parameters from settings file
     parameters_cell = subject_settings.get('subject_info', 1);
     for i_parameter = 1 : size(parameters_cell, 1)
@@ -42,10 +41,10 @@ function saveSubjectInfoToFile(varargin)
     data_dir = dir([screen_folder filesep '*.mat']);
     clear file_name_list;
     [file_name_list{1:length(data_dir)}] = deal(data_dir.name);
-    sample_file_name = file_name_list{1};
-    [date, subject_id] = getFileParameters(sample_file_name);
-    variables_to_save.date = date;
-    variables_to_save.subject_id = subject_id;
+%     sample_file_name = file_name_list{1};
+%     [date, subject_id] = getFileParameters(sample_file_name);
+%     variables_to_save.date = date;
+%     variables_to_save.subject_id = subject_id;
 
     % get list of conditions
     trial_type_list = {};

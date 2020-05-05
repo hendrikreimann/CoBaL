@@ -65,7 +65,7 @@ function findEvents_MS(varargin)
                 platform_trajectory = platform_trajectory(:, 1);
 
                 % calculate derivatives
-                filter_order = 2;
+                filter_order = 4;
                 cutoff_frequency = 20; % cutoff frequency, in Hz
                 [b, a] = butter(filter_order, cutoff_frequency/(sampling_rate_marker/2));	% set filter parameters for butterworth filter: 2=order of filter;
                 platform_vel_trajectory = deriveByTime(nanfiltfilt(b, a, platform_trajectory), 1/sampling_rate_marker);
@@ -82,6 +82,14 @@ function findEvents_MS(varargin)
                 treadmill_acc_trajectories = deriveByTime(nanfiltfilt(b, a, treadmill_vel_trajectories), 1/sampling_rate_marker);
             end
 
+            shift_source = subject_settings.get('shift_source', true);
+            if strcmp(shift_source, 'base_marker')
+                shift_vel_trajectory = platform_vel_trajectory;
+                shift_acc_trajectory = platform_acc_trajectory;
+            elseif strcmp(shift_source, 'treadmill_trajectory')
+                shift_vel_trajectory = treadmill_vel_trajectories;
+                shift_acc_trajectory = treadmill_acc_trajectories;
+            end
             
 
             %% find events
@@ -113,65 +121,81 @@ function findEvents_MS(varargin)
             end
             
             if any(strcmp(this_trial_type, study_settings.get('across_trials_conditions', 1)))
-                distance_threshold = subject_settings.get('treadmill_acc_peak_distance_threshold') * sampling_rate_marker;
-                if distance_threshold > length(treadmill_acc_trajectories) - 2
-                    distance_threshold = length(treadmill_acc_trajectories) - 2;
+                distance_threshold = subject_settings.get('acc_peak_distance_threshold') * sampling_rate_marker;
+                if distance_threshold > length(shift_acc_trajectory) - 2
+                    distance_threshold = length(shift_acc_trajectory) - 2;
                 end
                 
                 
-                if strcmp(subject_settings.get('treadmill_shift_method', 1), 'acceleration_peaks')
-                    treadmill_marker_acceleration_ap = treadmill_acc_trajectories(:, 1 : 3 : end);
-                    number_of_treadmill_markers = size(treadmill_marker_acceleration_ap, 2);
-                    treadmill_shift_start_indices = zeros(1, number_of_treadmill_markers);
-                    treadmill_shift_end_indices = zeros(1, number_of_treadmill_markers);
-                    treadmill_shift_start_times = zeros(1, number_of_treadmill_markers);
-                    treadmill_shift_end_times = zeros(1, number_of_treadmill_markers);
-                    for i_marker = 1 : number_of_treadmill_markers
+                if strcmp(subject_settings.get('shift_method', 1), 'acceleration_peaks')
+                    marker_acceleration_ap = shift_acc_trajectory(:, 1 : 3 : end);
+                    number_of_shift_markers = size(marker_acceleration_ap, 2);
+                    shift_start_indices = zeros(1, number_of_shift_markers);
+                    shift_end_indices = zeros(1, number_of_shift_markers);
+                    shift_start_times = zeros(1, number_of_shift_markers);
+                    shift_end_times = zeros(1, number_of_shift_markers);
+                    for i_marker = 1 : number_of_shift_markers
                         % use acceleration peaks
-                        [~, treadmill_acc_peak_indices] = findpeaks(treadmill_marker_acceleration_ap(:, i_marker), 'MinPeakProminence', subject_settings.get('treadmill_acc_peak_prominence_threshold'), 'MinPeakDistance', distance_threshold);
-                        treadmill_acc_peak_times = time_marker(treadmill_acc_peak_indices);
-                        [~, treadmill_acc_vale_indices] = findpeaks(-treadmill_marker_acceleration_ap(:, i_marker), 'MinPeakProminence', subject_settings.get('treadmill_acc_peak_prominence_threshold'), 'MinPeakDistance', distance_threshold);
-                        treadmill_acc_vale_times = time_marker(treadmill_acc_vale_indices);
+                        [~, acc_peak_indices] = findpeaks(marker_acceleration_ap(:, i_marker), 'MinPeakProminence', subject_settings.get('acc_peak_prominence_threshold'), 'MinPeakDistance', distance_threshold);
+                        acc_peak_times = time_marker(acc_peak_indices);
+                        [~, acc_vale_indices] = findpeaks(-marker_acceleration_ap(:, i_marker), 'MinPeakProminence', subject_settings.get('acc_peak_prominence_threshold'), 'MinPeakDistance', distance_threshold);
+                        acc_vale_times = time_marker(acc_vale_indices);
 
                         % determine start and end
-                        treadmill_shift_start_candidate_index = min([treadmill_acc_peak_indices; treadmill_acc_vale_indices]);
-                        treadmill_shift_end_candidate_index = max([treadmill_acc_peak_indices; treadmill_acc_vale_indices]);
-                        treadmill_shift_start_times(i_marker) = time_marker(treadmill_shift_start_candidate_index);
-                        treadmill_shift_end_times(i_marker) = time_marker(treadmill_shift_end_candidate_index);
+                        shift_start_candidate_index = min([acc_peak_indices; acc_vale_indices]);
+                        shift_end_candidate_index = max([acc_peak_indices; acc_vale_indices]);
+                        shift_start_times(i_marker) = time_marker(shift_start_candidate_index);
+                        shift_end_times(i_marker) = time_marker(shift_end_candidate_index);
 
                     end
-                    if std(treadmill_shift_start_times) > subject_settings.get('treadmill_marker_timing_tolerance')
+                    if std(shift_start_times) > subject_settings.get('marker_timing_tolerance')
                         warning(['Trial ' this_trial_type ' - ' num2str(i_trial) ': timing between markers exceeds tolerance'])
                     end
-                    if std(treadmill_shift_end_times) > subject_settings.get('treadmill_marker_timing_tolerance')
+                    if std(shift_end_times) > subject_settings.get('marker_timing_tolerance')
                         warning(['Trial ' this_trial_type ' - ' num2str(i_trial) ': timing between markers exceeds tolerance'])
                     end
 
-                    treadmill_shift_start_time = mean(treadmill_shift_start_times);
-                    treadmill_shift_end_time = mean(treadmill_shift_end_times);
+                    shift_start_time = mean(shift_start_times);
+                    shift_end_time = mean(shift_end_times);
                 end
                 
-                if strcmp(subject_settings.get('treadmill_shift_method', 1), 'velocity_threshold')
+                if strcmp(subject_settings.get('shift_method', 1), 'velocity_threshold')
                     % use velocity threshold crossing
-                    treadmill_marker_velocity_ap_abs = abs(treadmill_vel_trajectories(:, 1 : 3 : end));
+                    marker_velocity_ap_abs = abs(shift_vel_trajectory(:, 1 : 3 : end));
                     
-                    treadmill_vel_threshold_breach = treadmill_marker_velocity_ap_abs > subject_settings.get('treadmill_vel_threshold', 1);
-                    treadmill_shift_start_index = find(diff(treadmill_vel_threshold_breach) > 0);
-                    treadmill_shift_end_times = find(diff(treadmill_vel_threshold_breach) < 0);
+                    vel_threshold_breach = marker_velocity_ap_abs > subject_settings.get('shift_vel_threshold', 1);
+                    shift_start_index = find(diff(vel_threshold_breach) > 0);
+                    shift_end_times = find(diff(vel_threshold_breach) < 0);
 
-                    treadmill_shift_start_time = time_marker(treadmill_shift_start_index);
-                    treadmill_shift_end_time = time_marker(treadmill_shift_end_times);
+                    shift_start_time = time_marker(shift_start_index);
+                    shift_end_time = time_marker(shift_end_times);
+                end
+
+                if strcmp(subject_settings.get('shift_method', 1), 'acceleration_threshold')
+                    % use absolute acceleration threshold crossing for start
+                    marker_acceleration_ap = shift_acc_trajectory(:, 1 : 3 : end);
+                    marker_acceleration_ap_abs = abs(marker_acceleration_ap);
+                    acc_abs_threshold_breach = marker_acceleration_ap_abs > subject_settings.get('shift_acc_threshold', 1);
+                    shift_start_index = find(diff(acc_abs_threshold_breach) > 0, 1, 'first');
+                    
+                    % determine if this was forward or backward
+                    shift_direction = sign(shift_acc_trajectory(shift_start_index));
+                    acc_threshold_breach = (- shift_direction * marker_acceleration_ap) > subject_settings.get('shift_acc_threshold', 1);
+                    shift_end_index = find(diff(acc_threshold_breach) > 0, 1, 'first');
+                    
+                    shift_start_time = time_marker(shift_start_index);
+                    shift_end_time = time_marker(shift_end_index);
                 end
                 
                 event_data = ...
                   { ...
-                    treadmill_shift_start_time - 1; ...
-                    treadmill_shift_start_time - 0.2; ...
-                    treadmill_shift_start_time; ...
-                    treadmill_shift_start_time + 0.075; ...
-                    treadmill_shift_end_time; ...
-                    treadmill_shift_end_time + 1; ...
-                    treadmill_shift_end_time + 2; ...
+                    shift_start_time - 1; ...
+                    shift_start_time - 0.2; ...
+                    shift_start_time; ...
+                    shift_start_time + 0.075; ...
+                    shift_end_time; ...
+                    shift_end_time + 1; ...
+                    shift_end_time + 2; ...
                   };
                 event_labels = ...
                   { ...
@@ -185,8 +209,8 @@ function findEvents_MS(varargin)
                   };
                 
                 % for visualization here
-                treadmill_events = [treadmill_shift_start_time, treadmill_shift_end_time, treadmill_shift_end_time + 1, treadmill_shift_end_time + 2];
-                treadmill_event_indices = findClosestIndex(treadmill_events, time_marker);
+                shift_events = [shift_start_time, shift_end_time, shift_end_time + 1, shift_end_time + 2];
+                shift_event_indices = findClosestIndex(shift_events, time_marker);
               
             end
 
@@ -227,18 +251,20 @@ function findEvents_MS(varargin)
                 
                 % position
                 event_figures(1) = figure; axes_pos = axes; hold on; title('marker positions')
-%                 plot(time_marker, platform_trajectory, 'linewidth', 1, 'displayname', 'platform position');
-                plot(time_marker, treadmill_vel_trajectories, 'linewidth', 1, 'displayname', 'platform position');
-                plot(time_marker, treadmill_acc_trajectories, 'linewidth', 1, 'displayname', 'platform position');
+%                 plot(time_marker, platform_trajectory, 'linewidth', 1, 'displayname', 'shift pos');
+                plot(time_marker, shift_vel_trajectory, 'linewidth', 1, 'displayname', 'shift vel');
+                plot(time_marker, shift_acc_trajectory, 'linewidth', 1, 'displayname', 'shift acc');
                 
                 
 %                 plot(time_marker, surround_trajectory, 'linewidth', 1, 'displayname', 'surround position');
                 
 %                 plot(time_marker(platform_event_indices), platform_trajectory(platform_event_indices), 'v', 'linewidth', 2, 'color', color_heelstrike, 'displayname', 'oscillation peaks');
-                [~, treadmill_shift_start_time_index] = min(abs(time_marker - treadmill_shift_start_time));
-                [~, treadmill_shift_end_time_index] = min(abs(time_marker - treadmill_shift_end_time));
-                plot(treadmill_shift_start_time, treadmill_vel_trajectories(treadmill_shift_start_time_index), '>', 'linewidth', 2, 'color', color_heelstrike, 'displayname', 'start');
-                plot(treadmill_shift_end_time, treadmill_vel_trajectories(treadmill_shift_end_time_index), '<', 'linewidth', 2, 'color', color_heelstrike, 'displayname', 'end');
+                [~, shift_start_time_index] = min(abs(time_marker - shift_start_time));
+                [~, shift_end_time_index] = min(abs(time_marker - shift_end_time));
+%                 plot(shift_start_time, shift_vel_trajectory(shift_start_time_index), '>', 'linewidth', 2, 'color', color_heelstrike, 'displayname', 'start');
+%                 plot(shift_end_time, shift_vel_trajectory(shift_end_time_index), '<', 'linewidth', 2, 'color', color_heelstrike, 'displayname', 'end');
+                plot(shift_start_time, shift_acc_trajectory(shift_start_time_index), '>', 'linewidth', 2, 'color', color_heelstrike, 'displayname', 'start');
+                plot(shift_end_time, shift_acc_trajectory(shift_end_time_index), '<', 'linewidth', 2, 'color', color_heelstrike, 'displayname', 'end');
                 
 %                 plot(time_marker(left_pushoff_indices_mocap), LTOE_z_trajectory(left_pushoff_indices_mocap), 'o', 'linewidth', 2, 'color', color_pushoff, 'displayname', 'left pushoff');
                 legend('toggle');
