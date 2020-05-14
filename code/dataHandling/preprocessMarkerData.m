@@ -34,6 +34,10 @@ function preprocessMarkerData(varargin)
     visualize = parser.Results.visualize;
     
     subject_info = load('subjectInfo.mat');
+    
+    subject_settings = loadSettingsFromFile('subject');
+    collection_date = subject_settings.get('collection_date');
+    subject_id = subject_settings.get('subject_id');
 
     % add excluded trials back in, because while we don't want to analyze them, we still want to pre-process them
     types_to_analyze = [types_to_analyze; types_to_exclude];
@@ -51,7 +55,7 @@ function preprocessMarkerData(varargin)
     subject_settings = SettingsCustodian('subjectSettings.txt');
     
     % load static reference trial
-    load(['raw' filesep makeFileName(subject_info.date, subject_info.subject_id, subject_settings.get('static_reference_trial_type'), subject_settings.get('static_reference_trial_number'), 'markerTrajectoriesRaw.mat')]);
+    load(['raw' filesep makeFileName(collection_date, subject_id, subject_settings.get('static_reference_trial_type'), subject_settings.get('static_reference_trial_number'), 'markerTrajectoriesRaw.mat')]);
     marker_labels_reference = marker_labels;
     marker_directions_reference = marker_directions;
 
