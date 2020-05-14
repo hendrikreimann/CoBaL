@@ -176,6 +176,7 @@ function trial_data = loadStimulusData(study_settings, subject_settings, trial_d
     if strcmp(experimental_paradigm, 'Vision') || strcmp(experimental_paradigm, 'CadenceVision') || strcmp(experimental_paradigm, 'SR_VisualStim') || strcmp(experimental_paradigm, 'CognitiveLoadVision')
 %         current_rotation_trajectory = loadData(collection_date, subject_id, trial_data.trial_type, trial_data.trial_number, 'visual_rotation_angle_trajectory');
         trial_data.current_acceleration_trajectory = loadData(collection_date, subject_id, trial_data.trial_type, trial_data.trial_number, 'visual_rotation_acceleration_trajectory');
+        trial_data.current_rotation_trajectory = loadData(collection_date, subject_id, trial_data.trial_type, trial_data.trial_number, 'visual_rotation_angle_trajectory');
         [stimulus_state_trajectory, time_stimulus] = loadData(collection_date, subject_id, trial_data.trial_type, trial_data.trial_number, 'stimulus_state_trajectory');
 
         trial_data.stimulus_state_trajectory = stimulus_state_trajectory;
@@ -241,13 +242,13 @@ function trial_data = determineIllusion(study_settings, trial_data)
     if strcmp(experimental_paradigm, 'Vision') || strcmp(experimental_paradigm, 'CadenceVision') || strcmp(experimental_paradigm, 'SR_VisualStim') || strcmp(experimental_paradigm, 'CognitiveLoadVision')
         illusion_trajectory = zeros(size(trial_data.time_stimulus)); % -1 = LEFT, 1 = RIGHT
         for i_time = 1 : length(trial_data.time_stimulus)
-            if stimulus_state_trajectory(i_time) == 3
+            if trial_data.stimulus_state_trajectory(i_time) == 3
                 % stimulus is currently active
-                if current_rotation_trajectory(i_time) < 0
+                if trial_data.current_rotation_trajectory(i_time) < 0
                     % angle is negative, horizon rotates clockwise, illusion is to the LEFT
                     illusion_trajectory(i_time) = -1;
                 end
-                if current_rotation_trajectory(i_time) > 0
+                if trial_data.current_rotation_trajectory(i_time) > 0
                     % angle is positive, horizon rotates counter-clockwise, illusion is to the RIGHT
                     illusion_trajectory(i_time) = 1;
                 end
