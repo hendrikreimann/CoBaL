@@ -42,12 +42,13 @@ function stanceModel_4DoF_old(varargin)
     subject_settings = SettingsCustodian('subjectSettings.txt');
 
 
-    load('subjectInfo.mat', 'date', 'subject_id');
+    collection_date = subject_settings.get('collection_date');
+    subject_id = subject_settings.get('subject_id');
 
     %% create static reference
 
     % load static reference file
-    load(['processed' filesep makeFileName(date, subject_id, subject_settings.get('static_reference_trial_type'), subject_settings.get('static_reference_trial_number'), 'markerTrajectories')]);
+    load(['processed' filesep makeFileName(collection_date, subject_id, subject_settings.get('static_reference_trial_type'), subject_settings.get('static_reference_trial_number'), 'markerTrajectories')]);
 
     % find first time step where all markers are available
     i_time = 1;

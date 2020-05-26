@@ -82,7 +82,11 @@ function collectPopulationResults(varargin)
     for i_folder = 1 : length(data_folder_list)
         % load data
         data_path = data_folder_list{i_folder};
-        load([data_path filesep 'subjectInfo.mat'], 'date', 'subject_id');
+        
+        subject_settings = loadSettingsFromFile('subject', data_path);
+        collection_date = subject_settings.get('collection_date');
+        subject_id = subject_settings.get('subject_id');
+        
         disp(['Collecting from ' subject_id]);
 %         for i_source = 1 : number_of_sources
 %             this_source = source_labels{i_source};
@@ -101,9 +105,9 @@ function collectPopulationResults(varargin)
         
         
         
-        results_data = load([data_path filesep date '_' subject_id '_results' source_label '.mat']);
+        results_data = load([data_path filesep collection_date '_' subject_id '_results' source_label '.mat']);
         if ~isempty(variables_to_collect_long)
-            results_data_long = load([data_path filesep date '_' subject_id '_longStretchResults.mat']);
+            results_data_long = load([data_path filesep collection_date '_' subject_id '_longStretchResults.mat']);
         end
 
         % extract and store results

@@ -21,7 +21,6 @@
 
 function analyzeVarianceAcrossEvents(varargin)
     [trial_type_list, trial_number_list] = parseTrialArguments(varargin{:});
-    load('subjectInfo.mat', 'date', 'subject_id');
     
     % load settings
     study_settings_file = '';
@@ -33,6 +32,8 @@ function analyzeVarianceAcrossEvents(varargin)
     end
     study_settings = SettingsCustodian(study_settings_file);
     subject_settings = SettingsCustodian('subjectSettings.txt');
+    collection_date = subject_settings.get('collection_date');
+    subject_id = subject_settings.get('subject_id');
     model_data = load('subjectModel.mat');
     kinematic_tree = model_data.kinematic_tree;
     
@@ -74,19 +75,19 @@ function analyzeVarianceAcrossEvents(varargin)
 
             for i_trial = 1 : number_of_trials_this_condition
                 % load data
-                loaded_data = load(['processed' filesep makeFileName(date, subject_id, this_condition_label, this_condition_trial_numbers(i_trial), 'kinematicTrajectories.mat')]);
+                loaded_data = load(['processed' filesep makeFileName(collection_date, subject_id, this_condition_label, this_condition_trial_numbers(i_trial), 'kinematicTrajectories.mat')]);
                 joint_angle_trajectories = loaded_data.joint_angle_trajectories;
                 joint_angle_labels = loaded_data.joint_labels; %#ok<NASGU>
                 time_mocap = loaded_data.time_mocap;
-                loaded_data = load(['processed' filesep makeFileName(date, subject_id, this_condition_label, this_condition_trial_numbers(i_trial), 'comTrajectories.mat')]);
+                loaded_data = load(['processed' filesep makeFileName(collection_date, subject_id, this_condition_label, this_condition_trial_numbers(i_trial), 'comTrajectories.mat')]);
                 com_trajectories = loaded_data.com_trajectories;
                 com_labels = loaded_data.com_labels; %#ok<NASGU>
-                loaded_data = load(['processed' filesep makeFileName(date, subject_id, this_condition_label, this_condition_trial_numbers(i_trial), 'eefTrajectories.mat')]);
+                loaded_data = load(['processed' filesep makeFileName(collection_date, subject_id, this_condition_label, this_condition_trial_numbers(i_trial), 'eefTrajectories.mat')]);
                 eef_trajectories = loaded_data.eef_trajectories;
                 eef_labels = loaded_data.eef_labels; %#ok<NASGU>
                 
                 % load and check events
-                loaded_data = load(['analysis' filesep makeFileName(date, subject_id, this_condition_label, this_condition_trial_numbers(i_trial), 'events.mat')]);
+                loaded_data = load(['analysis' filesep makeFileName(collection_date, subject_id, this_condition_label, this_condition_trial_numbers(i_trial), 'events.mat')]);
                 if ~(length(loaded_data.event_data)==number_of_events_types)
                     error(['Trial ' num2str(this_condition_trial_numbers(i_trial)) ' - expected ' num2str(number_of_events_types) ' events, but found ' num2str(length(event_indices_mocap))]);
                 end
@@ -153,7 +154,7 @@ function analyzeVarianceAcrossEvents(varargin)
     conditions_session.time_point_list = time_point_list_session;
     conditions_session.group_list = group_list_session;
     conditions_session.block_list = block_list_session;
-    results_file_name = makeFileName(date, subject_id, 'resultsVariance');
+    results_file_name = makeFileName(collection_date, subject_id, 'resultsVarianceAcrossEvents');
     save ...
       ( ...
         results_file_name, ...
