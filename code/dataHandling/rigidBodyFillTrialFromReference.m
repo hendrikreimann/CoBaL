@@ -24,22 +24,15 @@ function rigidBodyFillTrialFromReference(marker_to_fill, marker_source_1, marker
     visualize = parser.Results.visualize;
     
     % load settings
-%     study_settings_file = '';
-%     if exist(['..' filesep 'studySettings.txt'], 'file')
-%         study_settings_file = ['..' filesep 'studySettings.txt'];
-%     end    
-%     if exist(['..' filesep '..' filesep 'studySettings.txt'], 'file')
-%         study_settings_file = ['..' filesep '..' filesep 'studySettings.txt'];
-%     end
-%     study_settings = SettingsCustodian(study_settings_file);
      subject_settings = SettingsCustodian('subjectSettings.txt');
+    collection_date = subject_settings.get('collection_date');
+    subject_id = subject_settings.get('subject_id');
 
-    load('subjectInfo.mat', 'date', 'subject_id');
 
     % get reference positions
 %     marker_reference = load(['processed' filesep makeFileName(date, subject_id, 'calibration', '1', 'markerTrajectories')]);
      % load static reference file
-    load(['processed' filesep makeFileName(date, subject_id, subject_settings.get('static_reference_trial_type'), subject_settings.get('static_reference_trial_number'), 'markerTrajectories')]);
+    load(['processed' filesep makeFileName(collection_date, subject_id, subject_settings.get('static_reference_trial_type'), subject_settings.get('static_reference_trial_number'), 'markerTrajectories')]);
 
         % find first time step where all markers are available
     i_time = 1;
@@ -73,7 +66,7 @@ function rigidBodyFillTrialFromReference(marker_to_fill, marker_source_1, marker
         for i_trial = trials_to_process
             %% load data
             condition = condition_list{i_condition};
-            load(['processed' filesep makeFileName(date, subject_id, condition, i_trial, 'markerTrajectories')]);
+            load(['processed' filesep makeFileName(collection_date, subject_id, condition, i_trial, 'markerTrajectories')]);
             number_of_time_steps = size(marker_trajectories, 1);
             
             marker_source_1_trajectory = extractMarkerData(marker_trajectories, marker_labels, marker_source_1);
@@ -138,7 +131,7 @@ function rigidBodyFillTrialFromReference(marker_to_fill, marker_source_1, marker
             variables_to_save.marker_directions = marker_directions;
             
             save_folder = 'processed';
-            save_file_name = makeFileName(date, subject_id, condition, i_trial, 'markerTrajectories.mat');
+            save_file_name = makeFileName(collection_date, subject_id, condition, i_trial, 'markerTrajectories.mat');
             saveDataToFile([save_folder filesep save_file_name], variables_to_save);
             disp(['Rigid body filling marker ' marker_to_fill ', condition ' condition ', Trial ' num2str(i_trial)]);
             
