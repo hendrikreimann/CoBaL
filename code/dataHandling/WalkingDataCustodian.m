@@ -85,11 +85,14 @@ classdef WalkingDataCustodian < handle
             if nargin < 2
                 data_directory = pwd;
             end
+            subject_settings = loadSettingsFromFile('subject', data_directory);
+            collection_date = subject_settings.get('collection_date');
+            subject_id = subject_settings.get('subject_id');
             
             % load this information from the subjects.mat and studySettings.txt files
             this.data_directory = data_directory;
-            load([data_directory filesep 'subjectInfo.mat'], 'date', 'subject_id');
-            this.date = date;
+%             load([data_directory filesep 'subjectInfo.mat'], 'date', 'subject_id');
+            this.date = collection_date;
             this.subject_id = subject_id;
             
             this.subject_info = load([data_directory filesep 'subjectInfo.mat']);
@@ -347,8 +350,12 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('total_forceplate_cop_world')
                 this.addBasicVariable('cop_x')
                 this.addStretchVariable('cop_x')
-%                 this.addBasicVariable('com_trajectories') % in-house kinematics
-                this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'in-house')
+                    this.addBasicVariable('com_trajectories') % in-house kinematics
+                end
+                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'opensim')
+                    this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                end
                 this.addBasicVariable('com')
                 this.addBasicVariable('com_x')
                 this.addStretchVariable('com_x')
@@ -358,8 +365,12 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('total_forceplate_cop_world')
                 this.addBasicVariable('cop_y')
                 this.addStretchVariable('cop_y')
-%                 this.addBasicVariable('com_trajectories') % in-house kinematics
-                this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'in-house')
+                    this.addBasicVariable('com_trajectories') % in-house kinematics
+                end
+                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'opensim')
+                    this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                end
                 this.addBasicVariable('com')
                 this.addBasicVariable('com_y')
                 this.addStretchVariable('com_y')
@@ -369,8 +380,12 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('total_forceplate_cop_world')
                 this.addBasicVariable('cop_x')
                 this.addStretchVariable('cop_x')
-%                 this.addBasicVariable('com_trajectories') % in-house kinematics
-                this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'in-house')
+                    this.addBasicVariable('com_trajectories') % in-house kinematics
+                end
+                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'opensim')
+                    this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                end
                 this.addBasicVariable('com')
                 this.addBasicVariable('com_x')
                 this.addStretchVariable('com_x')
@@ -380,8 +395,12 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('total_forceplate_cop_world')
                 this.addBasicVariable('cop_y')
                 this.addStretchVariable('cop_y')
-%                 this.addBasicVariable('com_trajectories') % in-house kinematics
-                this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'in-house')
+                    this.addBasicVariable('com_trajectories') % in-house kinematics
+                end
+                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'opensim')
+                    this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                end
                 this.addBasicVariable('com')
                 this.addBasicVariable('com_y')
                 this.addStretchVariable('com_y')
@@ -393,16 +412,24 @@ classdef WalkingDataCustodian < handle
                 this.addStretchVariable('lheel_x')
                 this.addBasicVariable('rheel_x')
                 this.addStretchVariable('rheel_x')
-%                 this.addBasicVariable('com_trajectories') % in-house kinematics
-                this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'in-house')
+                    this.addBasicVariable('com_trajectories') % in-house kinematics
+                end
+                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'opensim')
+                    this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                end
                 this.addBasicVariable('com')
                 this.addBasicVariable('com_x')
                 this.addStretchVariable('com_x')
                 this.addStretchVariable('init_heel_to_com_x')
             end
             if this.isVariableToAnalyze('cop_to_com_vel_scaled_x')
-%                 this.addBasicVariable('com_trajectories') % in-house kinematics
-                this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'in-house')
+                    this.addBasicVariable('com_trajectories') % in-house kinematics
+                end
+                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'opensim')
+                    this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                end
                 this.addBasicVariable('com')
                 this.addBasicVariable('com_x')
                 this.addBasicVariable('com_x_vel')
@@ -418,8 +445,12 @@ classdef WalkingDataCustodian < handle
                 this.addStretchVariable('cop_to_com_vel_scaled_x')
             end
             if this.isVariableToAnalyze('cop_to_com_vel_scaled_y')
-%                 this.addBasicVariable('com_trajectories') % in-house kinematics
-                this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'in-house')
+                    this.addBasicVariable('com_trajectories') % in-house kinematics
+                end
+                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'opensim')
+                    this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                end
                 this.addBasicVariable('com')
                 this.addBasicVariable('com_y')
                 this.addBasicVariable('com_y_vel')
@@ -594,36 +625,56 @@ classdef WalkingDataCustodian < handle
                 this.addStretchVariable('right_arm_phase_at_heelstrike')
             end
             if this.isVariableToAnalyze('com_x')
-%                 this.addBasicVariable('com_trajectories') % in-house kinematics
-                this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'in-house')
+                    this.addBasicVariable('com_trajectories') % in-house kinematics
+                end
+                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'opensim')
+                    this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                end
                 this.addBasicVariable('com')
                 this.addBasicVariable('com_x')
                 this.addStretchVariable('com_x')
             end
             if this.isVariableToAnalyze('com_y')
-%                 this.addBasicVariable('com_trajectories') % in-house kinematics
-                this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'in-house')
+                    this.addBasicVariable('com_trajectories') % in-house kinematics
+                end
+                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'opensim')
+                    this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                end
                 this.addBasicVariable('com')
                 this.addBasicVariable('com_y')
                 this.addStretchVariable('com_y')
             end
             if this.isVariableToAnalyze('com_z')
-%                 this.addBasicVariable('com_trajectories') % in-house kinematics
-                this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'in-house')
+                    this.addBasicVariable('com_trajectories') % in-house kinematics
+                end
+                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'opensim')
+                    this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                end
                 this.addBasicVariable('com_z')
                 this.addStretchVariable('com_z')
             end
             if this.isVariableToAnalyze('com_x_vel')
-%                 this.addBasicVariable('com_trajectories') % in-house kinematics
-                this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'in-house')
+                    this.addBasicVariable('com_trajectories') % in-house kinematics
+                end
+                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'opensim')
+                    this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                end
                 this.addBasicVariable('com')
                 this.addBasicVariable('com_x')
                 this.addBasicVariable('com_x_vel')
                 this.addStretchVariable('com_x_vel')
             end
             if this.isVariableToAnalyze('com_x_vel_scaled')
-%                 this.addBasicVariable('com_trajectories') % in-house kinematics
-                this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'in-house')
+                    this.addBasicVariable('com_trajectories') % in-house kinematics
+                end
+                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'opensim')
+                    this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                end
                 this.addBasicVariable('com')
                 this.addBasicVariable('com_x')
                 this.addBasicVariable('com_x_vel')
@@ -633,24 +684,36 @@ classdef WalkingDataCustodian < handle
                 this.addStretchVariable('com_x_vel_scaled')
             end
             if this.isVariableToAnalyze('com_y_vel')
-%                 this.addBasicVariable('com_trajectories') % in-house kinematics
-                this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'in-house')
+                    this.addBasicVariable('com_trajectories') % in-house kinematics
+                end
+                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'opensim')
+                    this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                end
                 this.addBasicVariable('com')
                 this.addBasicVariable('com_y')
                 this.addBasicVariable('com_y_vel')
                 this.addStretchVariable('com_y_vel')
             end
             if this.isVariableToAnalyze('com_z_vel')
-%                 this.addBasicVariable('com_trajectories') % in-house kinematics
-                this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'in-house')
+                    this.addBasicVariable('com_trajectories') % in-house kinematics
+                end
+                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'opensim')
+                    this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                end
                 this.addBasicVariable('com')
                 this.addBasicVariable('com_z')
                 this.addBasicVariable('com_z_vel')
                 this.addStretchVariable('com_z_vel')
             end
             if this.isVariableToAnalyze('com_x_acc')
-%                 this.addBasicVariable('com_trajectories') % in-house kinematics
-                this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'in-house')
+                    this.addBasicVariable('com_trajectories') % in-house kinematics
+                end
+                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'opensim')
+                    this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                end
                 this.addBasicVariable('com')
                 this.addBasicVariable('com_x')
                 this.addBasicVariable('com_x_vel')
@@ -658,8 +721,12 @@ classdef WalkingDataCustodian < handle
                 this.addStretchVariable('com_x_acc')
             end
             if this.isVariableToAnalyze('com_y_acc')
-%                 this.addBasicVariable('com_trajectories') % in-house kinematics
-                this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'in-house')
+                    this.addBasicVariable('com_trajectories') % in-house kinematics
+                end
+                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'opensim')
+                    this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                end
                 this.addBasicVariable('com')
                 this.addBasicVariable('com_y')
                 this.addBasicVariable('com_y_vel')
@@ -667,8 +734,12 @@ classdef WalkingDataCustodian < handle
                 this.addStretchVariable('com_y_acc')
             end
             if this.isVariableToAnalyze('com_z_acc')
-%                 this.addBasicVariable('com_trajectories') % in-house kinematics
-                this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'in-house')
+                    this.addBasicVariable('com_trajectories') % in-house kinematics
+                end
+                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'opensim')
+                    this.addBasicVariable('com_position_trajectories') % opensim kinematics
+                end
                 this.addBasicVariable('com')
                 this.addBasicVariable('com_z')
                 this.addBasicVariable('com_z_vel')
@@ -926,14 +997,14 @@ classdef WalkingDataCustodian < handle
             this.trial_number = trial_number;
             
             % prepare the data by loading all the basic variables from disk and calculating the required variables
-            load(['analysis' filesep makeFileName(this.subject_info.date, this.subject_info.subject_id, trial_type, trial_number, 'availableVariables')], 'available_variables');
+            load(['analysis' filesep makeFileName(this.date, this.subject_id, trial_type, trial_number, 'availableVariables')], 'available_variables');
             
             % load basic variables
             for i_variable = 1 : length(variables_to_prepare)
                 variable_name = variables_to_prepare{i_variable};
                 
                 % try loading
-                [data, time, sampling_rate, labels, directions, success] = loadData(this.subject_info.date, this.subject_info.subject_id, trial_type, trial_number, variable_name, 'optional'); %#ok<ASGLU>
+                [data, time, sampling_rate, labels, directions, success] = loadData(this.date, this.subject_id, trial_type, trial_number, variable_name, 'optional'); %#ok<ASGLU>
                 
                 % store
                 if success
@@ -2138,16 +2209,16 @@ classdef WalkingDataCustodian < handle
                 end
                 
                 if strcmp(variable_name, 'com')
-                    if dataIsAvailable(this.subject_info.date, this.subject_info.subject_id, trial_type, trial_number, 'com_trajectories')
+                    if dataIsAvailable(this.date, this.subject_id, trial_type, trial_number, 'com_trajectories')
                         % in-house kinematics - TODO: not tested yet
-                        [data, time, ~, labels, directions] = loadData(this.subject_info.date, this.subject_info.subject_id, trial_type, trial_number, 'com_trajectories');
+                        [data, time, ~, labels, directions] = loadData(this.date, this.subject_id, trial_type, trial_number, 'com_trajectories');
                         this.basic_variable_data.com = extractMarkerData(data, labels, 'BODYCOM');
                         com_indices = extractMarkerData(data, labels, 'BODYCOM',  'indices');
                         this.basic_variable_directions.com = directions(:, com_indices);
                         this.time_data.com = time;
                         success = 1;
-                    elseif dataIsAvailable(this.subject_info.date, this.subject_info.subject_id, trial_type, trial_number, 'com_position_trajectories')
-                        [data, time, ~, labels, directions] = loadData(this.subject_info.date, this.subject_info.subject_id, trial_type, trial_number, 'com_position_trajectories');
+                    elseif dataIsAvailable(this.date, this.subject_id, trial_type, trial_number, 'com_position_trajectories')
+                        [data, time, ~, labels, directions] = loadData(this.date, this.subject_id, trial_type, trial_number, 'com_position_trajectories');
                         this.basic_variable_data.com = extractMarkerData(data, labels, 'center_of_mass');
                         com_indices = extractMarkerData(data, labels, 'center_of_mass',  'indices');
                         this.basic_variable_directions.com = directions(:, com_indices);
@@ -2915,10 +2986,10 @@ classdef WalkingDataCustodian < handle
                                 % find time step of obstacle crossing
                                 obstacle_pos_y = NaN;
                                 if strcmp(relevant_condition_data{i_stretch}, 'OBS_NEAR')
-                                    obstacle_pos_y = this.subject_info.near_distance;
+                                    obstacle_pos_y = this.subject_settings.get('near_distance');
                                 end
                                 if strcmp(relevant_condition_data{i_stretch}, 'OBS_FAR')
-                                    obstacle_pos_y = this.subject_info.far_distance;
+                                    obstacle_pos_y = this.subject_settings.get('far_distance');
                                 end
                                 [~, crossing_time_step] = min(abs(swing_heel_marker_y - obstacle_pos_y));
 
@@ -2926,7 +2997,8 @@ classdef WalkingDataCustodian < handle
                                 if strcmp(relevant_condition_data{i_stretch}, 'OBS_NO')
                                     stretch_data(i_band) = NaN;
                                 else
-                                    stretch_data(i_band) = swing_heel_marker_z(crossing_time_step) - this.subject_info.obstacle_height;
+                                    obstacle_height = this.subject_settings.get('obstacle_height');
+                                    stretch_data(i_band) = swing_heel_marker_z(crossing_time_step) - obstacle_height;
                                 end
                             end
                         end
@@ -2958,10 +3030,10 @@ classdef WalkingDataCustodian < handle
                                 % find time step of obstacle crossing
                                 obstacle_pos_y = NaN;
                                 if strcmp(relevant_condition_data{i_stretch}, 'OBS_NEAR')
-                                    obstacle_pos_y = this.subject_info.toe_marker + this.subject_info.near_distance;
+                                    obstacle_pos_y = this.subject_settings.get('toe_marker') + this.subject_settings.get('near_distance');
                                 end
                                 if strcmp(relevant_condition_data{i_stretch}, 'OBS_FAR')
-                                    obstacle_pos_y = this.subject_info.toe_marker + this.subject_info.far_distance;
+                                    obstacle_pos_y = this.subject_settings.get('toe_marker') + this.subject_settings.get('far_distance');
                                 end
                                 [~, crossing_time_step] = min(abs(swing_toes_marker_y - obstacle_pos_y));
 
@@ -2969,7 +3041,8 @@ classdef WalkingDataCustodian < handle
                                 if strcmp(relevant_condition_data{i_stretch}, 'OBS_NO')
                                     stretch_data(i_band) = NaN;
                                 else
-                                    stretch_data(i_band) = swing_toes_marker_z(crossing_time_step) - this.subject_info.obstacle_height;
+                                    obstacle_height = this.subject_settings.get('obstacle_height');
+                                    stretch_data(i_band) = swing_toes_marker_z(crossing_time_step) - obstacle_height;
                                 end
                             end
                         end

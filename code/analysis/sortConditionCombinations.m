@@ -14,10 +14,9 @@
 %     You should have received a copy of the GNU General Public License
 %     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-function [condition_combinations_stimulus_sorted, condition_combinations_control_sorted] = sortConditionCombinations(condition_combinations_stimulus, condition_combinations_control, condition_combination_labels, condition_to_compare, preferred_level_order)
+function condition_combinations_stimulus_sorted = sortConditionCombinations(condition_combinations_stimulus, condition_combination_labels, condition_to_compare, preferred_level_order)
     % if nothing was specified, do nothing
     condition_combinations_stimulus_sorted = condition_combinations_stimulus;
-    condition_combinations_control_sorted = condition_combinations_control;
     if isempty(preferred_level_order)
         return
     end
@@ -54,11 +53,11 @@ function [condition_combinations_stimulus_sorted, condition_combinations_control
         sortmap = [sortmap; find(this_level_rows)]; %#ok<AGROW>
     end
     
-    if ~isempty(condition_combinations_control)
-        condition_combinations_control_sorted = condition_combinations_control(sortmap, :);
-    else
-        condition_combinations_control_sorted = [];
-    end
+%     if ~isempty(condition_combinations_control)
+%         condition_combinations_control_sorted = condition_combinations_control(sortmap, :);
+%     else
+%         condition_combinations_control_sorted = [];
+%     end
 end
 
 

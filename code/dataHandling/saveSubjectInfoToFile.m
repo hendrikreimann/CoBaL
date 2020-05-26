@@ -41,10 +41,10 @@ function saveSubjectInfoToFile(varargin)
     data_dir = dir([screen_folder filesep '*.mat']);
     clear file_name_list;
     [file_name_list{1:length(data_dir)}] = deal(data_dir.name);
-    sample_file_name = file_name_list{1};
-    [date, subject_id] = getFileParameters(sample_file_name);
-    variables_to_save.date = date;
-    variables_to_save.subject_id = subject_id;
+%     sample_file_name = file_name_list{1};
+%     [date, subject_id] = getFileParameters(sample_file_name);
+%     variables_to_save.date = date;
+%     variables_to_save.subject_id = subject_id;
 
     % get list of conditions
     trial_type_list = {};
