@@ -15,10 +15,12 @@
 %     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 function processResponseVariables(varargin)
-    load('subjectInfo.mat', 'date', 'subject_id');
     % load settings and existing results
     study_settings = loadSettingsFromFile('study');
-    results_file_name = ['results' filesep makeFileName(date, subject_id, 'results')];
+    subject_settings = loadSettingsFromFile('subject');
+    collection_date = subject_settings.get('collection_date');
+    subject_id = subject_settings.get('subject_id');
+    results_file_name = ['results' filesep makeFileName(collection_date, subject_id, 'results')];
     loaded_data = load(results_file_name);
     
     % get some numbers
@@ -110,7 +112,7 @@ function applicable_control_condition_index = determineControlConditionIndex(stu
          if strcmp(this_stretch_condition_string{strcmp(comparisons.combination_labels, 'trigger_foot')}, 'TRIGGER_RIGHT')
              applicable_control_condition_index = find(strcmp(comparisons.condition_combinations_control_unique(:, strcmp(comparisons.combination_labels, 'trigger_foot')), 'TRIGGER_RIGHT'));
          end
-    end       
+    end
     if strcmp(study_settings.get('experimental_paradigm', 1), 'CadenceGVS')
         if strcmp(this_stretch_condition_string{strcmp(comparisons.combination_labels, 'cadence')}, '80BPM') && strcmp(this_stretch_condition_string{strcmp(comparisons.combination_labels, 'trigger_foot')}, 'TRIGGER_LEFT')
             applicable_control_condition_index = find(strcmp(comparisons.condition_combinations_control_unique(:, strcmp(comparisons.combination_labels, 'cadence')), '80BPM') & strcmp(comparisons.condition_combinations_control_unique(:, strcmp(comparisons.combination_labels, 'trigger_foot')), 'TRIGGER_LEFT'));
