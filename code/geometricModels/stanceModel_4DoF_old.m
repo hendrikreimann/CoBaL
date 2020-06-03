@@ -28,8 +28,6 @@
 % subjectModel.mat
 
 function stanceModel_4DoF_old(varargin)
-    load('subjectInfo.mat');
-    
     weight = 80; % TODO: hard coded for now, change this
     
     % parse arguments
@@ -38,10 +36,7 @@ function stanceModel_4DoF_old(varargin)
     addParameter(parser, 'visualize', false)
     parse(parser, varargin{:})
     visualize = parser.Results.visualize;
-    
-    subject_settings = SettingsCustodian('subjectSettings.txt');
-
-
+    subject_settings = loadSettingsFromFile('subject');
     collection_date = subject_settings.get('collection_date');
     subject_id = subject_settings.get('subject_id');
 

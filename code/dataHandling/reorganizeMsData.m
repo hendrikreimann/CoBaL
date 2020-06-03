@@ -60,7 +60,7 @@ function reorganizeMsData(varargin)
     end
     if isempty(date)
         warning('No date found in data files, trying to read from subjectSettings.txt')
-        date = subject_settings.get('date', 0);
+        date = subject_settings.get('collection_date', 0);
     end
     
     % go through files and reorganize
