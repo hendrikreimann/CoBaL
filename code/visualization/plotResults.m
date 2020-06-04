@@ -377,7 +377,7 @@ function figure_data = createFigureData(settings, data, comparisons)
             this_label = settings.variables_to_plot{i_variable, strcmp(settings.variables_to_plot_header, 'y-axis label')};
             ylabel(this_label);
 
-            % add text labels
+            % add text labels for arrows
             figure_data.pos_text_handles(i_comparison, i_variable) = ...
                 text ...
                   ( ...
@@ -427,11 +427,13 @@ function figure_data = createFigureData(settings, data, comparisons)
             % determine title
             title_string = settings.variables_to_plot{i_variable, strcmp(settings.variables_to_plot_header, 'variable label')};
             filename_string = settings.variables_to_plot{i_variable, strcmp(settings.variables_to_plot_header, 'save file string')};
-
             representative_condition = comparisons.condition_combinations(this_comparison(1), :);
 
             for i_label = 1 : length(representative_condition)
-                if ~(strcmp(comparisons.condition_combination_labels{i_label}, settings.condition_to_compare))
+                this_is_the_condition_to_compare = (strcmp(comparisons.condition_combination_labels{i_label}, settings.condition_to_compare));
+                this_label_is_the_same_for_all_conditions = length(unique(comparisons.condition_combinations(:, i_label))) == 1;
+                
+                if ~this_is_the_condition_to_compare && ~this_label_is_the_same_for_all_conditions
                     this_string = strrep(representative_condition{i_label}, '_', '');
                     filename_string = [filename_string '_' this_string]; %#ok<AGROW>
                     title_string = [title_string ' - ' this_string]; %#ok<AGROW>
