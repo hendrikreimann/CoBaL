@@ -80,28 +80,34 @@ function collectPopulationResults(varargin)
 %     number_of_sources = length(source_labels);
     
     for i_folder = 1 : length(data_folder_list)
-        % load data
+        % get information
+        this_data_folder_path = data_folder_list{i_folder};
+        subject_settings = loadSettingsFromFile('subject', this_data_folder_path);
+        collection_date = subject_settings.get('collection_date');
+        subject_id = subject_settings.get('subject_id');
         data_path = data_folder_list{i_folder};
+        
         load([data_path filesep 'subjectInfo.mat'], 'date', 'subject_id');
-        disp(['Collecting from ' subject_id]);
-%         for i_source = 1 : number_of_sources
-%             this_source = source_labels{i_source};
-%             results_data.(this_source) = load([data_path filesep 'analysis' filesep date '_' subject_id '_results' this_source '.mat']);
-%             
-%         end
+%         disp(['Collecting from ' subject_id]);
+
+        results_file_candidate_analysis = [this_data_folder_path filesep 'analysis' filesep makeFileName(collection_date, subject_id, ['results' source_label]) '.mat'];
+        results_file_candidate_subject = [this_data_folder_path filesep makeFileName(collection_date, subject_id, ['results' source_label]) '.mat'];
+        results_file_candidate_results = [this_data_folder_path filesep 'results' filesep  makeFileName(collection_date, subject_id, ['results' source_label]) '.mat'];
+        if exist(results_file_candidate_analysis, 'file')
+            results_file_name = results_file_candidate_analysis;
+        end    
+        if exist(results_file_candidate_subject, 'file')
+            results_file_name = results_file_candidate_subject;
+        end    
+        if exist(results_file_candidate_results, 'file')
+            results_file_name = results_file_candidate_results;
+        end    
         
+        % load data
+        disp(['loading data from ' results_file_name])
+        results_data = load(results_file_name);
         
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        results_data = load([data_path filesep date '_' subject_id '_results' source_label '.mat']);
+%         results_data = load([data_path filesep date '_' subject_id '_results' source_label '.mat']);
         if ~isempty(variables_to_collect_long)
             results_data_long = load([data_path filesep date '_' subject_id '_longStretchResults.mat']);
         end

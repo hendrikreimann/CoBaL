@@ -61,7 +61,8 @@ function trial_data = determineTriggerTimes(study_settings, trial_data)
         trial_data.stim_start_indices_stimulus = stim_start_indices_stimulus;
     end
     if strcmp(experimental_paradigm, 'Stochastic Resonance')
-        trial_data.trigger_times = trial_data.left_touchdown_times(1:end-1);
+        left_touchdown_times = trial_data.loaded_events_data.event_data{strcmp(trial_data.loaded_events_data.event_labels, 'left_touchdown')};
+        trial_data.trigger_times = left_touchdown_times(1:end-1);
     end
     if strcmp(experimental_paradigm, 'GvsOverground')
         % find the time steps where the first forceplate vertical force crosses a threshold
