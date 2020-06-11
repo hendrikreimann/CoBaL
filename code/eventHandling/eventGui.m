@@ -20,7 +20,7 @@ function eventGui(varargin)
     [condition_list, trial_number_list] = parseTrialArguments(varargin{:});
     parser = inputParser;
     parser.KeepUnmatched = true;
-    addParameter(parser, 'settings', 'eventGuiSettings.txt')
+    addParameter(parser, 'settings', 'eventGui')
     parse(parser, varargin{:})
     settings_file = parser.Results.settings;
 
@@ -28,14 +28,36 @@ function eventGui(varargin)
     trial_to_process = trial_number_list{1}(1);
     
     %% load
-    gui_settings = loadSettingsFromFile('eventGui'); % TODO: only using default, not specified settings file
+    gui_settings = loadSettingsFromFile(settings_file); % TODO: only using default, not specified settings file
     
     % load data
-    figure_settings = getFigureSettings(gui_settings);
-    variables_list = getVariableListFromSettings(figure_settings);
+    if gui_settings.isfield('figures')
+        % settings are specified in new way, so use that
+        figure_settings = getFigureSettings(gui_settings);
+    else
+        % settings are specified in old way
+        warning('Figure settings are in old format, please update.')
+        figure_list = getFiguresListFromSettings(gui_settings);
+        
+        % transform into new format
+        figure_settings = cell(length(figure_list), 1);
+        for i_figure = 1 : length(figure_list)
+            this_figure_settings = struct;
+            
+            % store data
+            this_figure_settings.data = gui_settings.get(figure_list{i_figure, 1});
+            % store individual entries in info table
+            this_figure_settings.title = figure_list{i_figure, 2};
+            this_figure_settings.origin_horizontal = 25;
+            this_figure_settings.origin_vertical = 25;
+            this_figure_settings.width = 50;
+            this_figure_settings.height = 50;
 
-%     figure_list = getFiguresListFromSettings(gui_settings);
-%     variables_list = getVariableListFromSettings(gui_settings, figure_list);
+            figure_settings{i_figure} = this_figure_settings; %#ok<AGROW>
+        end
+        
+    end
+    variables_list = getVariableListFromSettings(figure_settings);
     
     data_custodian = WalkingDataCustodian(variables_list);
     data_custodian.prepareBasicVariables(condition, trial_to_process);
@@ -215,28 +237,5 @@ function figures_list = getFiguresListFromSettings(settings)
     
 end
 
-function variable_names = getVariableListFromSettings_old(settings, figure_list)
-    % get variables for trajectory figures
-    variable_names = {};
-    for i_figure = 1 : size(figure_list, 1)
-        this_figure_settings = settings.get(figure_list{i_figure});
-        for i_variable = 1 : size(this_figure_settings, 1);
-            this_entry_type = this_figure_settings{i_variable, 1};
-            this_variable_name = this_figure_settings{i_variable, 2};
-            if strcmp(this_entry_type, 'data') && ~any(strcmp(variable_names, this_variable_name))
-                variable_names = [variable_names; this_variable_name];
-            end
-        end
-    end
-    
-    % get variables for simple stick figure
-    if settings.get('show_simple_stick_figure', 1)
-        variable_names = [variable_names; 'marker_trajectories'];
-        variable_names = [variable_names; 'joint_center_trajectories'];
-        variable_names = [variable_names; 'com_trajectories'];
-    end
-
-
-end
 
 

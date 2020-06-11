@@ -135,6 +135,9 @@ classdef SettingsCustodian < handle
                 data = [];
             end
         end
+        function answer = isfield(this, property_name)
+            answer = isfield(this.settings_struct, property_name);
+        end
         
         function default_data = getDefaultSetting(this, property_name) %#ok<INUSL>
             % general default is empty set
