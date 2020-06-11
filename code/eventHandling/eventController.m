@@ -53,7 +53,8 @@ classdef eventController < handle
         color_selected = [1 0.5 0];
         color_normal = [0 0 0];
         
-        figure_area_on_screen_width;
+        canvas_on_screen_width;
+        canvas_on_screen_height;
     end
     methods
         function this = eventController(data_custodian, event_data)
@@ -63,7 +64,8 @@ classdef eventController < handle
             screen_size = get(0,'ScreenSize');
             figure_height = 600;
             figure_width = 420;
-            this.figure_area_on_screen_width = (screen_size(3)-figure_width) / screen_size(3);
+            this.canvas_on_screen_width = screen_size(3) - figure_width;
+            this.canvas_on_screen_height = screen_size(4) - 24; % 24 is the size of the menu bar on the Mac, check for windows systems later
             this.control_figure = figure('position', [screen_size(3)-figure_width screen_size(3)-figure_height figure_width figure_height], 'Units', 'pixels', 'KeyPressFcn', @this.processKeyPress);
 
             % figure control

@@ -48,12 +48,12 @@ function eventGui(varargin)
             this_figure_settings.data = gui_settings.get(figure_list{i_figure, 1});
             % store individual entries in info table
             this_figure_settings.title = figure_list{i_figure, 2};
-            this_figure_settings.origin_horizontal = 25;
-            this_figure_settings.origin_vertical = 25;
-            this_figure_settings.width = 50;
-            this_figure_settings.height = 50;
+            this_figure_settings.origin_horizontal = 0.25;
+            this_figure_settings.origin_vertical = 0.25;
+            this_figure_settings.width = 0.5;
+            this_figure_settings.height = 0.5;
 
-            figure_settings{i_figure} = this_figure_settings; %#ok<AGROW>
+            figure_settings{i_figure} = this_figure_settings;
         end
         
     end
@@ -176,16 +176,16 @@ function figure_settings = getFigureSettings(gui_settings)
             this_figure_settings.title = 'untitled figure';
         end
         if ~isfield(this_figure_settings, 'origin_horizontal')
-            this_figure_settings.origin_horizontal = 25;
+            this_figure_settings.origin_horizontal = 0.25;
         end
         if ~isfield(this_figure_settings, 'origin_vertical')
-            this_figure_settings.origin_vertical = 25;
+            this_figure_settings.origin_vertical = 0.25;
         end
         if ~isfield(this_figure_settings, 'width')
-            this_figure_settings.width = 50;
+            this_figure_settings.width = 0.5;
         end
         if ~isfield(this_figure_settings, 'height')
-            this_figure_settings.height = 50;
+            this_figure_settings.height = 0.5;
         end
         
         % transform entries to numbers if needed

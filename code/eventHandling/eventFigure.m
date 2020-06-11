@@ -42,8 +42,18 @@ classdef eventFigure < handle;
     end
     methods
         function this = eventFigure(figure_settings, controller, data_custodian, eventData)
+            % determine position
+            canvas_width = controller.canvas_on_screen_width;
+            canvas_height = controller.canvas_on_screen_height;
+            origin_x = figure_settings.origin_horizontal * canvas_width;
+            origin_y = figure_settings.origin_vertical * canvas_height;
+            width = figure_settings.width * canvas_width;
+            height = figure_settings.height * canvas_height - 72;
+            
+            figure_position = [origin_x origin_y width height];
+            
             % create figure, axes and helper plots
-            this.main_figure = figure('KeyPressFcn', @controller.processKeyPress);
+            this.main_figure = figure('Position', figure_position, 'KeyPressFcn', @controller.processKeyPress);
             this.main_axes = axes('ButtonDownFcn', @this.stepEventFigureClicked);
             this.title = figure_settings.title;
             title(figure_settings.title);
@@ -284,12 +294,6 @@ classdef eventFigure < handle;
                 
                 % update
                 set(data_plot_handle, 'xdata', time, 'ydata', (data + offset) * scale_factor);
-                
-%                 time_data = this.trial_data.getTime(data_label);
-%                 trajectory_data = (this.trial_data.getData(data_label) + offset) * scale_factor;
-                
-%                 % update
-%                 set(data_plot_handle, 'xdata', time_data, 'ydata', trajectory_data);
             end
         end
         function updateStretchPatches(this)
