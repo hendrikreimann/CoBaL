@@ -41,12 +41,12 @@ classdef eventFigure < handle;
         patch_alpha = 0.05;
     end
     methods
-        function this = eventFigure(figureTitle, controller, data_custodian, eventData)
+        function this = eventFigure(figure_settings, controller, data_custodian, eventData)
             % create figure, axes and helper plots
             this.main_figure = figure('KeyPressFcn', @controller.processKeyPress);
             this.main_axes = axes('ButtonDownFcn', @this.stepEventFigureClicked);
-            this.title = figureTitle;
-            title(figureTitle);
+            this.title = figure_settings.title;
+            title(figure_settings.title);
             hold on;
             this.selected_event_plot = plot(0, 0, 'o', 'markersize', 15, 'linewidth', 3, 'color', [1 0.5 0], 'visible', 'off', 'HandleVisibility', 'off');
 %             this.selected_time_plot = plot(0, 0, '+', 'markersize', 25, 'linewidth', 1, 'color', [1 1 1]*0.7, 'ButtonDownFcn', @this.stepEventFigureClicked, 'HandleVisibility', 'off');
@@ -55,10 +55,10 @@ classdef eventFigure < handle;
 
             % register with controller
             if strcmp(controller.figureSelectionBox.String, '<no figure>')
-                controller.figureSelectionBox.String = figureTitle;
+                controller.figureSelectionBox.String = figure_settings.title;
                 controller.figureSelectionBox.UserData = {this};
             else
-                controller.figureSelectionBox.String = [controller.figureSelectionBox.String; {figureTitle}];
+                controller.figureSelectionBox.String = [controller.figureSelectionBox.String; {figure_settings.title}];
                 controller.figureSelectionBox.UserData = [controller.figureSelectionBox.UserData; {this}];
             end
             
