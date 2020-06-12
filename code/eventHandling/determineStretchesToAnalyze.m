@@ -259,7 +259,7 @@ function trial_data = determineIllusion(study_settings, trial_data)
     if strcmp(experimental_paradigm, 'GVS') || strcmp(experimental_paradigm, 'CadenceGVS') || strcmp(experimental_paradigm, 'FatigueGVS') || strcmp(experimental_paradigm, 'CognitiveLoadGvs')
         illusion_trajectory = zeros(size(trial_data.time_stimulus)); % -1 = LEFT, 1 = RIGHT
         for i_time = 1 : length(trial_data.time_stimulus)
-            if stimulus_state_trajectory(i_time) == 3
+            if trial_data.stimulus_state_trajectory(i_time) == 3
                 % stimulus is currently active
                 if trial_data.gvs_trajectory(i_time) < 0
                     % negative current = anode on the left = illusory fall to the right
