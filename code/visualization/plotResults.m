@@ -31,9 +31,20 @@
 
 function plotResults(varargin)
     settings = determineSettings(varargin{:});
-
+    
+    
+    % make data custodian object and load data
+    data_source = settings.plot_settings.get('data_source', 1);
+    subjects = settings.subjects;
+    data_custodian = StretchDataCustodian(pwd, data_source, subjects);
+    
+    % get data to plot from custodian
+    variable_names = settings.variables_to_plot(:, strcmp(settings.variables_to_plot_header, 'variable name'));
+    variable_types = settings.variables_to_plot(:, strcmp(settings.variables_to_plot_header, 'variable type'));
+    data = data_custodian.getData(variable_names, variable_types);
+    
     % load data
-    data = loadDataToPlot(settings);
+%     data = loadDataToPlot(settings);
     
     % determine condition combinations to plot and comparisons
     comparisons = createComparisonData(settings, data);
