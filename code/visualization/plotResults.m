@@ -32,35 +32,39 @@
 function plotResults(varargin)
     settings = determineSettings(varargin{:});
     
+    % load data -- old
+    data = loadDataToPlot(settings);
     
     % make data custodian object and load data
     data_source = settings.plot_settings.get('data_source', 1);
     subjects = settings.subjects;
     data_custodian = StretchDataCustodian(pwd, data_source, subjects);
     
-    % get data to plot from custodian
-    variable_names = settings.variables_to_plot(:, strcmp(settings.variables_to_plot_header, 'variable name'));
-    variable_types = settings.variables_to_plot(:, strcmp(settings.variables_to_plot_header, 'variable type'));
-    data = data_custodian.getData(variable_names, variable_types);
-    
-    % load data
-%     data = loadDataToPlot(settings);
-    
+    % get data to plot from custodian -- old
+    condition_data = data_custodian.getConditionData();
+                
     % determine condition combinations to plot and comparisons
-    comparisons = createComparisonData(settings, data);
+    comparisons_old = createComparisonData(settings, data.condition_data);
+    comparisons_new = createComparisonData(settings, condition_data);
     
     % create figures and determine abscissae for each comparison
-    figure_data = createFigureData(settings, data, comparisons);      
+    figure_data_continuous = createFigures_continuous(settings, comparisons_new, data_custodian);
+    figure_data_discrete = createFigures_discrete(settings, comparisons_new, data_custodian);
+    figure_data_old = createFigureData(settings, data, comparisons_old);
     
     % plot data
-    figure_data = plotData(settings, data, comparisons, figure_data);
+    plotData_continuous(settings, comparisons_new, data_custodian, figure_data_continuous);
+    plotData_discrete(settings, comparisons_new, data_custodian, figure_data_discrete);
+    figure_data_old = plotData_old(settings, data, comparisons_old, figure_data_old);
     
     % groom axes, labels etc
-    figure_data = groomFigures(settings, data, comparisons, figure_data);
+    groomFigures_continuous(settings, data_custodian, comparisons_new, figure_data_continuous);
+    groomFigures_discrete(settings, data_custodian, comparisons_new, figure_data_discrete);
+    figure_data_old = groomFigures_old(settings, data, comparisons_old, figure_data_old);
     
     % save and close
-    saveFigures(settings, figure_data);
-    closeFigures(settings, figure_data);
+    saveFigures(settings, figure_data_old);
+    closeFigures(settings, figure_data_old);
 end
 
 %% helper functions
@@ -118,10 +122,17 @@ function settings = determineSettings(varargin)
     settings.condition_to_compare = settings.plot_settings.get('condition_to_compare');
     settings.condition_labels = settings.conditions_settings(:, 1)';
     settings.variables_to_plot = settings.plot_settings.get('variables_to_plot');
-    
     settings.variables_to_plot_header = settings.plot_settings.get('variables_to_plot_header', true);
-
     settings.number_of_variables_to_plot = size(settings.variables_to_plot, 1);
+    
+    settings.variables_to_plot_discrete = settings.plot_settings.get('variables_to_plot_discrete', true);
+    settings.variables_to_plot_discrete_header = settings.plot_settings.get('variables_to_plot_discrete_header', true);
+    settings.number_of_variables_to_plot_discrete = size(settings.variables_to_plot_discrete, 1);
+    
+    settings.variables_to_plot_continuous = settings.plot_settings.get('variables_to_plot_continuous', true);
+    settings.variables_to_plot_continuous_header = settings.plot_settings.get('variables_to_plot_continuous_header', true);
+    settings.number_of_variables_to_plot_continuous = size(settings.variables_to_plot_continuous, 1);
+
 end
 
 function data = loadDataToPlot(settings)
@@ -236,7 +247,7 @@ function data = loadDataToPlot(settings)
     
 end
 
-function comparisons = createComparisonData(settings, data)
+function comparisons = createComparisonData(settings, condition_data)
     % create container and extract some settings
     comparisons = struct;
     labels_to_ignore = settings.plot_settings.get('conditions_to_ignore');
@@ -244,7 +255,7 @@ function comparisons = createComparisonData(settings, data)
     preferred_level_order = settings.plot_settings.get('preferred_level_order', 1);
     
     % determine comparisons and auxiliary data
-    [comparisons.condition_combination_labels, comparisons.condition_combinations] = determineConditionCombinations(data.condition_data, settings.conditions_settings, labels_to_ignore, levels_to_remove);
+    [comparisons.condition_combination_labels, comparisons.condition_combinations] = determineConditionCombinations(condition_data, settings.conditions_settings, labels_to_ignore, levels_to_remove);
     comparisons.condition_combinations = sortConditionCombinations(comparisons.condition_combinations, comparisons.condition_combination_labels, settings.condition_to_compare, preferred_level_order);
     [comparisons.comparison_indices, comparisons.conditions_per_comparison_max] = determineComparisons(comparisons.condition_combinations, comparisons.condition_combination_labels, settings);
     comparisons.number_of_comparisons = length(comparisons.comparison_indices);
@@ -289,7 +300,6 @@ function figure_data = createFigureData(settings, data, comparisons)
     figure_data.comparison_variable_to_axes_index_map = zeros(comparisons.number_of_comparisons, 1);
     figure_data.abscissae_cell = cell(comparisons.number_of_comparisons, settings.number_of_variables_to_plot);
     
-    % time plots
     % make one figure per comparison and variable
     figure_data.trajectory_figure_handles = zeros(comparisons.number_of_comparisons, settings.number_of_variables_to_plot);
     figure_data.trajectory_axes_handles = zeros(comparisons.number_of_comparisons, settings.number_of_variables_to_plot);
@@ -482,7 +492,449 @@ function figure_data = createFigureData(settings, data, comparisons)
     end        
 end
 
-function figure_data = plotData(settings, data, comparisons, figure_data)
+function figure_data = createFigures_continuous(settings, comparisons, data_custodian)
+    figure_data.comparison_variable_to_axes_index_map = zeros(comparisons.number_of_comparisons, 1);
+    figure_data.abscissae_cell = cell(comparisons.number_of_comparisons, settings.number_of_variables_to_plot_continuous);
+    
+    % make one figure per comparison and variable
+    figure_data.figure_handles = zeros(comparisons.number_of_comparisons, settings.number_of_variables_to_plot_continuous);
+    figure_data.axes_handles = zeros(comparisons.number_of_comparisons, settings.number_of_variables_to_plot_continuous);
+    figure_data.pos_text_handles = zeros(comparisons.number_of_comparisons, settings.number_of_variables_to_plot_continuous);
+    figure_data.neg_text_handles = zeros(comparisons.number_of_comparisons, settings.number_of_variables_to_plot_continuous);
+    figure_data.pos_arrow_handles = zeros(comparisons.number_of_comparisons, settings.number_of_variables_to_plot_continuous);
+    figure_data.neg_arrow_handles = zeros(comparisons.number_of_comparisons, settings.number_of_variables_to_plot_continuous);
+    step_start_times_cell = cell(comparisons.number_of_comparisons, settings.number_of_variables_to_plot_continuous);
+    step_end_times_cell = cell(comparisons.number_of_comparisons, settings.number_of_variables_to_plot_continuous);
+    
+    step_time_data = data_custodian.getData('step_time', 'stretch');
+    step_times = step_time_data.variable_data;
+    bands_per_stretch = data_custodian.bands_per_stretch;
+    condition_data = data_custodian.getConditionData();
+    
+    for i_variable = 1 : settings.number_of_variables_to_plot_continuous
+        for i_comparison = 1 : comparisons.number_of_comparisons
+            this_comparison = comparisons.comparison_indices{i_comparison};
+            % make figure and axes
+            new_figure = figure; new_axes = axes; hold on;
+
+            % store handles and determine abscissa data
+            figure_data.figure_handles(i_comparison, i_variable) = new_figure;
+            figure_data.axes_handles(i_comparison, i_variable) = new_axes;
+            figure_data.comparison_variable_to_axes_index_map(i_comparison) = i_comparison;
+
+            % scale abscissae
+            conditions_this_comparison = comparisons.comparison_indices{i_comparison};
+            step_time_means_this_comparison = zeros(bands_per_stretch, size(conditions_this_comparison, 2));
+            for i_condition = 1 : length(conditions_this_comparison)
+                this_condition_combination = comparisons.condition_combinations(conditions_this_comparison(i_condition), :);
+                this_condition_indicator = getConditionIndicator(this_condition_combination, comparisons.condition_combination_labels, condition_data, settings.condition_labels);
+                step_time_data_this_condition = step_times(:, this_condition_indicator);
+                step_time_means_this_comparison(:, i_condition) = mean(step_time_data_this_condition, 2);
+            end
+            for i_condition = 1 : length(conditions_this_comparison)
+                if strcmp(settings.plot_settings.get('time_plot_style'), 'scaled_to_comparison_mean')
+                    band_scales = mean(step_time_means_this_comparison, 2);
+                elseif strcmp(settings.plot_settings.get('time_plot_style'), 'scaled_to_condition_mean')
+                    band_scales = step_time_means_this_comparison(:, i_condition);
+                else
+                    band_scales = ones(data.bands_per_stretch, 1) * (settings.number_of_time_steps_normalized-1);
+                end
+                [abscissa_scaled, band_limits] = createScaledAbscissa(band_scales, settings.number_of_time_steps_normalized);
+
+                if strcmp(settings.plot_settings.get('time_plot_style'), 'scaled_to_condition_mean')
+                    time_plot_band_anchor_index = settings.plot_settings.get('time_plot_band_anchor');
+                    time_plot_band_anchor_time = band_limits(time_plot_band_anchor_index);
+                    abscissa_scaled = abscissa_scaled - time_plot_band_anchor_time;
+                end
+
+                figure_data.abscissae_cell{i_comparison, i_variable}(i_condition, :) = abscissa_scaled;
+
+
+            end                    
+
+            % set axis labels
+            if strcmp(settings.plot_settings.get('time_plot_style'), 'scaled_to_comparison_mean') || strcmp(settings.plot_settings.get('time_plot_style'), 'scaled_to_condition_mean')
+                xlabel('normalized time (s)');
+            else
+                xlabel('normalized time (%)');
+            end
+            this_label = settings.variables_to_plot{i_variable, strcmp(settings.variables_to_plot_header, 'y-axis label')};
+            ylabel(this_label);
+
+            % add text labels for arrows
+            arrow_text = 'TBD';
+%             arrow_text = data.directions{i_variable, 1};
+            figure_data.pos_text_handles(i_comparison, i_variable) = ...
+                text ...
+                  ( ...
+                    0, ...
+                    0, ...
+                    arrow_text, ...
+                    'rotation', 90, ...
+                    'Fontsize', 24, ...
+                    'horizontalalignment', 'right', ...
+                    'parent', new_axes ...
+                  );                
+              figure_data.pos_arrow_handles(i_comparison, i_variable) = ...
+                text ...
+                  ( ...
+                    0, ...
+                    0, ...
+                    ' $\rightarrow$', ...
+                    'rotation', 90, ...
+                    'Fontsize', 36, ...
+                    'horizontalalignment', 'right', ...
+                    'interpreter', 'LaTeX', ...
+                    'parent', new_axes ...
+                  );
+%             arrow_text = data.directions{i_variable, 2};
+            figure_data.neg_text_handles(i_comparison, i_variable) = ...
+                text ...
+                  ( ...
+                    0, ...
+                    0, ...
+                    arrow_text, ...
+                    'rotation', 90, ...
+                    'Fontsize', 24, ...
+                    'horizontalalignment', 'left', ...
+                    'parent', new_axes...
+                  );
+            figure_data.neg_arrow_handles(i_comparison, i_variable) = ...
+                text ...
+                  ( ...
+                    0, ...
+                    0, ...
+                    '$\leftarrow$ ', ...
+                    'rotation', 90, ...
+                    'Fontsize', 36, ...
+                    'horizontalalignment', 'left', ...
+                    'interpreter', 'LaTeX', ...
+                    'parent', new_axes ...
+                  );
+            % determine title
+            title_string = settings.variables_to_plot_continuous{i_variable, strcmp(settings.variables_to_plot_continuous_header, 'variable label')};
+            filename_string = settings.variables_to_plot_continuous{i_variable, strcmp(settings.variables_to_plot_continuous_header, 'save file string')};
+            representative_condition = comparisons.condition_combinations(this_comparison(1), :);
+
+            for i_label = 1 : length(representative_condition)
+                this_is_the_condition_to_compare = (strcmp(comparisons.condition_combination_labels{i_label}, settings.condition_to_compare));
+                this_label_is_the_same_for_all_conditions = length(unique(comparisons.condition_combinations(:, i_label))) == 1;
+                
+                if ~this_is_the_condition_to_compare && ~this_label_is_the_same_for_all_conditions
+                    this_string = strrep(representative_condition{i_label}, '_', '');
+                    filename_string = [filename_string '_' this_string]; %#ok<AGROW>
+                    title_string = [title_string ' - ' this_string]; %#ok<AGROW>
+                end
+            end
+
+            title(title_string); set(gca, 'Fontsize', 12)
+            set(gcf, 'UserData', filename_string)
+        end
+    end
+
+    % set x-limits
+    for i_variable = 1 : settings.number_of_variables_to_plot_continuous
+        for i_comparison = 1 : comparisons.number_of_comparisons
+            target_abscissae = figure_data.abscissae_cell{i_comparison, i_variable};
+            xlim = [min(target_abscissae(:, 1)) max(target_abscissae(:, end))];
+
+            % set x-limits accordingly
+            set(figure_data.axes_handles(i_comparison, i_variable), 'xlim', xlim);
+        end
+    end
+
+    % determine stance start and end times and stance foot
+    for i_variable = 1 : settings.number_of_variables_to_plot_continuous
+        for i_comparison = 1 : comparisons.number_of_comparisons
+
+            step_abscissa = figure_data.abscissae_cell{i_comparison, i_variable};
+            step_start_times_cell{i_comparison, i_variable} = step_abscissa(1, 1);
+            step_end_times_cell{i_comparison, i_variable} = step_abscissa(1, end);
+        end
+    end        
+
+end
+
+function figure_data = createFigures_discrete(settings, comparisons, data_custodian)
+    figure_data.comparison_variable_to_axes_index_map = zeros(comparisons.number_of_comparisons, 1);
+    figure_data.abscissae_cell = cell(comparisons.number_of_comparisons, settings.number_of_variables_to_plot);
+    
+    % make one figure per comparison and variable
+    figure_data.figure_handles = zeros(comparisons.number_of_comparisons, settings.number_of_variables_to_plot_discrete);
+    figure_data.axes_handles = zeros(comparisons.number_of_comparisons, settings.number_of_variables_to_plot_discrete);
+    figure_data.pos_text_handles = zeros(comparisons.number_of_comparisons, settings.number_of_variables_to_plot_discrete);
+    figure_data.neg_text_handles = zeros(comparisons.number_of_comparisons, settings.number_of_variables_to_plot_discrete);
+    figure_data.pos_arrow_handles = zeros(comparisons.number_of_comparisons, settings.number_of_variables_to_plot_discrete);
+    figure_data.neg_arrow_handles = zeros(comparisons.number_of_comparisons, settings.number_of_variables_to_plot_discrete);
+    
+    bands_per_stretch = data_custodian.bands_per_stretch;
+    
+    for i_variable = 1 : settings.number_of_variables_to_plot_discrete
+        for i_comparison = 1 : comparisons.number_of_comparisons
+            % make figure and axes
+            new_figure = figure; new_axes = axes; hold on;
+
+            % store handles and determine abscissa data
+            figure_data.figure_handles(i_comparison, i_variable) = new_figure;
+            figure_data.axes_handles(i_comparison, i_variable) = new_axes;
+            figure_data.comparison_variable_to_axes_index_map(i_comparison) = i_comparison;
+
+            % abscissa gives the bin edges here
+            this_comparison = comparisons.comparison_indices{i_comparison};
+            number_of_entries = length(this_comparison);
+
+            if settings.group_bands_within_conditions
+                gap_between_conditions = 1;
+
+                abscissae_stimulus = repmat((1 : data.bands_per_stretch)', 1, length(this_comparison));
+                shifter = (0:number_of_entries-1) * (data.bands_per_stretch + gap_between_conditions);
+                abscissae_stimulus = abscissae_stimulus + repmat(shifter, data.bands_per_stretch, 1);
+                if settings.plot_settings.get('merge_bands', 1)
+                    abscissae_stimulus = abscissae_stimulus(1, :);
+                end
+
+            else
+                gap_between_bands = 1;
+
+                abscissae_stimulus = repmat((1 : number_of_entries), bands_per_stretch, 1);
+                shifter = (0:bands_per_stretch-1)' * (comparisons.conditions_per_comparison_max + gap_between_bands);
+                abscissae_stimulus = abscissae_stimulus + repmat(shifter, 1, comparisons.conditions_per_comparison_max);
+                if settings.plot_settings.get('merge_bands', 1)
+                    abscissae_stimulus = abscissae_stimulus(1, :);
+                end
+            end
+            figure_data.abscissae_cell{i_comparison, i_variable} = abscissae_stimulus;
+
+            % set axes properties
+            xtick = sort(reshape(figure_data.abscissae_cell{i_comparison, i_variable}, 1, numel(figure_data.abscissae_cell{i_comparison, i_variable})));
+            set(gca, 'xlim', [-0.5 + min(xtick) 0.5 + max(xtick(end))]);
+            set(gca, 'xtick', xtick);
+
+            % set axis labels
+            this_label = settings.variables_to_plot{i_variable, strcmp(settings.variables_to_plot_header, 'y-axis label')};
+            ylabel(this_label);
+
+            % add text labels for arrows
+            arrow_text = 'TBD';
+%             arrow_text = data.directions{i_variable, 1};
+            figure_data.pos_text_handles(i_comparison, i_variable) = ...
+                text ...
+                  ( ...
+                    0, ...
+                    0, ...
+                    arrow_text, ...
+                    'rotation', 90, ...
+                    'Fontsize', 24, ...
+                    'horizontalalignment', 'right', ...
+                    'parent', new_axes ...
+                  );                
+              figure_data.pos_arrow_handles(i_comparison, i_variable) = ...
+                text ...
+                  ( ...
+                    0, ...
+                    0, ...
+                    ' $\rightarrow$', ...
+                    'rotation', 90, ...
+                    'Fontsize', 36, ...
+                    'horizontalalignment', 'right', ...
+                    'interpreter', 'LaTeX', ...
+                    'parent', new_axes ...
+                  );
+%             arrow_text = data.directions{i_variable, 2};
+            figure_data.neg_text_handles(i_comparison, i_variable) = ...
+                text ...
+                  ( ...
+                    0, ...
+                    0, ...
+                    arrow_text, ...
+                    'rotation', 90, ...
+                    'Fontsize', 24, ...
+                    'horizontalalignment', 'left', ...
+                    'parent', new_axes...
+                  );
+            figure_data.neg_arrow_handles(i_comparison, i_variable) = ...
+                text ...
+                  ( ...
+                    0, ...
+                    0, ...
+                    '$\leftarrow$ ', ...
+                    'rotation', 90, ...
+                    'Fontsize', 36, ...
+                    'horizontalalignment', 'left', ...
+                    'interpreter', 'LaTeX', ...
+                    'parent', new_axes ...
+                  );
+            % determine title
+            title_string = settings.variables_to_plot{i_variable, strcmp(settings.variables_to_plot_header, 'variable label')};
+            filename_string = settings.variables_to_plot{i_variable, strcmp(settings.variables_to_plot_header, 'save file string')};
+            representative_condition = comparisons.condition_combinations(this_comparison(1), :);
+
+            for i_label = 1 : length(representative_condition)
+                this_is_the_condition_to_compare = (strcmp(comparisons.condition_combination_labels{i_label}, settings.condition_to_compare));
+                this_label_is_the_same_for_all_conditions = length(unique(comparisons.condition_combinations(:, i_label))) == 1;
+                
+                if ~this_is_the_condition_to_compare && ~this_label_is_the_same_for_all_conditions
+                    this_string = strrep(representative_condition{i_label}, '_', '');
+                    filename_string = [filename_string '_' this_string]; %#ok<AGROW>
+                    title_string = [title_string ' - ' this_string]; %#ok<AGROW>
+                end
+            end
+
+            title(title_string); set(gca, 'Fontsize', 12)
+            set(gcf, 'UserData', filename_string)
+        end
+    end
+end
+
+function plotData_continuous(settings, comparisons, data_custodian, figure_data)
+    condition_data = data_custodian.getConditionData();
+    for i_variable = 1 : settings.number_of_variables_to_plot_continuous
+        variable_name = settings.variables_to_plot_continuous(i_variable, strcmp(settings.variables_to_plot_continuous_header, 'variable name'));
+        variable_type = settings.variables_to_plot_continuous(i_variable, strcmp(settings.variables_to_plot_continuous_header, 'variable type'));
+        data_to_plot = data_custodian.getData(variable_name, variable_type);
+        
+        for i_comparison = 1 : length(comparisons.comparison_indices)
+            % find correct condition indicator for control
+            conditions_this_comparison = comparisons.comparison_indices{i_comparison};
+            top_level_plots = [];
+            target_axes_handle = figure_data.axes_handles(figure_data.comparison_variable_to_axes_index_map(i_comparison), i_variable);
+            
+            % plot
+            for i_condition = 1 : length(conditions_this_comparison)
+                this_condition_index = conditions_this_comparison(i_condition);
+                this_condition = comparisons.condition_combinations(this_condition_index, :);
+                this_label = this_condition{strcmp(comparisons.condition_combination_labels, settings.condition_to_compare)};
+                this_color = comparisons.condition_colors{strcmp(comparisons.condition_colors(:, 1), this_label), 2};
+                label_string = strrep(this_label, '_', ' ');
+                this_condition_indicator = getConditionIndicator(this_condition, comparisons.condition_combination_labels, condition_data, settings.condition_labels);
+                data_to_plot_this_condition = data_to_plot.variable_data(:, this_condition_indicator);
+                
+                origin_indices = find(this_condition_indicator);
+                target_abscissa = figure_data.abscissae_cell{i_comparison, i_variable}(i_condition, :);                    
+                if settings.plot_settings.get('show_individual_trajectory_data', 1)
+                    for i_stretch = 1 : size(data_to_plot_this_condition, 2)
+                        origin_index_data = - ones(size(target_abscissa)) * origin_indices(i_stretch);
+                        plot3 ...
+                          ( ...
+                            target_axes_handle, ...
+                            target_abscissa, ...
+                            data_to_plot_this_condition(:, i_stretch), ...
+                            origin_index_data, ...
+                            'linewidth', 1, ...
+                            'HandleVisibility', 'off', ...
+                            'color', lightenColor(this_color, 0.5) ...
+                          );
+                    end
+
+                end
+                if settings.show_average_data
+                    average_plot = plot ...
+                      ( ...
+                        target_abscissa, ...
+                        nanmean(data_to_plot_this_condition, 2), ...
+                        'parent', target_axes_handle, ...
+                        'DisplayName', label_string, ...
+                        'color', this_color, ...
+                        'linewidth', 6 ...
+                      );
+                    top_level_plots = [top_level_plots average_plot]; %#ok<AGROW>
+                end
+                if settings.show_spread_data
+                    plot_handles = shadedErrorBar ...
+                      ( ...
+                        target_abscissa, ...
+                        nanmean(data_to_plot_this_condition, 2), ...
+                        spread(data_to_plot_this_condition, settings.spread_method), ...
+                        { ...
+                          'color', this_color, ...
+                          'linewidth', 6 ...
+                        }, ...
+                        1, ...
+                        target_axes_handle ...
+                      );
+                    set(plot_handles.patch, 'HandleVisibility', 'off');
+                    delete(plot_handles.edge);
+                    delete(plot_handles.mainLine);
+                end                   
+            end
+            
+            % update direction labels
+            set(figure_data.pos_text_handles(i_comparison, i_variable), 'string', data_to_plot.directions{1});
+            set(figure_data.neg_text_handles(i_comparison, i_variable), 'string', data_to_plot.directions{2});
+        end
+    end
+end
+
+function plotData_discrete(settings, comparisons, data_custodian, figure_data)
+    condition_data = data_custodian.getConditionData();
+    for i_variable = 1 : settings.number_of_variables_to_plot_discrete
+        variable_name = settings.variables_to_plot_discrete(i_variable, strcmp(settings.variables_to_plot_discrete_header, 'variable name'));
+        variable_type = settings.variables_to_plot_discrete(i_variable, strcmp(settings.variables_to_plot_discrete_header, 'variable type'));
+        data_to_plot = data_custodian.getData(variable_name, variable_type);
+        
+        for i_comparison = 1 : length(comparisons.comparison_indices)
+            % find correct condition indicator for control
+            conditions_this_comparison = comparisons.comparison_indices{i_comparison};
+            target_axes_handle = figure_data.axes_handles(figure_data.comparison_variable_to_axes_index_map(i_comparison), i_variable);
+            
+            % plot
+            for i_condition = 1 : length(conditions_this_comparison)
+                this_condition_index = conditions_this_comparison(i_condition);
+                this_condition = comparisons.condition_combinations(this_condition_index, :);
+                this_label = this_condition{strcmp(comparisons.condition_combination_labels, settings.condition_to_compare)};
+                this_color = comparisons.condition_colors{strcmp(comparisons.condition_colors(:, 1), this_label), 2};
+                label_string = strrep(this_label, '_', ' ');
+                this_condition_indicator = getConditionIndicator(this_condition, comparisons.condition_combination_labels, condition_data, settings.condition_labels);
+                data_to_plot_this_condition = data_to_plot.variable_data(:, this_condition_indicator);
+                
+                if settings.plot_settings.get('merge_bands', 1)
+                    data_to_plot_this_condition = reshape(data_to_plot_this_condition, 1, numel(data_to_plot_this_condition));
+                end
+                for i_band = 1 : size(data_to_plot_this_condition, 1)
+                    if ~isempty(settings.band_labels)
+                        label_string_this_band = [label_string '-' settings.band_labels{i_band}];
+                    else
+                        label_string_this_band = label_string;
+                    end
+                    target_abscissa = figure_data.abscissae_cell{i_comparison, i_variable}(i_band, i_condition);
+                    data_to_plot_this_band = data_to_plot_this_condition(i_band, :);
+                    if ~any(isnan(data_to_plot_this_band))
+                        if settings.group_bands_within_conditions
+                            % override color
+                            colors = copper(size(data_to_plot_this_condition, 1));
+                            this_color = colors(i_band, :);
+                        end
+                        plotDiscreteData ...
+                          ( ...
+                            data_to_plot_this_band, ...
+                            'abscissa', target_abscissa, ...
+                            'axes', target_axes_handle, ...         % axes
+                            'color', this_color, ...                % color
+                            'ShowMean', settings.show_average_data, ...
+                            'MeanStyle', 'd', ...
+                            'MeanColor', [1 1 1]*0.7, ...
+                            'ShowMedian', settings.show_spread_data, ...
+                            'MedianStyle', 'line', ...
+                            'ShowIndividualData', settings.plot_settings.get('show_individual_discrete_data', 1), ...
+                            'ShowSpread', settings.show_spread_data, ...
+                            'SpreadStyle', settings.plot_settings.get('discrete_data_plot_style'), ...
+                            'label', label_string_this_band ...     % label
+                          )
+
+                    end
+                end
+                
+                
+            end
+            
+            % update direction labels
+            set(figure_data.pos_text_handles(i_comparison, i_variable), 'string', data_to_plot.directions{1});
+            set(figure_data.neg_text_handles(i_comparison, i_variable), 'string', data_to_plot.directions{2});
+        end
+    end
+end
+
+function figure_data = plotData_old(settings, data, comparisons, figure_data)
     for i_variable = 1 : settings.number_of_variables_to_plot
         data_to_plot = data.variable_data{i_variable, 1};
         for i_comparison = 1 : length(comparisons.comparison_indices)
@@ -593,7 +1045,7 @@ function figure_data = plotData(settings, data, comparisons, figure_data)
     end
 end
 
-function figure_data = groomFigures(settings, data, comparisons, figure_data)
+function figure_data = groomFigures_old(settings, data, comparisons, figure_data)
     % set axis limits
     if settings.dictate_axes
         for i_variable = 1 : settings.number_of_variables_to_plot
@@ -810,6 +1262,313 @@ function figure_data = groomFigures(settings, data, comparisons, figure_data)
                 end
             end
         end
+    end
+    
+end
+
+function figure_data = groomFigures_continuous(settings, data_custodian, comparisons, figure_data)
+    % set axis limits
+    if settings.dictate_axes
+        for i_variable = 1 : settings.number_of_variables_to_plot
+            % get x-axis limits from settings
+            this_variable_x_lower = settings.variables_to_plot_continuous{i_variable, strcmp(settings.variables_to_plot_continuous_header, 'x-axis lower limit')};
+            this_variable_x_upper = settings.variables_to_plot_continuous{i_variable, strcmp(settings.variables_to_plot_continuous_header, 'x-axis upper limit')};
+            
+            % get y-axis limits from settings
+            this_variable_y_lower = settings.variables_to_plot_continuous{i_variable, strcmp(settings.variables_to_plot_continuous_header, 'y-axis lower limit')};
+            this_variable_y_upper = settings.variables_to_plot_continuous{i_variable, strcmp(settings.variables_to_plot_continuous_header, 'y-axis upper limit')};
+            
+            for i_axes = 1 : size(figure_data.axes_handles, 1)
+                % get current axes and limits
+                these_axes = figure_data.axes_handles(i_axes, i_variable);
+                xlimits = get(these_axes, 'xlim');
+                ylimits = get(these_axes, 'ylim');
+                
+                % apply new limits if any were set
+                if ~strcmp(this_variable_x_lower, '~')
+                    xlimits(1) = str2double(this_variable_x_lower);
+                end
+                if ~strcmp(this_variable_x_upper, '~')
+                    xlimits(2) = str2double(this_variable_x_upper);
+                end
+                if ~strcmp(this_variable_y_lower, '~')
+                    ylimits(1) = str2double(this_variable_y_lower);
+                end
+                if ~strcmp(this_variable_y_upper, '~')
+                    ylimits(2) = str2double(this_variable_y_upper);
+                end
+                set(these_axes, 'xlim', xlimits, 'ylim', ylimits);
+                
+            end
+        end
+    end
+
+    % update label positions
+    for i_variable = 1 : settings.number_of_variables_to_plot_continuous
+        for i_axes = 1 : size(figure_data.axes_handles, 1)
+            these_axes = figure_data.axes_handles(i_axes, i_variable);
+            xlimits = get(these_axes, 'xlim'); ylimits = get(these_axes, 'ylim');
+            if figure_data.pos_arrow_handles(i_axes, i_variable) ~= 0
+                pos_arrow_position_x = xlimits(1) - (xlimits(2)-xlimits(1))*0.09;
+                pos_arrow_position_y = ylimits(2);
+                set(figure_data.pos_arrow_handles(i_axes, i_variable), 'Position', [pos_arrow_position_x pos_arrow_position_y]);
+                pos_text_position_x = xlimits(1) - (xlimits(2)-xlimits(1))*0.14;
+                pos_text_position_y = ylimits(2);
+                set(figure_data.pos_text_handles(i_axes, i_variable), 'Position', [pos_text_position_x pos_text_position_y]);
+            end
+            if figure_data.neg_arrow_handles(i_axes, i_variable) ~= 0
+                neg_arrow_position_x = xlimits(1) - (xlimits(2)-xlimits(1))*0.09;
+                neg_arrow_position_y = ylimits(1);
+                set(figure_data.neg_arrow_handles(i_axes, i_variable), 'Position', [neg_arrow_position_x neg_arrow_position_y]);
+                neg_text_position_x = xlimits(1) - (xlimits(2)-xlimits(1))*0.14;
+                neg_text_position_y = ylimits(1);
+                set(figure_data.neg_text_handles(i_axes, i_variable), 'Position', [neg_text_position_x neg_text_position_y]);
+            end
+%             if isDiscreteVariable(i_variable, data.variable_data, data.bands_per_stretch)
+%                 % rotate labels
+%                 xtick_label_rotation = settings.plot_settings.get('xtick_label_rotation', 1);
+%                 set(these_axes, 'XTickLabelRotation', xtick_label_rotation);
+%                 
+%             end
+            
+        end
+    end
+
+    % toggle legend
+    for i_variable = 1 : settings.number_of_variables_to_plot_continuous
+        for i_axes = 1 : size(figure_data.axes_handles, 1)
+            these_axes = figure_data.axes_handles(i_axes, i_variable);
+            if settings.show_legend %&& ~(isDiscreteVariable(i_variable, data.variable_data, data.bands_per_stretch))
+                legend(these_axes, 'show')
+            end
+        end
+    end
+    
+    % add zero line
+    if settings.plot_settings.get('plot_zero', 1)
+        for i_variable = 1 : settings.number_of_variables_to_plot_continuous
+            for i_axes = 1 : size(figure_data.axes_handles, 1)
+                these_axes = figure_data.axes_handles(i_axes, i_variable);
+                xlimits = get(these_axes, 'xlim');
+                zero_plot = plot(these_axes, xlimits, [0 0], 'color', [0.7 0.7 0.7]);
+                set(zero_plot, 'HandleVisibility', 'off');
+                uistack(zero_plot, 'bottom')
+                
+            end
+        end    
+    end
+    
+    % mark bands
+    if settings.mark_bands
+        for i_comparison = 1 : comparisons.number_of_comparisons
+            for i_variable = 1 : settings.number_of_variables_to_plot_continuous
+                these_axes = figure_data.axes_handles(i_comparison, i_variable);
+                these_abscissae = figure_data.abscissae_cell{i_comparison, i_variable};
+                ylimits = get(these_axes, 'ylim');
+
+                if settings.mark_bands == 1
+                    bands_to_mark = 2 : 2 : data.bands_per_stretch;
+                end
+                if settings.mark_bands == 2
+                    bands_to_mark = 1 : 2 : data.bands_per_stretch;
+                end
+
+                for i_band = bands_to_mark
+                    % double stance patch
+                    double_stance_patch_color = settings.plot_settings.get('stance_double_color');
+
+                    [start_index, end_index] = getBandIndices(i_band, settings.number_of_time_steps_normalized);
+
+                    band_start_times = these_abscissae(:, start_index);
+                    band_end_times = these_abscissae(:, end_index);
+
+                    % if these rows are all the same, then we're good and we can mark only a single box.
+
+                    % for testing
+                    if length(unique(band_start_times)) == 1 && length(unique(band_end_times)) == 1
+                        patch_x = [band_start_times(1) band_end_times(1) band_end_times(1) band_start_times(1)];
+                        patch_y = [ylimits(1) ylimits(1) ylimits(2) ylimits(2)];
+                        patch_handle = ...
+                            patch ...
+                              ( ...
+                                patch_x, ...
+                                patch_y, ...
+                                double_stance_patch_color, ...
+                                'parent', these_axes, ...
+                                'EdgeColor', 'none', ...
+                                'FaceAlpha', settings.plot_settings.get('stance_alpha'), ...
+                                'HandleVisibility', 'off' ...
+                              ); 
+                        uistack(patch_handle, 'bottom')                    
+                    end
+
+                    % otherwise we'll have to do something else
+                    if length(unique(band_start_times)) > 1 || length(unique(band_end_times)) > 1
+                        number_of_conditions = length(band_start_times);
+                        y_values = linspace(ylimits(1), ylimits(2), number_of_conditions+1);
+                        for i_condition = 1 : number_of_conditions
+% 2020-APR-15 HR: this is code to mark the double stance for each condition
+% with an individual box, with a light shade of the condition color. I
+% don't have a good way to access the condition color here, after
+% re-working the way these colors are determined. Since this is used very
+% rarely, I'll leave it as gray boxes for now, using 
+% double_stance_patch_color, to be fixed if it's actually needed
+% 
+%                                 this_condition_index = conditions_this_comparison(i_condition);
+%                                 this_condition = comparisons.condition_combinations(this_condition_index, :);
+%                                 this_label = this_condition{strcmp(comparisons.condition_combination_labels, settings.condition_to_compare)};
+%                                 this_color = comparisons.condition_colors{strcmp(comparisons.condition_colors(:, 1), this_label), 2};
+
+                            patch_x = [band_start_times(i_condition) band_end_times(i_condition) band_end_times(i_condition) band_start_times(i_condition)];
+                            patch_y = [y_values(i_condition) y_values(i_condition) y_values(i_condition+1) y_values(i_condition+1)];
+                            patch_handle = ...
+                                patch ...
+                                  ( ...
+                                    patch_x, ...
+                                    patch_y, ...
+                                    double_stance_patch_color, ...
+                                    'parent', these_axes, ...
+                                    'EdgeColor', 'none', ...
+                                    'FaceAlpha', settings.plot_settings.get('stance_alpha'), ...
+                                    'HandleVisibility', 'off' ...
+                                  ); 
+                            uistack(patch_handle, 'bottom')                    
+
+                        end
+
+                    end
+
+
+                end
+            end
+        end
+    end
+    
+    % mark pushoff
+    if settings.mark_pushoff
+        % determine pushoff times ad indices
+        pushoff_time_data = data_custodian.getData('pushoff_time', 'stretch');
+        pushoff_times = pushoff_time_data.variable_data;
+        step_time_data = data_custodian.getData('step_time', 'stretch');
+        step_times = step_time_data.variable_data;
+        pushoff_time_ratio = pushoff_times ./ step_times;
+        mean_pushoff_ratio = mean(pushoff_time_ratio, 2);
+        pushoff_index = round(mean_pushoff_ratio * 100);
+        
+        for i_comparison = 1 : comparisons.number_of_comparisons
+            for i_variable = 1 : settings.number_of_variables_to_plot_continuous
+                these_axes = figure_data.axes_handles(i_comparison, i_variable);
+                these_abscissae = figure_data.abscissae_cell{i_comparison, i_variable};
+                ylimits = get(these_axes, 'ylim');
+
+                for i_band = 1 : data_custodian.bands_per_stretch
+                    % double stance patch
+                    double_stance_patch_color = settings.plot_settings.get('stance_double_color');
+
+                    start_index = getBandIndices(i_band, settings.number_of_time_steps_normalized);
+                    pushoff_index_here = start_index + pushoff_index(i_band);
+
+                    band_start_times = these_abscissae(:, start_index);
+                    band_end_times = these_abscissae(:, pushoff_index_here);
+
+                    patch_x = [band_start_times(1) band_end_times(1) band_end_times(1) band_start_times(1)];
+                    patch_y = [ylimits(1) ylimits(1) ylimits(2) ylimits(2)];
+                    patch_handle = ...
+                        patch ...
+                          ( ...
+                            patch_x, ...
+                            patch_y, ...
+                            double_stance_patch_color, ...
+                            'parent', these_axes, ...
+                            'EdgeColor', 'none', ...
+                            'FaceAlpha', settings.plot_settings.get('stance_alpha'), ...
+                            'HandleVisibility', 'off' ...
+                          ); 
+                    uistack(patch_handle, 'bottom')                    
+                end
+            end
+        end
+    end
+    
+end
+
+function figure_data = groomFigures_discrete(settings, data_custodian, comparisons, figure_data)
+    % set axis limits
+    if settings.dictate_axes
+        for i_variable = 1 : settings.number_of_variables_to_plot
+            % get x-axis limits from settings
+            this_variable_x_lower = settings.variables_to_plot_discrete{i_variable, strcmp(settings.variables_to_plot_discrete_header, 'x-axis lower limit')};
+            this_variable_x_upper = settings.variables_to_plot_discrete{i_variable, strcmp(settings.variables_to_plot_discrete_header, 'x-axis upper limit')};
+            
+            % get y-axis limits from settings
+            this_variable_y_lower = settings.variables_to_plot_discrete{i_variable, strcmp(settings.variables_to_plot_discrete_header, 'y-axis lower limit')};
+            this_variable_y_upper = settings.variables_to_plot_discrete{i_variable, strcmp(settings.variables_to_plot_discrete_header, 'y-axis upper limit')};
+            
+            for i_axes = 1 : size(figure_data.axes_handles, 1)
+                % get current axes and limits
+                these_axes = figure_data.axes_handles(i_axes, i_variable);
+                xlimits = get(these_axes, 'xlim');
+                ylimits = get(these_axes, 'ylim');
+                
+                % apply new limits if any were set
+                if ~strcmp(this_variable_x_lower, '~')
+                    xlimits(1) = str2double(this_variable_x_lower);
+                end
+                if ~strcmp(this_variable_x_upper, '~')
+                    xlimits(2) = str2double(this_variable_x_upper);
+                end
+                if ~strcmp(this_variable_y_lower, '~')
+                    ylimits(1) = str2double(this_variable_y_lower);
+                end
+                if ~strcmp(this_variable_y_upper, '~')
+                    ylimits(2) = str2double(this_variable_y_upper);
+                end
+                set(these_axes, 'xlim', xlimits, 'ylim', ylimits);
+                
+            end
+        end
+    end
+
+    % update label positions
+    for i_variable = 1 : settings.number_of_variables_to_plot_discrete
+        for i_axes = 1 : size(figure_data.axes_handles, 1)
+            these_axes = figure_data.axes_handles(i_axes, i_variable);
+            xlimits = get(these_axes, 'xlim'); ylimits = get(these_axes, 'ylim');
+            if figure_data.pos_arrow_handles(i_axes, i_variable) ~= 0
+                pos_arrow_position_x = xlimits(1) - (xlimits(2)-xlimits(1))*0.09;
+                pos_arrow_position_y = ylimits(2);
+                set(figure_data.pos_arrow_handles(i_axes, i_variable), 'Position', [pos_arrow_position_x pos_arrow_position_y]);
+                pos_text_position_x = xlimits(1) - (xlimits(2)-xlimits(1))*0.14;
+                pos_text_position_y = ylimits(2);
+                set(figure_data.pos_text_handles(i_axes, i_variable), 'Position', [pos_text_position_x pos_text_position_y]);
+            end
+            if figure_data.neg_arrow_handles(i_axes, i_variable) ~= 0
+                neg_arrow_position_x = xlimits(1) - (xlimits(2)-xlimits(1))*0.09;
+                neg_arrow_position_y = ylimits(1);
+                set(figure_data.neg_arrow_handles(i_axes, i_variable), 'Position', [neg_arrow_position_x neg_arrow_position_y]);
+                neg_text_position_x = xlimits(1) - (xlimits(2)-xlimits(1))*0.14;
+                neg_text_position_y = ylimits(1);
+                set(figure_data.neg_text_handles(i_axes, i_variable), 'Position', [neg_text_position_x neg_text_position_y]);
+            end
+            
+            % rotate labels
+            xtick_label_rotation = settings.plot_settings.get('xtick_label_rotation', 1);
+            set(these_axes, 'XTickLabelRotation', xtick_label_rotation);            
+        end
+    end
+    
+    % add zero line
+    if settings.plot_settings.get('plot_zero', 1)
+        for i_variable = 1 : settings.number_of_variables_to_plot_discrete
+            for i_axes = 1 : size(figure_data.axes_handles, 1)
+                these_axes = figure_data.axes_handles(i_axes, i_variable);
+                xlimits = get(these_axes, 'xlim');
+                zero_plot = plot(these_axes, xlimits, [0 0], 'color', [0.7 0.7 0.7]);
+                set(zero_plot, 'HandleVisibility', 'off');
+                uistack(zero_plot, 'bottom')
+                
+            end
+        end    
     end
     
 end
