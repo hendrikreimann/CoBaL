@@ -97,9 +97,28 @@ classdef StretchDataCustodian < handle
                     condition_array_session(:, i_condition) = conditions_session.(condition_source_variables{i_condition});
                 end
 
-                condition_data = [condition_data; condition_array_session];
+                condition_data = [condition_data; condition_array_session]; %#ok<AGROW>
             end            
         end
+        function [subjects, trials, start_times, end_times] = getOriginData(this)
+            % create containers
+            subjects = {};
+            trials = [];
+            start_times = [];
+            end_times = [];
+            
+            % go through source folders, grab data and collect in containers
+            for i_folder = 1 : this.number_of_source_sessions
+                this_session_data = this.data{i_folder};
+                
+                this_session_subject_data = this_session_data.conditions_session.subject_list;
+                subjects = [subjects; this_session_subject_data]; %#ok<AGROW>
+                trials = [trials; this_session_data.origin_trial_list_session]; %#ok<AGROW>
+                start_times = [start_times; this_session_data.origin_start_time_list_session]; %#ok<AGROW>
+                end_times = [end_times; this_session_data.origin_end_time_list_session]; %#ok<AGROW>
+            end           
+        end
+        
         function data = getData(this, variable_names, variable_types)
             % normalize data format
             if ~iscell(variable_names)
@@ -114,36 +133,12 @@ classdef StretchDataCustodian < handle
             data.variable_types = variable_types;
 
             number_of_variables_to_get = length(variable_names);
-%             conditions_settings = this.study_settings.get('conditions');
-%             condition_labels = conditions_settings(:, 1)';
-%             condition_source_variables = conditions_settings(:, 2)';
-%             number_of_condition_labels = length(condition_labels);
-            
-%             data.condition_data = {};
             data.variable_data = cell(number_of_variables_to_get, 1);
             data.directions = cell(number_of_variables_to_get, 2);
-
-%             data.step_time_data = [];
-%             pushoff_time_data = [];
-%             data.bands_per_stretch = [];
             
             % extract data from individual
             for i_folder = 1 : this.number_of_source_sessions
                 this_session_data = this.data{i_folder};
-%                 number_of_stretches_this_session = length(this_session_data.time_list_session);
-%                 bands_per_stretch_this_session = this_session_data.bands_per_stretch;
-
-%                 % transform conditions into cell array
-%                 conditions_session = this_session_data.conditions_session;
-%                 condition_array_session = cell(number_of_stretches_this_session, number_of_condition_labels);
-%                 for i_condition = 1 : number_of_condition_labels
-%                     condition_array_session(:, i_condition) = conditions_session.(condition_source_variables{i_condition});
-%                 end
-% 
-%                 data.condition_data = [data.condition_data; condition_array_session];
-%                 origin_trial_list_all = [origin_trial_list_all; this_session_data.origin_trial_list_session]; %#ok<AGROW>
-%                 origin_start_time_list_all = [origin_start_time_list_all; this_session_data.origin_start_time_list_session]; %#ok<AGROW>
-%                 origin_end_time_list_all = [origin_end_time_list_all; this_session_data.origin_end_time_list_session]; %#ok<AGROW>
 
                 % extract data
                 for i_variable = 1 : number_of_variables_to_get
@@ -162,36 +157,8 @@ classdef StretchDataCustodian < handle
                     data.directions(i_variable, :) = this_variable_directions;
                 end
 
-%                 % get time variables
-%                 step_time_available = 0;
-%                 if isfield(this_session_data, 'stretch_names_session') && any(find(strcmp(this_session_data.stretch_names_session, 'step_time')))
-%                     index_in_saved_data = find(strcmp(this_session_data.stretch_names_session, 'step_time'), 1, 'first');
-%                     this_step_time_data = this_session_data.stretch_data_session{index_in_saved_data};
-%                     data.step_time_data = [data.step_time_data this_step_time_data];
-%                     step_time_available = 1;
-%                 end
-%                 pushoff_time_available = 0;
-%                 if isfield(this_session_data, 'stretch_names_session') && any(find(strcmp(this_session_data.stretch_names_session, 'pushoff_time')))
-%                     index_in_saved_data = find(strcmp(this_session_data.stretch_names_session, 'pushoff_time'), 1, 'first');
-%                     this_pushoff_time_data = this_session_data.stretch_data_session{index_in_saved_data};
-%                     pushoff_time_data = [pushoff_time_data this_pushoff_time_data]; %#ok<AGROW>
-%                     pushoff_time_available = 1;
-%                 end
-%                 if isempty(data.bands_per_stretch)
-%                     data.bands_per_stretch = bands_per_stretch_this_session;
-%                 else
-%                     if data.bands_per_stretch ~= bands_per_stretch_this_session
-%                        warning('Different sessions have different numbers of bands per stretch') 
-%                     end
-%                 end
                 
             end
-%             % calculate mean pushoff index
-%             if step_time_available && pushoff_time_available
-%                 pushoff_time_ratio = pushoff_time_data ./ data.step_time_data;
-%                 mean_pushoff_ratio = mean(pushoff_time_ratio, 2);
-%                 data.pushoff_index = round(mean_pushoff_ratio * 100);
-%             end
             if number_of_variables_to_get == 1
                 data.variable_names = data.variable_names{1};
                 data.variable_types = data.variable_types{1};
