@@ -32,13 +32,17 @@
 function plotResults(varargin)
     settings = determineSettings(varargin{:});
     
-    % load data -- old
-    data = loadDataToPlot(settings);
-    
     % make data custodian object and load data
     data_source = settings.plot_settings.get('data_source', 1);
     subjects = settings.subjects;
     data_custodian = StretchDataCustodian(pwd, data_source, subjects);
+    
+    % transform old variables list to new format
+    settings = transformVariablesListToNewFormat(settings, data_custodian);
+    
+    
+    % load data -- old
+    data = loadDataToPlot(settings);
     
     % get data to plot from custodian -- old
     condition_data = data_custodian.getConditionData();
@@ -59,7 +63,7 @@ function plotResults(varargin)
     
     % groom axes, labels etc
     groomFigures_continuous(settings, data_custodian, comparisons_new, figure_data_continuous);
-    groomFigures_discrete(settings, data_custodian, comparisons_new, figure_data_discrete);
+    groomFigures_discrete(settings, figure_data_discrete);
     figure_data_old = groomFigures_old(settings, data, comparisons_old, figure_data_old);
     
     % save and close
@@ -132,7 +136,52 @@ function settings = determineSettings(varargin)
     settings.variables_to_plot_continuous = settings.plot_settings.get('variables_to_plot_continuous', true);
     settings.variables_to_plot_continuous_header = settings.plot_settings.get('variables_to_plot_continuous_header', true);
     settings.number_of_variables_to_plot_continuous = size(settings.variables_to_plot_continuous, 1);
+    
+end
 
+function settings = transformVariablesListToNewFormat(settings, data_custodian)
+    % grab variables
+    variables_to_plot = settings.variables_to_plot;
+    if isempty(variables_to_plot)
+        % old list entry exists, but is empty, we don't have to do anything
+        return
+    end
+    variables_to_plot_header = settings.variables_to_plot_header;
+    variables_name_list = variables_to_plot(:, strcmp(variables_to_plot_header, 'variable name'));
+    variables_type_list = variables_to_plot(:, strcmp(variables_to_plot_header, 'variable type'));
+    
+    % go through variables and transform one by one
+    variables_to_plot_data = data_custodian.getData(variables_name_list, variables_type_list);
+    for i_variable = 1 : size(variables_to_plot_data.variable_data, 1)
+        this_row = variables_to_plot(i_variable, :);
+        % check size of this variable
+        if size(variables_to_plot_data.variable_data{i_variable}, 1) == data_custodian.bands_per_stretch
+            % this is a discrete variable
+            settings.variables_to_plot_discrete = addRowToVariableList(this_row, variables_to_plot_header, settings.variables_to_plot_discrete, settings.variables_to_plot_discrete_header);
+        else
+            % this is a continuous variable
+            settings.variables_to_plot_continuous = addRowToVariableList(this_row, variables_to_plot_header, settings.variables_to_plot_continuous, settings.variables_to_plot_continuous_header);
+        end
+    end
+    
+    % update length of new format lists
+    settings.number_of_variables_to_plot_discrete = size(settings.variables_to_plot_discrete, 1);
+    settings.number_of_variables_to_plot_continuous = size(settings.variables_to_plot_continuous, 1);
+end
+
+function list = addRowToVariableList(row_to_add, row_to_add_header, existing_list, existing_list_header)
+    new_row_reformatted = cell(1, length(existing_list_header));
+    for i_column = 1 : length(existing_list_header)
+        % find this column in old list
+        this_label = existing_list_header{i_column};
+        if any(strcmp(row_to_add_header, this_label))
+            this_entry = row_to_add{1, strcmp(row_to_add_header, this_label)};
+        else
+            this_entry = '~';
+        end
+        new_row_reformatted{i_column} = this_entry;
+    end
+    list = [existing_list; new_row_reformatted];
 end
 
 function data = loadDataToPlot(settings)
@@ -558,12 +607,11 @@ function figure_data = createFigures_continuous(settings, comparisons, data_cust
             else
                 xlabel('normalized time (%)');
             end
-            this_label = settings.variables_to_plot{i_variable, strcmp(settings.variables_to_plot_header, 'y-axis label')};
+            this_label = settings.variables_to_plot_continuous{i_variable, strcmp(settings.variables_to_plot_continuous_header, 'y-axis label')};
             ylabel(this_label);
 
             % add text labels for arrows
             arrow_text = 'TBD';
-%             arrow_text = data.directions{i_variable, 1};
             figure_data.pos_text_handles(i_comparison, i_variable) = ...
                 text ...
                   ( ...
@@ -587,7 +635,6 @@ function figure_data = createFigures_continuous(settings, comparisons, data_cust
                     'interpreter', 'LaTeX', ...
                     'parent', new_axes ...
                   );
-%             arrow_text = data.directions{i_variable, 2};
             figure_data.neg_text_handles(i_comparison, i_variable) = ...
                 text ...
                   ( ...
@@ -711,12 +758,11 @@ function figure_data = createFigures_discrete(settings, comparisons, data_custod
             set(gca, 'xtick', xtick);
 
             % set axis labels
-            this_label = settings.variables_to_plot{i_variable, strcmp(settings.variables_to_plot_header, 'y-axis label')};
+            this_label = settings.variables_to_plot_discrete{i_variable, strcmp(settings.variables_to_plot_discrete_header, 'y-axis label')};
             ylabel(this_label);
 
             % add text labels for arrows
             arrow_text = 'TBD';
-%             arrow_text = data.directions{i_variable, 1};
             figure_data.pos_text_handles(i_comparison, i_variable) = ...
                 text ...
                   ( ...
@@ -740,7 +786,6 @@ function figure_data = createFigures_discrete(settings, comparisons, data_custod
                     'interpreter', 'LaTeX', ...
                     'parent', new_axes ...
                   );
-%             arrow_text = data.directions{i_variable, 2};
             figure_data.neg_text_handles(i_comparison, i_variable) = ...
                 text ...
                   ( ...
@@ -765,8 +810,8 @@ function figure_data = createFigures_discrete(settings, comparisons, data_custod
                     'parent', new_axes ...
                   );
             % determine title
-            title_string = settings.variables_to_plot{i_variable, strcmp(settings.variables_to_plot_header, 'variable label')};
-            filename_string = settings.variables_to_plot{i_variable, strcmp(settings.variables_to_plot_header, 'save file string')};
+            title_string = settings.variables_to_plot_discrete{i_variable, strcmp(settings.variables_to_plot_discrete_header, 'variable label')};
+            filename_string = settings.variables_to_plot_discrete{i_variable, strcmp(settings.variables_to_plot_discrete_header, 'save file string')};
             representative_condition = comparisons.condition_combinations(this_comparison(1), :);
 
             for i_label = 1 : length(representative_condition)
@@ -1266,7 +1311,7 @@ function figure_data = groomFigures_old(settings, data, comparisons, figure_data
     
 end
 
-function figure_data = groomFigures_continuous(settings, data_custodian, comparisons, figure_data)
+function groomFigures_continuous(settings, data_custodian, comparisons, figure_data)
     % set axis limits
     if settings.dictate_axes
         for i_variable = 1 : settings.number_of_variables_to_plot
@@ -1492,7 +1537,7 @@ function figure_data = groomFigures_continuous(settings, data_custodian, compari
     
 end
 
-function figure_data = groomFigures_discrete(settings, data_custodian, comparisons, figure_data)
+function groomFigures_discrete(settings, figure_data)
     % set axis limits
     if settings.dictate_axes
         for i_variable = 1 : settings.number_of_variables_to_plot

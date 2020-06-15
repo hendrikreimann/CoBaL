@@ -299,6 +299,12 @@ classdef SettingsCustodian < handle
             if strcmp(property_name, 'variables_to_plot_header')
                 default_data = {'variable name', 'variable type', 'variable label', 'y-axis label', 'save file string', 'y-axis lower limit', 'y-axis upper limit'};
             end
+            if strcmp(property_name, 'variables_to_plot_discrete_header')
+                default_data = {'variable name', 'variable type', 'variable label', 'y-axis label', 'save file string', 'x-axis lower limit', 'x-axis upper limit', 'y-axis lower limit', 'y-axis upper limit'};
+            end
+            if strcmp(property_name, 'variables_to_plot_continuous_header')
+                default_data = {'variable name', 'variable type', 'variable label', 'y-axis label', 'save file string', 'x-axis lower limit', 'x-axis upper limit', 'y-axis lower limit', 'y-axis upper limit'};
+            end
             if strcmp(property_name, 'convert_to_mm')
                 default_data = false;
             end
