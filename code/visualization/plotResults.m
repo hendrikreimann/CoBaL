@@ -228,7 +228,7 @@ function condition_colors = determineConditionColors(settings, comparisons)
 end
 
 function figure_data = createFigures_continuous(settings, comparisons, data_custodian)
-    figure_data = createFigureData(settings, comparisons);
+    figure_data = createFigureData(settings.variables_to_plot_continuous, comparisons);
     step_start_times_cell = cell(comparisons.number_of_comparisons, settings.number_of_variables_to_plot_continuous);
     step_end_times_cell = cell(comparisons.number_of_comparisons, settings.number_of_variables_to_plot_continuous);
     step_time_data = data_custodian.getData('step_time', 'stretch');
@@ -340,7 +340,7 @@ function text = singlePlotTooltip(~, event_obj)
 end
 
 function figure_data = createFigures_discrete(settings, comparisons, data_custodian)
-    figure_data = createFigureData(settings, comparisons);
+    figure_data = createFigureData(settings.variables_to_plot_discrete, comparisons);
     bands_per_stretch = data_custodian.bands_per_stretch;
     
     for i_variable = 1 : settings.number_of_variables_to_plot_discrete
@@ -473,17 +473,18 @@ function figure_data = addLabelsAndData(figure_data, comparisons, variables_to_p
     end
 end
 
-function figure_data = createFigureData(settings, comparisons)
+function figure_data = createFigureData(variables_to_plot, comparisons)
+    number_of_variables_to_plot = size(variables_to_plot, 1);
     figure_data.comparison_variable_to_axes_index_map = zeros(comparisons.number_of_comparisons, 1);
-    figure_data.abscissae_cell = cell(comparisons.number_of_comparisons, settings.number_of_variables_to_plot);
+    figure_data.abscissae_cell = cell(comparisons.number_of_comparisons, number_of_variables_to_plot);
     
     % make one figure per comparison and variable
-    figure_data.figure_handles = zeros(comparisons.number_of_comparisons, settings.number_of_variables_to_plot_discrete);
-    figure_data.axes_handles = zeros(comparisons.number_of_comparisons, settings.number_of_variables_to_plot_discrete);
-    figure_data.pos_text_handles = zeros(comparisons.number_of_comparisons, settings.number_of_variables_to_plot_discrete);
-    figure_data.neg_text_handles = zeros(comparisons.number_of_comparisons, settings.number_of_variables_to_plot_discrete);
-    figure_data.pos_arrow_handles = zeros(comparisons.number_of_comparisons, settings.number_of_variables_to_plot_discrete);
-    figure_data.neg_arrow_handles = zeros(comparisons.number_of_comparisons, settings.number_of_variables_to_plot_discrete);
+    figure_data.figure_handles = zeros(comparisons.number_of_comparisons, number_of_variables_to_plot);
+    figure_data.axes_handles = zeros(comparisons.number_of_comparisons, number_of_variables_to_plot);
+    figure_data.pos_text_handles = zeros(comparisons.number_of_comparisons, number_of_variables_to_plot);
+    figure_data.neg_text_handles = zeros(comparisons.number_of_comparisons, number_of_variables_to_plot);
+    figure_data.pos_arrow_handles = zeros(comparisons.number_of_comparisons, number_of_variables_to_plot);
+    figure_data.neg_arrow_handles = zeros(comparisons.number_of_comparisons, number_of_variables_to_plot);
 end
 
 function plotData_continuous(settings, comparisons, data_custodian, figure_data)
@@ -646,94 +647,18 @@ end
 
 function groomFigures_continuous(settings, data_custodian, comparisons, figure_data)
     % set axis limits
-    if settings.dictate_axes
-        for i_variable = 1 : settings.number_of_variables_to_plot
-            % get x-axis limits from settings
-            this_variable_x_lower = settings.variables_to_plot_continuous{i_variable, strcmp(settings.variables_to_plot_continuous_header, 'x-axis lower limit')};
-            this_variable_x_upper = settings.variables_to_plot_continuous{i_variable, strcmp(settings.variables_to_plot_continuous_header, 'x-axis upper limit')};
-            
-            % get y-axis limits from settings
-            this_variable_y_lower = settings.variables_to_plot_continuous{i_variable, strcmp(settings.variables_to_plot_continuous_header, 'y-axis lower limit')};
-            this_variable_y_upper = settings.variables_to_plot_continuous{i_variable, strcmp(settings.variables_to_plot_continuous_header, 'y-axis upper limit')};
-            
-            for i_axes = 1 : size(figure_data.axes_handles, 1)
-                % get current axes and limits
-                these_axes = figure_data.axes_handles(i_axes, i_variable);
-                xlimits = get(these_axes, 'xlim');
-                ylimits = get(these_axes, 'ylim');
-                
-                % apply new limits if any were set
-                if ~strcmp(this_variable_x_lower, '~')
-                    xlimits(1) = str2double(this_variable_x_lower);
-                end
-                if ~strcmp(this_variable_x_upper, '~')
-                    xlimits(2) = str2double(this_variable_x_upper);
-                end
-                if ~strcmp(this_variable_y_lower, '~')
-                    ylimits(1) = str2double(this_variable_y_lower);
-                end
-                if ~strcmp(this_variable_y_upper, '~')
-                    ylimits(2) = str2double(this_variable_y_upper);
-                end
-                set(these_axes, 'xlim', xlimits, 'ylim', ylimits);
-                
-            end
-        end
-    end
-
-    % update label positions
-    for i_variable = 1 : settings.number_of_variables_to_plot_continuous
-        for i_axes = 1 : size(figure_data.axes_handles, 1)
-            these_axes = figure_data.axes_handles(i_axes, i_variable);
-            xlimits = get(these_axes, 'xlim'); ylimits = get(these_axes, 'ylim');
-            if figure_data.pos_arrow_handles(i_axes, i_variable) ~= 0
-                pos_arrow_position_x = xlimits(1) - (xlimits(2)-xlimits(1))*0.09;
-                pos_arrow_position_y = ylimits(2);
-                set(figure_data.pos_arrow_handles(i_axes, i_variable), 'Position', [pos_arrow_position_x pos_arrow_position_y]);
-                pos_text_position_x = xlimits(1) - (xlimits(2)-xlimits(1))*0.14;
-                pos_text_position_y = ylimits(2);
-                set(figure_data.pos_text_handles(i_axes, i_variable), 'Position', [pos_text_position_x pos_text_position_y]);
-            end
-            if figure_data.neg_arrow_handles(i_axes, i_variable) ~= 0
-                neg_arrow_position_x = xlimits(1) - (xlimits(2)-xlimits(1))*0.09;
-                neg_arrow_position_y = ylimits(1);
-                set(figure_data.neg_arrow_handles(i_axes, i_variable), 'Position', [neg_arrow_position_x neg_arrow_position_y]);
-                neg_text_position_x = xlimits(1) - (xlimits(2)-xlimits(1))*0.14;
-                neg_text_position_y = ylimits(1);
-                set(figure_data.neg_text_handles(i_axes, i_variable), 'Position', [neg_text_position_x neg_text_position_y]);
-            end
-%             if isDiscreteVariable(i_variable, data.variable_data, data.bands_per_stretch)
-%                 % rotate labels
-%                 xtick_label_rotation = settings.plot_settings.get('xtick_label_rotation', 1);
-%                 set(these_axes, 'XTickLabelRotation', xtick_label_rotation);
-%                 
-%             end
-            
-        end
-    end
+    dictateAxes(settings, figure_data, settings.variables_to_plot_continuous, settings.variables_to_plot_continuous_header);
+    updateLabelPositions(figure_data);
+    addZeroLine(settings, figure_data);
 
     % toggle legend
-    for i_variable = 1 : settings.number_of_variables_to_plot_continuous
-        for i_axes = 1 : size(figure_data.axes_handles, 1)
-            these_axes = figure_data.axes_handles(i_axes, i_variable);
-            if settings.show_legend %&& ~(isDiscreteVariable(i_variable, data.variable_data, data.bands_per_stretch))
-                legend(these_axes, 'show')
-            end
-        end
-    end
-    
-    % add zero line
-    if settings.plot_settings.get('plot_zero', 1)
+    if settings.show_legend
         for i_variable = 1 : settings.number_of_variables_to_plot_continuous
             for i_axes = 1 : size(figure_data.axes_handles, 1)
                 these_axes = figure_data.axes_handles(i_axes, i_variable);
-                xlimits = get(these_axes, 'xlim');
-                zero_plot = plot(these_axes, xlimits, [0 0], 'color', [0.7 0.7 0.7]);
-                set(zero_plot, 'HandleVisibility', 'off');
-                uistack(zero_plot, 'bottom')
-                
+                legend(these_axes, 'show')
             end
-        end    
+        end
     end
     
     % mark bands
@@ -872,22 +797,39 @@ end
 
 function groomFigures_discrete(settings, figure_data)
     % set axis limits
+    dictateAxes(settings, figure_data, settings.variables_to_plot_discrete, settings.variables_to_plot_discrete_header);
+    updateLabelPositions(figure_data);
+    addZeroLine(settings, figure_data);
+    
+    % rotate labels
+    for i_variable = 1 : settings.number_of_variables_to_plot_discrete
+        for i_axes = 1 : size(figure_data.axes_handles, 1)
+            these_axes = figure_data.axes_handles(i_axes, i_variable);
+            xtick_label_rotation = settings.plot_settings.get('xtick_label_rotation', 1);
+            set(these_axes, 'XTickLabelRotation', xtick_label_rotation);            
+        end
+    end
+
+    
+end
+
+function dictateAxes(settings, figure_data, variables_to_plot, variables_to_plot_header)
     if settings.dictate_axes
-        for i_variable = 1 : settings.number_of_variables_to_plot
+        for i_variable = 1 : size(variables_to_plot, 1)
             % get x-axis limits from settings
-            this_variable_x_lower = settings.variables_to_plot_discrete{i_variable, strcmp(settings.variables_to_plot_discrete_header, 'x-axis lower limit')};
-            this_variable_x_upper = settings.variables_to_plot_discrete{i_variable, strcmp(settings.variables_to_plot_discrete_header, 'x-axis upper limit')};
-            
+            this_variable_x_lower = variables_to_plot{i_variable, strcmp(variables_to_plot_header, 'x-axis lower limit')};
+            this_variable_x_upper = variables_to_plot{i_variable, strcmp(variables_to_plot_header, 'x-axis upper limit')};
+
             % get y-axis limits from settings
-            this_variable_y_lower = settings.variables_to_plot_discrete{i_variable, strcmp(settings.variables_to_plot_discrete_header, 'y-axis lower limit')};
-            this_variable_y_upper = settings.variables_to_plot_discrete{i_variable, strcmp(settings.variables_to_plot_discrete_header, 'y-axis upper limit')};
-            
+            this_variable_y_lower = variables_to_plot{i_variable, strcmp(variables_to_plot_header, 'y-axis lower limit')};
+            this_variable_y_upper = variables_to_plot{i_variable, strcmp(variables_to_plot_header, 'y-axis upper limit')};
+
             for i_axes = 1 : size(figure_data.axes_handles, 1)
                 % get current axes and limits
                 these_axes = figure_data.axes_handles(i_axes, i_variable);
                 xlimits = get(these_axes, 'xlim');
                 ylimits = get(these_axes, 'ylim');
-                
+
                 % apply new limits if any were set
                 if ~strcmp(this_variable_x_lower, '~')
                     xlimits(1) = str2double(this_variable_x_lower);
@@ -902,13 +844,15 @@ function groomFigures_discrete(settings, figure_data)
                     ylimits(2) = str2double(this_variable_y_upper);
                 end
                 set(these_axes, 'xlim', xlimits, 'ylim', ylimits);
-                
+
             end
         end
     end
+end
 
+function updateLabelPositions(figure_data)
     % update label positions
-    for i_variable = 1 : settings.number_of_variables_to_plot_discrete
+    for i_variable = 1 : size(figure_data.axes_handles, 2)
         for i_axes = 1 : size(figure_data.axes_handles, 1)
             these_axes = figure_data.axes_handles(i_axes, i_variable);
             xlimits = get(these_axes, 'xlim'); ylimits = get(these_axes, 'ylim');
@@ -927,17 +871,14 @@ function groomFigures_discrete(settings, figure_data)
                 neg_text_position_x = xlimits(1) - (xlimits(2)-xlimits(1))*0.14;
                 neg_text_position_y = ylimits(1);
                 set(figure_data.neg_text_handles(i_axes, i_variable), 'Position', [neg_text_position_x neg_text_position_y]);
-            end
-            
-            % rotate labels
-            xtick_label_rotation = settings.plot_settings.get('xtick_label_rotation', 1);
-            set(these_axes, 'XTickLabelRotation', xtick_label_rotation);            
+            end            
         end
     end
-    
-    % add zero line
+end
+
+function addZeroLine(settings, figure_data)
     if settings.plot_settings.get('plot_zero', 1)
-        for i_variable = 1 : settings.number_of_variables_to_plot_discrete
+        for i_variable = 1 : size(figure_data.axes_handles, 2)
             for i_axes = 1 : size(figure_data.axes_handles, 1)
                 these_axes = figure_data.axes_handles(i_axes, i_variable);
                 xlimits = get(these_axes, 'xlim');
@@ -948,7 +889,6 @@ function groomFigures_discrete(settings, figure_data)
             end
         end    
     end
-    
 end
 
 function saveFigures(settings, figure_data)
