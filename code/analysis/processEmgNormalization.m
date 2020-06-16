@@ -29,10 +29,11 @@ function processEmgNormalization(varargin)
     parse(parser, varargin{:})
     visualize = parser.Results.visualize;
     
-    load('subjectInfo.mat', 'date', 'subject_id');
     % load settings   
     study_settings = loadSettingsFromFile('study');
     subject_settings = loadSettingsFromFile('subject');
+    collection_date = subject_settings.get('collection_date');
+    subject_id = subject_settings.get('subject_id');
     
     emg_import_map_header = subject_settings.get('emg_import_map_header');
     emg_import_map = subject_settings.get('emg_import_map');
@@ -73,7 +74,7 @@ function processEmgNormalization(varargin)
             % load and prepare data
             data_custodian.prepareBasicVariables(this_type, i_trial, [{'emg_trajectories'}; emg_labels_normalization]);
             
-            load(['analysis' filesep makeFileName(date, subject_id, this_type, i_trial, 'relevantDataStretches')], 'stretch_times', 'stance_foot_data', 'conditions_trial');
+            load(['analysis' filesep makeFileName(collection_date, subject_id, this_type, i_trial, 'relevantDataStretches')], 'stretch_times', 'stance_foot_data', 'conditions_trial');
             data_trial = data_custodian.calculateStretchVariables(stretch_times, stance_foot_data, conditions_trial.(condition_relevant_name), emg_labels_normalization);
             
             % append the data and condition lists from this trial to the total lists
@@ -159,7 +160,7 @@ function processEmgNormalization(varargin)
             end
             
             % load
-            [emg_trajectories, time_emg, sampling_rate_emg, emg_labels_trial, emg_directions] = loadData(date, subject_id, this_type, i_trial, 'emg_trajectories');
+            [emg_trajectories, time_emg, sampling_rate_emg, emg_labels_trial, emg_directions] = loadData(collection_date, subject_id, this_type, i_trial, 'emg_trajectories');
             
             % scale
             emg_scaled_trajectories = zeros(size(emg_trajectories)) * NaN;
@@ -181,7 +182,7 @@ function processEmgNormalization(varargin)
             % save
             save_folder = 'processed';
             emg_normalization_labels = variable_names;
-            save_file_name = makeFileName(date, subject_id, this_type, i_trial, 'emgScaledTrajectories.mat');
+            save_file_name = makeFileName(collection_date, subject_id, this_type, i_trial, 'emgScaledTrajectories.mat');
             save ...
               ( ...
                 [save_folder filesep save_file_name], ...
