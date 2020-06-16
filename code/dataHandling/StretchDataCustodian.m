@@ -18,6 +18,7 @@ classdef StretchDataCustodian < handle
     properties
         data;
         bands_per_stretch;
+        normalized_time;
         
         root;
         source;
@@ -79,6 +80,10 @@ classdef StretchDataCustodian < handle
                     end
                 end
             end
+            
+            number_of_time_steps = this.study_settings.get('number_of_time_steps_normalized');
+            this.normalized_time = 1 : (number_of_time_steps-1)*this.bands_per_stretch+1;
+            
         end
         function condition_data = getConditionData(this)
             conditions_settings = this.study_settings.get('conditions');
@@ -164,6 +169,9 @@ classdef StretchDataCustodian < handle
                 data.variable_types = data.variable_types{1};
                 data.variable_data = data.variable_data{1};
             end
+        end
+        function time = getNormalizedTime(this)
+            time = this.normalized_time;
         end
     end
 end
