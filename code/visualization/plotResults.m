@@ -144,11 +144,14 @@ function settings = transformVariablesListToNewFormat(settings, data_custodian)
     variables_type_list = variables_to_plot(:, strcmp(variables_to_plot_header, 'variable type'));
     
     % go through variables and transform one by one
-    variables_to_plot_data = data_custodian.getData(variables_name_list, variables_type_list);
-    for i_variable = 1 : size(variables_to_plot_data.variable_data, 1)
+    for i_variable = 1 : length(variables_name_list)
+        this_variable_name = variables_name_list{i_variable};
+        this_variable_type = variables_type_list{i_variable};
+        this_variable_data = data_custodian.getData(this_variable_name, this_variable_type);
+        
         this_row = variables_to_plot(i_variable, :);
         % check size of this variable
-        if size(variables_to_plot_data.variable_data{i_variable}, 1) == data_custodian.bands_per_stretch
+        if size(this_variable_data.variable_data, 1) == data_custodian.bands_per_stretch
             % this is a discrete variable
             settings.variables_to_plot_discrete = addRowToVariableList(this_row, variables_to_plot_header, settings.variables_to_plot_discrete, settings.variables_to_plot_discrete_header);
         else
