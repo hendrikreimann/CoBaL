@@ -18,7 +18,7 @@ classdef eventController < handle
     properties
         data_custodian;
         event_data;
-        figure_settings_file;
+%         figure_settings_file;
         
         event_time_normal_step = 0.005;
         event_time_large_step = 0.050;
@@ -52,16 +52,21 @@ classdef eventController < handle
         
         color_selected = [1 0.5 0];
         color_normal = [0 0 0];
+        
+        canvas_on_screen_width;
+        canvas_on_screen_height;
     end
     methods
-        function this = eventController(data_custodian, event_data, figure_settings_file)
+        function this = eventController(data_custodian, event_data)
             this.data_custodian = data_custodian;
             this.event_data = event_data;
-            this.figure_settings_file = figure_settings_file;
-
+            
+            screen_size = get(0,'ScreenSize');
             figure_height = 600;
             figure_width = 420;
-            this.control_figure = figure('position', [100 100 figure_width figure_height], 'Units', 'pixels', 'KeyPressFcn', @this.processKeyPress);
+            this.canvas_on_screen_width = screen_size(3) - figure_width;
+            this.canvas_on_screen_height = screen_size(4) - 24; % 24 is the size of the menu bar on the Mac, check for windows systems later
+            this.control_figure = figure('position', [screen_size(3)-figure_width screen_size(3)-figure_height figure_width figure_height], 'Units', 'pixels', 'KeyPressFcn', @this.processKeyPress);
 
             % figure control
             figures_panel_height = 100;
@@ -313,38 +318,38 @@ classdef eventController < handle
             end
             
             % save settings to file
-            settings_file = [getUserSettingsPath filesep this.figure_settings_file];
-            save(settings_file, 'figure_settings', 'control_figure_setting', 'scene_figure_setting', 'kinematic_tree_figure_setting');
+%             settings_file = [getUserSettingsPath filesep this.figure_settings_file];
+%             save(settings_file, 'figure_settings', 'control_figure_setting', 'scene_figure_setting', 'kinematic_tree_figure_setting');
         end
         function loadFigureSettings(this, sender, eventdata) %#ok<INUSD>
-            settings_file = [getUserSettingsPath filesep this.figure_settings_file];
-
-            if exist(settings_file, 'file')
-                % load settings
-                load(settings_file, 'figure_settings', 'control_figure_setting', 'scene_figure_setting', 'kinematic_tree_figure_setting')
-                
-                % apply for controller and stick figure
-                this.control_figure.Position = control_figure_setting.position;
-                if ~isempty(this.scene_figure)
-                    this.scene_figure.scene_figure.Position = scene_figure_setting.position;
-                end
-                if ~isempty(this.kinematic_tree_stick_figure) && any(strcmp(fieldnames(kinematic_tree_figure_setting), 'position'))
-                    this.kinematic_tree_stick_figure.sceneFigure.Position = kinematic_tree_figure_setting.position;
-                end
-                
-                % apply for trajectory figure
-                for i_figure = 1 : length(figure_settings) %#ok<USENS>
-                    this_figure_settings = figure_settings{i_figure};
-                    this_figure_title = this_figure_settings.title;
-                    
-                    % cycle through available figures and look for a match
-                    for j_figure = 1 : length(this.figureSelectionBox.UserData)
-                        if strcmp(this.figureSelectionBox.UserData{j_figure}.title, this_figure_title)
-                            this.figureSelectionBox.UserData{j_figure}.applySettings(this_figure_settings);
-                        end
-                    end
-                end
-            end
+%             settings_file = [getUserSettingsPath filesep this.figure_settings_file];
+% 
+%             if exist(settings_file, 'file')
+%                 % load settings
+%                 load(settings_file, 'figure_settings', 'control_figure_setting', 'scene_figure_setting', 'kinematic_tree_figure_setting')
+%                 
+%                 % apply for controller and stick figure
+%                 this.control_figure.Position = control_figure_setting.position;
+%                 if ~isempty(this.scene_figure)
+%                     this.scene_figure.scene_figure.Position = scene_figure_setting.position;
+%                 end
+%                 if ~isempty(this.kinematic_tree_stick_figure) && any(strcmp(fieldnames(kinematic_tree_figure_setting), 'position'))
+%                     this.kinematic_tree_stick_figure.sceneFigure.Position = kinematic_tree_figure_setting.position;
+%                 end
+%                 
+%                 % apply for trajectory figure
+%                 for i_figure = 1 : length(figure_settings) %#ok<USENS>
+%                     this_figure_settings = figure_settings{i_figure};
+%                     this_figure_title = this_figure_settings.title;
+%                     
+%                     % cycle through available figures and look for a match
+%                     for j_figure = 1 : length(this.figureSelectionBox.UserData)
+%                         if strcmp(this.figureSelectionBox.UserData{j_figure}.title, this_figure_title)
+%                             this.figureSelectionBox.UserData{j_figure}.applySettings(this_figure_settings);
+%                         end
+%                     end
+%                 end
+%             end
         end
         function toggleLegends(this, sender, eventdata) %#ok<INUSD>
             for i_figure = 1 : size(this.figureSelectionBox.String, 1)

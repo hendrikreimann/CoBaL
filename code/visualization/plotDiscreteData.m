@@ -28,10 +28,12 @@ function plotDiscreteData(data, varargin)
     if settings.spread.show
         if strcmp(settings.spread.style, 'box')
             plotBox(settings, stats)
-        end
-        if strcmp(settings.spread.style, 'violin')
+        elseif strcmp(settings.spread.style, 'violin')
             plotViolin(settings, stats)
+        else
+            warning(['Plotting spread with style "' settings.spread.style '" not supported, please change in settings'])
         end
+        
     end
     
     % plot mean

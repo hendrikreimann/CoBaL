@@ -135,6 +135,9 @@ classdef SettingsCustodian < handle
                 data = [];
             end
         end
+        function answer = isfield(this, property_name)
+            answer = isfield(this.settings_struct, property_name);
+        end
         
         function default_data = getDefaultSetting(this, property_name) %#ok<INUSL>
             % general default is empty set
@@ -295,6 +298,12 @@ classdef SettingsCustodian < handle
             
             if strcmp(property_name, 'variables_to_plot_header')
                 default_data = {'variable name', 'variable type', 'variable label', 'y-axis label', 'save file string', 'y-axis lower limit', 'y-axis upper limit'};
+            end
+            if strcmp(property_name, 'variables_to_plot_discrete_header')
+                default_data = {'variable name', 'variable type', 'variable label', 'y-axis label', 'save file string', 'x-axis lower limit', 'x-axis upper limit', 'y-axis lower limit', 'y-axis upper limit'};
+            end
+            if strcmp(property_name, 'variables_to_plot_continuous_header')
+                default_data = {'variable name', 'variable type', 'variable label', 'y-axis label', 'save file string', 'x-axis lower limit', 'x-axis upper limit', 'y-axis lower limit', 'y-axis upper limit'};
             end
             if strcmp(property_name, 'convert_to_mm')
                 default_data = false;
