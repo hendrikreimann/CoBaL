@@ -240,6 +240,37 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('com_y_vel')
                 this.addStretchVariable('xcom_y')
             end
+%Aded by ASH            
+             if this.isVariableToAnalyze('xcom_mpsis_x')
+                this.addBasicVariable('marker_trajectories')
+                this.addBasicVariable('lankle_x')
+                this.addBasicVariable('rankle_x')
+                this.addBasicVariable('lankle_y')
+                this.addBasicVariable('rankle_y')
+                this.addBasicVariable('lankle_z')
+                this.addBasicVariable('rankle_z')
+                this.addBasicVariable('mpsis')
+                this.addBasicVariable('mpsis_x')
+                this.addBasicVariable('mpsis_y')
+                this.addBasicVariable('mpsis_z')
+                this.addBasicVariable('mpsis_x_vel')
+                this.addStretchVariable('xcom_mpsis_x')
+            end
+            if this.isVariableToAnalyze('xcom_mpsis_y')
+                this.addBasicVariable('marker_trajectories')
+                this.addBasicVariable('lankle_x')
+                this.addBasicVariable('rankle_x')
+                this.addBasicVariable('lankle_y')
+                this.addBasicVariable('rankle_y')
+                this.addBasicVariable('lankle_z')
+                this.addBasicVariable('rankle_z')
+                this.addBasicVariable('mpsis')
+                this.addBasicVariable('mpsis_x')
+                this.addBasicVariable('mpsis_y')
+                this.addBasicVariable('mpsis_z')
+                this.addBasicVariable('mpsis_y_vel')
+                this.addStretchVariable('xcom_mpsis_y')
+            end
             if this.isVariableToAnalyze('mos_x')
                 this.addBasicVariable('marker_trajectories')
                 this.addBasicVariable('ltoel_x')
@@ -276,6 +307,44 @@ classdef WalkingDataCustodian < handle
                 this.addStretchVariable('xcom_y')
                 this.addStretchVariable('mos_y')
             end
+%% Added by ASH           
+            if this.isVariableToAnalyze('mos_mpsis_x')
+                this.addBasicVariable('marker_trajectories')
+                this.addBasicVariable('ltoel_x')
+                this.addBasicVariable('rtoel_x')
+                this.addBasicVariable('lankle_x')
+                this.addBasicVariable('rankle_x')
+                this.addBasicVariable('lankle_y')
+                this.addBasicVariable('rankle_y')
+                this.addBasicVariable('lankle_z')
+                this.addBasicVariable('rankle_z')
+                this.addBasicVariable('mpsis')
+                this.addBasicVariable('mpsis_x')
+                this.addBasicVariable('mpsis_y')
+                this.addBasicVariable('mpsis_z')
+                this.addBasicVariable('mpsis_x_vel')
+                this.addStretchVariable('xcom_mpsis_x')
+                this.addStretchVariable('mos_mpsis_x')
+            end
+            if this.isVariableToAnalyze('mos_mpsis_y')
+                this.addBasicVariable('marker_trajectories')
+                this.addBasicVariable('ltoel_y')
+                this.addBasicVariable('rtoel_y')
+                this.addBasicVariable('lankle_x')
+                this.addBasicVariable('rankle_x')
+                this.addBasicVariable('lankle_y')
+                this.addBasicVariable('rankle_y')
+                this.addBasicVariable('lankle_z')
+                this.addBasicVariable('rankle_z')
+                this.addBasicVariable('mpsis')
+                this.addBasicVariable('mpsis_x')
+                this.addBasicVariable('mpsis_y')
+                this.addBasicVariable('mpsis_z')
+                this.addBasicVariable('mpsis_y_vel')
+                this.addStretchVariable('xcom_mpsis_y')
+                this.addStretchVariable('mos_mpsis_y')
+            end
+%% ASH end
             if this.isVariableToAnalyze('lheel_y')
                 this.addBasicVariable('marker_trajectories')
                 this.addBasicVariable('lheel_y')
@@ -457,6 +526,12 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('mpsis_y')
                 this.addStretchVariable('mpsis_y')
             end
+            
+%% Added by ASH  
+            if this.isVariableToAnalyze('mpsis_z')
+                this.addBasicVariable('mpsis_z')
+                this.addStretchVariable('mpsis_z')
+            end
             if this.isVariableToAnalyze('mpsis_x_vel')
                 this.addBasicVariable('mpsis_x')
                 this.addBasicVariable('mpsis_x_vel')
@@ -467,6 +542,7 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('mpsis_y_vel')
                 this.addStretchVariable('mpsis_y_vel')
             end
+%% ASH end
             if this.isVariableToAnalyze('cop_from_com_x')
                 this.addBasicVariable('total_forceplate_cop_world')
                 this.addBasicVariable('cop_x')
@@ -789,6 +865,20 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('com_x_vel')
                 this.addStretchVariable('com_x_vel')
             end
+%% Added by ASH            
+            if this.isVariableToAnalyze('mpsis_x_vel')
+                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'in-house')
+                    this.addBasicVariable('com_trajectories') % in-house kinematics
+                end
+%                 if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'opensim')
+%                     this.addBasicVariable('com_position_trajectories') % opensim kinematics
+%                 end
+                this.addBasicVariable('mpsis')
+                this.addBasicVariable('mpsis_x')
+                this.addBasicVariable('mpsis_x_vel')
+                this.addStretchVariable('mpsis_x_vel')
+            end
+%% ASH end            
             if this.isVariableToAnalyze('com_x_vel_scaled')
                 if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'in-house')
                     this.addBasicVariable('com_trajectories') % in-house kinematics
@@ -816,6 +906,20 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('com_y_vel')
                 this.addStretchVariable('com_y_vel')
             end
+%% Added by ASH         
+            if this.isVariableToAnalyze('mpsis_y_vel')
+                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'in-house')
+                    this.addBasicVariable('com_trajectories') % in-house kinematics
+                end
+%                 if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'opensim')
+%                     this.addBasicVariable('com_position_trajectories') % opensim kinematics
+%                 end
+                this.addBasicVariable('mpsis')
+                this.addBasicVariable('mpsis_y')
+                this.addBasicVariable('mpsis_y_vel')
+                this.addStretchVariable('mpsis_y_vel')
+            end
+%% ASH end            
             if this.isVariableToAnalyze('com_z_vel')
                 if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'in-house')
                     this.addBasicVariable('com_trajectories') % in-house kinematics
@@ -2449,6 +2553,7 @@ classdef WalkingDataCustodian < handle
                     this.time_data.com_x_vel = time;
                     success = 1;
                 end
+            
                 if strcmp(variable_name, 'com_y_vel')
                     com_y = this.getBasicVariableData('com_y');
                     com_y(com_y==0) = NaN;
@@ -2467,6 +2572,45 @@ classdef WalkingDataCustodian < handle
                     this.time_data.com_y_vel = time;
                     success = 1;
                 end
+ %% Added by ASH
+                if strcmp(variable_name, 'mpsis_x_vel')
+                    mpsis_x = this.getBasicVariableData('mpsis_x');
+                    mpsis_x(mpsis_x==0) = NaN;
+                    time = this.getTimeData('mpsis_x');
+                    filter_order = this.study_settings.get('filter_order_mpsis_vel');
+                    cutoff_frequency = this.study_settings.get('filter_cutoff_mpsis_vel');
+                    sampling_rate = 1/median(diff(time));
+                    [b, a] = butter(filter_order, cutoff_frequency/(sampling_rate/2));
+                    if any(~isnan(mpsis_x))
+                        mpsis_x_vel = deriveByTime(nanfiltfilt(b, a, mpsis_x), 1/sampling_rate);
+                    else
+                        mpsis_x_vel = ones(size(mpsis_x)) * NaN;
+                    end
+                    this.basic_variable_data.mpsis_x_vel = mpsis_x_vel;
+                    this.basic_variable_directions.mpsis_x_vel = this.basic_variable_directions.mpsis_x;
+                    this.time_data.mpsis_x_vel = time;
+                    success = 1;
+                end  
+                
+                if strcmp(variable_name, 'mpsis_y_vel')
+                    mpsis_y = this.getBasicVariableData('mpsis_y');
+                    mpsis_y(mpsis_y==0) = NaN;
+                    time = this.getTimeData('mpsis_y');
+                    filter_order = this.study_settings.get('filter_order_mpsis_vel');
+                    cutoff_frequency = this.study_settings.get('filter_cutoff_mpsis_vel');
+                    sampling_rate = 1/median(diff(time));
+                    [b, a] = butter(filter_order, cutoff_frequency/(sampling_rate/2));	% set filter parameters for butterworth filter: 2=order of filter;
+                    if any(~isnan(mpsis_y))
+                        mpsis_y_vel = deriveByTime(nanfiltfilt(b, a, mpsis_y), 1/sampling_rate);
+                    else
+                        mpsis_y_vel = ones(size(mpsis_y)) * NaN;
+                    end
+                    this.basic_variable_data.mpsis_y_vel = mpsis_y_vel;
+                    this.basic_variable_directions.mpsis_y_vel = this.basic_variable_directions.mpsis_y;
+                    this.time_data.mpsis_y_vel = time;
+                    success = 1;
+                end                
+%% ASH end                   
                 if strcmp(variable_name, 'com_z_vel')
                     com_z = this.getBasicVariableData('com_z');
                     com_z(com_z==0) = NaN;
@@ -3012,6 +3156,167 @@ classdef WalkingDataCustodian < handle
                         xcom_y = stretch_variables{strcmp(this.stretch_variable_names, 'xcom_y')}(:, i_stretch);
                         stretch_data = xcom_y - bos_y_data;
                     end
+                    
+%% Added by ASH
+                    if strcmp(variable_name, 'xcom_mpsis_x')
+                        % get mpsis position
+                        mpsis_x =  this.getTimeNormalizedData('mpsis_x', this_stretch_times);
+                        mpsis_y =  this.getTimeNormalizedData('mpsis_y', this_stretch_times);
+                        mpsis_z =  this.getTimeNormalizedData('mpsis_z', this_stretch_times);
+                        
+                        % get instantaneous leg length
+                        lankle_x = this.getTimeNormalizedData('lankle_x', this_stretch_times);
+                        rankle_x = this.getTimeNormalizedData('rankle_x', this_stretch_times);
+                        lankle_y = this.getTimeNormalizedData('lankle_y', this_stretch_times);
+                        rankle_y = this.getTimeNormalizedData('rankle_y', this_stretch_times);
+                        lankle_z = this.getTimeNormalizedData('lankle_z', this_stretch_times);
+                        rankle_z = this.getTimeNormalizedData('rankle_z', this_stretch_times);
+                        stance_ankle_x_data = zeros(size(mpsis_x));
+                        stance_ankle_y_data = zeros(size(mpsis_x));
+                        stance_ankle_z_data = zeros(size(mpsis_x));
+                        for i_band = number_of_bands : -1 : 1
+                            % going backward makes a difference for the
+                            % junction points between two steps. We want to
+                            % use data from the earlier step for BoS, so we
+                            % go backward
+                            [band_start_index, band_end_index] = getBandIndices(i_band, this.number_of_time_steps_normalized);
+                            
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_RIGHT')
+                                stance_ankle_x_data(band_start_index : band_end_index) = rankle_x(band_start_index : band_end_index);
+                                stance_ankle_y_data(band_start_index : band_end_index) = rankle_y(band_start_index : band_end_index);
+                                stance_ankle_z_data(band_start_index : band_end_index) = rankle_z(band_start_index : band_end_index);
+                            end
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_LEFT')
+                                stance_ankle_x_data(band_start_index : band_end_index) = lankle_x(band_start_index : band_end_index);
+                                stance_ankle_y_data(band_start_index : band_end_index) = lankle_y(band_start_index : band_end_index);
+                                stance_ankle_z_data(band_start_index : band_end_index) = lankle_z(band_start_index : band_end_index);
+                            end
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_BOTH')
+                                stance_ankle_x_data(band_start_index : band_end_index) = NaN;
+                                stance_ankle_y_data(band_start_index : band_end_index) = NaN;
+                                stance_ankle_z_data(band_start_index : band_end_index) = NaN;
+                            end
+                        end
+                        leg_vector_x = mpsis_x - stance_ankle_x_data;
+                        leg_vector_y = mpsis_y - stance_ankle_y_data;
+                        leg_vector_z = mpsis_z - stance_ankle_z_data;
+                        leg_length_data = (leg_vector_x.^2 + leg_vector_y.^2 + leg_vector_z.^2).^(0.5);
+                        
+                        % calculate XCoM_mpsis_x
+                        mpsis_x_vel =  this.getTimeNormalizedData('mpsis_x_vel', this_stretch_times);
+                        omega_0 = (9.81 * leg_length_data.^(-1)).^(0.5);
+%                         omega_0 = sqrt(9.81/leg_length);
+                       
+                        stretch_data = mpsis_x + omega_0.^(-1) .* mpsis_x_vel;
+                    end
+                    if strcmp(variable_name, 'xcom_mpsis_y')
+                        % get mpsis position
+                        mpsis_x =  this.getTimeNormalizedData('mpsis_x', this_stretch_times);
+                        mpsis_y =  this.getTimeNormalizedData('mpsis_y', this_stretch_times);
+                        mpsis_z =  this.getTimeNormalizedData('mpsis_z', this_stretch_times);
+                        
+                        % get instantaneous leg length
+                        lankle_x = this.getTimeNormalizedData('lankle_x', this_stretch_times);
+                        rankle_x = this.getTimeNormalizedData('rankle_x', this_stretch_times);
+                        lankle_y = this.getTimeNormalizedData('lankle_y', this_stretch_times);
+                        rankle_y = this.getTimeNormalizedData('rankle_y', this_stretch_times);
+                        lankle_z = this.getTimeNormalizedData('lankle_z', this_stretch_times);
+                        rankle_z = this.getTimeNormalizedData('rankle_z', this_stretch_times);
+                        stance_ankle_x_data = zeros(size(mpsis_x));
+                        stance_ankle_y_data = zeros(size(mpsis_x));
+                        stance_ankle_z_data = zeros(size(mpsis_x));
+                        for i_band = number_of_bands : -1 : 1
+                            % going backward makes a difference for the
+                            % junction points between two steps. We want to
+                            % use data from the earlier step for BoS, so we
+                            % go backward
+                            [band_start_index, band_end_index] = getBandIndices(i_band, this.number_of_time_steps_normalized);
+                            
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_RIGHT')
+                                stance_ankle_x_data(band_start_index : band_end_index) = rankle_x(band_start_index : band_end_index);
+                                stance_ankle_y_data(band_start_index : band_end_index) = rankle_y(band_start_index : band_end_index);
+                                stance_ankle_z_data(band_start_index : band_end_index) = rankle_z(band_start_index : band_end_index);
+                            end
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_LEFT')
+                                stance_ankle_x_data(band_start_index : band_end_index) = lankle_x(band_start_index : band_end_index);
+                                stance_ankle_y_data(band_start_index : band_end_index) = lankle_y(band_start_index : band_end_index);
+                                stance_ankle_z_data(band_start_index : band_end_index) = lankle_z(band_start_index : band_end_index);
+                            end
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_BOTH')
+                                stance_ankle_x_data(band_start_index : band_end_index) = NaN;
+                                stance_ankle_y_data(band_start_index : band_end_index) = NaN;
+                                stance_ankle_z_data(band_start_index : band_end_index) = NaN;
+                            end
+                        end
+                        leg_vector_x = mpsis_x - stance_ankle_x_data;
+                        leg_vector_y = mpsis_y - stance_ankle_y_data;
+                        leg_vector_z = mpsis_z - stance_ankle_z_data;
+                        leg_length_data = (leg_vector_x.^2 + leg_vector_y.^2 + leg_vector_z.^2).^(0.5);
+                        
+                        % calculate XCoM_mpsis_y
+                        mpsis_y_vel =  this.getTimeNormalizedData('mpsis_y_vel', this_stretch_times);
+                        omega_0 = (9.81 * leg_length_data.^(-1)).^(0.5);
+%                         omega_0 = sqrt(9.81/leg_length);
+                       
+                        stretch_data = mpsis_y + omega_0.^(-1) .* mpsis_y_vel;                    
+                    end
+                    if strcmp(variable_name, 'mos_mpsis_x')
+                        % first calculate base of support
+                        ltoel_x = this.getTimeNormalizedData('ltoel_x', this_stretch_times);
+                        rtoel_x = this.getTimeNormalizedData('rtoel_x', this_stretch_times);
+                        bos_x_data = zeros(size(ltoel_x));
+                        for i_band = number_of_bands : -1 : 1
+                            % going backward makes a difference for the
+                            % junction points between two steps. We want to
+                            % use data from the earlier step for BoS, so we
+                            % go backward
+                            [band_start_index, band_end_index] = getBandIndices(i_band, this.number_of_time_steps_normalized);
+                            
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_RIGHT')
+                                bos_x_data(band_start_index : band_end_index) = rtoel_x(band_start_index : band_end_index);
+                            end
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_LEFT')
+                                bos_x_data(band_start_index : band_end_index) = ltoel_x(band_start_index : band_end_index);
+                            end
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_BOTH')
+                                bos_x_data(band_start_index : band_end_index) = NaN;
+                            end
+                        end
+                        
+                        % now calculate XCoM - BoS
+                        xcom_mpsis_x = stretch_variables{strcmp(this.stretch_variable_names, 'xcom_mpsis_x')}(:, i_stretch);
+                        stretch_data = xcom_mpsis_x - bos_x_data;
+                    end
+                    if strcmp(variable_name, 'mos_mpsis_y')
+                        % first calculate base of support
+                        ltoel_y = this.getTimeNormalizedData('ltoel_y', this_stretch_times);
+                        rtoel_y = this.getTimeNormalizedData('rtoel_y', this_stretch_times);
+                        bos_y_data = zeros(size(ltoel_y));
+                        for i_band = number_of_bands : -1 : 1
+                            % going backward makes a difference for the
+                            % junction points between two steps. We want to
+                            % use data from the earlier step for BoS, so we
+                            % go backward
+                            [band_start_index, band_end_index] = getBandIndices(i_band, this.number_of_time_steps_normalized);
+                            
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_RIGHT')
+                                bos_y_data(band_start_index : band_end_index) = rtoel_y(band_start_index : band_end_index);
+                            end
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_LEFT')
+                                bos_y_data(band_start_index : band_end_index) = ltoel_y(band_start_index : band_end_index);
+                            end
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_BOTH')
+                                bos_y_data(band_start_index : band_end_index) = NaN;
+                            end
+                        end
+                        
+                        % now calculate XCoM - BoS
+                        xcom_mpsis_y = stretch_variables{strcmp(this.stretch_variable_names, 'xcom_mpsis_y')}(:, i_stretch);
+                        stretch_data = xcom_mpsis_y - bos_y_data;
+                    end
+                    
+%% ASH end                    
+                    
                     if strcmp(variable_name, 'step_length')
                         lheel_y = this.getTimeNormalizedData('lheel_y', this_stretch_times);
                         rheel_y = this.getTimeNormalizedData('rheel_y', this_stretch_times);
