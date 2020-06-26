@@ -337,7 +337,7 @@ function plotIndividualData(settings, data, stats)
     old_stream = RandStream.getGlobalStream;
     new_stream = RandStream.create('mrg32k3a', 'seed', settings.seed);
     RandStream.setGlobalStream(new_stream);
-    jitter = 2*(rand(size(data)) * settings.width) - settings.width;
+    jitter = 2*rand(size(data)) - 1;
     RandStream.setGlobalStream(old_stream);
         
     % normalize jitter by spread

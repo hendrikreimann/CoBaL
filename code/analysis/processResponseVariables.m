@@ -105,7 +105,22 @@ end
 
 
 function applicable_control_condition_index = determineControlConditionIndex(study_settings, comparisons, this_stretch_condition_string)
-    if strcmp(study_settings.get('experimental_paradigm', 1), 'Vision') || strcmp(study_settings.get('experimental_paradigm', 1), 'SR_VisualStim') || strcmp(study_settings.get('experimental_paradigm', 1), 'GVS') || strcmp(study_settings.get('experimental_paradigm', 1), 'GVS_old') || strcmp(study_settings.get('experimental_paradigm', 1), 'Vision_old')
+    if strcmp(study_settings.get('experimental_paradigm', 1), 'SR_VisualStim')
+        % HR 2020-06-04: this is supposed to be the general approach, but
+        % only testing this for SR_VisualStim for now
+        relevant_factors_for_control = {'stim_amplitude', 'trigger_foot'};
+        control_row_indicator = true(size(comparisons.condition_combinations_control_unique, 1), 1);
+        for i_factor = 1 : length(relevant_factors_for_control)
+            this_factor_label = relevant_factors_for_control{i_factor};
+            this_factor_column = strcmp(comparisons.combination_labels, this_factor_label);
+            this_factor_this_level = this_stretch_condition_string(this_factor_column);
+            this_factor_candidate_rows = strcmp(comparisons.condition_combinations_control_unique(:, this_factor_column), this_factor_this_level);
+            control_row_indicator = control_row_indicator & this_factor_candidate_rows;
+        end
+        applicable_control_condition_index = find(control_row_indicator);
+    end
+
+    if strcmp(study_settings.get('experimental_paradigm', 1), 'Vision') || strcmp(study_settings.get('experimental_paradigm', 1), 'GVS') || strcmp(study_settings.get('experimental_paradigm', 1), 'GVS_old') || strcmp(study_settings.get('experimental_paradigm', 1), 'Vision_old')
          if strcmp(this_stretch_condition_string{strcmp(comparisons.combination_labels, 'trigger_foot')}, 'TRIGGER_LEFT')
              applicable_control_condition_index = find(strcmp(comparisons.condition_combinations_control_unique(:, strcmp(comparisons.combination_labels, 'trigger_foot')), 'TRIGGER_LEFT'));
          end
