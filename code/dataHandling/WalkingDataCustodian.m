@@ -240,7 +240,7 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('com_y_vel')
                 this.addStretchVariable('xcom_y')
             end
-%Aded by ASH            
+%% Added by ASH            
              if this.isVariableToAnalyze('xcom_mpsis_x')
                 this.addBasicVariable('marker_trajectories')
                 this.addBasicVariable('lankle_x')
@@ -271,6 +271,9 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('mpsis_y_vel')
                 this.addStretchVariable('xcom_mpsis_y')
             end
+            
+%% ASH end            
+            
             if this.isVariableToAnalyze('mos_x')
                 this.addBasicVariable('marker_trajectories')
                 this.addBasicVariable('ltoel_x')
@@ -525,9 +528,7 @@ classdef WalkingDataCustodian < handle
             if this.isVariableToAnalyze('mpsis_y')
                 this.addBasicVariable('mpsis_y')
                 this.addStretchVariable('mpsis_y')
-            end
-            
-%% Added by ASH  
+            end  
             if this.isVariableToAnalyze('mpsis_z')
                 this.addBasicVariable('mpsis_z')
                 this.addStretchVariable('mpsis_z')
@@ -542,7 +543,7 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('mpsis_y_vel')
                 this.addStretchVariable('mpsis_y_vel')
             end
-%% ASH end
+
             if this.isVariableToAnalyze('cop_from_com_x')
                 this.addBasicVariable('total_forceplate_cop_world')
                 this.addBasicVariable('cop_x')
@@ -2571,46 +2572,7 @@ classdef WalkingDataCustodian < handle
                     this.basic_variable_directions.com_y_vel = this.basic_variable_directions.com_y;
                     this.time_data.com_y_vel = time;
                     success = 1;
-                end
- %% Added by ASH
-                if strcmp(variable_name, 'mpsis_x_vel')
-                    mpsis_x = this.getBasicVariableData('mpsis_x');
-                    mpsis_x(mpsis_x==0) = NaN;
-                    time = this.getTimeData('mpsis_x');
-                    filter_order = this.study_settings.get('filter_order_mpsis_vel');
-                    cutoff_frequency = this.study_settings.get('filter_cutoff_mpsis_vel');
-                    sampling_rate = 1/median(diff(time));
-                    [b, a] = butter(filter_order, cutoff_frequency/(sampling_rate/2));
-                    if any(~isnan(mpsis_x))
-                        mpsis_x_vel = deriveByTime(nanfiltfilt(b, a, mpsis_x), 1/sampling_rate);
-                    else
-                        mpsis_x_vel = ones(size(mpsis_x)) * NaN;
-                    end
-                    this.basic_variable_data.mpsis_x_vel = mpsis_x_vel;
-                    this.basic_variable_directions.mpsis_x_vel = this.basic_variable_directions.mpsis_x;
-                    this.time_data.mpsis_x_vel = time;
-                    success = 1;
-                end  
-                
-                if strcmp(variable_name, 'mpsis_y_vel')
-                    mpsis_y = this.getBasicVariableData('mpsis_y');
-                    mpsis_y(mpsis_y==0) = NaN;
-                    time = this.getTimeData('mpsis_y');
-                    filter_order = this.study_settings.get('filter_order_mpsis_vel');
-                    cutoff_frequency = this.study_settings.get('filter_cutoff_mpsis_vel');
-                    sampling_rate = 1/median(diff(time));
-                    [b, a] = butter(filter_order, cutoff_frequency/(sampling_rate/2));	% set filter parameters for butterworth filter: 2=order of filter;
-                    if any(~isnan(mpsis_y))
-                        mpsis_y_vel = deriveByTime(nanfiltfilt(b, a, mpsis_y), 1/sampling_rate);
-                    else
-                        mpsis_y_vel = ones(size(mpsis_y)) * NaN;
-                    end
-                    this.basic_variable_data.mpsis_y_vel = mpsis_y_vel;
-                    this.basic_variable_directions.mpsis_y_vel = this.basic_variable_directions.mpsis_y;
-                    this.time_data.mpsis_y_vel = time;
-                    success = 1;
-                end                
-%% ASH end                   
+                end                  
                 if strcmp(variable_name, 'com_z_vel')
                     com_z = this.getBasicVariableData('com_z');
                     com_z(com_z==0) = NaN;
@@ -3941,6 +3903,18 @@ classdef WalkingDataCustodian < handle
                 com_y_directions = this.basic_variable_directions.com_y;
                 stretch_directions_new = com_y_directions;
             end
+            
+%% Added by ASH
+            if strcmp(variable_name, 'mos_mpsis_x')
+                com_x_directions = this.basic_variable_directions.com_x;
+                stretch_directions_new = com_x_directions;
+            end
+            if strcmp(variable_name, 'mos_mpsis_x')
+                com_y_directions = this.basic_variable_directions.com_y;
+                stretch_directions_new = com_y_directions;
+            end
+%% Ash end
+            
             if strcmp(variable_name, 'step_length')
                 lheel_y_directions = this.basic_variable_directions.lheel_y;
                 rheel_y_directions = this.basic_variable_directions.rheel_y;
