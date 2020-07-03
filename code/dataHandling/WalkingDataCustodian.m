@@ -270,8 +270,7 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('mpsis_z')
                 this.addBasicVariable('mpsis_y_vel')
                 this.addStretchVariable('xcom_mpsis_y')
-            end
-            
+            end    
 %% ASH end            
             
             if this.isVariableToAnalyze('mos_x')
@@ -543,7 +542,6 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('mpsis_y_vel')
                 this.addStretchVariable('mpsis_y_vel')
             end
-
             if this.isVariableToAnalyze('cop_from_com_x')
                 this.addBasicVariable('total_forceplate_cop_world')
                 this.addBasicVariable('cop_x')
@@ -865,21 +863,7 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('com_x')
                 this.addBasicVariable('com_x_vel')
                 this.addStretchVariable('com_x_vel')
-            end
-%% Added by ASH            
-            if this.isVariableToAnalyze('mpsis_x_vel')
-                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'in-house')
-                    this.addBasicVariable('com_trajectories') % in-house kinematics
-                end
-%                 if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'opensim')
-%                     this.addBasicVariable('com_position_trajectories') % opensim kinematics
-%                 end
-                this.addBasicVariable('mpsis')
-                this.addBasicVariable('mpsis_x')
-                this.addBasicVariable('mpsis_x_vel')
-                this.addStretchVariable('mpsis_x_vel')
-            end
-%% ASH end            
+            end         
             if this.isVariableToAnalyze('com_x_vel_scaled')
                 if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'in-house')
                     this.addBasicVariable('com_trajectories') % in-house kinematics
@@ -906,21 +890,7 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('com_y')
                 this.addBasicVariable('com_y_vel')
                 this.addStretchVariable('com_y_vel')
-            end
-%% Added by ASH         
-            if this.isVariableToAnalyze('mpsis_y_vel')
-                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'in-house')
-                    this.addBasicVariable('com_trajectories') % in-house kinematics
-                end
-%                 if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'opensim')
-%                     this.addBasicVariable('com_position_trajectories') % opensim kinematics
-%                 end
-                this.addBasicVariable('mpsis')
-                this.addBasicVariable('mpsis_y')
-                this.addBasicVariable('mpsis_y_vel')
-                this.addStretchVariable('mpsis_y_vel')
-            end
-%% ASH end            
+            end           
             if this.isVariableToAnalyze('com_z_vel')
                 if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'in-house')
                     this.addBasicVariable('com_trajectories') % in-house kinematics
@@ -1484,6 +1454,25 @@ classdef WalkingDataCustodian < handle
                     this.time_data.mpsis_y = this.time_data.marker_trajectories;
                     success = 1;
                 end
+                if strcmp(variable_name, 'mpsis_z')
+                    LPSI_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LPSI');
+                    RPSI_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RPSI');
+                    MPSI_trajectory = (LPSI_trajectory + RPSI_trajectory) * 0.5;
+                    this.basic_variable_data.mpsis_z = MPSI_trajectory(:, 3);
+                    LPSI_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LPSI',  'indices');
+                    RPSI_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RPSI',  'indices');
+                    LPSI_directions = this.basic_variable_directions.marker_trajectories(:, LPSI_indices(3));
+                    RPSI_directions = this.basic_variable_directions.marker_trajectories(:, RPSI_indices(3));
+                    if ~strcmp(LPSI_directions{1}, RPSI_directions{1})
+                        error('LPSI and RPSI directions found in marker data are different from each other')
+                    end
+                    if ~strcmp(LPSI_directions{2}, RPSI_directions{2})
+                        error('LPSI and RPSI directions found in marker data are different from each other')
+                    end
+                    this.basic_variable_directions.mpsis_z = LPSI_directions;
+                    this.time_data.mpsis_z = this.time_data.marker_trajectories;
+                    success = 1;
+                end                
                 if strcmp(variable_name, 'mpsis_x_vel')
                     mpsis_x = this.getBasicVariableData('mpsis_x');
                     mpsis_x(mpsis_x==0) = NaN;
@@ -3902,19 +3891,33 @@ classdef WalkingDataCustodian < handle
             if strcmp(variable_name, 'mos_y')
                 com_y_directions = this.basic_variable_directions.com_y;
                 stretch_directions_new = com_y_directions;
-            end
-            
+            end        
 %% Added by ASH
-            if strcmp(variable_name, 'mos_mpsis_x')
-                com_x_directions = this.basic_variable_directions.com_x;
-                stretch_directions_new = com_x_directions;
+            if strcmp(variable_name, 'xcom_mpsis_x')
+                mpsis_x_directions = this.basic_variable_directions.mpsis_x;
+                stretch_directions_new = mpsis_x_directions;
             end
+            if strcmp(variable_name, 'xcom_mpsis_y')
+                mpsis_y_directions = this.basic_variable_directions.mpsis_y;
+                stretch_directions_new = mpsis_y_directions;
+            end   
+            if strcmp(variable_name, 'mpsis_x_vel')
+                mpsis_x_directions = this.basic_variable_directions.mpsis_x;
+                stretch_directions_new = mpsis_x_directions;
+            end  
+            if strcmp(variable_name, 'mpsis_y_vel')
+                mpsis_y_directions = this.basic_variable_directions.mpsis_y;
+                stretch_directions_new = mpsis_y_directions;
+            end            
             if strcmp(variable_name, 'mos_mpsis_x')
-                com_y_directions = this.basic_variable_directions.com_y;
-                stretch_directions_new = com_y_directions;
+                mpsis_x_directions = this.basic_variable_directions.mpsis_x;
+                stretch_directions_new = mpsis_x_directions;
             end
-%% Ash end
-            
+            if strcmp(variable_name, 'mos_mpsis_y')
+                mpsis_y_directions = this.basic_variable_directions.mpsis_y;
+                stretch_directions_new = mpsis_y_directions;
+            end
+%% Ash end     
             if strcmp(variable_name, 'step_length')
                 lheel_y_directions = this.basic_variable_directions.lheel_y;
                 rheel_y_directions = this.basic_variable_directions.rheel_y;
