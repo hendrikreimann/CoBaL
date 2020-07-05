@@ -67,10 +67,10 @@ function processAnalysisVariables(varargin)
             data = calculateTimePointVariables(this_settings_table, this_settings_table_header, study_settings, data);
         end
         if strcmp(this_action, 'take extremum within whole band')
-    data = calculateExtremaVariables(study_settings, data);
+            data = calculateExtremaVariables(this_settings_table, this_settings_table_header, study_settings, data);
         end
         if strcmp(this_action, 'take extremum over time interval within band')
-    data = calculateExtremaOverRangeVariables(study_settings, data);
+            data = calculateExtremaOverRangeVariables(this_settings_table, this_settings_table_header, data);
         end
     end
     
@@ -553,16 +553,15 @@ function data = calculateTimePointVariables(variables_time_point, variables_time
 
 end
 
-function data = calculateExtremaVariables(study_settings, data)
-    variables_from_extrema = study_settings.get('analysis_variables_from_extrema', 1);
+function data = calculateExtremaVariables(variables_from_extrema, variables_from_extrema_header, study_settings, data)
     number_of_stretches = size(data.stretch_data_session{1}, 2);
     number_of_time_steps_normalized = study_settings.get('number_of_time_steps_normalized');
     for i_variable = 1 : size(variables_from_extrema, 1)
         % get data
-        this_variable_name = variables_from_extrema{i_variable, 1};
-        this_variable_source_name = variables_from_extrema{i_variable, 2};
-        this_variable_source_type = variables_from_extrema{i_variable, 3};
-        this_variable_extremum_type = variables_from_extrema{i_variable, 4};
+        this_variable_name = variables_from_extrema{i_variable, strcmp(variables_from_extrema_header, 'new_variable_name')};
+        this_variable_source_name = variables_from_extrema{i_variable, strcmp(variables_from_extrema_header, 'source_variable_name')};
+        this_variable_source_type = variables_from_extrema{i_variable, strcmp(variables_from_extrema_header, 'source_type')};
+        this_variable_extremum_type = variables_from_extrema{i_variable, strcmp(variables_from_extrema_header, 'extremum_type')};
 
         % pick data depending on source specification
         data_source = data.([this_variable_source_type '_data_session']);
@@ -596,14 +595,13 @@ function data = calculateExtremaVariables(study_settings, data)
     end
 end
 
-function data = calculateExtremaOverRangeVariables(study_settings, data)
-    variables_from_extrema_range = study_settings.get('analysis_variables_from_extrema_range', 1);
+function data = calculateExtremaOverRangeVariables(variables_from_extrema_range, variables_from_extrema_range_header, data)
     for i_variable = 1 : size(variables_from_extrema_range, 1)
         % get data
-        this_variable_name = variables_from_extrema_range{i_variable, 1};
-        this_variable_source_name = variables_from_extrema_range{i_variable, 2};
-        this_variable_source_type = variables_from_extrema_range{i_variable, 3};
-        this_variable_extremum_type = variables_from_extrema_range{i_variable, 4};
+        this_variable_name = variables_from_extrema_range{i_variable, strcmp(variables_from_extrema_range_header, 'new_variable_name')};
+        this_variable_source_name = variables_from_extrema_range{i_variable, strcmp(variables_from_extrema_range_header, 'source_variable_name')};
+        this_variable_source_type = variables_from_extrema_range{i_variable, strcmp(variables_from_extrema_range_header, 'source_type')};
+        this_variable_extremum_type = variables_from_extrema_range{i_variable, strcmp(variables_from_extrema_range_header, 'extremum_type')};
 
         % pick data depending on source specification
         data_source = data.([this_variable_source_type '_data_session']);

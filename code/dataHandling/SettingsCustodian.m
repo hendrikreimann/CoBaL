@@ -325,10 +325,9 @@ classdef SettingsCustodian < handle
                     'calculate rms over time','analysis_variables_from_rms', 'analysis_variables_from_rms_header'; ...
                     'take value at point given by absolute time within band', 'analysis_variables_from_time_point', 'analysis_variables_from_time_point_header'; ...
                     'take value at band end', 'analysis_variables_from_band_end', 'analysis_variables_from_band_end_header'; ...
+                    'take extremum within whole band', 'analysis_variables_from_extrema', 'analysis_variables_from_extrema_header'; ...
+                    'take extremum over time interval within band', 'analysis_variables_from_extrema_range', 'analysis_variables_from_extrema_range_header'; ...
                   };
-%                     'take value at point given by percentage within band'
-%                     'take extremum within whole band'
-%                     'take extremum over time interval within band'                    
              end
             if strcmp(property_name, 'analysis_table_header')
                 default_data = {'action','settings_table','settings_table_header'};
@@ -344,6 +343,12 @@ classdef SettingsCustodian < handle
             end
             if strcmp(property_name, 'analysis_variables_from_band_end_header')
                 default_data = {'new_variable_name','source_variable_name','source_type'};
+            end
+            if strcmp(property_name, 'analysis_variables_from_extrema_header')
+                default_data = {'new_variable_name','source_variable_name','source_type','extremum_type'};
+            end
+            if strcmp(property_name, 'analysis_variables_from_extrema_range_header')
+                default_data = {'new_variable_name','source_variable_name','source_type','extremum_type'};
             end
             
             
