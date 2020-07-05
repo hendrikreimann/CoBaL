@@ -34,55 +34,96 @@ function processAnalysisVariables(varargin)
     conditions.number_of_factor_labels = length(conditions.factor_labels);
     conditions.conditions_session = data.conditions_session;
     
-    % calculate inversion variables
-    data = calculateInversionVariables(study_settings, data, conditions);
+    % get table with analysis information
+    analysis_table = getAnalysisTable(study_settings);
+    
+    % analyze
+    for i_row = 1 : height(analysis_table)
+        this_action = analysis_table{i_row, 'action'};
+        this_settings_table_name = analysis_table{i_row, 'settings_table'};
+        this_settings_table = study_settings.get(this_settings_table_name{1}, 1);
+        settings_table_header_name = analysis_table{i_row, 'settings_table_header'};
+        this_settings_table_header = study_settings.get(settings_table_header_name{1}, 1);
         
-    % calculate selection variables
-    data = calculateSelectionVariables(study_settings, data, conditions);
-    
-    % calculate integrated variables
-    data = calculateIntegratedVariables(study_settings, data);
-    
-    % calculate rms variables
-    data = calculateRmsVariables(study_settings, data);
-    
-    % calculate band variables
-    data = calculateBandEndVariables(study_settings, data);
-    data = calculateBandPercentVariables(study_settings, data);
-    data = calculateTimePointVariables(study_settings, data);
-    
-    % calculate extrema variables
+        if strcmp(this_action, 'integrate over time')
+            data = calculateIntegratedVariables(this_settings_table, this_settings_table_header, study_settings, data);
+        end
+        if strcmp(this_action, 'select from multiple variables by condition')
+            data = calculateSelectionVariables(this_settings_table, this_settings_table_header, study_settings, data, conditions);
+        end
+        if strcmp(this_action, 'invert by condition')
+            data = calculateInversionVariables(this_settings_table, this_settings_table_header, study_settings, data, conditions);
+        end
+        if strcmp(this_action, 'calculate rms over time')
+            data = calculateRmsVariables(this_settings_table, this_settings_table_header, study_settings, data);
+        end
+        if strcmp(this_action, 'take value at band end')
+            data = calculateBandEndVariables(this_settings_table, this_settings_table_header, study_settings, data);
+        end
+        if strcmp(this_action, 'take value at point given by percentage within band')
+            data = calculateBandPercentVariables(this_settings_table, this_settings_table_header, study_settings, data);
+        end
+        if strcmp(this_action, 'take value at point given by absolute time within band')
+            data = calculateTimePointVariables(this_settings_table, this_settings_table_header, study_settings, data);
+        end
+        if strcmp(this_action, 'take extremum within whole band')
     data = calculateExtremaVariables(study_settings, data);
+        end
+        if strcmp(this_action, 'take extremum over time interval within band')
     data = calculateExtremaOverRangeVariables(study_settings, data);
+        end
+    end
+    
+    
+%     % calculate inversion variables
+%     data = calculateInversionVariables(study_settings, data, conditions);
+%         
+%     % calculate selection variables
+%     data = calculateSelectionVariables(study_settings, data, conditions);
+%     
+%     % calculate integrated variables
+%     data = calculateIntegratedVariables(study_settings, data);
+%     
+%     % calculate rms variables
+%     data = calculateRmsVariables(study_settings, data);
+%     
+%     % calculate band variables
+%     data = calculateBandEndVariables(study_settings, data);
+%     data = calculateBandPercentVariables(study_settings, data);
+%     data = calculateTimePointVariables(study_settings, data);
+%     
+%     % calculate extrema variables
+%     data = calculateExtremaVariables(study_settings, data);
+%     data = calculateExtremaOverRangeVariables(study_settings, data);
     
     % save results
     save(results_file_name, '-struct', 'data');    
 end
 
-
-
-function data = calculateInversionVariables(study_settings, data, conditions)
+function analysis_table = getAnalysisTable(study_settings)
+    analysis_table_body = study_settings.get('analysis_table', 1);
+    analysis_table_header = study_settings.get('analysis_table_header', 1);
     
-    inversion_variables = study_settings.get('inversion_variables', 1);
+    analysis_table = cell2table(analysis_table_body);
+    analysis_table.Properties.VariableNames = analysis_table_header;
+end
+
+function data = calculateInversionVariables(inversion_variables, inversion_variables_header, study_settings, data, conditions)
     for i_variable = 1 : size(inversion_variables, 1)
         % get data
-        this_variable_name = inversion_variables{i_variable, 1};
-        this_variable_source_name = inversion_variables{i_variable, 2};
-        this_variable_source_type = inversion_variables{i_variable, 3};
+        this_variable_name = inversion_variables{i_variable, strcmp(inversion_variables_header, 'new_variable_name')};
+        this_variable_source_name = inversion_variables{i_variable, strcmp(inversion_variables_header, 'source_variable_name')};
+        this_variable_source_type = inversion_variables{i_variable, strcmp(inversion_variables_header, 'source_type')};
+        relevant_condition = inversion_variables{i_variable, strcmp(inversion_variables_header, 'relevant_condition')};
+        inversion_table = study_settings.get(inversion_variables{i_variable, strcmp(inversion_variables_header, 'information_table')});
+        new_variable_direction_pos = inversion_variables(i_variable, strcmp(inversion_variables_header, 'direction_label_positive'));
+        new_variable_direction_neg = inversion_variables(i_variable, strcmp(inversion_variables_header, 'direction_label_negative'));
+        new_variable_directions = [new_variable_direction_pos, new_variable_direction_neg];
         
         % pick data depending on source specification
         this_variable_source_index = find(strcmp(data.([this_variable_source_type '_names_session']), this_variable_source_name), 1, 'first');
         this_variable_source_data = data.([this_variable_source_type '_data_session']){this_variable_source_index};
         this_variable_source_directions = data.([this_variable_source_type '_directions_session'])(this_variable_source_index, :);
-%         eval(['data_source = loaded_data.' this_variable_source_type '_data_session;']);
-%         eval(['names_source = loaded_data.' this_variable_source_type '_names_session;']);
-%         eval(['directions_source = loaded_data.' this_variable_source_type '_directions_session;']);
-%         this_variable_source_data = data_source{strcmp(names_source, this_variable_source_name)};
-%         this_variable_source_directions = directions_source(strcmp(names_source, this_variable_source_name), :);
-        new_variable_directions = inversion_variables(i_variable, 6:7);
-        
-        relevant_condition = inversion_variables{i_variable, 4};
-        inversion_table = study_settings.get(inversion_variables{i_variable, 5});
         
         % go through levels and invert
         this_variable_data = this_variable_source_data;
@@ -117,9 +158,7 @@ function data = calculateInversionVariables(study_settings, data, conditions)
     end
 end
 
-function data = calculateSelectionVariables(study_settings, data, conditions)
-    selection_variables_header = study_settings.get('selection_variables_header', 1);
-    selection_variables = study_settings.get('selection_variables', 1);
+function data = calculateSelectionVariables(selection_variables, selection_variables_header, study_settings, data, conditions)
     for i_variable = 1 : size(selection_variables, 1)
         % get data
         this_variable_name = selection_variables{i_variable, strcmp(selection_variables_header, 'new_variable_name')};
@@ -170,9 +209,7 @@ function data = calculateSelectionVariables(study_settings, data, conditions)
 
 end
 
-function data = calculateIntegratedVariables(study_settings, data)
-    variables_to_integrate_header = study_settings.get('analysis_variables_from_integration_header', 1);
-    variables_to_integrate = study_settings.get('analysis_variables_from_integration', 1);
+function data = calculateIntegratedVariables(variables_to_integrate, variables_to_integrate_header, study_settings, data)
     step_time_index_in_saved_data = find(strcmp(data.stretch_names_session, 'step_time'), 1, 'first');
     this_step_time_data = data.stretch_data_session{step_time_index_in_saved_data};
     number_of_stretches = size(data.stretch_data_session{1}, 2);
@@ -327,9 +364,7 @@ function data = calculateIntegratedVariables(study_settings, data)
 
 end
 
-function data = calculateRmsVariables(study_settings, data)
-    variables_to_rms_header = study_settings.get('analysis_variables_from_rms_header', 1);
-    variables_to_rms = study_settings.get('analysis_variables_from_rms', 1);
+function data = calculateRmsVariables(variables_to_rms, variables_to_rms_header, study_settings, data)
     step_time_index_in_saved_data = find(strcmp(data.stretch_names_session, 'step_time'), 1, 'first');
     this_step_time_data = data.stretch_data_session{step_time_index_in_saved_data};
     number_of_stretches = size(data.stretch_data_session{1}, 2);
@@ -400,14 +435,17 @@ function data = calculateRmsVariables(study_settings, data)
     end
 end
 
-function data = calculateBandEndVariables(study_settings, data)
-    variables_step_end = study_settings.get('analysis_variables_from_band_end', 1);
+function data = calculateBandEndVariables(variables_step_end, variables_step_end_header, study_settings, data)
     number_of_stretches = size(data.stretch_data_session{1}, 2);
     number_of_time_steps_normalized = study_settings.get('number_of_time_steps_normalized');
     for i_variable = 1 : size(variables_step_end, 1)
-        this_variable_name = variables_step_end{i_variable, 1};
-        this_variable_source_name = variables_step_end{i_variable, 2};
-        this_variable_source_type = variables_step_end{i_variable, 3};
+%         this_variable_name = variables_step_end{i_variable, 1};
+%         this_variable_source_name = variables_step_end{i_variable, 2};
+%         this_variable_source_type = variables_step_end{i_variable, 3};
+        
+        this_variable_name = variables_step_end{i_variable, strcmp(variables_step_end_header, 'new_variable_name')};
+        this_variable_source_name = variables_step_end{i_variable, strcmp(variables_step_end_header, 'source_variable_name')};
+        this_variable_source_type = variables_step_end{i_variable, strcmp(variables_step_end_header, 'source_type')};
         
         % pick data depending on source specification
         data_source = data.([this_variable_source_type '_data_session']);
@@ -432,9 +470,7 @@ function data = calculateBandEndVariables(study_settings, data)
 
 end
 
-function data = calculateBandPercentVariables(study_settings, data)
-    variables_band_percent_header = study_settings.get('analysis_variables_from_band_percent_header', 1);
-    variables_band_percent = study_settings.get('analysis_variables_from_band_percent', 1);
+function data = calculateBandPercentVariables(variables_band_percent, variables_band_percent_header, study_settings, data)
     number_of_stretches = size(data.stretch_data_session{1}, 2);
     number_of_time_steps_normalized = study_settings.get('number_of_time_steps_normalized');
     for i_variable = 1 : size(variables_band_percent, 1)
@@ -467,9 +503,7 @@ function data = calculateBandPercentVariables(study_settings, data)
 
 end
 
-function data = calculateTimePointVariables(study_settings, data)
-    variables_time_point_header = study_settings.get('analysis_variables_from_time_point_header', 1);
-    variables_time_point = study_settings.get('analysis_variables_from_time_point', 1);
+function data = calculateTimePointVariables(variables_time_point, variables_time_point_header, study_settings, data)
     step_time_index_in_saved_data = find(strcmp(data.stretch_names_session, 'step_time'), 1, 'first');
     this_step_time_data = data.stretch_data_session{step_time_index_in_saved_data};
     number_of_stretches = size(data.stretch_data_session{1}, 2);
