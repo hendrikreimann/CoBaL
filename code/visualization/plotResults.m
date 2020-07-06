@@ -250,8 +250,8 @@ function figure_data = createFigures_continuous(settings, comparisons, data_cust
             new_axes = axes; hold on;
 
             % store handles and determine abscissa data
-            figure_data.figure_handles(i_comparison, i_variable) = new_figure;
-            figure_data.axes_handles(i_comparison, i_variable) = new_axes;
+            figure_data.figure_handles{i_comparison, i_variable} = new_figure;
+            figure_data.axes_handles{i_comparison, i_variable} = new_axes;
             figure_data.comparison_variable_to_axes_index_map(i_comparison) = i_comparison;
 
             % scale abscissae
@@ -300,7 +300,7 @@ function figure_data = createFigures_continuous(settings, comparisons, data_cust
             xlim = [min(target_abscissae(:, 1)) max(target_abscissae(:, end))];
 
             % set x-limits accordingly
-            set(figure_data.axes_handles(i_comparison, i_variable), 'xlim', xlim);
+            set(figure_data.axes_handles{i_comparison, i_variable}, 'xlim', xlim);
         end
     end
 
@@ -353,8 +353,8 @@ function figure_data = createFigures_discrete(settings, comparisons, data_custod
             new_axes = axes; hold on;
 
             % store handles and determine abscissa data
-            figure_data.figure_handles(i_comparison, i_variable) = new_figure;
-            figure_data.axes_handles(i_comparison, i_variable) = new_axes;
+            figure_data.figure_handles{i_comparison, i_variable} = new_figure;
+            figure_data.axes_handles{i_comparison, i_variable} = new_axes;
             figure_data.comparison_variable_to_axes_index_map(i_comparison) = i_comparison;
 
             % abscissa gives the bin edges here
@@ -397,8 +397,8 @@ end
 function figure_data = addLabelsAndData(figure_data, comparisons, variables_to_plot, variables_to_plot_header)
     for i_variable = 1 : size(variables_to_plot, 1)
         for i_comparison = 1 : comparisons.number_of_comparisons
-            these_axes = figure_data.axes_handles(i_comparison, i_variable);
-            this_figure = figure_data.figure_handles(i_comparison, i_variable);
+            these_axes = figure_data.axes_handles{i_comparison, i_variable};
+            this_figure = figure_data.figure_handles{i_comparison, i_variable};
             % add text labels for arrows
             arrow_text = 'TBD';
             figure_data.pos_text_handles(i_comparison, i_variable) = ...
@@ -482,8 +482,8 @@ function figure_data = createFigureData(variables_to_plot, comparisons)
     figure_data.abscissae_cell = cell(comparisons.number_of_comparisons, number_of_variables_to_plot);
     
     % make one figure per comparison and variable
-    figure_data.figure_handles = zeros(comparisons.number_of_comparisons, number_of_variables_to_plot);
-    figure_data.axes_handles = zeros(comparisons.number_of_comparisons, number_of_variables_to_plot);
+    figure_data.figure_handles = cell(comparisons.number_of_comparisons, number_of_variables_to_plot);
+    figure_data.axes_handles = cell(comparisons.number_of_comparisons, number_of_variables_to_plot);
     figure_data.pos_text_handles = zeros(comparisons.number_of_comparisons, number_of_variables_to_plot);
     figure_data.neg_text_handles = zeros(comparisons.number_of_comparisons, number_of_variables_to_plot);
     figure_data.pos_arrow_handles = zeros(comparisons.number_of_comparisons, number_of_variables_to_plot);
@@ -502,7 +502,7 @@ function plotData_continuous(settings, comparisons, data_custodian, figure_data)
             % find correct condition indicator for control
             conditions_this_comparison = comparisons.comparison_indices{i_comparison};
             top_level_plots = [];
-            target_axes_handle = figure_data.axes_handles(figure_data.comparison_variable_to_axes_index_map(i_comparison), i_variable);
+            target_axes_handle = figure_data.axes_handles{figure_data.comparison_variable_to_axes_index_map(i_comparison), i_variable};
             
             % plot
             for i_condition = 1 : length(conditions_this_comparison)
@@ -589,7 +589,7 @@ function plotData_discrete(settings, comparisons, data_custodian, figure_data)
         for i_comparison = 1 : length(comparisons.comparison_indices)
             % find correct condition indicator for control
             conditions_this_comparison = comparisons.comparison_indices{i_comparison};
-            target_axes_handle = figure_data.axes_handles(figure_data.comparison_variable_to_axes_index_map(i_comparison), i_variable);
+            target_axes_handle = figure_data.axes_handles{figure_data.comparison_variable_to_axes_index_map(i_comparison), i_variable};
             
             % plot
             for i_condition = 1 : length(conditions_this_comparison)
@@ -658,7 +658,7 @@ function groomFigures_continuous(settings, data_custodian, comparisons, figure_d
     if settings.show_legend
         for i_variable = 1 : settings.number_of_variables_to_plot_continuous
             for i_axes = 1 : size(figure_data.axes_handles, 1)
-                these_axes = figure_data.axes_handles(i_axes, i_variable);
+                these_axes = figure_data.axes_handles{i_axes, i_variable};
                 legend(these_axes, 'show')
             end
         end
@@ -668,7 +668,7 @@ function groomFigures_continuous(settings, data_custodian, comparisons, figure_d
     if settings.mark_bands
         for i_comparison = 1 : comparisons.number_of_comparisons
             for i_variable = 1 : settings.number_of_variables_to_plot_continuous
-                these_axes = figure_data.axes_handles(i_comparison, i_variable);
+                these_axes = figure_data.axes_handles{i_comparison, i_variable};
                 these_abscissae = figure_data.abscissae_cell{i_comparison, i_variable};
                 ylimits = get(these_axes, 'ylim');
 
@@ -763,7 +763,7 @@ function groomFigures_continuous(settings, data_custodian, comparisons, figure_d
         
         for i_comparison = 1 : comparisons.number_of_comparisons
             for i_variable = 1 : settings.number_of_variables_to_plot_continuous
-                these_axes = figure_data.axes_handles(i_comparison, i_variable);
+                these_axes = figure_data.axes_handles{i_comparison, i_variable};
                 these_abscissae = figure_data.abscissae_cell{i_comparison, i_variable};
                 ylimits = get(these_axes, 'ylim');
 
@@ -807,7 +807,7 @@ function groomFigures_discrete(settings, figure_data)
     % rotate labels
     for i_variable = 1 : settings.number_of_variables_to_plot_discrete
         for i_axes = 1 : size(figure_data.axes_handles, 1)
-            these_axes = figure_data.axes_handles(i_axes, i_variable);
+            these_axes = figure_data.axes_handles{i_axes, i_variable};
             xtick_label_rotation = settings.plot_settings.get('xtick_label_rotation', 1);
             set(these_axes, 'XTickLabelRotation', xtick_label_rotation);            
         end
@@ -829,7 +829,7 @@ function dictateAxes(settings, figure_data, variables_to_plot, variables_to_plot
 
             for i_axes = 1 : size(figure_data.axes_handles, 1)
                 % get current axes and limits
-                these_axes = figure_data.axes_handles(i_axes, i_variable);
+                these_axes = figure_data.axes_handles{i_axes, i_variable};
                 xlimits = get(these_axes, 'xlim');
                 ylimits = get(these_axes, 'ylim');
 
@@ -857,7 +857,7 @@ function updateLabelPositions(figure_data)
     % update label positions
     for i_variable = 1 : size(figure_data.axes_handles, 2)
         for i_axes = 1 : size(figure_data.axes_handles, 1)
-            these_axes = figure_data.axes_handles(i_axes, i_variable);
+            these_axes = figure_data.axes_handles{i_axes, i_variable};
             xlimits = get(these_axes, 'xlim'); ylimits = get(these_axes, 'ylim');
             if figure_data.pos_arrow_handles(i_axes, i_variable) ~= 0
                 pos_arrow_position_x = xlimits(1) - (xlimits(2)-xlimits(1))*0.09;
@@ -883,7 +883,7 @@ function addZeroLine(settings, figure_data)
     if settings.plot_settings.get('plot_zero', 1)
         for i_variable = 1 : size(figure_data.axes_handles, 2)
             for i_axes = 1 : size(figure_data.axes_handles, 1)
-                these_axes = figure_data.axes_handles(i_axes, i_variable);
+                these_axes = figure_data.axes_handles{i_axes, i_variable};
                 xlimits = get(these_axes, 'xlim');
                 zero_plot = plot(these_axes, xlimits, [0 0], 'color', [0.7 0.7 0.7]);
                 set(zero_plot, 'HandleVisibility', 'off');
@@ -909,32 +909,32 @@ function saveFigures(settings, figure_data)
         end
         for i_figure = 1 : numel(figure_data.figure_handles)
             % remove some white space on right side and top
-            axes_position = get(figure_data.axes_handles(i_figure), 'position');
+            axes_position = get(figure_data.axes_handles{i_figure}, 'position');
             axes_position(3) = 1 - axes_position(1) - 0.01;
             axes_position(4) = 1 - axes_position(2) - 0.04;
-            set(figure_data.axes_handles(i_figure), 'position', axes_position);
+            set(figure_data.axes_handles{i_figure}, 'position', axes_position);
             
             % save with labels
-            filename_with = ['figures' filesep 'withLabels' filesep get(figure_data.figure_handles(i_figure), 'UserData')];
-            print(figure_data.figure_handles(i_figure), filename_with, settings.save_format, settings.save_resolution)
+            filename_with = ['figures' filesep 'withLabels' filesep get(figure_data.figure_handles{i_figure}, 'UserData')];
+            print(figure_data.figure_handles{i_figure}, filename_with, settings.save_format, settings.save_resolution)
             
             % remove text and marks to save data lines only
-            set(get(figure_data.axes_handles(i_figure), 'xaxis'), 'visible', 'off');
-            set(get(figure_data.axes_handles(i_figure), 'yaxis'), 'visible', 'off');
-            set(get(figure_data.axes_handles(i_figure), 'xlabel'), 'visible', 'off');
-            set(get(figure_data.axes_handles(i_figure), 'ylabel'), 'visible', 'off');
-            set(get(figure_data.axes_handles(i_figure), 'title'), 'visible', 'off');
-            set(figure_data.axes_handles(i_figure), 'xticklabel', '');
-            set(figure_data.axes_handles(i_figure), 'yticklabel', '');
-            set(figure_data.axes_handles(i_figure), 'position', [0 0 1 1]);
-            legend(figure_data.axes_handles(i_figure), 'hide');
-            filename_without = ['figures' filesep 'noLabels' filesep get(figure_data.figure_handles(i_figure), 'UserData')];
-            print(figure_data.figure_handles(i_figure), filename_without, settings.save_format, settings.save_resolution)
+            set(get(figure_data.axes_handles{i_figure}, 'xaxis'), 'visible', 'off');
+            set(get(figure_data.axes_handles{i_figure}, 'yaxis'), 'visible', 'off');
+            set(get(figure_data.axes_handles{i_figure}, 'xlabel'), 'visible', 'off');
+            set(get(figure_data.axes_handles{i_figure}, 'ylabel'), 'visible', 'off');
+            set(get(figure_data.axes_handles{i_figure}, 'title'), 'visible', 'off');
+            set(figure_data.axes_handles{i_figure}, 'xticklabel', '');
+            set(figure_data.axes_handles{i_figure}, 'yticklabel', '');
+            set(figure_data.axes_handles{i_figure}, 'position', [0 0 1 1]);
+            legend(figure_data.axes_handles{i_figure}, 'hide');
+            filename_without = ['figures' filesep 'noLabels' filesep get(figure_data.figure_handles{i_figure}, 'UserData')];
+            print(figure_data.figure_handles{i_figure}, filename_without, settings.save_format, settings.save_resolution)
             disp(['Saved as ' filename_with ' and ' filename_without])
             
             % put some marks back
-            set(get(figure_data.axes_handles(i_figure), 'title'), 'visible', 'on');
-            set(figure_data.axes_handles(i_figure), 'position', [0.05 0.05 0.9 0.9]);
+            set(get(figure_data.axes_handles{i_figure}, 'title'), 'visible', 'on');
+            set(figure_data.axes_handles{i_figure}, 'position', [0.05 0.05 0.9 0.9]);
         end
     end
 
@@ -944,7 +944,7 @@ function closeFigures(settings, figure_data)
     % close figures
     if settings.close
         for i_figure = 1 : numel(figure_data.figure_handles)
-            close(figure_data.figure_handles(i_figure))            
+            close(figure_data.figure_handles{i_figure})            
         end
     end    
 
