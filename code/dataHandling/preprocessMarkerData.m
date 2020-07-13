@@ -31,10 +31,8 @@ function preprocessMarkerData(varargin)
     addParameter(parser, 'type', 'all')
     addParameter(parser, 'visualize', false)
     parse(parser, varargin{:})
-    visualize = parser.Results.visualize;
     
-    subject_info = load('subjectInfo.mat');
-    
+    study_settings = loadSettingsFromFile('study');
     subject_settings = loadSettingsFromFile('subject');
     collection_date = subject_settings.get('collection_date');
     subject_id = subject_settings.get('subject_id');
@@ -42,17 +40,6 @@ function preprocessMarkerData(varargin)
     % add excluded trials back in, because while we don't want to analyze them, we still want to pre-process them
     types_to_analyze = [types_to_analyze; types_to_exclude];
     trials_to_analyze = [trials_to_analyze; trials_to_exclude];
-    
-    % load settings
-    study_settings_file = '';
-    if exist(['..' filesep 'studySettings.txt'], 'file')
-        study_settings_file = ['..' filesep 'studySettings.txt'];
-    end    
-    if exist(['..' filesep '..' filesep 'studySettings.txt'], 'file')
-        study_settings_file = ['..' filesep '..' filesep 'studySettings.txt'];
-    end
-    study_settings = SettingsCustodian(study_settings_file);
-    subject_settings = SettingsCustodian('subjectSettings.txt');
     
     % load static reference trial
     load(['raw' filesep makeFileName(collection_date, subject_id, subject_settings.get('static_reference_trial_type'), subject_settings.get('static_reference_trial_number'), 'markerTrajectoriesRaw.mat')]);

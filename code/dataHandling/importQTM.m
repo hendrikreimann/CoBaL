@@ -41,17 +41,9 @@ function importQTM(varargin)
     % set some parameters
     millimeter_to_meter = 1e-3;
 
-    study_settings_file = '';
-    if exist(['..' filesep 'studySettings.txt'], 'file')
-        study_settings_file = ['..' filesep 'studySettings.txt'];
-    end    
-    if exist(['..' filesep '..' filesep 'studySettings.txt'], 'file')
-        study_settings_file = ['..' filesep '..' filesep 'studySettings.txt'];
-    end
-    study_settings = SettingsCustodian(study_settings_file);
+    study_settings = loadSettingsFromFile('study');
+    subject_settings = loadSettingsFromFile('subject');
     import_mode = study_settings.get('qtm_import_mode', 1);
-    
-    subject_settings = SettingsCustodian('subjectSettings.txt');
     analog_to_protocol_mapping = subject_settings.get('analog_to_protocol_mapping', 1);
     
     % initialize
@@ -403,12 +395,12 @@ function importQTM(varargin)
                     sampling_rate_emg = analog_fs;
                     time_emg = (1 : number_of_samples)' / sampling_rate_emg;
                     emg_labels = emg_import_map(:, strcmp(emg_import_map_header, 'label_in_cobal'))';
-                    emg_trajectories_raw = zeros(number_of_samples, number_of_emg_channels_to_import);
+                    emg_raw_trajectories = zeros(number_of_samples, number_of_emg_channels_to_import);
                     data_type = 'emg';
                     for i_channel = 1 : number_of_emg_channels_to_import
                         index_in_loaded_data = strcmp(qtm_data.Analog.Labels, emg_data_to_import(i_channel));
 
-                        emg_trajectories_raw(:, i_channel) = qtm_data.Analog.Data(index_in_loaded_data, this_trial_start_index:this_trial_end_index)';
+                        emg_raw_trajectories(:, i_channel) = qtm_data.Analog.Data(index_in_loaded_data, this_trial_start_index:this_trial_end_index)';
 
                     end
 
@@ -424,14 +416,14 @@ function importQTM(varargin)
                         save ...
                             ( ...
                             [save_folder filesep save_file_name], ...
-                            'emg_trajectories_raw', ...
+                            'emg_raw_trajectories', ...
                             'time_emg', ...
                             'sampling_rate_emg', ...
                             'data_source', ...
                             'emg_labels', ...
                             'emg_directions' ...
                             );
-                        addAvailableData('emg_trajectories_raw', 'time_emg', 'sampling_rate_emg', 'emg_labels', '_emg_directions', save_folder, save_file_name);
+                        addAvailableData('emg_raw_trajectories', 'time_emg', 'sampling_rate_emg', '_emg_labels', '_emg_directions', save_folder, save_file_name);
                     end                    
                 end
             end
@@ -498,7 +490,7 @@ function importQTM(varargin)
                         'forceplate_location_right', ...
                         'forceplate_directions' ...
                         );
-                    addAvailableData('forceplate_trajectories_raw', 'time_forceplate', 'sampling_rate_forceplate', 'forceplate_labels', '_forceplate_directions', save_folder, save_file_name);
+                    addAvailableData('forceplate_trajectories_raw', 'time_forceplate', 'sampling_rate_forceplate', '_forceplate_labels', '_forceplate_directions', save_folder, save_file_name);
                 end
             end
             
@@ -571,7 +563,7 @@ function importQTM(varargin)
                     'marker_labels', ...
                     'marker_directions' ...
                     );
-                addAvailableData('marker_trajectories_raw', 'time_mocap', 'sampling_rate_mocap', 'marker_labels', '_marker_directions', save_folder, save_file_name);
+                addAvailableData('marker_trajectories_raw', 'time_mocap', 'sampling_rate_mocap', '_marker_labels', '_marker_directions', save_folder, save_file_name);
             end
 
             if save_this_trial

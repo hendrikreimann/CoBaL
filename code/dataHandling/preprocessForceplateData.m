@@ -36,15 +36,8 @@ function preprocessForceplateData(varargin)
     trials_to_analyze = [trials_to_analyze; trials_to_exclude];
     
     % load settings
-    study_settings_file = '';
-    if exist(['..' filesep 'studySettings.txt'], 'file')
-        study_settings_file = ['..' filesep 'studySettings.txt'];
-    end    
-    if exist(['..' filesep '..' filesep 'studySettings.txt'], 'file')
-        study_settings_file = ['..' filesep '..' filesep 'studySettings.txt'];
-    end
-    study_settings = SettingsCustodian(study_settings_file);
-    subject_settings = SettingsCustodian('subjectSettings.txt');
+    study_settings = loadSettingsFromFile('study');
+    subject_settings = loadSettingsFromFile('subject');
     
     data_dir = dir(['raw' filesep '*_forceplateTrajectoriesRaw.mat']);
     clear file_name_list;
