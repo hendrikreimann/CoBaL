@@ -444,15 +444,15 @@ function importQTM(varargin)
                         qtm_data.Force(force_plates_to_import(2)).Force(:, this_trial_start_index : this_trial_end_index)', ...
                         qtm_data.Force(force_plates_to_import(2)).Moment(:, this_trial_start_index : this_trial_end_index)' ...
                         ];
-                    forceplate_trajectories_raw = [forceplate_tajectories_Left, forceplate_tajectories_Right];
+                    forceplate_raw_trajectories = [forceplate_tajectories_Left, forceplate_tajectories_Right];
                 else % currently taking volts... need to scale accordinginly
                     warning('No force data found, using analog data instead. This is currently not scaling correctly.')
-                    forceplate_trajectories_raw = [qtm_data.Analog.Data(1:12, this_trial_start_index : this_trial_end_index)]';
+                    forceplate_raw_trajectories = [qtm_data.Analog.Data(1:12, this_trial_start_index : this_trial_end_index)]';
                 end
 
                 % check if the last data point is NaN for some reason and remove if necessary
-                if any(isnan(forceplate_trajectories_raw(end, :))) & ~any(isnan(forceplate_trajectories_raw(end-1, :)))
-                    forceplate_trajectories_raw = forceplate_trajectories_raw(1:end-1, :);
+                if any(isnan(forceplate_raw_trajectories(end, :))) & ~any(isnan(forceplate_raw_trajectories(end-1, :)))
+                    forceplate_raw_trajectories = forceplate_raw_trajectories(1:end-1, :);
                 end
 
 
@@ -462,7 +462,7 @@ function importQTM(varargin)
                 forceplate_location_right = mean(qtm_data.Force(2).ForcePlateLocation) * millimeter_to_meter; % mean of corner coordinates gives center
 
                 sampling_rate_forceplate = analog_fs;
-                time_forceplate = (1 : size(forceplate_trajectories_raw, 1))' / sampling_rate_forceplate;
+                time_forceplate = (1 : size(forceplate_raw_trajectories, 1))' / sampling_rate_forceplate;
 
                 % make directions
                 % NOTE: this defines directions and makes assumptions, make sure everything is right here
@@ -481,7 +481,7 @@ function importQTM(varargin)
                     save ...
                         ( ...
                         [save_folder filesep save_file_name], ...
-                        'forceplate_trajectories_raw', ...
+                        'forceplate_raw_trajectories', ...
                         'forceplate_labels', ...
                         'data_source', ...
                         'time_forceplate', ...
@@ -490,7 +490,7 @@ function importQTM(varargin)
                         'forceplate_location_right', ...
                         'forceplate_directions' ...
                         );
-                    addAvailableData('forceplate_trajectories_raw', 'time_forceplate', 'sampling_rate_forceplate', '_forceplate_labels', '_forceplate_directions', save_folder, save_file_name);
+                    addAvailableData('forceplate_raw_trajectories', 'time_forceplate', 'sampling_rate_forceplate', '_forceplate_labels', '_forceplate_directions', save_folder, save_file_name);
                 end
             end
             
@@ -509,13 +509,13 @@ function importQTM(varargin)
             time_mocap = (1 : number_of_frames)' / sampling_rate_mocap;
 
             marker_count = 1;
-            marker_trajectories_raw = [];
+            marker_raw_trajectories = [];
             for i_marker = 1: size(temp_markers,1)
                 this_marker = temp_markers(i_marker,:,:);
-                marker_trajectories_raw(marker_count:marker_count+2,:) = reshape(this_marker, size(this_marker,2), size(this_marker,3)) * millimeter_to_meter; 
+                marker_raw_trajectories(marker_count:marker_count+2,:) = reshape(this_marker, size(this_marker,2), size(this_marker,3)) * millimeter_to_meter; 
                 marker_count = marker_count + 3;
             end
-            marker_trajectories_raw = marker_trajectories_raw';
+            marker_raw_trajectories = marker_raw_trajectories';
 
 
             % replace marker labels if necessary
@@ -539,7 +539,7 @@ function importQTM(varargin)
 
             % make directions
             % NOTE: this defines directions and makes assumptions, make sure everything is right here
-            number_of_marker_trajectories = size(marker_trajectories_raw, 2);
+            number_of_marker_trajectories = size(marker_raw_trajectories, 2);
             marker_directions = cell(2, number_of_marker_trajectories);
             [marker_directions{1, 1 : 3 : number_of_marker_trajectories}] = deal('right');
             [marker_directions{2, 1 : 3 : number_of_marker_trajectories}] = deal('left');
@@ -556,14 +556,14 @@ function importQTM(varargin)
                 save ...
                     ( ...
                     [save_folder filesep save_file_name], ...
-                    'marker_trajectories_raw', ...
+                    'marker_raw_trajectories', ...
                     'time_mocap', ...
                     'data_source', ...
                     'sampling_rate_mocap', ...
                     'marker_labels', ...
                     'marker_directions' ...
                     );
-                addAvailableData('marker_trajectories_raw', 'time_mocap', 'sampling_rate_mocap', '_marker_labels', '_marker_directions', save_folder, save_file_name);
+                addAvailableData('marker_raw_trajectories', 'time_mocap', 'sampling_rate_mocap', '_marker_labels', '_marker_directions', save_folder, save_file_name);
             end
 
             if save_this_trial

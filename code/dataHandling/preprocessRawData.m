@@ -24,8 +24,6 @@
 
 
 function preprocessRawData(varargin)
-    load('subjectInfo.mat');
-    
     % parse arguments
     [types_to_analyze, trials_to_analyze, types_to_exclude, trials_to_exclude] = parseTrialArguments(varargin{:});
     parser = inputParser;

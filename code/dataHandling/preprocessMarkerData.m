@@ -42,9 +42,9 @@ function preprocessMarkerData(varargin)
     trials_to_analyze = [trials_to_analyze; trials_to_exclude];
     
     % load static reference trial
-    load(['raw' filesep makeFileName(collection_date, subject_id, subject_settings.get('static_reference_trial_type'), subject_settings.get('static_reference_trial_number'), 'markerTrajectoriesRaw.mat')]);
-    marker_labels_reference = marker_labels;
-    marker_directions_reference = marker_directions;
+    loaded_data = load(['raw' filesep makeFileName(collection_date, subject_id, subject_settings.get('static_reference_trial_type'), subject_settings.get('static_reference_trial_number'), 'markerTrajectoriesRaw.mat')]);
+    marker_labels_reference = loaded_data.marker_labels;
+    marker_directions_reference = loaded_data.marker_directions;
 
 
     data_dir = dir(['raw' filesep '*_markerTrajectoriesRaw.mat']);
@@ -60,21 +60,29 @@ function preprocessMarkerData(varargin)
             % condition is set to be processed, now check trial number
             trial_number_list_this_condition = trials_to_analyze{strcmp(trial_type, types_to_analyze)};
             if ismember(trial_number, trial_number_list_this_condition)
-                load(['raw' filesep raw_marker_file_name]);
+                % load data
+                loaded_data = load(['raw' filesep raw_marker_file_name]);
+                
+                % figure out variable
+                if isfield(loaded_data, 'marker_trajectories_raw')
+                    raw_marker_trajectories = loaded_data.marker_trajectories_raw;
+                elseif isfield(loaded_data, 'marker_raw_trajectories')
+                    raw_marker_trajectories = loaded_data.marker_raw_trajectories;
+                end
 
                 if study_settings.get('filter_marker_data')
                     filter_order = 4;
                     cutoff_frequency = study_settings.get('marker_data_cutoff_frequency'); % in Hz
-                    [b_marker, a_marker] = butter(filter_order, cutoff_frequency/(sampling_rate_mocap/2));
-                    marker_trajectories = nanfiltfilt(b_marker, a_marker, marker_trajectories_raw);
+                    [b_marker, a_marker] = butter(filter_order, cutoff_frequency/(loaded_data.sampling_rate_mocap/2));
+                    marker_trajectories = nanfiltfilt(b_marker, a_marker, raw_marker_trajectories);
                 else
-                    marker_trajectories = marker_trajectories_raw;
+                    marker_trajectories = raw_marker_trajectories;
                 end
 
 
                 % compare marker labels to reference trial
                 marker_labels_equal = 0;
-                if length(marker_labels) == length(marker_labels_reference)
+                if length(loaded_data.marker_labels) == length(marker_labels_reference)
                     marker_labels_equal = 1;
                     % length is the same, now compare individual labels
                     for i_label = 1 : length(marker_labels_reference)
@@ -86,7 +94,7 @@ function preprocessMarkerData(varargin)
 
                 if ~marker_labels_equal
                     marker_trajectories_unsorted = marker_trajectories;
-                    marker_labels_unsorted = marker_labels;
+                    marker_labels_unsorted = loaded_data.marker_labels;
                     marker_trajectories = zeros(size(marker_trajectories, 1), length(marker_labels_reference)) * NaN;
                     marker_labels = marker_labels_reference;
                     marker_directions = marker_directions_reference;
@@ -102,6 +110,8 @@ function preprocessMarkerData(varargin)
 
 
                 % save
+                time_mocap = loaded_data.time_mocap;
+                sampling_rate_mocap = loaded_data.sampling_rate_mocap;
                 save_folder = 'processed';
                 save_file_name = makeFileName(date, subject_id, trial_type, trial_number, 'markerTrajectories.mat');
                 save ...
@@ -130,50 +140,50 @@ function preprocessMarkerData(varargin)
     end
 
     %% transform to belt space
-    for i_condition = 1 : length(types_to_analyze)
-        trials_to_process = trials_to_analyze{i_condition};
-        for i_trial = trials_to_process
-            % load data
-            this_condition = types_to_analyze{i_condition};
-            if any(strcmp(study_settings.get('conditions_to_transform_to_belt_space', 1), this_condition))
-                % extract data for new structure
-                if exist(['processed' filesep makeFileName(date, subject_id, trial_type, i_trial, 'plcData')], 'file')
-                    load(['processed' filesep makeFileName(date, subject_id, trial_type, i_trial, 'plcData')])
-                else
-                    error(['Failed to load PLC data file for condition ' trial_type ', trial ' num2str(i_trial)]);
-                end
-                time_belts = time_plcData - time_plcData(1);
-
-                % calculate shift
-                belt_speed_trajectory = mean([belt_speed_left_trajectory belt_speed_right_trajectory], 2);
-                delta_t = diff(time_belts);
-                belt_position_trajectory_plcData = zeros(size(belt_speed_trajectory));
-                for i_time = 2 : length(belt_speed_trajectory)
-                    belt_position_trajectory_plcData(i_time) = belt_position_trajectory_plcData(i_time-1) + delta_t(i_time-1) * belt_speed_trajectory(i_time-1);
-                end
-
-                % apply shift to marker trajectories
-                file_name_raw = ['raw' filesep makeFileName(date, subject_id, this_condition, i_trial, 'markerTrajectoriesRaw.mat')];
-                load(file_name_raw);
-                marker_trajectories = marker_trajectories_raw;
-                belt_position_trajectory_mocap = spline(time_belts, belt_position_trajectory_plcData, time_mocap)';
-                for i_marker = 1 : size(marker_headers, 2)
-                    marker_trajectories(:, (i_marker-1)*3+2) = marker_trajectories(:, (i_marker-1)*3+2) + belt_position_trajectory_mocap;
-                end
-
-                save_folder = 'processed';
-                save_file_name = makeFileName(date, subject_id, trial_type, trial_number, 'markerTrajectories.mat');
-                save ...
-                  ( ...
-                    [save_folder filesep save_file_name], ...
-                    'marker_trajectories', ...
-                    'time_mocap', ...
-                    'sampling_rate_mocap', ...
-                    'marker_labels' ...
-                  );
-                addAvailableData('marker_trajectories', 'time_mocap', 'marker_labels', save_folder, save_file_name);
-                disp(['Transformed marker data in ' file_name_raw ' to belt space and saved to ' file_name_shifted])                    
-            end
+%     for i_condition = 1 : length(types_to_analyze)
+%         trials_to_process = trials_to_analyze{i_condition};
+%         for i_trial = trials_to_process
+%             % load data
+%             this_condition = types_to_analyze{i_condition};
+%             if any(strcmp(study_settings.get('conditions_to_transform_to_belt_space', 1), this_condition))
+%                 % extract data for new structure
+%                 if exist(['processed' filesep makeFileName(date, subject_id, trial_type, i_trial, 'plcData')], 'file')
+%                     load(['processed' filesep makeFileName(date, subject_id, trial_type, i_trial, 'plcData')])
+%                 else
+%                     error(['Failed to load PLC data file for condition ' trial_type ', trial ' num2str(i_trial)]);
+%                 end
+%                 time_belts = time_plcData - time_plcData(1);
+% 
+%                 % calculate shift
+%                 belt_speed_trajectory = mean([belt_speed_left_trajectory belt_speed_right_trajectory], 2);
+%                 delta_t = diff(time_belts);
+%                 belt_position_trajectory_plcData = zeros(size(belt_speed_trajectory));
+%                 for i_time = 2 : length(belt_speed_trajectory)
+%                     belt_position_trajectory_plcData(i_time) = belt_position_trajectory_plcData(i_time-1) + delta_t(i_time-1) * belt_speed_trajectory(i_time-1);
+%                 end
+% 
+%                 % apply shift to marker trajectories
+%                 file_name_raw = ['raw' filesep makeFileName(date, subject_id, this_condition, i_trial, 'markerTrajectoriesRaw.mat')];
+%                 load(file_name_raw);
+%                 marker_trajectories = raw_marker_trajectories;
+%                 belt_position_trajectory_mocap = spline(time_belts, belt_position_trajectory_plcData, time_mocap)';
+%                 for i_marker = 1 : size(marker_headers, 2)
+%                     marker_trajectories(:, (i_marker-1)*3+2) = marker_trajectories(:, (i_marker-1)*3+2) + belt_position_trajectory_mocap;
+%                 end
+% 
+%                 save_folder = 'processed';
+%                 save_file_name = makeFileName(date, subject_id, trial_type, trial_number, 'markerTrajectories.mat');
+%                 save ...
+%                   ( ...
+%                     [save_folder filesep save_file_name], ...
+%                     'marker_trajectories', ...
+%                     'time_mocap', ...
+%                     'sampling_rate_mocap', ...
+%                     'marker_labels' ...
+%                   );
+%                 addAvailableData('marker_trajectories', 'time_mocap', 'marker_labels', save_folder, save_file_name);
+%                 disp(['Transformed marker data in ' file_name_raw ' to belt space and saved to ' file_name_shifted])                    
+%             end
 
 
 
@@ -211,8 +221,8 @@ function preprocessMarkerData(varargin)
 %             total_forceplate_low_load_indicator = copx_trajectory == 0;
 %             total_forceplate_cop_world(total_forceplate_low_load_indicator, :) = 0;            
 
-        end
-    end
+%         end
+%     end
 end
     
     

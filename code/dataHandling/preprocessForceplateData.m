@@ -54,15 +54,22 @@ function preprocessForceplateData(varargin)
             if ismember(trial_number, trial_number_list_this_condition)
                 % load raw data
                 loaded_data = load(['raw' filesep raw_forceplate_file_name]);
+                
+                % figure out variable
+                if isfield(loaded_data, 'forceplate_trajectories_raw')
+                    raw_forceplate_trajectories = loaded_data.forceplate_trajectories_raw;
+                elseif isfield(loaded_data, 'forceplate_raw_trajectories')
+                    raw_forceplate_trajectories = loaded_data.forceplate_raw_trajectories;
+                end
 
                 % define filter
                 filter_order_low = study_settings.get('force_plate_filter_order');
                 cutoff_frequency_low = study_settings.get('force_plate_filter_cutoff');
                 if ~isempty(filter_order_low) && ~isempty(cutoff_frequency_low)
                     [b_lowpass, a_lowpass] = butter(filter_order_low, cutoff_frequency_low/(loaded_data.sampling_rate_forceplate/2), 'low');
-                    forceplate_trajectories = filtfilt(b_lowpass, a_lowpass, loaded_data.forceplate_trajectories_raw);
+                    forceplate_trajectories = filtfilt(b_lowpass, a_lowpass, raw_forceplate_trajectories);
                 else
-                    forceplate_trajectories = loaded_data.forceplate_trajectories_raw;
+                    forceplate_trajectories = raw_forceplate_trajectories;
                 end
 
                 % extract
