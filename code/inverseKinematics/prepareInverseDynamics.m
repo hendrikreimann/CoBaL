@@ -62,25 +62,21 @@ function prepareInverseDynamics(varargin)
         save_file_path = [pwd filesep 'opensim' filesep 'inverseDynamics' filesep];
         writeOpensimMot(save_file_name, save_file_path, ik_data.time, ik_data.trajectories, ik_data.labels, ik_data.header);
         
-        % load forces
+        % load forceplate data
         load_file_name = ['opensim' filesep 'forceplate' filesep makeFileName(collection_date, subject_id, trial_data.trial_type, trial_data.trial_number, 'grfIndividual.mot')];
         force_data = readOpensimMot(load_file_name, 6);
         
-        % add belt translation to ap=-component of CoP (this is a bit of a hack for now, since it neglects the moments. 
+        % add belt translation to ap-component of CoP
         left_plate_cop_ap_column = strcmp(force_data.labels, 'left_plate_force_px');
         right_plate_cop_ap_column = strcmp(force_data.labels, 'right_plate_force_px');
+        force_data.trajectories(:, left_plate_cop_ap_column) = force_data.trajectories(:, left_plate_cop_ap_column) + belt_translation_resampled;
+        force_data.trajectories(:, right_plate_cop_ap_column) = force_data.trajectories(:, right_plate_cop_ap_column) + belt_translation_resampled;
         
-        % I currently don't understand how the moments are being used in the inverse dynamics. Revisit this when I do 
-        % understand that. 
-        force_data.trajectories(:, left_plate_cop_ap_column) = ik_data.trajectories(:, left_plate_cop_ap_column) + belt_translation_resampled;
-        force_data.trajectories(:, right_plate_cop_ap_column) = ik_data.trajectories(:, right_plate_cop_ap_column) + belt_translation_resampled;
-        
-        % save forces
+        % save updated forceplate data in 
         save_file_name = makeFileName(collection_date, subject_id, trial_data.trial_type, trial_data.trial_number, 'grfIndividual.mot');
         writeOpensimMot(save_file_name, save_file_path, force_data.time, force_data.trajectories, force_data.labels, force_data.header);        
         
-        
-        disp(['processed ' load_file_name ' and saved as ' save_file_name])
+        disp(['processed ' load_file_name ' and saved as inverseDynamics' filesep save_file_name])
     end
     return
     %% transform to belt space
