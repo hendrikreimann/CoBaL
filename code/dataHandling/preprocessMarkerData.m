@@ -62,6 +62,10 @@ function preprocessMarkerData(varargin)
             if ismember(trial_number, trial_number_list_this_condition)
                 % load data
                 loaded_data = load(['raw' filesep raw_marker_file_name]);
+                time_mocap = loaded_data.time_mocap;
+                sampling_rate_mocap = loaded_data.sampling_rate_mocap;
+                marker_labels = loaded_data.marker_labels;
+                marker_directions = loaded_data.marker_directions;
                 
                 % figure out variable
                 if isfield(loaded_data, 'marker_trajectories_raw')
@@ -78,7 +82,6 @@ function preprocessMarkerData(varargin)
                 else
                     marker_trajectories = raw_marker_trajectories;
                 end
-
 
                 % compare marker labels to reference trial
                 marker_labels_equal = 0;
@@ -108,10 +111,7 @@ function preprocessMarkerData(varargin)
                     end
                 end
 
-
                 % save
-                time_mocap = loaded_data.time_mocap;
-                sampling_rate_mocap = loaded_data.sampling_rate_mocap;
                 save_folder = 'processed';
                 save_file_name = makeFileName(date, subject_id, trial_type, trial_number, 'markerTrajectories.mat');
                 save ...
