@@ -130,7 +130,7 @@ function trial_data = loadKinematicData(study_settings, subject_settings, trial_
     collection_date = subject_settings.get('collection_date');
     subject_id = subject_settings.get('subject_id');
                 
-    [trial_data.marker_trajectories, trial_data.time_marker, ~, trial_data.marker_labels] = loadData(collection_date, subject_id, trial_data.trial_type, trial_data.trial_number, 'marker_trajectories');
+    [trial_data.marker_trajectories, trial_data.time_marker, ~, trial_data.marker_labels] = loadData(collection_date, subject_id, trial_data.trial_type, trial_data.trial_number, 'marker_trajectories', 'optional');
     if study_settings.get('prune_gaps_com', 1)
         trial_data.com_trajectories = loadData(collection_date, subject_id, trial_data.trial_type, trial_data.trial_number, 'com_trajectories');
     end

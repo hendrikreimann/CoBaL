@@ -29,6 +29,9 @@ function [conditions_trial, event_variables_to_save, removal_flags] = determineC
     if any(strcmp(experimental_paradigm, paradigms_with_intermittent_perturbation))
         [conditions_trial, event_variables_to_save, removal_flags] = determineConditionLevels_intermittentPerturbations(study_settings, subject_settings, trial_data);
     end
+    if strcmp(experimental_paradigm, 'Normal Walking')
+        [conditions_trial, event_variables_to_save, removal_flags] = determineConditionLevels_normalWalking(subject_settings, trial_data);
+    end    
     if strcmp(experimental_paradigm, 'Stochastic Resonance')
         [conditions_trial, event_variables_to_save, removal_flags] = determineConditionLevels_stochasticResonance(subject_settings, trial_data);
     end
