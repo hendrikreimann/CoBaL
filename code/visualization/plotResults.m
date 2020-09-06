@@ -118,7 +118,7 @@ function settings = determineSettings(varargin)
     settings.conditions_settings = settings.study_settings.get('conditions');
     settings.condition_to_compare = settings.plot_settings.get('condition_to_compare');
     settings.condition_labels = settings.conditions_settings(:, 1)';
-    settings.variables_to_plot = settings.plot_settings.get('variables_to_plot');
+    settings.variables_to_plot = settings.plot_settings.get('variables_to_plot', true);
     settings.variables_to_plot_header = settings.plot_settings.get('variables_to_plot_header', true);
     settings.number_of_variables_to_plot = size(settings.variables_to_plot, 1);
     
