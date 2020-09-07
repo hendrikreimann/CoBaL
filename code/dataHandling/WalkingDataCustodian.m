@@ -91,21 +91,22 @@ classdef WalkingDataCustodian < handle
             
             % load this information from the subjects.mat and studySettings.txt files
             this.data_directory = data_directory;
-%             load([data_directory filesep 'subjectInfo.mat'], 'date', 'subject_id');
             this.date = collection_date;
             this.subject_id = subject_id;
             
             this.subject_info = load([data_directory filesep 'subjectInfo.mat']);
-            this.subject_settings = SettingsCustodian([data_directory filesep 'subjectSettings.txt']);
+            this.subject_settings = subject_settings;
             % load settings
-            study_settings_file = '';
-            if exist([data_directory filesep '..' filesep 'studySettings.txt'], 'file')
-                study_settings_file = [data_directory filesep '..' filesep 'studySettings.txt'];
-            end    
-            if exist([data_directory filesep '..' filesep '..' filesep 'studySettings.txt'], 'file')
-                study_settings_file = [data_directory filesep '..' filesep '..' filesep 'studySettings.txt'];
-            end
-            this.study_settings = SettingsCustodian(study_settings_file);
+%             study_settings_file = '';
+%             if exist([data_directory filesep '..' filesep 'studySettings.txt'], 'file')
+%                 study_settings_file = [data_directory filesep '..' filesep 'studySettings.txt'];
+%             end    
+%             if exist([data_directory filesep '..' filesep '..' filesep 'studySettings.txt'], 'file')
+%                 study_settings_file = [data_directory filesep '..' filesep '..' filesep 'studySettings.txt'];
+%             end
+%             this.study_settings = SettingsCustodian(study_settings_file);
+            this.study_settings = loadSettingsFromFile('study', data_directory);
+
             emg_normalization_file_name = [data_directory filesep 'analysis' filesep makeFileName(date, subject_id, 'emgNormalization.mat')];
             if exist(emg_normalization_file_name, 'file')
                 emg_normalization_data = load(emg_normalization_file_name);
@@ -457,6 +458,9 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('marker_trajectories')
                 this.addStretchVariable('step_time')
                 this.addStretchVariable('pushoff_time')
+            end
+            if this.isVariableToAnalyze('midswing_event_time')
+                this.addStretchVariable('midswing_event_time')
             end
             if this.isVariableToAnalyze('midstance_index')
                 this.addBasicVariable('lankle_y')
@@ -1194,10 +1198,10 @@ classdef WalkingDataCustodian < handle
             this.time_data = struct;
             this.trial_type = trial_type;
             this.trial_number = trial_number;
-            
+
             % prepare the data by loading all the basic variables from disk and calculating the required variables
             load(['analysis' filesep makeFileName(this.date, this.subject_id, trial_type, trial_number, 'availableVariables')], 'available_variables');
-            
+
             % load basic variables
             for i_variable = 1 : length(variables_to_prepare)
                 variable_name = variables_to_prepare{i_variable};
@@ -3713,6 +3717,40 @@ classdef WalkingDataCustodian < handle
                             end
                         end
                     end
+                    if strcmp(variable_name, 'midswing_event_time')
+                        % load events
+                        event_data = load(['analysis' filesep makeFileName(this.date, this.subject_id, this.trial_type, this.trial_number, 'events.mat')]);
+                        left_midswing_times = event_data.event_data{strcmp(event_data.event_labels, 'left_midswing')};
+                        right_midswing_times = event_data.event_data{strcmp(event_data.event_labels, 'right_midswing')};
+                        
+                        stretch_data = zeros(number_of_bands, 1);
+                        for i_band = 1 : number_of_bands
+                            [band_start_index, band_end_index] = getBandIndices(i_band, this.number_of_time_steps_normalized);
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_RIGHT')
+                                % find first left push-off after band start
+                                band_start_time = this_stretch_times(i_band);
+                                band_end_time = this_stretch_times(i_band+1);
+                                this_midswing_time = min(left_midswing_times(left_midswing_times >= band_start_time));
+                                if this_midswing_time >= band_end_time
+                                    this_midswing_time = band_start_time;
+                                end
+                                stretch_data(i_band) = this_midswing_time - band_start_time;
+                                
+                            end
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_LEFT')
+                                band_start_time = this_stretch_times(i_band);
+                                band_end_time = this_stretch_times(i_band+1);
+                                this_midswing_time = min(right_midswing_times(right_midswing_times >= band_start_time));
+                                if this_midswing_time >= band_end_time
+                                    this_midswing_time = band_start_time;
+                                end
+                                stretch_data(i_band) = this_midswing_time - band_start_time;
+                            end
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_BOTH')
+                                stretch_data(i_band) = NaN;
+                            end
+                        end
+                    end
                     if strcmp(variable_name, 'midstance_index')
                         lankle_x = this.getTimeNormalizedData('lankle_y', this_stretch_times);
                         rankle_x = this.getTimeNormalizedData('rankle_y', this_stretch_times);
@@ -4302,6 +4340,9 @@ classdef WalkingDataCustodian < handle
                 stretch_directions_new = {'+'; '-'};
             end
             if strcmp(variable_name, 'pushoff_time')
+                stretch_directions_new = {'+'; '-'};
+            end
+            if strcmp(variable_name, 'midswing_event_time')
                 stretch_directions_new = {'+'; '-'};
             end
             if strcmp(variable_name, 'midstance_index')

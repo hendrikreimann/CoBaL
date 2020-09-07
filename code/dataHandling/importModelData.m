@@ -30,8 +30,13 @@ right_pushoff_time_indices = diff(model_results_raw.Contact(:, 2)) == -1;
 left_pushoff_times = model_results_raw.tout(left_pushoff_time_indices);
 right_pushoff_times = model_results_raw.tout(right_pushoff_time_indices);
 
-variables_to_save.event_labels = {'left_pushoff';'left_touchdown';'right_pushoff';'right_touchdown';};
-variables_to_save.event_data = {left_pushoff_times; left_heelstrike_times; right_pushoff_times; right_heelstrike_times};
+left_midswing_time_indices = diff(model_results_raw.EarlyLeft) == -1;
+right_midswing_time_indices = diff(model_results_raw.EarlyRight) == -1;
+left_midswing_times = model_results_raw.tout(left_midswing_time_indices);
+right_midswing_times = model_results_raw.tout(right_midswing_time_indices);
+
+variables_to_save.event_labels = {'left_pushoff';'left_midswing';'left_touchdown';'right_pushoff';'right_midswing';'right_touchdown';};
+variables_to_save.event_data = {left_pushoff_times; left_midswing_times; left_heelstrike_times; right_pushoff_times; right_midswing_times; right_heelstrike_times};
 
 step_events_file_name = ['analysis' filesep makeFileName(collection_date, subject_id, trial_type, trial_number, 'events.mat')];
 saveDataToFile(step_events_file_name, variables_to_save);
