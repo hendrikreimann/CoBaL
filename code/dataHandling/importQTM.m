@@ -384,13 +384,22 @@ function importQTM(varargin)
                 end
 
                 % import emg data
-%                 emg_data_to_import = study_settings.get('emg_data_to_import', 1);
-                emg_import_map = subject_settings.get('emg_import_map');
-                emg_import_map_header = subject_settings.get('emg_import_map_header');
+                emg_import_map_header = subject_settings.get('emg_import_map_header', 1);
+                emg_import_map = subject_settings.get('emg_import_map', 1);
                 
-                emg_data_to_import = emg_import_map(:, strcmp(emg_import_map_header, 'label_in_qtm_file'));
-                number_of_emg_channels_to_import = length(emg_data_to_import);
-                if number_of_emg_channels_to_import > 0
+                import_emg_data = 1;
+                if isempty(emg_import_map)
+                    import_emg_data = 0;
+                else
+                    emg_data_to_import = emg_import_map(:, strcmp(emg_import_map_header, 'label_in_qtm_file'));
+                    number_of_emg_channels_to_import = length(emg_data_to_import);
+                    if number_of_emg_channels_to_import == 0
+                        import_emg_data = 0;
+                    end
+                end
+                
+                
+                if import_emg_data
                     % EMG
                     sampling_rate_emg = analog_fs;
                     time_emg = (1 : number_of_samples)' / sampling_rate_emg;

@@ -351,6 +351,12 @@ classdef SettingsCustodian < handle
                 default_data = {'new_variable_name','source_variable_name','source_type','extremum_type'};
             end
             
+            if strcmp(property_name, 'emg_import_map_header')
+                default_data = {'label_in_qtm_file','label_in_cobal'};
+            end
+            if strcmp(property_name, 'emg_import_map')
+                default_data = {};
+            end
             
             
             if strcmp(property_name, 'marker_to_segment_map')
