@@ -364,9 +364,9 @@ function figure_data = createFigures_discrete(settings, comparisons, data_custod
             if settings.group_bands_within_conditions
                 gap_between_conditions = 1;
 
-                abscissae_stimulus = repmat((1 : data.bands_per_stretch)', 1, length(this_comparison));
-                shifter = (0:number_of_entries-1) * (data.bands_per_stretch + gap_between_conditions);
-                abscissae_stimulus = abscissae_stimulus + repmat(shifter, data.bands_per_stretch, 1);
+                abscissae_stimulus = repmat((1 : data_custodian.bands_per_stretch)', 1, length(this_comparison));
+                shifter = (0:number_of_entries-1) * (data_custodian.bands_per_stretch + gap_between_conditions);
+                abscissae_stimulus = abscissae_stimulus + repmat(shifter, data_custodian.bands_per_stretch, 1);
                 if settings.plot_settings.get('merge_bands', 1)
                     abscissae_stimulus = abscissae_stimulus(1, :);
                 end
@@ -374,7 +374,16 @@ function figure_data = createFigures_discrete(settings, comparisons, data_custod
             else
                 gap_between_bands = 1;
 
-                abscissae_stimulus = repmat((1 : number_of_entries), bands_per_stretch, 1);
+%                 abscissae_stimulus = repmat((1 : number_of_entries), bands_per_stretch, 1);
+                abscissae_stimulus = repmat((1 : comparisons.conditions_per_comparison_max), bands_per_stretch, 1);
+                % 2020-09-09 HR: trying to fix a problem here that occurs
+                % when data is missing
+                
+                
+                
+                
+                
+                
                 shifter = (0:bands_per_stretch-1)' * (comparisons.conditions_per_comparison_max + gap_between_bands);
                 abscissae_stimulus = abscissae_stimulus + repmat(shifter, 1, comparisons.conditions_per_comparison_max);
                 if settings.plot_settings.get('merge_bands', 1)

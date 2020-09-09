@@ -35,6 +35,9 @@ function [conditions_trial, event_variables_to_save, removal_flags] = determineC
     if strcmp(experimental_paradigm, 'Stochastic Resonance')
         [conditions_trial, event_variables_to_save, removal_flags] = determineConditionLevels_stochasticResonance(subject_settings, trial_data);
     end
+    if strcmp(experimental_paradigm, 'Normal Walking nGVS')
+        [conditions_trial, event_variables_to_save, removal_flags] = determineConditionLevels_normalWalkingNgvs(subject_settings, trial_data);
+    end
     if strcmp(experimental_paradigm, 'Vision_old')
         [conditions_trial, event_variables_to_save, removal_flags] = determineConditionLevels_visionOld(study_settings, subject_settings, trial_data);
     end

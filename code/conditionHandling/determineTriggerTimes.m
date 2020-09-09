@@ -28,6 +28,7 @@ function trial_data = determineTriggerTimes(study_settings, trial_data)
         'Vision', 'CadenceVision', 'CognitiveLoadVision', 'SR_VisualStim', ...
         'GVS', 'CadenceGVS', 'FatigueGVS', 'CognitiveLoadGvs', 'OculusLaneRestriction' ...
       };
+    paradigmn_with_normal_walking = {'Normal Walking', 'Stochastic Resonance', 'Normal Walking nGVS'};
     if any(strcmp(experimental_paradigm, paradigms_with_perturbation))
         % find the time steps where the stimulus state crosses a threshold
         stimulus_threshold = 1.5;
@@ -60,7 +61,7 @@ function trial_data = determineTriggerTimes(study_settings, trial_data)
         trial_data.stim_start_times = trial_data.time_stimulus(stim_start_indices_stimulus);
         trial_data.stim_start_indices_stimulus = stim_start_indices_stimulus;
     end
-    if strcmp(experimental_paradigm, 'Normal Walking') || strcmp(experimental_paradigm, 'Stochastic Resonance')
+    if any(strcmp(experimental_paradigm, paradigmn_with_normal_walking))
         left_touchdown_times = trial_data.loaded_events_data.event_data{strcmp(trial_data.loaded_events_data.event_labels, 'left_touchdown')};
         trial_data.trigger_times = left_touchdown_times(1:end-1);
     end

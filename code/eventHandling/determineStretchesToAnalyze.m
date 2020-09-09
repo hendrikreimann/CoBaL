@@ -159,6 +159,7 @@ function trial_data = loadStimulusData(study_settings, subject_settings, trial_d
     collection_date = subject_settings.get('collection_date');
     subject_id = subject_settings.get('subject_id');
     experimental_paradigm = study_settings.get('experimental_paradigm', 1);   
+    gvs_paradigms = {'GVS', 'CadenceGVS', 'FatigueGVS', 'CognitiveLoadGvs', 'Normal Walking nGVS'};
 
     % stimulus data
     if strcmp(experimental_paradigm, 'GVS_old')
@@ -182,7 +183,7 @@ function trial_data = loadStimulusData(study_settings, subject_settings, trial_d
         trial_data.stimulus_state_trajectory = stimulus_state_trajectory;
         trial_data.time_stimulus = time_stimulus;
     end
-    if strcmp(experimental_paradigm, 'GVS') || strcmp(experimental_paradigm, 'CadenceGVS') || strcmp(experimental_paradigm, 'FatigueGVS') || strcmp(experimental_paradigm, 'CognitiveLoadGvs')
+    if any(strcmp(experimental_paradigm, gvs_paradigms))
         trial_data.gvs_trajectory = loadData(collection_date, subject_id, trial_data.trial_type, trial_data.trial_number, 'GVS_current_trajectory');
         [stimulus_state_trajectory, time_stimulus] = loadData(collection_date, subject_id, trial_data.trial_type, trial_data.trial_number, 'stimulus_state_trajectory');
 
@@ -209,6 +210,8 @@ function trial_data = loadStimulusData(study_settings, subject_settings, trial_d
 end
 
 function trial_data = determineIllusion(study_settings, trial_data)
+    gvs_paradigms = {'GVS', 'CadenceGVS', 'FatigueGVS', 'CognitiveLoadGvs', 'Normal Walking nGVS'};
+
     experimental_paradigm = study_settings.get('experimental_paradigm', 1);   
     if strcmp(experimental_paradigm, 'GVS_old')
         illusion_trajectory = zeros(size(trial_data.time_stimulus)); % 1 = RIGHT, -1 = LEFT
@@ -256,7 +259,8 @@ function trial_data = determineIllusion(study_settings, trial_data)
         end
         trial_data.illusion_trajectory = illusion_trajectory;
     end
-    if strcmp(experimental_paradigm, 'GVS') || strcmp(experimental_paradigm, 'CadenceGVS') || strcmp(experimental_paradigm, 'FatigueGVS') || strcmp(experimental_paradigm, 'CognitiveLoadGvs')
+%     if strcmp(experimental_paradigm, 'GVS') || strcmp(experimental_paradigm, 'CadenceGVS') || strcmp(experimental_paradigm, 'FatigueGVS') || strcmp(experimental_paradigm, 'CognitiveLoadGvs')
+    if any(strcmp(experimental_paradigm, gvs_paradigms))
         illusion_trajectory = zeros(size(trial_data.time_stimulus)); % -1 = LEFT, 1 = RIGHT
         for i_time = 1 : length(trial_data.time_stimulus)
             if trial_data.stimulus_state_trajectory(i_time) == 3

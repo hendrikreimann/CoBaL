@@ -109,6 +109,9 @@ function [text_cell, settings] = parseNextBlock(text_cell, settings)
                     this_entry_cell = strsplit(entry_to_process, ' ');
                     this_entry_mat = cell2mat(cellfun(@str2num, this_entry_cell, 'un', 0));
                     this_line_cell{i_entry} = this_entry_mat;
+                else
+                    % put back original entry, minus leading white space
+                    this_line_cell{i_entry} = entry_to_process;
                 end
             end
             variable_value(i_line, :) = this_line_cell; %#ok<AGROW>
