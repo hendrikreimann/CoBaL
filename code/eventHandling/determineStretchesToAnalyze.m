@@ -160,6 +160,7 @@ function trial_data = loadStimulusData(study_settings, subject_settings, trial_d
     subject_id = subject_settings.get('subject_id');
     experimental_paradigm = study_settings.get('experimental_paradigm', 1);   
     gvs_paradigms = {'GVS', 'CadenceGVS', 'FatigueGVS', 'CognitiveLoadGvs', 'Normal Walking nGVS'};
+    vision_paradigms = {'Vision', 'CadenceVision', 'SR_VisualStim', 'CognitiveLoadVision', 'nGVS_Vision'};
 
     % stimulus data
     if strcmp(experimental_paradigm, 'GVS_old')
@@ -174,7 +175,8 @@ function trial_data = loadStimulusData(study_settings, subject_settings, trial_d
         trial_data.stimulus_state_trajectory = stimulus_state_trajectory;
         trial_data.time_stimulus = time_stimulus;
     end
-    if strcmp(experimental_paradigm, 'Vision') || strcmp(experimental_paradigm, 'CadenceVision') || strcmp(experimental_paradigm, 'SR_VisualStim') || strcmp(experimental_paradigm, 'CognitiveLoadVision')
+%     if strcmp(experimental_paradigm, 'Vision') || strcmp(experimental_paradigm, 'CadenceVision') || strcmp(experimental_paradigm, 'SR_VisualStim') || strcmp(experimental_paradigm, 'CognitiveLoadVision')
+    if any(strcmp(experimental_paradigm, vision_paradigms))
 %         current_rotation_trajectory = loadData(collection_date, subject_id, trial_data.trial_type, trial_data.trial_number, 'visual_rotation_angle_trajectory');
         trial_data.current_acceleration_trajectory = loadData(collection_date, subject_id, trial_data.trial_type, trial_data.trial_number, 'visual_rotation_acceleration_trajectory');
         trial_data.current_rotation_trajectory = loadData(collection_date, subject_id, trial_data.trial_type, trial_data.trial_number, 'visual_rotation_angle_trajectory');
@@ -211,6 +213,7 @@ end
 
 function trial_data = determineIllusion(study_settings, trial_data)
     gvs_paradigms = {'GVS', 'CadenceGVS', 'FatigueGVS', 'CognitiveLoadGvs', 'Normal Walking nGVS'};
+    vision_paradigms = {'Vision', 'CadenceVision', 'SR_VisualStim', 'CognitiveLoadVision', 'nGVS_Vision'};
 
     experimental_paradigm = study_settings.get('experimental_paradigm', 1);   
     if strcmp(experimental_paradigm, 'GVS_old')
@@ -242,7 +245,7 @@ function trial_data = determineIllusion(study_settings, trial_data)
         end
         trial_data.illusion_trajectory = illusion_trajectory;
     end
-    if strcmp(experimental_paradigm, 'Vision') || strcmp(experimental_paradigm, 'CadenceVision') || strcmp(experimental_paradigm, 'SR_VisualStim') || strcmp(experimental_paradigm, 'CognitiveLoadVision')
+    if any(strcmp(experimental_paradigm, vision_paradigms))
         illusion_trajectory = zeros(size(trial_data.time_stimulus)); % -1 = LEFT, 1 = RIGHT
         for i_time = 1 : length(trial_data.time_stimulus)
             if trial_data.stimulus_state_trajectory(i_time) == 3
@@ -259,7 +262,6 @@ function trial_data = determineIllusion(study_settings, trial_data)
         end
         trial_data.illusion_trajectory = illusion_trajectory;
     end
-%     if strcmp(experimental_paradigm, 'GVS') || strcmp(experimental_paradigm, 'CadenceGVS') || strcmp(experimental_paradigm, 'FatigueGVS') || strcmp(experimental_paradigm, 'CognitiveLoadGvs')
     if any(strcmp(experimental_paradigm, gvs_paradigms))
         illusion_trajectory = zeros(size(trial_data.time_stimulus)); % -1 = LEFT, 1 = RIGHT
         for i_time = 1 : length(trial_data.time_stimulus)
@@ -314,7 +316,7 @@ function trial_data = extractEvents(study_settings, trial_data)
             || strcmp(experimental_paradigm, 'GVS') || strcmp(experimental_paradigm, 'CadenceGVS') || strcmp(experimental_paradigm, 'FatigueGVS') || strcmp(experimental_paradigm, 'CognitiveLoadGvs')  ...
             || strcmp(experimental_paradigm, 'OBSTACLE') || strcmp(condition_stimulus, 'ARMSENSE') ...
             || strcmp(experimental_paradigm, 'GaitInitiationObstacle') || strcmp(experimental_paradigm, 'Vision Stochastic') || strcmp(experimental_paradigm, 'GvsOverground')...
-            || strcmp(experimental_paradigm, 'OculusLaneRestriction') %% added by SD ****** 
+            || strcmp(experimental_paradigm, 'OculusLaneRestriction') || strcmp(experimental_paradigm, 'nGVS_Vision')
         trial_data.right_pushoff_times = trial_data.loaded_events_data.event_data{strcmp(trial_data.loaded_events_data.event_labels, 'right_pushoff')};
         trial_data.right_touchdown_times = trial_data.loaded_events_data.event_data{strcmp(trial_data.loaded_events_data.event_labels, 'right_touchdown')};
         trial_data.left_pushoff_times = trial_data.loaded_events_data.event_data{strcmp(trial_data.loaded_events_data.event_labels, 'left_pushoff')};

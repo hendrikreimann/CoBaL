@@ -96,15 +96,6 @@ classdef WalkingDataCustodian < handle
             
             this.subject_info = load([data_directory filesep 'subjectInfo.mat']);
             this.subject_settings = subject_settings;
-            % load settings
-%             study_settings_file = '';
-%             if exist([data_directory filesep '..' filesep 'studySettings.txt'], 'file')
-%                 study_settings_file = [data_directory filesep '..' filesep 'studySettings.txt'];
-%             end    
-%             if exist([data_directory filesep '..' filesep '..' filesep 'studySettings.txt'], 'file')
-%                 study_settings_file = [data_directory filesep '..' filesep '..' filesep 'studySettings.txt'];
-%             end
-%             this.study_settings = SettingsCustodian(study_settings_file);
             this.study_settings = loadSettingsFromFile('study', data_directory);
 
             emg_normalization_file_name = [data_directory filesep 'analysis' filesep makeFileName(date, subject_id, 'emgNormalization.mat')];
@@ -145,9 +136,17 @@ classdef WalkingDataCustodian < handle
                     this_variable_type = this_variable_split{1};
                     this_variable_label = this_variable_split{2};
                     
-                    this.addBasicVariable([this_variable_type '_trajectories'])
-                    this.addStretchVariable(this_variable_name)
+                    if strcmp(this_variable_type, 'elementary')
+                        % not a true compound, but label is elementary variable
+                        this.addBasicVariable(this_variable_label)
+                        this.addStretchVariable(this_variable_label)
+                    else
+                        % this is a true compound
+                        this.addBasicVariable([this_variable_type '_trajectories'])
+                        this.addStretchVariable(this_variable_name)
+                    end
                 end
+                
             end
             
             
@@ -1220,7 +1219,15 @@ classdef WalkingDataCustodian < handle
             % check if this is a sub-variable
             if any(variable_name==':')
                 this_variable_split = strsplit(variable_name, ':');
-                name_to_use = [this_variable_split{1} '_trajectories'];
+                this_variable_type = this_variable_split{1};
+                this_variable_label = this_variable_split{2};
+                if strcmp(this_variable_type, 'elementary')
+                    % not a true compound, but label is elementary variable
+                    name_to_use = this_variable_label;
+                else                    
+                    % this is a true compound
+                    name_to_use = [this_variable_type '_trajectories'];
+                end
             else
                 name_to_use = variable_name;
             end
@@ -1232,11 +1239,23 @@ classdef WalkingDataCustodian < handle
             % unpack name
             if any(variable_name==':')
                 this_variable_split = strsplit(variable_name, ':');
-                name_to_use = [this_variable_split{1} '_trajectories'];
-                label_to_use = this_variable_split{2};
-                trajectory_data = this.basic_variable_data.(name_to_use);
-                trajectory_labels = this.basic_variable_labels.(name_to_use);
-                variable_data = trajectory_data(:, strcmp(trajectory_labels, label_to_use));
+                this_variable_type = this_variable_split{1};
+                this_variable_label = this_variable_split{2};
+                
+                if strcmp(this_variable_type, 'elementary')
+                    % not a true compound, but label is elementary variable
+                    name_to_use = this_variable_label;
+                    variable_data = this.basic_variable_data.(name_to_use);
+                else                    
+                    % this is a true compound
+                    name_to_use = [this_variable_type '_trajectories'];
+                    label_to_use = this_variable_label;
+                    trajectory_data = this.basic_variable_data.(name_to_use);
+                    trajectory_labels = this.basic_variable_labels.(name_to_use);
+                    variable_data = trajectory_data(:, strcmp(trajectory_labels, label_to_use));
+                end
+                
+                
                 
             else
                 name_to_use = variable_name;
@@ -1295,9 +1314,22 @@ classdef WalkingDataCustodian < handle
                     this_variable_split = strsplit(variable_name, ':');
                     this_variable_type = this_variable_split{1};
                     this_variable_label = this_variable_split{2};
-                    if any(strcmp(this.basic_variable_labels.([this_variable_type '_trajectories']), this_variable_label))
-                        % found this label in the data, so all is good
-                        success = 1;
+                    if strcmp(this_variable_type, 'elementary')
+                        % not a true compound, but label is elementary variable
+                        [data, time, sampling_rate, labels, directions, success] = loadData(this.date, this.subject_id, trial_type, trial_number, this_variable_label, 'optional'); %#ok<ASGLU>
+                        if success
+                            eval(['this.basic_variable_data.' this_variable_label ' = data;']);
+                            eval(['this.time_data.' this_variable_label ' = time;']);
+                            eval(['this.basic_variable_labels.' this_variable_label ' = labels;']);
+                            eval(['this.basic_variable_directions.' this_variable_label ' = directions;']);
+                        end
+                        
+                    else                    
+                        % this is a true compound
+                        if any(strcmp(this.basic_variable_labels.([this_variable_type '_trajectories']), this_variable_label))
+                            % found this label in the data, so all is good
+                            success = 1;
+                        end
                     end
                 end
 
@@ -1946,8 +1978,8 @@ classdef WalkingDataCustodian < handle
                     com_rough_x = this.getBasicVariableData('com_rough_x');
                     com_rough_x(com_rough_x==0) = NaN;
                     time = this.getTimeData('com_rough_x');
-                    filter_order = this.study_settings.get('filter_order_com_rough_vel');
-                    cutoff_frequency = this.study_settings.get('filter_cutoff_com_rough_vel');
+                    filter_order = this.study_settings.get('filter_order_com_vel');
+                    cutoff_frequency = this.study_settings.get('filter_cutoff_com_vel');
                     sampling_rate = 1/median(diff(time));
                     [b, a] = butter(filter_order, cutoff_frequency/(sampling_rate/2));
                     if any(~isnan(com_rough_x))
@@ -1964,8 +1996,8 @@ classdef WalkingDataCustodian < handle
                     com_rough_y = this.getBasicVariableData('com_rough_y');
                     com_rough_y(com_rough_y==0) = NaN;
                     time = this.getTimeData('com_rough_y');
-                    filter_order = this.study_settings.get('filter_order_com_rough_vel');
-                    cutoff_frequency = this.study_settings.get('filter_cutoff_com_rough_vel');
+                    filter_order = this.study_settings.get('filter_order_com_vel');
+                    cutoff_frequency = this.study_settings.get('filter_cutoff_com_vel');
                     sampling_rate = 1/median(diff(time));
                     [b, a] = butter(filter_order, cutoff_frequency/(sampling_rate/2));
                     if any(~isnan(com_rough_y))

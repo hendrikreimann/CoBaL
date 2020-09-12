@@ -14,7 +14,7 @@
 %     You should have received a copy of the GNU General Public License
 %     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-function [conditions_trial, event_variables_to_save, removal_flags] = determineConditionLevels_normalWalkingNgvs(subject_settings, trial_data)
+function [conditions_trial, event_variables_to_save, removal_flags] = determineConditionLevels_Ngvs(subject_settings, trial_data)
     [conditions_trial, event_variables_to_save, removal_flags] = determineConditionLevels_normalWalking(subject_settings, trial_data);
     
     % add nGVS settins

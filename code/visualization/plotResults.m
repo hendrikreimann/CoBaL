@@ -189,7 +189,7 @@ function comparisons = createComparisonData(settings, condition_data)
     
     % determine comparisons and auxiliary data
     [comparisons.condition_combination_labels, comparisons.condition_combinations] = determineConditionCombinations(condition_data, settings.conditions_settings, labels_to_ignore, levels_to_remove);
-    comparisons.condition_combinations = sortConditionCombinations(comparisons.condition_combinations, comparisons.condition_combination_labels, settings.condition_to_compare, preferred_level_order);
+    [comparisons.condition_combinations, comparisons.level_order] = sortConditionCombinations(comparisons.condition_combinations, comparisons.condition_combination_labels, settings.condition_to_compare, preferred_level_order);
     [comparisons.comparison_indices, comparisons.conditions_per_comparison_max] = determineComparisons(comparisons.condition_combinations, comparisons.condition_combination_labels, settings);
     comparisons.number_of_comparisons = length(comparisons.comparison_indices);
     
@@ -358,31 +358,48 @@ function figure_data = createFigures_discrete(settings, comparisons, data_custod
             figure_data.comparison_variable_to_axes_index_map(i_comparison) = i_comparison;
 
             % abscissa gives the bin edges here
-            this_comparison = comparisons.comparison_indices{i_comparison};
-            number_of_entries = length(this_comparison);
+            conditions_this_comparison = comparisons.comparison_indices{i_comparison};
 
             if settings.group_bands_within_conditions
+%                 number_of_entries = length(conditions_this_comparison);
+                number_of_entries = comparisons.conditions_per_comparison_max;
                 gap_between_conditions = 1;
 
-                abscissae_stimulus = repmat((1 : data_custodian.bands_per_stretch)', 1, length(this_comparison));
+                
+%                 abscissae_stimulus = repmat((1 : data_custodian.bands_per_stretch)', 1, length(conditions_this_comparison));
+                abscissae_base = repmat((1 : data_custodian.bands_per_stretch)', 1, number_of_entries);
                 shifter = (0:number_of_entries-1) * (data_custodian.bands_per_stretch + gap_between_conditions);
-                abscissae_stimulus = abscissae_stimulus + repmat(shifter, data_custodian.bands_per_stretch, 1);
+                abscissae_base = abscissae_base + repmat(shifter, data_custodian.bands_per_stretch, 1);
                 if settings.plot_settings.get('merge_bands', 1)
-                    abscissae_stimulus = abscissae_stimulus(1, :);
+                    abscissae_base = abscissae_base(1, :);
                 end
 
+                % go through and select appropriate one based on label
+                abscissae_stimulus = zeros(bands_per_stretch, comparisons.conditions_per_comparison_max) * NaN;
+                for i_condition = 1 : length(conditions_this_comparison)
+                    this_condition_index = conditions_this_comparison(i_condition);
+                    this_condition = comparisons.condition_combinations(this_condition_index, :);
+                    this_label = this_condition{strcmp(comparisons.condition_combination_labels, settings.condition_to_compare)};
+                    this_label_index_in_level_order = strcmp(this_label, comparisons.level_order);
+                    abscissae_stimulus(:, i_condition) = abscissae_base(:, this_label_index_in_level_order);
+                end
+                
+                
             else
                 gap_between_bands = 1;
 
 %                 abscissae_stimulus = repmat((1 : number_of_entries), bands_per_stretch, 1);
-                abscissae_stimulus = repmat((1 : comparisons.conditions_per_comparison_max), bands_per_stretch, 1);
-                % 2020-09-09 HR: trying to fix a problem here that occurs
-                % when data is missing
+%                 abscissae_stimulus = repmat((1 : comparisons.conditions_per_comparison_max), bands_per_stretch, 1);
                 
-                
-                
-                
-                
+                % go through each level individually, find its place in the level order and determine its abscissa
+                abscissae_stimulus = ones(bands_per_stretch, comparisons.conditions_per_comparison_max) * NaN;
+                for i_condition = 1 : length(conditions_this_comparison)
+                    this_condition_index = conditions_this_comparison(i_condition);
+                    this_condition = comparisons.condition_combinations(this_condition_index, :);
+                    this_label = this_condition{strcmp(comparisons.condition_combination_labels, settings.condition_to_compare)};
+                    this_label_index_in_level_order = find(strcmp(this_label, comparisons.level_order));
+                    abscissae_stimulus(:, i_condition) = this_label_index_in_level_order;
+                end
                 
                 shifter = (0:bands_per_stretch-1)' * (comparisons.conditions_per_comparison_max + gap_between_bands);
                 abscissae_stimulus = abscissae_stimulus + repmat(shifter, 1, comparisons.conditions_per_comparison_max);
@@ -393,7 +410,9 @@ function figure_data = createFigures_discrete(settings, comparisons, data_custod
             figure_data.abscissae_cell{i_comparison, i_variable} = abscissae_stimulus;
 
             % set axes properties
-            xtick = sort(reshape(figure_data.abscissae_cell{i_comparison, i_variable}, 1, numel(figure_data.abscissae_cell{i_comparison, i_variable})));
+            xtick = reshape(figure_data.abscissae_cell{i_comparison, i_variable}, 1, numel(figure_data.abscissae_cell{i_comparison, i_variable}));
+            xtick(isnan(xtick)) = [];
+            xtick = sort(xtick);
             set(gca, 'xlim', [-0.5 + min(xtick) 0.5 + max(xtick(end))]);
             set(gca, 'xtick', xtick);
         end
@@ -635,7 +654,7 @@ function plotData_discrete(settings, comparisons, data_custodian, figure_data)
                             'color', this_color, ...                % color
                             'ShowMean', settings.show_average_data, ...
                             'MeanStyle', 'd', ...
-                            'MeanColor', [1 1 1]*0.7, ...
+                            'MeanColor', lightenColor(this_color, 0.3), ...
                             'ShowMedian', settings.show_spread_data, ...
                             'MedianStyle', 'line', ...
                             'ShowIndividualData', settings.plot_settings.get('show_individual_discrete_data', 1), ...

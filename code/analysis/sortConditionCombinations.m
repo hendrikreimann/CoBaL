@@ -14,7 +14,7 @@
 %     You should have received a copy of the GNU General Public License
 %     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-function condition_combinations_stimulus_sorted = sortConditionCombinations(condition_combinations_stimulus, condition_combination_labels, condition_to_compare, preferred_level_order)
+function [condition_combinations_stimulus_sorted, level_order] = sortConditionCombinations(condition_combinations_stimulus, condition_combination_labels, condition_to_compare, preferred_level_order)
     % if nothing was specified, do nothing
     condition_combinations_stimulus_sorted = condition_combinations_stimulus;
     if isempty(preferred_level_order)

@@ -72,29 +72,12 @@ function processAnalysisVariables(varargin)
         if strcmp(this_action, 'take extremum over time interval within band')
             data = calculateExtremaOverRangeVariables(this_settings_table, this_settings_table_header, data);
         end
+        if strcmp(this_action, 'combine two variables')
+            data = combineTwoVariables(this_settings_table, this_settings_table_header, data);
+        end
+        
+        
     end
-    
-    
-%     % calculate inversion variables
-%     data = calculateInversionVariables(study_settings, data, conditions);
-%         
-%     % calculate selection variables
-%     data = calculateSelectionVariables(study_settings, data, conditions);
-%     
-%     % calculate integrated variables
-%     data = calculateIntegratedVariables(study_settings, data);
-%     
-%     % calculate rms variables
-%     data = calculateRmsVariables(study_settings, data);
-%     
-%     % calculate band variables
-%     data = calculateBandEndVariables(study_settings, data);
-%     data = calculateBandPercentVariables(study_settings, data);
-%     data = calculateTimePointVariables(study_settings, data);
-%     
-%     % calculate extrema variables
-%     data = calculateExtremaVariables(study_settings, data);
-%     data = calculateExtremaOverRangeVariables(study_settings, data);
     
     % save results
     save(results_file_name, '-struct', 'data');    
@@ -629,6 +612,71 @@ function data = calculateExtremaOverRangeVariables(variables_from_extrema_range,
     end
 end
 
+function data = combineTwoVariables(variable_table, table_header, data)
+
+
+
+    for i_variable = 1 : size(variable_table, 1)
+        % get data
+        this_variable_name = variable_table{i_variable, strcmp(table_header, 'new_variable_name')};
+        variable_A_name = variable_table{i_variable, strcmp(table_header, 'variable_A_name')};
+        variable_A_source = variable_table{i_variable, strcmp(table_header, 'variable_A_source')};
+        variable_A_gain = str2double(variable_table{i_variable, strcmp(table_header, 'variable_A_gain')});
+        variable_B_name = variable_table{i_variable, strcmp(table_header, 'variable_B_name')};
+        variable_B_source = variable_table{i_variable, strcmp(table_header, 'variable_B_source')};
+        variable_B_gain = str2double(variable_table{i_variable, strcmp(table_header, 'variable_B_gain')});
+        offset = str2double(variable_table{i_variable, strcmp(table_header, 'offset')});
+
+        % pick data depending on source specification
+        variable_A_data_source = data.([variable_A_source '_data_session']);
+        variable_A_names_source = data.([variable_A_source '_names_session']);
+        variable_A_directions_source = data.([variable_A_source '_directions_session']);
+        variable_B_data_source = data.([variable_B_source '_data_session']);
+        variable_B_names_source = data.([variable_B_source '_names_session']);
+        variable_B_directions_source = data.([variable_B_source '_directions_session']);
+        
+        % extract
+        variable_A_data = variable_A_data_source{strcmp(variable_A_names_source, variable_A_name)};
+        variable_B_data = variable_B_data_source{strcmp(variable_B_names_source, variable_B_name)};
+        variable_A_directions = variable_A_directions_source(strcmp(variable_A_names_source, variable_A_name), :);
+        variable_B_directions = variable_B_directions_source(strcmp(variable_B_names_source, variable_B_name), :);
+
+        % compare directions
+        if ~strcmp(variable_A_directions{1}, variable_B_directions{1})
+            error ...
+              ( ...
+                [ ...
+                  'Positive direction labels "' variable_A_directions{1} '" ' ...
+                  'in variable "' variable_A_name '" ' ...
+                  'and "' variable_B_directions{1} '" ' ...
+                  'in variable "' variable_B_name '" ' ...
+                  'do not match' ...
+                ] ...
+              );
+        end
+        if ~strcmp(variable_A_directions{2}, variable_B_directions{2})
+            error ...
+              ( ...
+                [ ...
+                  'Positive direction labels "' variable_A_directions{2} '" ' ...
+                  'in variable "' variable_A_name '" ' ...
+                  'and "' variable_B_directions{2} '" ' ...
+                  'in variable "' variable_B_name '" ' ...
+                  'do not match' ...
+                ] ...
+              );
+        end
+        combined_variable_directions = variable_A_directions;
+        combined_variable_data = variable_A_data * variable_A_gain + variable_B_data * variable_B_gain + offset;
+        
+        % store
+        new_data = struct;
+        new_data.data = combined_variable_data;
+        new_data.directions = combined_variable_directions;
+        new_data.name = this_variable_name;
+        data = addOrReplaceResultsData(data, new_data, 'analysis');
+    end
+end
 
 
 
