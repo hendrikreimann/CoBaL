@@ -44,8 +44,12 @@ function [conditions_trial, event_variables_to_save, removal_flags] = determineC
         removal_flags = removal_flags_normal & removal_flags_ngvs;
     end
     if strcmp(experimental_paradigm, 'nGVS_Vision')
-        [conditions_trial, event_variables_to_save, removal_flags] = determineConditionLevels_intermittentPerturbations(study_settings, subject_settings, trial_data);
+        [conditions_trial_vision, event_variables_to_save_vision, removal_flags_vision] = determineConditionLevels_intermittentPerturbations(study_settings, subject_settings, trial_data);
+        [conditions_trial_ngvs, event_variables_to_save_ngvs, removal_flags_ngvs] = determineConditionLevels_Ngvs(subject_settings, trial_data);
         
+        conditions_trial = mergeConditionStruct(conditions_trial_vision, conditions_trial_ngvs);
+        event_variables_to_save = mergeConditionStruct(event_variables_to_save_vision, event_variables_to_save_ngvs);
+        removal_flags = removal_flags_vision & removal_flags_ngvs;
     end
     if strcmp(experimental_paradigm, 'Vision_old')
         [conditions_trial, event_variables_to_save, removal_flags] = determineConditionLevels_visionOld(study_settings, subject_settings, trial_data);

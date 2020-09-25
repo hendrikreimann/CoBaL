@@ -105,10 +105,16 @@ end
 
 
 function applicable_control_condition_index = determineControlConditionIndex(study_settings, comparisons, this_stretch_condition_string)
-    if strcmp(study_settings.get('experimental_paradigm', 1), 'SR_VisualStim')
+    if strcmp(study_settings.get('experimental_paradigm', 1), 'SR_VisualStim') ...
+          || strcmp(study_settings.get('experimental_paradigm', 1), 'nGVS_Vision')
         % HR 2020-06-04: this is supposed to be the general approach, but
         % only testing this for SR_VisualStim for now
-        relevant_factors_for_control = {'stim_amplitude', 'trigger_foot'};
+        if strcmp(study_settings.get('experimental_paradigm', 1), 'SR_VisualStim')
+            relevant_factors_for_control = {'stim_amplitude', 'trigger_foot'};
+        end
+        if strcmp(study_settings.get('experimental_paradigm', 1), 'nGVS_Vision')
+            relevant_factors_for_control = {'ngvs_settings', 'trigger_foot'};
+        end
         control_row_indicator = true(size(comparisons.condition_combinations_control_unique, 1), 1);
         for i_factor = 1 : length(relevant_factors_for_control)
             this_factor_label = relevant_factors_for_control{i_factor};

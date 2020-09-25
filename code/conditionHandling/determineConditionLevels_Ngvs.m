@@ -15,8 +15,10 @@
 %     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 function [conditions_trial, event_variables_to_save, removal_flags] = determineConditionLevels_Ngvs(subject_settings, trial_data)
-    [conditions_trial, event_variables_to_save, removal_flags] = determineConditionLevels_normalWalking(subject_settings, trial_data);
-    
+    event_variables_to_save = struct;
+    number_of_stretches = length(trial_data.trigger_times);
+    removal_flags = false(number_of_stretches, 1);
+
     % add nGVS settins
     [rms, cutoff_low, cutoff_high, repetition] = determineNgvsSettings(subject_settings, trial_data.trial_type, trial_data.trial_number);
     this_setting_label = [rms ' mA; ' cutoff_low '-' cutoff_high ' Hz'];
