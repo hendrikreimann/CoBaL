@@ -44,18 +44,16 @@ function importQTM(varargin)
     subject_settings = loadSettingsFromFile('subject');
     options.import_mode = study_settings.get('qtm_import_mode', 1);
     % qtm_import_mode determines how the data in the QTM files are cut into pieces and mapped onto trials accoding to
-    % the labview protocol file
+    % the labview protocol file | ATTENTION: mode 3. events is currently the only one that works, the other ones will
+    % have to be updated to generate a trial table from the available information
     % 1. encoded -- analog signal, increasing edge signals switch to a new step in protocol file -- currently not working
     % 2. table -- analog signal, increasing edge signals switch to new trial in table in subject settings -- currently not working 
-    % 3. events -- QTM events signal start/stop of trials, info is stored as event label -- currently fixing this
+    % 3. events -- QTM events signal start/stop of trials, info is stored as event label
     % 4. bijective -- each QTM file is mapped to a labview trial with trial type and number from the QTM file name -- currently not working 
 
     options.sync_mode = options.import_mode; % placeholder for now, I shouldn't need this anymore
     
-    analog_to_protocol_mapping = subject_settings.get('analog_to_protocol_mapping', 1);
-    
-    % initialize
-    total_number_of_trials_extracted_this_subject = 0;
+%     analog_to_protocol_mapping = subject_settings.get('analog_to_protocol_mapping', 1);
 
     % create folders if necessary
     if ~directoryExists('raw')
@@ -79,7 +77,6 @@ function importQTM(varargin)
         
         data_file_name = file_name_list{i_file};
         importSingleQtmFile(data_file_name, options, study_settings, subject_settings);
-%         total_number_of_trials_extracted_this_subject = total_number_of_trials_extracted_this_subject + number_of_trials_extracted_from_this_file;
     end
 
 end
@@ -99,14 +96,6 @@ function importSingleQtmFile(data_file_name, options, study_settings, subject_se
     temp_data = load([options.qtm_source_dir, filesep, data_file_name]);
     qtm_data = temp_data.(var_name.name);
 
-    % what kind of data is available?
-%     analog_data_available = isfield(qtm_data, 'Analog');
-%     force_data_available = logical(numel(qtm_data.Force));
-%     if force_data_available && qtm_data.Force(1).NrOfSamples == 0
-%         force_data_available = false;
-%     end
-%     event_data_available = logical(numel(qtm_data.Events));
-
     % determine trial table
     trial_table = determineTrialTable(qtm_data, file_info, options);
     
@@ -125,7 +114,6 @@ function importSingleQtmFile(data_file_name, options, study_settings, subject_se
         importTrialDataForceplate(qtm_data, trial_info, file_info, study_settings, options);
         importTrialDataMarker(qtm_data, trial_info, file_info, subject_settings, options);
         
-        
         % report to command window
         this_trial_length = trial_info.end_time - trial_info.start_time;
         disp( ...
@@ -138,11 +126,11 @@ function importSingleQtmFile(data_file_name, options, study_settings, subject_se
             ')' ...
           ] ...
         )
-
     end
     
     
-    % after here is old stuff I'm currently replacing
+    % after here is old stuff -- leave this code around, in case we want to re-import old data at some point. This code
+    % contains info about how we used to import data based on the analog encoding or table in the subject settings
 if false
 
     % determine start and end indices
@@ -621,7 +609,12 @@ function trial_table = determineTrialTable(qtm_data, file_info, options)
     % prepare trial table
     trial_table_variable_names = {'start_time', 'end_time', 'start_frame', 'end_frame', 'trial_type', 'trial_number'};
     trial_table_variable_types = {'double', 'double', 'double', 'double', 'string', 'string'};
-    trial_table = table('Size', [0, 6], 'VariableNames', trial_table_variable_names, 'VariableTypes', trial_table_variable_types);
+    trial_table = table ...
+      ( ...
+        'Size', [0, 6], ...
+        'VariableNames', trial_table_variable_names, ...
+        'VariableTypes', trial_table_variable_types ...
+      );
     
     if strcmp(options.import_mode, 'events')
         % process events in this data file
@@ -652,7 +645,12 @@ function trial_table = determineTrialTable(qtm_data, file_info, options)
         % collect event info in table
         event_table_variable_names = {'time', 'frame', 'type', 'number', 'suffix'};
         event_table_variable_types = {'double', 'double', 'string', 'string', 'string'};
-        event_table = table('Size', [length(events), 5], 'VariableNames', event_table_variable_names, 'VariableTypes', event_table_variable_types);
+        event_table = table ...
+          ( ...
+            'Size', [length(events), 5], ...
+            'VariableNames', event_table_variable_names, ...
+            'VariableTypes', event_table_variable_types ...
+          );
         event_table.time = event_times;
         event_table.frame = event_frames;
         for i_event = 1 : length(events)
