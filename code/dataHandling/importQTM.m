@@ -31,10 +31,10 @@ function importQTM(varargin)
     parser = inputParser;
     parser.KeepUnmatched = true;
     addParameter(parser, 'visualize', false)
-%     addParameter(parser, 'SyncronizationMode', 'events') % options are 'events', 'table', 'encoded'
+    addParameter(parser, 'file', '')
     parse(parser, varargin{:})
     options.visualize = parser.Results.visualize;
-
+    options.file = parser.Results.file;
 
     %% prepare
     % set some parameters
@@ -68,8 +68,12 @@ function importQTM(varargin)
     options.qtm_source_dir = 'qtm';
 
     %% import data
-    data_dir_mat = dir([options.qtm_source_dir filesep '*mat']);
-    [file_name_list{1:length(data_dir_mat)}] = deal(data_dir_mat.name);
+    if isempty(options.file)
+        data_dir_mat = dir([options.qtm_source_dir filesep '*mat']);
+        [file_name_list{1:length(data_dir_mat)}] = deal(data_dir_mat.name);
+    else
+        file_name_list = {options.file};
+    end
 
     % go through QTM files and import
     number_of_files = length(file_name_list);

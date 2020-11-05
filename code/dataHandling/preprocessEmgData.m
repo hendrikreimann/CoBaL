@@ -75,8 +75,8 @@ function preprocessEmgData(varargin)
                 cutoff_frequency_high = 20; % in Hz
                 [b_high, a_high] = butter(filter_order_high, cutoff_frequency_high/(loaded_data.sampling_rate_emg/2), 'high');
 
-                emg_trajectories_preRect_low = filtfilt(b_low, a_low, raw_emg_trajectories);
-                emg_trajectories_preRect_high = filtfilt(b_high, a_high, emg_trajectories_preRect_low);
+                emg_trajectories_preRect_low = nanfiltfilt(b_low, a_low, raw_emg_trajectories);
+                emg_trajectories_preRect_high = nanfiltfilt(b_high, a_high, emg_trajectories_preRect_low);
 
                 % low pass filter below 10 Hz -- aggressive smoothing after rectification
                 filter_order_final = 4;
@@ -85,7 +85,7 @@ function preprocessEmgData(varargin)
 
                 % rectify, then filter
                 emg_trajectories_rectified = abs(emg_trajectories_preRect_high);
-                emg_trajectories = filtfilt(b_final, a_final, emg_trajectories_rectified);
+                emg_trajectories = nanfiltfilt(b_final, a_final, emg_trajectories_rectified);
 
                 % apply time offset
                 time_emg = loaded_data.time_emg + study_settings.get('emg_time_offset');
