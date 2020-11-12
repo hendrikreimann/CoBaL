@@ -18,6 +18,9 @@ function conditions_trial = determineConditionLevels_group(subject_settings, tri
 
     number_of_triggers = length(trial_data.trigger_indices_mocap);
     group = subject_settings.get('group');
+    if isempty(group)
+        warning('"group" not specified in subject settings')
+    end
     condition_group_list = cell(number_of_triggers, 1);
     for i_stretch = 1 : number_of_triggers
         condition_group_list{i_stretch} = group;
