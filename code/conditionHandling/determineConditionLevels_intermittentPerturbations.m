@@ -14,7 +14,8 @@
 %     You should have received a copy of the GNU General Public License
 %     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-function [conditions_trial, event_variables_to_save, removal_flags] = determineConditionLevels_intermittentPerturbations(study_settings, subject_settings, trial_data)
+function [conditions_trial, event_variables_to_save, removal_flags] ...
+    = determineConditionLevels_intermittentPerturbations(study_settings, subject_settings, trial_data)
 
     % get parameters from settings
     experimental_paradigm = study_settings.get('experimental_paradigm');
@@ -51,7 +52,8 @@ function [conditions_trial, event_variables_to_save, removal_flags] = determineC
         end
         
         % determine stretch times
-        [stretch_times_this_trigger, stance_foot_data_this_trigger, removal_flag_this_trigger] = determineStretchTimes(trigger_time, trigger_foot);
+        [stretch_times_this_trigger, stance_foot_data_this_trigger, removal_flag_this_trigger] ...
+            = determineStretchTimes(trigger_time, trigger_foot);
         stretch_times(i_trigger, :) = stretch_times_this_trigger;
         stance_foot_data(i_trigger, :) = stance_foot_data_this_trigger;
         removal_flags(i_trigger) = removal_flag_this_trigger;
@@ -161,39 +163,39 @@ function [conditions_trial, event_variables_to_save, removal_flags] = determineC
         conditions_trial.stim_amplitude_list = stim_amplitude_list;
     end
     
-    % check if 'group' is listed as a condition and extract it from the subject settings if needed
-    conditions_table = study_settings.get('conditions');
-    if any(strcmp(conditions_table(:, 1), 'group'))
-        group = subject_settings.get('group');
-        condition_group_list = cell(number_of_triggers, 1);
-        for i_stretch = 1 : number_of_triggers
-            condition_group_list{i_stretch} = group;
-        end
-        conditions_trial.group_list = condition_group_list;
-    end
+%     % check if 'group' is listed as a condition and extract it from the subject settings if needed
+%     conditions_table = study_settings.get('conditions');
+%     if any(strcmp(conditions_table(:, 1), 'group'))
+%         group = subject_settings.get('group');
+%         condition_group_list = cell(number_of_triggers, 1);
+%         for i_stretch = 1 : number_of_triggers
+%             condition_group_list{i_stretch} = group;
+%         end
+%         conditions_trial.group_list = condition_group_list;
+%     end
     
-%     %Ash %add affected side
-    conditions_table = study_settings.get('conditions');
-    if any(strcmp(conditions_table(:, 1), 'affected_side'))
-        affected_side = subject_settings.get('affected_side');
-        condition_affected_side_list = cell(number_of_triggers, 1);
-        for i_stretch = 1 : length(trigger_foot_list)
-            if strcmp(affected_side, 'left')
-                if strcmp(trigger_foot_list(i_stretch), 'TRIGGER_LEFT')
-                    condition_affected_side_list{i_stretch} = 'TRIGGER_AFFECTED';
-                elseif strcmp(trigger_foot_list(i_stretch), 'TRIGGER_RIGHT')
-                    condition_affected_side_list{i_stretch} = 'TRIGGER_UNAFFECTED';
-                end
-            elseif strcmp(affected_side, 'right')
-                if strcmp(trigger_foot_list(i_stretch), 'TRIGGER_RIGHT')
-                    condition_affected_side_list{i_stretch} = 'TRIGGER_AFFECTED';
-                elseif strcmp(trigger_foot_list(i_stretch), 'TRIGGER_LEFT')
-                    condition_affected_side_list{i_stretch} = 'TRIGGER_UNAFFECTED';
-                end
-            end
-        end
-        conditions_trial.affected_side_list = condition_affected_side_list;
-    end
+% %     %Ash %add affected side
+%     conditions_table = study_settings.get('conditions');
+%     if any(strcmp(conditions_table(:, 1), 'affected_side'))
+%         affected_side = subject_settings.get('affected_side');
+%         condition_affected_side_list = cell(number_of_triggers, 1);
+%         for i_stretch = 1 : length(trigger_foot_list)
+%             if strcmp(affected_side, 'left')
+%                 if strcmp(trigger_foot_list(i_stretch), 'TRIGGER_LEFT')
+%                     condition_affected_side_list{i_stretch} = 'TRIGGER_AFFECTED';
+%                 elseif strcmp(trigger_foot_list(i_stretch), 'TRIGGER_RIGHT')
+%                     condition_affected_side_list{i_stretch} = 'TRIGGER_UNAFFECTED';
+%                 end
+%             elseif strcmp(affected_side, 'right')
+%                 if strcmp(trigger_foot_list(i_stretch), 'TRIGGER_RIGHT')
+%                     condition_affected_side_list{i_stretch} = 'TRIGGER_AFFECTED';
+%                 elseif strcmp(trigger_foot_list(i_stretch), 'TRIGGER_LEFT')
+%                     condition_affected_side_list{i_stretch} = 'TRIGGER_UNAFFECTED';
+%                 end
+%             end
+%         end
+%         conditions_trial.affected_side_list = condition_affected_side_list;
+%     end
 
     % restructure for saving
     conditions_trial.stimulus_list = stimulus_list;

@@ -19,6 +19,7 @@ function [conditions_trial, event_variables_to_save, removal_flags] ...
     experimental_paradigm = study_settings.get('experimental_paradigm');
     subject_id = subject_settings.get('subject_id');
     gender = subject_settings.get('gender');
+    conditions_table = study_settings.get('conditions');
     
     % allocate
     conditions_trial = struct;
@@ -82,6 +83,16 @@ function [conditions_trial, event_variables_to_save, removal_flags] ...
     if strcmp(experimental_paradigm, 'Vision Stochastic')
         [conditions_trial, event_variables_to_save, removal_flags] ...
             = determineConditionLevels_visionStochastic(study_settings, subject_settings, trial_data);
+    end
+    
+    % add affected_side if required
+    if any(strcmp(conditions_table(:, 1), 'affected_side'))
+        conditions_trial ...
+            = determineConditionLevels_affectedSide(subject_settings, trial_data, conditions_trial);
+    end
+    if any(strcmp(conditions_table(:, 1), 'group'))
+        conditions_trial ...
+            = determineConditionLevels_group(subject_settings, trial_data, conditions_trial);
     end
     
     % add levels that are the same for all experimental paradigms
