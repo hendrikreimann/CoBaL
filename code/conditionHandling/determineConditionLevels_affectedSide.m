@@ -17,6 +17,9 @@
 function conditions_trial = determineConditionLevels_affectedSide(subject_settings, trial_data, conditions_trial)
     number_of_triggers = length(trial_data.trigger_indices_mocap);
     affected_side = subject_settings.get('affected_side');
+    if isempty(affected_side)
+        warning('"affected_side" not specified in subject settings')
+    end
     condition_affected_side_list = cell(number_of_triggers, 1);
     for i_stretch = 1 : number_of_triggers
         if strcmp(affected_side, 'left')
