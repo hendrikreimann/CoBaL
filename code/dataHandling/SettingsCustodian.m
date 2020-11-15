@@ -119,6 +119,10 @@ classdef SettingsCustodian < handle
                         while ~isempty(entry_to_process) && (entry_to_process(1) == ' ' || double(entry_to_process(1)) == 9)
                             entry_to_process(1) = [];
                         end
+                        % remove spaces at end
+                        while ~isempty(entry_to_process) && (entry_to_process(end) == ' ' || double(entry_to_process(1)) == 9)
+                            entry_to_process(end) = [];
+                        end
 
                         % are there spaces, but all non-spaces numbers?
                         if any(entry_to_process == ' ') && ~strcmp(entry_to_process, '-') && all(ismember(strrep(entry_to_process, ' ', ''), '0123456789-.'))
