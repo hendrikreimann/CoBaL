@@ -40,8 +40,11 @@ function processResponseVariables(varargin)
     labels_to_ignore = study_settings.get('conditions_to_ignore');
     levels_to_remove = study_settings.get('levels_to_remove', 1);
     comparisons = struct;
-    [comparisons.combination_labels, comparisons.condition_combinations_control] = determineConditionCombinations(condition_data_all, conditions_settings, labels_to_ignore, levels_to_remove, 'control');
-    comparisons.condition_combinations_control_unique = table2cell(unique(cell2table(comparisons.condition_combinations_control), 'rows'));
+    [comparisons.combination_labels, comparisons.condition_combinations_control] ...
+        = determineConditionCombinations ...
+            (condition_data_all, conditions_settings, labels_to_ignore, levels_to_remove, 'control');
+    comparisons.condition_combinations_control_unique ...
+        = table2cell(unique(cell2table(comparisons.condition_combinations_control), 'rows'));
     
     %% calculate response (i.e. difference from control mean)
     response_data_session = {};
@@ -66,14 +69,17 @@ function processResponseVariables(varargin)
             end
             
             % determine applicable control condition index
-            applicable_control_condition_index = determineControlConditionIndex(study_settings, comparisons, this_stretch_condition_string);
+            applicable_control_condition_index ...
+                = determineControlConditionIndex(study_settings, comparisons, this_stretch_condition_string);
             
             % determine indicator for control
             control_condition_indicator = true(number_of_stretches, 1);
             for i_label = 1 : length(comparisons.combination_labels)
                 this_label = comparisons.combination_labels{i_label};
                 this_label_list = condition_data_all(:, strcmp(conditions_settings(:, 1), this_label));
-                this_label_indicator = strcmp(this_label_list, comparisons.condition_combinations_control_unique(applicable_control_condition_index, i_label));
+                this_label_control ...
+                    = comparisons.condition_combinations_control_unique(applicable_control_condition_index, i_label);
+                this_label_indicator = strcmp(this_label_list, this_label_control);
                 control_condition_indicator = control_condition_indicator .* this_label_indicator;
             end        
             control_condition_indicator = logical(control_condition_indicator);            
@@ -86,7 +92,8 @@ function processResponseVariables(varargin)
                 this_condition_control_mean = mean(this_condition_control_data, 2);
                 
                 % calculate response
-                response_data_session{i_variable}(:, i_stretch) = loaded_data.stretch_data_session{i_variable}(:, i_stretch) - this_condition_control_mean;
+                response_data_session{i_variable}(:, i_stretch) ...
+                    = loaded_data.stretch_data_session{i_variable}(:, i_stretch) - this_condition_control_mean;
             end
             
         end
@@ -105,8 +112,11 @@ end
 
 
 function applicable_control_condition_index = determineControlConditionIndex(study_settings, comparisons, this_stretch_condition_string)
-    if strcmp(study_settings.get('experimental_paradigm', 1), 'SR_VisualStim') ...
-          || strcmp(study_settings.get('experimental_paradigm', 1), 'nGVS_Vision')
+    experimental_paradigm = study_settings.get('experimental_paradigm');
+    paradigms_with_intermittent_perturbation = {'Vision', 'GVS', 'GVS_old', 'Vision_old'};
+    paradigms_with_stochastic_resonance = {'SR_VisualStim', 'nGVS_Vision'};
+  
+    if any(strcmp(experimental_paradigm, paradigms_with_stochastic_resonance))
         % HR 2020-06-04: this is supposed to be the general approach, but
         % only testing this for SR_VisualStim for now
         if strcmp(study_settings.get('experimental_paradigm', 1), 'SR_VisualStim')
@@ -120,19 +130,31 @@ function applicable_control_condition_index = determineControlConditionIndex(stu
             this_factor_label = relevant_factors_for_control{i_factor};
             this_factor_column = strcmp(comparisons.combination_labels, this_factor_label);
             this_factor_this_level = this_stretch_condition_string(this_factor_column);
-            this_factor_candidate_rows = strcmp(comparisons.condition_combinations_control_unique(:, this_factor_column), this_factor_this_level);
+            this_factor_control_levels = comparisons.condition_combinations_control_unique(:, this_factor_column);
+            this_factor_candidate_rows = strcmp(this_factor_control_levels, this_factor_this_level);
             control_row_indicator = control_row_indicator & this_factor_candidate_rows;
         end
         applicable_control_condition_index = find(control_row_indicator);
     end
 
-    if strcmp(study_settings.get('experimental_paradigm', 1), 'Vision') || strcmp(study_settings.get('experimental_paradigm', 1), 'GVS') || strcmp(study_settings.get('experimental_paradigm', 1), 'GVS_old') || strcmp(study_settings.get('experimental_paradigm', 1), 'Vision_old')
-         if strcmp(this_stretch_condition_string{strcmp(comparisons.combination_labels, 'trigger_foot')}, 'TRIGGER_LEFT')
-             applicable_control_condition_index = find(strcmp(comparisons.condition_combinations_control_unique(:, strcmp(comparisons.combination_labels, 'trigger_foot')), 'TRIGGER_LEFT'));
-         end
-         if strcmp(this_stretch_condition_string{strcmp(comparisons.combination_labels, 'trigger_foot')}, 'TRIGGER_RIGHT')
-             applicable_control_condition_index = find(strcmp(comparisons.condition_combinations_control_unique(:, strcmp(comparisons.combination_labels, 'trigger_foot')), 'TRIGGER_RIGHT'));
-         end
+    if any(strcmp(experimental_paradigm, paradigms_with_intermittent_perturbation))
+        % define the factors for which the levels have to match to determine the control condition for this condition
+        relevant_factors_for_control = {'trigger_foot'}; % control only differs by trigger foot in this paradigm
+        control_row_indicator = true(size(comparisons.condition_combinations_control_unique, 1), 1);
+        for i_factor = 1 : length(relevant_factors_for_control)
+            this_factor_label = relevant_factors_for_control{i_factor};
+            this_factor_column = strcmp(comparisons.combination_labels, this_factor_label);
+            this_factor_this_level = this_stretch_condition_string(this_factor_column);
+            this_factor_control_levels = comparisons.condition_combinations_control_unique(:, this_factor_column);
+            this_factor_candidate_rows ...
+                = strcmp ...
+                  ( ...
+                    this_factor_control_levels, ...
+                    this_factor_this_level ...
+                  );
+            control_row_indicator = control_row_indicator & this_factor_candidate_rows;
+        end
+        applicable_control_condition_index = find(control_row_indicator);
     end
     if strcmp(study_settings.get('experimental_paradigm', 1), 'CadenceGVS')
         if strcmp(this_stretch_condition_string{strcmp(comparisons.combination_labels, 'cadence')}, '80BPM') && strcmp(this_stretch_condition_string{strcmp(comparisons.combination_labels, 'trigger_foot')}, 'TRIGGER_LEFT')
