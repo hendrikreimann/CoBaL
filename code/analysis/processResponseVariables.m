@@ -113,16 +113,19 @@ end
 
 function applicable_control_condition_index = determineControlConditionIndex(study_settings, comparisons, this_stretch_condition_string)
     experimental_paradigm = study_settings.get('experimental_paradigm');
-    paradigms_with_intermittent_perturbation = {'Vision', 'GVS', 'GVS_old', 'Vision_old'};
+    paradigms_with_intermittent_perturbation = ...
+      { ...
+        'Vision', 'GVS', 'GVS_old', 'Vision_old', 'CadenceGVS', 'FatigueGVS', 'OculusLaneRestriction' ...
+      };
     paradigms_with_stochastic_resonance = {'SR_VisualStim', 'nGVS_Vision'};
   
     if any(strcmp(experimental_paradigm, paradigms_with_stochastic_resonance))
         % HR 2020-06-04: this is supposed to be the general approach, but
         % only testing this for SR_VisualStim for now
-        if strcmp(study_settings.get('experimental_paradigm', 1), 'SR_VisualStim')
+        if strcmp(experimental_paradigm, 'SR_VisualStim')
             relevant_factors_for_control = {'stim_amplitude', 'trigger_foot'};
         end
-        if strcmp(study_settings.get('experimental_paradigm', 1), 'nGVS_Vision')
+        if strcmp(experimental_paradigm, 'nGVS_Vision')
             relevant_factors_for_control = {'ngvs_settings', 'trigger_foot'};
         end
         control_row_indicator = true(size(comparisons.condition_combinations_control_unique, 1), 1);
@@ -137,9 +140,81 @@ function applicable_control_condition_index = determineControlConditionIndex(stu
         applicable_control_condition_index = find(control_row_indicator);
     end
 
+    % currently moving these into the general solution below
+    if strcmp(study_settings.get('experimental_paradigm', 1), 'CadenceGVS')
+        if strcmp(this_stretch_condition_string{strcmp(comparisons.combination_labels, 'cadence')}, '80BPM') && strcmp(this_stretch_condition_string{strcmp(comparisons.combination_labels, 'trigger_foot')}, 'TRIGGER_LEFT')
+            applicable_control_condition_index_old = find(strcmp(comparisons.condition_combinations_control_unique(:, strcmp(comparisons.combination_labels, 'cadence')), '80BPM') & strcmp(comparisons.condition_combinations_control_unique(:, strcmp(comparisons.combination_labels, 'trigger_foot')), 'TRIGGER_LEFT'));
+        elseif strcmp(this_stretch_condition_string{strcmp(comparisons.combination_labels, 'cadence')}, '80BPM') && strcmp(this_stretch_condition_string{strcmp(comparisons.combination_labels, 'trigger_foot')}, 'TRIGGER_RIGHT')
+            applicable_control_condition_index_old = find(strcmp(comparisons.condition_combinations_control_unique(:, strcmp(comparisons.combination_labels, 'cadence')), '80BPM') & strcmp(comparisons.condition_combinations_control_unique(:, strcmp(comparisons.combination_labels, 'trigger_foot')), 'TRIGGER_RIGHT'));
+        end
+        if strcmp(this_stretch_condition_string{strcmp(comparisons.combination_labels, 'cadence')}, '110BPM') && strcmp(this_stretch_condition_string{strcmp(comparisons.combination_labels, 'trigger_foot')}, 'TRIGGER_LEFT')
+            applicable_control_condition_index_old = find(strcmp(comparisons.condition_combinations_control_unique(:, strcmp(comparisons.combination_labels, 'cadence')), '110BPM') & strcmp(comparisons.condition_combinations_control_unique(:, strcmp(comparisons.combination_labels, 'trigger_foot')), 'TRIGGER_LEFT'));
+        elseif strcmp(this_stretch_condition_string{strcmp(comparisons.combination_labels, 'cadence')}, '110BPM') && strcmp(this_stretch_condition_string{strcmp(comparisons.combination_labels, 'trigger_foot')}, 'TRIGGER_RIGHT')
+             applicable_control_condition_index_old = find(strcmp(comparisons.condition_combinations_control_unique(:, strcmp(comparisons.combination_labels, 'cadence')), '110BPM') & strcmp(comparisons.condition_combinations_control_unique(:, strcmp(comparisons.combination_labels, 'trigger_foot')), 'TRIGGER_RIGHT'));
+        end
+    end
+    if strcmp(study_settings.get('experimental_paradigm', 1), 'FatigueGVS')
+        if strcmp(this_stretch_condition_string{strcmp(comparisons.combination_labels, 'fatigue')}, 'UNFATIGUED') ...
+                && strcmp(this_stretch_condition_string{strcmp(comparisons.combination_labels, 'trigger_foot')}, 'TRIGGER_LEFT')
+            applicable_control_condition_index_old = ...
+                find ...
+                  ( ...
+                    strcmp(comparisons.condition_combinations_control_unique(:, strcmp(comparisons.combination_labels, 'fatigue')), 'UNFATIGUED') ...
+                    & strcmp(comparisons.condition_combinations_control_unique(:, strcmp(comparisons.combination_labels, 'trigger_foot')), 'TRIGGER_LEFT') ...
+                  );
+        elseif strcmp(this_stretch_condition_string{strcmp(comparisons.combination_labels, 'fatigue')}, 'UNFATIGUED') ...
+                && strcmp(this_stretch_condition_string{strcmp(comparisons.combination_labels, 'trigger_foot')}, 'TRIGGER_RIGHT')
+            applicable_control_condition_index_old = ...
+                find ...
+                  ( ...
+                    strcmp(comparisons.condition_combinations_control_unique(:, strcmp(comparisons.combination_labels, 'fatigue')), 'UNFATIGUED') ...
+                    & strcmp(comparisons.condition_combinations_control_unique(:, strcmp(comparisons.combination_labels, 'trigger_foot')), 'TRIGGER_RIGHT') ...
+                  );
+        end
+        if strcmp(this_stretch_condition_string{strcmp(comparisons.combination_labels, 'fatigue')}, 'FATIGUED') ...
+            && strcmp(this_stretch_condition_string{strcmp(comparisons.combination_labels, 'trigger_foot')}, 'TRIGGER_LEFT')
+            applicable_control_condition_index_old = ...
+                find ...
+                  ( ...
+                    strcmp(comparisons.condition_combinations_control_unique(:, strcmp(comparisons.combination_labels, 'fatigue')), 'FATIGUED') ...
+                    & strcmp(comparisons.condition_combinations_control_unique(:, strcmp(comparisons.combination_labels, 'trigger_foot')), 'TRIGGER_LEFT') ...
+                  );
+        elseif strcmp(this_stretch_condition_string{strcmp(comparisons.combination_labels, 'fatigue')}, 'FATIGUED') ...
+                && strcmp(this_stretch_condition_string{strcmp(comparisons.combination_labels, 'trigger_foot')}, 'TRIGGER_RIGHT')
+             applicable_control_condition_index_old = ...
+                 find ...
+                   ( ...
+                     strcmp(comparisons.condition_combinations_control_unique(:, strcmp(comparisons.combination_labels, 'fatigue')), 'FATIGUED') ...
+                     & strcmp(comparisons.condition_combinations_control_unique(:, strcmp(comparisons.combination_labels, 'trigger_foot')), 'TRIGGER_RIGHT') ...
+                   );
+        end
+    end
+    if strcmp(study_settings.get('experimental_paradigm'), 'OculusLaneRestriction')
+        if strcmp(this_stretch_condition_string{strcmp(comparisons.combination_labels, 'zone_side')}, 'STIM_ZONE_LEFT') && strcmp(this_stretch_condition_string{strcmp(comparisons.combination_labels, 'trigger_foot')}, 'TRIGGER_LEFT')
+            applicable_control_condition_index_old = find(strcmp(comparisons.condition_combinations_control_unique(:, strcmp(comparisons.combination_labels, 'zone_side')), 'STIM_ZONE_LEFT') & strcmp(comparisons.condition_combinations_control_unique(:, strcmp(comparisons.combination_labels, 'trigger_foot')), 'TRIGGER_LEFT'));
+        elseif strcmp(this_stretch_condition_string{strcmp(comparisons.combination_labels, 'zone_side')}, 'STIM_ZONE_LEFT') && strcmp(this_stretch_condition_string{strcmp(comparisons.combination_labels, 'trigger_foot')}, 'TRIGGER_RIGHT')
+            applicable_control_condition_index_old = find(strcmp(comparisons.condition_combinations_control_unique(:, strcmp(comparisons.combination_labels, 'zone_side')), 'STIM_ZONE_LEFT') & strcmp(comparisons.condition_combinations_control_unique(:, strcmp(comparisons.combination_labels, 'trigger_foot')), 'TRIGGER_RIGHT'));
+        elseif strcmp(this_stretch_condition_string{strcmp(comparisons.combination_labels, 'zone_side')}, 'STIM_ZONE_RIGHT') && strcmp(this_stretch_condition_string{strcmp(comparisons.combination_labels, 'trigger_foot')}, 'TRIGGER_LEFT')
+            applicable_control_condition_index_old = find(strcmp(comparisons.condition_combinations_control_unique(:, strcmp(comparisons.combination_labels, 'zone_side')), 'STIM_ZONE_RIGHT') & strcmp(comparisons.condition_combinations_control_unique(:, strcmp(comparisons.combination_labels, 'trigger_foot')), 'TRIGGER_LEFT'));
+        elseif strcmp(this_stretch_condition_string{strcmp(comparisons.combination_labels, 'zone_side')}, 'STIM_ZONE_RIGHT') && strcmp(this_stretch_condition_string{strcmp(comparisons.combination_labels, 'trigger_foot')}, 'TRIGGER_RIGHT')
+            applicable_control_condition_index_old = find(strcmp(comparisons.condition_combinations_control_unique(:, strcmp(comparisons.combination_labels, 'zone_side')), 'STIM_ZONE_RIGHT') & strcmp(comparisons.condition_combinations_control_unique(:, strcmp(comparisons.combination_labels, 'trigger_foot')), 'TRIGGER_RIGHT'));
+        end
+    end
+    
     if any(strcmp(experimental_paradigm, paradigms_with_intermittent_perturbation))
         % define the factors for which the levels have to match to determine the control condition for this condition
         relevant_factors_for_control = {'trigger_foot'}; % control only differs by trigger foot in this paradigm
+        if strcmp(experimental_paradigm, 'CadenceGVS')
+            relevant_factors_for_control = [relevant_factors_for_control, 'cadence'];
+        end
+        if strcmp(experimental_paradigm, 'FatigueGVS')
+            relevant_factors_for_control = [relevant_factors_for_control, 'fatigue'];
+        end
+        if strcmp(experimental_paradigm, 'OculusLaneRestriction')
+            relevant_factors_for_control = [relevant_factors_for_control, 'zone_side'];
+        end
+        
+        % go through each factor and find the matches in the control
         control_row_indicator = true(size(comparisons.condition_combinations_control_unique, 1), 1);
         for i_factor = 1 : length(relevant_factors_for_control)
             this_factor_label = relevant_factors_for_control{i_factor};
@@ -152,58 +227,17 @@ function applicable_control_condition_index = determineControlConditionIndex(stu
                     this_factor_control_levels, ...
                     this_factor_this_level ...
                   );
+            % keep only rows that match previous ones and this one
             control_row_indicator = control_row_indicator & this_factor_candidate_rows;
         end
+        
+        % transform the resulting row into an index
         applicable_control_condition_index = find(control_row_indicator);
     end
-    if strcmp(study_settings.get('experimental_paradigm', 1), 'CadenceGVS')
-        if strcmp(this_stretch_condition_string{strcmp(comparisons.combination_labels, 'cadence')}, '80BPM') && strcmp(this_stretch_condition_string{strcmp(comparisons.combination_labels, 'trigger_foot')}, 'TRIGGER_LEFT')
-            applicable_control_condition_index = find(strcmp(comparisons.condition_combinations_control_unique(:, strcmp(comparisons.combination_labels, 'cadence')), '80BPM') & strcmp(comparisons.condition_combinations_control_unique(:, strcmp(comparisons.combination_labels, 'trigger_foot')), 'TRIGGER_LEFT'));
-        elseif strcmp(this_stretch_condition_string{strcmp(comparisons.combination_labels, 'cadence')}, '80BPM') && strcmp(this_stretch_condition_string{strcmp(comparisons.combination_labels, 'trigger_foot')}, 'TRIGGER_RIGHT')
-            applicable_control_condition_index = find(strcmp(comparisons.condition_combinations_control_unique(:, strcmp(comparisons.combination_labels, 'cadence')), '80BPM') & strcmp(comparisons.condition_combinations_control_unique(:, strcmp(comparisons.combination_labels, 'trigger_foot')), 'TRIGGER_RIGHT'));
-        end
-        if strcmp(this_stretch_condition_string{strcmp(comparisons.combination_labels, 'cadence')}, '110BPM') && strcmp(this_stretch_condition_string{strcmp(comparisons.combination_labels, 'trigger_foot')}, 'TRIGGER_LEFT')
-            applicable_control_condition_index = find(strcmp(comparisons.condition_combinations_control_unique(:, strcmp(comparisons.combination_labels, 'cadence')), '110BPM') & strcmp(comparisons.condition_combinations_control_unique(:, strcmp(comparisons.combination_labels, 'trigger_foot')), 'TRIGGER_LEFT'));
-        elseif strcmp(this_stretch_condition_string{strcmp(comparisons.combination_labels, 'cadence')}, '110BPM') && strcmp(this_stretch_condition_string{strcmp(comparisons.combination_labels, 'trigger_foot')}, 'TRIGGER_RIGHT')
-             applicable_control_condition_index = find(strcmp(comparisons.condition_combinations_control_unique(:, strcmp(comparisons.combination_labels, 'cadence')), '110BPM') & strcmp(comparisons.condition_combinations_control_unique(:, strcmp(comparisons.combination_labels, 'trigger_foot')), 'TRIGGER_RIGHT'));
-        end
+    if applicable_control_condition_index ~= applicable_control_condition_index_old
+        error()
     end
-    if strcmp(study_settings.get('experimental_paradigm', 1), 'FatigueGVS')
-        if strcmp(this_stretch_condition_string{strcmp(comparisons.combination_labels, 'fatigue')}, 'UNFATIGUED') ...
-                && strcmp(this_stretch_condition_string{strcmp(comparisons.combination_labels, 'trigger_foot')}, 'TRIGGER_LEFT')
-            applicable_control_condition_index = ...
-                find ...
-                  ( ...
-                    strcmp(comparisons.condition_combinations_control_unique(:, strcmp(comparisons.combination_labels, 'fatigue')), 'UNFATIGUED') ...
-                    & strcmp(comparisons.condition_combinations_control_unique(:, strcmp(comparisons.combination_labels, 'trigger_foot')), 'TRIGGER_LEFT') ...
-                  );
-        elseif strcmp(this_stretch_condition_string{strcmp(comparisons.combination_labels, 'fatigue')}, 'UNFATIGUED') ...
-                && strcmp(this_stretch_condition_string{strcmp(comparisons.combination_labels, 'trigger_foot')}, 'TRIGGER_RIGHT')
-            applicable_control_condition_index = ...
-                find ...
-                  ( ...
-                    strcmp(comparisons.condition_combinations_control_unique(:, strcmp(comparisons.combination_labels, 'fatigue')), 'UNFATIGUED') ...
-                    & strcmp(comparisons.condition_combinations_control_unique(:, strcmp(comparisons.combination_labels, 'trigger_foot')), 'TRIGGER_RIGHT') ...
-                  );
-        end
-        if strcmp(this_stretch_condition_string{strcmp(comparisons.combination_labels, 'fatigue')}, 'FATIGUED') ...
-            && strcmp(this_stretch_condition_string{strcmp(comparisons.combination_labels, 'trigger_foot')}, 'TRIGGER_LEFT')
-            applicable_control_condition_index = ...
-                find ...
-                  ( ...
-                    strcmp(comparisons.condition_combinations_control_unique(:, strcmp(comparisons.combination_labels, 'fatigue')), 'FATIGUED') ...
-                    & strcmp(comparisons.condition_combinations_control_unique(:, strcmp(comparisons.combination_labels, 'trigger_foot')), 'TRIGGER_LEFT') ...
-                  );
-        elseif strcmp(this_stretch_condition_string{strcmp(comparisons.combination_labels, 'fatigue')}, 'FATIGUED') ...
-                && strcmp(this_stretch_condition_string{strcmp(comparisons.combination_labels, 'trigger_foot')}, 'TRIGGER_RIGHT')
-             applicable_control_condition_index = ...
-                 find ...
-                   ( ...
-                     strcmp(comparisons.condition_combinations_control_unique(:, strcmp(comparisons.combination_labels, 'fatigue')), 'FATIGUED') ...
-                     & strcmp(comparisons.condition_combinations_control_unique(:, strcmp(comparisons.combination_labels, 'trigger_foot')), 'TRIGGER_RIGHT') ...
-                   );
-        end
-    end
+    
     if strcmp(study_settings.get('experimental_paradigm', 1), 'CognitiveLoadVision') || strcmp(study_settings.get('experimental_paradigm', 1), 'CognitiveLoadGvs')
         if strcmp(this_stretch_condition_string{strcmp(comparisons.combination_labels, 'cognitive_load')}, 'NO_LOAD') ...
                 && strcmp(this_stretch_condition_string{strcmp(comparisons.combination_labels, 'trigger_foot')}, 'TRIGGER_LEFT')
@@ -248,17 +282,6 @@ function applicable_control_condition_index = determineControlConditionIndex(stu
              applicable_control_condition_index = find(strcmp(comparisons.condition_combinations_control_unique(:, strcmp(comparisons.combination_labels, 'trigger_foot')), 'TRIGGER_RIGHT'));
          end
     end       
-    if strcmp(study_settings.get('experimental_paradigm'), 'OculusLaneRestriction')
-        if strcmp(this_stretch_condition_string{strcmp(comparisons.combination_labels, 'zone_side')}, 'STIM_ZONE_LEFT') && strcmp(this_stretch_condition_string{strcmp(comparisons.combination_labels, 'trigger_foot')}, 'TRIGGER_LEFT')
-            applicable_control_condition_index = find(strcmp(comparisons.condition_combinations_control_unique(:, strcmp(comparisons.combination_labels, 'zone_side')), 'STIM_ZONE_LEFT') & strcmp(comparisons.condition_combinations_control_unique(:, strcmp(comparisons.combination_labels, 'trigger_foot')), 'TRIGGER_LEFT'));
-        elseif strcmp(this_stretch_condition_string{strcmp(comparisons.combination_labels, 'zone_side')}, 'STIM_ZONE_LEFT') && strcmp(this_stretch_condition_string{strcmp(comparisons.combination_labels, 'trigger_foot')}, 'TRIGGER_RIGHT')
-            applicable_control_condition_index = find(strcmp(comparisons.condition_combinations_control_unique(:, strcmp(comparisons.combination_labels, 'zone_side')), 'STIM_ZONE_LEFT') & strcmp(comparisons.condition_combinations_control_unique(:, strcmp(comparisons.combination_labels, 'trigger_foot')), 'TRIGGER_RIGHT'));
-        elseif strcmp(this_stretch_condition_string{strcmp(comparisons.combination_labels, 'zone_side')}, 'STIM_ZONE_RIGHT') && strcmp(this_stretch_condition_string{strcmp(comparisons.combination_labels, 'trigger_foot')}, 'TRIGGER_LEFT')
-            applicable_control_condition_index = find(strcmp(comparisons.condition_combinations_control_unique(:, strcmp(comparisons.combination_labels, 'zone_side')), 'STIM_ZONE_RIGHT') & strcmp(comparisons.condition_combinations_control_unique(:, strcmp(comparisons.combination_labels, 'trigger_foot')), 'TRIGGER_LEFT'));
-        elseif strcmp(this_stretch_condition_string{strcmp(comparisons.combination_labels, 'zone_side')}, 'STIM_ZONE_RIGHT') && strcmp(this_stretch_condition_string{strcmp(comparisons.combination_labels, 'trigger_foot')}, 'TRIGGER_RIGHT')
-            applicable_control_condition_index = find(strcmp(comparisons.condition_combinations_control_unique(:, strcmp(comparisons.combination_labels, 'zone_side')), 'STIM_ZONE_RIGHT') & strcmp(comparisons.condition_combinations_control_unique(:, strcmp(comparisons.combination_labels, 'trigger_foot')), 'TRIGGER_RIGHT'));
-        end
-    end
 
 end
 
