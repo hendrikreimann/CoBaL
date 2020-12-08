@@ -129,7 +129,8 @@ function [comparison_indices, conditions_per_comparison_max] = determineComparis
                 
             end
             % add control, but only if it is unique
-            if numel(unique(this_comparison_controls)) == 1
+            this_comparison_controls = unique(this_comparison_controls);
+            if numel(this_comparison_controls) == 1
                 comparison_indices{i_comparison} = [this_comparison this_comparison_controls];
             end
         end
