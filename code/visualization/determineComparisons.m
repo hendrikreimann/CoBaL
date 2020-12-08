@@ -94,30 +94,43 @@ function [comparison_indices, conditions_per_comparison_max] = determineComparis
             % extract information about this comparison
             this_comparison = comparison_indices{i_comparison};
             this_comparison_conditions_stimulus = conditions_to_plot(this_comparison, :);
+            
+            % create container for control indices
+            this_comparison_controls = zeros(size(this_comparison));
+            
+            % for each condition in this comparison, find the applicable control condition
+            for i_condition = 1  : length(this_comparison)
+                this_condition = this_comparison_conditions_stimulus(i_condition, :);                
+                
+                % go through each factor, find relevant control condition and assemble
+                control_combination_for_this_level = cell(1, size(this_comparison_conditions_stimulus, 2));
+                for i_factor = 1 : length(condition_labels)
+                    % what is the control level for this factor?
+                    this_factor = condition_labels{i_factor};
+                    control_level = condition_table{strcmp(condition_table(:, 1), this_factor), 3};
 
-            % go through each factor, find relevant control condition and assemble
-            control_combination_for_this_level = cell(1, size(this_comparison_conditions_stimulus, 2));
-            for i_factor = 1 : length(condition_labels)
-                % what is the control level for this factor?
-                this_factor = condition_labels{i_factor};
-                control_level = condition_table{strcmp(condition_table(:, 1), this_factor), 3};
+                    if strcmp(control_level, '~')
+                        % no control specified for this factor, use the level from the current comparison
+                        control_combination_for_this_level{i_factor} = this_condition{1, i_factor};
+                    else
+                        % use specified control level
+                        control_combination_for_this_level{i_factor} = control_level;
+                    end
+                end        
 
-                if strcmp(control_level, '~')
-                    % no control specified for this factor, use the level from the current comparison
-                    control_combination_for_this_level{i_factor} = this_comparison_conditions_stimulus{1, i_factor};
-                else
-                    % use specified control level
-                    control_combination_for_this_level{i_factor} = control_level;
-                end
-            end        
+                % find the assembled control condition in the list
+                matching_row = findMatchingRow(conditions_to_plot, control_combination_for_this_level);
 
-            % find the assembled control condition in the list
-            matching_row = findMatchingRow(conditions_to_plot, control_combination_for_this_level);
-
-            % add the control condition to the comparison
-            if ~isempty(matching_row)
-                this_comparison = [this_comparison matching_row]; %#ok<AGROW>
-                comparison_indices{i_comparison} = this_comparison;
+                % add the control condition to the comparison
+                if ~isempty(matching_row)
+                    this_comparison_controls(i_condition) = matching_row;
+                end                
+                
+                
+            end
+            % add control, but only if it is unique
+            if numel(unique(this_comparison_controls)) == 1
+                comparison_indices{i_comparison} = [this_comparison this_comparison_controls];
             end
         end
     end
