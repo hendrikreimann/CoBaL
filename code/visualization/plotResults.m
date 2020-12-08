@@ -701,7 +701,7 @@ function groomFigures_continuous(settings, data_custodian, comparisons, figure_d
                 ylimits = get(these_axes, 'ylim');
 
                 if settings.mark_bands == 1
-                    bands_to_mark = 2 : 2 : data.bands_per_stretch;
+                    bands_to_mark = 2 : 2 : data_custodian.bands_per_stretch;
                 end
                 if settings.mark_bands == 2
                     bands_to_mark = 1 : 2 : data.bands_per_stretch;
