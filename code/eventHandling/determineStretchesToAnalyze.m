@@ -90,12 +90,17 @@ function determineStretchesToAnalyze(varargin)
         % for each trigger, determine the condition levels
         [conditions_trial, event_variables_to_save, removal_flags] ...
             = determineConditionLevels(study_settings, subject_settings, trial_data);
-
+        
         % remove stretches where important variables are missing
         [conditions_trial, event_variables_to_save] ...
             = removeProblematicData ...
               ( ...
-                study_settings, trial_data, conditions_trial, event_variables_to_save, removal_flags ...
+                study_settings, ...
+                subject_settings, ...
+                trial_data, ...
+                conditions_trial, ...
+                event_variables_to_save, ...
+                removal_flags ...
               );
 
         % remove stretches with levels listed in the settings to be ignored
@@ -504,7 +509,7 @@ function trial_data = extractEvents(study_settings, trial_data)
 end
 
 function [conditions_trial, event_variables_to_save] ...
-    = removeProblematicData(study_settings, trial_data, conditions_trial,event_variables_to_save, removal_flags)
+    = removeProblematicData(study_settings, subject_settings, trial_data, conditions_trial, event_variables_to_save, removal_flags)
 
     experimental_paradigm = study_settings.get('experimental_paradigm', 1);   
     number_of_stretches = size(event_variables_to_save.stretch_times, 1);
@@ -667,19 +672,45 @@ function [conditions_trial, event_variables_to_save] ...
             end
         end         
     end
+    
+    % flag stretches overlapping with previously stored problems
+    collection_date = subject_settings.get('collection_date');
+    subject_id = subject_settings.get('subject_id');
+    problem_file_name = makeFileName(collection_date, subject_id, trial_data.trial_type, trial_data.trial_number, 'problems.mat');
+    
+    % load list of already available variables if existing
+    if exist(['analysis' filesep problem_file_name], 'file')
+        problems_loaded = load(['analysis' filesep problem_file_name], 'problems');
+        problems_table = problems_loaded.problems;
+        number_of_problems = size(problems_table, 1);
+        
+        % go through stretches and flag those that overlap with a problem
+        for i_stretch = 1 : length(removal_flags)
+            this_stretch_start = event_variables_to_save.stretch_times(i_stretch, 1);
+            this_stretch_end = event_variables_to_save.stretch_times(i_stretch, end);
+            for i_problem = 1 : number_of_problems
+                this_problem_start = problems_table{i_problem, 'start_time'};
+                this_problem_end = problems_table{i_problem, 'end_time'};
+                later_start = max(this_stretch_start, this_problem_start); 
+                earlier_end = min(this_stretch_end, this_problem_end); 
+                if later_start <= earlier_end
+                    % stretch and problem time intervals overlap, so flag for removal
+                    removal_flags(i_stretch) = 1;
+                end
+            end
+        end
+    end
+    
+    
 
     % remove flagged stretches
     unflagged_indices = ~removal_flags;
     event_variables_to_save_names = fieldnames(event_variables_to_save);
     for i_variable = 1 : length(event_variables_to_save_names)
         this_variable_name = event_variables_to_save_names{i_variable};
-
-        evalstring = ['this_variable_data = event_variables_to_save.' this_variable_name ';'];
-        eval(evalstring);
+        this_variable_data = event_variables_to_save.(this_variable_name);
         this_variable_data = this_variable_data(unflagged_indices, :);
-
-        evalstring = ['event_variables_to_save.' this_variable_name ' = this_variable_data;'];
-        eval(evalstring);
+        event_variables_to_save.(this_variable_name) = this_variable_data;
     end
 
     conditions_trial_names = fieldnames(conditions_trial);
@@ -693,6 +724,8 @@ function [conditions_trial, event_variables_to_save] ...
         evalstring = ['conditions_trial.' this_condition_name ' = this_condition_data;'];
         eval(evalstring);
     end
+    
+    
 
 end
 
