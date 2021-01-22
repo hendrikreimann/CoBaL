@@ -18,19 +18,21 @@
 function scaleModelInOpensim()
     % load settings
     subject_settings = SettingsCustodian('subjectSettings.txt');
-    subject_info = load('subjectInfo.mat');
+    subject_settings = loadSettingsFromFile('subject');
+    collection_date = subject_settings.get('collection_date');
+    subject_id = subject_settings.get('subject_id')
     
     %% set up
     import org.opensim.modeling.*
     generic_model_file = 'CoBaLWalker50.osim';
-    output_model_file = makeFileName(subject_info.date, subject_info.subject_id, '.osim');
+    output_model_file = makeFileName(collection_date, subject_id, '.osim');
     % model is expected relative to the current directory, so make a temporary copy
     copyfile([getCobalPath filesep 'resources' filesep 'opensim' filesep generic_model_file], ['opensim' filesep generic_model_file])
     
     % setup model scaling 
     static_trial_type = subject_settings.get('static_reference_trial_type');
     static_trial_number = subject_settings.get('static_reference_trial_number');
-    static_file_name = ['marker' filesep makeFileName(subject_info.date, subject_info.subject_id, static_trial_type, static_trial_number, 'marker.trc')];
+    static_file_name = ['marker' filesep makeFileName(collection_date, subject_id, static_trial_type, static_trial_number, 'marker.trc')];
     generic_setup_file_scale = [getCobalPath filesep 'resources' filesep 'opensim' filesep 'CoBaLWalker50_setupScale.xml'];
     DOMnode = xmlread(generic_setup_file_scale);
     document_node = DOMnode.getFirstChild;
@@ -64,7 +66,7 @@ function scaleModelInOpensim()
     child.setData(output_model_file)
 
     % save subject-specific scale file
-    setup_file_scale = [pwd filesep 'opensim' filesep makeFileName(subject_info.date, subject_info.subject_id, 'setupScale.xml')];
+    setup_file_scale = [pwd filesep 'opensim' filesep makeFileName(collection_date, subject_id, 'setupScale.xml')];
     xmlwrite(setup_file_scale, DOMnode);    
     
     % scale

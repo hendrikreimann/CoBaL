@@ -44,18 +44,11 @@ function findStepEvents(varargin)
     if ~exist('analysis', 'dir')
         mkdir('analysis')
     end
-    load('subjectInfo.mat', 'date', 'subject_id');
-
+    
     % load settings
-    subject_settings = SettingsCustodian('subjectSettings.txt');
-    study_settings_file = '';
-    if exist(['..' filesep 'studySettings.txt'], 'file')
-        study_settings_file = ['..' filesep 'studySettings.txt'];
-    end    
-    if exist(['..' filesep '..' filesep 'studySettings.txt'], 'file')
-        study_settings_file = ['..' filesep '..' filesep 'studySettings.txt'];
-    end
-    study_settings = SettingsCustodian(study_settings_file);
+    subject_settings = loadSettingsFromFile('subject');
+    collection_date = subject_settings.get('collection_date');
+    subject_id = subject_settings.get('subject_id');
     
     for i_condition = 1 : length(condition_list)
         trials_to_process = trial_number_list{i_condition};
@@ -63,10 +56,10 @@ function findStepEvents(varargin)
             %% prepare
             % load data
             condition = condition_list{i_condition};
-            [marker_trajectories, time_marker, sampling_rate_marker, marker_labels] = loadData(date, subject_id, condition, i_trial, 'marker_trajectories');
-            [cop_trajectories, time_forceplate, ~, ~, ~, cop_available] = loadData(date, subject_id, condition, i_trial, 'total_forceplate_cop_world', 'optional');
-            [left_foot_wrench_world, time_left_forceplate, ~, ~, ~, left_forceplate_available] = loadData(date, subject_id, condition, i_trial, 'left_foot_wrench_world', 'optional');
-            [right_foot_wrench_world, time_right_forceplate, ~, ~, ~, right_forceplate_available] = loadData(date, subject_id, condition, i_trial, 'right_foot_wrench_world', 'optional');
+            [marker_trajectories, time_marker, sampling_rate_marker, marker_labels] = loadData(collection_date, subject_id, condition, i_trial, 'marker_trajectories');
+            [cop_trajectories, time_forceplate, ~, ~, ~, cop_available] = loadData(collection_date, subject_id, condition, i_trial, 'total_forceplate_cop_world', 'optional');
+            [left_foot_wrench_world, time_left_forceplate, ~, ~, ~, left_forceplate_available] = loadData(collection_date, subject_id, condition, i_trial, 'left_foot_wrench_world', 'optional');
+            [right_foot_wrench_world, time_right_forceplate, ~, ~, ~, right_forceplate_available] = loadData(collection_date, subject_id, condition, i_trial, 'right_foot_wrench_world', 'optional');
             if left_forceplate_available & right_forceplate_available
                 left_fz_trajectory = left_foot_wrench_world(:, 3);
                 right_fz_trajectory = right_foot_wrench_world(:, 3);
@@ -567,7 +560,7 @@ function findStepEvents(varargin)
             variables_to_save.event_data = event_data;
             variables_to_save.event_labels = event_labels;
             
-            step_events_file_name = ['analysis' filesep makeFileName(date, subject_id, condition, i_trial, 'events.mat')];
+            step_events_file_name = ['analysis' filesep makeFileName(collection_date, subject_id, condition, i_trial, 'events.mat')];
             saveDataToFile(step_events_file_name, variables_to_save);
 
             disp(['Finding Step Events: condition ' condition ', Trial ' num2str(i_trial) ' completed, saved as ' step_events_file_name]);

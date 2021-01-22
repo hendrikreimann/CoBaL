@@ -44,16 +44,9 @@ function exportToOpensim(varargin)
     end
     
     % load settings
-    study_settings_file = '';
-    if exist(['..' filesep 'studySettings.txt'], 'file')
-        study_settings_file = ['..' filesep 'studySettings.txt'];
-    end    
-    if exist(['..' filesep '..' filesep 'studySettings.txt'], 'file')
-        study_settings_file = ['..' filesep '..' filesep 'studySettings.txt'];
-    end
-    study_settings = SettingsCustodian(study_settings_file);
-    subject_settings = SettingsCustodian('subjectSettings.txt');
-    subject_info = load('subjectInfo.mat');
+    subject_settings = loadSettingsFromFile('subject');
+    collection_date = subject_settings.get('collection_date');
+    subject_id = subject_settings.get('subject_id');
     
     % add static trial to list
     static_trial_type = subject_settings.get('static_reference_trial_type');
@@ -89,12 +82,12 @@ function exportToOpensim(varargin)
             % forceplate data
             if strcmp(type, 'forceplate') || strcmp(type, 'all')
                 % load data
-                forceplate_file_name = makeFileName(subject_info.date, subject_info.subject_id, this_trial_type, i_trial, 'forceplateTrajectories.mat');
+                forceplate_file_name = makeFileName(collection_date, subject_id, this_trial_type, i_trial, 'forceplateTrajectories.mat');
                 if exist(['processed' filesep forceplate_file_name], 'file')
                     load(['processed' filesep forceplate_file_name]); %#ok<LOAD>
 
                     % load time information from associated marker file
-                    marker_file_name = makeFileName(subject_info.date, subject_info.subject_id, this_trial_type, i_trial, 'markerTrajectories.mat');
+                    marker_file_name = makeFileName(collection_date, subject_id, this_trial_type, i_trial, 'markerTrajectories.mat');
                     load(['processed' filesep marker_file_name], 'time_mocap');
 
                     % resample force trajectories to mocap time
@@ -134,7 +127,7 @@ function exportToOpensim(varargin)
                       ];
 
                     save_folder = ['opensim' filesep 'forceplate'];
-                    save_file_name =  makeFileName(subject_info.date, subject_info.subject_id, this_trial_type, i_trial, 'grfIndividual.mot');
+                    save_file_name =  makeFileName(collection_date, subject_id, this_trial_type, i_trial, 'grfIndividual.mot');
                     fid = fopen([save_folder filesep save_file_name],'w');
 
                     fprintf(fid, 'name %s\n', save_file_name);
@@ -192,7 +185,7 @@ function exportToOpensim(varargin)
                       ];
 
                     save_folder = ['opensim' filesep 'forceplate'];
-                    save_file_name =  makeFileName(subject_info.date, subject_info.subject_id, this_trial_type, i_trial, 'grfTotal.mot');
+                    save_file_name =  makeFileName(collection_date, subject_id, this_trial_type, i_trial, 'grfTotal.mot');
                     fid = fopen([save_folder filesep save_file_name],'w');
 
                     fprintf(fid, 'name %s\n', save_file_name);
@@ -236,7 +229,7 @@ function exportToOpensim(varargin)
             % marker data
             if strcmp(type, 'marker') || strcmp(type, 'all')
                 % load time information from associated marker file
-                marker_file_name = makeFileName(subject_info.date, subject_info.subject_id, this_trial_type, i_trial, 'markerTrajectories.mat');
+                marker_file_name = makeFileName(collection_date, subject_id, this_trial_type, i_trial, 'markerTrajectories.mat');
                 if exist(['processed' filesep marker_file_name], 'file')
                     load(['processed' filesep marker_file_name]);
 
@@ -265,7 +258,7 @@ function exportToOpensim(varargin)
                     % save
                     time_mocap = time_mocap - time_mocap(1); % first entry has to be zero or OpenSim will throw an exception
                     save_folder = ['opensim' filesep 'marker'];
-                    save_file_name = [save_folder filesep makeFileName(subject_info.date, subject_info.subject_id, this_trial_type, i_trial, 'marker.trc')];
+                    save_file_name = [save_folder filesep makeFileName(collection_date, subject_id, this_trial_type, i_trial, 'marker.trc')];
                     fid = fopen(save_file_name,'w');
                     fid_1 = fopen(save_file_name, 'w');
 

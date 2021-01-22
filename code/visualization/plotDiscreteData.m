@@ -28,10 +28,12 @@ function plotDiscreteData(data, varargin)
     if settings.spread.show
         if strcmp(settings.spread.style, 'box')
             plotBox(settings, stats)
-        end
-        if strcmp(settings.spread.style, 'violin')
+        elseif strcmp(settings.spread.style, 'violin')
             plotViolin(settings, stats)
+        else
+            warning(['Plotting spread with style "' settings.spread.style '" not supported, please change in settings'])
         end
+        
     end
     
     % plot mean
@@ -339,7 +341,7 @@ function plotIndividualData(settings, data, stats)
     old_stream = RandStream.getGlobalStream;
     new_stream = RandStream.create('mrg32k3a', 'seed', settings.seed);
     RandStream.setGlobalStream(new_stream);
-    jitter = 2*(rand(size(data)) * settings.width) - settings.width;
+    jitter = 2*rand(size(data)) - 1;
     RandStream.setGlobalStream(old_stream);
         
     % normalize jitter by spread

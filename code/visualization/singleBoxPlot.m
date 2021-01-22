@@ -68,6 +68,13 @@ function singleBoxPlot(data, varargin)
 
     % labels
     if ~isempty(xlabel)
+        % remove existing labels if plot is still empty
+        child_handles = allchild(axes_handle);
+        if isempty(child_handles)
+            set(axes_handle, 'xtick', []);
+            set(axes_handle, 'xticklabel', []);
+        end
+        
         xtick = get(axes_handle, 'xtick');
         if ~ismember(abscissa, xtick)
             xtick = sort([xtick, abscissa]);

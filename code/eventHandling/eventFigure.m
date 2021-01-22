@@ -14,7 +14,7 @@
 %     You should have received a copy of the GNU General Public License
 %     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-classdef eventFigure < handle;
+classdef eventFigure < handle
     properties
         title;
         
@@ -41,12 +41,22 @@ classdef eventFigure < handle;
         patch_alpha = 0.05;
     end
     methods
-        function this = eventFigure(figureTitle, controller, data_custodian, eventData)
+        function this = eventFigure(figure_settings, controller, data_custodian, eventData)
+            % determine position
+            canvas_width = controller.canvas_on_screen_width;
+            canvas_height = controller.canvas_on_screen_height;
+            origin_x = figure_settings.origin_horizontal * canvas_width;
+            origin_y = figure_settings.origin_vertical * canvas_height;
+            width = figure_settings.width * canvas_width;
+            height = figure_settings.height * canvas_height - 72;
+            
+            figure_position = [origin_x origin_y width height];
+            
             % create figure, axes and helper plots
-            this.main_figure = figure('KeyPressFcn', @controller.processKeyPress);
+            this.main_figure = figure('Position', figure_position, 'KeyPressFcn', @controller.processKeyPress);
             this.main_axes = axes('ButtonDownFcn', @this.stepEventFigureClicked);
-            this.title = figureTitle;
-            title(figureTitle);
+            this.title = figure_settings.title;
+            title(figure_settings.title);
             hold on;
             this.selected_event_plot = plot(0, 0, 'o', 'markersize', 15, 'linewidth', 3, 'color', [1 0.5 0], 'visible', 'off', 'HandleVisibility', 'off');
 %             this.selected_time_plot = plot(0, 0, '+', 'markersize', 25, 'linewidth', 1, 'color', [1 1 1]*0.7, 'ButtonDownFcn', @this.stepEventFigureClicked, 'HandleVisibility', 'off');
@@ -55,10 +65,10 @@ classdef eventFigure < handle;
 
             % register with controller
             if strcmp(controller.figureSelectionBox.String, '<no figure>')
-                controller.figureSelectionBox.String = figureTitle;
+                controller.figureSelectionBox.String = figure_settings.title;
                 controller.figureSelectionBox.UserData = {this};
             else
-                controller.figureSelectionBox.String = [controller.figureSelectionBox.String; {figureTitle}];
+                controller.figureSelectionBox.String = [controller.figureSelectionBox.String; {figure_settings.title}];
                 controller.figureSelectionBox.UserData = [controller.figureSelectionBox.UserData; {this}];
             end
             
@@ -284,12 +294,6 @@ classdef eventFigure < handle;
                 
                 % update
                 set(data_plot_handle, 'xdata', time, 'ydata', (data + offset) * scale_factor);
-                
-%                 time_data = this.trial_data.getTime(data_label);
-%                 trajectory_data = (this.trial_data.getData(data_label) + offset) * scale_factor;
-                
-%                 % update
-%                 set(data_plot_handle, 'xdata', time_data, 'ydata', trajectory_data);
             end
         end
         function updateStretchPatches(this)

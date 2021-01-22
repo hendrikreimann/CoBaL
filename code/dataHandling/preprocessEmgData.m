@@ -38,22 +38,14 @@ function preprocessEmgData(varargin)
     trials_to_analyze = [trials_to_analyze; trials_to_exclude];
     
     % load settings
-    study_settings_file = '';
-    if exist(['..' filesep 'studySettings.txt'], 'file')
-        study_settings_file = ['..' filesep 'studySettings.txt'];
-    end    
-    if exist(['..' filesep '..' filesep 'studySettings.txt'], 'file')
-        study_settings_file = ['..' filesep '..' filesep 'studySettings.txt'];
-    end
-    study_settings = SettingsCustodian(study_settings_file);
-    subject_settings = SettingsCustodian('subjectSettings.txt');
+    study_settings = loadSettingsFromFile('study');
+    subject_settings = loadSettingsFromFile('subject');
     
     data_dir = dir(['raw' filesep '*_emgTrajectoriesRaw.mat']);
     clear file_name_list;
     [file_name_list{1:length(data_dir)}] = deal(data_dir.name);
     number_of_files = length(file_name_list);
     for i_trial = 1 : number_of_files
-%         for i_trial = 5 : number_of_files
         raw_emg_file_name = file_name_list{i_trial};
         [date, subject_id, trial_type, trial_number] = getFileParameters(raw_emg_file_name);
 
@@ -64,6 +56,13 @@ function preprocessEmgData(varargin)
             if ismember(trial_number, trial_number_list_this_condition)
                 % process file
                 loaded_data = load(['raw' filesep raw_emg_file_name]);
+                
+                % figure out variable
+                if isfield(loaded_data, 'emg_trajectories_raw')
+                    raw_emg_trajectories = loaded_data.emg_trajectories_raw;
+                elseif isfield(loaded_data, 'emg_raw_trajectories')
+                    raw_emg_trajectories = loaded_data.emg_raw_trajectories;
+                end
 
                 % define filters
                 % initial low pass filter
@@ -76,8 +75,8 @@ function preprocessEmgData(varargin)
                 cutoff_frequency_high = 20; % in Hz
                 [b_high, a_high] = butter(filter_order_high, cutoff_frequency_high/(loaded_data.sampling_rate_emg/2), 'high');
 
-                emg_trajectories_preRect_low = filtfilt(b_low, a_low, loaded_data.emg_trajectories_raw);
-                emg_trajectories_preRect_high = filtfilt(b_high, a_high, emg_trajectories_preRect_low);
+                emg_trajectories_preRect_low = nanfiltfilt(b_low, a_low, raw_emg_trajectories);
+                emg_trajectories_preRect_high = nanfiltfilt(b_high, a_high, emg_trajectories_preRect_low);
 
                 % low pass filter below 10 Hz -- aggressive smoothing after rectification
                 filter_order_final = 4;
@@ -86,7 +85,7 @@ function preprocessEmgData(varargin)
 
                 % rectify, then filter
                 emg_trajectories_rectified = abs(emg_trajectories_preRect_high);
-                emg_trajectories = filtfilt(b_final, a_final, emg_trajectories_rectified);
+                emg_trajectories = nanfiltfilt(b_final, a_final, emg_trajectories_rectified);
 
                 % apply time offset
                 time_emg = loaded_data.time_emg + study_settings.get('emg_time_offset');
@@ -125,7 +124,7 @@ function preprocessEmgData(varargin)
                 if visualize
                     i_channel = 12;
                     figure; axes; hold on; title(['EMG, condition ' trial_type ', trial ' num2str(trial_number)])
-                    plot(time_emg, loaded_data.emg_trajectories_raw(:, i_channel), 'DisplayName', 'raw');
+                    plot(time_emg, raw_emg_trajectories(:, i_channel), 'DisplayName', 'raw');
                     plot(time_emg, loaded_data.emg_trajectories_rectified(:, i_channel), 'DisplayName', 'rectified');
 %                     plot(time_emg, emg_rms_rectified(:, i_channel), 'DisplayName', 'rms rectified', 'linewidth', 2);
 %                         plot(time_emg, emg_rms_smoothed(:, i_channel), 'DisplayName', 'rms smoothed', 'linewidth', 2);

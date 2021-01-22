@@ -16,21 +16,20 @@
 
 function [conditions_trial, event_variables_to_save, removal_flags] = determineConditionLevels_stochasticResonance(subject_settings, trial_data)
 
-    % get stimulus strength
-    this_trial_stimulus_strength = determineStochasticResonanceStrength(subject_settings, trial_data.trial_type, trial_data.trial_number);
-
-    stance_foot_data_stretch = {'STANCE_LEFT', 'STANCE_RIGHT'};                
+    stance_foot_data_stretch = {'STANCE_LEFT', 'STANCE_RIGHT'};
 
     bands_per_stretch = length(stance_foot_data_stretch);
 
-    stretch_start_times = trial_data.left_touchdown_times(1:end-1);
+    stretch_start_times = trial_data.trigger_times;
+    left_touchdown_times = trial_data.loaded_events_data.event_data{strcmp(trial_data.loaded_events_data.event_labels, 'left_touchdown')};
+    right_touchdown_times = trial_data.loaded_events_data.event_data{strcmp(trial_data.loaded_events_data.event_labels, 'right_touchdown')};
     number_of_stretches = length(stretch_start_times);
     stretch_times = zeros(number_of_stretches, bands_per_stretch+1);
     removal_flags = false(number_of_stretches, 1);
     for i_stretch = 1 : number_of_stretches
         this_stretch_start = stretch_start_times(i_stretch);
-        this_right_touchdown = min(trial_data.right_touchdown_times(trial_data.right_touchdown_times > this_stretch_start));
-        this_left_touchdown = min(trial_data.left_touchdown_times(trial_data.left_touchdown_times > this_stretch_start));
+        this_right_touchdown = min(right_touchdown_times(right_touchdown_times > this_stretch_start));
+        this_left_touchdown = min(left_touchdown_times(left_touchdown_times > this_stretch_start));
         this_stretch_times = [this_stretch_start this_right_touchdown this_left_touchdown];
         if ~issorted(this_stretch_times)
             removal_flags(i_stretch) = 1;
@@ -43,16 +42,25 @@ function [conditions_trial, event_variables_to_save, removal_flags] = determineC
     event_variables_to_save.stance_foot_data = stance_foot_data;
 
     % conditions
+    this_trial_stimulus_strength = determineStochasticResonanceStrength(subject_settings, trial_data.trial_type, trial_data.trial_number);
     stim_amplitude_list = repmat({this_trial_stimulus_strength}, size(stretch_times, 1), 1);
     conditions_trial = struct;
     conditions_trial.stim_amplitude_list = stim_amplitude_list;
 
+    % add group
     group = subject_settings.get('group');
-    % add group:
     condition_group_list = cell(size(event_variables_to_save.stance_foot_data, 1), 1);
     for i_stretch = 1 : length(condition_group_list)
         condition_group_list{i_stretch} = group;
     end
     conditions_trial.group_list = condition_group_list;
+    
+    % add affected side
+    affected_side = subject_settings.get('affected_side');
+    condition_affected_side_list = cell(size(event_variables_to_save.stance_foot_data, 1), 1);
+    for i_stretch = 1 : length(condition_affected_side_list)
+        condition_affected_side_list{i_stretch} = affected_side;
+    end
+    conditions_trial.affected_side_list = condition_affected_side_list;
 end
 

@@ -36,15 +36,8 @@ function preprocessForceplateData(varargin)
     trials_to_analyze = [trials_to_analyze; trials_to_exclude];
     
     % load settings
-    study_settings_file = '';
-    if exist(['..' filesep 'studySettings.txt'], 'file')
-        study_settings_file = ['..' filesep 'studySettings.txt'];
-    end    
-    if exist(['..' filesep '..' filesep 'studySettings.txt'], 'file')
-        study_settings_file = ['..' filesep '..' filesep 'studySettings.txt'];
-    end
-    study_settings = SettingsCustodian(study_settings_file);
-    subject_settings = SettingsCustodian('subjectSettings.txt');
+    study_settings = loadSettingsFromFile('study');
+    subject_settings = loadSettingsFromFile('subject');
     
     data_dir = dir(['raw' filesep '*_forceplateTrajectoriesRaw.mat']);
     clear file_name_list;
@@ -54,22 +47,41 @@ function preprocessForceplateData(varargin)
         raw_forceplate_file_name = file_name_list{i_trial};
         [date, subject_id, trial_type, trial_number] = getFileParameters(raw_forceplate_file_name);
 
-        % does the caller want to process this file?
+        % does the user want to process this file?
         if any(strcmp(trial_type, types_to_analyze))
             % condition is set to be processed, now check trial number
             trial_number_list_this_condition = trials_to_analyze{strcmp(trial_type, types_to_analyze)};
             if ismember(trial_number, trial_number_list_this_condition)
                 % load raw data
                 loaded_data = load(['raw' filesep raw_forceplate_file_name]);
+                
+                % figure out variable
+                if isfield(loaded_data, 'forceplate_trajectories_raw')
+                    raw_forceplate_trajectories = loaded_data.forceplate_trajectories_raw;
+                elseif isfield(loaded_data, 'forceplate_raw_trajectories')
+                    raw_forceplate_trajectories = loaded_data.forceplate_raw_trajectories;
+                end
+                
+                % remove data points that are either unreasonably large or 0
+                zero_data_points = any(raw_forceplate_trajectories==0, 2);
+                large_data_points = any(abs(raw_forceplate_trajectories)>1e13, 2);
+                bad_data_points = zero_data_points | large_data_points;
+                raw_forceplate_trajectories_without_bad = raw_forceplate_trajectories;
+                raw_forceplate_trajectories_without_bad(bad_data_points, :) = NaN;
+                
+                % store problematic data information
+                saveProblemInformation(date, subject_id, trial_type, trial_number, loaded_data.time_forceplate, zero_data_points, 'zero in forceplate data')
+                saveProblemInformation(date, subject_id, trial_type, trial_number, loaded_data.time_forceplate, large_data_points, 'large value in forceplate data')
 
                 % define filter
                 filter_order_low = study_settings.get('force_plate_filter_order');
                 cutoff_frequency_low = study_settings.get('force_plate_filter_cutoff');
                 if ~isempty(filter_order_low) && ~isempty(cutoff_frequency_low)
                     [b_lowpass, a_lowpass] = butter(filter_order_low, cutoff_frequency_low/(loaded_data.sampling_rate_forceplate/2), 'low');
-                    forceplate_trajectories = filtfilt(b_lowpass, a_lowpass, loaded_data.forceplate_trajectories_raw);
+                    forceplate_trajectories = filtfilt(b_lowpass, a_lowpass, raw_forceplate_trajectories);
+                    forceplate_trajectories = nanfiltfilt(b_lowpass, a_lowpass, raw_forceplate_trajectories_without_bad);
                 else
-                    forceplate_trajectories = loaded_data.forceplate_trajectories_raw;
+                    forceplate_trajectories = raw_forceplate_trajectories;
                 end
 
                 % extract
@@ -278,10 +290,39 @@ function preprocessForceplateData(varargin)
                 % extract
                 time_forceplate = loaded_data.time_forceplate;
                 sampling_rate_forceplate = loaded_data.sampling_rate_forceplate;
+                
+                % consolidate into single variable
+                forceplate_trajectories = ...
+                  [ ...
+                    total_forceplate_wrench_world, ...
+                    total_forceplate_cop_world, ...
+                    left_forceplate_wrench_world, ...
+                    left_forceplate_cop_world, ...
+                    right_forceplate_wrench_world, ...
+                    right_forceplate_cop_world ...
+                  ];
+                forceplate_labels = ...
+                  [ ...
+                    total_wrench_labels, ...
+                    total_cop_labels, ...
+                    left_foot_wrench_labels, ...
+                    left_foot_cop_labels, ...
+                    right_foot_wrench_labels, ...
+                    right_foot_cop_labels ...
+                  ];
+                forceplate_directions = ...
+                  [ ...
+                    wrench_directions, ...
+                    cop_directions, ...
+                    wrench_directions, ...
+                    cop_directions, ...
+                    wrench_directions, ...
+                    cop_directions ...
+                  ];
 
                 % save
                 save_folder = 'processed';
-                save_file_name = makeFileName(date, subject_id, trial_type, trial_number, 'forceplateTrajectories.mat');
+                save_file_name = makeFileName(date, subject_id, trial_type, trial_number, 'forceplateTrajectoriesOld.mat');
                 save ...
                   ( ...
                     [save_folder filesep save_file_name], ...
@@ -345,6 +386,21 @@ function preprocessForceplateData(varargin)
                 addAvailableData('mzr_trajectory', 'time_forceplate', 'sampling_rate_forceplate', 'mzr_trajectory', {'up', 'down'}, save_folder, save_file_name);
 
                 addAvailableData('cop_trajectories', 'time_forceplate', 'sampling_rate_forceplate', '_cop_labels', cop_all_directions, save_folder, save_file_name);
+                
+                % save in new format
+                save_file_name = makeFileName(date, subject_id, trial_type, trial_number, 'forceplateTrajectories.mat');
+                save ...
+                  ( ...
+                    [save_folder filesep save_file_name], ...
+                    'forceplate_trajectories', ...
+                    'forceplate_labels', ...
+                    'time_forceplate', ...
+                    'forceplate_directions', ...
+                    'sampling_rate_forceplate' ...
+                  );
+
+                addAvailableData('forceplate_trajectories', 'time_forceplate', 'sampling_rate_forceplate', '_forceplate_labels', 'forceplate_directions', save_folder, save_file_name);
+                
                 disp(['processed ' raw_forceplate_file_name ' and saved as ' [save_folder filesep save_file_name]])        
             end
         end

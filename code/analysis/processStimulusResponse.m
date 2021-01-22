@@ -114,22 +114,28 @@ function processStimulusResponse(varargin)
         figure; axes; hold on; set(gca, 'ylim', [-0.1, 0.1])
         plot(com_x_pos_midstance_control_data(strcmp(stance_foot_control_data, 'STANCE_RIGHT')), 'rx')
         plot(com_x_pos_midstance_control_data(strcmp(stance_foot_control_data, 'STANCE_LEFT')), 'gx')
+        title('CoM position at mid-stance')
+        xlabel('step'); ylabel('CoM (m)')
 
         figure; axes; hold on; set(gca, 'ylim', [-0.1, 0.1])
         plot(com_x_vel_midstance_control_data(strcmp(stance_foot_control_data, 'STANCE_RIGHT')), 'rx')
         plot(com_x_vel_midstance_control_data(strcmp(stance_foot_control_data, 'STANCE_LEFT')), 'gx')
+        title('CoM velocity at mid-stance')
+        xlabel('step'); ylabel('CoM vel (m/s)')
 
         figure; axes; hold on; set(gca, 'ylim', [-0.25, 0.25])
         plot(step_placement_x_control_data(strcmp(stance_foot_control_data, 'STANCE_RIGHT')), 'rx')
         plot(step_placement_x_control_data(strcmp(stance_foot_control_data, 'STANCE_LEFT')), 'gx')
+        title('Foot placement')
+        xlabel('step'); ylabel('foot placement (m)')
 
-        figure; axes; hold on; set(gca, 'ylim', [-0.25, 0.25])
-        plot(lankle_x_midstance_control_data(strcmp(stance_foot_control_data, 'STANCE_RIGHT')), 'rx')
-        plot(lankle_x_midstance_control_data(strcmp(stance_foot_control_data, 'STANCE_LEFT')), 'gx')
-
-        figure; axes; hold on; set(gca, 'ylim', [-0.25, 0.25])
-        plot(rankle_x_midstance_control_data(strcmp(stance_foot_control_data, 'STANCE_RIGHT')), 'rx')
-        plot(rankle_x_midstance_control_data(strcmp(stance_foot_control_data, 'STANCE_LEFT')), 'gx')
+%         figure; axes; hold on; set(gca, 'ylim', [-0.25, 0.25])
+%         plot(lankle_x_midstance_control_data(strcmp(stance_foot_control_data, 'STANCE_RIGHT')), 'rx')
+%         plot(lankle_x_midstance_control_data(strcmp(stance_foot_control_data, 'STANCE_LEFT')), 'gx')
+% 
+%         figure; axes; hold on; set(gca, 'ylim', [-0.25, 0.25])
+%         plot(rankle_x_midstance_control_data(strcmp(stance_foot_control_data, 'STANCE_RIGHT')), 'rx')
+%         plot(rankle_x_midstance_control_data(strcmp(stance_foot_control_data, 'STANCE_LEFT')), 'gx')
     end
     
     %% fit linear model

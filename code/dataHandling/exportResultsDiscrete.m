@@ -16,9 +16,9 @@
 
 
 % TODO: turn this into a function. For now, hard-code an input
-% source_label = 'ucmAcrossEvents';
-source_label = 'varianceAcrossEvents';
-% source_label = 'displacement';
+source_label = '';
+% source_label = 'Variance';
+% source_label = 'Displacement';
 
 %% load data
 loaded_data = load(['results_' source_label '.mat']);
