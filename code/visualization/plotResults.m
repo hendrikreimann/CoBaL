@@ -232,6 +232,10 @@ end
 
 function figure_data = createFigures_continuous(settings, comparisons, data_custodian)
     figure_data = createFigureData(settings.variables_to_plot_continuous, comparisons);
+    if settings.number_of_variables_to_plot_continuous == 0
+        return
+    end
+    
     step_start_times_cell = cell(comparisons.number_of_comparisons, settings.number_of_variables_to_plot_continuous);
     step_end_times_cell = cell(comparisons.number_of_comparisons, settings.number_of_variables_to_plot_continuous);
     step_time_data = data_custodian.getData('step_time', 'stretch');

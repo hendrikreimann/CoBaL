@@ -161,14 +161,17 @@ function analyzeUcmAcrossEvents(varargin)
     time_list_session = zeros(number_of_stretches, 1); % doesn't apply, but needs to be here for now
     
     %% save data
-%     bands_per_stretch = 1;
     conditions_session = struct;
     conditions_session.subject_list = subject_list_session;
     conditions_session.condition_list = condition_list_session;
     conditions_session.time_point_list = time_point_list_session;
     conditions_session.group_list = group_list_session;
     conditions_session.block_list = block_list_session;
-    results_file_name = makeFileName(collection_date, subject_id, 'resultsUcmAcrossEvents');
+
+    if ~directoryExists('results')
+        mkdir('results')
+    end
+    results_file_name = ['results' filesep makeFileName(collection_date, subject_id, 'resultsUcmAcrossEvents')];
     save ...
       ( ...
         results_file_name, ...

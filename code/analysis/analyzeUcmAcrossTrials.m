@@ -222,7 +222,10 @@ function analyzeUcmAcrossTrials(varargin)
     conditions_session.time_point_list = time_point_list_session;
     conditions_session.group_list = group_list_session;
     conditions_session.block_list = block_list_session;
-    results_file_name = makeFileName(collection_date, subject_id, 'resultsUcmAcrossTrials');
+    if ~directoryExists('results')
+        mkdir('results')
+    end
+    results_file_name = ['results' filesep makeFileName(collection_date, subject_id, 'resultsUcmAcrossTrials')];
     save ...
       ( ...
         results_file_name, ...
