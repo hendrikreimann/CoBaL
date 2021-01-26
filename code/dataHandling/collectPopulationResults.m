@@ -16,6 +16,8 @@
 
 % consolidate data from all subjects
 
+% You can specify the source file, e.g. collectPopulationResults('source', 'ucmAcrossTrials')
+
 function collectPopulationResults(varargin)
 
     parser = inputParser;
@@ -87,11 +89,9 @@ function collectPopulationResults(varargin)
         % get information
         this_data_folder_path = data_folder_list{i_folder};
         subject_settings = loadSettingsFromFile('subject', this_data_folder_path);
-        data_path = data_folder_list{i_folder};
-        
         collection_date = subject_settings.get('collection_date');
         subject_id = subject_settings.get('subject_id');
-        
+        data_path = data_folder_list{i_folder};
         
         results_file_candidate_analysis = [this_data_folder_path filesep 'analysis' filesep makeFileName(collection_date, subject_id, ['results' source_label]) '.mat'];
         results_file_candidate_subject = [this_data_folder_path filesep makeFileName(collection_date, subject_id, ['results' source_label]) '.mat'];
@@ -107,6 +107,10 @@ function collectPopulationResults(varargin)
             results_file_name = results_file_candidate_results;
         end    
         
+        % load data
+        if ~isempty(results_file_name)
+            disp(['loading data from ' results_file_name])
+            results_data = load(results_file_name);
 
     %         results_data = load([data_path filesep date '_' subject_id '_results' source_label '.mat']);
             if ~isempty(variables_to_collect_long)

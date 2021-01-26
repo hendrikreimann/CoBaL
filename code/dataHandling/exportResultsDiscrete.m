@@ -16,8 +16,8 @@
 
 
 % TODO: turn this into a function. For now, hard-code an input
-source_label = '';
-% source_label = 'Variance';
+% source_label = '';
+source_label = 'ucmAcrossTrials';
 % source_label = 'Displacement';
 
 %% load data
