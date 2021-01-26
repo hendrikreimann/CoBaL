@@ -87,7 +87,7 @@ function analyzeUcmAcrossTrials(varargin)
 
             % prepare containers
             number_of_trials_this_condition = length(this_condition_trial_numbers);
-            expected_event_labels = study_settings.get('event_labels_ramp');
+            expected_event_labels = study_settings.get('event_labels_sway');
             number_of_events = length(expected_event_labels);
             joint_data_to_analyze = cell(number_of_events, 1);
             com_data_to_analyze = cell(number_of_events, 1);
@@ -169,27 +169,12 @@ function analyzeUcmAcrossTrials(varargin)
                             [V_para_rand_all_this_event_this_variable, V_perp_rand_all_this_event_this_variable] = calculateUcmVarianceWithRandomization(joint_angle_data_to_analyze_this_event_rand', jacobian, 'all');
 
                             % store calculated measures
-%                             ucm_data_session{strcmp(ucm_names_session, [this_variable_label '_Vpara'])} = [ucm_data_session{strcmp(ucm_names_session, [this_variable_label '_Vpara'])} V_para_this_event_this_variable];
-%                             ucm_data_session{strcmp(ucm_names_session, [this_variable_label '_Vperp'])} = [ucm_data_session{strcmp(ucm_names_session, [this_variable_label '_Vperp'])} V_perp_this_event_this_variable];
-%                             ucm_data_session{strcmp(ucm_names_session, [this_variable_label '_Vpara_rand_ankle'])} = [ucm_data_session{strcmp(ucm_names_session, [this_variable_label '_Vpara_rand_ankle'])} V_para_rand_1_this_event_this_variable];
-%                             ucm_data_session{strcmp(ucm_names_session, [this_variable_label '_Vperp_rand_ankle'])} = [ucm_data_session{strcmp(ucm_names_session, [this_variable_label '_Vperp_rand_ankle'])} V_perp_rand_1_this_event_this_variable];
-%                             ucm_data_session{strcmp(ucm_names_session, [this_variable_label '_Vpara_rand_knee'])} = [ucm_data_session{strcmp(ucm_names_session, [this_variable_label '_Vpara_rand_knee'])} V_para_rand_2_this_event_this_variable];
-%                             ucm_data_session{strcmp(ucm_names_session, [this_variable_label '_Vperp_rand_knee'])} = [ucm_data_session{strcmp(ucm_names_session, [this_variable_label '_Vperp_rand_knee'])} V_perp_rand_2_this_event_this_variable];
-%                             ucm_data_session{strcmp(ucm_names_session, [this_variable_label '_Vpara_rand_hip'])} = [ucm_data_session{strcmp(ucm_names_session, [this_variable_label '_Vpara_rand_hip'])} V_para_rand_3_this_event_this_variable];
-%                             ucm_data_session{strcmp(ucm_names_session, [this_variable_label '_Vperp_rand_hip'])} = [ucm_data_session{strcmp(ucm_names_session, [this_variable_label '_Vperp_rand_hip'])} V_perp_rand_3_this_event_this_variable];
-%                             ucm_data_session{strcmp(ucm_names_session, [this_variable_label '_Vpara_rand_neck'])} = [ucm_data_session{strcmp(ucm_names_session, [this_variable_label '_Vpara_rand_neck'])} V_para_rand_4_this_event_this_variable];
-%                             ucm_data_session{strcmp(ucm_names_session, [this_variable_label '_Vperp_rand_neck'])} = [ucm_data_session{strcmp(ucm_names_session, [this_variable_label '_Vperp_rand_neck'])} V_perp_rand_4_this_event_this_variable];
-%                             ucm_data_session{strcmp(ucm_names_session, [this_variable_label '_Vpara_rand_all'])} = [ucm_data_session{strcmp(ucm_names_session, [this_variable_label '_Vpara_rand_all'])} V_para_rand_all_this_event_this_variable];
-%                             ucm_data_session{strcmp(ucm_names_session, [this_variable_label '_Vperp_rand_all'])} = [ucm_data_session{strcmp(ucm_names_session, [this_variable_label '_Vperp_rand_all'])} V_perp_rand_all_this_event_this_variable];
                             ucm_data_session{strcmp(ucm_names_session, this_variable_label)} = [ucm_data_session{strcmp(ucm_names_session, this_variable_label)} [V_para_this_event_this_variable; V_perp_this_event_this_variable]];
                             ucm_data_session{strcmp(ucm_names_session, [this_variable_label '_rand_ankle'])} = [ucm_data_session{strcmp(ucm_names_session, [this_variable_label '_rand_ankle'])} [V_para_rand_1_this_event_this_variable; V_perp_rand_1_this_event_this_variable]];
                             ucm_data_session{strcmp(ucm_names_session, [this_variable_label '_rand_knee'])} = [ucm_data_session{strcmp(ucm_names_session, [this_variable_label '_rand_knee'])} [V_para_rand_2_this_event_this_variable; V_perp_rand_2_this_event_this_variable]];
                             ucm_data_session{strcmp(ucm_names_session, [this_variable_label '_rand_hip'])} = [ucm_data_session{strcmp(ucm_names_session, [this_variable_label '_rand_hip'])} [V_para_rand_3_this_event_this_variable; V_perp_rand_3_this_event_this_variable]];
                             ucm_data_session{strcmp(ucm_names_session, [this_variable_label '_rand_neck'])} = [ucm_data_session{strcmp(ucm_names_session, [this_variable_label '_rand_neck'])} [V_para_rand_4_this_event_this_variable; V_perp_rand_4_this_event_this_variable]];
                             ucm_data_session{strcmp(ucm_names_session, [this_variable_label '_rand_all'])} = [ucm_data_session{strcmp(ucm_names_session, [this_variable_label '_rand_all'])} [V_para_rand_all_this_event_this_variable; V_perp_rand_all_this_event_this_variable]];
-
-
-
                         end
 
                         % store supplementary information
@@ -202,9 +187,6 @@ function analyzeUcmAcrossTrials(varargin)
                     end
                 end
             end
-            
-            
-            
         end
     end
 
@@ -215,7 +197,6 @@ function analyzeUcmAcrossTrials(varargin)
     time_list_session = zeros(number_of_stretches, 1); % doesn't apply, but needs to be here for now
     
     %% save data
-%     bands_per_stretch = 1;
     conditions_session = struct;
     conditions_session.subject_list = subject_list_session;
     conditions_session.condition_list = condition_list_session;

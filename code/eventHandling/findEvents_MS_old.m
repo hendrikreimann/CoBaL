@@ -89,17 +89,20 @@ function findEvents_MS_old(varargin)
                 platform_peak_events = time_marker(platform_peak_indices);
                 platform_vale_indices = platform_neg_peak_indices;
                 platform_vale_events = time_marker(platform_vale_indices);
-                
-                event_data = ...
-                  { ...
-                    platform_peak_events; ...
-                    platform_vale_events; ...
-                  };
-                event_labels = ...
-                  { ...
-                    'oscillation_peaks'; ...
-                    'oscillation_vales'; ...
-                  };
+                number_of_peaks = length(platform_peak_indices);
+                number_of_vales = length(platform_vale_indices);
+
+                % store
+                event_data = cell(number_of_peaks + number_of_vales, 1);
+                event_labels = cell(number_of_peaks + number_of_vales, 1);
+                for i_peak = 1 : number_of_peaks
+                    event_data{i_peak} = platform_peak_events(i_peak);
+                    event_labels{i_peak} = ['peak' zeroPrefixedIntegerString(i_peak, 2)];
+                end
+                for i_vale = 1 : number_of_vales
+                    event_data{number_of_peaks + i_vale} = platform_vale_events(i_vale);
+                    event_labels{number_of_peaks + i_vale} = ['vale' zeroPrefixedIntegerString(i_vale, 2)];
+                end
             end
             
             if length(this_trial_type) >= 4 && strcmp(this_trial_type(1:4), 'ramp')

@@ -75,7 +75,7 @@ function analyzeVarianceAcrossTrials(varargin)
 
             % prepare containers
             number_of_trials_this_condition = length(this_condition_trial_numbers);
-            expected_event_labels = study_settings.get('event_labels_ramp');
+            expected_event_labels = study_settings.get('event_labels_sway');
             number_of_events = length(expected_event_labels);
             joint_data_to_analyze = cell(number_of_events, 1);
             com_data_to_analyze = cell(number_of_events, 1);
@@ -121,7 +121,7 @@ function analyzeVarianceAcrossTrials(varargin)
                     eef_data_this_event = eef_trajectories(event_indices_mocap(i_event), :);
                     eef_data_to_analyze{i_event} = [eef_data_to_analyze{i_event}; eef_data_this_event];
                 end
-                origin_trial_numbers = [origin_trial_numbers; i_trial]; %#ok<AGROW>
+                origin_trial_numbers = [origin_trial_numbers; this_condition_trial_numbers(i_trial)]; %#ok<AGROW>
             end
 
             % calculate and store variance measures
