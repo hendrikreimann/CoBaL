@@ -97,11 +97,11 @@ function findEvents_MS_old(varargin)
                 event_labels = cell(number_of_peaks + number_of_vales, 1);
                 for i_peak = 1 : number_of_peaks
                     event_data{i_peak} = platform_peak_events(i_peak);
-                    event_labels{i_peak} = ['peak' zeroPrefixedIntegerString(i_peak, 2)];
+                    event_labels{i_peak} = ['peak_' zeroPrefixedIntegerString(i_peak, 2)];
                 end
                 for i_vale = 1 : number_of_vales
                     event_data{number_of_peaks + i_vale} = platform_vale_events(i_vale);
-                    event_labels{number_of_peaks + i_vale} = ['vale' zeroPrefixedIntegerString(i_vale, 2)];
+                    event_labels{number_of_peaks + i_vale} = ['vale_' zeroPrefixedIntegerString(i_vale, 2)];
                 end
             end
             
