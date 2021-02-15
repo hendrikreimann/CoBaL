@@ -91,21 +91,13 @@ classdef WalkingDataCustodian < handle
             
             % load this information from the subjects.mat and studySettings.txt files
             this.data_directory = data_directory;
-%             load([data_directory filesep 'subjectInfo.mat'], 'date', 'subject_id');
             this.date = collection_date;
             this.subject_id = subject_id;
             
             this.subject_info = load([data_directory filesep 'subjectInfo.mat']);
-            this.subject_settings = SettingsCustodian([data_directory filesep 'subjectSettings.txt']);
-            % load settings
-            study_settings_file = '';
-            if exist([data_directory filesep '..' filesep 'studySettings.txt'], 'file')
-                study_settings_file = [data_directory filesep '..' filesep 'studySettings.txt'];
-            end    
-            if exist([data_directory filesep '..' filesep '..' filesep 'studySettings.txt'], 'file')
-                study_settings_file = [data_directory filesep '..' filesep '..' filesep 'studySettings.txt'];
-            end
-            this.study_settings = SettingsCustodian(study_settings_file);
+            this.subject_settings = subject_settings;
+            this.study_settings = loadSettingsFromFile('study', data_directory);
+
             emg_normalization_file_name = [data_directory filesep 'analysis' filesep makeFileName(date, subject_id, 'emgNormalization.mat')];
             if exist(emg_normalization_file_name, 'file')
                 emg_normalization_data = load(emg_normalization_file_name);
@@ -144,9 +136,17 @@ classdef WalkingDataCustodian < handle
                     this_variable_type = this_variable_split{1};
                     this_variable_label = this_variable_split{2};
                     
-                    this.addBasicVariable([this_variable_type '_trajectories'])
-                    this.addStretchVariable(this_variable_name)
+                    if strcmp(this_variable_type, 'elementary')
+                        % not a true compound, but label is elementary variable
+                        this.addBasicVariable(this_variable_label)
+                        this.addStretchVariable(this_variable_label)
+                    else
+                        % this is a true compound
+                        this.addBasicVariable([this_variable_type '_trajectories'])
+                        this.addStretchVariable(this_variable_name)
+                    end
                 end
+                
             end
             
             
@@ -240,8 +240,7 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('com_y_vel')
                 this.addStretchVariable('xcom_y')
             end
-%% Added by ASH            
-             if this.isVariableToAnalyze('xcom_mpsis_x')
+            if this.isVariableToAnalyze('xcom_mpsis_x')
                 this.addBasicVariable('marker_trajectories')
                 this.addBasicVariable('lankle_x')
                 this.addBasicVariable('rankle_x')
@@ -268,9 +267,35 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('mpsis_z')
                 this.addBasicVariable('mpsis_y_vel')
                 this.addStretchVariable('xcom_mpsis_y')
-            end    
-%% ASH end            
-            
+            end               
+            if this.isVariableToAnalyze('xcom_rough_x')
+                this.addBasicVariable('marker_trajectories')
+                this.addBasicVariable('lankle_x')
+                this.addBasicVariable('rankle_x')
+                this.addBasicVariable('lankle_y')
+                this.addBasicVariable('rankle_y')
+                this.addBasicVariable('lankle_z')
+                this.addBasicVariable('rankle_z')
+                this.addBasicVariable('com_rough_x')
+                this.addBasicVariable('com_rough_y')
+                this.addBasicVariable('com_rough_z')
+                this.addBasicVariable('com_rough_x_vel')
+                this.addStretchVariable('xcom_rough_x')
+            end  
+            if this.isVariableToAnalyze('xcom_rough_y')
+                this.addBasicVariable('marker_trajectories')
+                this.addBasicVariable('lankle_x')
+                this.addBasicVariable('rankle_x')
+                this.addBasicVariable('lankle_y')
+                this.addBasicVariable('rankle_y')
+                this.addBasicVariable('lankle_z')
+                this.addBasicVariable('rankle_z')
+                this.addBasicVariable('com_rough_x')
+                this.addBasicVariable('com_rough_y')
+                this.addBasicVariable('com_rough_z')
+                this.addBasicVariable('com_rough_y_vel')
+                this.addStretchVariable('xcom_rough_y')
+            end                         
             if this.isVariableToAnalyze('mos_x')
                 this.addBasicVariable('marker_trajectories')
                 this.addBasicVariable('ltoel_x')
@@ -289,6 +314,7 @@ classdef WalkingDataCustodian < handle
                 this.addStretchVariable('xcom_x')
                 this.addStretchVariable('mos_x')
             end
+           
             if this.isVariableToAnalyze('mos_y')
                 this.addBasicVariable('marker_trajectories')
                 this.addBasicVariable('ltoel_y')
@@ -307,7 +333,6 @@ classdef WalkingDataCustodian < handle
                 this.addStretchVariable('xcom_y')
                 this.addStretchVariable('mos_y')
             end
-%% Added by ASH           
             if this.isVariableToAnalyze('mos_mpsis_x')
                 this.addBasicVariable('marker_trajectories')
                 this.addBasicVariable('ltoel_x')
@@ -342,7 +367,40 @@ classdef WalkingDataCustodian < handle
                 this.addStretchVariable('xcom_mpsis_y')
                 this.addStretchVariable('mos_mpsis_y')
             end
-%% ASH end
+            if this.isVariableToAnalyze('mos_rough_x')
+                this.addBasicVariable('marker_trajectories')
+                this.addBasicVariable('ltoel_x')
+                this.addBasicVariable('rtoel_x')
+                this.addBasicVariable('lankle_x')
+                this.addBasicVariable('rankle_x')
+                this.addBasicVariable('lankle_y')
+                this.addBasicVariable('rankle_y')
+                this.addBasicVariable('lankle_z')
+                this.addBasicVariable('rankle_z')
+                this.addBasicVariable('com_rough_x')
+                this.addBasicVariable('com_rough_y')
+                this.addBasicVariable('com_rough_z')
+                this.addBasicVariable('com_rough_x_vel')
+                this.addStretchVariable('xcom_rough_x')
+                this.addStretchVariable('mos_rough_x')
+            end
+            if this.isVariableToAnalyze('mos_rough_y')
+                this.addBasicVariable('marker_trajectories')
+                this.addBasicVariable('ltoel_y')
+                this.addBasicVariable('rtoel_y')
+                this.addBasicVariable('lankle_x')
+                this.addBasicVariable('rankle_x')
+                this.addBasicVariable('lankle_y')
+                this.addBasicVariable('rankle_y')
+                this.addBasicVariable('lankle_z')
+                this.addBasicVariable('rankle_z')
+                this.addBasicVariable('com_rough_x')
+                this.addBasicVariable('com_rough_y')
+                this.addBasicVariable('com_rough_z')
+                this.addBasicVariable('com_rough_y_vel')
+                this.addStretchVariable('xcom_rough_y')
+                this.addStretchVariable('mos_rough_y')
+            end
             if this.isVariableToAnalyze('lheel_y')
                 this.addBasicVariable('marker_trajectories')
                 this.addBasicVariable('lheel_y')
@@ -463,6 +521,9 @@ classdef WalkingDataCustodian < handle
                 this.addStretchVariable('step_time')
                 this.addStretchVariable('pushoff_time')
             end
+            if this.isVariableToAnalyze('midswing_event_time')
+                this.addStretchVariable('midswing_event_time')
+            end
             if this.isVariableToAnalyze('midstance_index')
                 this.addBasicVariable('lankle_y')
                 this.addBasicVariable('rankle_y')
@@ -528,6 +589,18 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('mpsis_z')
                 this.addStretchVariable('mpsis_z')
             end
+            if this.isVariableToAnalyze('com_rough_x')
+                this.addBasicVariable('com_rough_x')
+                this.addStretchVariable('com_rough_x')
+            end
+            if this.isVariableToAnalyze('com_rough_y')
+                this.addBasicVariable('com_rough_y')
+                this.addStretchVariable('com_rough_y')
+            end  
+            if this.isVariableToAnalyze('com_rough_z')
+                this.addBasicVariable('com_rough_z')
+                this.addStretchVariable('com_rough_z')
+            end
             if this.isVariableToAnalyze('mpsis_x_vel')
                 this.addBasicVariable('mpsis_x')
                 this.addBasicVariable('mpsis_x_vel')
@@ -538,6 +611,16 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('mpsis_y_vel')
                 this.addStretchVariable('mpsis_y_vel')
             end
+            if this.isVariableToAnalyze('com_rough_x_vel')
+                this.addBasicVariable('com_rough_x')
+                this.addBasicVariable('com_rough_x_vel')
+                this.addStretchVariable('com_rough_x_vel')
+            end  
+            if this.isVariableToAnalyze('com_rough_y_vel')
+                this.addBasicVariable('com_rough_y')
+                this.addBasicVariable('com_rough_y_vel')
+                this.addStretchVariable('com_rough_y_vel')
+            end 
             if this.isVariableToAnalyze('cop_from_com_x')
                 this.addBasicVariable('total_forceplate_cop_world')
                 this.addBasicVariable('cop_x')
@@ -1136,7 +1219,15 @@ classdef WalkingDataCustodian < handle
             % check if this is a sub-variable
             if any(variable_name==':')
                 this_variable_split = strsplit(variable_name, ':');
-                name_to_use = [this_variable_split{1} '_trajectories'];
+                this_variable_type = this_variable_split{1};
+                this_variable_label = this_variable_split{2};
+                if strcmp(this_variable_type, 'elementary')
+                    % not a true compound, but label is elementary variable
+                    name_to_use = this_variable_label;
+                else                    
+                    % this is a true compound
+                    name_to_use = [this_variable_type '_trajectories'];
+                end
             else
                 name_to_use = variable_name;
             end
@@ -1148,11 +1239,23 @@ classdef WalkingDataCustodian < handle
             % unpack name
             if any(variable_name==':')
                 this_variable_split = strsplit(variable_name, ':');
-                name_to_use = [this_variable_split{1} '_trajectories'];
-                label_to_use = this_variable_split{2};
-                trajectory_data = this.basic_variable_data.(name_to_use);
-                trajectory_labels = this.basic_variable_labels.(name_to_use);
-                variable_data = trajectory_data(:, strcmp(trajectory_labels, label_to_use));
+                this_variable_type = this_variable_split{1};
+                this_variable_label = this_variable_split{2};
+                
+                if strcmp(this_variable_type, 'elementary')
+                    % not a true compound, but label is elementary variable
+                    name_to_use = this_variable_label;
+                    variable_data = this.basic_variable_data.(name_to_use);
+                else                    
+                    % this is a true compound
+                    name_to_use = [this_variable_type '_trajectories'];
+                    label_to_use = this_variable_label;
+                    trajectory_data = this.basic_variable_data.(name_to_use);
+                    trajectory_labels = this.basic_variable_labels.(name_to_use);
+                    variable_data = trajectory_data(:, strcmp(trajectory_labels, label_to_use));
+                end
+                
+                
                 
             else
                 name_to_use = variable_name;
@@ -1187,10 +1290,10 @@ classdef WalkingDataCustodian < handle
             this.time_data = struct;
             this.trial_type = trial_type;
             this.trial_number = trial_number;
-            
+
             % prepare the data by loading all the basic variables from disk and calculating the required variables
             load(['analysis' filesep makeFileName(this.date, this.subject_id, trial_type, trial_number, 'availableVariables')], 'available_variables');
-            
+
             % load basic variables
             for i_variable = 1 : length(variables_to_prepare)
                 variable_name = variables_to_prepare{i_variable};
@@ -1211,9 +1314,22 @@ classdef WalkingDataCustodian < handle
                     this_variable_split = strsplit(variable_name, ':');
                     this_variable_type = this_variable_split{1};
                     this_variable_label = this_variable_split{2};
-                    if any(strcmp(this.basic_variable_labels.([this_variable_type '_trajectories']), this_variable_label))
-                        % found this label in the data, so all is good
-                        success = 1;
+                    if strcmp(this_variable_type, 'elementary')
+                        % not a true compound, but label is elementary variable
+                        [data, time, sampling_rate, labels, directions, success] = loadData(this.date, this.subject_id, trial_type, trial_number, this_variable_label, 'optional'); %#ok<ASGLU>
+                        if success
+                            eval(['this.basic_variable_data.' this_variable_label ' = data;']);
+                            eval(['this.time_data.' this_variable_label ' = time;']);
+                            eval(['this.basic_variable_labels.' this_variable_label ' = labels;']);
+                            eval(['this.basic_variable_directions.' this_variable_label ' = directions;']);
+                        end
+                        
+                    else                    
+                        % this is a true compound
+                        if any(strcmp(this.basic_variable_labels.([this_variable_type '_trajectories']), this_variable_label))
+                            % found this label in the data, so all is good
+                            success = 1;
+                        end
                     end
                 end
 
@@ -1468,7 +1584,359 @@ classdef WalkingDataCustodian < handle
                     this.basic_variable_directions.mpsis_z = LPSI_directions;
                     this.time_data.mpsis_z = this.time_data.marker_trajectories;
                     success = 1;
-                end                
+                end
+                if strcmp(variable_name, 'com_rough_x')
+                    component_x = 1;
+                    
+                    % grab required marker trajectories
+                    LASI_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LASI');
+                    RASI_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RASI');
+                    LPSI_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LPSI');
+                    RPSI_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RPSI');
+                    LKNE_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LKNE');
+                    RKNE_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RKNE');
+                    LANK_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LANK');
+                    RANK_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RANK');
+                    LTOE_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LTOE');
+                    RTOE_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RTOE');
+                    C7_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'C7');
+                    LFHD_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LFHD');
+                    RFHD_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RFHD');
+                    LBHD_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LBHD');
+                    RBHD_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RBHD');
+                    
+                    % calculate joint center trajectories
+                    hip_left_center = (LASI_trajectory + LPSI_trajectory) * 0.5;
+                    hip_right_center = (RASI_trajectory + RPSI_trajectory) * 0.5;
+                    head_tip = (LFHD_trajectory + RFHD_trajectory + LBHD_trajectory + RBHD_trajectory) * 0.25;
+                    
+                    % calculate segment center trajectories
+                    pelvis_center = (hip_left_center + hip_right_center) * 0.5;
+                    trunk_center = (pelvis_center + C7_trajectory) * 0.5;
+                    head_center = (C7_trajectory + head_tip) * 0.5;
+                    thigh_left_center = (hip_left_center + LKNE_trajectory) * 0.5;
+                    thigh_right_center = (hip_right_center + RKNE_trajectory) * 0.5;
+                    shank_left_center = (LKNE_trajectory + LANK_trajectory) * 0.5;
+                    shank_right_center = (RKNE_trajectory + RANK_trajectory) * 0.5;
+                    foot_left_center = (LANK_trajectory + LTOE_trajectory) * 0.5;
+                    foot_right_center = (RANK_trajectory + RTOE_trajectory) * 0.5;
+                    
+                    % define weight factors                
+                    % according to R. Dumas , L. Cheze, J.-P. Verriest: "Adjustments to McConville et al. and Young et al. body
+                    % segment inertial parameters", Journal of Biomechanics 40 (2007) 543?553
+                    head_mass_factor      = 0.067;
+                    torso_mass_factor     = 0.333;
+                    arm_mass_factor       = 0.024;
+                    forearm_mass_factor   = 0.017;
+                    hand_mass_factor      = 0.006;
+                    pelvis_mass_factor    = 0.142;
+                    thigh_mass_factor     = 0.123;
+                    shank_mass_factor     = 0.048;
+                    foot_mass_factor      = 0.012;
+                    
+                    w_head = head_mass_factor;
+                    w_hat = torso_mass_factor + 2*arm_mass_factor + 2*forearm_mass_factor + 2*hand_mass_factor;
+                    w_pelvis = pelvis_mass_factor;
+                    w_thigh = thigh_mass_factor;
+                    w_shank = shank_mass_factor;
+                    w_foot = foot_mass_factor;
+                    
+                    % calculate CoM as weighted sum
+                    com_trajectory = ...
+                        w_head * head_center ...
+                        + w_hat * trunk_center ...
+                        + w_pelvis * pelvis_center ...
+                        + w_thigh * thigh_left_center ...
+                        + w_thigh * thigh_right_center ...
+                        + w_shank * shank_left_center ...
+                        + w_shank * shank_right_center ...
+                        + w_foot * foot_left_center ...
+                        + w_foot * foot_right_center ...
+                        ;
+                    this.basic_variable_data.(variable_name) = com_trajectory(:, component_x);
+                    
+                    % check directions
+                    LPSI_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LPSI', 'indices');
+                    RPSI_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RPSI', 'indices');
+                    LASI_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LASI', 'indices');
+                    RASI_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RASI', 'indices');
+                    LKNE_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LKNE', 'indices');
+                    RKNE_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RKNE', 'indices');
+                    LANK_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LANK', 'indices');
+                    RANK_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RANK', 'indices');
+                    LTOE_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LTOE', 'indices');
+                    RTOE_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RTOE', 'indices');
+                    C7_indices   = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'C7', 'indices');
+                    LFHD_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LFHD', 'indices');
+                    RFHD_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RFHD', 'indices');
+                    LBHD_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LBHD', 'indices');
+                    RBHD_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RBHD', 'indices');
+                    
+                    LPSI_directions = this.basic_variable_directions.marker_trajectories(:, LPSI_indices(component_x));
+                    RPSI_directions = this.basic_variable_directions.marker_trajectories(:, RPSI_indices(component_x));
+                    LASI_directions = this.basic_variable_directions.marker_trajectories(:, LASI_indices(component_x));
+                    RASI_directions = this.basic_variable_directions.marker_trajectories(:, RASI_indices(component_x));
+                    LKNE_directions = this.basic_variable_directions.marker_trajectories(:, LKNE_indices(component_x));
+                    RKNE_directions = this.basic_variable_directions.marker_trajectories(:, RKNE_indices(component_x));
+                    LANK_directions = this.basic_variable_directions.marker_trajectories(:, LANK_indices(component_x));
+                    RANK_directions = this.basic_variable_directions.marker_trajectories(:, RANK_indices(component_x));
+                    LTOE_directions = this.basic_variable_directions.marker_trajectories(:, LTOE_indices(component_x));
+                    RTOE_directions = this.basic_variable_directions.marker_trajectories(:, RTOE_indices(component_x));
+                    LFHD_directions = this.basic_variable_directions.marker_trajectories(:, LFHD_indices(component_x));
+                    RFHD_directions = this.basic_variable_directions.marker_trajectories(:, RFHD_indices(component_x));
+                    LBHD_directions = this.basic_variable_directions.marker_trajectories(:, LBHD_indices(component_x));
+                    RBHD_directions = this.basic_variable_directions.marker_trajectories(:, RBHD_indices(component_x));
+                    C7_directions = this.basic_variable_directions.marker_trajectories(:, C7_indices(component_x));
+                    
+                    all_directions = ...
+                      [
+                        LPSI_directions, RPSI_directions, LASI_directions, RASI_directions, ...
+                        LKNE_directions, RKNE_directions, LANK_directions, RANK_directions, LTOE_directions, RTOE_directions, ...
+                        LFHD_directions, RFHD_directions, LBHD_directions, RBHD_directions, C7_directions ...
+                      ]';
+                    unique_directions = unique(cell2table(all_directions), 'rows');
+                    if height(unique_directions) > 1
+                        error('different directions found in marker data for rough CoM estimate')
+                    end
+                    this.basic_variable_directions.(variable_name)= LPSI_directions;
+                    this.time_data.(variable_name) = this.time_data.marker_trajectories;
+                    success = 1;
+                end
+                if strcmp(variable_name, 'com_rough_y')
+                    component_y = 2;
+                    
+                    % grab required marker trajectories
+                    LASI_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LASI');
+                    RASI_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RASI');
+                    LPSI_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LPSI');
+                    RPSI_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RPSI');
+                    LKNE_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LKNE');
+                    RKNE_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RKNE');
+                    LANK_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LANK');
+                    RANK_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RANK');
+                    LTOE_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LTOE');
+                    RTOE_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RTOE');
+                    C7_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'C7');
+                    LFHD_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LFHD');
+                    RFHD_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RFHD');
+                    LBHD_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LBHD');
+                    RBHD_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RBHD');
+                    
+                    % calculate joint center trajectories
+                    hip_left_center = (LASI_trajectory + LPSI_trajectory) * 0.5;
+                    hip_right_center = (RASI_trajectory + RPSI_trajectory) * 0.5;
+                    head_tip = (LFHD_trajectory + RFHD_trajectory + LBHD_trajectory + RBHD_trajectory) * 0.25;
+                    
+                    % calculate segment center trajectories
+                    pelvis_center = (hip_left_center + hip_right_center) * 0.5;
+                    trunk_center = (pelvis_center + C7_trajectory) * 0.5;
+                    head_center = (C7_trajectory + head_tip) * 0.5;
+                    thigh_left_center = (hip_left_center + LKNE_trajectory) * 0.5;
+                    thigh_right_center = (hip_right_center + RKNE_trajectory) * 0.5;
+                    shank_left_center = (LKNE_trajectory + LANK_trajectory) * 0.5;
+                    shank_right_center = (RKNE_trajectory + RANK_trajectory) * 0.5;
+                    foot_left_center = (LANK_trajectory + LTOE_trajectory) * 0.5;
+                    foot_right_center = (RANK_trajectory + RTOE_trajectory) * 0.5;
+                    
+                    % define weight factors                
+                    % according to R. Dumas , L. Cheze, J.-P. Verriest: "Adjustments to McConville et al. and Young et al. body
+                    % segment inertial parameters", Journal of Biomechanics 40 (2007) 543?553
+                    head_mass_factor      = 0.067;
+                    torso_mass_factor     = 0.333;
+                    arm_mass_factor       = 0.024;
+                    forearm_mass_factor   = 0.017;
+                    hand_mass_factor      = 0.006;
+                    pelvis_mass_factor    = 0.142;
+                    thigh_mass_factor     = 0.123;
+                    shank_mass_factor     = 0.048;
+                    foot_mass_factor      = 0.012;
+                    
+                    w_head = head_mass_factor;
+                    w_hat = torso_mass_factor + 2*arm_mass_factor + 2*forearm_mass_factor + 2*hand_mass_factor;
+                    w_pelvis = pelvis_mass_factor;
+                    w_thigh = thigh_mass_factor;
+                    w_shank = shank_mass_factor;
+                    w_foot = foot_mass_factor;
+                    
+                    % calculate CoM as weighted sum
+                    com_trajectory = ...
+                        w_head * head_center ...
+                        + w_hat * trunk_center ...
+                        + w_pelvis * pelvis_center ...
+                        + w_thigh * thigh_left_center ...
+                        + w_thigh * thigh_right_center ...
+                        + w_shank * shank_left_center ...
+                        + w_shank * shank_right_center ...
+                        + w_foot * foot_left_center ...
+                        + w_foot * foot_right_center ...
+                        ;
+                    this.basic_variable_data.(variable_name) = com_trajectory(:, component_y);
+                    
+                    % check directions
+                    LPSI_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LPSI', 'indices');
+                    RPSI_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RPSI', 'indices');
+                    LASI_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LASI', 'indices');
+                    RASI_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RASI', 'indices');
+                    LKNE_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LKNE', 'indices');
+                    RKNE_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RKNE', 'indices');
+                    LANK_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LANK', 'indices');
+                    RANK_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RANK', 'indices');
+                    LTOE_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LTOE', 'indices');
+                    RTOE_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RTOE', 'indices');
+                    C7_indices   = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'C7', 'indices');
+                    LFHD_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LFHD', 'indices');
+                    RFHD_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RFHD', 'indices');
+                    LBHD_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LBHD', 'indices');
+                    RBHD_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RBHD', 'indices');
+                    
+                    LPSI_directions = this.basic_variable_directions.marker_trajectories(:, LPSI_indices(component_y));
+                    RPSI_directions = this.basic_variable_directions.marker_trajectories(:, RPSI_indices(component_y));
+                    LASI_directions = this.basic_variable_directions.marker_trajectories(:, LASI_indices(component_y));
+                    RASI_directions = this.basic_variable_directions.marker_trajectories(:, RASI_indices(component_y));
+                    LKNE_directions = this.basic_variable_directions.marker_trajectories(:, LKNE_indices(component_y));
+                    RKNE_directions = this.basic_variable_directions.marker_trajectories(:, RKNE_indices(component_y));
+                    LANK_directions = this.basic_variable_directions.marker_trajectories(:, LANK_indices(component_y));
+                    RANK_directions = this.basic_variable_directions.marker_trajectories(:, RANK_indices(component_y));
+                    LTOE_directions = this.basic_variable_directions.marker_trajectories(:, LTOE_indices(component_y));
+                    RTOE_directions = this.basic_variable_directions.marker_trajectories(:, RTOE_indices(component_y));
+                    LFHD_directions = this.basic_variable_directions.marker_trajectories(:, LFHD_indices(component_y));
+                    RFHD_directions = this.basic_variable_directions.marker_trajectories(:, RFHD_indices(component_y));
+                    LBHD_directions = this.basic_variable_directions.marker_trajectories(:, LBHD_indices(component_y));
+                    RBHD_directions = this.basic_variable_directions.marker_trajectories(:, RBHD_indices(component_y));
+                    C7_directions = this.basic_variable_directions.marker_trajectories(:, C7_indices(component_y));
+                    
+                    all_directions = ...
+                      [
+                        LPSI_directions, RPSI_directions, LASI_directions, RASI_directions, ...
+                        LKNE_directions, RKNE_directions, LANK_directions, RANK_directions, LTOE_directions, RTOE_directions, ...
+                        LFHD_directions, RFHD_directions, LBHD_directions, RBHD_directions, C7_directions ...
+                      ]';
+                    unique_directions = unique(cell2table(all_directions), 'rows');
+                    if height(unique_directions) > 1
+                        error('different directions found in marker data for rough CoM estimate')
+                    end
+                    this.basic_variable_directions.(variable_name)= LPSI_directions;
+                    this.time_data.(variable_name) = this.time_data.marker_trajectories;
+                    success = 1;
+                end
+                if strcmp(variable_name, 'com_rough_z')
+                    component_z = 3;
+                    
+                    % grab required marker trajectories
+                    LASI_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LASI');
+                    RASI_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RASI');
+                    LPSI_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LPSI');
+                    RPSI_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RPSI');
+                    LKNE_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LKNE');
+                    RKNE_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RKNE');
+                    LANK_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LANK');
+                    RANK_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RANK');
+                    LTOE_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LTOE');
+                    RTOE_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RTOE');
+                    C7_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'C7');
+                    LFHD_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LFHD');
+                    RFHD_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RFHD');
+                    LBHD_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LBHD');
+                    RBHD_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RBHD');
+                    
+                    % calculate joint center trajectories
+                    hip_left_center = (LASI_trajectory + LPSI_trajectory) * 0.5;
+                    hip_right_center = (RASI_trajectory + RPSI_trajectory) * 0.5;
+                    head_tip = (LFHD_trajectory + RFHD_trajectory + LBHD_trajectory + RBHD_trajectory) * 0.25;
+                    
+                    % calculate segment center trajectories
+                    pelvis_center = (hip_left_center + hip_right_center) * 0.5;
+                    trunk_center = (pelvis_center + C7_trajectory) * 0.5;
+                    head_center = (C7_trajectory + head_tip) * 0.5;
+                    thigh_left_center = (hip_left_center + LKNE_trajectory) * 0.5;
+                    thigh_right_center = (hip_right_center + RKNE_trajectory) * 0.5;
+                    shank_left_center = (LKNE_trajectory + LANK_trajectory) * 0.5;
+                    shank_right_center = (RKNE_trajectory + RANK_trajectory) * 0.5;
+                    foot_left_center = (LANK_trajectory + LTOE_trajectory) * 0.5;
+                    foot_right_center = (RANK_trajectory + RTOE_trajectory) * 0.5;
+                    
+                    % define weight factors                
+                    % according to R. Dumas , L. Cheze, J.-P. Verriest: "Adjustments to McConville et al. and Young et al. body
+                    % segment inertial parameters", Journal of Biomechanics 40 (2007) 543?553
+                    head_mass_factor      = 0.067;
+                    torso_mass_factor     = 0.333;
+                    arm_mass_factor       = 0.024;
+                    forearm_mass_factor   = 0.017;
+                    hand_mass_factor      = 0.006;
+                    pelvis_mass_factor    = 0.142;
+                    thigh_mass_factor     = 0.123;
+                    shank_mass_factor     = 0.048;
+                    foot_mass_factor      = 0.012;
+                    
+                    w_head = head_mass_factor;
+                    w_hat = torso_mass_factor + 2*arm_mass_factor + 2*forearm_mass_factor + 2*hand_mass_factor;
+                    w_pelvis = pelvis_mass_factor;
+                    w_thigh = thigh_mass_factor;
+                    w_shank = shank_mass_factor;
+                    w_foot = foot_mass_factor;
+                    
+                    % calculate CoM as weighted sum
+                    com_trajectory = ...
+                        w_head * head_center ...
+                        + w_hat * trunk_center ...
+                        + w_pelvis * pelvis_center ...
+                        + w_thigh * thigh_left_center ...
+                        + w_thigh * thigh_right_center ...
+                        + w_shank * shank_left_center ...
+                        + w_shank * shank_right_center ...
+                        + w_foot * foot_left_center ...
+                        + w_foot * foot_right_center ...
+                        ;
+                    this.basic_variable_data.(variable_name) = com_trajectory(:, component_z);
+                    
+                    % check directions
+                    LPSI_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LPSI', 'indices');
+                    RPSI_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RPSI', 'indices');
+                    LASI_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LASI', 'indices');
+                    RASI_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RASI', 'indices');
+                    LKNE_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LKNE', 'indices');
+                    RKNE_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RKNE', 'indices');
+                    LANK_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LANK', 'indices');
+                    RANK_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RANK', 'indices');
+                    LTOE_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LTOE', 'indices');
+                    RTOE_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RTOE', 'indices');
+                    C7_indices   = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'C7', 'indices');
+                    LFHD_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LFHD', 'indices');
+                    RFHD_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RFHD', 'indices');
+                    LBHD_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LBHD', 'indices');
+                    RBHD_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RBHD', 'indices');
+                    
+                    LPSI_directions = this.basic_variable_directions.marker_trajectories(:, LPSI_indices(component_z));
+                    RPSI_directions = this.basic_variable_directions.marker_trajectories(:, RPSI_indices(component_z));
+                    LASI_directions = this.basic_variable_directions.marker_trajectories(:, LASI_indices(component_z));
+                    RASI_directions = this.basic_variable_directions.marker_trajectories(:, RASI_indices(component_z));
+                    LKNE_directions = this.basic_variable_directions.marker_trajectories(:, LKNE_indices(component_z));
+                    RKNE_directions = this.basic_variable_directions.marker_trajectories(:, RKNE_indices(component_z));
+                    LANK_directions = this.basic_variable_directions.marker_trajectories(:, LANK_indices(component_z));
+                    RANK_directions = this.basic_variable_directions.marker_trajectories(:, RANK_indices(component_z));
+                    LTOE_directions = this.basic_variable_directions.marker_trajectories(:, LTOE_indices(component_z));
+                    RTOE_directions = this.basic_variable_directions.marker_trajectories(:, RTOE_indices(component_z));
+                    LFHD_directions = this.basic_variable_directions.marker_trajectories(:, LFHD_indices(component_z));
+                    RFHD_directions = this.basic_variable_directions.marker_trajectories(:, RFHD_indices(component_z));
+                    LBHD_directions = this.basic_variable_directions.marker_trajectories(:, LBHD_indices(component_z));
+                    RBHD_directions = this.basic_variable_directions.marker_trajectories(:, RBHD_indices(component_z));
+                    C7_directions = this.basic_variable_directions.marker_trajectories(:, C7_indices(component_z));
+                    
+                    all_directions = ...
+                      [
+                        LPSI_directions, RPSI_directions, LASI_directions, RASI_directions, ...
+                        LKNE_directions, RKNE_directions, LANK_directions, RANK_directions, LTOE_directions, RTOE_directions, ...
+                        LFHD_directions, RFHD_directions, LBHD_directions, RBHD_directions, C7_directions ...
+                      ]';
+                    unique_directions = unique(cell2table(all_directions), 'rows');
+                    if height(unique_directions) > 1
+                        error('different directions found in marker data for rough CoM estimate')
+                    end
+                    this.basic_variable_directions.(variable_name)= LPSI_directions;
+                    this.time_data.(variable_name) = this.time_data.marker_trajectories;
+                    success = 1;
+                end
+                
                 if strcmp(variable_name, 'mpsis_x_vel')
                     mpsis_x = this.getBasicVariableData('mpsis_x');
                     mpsis_x(mpsis_x==0) = NaN;
@@ -1505,6 +1973,43 @@ classdef WalkingDataCustodian < handle
                     this.time_data.mpsis_y_vel = time;
                     success = 1;
                 end
+                
+                if strcmp(variable_name, 'com_rough_x_vel')
+                    com_rough_x = this.getBasicVariableData('com_rough_x');
+                    com_rough_x(com_rough_x==0) = NaN;
+                    time = this.getTimeData('com_rough_x');
+                    filter_order = this.study_settings.get('filter_order_com_vel');
+                    cutoff_frequency = this.study_settings.get('filter_cutoff_com_vel');
+                    sampling_rate = 1/median(diff(time));
+                    [b, a] = butter(filter_order, cutoff_frequency/(sampling_rate/2));
+                    if any(~isnan(com_rough_x))
+                        com_rough_x_vel = deriveByTime(nanfiltfilt(b, a, com_rough_x), 1/sampling_rate);
+                    else
+                        com_rough_x_vel = ones(size(com_rough_x)) * NaN;
+                    end
+                    this.basic_variable_data.com_rough_x_vel = com_rough_x_vel;
+                    this.basic_variable_directions.com_rough_x_vel = this.basic_variable_directions.com_rough_x;
+                    this.time_data.com_rough_x_vel = time;
+                    success = 1;
+                end                
+                if strcmp(variable_name, 'com_rough_y_vel')
+                    com_rough_y = this.getBasicVariableData('com_rough_y');
+                    com_rough_y(com_rough_y==0) = NaN;
+                    time = this.getTimeData('com_rough_y');
+                    filter_order = this.study_settings.get('filter_order_com_vel');
+                    cutoff_frequency = this.study_settings.get('filter_cutoff_com_vel');
+                    sampling_rate = 1/median(diff(time));
+                    [b, a] = butter(filter_order, cutoff_frequency/(sampling_rate/2));
+                    if any(~isnan(com_rough_y))
+                        com_rough_y_vel = deriveByTime(nanfiltfilt(b, a, com_rough_y), 1/sampling_rate);
+                    else
+                        com_rough_y_vel = ones(size(com_rough_y)) * NaN;
+                    end
+                    this.basic_variable_data.com_rough_y_vel = com_rough_y_vel;
+                    this.basic_variable_directions.com_rough_y_vel = this.basic_variable_directions.com_rough_y;
+                    this.time_data.com_rough_y_vel = time;
+                    success = 1;
+                end                 
                 if strcmp(variable_name, 'pelvis_y')
                     LPSI_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LPSI');
                     RPSI_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RPSI');
@@ -3103,8 +3608,6 @@ classdef WalkingDataCustodian < handle
                         xcom_y = stretch_variables{strcmp(this.stretch_variable_names, 'xcom_y')}(:, i_stretch);
                         stretch_data = xcom_y - bos_y_data;
                     end
-                    
-%% Added by ASH
                     if strcmp(variable_name, 'xcom_mpsis_x')
                         % get mpsis position
                         mpsis_x =  this.getTimeNormalizedData('mpsis_x', this_stretch_times);
@@ -3260,10 +3763,163 @@ classdef WalkingDataCustodian < handle
                         % now calculate XCoM - BoS
                         xcom_mpsis_y = stretch_variables{strcmp(this.stretch_variable_names, 'xcom_mpsis_y')}(:, i_stretch);
                         stretch_data = xcom_mpsis_y - bos_y_data;
+                    end        
+                    if strcmp(variable_name, 'xcom_rough_x')
+                        % get mpsis position
+                        com_rough_x =  this.getTimeNormalizedData('com_rough_x', this_stretch_times);
+                        com_rough_y =  this.getTimeNormalizedData('com_rough_y', this_stretch_times);
+                        com_rough_z =  this.getTimeNormalizedData('com_rough_z', this_stretch_times);
+                        
+                        % get instantaneous leg length
+                        lankle_x = this.getTimeNormalizedData('lankle_x', this_stretch_times);
+                        rankle_x = this.getTimeNormalizedData('rankle_x', this_stretch_times);
+                        lankle_y = this.getTimeNormalizedData('lankle_y', this_stretch_times);
+                        rankle_y = this.getTimeNormalizedData('rankle_y', this_stretch_times);
+                        lankle_z = this.getTimeNormalizedData('lankle_z', this_stretch_times);
+                        rankle_z = this.getTimeNormalizedData('rankle_z', this_stretch_times);
+                        stance_ankle_x_data = zeros(size(com_rough_x));
+                        stance_ankle_y_data = zeros(size(com_rough_x));
+                        stance_ankle_z_data = zeros(size(com_rough_x));
+                        for i_band = number_of_bands : -1 : 1
+                            % going backward makes a difference for the
+                            % junction points between two steps. We want to
+                            % use data from the earlier step for BoS, so we
+                            % go backward
+                            [band_start_index, band_end_index] = getBandIndices(i_band, this.number_of_time_steps_normalized);
+                            
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_RIGHT')
+                                stance_ankle_x_data(band_start_index : band_end_index) = rankle_x(band_start_index : band_end_index);
+                                stance_ankle_y_data(band_start_index : band_end_index) = rankle_y(band_start_index : band_end_index);
+                                stance_ankle_z_data(band_start_index : band_end_index) = rankle_z(band_start_index : band_end_index);
+                            end
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_LEFT')
+                                stance_ankle_x_data(band_start_index : band_end_index) = lankle_x(band_start_index : band_end_index);
+                                stance_ankle_y_data(band_start_index : band_end_index) = lankle_y(band_start_index : band_end_index);
+                                stance_ankle_z_data(band_start_index : band_end_index) = lankle_z(band_start_index : band_end_index);
+                            end
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_BOTH')
+                                stance_ankle_x_data(band_start_index : band_end_index) = NaN;
+                                stance_ankle_y_data(band_start_index : band_end_index) = NaN;
+                                stance_ankle_z_data(band_start_index : band_end_index) = NaN;
+                            end
+                        end
+                        leg_vector_x = com_rough_x - stance_ankle_x_data;
+                        leg_vector_y = com_rough_y - stance_ankle_y_data;
+                        leg_vector_z = com_rough_z - stance_ankle_z_data;
+                        leg_length_data = (leg_vector_x.^2 + leg_vector_y.^2 + leg_vector_z.^2).^(0.5);
+                        
+                        % calculate XCoM_rough_x
+                        com_rough_x_vel =  this.getTimeNormalizedData('com_rough_x_vel', this_stretch_times);
+                        omega_0 = (9.81 * leg_length_data.^(-1)).^(0.5);
+%                         omega_0 = sqrt(9.81/leg_length);
+                       
+                        stretch_data = com_rough_x + omega_0.^(-1) .* com_rough_x_vel;
                     end
-                    
-%% ASH end                    
-                    
+                     if strcmp(variable_name, 'xcom_rough_y')
+                        % get mpsis position
+                        com_rough_x =  this.getTimeNormalizedData('com_rough_x', this_stretch_times);
+                        com_rough_y =  this.getTimeNormalizedData('com_rough_y', this_stretch_times);
+                        com_rough_z =  this.getTimeNormalizedData('com_rough_z', this_stretch_times);
+                        
+                        % get instantaneous leg length
+                        lankle_x = this.getTimeNormalizedData('lankle_x', this_stretch_times);
+                        rankle_x = this.getTimeNormalizedData('rankle_x', this_stretch_times);
+                        lankle_y = this.getTimeNormalizedData('lankle_y', this_stretch_times);
+                        rankle_y = this.getTimeNormalizedData('rankle_y', this_stretch_times);
+                        lankle_z = this.getTimeNormalizedData('lankle_z', this_stretch_times);
+                        rankle_z = this.getTimeNormalizedData('rankle_z', this_stretch_times);
+                        stance_ankle_x_data = zeros(size(com_rough_y));
+                        stance_ankle_y_data = zeros(size(com_rough_y));
+                        stance_ankle_z_data = zeros(size(com_rough_y));
+                        for i_band = number_of_bands : -1 : 1
+                            % going backward makes a difference for the
+                            % junction points between two steps. We want to
+                            % use data from the earlier step for BoS, so we
+                            % go backward
+                            [band_start_index, band_end_index] = getBandIndices(i_band, this.number_of_time_steps_normalized);
+                            
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_RIGHT')
+                                stance_ankle_x_data(band_start_index : band_end_index) = rankle_x(band_start_index : band_end_index);
+                                stance_ankle_y_data(band_start_index : band_end_index) = rankle_y(band_start_index : band_end_index);
+                                stance_ankle_z_data(band_start_index : band_end_index) = rankle_z(band_start_index : band_end_index);
+                            end
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_LEFT')
+                                stance_ankle_x_data(band_start_index : band_end_index) = lankle_x(band_start_index : band_end_index);
+                                stance_ankle_y_data(band_start_index : band_end_index) = lankle_y(band_start_index : band_end_index);
+                                stance_ankle_z_data(band_start_index : band_end_index) = lankle_z(band_start_index : band_end_index);
+                            end
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_BOTH')
+                                stance_ankle_x_data(band_start_index : band_end_index) = NaN;
+                                stance_ankle_y_data(band_start_index : band_end_index) = NaN;
+                                stance_ankle_z_data(band_start_index : band_end_index) = NaN;
+                            end
+                        end
+                        leg_vector_x = com_rough_x - stance_ankle_x_data;
+                        leg_vector_y = com_rough_y - stance_ankle_y_data;
+                        leg_vector_z = com_rough_z - stance_ankle_z_data;
+                        leg_length_data = (leg_vector_x.^2 + leg_vector_y.^2 + leg_vector_z.^2).^(0.5);
+                        
+                        % calculate xcom_rough_y
+                        com_rough_y_vel =  this.getTimeNormalizedData('com_rough_y_vel', this_stretch_times);
+                        omega_0 = (9.81 * leg_length_data.^(-1)).^(0.5);
+%                         omega_0 = sqrt(9.81/leg_length);
+                       
+                        stretch_data = com_rough_y + omega_0.^(-1) .* com_rough_y_vel;
+                    end
+                    if strcmp(variable_name, 'mos_rough_x')
+                        % first calculate base of support
+                        ltoel_x = this.getTimeNormalizedData('ltoel_x', this_stretch_times);
+                        rtoel_x = this.getTimeNormalizedData('rtoel_x', this_stretch_times);
+                        bos_x_data = zeros(size(ltoel_x));
+                        for i_band = number_of_bands : -1 : 1
+                            % going backward makes a difference for the
+                            % junction points between two steps. We want to
+                            % use data from the earlier step for BoS, so we
+                            % go backward
+                            [band_start_index, band_end_index] = getBandIndices(i_band, this.number_of_time_steps_normalized);
+                            
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_RIGHT')
+                                bos_x_data(band_start_index : band_end_index) = rtoel_x(band_start_index : band_end_index);
+                            end
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_LEFT')
+                                bos_x_data(band_start_index : band_end_index) = ltoel_x(band_start_index : band_end_index);
+                            end
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_BOTH')
+                                bos_x_data(band_start_index : band_end_index) = NaN;
+                            end
+                        end
+                        
+                        % now calculate XCoM - BoS
+                        xcom_rough_x = stretch_variables{strcmp(this.stretch_variable_names, 'xcom_rough_x')}(:, i_stretch);
+                        stretch_data = xcom_rough_x - bos_x_data;
+                    end  
+                    if strcmp(variable_name, 'mos_rough_y')
+                        % first calculate base of support
+                        ltoel_y = this.getTimeNormalizedData('ltoel_y', this_stretch_times);
+                        rtoel_y = this.getTimeNormalizedData('rtoel_y', this_stretch_times);
+                        bos_y_data = zeros(size(ltoel_y));
+                        for i_band = number_of_bands : -1 : 1
+                            % going backward makes a difference for the
+                            % junction points between two steps. We want to
+                            % use data from the earlier step for BoS, so we
+                            % go backward
+                            [band_start_index, band_end_index] = getBandIndices(i_band, this.number_of_time_steps_normalized);
+                            
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_RIGHT')
+                                bos_y_data(band_start_index : band_end_index) = rtoel_y(band_start_index : band_end_index);
+                            end
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_LEFT')
+                                bos_y_data(band_start_index : band_end_index) = ltoel_y(band_start_index : band_end_index);
+                            end
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_BOTH')
+                                bos_y_data(band_start_index : band_end_index) = NaN;
+                            end
+                        end
+                        
+                        % now calculate XCoM - BoS
+                        xcom_rough_y = stretch_variables{strcmp(this.stretch_variable_names, 'xcom_rough_y')}(:, i_stretch);
+                        stretch_data = xcom_rough_y - bos_y_data;
+                    end
                     if strcmp(variable_name, 'step_length')
                         lheel_y = this.getTimeNormalizedData('lheel_y', this_stretch_times);
                         rheel_y = this.getTimeNormalizedData('rheel_y', this_stretch_times);
@@ -3353,6 +4009,40 @@ classdef WalkingDataCustodian < handle
                                     this_pushoff_time = band_start_time;
                                 end
                                 stretch_data(i_band) = this_pushoff_time - band_start_time;
+                            end
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_BOTH')
+                                stretch_data(i_band) = NaN;
+                            end
+                        end
+                    end
+                    if strcmp(variable_name, 'midswing_event_time')
+                        % load events
+                        event_data = load(['analysis' filesep makeFileName(this.date, this.subject_id, this.trial_type, this.trial_number, 'events.mat')]);
+                        left_midswing_times = event_data.event_data{strcmp(event_data.event_labels, 'left_midswing')};
+                        right_midswing_times = event_data.event_data{strcmp(event_data.event_labels, 'right_midswing')};
+                        
+                        stretch_data = zeros(number_of_bands, 1);
+                        for i_band = 1 : number_of_bands
+                            [band_start_index, band_end_index] = getBandIndices(i_band, this.number_of_time_steps_normalized);
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_RIGHT')
+                                % find first left push-off after band start
+                                band_start_time = this_stretch_times(i_band);
+                                band_end_time = this_stretch_times(i_band+1);
+                                this_midswing_time = min(left_midswing_times(left_midswing_times >= band_start_time));
+                                if this_midswing_time >= band_end_time
+                                    this_midswing_time = band_start_time;
+                                end
+                                stretch_data(i_band) = this_midswing_time - band_start_time;
+                                
+                            end
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_LEFT')
+                                band_start_time = this_stretch_times(i_band);
+                                band_end_time = this_stretch_times(i_band+1);
+                                this_midswing_time = min(right_midswing_times(right_midswing_times >= band_start_time));
+                                if this_midswing_time >= band_end_time
+                                    this_midswing_time = band_start_time;
+                                end
+                                stretch_data(i_band) = this_midswing_time - band_start_time;
                             end
                             if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_BOTH')
                                 stretch_data(i_band) = NaN;
@@ -3573,7 +4263,6 @@ classdef WalkingDataCustodian < handle
                             end
                         end
                     end
-                    
                     
                     if strcmp(variable_name, 'cop_to_com_vel_scaled_x')
                         com_z = stretch_variables{strcmp(this.stretch_variable_names, 'com_z')}(:, i_stretch);
@@ -3888,7 +4577,6 @@ classdef WalkingDataCustodian < handle
                 com_y_directions = this.basic_variable_directions.com_y;
                 stretch_directions_new = com_y_directions;
             end        
-%% Added by ASH
             if strcmp(variable_name, 'xcom_mpsis_x')
                 mpsis_x_directions = this.basic_variable_directions.mpsis_x;
                 stretch_directions_new = mpsis_x_directions;
@@ -3913,7 +4601,30 @@ classdef WalkingDataCustodian < handle
                 mpsis_y_directions = this.basic_variable_directions.mpsis_y;
                 stretch_directions_new = mpsis_y_directions;
             end
-%% Ash end     
+            if strcmp(variable_name, 'com_rough_x_vel')
+                com_rough_x_directions = this.basic_variable_directions.com_rough_x;
+                stretch_directions_new = com_rough_x_directions;
+            end 
+            if strcmp(variable_name, 'com_rough_y_vel')
+                com_rough_y_directions = this.basic_variable_directions.com_rough_y;
+                stretch_directions_new = com_rough_y_directions;
+            end
+            if strcmp(variable_name, 'xcom_rough_x')
+                com_rough_x_directions = this.basic_variable_directions.com_rough_x;
+                stretch_directions_new = com_rough_x_directions;
+            end
+            if strcmp(variable_name, 'xcom_rough_y')
+                com_rough_y_directions = this.basic_variable_directions.com_rough_y;
+                stretch_directions_new = com_rough_y_directions;
+            end 
+            if strcmp(variable_name, 'mos_rough_x')
+                com_rough_x_directions = this.basic_variable_directions.com_rough_x;
+                stretch_directions_new = com_rough_x_directions;
+            end
+            if strcmp(variable_name, 'mos_rough_y')
+                com_rough_y_directions = this.basic_variable_directions.com_rough_y;
+                stretch_directions_new = com_rough_y_directions;
+            end
             if strcmp(variable_name, 'step_length')
                 lheel_y_directions = this.basic_variable_directions.lheel_y;
                 rheel_y_directions = this.basic_variable_directions.rheel_y;
@@ -3951,6 +4662,9 @@ classdef WalkingDataCustodian < handle
                 stretch_directions_new = {'+'; '-'};
             end
             if strcmp(variable_name, 'pushoff_time')
+                stretch_directions_new = {'+'; '-'};
+            end
+            if strcmp(variable_name, 'midswing_event_time')
                 stretch_directions_new = {'+'; '-'};
             end
             if strcmp(variable_name, 'midstance_index')

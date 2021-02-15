@@ -25,6 +25,9 @@ function saveSubjectInfoToFile(varargin)
     
     % get subject settings
     subject_settings = SettingsCustodian('subjectSettings.txt');
+    collection_date = subject_settings.get('collection_date');
+    subject_id = subject_settings.get('subject_id');
+
     trial_types_to_ignore = subject_settings.get('trial_types_to_ignore', 1);
    
     % get parameters from settings file
@@ -91,8 +94,8 @@ function saveSubjectInfoToFile(varargin)
     if exist('conditions.csv', 'file')
         conditions_file_name = 'conditions.csv';
     end
-    if exist(makeFileName(date, subject_id, 'conditions.csv'), 'file')
-        conditions_file_name = makeFileName(date, subject_id, 'conditions.csv');
+    if exist(makeFileName(collection_date, subject_id, 'conditions.csv'), 'file')
+        conditions_file_name = makeFileName(collection_date, subject_id, 'conditions.csv');
     end
     if ~isempty(conditions_file_name)
         % read file

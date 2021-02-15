@@ -16,6 +16,8 @@
 
 % consolidate data from all subjects
 
+% You can specify the source file, e.g. collectPopulationResults('source', 'ucmAcrossTrials')
+
 function collectPopulationResults(varargin)
 
     parser = inputParser;
@@ -28,7 +30,7 @@ function collectPopulationResults(varargin)
     source_label = parser.Results.source;
     save_file = parser.Results.output;
     if isempty(save_file)
-        save_file = ['results' source_label];
+        save_file = ['results_' source_label];
     end
 
     % load settings
@@ -68,6 +70,7 @@ function collectPopulationResults(varargin)
 
     time_list = [];
     variable_data = cell(number_of_variables_to_collect, 1);
+    variable_directions = cell(number_of_variables_to_collect, 2);
     step_time_data = [];
     origin_trial_number_data = [];
     origin_stretch_start_time_data = [];
@@ -132,48 +135,22 @@ function collectPopulationResults(varargin)
                     error(['Variable not found: ' source_variable_name])
                 end
                 this_variable_data = results_data.([this_variable_source_type '_data_session']){this_variable_source_index};
-
-                % 21.3.2020 HR: generalized the code below with the five lines
-                % above, but keep around for now to see if this works
-    %             if strcmp(this_variable_source_type, 'stretch')
-    %                 this_variable_source_index = find(strcmp(results_data.stretch_names_session, source_variable_name), 1, 'first');
-    %                 if isempty(this_variable_source_index)
-    %                     error(['Variable not found: ' source_variable_name])
-    %                 end
-    %                 this_variable_data = results_data.stretch_data_session{this_variable_source_index};
-    %             end
-    %             if strcmp(this_variable_source_type, 'response')
-    %                 this_variable_source_index = find(strcmp(results_data.response_names_session, source_variable_name), 1, 'first');
-    %                 if isempty(this_variable_source_index)
-    %                     error(['Variable not found: ' source_variable_name])
-    %                 end
-    %                 this_variable_data = results_data.response_data_session{this_variable_source_index};
-    %             end
-    %             if strcmp(this_variable_source_type, 'analysis')
-    %                 this_variable_source_index = find(strcmp(results_data.analysis_names_session, source_variable_name), 1, 'first');
-    %                 if isempty(this_variable_source_index)
-    %                     error(['Variable not found: ' source_variable_name])
-    %                 end
-    %                 this_variable_data = results_data.analysis_data_session{this_variable_source_index};
-    %             end
-    %             if strcmp(this_variable_source_type, 'range')
-    %                 this_variable_source_index = find(strcmp(results_data.range_names_session, source_variable_name), 1, 'first');
-    %                 if isempty(this_variable_source_index)
-    %                     error(['Variable not found: ' source_variable_name])
-    %                 end
-    %                 this_variable_data = results_data.range_data_session{this_variable_source_index};
-    %             end
+                this_variable_directions = results_data.([this_variable_source_type '_directions_session'])(this_variable_source_index, :);
 
                 % store
                 variable_data{i_variable} = [variable_data{i_variable} this_variable_data];
+                
+                % store and check directions
+                if isempty(variable_directions{i_variable, 1})
+                    variable_directions{i_variable, 1} = this_variable_directions{1};
+                end
+                if isempty(variable_directions{i_variable, 2})
+                    variable_directions{i_variable, 2} = this_variable_directions{2};
+                end
+                if ~strcmp(variable_directions{i_variable, 1}, this_variable_directions{1}) || ~strcmp(variable_directions{i_variable, 2}, this_variable_directions{2})
+                    error('Mismatch in variable directions');
+                end
             end
-            % 21.3.2020 HR: step time should now be stored explicitly if
-            % needed, so this shouldn't be necessary anymore. Having it here
-            % explicitly is at odds with paradigms that don't involve stepping.
-            % But leave around commented for now in case this generates issues
-            % at some point
-    %         step_time_source_index = find(strcmp(results_data.stretch_names_session, 'step_time'), 1, 'first');
-    %         step_time_data = [step_time_data results_data.stretch_data_session{step_time_source_index}]; %#ok<AGROW>
 
             origin_trial_number_data = [origin_trial_number_data; results_data.origin_trial_list_session]; %#ok<AGROW>
             origin_stretch_start_time_data = [origin_stretch_start_time_data; results_data.origin_start_time_list_session]; %#ok<AGROW>
@@ -230,6 +207,7 @@ function collectPopulationResults(varargin)
     
     %% save
     variables_to_save.variable_data = variable_data;
+    variables_to_save.variable_directions = variable_directions;
     variables_to_save.variable_names = variables_to_collect(:, 1);
     variables_to_save.step_time_data = step_time_data;
     variables_to_save.conditions = conditions;
@@ -237,7 +215,7 @@ function collectPopulationResults(varargin)
     variables_to_save.origin_session_folder_data = origin_session_folder_data;
     variables_to_save.origin_trial_number_data = origin_trial_number_data;
     variables_to_save.origin_stretch_start_time_data = origin_stretch_start_time_data;
-    variables_to_save.origin_stretch_end_time_data = origin_stretch_end_time_data; %#ok<STRNU>
+    variables_to_save.origin_stretch_end_time_data = origin_stretch_end_time_data;
     
     if ~isempty(variables_to_collect_long)
         variables_to_save.variable_data_long = variable_data_long;

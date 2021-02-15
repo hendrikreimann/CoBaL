@@ -16,12 +16,13 @@
 
 
 % TODO: turn this into a function. For now, hard-code an input
-source_label = '';
-% source_label = 'Variance';
+% source_label = '';
+source_label = 'ucmAcrossTrials';
+source_label = 'varianceAcrossTrials';
 % source_label = 'Displacement';
 
 %% load data
-loaded_data = load(['results' source_label '.mat']);
+loaded_data = load(['results_' source_label '.mat']);
 
 %% load settings
 if ~exist('studySettings.txt', 'file')
@@ -104,7 +105,7 @@ for i_level = 1 : size(levels_to_remove, 1)
 end
 
 %% save
-save_file = ['results' source_label '.csv'];
+save_file = ['results_' source_label '.csv'];
 export_cell = ...
   [ ...
     header_cell; ...

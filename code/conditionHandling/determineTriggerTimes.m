@@ -26,8 +26,9 @@ function trial_data = determineTriggerTimes(study_settings, trial_data)
     paradigms_with_perturbation = ...
       { ...
         'Vision', 'CadenceVision', 'CognitiveLoadVision', 'SR_VisualStim', ...
-        'GVS', 'CadenceGVS', 'FatigueGVS', 'CognitiveLoadGvs', 'OculusLaneRestriction' ...
+        'GVS', 'CadenceGVS', 'FatigueGVS', 'CognitiveLoadGvs', 'OculusLaneRestriction', 'nGVS_Vision' ...
       };
+    paradigmn_with_normal_walking = {'Normal Walking', 'Stochastic Resonance', 'Normal Walking nGVS'};
     if any(strcmp(experimental_paradigm, paradigms_with_perturbation))
         % find the time steps where the stimulus state crosses a threshold
         stimulus_threshold = 1.5;
@@ -60,7 +61,7 @@ function trial_data = determineTriggerTimes(study_settings, trial_data)
         trial_data.stim_start_times = trial_data.time_stimulus(stim_start_indices_stimulus);
         trial_data.stim_start_indices_stimulus = stim_start_indices_stimulus;
     end
-    if strcmp(experimental_paradigm, 'Stochastic Resonance')
+    if any(strcmp(experimental_paradigm, paradigmn_with_normal_walking))
         left_touchdown_times = trial_data.loaded_events_data.event_data{strcmp(trial_data.loaded_events_data.event_labels, 'left_touchdown')};
         trial_data.trigger_times = left_touchdown_times(1:end-1);
     end
@@ -79,16 +80,6 @@ function trial_data = determineTriggerTimes(study_settings, trial_data)
         trigger_indices_stimulus = find(diff(sign(trial_data.stimulus_state_trajectory - stimulus_threshold)) > 0) + 2;
         trial_data.trigger_times = trial_data.time_stimulus(trigger_indices_stimulus);
     end
-
-    % 2020-APR-03 HR: cleaning up, but this is so old that there's no
-    % data to test the code on. Moving code from determineStretchesToAnalyze
-    % into sub-functions, I'll leave this here for historic reasons for now
-%     if strcmp(condition_stimulus, 'NONE')
-%         % use all touchdown events as triggers
-%         trial_data.trigger_times = [left_touchdown_times; right_touchdown_times];
-%     end
-
-
 
     % calculate indices
     if exist('trial_data', 'var') && isfield(trial_data, 'time_marker')

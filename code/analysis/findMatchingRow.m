@@ -19,6 +19,7 @@ function row_index = findMatchingRow(cell_array, row_to_match)
     for i_column = 1 : size(cell_array, 2)
         entry_to_match = row_to_match{i_column};
         match_this_factor = strcmp(cell_array(:, i_column), entry_to_match);
+        
         matches(:, i_column) = match_this_factor;
     end
     row_index = find(all(matches, 2));

@@ -28,8 +28,6 @@
 % subjectModel.mat
 
 function stanceModel_4DoF_old(varargin)
-    load('subjectInfo.mat');
-    
     weight = 80; % TODO: hard coded for now, change this
     
     % parse arguments
@@ -38,16 +36,14 @@ function stanceModel_4DoF_old(varargin)
     addParameter(parser, 'visualize', false)
     parse(parser, varargin{:})
     visualize = parser.Results.visualize;
-    
-    subject_settings = SettingsCustodian('subjectSettings.txt');
-
-
-    load('subjectInfo.mat', 'date', 'subject_id');
+    subject_settings = loadSettingsFromFile('subject');
+    collection_date = subject_settings.get('collection_date');
+    subject_id = subject_settings.get('subject_id');
 
     %% create static reference
 
     % load static reference file
-    load(['processed' filesep makeFileName(date, subject_id, subject_settings.get('static_reference_trial_type'), subject_settings.get('static_reference_trial_number'), 'markerTrajectories')]);
+    load(['processed' filesep makeFileName(collection_date, subject_id, subject_settings.get('static_reference_trial_type'), subject_settings.get('static_reference_trial_number'), 'markerTrajectories')]);
 
     % find first time step where all markers are available
     i_time = 1;

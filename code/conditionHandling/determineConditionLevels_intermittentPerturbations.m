@@ -14,7 +14,8 @@
 %     You should have received a copy of the GNU General Public License
 %     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-function [conditions_trial, event_variables_to_save, removal_flags] = determineConditionLevels_intermittentPerturbations(study_settings, subject_settings, trial_data)
+function [conditions_trial, event_variables_to_save, removal_flags] ...
+    = determineConditionLevels_intermittentPerturbations(study_settings, subject_settings, trial_data)
 
     % get parameters from settings
     experimental_paradigm = study_settings.get('experimental_paradigm');
@@ -26,7 +27,6 @@ function [conditions_trial, event_variables_to_save, removal_flags] = determineC
     event_variables_to_save = struct;
     removal_flags = false(number_of_triggers, 1);
     
-
     stretch_times = zeros(number_of_triggers, bands_per_stretch+1);
     stance_foot_data = cell(number_of_triggers, bands_per_stretch);
     stimulus_list = cell(number_of_triggers, 1); % stimulus STIM_LEFT, STIM_RIGHT or STIM_NONE
@@ -51,7 +51,8 @@ function [conditions_trial, event_variables_to_save, removal_flags] = determineC
         end
         
         % determine stretch times
-        [stretch_times_this_trigger, stance_foot_data_this_trigger, removal_flag_this_trigger] = determineStretchTimes(trigger_time, trigger_foot);
+        [stretch_times_this_trigger, stance_foot_data_this_trigger, removal_flag_this_trigger] ...
+            = determineStretchTimes(trigger_time, trigger_foot);
         stretch_times(i_trigger, :) = stretch_times_this_trigger;
         stance_foot_data(i_trigger, :) = stance_foot_data_this_trigger;
         removal_flags(i_trigger) = removal_flag_this_trigger;
@@ -74,7 +75,8 @@ function [conditions_trial, event_variables_to_save, removal_flags] = determineC
         % trigger
         zone_side_list = cell(size(trigger_foot_list));
         zone_direction_list = cell(size(trigger_foot_list));
-        scene_translation_mod100 = mod(trial_data.scene_translation_trajectory + 25, 100); %TO DO the origin of the scene is +25 relative to the end of the virtual objects
+        scene_translation_mod100 = mod(trial_data.scene_translation_trajectory + 25, 100); 
+        %TO DO the origin of the scene is +25 relative to the end of the virtual objects
 
         for i_stretch = 1:length(trial_data.trigger_indices_stimulus)
             VR_trigger_position = scene_translation_mod100(trial_data.trigger_indices_stimulus(i_stretch));
@@ -89,15 +91,49 @@ function [conditions_trial, event_variables_to_save, removal_flags] = determineC
             elseif trial_data.virtual_object_ml_location(scene_translation_mod100_index) == 0
                 zone_side_list{i_stretch} = 'STIM_ZONE_RIGHT';
             end
-            if (trial_data.virtual_object_ml_location(scene_translation_mod100_index) == 2 && strcmp(trigger_foot_list{i_stretch}, 'TRIGGER_LEFT') && strcmp(direction_list{i_stretch}, 'STIM_TOWARDS')) || ...
-                    (trial_data.virtual_object_ml_location(scene_translation_mod100_index) == 2 && strcmp(trigger_foot_list{i_stretch}, 'TRIGGER_RIGHT') && strcmp(direction_list{i_stretch}, 'STIM_AWAY')) || ...
-                    (trial_data.virtual_object_ml_location(scene_translation_mod100_index) == 0 && strcmp(trigger_foot_list{i_stretch}, 'TRIGGER_RIGHT') && strcmp(direction_list{i_stretch}, 'STIM_TOWARDS')) ||...
-                    (trial_data.virtual_object_ml_location(scene_translation_mod100_index) == 0 && strcmp(trigger_foot_list{i_stretch}, 'TRIGGER_LEFT') && strcmp(direction_list{i_stretch}, 'STIM_AWAY'))
+            if ...
+                  ( ...
+                    trial_data.virtual_object_ml_location(scene_translation_mod100_index) == 2 ...
+                    && strcmp(trigger_foot_list{i_stretch}, 'TRIGGER_LEFT') ...
+                    && strcmp(direction_list{i_stretch}, 'STIM_TOWARDS') ...
+                  ) || ...
+                  ( ...
+                    trial_data.virtual_object_ml_location(scene_translation_mod100_index) == 2 ...
+                    && strcmp(trigger_foot_list{i_stretch}, 'TRIGGER_RIGHT') ...
+                    && strcmp(direction_list{i_stretch}, 'STIM_AWAY') ...
+                  ) || ...
+                  ( ...
+                    trial_data.virtual_object_ml_location(scene_translation_mod100_index) == 0 ...
+                    && strcmp(trigger_foot_list{i_stretch}, 'TRIGGER_RIGHT') ...
+                    && strcmp(direction_list{i_stretch}, 'STIM_TOWARDS') ...
+                  ) || ...
+                  ( ...
+                    trial_data.virtual_object_ml_location(scene_translation_mod100_index) == 0 ...
+                    && strcmp(trigger_foot_list{i_stretch}, 'TRIGGER_LEFT') ...
+                    && strcmp(direction_list{i_stretch}, 'STIM_AWAY') ...
+                  )
                 zone_direction_list{i_stretch} = 'STIM_ZONE_TOWARDS';
-            elseif (trial_data.virtual_object_ml_location(scene_translation_mod100_index) == 0 && strcmp(trigger_foot_list{i_stretch}, 'TRIGGER_LEFT') && strcmp(direction_list{i_stretch}, 'STIM_TOWARDS')) || ...
-                    (trial_data.virtual_object_ml_location(scene_translation_mod100_index) == 0 && strcmp(trigger_foot_list{i_stretch}, 'TRIGGER_RIGHT') && strcmp(direction_list{i_stretch}, 'STIM_AWAY')) || ...
-                    (trial_data.virtual_object_ml_location(scene_translation_mod100_index) == 2 && strcmp(trigger_foot_list{i_stretch}, 'TRIGGER_RIGHT') && strcmp(direction_list{i_stretch}, 'STIM_TOWARDS')) || ...
-                    (trial_data.virtual_object_ml_location(scene_translation_mod100_index) == 2 && strcmp(trigger_foot_list{i_stretch}, 'TRIGGER_LEFT') && strcmp(direction_list{i_stretch}, 'STIM_AWAY'))
+            elseif ...
+                  ( ...
+                    trial_data.virtual_object_ml_location(scene_translation_mod100_index) == 0 ...
+                    && strcmp(trigger_foot_list{i_stretch}, 'TRIGGER_LEFT') ...
+                    && strcmp(direction_list{i_stretch}, 'STIM_TOWARDS') ...
+                  ) || ...
+                  ( ...
+                    trial_data.virtual_object_ml_location(scene_translation_mod100_index) == 0 ...
+                    && strcmp(trigger_foot_list{i_stretch}, 'TRIGGER_RIGHT') ...
+                    && strcmp(direction_list{i_stretch}, 'STIM_AWAY') ...
+                  ) || ...
+                  ( ...
+                    trial_data.virtual_object_ml_location(scene_translation_mod100_index) == 2 ...
+                    && strcmp(trigger_foot_list{i_stretch}, 'TRIGGER_RIGHT') ...
+                    && strcmp(direction_list{i_stretch}, 'STIM_TOWARDS')...
+                  ) || ...
+                  ( ...
+                    trial_data.virtual_object_ml_location(scene_translation_mod100_index) == 2 ...
+                    && strcmp(trigger_foot_list{i_stretch}, 'TRIGGER_LEFT') ...
+                    && strcmp(direction_list{i_stretch}, 'STIM_AWAY') ...
+                  )
                 zone_direction_list{i_stretch} = 'STIM_ZONE_AWAY';
             else
                 zone_direction_list{i_stretch} = 'STIM_NONE';
@@ -161,73 +197,6 @@ function [conditions_trial, event_variables_to_save, removal_flags] = determineC
         conditions_trial.stim_amplitude_list = stim_amplitude_list;
     end
     
-    % check if 'group' is listed as a condition and extract it from the subject settings if needed
-    conditions_table = study_settings.get('conditions');
-    if any(strcmp(conditions_table(:, 1), 'group'))
-        group = subject_settings.get('group');
-        condition_group_list = cell(number_of_triggers, 1);
-        for i_stretch = 1 : number_of_triggers
-            condition_group_list{i_stretch} = group;
-        end
-        conditions_trial.group_list = condition_group_list;
-    end
-    
-%     %Ash %add affected side
-    conditions_table = study_settings.get('conditions');
-    if any(strcmp(conditions_table(:, 1), 'affected_side'))
-        affected_side = subject_settings.get('affected_side');
-        condition_affected_side_list = cell(number_of_triggers, 1);
-        for i_stretch = 1 : length(trigger_foot_list)
-            if strcmp(affected_side, 'left')
-                if strcmp(trigger_foot_list(i_stretch), 'TRIGGER_LEFT')
-                    condition_affected_side_list{i_stretch} = 'TRIGGER_AFFECTED';
-                elseif strcmp(trigger_foot_list(i_stretch), 'TRIGGER_RIGHT')
-                    condition_affected_side_list{i_stretch} = 'TRIGGER_UNAFFECTED';
-                end
-            elseif strcmp(affected_side, 'right')
-                if strcmp(trigger_foot_list(i_stretch), 'TRIGGER_RIGHT')
-                    condition_affected_side_list{i_stretch} = 'TRIGGER_AFFECTED';
-                elseif strcmp(trigger_foot_list(i_stretch), 'TRIGGER_LEFT')
-                    condition_affected_side_list{i_stretch} = 'TRIGGER_UNAFFECTED';
-                end
-            end
-        end
-        conditions_trial.affected_side_list = condition_affected_side_list;
-    end
-    
-%Ash %           conditions_table = study_settings.get('conditions');
-%     if any(strcmp(conditions_table(:, 1), 'affected_side'))
-%         affected_side = subject_settings.get('affected_side');
-%         condition_affected_side_list = cell(number_of_triggers, 1);
-%         for i_stretch = 1 : number_of_triggers
-%             condition_affected_side_list{i_stretch} = affected_side;
-%         end
-%         conditions_trial.affected_side_list = condition_affected_side_list;
-%     end
-%     
-    
-    % add information about trigger relative to more affected side 
-    % HR: I commented this out since it is legacy code and in a messy format 
-    %     if it is still needed, e.g. for the Parkinson's or CP study, I'll look at getting it back in
-%     if exist('affected_side')
-%         for i_stretch = 1 : length(trigger_foot_list)
-%             if strcmp(affected_side, 'Left')
-%                 if strcmp(trigger_foot_list(i_stretch), 'TRIGGER_LEFT')
-%                     condition_affected_stancefoot_list{i_stretch} = 'TRIGGER_AFFECTED';
-%                 elseif strcmp(trigger_foot_list(i_stretch), 'TRIGGER_RIGHT')
-%                     condition_affected_stancefoot_list{i_stretch} = 'TRIGGER_UNAFFECTED';
-%                 end
-%             elseif strcmp(affected_side, 'Right')
-%                 if strcmp(trigger_foot_list(i_stretch), 'TRIGGER_RIGHT')
-%                     condition_affected_stancefoot_list{i_stretch} = 'TRIGGER_AFFECTED';
-%                 elseif strcmp(trigger_foot_list(i_stretch), 'TRIGGER_LEFT')
-%                     condition_affected_stancefoot_list{i_stretch} = 'TRIGGER_UNAFFECTED';
-%                 end
-%             end
-%         end
-%         conditions_trial.affected_stancefoot_list = condition_affected_stancefoot_list';
-%     end
-
     % restructure for saving
     conditions_trial.stimulus_list = stimulus_list;
     conditions_trial.amplitude_list = amplitude_list;
@@ -258,17 +227,23 @@ function stimulus_label = determineStimulus(trigger_index)
 end    
 function [trigger_foot, trigger_time] = determineTriggerFoot(trigger_index)
         % get thresholds for what time difference is acceptable
-        time_to_nearest_heelstrike_before_trigger_threshold = study_settings.get('time_to_nearest_heelstrike_before_trigger_threshold', 1);
-        time_to_nearest_heelstrike_after_trigger_threshold = study_settings.get('time_to_nearest_heelstrike_after_trigger_threshold', 1);
+        time_to_nearest_heelstrike_before_trigger_threshold ...
+            = study_settings.get('time_to_nearest_heelstrike_before_trigger_threshold', 1);
+        time_to_nearest_heelstrike_after_trigger_threshold ...
+            = study_settings.get('time_to_nearest_heelstrike_after_trigger_threshold', 1);
     
         % get closest heelstrike on either side
-        [~, index_candidate_left] = min(abs(trial_data.left_touchdown_times - trial_data.trigger_times(trigger_index)));
-        [~, index_candidate_right] = min(abs(trial_data.right_touchdown_times - trial_data.trigger_times(trigger_index)));
+        [~, index_candidate_left] ...
+            = min(abs(trial_data.left_touchdown_times - trial_data.trigger_times(trigger_index)));
+        [~, index_candidate_right] ...
+            = min(abs(trial_data.right_touchdown_times - trial_data.trigger_times(trigger_index)));
 
         % is the closest left heelstrike within the acceptable interval?
         time_candidate_left = trial_data.left_touchdown_times(index_candidate_left);
-        time_difference_left = time_candidate_left - trial_data.trigger_times(trigger_index); % where does the closest left heelstrike lie relative to the trigger?
-        if -time_to_nearest_heelstrike_before_trigger_threshold < time_difference_left && time_difference_left < time_to_nearest_heelstrike_after_trigger_threshold
+        time_difference_left = time_candidate_left - trial_data.trigger_times(trigger_index); 
+        % where does the closest left heelstrike lie relative to the trigger?
+        if -time_to_nearest_heelstrike_before_trigger_threshold < time_difference_left ...
+              && time_difference_left < time_to_nearest_heelstrike_after_trigger_threshold
             % left heelstrike is acceptable
             candidate_left_acceptable = true;
         else
@@ -277,8 +252,10 @@ function [trigger_foot, trigger_time] = determineTriggerFoot(trigger_index)
 
         % is the closest right heelstrike within the acceptable interval?
         time_candidate_right = trial_data.right_touchdown_times(index_candidate_right);
-        time_difference_right = time_candidate_right - trial_data.trigger_times(trigger_index); % where does the closest right heelstrike lie relative to the trigger?
-        if -time_to_nearest_heelstrike_before_trigger_threshold < time_difference_right && time_difference_right < time_to_nearest_heelstrike_after_trigger_threshold
+        time_difference_right = time_candidate_right - trial_data.trigger_times(trigger_index); 
+        % where does the closest right heelstrike lie relative to the trigger?
+        if -time_to_nearest_heelstrike_before_trigger_threshold < time_difference_right ...
+              && time_difference_right < time_to_nearest_heelstrike_after_trigger_threshold
             % right heelstrike is acceptable
             candidate_right_acceptable = true;
         else
@@ -305,7 +282,8 @@ function [trigger_foot, trigger_time] = determineTriggerFoot(trigger_index)
         end
 
 end
-function [stretch_times_this_trigger, stance_foot_data_this_trigger, removal_flag_this_trigger] = determineStretchTimes(trigger_time, trigger_foot)
+function [stretch_times_this_trigger, stance_foot_data_this_trigger, removal_flag_this_trigger] ...
+        = determineStretchTimes(trigger_time, trigger_foot)
     stretch_times_this_trigger = zeros(1, bands_per_stretch+1);
     stance_foot_data_this_trigger = cell(1, bands_per_stretch);
     removal_flag_this_trigger = false;

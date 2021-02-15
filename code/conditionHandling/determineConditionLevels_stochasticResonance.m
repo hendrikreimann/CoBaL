@@ -16,9 +16,6 @@
 
 function [conditions_trial, event_variables_to_save, removal_flags] = determineConditionLevels_stochasticResonance(subject_settings, trial_data)
 
-    % get stimulus strength
-    this_trial_stimulus_strength = determineStochasticResonanceStrength(subject_settings, trial_data.trial_type, trial_data.trial_number);
-
     stance_foot_data_stretch = {'STANCE_LEFT', 'STANCE_RIGHT'};
 
     bands_per_stretch = length(stance_foot_data_stretch);
@@ -45,6 +42,7 @@ function [conditions_trial, event_variables_to_save, removal_flags] = determineC
     event_variables_to_save.stance_foot_data = stance_foot_data;
 
     % conditions
+    this_trial_stimulus_strength = determineStochasticResonanceStrength(subject_settings, trial_data.trial_type, trial_data.trial_number);
     stim_amplitude_list = repmat({this_trial_stimulus_strength}, size(stretch_times, 1), 1);
     conditions_trial = struct;
     conditions_trial.stim_amplitude_list = stim_amplitude_list;
