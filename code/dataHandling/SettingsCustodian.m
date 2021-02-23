@@ -314,12 +314,6 @@ classdef SettingsCustodian < handle
             if strcmp(property_name, 'data_stretch_padding')
                 default_data = 0;
             end
-            if strcmp(property_name, 'left_fullstance_method')
-                default_data = 'first_zero_crossing_after_heelstrike';
-            end
-            if strcmp(property_name, 'right_fullstance_method')
-                default_data = 'first_zero_crossing_after_heelstrike';
-            end
             if strcmp(property_name, 'time_to_nearest_heelstrike_before_trigger_threshold')
                 default_data = 0.10;
             end
