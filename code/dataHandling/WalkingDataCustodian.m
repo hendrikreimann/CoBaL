@@ -1190,6 +1190,32 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('stimulus_state_trajectory')
                 this.addStretchVariable('stimulus_state_trajectory')
             end
+            
+            % labview
+            if this.isVariableToAnalyze('belt_speed')
+                this.addBasicVariable('belt_speed_right_trajectory')
+                this.addBasicVariable('belt_speed_left_trajectory')
+                this.addBasicVariable('belt_speed')
+                this.addStretchVariable('belt_speed')
+            end
+            if this.isVariableToAnalyze('belt_acceleration')
+                this.addBasicVariable('belt_speed_right_trajectory')
+                this.addBasicVariable('belt_speed_left_trajectory')
+                this.addBasicVariable('belt_speed')
+                this.addBasicVariable('belt_acceleration')
+                this.addStretchVariable('belt_speed')
+                this.addStretchVariable('belt_acceleration')
+            end
+            if this.isVariableToAnalyze('belt_jerk')
+                this.addBasicVariable('belt_speed_right_trajectory')
+                this.addBasicVariable('belt_speed_left_trajectory')
+                this.addBasicVariable('belt_speed')
+                this.addBasicVariable('belt_acceleration')
+                this.addBasicVariable('belt_jerk')
+                this.addStretchVariable('belt_speed')
+                this.addStretchVariable('belt_acceleration')
+                this.addStretchVariable('belt_jerk')
+            end
         end
         
         % interface
@@ -3363,6 +3389,57 @@ classdef WalkingDataCustodian < handle
                     success = 1;
                 end
                 
+                if strcmp(variable_name, 'belt_speed')
+                    [belt_speed_right_trajectory_data, belt_speed_right_trajectory_directions] = this.getBasicVariableData('belt_speed_right_trajectory');
+                    [belt_speed_left_trajectory_data, belt_speed_left_trajectory_directions] = this.getBasicVariableData('belt_speed_right_trajectory');
+                    belt_speed_trajectory_data = (belt_speed_right_trajectory_data + belt_speed_left_trajectory_data) * 0.5;
+                    
+                    this.basic_variable_data.belt_speed = belt_speed_trajectory_data;
+                    this.basic_variable_directions.belt_speed = belt_speed_right_trajectory_directions; % TODO: check whether directions are the same for left and right
+                    this.time_data.belt_speed = this.time_data.belt_speed_right_trajectory; % TODO: check whether time is the same for left and right
+                    success = 1;
+                end
+                if strcmp(variable_name, 'belt_acceleration')
+                    [belt_speed_trajectory_data, belt_speed_trajectory_directions] = this.getBasicVariableData('belt_speed');
+                    
+                    time = this.getTimeData('belt_speed');
+                    filter_order = this.study_settings.get('filter_order_belt', 1);
+                    cutoff_frequency = this.study_settings.get('filter_cutoff_belt', 1);
+                    sampling_rate = 1/median(diff(time));
+                    [b, a] = butter(filter_order, cutoff_frequency/(sampling_rate/2));
+                    if any(~isnan(belt_speed_trajectory_data))
+                        belt_acceleration = deriveByTime(nanfiltfilt(b, a, belt_speed_trajectory_data), 1/sampling_rate);
+                    else
+                        belt_acceleration = ones(size(belt_speed_trajectory_data)) * NaN;
+                    end
+                    this.basic_variable_data.belt_acceleration = belt_acceleration;
+                    this.basic_variable_directions.belt_acceleration = belt_speed_trajectory_directions;
+                    this.time_data.belt_acceleration = time;
+                    success = 1;
+                    
+                end
+                if strcmp(variable_name, 'belt_jerk')
+                    [belt_acceleration_trajectory_data, belt_acceleration_trajectory_directions] = this.getBasicVariableData('belt_acceleration');
+                    
+                    time = this.getTimeData('belt_acceleration');
+                    filter_order = this.study_settings.get('filter_order_belt', 1);
+                    cutoff_frequency = this.study_settings.get('filter_cutoff_belt', 1);
+                    sampling_rate = 1/median(diff(time));
+                    [b, a] = butter(filter_order, cutoff_frequency/(sampling_rate/2));
+                    if any(~isnan(belt_acceleration_trajectory_data))
+                        belt_jerk = deriveByTime(nanfiltfilt(b, a, belt_acceleration_trajectory_data), 1/sampling_rate);
+                    else
+                        belt_jerk = ones(size(belt_acceleration_trajectory_data)) * NaN;
+                    end
+                    this.basic_variable_data.belt_jerk = belt_jerk;
+                    this.basic_variable_directions.belt_jerk = belt_acceleration_trajectory_directions;
+                    this.time_data.belt_jerk = time;
+                    success = 1;
+                end
+                
+                
+                
+                
                 % remove data flagged in subject settings
                 if any(strcmp(data_to_remove_this_trial, variable_name))
                     if any(variable_name==':')
@@ -3815,7 +3892,7 @@ classdef WalkingDataCustodian < handle
                        
                         stretch_data = com_rough_x + omega_0.^(-1) .* com_rough_x_vel;
                     end
-                     if strcmp(variable_name, 'xcom_rough_y')
+                    if strcmp(variable_name, 'xcom_rough_y')
                         % get mpsis position
                         com_rough_x =  this.getTimeNormalizedData('com_rough_x', this_stretch_times);
                         com_rough_y =  this.getTimeNormalizedData('com_rough_y', this_stretch_times);
@@ -4426,6 +4503,9 @@ classdef WalkingDataCustodian < handle
                         end
 
                     end                    
+%                     if strcmp(variable_name, 'belt_speed_trajectory')
+%                         
+%                     end
                     % store in cell
                     stretch_variables{i_variable} = [stretch_variables{i_variable} stretch_data];
                 end
@@ -4806,6 +4886,9 @@ classdef WalkingDataCustodian < handle
             end
             if strcmp(variable_name, 'copl_x') || strcmp(variable_name, 'copl_y') || strcmp(variable_name, 'copr_x') || strcmp(variable_name, 'copr_y')
                 stretch_directions_new = this.basic_variable_directions.(variable_name);
+            end
+            if strcmp(variable_name, 'belt_speed_trajectory')
+                stretch_directions_new = {'+'; '-'};
             end
             
             if any(strcmp(this.basic_variable_load_failures, variable_name))

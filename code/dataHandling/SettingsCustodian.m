@@ -518,6 +518,12 @@ classdef SettingsCustodian < handle
             if strcmp(property_name, 'emg_import_map')
                 default_data = {};
             end
+            if strcmp(property_name, 'filter_order_belt')
+                default_data = 4;
+            end
+            if strcmp(property_name, 'filter_cutoff_belt')
+                default_data = 10;
+            end
             
             
             if strcmp(property_name, 'marker_to_segment_map')
