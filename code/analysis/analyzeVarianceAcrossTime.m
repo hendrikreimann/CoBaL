@@ -23,19 +23,11 @@ function analyzeVarianceAcrossTime(varargin)
     [trial_type_list, trial_number_list] = parseTrialArguments(varargin{:});
     
     % load settings
-    study_settings_file = '';
-    if exist(['..' filesep 'studySettings.txt'], 'file')
-        study_settings_file = ['..' filesep 'studySettings.txt'];
-    end    
-    if exist(['..' filesep '..' filesep 'studySettings.txt'], 'file')
-        study_settings_file = ['..' filesep '..' filesep 'studySettings.txt'];
-    end
-    study_settings = SettingsCustodian(study_settings_file);
-    subject_settings = SettingsCustodian('subjectSettings.txt');
+    study_settings = loadSettingsFromFile('study');
+    subject_settings = loadSettingsFromFile('subject');
     collection_date = subject_settings.get('collection_date');
     subject_id = subject_settings.get('subject_id');
     model_data = load('subjectModel.mat');
-    kinematic_tree = model_data.kinematic_tree;
     
     across_time_conditions = study_settings.get('across_time_conditions', 1);
     variance_variables = study_settings.get('variance_variables');

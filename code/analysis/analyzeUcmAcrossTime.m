@@ -23,15 +23,8 @@ function analyzeUcmAcrossTime(varargin)
     [trial_type_list, trial_number_list] = parseTrialArguments(varargin{:});
     
     % load settings
-    study_settings_file = '';
-    if exist(['..' filesep 'studySettings.txt'], 'file')
-        study_settings_file = ['..' filesep 'studySettings.txt'];
-    end    
-    if exist(['..' filesep '..' filesep 'studySettings.txt'], 'file')
-        study_settings_file = ['..' filesep '..' filesep 'studySettings.txt'];
-    end
-    study_settings = SettingsCustodian(study_settings_file);
-    subject_settings = SettingsCustodian('subjectSettings.txt');
+    study_settings = loadSettingsFromFile('study');
+    subject_settings = loadSettingsFromFile('subject');
     collection_date = subject_settings.get('collection_date');
     subject_id = subject_settings.get('subject_id');
     model_data = load('subjectModel.mat');

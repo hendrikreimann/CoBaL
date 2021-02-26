@@ -19,6 +19,8 @@
 % source_label = '';
 source_label = 'ucmAcrossTrials';
 source_label = 'varianceAcrossTrials';
+source_label = 'ucmAcrossTime';
+source_label = 'varianceAcrossTime';
 % source_label = 'Displacement';
 
 %% load data
