@@ -90,9 +90,17 @@ function [conditions_trial, event_variables_to_save, removal_flags] ...
         conditions_trial ...
             = determineConditionLevels_affectedSide(subject_settings, trial_data, conditions_trial);
     end
+    
+    % add group if required
     if any(strcmp(conditions_table(:, 1), 'group'))
         conditions_trial ...
             = determineConditionLevels_group(subject_settings, trial_data, conditions_trial);
+    end
+    
+    % add type from filename if required
+    if any(strcmp(conditions_table(:, 1), 'type'))
+        conditions_trial ...
+            = determineConditionLevels_type(trial_data, conditions_trial);
     end
     
     % add levels that are the same for all experimental paradigms

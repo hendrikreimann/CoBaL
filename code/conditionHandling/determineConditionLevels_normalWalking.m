@@ -43,13 +43,5 @@ function [conditions_trial, event_variables_to_save, removal_flags] = determineC
 
     % conditions
     conditions_trial = struct;
-
-    % add group
-    group = subject_settings.get('group', 1);
-    condition_group_list = cell(size(event_variables_to_save.stance_foot_data, 1), 1);
-    for i_stretch = 1 : length(condition_group_list)
-        condition_group_list{i_stretch} = group;
-    end
-    conditions_trial.group_list = condition_group_list;
 end
 
