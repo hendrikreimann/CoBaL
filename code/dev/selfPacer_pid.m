@@ -1,4 +1,4 @@
-function [pos_paced, pace] = selfPacer_pid(pos, time, gain_p, gain_i, gain_d, v_belt_to_world_init)
+function [pos_paced, pace] = selfPacer_pid(pos, time, gain_p, gain_d, v_belt_to_world_init)
     number_of_time_steps = length(time);
     pelvis_velocity_belt_timeseries = deriveByTime(pos, time);
    
@@ -32,4 +32,11 @@ function [pos_paced, pace] = selfPacer_pid(pos, time, gain_p, gain_i, gain_d, v_
     
     pos_paced = pos - belt_position_timeseries;
     pace = belt_velocity_timeseries;
+    
+    
+    
+    
+    
+    
+    
 end

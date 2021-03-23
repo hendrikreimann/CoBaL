@@ -1,4 +1,4 @@
-function [pos_paced, pace] = selfPacer_pidWithAveraging(pos, time, gain_p, gain_i, gain_d, v_belt_to_world_init, heelstrike_indices)
+function [pos_paced, pace] = selfPacer_pidWithAveraging(pos, time, gain_p, gain_d, v_belt_to_world_init, heelstrike_indices)
     number_of_time_steps = length(time);
     pelvis_velocity_belt_timeseries = deriveByTime(pos, time);
    
@@ -80,8 +80,6 @@ function [pos_paced, pace] = selfPacer_pidWithAveraging(pos, time, gain_p, gain_
             end
         end
     end
-% figure; hold on; plot(time, pelvis_pos_world_timeseries); plot(time, pelvis_pos_world_avg_timeseries)
-% figure; hold on; plot(time, pelvis_vel_world_timeseries); plot(time, pelvis_vel_world_avg_timeseries)
     
     pos_paced = pos - belt_position_timeseries;
     pace = belt_velocity_timeseries;
