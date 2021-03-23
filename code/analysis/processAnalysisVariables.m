@@ -55,6 +55,9 @@ function processAnalysisVariables(varargin)
         if strcmp(this_action, 'invert by condition')
             data = calculateInversionVariables(this_settings_table, this_settings_table_header, study_settings, data, conditions);
         end
+        if strcmp(this_action, 'calculate mean over time')
+            data = calculateMeanVariables(this_settings_table, this_settings_table_header, study_settings, data);
+        end
         if strcmp(this_action, 'calculate rms over time')
             data = calculateRmsVariables(this_settings_table, this_settings_table_header, study_settings, data);
         end
@@ -348,19 +351,90 @@ function data = calculateIntegratedVariables(variables_to_integrate, variables_t
 
 end
 
-function data = calculateRmsVariables(variables_to_rms, variables_to_rms_header, study_settings, data)
+function data = calculateMeanVariables(variables_mean, variables_mean_header, study_settings, data)
     step_time_index_in_saved_data = find(strcmp(data.stretch_names_session, 'step_time'), 1, 'first');
     this_step_time_data = data.stretch_data_session{step_time_index_in_saved_data};
     number_of_stretches = size(data.stretch_data_session{1}, 2);
     number_of_time_steps_normalized = study_settings.get('number_of_time_steps_normalized');
-    for i_variable = 1 : size(variables_to_rms, 1)
-        this_variable_name = variables_to_rms{i_variable, strcmp(variables_to_rms_header, 'new_variable_name')};
-        this_variable_source_name = variables_to_rms{i_variable, strcmp(variables_to_rms_header, 'source_variable_name')};
-        this_variable_source_type = variables_to_rms{i_variable, strcmp(variables_to_rms_header, 'source_variable_type')};
-        start_info = variables_to_rms{i_variable, strcmp(variables_to_rms_header, 'start')};
-        start_variable_source_type = variables_to_rms{i_variable, strcmp(variables_to_rms_header, 'start_variable_type')};
-        end_info = variables_to_rms{i_variable, strcmp(variables_to_rms_header, 'end')};
-        end_variable_source_type = variables_to_rms{i_variable, strcmp(variables_to_rms_header, 'end_variable_type')};
+    for i_variable = 1 : size(variables_mean, 1)
+        this_variable_name = variables_mean{i_variable, strcmp(variables_mean_header, 'new_variable_name')};
+        this_variable_source_name = variables_mean{i_variable, strcmp(variables_mean_header, 'source_variable_name')};
+        this_variable_source_type = variables_mean{i_variable, strcmp(variables_mean_header, 'source_variable_type')};
+        start_info = variables_mean{i_variable, strcmp(variables_mean_header, 'start')};
+        start_variable_source_type = variables_mean{i_variable, strcmp(variables_mean_header, 'start_variable_type')};
+        end_info = variables_mean{i_variable, strcmp(variables_mean_header, 'end')};
+        end_variable_source_type = variables_mean{i_variable, strcmp(variables_mean_header, 'end_variable_type')};
+
+        % pick data depending on source specification
+        data_source = data.([this_variable_source_type '_data_session']);
+        names_source = data.([this_variable_source_type '_names_session']);
+        directions_source = data.([this_variable_source_type '_directions_session']);
+        
+        this_variable_source_data = data_source{strcmp(names_source, this_variable_source_name)};
+        this_variable_source_directions = directions_source(strcmp(names_source, this_variable_source_name), :);
+        
+        % determine start and end of integration in percent of band time
+        if strcmp(start_variable_source_type, 'percentage')
+            start_data_percent = ones(size(this_step_time_data)) * str2double(start_info);
+        else
+            start_data_source = data.([start_variable_source_type '_data_session']);
+            start_names_source = data.([start_variable_source_type '_names_session']);
+            start_data_time_within_band = start_data_source{strcmp(start_names_source, start_info)};
+            start_data_ratio = start_data_time_within_band ./ this_step_time_data;
+            start_data_percent = round(start_data_ratio * 100);
+        end
+        if strcmp(end_variable_source_type, 'percentage')
+            end_data_percent = ones(size(this_step_time_data)) * str2double(end_info);
+        else
+            end_data_source = data.([end_variable_source_type '_data_session']);
+            end_names_source = data.([end_variable_source_type '_names_session']);
+            end_data_time_within_band = end_data_source{strcmp(end_names_source, end_info)};
+            end_data_ratio = end_data_time_within_band ./ this_step_time_data;
+            end_data_percent = round(end_data_ratio * 100);
+        end
+        
+        % mean
+        mean_data = zeros(data.bands_per_stretch, number_of_stretches);
+        for i_stretch = 1 : number_of_stretches
+            for i_band = 1 : data.bands_per_stretch
+                [band_start_index, band_end_index] = getBandIndices(i_band, number_of_time_steps_normalized);
+                this_band_data_full = this_variable_source_data(band_start_index : band_end_index, i_stretch);
+                range = (start_data_percent(i_band, i_stretch) : end_data_percent(i_band, i_stretch)) + 1;
+                if isempty(range)
+                    mean_data(i_band, i_stretch) = 0;
+                else
+                    this_band_data_range = this_band_data_full(range);
+                    % mean
+                     this_band_data_mean = mean(this_band_data_range);           
+                     mean_data(i_band, i_stretch) = this_band_data_mean(end);
+                end
+
+            end
+        end        
+        
+        % store
+        new_data = struct;
+        new_data.data = mean_data;
+        new_data.directions = this_variable_source_directions;
+        new_data.name = this_variable_name;
+        data = addOrReplaceResultsData(data, new_data, 'analysis');
+          
+    end
+end
+
+function data = calculateRmsVariables(variables_rms, variables_rms_header, study_settings, data)
+    step_time_index_in_saved_data = find(strcmp(data.stretch_names_session, 'step_time'), 1, 'first');
+    this_step_time_data = data.stretch_data_session{step_time_index_in_saved_data};
+    number_of_stretches = size(data.stretch_data_session{1}, 2);
+    number_of_time_steps_normalized = study_settings.get('number_of_time_steps_normalized');
+    for i_variable = 1 : size(variables_rms, 1)
+        this_variable_name = variables_rms{i_variable, strcmp(variables_rms_header, 'new_variable_name')};
+        this_variable_source_name = variables_rms{i_variable, strcmp(variables_rms_header, 'source_variable_name')};
+        this_variable_source_type = variables_rms{i_variable, strcmp(variables_rms_header, 'source_variable_type')};
+        start_info = variables_rms{i_variable, strcmp(variables_rms_header, 'start')};
+        start_variable_source_type = variables_rms{i_variable, strcmp(variables_rms_header, 'start_variable_type')};
+        end_info = variables_rms{i_variable, strcmp(variables_rms_header, 'end')};
+        end_variable_source_type = variables_rms{i_variable, strcmp(variables_rms_header, 'end_variable_type')};
 
         % pick data depending on source specification
         data_source = data.([this_variable_source_type '_data_session']);

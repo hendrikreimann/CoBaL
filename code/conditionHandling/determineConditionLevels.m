@@ -54,6 +54,16 @@ function [conditions_trial, event_variables_to_save, removal_flags] ...
         event_variables_to_save = mergeConditionStruct(event_variables_to_save_normal, event_variables_to_save_ngvs);
         removal_flags = removal_flags_normal & removal_flags_ngvs;
     end
+    if strcmp(experimental_paradigm, 'Self Pacing Comparison')
+        [conditions_trial_normal, event_variables_to_save_normal, removal_flags_normal] ...
+            = determineConditionLevels_normalWalking(subject_settings, trial_data);
+        [conditions_trial_selfpacing, event_variables_to_save_selfpacing, removal_flags_selfpacing] ...
+            = determineConditionLevels_selfpacing(subject_settings, trial_data);
+        
+        conditions_trial = mergeConditionStruct(conditions_trial_normal, conditions_trial_selfpacing);
+        event_variables_to_save = mergeConditionStruct(event_variables_to_save_normal, event_variables_to_save_selfpacing);
+        removal_flags = removal_flags_normal & removal_flags_selfpacing;
+    end
     if strcmp(experimental_paradigm, 'nGVS_Vision')
         [conditions_trial_vision, event_variables_to_save_vision, removal_flags_vision] ...
             = determineConditionLevels_intermittentPerturbations(study_settings, subject_settings, trial_data);

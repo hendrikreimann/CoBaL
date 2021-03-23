@@ -19,7 +19,7 @@ function [conditions_trial, event_variables_to_save, removal_flags] = determineC
     number_of_stretches = length(trial_data.trigger_times);
     removal_flags = false(number_of_stretches, 1);
 
-    % add nGVS settins
+    % add nGVS settings
     [rms, cutoff_low, cutoff_high, repetition] = determineNgvsSettings(subject_settings, trial_data.trial_type, trial_data.trial_number);
     this_setting_label = [rms ' mA; ' cutoff_low '-' cutoff_high ' Hz'];
     if strcmp(rms, '0')

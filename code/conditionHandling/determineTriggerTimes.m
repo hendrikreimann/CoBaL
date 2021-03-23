@@ -28,7 +28,7 @@ function trial_data = determineTriggerTimes(study_settings, trial_data)
         'Vision', 'CadenceVision', 'CognitiveLoadVision', 'SR_VisualStim', ...
         'GVS', 'CadenceGVS', 'FatigueGVS', 'CognitiveLoadGvs', 'OculusLaneRestriction', 'nGVS_Vision' ...
       };
-    paradigmn_with_normal_walking = {'Normal Walking', 'Stochastic Resonance', 'Normal Walking nGVS'};
+    paradigmn_with_normal_walking = {'Normal Walking', 'Stochastic Resonance', 'Normal Walking nGVS', 'Self Pacing Comparison'};
     if any(strcmp(experimental_paradigm, paradigms_with_perturbation))
         % find the time steps where the stimulus state crosses a threshold
         stimulus_threshold = 1.5;

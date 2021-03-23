@@ -30,7 +30,12 @@ function collectPopulationResults(varargin)
     source_label = parser.Results.source;
     save_file = parser.Results.output;
     if isempty(save_file)
-        save_file = ['results_' source_label];
+        if isempty(source_label)
+            save_file = 'results';
+        else
+            save_file = ['results_' source_label];
+        end
+        
     end
 
     % load settings
