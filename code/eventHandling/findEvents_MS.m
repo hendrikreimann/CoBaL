@@ -30,18 +30,10 @@ function findEvents_MS(varargin)
     if ~exist('analysis', 'dir')
         mkdir('analysis')
     end
-    load('subjectInfo.mat', 'date', 'subject_id');
 
     % load settings
-    subject_settings = SettingsCustodian('subjectSettings.txt');
-    study_settings_file = '';
-    if exist(['..' filesep 'studySettings.txt'], 'file')
-        study_settings_file = ['..' filesep 'studySettings.txt'];
-    end    
-    if exist(['..' filesep '..' filesep 'studySettings.txt'], 'file')
-        study_settings_file = ['..' filesep '..' filesep 'studySettings.txt'];
-    end
-    study_settings = SettingsCustodian(study_settings_file);
+    subject_settings = loadSettingsFromFile('subject');
+    study_settings = loadSettingsFromFile('study');
     
     for i_condition = 1 : length(condition_list)
         trials_to_process = trial_number_list{i_condition};
@@ -51,10 +43,10 @@ function findEvents_MS(varargin)
             %% prepare
             % load data
             this_trial_type = condition_list{i_condition};
-            [marker_trajectories, time_marker, sampling_rate_marker, marker_labels] = loadData(date, subject_id, this_trial_type, i_trial, 'marker_trajectories');
-            [treadmill_trajectories, time_treadmill, sampling_rate_treadmill, treadmill_labels] = loadData(date, subject_id, this_trial_type, i_trial, 'treadmill_trajectories', 'optional');
-            [left_foot_wrench_world, time_left_forceplate, ~, ~, ~, left_forceplate_available] = loadData(date, subject_id, this_trial_type, i_trial, 'left_foot_wrench_world', 'optional');
-            [right_foot_wrench_world, time_right_forceplate, ~, ~, ~, right_forceplate_available] = loadData(date, subject_id, this_trial_type, i_trial, 'right_foot_wrench_world', 'optional');
+            [marker_trajectories, time_marker, sampling_rate_marker, marker_labels] = loadData(subject_settings.get('collection_date'), subject_settings.get('subject_id'), this_trial_type, i_trial, 'marker_trajectories');
+            [treadmill_trajectories, time_treadmill, sampling_rate_treadmill, treadmill_labels] = loadData(subject_settings.get('collection_date'), subject_settings.get('subject_id'), this_trial_type, i_trial, 'treadmill_trajectories', 'optional');
+            [left_foot_wrench_world, time_left_forceplate, ~, ~, ~, left_forceplate_available] = loadData(subject_settings.get('collection_date'), subject_settings.get('subject_id'), this_trial_type, i_trial, 'left_foot_wrench_world', 'optional');
+            [right_foot_wrench_world, time_right_forceplate, ~, ~, ~, right_forceplate_available] = loadData(subject_settings.get('collection_date'), subject_settings.get('subject_id'), this_trial_type, i_trial, 'right_foot_wrench_world', 'optional');
             if left_forceplate_available & right_forceplate_available
                 left_fz_trajectory = left_foot_wrench_world(:, 3);
                 right_fz_trajectory = right_foot_wrench_world(:, 3);
@@ -298,7 +290,7 @@ function findEvents_MS(varargin)
             variables_to_save.event_data = event_data;
             variables_to_save.event_labels = event_labels;
             
-            step_events_file_name = ['analysis' filesep makeFileName(date, subject_id, this_trial_type, i_trial, 'events')];
+            step_events_file_name = ['analysis' filesep makeFileName(subject_settings.get('collection_date'), subject_settings.get('subject_id'), this_trial_type, i_trial, 'events')];
             saveDataToFile(step_events_file_name, variables_to_save);
 
             disp(['Finding Events: condition ' this_trial_type ', Trial ' num2str(i_trial) ' completed, saved as ' step_events_file_name]);
