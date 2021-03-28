@@ -154,7 +154,7 @@ function importFromOpensim(varargin)
             disp(['imported ' num2str(number_of_files) ' files'])        
 
         else
-            error(['Failed to locate directory ' source ' to process .mot files'])
+            error(['Failed to locate directory ' source_dir ' to process .mot files'])
 
 
 

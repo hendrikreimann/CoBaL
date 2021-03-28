@@ -16,7 +16,7 @@ t_acc_duration = 2;
 speed_base = 1;
 speed_delta = 1;
 
-g_p = 0.15;
+g_p = 0.1;
 g_v = 0.25;
 
 vel_base = speed_base + speed_delta * sinusSigmoid(time, t_acc_start, t_acc_start + t_acc_duration);
@@ -60,4 +60,6 @@ error = fun(x_solution);
 figure; hold on
 plot(time, pos_paced_pidAvg, 'linewidth', 2)
 plot(time, pos_paced_sms, 'linewidth', 2)
+legend('PD', 'SMS')
+
 

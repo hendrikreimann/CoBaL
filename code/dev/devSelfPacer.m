@@ -5,7 +5,7 @@ save_data       = 0;
 
 plot_source     = 0;
 
-save_figures    = 0; save_label = 'PDfilt';
+save_figures    = 1; save_label = 'stepResponse_fitSms';
 
 % update flags
 update_linear   = 0;
@@ -30,27 +30,36 @@ plot_mmj      = 0;
 % plot flags - data
 plot_pos_data = 1;
 plot_vel_data = 1;
-plot_acc_data = 1;
-plot_jrk_data = 1;
-plot_rms_data = 1;
+plot_acc_data = 0;
+plot_jrk_data = 0;
+plot_rms_data = 0;
 
 
 t_min = 10;
 t_max = 120;
 
 xlim_1 = 0;
-xlim_2 = 60;
+xlim_2 = 30;
+
+% these values are what we usually use, corresponding to K_p = 0.3, K_d = 0.03 min
+k_p_pid = 0.3;
+k_v_pid = 0.54;
 
 % hand-fitted values to be similar to the SMS output for 0.1, 0.25
-k_p_pid = 0.2;
-k_v_pid = 0.4;
+% k_p_pid = 0.2;
+% k_v_pid = 0.4;
 
 % optimized values to be similar to the SMS output for 0.1, 0.25
-k_p_pid = 0.215380825420512;
-k_v_pid = 0.446725659501051;
+% k_p_pid = 0.215380825420512;
+% k_v_pid = 0.446725659501051;
 
+% values from SMS paper
 k_p_sms = 0.1;
 k_v_sms = 0.25;
+
+% these values are fit to have position error output close to what our standard settings for PD do
+k_p_sms = 0.1370;
+k_v_sms = 0.3071;
 
 % preparing data, depending on source
 % data needed:
@@ -110,10 +119,10 @@ if strcmp(data_source, 'sim')
     vel_base = ones(size(time));
     
     t_acc_start = 5;
-    t_acc_duration = 1;
+    t_acc_duration = 2;
     
     speed_base = 1;
-    speed_delta = 0.5;
+    speed_delta = 1;
     
     vel_base = speed_base + speed_delta * sinusSigmoid(time, t_acc_start, t_acc_start + t_acc_duration);
     
@@ -206,8 +215,8 @@ end
 
 % pace - Seungmoon Song controller
 if update_sms || update_all
-%     [pos_paced_sms, pace_sms] = selfPacer_sms(pos, time, v_init, k_p_sms, k_v_sms, heelstrike_indices);
-    [pos_paced_sms, pace_sms] = selfPacer_sms(pos, time, v_init, 0.1, 0.25, heelstrike_indices);
+    [pos_paced_sms, pace_sms] = selfPacer_sms(pos, time, v_init, k_p_sms, k_v_sms, heelstrike_indices);
+%     [pos_paced_sms, pace_sms] = selfPacer_sms(pos, time, v_init, 0.1, 0.25, heelstrike_indices);
     pace_accel_sms = deriveByTime(pace_sms, time);
     pace_jerk_sms = deriveByTime(pace_accel_sms, time);
     rms_pos_sms = rms(pos_paced_sms(time_indices_to_analyze));
@@ -239,6 +248,8 @@ end
 
 % create figures and axes
 colors = lines(8);
+colors = colors([3 4], :); % choose these lines to be consistent with earlier plots
+
 axes_to_link = [];
 if plot_pos_data
     fig_pos = figure; axes_pos = axes('fontsize', 16); hold on; title('position - world space'); legend('show'); xlabel('time (s)'); ylabel('$p_w (m)$', 'interpreter', 'latex');
@@ -247,7 +258,7 @@ if plot_pos_data
 end
 if plot_vel_data
     fig_vel = figure; axes_vel = axes('fontsize', 16); hold on; title('belt speed'); legend('show'); xlabel('time (s)'); ylabel('$s~(m s^{-1})$', 'interpreter', 'latex');
-    plot(axes_vel, time, vel, 'displayname', 'pelvis velocity', 'color', [0.4 0.4 0.4]);
+    plot(axes_vel, time, vel, 'displayname', 'pelvis velocity', 'color', [0.4 0.4 0.4], 'linewidth', 2);
     axes_to_link = [axes_to_link, axes_vel];
 end
 if plot_acc_data
@@ -273,7 +284,7 @@ end
 count = 0;
 
 
-
+linewidth = 5;
 if plot_linear
     count = count + 1;
 
@@ -295,16 +306,16 @@ if plot_splined
     count = count + 1;
 
     if plot_pos_data
-        plot(axes_pos, time, pos_paced_splined, 'displayname', 'splined', 'linewidth', 2, 'color', colors(count, :));
+        plot(axes_pos, time, pos_paced_splined, 'displayname', 'splined', 'linewidth', linewidth, 'color', colors(count, :));
     end
     if plot_vel_data
-        plot(axes_vel, time, pace_splined, 'displayname', 'splined', 'linewidth', 2, 'color', colors(count, :));
+        plot(axes_vel, time, pace_splined, 'displayname', 'splined', 'linewidth', linewidth, 'color', colors(count, :));
     end
     if plot_acc_data
-        plot(axes_acc, time, pace_accel_splined, 'displayname', 'splined', 'linewidth', 2, 'color', colors(count, :));
+        plot(axes_acc, time, pace_accel_splined, 'displayname', 'splined', 'linewidth', linewidth, 'color', colors(count, :));
     end
     if plot_jrk_data
-        plot(axes_jrk, time, pace_jerk_splined, 'displayname', 'splined', 'linewidth', 2, 'color', colors(count, :));
+        plot(axes_jrk, time, pace_jerk_splined, 'displayname', 'splined', 'linewidth', linewidth, 'color', colors(count, :));
     end    
     if plot_rms_data
         bar_labels = [bar_labels, 'splined'];
@@ -318,16 +329,16 @@ if plot_pid
     count = count + 1;
 
     if plot_pos_data
-        plot(axes_pos, time, pos_paced_pid, 'displayname', 'PD', 'linewidth', 2, 'color', colors(count, :));
+        plot(axes_pos, time, pos_paced_pid, 'displayname', 'PD', 'linewidth', linewidth, 'color', colors(count, :));
     end
     if plot_vel_data
-        plot(axes_vel, time, pace_pid, 'displayname', 'PD', 'linewidth', 2, 'color', colors(count, :));
+        plot(axes_vel, time, pace_pid, 'displayname', 'PD', 'linewidth', linewidth, 'color', colors(count, :));
     end
     if plot_acc_data
-        plot(axes_acc, time, pace_accel_pid, 'displayname', 'PD', 'linewidth', 2, 'color', colors(count, :));
+        plot(axes_acc, time, pace_accel_pid, 'displayname', 'PD', 'linewidth', linewidth, 'color', colors(count, :));
     end
     if plot_jrk_data
-        plot(axes_jrk, time, pace_jerk_pid, 'displayname', 'PD', 'linewidth', 2, 'color', colors(count, :));
+        plot(axes_jrk, time, pace_jerk_pid, 'displayname', 'PD', 'linewidth', linewidth, 'color', colors(count, :));
     end    
     if plot_rms_data
         bar_labels = [bar_labels, 'PD'];
@@ -341,16 +352,16 @@ if plot_pidAvg
     count = count + 1;
 
     if plot_pos_data
-        plot(axes_pos, time, pos_paced_pidAvg, 'displayname', 'PD + averaging', 'linewidth', 2, 'color', colors(count, :));
+        plot(axes_pos, time, pos_paced_pidAvg, 'displayname', 'PD + averaging', 'linewidth', linewidth, 'color', colors(count, :));
     end
     if plot_vel_data
-        plot(axes_vel, time, pace_pidAvg, 'displayname', 'PD + averaging', 'linewidth', 2, 'color', colors(count, :));
+        plot(axes_vel, time, pace_pidAvg, 'displayname', 'PD + averaging', 'linewidth', linewidth, 'color', colors(count, :));
     end
     if plot_acc_data
-        plot(axes_acc, time, pace_accel_pidAvg, 'displayname', 'PD + averaging', 'linewidth', 2, 'color', colors(count, :));
+        plot(axes_acc, time, pace_accel_pidAvg, 'displayname', 'PD + averaging', 'linewidth', linewidth, 'color', colors(count, :));
     end
     if plot_jrk_data
-        plot(axes_jrk, time, pace_jerk_pidAvg, 'displayname', 'PD + averaging', 'linewidth', 2, 'color', colors(count, :));
+        plot(axes_jrk, time, pace_jerk_pidAvg, 'displayname', 'PD + averaging', 'linewidth', linewidth, 'color', colors(count, :));
     end    
     if plot_rms_data
         bar_labels = [bar_labels, 'PD+avg'];
@@ -364,16 +375,16 @@ if plot_sms
     count = count + 1;
 
     if plot_pos_data
-        plot(axes_pos, time, pos_paced_sms, 'displayname', 'Song2020', 'linewidth', 2, 'color', colors(count, :));
+        plot(axes_pos, time, pos_paced_sms, 'displayname', 'Song2020', 'linewidth', linewidth, 'color', colors(count, :));
     end
     if plot_vel_data
-        plot(axes_vel, time, pace_sms, 'displayname', 'Song2020', 'linewidth', 2, 'color', colors(count, :));
+        plot(axes_vel, time, pace_sms, 'displayname', 'Song2020', 'linewidth', linewidth, 'color', colors(count, :));
     end
     if plot_acc_data
-        plot(axes_acc, time, pace_accel_sms, 'displayname', 'Song2020', 'linewidth', 2, 'color', colors(count, :));
+        plot(axes_acc, time, pace_accel_sms, 'displayname', 'Song2020', 'linewidth', linewidth, 'color', colors(count, :));
     end
     if plot_jrk_data
-        plot(axes_jrk, time, pace_jerk_sms, 'displayname', 'Song2020', 'linewidth', 2, 'color', colors(count, :));
+        plot(axes_jrk, time, pace_jerk_sms, 'displayname', 'Song2020', 'linewidth', linewidth, 'color', colors(count, :));
     end    
     if plot_rms_data
         bar_labels = [bar_labels, 'Song2020'];
@@ -387,16 +398,16 @@ if plot_mmj
     count = count + 1;
 
     if plot_pos_data
-        plot(axes_pos, time, pos_paced_mmj, 'displayname', 'minimum jerk', 'linewidth', 2, 'color', colors(count, :));
+        plot(axes_pos, time, pos_paced_mmj, 'displayname', 'minimum jerk', 'linewidth', linewidth, 'color', colors(count, :));
     end
     if plot_vel_data
-        plot(axes_vel, time, pace_mmj, 'displayname', 'minimum jerk', 'linewidth', 2, 'color', colors(count, :));
+        plot(axes_vel, time, pace_mmj, 'displayname', 'minimum jerk', 'linewidth', linewidth, 'color', colors(count, :));
     end
     if plot_acc_data
-        plot(axes_acc, time, pace_accel_mmj, 'displayname', 'minimum jerk', 'linewidth', 2, 'color', colors(count, :));
+        plot(axes_acc, time, pace_accel_mmj, 'displayname', 'minimum jerk', 'linewidth', linewidth, 'color', colors(count, :));
     end
     if plot_jrk_data
-        plot(axes_jrk, time, pace_jerk_mmj, 'displayname', 'minimum jerk', 'linewidth', 2, 'color', colors(count, :));
+        plot(axes_jrk, time, pace_jerk_mmj, 'displayname', 'minimum jerk', 'linewidth', linewidth, 'color', colors(count, :));
     end    
     if plot_rms_data
         bar_labels = [bar_labels, 'mmj'];
@@ -410,16 +421,16 @@ if plot_pidf
     count = count + 1;
 
     if plot_pos_data
-        plot(axes_pos, time, pos_paced_pidf, 'displayname', 'PD+filter', 'linewidth', 2, 'color', colors(count, :));
+        plot(axes_pos, time, pos_paced_pidf, 'displayname', 'PD+filter', 'linewidth', linewidth, 'color', colors(count, :));
     end
     if plot_vel_data
-        plot(axes_vel, time, pace_pidf, 'displayname', 'PD+filter', 'linewidth', 2, 'color', colors(count, :));
+        plot(axes_vel, time, pace_pidf, 'displayname', 'PD+filter', 'linewidth', linewidth, 'color', colors(count, :));
     end
     if plot_acc_data
-        plot(axes_acc, time, pace_accel_pidf, 'displayname', 'PD+filter', 'linewidth', 2, 'color', colors(count, :));
+        plot(axes_acc, time, pace_accel_pidf, 'displayname', 'PD+filter', 'linewidth', linewidth, 'color', colors(count, :));
     end
     if plot_jrk_data
-        plot(axes_jrk, time, pace_jerk_pidf, 'displayname', 'PD+filter', 'linewidth', 2, 'color', colors(count, :));
+        plot(axes_jrk, time, pace_jerk_pidf, 'displayname', 'PD+filter', 'linewidth', linewidth, 'color', colors(count, :));
     end    
     if plot_rms_data
         bar_labels = [bar_labels, 'PD+filter'];
@@ -437,9 +448,11 @@ set(axes_to_link(1), 'xlim', [xlim_1, xlim_2]);
 
 if save_figures
     if plot_pos_data
+        set(axes_pos, 'ylim', [-0.4 1.4])
         print(fig_pos, [save_label '_pos'], '-djpeg', '-r150')
     end
     if plot_vel_data
+        set(axes_vel, 'ylim', [1 2.5])
         print(fig_vel, [save_label '_vel'], '-djpeg', '-r150')
     end
     if plot_acc_data

@@ -43,10 +43,10 @@ options = optimoptions('fminunc', 'MaxIterations', 200, 'OptimalityTolerance', 1
 x0 = [0.1, 0.25];
 fun = @(x)(sum((selfPacer_sms(pos, time, v_init, x(1), x(2), heelstrike_indices) - pos_paced_pidAvg).^2));
 
-x_solution = fminunc(fun,x0)
+% x_solution = fminunc(fun,x0)
 
 % trying to find g_p, g_v values with corresponding k_p, k_v values similar to what we usually use, alpha = 0.3, beta = 0.54
-% x_solution = [0.1370, 0.3071];
+x_solution = [0.1370, 0.3071];
 
 [pos_paced_sms, pace_sms] = selfPacer_sms(pos, time, v_init, x_solution(1), x_solution(2), heelstrike_indices);
 error = fun(x_solution);
@@ -54,4 +54,4 @@ error = fun(x_solution);
 figure; hold on
 plot(time, pos_paced_pidAvg, 'linewidth', 2)
 plot(time, pos_paced_sms, 'linewidth', 2)
-
+legend('PD', 'SMS')
