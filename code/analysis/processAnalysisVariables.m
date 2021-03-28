@@ -73,7 +73,10 @@ function processAnalysisVariables(varargin)
         if strcmp(this_action, 'take extremum within whole band')
             data = calculateExtremaVariables(this_settings_table, this_settings_table_header, study_settings, data);
         end
-        if strcmp(this_action, 'take extremum over time interval within band')
+        if strcmp(this_action, 'take extremum over time interval within band') % TODO: this does not make any sense... 
+            % the action description suggests that it takes the extremum from an interval of data within a band, but 
+            % I think what it's actually doing is taking the extremum over a whole range of data, spanning multiple 
+            % intervals
             data = calculateExtremaOverRangeVariables(this_settings_table, this_settings_table_header, data);
         end
         if strcmp(this_action, 'combine two variables')

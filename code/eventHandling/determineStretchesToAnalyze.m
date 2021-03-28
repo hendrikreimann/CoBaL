@@ -626,7 +626,7 @@ function [conditions_trial, event_variables_to_save] ...
     end
 
     %  check data availability for markers with non-zero weight
-    marker_weights = study_settings.get('marker_weights');
+    marker_weights = study_settings.get('marker_weights', '1');
     if isempty(marker_weights)
         marker_weights = ones(size(trial_data.marker_labels));
     end
