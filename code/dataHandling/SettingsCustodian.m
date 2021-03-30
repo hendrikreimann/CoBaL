@@ -303,6 +303,20 @@ classdef SettingsCustodian < handle
                 data = [];
             end
         end
+        
+        function table_data = getTable(this, table_name, optional)
+            if nargin < 3
+                optional = false;
+            end
+            
+            table_header_label = [table_name '_header'];
+            
+            table_header = this.get(table_header_label, optional);
+            table_body = this.get(table_name, optional);
+            
+            table_data = cell2table(table_body, 'VariableNames', table_header);
+        end
+        
         function answer = isfield(this, property_name)
             answer = isfield(this.settings_struct, property_name);
         end
