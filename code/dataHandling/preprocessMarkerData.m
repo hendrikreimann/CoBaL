@@ -45,7 +45,15 @@ function preprocessMarkerData(varargin)
     loaded_data = load(['raw' filesep makeFileName(collection_date, subject_id, subject_settings.get('static_reference_trial_type'), subject_settings.get('static_reference_trial_number'), 'markerTrajectoriesRaw.mat')]);
     marker_labels_reference = loaded_data.marker_labels;
     marker_directions_reference = loaded_data.marker_directions;
+    marker_reference_trajectories = loaded_data.marker_raw_trajectories;
+    i_time = 1;
+    while any(isnan(marker_reference_trajectories(i_time, :)))
+        i_time = i_time + 1;
+    end
+    marker_reference = marker_reference_trajectories(i_time, :);
 
+    % load rigid body fill table
+    marker_fill_table = subject_settings.getTable('marker_fill_table');
 
     data_dir = dir(['raw' filesep '*_markerTrajectoriesRaw.mat']);
     clear file_name_list;
@@ -82,6 +90,32 @@ function preprocessMarkerData(varargin)
                 else
                     marker_trajectories = raw_marker_trajectories;
                 end
+                
+                % perform rigid body fill if requested in subjectSettings.txt for this trial
+                trial_type_match = strcmp(marker_fill_table.trial_type, trial_type);
+                trial_number_match = strcmp(marker_fill_table.trial_number, num2str(trial_number));
+                trial_match_indices = find(trial_type_match & trial_number_match);
+                
+                for i_index = 1 : length(trial_match_indices)
+                    marker_to_fill = marker_fill_table.marker_to_fill{i_index};
+                    source_marker_1 = marker_fill_table.marker_source_1{i_index};
+                    source_marker_2 = marker_fill_table.marker_source_2{i_index};
+                    source_marker_3 = marker_fill_table.marker_source_3{i_index};
+                    
+                    marker_trajectories = rigidBodyFillMarkerFromReference ...
+                      ( ...
+                        marker_trajectories, ...
+                        marker_labels, ...
+                        marker_directions, ...
+                        marker_reference, ...
+                        marker_labels_reference, ...
+                        marker_directions_reference, ...
+                        marker_to_fill, ...
+                        source_marker_1, ...
+                        source_marker_2, ...
+                        source_marker_3, 1 ...
+                      );
+                end
 
                 % compare marker labels to reference trial
                 marker_labels_equal = 0;
@@ -94,7 +128,8 @@ function preprocessMarkerData(varargin)
                         end
                     end
                 end
-
+                
+                % re-order markers to match reference if necessary
                 if ~marker_labels_equal
                     marker_trajectories_unsorted = marker_trajectories;
                     marker_labels_unsorted = loaded_data.marker_labels;
@@ -138,91 +173,6 @@ function preprocessMarkerData(varargin)
             end
         end
     end
-
-    %% transform to belt space
-%     for i_condition = 1 : length(types_to_analyze)
-%         trials_to_process = trials_to_analyze{i_condition};
-%         for i_trial = trials_to_process
-%             % load data
-%             this_condition = types_to_analyze{i_condition};
-%             if any(strcmp(study_settings.get('conditions_to_transform_to_belt_space', 1), this_condition))
-%                 % extract data for new structure
-%                 if exist(['processed' filesep makeFileName(date, subject_id, trial_type, i_trial, 'plcData')], 'file')
-%                     load(['processed' filesep makeFileName(date, subject_id, trial_type, i_trial, 'plcData')])
-%                 else
-%                     error(['Failed to load PLC data file for condition ' trial_type ', trial ' num2str(i_trial)]);
-%                 end
-%                 time_belts = time_plcData - time_plcData(1);
-% 
-%                 % calculate shift
-%                 belt_speed_trajectory = mean([belt_speed_left_trajectory belt_speed_right_trajectory], 2);
-%                 delta_t = diff(time_belts);
-%                 belt_position_trajectory_plcData = zeros(size(belt_speed_trajectory));
-%                 for i_time = 2 : length(belt_speed_trajectory)
-%                     belt_position_trajectory_plcData(i_time) = belt_position_trajectory_plcData(i_time-1) + delta_t(i_time-1) * belt_speed_trajectory(i_time-1);
-%                 end
-% 
-%                 % apply shift to marker trajectories
-%                 file_name_raw = ['raw' filesep makeFileName(date, subject_id, this_condition, i_trial, 'markerTrajectoriesRaw.mat')];
-%                 load(file_name_raw);
-%                 marker_trajectories = raw_marker_trajectories;
-%                 belt_position_trajectory_mocap = spline(time_belts, belt_position_trajectory_plcData, time_mocap)';
-%                 for i_marker = 1 : size(marker_headers, 2)
-%                     marker_trajectories(:, (i_marker-1)*3+2) = marker_trajectories(:, (i_marker-1)*3+2) + belt_position_trajectory_mocap;
-%                 end
-% 
-%                 save_folder = 'processed';
-%                 save_file_name = makeFileName(date, subject_id, trial_type, trial_number, 'markerTrajectories.mat');
-%                 save ...
-%                   ( ...
-%                     [save_folder filesep save_file_name], ...
-%                     'marker_trajectories', ...
-%                     'time_mocap', ...
-%                     'sampling_rate_mocap', ...
-%                     'marker_labels' ...
-%                   );
-%                 addAvailableData('marker_trajectories', 'time_mocap', 'marker_labels', save_folder, save_file_name);
-%                 disp(['Transformed marker data in ' file_name_raw ' to belt space and saved to ' file_name_shifted])                    
-%             end
-
-
-
-
-
-
-%             % apply shift to forceplate trajectories
-%             load(makeFileName(date, subject_id, condition, i_trial, 'forceplateTrajectories'));
-%             belt_position_trajectory_forceplate = spline(time_belts, belt_position_trajectory_plcData, time_forceplate)';
-%             
-%             for i_time = 1 : length(time_forceplate)
-%                 % define forceplate rotation and translation
-%                 world_to_Acb_rotation = [1 0 0; 0 1 0; 0 0 1];
-%                 world_to_Acb_translation = [0.5588; 0; 0];
-%                 world_to_Acb_trafo = [world_to_Acb_rotation world_to_Acb_translation; 0 0 0 1];
-%                 world_to_Acb_adjoint = rigidToAdjointTransformation(world_to_Acb_trafo);
-% 
-%                 % transform
-%                 left_forceplate_wrench_Acb = (world_to_Acb_adjoint' * left_forceplate_wrench_world')';
-%                 right_forceplate_wrench_Acb = (world_to_Acb_adjoint' * right_forceplate_wrench_world')';
-% 
-%             end
-% 
-%             % calculate wrenches and CoP for complete plate
-%             total_forceplate_wrench_Acb = left_forceplate_wrench_Acb + right_forceplate_wrench_Acb;
-%             copx_trajectory = - total_forceplate_wrench_Acb(:, 5) ./ total_forceplate_wrench_Acb(:, 3);
-%             copy_trajectory = total_forceplate_wrench_Acb(:, 4) ./ total_forceplate_wrench_Acb(:, 3);
-%             total_forceplate_cop_Acb = [copx_trajectory copy_trajectory];
-%                 
-%             % re-zero CoP for low loads
-%             left_forceplate_low_load_indicator = copxl_trajectory == 0;
-%             left_forceplate_cop_world(left_forceplate_low_load_indicator, :) = 0;
-%             right_forceplate_low_load_indicator = copxr_trajectory == 0;
-%             right_forceplate_cop_world(right_forceplate_low_load_indicator, :) = 0;
-%             total_forceplate_low_load_indicator = copx_trajectory == 0;
-%             total_forceplate_cop_world(total_forceplate_low_load_indicator, :) = 0;            
-
-%         end
-%     end
 end
     
     

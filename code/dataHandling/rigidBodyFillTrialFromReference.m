@@ -24,7 +24,7 @@ function rigidBodyFillTrialFromReference(marker_to_fill, marker_source_1, marker
     visualize = parser.Results.visualize;
     
     % load settings
-     subject_settings = SettingsCustodian('subjectSettings.txt');
+    subject_settings = SettingsCustodian('subjectSettings.txt');
     collection_date = subject_settings.get('collection_date');
     subject_id = subject_settings.get('subject_id');
 
