@@ -500,10 +500,6 @@ function data = calculateBandEndVariables(variables_step_end, variables_step_end
     number_of_stretches = size(data.stretch_data_session{1}, 2);
     number_of_time_steps_normalized = study_settings.get('number_of_time_steps_normalized');
     for i_variable = 1 : size(variables_step_end, 1)
-%         this_variable_name = variables_step_end{i_variable, 1};
-%         this_variable_source_name = variables_step_end{i_variable, 2};
-%         this_variable_source_type = variables_step_end{i_variable, 3};
-        
         this_variable_name = variables_step_end{i_variable, strcmp(variables_step_end_header, 'new_variable_name')};
         this_variable_source_name = variables_step_end{i_variable, strcmp(variables_step_end_header, 'source_variable_name')};
         this_variable_source_type = variables_step_end{i_variable, strcmp(variables_step_end_header, 'source_type')};

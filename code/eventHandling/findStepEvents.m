@@ -65,47 +65,6 @@ function findStepEvents(varargin)
                 right_fz_trajectory = right_foot_wrench_world(:, 3);
             end
             
-            % extract data
-%             LHEE_trajectory = extractMarkerData(marker_trajectories, marker_labels, 'LHEE', 'trajectories');
-%             LHEE_y_trajectory = LHEE_trajectory(:, 2);
-%             LHEE_z_trajectory = LHEE_trajectory(:, 3);
-%             LTOE_trajectory = extractMarkerData(marker_trajectories, marker_labels, 'LTOE', 'trajectories');
-%             LTOE_y_trajectory = LTOE_trajectory(:, 2);
-%             LTOE_z_trajectory = LTOE_trajectory(:, 3);
-%             
-%             RHEE_trajectory = extractMarkerData(marker_trajectories, marker_labels, 'RHEE', 'trajectories');
-%             RHEE_y_trajectory = RHEE_trajectory(:, 2);
-%             RHEE_z_trajectory = RHEE_trajectory(:, 3);
-%             RTOE_trajectory = extractMarkerData(marker_trajectories, marker_labels, 'RTOE', 'trajectories');
-%             RTOE_y_trajectory = RTOE_trajectory(:, 2);
-%             RTOE_z_trajectory = RTOE_trajectory(:, 3);
-            
-            % calculate foot angle
-%             left_foot_vector = LTOE_trajectory - LHEE_trajectory;
-%             right_foot_vector = RTOE_trajectory - RHEE_trajectory;
-%             left_foot_angle_trajectory = zeros(size(LHEE_trajectory, 1), 1);
-%             right_foot_angle_trajectory = zeros(size(RHEE_trajectory, 1), 1);
-%             for i_time = 1 : size(RHEE_trajectory, 1)
-%                 left_foot_angle_trajectory(i_time) = atan2(left_foot_vector(i_time, 3), left_foot_vector(i_time, 2));
-%                 right_foot_angle_trajectory(i_time) = atan2(right_foot_vector(i_time, 3), right_foot_vector(i_time, 2));
-%             end
-            
-            % calculate derivatives
-%             filter_order = 2;
-%             cutoff_frequency = 20; % cutoff frequency, in Hz
-%             [b, a] = butter(filter_order, cutoff_frequency/(sampling_rate_marker/2));	% set filter parameters for butterworth filter: 2=order of filter;
-%             LHEE_z_vel_trajectory = deriveByTime(nanfiltfilt(b, a, LHEE_z_trajectory), 1/sampling_rate_marker);
-%             RHEE_z_vel_trajectory = deriveByTime(nanfiltfilt(b, a, RHEE_z_trajectory), 1/sampling_rate_marker);
-%             LHEE_z_acc_trajectory = deriveByTime(nanfiltfilt(b, a, LHEE_z_vel_trajectory), 1/sampling_rate_marker);
-%             RHEE_z_acc_trajectory = deriveByTime(nanfiltfilt(b, a, RHEE_z_vel_trajectory), 1/sampling_rate_marker);
-%             LTOE_z_vel_trajectory = deriveByTime(nanfiltfilt(b, a, LTOE_z_trajectory), 1/sampling_rate_marker);
-%             RTOE_z_vel_trajectory = deriveByTime(nanfiltfilt(b, a, RTOE_z_trajectory), 1/sampling_rate_marker);
-            
-%             left_foot_angle_vel_trajectory = deriveByTime(nanfiltfilt(b, a, left_foot_angle_trajectory), 1/sampling_rate_marker);
-%             right_foot_angle_vel_trajectory = deriveByTime(nanfiltfilt(b, a, right_foot_angle_trajectory), 1/sampling_rate_marker);
-%             left_foot_angle_acc_trajectory = deriveByTime(nanfiltfilt(b, a, left_foot_angle_vel_trajectory), 1/sampling_rate_marker);
-%             right_foot_angle_acc_trajectory = deriveByTime(nanfiltfilt(b, a, right_foot_angle_vel_trajectory), 1/sampling_rate_marker);
-            
             %% find events
             left_touchdown_times = [];
             left_pushoff_times = [];
@@ -118,6 +77,9 @@ function findStepEvents(varargin)
                 cop_ap = cop_trajectories(:, 2);
                 [~, pushoff_indices_both] = findpeaks(cop_ap, 'MinPeakProminence', subject_settings.get('peak_prominence_threshold'));
                 [~, touchdown_indices_both] = findpeaks(-cop_ap, 'MinPeakProminence', subject_settings.get('peak_prominence_threshold'));
+                
+                LHEE_y_trajectory = getKinematics('heel', 'left', 'y');
+                RHEE_y_trajectory = getKinematics('heel', 'right', 'y');
                 
                 % go through and assign each index to a foot
                 pushoff_indices_left = [];
@@ -161,31 +123,28 @@ function findStepEvents(varargin)
                 
                 if visualize
                     figure; axes; hold on;
-                    plot(cop_trajectories(:, 1), cop_trajectories(:, 2), 'color', 'b');
-                    plot(cop_trajectories(pushoff_indices_both, 1), cop_trajectories(pushoff_indices_both, 2), '^', 'markersize', 4, 'color', 'c');
-                    plot(cop_trajectories(pushoff_indices_left, 1), cop_trajectories(pushoff_indices_left, 2), '^', 'markersize', 8, 'color', 'g', 'linewidth', 2);
-                    plot(cop_trajectories(pushoff_indices_right, 1), cop_trajectories(pushoff_indices_right, 2), '^', 'markersize', 8, 'color', 'r', 'linewidth', 2);
-                    plot(cop_trajectories(touchdown_indices_both, 1), cop_trajectories(touchdown_indices_both, 2), 'v', 'markersize', 4, 'color', 'm');
-                    plot(cop_trajectories(touchdown_indices_left, 1), cop_trajectories(touchdown_indices_left, 2), 'v', 'markersize', 8, 'color', 'g', 'linewidth', 2);
-                    plot(cop_trajectories(touchdown_indices_right, 1), cop_trajectories(touchdown_indices_right, 2), 'v', 'markersize', 8, 'color', 'r', 'linewidth', 2);
+                    plot(cop_trajectories(:, 1), cop_trajectories(:, 2), 'color', 'b', 'DisplayName', 'CoP');
+                    plot(cop_trajectories(pushoff_indices_left, 1), cop_trajectories(pushoff_indices_left, 2), '^', 'markersize', 8, 'color', 'g', 'linewidth', 2, 'DisplayName', 'left pushoff');
+                    plot(cop_trajectories(pushoff_indices_right, 1), cop_trajectories(pushoff_indices_right, 2), '^', 'markersize', 8, 'color', 'r', 'linewidth', 2, 'DisplayName', 'right pushoff');
+                    plot(cop_trajectories(touchdown_indices_left, 1), cop_trajectories(touchdown_indices_left, 2), 'v', 'markersize', 8, 'color', 'g', 'linewidth', 2, 'DisplayName', 'left heel-strike');
+                    plot(cop_trajectories(touchdown_indices_right, 1), cop_trajectories(touchdown_indices_right, 2), 'v', 'markersize', 8, 'color', 'r', 'linewidth', 2, 'DisplayName', 'right heel-strike');
+                    xlabel('ml position (m)'); ylabel('ap position (m)')
 
                     figure; axes_x = axes; hold on;
-                    plot(time_forceplate, cop_trajectories(:, 1), 'linewidth', 2, 'color', 'b');
-                    plot(time_forceplate(pushoff_indices_both), cop_trajectories(pushoff_indices_both, 1), '^', 'markersize', 4, 'color', 'c');
-                    plot(time_forceplate(pushoff_indices_left), cop_trajectories(pushoff_indices_left, 1), '^', 'markersize', 6, 'color', 'g', 'linewidth', 2);
-                    plot(time_forceplate(pushoff_indices_right), cop_trajectories(pushoff_indices_right, 1), '^', 'markersize', 6, 'color', 'r', 'linewidth', 2);
-                    plot(time_forceplate(touchdown_indices_both), cop_trajectories(touchdown_indices_both, 1), 'v', 'markersize', 4, 'color', 'm');
-                    plot(time_forceplate(touchdown_indices_left), cop_trajectories(touchdown_indices_left, 1), 'v', 'markersize', 6, 'color', 'g', 'linewidth', 2);
-                    plot(time_forceplate(touchdown_indices_right), cop_trajectories(touchdown_indices_right, 1), 'v', 'markersize', 6, 'color', 'r', 'linewidth', 2);
+                    plot(time_forceplate, cop_trajectories(:, 1), 'linewidth', 2, 'color', 'b', 'DisplayName', 'CoP');
+                    plot(time_forceplate(pushoff_indices_left), cop_trajectories(pushoff_indices_left, 1), '^', 'markersize', 6, 'color', 'g', 'linewidth', 2, 'DisplayName', 'left pushoff');
+                    plot(time_forceplate(pushoff_indices_right), cop_trajectories(pushoff_indices_right, 1), '^', 'markersize', 6, 'color', 'r', 'linewidth', 2, 'DisplayName', 'right pushoff');
+                    plot(time_forceplate(touchdown_indices_left), cop_trajectories(touchdown_indices_left, 1), 'v', 'markersize', 6, 'color', 'g', 'linewidth', 2, 'DisplayName', 'left heel-strike');
+                    plot(time_forceplate(touchdown_indices_right), cop_trajectories(touchdown_indices_right, 1), 'v', 'markersize', 6, 'color', 'r', 'linewidth', 2, 'DisplayName', 'right heel-strike');
+                    xlabel('time (s)'); ylabel('ml position (m)')
 
                     figure; axes_y = axes; hold on;
-                    plot(time_forceplate, cop_trajectories(:, 2), 'linewidth', 2, 'color', 'b');
-                    plot(time_forceplate(pushoff_indices_both), cop_trajectories(pushoff_indices_both, 2), '^', 'markersize', 4, 'color', 'c');
-                    plot(time_forceplate(pushoff_indices_left), cop_trajectories(pushoff_indices_left, 2), '^', 'markersize', 6, 'color', 'g', 'linewidth', 2);
-                    plot(time_forceplate(pushoff_indices_right), cop_trajectories(pushoff_indices_right, 2), '^', 'markersize', 6, 'color', 'r', 'linewidth', 2);
-                    plot(time_forceplate(touchdown_indices_both), cop_trajectories(touchdown_indices_both, 2), 'v', 'markersize', 4, 'color', 'm');
-                    plot(time_forceplate(touchdown_indices_left), cop_trajectories(touchdown_indices_left, 2), 'v', 'markersize', 6, 'color', 'g', 'linewidth', 2);
-                    plot(time_forceplate(touchdown_indices_right), cop_trajectories(touchdown_indices_right, 2), 'v', 'markersize', 6, 'color', 'r', 'linewidth', 2);
+                    plot(time_forceplate, cop_trajectories(:, 2), 'linewidth', 2, 'color', 'b', 'DisplayName', 'CoP');
+                    plot(time_forceplate(pushoff_indices_left), cop_trajectories(pushoff_indices_left, 2), '^', 'markersize', 6, 'color', 'g', 'linewidth', 2, 'DisplayName', 'left pushoff');
+                    plot(time_forceplate(pushoff_indices_right), cop_trajectories(pushoff_indices_right, 2), '^', 'markersize', 6, 'color', 'r', 'linewidth', 2, 'DisplayName', 'right pushoff');
+                    plot(time_forceplate(touchdown_indices_left), cop_trajectories(touchdown_indices_left, 2), 'v', 'markersize', 6, 'color', 'g', 'linewidth', 2, 'DisplayName', 'left heel-strike');
+                    plot(time_forceplate(touchdown_indices_right), cop_trajectories(touchdown_indices_right, 2), 'v', 'markersize', 6, 'color', 'r', 'linewidth', 2, 'DisplayName', 'right heel-strike');
+                    xlabel('time (s)'); ylabel('ap position (m)')
 
                     linkaxes([axes_x, axes_y], 'x');
                 end
@@ -334,7 +293,7 @@ function findStepEvents(varargin)
                 right_touchdown_indices_mocap(right_touchdown_indices_mocap==0) = [];
                 right_touchdown_times = [right_touchdown_times; time_marker(right_touchdown_indices_mocap)]; %#ok<AGROW>
             end
-            if any(strcmp(subject_settings.get('right_touchdown_method'), 'heel_ap_peak'))
+            if any(strcmp(subject_settings.get('right_touchdown_method', 1), 'heel_ap_peak'))
                 RHEE_y_trajectory = getKinematics('heel', 'right', 'y');
                 
                 % find velocity zeros
@@ -442,6 +401,10 @@ function findStepEvents(varargin)
             end
             if visualize
                 step_event_figures = zeros(1, 4);
+                [LHEE_z_trajectory, ~, LHEE_z_acc_trajectory] = getKinematics('heel', 'left', 'z');
+                [RHEE_z_trajectory, ~, RHEE_z_acc_trajectory] = getKinematics('heel', 'right', 'z');
+                [LTOE_z_trajectory, LTOE_z_vel_trajectory] = getKinematics('toes', 'left', 'z');
+                [RTOE_z_trajectory, RTOE_z_vel_trajectory] = getKinematics('toes', 'right', 'z');
                 
                 % left position
                 step_event_figures(1) = figure; axes_left = axes; hold on; title('left foot marker positions')
@@ -615,8 +578,7 @@ function findStepEvents(varargin)
             vel = marker_velocity_trajectory(:, component_index);
         end
         if nargout > 2
-            marker_acceleration_trajectory = deriveByTime(nanfiltfilt(b, a, vel), 1/sampling_rate_marker);
-            acc = marker_acceleration_trajectory(:, component_index);
+            acc = deriveByTime(nanfiltfilt(b, a, vel), 1/sampling_rate_marker);
         end
 
     end
