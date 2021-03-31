@@ -314,13 +314,18 @@ classdef SettingsCustodian < handle
             table_header = this.get(table_header_label, optional);
             table_body = this.get(table_name, optional);
             
-            if isempty(table_body)
-                variable_types = cell(1, length(table_header));
-                variable_types(:) = {'string'};
-                table_data = table('size', [0, length(table_header)], 'VariableTypes', variable_types, 'VariableNames', table_header);
+            if isempty(table_header)
+                table_data = table;
             else
-                table_data = cell2table(table_body, 'VariableNames', table_header);
+                if isempty(table_body)
+                    variable_types = cell(1, length(table_header));
+                    variable_types(:) = {'string'};
+                    table_data = table('size', [0, length(table_header)], 'VariableTypes', variable_types, 'VariableNames', table_header);
+                else
+                    table_data = cell2table(table_body, 'VariableNames', table_header);
+                end
             end
+            
         end
         
         function answer = isfield(this, property_name)

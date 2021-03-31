@@ -113,6 +113,7 @@ function settings = determineSettings(varargin)
     settings.colors_bands = settings.plot_settings.get('colors_bands', 1);
     settings.colors_header = settings.plot_settings.get('colors_header', 1);
     settings.colors = settings.plot_settings.get('colors', 1);
+    settings.colors_table = settings.plot_settings.getTable('colors', 1);
     
     % extract and store settings from files
     settings.conditions_settings = settings.study_settings.get('conditions');
@@ -205,23 +206,19 @@ function condition_colors = determineConditionColors(settings, comparisons)
     % make default color map
     default_colors = lines(length(levels));
     
-    % get colors from settings for this condition
-    condition_column = find(strcmp(settings.colors_header, 'condition'));
-    level_column = find(strcmp(settings.colors_header, 'level'));
-    color_column = find(strcmp(settings.colors_header, 'color'));
-    if ~isempty(settings.colors)
-        colors_from_settings = settings.colors(strcmp(settings.colors(:, condition_column), settings.condition_to_compare), [level_column color_column]); %#ok<FNDSB>
+    if isempty(settings.colors_table)
+        colors_table_from_settings = table([0, 3], 'VariableNames', {'condition', 'level', 'color'})
     else
-        colors_from_settings = cell(0, 2);
+        colors_table_from_settings = settings.colors_table(strcmp(settings.colors_table.condition, settings.condition_to_compare), :);
     end
     
     % go through levels and store default color or the one provided in the settings
     condition_colors = [levels cell(size(levels))];
     for i_level = 1 : length(levels)
         this_level = levels(i_level);
-        if any(strcmp(colors_from_settings(:, 1), this_level))
+        if any(strcmp(colors_table_from_settings.level, this_level))
             % use color provided in settings
-            condition_colors{i_level, 2} = hex2rgb(colors_from_settings{strcmp(colors_from_settings(:, 1), this_level), 2});
+            condition_colors{i_level, 2} = hex2rgb(colors_table_from_settings.color{strcmp(colors_table_from_settings.level, this_level)});
         else
             % use default color
             condition_colors{i_level, 2} = default_colors(i_level, :);
@@ -365,12 +362,9 @@ function figure_data = createFigures_discrete(settings, comparisons, data_custod
             conditions_this_comparison = comparisons.comparison_indices{i_comparison};
 
             if settings.group_bands_within_conditions
-%                 number_of_entries = length(conditions_this_comparison);
                 number_of_entries = comparisons.conditions_per_comparison_max;
                 gap_between_conditions = 1;
 
-                
-%                 abscissae_stimulus = repmat((1 : data_custodian.bands_per_stretch)', 1, length(conditions_this_comparison));
                 abscissae_base = repmat((1 : data_custodian.bands_per_stretch)', 1, number_of_entries);
                 shifter = (0:number_of_entries-1) * (data_custodian.bands_per_stretch + gap_between_conditions);
                 abscissae_base = abscissae_base + repmat(shifter, data_custodian.bands_per_stretch, 1);
@@ -391,20 +385,29 @@ function figure_data = createFigures_discrete(settings, comparisons, data_custod
                 
             else
                 gap_between_bands = 1;
-
-%                 abscissae_stimulus = repmat((1 : number_of_entries), bands_per_stretch, 1);
-%                 abscissae_stimulus = repmat((1 : comparisons.conditions_per_comparison_max), bands_per_stretch, 1);
                 
                 % go through each level individually, find its place in the level order and determine its abscissa
-                abscissae_stimulus = ones(bands_per_stretch, comparisons.conditions_per_comparison_max) * NaN;
+                abscissae_template = ones(1, comparisons.conditions_per_comparison_max) * NaN;
                 for i_condition = 1 : length(conditions_this_comparison)
                     this_condition_index = conditions_this_comparison(i_condition);
                     this_condition = comparisons.condition_combinations(this_condition_index, :);
                     this_label = this_condition{strcmp(comparisons.condition_combination_labels, settings.condition_to_compare)};
                     this_label_index_in_level_order = find(strcmp(this_label, comparisons.level_order));
-                    abscissae_stimulus(:, i_condition) = this_label_index_in_level_order;
+                    abscissae_template(i_condition) = this_label_index_in_level_order;
                 end
                 
+                % remove gaps
+                i_index = 1;
+                while i_index < max(abscissae_template)
+                    while ~ismember(i_index, abscissae_template)
+                        % while this index is not present, decrement all indices above this one
+                        abscissae_template(abscissae_template > i_index) = abscissae_template(abscissae_template > i_index) - 1;
+                    end
+                    i_index = i_index + 1;
+                end
+                
+                % distribute
+                abscissae_stimulus = repmat(abscissae_template, bands_per_stretch, 1);
                 shifter = (0:bands_per_stretch-1)' * (comparisons.conditions_per_comparison_max + gap_between_bands);
                 abscissae_stimulus = abscissae_stimulus + repmat(shifter, 1, comparisons.conditions_per_comparison_max);
                 if settings.plot_settings.get('merge_bands', 1)
