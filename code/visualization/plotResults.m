@@ -119,9 +119,10 @@ function settings = determineSettings(varargin)
     settings.conditions_settings = settings.study_settings.get('conditions');
     settings.condition_to_compare = settings.plot_settings.get('condition_to_compare');
     settings.condition_labels = settings.conditions_settings(:, 1)';
-    settings.variables_to_plot = settings.plot_settings.get('variables_to_plot', true);
-    settings.variables_to_plot_header = settings.plot_settings.get('variables_to_plot_header', true);
-    settings.number_of_variables_to_plot = size(settings.variables_to_plot, 1);
+%     settings.variables_to_plot = settings.plot_settings.get('variables_to_plot', true);
+%     settings.variables_to_plot_header = settings.plot_settings.get('variables_to_plot_header', true);
+    settings.variables_to_plot_table = settings.plot_settings.getTable('variables_to_plot', true);
+    settings.number_of_variables_to_plot = size(settings.variables_to_plot_table, 1);
     
     settings.variables_to_plot_discrete = settings.plot_settings.get('variables_to_plot_discrete', true);
     settings.variables_to_plot_discrete_header = settings.plot_settings.get('variables_to_plot_discrete_header', true);
@@ -135,29 +136,26 @@ end
 
 function settings = transformVariablesListToNewFormat(settings, data_custodian)
     % grab variables
-    variables_to_plot = settings.variables_to_plot;
-    if isempty(variables_to_plot)
+    variables_to_plot_table = settings.variables_to_plot_table;
+    if isempty(variables_to_plot_table)
         % old list entry exists, but is empty, we don't have to do anything
         return
     end
-    variables_to_plot_header = settings.variables_to_plot_header;
-    variables_name_list = variables_to_plot(:, strcmp(variables_to_plot_header, 'variable name'));
-    variables_type_list = variables_to_plot(:, strcmp(variables_to_plot_header, 'variable type'));
-    
+
     % go through variables and transform one by one
-    for i_variable = 1 : length(variables_name_list)
-        this_variable_name = variables_name_list{i_variable};
-        this_variable_type = variables_type_list{i_variable};
+    for i_variable = 1 : length(variables_to_plot_table.variable_name)
+        this_variable_name = variables_to_plot_table.variable_name{i_variable};
+        this_variable_type = variables_to_plot_table.variable_type{i_variable};
         this_variable_data = data_custodian.getData(this_variable_name, this_variable_type);
         
-        this_row = variables_to_plot(i_variable, :);
+        this_row = variables_to_plot_table(i_variable, :);
         % check size of this variable
         if size(this_variable_data.variable_data, 1) == data_custodian.bands_per_stretch
             % this is a discrete variable
-            settings.variables_to_plot_discrete = addRowToVariableList(this_row, variables_to_plot_header, settings.variables_to_plot_discrete, settings.variables_to_plot_discrete_header);
+            settings.variables_to_plot_discrete = addRowToVariableTable(this_row, settings.variables_to_plot_discrete, settings.variables_to_plot_discrete_header);
         else
             % this is a continuous variable
-            settings.variables_to_plot_continuous = addRowToVariableList(this_row, variables_to_plot_header, settings.variables_to_plot_continuous, settings.variables_to_plot_continuous_header);
+            settings.variables_to_plot_continuous = addRowToVariableTable(this_row, settings.variables_to_plot_continuous, settings.variables_to_plot_continuous_header);
         end
     end
     
@@ -166,13 +164,14 @@ function settings = transformVariablesListToNewFormat(settings, data_custodian)
     settings.number_of_variables_to_plot_continuous = size(settings.variables_to_plot_continuous, 1);
 end
 
-function list = addRowToVariableList(row_to_add, row_to_add_header, existing_list, existing_list_header)
+function list = addRowToVariableTable(row_to_add, existing_list, existing_list_header)
     new_row_reformatted = cell(1, length(existing_list_header));
     for i_column = 1 : length(existing_list_header)
         % find this column in old list
         this_label = existing_list_header{i_column};
-        if any(strcmp(row_to_add_header, this_label))
-            this_entry = row_to_add{1, strcmp(row_to_add_header, this_label)};
+        if any(strcmp(row_to_add.Properties.VariableNames, this_label))
+            this_entry = row_to_add{1, strcmp(row_to_add.Properties.VariableNames, this_label)};
+            this_entry = this_entry{1}; % temporary fix to transform from table to cell array
         else
             this_entry = '~';
         end
@@ -484,12 +483,12 @@ function figure_data = addLabelsAndData(figure_data, comparisons, variables_to_p
                   );
               
             % set axis labels
-            this_label = variables_to_plot{i_variable, strcmp(variables_to_plot_header, 'y-axis label')};
+            this_label = variables_to_plot{i_variable, strcmp(variables_to_plot_header, 'y_axis_label')};
             ylabel(these_axes, this_label);
             
             % determine title
-            title_string = variables_to_plot{i_variable, strcmp(variables_to_plot_header, 'variable label')};
-            filename_string = variables_to_plot{i_variable, strcmp(variables_to_plot_header, 'save file string')};
+            title_string = variables_to_plot{i_variable, strcmp(variables_to_plot_header, 'variable_label')};
+            filename_string = variables_to_plot{i_variable, strcmp(variables_to_plot_header, 'save_file_string')};
             this_comparison = comparisons.comparison_indices{i_comparison};
             representative_condition = comparisons.condition_combinations(this_comparison(1), :);
 
@@ -529,8 +528,8 @@ function plotData_continuous(settings, comparisons, data_custodian, figure_data)
     condition_data = data_custodian.getConditionData();
     [origin_subjects, origin_trials, origin_start_times, origin_end_times] = data_custodian.getOriginData();
     for i_variable = 1 : settings.number_of_variables_to_plot_continuous
-        variable_name = settings.variables_to_plot_continuous(i_variable, strcmp(settings.variables_to_plot_continuous_header, 'variable name'));
-        variable_type = settings.variables_to_plot_continuous(i_variable, strcmp(settings.variables_to_plot_continuous_header, 'variable type'));
+        variable_name = settings.variables_to_plot_continuous(i_variable, strcmp(settings.variables_to_plot_continuous_header, 'variable_name'));
+        variable_type = settings.variables_to_plot_continuous(i_variable, strcmp(settings.variables_to_plot_continuous_header, 'variable_type'));
         data_to_plot = data_custodian.getData(variable_name, variable_type);
         
         for i_comparison = 1 : length(comparisons.comparison_indices)
@@ -617,8 +616,8 @@ end
 function plotData_discrete(settings, comparisons, data_custodian, figure_data)
     condition_data = data_custodian.getConditionData();
     for i_variable = 1 : settings.number_of_variables_to_plot_discrete
-        variable_name = settings.variables_to_plot_discrete(i_variable, strcmp(settings.variables_to_plot_discrete_header, 'variable name'));
-        variable_type = settings.variables_to_plot_discrete(i_variable, strcmp(settings.variables_to_plot_discrete_header, 'variable type'));
+        variable_name = settings.variables_to_plot_discrete(i_variable, strcmp(settings.variables_to_plot_discrete_header, 'variable_name'));
+        variable_type = settings.variables_to_plot_discrete(i_variable, strcmp(settings.variables_to_plot_discrete_header, 'variable_type'));
         data_to_plot = data_custodian.getData(variable_name, variable_type);
         
         for i_comparison = 1 : length(comparisons.comparison_indices)
