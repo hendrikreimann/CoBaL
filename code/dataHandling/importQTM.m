@@ -898,6 +898,7 @@ function trial_table = determineTrialTable(qtm_data, file_info, options)
         end
         
     end
+    
     if strcmp(options.import_mode, 'table')
         % TODO: this is a legacy mode that's not in use anymore. When separating the labview data import from
         % this function, I did not make sure that this keeps working. To make it work again, you will probably
@@ -916,6 +917,9 @@ function trial_table = determineTrialTable(qtm_data, file_info, options)
     end
 
     if strcmp(options.import_mode, 'bijective')
+        % TODO: this is a legacy mode that's not in use anymore. When separating the labview data import from
+        % this function, I did not make sure that this keeps working. To make it work again, you will probably
+        % load information from protocolInfo.mat and maybe others.
 %             this_trial_start_time = analog_time(this_trial_start_index);
 %             this_trial_end_time = analog_time(this_trial_end_index);
 % 

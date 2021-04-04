@@ -37,8 +37,10 @@ function findStepEvents(varargin)
     parser = inputParser;
     parser.KeepUnmatched = true;
     addParameter(parser, 'visualize', false)
+    addParameter(parser, 'VisualizationWindow', [])
     parse(parser, varargin{:})
     visualize = parser.Results.visualize;
+    visualization_window = parser.Results.VisualizationWindow;
 
     % figure out folders
     if ~exist('analysis', 'dir')
@@ -122,28 +124,39 @@ function findStepEvents(varargin)
                 
                 
                 if visualize
-                    figure; axes; hold on;
-                    plot(cop_trajectories(:, 1), cop_trajectories(:, 2), 'color', 'b', 'DisplayName', 'CoP');
-                    plot(cop_trajectories(pushoff_indices_left, 1), cop_trajectories(pushoff_indices_left, 2), '^', 'markersize', 8, 'color', 'g', 'linewidth', 2, 'DisplayName', 'left pushoff');
-                    plot(cop_trajectories(pushoff_indices_right, 1), cop_trajectories(pushoff_indices_right, 2), '^', 'markersize', 8, 'color', 'r', 'linewidth', 2, 'DisplayName', 'right pushoff');
-                    plot(cop_trajectories(touchdown_indices_left, 1), cop_trajectories(touchdown_indices_left, 2), 'v', 'markersize', 8, 'color', 'g', 'linewidth', 2, 'DisplayName', 'left heel-strike');
-                    plot(cop_trajectories(touchdown_indices_right, 1), cop_trajectories(touchdown_indices_right, 2), 'v', 'markersize', 8, 'color', 'r', 'linewidth', 2, 'DisplayName', 'right heel-strike');
+                    if ~isempty(visualization_window)
+                        window_frame_indices = findClosestIndex(visualization_window, time_forceplate);
+                    else
+                        window_frame_indices = [1, length(time_forceplate)];
+                    end
+                    window_indices = window_frame_indices(1) : window_frame_indices(2);
+                    pushoff_indices_left_window = pushoff_indices_left(pushoff_indices_left>=window_frame_indices(1) & pushoff_indices_left<=window_frame_indices(2));
+                    pushoff_indices_right_window = pushoff_indices_right(pushoff_indices_right>=window_frame_indices(1) & pushoff_indices_right<=window_frame_indices(2));
+                    touchdown_indices_left_window = touchdown_indices_left(touchdown_indices_left>=window_frame_indices(1) & touchdown_indices_left<=window_frame_indices(2));
+                    touchdown_indices_right_window = touchdown_indices_right(touchdown_indices_right>=window_frame_indices(1) & touchdown_indices_right<=window_frame_indices(2));
+                    
+                    figure; axes; hold on; title('CoP path on treadmill')
+                    plot(cop_trajectories(window_indices, 1), cop_trajectories(window_indices, 2), 'color', 'b', 'DisplayName', 'CoP');
+                    plot(cop_trajectories(pushoff_indices_left_window, 1), cop_trajectories(pushoff_indices_left_window, 2), '^', 'markersize', 8, 'color', 'g', 'markerfacecolor', 'g', 'DisplayName', 'left pushoff');
+                    plot(cop_trajectories(pushoff_indices_right_window, 1), cop_trajectories(pushoff_indices_right_window, 2), '^', 'markersize', 8, 'color', 'r', 'markerfacecolor', 'r', 'DisplayName', 'right pushoff');
+                    plot(cop_trajectories(touchdown_indices_left_window, 1), cop_trajectories(touchdown_indices_left_window, 2), 'v', 'markersize', 8, 'color', 'g', 'markerfacecolor', 'g', 'DisplayName', 'left heel-strike');
+                    plot(cop_trajectories(touchdown_indices_right_window, 1), cop_trajectories(touchdown_indices_right_window, 2), 'v', 'markersize', 8, 'color', 'r', 'markerfacecolor', 'r', 'DisplayName', 'right heel-strike');
                     xlabel('ml position (m)'); ylabel('ap position (m)')
 
-                    figure; axes_x = axes; hold on;
-                    plot(time_forceplate, cop_trajectories(:, 1), 'linewidth', 2, 'color', 'b', 'DisplayName', 'CoP');
-                    plot(time_forceplate(pushoff_indices_left), cop_trajectories(pushoff_indices_left, 1), '^', 'markersize', 6, 'color', 'g', 'linewidth', 2, 'DisplayName', 'left pushoff');
-                    plot(time_forceplate(pushoff_indices_right), cop_trajectories(pushoff_indices_right, 1), '^', 'markersize', 6, 'color', 'r', 'linewidth', 2, 'DisplayName', 'right pushoff');
-                    plot(time_forceplate(touchdown_indices_left), cop_trajectories(touchdown_indices_left, 1), 'v', 'markersize', 6, 'color', 'g', 'linewidth', 2, 'DisplayName', 'left heel-strike');
-                    plot(time_forceplate(touchdown_indices_right), cop_trajectories(touchdown_indices_right, 1), 'v', 'markersize', 6, 'color', 'r', 'linewidth', 2, 'DisplayName', 'right heel-strike');
+                    figure; axes_x = axes; hold on; title('CoP trajectories - left forceplate')
+                    plot(time_forceplate(window_indices), cop_trajectories(window_indices, 1), 'linewidth', 2, 'color', 'b', 'DisplayName', 'CoP');
+                    plot(time_forceplate(pushoff_indices_left_window), cop_trajectories(pushoff_indices_left_window, 1), '^', 'markersize', 8, 'color', 'g', 'markerfacecolor', 'g', 'DisplayName', 'left pushoff');
+                    plot(time_forceplate(pushoff_indices_right_window), cop_trajectories(pushoff_indices_right_window, 1), '^', 'markersize', 8, 'color', 'r', 'markerfacecolor', 'r', 'DisplayName', 'right pushoff');
+                    plot(time_forceplate(touchdown_indices_left_window), cop_trajectories(touchdown_indices_left_window, 1), 'v', 'markersize', 8, 'color', 'g', 'markerfacecolor', 'g', 'DisplayName', 'left heel-strike');
+                    plot(time_forceplate(touchdown_indices_right_window), cop_trajectories(touchdown_indices_right_window, 1), 'v', 'markersize', 8, 'color', 'r', 'markerfacecolor', 'r', 'DisplayName', 'right heel-strike');
                     xlabel('time (s)'); ylabel('ml position (m)')
 
-                    figure; axes_y = axes; hold on;
-                    plot(time_forceplate, cop_trajectories(:, 2), 'linewidth', 2, 'color', 'b', 'DisplayName', 'CoP');
-                    plot(time_forceplate(pushoff_indices_left), cop_trajectories(pushoff_indices_left, 2), '^', 'markersize', 6, 'color', 'g', 'linewidth', 2, 'DisplayName', 'left pushoff');
-                    plot(time_forceplate(pushoff_indices_right), cop_trajectories(pushoff_indices_right, 2), '^', 'markersize', 6, 'color', 'r', 'linewidth', 2, 'DisplayName', 'right pushoff');
-                    plot(time_forceplate(touchdown_indices_left), cop_trajectories(touchdown_indices_left, 2), 'v', 'markersize', 6, 'color', 'g', 'linewidth', 2, 'DisplayName', 'left heel-strike');
-                    plot(time_forceplate(touchdown_indices_right), cop_trajectories(touchdown_indices_right, 2), 'v', 'markersize', 6, 'color', 'r', 'linewidth', 2, 'DisplayName', 'right heel-strike');
+                    figure; axes_y = axes; hold on; title('CoP trajectories - right forceplate')
+                    plot(time_forceplate(window_indices), cop_trajectories(window_indices, 2), 'linewidth', 2, 'color', 'b', 'DisplayName', 'CoP');
+                    plot(time_forceplate(pushoff_indices_left_window), cop_trajectories(pushoff_indices_left_window, 2), '^', 'markersize', 8, 'color', 'g', 'markerfacecolor', 'g', 'DisplayName', 'left pushoff');
+                    plot(time_forceplate(pushoff_indices_right_window), cop_trajectories(pushoff_indices_right_window, 2), '^', 'markersize', 8, 'color', 'r', 'markerfacecolor', 'r', 'DisplayName', 'right pushoff');
+                    plot(time_forceplate(touchdown_indices_left_window), cop_trajectories(touchdown_indices_left_window, 2), 'v', 'markersize', 8, 'color', 'g', 'markerfacecolor', 'g', 'DisplayName', 'left heel-strike');
+                    plot(time_forceplate(touchdown_indices_right_window), cop_trajectories(touchdown_indices_right_window, 2), 'v', 'markersize', 8, 'color', 'r', 'markerfacecolor', 'r', 'DisplayName', 'right heel-strike');
                     xlabel('time (s)'); ylabel('ap position (m)')
 
                     linkaxes([axes_x, axes_y], 'x');
@@ -400,6 +413,29 @@ function findStepEvents(varargin)
                 right_fz_trajectory_marker = spline(time_right_forceplate, right_fz_trajectory, time_marker);
             end
             if visualize
+                
+                if ~isempty(visualization_window)
+                    window_frame_indices = findClosestIndex(visualization_window, time_marker);
+                    if left_forceplate_available
+                        window_frame_indices_forceplate = findClosestIndex(visualization_window, time_left_forceplate);
+                    end
+                else
+                    window_frame_indices = [1, length(time_marker)];
+                    if left_forceplate_available
+                        window_frame_indices_forceplate = [1, length(time_left_forceplate)];
+                    end
+                end
+                window_indices = window_frame_indices(1) : window_frame_indices(2);
+                if left_forceplate_available
+                    window_indices_forceplate = window_frame_indices_forceplate(1) : window_frame_indices_forceplate(2);
+                end
+                left_pushoff_indices_mocap_window = left_pushoff_indices_mocap(left_pushoff_indices_mocap>=window_frame_indices(1) & left_pushoff_indices_mocap<=window_frame_indices(2));
+                right_pushoff_indices_mocap_window = right_pushoff_indices_mocap(right_pushoff_indices_mocap>=window_frame_indices(1) & right_pushoff_indices_mocap<=window_frame_indices(2));
+                left_touchdown_indices_mocap_window = left_touchdown_indices_mocap(left_touchdown_indices_mocap>=window_frame_indices(1) & left_touchdown_indices_mocap<=window_frame_indices(2));
+                right_touchdown_indices_mocap_window = right_touchdown_indices_mocap(right_touchdown_indices_mocap>=window_frame_indices(1) & right_touchdown_indices_mocap<=window_frame_indices(2));
+                
+                
+                
                 step_event_figures = zeros(1, 4);
                 [LHEE_z_trajectory, ~, LHEE_z_acc_trajectory] = getKinematics('heel', 'left', 'z');
                 [RHEE_z_trajectory, ~, RHEE_z_acc_trajectory] = getKinematics('heel', 'right', 'z');
@@ -408,69 +444,69 @@ function findStepEvents(varargin)
                 
                 % left position
                 step_event_figures(1) = figure; axes_left = axes; hold on; title('left foot marker positions')
-                plot(time_marker, LHEE_z_trajectory, 'linewidth', 1, 'displayname', 'left heel vertical');
-                plot(time_marker, LTOE_z_trajectory, 'linewidth', 1, 'displayname', 'left toes vertical');
-%                 plot(time_marker, left_foot_angle_trajectory, 'linewidth', 1, 'displayname', 'left foot angle');
-%                 plot(time_marker, left_foot_angle_vel_trajectory*vel_scaler, 'linewidth', 1, 'displayname', 'left foot angle');
-%                 plot(time_marker, left_foot_angle_acc_trajectory*acc_scaler, 'linewidth', 1, 'displayname', 'left foot angle');
-                plot(time_marker(left_touchdown_indices_mocap), LHEE_z_trajectory(left_touchdown_indices_mocap), 'v', 'linewidth', 2, 'color', color_heelstrike, 'displayname', 'left touchdown');
-                plot(time_marker(left_pushoff_indices_mocap), LTOE_z_trajectory(left_pushoff_indices_mocap), 'o', 'linewidth', 2, 'color', color_pushoff, 'displayname', 'left pushoff');
-%                 plot(time_marker(left_fullstance_indices_mocap), left_foot_angle_trajectory(left_fullstance_indices_mocap), '^', 'linewidth', 2, 'color', color_peak, 'displayname', 'left fullstance');
-%                 plot(time_marker(left_leg_swing_onset_indices), LTOE_z_trajectory(left_leg_swing_onset_indices), '+', 'linewidth', 2, 'color', color_peak, 'displayname', 'left leg angle peaks');
+                plot(time_marker(window_indices), LHEE_z_trajectory(window_indices), 'linewidth', 2, 'displayname', 'left heel vertical');
+                plot(time_marker(window_indices), LTOE_z_trajectory(window_indices), 'linewidth', 2, 'displayname', 'left toes vertical');
+%                 plot(time_marker(window_indices), left_foot_angle_trajectory(window_indices), 'linewidth', 2, 'displayname', 'left foot angle');
+%                 plot(time_marker(window_indices), left_foot_angle_vel_trajectory*vel_scaler, 'linewidth', 2, 'displayname', 'left foot angle');
+%                 plot(time_marker(window_indices), left_foot_angle_acc_trajectory*acc_scaler, 'linewidth', 2, 'displayname', 'left foot angle');
+                plot(time_marker(left_touchdown_indices_mocap_window), LHEE_z_trajectory(left_touchdown_indices_mocap_window), 'v', 'color', 'g', 'markersize', 8, 'markerfacecolor', 'g', 'displayname', 'left touchdown');
+                plot(time_marker(left_pushoff_indices_mocap_window), LTOE_z_trajectory(left_pushoff_indices_mocap_window), '^', 'color', 'g', 'markersize', 8, 'markerfacecolor', 'g', 'displayname', 'left pushoff');
+%                 plot(time_marker(left_fullstance_indices_mocap), left_foot_angle_trajectory(left_fullstance_indices_mocap), '^', 'color', color_peak, 'displayname', 'left fullstance');
+%                 plot(time_marker(left_leg_swing_onset_indices), LTOE_z_trajectory(left_leg_swing_onset_indices), '+', 'color', color_peak, 'displayname', 'left leg angle peaks');
                 if left_forceplate_available
-                    plot(time_left_forceplate, left_fz_trajectory*force_scaler, 'displayname', 'left forceplate')
-                    h = plot(time_marker(left_touchdown_indices_mocap), left_fz_trajectory_marker(left_touchdown_indices_mocap)*force_scaler, 'v', 'linewidth', 2, 'color', color_heelstrike);
+                    plot(time_left_forceplate(window_indices_forceplate), left_fz_trajectory(window_indices_forceplate)*force_scaler, 'linewidth', 2, 'displayname', 'left forceplate f_z')
+                    h = plot(time_marker(left_touchdown_indices_mocap_window), left_fz_trajectory_marker(left_touchdown_indices_mocap_window)*force_scaler, 'v', 'markersize', 8, 'color', 'g', 'markerfacecolor', 'g');
                     set(get(get(h,'Annotation'),'LegendInformation'),'IconDisplayStyle','off');
-                    h = plot(time_marker(left_pushoff_indices_mocap), left_fz_trajectory_marker(left_pushoff_indices_mocap)*force_scaler, '^', 'linewidth', 2, 'color', color_pushoff);
+                    h = plot(time_marker(left_pushoff_indices_mocap_window), left_fz_trajectory_marker(left_pushoff_indices_mocap_window)*force_scaler, '^', 'markersize', 8, 'color', 'g', 'markerfacecolor', 'g');
                     set(get(get(h,'Annotation'),'LegendInformation'),'IconDisplayStyle','off');
                 end
                 legend('toggle');
 
                 % left derivatives
                 step_event_figures(2) = figure; axes_left_derivatives = axes; hold on;  title('left foot marker derivatives (scaled for qualitative overview)')
-                plot(time_marker, LHEE_z_acc_trajectory*acc_scaler, 'linewidth', 1, 'displayname', 'left heel acceleration vertical');
-                plot(time_marker, LTOE_z_vel_trajectory*vel_scaler, 'linewidth', 1, 'displayname', 'left toes velocity vertical');
-                plot(time_marker(left_touchdown_indices_mocap), LHEE_z_acc_trajectory(left_touchdown_indices_mocap)*acc_scaler, 'v', 'linewidth', 2, 'color', color_heelstrike, 'displayname', 'left touchdown');
-                plot(time_marker(left_pushoff_indices_mocap), LTOE_z_vel_trajectory(left_pushoff_indices_mocap)*vel_scaler, '^', 'linewidth', 2, 'color', color_pushoff, 'displayname', 'left pushoff');
+                plot(time_marker(window_indices), LHEE_z_acc_trajectory(window_indices)*acc_scaler, 'linewidth', 2, 'displayname', 'left heel acceleration vertical');
+                plot(time_marker(window_indices), LTOE_z_vel_trajectory(window_indices)*vel_scaler, 'linewidth', 2, 'displayname', 'left toes velocity vertical');
+                plot(time_marker(left_touchdown_indices_mocap_window), LHEE_z_acc_trajectory(left_touchdown_indices_mocap_window)*acc_scaler, 'v', 'color', 'g', 'markersize', 8, 'markerfacecolor', 'g', 'displayname', 'left touchdown');
+                plot(time_marker(left_pushoff_indices_mocap_window), LTOE_z_vel_trajectory(left_pushoff_indices_mocap_window)*vel_scaler, '^', 'color', 'g', 'markersize', 8, 'markerfacecolor', 'g', 'displayname', 'left pushoff');
                 if left_forceplate_available
-                    plot(time_left_forceplate, left_fz_trajectory*force_scaler, 'displayname', 'left forceplate')
-                    h = plot(time_marker(left_touchdown_indices_mocap), left_fz_trajectory_marker(left_touchdown_indices_mocap)*force_scaler, 'v', 'linewidth', 2, 'color', color_heelstrike);
+                    plot(time_left_forceplate(window_indices_forceplate), left_fz_trajectory(window_indices_forceplate)*force_scaler, 'linewidth', 2, 'displayname', 'left forceplate f_z')
+                    h = plot(time_marker(left_touchdown_indices_mocap_window), left_fz_trajectory_marker(left_touchdown_indices_mocap_window)*force_scaler, 'v', 'markersize', 8, 'color', 'g', 'markerfacecolor', 'g');
                     set(get(get(h,'Annotation'),'LegendInformation'),'IconDisplayStyle','off');
-                    h = plot(time_marker(left_pushoff_indices_mocap), left_fz_trajectory_marker(left_pushoff_indices_mocap)*force_scaler, '^', 'linewidth', 2, 'color', color_pushoff);
+                    h = plot(time_marker(left_pushoff_indices_mocap_window), left_fz_trajectory_marker(left_pushoff_indices_mocap_window)*force_scaler, '^', 'markersize', 8, 'color', 'g', 'markerfacecolor', 'g');
                     set(get(get(h,'Annotation'),'LegendInformation'),'IconDisplayStyle','off');
                 end
                 legend('toggle');
 
                 % right position
                 step_event_figures(3) = figure; axes_right = axes; hold on; title('right foot marker positions')
-                plot(time_marker, RHEE_z_trajectory, 'linewidth', 1, 'displayname', 'right heel vertical');
-                plot(time_marker, RTOE_z_trajectory, 'linewidth', 1, 'displayname', 'right toes vertical');
-%                 plot(time_marker, right_foot_angle_trajectory, 'linewidth', 1, 'displayname', 'right foot angle');
-%                 plot(time_marker, right_foot_angle_vel_trajectory*vel_scaler, 'linewidth', 1, 'displayname', 'right foot angle');
-%                 plot(time_marker, right_foot_angle_acc_trajectory*acc_scaler, 'linewidth', 1, 'displayname', 'right foot angle');
-                plot(time_marker(right_touchdown_indices_mocap), RHEE_z_trajectory(right_touchdown_indices_mocap), 'v', 'linewidth', 2, 'color', color_heelstrike, 'displayname', 'right touchdown');
-                plot(time_marker(right_pushoff_indices_mocap), RTOE_z_trajectory(right_pushoff_indices_mocap), '^', 'linewidth', 2, 'color', color_pushoff, 'displayname', 'right pushoff');
-%                 plot(time_marker(right_fullstance_indices_mocap), right_foot_angle_trajectory(right_fullstance_indices_mocap), '^', 'linewidth', 2, 'color', color_peak, 'displayname', 'right fullstance');
+                plot(time_marker(window_indices), RHEE_z_trajectory(window_indices), 'linewidth', 2, 'displayname', 'right heel vertical');
+                plot(time_marker(window_indices), RTOE_z_trajectory(window_indices), 'linewidth', 2, 'displayname', 'right toes vertical');
+%                 plot(time_marker(window_indices), right_foot_angle_trajectory(window_indices), 'linewidth', 2, 'displayname', 'right foot angle');
+%                 plot(time_marker(window_indices), right_foot_angle_vel_trajectory(window_indices)*vel_scaler, 'linewidth', 2, 'displayname', 'right foot angle');
+%                 plot(time_marker(window_indices), right_foot_angle_acc_trajectory(window_indices)*acc_scaler, 'linewidth', 2, 'displayname', 'right foot angle');
+                plot(time_marker(right_touchdown_indices_mocap_window), RHEE_z_trajectory(right_touchdown_indices_mocap_window), 'v', 'color', 'r', 'markersize', 8, 'markerfacecolor', 'r', 'displayname', 'right touchdown');
+                plot(time_marker(right_pushoff_indices_mocap_window), RTOE_z_trajectory(right_pushoff_indices_mocap_window), '^', 'color', 'r', 'markersize', 8, 'markerfacecolor', 'r', 'displayname', 'right pushoff');
+%                 plot(time_marker(right_fullstance_indices_mocap), right_foot_angle_trajectory(right_fullstance_indices_mocap), '^', 'color', color_peak, 'displayname', 'right fullstance');
                 if right_forceplate_available
-                    plot(time_right_forceplate, right_fz_trajectory*force_scaler, 'displayname', 'right forceplate')
-                    h = plot(time_marker(right_touchdown_indices_mocap), right_fz_trajectory_marker(right_touchdown_indices_mocap)*force_scaler, 'v', 'linewidth', 2, 'color', color_heelstrike);
+                    plot(time_right_forceplate(window_indices_forceplate), right_fz_trajectory(window_indices_forceplate)*force_scaler, 'linewidth', 2, 'displayname', 'right forceplate f_z')
+                    h = plot(time_marker(right_touchdown_indices_mocap_window), right_fz_trajectory_marker(right_touchdown_indices_mocap_window)*force_scaler, 'v', 'markersize', 8, 'color', 'r', 'markerfacecolor', 'r');
                     set(get(get(h,'Annotation'),'LegendInformation'),'IconDisplayStyle','off');
-                    h = plot(time_marker(right_pushoff_indices_mocap), right_fz_trajectory_marker(right_pushoff_indices_mocap)*force_scaler, '^', 'linewidth', 2, 'color', color_pushoff);
+                    h = plot(time_marker(right_pushoff_indices_mocap_window), right_fz_trajectory_marker(right_pushoff_indices_mocap_window)*force_scaler, '^', 'markersize', 8, 'color', 'r', 'markerfacecolor', 'r');
                     set(get(get(h,'Annotation'),'LegendInformation'),'IconDisplayStyle','off');
                 end
                 legend('toggle');
 
                 % right derivatives
                 step_event_figures(4) = figure; axes_right_derivatives = axes; hold on;  title('right foot marker derivatives (scaled for qualitative overview)') %#ok<NASGU>
-                plot(time_marker, RHEE_z_acc_trajectory*acc_scaler, 'linewidth', 1, 'displayname', 'right heel acceleration vertical');
-                plot(time_marker, RTOE_z_vel_trajectory*vel_scaler, 'linewidth', 1, 'displayname', 'right toes velocity vertical');
-                plot(time_marker(right_touchdown_indices_mocap), RHEE_z_acc_trajectory(right_touchdown_indices_mocap)*acc_scaler, 'v', 'linewidth', 2, 'color', color_heelstrike, 'displayname', 'right touchdown');
-                plot(time_marker(right_pushoff_indices_mocap), RTOE_z_vel_trajectory(right_pushoff_indices_mocap)*vel_scaler, '^', 'linewidth', 2, 'color', color_pushoff, 'displayname', 'right pushoff');
+                plot(time_marker(window_indices), RHEE_z_acc_trajectory(window_indices)*acc_scaler, 'linewidth', 2, 'displayname', 'right heel acceleration vertical');
+                plot(time_marker(window_indices), RTOE_z_vel_trajectory(window_indices)*vel_scaler, 'linewidth', 2, 'displayname', 'right toes velocity vertical');
+                plot(time_marker(right_touchdown_indices_mocap_window), RHEE_z_acc_trajectory(right_touchdown_indices_mocap_window)*acc_scaler, 'v', 'markersize', 8, 'color', 'r', 'markerfacecolor', 'r', 'displayname', 'right touchdown');
+                plot(time_marker(right_pushoff_indices_mocap_window), RTOE_z_vel_trajectory(right_pushoff_indices_mocap_window)*vel_scaler, '^', 'markersize', 8, 'color', 'r', 'markerfacecolor', 'r', 'displayname', 'right pushoff');
                 if right_forceplate_available
-                    plot(time_right_forceplate, right_fz_trajectory*force_scaler, 'displayname', 'right forceplate')
-                    h = plot(time_marker(right_touchdown_indices_mocap), right_fz_trajectory_marker(right_touchdown_indices_mocap)*force_scaler, 'v', 'linewidth', 2, 'color', color_heelstrike);
+                    plot(time_right_forceplate(window_indices_forceplate), right_fz_trajectory(window_indices_forceplate)*force_scaler, 'linewidth', 2, 'displayname', 'right forceplate f_z')
+                    h = plot(time_marker(right_touchdown_indices_mocap_window), right_fz_trajectory_marker(right_touchdown_indices_mocap_window)*force_scaler, 'v', 'markersize', 8, 'color', 'r', 'markerfacecolor', 'r');
                     set(get(get(h,'Annotation'),'LegendInformation'),'IconDisplayStyle','off');
-                    h = plot(time_marker(right_pushoff_indices_mocap), right_fz_trajectory_marker(right_pushoff_indices_mocap)*force_scaler, '^', 'linewidth', 2, 'color', color_pushoff);
+                    h = plot(time_marker(right_pushoff_indices_mocap_window), right_fz_trajectory_marker(right_pushoff_indices_mocap_window)*force_scaler, '^', 'markersize', 8, 'color', 'r', 'markerfacecolor', 'r');
                     set(get(get(h,'Annotation'),'LegendInformation'),'IconDisplayStyle','off');
                 end
                 legend('toggle');
