@@ -60,8 +60,8 @@ classdef eventFigure < handle
             hold on;
             this.selected_event_plot = plot(0, 0, 'o', 'markersize', 15, 'linewidth', 3, 'color', [1 0.5 0], 'visible', 'off', 'HandleVisibility', 'off');
 %             this.selected_time_plot = plot(0, 0, '+', 'markersize', 25, 'linewidth', 1, 'color', [1 1 1]*0.7, 'ButtonDownFcn', @this.stepEventFigureClicked, 'HandleVisibility', 'off');
-            this.selected_time_plot = plot([0 0], [0 0], 'linewidth', 1, 'color', [1 1 1]*0.7, 'ButtonDownFcn', @this.stepEventFigureClicked, 'HandleVisibility', 'off');
-            this.ignore_marker_plot = plot(0, 0, 'x', 'markersize', 25, 'linewidth', 2, 'color', [1 0 0.5]*0.7, 'ButtonDownFcn', @this.stepEventFigureClicked, 'HandleVisibility', 'off');
+            this.selected_time_plot = plot([0 0], [0 0], 'linewidth', 1, 'color', [1 1 1]*0.7, 'ButtonDownFcn', @this.stepEventFigureClicked, 'HandleVisibility', 'off', 'visible', 'off');
+            this.ignore_marker_plot = plot(0, 0, 'x', 'markersize', 25, 'linewidth', 2, 'color', [1 0 0.5]*0.7, 'ButtonDownFcn', @this.stepEventFigureClicked, 'HandleVisibility', 'off', 'visible', 'off');
 
             % register with controller
             if strcmp(controller.figureSelectionBox.String, '<no figure>')
