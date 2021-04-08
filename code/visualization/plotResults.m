@@ -206,7 +206,7 @@ function condition_colors = determineConditionColors(settings, comparisons)
     default_colors = lines(length(levels));
     
     if isempty(settings.colors_table)
-        colors_table_from_settings = table([0, 3], 'VariableNames', {'condition', 'level', 'color'})
+        colors_table_from_settings = table('Size', [0, 3], 'VariableNames', {'condition', 'level', 'color'}, 'VariableTypes', {'string', 'string', 'string'});
     else
         colors_table_from_settings = settings.colors_table(strcmp(settings.colors_table.condition, settings.condition_to_compare), :);
     end
