@@ -524,6 +524,14 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('marker_trajectories')
                 this.addStretchVariable('leg_length_r')
             end
+            if this.isVariableToAnalyze('leg_angle_l')
+                this.addBasicVariable('marker_trajectories')
+                this.addStretchVariable('leg_angle_l')
+            end
+            if this.isVariableToAnalyze('leg_angle_r')
+                this.addBasicVariable('marker_trajectories')
+                this.addStretchVariable('leg_angle_r')
+            end
             if this.isVariableToAnalyze('pushoff_time')
                 this.addBasicVariable('marker_trajectories')
                 this.addStretchVariable('step_time')
@@ -2087,7 +2095,7 @@ classdef WalkingDataCustodian < handle
                     MBHD_trajectory = (LBHD_trajectory + RBHD_trajectory) * 0.5;
                     head_vector_y = MBHD_trajectory(:, 2) - C7_trajectory(:, 2);
                     head_vector_z = MBHD_trajectory(:, 3) - C7_trajectory(:, 3);
-                    this.basic_variable_data.head_angle_ap = rad2deg(atan2(head_vector_y, head_vector_z));
+                    this.basic_variable_data.head_angle_ap = atan2(head_vector_y, head_vector_z);
                     
                     % determine directions
                     C7_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'C7',  'indices');
@@ -2143,7 +2151,7 @@ classdef WalkingDataCustodian < handle
                     MBHD_trajectory = (LBHD_trajectory + RBHD_trajectory) * 0.5;
                     head_vector_x = MBHD_trajectory(:, 1) - C7_trajectory(:, 1);
                     head_vector_z = MBHD_trajectory(:, 3) - C7_trajectory(:, 3);
-                    this.basic_variable_data.head_angle_ml = rad2deg(atan2(head_vector_x, head_vector_z));
+                    this.basic_variable_data.head_angle_ml = atan2(head_vector_x, head_vector_z);
                     
                     % determine directions
                     C7_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'C7',  'indices');
@@ -2198,7 +2206,7 @@ classdef WalkingDataCustodian < handle
                     MPSI_trajectory = (LPSI_trajectory + RPSI_trajectory) * 0.5;
                     trunk_vector_y = C7_trajectory(:, 2) - MPSI_trajectory(:, 2);
                     trunk_vector_z = C7_trajectory(:, 3) - MPSI_trajectory(:, 3);
-                    this.basic_variable_data.trunk_angle_ap = rad2deg(atan2(trunk_vector_y, trunk_vector_z));
+                    this.basic_variable_data.trunk_angle_ap = atan2(trunk_vector_y, trunk_vector_z);
                     
                     % determine directions
                     C7_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'C7',  'indices');
@@ -2253,7 +2261,7 @@ classdef WalkingDataCustodian < handle
                     MPSI_trajectory = (LPSI_trajectory + RPSI_trajectory) * 0.5;
                     trunk_vector_x = C7_trajectory(:, 1) - MPSI_trajectory(:, 1);
                     trunk_vector_z = C7_trajectory(:, 3) - MPSI_trajectory(:, 3);
-                    this.basic_variable_data.trunk_angle_ml = rad2deg(atan2(trunk_vector_x, trunk_vector_z));
+                    this.basic_variable_data.trunk_angle_ml = atan2(trunk_vector_x, trunk_vector_z);
                     
                     % determine directions
                     C7_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'C7',  'indices');
@@ -2306,7 +2314,7 @@ classdef WalkingDataCustodian < handle
                     right_hip_cor_trajectory = extractMarkerData(this.basic_variable_data.joint_center_trajectories, this.basic_variable_labels.joint_center_trajectories, 'RHIPCOR');
                     pelvis_vector_x = right_hip_cor_trajectory(:, 1) - left_hip_cor_trajectory(:, 1);
                     pelvis_vector_z = right_hip_cor_trajectory(:, 3) - left_hip_cor_trajectory(:, 3);
-                    this.basic_variable_data.pelvis_angle_ml = -rad2deg(atan2(pelvis_vector_z, pelvis_vector_x));
+                    this.basic_variable_data.pelvis_angle_ml = -atan2(pelvis_vector_z, pelvis_vector_x);
                     
                     % determine directions
                     LHIPCOR_indices = extractMarkerData(this.basic_variable_data.joint_center_trajectories, this.basic_variable_labels.joint_center_trajectories, 'LHIPCOR',  'indices');
@@ -2357,7 +2365,7 @@ classdef WalkingDataCustodian < handle
                     left_ankle_cor_trajectory = extractMarkerData(this.basic_variable_data.joint_center_trajectories, this.basic_variable_labels.joint_center_trajectories, 'LANKLECOR');
                     left_leg_vector_x = left_hip_cor_trajectory(:, 1) - left_ankle_cor_trajectory(:, 1);
                     left_leg_vector_z = left_hip_cor_trajectory(:, 3) - left_ankle_cor_trajectory(:, 3);
-                    this.basic_variable_data.left_leg_angle_ml = rad2deg(atan2(left_leg_vector_x, left_leg_vector_z));
+                    this.basic_variable_data.left_leg_angle_ml = atan2(left_leg_vector_x, left_leg_vector_z);
                     
                     % determine directions
                     LHIPCOR_indices = extractMarkerData(this.basic_variable_data.joint_center_trajectories, this.basic_variable_labels.joint_center_trajectories, 'LHIPCOR',  'indices');
@@ -2407,7 +2415,7 @@ classdef WalkingDataCustodian < handle
                     right_ankle_cor_trajectory = extractMarkerData(this.basic_variable_data.joint_center_trajectories, this.basic_variable_labels.joint_center_trajectories, 'RANKLECOR');
                     right_leg_vector_x = right_hip_cor_trajectory(:, 1) - right_ankle_cor_trajectory(:, 1);
                     right_leg_vector_z = right_hip_cor_trajectory(:, 3) - right_ankle_cor_trajectory(:, 3);
-                    this.basic_variable_data.right_leg_angle_ml = rad2deg(atan2(right_leg_vector_x, right_leg_vector_z));
+                    this.basic_variable_data.right_leg_angle_ml = atan2(right_leg_vector_x, right_leg_vector_z);
                     
                     % determine directions
                     RHIPCOR_indices = extractMarkerData(this.basic_variable_data.joint_center_trajectories, this.basic_variable_labels.joint_center_trajectories, 'RHIPCOR',  'indices');
@@ -2457,7 +2465,7 @@ classdef WalkingDataCustodian < handle
                     left_ankle_cor_trajectory = extractMarkerData(this.basic_variable_data.joint_center_trajectories, this.basic_variable_labels.joint_center_trajectories, 'LANKLECOR');
                     left_leg_vector_y = left_hip_cor_trajectory(:, 2) - left_ankle_cor_trajectory(:, 2);
                     left_leg_vector_z = left_hip_cor_trajectory(:, 3) - left_ankle_cor_trajectory(:, 3);
-                    this.basic_variable_data.left_leg_angle_ap = -rad2deg(atan2(left_leg_vector_y, left_leg_vector_z));
+                    this.basic_variable_data.left_leg_angle_ap = -atan2(left_leg_vector_y, left_leg_vector_z);
                     
                     % determine directions
                     LHIPCOR_indices = extractMarkerData(this.basic_variable_data.joint_center_trajectories, this.basic_variable_labels.joint_center_trajectories, 'LHIPCOR',  'indices');
@@ -2507,7 +2515,7 @@ classdef WalkingDataCustodian < handle
                     right_ankle_cor_trajectory = extractMarkerData(this.basic_variable_data.joint_center_trajectories, this.basic_variable_labels.joint_center_trajectories, 'RANKLECOR');
                     right_leg_vector_y = right_hip_cor_trajectory(:, 2) - right_ankle_cor_trajectory(:, 2);
                     right_leg_vector_z = right_hip_cor_trajectory(:, 3) - right_ankle_cor_trajectory(:, 3);
-                    this.basic_variable_data.right_leg_angle_ap = -rad2deg(atan2(right_leg_vector_y, right_leg_vector_z));
+                    this.basic_variable_data.right_leg_angle_ap = -atan2(right_leg_vector_y, right_leg_vector_z);
                     
                     % determine directions
                     RHIPCOR_indices = extractMarkerData(this.basic_variable_data.joint_center_trajectories, this.basic_variable_labels.joint_center_trajectories, 'RHIPCOR',  'indices');
@@ -2565,7 +2573,7 @@ classdef WalkingDataCustodian < handle
                     foot_vector_y = LTOEM_trajectory(:, 2) - LHEE_trajectory(:, 2);
                     foot_vector_z = LTOEM_trajectory(:, 3) - LHEE_trajectory(:, 3);
                     foot_vector_xy = (foot_vector_x.^2 + foot_vector_y.^2).^(0.5);
-                    this.basic_variable_data.left_foot_angle_ap = rad2deg(atan2(foot_vector_z, foot_vector_xy));
+                    this.basic_variable_data.left_foot_angle_ap = atan2(foot_vector_z, foot_vector_xy);
                     
                     % determine directions
                     LTOE_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LTOE',  'indices');
@@ -2639,7 +2647,7 @@ classdef WalkingDataCustodian < handle
                     foot_vector_y = LTOEL_trajectory(:, 2) - LTOE_trajectory(:, 2);
                     foot_vector_z = LTOEL_trajectory(:, 3) - LTOE_trajectory(:, 3);
                     foot_vector_xy = (foot_vector_x.^2 + foot_vector_y.^2).^(0.5);
-                    this.basic_variable_data.left_foot_angle_ml = rad2deg(atan2(foot_vector_z, foot_vector_xy));
+                    this.basic_variable_data.left_foot_angle_ml = atan2(foot_vector_z, foot_vector_xy);
                     
                     % determine directions
                     LTOE_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LTOE',  'indices');
@@ -2709,7 +2717,7 @@ classdef WalkingDataCustodian < handle
                     end
                     foot_vector_x = LTOEM_trajectory(:, 1) - LHEE_trajectory(:, 1);
                     foot_vector_y = LTOEM_trajectory(:, 2) - LHEE_trajectory(:, 2);
-                    this.basic_variable_data.left_foot_angle_yaw = rad2deg(atan2(foot_vector_x, foot_vector_y));
+                    this.basic_variable_data.left_foot_angle_yaw = atan2(foot_vector_x, foot_vector_y);
                     
                     % determine directions
                     LTOE_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LTOE',  'indices');
@@ -2788,7 +2796,7 @@ classdef WalkingDataCustodian < handle
                     foot_vector_y = RTOEM_trajectory(:, 2) - RHEE_trajectory(:, 2);
                     foot_vector_z = RTOEM_trajectory(:, 3) - RHEE_trajectory(:, 3);
                     foot_vector_xy = (foot_vector_x.^2 + foot_vector_y.^2).^(0.5);
-                    this.basic_variable_data.right_foot_angle_ap = rad2deg(atan2(foot_vector_z, foot_vector_xy));
+                    this.basic_variable_data.right_foot_angle_ap = atan2(foot_vector_z, foot_vector_xy);
                     
                     % determine directions
                     RTOE_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RTOE',  'indices');
@@ -2862,7 +2870,7 @@ classdef WalkingDataCustodian < handle
                     foot_vector_y = RTOEL_trajectory(:, 2) - RTOE_trajectory(:, 2);
                     foot_vector_z = RTOEL_trajectory(:, 3) - RTOE_trajectory(:, 3);
                     foot_vector_xy = (foot_vector_x.^2 + foot_vector_y.^2).^(0.5);
-                    this.basic_variable_data.right_foot_angle_ml = -rad2deg(atan2(foot_vector_z, foot_vector_xy));
+                    this.basic_variable_data.right_foot_angle_ml = -atan2(foot_vector_z, foot_vector_xy);
                     
                     % determine directions
                     RTOE_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RTOE',  'indices');
@@ -2932,7 +2940,7 @@ classdef WalkingDataCustodian < handle
                     end
                     foot_vector_x = RTOEM_trajectory(:, 1) - RHEE_trajectory(:, 1);
                     foot_vector_y = RTOEM_trajectory(:, 2) - RHEE_trajectory(:, 2);
-                    this.basic_variable_data.right_foot_angle_yaw = rad2deg(atan2(foot_vector_x, foot_vector_y));
+                    this.basic_variable_data.right_foot_angle_yaw = atan2(foot_vector_x, foot_vector_y);
                     
                     % determine directions
                     RTOE_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RTOE',  'indices');
@@ -4107,6 +4115,40 @@ classdef WalkingDataCustodian < handle
                         
                         stretch_data = (leg_vector_x.^2 + leg_vector_y.^2 + leg_vector_z.^2).^(0.5);
                     end
+                    if strcmp(variable_name, 'leg_angle_l')
+                        LANK_y = this.getTimeNormalizedData('marker:LANK_y', this_stretch_times);
+                        LANK_z = this.getTimeNormalizedData('marker:LANK_z', this_stretch_times);
+
+                        LASI_y = this.getTimeNormalizedData('marker:LASI_y', this_stretch_times);
+                        LASI_z = this.getTimeNormalizedData('marker:LASI_z', this_stretch_times);
+                        LPSI_y = this.getTimeNormalizedData('marker:LPSI_y', this_stretch_times);
+                        LPSI_z = this.getTimeNormalizedData('marker:LPSI_z', this_stretch_times);
+                        
+                        pelvis_midpoint_y = (LASI_y + LPSI_y) * 0.5;
+                        pelvis_midpoint_z = (LASI_z + LPSI_z) * 0.5;
+                        
+                        leg_vector_y = pelvis_midpoint_y - LANK_y;
+                        leg_vector_z = pelvis_midpoint_z - LANK_z;
+                        
+                        stretch_data = atan2(leg_vector_y, leg_vector_z);
+                    end
+                    if strcmp(variable_name, 'leg_angle_r')
+                        RANK_y = this.getTimeNormalizedData('marker:RANK_y', this_stretch_times);
+                        RANK_z = this.getTimeNormalizedData('marker:RANK_z', this_stretch_times);
+
+                        RASI_y = this.getTimeNormalizedData('marker:RASI_y', this_stretch_times);
+                        RASI_z = this.getTimeNormalizedData('marker:RASI_z', this_stretch_times);
+                        RPSI_y = this.getTimeNormalizedData('marker:RPSI_y', this_stretch_times);
+                        RPSI_z = this.getTimeNormalizedData('marker:RPSI_z', this_stretch_times);
+                        
+                        pelvis_midpoint_y = (RASI_y + RPSI_y) * 0.5;
+                        pelvis_midpoint_z = (RASI_z + RPSI_z) * 0.5;
+                        
+                        leg_vector_y = pelvis_midpoint_y - RANK_y;
+                        leg_vector_z = pelvis_midpoint_z - RANK_z;
+                        
+                        stretch_data = atan2(leg_vector_y, leg_vector_z);
+                    end
                     
                     
                     
@@ -4802,6 +4844,12 @@ classdef WalkingDataCustodian < handle
             end
             if strcmp(variable_name, 'leg_length_r')
                 stretch_directions_new = {'+'; '-'};
+            end
+            if strcmp(variable_name, 'leg_angle_l')
+                stretch_directions_new = {'top leans forward'; 'top leans backward'};
+            end
+            if strcmp(variable_name, 'leg_angle_r')
+                stretch_directions_new = {'top leans forward'; 'top leans backward'};
             end
             if strcmp(variable_name, 'pushoff_time')
                 stretch_directions_new = {'+'; '-'};
