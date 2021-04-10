@@ -530,6 +530,12 @@ function plotData_continuous(settings, comparisons, data_custodian, figure_data)
     for i_variable = 1 : settings.number_of_variables_to_plot_continuous
         variable_name = settings.variables_to_plot_continuous(i_variable, strcmp(settings.variables_to_plot_continuous_header, 'variable_name'));
         variable_type = settings.variables_to_plot_continuous(i_variable, strcmp(settings.variables_to_plot_continuous_header, 'variable_type'));
+        scale_factor = settings.variables_to_plot_continuous(i_variable, strcmp(settings.variables_to_plot_continuous_header, 'scale_factor'));
+        if isempty(scale_factor)
+            scale_factor = 1;
+        else
+            scale_factor = str2double(scale_factor);
+        end
         data_to_plot = data_custodian.getData(variable_name, variable_type);
         
         for i_comparison = 1 : length(comparisons.comparison_indices)
@@ -546,7 +552,7 @@ function plotData_continuous(settings, comparisons, data_custodian, figure_data)
                 this_color = comparisons.condition_colors{strcmp(comparisons.condition_colors(:, 1), this_label), 2};
                 label_string = strrep(this_label, '_', ' ');
                 this_condition_indicator = getConditionIndicator(this_condition, comparisons.condition_combination_labels, condition_data, settings.condition_labels);
-                data_to_plot_this_condition = data_to_plot.variable_data(:, this_condition_indicator);
+                data_to_plot_this_condition = data_to_plot.variable_data(:, this_condition_indicator) * scale_factor;
                 origin_subjects_this_condition = origin_subjects(this_condition_indicator);
                 origin_trials_this_condition = origin_trials(this_condition_indicator);
                 origin_start_times_this_condition = origin_start_times(this_condition_indicator);
