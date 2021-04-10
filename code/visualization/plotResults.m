@@ -860,12 +860,12 @@ function dictateAxes(settings, figure_data, variables_to_plot, variables_to_plot
     if settings.dictate_axes
         for i_variable = 1 : size(variables_to_plot, 1)
             % get x-axis limits from settings
-            this_variable_x_lower = variables_to_plot{i_variable, strcmp(variables_to_plot_header, 'x-axis lower limit')};
-            this_variable_x_upper = variables_to_plot{i_variable, strcmp(variables_to_plot_header, 'x-axis upper limit')};
+            this_variable_x_lower = variables_to_plot{i_variable, strcmp(variables_to_plot_header, 'x_axis_lower_limit')};
+            this_variable_x_upper = variables_to_plot{i_variable, strcmp(variables_to_plot_header, 'x_axis_upper_limit')};
 
             % get y-axis limits from settings
-            this_variable_y_lower = variables_to_plot{i_variable, strcmp(variables_to_plot_header, 'y-axis lower limit')};
-            this_variable_y_upper = variables_to_plot{i_variable, strcmp(variables_to_plot_header, 'y-axis upper limit')};
+            this_variable_y_lower = variables_to_plot{i_variable, strcmp(variables_to_plot_header, 'y_axis_lower_limit')};
+            this_variable_y_upper = variables_to_plot{i_variable, strcmp(variables_to_plot_header, 'y_axis_upper_limit')};
 
             for i_axes = 1 : size(figure_data.axes_handles, 1)
                 % get current axes and limits
