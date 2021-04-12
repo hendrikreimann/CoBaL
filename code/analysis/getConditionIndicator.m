@@ -14,16 +14,32 @@
 %     You should have received a copy of the GNU General Public License
 %     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-function condition_indicator = getConditionIndicator(condition_combination, condition_combination_labels, condition_data, condition_labels)
-    hits = false(size(condition_data, 1), length(condition_combination_labels));
-    condition_indicator = true(size(condition_data, 1), 1);
+function condition_indicator = getConditionIndicator(condition_combination, condition_combination_labels, condition_data, condition_labels, levels_to_remove)
+%     hits = false(size(condition_data, 1), length(condition_combination_labels));
+
+    % create indicator
+    condition_indicator = ones(size(condition_data, 1), 1);
+    
+    % remove labels that don't fit the requested combination
     for i_label = 1 : length(condition_combination_labels)
         this_condition_label = condition_combination_labels{i_label};
         this_condition_data = condition_data(:, strcmp(condition_labels, this_condition_label));
         this_label_hits = strcmp(this_condition_data, condition_combination{i_label});
-        hits(:, i_label) = this_label_hits;
+%         hits(:, i_label) = this_label_hits;
         
         condition_indicator = condition_indicator.*this_label_hits;
     end
+    
+    % remove specific labels as requested
+    for i_row = 1 : size(levels_to_remove, 1)
+        this_condition_label = levels_to_remove{i_row, 1};
+        this_condition_data = condition_data(:, strcmp(condition_labels, this_condition_label));
+        level_to_remove = levels_to_remove{i_row, 2};
+        this_label_hits = strcmp(this_condition_data, level_to_remove);
+        
+        % leave only those rows in that do not fit this level
+        condition_indicator = condition_indicator.*(~this_label_hits);
+    end
+    
     condition_indicator = logical(condition_indicator);
 end
