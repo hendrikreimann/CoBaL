@@ -641,9 +641,8 @@ classdef WalkingDataCustodian < handle
                 this.addStretchVariable('com_rough_y_vel')
             end 
             if this.isVariableToAnalyze('cop_from_com_x')
-                this.addBasicVariable('total_forceplate_cop_world')
-                this.addBasicVariable('cop_x')
-                this.addStretchVariable('cop_x')
+                this.addBasicVariable('forceplate_trajectories')
+                this.addStretchVariable('forceplate:copx')
                 if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'in-house')
                     this.addBasicVariable('com_trajectories') % in-house kinematics
                 end
@@ -656,9 +655,8 @@ classdef WalkingDataCustodian < handle
                 this.addStretchVariable('cop_from_com_x')
             end
             if this.isVariableToAnalyze('cop_from_com_y')
-                this.addBasicVariable('total_forceplate_cop_world')
-                this.addBasicVariable('cop_y')
-                this.addStretchVariable('cop_y')
+                this.addBasicVariable('forceplate_trajectories')
+                this.addStretchVariable('forceplate:copy')
                 if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'in-house')
                     this.addBasicVariable('com_trajectories') % in-house kinematics
                 end
@@ -4401,12 +4399,12 @@ classdef WalkingDataCustodian < handle
                     end
                     if strcmp(variable_name, 'cop_from_com_x')
                         com_x = stretch_variables{strcmp(this.stretch_variable_names, 'com_x')}(:, i_stretch);
-                        cop_x = stretch_variables{strcmp(this.stretch_variable_names, 'cop_x')}(:, i_stretch);
+                        cop_x = stretch_variables{strcmp(this.stretch_variable_names, 'forceplate:copx')}(:, i_stretch);
                         stretch_data = cop_x - com_x;
                     end
                     if strcmp(variable_name, 'cop_from_com_y')
                         com_y = stretch_variables{strcmp(this.stretch_variable_names, 'com_y')}(:, i_stretch);
-                        cop_y = stretch_variables{strcmp(this.stretch_variable_names, 'cop_y')}(:, i_stretch);
+                        cop_y = stretch_variables{strcmp(this.stretch_variable_names, 'forceplate:copy')}(:, i_stretch);
                         stretch_data = cop_y - com_y;
                     end
                     if strcmp(variable_name, 'cop_to_com_x')
@@ -4903,7 +4901,7 @@ classdef WalkingDataCustodian < handle
             end
             if strcmp(variable_name, 'cop_from_com_x')
                 com_x_directions = this.stretch_variable_directions(strcmp(this.stretch_variable_names, 'com_x'), :);
-                cop_x_directions = this.stretch_variable_directions(strcmp(this.stretch_variable_names, 'cop_x'), :);
+                cop_x_directions = this.stretch_variable_directions(strcmp(this.stretch_variable_names, 'forceplate:copx'), :);
                 if ~strcmp(com_x_directions{1}, cop_x_directions{1})
                     error('com_x and cop_x directions are different from each other')
                 end
@@ -4914,7 +4912,7 @@ classdef WalkingDataCustodian < handle
             end
             if strcmp(variable_name, 'cop_from_com_y')
                 com_y_directions = this.stretch_variable_directions(strcmp(this.stretch_variable_names, 'com_y'), :);
-                cop_y_directions = this.stretch_variable_directions(strcmp(this.stretch_variable_names, 'cop_y'), :);
+                cop_y_directions = this.stretch_variable_directions(strcmp(this.stretch_variable_names, 'forceplate:copy'), :);
                 if ~strcmp(com_y_directions{1}, cop_y_directions{1})
                     error('com_y and cop_y directions are different from each other')
                 end
