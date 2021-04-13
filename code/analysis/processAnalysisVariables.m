@@ -73,10 +73,7 @@ function processAnalysisVariables(varargin)
         if strcmp(this_action, 'take extremum within whole band')
             data = calculateExtremaVariables(this_settings_table, this_settings_table_header, study_settings, data);
         end
-        if strcmp(this_action, 'take extremum over time interval within band') % TODO: this does not make any sense... 
-            % the action description suggests that it takes the extremum from an interval of data within a band, but 
-            % I think what it's actually doing is taking the extremum over a whole range of data, spanning multiple 
-            % intervals
+        if strcmp(this_action, 'take extremum over range') 
             data = calculateExtremaOverRangeVariables(this_settings_table, this_settings_table_header, data);
         end
         if strcmp(this_action, 'combine two variables')
@@ -694,20 +691,20 @@ function data = combineTwoVariables(variable_table, table_header, data)
         % get data
         this_variable_name = variable_table{i_variable, strcmp(table_header, 'new_variable_name')};
         variable_A_name = variable_table{i_variable, strcmp(table_header, 'variable_A_name')};
-        variable_A_source = variable_table{i_variable, strcmp(table_header, 'variable_A_source')};
+        variable_A_type = variable_table{i_variable, strcmp(table_header, 'variable_A_type')};
         variable_A_gain = str2double(variable_table{i_variable, strcmp(table_header, 'variable_A_gain')});
         variable_B_name = variable_table{i_variable, strcmp(table_header, 'variable_B_name')};
-        variable_B_source = variable_table{i_variable, strcmp(table_header, 'variable_B_source')};
+        variable_B_type = variable_table{i_variable, strcmp(table_header, 'variable_B_type')};
         variable_B_gain = str2double(variable_table{i_variable, strcmp(table_header, 'variable_B_gain')});
         offset = str2double(variable_table{i_variable, strcmp(table_header, 'offset')});
 
         % pick data depending on source specification
-        variable_A_data_source = data.([variable_A_source '_data_session']);
-        variable_A_names_source = data.([variable_A_source '_names_session']);
-        variable_A_directions_source = data.([variable_A_source '_directions_session']);
-        variable_B_data_source = data.([variable_B_source '_data_session']);
-        variable_B_names_source = data.([variable_B_source '_names_session']);
-        variable_B_directions_source = data.([variable_B_source '_directions_session']);
+        variable_A_data_source = data.([variable_A_type '_data_session']);
+        variable_A_names_source = data.([variable_A_type '_names_session']);
+        variable_A_directions_source = data.([variable_A_type '_directions_session']);
+        variable_B_data_source = data.([variable_B_type '_data_session']);
+        variable_B_names_source = data.([variable_B_type '_names_session']);
+        variable_B_directions_source = data.([variable_B_type '_directions_session']);
         
         % extract
         variable_A_data = variable_A_data_source{strcmp(variable_A_names_source, variable_A_name)};

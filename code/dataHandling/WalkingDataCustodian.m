@@ -580,22 +580,6 @@ classdef WalkingDataCustodian < handle
                 this.addStretchVariable('step_time')
                 this.addStretchVariable('velocity')
             end
-            if this.isVariableToAnalyze('cop_from_mpsis_x')
-                this.addBasicVariable('total_forceplate_cop_world')
-                this.addBasicVariable('cop_x')
-                this.addStretchVariable('cop_x')
-                this.addBasicVariable('mpsis_x')
-                this.addStretchVariable('mpsis_x')
-                this.addStretchVariable('cop_from_mpsis_x')
-            end
-            if this.isVariableToAnalyze('cop_from_mpsis_y')
-                this.addBasicVariable('total_forceplate_cop_world')
-                this.addBasicVariable('cop_y')
-                this.addStretchVariable('cop_y')
-                this.addBasicVariable('mpsis_y')
-                this.addStretchVariable('mpsis_y')
-                this.addStretchVariable('cop_from_mpsis_y')
-            end
             if this.isVariableToAnalyze('mpsis_x')
                 this.addBasicVariable('mpsis_x')
                 this.addStretchVariable('mpsis_x')
@@ -640,64 +624,6 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('com_rough_y_vel')
                 this.addStretchVariable('com_rough_y_vel')
             end 
-            if this.isVariableToAnalyze('cop_from_com_x')
-                this.addBasicVariable('forceplate_trajectories')
-                this.addStretchVariable('forceplate:copx')
-                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'in-house')
-                    this.addBasicVariable('com_trajectories') % in-house kinematics
-                end
-                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'opensim')
-                    this.addBasicVariable('com_position_trajectories') % opensim kinematics
-                end
-                this.addBasicVariable('com')
-                this.addBasicVariable('com_x')
-                this.addStretchVariable('com_x')
-                this.addStretchVariable('cop_from_com_x')
-            end
-            if this.isVariableToAnalyze('cop_from_com_y')
-                this.addBasicVariable('forceplate_trajectories')
-                this.addStretchVariable('forceplate:copy')
-                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'in-house')
-                    this.addBasicVariable('com_trajectories') % in-house kinematics
-                end
-                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'opensim')
-                    this.addBasicVariable('com_position_trajectories') % opensim kinematics
-                end
-                this.addBasicVariable('com')
-                this.addBasicVariable('com_y')
-                this.addStretchVariable('com_y')
-                this.addStretchVariable('cop_from_com_y')
-            end
-            if this.isVariableToAnalyze('cop_to_com_x')
-                this.addBasicVariable('total_forceplate_cop_world')
-                this.addBasicVariable('cop_x')
-                this.addStretchVariable('cop_x')
-                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'in-house')
-                    this.addBasicVariable('com_trajectories') % in-house kinematics
-                end
-                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'opensim')
-                    this.addBasicVariable('com_position_trajectories') % opensim kinematics
-                end
-                this.addBasicVariable('com')
-                this.addBasicVariable('com_x')
-                this.addStretchVariable('com_x')
-                this.addStretchVariable('cop_to_com_x')
-            end
-            if this.isVariableToAnalyze('cop_to_com_y')
-                this.addBasicVariable('total_forceplate_cop_world')
-                this.addBasicVariable('cop_y')
-                this.addStretchVariable('cop_y')
-                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'in-house')
-                    this.addBasicVariable('com_trajectories') % in-house kinematics
-                end
-                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'opensim')
-                    this.addBasicVariable('com_position_trajectories') % opensim kinematics
-                end
-                this.addBasicVariable('com')
-                this.addBasicVariable('com_y')
-                this.addStretchVariable('com_y')
-                this.addStretchVariable('cop_to_com_y')
-            end
             if this.isVariableToAnalyze('init_heel_to_com_x')
                 this.addBasicVariable('marker_trajectories')
                 this.addBasicVariable('lheel_x')
@@ -4099,36 +4025,6 @@ classdef WalkingDataCustodian < handle
                         % re-normalize angle
                         stretch_data = normalizeAngle(data_normalized);
                     end
-                    if strcmp(variable_name, 'cop_from_mpsis_x')
-                        mpsis_x = stretch_variables{strcmp(this.stretch_variable_names, 'mpsis_x')}(:, i_stretch);
-                        cop_x = stretch_variables{strcmp(this.stretch_variable_names, 'cop_x')}(:, i_stretch);
-                        stretch_data = cop_x - mpsis_x;
-                    end
-                    if strcmp(variable_name, 'cop_from_mpsis_y')
-                        mpsis_y = stretch_variables{strcmp(this.stretch_variable_names, 'mpsis_y')}(:, i_stretch);
-                        cop_y = stretch_variables{strcmp(this.stretch_variable_names, 'cop_y')}(:, i_stretch);
-                        stretch_data = cop_y - mpsis_y;
-                    end
-                    if strcmp(variable_name, 'cop_from_com_x')
-                        com_x = stretch_variables{strcmp(this.stretch_variable_names, 'com_x')}(:, i_stretch);
-                        cop_x = stretch_variables{strcmp(this.stretch_variable_names, 'forceplate:copx')}(:, i_stretch);
-                        stretch_data = cop_x - com_x;
-                    end
-                    if strcmp(variable_name, 'cop_from_com_y')
-                        com_y = stretch_variables{strcmp(this.stretch_variable_names, 'com_y')}(:, i_stretch);
-                        cop_y = stretch_variables{strcmp(this.stretch_variable_names, 'forceplate:copy')}(:, i_stretch);
-                        stretch_data = cop_y - com_y;
-                    end
-                    if strcmp(variable_name, 'cop_to_com_x')
-                        com_x = stretch_variables{strcmp(this.stretch_variable_names, 'com_x')}(:, i_stretch);
-                        cop_x = stretch_variables{strcmp(this.stretch_variable_names, 'cop_x')}(:, i_stretch);
-                        stretch_data = com_x - cop_x;
-                    end
-                    if strcmp(variable_name, 'cop_to_com_y')
-                        com_y = stretch_variables{strcmp(this.stretch_variable_names, 'com_y')}(:, i_stretch);
-                        cop_y = stretch_variables{strcmp(this.stretch_variable_names, 'cop_y')}(:, i_stretch);
-                        stretch_data = com_y - cop_y;
-                    end
                     if strcmp(variable_name, 'init_heel_to_com_x')
                         com_x = stretch_variables{strcmp(this.stretch_variable_names, 'com_x')}(:, i_stretch);
                         
@@ -4543,72 +4439,6 @@ classdef WalkingDataCustodian < handle
             if strcmp(variable_name, 'left_arm_phase') || strcmp(variable_name, 'right_arm_phase') || strcmp(variable_name, 'left_leg_phase') || strcmp(variable_name, 'right_leg_phase')
                 % TODO: not tested yet
                 stretch_directions_new = this.basic_variable_directions.(variable_name);
-            end
-            if strcmp(variable_name, 'cop_from_mpsis_x')
-                mpsis_x_directions = this.stretch_variable_directions(strcmp(this.stretch_variable_names, 'mpsis_x'), :);
-                cop_x_directions = this.stretch_variable_directions(strcmp(this.stretch_variable_names, 'cop_x'), :);
-                if ~strcmp(mpsis_x_directions{1}, cop_x_directions{1})
-                    error('mpsis_x and cop_x directions are different from each other')
-                end
-                if ~strcmp(mpsis_x_directions{2}, cop_x_directions{2})
-                    error('mpsis_x and cop_x directions are different from each other')
-                end
-                stretch_directions_new = mpsis_x_directions;
-            end
-            if strcmp(variable_name, 'cop_from_mpsis_y')
-                mpsis_y_directions = this.stretch_variable_directions(strcmp(this.stretch_variable_names, 'mpsis_y'), :);
-                cop_y_directions = this.stretch_variable_directions(strcmp(this.stretch_variable_names, 'cop_y'), :);
-                if ~strcmp(mpsis_y_directions{1}, cop_y_directions{1})
-                    error('mpsis_y and cop_y directions are different from each other')
-                end
-                if ~strcmp(mpsis_y_directions{2}, cop_y_directions{2})
-                    error('mpsis_y and cop_y directions are different from each other')
-                end
-                stretch_directions_new = mpsis_y_directions;
-            end
-            if strcmp(variable_name, 'cop_from_com_x')
-                com_x_directions = this.stretch_variable_directions(strcmp(this.stretch_variable_names, 'com_x'), :);
-                cop_x_directions = this.stretch_variable_directions(strcmp(this.stretch_variable_names, 'forceplate:copx'), :);
-                if ~strcmp(com_x_directions{1}, cop_x_directions{1})
-                    error('com_x and cop_x directions are different from each other')
-                end
-                if ~strcmp(com_x_directions{2}, cop_x_directions{2})
-                    error('com_x and cop_x directions are different from each other')
-                end
-                stretch_directions_new = com_x_directions;
-            end
-            if strcmp(variable_name, 'cop_from_com_y')
-                com_y_directions = this.stretch_variable_directions(strcmp(this.stretch_variable_names, 'com_y'), :);
-                cop_y_directions = this.stretch_variable_directions(strcmp(this.stretch_variable_names, 'forceplate:copy'), :);
-                if ~strcmp(com_y_directions{1}, cop_y_directions{1})
-                    error('com_y and cop_y directions are different from each other')
-                end
-                if ~strcmp(com_y_directions{2}, cop_y_directions{2})
-                    error('com_y and cop_y directions are different from each other')
-                end
-                stretch_directions_new = com_y_directions;
-            end
-            if strcmp(variable_name, 'cop_to_com_x')
-                com_x_directions = this.stretch_variable_directions(strcmp(this.stretch_variable_names, 'com_x'), :);
-                cop_x_directions = this.stretch_variable_directions(strcmp(this.stretch_variable_names, 'cop_x'), :);
-                if ~strcmp(com_x_directions{1}, cop_x_directions{1})
-                    error('com_x and cop_x directions are different from each other')
-                end
-                if ~strcmp(com_x_directions{2}, cop_x_directions{2})
-                    error('com_x and cop_x directions are different from each other')
-                end
-                stretch_directions_new = com_x_directions;
-            end
-            if strcmp(variable_name, 'cop_to_com_y')
-                com_y_directions = this.stretch_variable_directions(strcmp(this.stretch_variable_names, 'com_y'), :);
-                cop_y_directions = this.stretch_variable_directions(strcmp(this.stretch_variable_names, 'cop_y'), :);
-                if ~strcmp(com_y_directions{1}, cop_y_directions{1})
-                    error('com_y and cop_y directions are different from each other')
-                end
-                if ~strcmp(com_y_directions{2}, cop_y_directions{2})
-                    error('com_y and cop_y directions are different from each other')
-                end
-                stretch_directions_new = com_y_directions;
             end
             if strcmp(variable_name, 'init_heel_to_com_x')
                 com_x_directions = this.stretch_variable_directions(strcmp(this.stretch_variable_names, 'com_x'), :);
