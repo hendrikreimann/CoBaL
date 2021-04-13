@@ -160,6 +160,9 @@ classdef WalkingDataCustodian < handle
             if this.isVariableToAnalyze('com_trajectories')
                 this.addBasicVariable('com_trajectories')
             end
+            if this.isVariableToAnalyze('forceplate_trajectories')
+                this.addBasicVariable('forceplate_trajectories')
+            end
             
             % kinematics
             if this.isVariableToAnalyze('lheel_x')

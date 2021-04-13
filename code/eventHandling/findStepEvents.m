@@ -59,7 +59,12 @@ function findStepEvents(varargin)
             % load data
             condition = condition_list{i_condition};
             [marker_trajectories, time_marker, sampling_rate_marker, marker_labels] = loadData(collection_date, subject_id, condition, i_trial, 'marker_trajectories');
-            [cop_trajectories, time_forceplate, ~, ~, ~, ~] = loadData(collection_date, subject_id, condition, i_trial, 'total_forceplate_cop_world', 'optional');
+%             [cop_trajectories, time_forceplate, ~, ~, ~, ~] = loadData(collection_date, subject_id, condition, i_trial, 'total_forceplate_cop_world', 'optional');
+            
+            [forceplate_trajectories, time_forceplate, ~, labels_forceplate] = loadData(collection_date, subject_id, condition, i_trial, 'forceplate_trajectories', 'optional');
+            cop_x = forceplate_trajectories(:, strcmp(labels_forceplate, 'copx'));
+            cop_y = forceplate_trajectories(:, strcmp(labels_forceplate, 'copy'));
+            
             [left_foot_wrench_world, time_left_forceplate, ~, ~, ~, left_forceplate_available] = loadData(collection_date, subject_id, condition, i_trial, 'left_foot_wrench_world', 'optional');
             [right_foot_wrench_world, time_right_forceplate, ~, ~, ~, right_forceplate_available] = loadData(collection_date, subject_id, condition, i_trial, 'right_foot_wrench_world', 'optional');
             if left_forceplate_available & right_forceplate_available %#ok<AND2>
@@ -76,9 +81,8 @@ function findStepEvents(varargin)
             
             if any(strcmp(subject_settings.get('event_method', 1), 'cop_ap'))
                 % get pushoff and touchdown indices
-                cop_ap = cop_trajectories(:, 2);
-                [~, pushoff_indices_both] = findpeaks(cop_ap, 'MinPeakProminence', subject_settings.get('peak_prominence_threshold'));
-                [~, touchdown_indices_both] = findpeaks(-cop_ap, 'MinPeakProminence', subject_settings.get('peak_prominence_threshold'));
+                [~, pushoff_indices_both] = findpeaks(cop_y, 'MinPeakProminence', subject_settings.get('peak_prominence_threshold'));
+                [~, touchdown_indices_both] = findpeaks(-cop_y, 'MinPeakProminence', subject_settings.get('peak_prominence_threshold'));
                 
                 LHEE_y_trajectory = getKinematics('heel', 'left', 'y');
                 RHEE_y_trajectory = getKinematics('heel', 'right', 'y');
@@ -136,27 +140,27 @@ function findStepEvents(varargin)
                     touchdown_indices_right_window = touchdown_indices_right(touchdown_indices_right>=window_frame_indices(1) & touchdown_indices_right<=window_frame_indices(2));
                     
                     figure; axes; hold on; title('CoP path on treadmill')
-                    plot(cop_trajectories(window_indices, 1), cop_trajectories(window_indices, 2), 'color', 'b', 'DisplayName', 'CoP');
-                    plot(cop_trajectories(pushoff_indices_left_window, 1), cop_trajectories(pushoff_indices_left_window, 2), '^', 'markersize', 8, 'color', 'g', 'markerfacecolor', 'g', 'DisplayName', 'left pushoff');
-                    plot(cop_trajectories(pushoff_indices_right_window, 1), cop_trajectories(pushoff_indices_right_window, 2), '^', 'markersize', 8, 'color', 'r', 'markerfacecolor', 'r', 'DisplayName', 'right pushoff');
-                    plot(cop_trajectories(touchdown_indices_left_window, 1), cop_trajectories(touchdown_indices_left_window, 2), 'v', 'markersize', 8, 'color', 'g', 'markerfacecolor', 'g', 'DisplayName', 'left heel-strike');
-                    plot(cop_trajectories(touchdown_indices_right_window, 1), cop_trajectories(touchdown_indices_right_window, 2), 'v', 'markersize', 8, 'color', 'r', 'markerfacecolor', 'r', 'DisplayName', 'right heel-strike');
+                    plot(cop_x(window_indices), cop_y(window_indices), 'color', 'b', 'DisplayName', 'CoP');
+                    plot(cop_x(pushoff_indices_left_window), cop_y(pushoff_indices_left_window), '^', 'markersize', 8, 'color', 'g', 'markerfacecolor', 'g', 'DisplayName', 'left pushoff');
+                    plot(cop_x(pushoff_indices_right_window), cop_y(pushoff_indices_right_window), '^', 'markersize', 8, 'color', 'r', 'markerfacecolor', 'r', 'DisplayName', 'right pushoff');
+                    plot(cop_x(touchdown_indices_left_window), cop_y(touchdown_indices_left_window), 'v', 'markersize', 8, 'color', 'g', 'markerfacecolor', 'g', 'DisplayName', 'left heel-strike');
+                    plot(cop_x(touchdown_indices_right_window), cop_y(touchdown_indices_right_window), 'v', 'markersize', 8, 'color', 'r', 'markerfacecolor', 'r', 'DisplayName', 'right heel-strike');
                     xlabel('ml position (m)'); ylabel('ap position (m)')
 
                     figure; axes_x = axes; hold on; title('CoP trajectories - left forceplate')
-                    plot(time_forceplate(window_indices), cop_trajectories(window_indices, 1), 'linewidth', 2, 'color', 'b', 'DisplayName', 'CoP');
-                    plot(time_forceplate(pushoff_indices_left_window), cop_trajectories(pushoff_indices_left_window, 1), '^', 'markersize', 8, 'color', 'g', 'markerfacecolor', 'g', 'DisplayName', 'left pushoff');
-                    plot(time_forceplate(pushoff_indices_right_window), cop_trajectories(pushoff_indices_right_window, 1), '^', 'markersize', 8, 'color', 'r', 'markerfacecolor', 'r', 'DisplayName', 'right pushoff');
-                    plot(time_forceplate(touchdown_indices_left_window), cop_trajectories(touchdown_indices_left_window, 1), 'v', 'markersize', 8, 'color', 'g', 'markerfacecolor', 'g', 'DisplayName', 'left heel-strike');
-                    plot(time_forceplate(touchdown_indices_right_window), cop_trajectories(touchdown_indices_right_window, 1), 'v', 'markersize', 8, 'color', 'r', 'markerfacecolor', 'r', 'DisplayName', 'right heel-strike');
+                    plot(time_forceplate(window_indices), cop_x(window_indices), 'linewidth', 2, 'color', 'b', 'DisplayName', 'CoP');
+                    plot(time_forceplate(pushoff_indices_left_window), cop_x(pushoff_indices_left_window), '^', 'markersize', 8, 'color', 'g', 'markerfacecolor', 'g', 'DisplayName', 'left pushoff');
+                    plot(time_forceplate(pushoff_indices_right_window), cop_x(pushoff_indices_right_window), '^', 'markersize', 8, 'color', 'r', 'markerfacecolor', 'r', 'DisplayName', 'right pushoff');
+                    plot(time_forceplate(touchdown_indices_left_window), cop_x(touchdown_indices_left_window), 'v', 'markersize', 8, 'color', 'g', 'markerfacecolor', 'g', 'DisplayName', 'left heel-strike');
+                    plot(time_forceplate(touchdown_indices_right_window), cop_x(touchdown_indices_right_window), 'v', 'markersize', 8, 'color', 'r', 'markerfacecolor', 'r', 'DisplayName', 'right heel-strike');
                     xlabel('time (s)'); ylabel('ml position (m)')
 
                     figure; axes_y = axes; hold on; title('CoP trajectories - right forceplate')
-                    plot(time_forceplate(window_indices), cop_trajectories(window_indices, 2), 'linewidth', 2, 'color', 'b', 'DisplayName', 'CoP');
-                    plot(time_forceplate(pushoff_indices_left_window), cop_trajectories(pushoff_indices_left_window, 2), '^', 'markersize', 8, 'color', 'g', 'markerfacecolor', 'g', 'DisplayName', 'left pushoff');
-                    plot(time_forceplate(pushoff_indices_right_window), cop_trajectories(pushoff_indices_right_window, 2), '^', 'markersize', 8, 'color', 'r', 'markerfacecolor', 'r', 'DisplayName', 'right pushoff');
-                    plot(time_forceplate(touchdown_indices_left_window), cop_trajectories(touchdown_indices_left_window, 2), 'v', 'markersize', 8, 'color', 'g', 'markerfacecolor', 'g', 'DisplayName', 'left heel-strike');
-                    plot(time_forceplate(touchdown_indices_right_window), cop_trajectories(touchdown_indices_right_window, 2), 'v', 'markersize', 8, 'color', 'r', 'markerfacecolor', 'r', 'DisplayName', 'right heel-strike');
+                    plot(time_forceplate(window_indices), cop_y(window_indices), 'linewidth', 2, 'color', 'b', 'DisplayName', 'CoP');
+                    plot(time_forceplate(pushoff_indices_left_window), cop_y(pushoff_indices_left_window), '^', 'markersize', 8, 'color', 'g', 'markerfacecolor', 'g', 'DisplayName', 'left pushoff');
+                    plot(time_forceplate(pushoff_indices_right_window), cop_y(pushoff_indices_right_window), '^', 'markersize', 8, 'color', 'r', 'markerfacecolor', 'r', 'DisplayName', 'right pushoff');
+                    plot(time_forceplate(touchdown_indices_left_window), cop_y(touchdown_indices_left_window), 'v', 'markersize', 8, 'color', 'g', 'markerfacecolor', 'g', 'DisplayName', 'left heel-strike');
+                    plot(time_forceplate(touchdown_indices_right_window), cop_y(touchdown_indices_right_window), 'v', 'markersize', 8, 'color', 'r', 'markerfacecolor', 'r', 'DisplayName', 'right heel-strike');
                     xlabel('time (s)'); ylabel('ap position (m)')
 
                     linkaxes([axes_x, axes_y], 'x');
