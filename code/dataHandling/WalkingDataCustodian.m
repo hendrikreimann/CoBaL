@@ -1055,36 +1055,6 @@ classdef WalkingDataCustodian < handle
                 this.addStretchVariable('toes_clearance')
             end
             % force plate
-            if this.isVariableToAnalyze('copl_y')
-                this.addBasicVariable('left_foot_cop_world')
-                this.addBasicVariable('copl_y')
-                this.addStretchVariable('copl_y')
-            end
-            if this.isVariableToAnalyze('copl_x')
-                this.addBasicVariable('left_foot_cop_world')
-                this.addBasicVariable('copl_x')
-                this.addStretchVariable('copl_x')
-            end
-            if this.isVariableToAnalyze('copr_y')
-                this.addBasicVariable('right_foot_cop_world')
-                this.addBasicVariable('copr_y')
-                this.addStretchVariable('copr_y')
-            end
-            if this.isVariableToAnalyze('copr_x')
-                this.addBasicVariable('right_foot_cop_world')
-                this.addBasicVariable('copr_x')
-                this.addStretchVariable('copr_x')
-            end
-            if this.isVariableToAnalyze('cop_y')
-                this.addBasicVariable('total_forceplate_cop_world')
-                this.addBasicVariable('cop_y')
-                this.addStretchVariable('cop_y')
-            end
-            if this.isVariableToAnalyze('cop_x')
-                this.addBasicVariable('total_forceplate_cop_world')
-                this.addBasicVariable('cop_x')
-                this.addStretchVariable('cop_x')
-            end
             if this.isVariableToAnalyze('cop_y_vel')
                 this.addBasicVariable('total_forceplate_cop_world')
                 this.addBasicVariable('cop_y')
@@ -1110,96 +1080,6 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('cop_x_vel')
                 this.addBasicVariable('cop_x_acc')
                 this.addStretchVariable('cop_x_acc')
-            end
-            if this.isVariableToAnalyze('fxl')
-                this.addBasicVariable('left_foot_wrench_world')
-                this.addBasicVariable('fxl')
-                this.addStretchVariable('fxl')
-            end
-            if this.isVariableToAnalyze('fyl')
-                this.addBasicVariable('left_foot_wrench_world')
-                this.addBasicVariable('fyl')
-                this.addStretchVariable('fyl')
-            end
-            if this.isVariableToAnalyze('fzl')
-                this.addBasicVariable('left_foot_wrench_world')
-                this.addBasicVariable('fzl')
-                this.addStretchVariable('fzl')
-            end
-            if this.isVariableToAnalyze('mxl')
-                this.addBasicVariable('left_foot_wrench_world')
-                this.addBasicVariable('mxl')
-                this.addStretchVariable('mxl')
-            end
-            if this.isVariableToAnalyze('myl')
-                this.addBasicVariable('left_foot_wrench_world')
-                this.addBasicVariable('myl')
-                this.addStretchVariable('myl')
-            end
-            if this.isVariableToAnalyze('mzl')
-                this.addBasicVariable('left_foot_wrench_world')
-                this.addBasicVariable('mzl')
-                this.addStretchVariable('mzl')
-            end
-            if this.isVariableToAnalyze('fxr')
-                this.addBasicVariable('right_foot_wrench_world')
-                this.addBasicVariable('fxr')
-                this.addStretchVariable('fxr')
-            end
-            if this.isVariableToAnalyze('fyr')
-                this.addBasicVariable('right_foot_wrench_world')
-                this.addBasicVariable('fyr')
-                this.addStretchVariable('fyr')
-            end
-            if this.isVariableToAnalyze('fzr')
-                this.addBasicVariable('right_foot_wrench_world')
-                this.addBasicVariable('fzr')
-                this.addStretchVariable('fzr')
-            end
-            if this.isVariableToAnalyze('mxr')
-                this.addBasicVariable('right_foot_wrench_world')
-                this.addBasicVariable('mxr')
-                this.addStretchVariable('mxr')
-            end
-            if this.isVariableToAnalyze('myr')
-                this.addBasicVariable('right_foot_wrench_world')
-                this.addBasicVariable('myr')
-                this.addStretchVariable('myr')
-            end
-            if this.isVariableToAnalyze('mzr')
-                this.addBasicVariable('right_foot_wrench_world')
-                this.addBasicVariable('mzr')
-                this.addStretchVariable('mzr')
-            end
-            if this.isVariableToAnalyze('fx')
-                this.addBasicVariable('total_forceplate_wrench_world')
-                this.addBasicVariable('fx')
-                this.addStretchVariable('fx')
-            end
-            if this.isVariableToAnalyze('fy')
-                this.addBasicVariable('total_forceplate_wrench_world')
-                this.addBasicVariable('fy')
-                this.addStretchVariable('fy')
-            end
-            if this.isVariableToAnalyze('fz')
-                this.addBasicVariable('total_forceplate_wrench_world')
-                this.addBasicVariable('fz')
-                this.addStretchVariable('fz')
-            end
-            if this.isVariableToAnalyze('mx')
-                this.addBasicVariable('total_forceplate_wrench_world')
-                this.addBasicVariable('mx')
-                this.addStretchVariable('mx')
-            end
-            if this.isVariableToAnalyze('my')
-                this.addBasicVariable('total_forceplate_wrench_world')
-                this.addBasicVariable('my')
-                this.addStretchVariable('my')
-            end
-            if this.isVariableToAnalyze('mz')
-                this.addBasicVariable('total_forceplate_wrench_world')
-                this.addBasicVariable('mz')
-                this.addStretchVariable('mz')
             end
             
             % protocol
@@ -3177,48 +3057,6 @@ classdef WalkingDataCustodian < handle
                 end
             
                 % force plate
-                if strcmp(variable_name, 'copl_y')
-                    [left_foot_cop_world_data, left_foot_cop_world_directions] = this.getBasicVariableData('left_foot_cop_world');
-                    this.basic_variable_data.copl_y = left_foot_cop_world_data(:, 2);
-                    this.basic_variable_directions.copl_y = left_foot_cop_world_directions(:, 2);
-                    this.time_data.copl_y = this.time_data.left_foot_cop_world;
-                    success = 1;
-                end
-                if strcmp(variable_name, 'copl_x')
-                    [left_foot_cop_world_data, left_foot_cop_world_directions] = this.getBasicVariableData('left_foot_cop_world');
-                    this.basic_variable_data.copl_x = left_foot_cop_world_data(:, 1);
-                    this.basic_variable_directions.copl_x = left_foot_cop_world_directions(:, 1);
-                    this.time_data.copl_x = this.time_data.left_foot_cop_world;
-                    success = 1;
-                end
-                if strcmp(variable_name, 'copr_y')
-                    [right_foot_cop_world_data, right_foot_cop_world_directions] = this.getBasicVariableData('right_foot_cop_world');
-                    this.basic_variable_data.copr_y = right_foot_cop_world_data(:, 2);
-                    this.basic_variable_directions.copr_y = right_foot_cop_world_directions(:, 2);
-                    this.time_data.copr_y = this.time_data.right_foot_cop_world;
-                    success = 1;
-                end
-                if strcmp(variable_name, 'copr_x')
-                    [right_foot_cop_world_data, right_foot_cop_world_directions] = this.getBasicVariableData('right_foot_cop_world');
-                    this.basic_variable_data.copr_x = right_foot_cop_world_data(:, 1);
-                    this.basic_variable_directions.copr_x = right_foot_cop_world_directions(:, 1);
-                    this.time_data.copr_x = this.time_data.right_foot_cop_world;
-                    success = 1;
-                end
-                if strcmp(variable_name, 'cop_y')
-                    [total_forceplate_cop_world_data, total_forceplate_cop_world_directions] = this.getBasicVariableData('total_forceplate_cop_world');
-                    this.basic_variable_data.cop_y = total_forceplate_cop_world_data(:, 2);
-                    this.basic_variable_directions.cop_y = total_forceplate_cop_world_directions(:, 2);
-                    this.time_data.cop_y = this.time_data.total_forceplate_cop_world;
-                    success = 1;
-                end
-                if strcmp(variable_name, 'cop_x')
-                    [total_forceplate_cop_world_data, total_forceplate_cop_world_directions] = this.getBasicVariableData('total_forceplate_cop_world');
-                    this.basic_variable_data.cop_x = total_forceplate_cop_world_data(:, 1);
-                    this.basic_variable_directions.cop_x = total_forceplate_cop_world_directions(:, 1);
-                    this.time_data.cop_x = this.time_data.total_forceplate_cop_world;
-                    success = 1;
-                end
                 if strcmp(variable_name, 'cop_y_vel')
                     cop_y = this.getBasicVariableData('cop_y');
                     cop_y(cop_y==0) = NaN;
@@ -3277,132 +3115,6 @@ classdef WalkingDataCustodian < handle
                     this.basic_variable_data.cop_x_acc = cop_x_acc;
                     this.basic_variable_directions.cop_x_acc = this.basic_variable_directions.cop_x;
                     this.time_data.cop_x_acc = time;
-                    success = 1;
-                end
-                if strcmp(variable_name, 'fxl')
-                    [left_foot_wrench_world_data, left_foot_wrench_world_directions] = this.getBasicVariableData('left_foot_wrench_world');
-                    this.basic_variable_data.fxl = left_foot_wrench_world_data(:, 1);
-                    this.basic_variable_directions.fxl = left_foot_wrench_world_directions(:, 1);
-                    this.time_data.fxl = this.time_data.left_foot_wrench_world;
-                    success = 1;
-                end
-                if strcmp(variable_name, 'fyl')
-                    [left_foot_wrench_world_data, left_foot_wrench_world_directions] = this.getBasicVariableData('left_foot_wrench_world');
-                    this.basic_variable_data.fyl = left_foot_wrench_world_data(:, 2);
-                    this.basic_variable_directions.fyl = left_foot_wrench_world_directions(:, 2);
-                    this.time_data.fyl = this.time_data.left_foot_wrench_world;
-                    success = 1;
-                end
-                if strcmp(variable_name, 'fzl')
-                    [left_foot_wrench_world_data, left_foot_wrench_world_directions] = this.getBasicVariableData('left_foot_wrench_world');
-                    this.basic_variable_data.fzl = left_foot_wrench_world_data(:, 3);
-                    this.basic_variable_directions.fzl = left_foot_wrench_world_directions(:, 3);
-                    this.time_data.fzl = this.time_data.left_foot_wrench_world;
-                    success = 1;
-                end
-                if strcmp(variable_name, 'mxl')
-                    [left_foot_wrench_world_data, left_foot_wrench_world_directions] = this.getBasicVariableData('left_foot_wrench_world');
-                    this.basic_variable_data.mxl = left_foot_wrench_world_data(:, 4);
-                    this.basic_variable_directions.mxl = left_foot_wrench_world_directions(:, 4);
-                    this.time_data.mxl = this.time_data.left_foot_wrench_world;
-                    success = 1;
-                end
-                if strcmp(variable_name, 'myl')
-                    [left_foot_wrench_world_data, left_foot_wrench_world_directions] = this.getBasicVariableData('left_foot_wrench_world');
-                    this.basic_variable_data.myl = left_foot_wrench_world_data(:, 5);
-                    this.basic_variable_directions.myl = left_foot_wrench_world_directions(:, 5);
-                    this.time_data.myl = this.time_data.left_foot_wrench_world;
-                    success = 1;
-                end
-                if strcmp(variable_name, 'mzl')
-                    [left_foot_wrench_world_data, left_foot_wrench_world_directions] = this.getBasicVariableData('left_foot_wrench_world');
-                    this.basic_variable_data.mzl = left_foot_wrench_world_data(:, 6);
-                    this.basic_variable_directions.mzl = left_foot_wrench_world_directions(:, 6);
-                    this.time_data.mzl = this.time_data.left_foot_wrench_world;
-                    success = 1;
-                end
-                if strcmp(variable_name, 'fxr')
-                    [right_foot_wrench_world_data, right_foot_wrench_world_directions] = this.getBasicVariableData('right_foot_wrench_world');
-                    this.basic_variable_data.fxr = right_foot_wrench_world_data(:, 1);
-                    this.basic_variable_directions.fxr = right_foot_wrench_world_directions(:, 1);
-                    this.time_data.fxr = this.time_data.right_foot_wrench_world;
-                    success = 1;
-                end
-                if strcmp(variable_name, 'fyr')
-                    [right_foot_wrench_world_data, right_foot_wrench_world_directions] = this.getBasicVariableData('right_foot_wrench_world');
-                    this.basic_variable_data.fyr = right_foot_wrench_world_data(:, 2);
-                    this.basic_variable_directions.fyr = right_foot_wrench_world_directions(:, 2);
-                    this.time_data.fyr = this.time_data.right_foot_wrench_world;
-                    success = 1;
-                end
-                if strcmp(variable_name, 'fzr')
-                    [right_foot_wrench_world_data, right_foot_wrench_world_directions] = this.getBasicVariableData('right_foot_wrench_world');
-                    this.basic_variable_data.fzr = right_foot_wrench_world_data(:, 3);
-                    this.basic_variable_directions.fzr = right_foot_wrench_world_directions(:, 3);
-                    this.time_data.fzr = this.time_data.right_foot_wrench_world;
-                    success = 1;
-                end
-                if strcmp(variable_name, 'mxr')
-                    [right_foot_wrench_world_data, right_foot_wrench_world_directions] = this.getBasicVariableData('right_foot_wrench_world');
-                    this.basic_variable_data.mxr = right_foot_wrench_world_data(:, 4);
-                    this.basic_variable_directions.mxr = right_foot_wrench_world_directions(:, 4);
-                    this.time_data.mxr = this.time_data.right_foot_wrench_world;
-                    success = 1;
-                end
-                if strcmp(variable_name, 'myr')
-                    [right_foot_wrench_world_data, right_foot_wrench_world_directions] = this.getBasicVariableData('right_foot_wrench_world');
-                    this.basic_variable_data.myr = right_foot_wrench_world_data(:, 5);
-                    this.basic_variable_directions.myr = right_foot_wrench_world_directions(:, 5);
-                    this.time_data.myr = this.time_data.right_foot_wrench_world;
-                    success = 1;
-                end
-                if strcmp(variable_name, 'mzr')
-                    [right_foot_wrench_world_data, right_foot_wrench_world_directions] = this.getBasicVariableData('right_foot_wrench_world');
-                    this.basic_variable_data.mzr = right_foot_wrench_world_data(:, 6);
-                    this.basic_variable_directions.mzr = right_foot_wrench_world_directions(:, 6);
-                    this.time_data.mzr = this.time_data.right_foot_wrench_world;
-                    success = 1;
-                end
-                if strcmp(variable_name, 'fx')
-                    [total_forceplate_wrench_world_data, total_forceplate_wrench_world_directions] = this.getBasicVariableData('total_forceplate_wrench_world');
-                    this.basic_variable_data.fx = total_forceplate_wrench_world_data(:, 1);
-                    this.basic_variable_directions.fx = total_forceplate_wrench_world_directions(:, 1);
-                    this.time_data.fx = this.time_data.total_forceplate_wrench_world;
-                    success = 1;
-                end
-                if strcmp(variable_name, 'fy')
-                    [total_forceplate_wrench_world_data, total_forceplate_wrench_world_directions] = this.getBasicVariableData('total_forceplate_wrench_world');
-                    this.basic_variable_data.fy = total_forceplate_wrench_world_data(:, 2);
-                    this.basic_variable_directions.fy = total_forceplate_wrench_world_directions(:, 2);
-                    this.time_data.fy = this.time_data.total_forceplate_wrench_world;
-                    success = 1;
-                end
-                if strcmp(variable_name, 'fz')
-                    [total_forceplate_wrench_world_data, total_forceplate_wrench_world_directions] = this.getBasicVariableData('total_forceplate_wrench_world');
-                    this.basic_variable_data.fz = total_forceplate_wrench_world_data(:, 3);
-                    this.basic_variable_directions.fz = total_forceplate_wrench_world_directions(:, 3);
-                    this.time_data.fz = this.time_data.total_forceplate_wrench_world;
-                    success = 1;
-                end
-                if strcmp(variable_name, 'mx')
-                    [total_forceplate_wrench_world_data, total_forceplate_wrench_world_directions] = this.getBasicVariableData('total_forceplate_wrench_world');
-                    this.basic_variable_data.mx = total_forceplate_wrench_world_data(:, 4);
-                    this.basic_variable_directions.mx = total_forceplate_wrench_world_directions(:, 4);
-                    this.time_data.mx = this.time_data.total_forceplate_wrench_world;
-                    success = 1;
-                end
-                if strcmp(variable_name, 'my')
-                    [total_forceplate_wrench_world_data, total_forceplate_wrench_world_directions] = this.getBasicVariableData('total_forceplate_wrench_world');
-                    this.basic_variable_data.my = total_forceplate_wrench_world_data(:, 5);
-                    this.basic_variable_directions.my = total_forceplate_wrench_world_directions(:, 5);
-                    this.time_data.my = this.time_data.total_forceplate_wrench_world;
-                    success = 1;
-                end
-                if strcmp(variable_name, 'mz')
-                    [total_forceplate_wrench_world_data, total_forceplate_wrench_world_directions] = this.getBasicVariableData('total_forceplate_wrench_world');
-                    this.basic_variable_data.mz = total_forceplate_wrench_world_data(:, 6);
-                    this.basic_variable_directions.mz = total_forceplate_wrench_world_directions(:, 6);
-                    this.time_data.mz = this.time_data.total_forceplate_wrench_world;
                     success = 1;
                 end
                 
@@ -4560,51 +4272,6 @@ classdef WalkingDataCustodian < handle
                             end
                         end
                     end
-                    if strcmp(variable_name, 'copl_x') || strcmp(variable_name, 'copl_y') || strcmp(variable_name, 'copr_x') || strcmp(variable_name, 'copr_y')
-                        % whole stretches might be zero, deal with this in a special way.
-                        band_times = this_stretch_times;
-
-                        % extract data
-                        try
-                            variable_time = this.getTimeData(variable_name);
-                            variable_data = this.getBasicVariableData(variable_name);
-
-                            band_time_indices = zeros(size(band_times));
-                            for i_band_time = 1 : length(band_times)
-                                [~, time_index] = min(abs(variable_time - band_times(i_band_time)));
-                                band_time_indices(i_band_time) = time_index;
-                            end
-
-                            data_extracted = variable_data(band_time_indices(1) : band_time_indices(end));
-                            band_time_indices_local = band_time_indices - band_time_indices(1) + 1;
-                            if any(isnan(data_extracted))
-                                exception = MException('CoBaL:NaN', 'Data contains NaN values.');
-                                throw(exception)
-                            end
-                        catch error
-                            disp(['Error while processing variable ''' variable_name ''''])
-                            throw(error)
-                        end
-                        
-                        % check whether last band might be zeros only
-                        last_band_zeros_only = 0;
-                        data_last_band = data_extracted(band_time_indices_local(i_band) : band_time_indices_local(i_band+1));
-                        if ~any(data_last_band(2:end)~=0)
-                            last_band_zeros_only = 1;
-                        end
-                        
-                        if last_band_zeros_only
-                            data_normalized_first_bands = this.getTimeNormalizedData(variable_name, band_times(1:end-1));
-                            data_normalized_last_band = zeros(this.number_of_time_steps_normalized-1, 1);
-                            stretch_data = [data_normalized_first_bands; data_normalized_last_band];
-                        else
-                            stretch_data = this.getTimeNormalizedData(variable_name, band_times);
-                        end
-
-                    end                    
-%                     if strcmp(variable_name, 'belt_speed_trajectory')
-%                         
-%                     end
                     % store in cell
                     stretch_variables{i_variable} = [stretch_variables{i_variable} stretch_data];
                 end
@@ -4994,9 +4661,6 @@ classdef WalkingDataCustodian < handle
                     error('ltoes_z and rtoes_z directions are different from each other')
                 end
                 stretch_directions_new = ltoes_z_directions;
-            end
-            if strcmp(variable_name, 'copl_x') || strcmp(variable_name, 'copl_y') || strcmp(variable_name, 'copr_x') || strcmp(variable_name, 'copr_y')
-                stretch_directions_new = this.basic_variable_directions.(variable_name);
             end
             if strcmp(variable_name, 'belt_speed_trajectory')
                 stretch_directions_new = {'+'; '-'};
