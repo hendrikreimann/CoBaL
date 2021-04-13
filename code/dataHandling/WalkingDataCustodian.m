@@ -218,12 +218,6 @@ classdef WalkingDataCustodian < handle
             end
             if this.isVariableToAnalyze('xcom_mpsis_x')
                 this.addBasicVariable('marker_trajectories')
-                this.addBasicVariable('lankle_x')
-                this.addBasicVariable('rankle_x')
-                this.addBasicVariable('lankle_y')
-                this.addBasicVariable('rankle_y')
-                this.addBasicVariable('lankle_z')
-                this.addBasicVariable('rankle_z')
                 this.addBasicVariable('mpsis_x')
                 this.addBasicVariable('mpsis_y')
                 this.addBasicVariable('mpsis_z')
@@ -232,12 +226,6 @@ classdef WalkingDataCustodian < handle
             end
             if this.isVariableToAnalyze('xcom_mpsis_y')
                 this.addBasicVariable('marker_trajectories')
-                this.addBasicVariable('lankle_x')
-                this.addBasicVariable('rankle_x')
-                this.addBasicVariable('lankle_y')
-                this.addBasicVariable('rankle_y')
-                this.addBasicVariable('lankle_z')
-                this.addBasicVariable('rankle_z')
                 this.addBasicVariable('mpsis_x')
                 this.addBasicVariable('mpsis_y')
                 this.addBasicVariable('mpsis_z')
@@ -246,12 +234,6 @@ classdef WalkingDataCustodian < handle
             end               
             if this.isVariableToAnalyze('xcom_rough_x')
                 this.addBasicVariable('marker_trajectories')
-                this.addBasicVariable('lankle_x')
-                this.addBasicVariable('rankle_x')
-                this.addBasicVariable('lankle_y')
-                this.addBasicVariable('rankle_y')
-                this.addBasicVariable('lankle_z')
-                this.addBasicVariable('rankle_z')
                 this.addBasicVariable('com_rough_x')
                 this.addBasicVariable('com_rough_y')
                 this.addBasicVariable('com_rough_z')
@@ -260,12 +242,6 @@ classdef WalkingDataCustodian < handle
             end  
             if this.isVariableToAnalyze('xcom_rough_y')
                 this.addBasicVariable('marker_trajectories')
-                this.addBasicVariable('lankle_x')
-                this.addBasicVariable('rankle_x')
-                this.addBasicVariable('lankle_y')
-                this.addBasicVariable('rankle_y')
-                this.addBasicVariable('lankle_z')
-                this.addBasicVariable('rankle_z')
                 this.addBasicVariable('com_rough_x')
                 this.addBasicVariable('com_rough_y')
                 this.addBasicVariable('com_rough_z')
@@ -282,7 +258,6 @@ classdef WalkingDataCustodian < handle
                 this.addStretchVariable('xcom_x')
                 this.addStretchVariable('mos_x')
             end
-           
             if this.isVariableToAnalyze('mos_y')
                 this.addBasicVariable('marker_trajectories')
                 this.addBasicVariable('com')
@@ -295,14 +270,6 @@ classdef WalkingDataCustodian < handle
             end
             if this.isVariableToAnalyze('mos_mpsis_x')
                 this.addBasicVariable('marker_trajectories')
-                this.addBasicVariable('ltoel_x')
-                this.addBasicVariable('rtoel_x')
-                this.addBasicVariable('lankle_x')
-                this.addBasicVariable('rankle_x')
-                this.addBasicVariable('lankle_y')
-                this.addBasicVariable('rankle_y')
-                this.addBasicVariable('lankle_z')
-                this.addBasicVariable('rankle_z')
                 this.addBasicVariable('mpsis_x')
                 this.addBasicVariable('mpsis_y')
                 this.addBasicVariable('mpsis_z')
@@ -312,14 +279,6 @@ classdef WalkingDataCustodian < handle
             end
             if this.isVariableToAnalyze('mos_mpsis_y')
                 this.addBasicVariable('marker_trajectories')
-                this.addBasicVariable('ltoel_y')
-                this.addBasicVariable('rtoel_y')
-                this.addBasicVariable('lankle_x')
-                this.addBasicVariable('rankle_x')
-                this.addBasicVariable('lankle_y')
-                this.addBasicVariable('rankle_y')
-                this.addBasicVariable('lankle_z')
-                this.addBasicVariable('rankle_z')
                 this.addBasicVariable('mpsis_x')
                 this.addBasicVariable('mpsis_y')
                 this.addBasicVariable('mpsis_z')
@@ -329,14 +288,6 @@ classdef WalkingDataCustodian < handle
             end
             if this.isVariableToAnalyze('mos_rough_x')
                 this.addBasicVariable('marker_trajectories')
-                this.addBasicVariable('ltoel_x')
-                this.addBasicVariable('rtoel_x')
-                this.addBasicVariable('lankle_x')
-                this.addBasicVariable('rankle_x')
-                this.addBasicVariable('lankle_y')
-                this.addBasicVariable('rankle_y')
-                this.addBasicVariable('lankle_z')
-                this.addBasicVariable('rankle_z')
                 this.addBasicVariable('com_rough_x')
                 this.addBasicVariable('com_rough_y')
                 this.addBasicVariable('com_rough_z')
@@ -346,14 +297,6 @@ classdef WalkingDataCustodian < handle
             end
             if this.isVariableToAnalyze('mos_rough_y')
                 this.addBasicVariable('marker_trajectories')
-                this.addBasicVariable('ltoel_y')
-                this.addBasicVariable('rtoel_y')
-                this.addBasicVariable('lankle_x')
-                this.addBasicVariable('rankle_x')
-                this.addBasicVariable('lankle_y')
-                this.addBasicVariable('rankle_y')
-                this.addBasicVariable('lankle_z')
-                this.addBasicVariable('rankle_z')
                 this.addBasicVariable('com_rough_x')
                 this.addBasicVariable('com_rough_y')
                 this.addBasicVariable('com_rough_z')
@@ -361,36 +304,6 @@ classdef WalkingDataCustodian < handle
                 this.addStretchVariable('xcom_rough_y')
                 this.addStretchVariable('mos_rough_y')
             end
-            if this.isVariableToAnalyze('lankle_x')
-                this.addBasicVariable('marker_trajectories')
-                this.addBasicVariable('lankle_x')
-                this.addStretchVariable('lankle_x')
-            end
-            if this.isVariableToAnalyze('rankle_x')
-                this.addBasicVariable('marker_trajectories')
-                this.addBasicVariable('rankle_x')
-                this.addStretchVariable('rankle_x')
-            end
-            if this.isVariableToAnalyze('lankle_y')
-                this.addBasicVariable('marker_trajectories')
-                this.addBasicVariable('lankle_y')
-                this.addStretchVariable('lankle_y')
-            end
-            if this.isVariableToAnalyze('rankle_y')
-                this.addBasicVariable('marker_trajectories')
-                this.addBasicVariable('rankle_y')
-                this.addStretchVariable('rankle_y')
-            end    
-            if this.isVariableToAnalyze('lankle_z')
-                this.addBasicVariable('marker_trajectories')
-                this.addBasicVariable('lankle_z')
-                this.addStretchVariable('lankle_z')
-            end
-            if this.isVariableToAnalyze('rankle_z')
-                this.addBasicVariable('marker_trajectories')
-                this.addBasicVariable('rankle_z')
-                this.addStretchVariable('rankle_z')
-            end    
             if this.isVariableToAnalyze('ltoel_x')
                 this.addBasicVariable('marker_trajectories')
                 this.addBasicVariable('ltoel_x')
@@ -435,8 +348,6 @@ classdef WalkingDataCustodian < handle
             end
             if this.isVariableToAnalyze('stimulus_response_x')
                 this.addBasicVariable('marker_trajectories')
-                this.addBasicVariable('lankle_y')
-                this.addBasicVariable('rankle_y')
                 this.addBasicVariable('pelvis_y')
                 this.addStretchVariable('step_time')
                 this.addStretchVariable('pushoff_time')
@@ -475,16 +386,12 @@ classdef WalkingDataCustodian < handle
                 this.addStretchVariable('midswing_event_time')
             end
             if this.isVariableToAnalyze('midstance_index')
-                this.addBasicVariable('lankle_y')
-                this.addBasicVariable('rankle_y')
                 this.addBasicVariable('pelvis_y')
                 this.addStretchVariable('step_time')
                 this.addStretchVariable('pushoff_time')
                 this.addStretchVariable('midstance_index')
             end
             if this.isVariableToAnalyze('midstance_time')
-                this.addBasicVariable('lankle_y')
-                this.addBasicVariable('rankle_y')
                 this.addBasicVariable('pelvis_y')
                 this.addStretchVariable('step_time')
                 this.addStretchVariable('pushoff_time')
@@ -1122,54 +1029,6 @@ classdef WalkingDataCustodian < handle
                     RTOE_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RTOE',  'indices');
                     this.basic_variable_directions.rtoes_z = this.basic_variable_directions.marker_trajectories(:, RTOE_indices(3));
                     this.time_data.rtoes_z = this.time_data.marker_trajectories;
-                end
-                if strcmp(variable_name, 'lankle_x')
-                    LANK_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LANK');
-                    this.basic_variable_data.lankle_x = LANK_trajectory(:, 1);
-                    LANK_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LANK',  'indices');
-                    this.basic_variable_directions.lankle_x = this.basic_variable_directions.marker_trajectories(:, LANK_indices(1));
-                    this.time_data.lankle_x = this.time_data.marker_trajectories;
-                    success = 1;
-                end
-                if strcmp(variable_name, 'rankle_x')
-                    RANK_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RANK');
-                    this.basic_variable_data.rankle_x = RANK_trajectory(:, 1);
-                    RANK_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RANK',  'indices');
-                    this.basic_variable_directions.rankle_x = this.basic_variable_directions.marker_trajectories(:, RANK_indices(1));
-                    this.time_data.rankle_x = this.time_data.marker_trajectories;
-                    success = 1;
-                end
-                if strcmp(variable_name, 'lankle_y')
-                    LANK_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LANK');
-                    this.basic_variable_data.lankle_y = LANK_trajectory(:, 2);
-                    LANK_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LANK',  'indices');
-                    this.basic_variable_directions.lankle_y = this.basic_variable_directions.marker_trajectories(:, LANK_indices(2));
-                    this.time_data.lankle_y = this.time_data.marker_trajectories;
-                    success = 1;
-                end
-                if strcmp(variable_name, 'rankle_y')
-                    RANK_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RANK');
-                    this.basic_variable_data.rankle_y = RANK_trajectory(:, 2);
-                    RANK_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RANK',  'indices');
-                    this.basic_variable_directions.rankle_y = this.basic_variable_directions.marker_trajectories(:, RANK_indices(2));
-                    this.time_data.rankle_y = this.time_data.marker_trajectories;
-                    success = 1;
-                end
-                if strcmp(variable_name, 'lankle_z')
-                    LANK_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LANK');
-                    this.basic_variable_data.lankle_z = LANK_trajectory(:, 3);
-                    LANK_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LANK',  'indices');
-                    this.basic_variable_directions.lankle_z = this.basic_variable_directions.marker_trajectories(:, LANK_indices(3));
-                    this.time_data.lankle_z = this.time_data.marker_trajectories;
-                    success = 1;
-                end
-                if strcmp(variable_name, 'rankle_z')
-                    RANK_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RANK');
-                    this.basic_variable_data.rankle_z = RANK_trajectory(:, 3);
-                    RANK_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RANK',  'indices');
-                    this.basic_variable_directions.rankle_z = this.basic_variable_directions.marker_trajectories(:, RANK_indices(3));
-                    this.time_data.rankle_z = this.time_data.marker_trajectories;
-                    success = 1;
                 end
                 if strcmp(variable_name, 'ltoel_x')
                     LTOEL_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LTOEL');
@@ -3206,12 +3065,12 @@ classdef WalkingDataCustodian < handle
                         mpsis_z =  this.getTimeNormalizedData('mpsis_z', this_stretch_times);
                         
                         % get instantaneous leg length
-                        lankle_x = this.getTimeNormalizedData('lankle_x', this_stretch_times);
-                        rankle_x = this.getTimeNormalizedData('rankle_x', this_stretch_times);
-                        lankle_y = this.getTimeNormalizedData('lankle_y', this_stretch_times);
-                        rankle_y = this.getTimeNormalizedData('rankle_y', this_stretch_times);
-                        lankle_z = this.getTimeNormalizedData('lankle_z', this_stretch_times);
-                        rankle_z = this.getTimeNormalizedData('rankle_z', this_stretch_times);
+                        LANK_x = this.getTimeNormalizedData('marker:LANK_x', this_stretch_times);
+                        RANK_x = this.getTimeNormalizedData('marker:RANK_x', this_stretch_times);
+                        LANK_y = this.getTimeNormalizedData('marker:LANK_y', this_stretch_times);
+                        RANK_y = this.getTimeNormalizedData('marker:RANK_y', this_stretch_times);
+                        LANK_z = this.getTimeNormalizedData('marker:LANK_z', this_stretch_times);
+                        RANK_z = this.getTimeNormalizedData('marker:RANK_z', this_stretch_times);
                         stance_ankle_x_data = zeros(size(mpsis_x));
                         stance_ankle_y_data = zeros(size(mpsis_x));
                         stance_ankle_z_data = zeros(size(mpsis_x));
@@ -3223,14 +3082,14 @@ classdef WalkingDataCustodian < handle
                             [band_start_index, band_end_index] = getBandIndices(i_band, this.number_of_time_steps_normalized);
                             
                             if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_RIGHT')
-                                stance_ankle_x_data(band_start_index : band_end_index) = rankle_x(band_start_index : band_end_index);
-                                stance_ankle_y_data(band_start_index : band_end_index) = rankle_y(band_start_index : band_end_index);
-                                stance_ankle_z_data(band_start_index : band_end_index) = rankle_z(band_start_index : band_end_index);
+                                stance_ankle_x_data(band_start_index : band_end_index) = RANK_x(band_start_index : band_end_index);
+                                stance_ankle_y_data(band_start_index : band_end_index) = RANK_y(band_start_index : band_end_index);
+                                stance_ankle_z_data(band_start_index : band_end_index) = RANK_z(band_start_index : band_end_index);
                             end
                             if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_LEFT')
-                                stance_ankle_x_data(band_start_index : band_end_index) = lankle_x(band_start_index : band_end_index);
-                                stance_ankle_y_data(band_start_index : band_end_index) = lankle_y(band_start_index : band_end_index);
-                                stance_ankle_z_data(band_start_index : band_end_index) = lankle_z(band_start_index : band_end_index);
+                                stance_ankle_x_data(band_start_index : band_end_index) = LANK_x(band_start_index : band_end_index);
+                                stance_ankle_y_data(band_start_index : band_end_index) = LANK_y(band_start_index : band_end_index);
+                                stance_ankle_z_data(band_start_index : band_end_index) = LANK_z(band_start_index : band_end_index);
                             end
                             if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_BOTH')
                                 stance_ankle_x_data(band_start_index : band_end_index) = NaN;
@@ -3257,12 +3116,12 @@ classdef WalkingDataCustodian < handle
                         mpsis_z =  this.getTimeNormalizedData('mpsis_z', this_stretch_times);
                         
                         % get instantaneous leg length
-                        lankle_x = this.getTimeNormalizedData('lankle_x', this_stretch_times);
-                        rankle_x = this.getTimeNormalizedData('rankle_x', this_stretch_times);
-                        lankle_y = this.getTimeNormalizedData('lankle_y', this_stretch_times);
-                        rankle_y = this.getTimeNormalizedData('rankle_y', this_stretch_times);
-                        lankle_z = this.getTimeNormalizedData('lankle_z', this_stretch_times);
-                        rankle_z = this.getTimeNormalizedData('rankle_z', this_stretch_times);
+                        LANK_x = this.getTimeNormalizedData('marker:LANK_x', this_stretch_times);
+                        RANK_x = this.getTimeNormalizedData('marker:RANK_x', this_stretch_times);
+                        LANK_y = this.getTimeNormalizedData('marker:LANK_y', this_stretch_times);
+                        RANK_y = this.getTimeNormalizedData('marker:RANK_y', this_stretch_times);
+                        LANK_z = this.getTimeNormalizedData('marker:LANK_z', this_stretch_times);
+                        RANK_z = this.getTimeNormalizedData('marker:RANK_z', this_stretch_times);
                         stance_ankle_x_data = zeros(size(mpsis_x));
                         stance_ankle_y_data = zeros(size(mpsis_x));
                         stance_ankle_z_data = zeros(size(mpsis_x));
@@ -3274,14 +3133,14 @@ classdef WalkingDataCustodian < handle
                             [band_start_index, band_end_index] = getBandIndices(i_band, this.number_of_time_steps_normalized);
                             
                             if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_RIGHT')
-                                stance_ankle_x_data(band_start_index : band_end_index) = rankle_x(band_start_index : band_end_index);
-                                stance_ankle_y_data(band_start_index : band_end_index) = rankle_y(band_start_index : band_end_index);
-                                stance_ankle_z_data(band_start_index : band_end_index) = rankle_z(band_start_index : band_end_index);
+                                stance_ankle_x_data(band_start_index : band_end_index) = RANK_x(band_start_index : band_end_index);
+                                stance_ankle_y_data(band_start_index : band_end_index) = RANK_y(band_start_index : band_end_index);
+                                stance_ankle_z_data(band_start_index : band_end_index) = RANK_z(band_start_index : band_end_index);
                             end
                             if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_LEFT')
-                                stance_ankle_x_data(band_start_index : band_end_index) = lankle_x(band_start_index : band_end_index);
-                                stance_ankle_y_data(band_start_index : band_end_index) = lankle_y(band_start_index : band_end_index);
-                                stance_ankle_z_data(band_start_index : band_end_index) = lankle_z(band_start_index : band_end_index);
+                                stance_ankle_x_data(band_start_index : band_end_index) = LANK_x(band_start_index : band_end_index);
+                                stance_ankle_y_data(band_start_index : band_end_index) = LANK_y(band_start_index : band_end_index);
+                                stance_ankle_z_data(band_start_index : band_end_index) = LANK_z(band_start_index : band_end_index);
                             end
                             if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_BOTH')
                                 stance_ankle_x_data(band_start_index : band_end_index) = NaN;
@@ -3303,9 +3162,9 @@ classdef WalkingDataCustodian < handle
                     end
                     if strcmp(variable_name, 'mos_mpsis_x')
                         % first calculate base of support
-                        ltoel_x = this.getTimeNormalizedData('ltoel_x', this_stretch_times);
-                        rtoel_x = this.getTimeNormalizedData('rtoel_x', this_stretch_times);
-                        bos_x_data = zeros(size(ltoel_x));
+                        LTOEL_x = this.getTimeNormalizedData('marker:LTOEL_x', this_stretch_times);
+                        RTOEL_x = this.getTimeNormalizedData('marker:RTOEL_x', this_stretch_times);
+                        bos_x_data = zeros(size(LTOEL_x));
                         for i_band = number_of_bands : -1 : 1
                             % going backward makes a difference for the
                             % junction points between two steps. We want to
@@ -3314,10 +3173,10 @@ classdef WalkingDataCustodian < handle
                             [band_start_index, band_end_index] = getBandIndices(i_band, this.number_of_time_steps_normalized);
                             
                             if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_RIGHT')
-                                bos_x_data(band_start_index : band_end_index) = rtoel_x(band_start_index : band_end_index);
+                                bos_x_data(band_start_index : band_end_index) = RTOEL_x(band_start_index : band_end_index);
                             end
                             if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_LEFT')
-                                bos_x_data(band_start_index : band_end_index) = ltoel_x(band_start_index : band_end_index);
+                                bos_x_data(band_start_index : band_end_index) = LTOEL_x(band_start_index : band_end_index);
                             end
                             if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_BOTH')
                                 bos_x_data(band_start_index : band_end_index) = NaN;
@@ -3330,9 +3189,9 @@ classdef WalkingDataCustodian < handle
                     end
                     if strcmp(variable_name, 'mos_mpsis_y')
                         % first calculate base of support
-                        ltoel_y = this.getTimeNormalizedData('ltoel_y', this_stretch_times);
-                        rtoel_y = this.getTimeNormalizedData('rtoel_y', this_stretch_times);
-                        bos_y_data = zeros(size(ltoel_y));
+                        LTOEL_y = this.getTimeNormalizedData('marker:LTOEL_y', this_stretch_times);
+                        RTOEL_y = this.getTimeNormalizedData('marker:RTOEL_y', this_stretch_times);
+                        bos_y_data = zeros(size(LTOEL_y));
                         for i_band = number_of_bands : -1 : 1
                             % going backward makes a difference for the
                             % junction points between two steps. We want to
@@ -3341,10 +3200,10 @@ classdef WalkingDataCustodian < handle
                             [band_start_index, band_end_index] = getBandIndices(i_band, this.number_of_time_steps_normalized);
                             
                             if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_RIGHT')
-                                bos_y_data(band_start_index : band_end_index) = rtoel_y(band_start_index : band_end_index);
+                                bos_y_data(band_start_index : band_end_index) = RTOEL_y(band_start_index : band_end_index);
                             end
                             if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_LEFT')
-                                bos_y_data(band_start_index : band_end_index) = ltoel_y(band_start_index : band_end_index);
+                                bos_y_data(band_start_index : band_end_index) = LTOEL_y(band_start_index : band_end_index);
                             end
                             if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_BOTH')
                                 bos_y_data(band_start_index : band_end_index) = NaN;
@@ -3362,12 +3221,12 @@ classdef WalkingDataCustodian < handle
                         com_rough_z =  this.getTimeNormalizedData('com_rough_z', this_stretch_times);
                         
                         % get instantaneous leg length
-                        lankle_x = this.getTimeNormalizedData('lankle_x', this_stretch_times);
-                        rankle_x = this.getTimeNormalizedData('rankle_x', this_stretch_times);
-                        lankle_y = this.getTimeNormalizedData('lankle_y', this_stretch_times);
-                        rankle_y = this.getTimeNormalizedData('rankle_y', this_stretch_times);
-                        lankle_z = this.getTimeNormalizedData('lankle_z', this_stretch_times);
-                        rankle_z = this.getTimeNormalizedData('rankle_z', this_stretch_times);
+                        LANK_x = this.getTimeNormalizedData('marker:LANK_x', this_stretch_times);
+                        RANK_x = this.getTimeNormalizedData('marker:RANK_x', this_stretch_times);
+                        LANK_y = this.getTimeNormalizedData('marker:LANK_y', this_stretch_times);
+                        RANK_y = this.getTimeNormalizedData('marker:RANK_y', this_stretch_times);
+                        LANK_z = this.getTimeNormalizedData('marker:LANK_z', this_stretch_times);
+                        RANK_z = this.getTimeNormalizedData('marker:RANK_z', this_stretch_times);
                         stance_ankle_x_data = zeros(size(com_rough_x));
                         stance_ankle_y_data = zeros(size(com_rough_x));
                         stance_ankle_z_data = zeros(size(com_rough_x));
@@ -3379,14 +3238,14 @@ classdef WalkingDataCustodian < handle
                             [band_start_index, band_end_index] = getBandIndices(i_band, this.number_of_time_steps_normalized);
                             
                             if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_RIGHT')
-                                stance_ankle_x_data(band_start_index : band_end_index) = rankle_x(band_start_index : band_end_index);
-                                stance_ankle_y_data(band_start_index : band_end_index) = rankle_y(band_start_index : band_end_index);
-                                stance_ankle_z_data(band_start_index : band_end_index) = rankle_z(band_start_index : band_end_index);
+                                stance_ankle_x_data(band_start_index : band_end_index) = RANK_x(band_start_index : band_end_index);
+                                stance_ankle_y_data(band_start_index : band_end_index) = RANK_y(band_start_index : band_end_index);
+                                stance_ankle_z_data(band_start_index : band_end_index) = RANK_z(band_start_index : band_end_index);
                             end
                             if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_LEFT')
-                                stance_ankle_x_data(band_start_index : band_end_index) = lankle_x(band_start_index : band_end_index);
-                                stance_ankle_y_data(band_start_index : band_end_index) = lankle_y(band_start_index : band_end_index);
-                                stance_ankle_z_data(band_start_index : band_end_index) = lankle_z(band_start_index : band_end_index);
+                                stance_ankle_x_data(band_start_index : band_end_index) = LANK_x(band_start_index : band_end_index);
+                                stance_ankle_y_data(band_start_index : band_end_index) = LANK_y(band_start_index : band_end_index);
+                                stance_ankle_z_data(band_start_index : band_end_index) = LANK_z(band_start_index : band_end_index);
                             end
                             if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_BOTH')
                                 stance_ankle_x_data(band_start_index : band_end_index) = NaN;
@@ -3413,12 +3272,12 @@ classdef WalkingDataCustodian < handle
                         com_rough_z =  this.getTimeNormalizedData('com_rough_z', this_stretch_times);
                         
                         % get instantaneous leg length
-                        lankle_x = this.getTimeNormalizedData('lankle_x', this_stretch_times);
-                        rankle_x = this.getTimeNormalizedData('rankle_x', this_stretch_times);
-                        lankle_y = this.getTimeNormalizedData('lankle_y', this_stretch_times);
-                        rankle_y = this.getTimeNormalizedData('rankle_y', this_stretch_times);
-                        lankle_z = this.getTimeNormalizedData('lankle_z', this_stretch_times);
-                        rankle_z = this.getTimeNormalizedData('rankle_z', this_stretch_times);
+                        LANK_x = this.getTimeNormalizedData('marker:LANK_x', this_stretch_times);
+                        RANK_x = this.getTimeNormalizedData('marker:RANK_x', this_stretch_times);
+                        LANK_y = this.getTimeNormalizedData('marker:LANK_y', this_stretch_times);
+                        RANK_y = this.getTimeNormalizedData('marker:RANK_y', this_stretch_times);
+                        LANK_z = this.getTimeNormalizedData('marker:LANK_z', this_stretch_times);
+                        RANK_z = this.getTimeNormalizedData('marker:RANK_z', this_stretch_times);
                         stance_ankle_x_data = zeros(size(com_rough_y));
                         stance_ankle_y_data = zeros(size(com_rough_y));
                         stance_ankle_z_data = zeros(size(com_rough_y));
@@ -3430,14 +3289,14 @@ classdef WalkingDataCustodian < handle
                             [band_start_index, band_end_index] = getBandIndices(i_band, this.number_of_time_steps_normalized);
                             
                             if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_RIGHT')
-                                stance_ankle_x_data(band_start_index : band_end_index) = rankle_x(band_start_index : band_end_index);
-                                stance_ankle_y_data(band_start_index : band_end_index) = rankle_y(band_start_index : band_end_index);
-                                stance_ankle_z_data(band_start_index : band_end_index) = rankle_z(band_start_index : band_end_index);
+                                stance_ankle_x_data(band_start_index : band_end_index) = RANK_x(band_start_index : band_end_index);
+                                stance_ankle_y_data(band_start_index : band_end_index) = RANK_y(band_start_index : band_end_index);
+                                stance_ankle_z_data(band_start_index : band_end_index) = RANK_z(band_start_index : band_end_index);
                             end
                             if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_LEFT')
-                                stance_ankle_x_data(band_start_index : band_end_index) = lankle_x(band_start_index : band_end_index);
-                                stance_ankle_y_data(band_start_index : band_end_index) = lankle_y(band_start_index : band_end_index);
-                                stance_ankle_z_data(band_start_index : band_end_index) = lankle_z(band_start_index : band_end_index);
+                                stance_ankle_x_data(band_start_index : band_end_index) = LANK_x(band_start_index : band_end_index);
+                                stance_ankle_y_data(band_start_index : band_end_index) = LANK_y(band_start_index : band_end_index);
+                                stance_ankle_z_data(band_start_index : band_end_index) = LANK_z(band_start_index : band_end_index);
                             end
                             if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_BOTH')
                                 stance_ankle_x_data(band_start_index : band_end_index) = NaN;
@@ -3459,9 +3318,9 @@ classdef WalkingDataCustodian < handle
                     end
                     if strcmp(variable_name, 'mos_rough_x')
                         % first calculate base of support
-                        ltoel_x = this.getTimeNormalizedData('ltoel_x', this_stretch_times);
-                        rtoel_x = this.getTimeNormalizedData('rtoel_x', this_stretch_times);
-                        bos_x_data = zeros(size(ltoel_x));
+                        LTOEL_x = this.getTimeNormalizedData('marker:LTOEL_x', this_stretch_times);
+                        RTOEL_x = this.getTimeNormalizedData('marker:RTOEL_x', this_stretch_times);
+                        bos_x_data = zeros(size(LTOEL_x));
                         for i_band = number_of_bands : -1 : 1
                             % going backward makes a difference for the
                             % junction points between two steps. We want to
@@ -3470,10 +3329,10 @@ classdef WalkingDataCustodian < handle
                             [band_start_index, band_end_index] = getBandIndices(i_band, this.number_of_time_steps_normalized);
                             
                             if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_RIGHT')
-                                bos_x_data(band_start_index : band_end_index) = rtoel_x(band_start_index : band_end_index);
+                                bos_x_data(band_start_index : band_end_index) = RTOEL_x(band_start_index : band_end_index);
                             end
                             if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_LEFT')
-                                bos_x_data(band_start_index : band_end_index) = ltoel_x(band_start_index : band_end_index);
+                                bos_x_data(band_start_index : band_end_index) = LTOEL_x(band_start_index : band_end_index);
                             end
                             if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_BOTH')
                                 bos_x_data(band_start_index : band_end_index) = NaN;
@@ -3486,9 +3345,9 @@ classdef WalkingDataCustodian < handle
                     end  
                     if strcmp(variable_name, 'mos_rough_y')
                         % first calculate base of support
-                        ltoel_y = this.getTimeNormalizedData('ltoel_y', this_stretch_times);
-                        rtoel_y = this.getTimeNormalizedData('rtoel_y', this_stretch_times);
-                        bos_y_data = zeros(size(ltoel_y));
+                        LTOEL_y = this.getTimeNormalizedData('marker:LTOEL_y', this_stretch_times);
+                        RTOEL_y = this.getTimeNormalizedData('marker:RTOEL_y', this_stretch_times);
+                        bos_y_data = zeros(size(LTOEL_y));
                         for i_band = number_of_bands : -1 : 1
                             % going backward makes a difference for the
                             % junction points between two steps. We want to
@@ -3497,10 +3356,10 @@ classdef WalkingDataCustodian < handle
                             [band_start_index, band_end_index] = getBandIndices(i_band, this.number_of_time_steps_normalized);
                             
                             if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_RIGHT')
-                                bos_y_data(band_start_index : band_end_index) = rtoel_y(band_start_index : band_end_index);
+                                bos_y_data(band_start_index : band_end_index) = RTOEL_y(band_start_index : band_end_index);
                             end
                             if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_LEFT')
-                                bos_y_data(band_start_index : band_end_index) = ltoel_y(band_start_index : band_end_index);
+                                bos_y_data(band_start_index : band_end_index) = LTOEL_y(band_start_index : band_end_index);
                             end
                             if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_BOTH')
                                 bos_y_data(band_start_index : band_end_index) = NaN;
@@ -3720,21 +3579,21 @@ classdef WalkingDataCustodian < handle
                         end
                     end
                     if strcmp(variable_name, 'midstance_index')
-                        lankle_x = this.getTimeNormalizedData('lankle_y', this_stretch_times);
-                        rankle_x = this.getTimeNormalizedData('rankle_y', this_stretch_times);
+                        LANK_y = this.getTimeNormalizedData('marker:LANK_y', this_stretch_times);
+                        RANK_y = this.getTimeNormalizedData('marker:RANK_y', this_stretch_times);
                         pelvis_y = this.getTimeNormalizedData('pelvis_y', this_stretch_times);
                         stretch_data = zeros(number_of_bands, 1);
                         for i_band = 1 : number_of_bands
                             [band_start_index, band_end_index] = getBandIndices(i_band, this.number_of_time_steps_normalized);
                             
                             if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_RIGHT')
-                                stance_ankle_this_band = rankle_x(band_start_index : band_end_index);
+                                stance_ankle_this_band = RANK_y(band_start_index : band_end_index);
                                 pelvis_this_band = pelvis_y(band_start_index : band_end_index);
                                 [~, zero_crossing_index] = min(abs(stance_ankle_this_band - pelvis_this_band));
                                 stretch_data(i_band) = band_start_index - 1 + zero_crossing_index;
                             end
                             if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_LEFT')
-                                stance_ankle_this_band = lankle_x(band_start_index : band_end_index);
+                                stance_ankle_this_band = LANK_y(band_start_index : band_end_index);
                                 pelvis_this_band = pelvis_y(band_start_index : band_end_index);
                                 [~, zero_crossing_index] = min(abs(stance_ankle_this_band - pelvis_this_band));
                                 stretch_data(i_band) = band_start_index - 1 + zero_crossing_index;
@@ -3744,20 +3603,10 @@ classdef WalkingDataCustodian < handle
                             end
                         end
                         
-%                         if strcmp(stance_foot_data{i_stretch}, 'STANCE_RIGHT')
-%                             stance_ankle_y = this.getTimeNormalizedData('rankle_y', this_stretch_times);
-%                         end
-%                         if strcmp(stance_foot_data{i_stretch}, 'STANCE_LEFT')
-%                             stance_ankle_y = this.getTimeNormalizedData('lankle_y', this_stretch_times);
-%                         end
-%                         if strcmp(stance_foot_data{i_stretch}, 'STANCE_BOTH')
-%                             stance_ankle_y = NaN;
-%                         end
-%                         stretch_data = find(stance_ankle_y < pelvis_y, 1, 'first');
                     end                        
                     if strcmp(variable_name, 'midstance_time')
-                        lankle_y = this.getTimeNormalizedData('lankle_y', this_stretch_times);
-                        rankle_y = this.getTimeNormalizedData('rankle_y', this_stretch_times);
+                        LANK_y = this.getTimeNormalizedData('marker:LANK_y', this_stretch_times);
+                        RANK_y = this.getTimeNormalizedData('marker:RANK_y', this_stretch_times);
                         pelvis_y = this.getTimeNormalizedData('pelvis_y', this_stretch_times);
                         stretch_data = zeros(number_of_bands, 1);
                         for i_band = 1 : number_of_bands
@@ -3767,13 +3616,13 @@ classdef WalkingDataCustodian < handle
                             band_time = linspace(band_start_time, band_end_time, band_end_index-band_start_index+1);
                             
                             if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_RIGHT')
-                                stance_ankle_this_band = rankle_y(band_start_index : band_end_index);
+                                stance_ankle_this_band = RANK_y(band_start_index : band_end_index);
                                 pelvis_this_band = pelvis_y(band_start_index : band_end_index);
                                 [~, zero_crossing_index] = min(abs(stance_ankle_this_band - pelvis_this_band));
                                 stretch_data(i_band) = band_time(zero_crossing_index) - band_start_time;
                             end
                             if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_LEFT')
-                                stance_ankle_this_band = lankle_y(band_start_index : band_end_index);
+                                stance_ankle_this_band = LANK_y(band_start_index : band_end_index);
                                 pelvis_this_band = pelvis_y(band_start_index : band_end_index);
                                 [~, zero_crossing_index] = min(abs(stance_ankle_this_band - pelvis_this_band));
                                 stretch_data(i_band) = band_time(zero_crossing_index) - band_start_time;
