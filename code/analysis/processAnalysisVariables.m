@@ -684,9 +684,6 @@ function data = calculateExtremaOverRangeVariables(variables_from_extrema_range,
 end
 
 function data = combineTwoVariables(variable_table, table_header, data)
-
-
-
     for i_variable = 1 : size(variable_table, 1)
         % get data
         this_variable_name = variable_table{i_variable, strcmp(table_header, 'new_variable_name')};
