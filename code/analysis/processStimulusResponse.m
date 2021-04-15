@@ -49,8 +49,8 @@ function processStimulusResponse(varargin)
     step_placement_x_directions = loaded_data.stretch_directions_session(strcmp(loaded_data.stretch_names_session, 'step_placement_x'), :);
     com_x_data = loaded_data.stretch_data_session{strcmp(loaded_data.stretch_names_session, 'com_x')};
     com_x_vel_data = loaded_data.stretch_data_session{strcmp(loaded_data.stretch_names_session, 'com_x_vel')};
-    lankle_x_data = loaded_data.stretch_data_session{strcmp(loaded_data.stretch_names_session, 'lankle_x')};
-    rankle_x_data = loaded_data.stretch_data_session{strcmp(loaded_data.stretch_names_session, 'rankle_x')};
+    lankle_x_data = loaded_data.stretch_data_session{strcmp(loaded_data.stretch_names_session, 'marker:LANK_x')};
+    rankle_x_data = loaded_data.stretch_data_session{strcmp(loaded_data.stretch_names_session, 'marker:RANK_x')};
     midstance_index_data = loaded_data.stretch_data_session{strcmp(loaded_data.stretch_names_session, 'midstance_index')};
     number_of_bands_per_stretch = size(step_placement_x_data, 1);
     
