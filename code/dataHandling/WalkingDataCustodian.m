@@ -146,7 +146,7 @@ classdef WalkingDataCustodian < handle
                 
             end
 
-            % kinematics
+            % use an initial value as a reference
             if this.isVariableToAnalyze('lheel_from_mpsis_initial_x')
                 this.addBasicVariable('marker_trajectories')
                 this.addStretchVariable('lheel_from_mpsis_initial_x')                
@@ -174,6 +174,12 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('com_position_trajectories')
                 this.addStretchVariable('com_from_com_initial_x')
             end
+            
+            % balance stuff
+            if this.isVariableToAnalyze('step_placement_x')
+                this.addBasicVariable('marker_trajectories')
+                this.addStretchVariable('step_placement_x')
+            end
             if this.isVariableToAnalyze('xcom_x')
                 this.addBasicVariable('marker_trajectories')
                 this.addBasicVariable('com_position_trajectories')
@@ -186,34 +192,6 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('com_velocity_trajectories')
                 this.addStretchVariable('xcom_y')
             end
-            if this.isVariableToAnalyze('xcom_mpsis_x')
-                this.addBasicVariable('marker_trajectories')
-                this.addBasicVariable('derivative:LPSI_x_vel')
-                this.addBasicVariable('derivative:RPSI_x_vel')
-                this.addStretchVariable('xcom_mpsis_x')
-            end
-            if this.isVariableToAnalyze('xcom_mpsis_y')
-                this.addBasicVariable('marker_trajectories')
-                this.addBasicVariable('derivative:LPSI_y_vel')
-                this.addBasicVariable('derivative:RPSI_y_vel')
-                this.addStretchVariable('xcom_mpsis_y')
-            end               
-            if this.isVariableToAnalyze('xcom_rough_x')
-                this.addBasicVariable('marker_trajectories')
-                this.addBasicVariable('com_rough_x')
-                this.addBasicVariable('com_rough_y')
-                this.addBasicVariable('com_rough_z')
-                this.addBasicVariable('com_rough_x_vel')
-                this.addStretchVariable('xcom_rough_x')
-            end  
-            if this.isVariableToAnalyze('xcom_rough_y')
-                this.addBasicVariable('marker_trajectories')
-                this.addBasicVariable('com_rough_x')
-                this.addBasicVariable('com_rough_y')
-                this.addBasicVariable('com_rough_z')
-                this.addBasicVariable('com_rough_y_vel')
-                this.addStretchVariable('xcom_rough_y')
-            end                         
             if this.isVariableToAnalyze('mos_x')
                 this.addBasicVariable('marker_trajectories')
                 this.addBasicVariable('com_position_trajectories')
@@ -228,6 +206,18 @@ classdef WalkingDataCustodian < handle
                 this.addStretchVariable('xcom_y')
                 this.addStretchVariable('mos_y')
             end
+            if this.isVariableToAnalyze('xcom_mpsis_x')
+                this.addBasicVariable('marker_trajectories')
+                this.addBasicVariable('derivative:LPSI_x_vel')
+                this.addBasicVariable('derivative:RPSI_x_vel')
+                this.addStretchVariable('xcom_mpsis_x')
+            end
+            if this.isVariableToAnalyze('xcom_mpsis_y')
+                this.addBasicVariable('marker_trajectories')
+                this.addBasicVariable('derivative:LPSI_y_vel')
+                this.addBasicVariable('derivative:RPSI_y_vel')
+                this.addStretchVariable('xcom_mpsis_y')
+            end
             if this.isVariableToAnalyze('mos_mpsis_x')
                 this.addBasicVariable('marker_trajectories')
                 this.addBasicVariable('derivative:LPSI_x_vel')
@@ -241,6 +231,47 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('derivative:RPSI_y_vel')
                 this.addStretchVariable('xcom_mpsis_y')
                 this.addStretchVariable('mos_mpsis_y')
+            end
+            if this.isVariableToAnalyze('com_rough_x')
+                this.addBasicVariable('marker_trajectories')
+                this.addBasicVariable('com_rough_x')
+                this.addStretchVariable('com_rough_x')
+            end
+            if this.isVariableToAnalyze('com_rough_y')
+                this.addBasicVariable('marker_trajectories')
+                this.addBasicVariable('com_rough_y')
+                this.addStretchVariable('com_rough_y')
+            end  
+            if this.isVariableToAnalyze('com_rough_z')
+                this.addBasicVariable('marker_trajectories')
+                this.addBasicVariable('com_rough_z')
+                this.addStretchVariable('com_rough_z')
+            end
+            if this.isVariableToAnalyze('com_rough_x_vel')
+                this.addBasicVariable('com_rough_x')
+                this.addBasicVariable('com_rough_x_vel')
+                this.addStretchVariable('com_rough_x_vel')
+            end  
+            if this.isVariableToAnalyze('com_rough_y_vel')
+                this.addBasicVariable('com_rough_y')
+                this.addBasicVariable('com_rough_y_vel')
+                this.addStretchVariable('com_rough_y_vel')
+            end 
+            if this.isVariableToAnalyze('xcom_rough_x')
+                this.addBasicVariable('marker_trajectories')
+                this.addBasicVariable('com_rough_x')
+                this.addBasicVariable('com_rough_y')
+                this.addBasicVariable('com_rough_z')
+                this.addBasicVariable('com_rough_x_vel')
+                this.addStretchVariable('xcom_rough_x')
+            end
+            if this.isVariableToAnalyze('xcom_rough_y')
+                this.addBasicVariable('marker_trajectories')
+                this.addBasicVariable('com_rough_x')
+                this.addBasicVariable('com_rough_y')
+                this.addBasicVariable('com_rough_z')
+                this.addBasicVariable('com_rough_y_vel')
+                this.addStretchVariable('xcom_rough_y')
             end
             if this.isVariableToAnalyze('mos_rough_x')
                 this.addBasicVariable('marker_trajectories')
@@ -260,6 +291,8 @@ classdef WalkingDataCustodian < handle
                 this.addStretchVariable('xcom_rough_y')
                 this.addStretchVariable('mos_rough_y')
             end
+            
+            % gait parameters
             if this.isVariableToAnalyze('step_length')
                 this.addBasicVariable('marker_trajectories')
                 this.addStretchVariable('step_length')
@@ -268,48 +301,13 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('marker_trajectories')
                 this.addStretchVariable('step_width')
             end
-            if this.isVariableToAnalyze('step_placement_x')
-                this.addBasicVariable('marker_trajectories')
-                this.addStretchVariable('step_placement_x')
-            end
-            if this.isVariableToAnalyze('stimulus_response_x')
-                this.addBasicVariable('marker_trajectories')
-                this.addBasicVariable('pelvis_y')
-                this.addStretchVariable('step_time')
-                this.addStretchVariable('pushoff_time')
-                this.addStretchVariable('midstance_index')
-                this.addStretchVariable('step_placement_x')
-            end
             if this.isVariableToAnalyze('step_time')
                 this.addStretchVariable('step_time')
-            end
-            if this.isVariableToAnalyze('step_duration')
-                this.addStretchVariable('step_time')
-                this.addStretchVariable('step_duration')
-            end
-            if this.isVariableToAnalyze('leg_length_l')
-                this.addBasicVariable('marker_trajectories')
-                this.addStretchVariable('leg_length_l')
-            end
-            if this.isVariableToAnalyze('leg_length_r')
-                this.addBasicVariable('marker_trajectories')
-                this.addStretchVariable('leg_length_r')
-            end
-            if this.isVariableToAnalyze('leg_angle_l')
-                this.addBasicVariable('marker_trajectories')
-                this.addStretchVariable('leg_angle_l')
-            end
-            if this.isVariableToAnalyze('leg_angle_r')
-                this.addBasicVariable('marker_trajectories')
-                this.addStretchVariable('leg_angle_r')
             end
             if this.isVariableToAnalyze('pushoff_time')
                 this.addBasicVariable('marker_trajectories')
                 this.addStretchVariable('step_time')
                 this.addStretchVariable('pushoff_time')
-            end
-            if this.isVariableToAnalyze('midswing_event_time')
-                this.addStretchVariable('midswing_event_time')
             end
             if this.isVariableToAnalyze('midstance_index')
                 this.addBasicVariable('pelvis_y')
@@ -338,28 +336,28 @@ classdef WalkingDataCustodian < handle
                 this.addStretchVariable('step_time')
                 this.addStretchVariable('velocity')
             end
-            if this.isVariableToAnalyze('com_rough_x')
-                this.addBasicVariable('com_rough_x')
-                this.addStretchVariable('com_rough_x')
+            if this.isVariableToAnalyze('band_duration')
+                this.addStretchVariable('band_duration')
             end
-            if this.isVariableToAnalyze('com_rough_y')
-                this.addBasicVariable('com_rough_y')
-                this.addStretchVariable('com_rough_y')
-            end  
-            if this.isVariableToAnalyze('com_rough_z')
-                this.addBasicVariable('com_rough_z')
-                this.addStretchVariable('com_rough_z')
+            
+            % segment angles and lengths
+            if this.isVariableToAnalyze('leg_length_l')
+                this.addBasicVariable('marker_trajectories')
+                this.addStretchVariable('leg_length_l')
             end
-            if this.isVariableToAnalyze('com_rough_x_vel')
-                this.addBasicVariable('com_rough_x')
-                this.addBasicVariable('com_rough_x_vel')
-                this.addStretchVariable('com_rough_x_vel')
-            end  
-            if this.isVariableToAnalyze('com_rough_y_vel')
-                this.addBasicVariable('com_rough_y')
-                this.addBasicVariable('com_rough_y_vel')
-                this.addStretchVariable('com_rough_y_vel')
-            end 
+            if this.isVariableToAnalyze('leg_length_r')
+                this.addBasicVariable('marker_trajectories')
+                this.addStretchVariable('leg_length_r')
+            end
+            if this.isVariableToAnalyze('leg_angle_l')
+                this.addBasicVariable('marker_trajectories')
+                this.addStretchVariable('leg_angle_l')
+            end
+            if this.isVariableToAnalyze('leg_angle_r')
+                this.addBasicVariable('marker_trajectories')
+                this.addStretchVariable('leg_angle_r')
+            end
+            
             if this.isVariableToAnalyze('head_angle_ap')
                 this.addBasicVariable('marker_trajectories')
                 this.addBasicVariable('head_angle_ap')
@@ -685,6 +683,7 @@ classdef WalkingDataCustodian < handle
                 % calculate variables that can't be loaded
                 
                 % kinematics
+                % TODO: all of these should be moved to where I calculate the stretch variables
                 if strcmp(variable_name, 'com_rough_x')
                     component_x = 1;
                     
@@ -2091,12 +2090,9 @@ classdef WalkingDataCustodian < handle
                 for i_stretch = 1 : number_of_stretches
                     % create containers
                     stretch_data = [];
-                    stretch_directions = [];
                     
                     % extract time
                     this_stretch_times = stretch_times(i_stretch, :);
-                    this_stretch_start_time = this_stretch_times(1);
-                    this_stretch_end_time = this_stretch_times(end);
                     
                     % calculate normalized stretch data for the basic variables
                     if this.isBasicVariable(variable_name) || any(variable_name==':')
@@ -2111,6 +2107,7 @@ classdef WalkingDataCustodian < handle
                     % calculate stretch variables that are not basic variables or need special attention
                     % REMINDER: if you add a variable here, make sure to also add it below in registerStretchVariableDirections
                     
+                    % use an initial value as a reference
                     if strcmp(variable_name, 'lheel_from_mpsis_initial_x')
                         LHEE_x = this.getTimeNormalizedData('marker:LHEE_x', this_stretch_times);
                         LPSI_x = this.getTimeNormalizedData('marker:LPSI_x', this_stretch_times);
@@ -2144,6 +2141,26 @@ classdef WalkingDataCustodian < handle
                     if strcmp(variable_name, 'com_from_com_initial_x')
                         com_x =  this.getTimeNormalizedData('com_position:center_of_mass_x', this_stretch_times);
                         stretch_data = com_x - com_x(1);
+                    end
+                    
+                    % balance stuff
+                    if strcmp(variable_name, 'step_placement_x')
+                        LHEE_x = this.getTimeNormalizedData('marker:LHEE_x', this_stretch_times);
+                        RHEE_x = this.getTimeNormalizedData('marker:RHEE_x', this_stretch_times);
+                        stretch_data = zeros(number_of_bands, 1);
+                        for i_band = 1 : number_of_bands
+                            [~, band_end_indices] = getBandIndices(i_band, this.number_of_time_steps_normalized);
+                            
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_RIGHT')
+                                stretch_data(i_band) = LHEE_x(band_end_indices) - RHEE_x(band_end_indices);
+                            end
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_LEFT')
+                                stretch_data(i_band) = RHEE_x(band_end_indices) - LHEE_x(band_end_indices);
+                            end
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_BOTH')
+                                stretch_data(i_band) = NaN;
+                            end
+                        end
                     end
                     if strcmp(variable_name, 'xcom_x')
                         % get CoM position
@@ -2628,6 +2645,8 @@ classdef WalkingDataCustodian < handle
                         xcom_rough_y = stretch_variables{strcmp(this.stretch_variable_names, 'xcom_rough_y')}(:, i_stretch);
                         stretch_data = xcom_rough_y - bos_y_data;
                     end
+                    
+                    % gait parameters
                     if strcmp(variable_name, 'step_length')
                         LHEE_y = this.getTimeNormalizedData('marker:LHEE_y', this_stretch_times);
                         RHEE_y = this.getTimeNormalizedData('marker:RHEE_y', this_stretch_times);
@@ -2665,107 +2684,7 @@ classdef WalkingDataCustodian < handle
                             end
                         end
                     end
-                    if strcmp(variable_name, 'step_placement_x')
-                        LHEE_x = this.getTimeNormalizedData('marker:LHEE_x', this_stretch_times);
-                        RHEE_x = this.getTimeNormalizedData('marker:RHEE_x', this_stretch_times);
-                        stretch_data = zeros(number_of_bands, 1);
-                        for i_band = 1 : number_of_bands
-                            [~, band_end_indices] = getBandIndices(i_band, this.number_of_time_steps_normalized);
-                            
-                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_RIGHT')
-                                stretch_data(i_band) = LHEE_x(band_end_indices) - RHEE_x(band_end_indices);
-                            end
-                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_LEFT')
-                                stretch_data(i_band) = RHEE_x(band_end_indices) - LHEE_x(band_end_indices);
-                            end
-                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_BOTH')
-                                stretch_data(i_band) = NaN;
-                            end
-                        end
-                    end
                     if strcmp(variable_name, 'step_time')
-                        stretch_data = diff(this_stretch_times)';
-                    end
-                    if strcmp(variable_name, 'leg_length_l')
-                        LANK_x = this.getTimeNormalizedData('marker:LANK_x', this_stretch_times);
-                        LANK_y = this.getTimeNormalizedData('marker:LANK_y', this_stretch_times);
-                        LANK_z = this.getTimeNormalizedData('marker:LANK_z', this_stretch_times);
-
-                        LASI_x = this.getTimeNormalizedData('marker:LASI_x', this_stretch_times);
-                        LASI_y = this.getTimeNormalizedData('marker:LASI_y', this_stretch_times);
-                        LASI_z = this.getTimeNormalizedData('marker:LASI_z', this_stretch_times);
-                        LPSI_x = this.getTimeNormalizedData('marker:LPSI_x', this_stretch_times);
-                        LPSI_y = this.getTimeNormalizedData('marker:LPSI_y', this_stretch_times);
-                        LPSI_z = this.getTimeNormalizedData('marker:LPSI_z', this_stretch_times);
-                        
-                        pelvis_midpoint_x = (LASI_x + LPSI_x) * 0.5;
-                        pelvis_midpoint_y = (LASI_y + LPSI_y) * 0.5;
-                        pelvis_midpoint_z = (LASI_z + LPSI_z) * 0.5;
-                        
-                        leg_vector_x = pelvis_midpoint_x - LANK_x;
-                        leg_vector_y = pelvis_midpoint_y - LANK_y;
-                        leg_vector_z = pelvis_midpoint_z - LANK_z;
-                        
-                        stretch_data = (leg_vector_x.^2 + leg_vector_y.^2 + leg_vector_z.^2).^(0.5);
-                    end
-                    if strcmp(variable_name, 'leg_length_r')
-                        RANK_x = this.getTimeNormalizedData('marker:RANK_x', this_stretch_times);
-                        RANK_y = this.getTimeNormalizedData('marker:RANK_y', this_stretch_times);
-                        RANK_z = this.getTimeNormalizedData('marker:RANK_z', this_stretch_times);
-
-                        RASI_x = this.getTimeNormalizedData('marker:RASI_x', this_stretch_times);
-                        RASI_y = this.getTimeNormalizedData('marker:RASI_y', this_stretch_times);
-                        RASI_z = this.getTimeNormalizedData('marker:RASI_z', this_stretch_times);
-                        RPSI_x = this.getTimeNormalizedData('marker:RPSI_x', this_stretch_times);
-                        RPSI_y = this.getTimeNormalizedData('marker:RPSI_y', this_stretch_times);
-                        RPSI_z = this.getTimeNormalizedData('marker:RPSI_z', this_stretch_times);
-                        
-                        pelvis_midpoint_x = (RASI_x + RPSI_x) * 0.5;
-                        pelvis_midpoint_y = (RASI_y + RPSI_y) * 0.5;
-                        pelvis_midpoint_z = (RASI_z + RPSI_z) * 0.5;
-                        
-                        leg_vector_x = pelvis_midpoint_x - RANK_x;
-                        leg_vector_y = pelvis_midpoint_y - RANK_y;
-                        leg_vector_z = pelvis_midpoint_z - RANK_z;
-                        
-                        stretch_data = (leg_vector_x.^2 + leg_vector_y.^2 + leg_vector_z.^2).^(0.5);
-                    end
-                    if strcmp(variable_name, 'leg_angle_l')
-                        LANK_y = this.getTimeNormalizedData('marker:LANK_y', this_stretch_times);
-                        LANK_z = this.getTimeNormalizedData('marker:LANK_z', this_stretch_times);
-
-                        LASI_y = this.getTimeNormalizedData('marker:LASI_y', this_stretch_times);
-                        LASI_z = this.getTimeNormalizedData('marker:LASI_z', this_stretch_times);
-                        LPSI_y = this.getTimeNormalizedData('marker:LPSI_y', this_stretch_times);
-                        LPSI_z = this.getTimeNormalizedData('marker:LPSI_z', this_stretch_times);
-                        
-                        pelvis_midpoint_y = (LASI_y + LPSI_y) * 0.5;
-                        pelvis_midpoint_z = (LASI_z + LPSI_z) * 0.5;
-                        
-                        leg_vector_y = pelvis_midpoint_y - LANK_y;
-                        leg_vector_z = pelvis_midpoint_z - LANK_z;
-                        
-                        stretch_data = atan2(leg_vector_y, leg_vector_z);
-                    end
-                    if strcmp(variable_name, 'leg_angle_r')
-                        RANK_y = this.getTimeNormalizedData('marker:RANK_y', this_stretch_times);
-                        RANK_z = this.getTimeNormalizedData('marker:RANK_z', this_stretch_times);
-
-                        RASI_y = this.getTimeNormalizedData('marker:RASI_y', this_stretch_times);
-                        RASI_z = this.getTimeNormalizedData('marker:RASI_z', this_stretch_times);
-                        RPSI_y = this.getTimeNormalizedData('marker:RPSI_y', this_stretch_times);
-                        RPSI_z = this.getTimeNormalizedData('marker:RPSI_z', this_stretch_times);
-                        
-                        pelvis_midpoint_y = (RASI_y + RPSI_y) * 0.5;
-                        pelvis_midpoint_z = (RASI_z + RPSI_z) * 0.5;
-                        
-                        leg_vector_y = pelvis_midpoint_y - RANK_y;
-                        leg_vector_z = pelvis_midpoint_z - RANK_z;
-                        
-                        stretch_data = atan2(leg_vector_y, leg_vector_z);
-                    end
-                    
-                    if strcmp(variable_name, 'band_duration')
                         stretch_data = diff(this_stretch_times)';
                     end
                     if strcmp(variable_name, 'pushoff_time')
@@ -2796,40 +2715,6 @@ classdef WalkingDataCustodian < handle
                                     this_pushoff_time = band_start_time;
                                 end
                                 stretch_data(i_band) = this_pushoff_time - band_start_time;
-                            end
-                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_BOTH')
-                                stretch_data(i_band) = NaN;
-                            end
-                        end
-                    end
-                    if strcmp(variable_name, 'midswing_event_time')
-                        % load events
-                        event_data = load(['analysis' filesep makeFileName(this.date, this.subject_id, this.trial_type, this.trial_number, 'events.mat')]);
-                        left_midswing_times = event_data.event_data{strcmp(event_data.event_labels, 'left_midswing')};
-                        right_midswing_times = event_data.event_data{strcmp(event_data.event_labels, 'right_midswing')};
-                        
-                        stretch_data = zeros(number_of_bands, 1);
-                        for i_band = 1 : number_of_bands
-                            [band_start_index, band_end_index] = getBandIndices(i_band, this.number_of_time_steps_normalized);
-                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_RIGHT')
-                                % find first left push-off after band start
-                                band_start_time = this_stretch_times(i_band);
-                                band_end_time = this_stretch_times(i_band+1);
-                                this_midswing_time = min(left_midswing_times(left_midswing_times >= band_start_time));
-                                if this_midswing_time >= band_end_time
-                                    this_midswing_time = band_start_time;
-                                end
-                                stretch_data(i_band) = this_midswing_time - band_start_time;
-                                
-                            end
-                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_LEFT')
-                                band_start_time = this_stretch_times(i_band);
-                                band_end_time = this_stretch_times(i_band+1);
-                                this_midswing_time = min(right_midswing_times(right_midswing_times >= band_start_time));
-                                if this_midswing_time >= band_end_time
-                                    this_midswing_time = band_start_time;
-                                end
-                                stretch_data(i_band) = this_midswing_time - band_start_time;
                             end
                             if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_BOTH')
                                 stretch_data(i_band) = NaN;
@@ -2927,6 +2812,90 @@ classdef WalkingDataCustodian < handle
                         step_length = stretch_variables{strcmp(this.stretch_variable_names, 'step_length')}(:, i_stretch);
                         stretch_data = step_length ./ step_time;
                     end
+                    if strcmp(variable_name, 'band_duration')
+                        stretch_data = diff(this_stretch_times)';
+                    end
+                    
+                    % segment angles and lengths
+                    if strcmp(variable_name, 'leg_length_l')
+                        LANK_x = this.getTimeNormalizedData('marker:LANK_x', this_stretch_times);
+                        LANK_y = this.getTimeNormalizedData('marker:LANK_y', this_stretch_times);
+                        LANK_z = this.getTimeNormalizedData('marker:LANK_z', this_stretch_times);
+
+                        LASI_x = this.getTimeNormalizedData('marker:LASI_x', this_stretch_times);
+                        LASI_y = this.getTimeNormalizedData('marker:LASI_y', this_stretch_times);
+                        LASI_z = this.getTimeNormalizedData('marker:LASI_z', this_stretch_times);
+                        LPSI_x = this.getTimeNormalizedData('marker:LPSI_x', this_stretch_times);
+                        LPSI_y = this.getTimeNormalizedData('marker:LPSI_y', this_stretch_times);
+                        LPSI_z = this.getTimeNormalizedData('marker:LPSI_z', this_stretch_times);
+                        
+                        pelvis_midpoint_x = (LASI_x + LPSI_x) * 0.5;
+                        pelvis_midpoint_y = (LASI_y + LPSI_y) * 0.5;
+                        pelvis_midpoint_z = (LASI_z + LPSI_z) * 0.5;
+                        
+                        leg_vector_x = pelvis_midpoint_x - LANK_x;
+                        leg_vector_y = pelvis_midpoint_y - LANK_y;
+                        leg_vector_z = pelvis_midpoint_z - LANK_z;
+                        
+                        stretch_data = (leg_vector_x.^2 + leg_vector_y.^2 + leg_vector_z.^2).^(0.5);
+                    end
+                    if strcmp(variable_name, 'leg_length_r')
+                        RANK_x = this.getTimeNormalizedData('marker:RANK_x', this_stretch_times);
+                        RANK_y = this.getTimeNormalizedData('marker:RANK_y', this_stretch_times);
+                        RANK_z = this.getTimeNormalizedData('marker:RANK_z', this_stretch_times);
+
+                        RASI_x = this.getTimeNormalizedData('marker:RASI_x', this_stretch_times);
+                        RASI_y = this.getTimeNormalizedData('marker:RASI_y', this_stretch_times);
+                        RASI_z = this.getTimeNormalizedData('marker:RASI_z', this_stretch_times);
+                        RPSI_x = this.getTimeNormalizedData('marker:RPSI_x', this_stretch_times);
+                        RPSI_y = this.getTimeNormalizedData('marker:RPSI_y', this_stretch_times);
+                        RPSI_z = this.getTimeNormalizedData('marker:RPSI_z', this_stretch_times);
+                        
+                        pelvis_midpoint_x = (RASI_x + RPSI_x) * 0.5;
+                        pelvis_midpoint_y = (RASI_y + RPSI_y) * 0.5;
+                        pelvis_midpoint_z = (RASI_z + RPSI_z) * 0.5;
+                        
+                        leg_vector_x = pelvis_midpoint_x - RANK_x;
+                        leg_vector_y = pelvis_midpoint_y - RANK_y;
+                        leg_vector_z = pelvis_midpoint_z - RANK_z;
+                        
+                        stretch_data = (leg_vector_x.^2 + leg_vector_y.^2 + leg_vector_z.^2).^(0.5);
+                    end
+                    if strcmp(variable_name, 'leg_angle_l')
+                        LANK_y = this.getTimeNormalizedData('marker:LANK_y', this_stretch_times);
+                        LANK_z = this.getTimeNormalizedData('marker:LANK_z', this_stretch_times);
+
+                        LASI_y = this.getTimeNormalizedData('marker:LASI_y', this_stretch_times);
+                        LASI_z = this.getTimeNormalizedData('marker:LASI_z', this_stretch_times);
+                        LPSI_y = this.getTimeNormalizedData('marker:LPSI_y', this_stretch_times);
+                        LPSI_z = this.getTimeNormalizedData('marker:LPSI_z', this_stretch_times);
+                        
+                        pelvis_midpoint_y = (LASI_y + LPSI_y) * 0.5;
+                        pelvis_midpoint_z = (LASI_z + LPSI_z) * 0.5;
+                        
+                        leg_vector_y = pelvis_midpoint_y - LANK_y;
+                        leg_vector_z = pelvis_midpoint_z - LANK_z;
+                        
+                        stretch_data = atan2(leg_vector_y, leg_vector_z);
+                    end
+                    if strcmp(variable_name, 'leg_angle_r')
+                        RANK_y = this.getTimeNormalizedData('marker:RANK_y', this_stretch_times);
+                        RANK_z = this.getTimeNormalizedData('marker:RANK_z', this_stretch_times);
+
+                        RASI_y = this.getTimeNormalizedData('marker:RASI_y', this_stretch_times);
+                        RASI_z = this.getTimeNormalizedData('marker:RASI_z', this_stretch_times);
+                        RPSI_y = this.getTimeNormalizedData('marker:RPSI_y', this_stretch_times);
+                        RPSI_z = this.getTimeNormalizedData('marker:RPSI_z', this_stretch_times);
+                        
+                        pelvis_midpoint_y = (RASI_y + RPSI_y) * 0.5;
+                        pelvis_midpoint_z = (RASI_z + RPSI_z) * 0.5;
+                        
+                        leg_vector_y = pelvis_midpoint_y - RANK_y;
+                        leg_vector_z = pelvis_midpoint_z - RANK_z;
+                        
+                        stretch_data = atan2(leg_vector_y, leg_vector_z);
+                    end
+                    
                     if strcmp(variable_name, 'left_arm_phase') || strcmp(variable_name, 'right_arm_phase') || strcmp(variable_name, 'left_leg_phase') || strcmp(variable_name, 'right_leg_phase')
      
                         variable_time = this.getTimeData(variable_name);
@@ -3160,6 +3129,7 @@ classdef WalkingDataCustodian < handle
                 stretch_directions_new = this_type_directions(:, strcmp(this_type_labels, this_variable_label));
             end
 
+            % use an initial value as a reference
             if strcmp(variable_name, 'lheel_from_mpsis_initial_x')
                 [~, LHEE_x_directions] = this.getBasicVariableData('marker:LHEE_x');
                 [~, LPSI_x_directions] = this.getBasicVariableData('marker:LPSI_x');
@@ -3232,6 +3202,19 @@ classdef WalkingDataCustodian < handle
             if strcmp(variable_name, 'com_from_com_initial_x')
                 [~, com_x_directions] = this.getBasicVariableData('com_position:center_of_mass_x');
                 stretch_directions_new = com_x_directions;
+            end
+            
+            % balance stuff
+            if strcmp(variable_name, 'step_placement_x')
+                [~, LHEE_x_directions] = this.getBasicVariableData('marker:LHEE_x');
+                [~, RHEE_x_directions] = this.getBasicVariableData('marker:RHEE_x');
+                if ~strcmp(LHEE_x_directions{1}, RHEE_x_directions{1})
+                    error('LHEE_x and RHEE_x directions are different from each other')
+                end
+                if ~strcmp(LHEE_x_directions{2}, RHEE_x_directions{2})
+                    error('LHEE_x and RHEE_x directions are different from each other')
+                end
+                stretch_directions_new = LHEE_x_directions;
             end
             if strcmp(variable_name, 'xcom_x')
                 [~, com_x_directions] = this.getBasicVariableData('com_position:center_of_mass_x');
@@ -3317,6 +3300,8 @@ classdef WalkingDataCustodian < handle
                 com_rough_y_directions = this.basic_variable_directions.com_rough_y;
                 stretch_directions_new = com_rough_y_directions;
             end
+            
+            % gait parameters
             if strcmp(variable_name, 'step_length')
                 [~, LHEE_y_directions] = this.getBasicVariableData('marker:LHEE_y');
                 [~, RHEE_y_directions] = this.getBasicVariableData('marker:RHEE_y');
@@ -3339,36 +3324,10 @@ classdef WalkingDataCustodian < handle
                 end
                 stretch_directions_new = LHEE_x_directions;
             end
-            if strcmp(variable_name, 'step_placement_x')
-                [~, LHEE_x_directions] = this.getBasicVariableData('marker:LHEE_x');
-                [~, RHEE_x_directions] = this.getBasicVariableData('marker:RHEE_x');
-                if ~strcmp(LHEE_x_directions{1}, RHEE_x_directions{1})
-                    error('LHEE_x and RHEE_x directions are different from each other')
-                end
-                if ~strcmp(LHEE_x_directions{2}, RHEE_x_directions{2})
-                    error('LHEE_x and RHEE_x directions are different from each other')
-                end
-                stretch_directions_new = LHEE_x_directions;
-            end
             if strcmp(variable_name, 'step_time')
                 stretch_directions_new = {'+'; '-'};
             end
-            if strcmp(variable_name, 'leg_length_l')
-                stretch_directions_new = {'+'; '-'};
-            end
-            if strcmp(variable_name, 'leg_length_r')
-                stretch_directions_new = {'+'; '-'};
-            end
-            if strcmp(variable_name, 'leg_angle_l')
-                stretch_directions_new = {'top leans forward'; 'top leans backward'};
-            end
-            if strcmp(variable_name, 'leg_angle_r')
-                stretch_directions_new = {'top leans forward'; 'top leans backward'};
-            end
             if strcmp(variable_name, 'pushoff_time')
-                stretch_directions_new = {'+'; '-'};
-            end
-            if strcmp(variable_name, 'midswing_event_time')
                 stretch_directions_new = {'+'; '-'};
             end
             if strcmp(variable_name, 'midstance_index')
@@ -3385,6 +3344,23 @@ classdef WalkingDataCustodian < handle
             end
             if strcmp(variable_name, 'velocity')
                 stretch_directions_new = this.stretch_variable_directions(strcmp('step_length', this.stretch_variable_names), :);
+            end
+            if strcmp(variable_name, 'band_duration')
+                stretch_directions_new = this.stretch_variable_directions(strcmp('step_time', this.stretch_variable_names), :);
+            end
+            
+            % segment angles and lengths
+            if strcmp(variable_name, 'leg_length_l')
+                stretch_directions_new = {'+'; '-'};
+            end
+            if strcmp(variable_name, 'leg_length_r')
+                stretch_directions_new = {'+'; '-'};
+            end
+            if strcmp(variable_name, 'leg_angle_l')
+                stretch_directions_new = {'top leans forward'; 'top leans backward'};
+            end
+            if strcmp(variable_name, 'leg_angle_r')
+                stretch_directions_new = {'top leans forward'; 'top leans backward'};
             end
             if strcmp(variable_name, 'left_arm_phase') || strcmp(variable_name, 'right_arm_phase') || strcmp(variable_name, 'left_leg_phase') || strcmp(variable_name, 'right_leg_phase')
                 % TODO: not tested yet
