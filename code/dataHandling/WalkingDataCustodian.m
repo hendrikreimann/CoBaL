@@ -85,32 +85,29 @@ classdef WalkingDataCustodian < handle
             if nargin < 2
                 data_directory = pwd;
             end
-            subject_settings = loadSettingsFromFile('subject', data_directory);
-            collection_date = subject_settings.get('collection_date');
-            subject_id = subject_settings.get('subject_id');
+            this.subject_info = load([data_directory filesep 'subjectInfo.mat']);
+            this.study_settings = loadSettingsFromFile('study', data_directory);
+            this.subject_settings = loadSettingsFromFile('subject', data_directory);
             
             % load this information from the subjects.mat and studySettings.txt files
             this.data_directory = data_directory;
-            this.date = collection_date;
-            this.subject_id = subject_id;
-            
-            this.subject_info = load([data_directory filesep 'subjectInfo.mat']);
-            this.subject_settings = subject_settings;
-            this.study_settings = loadSettingsFromFile('study', data_directory);
+            this.date = this.subject_settings.get('collection_date');
+            this.subject_id = this.subject_settings.get('subject_id');
 
-            emg_normalization_file_name = [data_directory filesep 'analysis' filesep makeFileName(date, subject_id, 'emgNormalization.mat')];
+            % prepare things for EMG normalization
+            emg_normalization_file_name = [data_directory filesep 'analysis' filesep makeFileName(this.date, this.subject_id, 'emgNormalization.mat')];
             if exist(emg_normalization_file_name, 'file')
                 emg_normalization_data = load(emg_normalization_file_name);
                 this.emg_normalization_values = emg_normalization_data.emg_normalization_values;
                 this.emg_normalization_labels = emg_normalization_data.emg_variable_names;
             end
+            
+            % prepare list of variables to analyze
             if nargin < 1
                 variables_to_analyze = this.study_settings.get('stretch_variables');
             end
-            
             this.variables_to_analyze = variables_to_analyze;
             this.number_of_time_steps_normalized = this.study_settings.get('number_of_time_steps_normalized');
-            
             this.determineVariables();
         end
         
@@ -148,20 +145,6 @@ classdef WalkingDataCustodian < handle
                 end
                 
             end
-             
-            % for each possible variable to analyze, list the basic and required variables required to calculate it
-%             if this.isVariableToAnalyze('marker_trajectories')
-%                 this.addBasicVariable('marker_trajectories')
-%             end
-%             if this.isVariableToAnalyze('joint_center_trajectories')
-%                 this.addBasicVariable('joint_center_trajectories')
-%             end
-%             if this.isVariableToAnalyze('com_trajectories')
-%                 this.addBasicVariable('com_trajectories')
-%             end
-%             if this.isVariableToAnalyze('forceplate_trajectories')
-%                 this.addBasicVariable('forceplate_trajectories')
-%             end
 
             % kinematics
             if this.isVariableToAnalyze('lheel_from_mpsis_initial_x')
@@ -178,38 +161,29 @@ classdef WalkingDataCustodian < handle
             end            
             if this.isVariableToAnalyze('lheel_from_com_initial_x')
                 this.addBasicVariable('marker_trajectories')
-                this.addBasicVariable('com')
-                this.addBasicVariable('com_x')
+                this.addBasicVariable('com_position_trajectories')
                 this.addStretchVariable('lheel_from_com_initial_x')                
             end
             if this.isVariableToAnalyze('rheel_from_com_initial_x')
                 this.addBasicVariable('marker_trajectories')
-                this.addBasicVariable('com')
-                this.addBasicVariable('com_x')
+                this.addBasicVariable('com_position_trajectories')
                 this.addStretchVariable('rheel_from_com_initial_x')
             end
             if this.isVariableToAnalyze('com_from_com_initial_x')
                 this.addBasicVariable('marker_trajectories')
-                this.addBasicVariable('com')
-                this.addBasicVariable('com_x')
+                this.addBasicVariable('com_position_trajectories')
                 this.addStretchVariable('com_from_com_initial_x')
             end
             if this.isVariableToAnalyze('xcom_x')
                 this.addBasicVariable('marker_trajectories')
-                this.addBasicVariable('com')
-                this.addBasicVariable('com_x')
-                this.addBasicVariable('com_y')
-                this.addBasicVariable('com_z')
-                this.addBasicVariable('com_x_vel')
+                this.addBasicVariable('com_position_trajectories')
+                this.addBasicVariable('com_velocity_trajectories')
                 this.addStretchVariable('xcom_x')
             end
             if this.isVariableToAnalyze('xcom_y')
                 this.addBasicVariable('marker_trajectories')
-                this.addBasicVariable('com')
-                this.addBasicVariable('com_x')
-                this.addBasicVariable('com_y')
-                this.addBasicVariable('com_z')
-                this.addBasicVariable('com_y_vel')
+                this.addBasicVariable('com_position_trajectories')
+                this.addBasicVariable('com_velocity_trajectories')
                 this.addStretchVariable('xcom_y')
             end
             if this.isVariableToAnalyze('xcom_mpsis_x')
@@ -242,21 +216,15 @@ classdef WalkingDataCustodian < handle
             end                         
             if this.isVariableToAnalyze('mos_x')
                 this.addBasicVariable('marker_trajectories')
-                this.addBasicVariable('com')
-                this.addBasicVariable('com_x')
-                this.addBasicVariable('com_y')
-                this.addBasicVariable('com_z')
-                this.addBasicVariable('com_x_vel')
+                this.addBasicVariable('com_position_trajectories')
+                this.addBasicVariable('com_velocity_trajectories')
                 this.addStretchVariable('xcom_x')
                 this.addStretchVariable('mos_x')
             end
             if this.isVariableToAnalyze('mos_y')
                 this.addBasicVariable('marker_trajectories')
-                this.addBasicVariable('com')
-                this.addBasicVariable('com_x')
-                this.addBasicVariable('com_y')
-                this.addBasicVariable('com_z')
-                this.addBasicVariable('com_y_vel')
+                this.addBasicVariable('com_position_trajectories')
+                this.addBasicVariable('com_velocity_trajectories')
                 this.addStretchVariable('xcom_y')
                 this.addStretchVariable('mos_y')
             end
@@ -553,128 +521,6 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('right_arm_phase')
                 this.addStretchVariable('right_arm_phase_at_heelstrike')
             end
-            if this.isVariableToAnalyze('com_x')
-                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'in-house')
-                    this.addBasicVariable('com_trajectories') % in-house kinematics
-                end
-                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'opensim')
-                    this.addBasicVariable('com_position_trajectories') % opensim kinematics
-                end
-                this.addBasicVariable('com')
-                this.addBasicVariable('com_x')
-                this.addStretchVariable('com_x')
-            end
-            if this.isVariableToAnalyze('com_y')
-                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'in-house')
-                    this.addBasicVariable('com_trajectories') % in-house kinematics
-                end
-                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'opensim')
-                    this.addBasicVariable('com_position_trajectories') % opensim kinematics
-                end
-                this.addBasicVariable('com')
-                this.addBasicVariable('com_y')
-                this.addStretchVariable('com_y')
-            end
-            if this.isVariableToAnalyze('com_z')
-                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'in-house')
-                    this.addBasicVariable('com_trajectories') % in-house kinematics
-                end
-                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'opensim')
-                    this.addBasicVariable('com_position_trajectories') % opensim kinematics
-                end
-                this.addBasicVariable('com_z')
-                this.addStretchVariable('com_z')
-            end
-            if this.isVariableToAnalyze('com_x_vel')
-                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'in-house')
-                    this.addBasicVariable('com_trajectories') % in-house kinematics
-                end
-                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'opensim')
-                    this.addBasicVariable('com_position_trajectories') % opensim kinematics
-                end
-                this.addBasicVariable('com')
-                this.addBasicVariable('com_x')
-                this.addBasicVariable('com_x_vel')
-                this.addStretchVariable('com_x_vel')
-            end         
-            if this.isVariableToAnalyze('com_x_vel_scaled')
-                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'in-house')
-                    this.addBasicVariable('com_trajectories') % in-house kinematics
-                end
-                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'opensim')
-                    this.addBasicVariable('com_position_trajectories') % opensim kinematics
-                end
-                this.addBasicVariable('com')
-                this.addBasicVariable('com_x')
-                this.addBasicVariable('com_x_vel')
-                this.addStretchVariable('com_x_vel')
-                this.addBasicVariable('com_z')
-                this.addStretchVariable('com_z')
-                this.addStretchVariable('com_x_vel_scaled')
-            end
-            if this.isVariableToAnalyze('com_y_vel')
-                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'in-house')
-                    this.addBasicVariable('com_trajectories') % in-house kinematics
-                end
-                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'opensim')
-                    this.addBasicVariable('com_position_trajectories') % opensim kinematics
-                end
-                this.addBasicVariable('com')
-                this.addBasicVariable('com_y')
-                this.addBasicVariable('com_y_vel')
-                this.addStretchVariable('com_y_vel')
-            end           
-            if this.isVariableToAnalyze('com_z_vel')
-                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'in-house')
-                    this.addBasicVariable('com_trajectories') % in-house kinematics
-                end
-                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'opensim')
-                    this.addBasicVariable('com_position_trajectories') % opensim kinematics
-                end
-                this.addBasicVariable('com')
-                this.addBasicVariable('com_z')
-                this.addBasicVariable('com_z_vel')
-                this.addStretchVariable('com_z_vel')
-            end
-            if this.isVariableToAnalyze('com_x_acc')
-                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'in-house')
-                    this.addBasicVariable('com_trajectories') % in-house kinematics
-                end
-                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'opensim')
-                    this.addBasicVariable('com_position_trajectories') % opensim kinematics
-                end
-                this.addBasicVariable('com')
-                this.addBasicVariable('com_x')
-                this.addBasicVariable('com_x_vel')
-                this.addBasicVariable('com_x_acc')
-                this.addStretchVariable('com_x_acc')
-            end
-            if this.isVariableToAnalyze('com_y_acc')
-                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'in-house')
-                    this.addBasicVariable('com_trajectories') % in-house kinematics
-                end
-                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'opensim')
-                    this.addBasicVariable('com_position_trajectories') % opensim kinematics
-                end
-                this.addBasicVariable('com')
-                this.addBasicVariable('com_y')
-                this.addBasicVariable('com_y_vel')
-                this.addBasicVariable('com_y_acc')
-                this.addStretchVariable('com_y_acc')
-            end
-            if this.isVariableToAnalyze('com_z_acc')
-                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'in-house')
-                    this.addBasicVariable('com_trajectories') % in-house kinematics
-                end
-                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'opensim')
-                    this.addBasicVariable('com_position_trajectories') % opensim kinematics
-                end
-                this.addBasicVariable('com')
-                this.addBasicVariable('com_z')
-                this.addBasicVariable('com_z_vel')
-                this.addBasicVariable('com_z_acc')
-                this.addStretchVariable('com_z_acc')
-            end
             if this.isVariableToAnalyze('heel_clearance')
                 this.addBasicVariable('marker_trajectories')
                 this.addStretchVariable('heel_clearance')
@@ -682,20 +528,6 @@ classdef WalkingDataCustodian < handle
             if this.isVariableToAnalyze('toes_clearance')
                 this.addBasicVariable('marker_trajectories')
                 this.addStretchVariable('toes_clearance')
-            end
-            % force plate
-            if this.isVariableToAnalyze('cop_y_vel')
-                this.addBasicVariable('total_forceplate_cop_world')
-                this.addBasicVariable('cop_y')
-                this.addBasicVariable('cop_y_vel')
-                this.addStretchVariable('cop_y_vel')
-            end
-            if this.isVariableToAnalyze('cop_y_acc')
-                this.addBasicVariable('total_forceplate_cop_world')
-                this.addBasicVariable('cop_y')
-                this.addBasicVariable('cop_y_vel')
-                this.addBasicVariable('cop_y_acc')
-                this.addStretchVariable('cop_y_acc')
             end
             
             % protocol
@@ -2218,151 +2050,6 @@ classdef WalkingDataCustodian < handle
                     success = 1;
                 end
                 
-                if strcmp(variable_name, 'com')
-                    if dataIsAvailable(this.date, this.subject_id, trial_type, trial_number, 'com_trajectories')
-                        % in-house kinematics - TODO: not tested yet
-                        [data, time, ~, labels, directions] = loadData(this.date, this.subject_id, trial_type, trial_number, 'com_trajectories');
-                        this.basic_variable_data.com = extractMarkerData(data, labels, 'BODYCOM');
-                        com_indices = extractMarkerData(data, labels, 'BODYCOM',  'indices');
-                        this.basic_variable_directions.com = directions(:, com_indices);
-                        this.time_data.com = time;
-                        success = 1;
-                    elseif dataIsAvailable(this.date, this.subject_id, trial_type, trial_number, 'com_position_trajectories')
-                        [data, time, ~, labels, directions] = loadData(this.date, this.subject_id, trial_type, trial_number, 'com_position_trajectories');
-                        this.basic_variable_data.com = extractMarkerData(data, labels, 'center_of_mass');
-                        com_indices = extractMarkerData(data, labels, 'center_of_mass',  'indices');
-                        this.basic_variable_directions.com = directions(:, com_indices);
-                        this.time_data.com = time;
-                        success = 1;
-                    else
-                        error('CoM data needed, but found neither in-house nor OpenSim data')
-                    end
-                end
-                if strcmp(variable_name, 'com_x')
-                    this.basic_variable_data.com_x = this.basic_variable_data.com(:, 1);
-                    this.basic_variable_directions.com_x = this.basic_variable_directions.com(:, 1);
-                    this.time_data.com_x = this.time_data.com;
-                    success = 1;
-                end
-                if strcmp(variable_name, 'com_y')
-                    this.basic_variable_data.com_y = this.basic_variable_data.com(:, 2);
-                    this.basic_variable_directions.com_y = this.basic_variable_directions.com(:, 2);
-                    this.time_data.com_y = this.time_data.com;
-                    success = 1;
-                end
-                if strcmp(variable_name, 'com_z')
-                    this.basic_variable_data.com_z = this.basic_variable_data.com(:, 3);
-                    this.basic_variable_directions.com_z = this.basic_variable_directions.com(:, 3);
-                    this.time_data.com_z = this.time_data.com;
-                    success = 1;
-                end
-                if strcmp(variable_name, 'com_x_vel')
-                    com_x = this.getBasicVariableData('com_x');
-                    com_x(com_x==0) = NaN;
-                    time = this.getTimeData('com_x');
-                    filter_order = this.study_settings.get('filter_order_com_vel');
-                    cutoff_frequency = this.study_settings.get('filter_cutoff_com_vel');
-                    sampling_rate = 1/median(diff(time));
-                    [b, a] = butter(filter_order, cutoff_frequency/(sampling_rate/2));
-                    if any(~isnan(com_x))
-                        com_x_vel = deriveByTime(nanfiltfilt(b, a, com_x), 1/sampling_rate);
-                    else
-                        com_x_vel = ones(size(com_x)) * NaN;
-                    end
-                    this.basic_variable_data.com_x_vel = com_x_vel;
-                    this.basic_variable_directions.com_x_vel = this.basic_variable_directions.com_x;
-                    this.time_data.com_x_vel = time;
-                    success = 1;
-                end
-            
-                if strcmp(variable_name, 'com_y_vel')
-                    com_y = this.getBasicVariableData('com_y');
-                    com_y(com_y==0) = NaN;
-                    time = this.getTimeData('com_y');
-                    filter_order = this.study_settings.get('filter_order_com_vel');
-                    cutoff_frequency = this.study_settings.get('filter_cutoff_com_vel');
-                    sampling_rate = 1/median(diff(time));
-                    [b, a] = butter(filter_order, cutoff_frequency/(sampling_rate/2));	% set filter parameters for butterworth filter: 2=order of filter;
-                    if any(~isnan(com_y))
-                        com_y_vel = deriveByTime(nanfiltfilt(b, a, com_y), 1/sampling_rate);
-                    else
-                        com_y_vel = ones(size(com_y)) * NaN;
-                    end
-                    this.basic_variable_data.com_y_vel = com_y_vel;
-                    this.basic_variable_directions.com_y_vel = this.basic_variable_directions.com_y;
-                    this.time_data.com_y_vel = time;
-                    success = 1;
-                end                  
-                if strcmp(variable_name, 'com_z_vel')
-                    com_z = this.getBasicVariableData('com_z');
-                    com_z(com_z==0) = NaN;
-                    time = this.getTimeData('com_z');
-                    filter_order = this.study_settings.get('filter_order_com_vel');
-                    cutoff_frequency = this.study_settings.get('filter_cutoff_com_vel');
-                    sampling_rate = 1/median(diff(time));
-                    [b, a] = butter(filter_order, cutoff_frequency/(sampling_rate/2));	% set filter parameters for butterworth filter: 2=order of filter;
-                    if any(~isnan(com_z))
-                        com_z_vel = deriveByTime(nanfiltfilt(b, a, com_z), 1/sampling_rate);
-                    else
-                        com_z_vel = ones(size(com_z)) * NaN;
-                    end
-                    this.basic_variable_data.com_z_vel = com_z_vel;
-                    this.basic_variable_directions.com_z_vel = this.basic_variable_directions.com_z;
-                    this.time_data.com_z_vel = time;
-                    success = 1;
-                end
-                if strcmp(variable_name, 'com_x_acc')
-                    com_x_vel = this.getBasicVariableData('com_x_vel');
-                    time = this.getTimeData('com_x_vel');
-                    filter_order = this.study_settings.get('filter_order_com_acc');
-                    cutoff_frequency = this.study_settings.get('filter_cutoff_com_acc');
-                    sampling_rate = 1/median(diff(time));
-                    [b, a] = butter(filter_order, cutoff_frequency/(sampling_rate/2));
-                    if any(~isnan(com_x_vel))
-                        com_x_acc = deriveByTime(nanfiltfilt(b, a, com_x_vel), 1/sampling_rate);
-                    else
-                        com_x_acc = ones(size(com_x_vel)) * NaN;
-                    end
-                    this.basic_variable_data.com_x_acc = com_x_acc;
-                    this.basic_variable_directions.com_x_acc = this.basic_variable_directions.com_x_vel;
-                    this.time_data.com_x_acc = time;
-                    success = 1;
-                end
-                if strcmp(variable_name, 'com_y_acc')
-                    com_y_vel = this.getBasicVariableData('com_y_vel');
-                    time = this.getTimeData('com_y_vel');
-                    filter_order = this.study_settings.get('filter_order_com_acc');
-                    cutoff_frequency = this.study_settings.get('filter_cutoff_com_acc');
-                    sampling_rate = 1/median(diff(time));
-                    [b, a] = butter(filter_order, cutoff_frequency/(sampling_rate/2));	% set filter parameters for butterworth filter: 2=order of filter;
-                    if any(~isnan(com_y_vel))
-                        com_y_acc = deriveByTime(nanfiltfilt(b, a, com_y_vel), 1/sampling_rate);
-                    else
-                        com_y_acc = ones(size(com_y_vel)) * NaN;
-                    end
-                    this.basic_variable_data.com_y_acc = com_y_acc;
-                    this.basic_variable_directions.com_y_acc = this.basic_variable_directions.com_y_vel;
-                    this.time_data.com_y_acc = time;
-                    success = 1;
-                end
-                if strcmp(variable_name, 'com_z_acc')
-                    com_z_vel = this.getBasicVariableData('com_z_vel');
-                    time = this.getTimeData('com_z_vel');
-                    filter_order = this.study_settings.get('filter_order_com_acc');
-                    cutoff_frequency = this.study_settings.get('filter_cutoff_com_acc');
-                    sampling_rate = 1/median(diff(time));
-                    [b, a] = butter(filter_order, cutoff_frequency/(sampling_rate/2));	% set filter parameters for butterworth filter: 2=order of filter;
-                    if any(~isnan(com_z_vel))
-                        com_z_acc = deriveByTime(nanfiltfilt(b, a, com_z_vel), 1/sampling_rate);
-                    else
-                        com_z_acc = ones(size(com_z_vel)) * NaN;
-                    end
-                    this.basic_variable_data.com_z_acc = com_z_acc;
-                    this.basic_variable_directions.com_z_acc = this.basic_variable_directions.com_z_vel;
-                    this.time_data.com_z_acc = time;
-                    success = 1;
-                end
-                
                 % remove data flagged in subject settings
                 if any(strcmp(data_to_remove_this_trial, variable_name))
                     if any(variable_name==':')
@@ -2446,23 +2133,23 @@ classdef WalkingDataCustodian < handle
                     end
                     if strcmp(variable_name, 'lheel_from_com_initial_x')
                         LHEE_x = this.getTimeNormalizedData('marker:LHEE_x', this_stretch_times);
-                        com_x = this.getTimeNormalizedData('com_x', this_stretch_times);
+                        com_x =  this.getTimeNormalizedData('com_position:center_of_mass_x', this_stretch_times);
                         stretch_data = LHEE_x - com_x(1);
                     end
                     if strcmp(variable_name, 'rheel_from_com_initial_x')
                         RHEE_x = this.getTimeNormalizedData('marker:RHEE_x', this_stretch_times);
-                        com_x = this.getTimeNormalizedData('com_x', this_stretch_times);
+                        com_x =  this.getTimeNormalizedData('com_position:center_of_mass_x', this_stretch_times);
                         stretch_data = RHEE_x - com_x(1);
                     end
                     if strcmp(variable_name, 'com_from_com_initial_x')
-                        com_x =  this.getTimeNormalizedData('com_x', this_stretch_times);
+                        com_x =  this.getTimeNormalizedData('com_position:center_of_mass_x', this_stretch_times);
                         stretch_data = com_x - com_x(1);
                     end
                     if strcmp(variable_name, 'xcom_x')
                         % get CoM position
-                        com_x =  this.getTimeNormalizedData('com_x', this_stretch_times);
-                        com_y =  this.getTimeNormalizedData('com_y', this_stretch_times);
-                        com_z =  this.getTimeNormalizedData('com_z', this_stretch_times);
+                        com_x =  this.getTimeNormalizedData('com_position:center_of_mass_x', this_stretch_times);
+                        com_y =  this.getTimeNormalizedData('com_position:center_of_mass_y', this_stretch_times);
+                        com_z =  this.getTimeNormalizedData('com_position:center_of_mass_z', this_stretch_times);
                         
                         % get instantaneous leg length
                         LANK_x = this.getTimeNormalizedData('marker:LANK_x', this_stretch_times);
@@ -2504,17 +2191,16 @@ classdef WalkingDataCustodian < handle
                         leg_length_data = (leg_vector_x.^2 + leg_vector_y.^2 + leg_vector_z.^2).^(0.5);
                         
                         % calculate XCoM
-                        com_x_vel =  this.getTimeNormalizedData('com_x_vel', this_stretch_times);
+                        com_x_vel =  this.getTimeNormalizedData('com_velocity:center_of_mass_x', this_stretch_times);
                         omega_0 = (9.81 * leg_length_data.^(-1)).^(0.5);
-%                         omega_0 = sqrt(9.81/leg_length);
                        
                         stretch_data = com_x + omega_0.^(-1) .* com_x_vel;
                     end
                     if strcmp(variable_name, 'xcom_y')
                         % get CoM position
-                        com_x =  this.getTimeNormalizedData('com_x', this_stretch_times);
-                        com_y =  this.getTimeNormalizedData('com_y', this_stretch_times);
-                        com_z =  this.getTimeNormalizedData('com_z', this_stretch_times);
+                        com_x =  this.getTimeNormalizedData('com_position:center_of_mass_x', this_stretch_times);
+                        com_y =  this.getTimeNormalizedData('com_position:center_of_mass_y', this_stretch_times);
+                        com_z =  this.getTimeNormalizedData('com_position:center_of_mass_z', this_stretch_times);
                         
                         % get instantaneous leg length
                         LANK_x = this.getTimeNormalizedData('marker:LANK_x', this_stretch_times);
@@ -2555,9 +2241,8 @@ classdef WalkingDataCustodian < handle
                         leg_length_data = (leg_vector_x.^2 + leg_vector_y.^2 + leg_vector_z.^2).^(0.5);
                         
                         % calculate XCoM
-                        com_y_vel =  this.getTimeNormalizedData('com_y_vel', this_stretch_times);
+                        com_y_vel =  this.getTimeNormalizedData('com_velocity:center_of_mass_y', this_stretch_times);
                         omega_0 = (9.81 * leg_length_data.^(-1)).^(0.5);
-%                         omega_0 = sqrt(9.81/leg_length);
                        
                         stretch_data = com_y + omega_0.^(-1) .* com_y_vel;                    
                     end
@@ -3524,7 +3209,7 @@ classdef WalkingDataCustodian < handle
             end
             if strcmp(variable_name, 'lheel_from_com_initial_x')
                 [~, LHEE_x_directions] = this.getBasicVariableData('marker:LHEE_x');
-                com_x_directions = this.basic_variable_directions.com_x;
+                [~, com_x_directions] = this.getBasicVariableData('com_position:center_of_mass_x');
                 if ~strcmp(LHEE_x_directions{1}, com_x_directions{1})
                     error('LHEE_x and com_x directions are different from each other')
                 end
@@ -3535,7 +3220,7 @@ classdef WalkingDataCustodian < handle
             end
             if strcmp(variable_name, 'rheel_from_com_initial_x')
                 [~, RHEE_x_directions] = this.getBasicVariableData('marker:RHEE_x');
-                com_x_directions = this.basic_variable_directions.com_x;
+                [~, com_x_directions] = this.getBasicVariableData('com_position:center_of_mass_x');
                 if ~strcmp(RHEE_x_directions{1}, com_x_directions{1})
                     error('RHEE_x and com_x directions are different from each other')
                 end
@@ -3545,25 +3230,25 @@ classdef WalkingDataCustodian < handle
                 stretch_directions_new = RHEE_x_directions;
             end
             if strcmp(variable_name, 'com_from_com_initial_x')
-                com_x_directions = this.basic_variable_directions.com_x;
+                [~, com_x_directions] = this.getBasicVariableData('com_position:center_of_mass_x');
                 stretch_directions_new = com_x_directions;
             end
             if strcmp(variable_name, 'xcom_x')
-                com_x_directions = this.basic_variable_directions.com_x;
+                [~, com_x_directions] = this.getBasicVariableData('com_position:center_of_mass_x');
                 stretch_directions_new = com_x_directions;
             end
             if strcmp(variable_name, 'xcom_y')
-                com_y_directions = this.basic_variable_directions.com_y;
+                [~, com_y_directions] = this.getBasicVariableData('com_position:center_of_mass_y');
                 stretch_directions_new = com_y_directions;
             end
             if strcmp(variable_name, 'mos_x')
-                com_x_directions = this.basic_variable_directions.com_x;
+                [~, com_x_directions] = this.getBasicVariableData('com_position:center_of_mass_x');
                 stretch_directions_new = com_x_directions;
             end
             if strcmp(variable_name, 'mos_y')
-                com_y_directions = this.basic_variable_directions.com_y;
+                [~, com_y_directions] = this.getBasicVariableData('com_position:center_of_mass_y');
                 stretch_directions_new = com_y_directions;
-            end        
+            end
             if strcmp(variable_name, 'xcom_mpsis_x')
                 [~, LPSI_x_directions] = this.getBasicVariableData('marker:LPSI_x');
                 [~, RPSI_x_directions] = this.getBasicVariableData('marker:RPSI_x');
@@ -3704,32 +3389,6 @@ classdef WalkingDataCustodian < handle
             if strcmp(variable_name, 'left_arm_phase') || strcmp(variable_name, 'right_arm_phase') || strcmp(variable_name, 'left_leg_phase') || strcmp(variable_name, 'right_leg_phase')
                 % TODO: not tested yet
                 stretch_directions_new = this.basic_variable_directions.(variable_name);
-            end
-            if strcmp(variable_name, 'com_x_vel_scaled')
-                com_x_directions = this.stretch_variable_directions(strcmp(this.stretch_variable_names, 'com_x'), :);
-                stretch_directions_new = com_x_directions;
-            end
-            if strcmp(variable_name, 'cop_to_com_vel_scaled_x')
-                com_x_directions = this.stretch_variable_directions(strcmp(this.stretch_variable_names, 'com_x'), :);
-                cop_x_directions = this.stretch_variable_directions(strcmp(this.stretch_variable_names, 'cop_x'), :);
-                if ~strcmp(com_x_directions{1}, cop_x_directions{1})
-                    error('com_x and cop_x directions are different from each other')
-                end
-                if ~strcmp(com_x_directions{2}, cop_x_directions{2})
-                    error('com_x and cop_x directions are different from each other')
-                end
-                stretch_directions_new = com_x_directions;
-            end
-            if strcmp(variable_name, 'cop_to_com_vel_scaled_y')
-                com_y_directions = this.stretch_variable_directions(strcmp(this.stretch_variable_names, 'com_y'), :);
-                cop_y_directions = this.stretch_variable_directions(strcmp(this.stretch_variable_names, 'cop_y'), :);
-                if ~strcmp(com_y_directions{1}, cop_y_directions{1})
-                    error('com_y and cop_y directions are different from each other')
-                end
-                if ~strcmp(com_y_directions{2}, cop_y_directions{2})
-                    error('com_y and cop_y directions are different from each other')
-                end
-                stretch_directions_new = com_y_directions;
             end
             if strcmp(variable_name, 'heel_clearance')
                 [~, LHEE_z_directions] = this.getBasicVariableData('marker:LHEE_z');
