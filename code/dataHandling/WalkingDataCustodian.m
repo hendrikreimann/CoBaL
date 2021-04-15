@@ -349,15 +349,14 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('marker_trajectories')
                 this.addStretchVariable('leg_length_r')
             end
-            if this.isVariableToAnalyze('leg_angle_l')
+            if this.isVariableToAnalyze('leg_angle_ap_l')
                 this.addBasicVariable('marker_trajectories')
-                this.addStretchVariable('leg_angle_l')
+                this.addStretchVariable('leg_angle_ap_l')
             end
-            if this.isVariableToAnalyze('leg_angle_r')
+            if this.isVariableToAnalyze('leg_angle_ap_r')
                 this.addBasicVariable('marker_trajectories')
-                this.addStretchVariable('leg_angle_r')
+                this.addStretchVariable('leg_angle_ap_r')
             end
-            
             if this.isVariableToAnalyze('head_angle_ap')
                 this.addBasicVariable('marker_trajectories')
                 this.addBasicVariable('head_angle_ap')
@@ -378,31 +377,6 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('trunk_angle_ml')
                 this.addStretchVariable('trunk_angle_ml')
             end
-            if this.isVariableToAnalyze('pelvis_angle_ml')
-                this.addBasicVariable('joint_center_trajectories')
-                this.addBasicVariable('pelvis_angle_ml')
-                this.addStretchVariable('pelvis_angle_ml')
-            end
-            if this.isVariableToAnalyze('left_leg_angle_ml')
-                this.addBasicVariable('joint_center_trajectories')
-                this.addBasicVariable('left_leg_angle_ml')
-                this.addStretchVariable('left_leg_angle_ml')
-            end
-            if this.isVariableToAnalyze('right_leg_angle_ml')
-                this.addBasicVariable('joint_center_trajectories')
-                this.addBasicVariable('right_leg_angle_ml')
-                this.addStretchVariable('right_leg_angle_ml')
-            end           
-            if this.isVariableToAnalyze('left_leg_angle_ap')
-                this.addBasicVariable('joint_center_trajectories')
-                this.addBasicVariable('left_leg_angle_ap')
-                this.addStretchVariable('left_leg_angle_ap')
-            end
-            if this.isVariableToAnalyze('right_leg_angle_ap')
-                this.addBasicVariable('joint_center_trajectories')
-                this.addBasicVariable('right_leg_angle_ap')
-                this.addStretchVariable('right_leg_angle_ap')
-            end           
             if this.isVariableToAnalyze('left_foot_angle_ap')
                 this.addBasicVariable('marker_trajectories')
                 this.addBasicVariable('left_foot_angle_ap')
@@ -433,92 +407,8 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('right_foot_angle_yaw')
                 this.addStretchVariable('right_foot_angle_yaw')
             end
-            if this.isVariableToAnalyze('left_arm_angle_ap')
-                this.addBasicVariable('marker_trajectories')
-                this.addBasicVariable('left_arm_angle_ap')
-                this.addStretchVariable('left_arm_angle_ap')
-            end
-            if this.isVariableToAnalyze('right_arm_angle_ap')
-                this.addBasicVariable('marker_trajectories')
-                this.addBasicVariable('right_arm_angle_ap')
-                this.addStretchVariable('right_arm_angle_ap')
-            end
-            if this.isVariableToAnalyze('left_leg_angle_ap')
-                this.addBasicVariable('marker_trajectories')
-                this.addBasicVariable('left_leg_angle_ap')
-                this.addStretchVariable('left_leg_angle_ap')
-            end
-            if this.isVariableToAnalyze('right_leg_angle_ap')
-                this.addBasicVariable('marker_trajectories')
-                this.addBasicVariable('right_leg_angle_ap')
-                this.addStretchVariable('right_leg_angle_ap')
-            end
-            if this.isVariableToAnalyze('left_arm_phase')
-                this.addBasicVariable('marker_trajectories')
-                this.addBasicVariable('left_arm_angle_ap')
-                this.addBasicVariable('left_arm_phase')
-                this.addStretchVariable('left_arm_angle_ap')
-                this.addStretchVariable('left_arm_phase')
-            end
-            if this.isVariableToAnalyze('right_arm_phase')
-                this.addBasicVariable('marker_trajectories')
-                this.addBasicVariable('right_arm_angle_ap')
-                this.addBasicVariable('right_arm_phase')
-                this.addStretchVariable('right_arm_angle_ap')
-                this.addStretchVariable('right_arm_phase')
-            end
-            if this.isVariableToAnalyze('left_leg_phase')
-                this.addBasicVariable('marker_trajectories')
-                this.addBasicVariable('left_leg_angle_ap')
-                this.addBasicVariable('left_leg_phase')
-                this.addStretchVariable('left_leg_angle_ap')
-                this.addStretchVariable('left_leg_phase')
-            end
-            if this.isVariableToAnalyze('right_leg_phase')
-                this.addBasicVariable('marker_trajectories')
-                this.addBasicVariable('right_leg_angle_ap')
-                this.addBasicVariable('right_leg_phase')
-                this.addStretchVariable('right_leg_angle_ap')
-                this.addStretchVariable('right_leg_phase')
-            end
-            if this.isVariableToAnalyze('left_arm_right_leg_relative_phase')
-                this.addBasicVariable('marker_trajectories')
-                this.addBasicVariable('left_arm_angle_ap')
-                this.addBasicVariable('left_arm_phase')
-                this.addBasicVariable('right_leg_angle_ap')
-                this.addBasicVariable('right_leg_phase')
-                this.addBasicVariable('left_arm_right_leg_relative_phase')
-                this.addStretchVariable('left_arm_angle_ap')
-                this.addStretchVariable('left_arm_phase')
-                this.addStretchVariable('right_leg_angle_ap')
-                this.addStretchVariable('right_leg_phase')
-                this.addStretchVariable('left_arm_right_leg_relative_phase')
-            end
-            if this.isVariableToAnalyze('right_arm_left_leg_relative_phase')
-                this.addBasicVariable('marker_trajectories')
-                this.addBasicVariable('right_arm_angle_ap')
-                this.addBasicVariable('right_arm_phase')
-                this.addBasicVariable('left_leg_angle_ap')
-                this.addBasicVariable('left_leg_phase')
-                this.addBasicVariable('right_arm_left_leg_relative_phase')
-                this.addStretchVariable('right_arm_angle_ap')
-                this.addStretchVariable('right_arm_phase')
-                this.addStretchVariable('left_leg_angle_ap')
-                this.addStretchVariable('left_leg_phase')
-                this.addStretchVariable('right_arm_left_leg_relative_phase')
-            end
-            if this.isVariableToAnalyze('left_arm_phase_at_heelstrike')
-                this.addBasicVariable('marker_trajectories')
-                this.addBasicVariable('left_arm_angle_ap')
-                this.addBasicVariable('left_arm_phase')
-                this.addStretchVariable('left_arm_phase_at_heelstrike')
-            end
-            if this.isVariableToAnalyze('right_arm_phase_at_heelstrike')
-                this.addBasicVariable('marker_trajectories')
-                this.addBasicVariable('right_arm_angle_ap')
-                this.addBasicVariable('right_arm_phase')
-                this.addStretchVariable('right_arm_phase_at_heelstrike')
-            end
+            
+            % clearance above obstacle
             if this.isVariableToAnalyze('heel_clearance')
                 this.addBasicVariable('marker_trajectories')
                 this.addStretchVariable('heel_clearance')
@@ -1098,14 +988,6 @@ classdef WalkingDataCustodian < handle
                     this.time_data.pelvis_y = this.time_data.marker_trajectories;
                     success = 1;
                 end
-                if strcmp(variable_name, 'c7_x')
-                    C7_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'C7');
-                    this.basic_variable_data.c7_x = C7_trajectory(:, 1);
-                    C7_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'C7',  'indices');
-                    this.basic_variable_directions.c7_x = this.basic_variable_directions.marker_trajectories(:, C7_indices(1));
-                    this.time_data.c7_x = this.time_data.marker_trajectories;
-                    success = 1;
-                end
                 if strcmp(variable_name, 'head_angle_ap')
                     % calculate angle trajectory
                     C7_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'C7');
@@ -1327,257 +1209,6 @@ classdef WalkingDataCustodian < handle
                     this.time_data.trunk_angle_ml = this.time_data.marker_trajectories;
                     success = 1;
                 end
-                if strcmp(variable_name, 'pelvis_angle_ml')
-                    % calculate angle trajectory
-                    left_hip_cor_trajectory = extractMarkerData(this.basic_variable_data.joint_center_trajectories, this.basic_variable_labels.joint_center_trajectories, 'LHIPCOR');
-                    right_hip_cor_trajectory = extractMarkerData(this.basic_variable_data.joint_center_trajectories, this.basic_variable_labels.joint_center_trajectories, 'RHIPCOR');
-                    pelvis_vector_x = right_hip_cor_trajectory(:, 1) - left_hip_cor_trajectory(:, 1);
-                    pelvis_vector_z = right_hip_cor_trajectory(:, 3) - left_hip_cor_trajectory(:, 3);
-                    this.basic_variable_data.pelvis_angle_ml = -atan2(pelvis_vector_z, pelvis_vector_x);
-                    
-                    % determine directions
-                    LHIPCOR_indices = extractMarkerData(this.basic_variable_data.joint_center_trajectories, this.basic_variable_labels.joint_center_trajectories, 'LHIPCOR',  'indices');
-                    RHIPCOR_indices = extractMarkerData(this.basic_variable_data.joint_center_trajectories, this.basic_variable_labels.joint_center_trajectories, 'RHIPCOR',  'indices');
-                    LHIPCOR_directions_x = this.basic_variable_directions.joint_center_trajectories(:, LHIPCOR_indices(1));
-                    RHIPCOR_directions_x = this.basic_variable_directions.joint_center_trajectories(:, RHIPCOR_indices(1));
-                    LHIPCOR_directions_z = this.basic_variable_directions.joint_center_trajectories(:, LHIPCOR_indices(3));
-                    RHIPCOR_directions_z = this.basic_variable_directions.joint_center_trajectories(:, RHIPCOR_indices(3));
-                    
-                    % check whether directions of markers are the same
-                    if ~strcmp(LHIPCOR_directions_x{1}, RHIPCOR_directions_x{1})
-                        error('LHIPCOR and RHIPCOR directions found in marker data are different from each other')
-                    end
-                    if ~strcmp(LHIPCOR_directions_x{2}, RHIPCOR_directions_x{2})
-                        error('LHIPCOR and RHIPCOR directions found in marker data are different from each other')
-                    end
-                    if ~strcmp(LHIPCOR_directions_z{1}, RHIPCOR_directions_z{1})
-                        error('LHIPCOR and RHIPCOR directions found in marker data are different from each other')
-                    end
-                    if ~strcmp(LHIPCOR_directions_z{2}, RHIPCOR_directions_z{2})
-                        error('LHIPCOR and RHIPCOR directions found in marker data are different from each other')
-                    end
-                    
-                    % check assumption that y is left-right and z is down-up
-                    if ~strcmp(LHIPCOR_directions_x{1}, 'right')
-                        error('Assuming positive x-direction for markers LHIPCOR and RHIPCOR is "right"')
-                    end                  
-                    if ~strcmp(LHIPCOR_directions_x{2}, 'left')
-                        error('Assuming negative x-direction for markers LHIPCOR and RHIPCOR is "left"')
-                    end                  
-                    if ~strcmp(LHIPCOR_directions_z{1}, 'up')
-                        error('Assuming positive z-direction for markers LHIPCOR and RHIPCOR is "up"')
-                    end                  
-                    if ~strcmp(LHIPCOR_directions_z{2}, 'down')
-                        error('Assuming negative z-direction for markers LHIPCOR and RHIPCOR is "down"')
-                    end
-                    
-                    % all assumptions are met, define directions
-                    this.basic_variable_directions.pelvis_angle_ml = {'right'; 'left'};
-                    
-                    
-                    this.time_data.pelvis_angle_ml = this.time_data.joint_center_trajectories;
-                    success = 1;
-                end
-                if strcmp(variable_name, 'left_leg_angle_ml')
-                    % calculate angle trajectories
-                    left_hip_cor_trajectory = extractMarkerData(this.basic_variable_data.joint_center_trajectories, this.basic_variable_labels.joint_center_trajectories, 'LHIPCOR');
-                    left_ankle_cor_trajectory = extractMarkerData(this.basic_variable_data.joint_center_trajectories, this.basic_variable_labels.joint_center_trajectories, 'LANKLECOR');
-                    left_leg_vector_x = left_hip_cor_trajectory(:, 1) - left_ankle_cor_trajectory(:, 1);
-                    left_leg_vector_z = left_hip_cor_trajectory(:, 3) - left_ankle_cor_trajectory(:, 3);
-                    this.basic_variable_data.left_leg_angle_ml = atan2(left_leg_vector_x, left_leg_vector_z);
-                    
-                    % determine directions
-                    LHIPCOR_indices = extractMarkerData(this.basic_variable_data.joint_center_trajectories, this.basic_variable_labels.joint_center_trajectories, 'LHIPCOR',  'indices');
-                    LANKLECOR_indices = extractMarkerData(this.basic_variable_data.joint_center_trajectories, this.basic_variable_labels.joint_center_trajectories, 'LANKLECOR',  'indices');
-                    LHIPCOR_directions_x = this.basic_variable_directions.joint_center_trajectories(:, LHIPCOR_indices(1));
-                    LANKLECOR_directions_x = this.basic_variable_directions.joint_center_trajectories(:, LANKLECOR_indices(1));
-                    LHIPCOR_directions_z = this.basic_variable_directions.joint_center_trajectories(:, LHIPCOR_indices(3));
-                    LANKLECOR_directions_z = this.basic_variable_directions.joint_center_trajectories(:, LANKLECOR_indices(3));
-                    
-                    % check whether directions of markers are the same
-                    if ~strcmp(LHIPCOR_directions_x{1}, LANKLECOR_directions_x{1})
-                        error('LHIPCOR and LANKLECOR directions found in marker data are different from each other')
-                    end
-                    if ~strcmp(LHIPCOR_directions_x{2}, LANKLECOR_directions_x{2})
-                        error('LHIPCOR and LANKLECOR directions found in marker data are different from each other')
-                    end
-                    if ~strcmp(LHIPCOR_directions_z{1}, LANKLECOR_directions_z{1})
-                        error('LHIPCOR and LANKLECOR directions found in marker data are different from each other')
-                    end
-                    if ~strcmp(LHIPCOR_directions_z{2}, LANKLECOR_directions_z{2})
-                        error('LHIPCOR and LANKLECOR directions found in marker data are different from each other')
-                    end
-                    
-                    % check assumption that y is left-right and z is down-up
-                    if ~strcmp(LHIPCOR_directions_x{1}, 'right')
-                        error('Assuming positive x-direction for markers LHIPCOR and LANKLECOR is "right"')
-                    end                  
-                    if ~strcmp(LHIPCOR_directions_x{2}, 'left')
-                        error('Assuming negative x-direction for markers LHIPCOR and LANKLECOR is "left"')
-                    end                  
-                    if ~strcmp(LHIPCOR_directions_z{1}, 'up')
-                        error('Assuming positive z-direction for markers LHIPCOR and LANKLECOR is "up"')
-                    end                  
-                    if ~strcmp(LHIPCOR_directions_z{2}, 'down')
-                        error('Assuming negative z-direction for markers LHIPCOR and LANKLECOR is "down"')
-                    end
-                    
-                    % all assumptions are met, define directions
-                    this.basic_variable_directions.left_leg_angle_ml = {'right'; 'left'};
-                    
-                    this.time_data.left_leg_angle_ml = this.time_data.joint_center_trajectories;
-                    success = 1;
-                end
-                if strcmp(variable_name, 'right_leg_angle_ml')
-                    % calculate angle trajectories
-                    right_hip_cor_trajectory = extractMarkerData(this.basic_variable_data.joint_center_trajectories, this.basic_variable_labels.joint_center_trajectories, 'RHIPCOR');
-                    right_ankle_cor_trajectory = extractMarkerData(this.basic_variable_data.joint_center_trajectories, this.basic_variable_labels.joint_center_trajectories, 'RANKLECOR');
-                    right_leg_vector_x = right_hip_cor_trajectory(:, 1) - right_ankle_cor_trajectory(:, 1);
-                    right_leg_vector_z = right_hip_cor_trajectory(:, 3) - right_ankle_cor_trajectory(:, 3);
-                    this.basic_variable_data.right_leg_angle_ml = atan2(right_leg_vector_x, right_leg_vector_z);
-                    
-                    % determine directions
-                    RHIPCOR_indices = extractMarkerData(this.basic_variable_data.joint_center_trajectories, this.basic_variable_labels.joint_center_trajectories, 'RHIPCOR',  'indices');
-                    RANKLECOR_indices = extractMarkerData(this.basic_variable_data.joint_center_trajectories, this.basic_variable_labels.joint_center_trajectories, 'RANKLECOR',  'indices');
-                    RHIPCOR_directions_x = this.basic_variable_directions.joint_center_trajectories(:, RHIPCOR_indices(1));
-                    RANKLECOR_directions_x = this.basic_variable_directions.joint_center_trajectories(:, RANKLECOR_indices(1));
-                    RHIPCOR_directions_z = this.basic_variable_directions.joint_center_trajectories(:, RHIPCOR_indices(3));
-                    RANKLECOR_directions_z = this.basic_variable_directions.joint_center_trajectories(:, RANKLECOR_indices(3));
-                    
-                    % check whether directions of markers are the same
-                    if ~strcmp(RHIPCOR_directions_x{1}, RANKLECOR_directions_x{1})
-                        error('RHIPCOR and RANKLECOR directions found in marker data are different from each other')
-                    end
-                    if ~strcmp(RHIPCOR_directions_x{2}, RANKLECOR_directions_x{2})
-                        error('RHIPCOR and RANKLECOR directions found in marker data are different from each other')
-                    end
-                    if ~strcmp(RHIPCOR_directions_z{1}, RANKLECOR_directions_z{1})
-                        error('RHIPCOR and RANKLECOR directions found in marker data are different from each other')
-                    end
-                    if ~strcmp(RHIPCOR_directions_z{2}, RANKLECOR_directions_z{2})
-                        error('RHIPCOR and RANKLECOR directions found in marker data are different from each other')
-                    end
-                    
-                    % check assumption that y is left-right and z is down-up
-                    if ~strcmp(RHIPCOR_directions_x{1}, 'right')
-                        error('Assuming positive x-direction for markers RHIPCOR and RANKLECOR is "right"')
-                    end                  
-                    if ~strcmp(RHIPCOR_directions_x{2}, 'left')
-                        error('Assuming negative x-direction for markers RHIPCOR and RANKLECOR is "left"')
-                    end                  
-                    if ~strcmp(RHIPCOR_directions_z{1}, 'up')
-                        error('Assuming positive z-direction for markers RHIPCOR and RANKLECOR is "up"')
-                    end                  
-                    if ~strcmp(RHIPCOR_directions_z{2}, 'down')
-                        error('Assuming negative z-direction for markers RHIPCOR and RANKLECOR is "down"')
-                    end
-                    
-                    % all assumptions are met, define directions
-                    this.basic_variable_directions.right_leg_angle_ml = {'right'; 'left'};
-                    
-                    this.time_data.right_leg_angle_ml = this.time_data.joint_center_trajectories;
-                    success = 1;
-                end               
-                if strcmp(variable_name, 'left_leg_angle_ap')
-                    % calculate angle trajectories
-                    left_hip_cor_trajectory = extractMarkerData(this.basic_variable_data.joint_center_trajectories, this.basic_variable_labels.joint_center_trajectories, 'LHIPCOR');
-                    left_ankle_cor_trajectory = extractMarkerData(this.basic_variable_data.joint_center_trajectories, this.basic_variable_labels.joint_center_trajectories, 'LANKLECOR');
-                    left_leg_vector_y = left_hip_cor_trajectory(:, 2) - left_ankle_cor_trajectory(:, 2);
-                    left_leg_vector_z = left_hip_cor_trajectory(:, 3) - left_ankle_cor_trajectory(:, 3);
-                    this.basic_variable_data.left_leg_angle_ap = -atan2(left_leg_vector_y, left_leg_vector_z);
-                    
-                    % determine directions
-                    LHIPCOR_indices = extractMarkerData(this.basic_variable_data.joint_center_trajectories, this.basic_variable_labels.joint_center_trajectories, 'LHIPCOR',  'indices');
-                    LANKLECOR_indices = extractMarkerData(this.basic_variable_data.joint_center_trajectories, this.basic_variable_labels.joint_center_trajectories, 'LANKLECOR',  'indices');
-                    LHIPCOR_directions_y = this.basic_variable_directions.joint_center_trajectories(:, LHIPCOR_indices(2));
-                    LANKLECOR_directions_y = this.basic_variable_directions.joint_center_trajectories(:, LANKLECOR_indices(2));
-                    LHIPCOR_directions_z = this.basic_variable_directions.joint_center_trajectories(:, LHIPCOR_indices(3));
-                    LANKLECOR_directions_z = this.basic_variable_directions.joint_center_trajectories(:, LANKLECOR_indices(3));
-                    
-                    % check whether directions of markers are the same
-                    if ~strcmp(LHIPCOR_directions_y{1}, LANKLECOR_directions_y{1})
-                        error('LHIPCOR and LANKLECOR directions found in marker data are different from each other')
-                    end
-                    if ~strcmp(LHIPCOR_directions_y{2}, LANKLECOR_directions_y{2})
-                        error('LHIPCOR and LANKLECOR directions found in marker data are different from each other')
-                    end
-                    if ~strcmp(LHIPCOR_directions_z{1}, LANKLECOR_directions_z{1})
-                        error('LHIPCOR and LANKLECOR directions found in marker data are different from each other')
-                    end
-                    if ~strcmp(LHIPCOR_directions_z{2}, LANKLECOR_directions_z{2})
-                        error('LHIPCOR and LANKLECOR directions found in marker data are different from each other')
-                    end
-                    
-                    % check assumption that y is left-right and z is down-up
-                    if ~strcmp(LHIPCOR_directions_y{1}, 'forward')
-                        error('Assuming positive y-direction for markers LHIPCOR and LANKLECOR is "forward"')
-                    end                  
-                    if ~strcmp(LHIPCOR_directions_y{2}, 'backward')
-                        error('Assuming negative y-direction for markers LHIPCOR and LANKLECOR is "backward"')
-                    end                  
-                    if ~strcmp(LHIPCOR_directions_z{1}, 'up')
-                        error('Assuming positive z-direction for markers LHIPCOR and LANKLECOR is "up"')
-                    end                  
-                    if ~strcmp(LHIPCOR_directions_z{2}, 'down')
-                        error('Assuming negative z-direction for markers LHIPCOR and LANKLECOR is "down"')
-                    end
-                    
-                    % all assumptions are met, define directions
-                    this.basic_variable_directions.left_leg_angle_ap = {'forward'; 'backward'};
-                    
-                    this.time_data.left_leg_angle_ap = this.time_data.joint_center_trajectories;
-                    success = 1;
-                end
-                if strcmp(variable_name, 'right_leg_angle_ap')
-                    % calculate angle trajectories
-                    right_hip_cor_trajectory = extractMarkerData(this.basic_variable_data.joint_center_trajectories, this.basic_variable_labels.joint_center_trajectories, 'RHIPCOR');
-                    right_ankle_cor_trajectory = extractMarkerData(this.basic_variable_data.joint_center_trajectories, this.basic_variable_labels.joint_center_trajectories, 'RANKLECOR');
-                    right_leg_vector_y = right_hip_cor_trajectory(:, 2) - right_ankle_cor_trajectory(:, 2);
-                    right_leg_vector_z = right_hip_cor_trajectory(:, 3) - right_ankle_cor_trajectory(:, 3);
-                    this.basic_variable_data.right_leg_angle_ap = -atan2(right_leg_vector_y, right_leg_vector_z);
-                    
-                    % determine directions
-                    RHIPCOR_indices = extractMarkerData(this.basic_variable_data.joint_center_trajectories, this.basic_variable_labels.joint_center_trajectories, 'RHIPCOR',  'indices');
-                    RANKLECOR_indices = extractMarkerData(this.basic_variable_data.joint_center_trajectories, this.basic_variable_labels.joint_center_trajectories, 'RANKLECOR',  'indices');
-                    RHIPCOR_directions_y = this.basic_variable_directions.joint_center_trajectories(:, RHIPCOR_indices(2));
-                    RANKLECOR_directions_y = this.basic_variable_directions.joint_center_trajectories(:, RANKLECOR_indices(2));
-                    RHIPCOR_directions_z = this.basic_variable_directions.joint_center_trajectories(:, RHIPCOR_indices(3));
-                    RANKLECOR_directions_z = this.basic_variable_directions.joint_center_trajectories(:, RANKLECOR_indices(3));
-                    
-                    % check whether directions of markers are the same
-                    if ~strcmp(RHIPCOR_directions_y{1}, RANKLECOR_directions_y{1})
-                        error('RHIPCOR and RANKLECOR directions found in marker data are different from each other')
-                    end
-                    if ~strcmp(RHIPCOR_directions_y{2}, RANKLECOR_directions_y{2})
-                        error('RHIPCOR and RANKLECOR directions found in marker data are different from each other')
-                    end
-                    if ~strcmp(RHIPCOR_directions_z{1}, RANKLECOR_directions_z{1})
-                        error('RHIPCOR and RANKLECOR directions found in marker data are different from each other')
-                    end
-                    if ~strcmp(RHIPCOR_directions_z{2}, RANKLECOR_directions_z{2})
-                        error('RHIPCOR and RANKLECOR directions found in marker data are different from each other')
-                    end
-                    
-                    % check assumption that y is left-right and z is down-up
-                    if ~strcmp(RHIPCOR_directions_y{1}, 'forward')
-                        error('Assuming positive x-direction for markers RHIPCOR and RANKLECOR is "forward"')
-                    end                  
-                    if ~strcmp(RHIPCOR_directions_y{2}, 'backward')
-                        error('Assuming negative x-direction for markers RHIPCOR and RANKLECOR is "backward"')
-                    end                  
-                    if ~strcmp(RHIPCOR_directions_z{1}, 'up')
-                        error('Assuming positive z-direction for markers RHIPCOR and RANKLECOR is "up"')
-                    end                  
-                    if ~strcmp(RHIPCOR_directions_z{2}, 'down')
-                        error('Assuming negative z-direction for markers RHIPCOR and RANKLECOR is "down"')
-                    end
-                    
-                    % all assumptions are met, define directions
-                    this.basic_variable_directions.right_leg_angle_ap = {'forward'; 'backward'};
-                    
-                    this.time_data.right_leg_angle_ap = this.time_data.joint_center_trajectories;
-                    success = 1;
-                end               
                 if strcmp(variable_name, 'left_foot_angle_ap')
                     % calculate angle trajectory
                     LTOE_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LTOE');
@@ -2022,30 +1653,6 @@ classdef WalkingDataCustodian < handle
                     this.basic_variable_directions.right_foot_angle_yaw = {'clockwise'; 'counterclockwise'};
                                         
                     this.time_data.right_foot_angle_yaw = this.time_data.marker_trajectories;
-                    success = 1;
-                end
-                if strcmp(variable_name, 'left_arm_right_leg_relative_phase')
-                    left_arm_phase = this.getBasicVariableData('left_arm_phase');
-                    right_leg_phase = this.getBasicVariableData('right_leg_phase');
-                    
-                    left_arm_right_leg_relative_phase = normalizeAngle(left_arm_phase - right_leg_phase);
-                    
-                    % store
-                    this.basic_variable_data.left_arm_right_leg_relative_phase = left_arm_right_leg_relative_phase;
-                    this.basic_variable_directions.left_arm_right_leg_relative_phase = {'lead'; 'lag'};
-                    this.time_data.left_arm_right_leg_relative_phase = this.time_data.marker_trajectories;
-                    success = 1;
-                end             
-                if strcmp(variable_name, 'right_arm_left_leg_relative_phase')
-                    right_arm_phase = this.getBasicVariableData('right_arm_phase');
-                    left_leg_phase = this.getBasicVariableData('left_leg_phase');
-                    
-                    right_arm_left_leg_relative_phase = normalizeAngle(right_arm_phase - left_leg_phase);
-                    
-                    % store
-                    this.basic_variable_data.right_arm_left_leg_relative_phase = right_arm_left_leg_relative_phase;
-                    this.basic_variable_directions.right_arm_left_leg_relative_phase = {'lead'; 'lag'};
-                    this.time_data.right_arm_left_leg_relative_phase = this.time_data.marker_trajectories;
                     success = 1;
                 end
                 
@@ -2861,7 +2468,7 @@ classdef WalkingDataCustodian < handle
                         
                         stretch_data = (leg_vector_x.^2 + leg_vector_y.^2 + leg_vector_z.^2).^(0.5);
                     end
-                    if strcmp(variable_name, 'leg_angle_l')
+                    if strcmp(variable_name, 'leg_angle_ap_l')
                         LANK_y = this.getTimeNormalizedData('marker:LANK_y', this_stretch_times);
                         LANK_z = this.getTimeNormalizedData('marker:LANK_z', this_stretch_times);
 
@@ -2878,7 +2485,7 @@ classdef WalkingDataCustodian < handle
                         
                         stretch_data = atan2(leg_vector_y, leg_vector_z);
                     end
-                    if strcmp(variable_name, 'leg_angle_r')
+                    if strcmp(variable_name, 'leg_angle_ap_r')
                         RANK_y = this.getTimeNormalizedData('marker:RANK_y', this_stretch_times);
                         RANK_z = this.getTimeNormalizedData('marker:RANK_z', this_stretch_times);
 
@@ -2896,68 +2503,7 @@ classdef WalkingDataCustodian < handle
                         stretch_data = atan2(leg_vector_y, leg_vector_z);
                     end
                     
-                    if strcmp(variable_name, 'left_arm_phase') || strcmp(variable_name, 'right_arm_phase') || strcmp(variable_name, 'left_leg_phase') || strcmp(variable_name, 'right_leg_phase')
-     
-                        variable_time = this.getTimeData(variable_name);
-                        variable_data = this.getBasicVariableData(variable_name);
-
-                        band_time_indices = zeros(size(this_stretch_times));
-                        for i_band_time = 1 : length(this_stretch_times)
-                            [~, time_index] = min(abs(variable_time - this_stretch_times(i_band_time)));
-                            band_time_indices(i_band_time) = time_index;
-                        end
-                        time_extracted = variable_time(band_time_indices(1) : band_time_indices(end));
-                        data_extracted = variable_data(band_time_indices(1) : band_time_indices(end));
-                        band_time_indices_local = band_time_indices - band_time_indices(1) + 1;
-                                  
-                        % make sure there's no leaf change within this data stretch
-                        data_extracted_groomed = data_extracted;
-                        for i_time = 2 : length(time_extracted)
-                            if abs(data_extracted_groomed(i_time) - data_extracted_groomed(i_time-1)) > 5
-                                % normalize
-                                while data_extracted_groomed(i_time) - data_extracted_groomed(i_time-1) <= -pi
-                                    data_extracted_groomed(i_time) = data_extracted_groomed(i_time) + 2*pi;
-                                end
-                                while data_extracted_groomed(i_time) - data_extracted_groomed(i_time-1) > pi
-                                    data_extracted_groomed(i_time) = data_extracted_groomed(i_time) - 2*pi;
-                                end
-                            end
-                        end
-                        
-                        % normalize data in time
-                        if ~isempty(time_extracted) && ~any(isnan(data_extracted))
-                            % create normalized time
-                            number_of_bands = length(band_time_indices_local) - 1;
-                            time_normalized = [];
-                            for i_band = 1 : number_of_bands
-                                time_normalized_this_band = linspace(time_extracted(band_time_indices_local(i_band)), time_extracted(band_time_indices_local(i_band+1)), this.number_of_time_steps_normalized)';
-                                if i_band > 1
-                                    % start time of this band is end time of the last band, so remove the duplicate point
-                                    time_normalized_this_band = time_normalized_this_band(2:end);
-                                end
-                                time_normalized = [time_normalized; time_normalized_this_band]; %#ok<AGROW>
-                            end
-                            % time-normalize data
-                            data_normalized = spline(time_extracted, data_extracted_groomed, time_normalized);
-                        else
-                            % create normalized time
-                            number_of_bands = length(band_time_indices_local) - 1;
-                            time_normalized = [];
-                            for i_band = 1 : number_of_bands
-                                time_normalized_this_band = linspace(time_extracted(band_time_indices_local(i_band)), time_extracted(band_time_indices_local(i_band+1)), this.number_of_time_steps_normalized)';
-                                if i_band > 1
-                                    % start time of this band is end time of the last band, so remove the duplicate point
-                                    time_normalized_this_band = time_normalized_this_band(2:end);
-                                end
-                                time_normalized = [time_normalized; time_normalized_this_band]; %#ok<AGROW>
-                            end
-                            data_normalized = time_normalized * NaN;
-                        end
-                        
-                        % re-normalize angle
-                        stretch_data = normalizeAngle(data_normalized);
-                    end
-                    
+                    % clearance above obstacle
                     if strcmp(variable_name, 'heel_clearance')
                         stretch_data = zeros(number_of_bands, 1);
                         for i_band = 1 : number_of_bands
@@ -3046,6 +2592,7 @@ classdef WalkingDataCustodian < handle
                             end
                         end
                     end
+                    
                     % store in cell
                     stretch_variables{i_variable} = [stretch_variables{i_variable} stretch_data];
                 end
@@ -3356,12 +2903,13 @@ classdef WalkingDataCustodian < handle
             if strcmp(variable_name, 'leg_length_r')
                 stretch_directions_new = {'+'; '-'};
             end
-            if strcmp(variable_name, 'leg_angle_l')
+            if strcmp(variable_name, 'leg_angle_ap_l')
                 stretch_directions_new = {'top leans forward'; 'top leans backward'};
             end
-            if strcmp(variable_name, 'leg_angle_r')
+            if strcmp(variable_name, 'leg_angle_ap_r')
                 stretch_directions_new = {'top leans forward'; 'top leans backward'};
             end
+            
             if strcmp(variable_name, 'left_arm_phase') || strcmp(variable_name, 'right_arm_phase') || strcmp(variable_name, 'left_leg_phase') || strcmp(variable_name, 'right_leg_phase')
                 % TODO: not tested yet
                 stretch_directions_new = this.basic_variable_directions.(variable_name);
