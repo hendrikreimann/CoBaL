@@ -150,19 +150,19 @@ classdef WalkingDataCustodian < handle
             end
              
             % for each possible variable to analyze, list the basic and required variables required to calculate it
-            if this.isVariableToAnalyze('marker_trajectories')
-                this.addBasicVariable('marker_trajectories')
-            end
-            if this.isVariableToAnalyze('joint_center_trajectories')
-                this.addBasicVariable('joint_center_trajectories')
-            end
-            if this.isVariableToAnalyze('com_trajectories')
-                this.addBasicVariable('com_trajectories')
-            end
-            if this.isVariableToAnalyze('forceplate_trajectories')
-                this.addBasicVariable('forceplate_trajectories')
-            end
-            
+%             if this.isVariableToAnalyze('marker_trajectories')
+%                 this.addBasicVariable('marker_trajectories')
+%             end
+%             if this.isVariableToAnalyze('joint_center_trajectories')
+%                 this.addBasicVariable('joint_center_trajectories')
+%             end
+%             if this.isVariableToAnalyze('com_trajectories')
+%                 this.addBasicVariable('com_trajectories')
+%             end
+%             if this.isVariableToAnalyze('forceplate_trajectories')
+%                 this.addBasicVariable('forceplate_trajectories')
+%             end
+
             % kinematics
             if this.isVariableToAnalyze('lheel_from_mpsis_initial_x')
                 this.addBasicVariable('marker_trajectories')
@@ -392,46 +392,6 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('com_rough_y_vel')
                 this.addStretchVariable('com_rough_y_vel')
             end 
-            if this.isVariableToAnalyze('cop_to_com_vel_scaled_x')
-                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'in-house')
-                    this.addBasicVariable('com_trajectories') % in-house kinematics
-                end
-                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'opensim')
-                    this.addBasicVariable('com_position_trajectories') % opensim kinematics
-                end
-                this.addBasicVariable('com')
-                this.addBasicVariable('com_x')
-                this.addBasicVariable('com_x_vel')
-                this.addStretchVariable('com_x_vel')
-                this.addBasicVariable('com_z')
-                this.addStretchVariable('com_z')
-                this.addBasicVariable('total_forceplate_cop_world')
-                this.addBasicVariable('cop_x')
-                this.addBasicVariable('cop_x_vel')
-                this.addStretchVariable('cop_x')
-                this.addStretchVariable('com_x')
-                this.addStretchVariable('cop_x_vel')
-                this.addStretchVariable('cop_to_com_vel_scaled_x')
-            end
-            if this.isVariableToAnalyze('cop_to_com_vel_scaled_y')
-                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'in-house')
-                    this.addBasicVariable('com_trajectories') % in-house kinematics
-                end
-                if strcmp(this.study_settings.get('inverse_kinematics_source', 1), 'opensim')
-                    this.addBasicVariable('com_position_trajectories') % opensim kinematics
-                end
-                this.addBasicVariable('com')
-                this.addBasicVariable('com_y')
-                this.addBasicVariable('com_y_vel')
-                this.addStretchVariable('com_y_vel')
-                this.addBasicVariable('com_z')
-                this.addStretchVariable('com_z')
-                this.addBasicVariable('total_forceplate_cop_world')
-                this.addBasicVariable('cop_y')
-                this.addBasicVariable('cop_y_vel')
-                this.addStretchVariable('cop_y_vel')
-                this.addStretchVariable('cop_to_com_vel_scaled_y')
-            end
             if this.isVariableToAnalyze('head_angle_ap')
                 this.addBasicVariable('marker_trajectories')
                 this.addBasicVariable('head_angle_ap')
@@ -736,19 +696,6 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('cop_y_vel')
                 this.addBasicVariable('cop_y_acc')
                 this.addStretchVariable('cop_y_acc')
-            end
-            if this.isVariableToAnalyze('cop_x_vel')
-                this.addBasicVariable('total_forceplate_cop_world')
-                this.addBasicVariable('cop_x')
-                this.addBasicVariable('cop_x_vel')
-                this.addStretchVariable('cop_x_vel')
-            end
-            if this.isVariableToAnalyze('cop_x_acc')
-                this.addBasicVariable('total_forceplate_cop_world')
-                this.addBasicVariable('cop_x')
-                this.addBasicVariable('cop_x_vel')
-                this.addBasicVariable('cop_x_acc')
-                this.addStretchVariable('cop_x_acc')
             end
             
             % protocol
@@ -2415,68 +2362,6 @@ classdef WalkingDataCustodian < handle
                     this.time_data.com_z_acc = time;
                     success = 1;
                 end
-            
-                % force plate
-                if strcmp(variable_name, 'cop_y_vel')
-                    cop_y = this.getBasicVariableData('cop_y');
-                    cop_y(cop_y==0) = NaN;
-                    time = this.getTimeData('cop_y');
-                    filter_order = this.study_settings.get('force_plate_derivative_filter_order');
-                    cutoff_frequency = this.study_settings.get('force_plate_derivative_filter_cutoff');
-                    sampling_rate = 1/median(diff(time));
-                    [b, a] = butter(filter_order, cutoff_frequency/(sampling_rate/2));	% set filter parameters for butterworth filter: 2=order of filter;
-                    cop_y_vel = deriveByTime(nanfiltfilt(b, a, cop_y), 1/sampling_rate);
-                    cop_y_vel(isnan(cop_y_vel)) = 0;
-                    this.basic_variable_data.cop_y_vel = cop_y_vel;
-                    this.basic_variable_directions.cop_y_vel = this.basic_variable_directions.cop_y;
-                    this.time_data.cop_y_vel = time;
-                    success = 1;
-                end
-                if strcmp(variable_name, 'cop_y_acc')
-                    cop_y_vel = this.getBasicVariableData('cop_y_vel');
-                    cop_y_vel(cop_y_vel==0) = NaN;
-                    time = this.getTimeData('cop_y_vel');
-                    filter_order = this.study_settings.get('force_plate_derivative_filter_order');
-                    cutoff_frequency = this.study_settings.get('force_plate_derivative_filter_cutoff');
-                    sampling_rate = 1/median(diff(time));
-                    [b, a] = butter(filter_order, cutoff_frequency/(sampling_rate/2));	% set filter parameters for butterworth filter: 2=order of filter;
-                    cop_y_acc = deriveByTime(nanfiltfilt(b, a, cop_y_vel), 1/sampling_rate);
-                    cop_y_acc(isnan(cop_y_acc)) = 0;
-                    this.basic_variable_data.cop_y_acc = cop_y_acc;
-                    this.basic_variable_directions.cop_y_acc = this.basic_variable_directions.cop_y;
-                    this.time_data.cop_y_acc = time;
-                    success = 1;
-                end
-                if strcmp(variable_name, 'cop_x_vel')
-                    cop_x = this.getBasicVariableData('cop_x');
-                    cop_x(cop_x==0) = NaN;
-                    time = this.getTimeData('cop_x');
-                    filter_order = this.study_settings.get('force_plate_derivative_filter_order');
-                    cutoff_frequency = this.study_settings.get('force_plate_derivative_filter_cutoff');
-                    sampling_rate = 1/median(diff(time));
-                    [b, a] = butter(filter_order, cutoff_frequency/(sampling_rate/2));	% set filter parameters for butterworth filter: 2=order of filter;
-                    cop_x_vel = deriveByTime(nanfiltfilt(b, a, cop_x), 1/sampling_rate);
-                    cop_x_vel(isnan(cop_x_vel)) = 0;
-                    this.basic_variable_data.cop_x_vel = cop_x_vel;
-                    this.basic_variable_directions.cop_x_vel = this.basic_variable_directions.cop_x;
-                    this.time_data.cop_x_vel = time;
-                    success = 1;
-                end
-                if strcmp(variable_name, 'cop_x_acc')
-                    cop_x_vel = this.getBasicVariableData('cop_x_vel');
-                    cop_x_vel(cop_x_vel==0) = NaN;
-                    time = this.getTimeData('cop_x_vel');
-                    filter_order = this.study_settings.get('force_plate_derivative_filter_order');
-                    cutoff_frequency = this.study_settings.get('force_plate_derivative_filter_cutoff');
-                    sampling_rate = 1/median(diff(time));
-                    [b, a] = butter(filter_order, cutoff_frequency/(sampling_rate/2));	% set filter parameters for butterworth filter: 2=order of filter;
-                    cop_x_acc = deriveByTime(nanfiltfilt(b, a, cop_x_vel), 1/sampling_rate);
-                    cop_x_acc(isnan(cop_x_acc)) = 0;
-                    this.basic_variable_data.cop_x_acc = cop_x_acc;
-                    this.basic_variable_directions.cop_x_acc = this.basic_variable_directions.cop_x;
-                    this.time_data.cop_x_acc = time;
-                    success = 1;
-                end
                 
                 % remove data flagged in subject settings
                 if any(strcmp(data_to_remove_this_trial, variable_name))
@@ -3417,38 +3302,6 @@ classdef WalkingDataCustodian < handle
                         
                         % re-normalize angle
                         stretch_data = normalizeAngle(data_normalized);
-                    end
-                    
-                    if strcmp(variable_name, 'cop_to_com_vel_scaled_x')
-                        com_z = stretch_variables{strcmp(this.stretch_variable_names, 'com_z')}(:, i_stretch);
-                        com_x_vel = stretch_variables{strcmp(this.stretch_variable_names, 'com_x_vel')}(:, i_stretch);
-                        cop_x_vel = stretch_variables{strcmp(this.stretch_variable_names, 'cop_x_vel')}(:, i_stretch);
-                        
-                        g = 9.81;
-                        omega = (g./com_z).^(0.5);
-                        
-                        stretch_data = (com_x_vel - cop_x_vel) ./ omega;
-                        
-                        
-                        com_x = stretch_variables{strcmp(this.stretch_variable_names, 'com_x')}(:, i_stretch);
-                        cop_x = stretch_variables{strcmp(this.stretch_variable_names, 'cop_x')}(:, i_stretch);
-                        pos = com_x - cop_x;
-                        
-                        
-                    end
-                    if strcmp(variable_name, 'cop_to_com_vel_scaled_y')
-                        com_y_vel = stretch_variables{strcmp(this.stretch_variable_names, 'com_y_vel')}(:, i_stretch);
-                        cop_y_vel = stretch_variables{strcmp(this.stretch_variable_names, 'cop_y_vel')}(:, i_stretch);
-                        stretch_data = com_y_vel - cop_y_vel;
-                    end
-                    if strcmp(variable_name, 'com_x_vel_scaled')
-                        com_z = stretch_variables{strcmp(this.stretch_variable_names, 'com_z')}(:, i_stretch);
-                        com_x_vel = stretch_variables{strcmp(this.stretch_variable_names, 'com_x_vel')}(:, i_stretch);
-                        
-                        g = 9.81;
-                        omega = (g./com_z).^(0.5);
-                        
-                        stretch_data = com_x_vel ./ omega;
                     end
                     
                     if strcmp(variable_name, 'heel_clearance')
