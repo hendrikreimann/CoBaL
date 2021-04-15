@@ -38,7 +38,6 @@ function calculateTimeDerivatives(varargin)
     parser.KeepUnmatched = true;
     addParameter(parser, 'visualize', false)
     parse(parser, varargin{:})
-    visualize = parser.Results.visualize;
     
     % load settings
     subject_settings = loadSettingsFromFile('subject');
@@ -60,7 +59,21 @@ function calculateTimeDerivatives(varargin)
                 source_variable_name = variable_table.source_variable_name{i_variable};
                 filter_order = str2double(variable_table.filter_order{i_variable});
                 cutoff_frequency = str2double(variable_table.cutoff_frequency{i_variable});
-                [data, time, sampling_rate, labels, directions, success] = loadData(collection_date, subject_id, trial_type, i_trial, source_variable_name); %#ok<ASGLU>
+                
+                % check if source data is also a derivative
+                if numel(source_variable_name) >= 11 && strcmp(source_variable_name(1:11), 'derivative:')
+                    this_variable_split = strsplit(source_variable_name, ':');
+                    this_variable_label = this_variable_split{2};
+                    
+                    data = data_to_save.(this_variable_label);
+                    time = data_to_save.(['time_' this_variable_label]);
+                    sampling_rate = data_to_save.(['sampling_rate_' this_variable_label]);
+%                     labels = data_to_save.(['label_' this_variable_label]);
+                    directions = data_to_save.(['directions_' this_variable_label]);
+                else
+                    [data, time, sampling_rate, labels, directions, success] = loadData(collection_date, subject_id, trial_type, i_trial, source_variable_name); %#ok<ASGLU>
+                end
+                
                 
                 % filter
                 [b_filter, a_filter] = butter(filter_order, cutoff_frequency/(sampling_rate/2));

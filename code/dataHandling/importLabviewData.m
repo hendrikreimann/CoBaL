@@ -27,9 +27,8 @@
 % Output files will be saved to folders "raw" and "processed".
 
 function importLabviewData()
-
-
     %% prepare
+    study_settings = loadSettingsFromFile('study');
     milliseconds_to_seconds = 1e-3;
 
     % create folders if necessary
@@ -88,12 +87,26 @@ function importLabviewData()
                 first_qtm_time_stamp_first = variables_to_save.qtmTimeStamp(find(~isnan(variables_to_save.qtmTimeStamp), 1, 'first')); %#ok<NASGU>
                 first_qtm_time_stamp_last = variables_to_save.qtmTimeStamp(find(~isnan(variables_to_save.qtmTimeStamp), 1, 'last')); %#ok<NASGU>
             end
+            
+            % resample to desired sampling rate
+            sampling_rate = study_settings.get('labview_resampling_rate', 1);
+            dt = 1/sampling_rate;
+            time_old = variables_to_save.time;
+            time_new = time_old(1) : dt : time_old(end);
+            
+            field_names = fieldnames(variables_to_save);
+            for i_field = 1 : length(field_names)
+                this_field = field_names{i_field};
+                variables_to_save.(this_field) = interp1(time_old, variables_to_save.(this_field), time_new)';
+                
+            end
+            variables_to_save.time = time_new;
 
             % add data source
             variables_to_save.data_source = 'labview';
 
             % add sampling rate
-            variables_to_save.sampling_rate = NaN;
+            variables_to_save.sampling_rate = sampling_rate;
 
             % save
             save_folder = 'processed';

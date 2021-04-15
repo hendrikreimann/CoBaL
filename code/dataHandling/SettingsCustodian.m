@@ -551,6 +551,9 @@ classdef SettingsCustodian < handle
             if strcmp(property_name, 'filter_cutoff_belt')
                 default_data = 10;
             end
+            if strcmp(property_name, 'labview_resampling_rate')
+                default_data = 100;
+            end
             
             
             if strcmp(property_name, 'marker_to_segment_map')
