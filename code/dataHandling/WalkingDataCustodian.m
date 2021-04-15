@@ -136,7 +136,7 @@ classdef WalkingDataCustodian < handle
                     this_variable_type = this_variable_split{1};
                     this_variable_label = this_variable_split{2};
                     
-                    if strcmp(this_variable_type, 'elementary')
+                    if strcmp(this_variable_type, 'elementary') || strcmp(this_variable_type, 'derivative')
                         % not a true compound, but label is elementary variable
                         this.addBasicVariable(this_variable_label)
                         this.addStretchVariable(this_variable_label)
@@ -148,8 +148,7 @@ classdef WalkingDataCustodian < handle
                 end
                 
             end
-            
-            
+             
             % for each possible variable to analyze, list the basic and required variables required to calculate it
             if this.isVariableToAnalyze('marker_trajectories')
                 this.addBasicVariable('marker_trajectories')
@@ -847,7 +846,7 @@ classdef WalkingDataCustodian < handle
                 this_variable_split = strsplit(variable_name, ':');
                 this_variable_type = this_variable_split{1};
                 this_variable_label = this_variable_split{2};
-                if strcmp(this_variable_type, 'elementary')
+                if strcmp(this_variable_type, 'elementary') || strcmp(this_variable_type, 'derivative')
                     % not a true compound, but label is elementary variable
                     name_to_use = this_variable_label;
                 else                    
@@ -868,7 +867,7 @@ classdef WalkingDataCustodian < handle
                 this_variable_type = this_variable_split{1};
                 this_variable_label = this_variable_split{2};
                 
-                if strcmp(this_variable_type, 'elementary')
+                if strcmp(this_variable_type, 'elementary') || strcmp(this_variable_type, 'derivative')
                     % not a true compound, but label is elementary variable
                     variable_data = this.basic_variable_data.(this_variable_label);
                     if nargout > 1
@@ -944,7 +943,7 @@ classdef WalkingDataCustodian < handle
                     this_variable_split = strsplit(variable_name, ':');
                     this_variable_type = this_variable_split{1};
                     this_variable_label = this_variable_split{2};
-                    if strcmp(this_variable_type, 'elementary')
+                    if strcmp(this_variable_type, 'elementary') || strcmp(this_variable_type, 'derivative')
                         % not a true compound, but label is elementary variable
                         [data, time, sampling_rate, labels, directions, success] = loadData(this.date, this.subject_id, trial_type, trial_number, this_variable_label, 'optional'); %#ok<ASGLU>
                         if success
