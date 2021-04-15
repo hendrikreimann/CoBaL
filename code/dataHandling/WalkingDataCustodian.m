@@ -166,19 +166,21 @@ classdef WalkingDataCustodian < handle
             % kinematics
             if this.isVariableToAnalyze('lheel_from_mpsis_initial_x')
                 this.addBasicVariable('marker_trajectories')
-                this.addBasicVariable('mpsis_x')
                 this.addStretchVariable('lheel_from_mpsis_initial_x')                
             end
+            if this.isVariableToAnalyze('rheel_from_mpsis_initial_x')
+                this.addBasicVariable('marker_trajectories')
+                this.addStretchVariable('rheel_from_mpsis_initial_x')
+            end
+            if this.isVariableToAnalyze('mpsis_from_mpsis_initial_x')
+                this.addBasicVariable('marker_trajectories')
+                this.addStretchVariable('mpsis_from_mpsis_initial_x')
+            end            
             if this.isVariableToAnalyze('lheel_from_com_initial_x')
                 this.addBasicVariable('marker_trajectories')
                 this.addBasicVariable('com')
                 this.addBasicVariable('com_x')
                 this.addStretchVariable('lheel_from_com_initial_x')                
-            end
-            if this.isVariableToAnalyze('rheel_from_mpsis_initial_x')
-                this.addBasicVariable('marker_trajectories')
-                this.addBasicVariable('mpsis_x')
-                this.addStretchVariable('rheel_from_mpsis_initial_x')
             end
             if this.isVariableToAnalyze('rheel_from_com_initial_x')
                 this.addBasicVariable('marker_trajectories')
@@ -186,11 +188,6 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('com_x')
                 this.addStretchVariable('rheel_from_com_initial_x')
             end
-            if this.isVariableToAnalyze('mpsis_from_mpsis_initial_x')
-                this.addBasicVariable('marker_trajectories')
-                this.addBasicVariable('mpsis_x')
-                this.addStretchVariable('mpsis_from_mpsis_initial_x')
-            end            
             if this.isVariableToAnalyze('com_from_com_initial_x')
                 this.addBasicVariable('marker_trajectories')
                 this.addBasicVariable('com')
@@ -217,18 +214,14 @@ classdef WalkingDataCustodian < handle
             end
             if this.isVariableToAnalyze('xcom_mpsis_x')
                 this.addBasicVariable('marker_trajectories')
-                this.addBasicVariable('mpsis_x')
-                this.addBasicVariable('mpsis_y')
-                this.addBasicVariable('mpsis_z')
-                this.addBasicVariable('mpsis_x_vel')
+                this.addBasicVariable('derivative:LPSI_x_vel')
+                this.addBasicVariable('derivative:RPSI_x_vel')
                 this.addStretchVariable('xcom_mpsis_x')
             end
             if this.isVariableToAnalyze('xcom_mpsis_y')
                 this.addBasicVariable('marker_trajectories')
-                this.addBasicVariable('mpsis_x')
-                this.addBasicVariable('mpsis_y')
-                this.addBasicVariable('mpsis_z')
-                this.addBasicVariable('mpsis_y_vel')
+                this.addBasicVariable('derivative:LPSI_y_vel')
+                this.addBasicVariable('derivative:RPSI_y_vel')
                 this.addStretchVariable('xcom_mpsis_y')
             end               
             if this.isVariableToAnalyze('xcom_rough_x')
@@ -269,19 +262,15 @@ classdef WalkingDataCustodian < handle
             end
             if this.isVariableToAnalyze('mos_mpsis_x')
                 this.addBasicVariable('marker_trajectories')
-                this.addBasicVariable('mpsis_x')
-                this.addBasicVariable('mpsis_y')
-                this.addBasicVariable('mpsis_z')
-                this.addBasicVariable('mpsis_x_vel')
+                this.addBasicVariable('derivative:LPSI_x_vel')
+                this.addBasicVariable('derivative:RPSI_x_vel')
                 this.addStretchVariable('xcom_mpsis_x')
                 this.addStretchVariable('mos_mpsis_x')
             end
             if this.isVariableToAnalyze('mos_mpsis_y')
                 this.addBasicVariable('marker_trajectories')
-                this.addBasicVariable('mpsis_x')
-                this.addBasicVariable('mpsis_y')
-                this.addBasicVariable('mpsis_z')
-                this.addBasicVariable('mpsis_y_vel')
+                this.addBasicVariable('derivative:LPSI_y_vel')
+                this.addBasicVariable('derivative:RPSI_y_vel')
                 this.addStretchVariable('xcom_mpsis_y')
                 this.addStretchVariable('mos_mpsis_y')
             end
@@ -381,18 +370,6 @@ classdef WalkingDataCustodian < handle
                 this.addStretchVariable('step_time')
                 this.addStretchVariable('velocity')
             end
-            if this.isVariableToAnalyze('mpsis_x')
-                this.addBasicVariable('mpsis_x')
-                this.addStretchVariable('mpsis_x')
-            end
-            if this.isVariableToAnalyze('mpsis_y')
-                this.addBasicVariable('mpsis_y')
-                this.addStretchVariable('mpsis_y')
-            end  
-            if this.isVariableToAnalyze('mpsis_z')
-                this.addBasicVariable('mpsis_z')
-                this.addStretchVariable('mpsis_z')
-            end
             if this.isVariableToAnalyze('com_rough_x')
                 this.addBasicVariable('com_rough_x')
                 this.addStretchVariable('com_rough_x')
@@ -404,16 +381,6 @@ classdef WalkingDataCustodian < handle
             if this.isVariableToAnalyze('com_rough_z')
                 this.addBasicVariable('com_rough_z')
                 this.addStretchVariable('com_rough_z')
-            end
-            if this.isVariableToAnalyze('mpsis_x_vel')
-                this.addBasicVariable('mpsis_x')
-                this.addBasicVariable('mpsis_x_vel')
-                this.addStretchVariable('mpsis_x_vel')
-            end
-            if this.isVariableToAnalyze('mpsis_y_vel')
-                this.addBasicVariable('mpsis_y')
-                this.addBasicVariable('mpsis_y_vel')
-                this.addStretchVariable('mpsis_y_vel')
             end
             if this.isVariableToAnalyze('com_rough_x_vel')
                 this.addBasicVariable('com_rough_x')
@@ -789,32 +756,6 @@ classdef WalkingDataCustodian < handle
                 this.addBasicVariable('stimulus_state_trajectory')
                 this.addStretchVariable('stimulus_state_trajectory')
             end
-            
-            % labview
-            if this.isVariableToAnalyze('belt_speed')
-                this.addBasicVariable('belt_speed_right_trajectory')
-                this.addBasicVariable('belt_speed_left_trajectory')
-                this.addBasicVariable('belt_speed')
-                this.addStretchVariable('belt_speed')
-            end
-            if this.isVariableToAnalyze('belt_acceleration')
-                this.addBasicVariable('belt_speed_right_trajectory')
-                this.addBasicVariable('belt_speed_left_trajectory')
-                this.addBasicVariable('belt_speed')
-                this.addBasicVariable('belt_acceleration')
-                this.addStretchVariable('belt_speed')
-                this.addStretchVariable('belt_acceleration')
-            end
-            if this.isVariableToAnalyze('belt_jerk')
-                this.addBasicVariable('belt_speed_right_trajectory')
-                this.addBasicVariable('belt_speed_left_trajectory')
-                this.addBasicVariable('belt_speed')
-                this.addBasicVariable('belt_acceleration')
-                this.addBasicVariable('belt_jerk')
-                this.addStretchVariable('belt_speed')
-                this.addStretchVariable('belt_acceleration')
-                this.addStretchVariable('belt_jerk')
-            end
         end
         
         % interface
@@ -857,7 +798,6 @@ classdef WalkingDataCustodian < handle
                 name_to_use = variable_name;
             end
             
-%             eval(['time_data = this.time_data.' name_to_use ';']);
             time_data = this.time_data.(name_to_use);
         end
         function [variable_data, variable_directions] = getBasicVariableData(this, variable_name)
@@ -966,63 +906,6 @@ classdef WalkingDataCustodian < handle
                 % calculate variables that can't be loaded
                 
                 % kinematics
-                if strcmp(variable_name, 'mpsis_x')
-                    LPSI_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LPSI');
-                    RPSI_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RPSI');
-                    MPSI_trajectory = (LPSI_trajectory + RPSI_trajectory) * 0.5;
-                    this.basic_variable_data.mpsis_x = MPSI_trajectory(:, 1);
-                    LPSI_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LPSI',  'indices');
-                    RPSI_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RPSI',  'indices');
-                    LPSI_directions = this.basic_variable_directions.marker_trajectories(:, LPSI_indices(1));
-                    RPSI_directions = this.basic_variable_directions.marker_trajectories(:, RPSI_indices(1));
-                    if ~strcmp(LPSI_directions{1}, RPSI_directions{1})
-                        error('LPSI and RPSI directions found in marker data are different from each other')
-                    end
-                    if ~strcmp(LPSI_directions{2}, RPSI_directions{2})
-                        error('LPSI and RPSI directions found in marker data are different from each other')
-                    end
-                    this.basic_variable_directions.mpsis_x = LPSI_directions;
-                    this.time_data.mpsis_x = this.time_data.marker_trajectories;
-                    success = 1;
-                end
-                if strcmp(variable_name, 'mpsis_y')
-                    LPSI_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LPSI');
-                    RPSI_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RPSI');
-                    MPSI_trajectory = (LPSI_trajectory + RPSI_trajectory) * 0.5;
-                    this.basic_variable_data.mpsis_y = MPSI_trajectory(:, 2);
-                    LPSI_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LPSI',  'indices');
-                    RPSI_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RPSI',  'indices');
-                    LPSI_directions = this.basic_variable_directions.marker_trajectories(:, LPSI_indices(2));
-                    RPSI_directions = this.basic_variable_directions.marker_trajectories(:, RPSI_indices(2));
-                    if ~strcmp(LPSI_directions{1}, RPSI_directions{1})
-                        error('LPSI and RPSI directions found in marker data are different from each other')
-                    end
-                    if ~strcmp(LPSI_directions{2}, RPSI_directions{2})
-                        error('LPSI and RPSI directions found in marker data are different from each other')
-                    end
-                    this.basic_variable_directions.mpsis_y = LPSI_directions;
-                    this.time_data.mpsis_y = this.time_data.marker_trajectories;
-                    success = 1;
-                end
-                if strcmp(variable_name, 'mpsis_z')
-                    LPSI_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LPSI');
-                    RPSI_trajectory = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RPSI');
-                    MPSI_trajectory = (LPSI_trajectory + RPSI_trajectory) * 0.5;
-                    this.basic_variable_data.mpsis_z = MPSI_trajectory(:, 3);
-                    LPSI_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'LPSI',  'indices');
-                    RPSI_indices = extractMarkerData(this.basic_variable_data.marker_trajectories, this.basic_variable_labels.marker_trajectories, 'RPSI',  'indices');
-                    LPSI_directions = this.basic_variable_directions.marker_trajectories(:, LPSI_indices(3));
-                    RPSI_directions = this.basic_variable_directions.marker_trajectories(:, RPSI_indices(3));
-                    if ~strcmp(LPSI_directions{1}, RPSI_directions{1})
-                        error('LPSI and RPSI directions found in marker data are different from each other')
-                    end
-                    if ~strcmp(LPSI_directions{2}, RPSI_directions{2})
-                        error('LPSI and RPSI directions found in marker data are different from each other')
-                    end
-                    this.basic_variable_directions.mpsis_z = LPSI_directions;
-                    this.time_data.mpsis_z = this.time_data.marker_trajectories;
-                    success = 1;
-                end
                 if strcmp(variable_name, 'com_rough_x')
                     component_x = 1;
                     
@@ -1374,44 +1257,6 @@ classdef WalkingDataCustodian < handle
                     this.time_data.(variable_name) = this.time_data.marker_trajectories;
                     success = 1;
                 end
-                
-                if strcmp(variable_name, 'mpsis_x_vel')
-                    mpsis_x = this.getBasicVariableData('mpsis_x');
-                    mpsis_x(mpsis_x==0) = NaN;
-                    time = this.getTimeData('mpsis_x');
-                    filter_order = this.study_settings.get('filter_order_mpsis_vel');
-                    cutoff_frequency = this.study_settings.get('filter_cutoff_mpsis_vel');
-                    sampling_rate = 1/median(diff(time));
-                    [b, a] = butter(filter_order, cutoff_frequency/(sampling_rate/2));
-                    if any(~isnan(mpsis_x))
-                        mpsis_x_vel = deriveByTime(nanfiltfilt(b, a, mpsis_x), 1/sampling_rate);
-                    else
-                        mpsis_x_vel = ones(size(mpsis_x)) * NaN;
-                    end
-                    this.basic_variable_data.mpsis_x_vel = mpsis_x_vel;
-                    this.basic_variable_directions.mpsis_x_vel = this.basic_variable_directions.mpsis_x;
-                    this.time_data.mpsis_x_vel = time;
-                    success = 1;
-                end
-                if strcmp(variable_name, 'mpsis_y_vel')
-                    mpsis_y = this.getBasicVariableData('mpsis_y');
-                    mpsis_y(mpsis_y==0) = NaN;
-                    time = this.getTimeData('mpsis_y');
-                    filter_order = this.study_settings.get('filter_order_mpsis_vel');
-                    cutoff_frequency = this.study_settings.get('filter_cutoff_mpsis_vel');
-                    sampling_rate = 1/median(diff(time));
-                    [b, a] = butter(filter_order, cutoff_frequency/(sampling_rate/2));	% set filter parameters for butterworth filter: 2=order of filter;
-                    if any(~isnan(mpsis_y))
-                        mpsis_y_vel = deriveByTime(nanfiltfilt(b, a, mpsis_y), 1/sampling_rate);
-                    else
-                        mpsis_y_vel = ones(size(mpsis_y)) * NaN;
-                    end
-                    this.basic_variable_data.mpsis_y_vel = mpsis_y_vel;
-                    this.basic_variable_directions.mpsis_y_vel = this.basic_variable_directions.mpsis_y;
-                    this.time_data.mpsis_y_vel = time;
-                    success = 1;
-                end
-                
                 if strcmp(variable_name, 'com_rough_x_vel')
                     com_rough_x = this.getBasicVariableData('com_rough_x');
                     com_rough_x(com_rough_x==0) = NaN;
@@ -2633,57 +2478,6 @@ classdef WalkingDataCustodian < handle
                     success = 1;
                 end
                 
-                if strcmp(variable_name, 'belt_speed')
-                    [belt_speed_right_trajectory_data, belt_speed_right_trajectory_directions] = this.getBasicVariableData('belt_speed_right_trajectory');
-                    [belt_speed_left_trajectory_data, belt_speed_left_trajectory_directions] = this.getBasicVariableData('belt_speed_right_trajectory');
-                    belt_speed_trajectory_data = (belt_speed_right_trajectory_data + belt_speed_left_trajectory_data) * 0.5;
-                    
-                    this.basic_variable_data.belt_speed = belt_speed_trajectory_data;
-                    this.basic_variable_directions.belt_speed = belt_speed_right_trajectory_directions; % TODO: check whether directions are the same for left and right
-                    this.time_data.belt_speed = this.time_data.belt_speed_right_trajectory; % TODO: check whether time is the same for left and right
-                    success = 1;
-                end
-                if strcmp(variable_name, 'belt_acceleration')
-                    [belt_speed_trajectory_data, belt_speed_trajectory_directions] = this.getBasicVariableData('belt_speed');
-                    
-                    time = this.getTimeData('belt_speed');
-                    filter_order = this.study_settings.get('filter_order_belt', 1);
-                    cutoff_frequency = this.study_settings.get('filter_cutoff_belt', 1);
-                    sampling_rate = 1/median(diff(time));
-                    [b, a] = butter(filter_order, cutoff_frequency/(sampling_rate/2));
-                    if any(~isnan(belt_speed_trajectory_data))
-                        belt_acceleration = deriveByTime(nanfiltfilt(b, a, belt_speed_trajectory_data), 1/sampling_rate);
-                    else
-                        belt_acceleration = ones(size(belt_speed_trajectory_data)) * NaN;
-                    end
-                    this.basic_variable_data.belt_acceleration = belt_acceleration;
-                    this.basic_variable_directions.belt_acceleration = belt_speed_trajectory_directions;
-                    this.time_data.belt_acceleration = time;
-                    success = 1;
-                    
-                end
-                if strcmp(variable_name, 'belt_jerk')
-                    [belt_acceleration_trajectory_data, belt_acceleration_trajectory_directions] = this.getBasicVariableData('belt_acceleration');
-                    
-                    time = this.getTimeData('belt_acceleration');
-                    filter_order = this.study_settings.get('filter_order_belt', 1);
-                    cutoff_frequency = this.study_settings.get('filter_cutoff_belt', 1);
-                    sampling_rate = 1/median(diff(time));
-                    [b, a] = butter(filter_order, cutoff_frequency/(sampling_rate/2));
-                    if any(~isnan(belt_acceleration_trajectory_data))
-                        belt_jerk = deriveByTime(nanfiltfilt(b, a, belt_acceleration_trajectory_data), 1/sampling_rate);
-                    else
-                        belt_jerk = ones(size(belt_acceleration_trajectory_data)) * NaN;
-                    end
-                    this.basic_variable_data.belt_jerk = belt_jerk;
-                    this.basic_variable_directions.belt_jerk = belt_acceleration_trajectory_directions;
-                    this.time_data.belt_jerk = time;
-                    success = 1;
-                end
-                
-                
-                
-                
                 % remove data flagged in subject settings
                 if any(strcmp(data_to_remove_this_trial, variable_name))
                     if any(variable_name==':')
@@ -2747,27 +2541,33 @@ classdef WalkingDataCustodian < handle
                     
                     if strcmp(variable_name, 'lheel_from_mpsis_initial_x')
                         LHEE_x = this.getTimeNormalizedData('marker:LHEE_x', this_stretch_times);
-                        mpsis_x = this.getTimeNormalizedData('mpsis_x', this_stretch_times);
+                        LPSI_x = this.getTimeNormalizedData('marker:LPSI_x', this_stretch_times);
+                        RPSI_x = this.getTimeNormalizedData('marker:RPSI_x', this_stretch_times);
+                        mpsis_x = (LPSI_x + RPSI_x) * 0.5;
                         stretch_data = LHEE_x - mpsis_x(1);
+                    end
+                    if strcmp(variable_name, 'rheel_from_mpsis_initial_x')
+                        RHEE_x = this.getTimeNormalizedData('marker:RHEE_x', this_stretch_times);
+                        LPSI_x = this.getTimeNormalizedData('marker:LPSI_x', this_stretch_times);
+                        RPSI_x = this.getTimeNormalizedData('marker:RPSI_x', this_stretch_times);
+                        mpsis_x = (LPSI_x + RPSI_x) * 0.5;
+                        stretch_data = RHEE_x - mpsis_x(1);
+                    end
+                    if strcmp(variable_name, 'mpsis_from_mpsis_initial_x')
+                        LPSI_x = this.getTimeNormalizedData('marker:LPSI_x', this_stretch_times);
+                        RPSI_x = this.getTimeNormalizedData('marker:RPSI_x', this_stretch_times);
+                        mpsis_x = (LPSI_x + RPSI_x) * 0.5;
+                        stretch_data = mpsis_x - mpsis_x(1);
                     end
                     if strcmp(variable_name, 'lheel_from_com_initial_x')
                         LHEE_x = this.getTimeNormalizedData('marker:LHEE_x', this_stretch_times);
                         com_x = this.getTimeNormalizedData('com_x', this_stretch_times);
                         stretch_data = LHEE_x - com_x(1);
                     end
-                    if strcmp(variable_name, 'rheel_from_mpsis_initial_x')
-                        RHEE_x = this.getTimeNormalizedData('marker:RHEE_x', this_stretch_times);
-                        mpsis_x = this.getTimeNormalizedData('mpsis_x', this_stretch_times);
-                        stretch_data = RHEE_x - mpsis_x(1);
-                    end
                     if strcmp(variable_name, 'rheel_from_com_initial_x')
                         RHEE_x = this.getTimeNormalizedData('marker:RHEE_x', this_stretch_times);
                         com_x = this.getTimeNormalizedData('com_x', this_stretch_times);
                         stretch_data = RHEE_x - com_x(1);
-                    end
-                    if strcmp(variable_name, 'mpsis_from_mpsis_initial_x')
-                        mpsis_x = this.getTimeNormalizedData('mpsis_x', this_stretch_times);
-                        stretch_data = mpsis_x - mpsis_x(1);
                     end
                     if strcmp(variable_name, 'com_from_com_initial_x')
                         com_x =  this.getTimeNormalizedData('com_x', this_stretch_times);
@@ -2932,9 +2732,16 @@ classdef WalkingDataCustodian < handle
                     end
                     if strcmp(variable_name, 'xcom_mpsis_x')
                         % get mpsis position
-                        mpsis_x =  this.getTimeNormalizedData('mpsis_x', this_stretch_times);
-                        mpsis_y =  this.getTimeNormalizedData('mpsis_y', this_stretch_times);
-                        mpsis_z =  this.getTimeNormalizedData('mpsis_z', this_stretch_times);
+                        LPSI_x = this.getTimeNormalizedData('marker:LPSI_x', this_stretch_times);
+                        RPSI_x = this.getTimeNormalizedData('marker:RPSI_x', this_stretch_times);
+                        LPSI_y = this.getTimeNormalizedData('marker:LPSI_y', this_stretch_times);
+                        RPSI_y = this.getTimeNormalizedData('marker:RPSI_y', this_stretch_times);
+                        LPSI_z = this.getTimeNormalizedData('marker:LPSI_z', this_stretch_times);
+                        RPSI_z = this.getTimeNormalizedData('marker:RPSI_z', this_stretch_times);
+                        
+                        mpsis_x = (LPSI_x + RPSI_x) * 0.5;
+                        mpsis_y = (LPSI_y + RPSI_y) * 0.5;
+                        mpsis_z = (LPSI_z + RPSI_z) * 0.5;
                         
                         % get instantaneous leg length
                         LANK_x = this.getTimeNormalizedData('marker:LANK_x', this_stretch_times);
@@ -2975,17 +2782,25 @@ classdef WalkingDataCustodian < handle
                         leg_length_data = (leg_vector_x.^2 + leg_vector_y.^2 + leg_vector_z.^2).^(0.5);
                         
                         % calculate XCoM_mpsis_x
-                        mpsis_x_vel =  this.getTimeNormalizedData('mpsis_x_vel', this_stretch_times);
+                        LPSI_x_vel = this.getTimeNormalizedData('derivative:LPSI_x_vel', this_stretch_times);
+                        RPSI_x_vel = this.getTimeNormalizedData('derivative:RPSI_x_vel', this_stretch_times);
+                        mpsis_x_vel = (LPSI_x_vel + RPSI_x_vel) * 0.5;
                         omega_0 = (9.81 * leg_length_data.^(-1)).^(0.5);
-%                         omega_0 = sqrt(9.81/leg_length);
                        
                         stretch_data = mpsis_x + omega_0.^(-1) .* mpsis_x_vel;
                     end
                     if strcmp(variable_name, 'xcom_mpsis_y')
                         % get mpsis position
-                        mpsis_x =  this.getTimeNormalizedData('mpsis_x', this_stretch_times);
-                        mpsis_y =  this.getTimeNormalizedData('mpsis_y', this_stretch_times);
-                        mpsis_z =  this.getTimeNormalizedData('mpsis_z', this_stretch_times);
+                        LPSI_x = this.getTimeNormalizedData('marker:LPSI_x', this_stretch_times);
+                        RPSI_x = this.getTimeNormalizedData('marker:RPSI_x', this_stretch_times);
+                        LPSI_y = this.getTimeNormalizedData('marker:LPSI_y', this_stretch_times);
+                        RPSI_y = this.getTimeNormalizedData('marker:RPSI_y', this_stretch_times);
+                        LPSI_z = this.getTimeNormalizedData('marker:LPSI_z', this_stretch_times);
+                        RPSI_z = this.getTimeNormalizedData('marker:RPSI_z', this_stretch_times);
+                        
+                        mpsis_x = (LPSI_x + RPSI_x) * 0.5;
+                        mpsis_y = (LPSI_y + RPSI_y) * 0.5;
+                        mpsis_z = (LPSI_z + RPSI_z) * 0.5;
                         
                         % get instantaneous leg length
                         LANK_x = this.getTimeNormalizedData('marker:LANK_x', this_stretch_times);
@@ -3026,9 +2841,10 @@ classdef WalkingDataCustodian < handle
                         leg_length_data = (leg_vector_x.^2 + leg_vector_y.^2 + leg_vector_z.^2).^(0.5);
                         
                         % calculate XCoM_mpsis_y
-                        mpsis_y_vel =  this.getTimeNormalizedData('mpsis_y_vel', this_stretch_times);
+                        LPSI_y_vel = this.getTimeNormalizedData('derivative:LPSI_y_vel', this_stretch_times);
+                        RPSI_y_vel = this.getTimeNormalizedData('derivative:RPSI_y_vel', this_stretch_times);
+                        mpsis_y_vel = (LPSI_y_vel + RPSI_y_vel) * 0.5;
                         omega_0 = (9.81 * leg_length_data.^(-1)).^(0.5);
-%                         omega_0 = sqrt(9.81/leg_length);
                        
                         stretch_data = mpsis_y + omega_0.^(-1) .* mpsis_y_vel;                    
                     end
@@ -3808,14 +3624,50 @@ classdef WalkingDataCustodian < handle
 
             if strcmp(variable_name, 'lheel_from_mpsis_initial_x')
                 [~, LHEE_x_directions] = this.getBasicVariableData('marker:LHEE_x');
-                mpsis_x_directions = this.basic_variable_directions.mpsis_x;
-                if ~strcmp(LHEE_x_directions{1}, mpsis_x_directions{1})
-                    error('LHEE_x and mpsis_x directions are different from each other')
+                [~, LPSI_x_directions] = this.getBasicVariableData('marker:LPSI_x');
+                [~, RPSI_x_directions] = this.getBasicVariableData('marker:RPSI_x');
+                if ~strcmp(LHEE_x_directions{1}, LPSI_x_directions{1})
+                    error('LHEE_x and LPSI_x directions are different from each other')
                 end
-                if ~strcmp(LHEE_x_directions{2}, mpsis_x_directions{2})
-                    error('LHEE_x and mpsis_x directions are different from each other')
+                if ~strcmp(LHEE_x_directions{2}, LPSI_x_directions{2})
+                    error('LHEE_x and LPSI_x directions are different from each other')
+                end
+                if ~strcmp(LHEE_x_directions{1}, RPSI_x_directions{1})
+                    error('LHEE_x and RPSI_x directions are different from each other')
+                end
+                if ~strcmp(LHEE_x_directions{2}, RPSI_x_directions{2})
+                    error('LHEE_x and RPSI_x directions are different from each other')
                 end
                 stretch_directions_new = LHEE_x_directions;
+            end
+            if strcmp(variable_name, 'rheel_from_mpsis_initial_x')
+                [~, RHEE_x_directions] = this.getBasicVariableData('marker:RHEE_x');
+                [~, LPSI_x_directions] = this.getBasicVariableData('marker:LPSI_x');
+                [~, RPSI_x_directions] = this.getBasicVariableData('marker:RPSI_x');
+                if ~strcmp(RHEE_x_directions{1}, LPSI_x_directions{1})
+                    error('RHEE_x and LPSI_x directions are different from each other')
+                end
+                if ~strcmp(RHEE_x_directions{2}, LPSI_x_directions{2})
+                    error('RHEE_x and LPSI_x directions are different from each other')
+                end
+                if ~strcmp(RHEE_x_directions{1}, RPSI_x_directions{1})
+                    error('RHEE_x and RPSI_x directions are different from each other')
+                end
+                if ~strcmp(RHEE_x_directions{2}, RPSI_x_directions{2})
+                    error('RHEE_x and RPSI_x directions are different from each other')
+                end
+                stretch_directions_new = RHEE_x_directions;
+            end
+            if strcmp(variable_name, 'mpsis_from_mpsis_initial_x')
+                [~, LPSI_x_directions] = this.getBasicVariableData('marker:LPSI_x');
+                [~, RPSI_x_directions] = this.getBasicVariableData('marker:RPSI_x');
+                if ~strcmp(LPSI_x_directions{1}, RPSI_x_directions{1})
+                    error('LPSI_x and RPSI_x directions are different from each other')
+                end
+                if ~strcmp(LPSI_x_directions{2}, RPSI_x_directions{2})
+                    error('LPSI_x and RPSI_x directions are different from each other')
+                end
+                stretch_directions_new = LPSI_x_directions;
             end
             if strcmp(variable_name, 'lheel_from_com_initial_x')
                 [~, LHEE_x_directions] = this.getBasicVariableData('marker:LHEE_x');
@@ -3828,17 +3680,6 @@ classdef WalkingDataCustodian < handle
                 end
                 stretch_directions_new = LHEE_x_directions;
             end
-            if strcmp(variable_name, 'rheel_from_mpsis_initial_x')
-                [~, RHEE_x_directions] = this.getBasicVariableData('marker:RHEE_x');
-                mpsis_x_directions = this.basic_variable_directions.mpsis_x;
-                if ~strcmp(RHEE_x_directions{1}, mpsis_x_directions{1})
-                    error('RHEE_x and mpsis_x directions are different from each other')
-                end
-                if ~strcmp(RHEE_x_directions{2}, mpsis_x_directions{2})
-                    error('RHEE_x and mpsis_x directions are different from each other')
-                end
-                stretch_directions_new = RHEE_x_directions;
-            end
             if strcmp(variable_name, 'rheel_from_com_initial_x')
                 [~, RHEE_x_directions] = this.getBasicVariableData('marker:RHEE_x');
                 com_x_directions = this.basic_variable_directions.com_x;
@@ -3849,10 +3690,6 @@ classdef WalkingDataCustodian < handle
                     error('RHEE_x and com_x directions are different from each other')
                 end
                 stretch_directions_new = RHEE_x_directions;
-            end
-            if strcmp(variable_name, 'mpsis_from_mpsis_initial_x')
-                mpsis_x_directions = this.basic_variable_directions.mpsis_x;
-                stretch_directions_new = mpsis_x_directions;
             end
             if strcmp(variable_name, 'com_from_com_initial_x')
                 com_x_directions = this.basic_variable_directions.com_x;
@@ -3875,28 +3712,48 @@ classdef WalkingDataCustodian < handle
                 stretch_directions_new = com_y_directions;
             end        
             if strcmp(variable_name, 'xcom_mpsis_x')
-                mpsis_x_directions = this.basic_variable_directions.mpsis_x;
-                stretch_directions_new = mpsis_x_directions;
+                [~, LPSI_x_directions] = this.getBasicVariableData('marker:LPSI_x');
+                [~, RPSI_x_directions] = this.getBasicVariableData('marker:RPSI_x');
+                if ~strcmp(LPSI_x_directions{1}, RPSI_x_directions{1})
+                    error('LPSI_x and RPSI_x directions are different from each other')
+                end
+                if ~strcmp(LPSI_x_directions{2}, RPSI_x_directions{2})
+                    error('LPSI_x and RPSI_x directions are different from each other')
+                end
+                stretch_directions_new = LPSI_x_directions;
             end
             if strcmp(variable_name, 'xcom_mpsis_y')
-                mpsis_y_directions = this.basic_variable_directions.mpsis_y;
-                stretch_directions_new = mpsis_y_directions;
+                [~, LPSI_y_directions] = this.getBasicVariableData('marker:LPSI_y');
+                [~, RPSI_y_directions] = this.getBasicVariableData('marker:RPSI_y');
+                if ~strcmp(LPSI_y_directions{1}, RPSI_y_directions{1})
+                    error('LPSI_y and RPSI_y directions are different from each other')
+                end
+                if ~strcmp(LPSI_y_directions{2}, RPSI_y_directions{2})
+                    error('LPSI_y and RPSI_y directions are different from each other')
+                end
+                stretch_directions_new = LPSI_y_directions;
             end   
-            if strcmp(variable_name, 'mpsis_x_vel')
-                mpsis_x_directions = this.basic_variable_directions.mpsis_x;
-                stretch_directions_new = mpsis_x_directions;
-            end  
-            if strcmp(variable_name, 'mpsis_y_vel')
-                mpsis_y_directions = this.basic_variable_directions.mpsis_y;
-                stretch_directions_new = mpsis_y_directions;
-            end            
             if strcmp(variable_name, 'mos_mpsis_x')
-                mpsis_x_directions = this.basic_variable_directions.mpsis_x;
-                stretch_directions_new = mpsis_x_directions;
+                [~, LPSI_x_directions] = this.getBasicVariableData('marker:LPSI_x');
+                [~, RPSI_x_directions] = this.getBasicVariableData('marker:RPSI_x');
+                if ~strcmp(LPSI_x_directions{1}, RPSI_x_directions{1})
+                    error('LPSI_x and RPSI_x directions are different from each other')
+                end
+                if ~strcmp(LPSI_x_directions{2}, RPSI_x_directions{2})
+                    error('LPSI_x and RPSI_x directions are different from each other')
+                end
+                stretch_directions_new = LPSI_x_directions;
             end
             if strcmp(variable_name, 'mos_mpsis_y')
-                mpsis_y_directions = this.basic_variable_directions.mpsis_y;
-                stretch_directions_new = mpsis_y_directions;
+                [~, LPSI_y_directions] = this.getBasicVariableData('marker:LPSI_y');
+                [~, RPSI_y_directions] = this.getBasicVariableData('marker:RPSI_y');
+                if ~strcmp(LPSI_y_directions{1}, RPSI_y_directions{1})
+                    error('LPSI_y and RPSI_y directions are different from each other')
+                end
+                if ~strcmp(LPSI_y_directions{2}, RPSI_y_directions{2})
+                    error('LPSI_y and RPSI_y directions are different from each other')
+                end
+                stretch_directions_new = LPSI_y_directions;
             end
             if strcmp(variable_name, 'com_rough_x_vel')
                 com_rough_x_directions = this.basic_variable_directions.com_rough_x;
@@ -4042,9 +3899,6 @@ classdef WalkingDataCustodian < handle
                     error('LTOE_z and RTOE_z directions are different from each other')
                 end
                 stretch_directions_new = LTOE_z_directions;
-            end
-            if strcmp(variable_name, 'belt_speed_trajectory')
-                stretch_directions_new = {'+'; '-'};
             end
             
             if any(strcmp(this.basic_variable_load_failures, variable_name))
