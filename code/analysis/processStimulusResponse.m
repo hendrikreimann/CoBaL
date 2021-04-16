@@ -47,8 +47,8 @@ function processStimulusResponse(varargin)
     % extract data
     step_placement_x_data = loaded_data.stretch_data_session{strcmp(loaded_data.stretch_names_session, 'step_placement_x')};
     step_placement_x_directions = loaded_data.stretch_directions_session(strcmp(loaded_data.stretch_names_session, 'step_placement_x'), :);
-    com_x_data = loaded_data.stretch_data_session{strcmp(loaded_data.stretch_names_session, 'com_x')};
-    com_x_vel_data = loaded_data.stretch_data_session{strcmp(loaded_data.stretch_names_session, 'com_x_vel')};
+    com_x_data = loaded_data.stretch_data_session{strcmp(loaded_data.stretch_names_session, 'com_position:center_of_mass_x')};
+    com_x_vel_data = loaded_data.stretch_data_session{strcmp(loaded_data.stretch_names_session, 'com_velocity:center_of_mass_x')};
     lankle_x_data = loaded_data.stretch_data_session{strcmp(loaded_data.stretch_names_session, 'marker:LANK_x')};
     rankle_x_data = loaded_data.stretch_data_session{strcmp(loaded_data.stretch_names_session, 'marker:RANK_x')};
     midstance_index_data = loaded_data.stretch_data_session{strcmp(loaded_data.stretch_names_session, 'midstance_index')};
