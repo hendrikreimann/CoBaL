@@ -857,11 +857,7 @@ classdef WalkingDataCustodian < handle
                         LTOEL_x = this.getTimeNormalizedData('marker:LTOEL_x', this_stretch_times);
                         RTOEL_x = this.getTimeNormalizedData('marker:RTOEL_x', this_stretch_times);
                         bos_x_data = zeros(size(LTOEL_x));
-                        for i_band = number_of_bands : -1 : 1
-                            % going backward makes a difference for the
-                            % junction points between two steps. We want to
-                            % use data from the earlier step for BoS, so we
-                            % go backward
+                        for i_band = 1 : number_of_bands
                             [band_start_index, band_end_index] = getBandIndices(i_band, this.number_of_time_steps_normalized);
                             
                             if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_RIGHT')
@@ -875,6 +871,12 @@ classdef WalkingDataCustodian < handle
                             end
                         end
                         
+                        % set BoS to NaN at junction points between two steps
+                        for i_band = 2 : number_of_bands
+                            band_start_index = getBandIndices(i_band, this.number_of_time_steps_normalized);
+                            bos_x_data(band_start_index) = NaN;
+                        end
+                        
                         % now calculate XCoM - BoS
                         xcom_x = stretch_variables{strcmp(this.stretch_variable_names, 'xcom_x')}(:, i_stretch);
                         stretch_data = xcom_x - bos_x_data;
@@ -884,11 +886,7 @@ classdef WalkingDataCustodian < handle
                         LTOEL_y = this.getTimeNormalizedData('marker:LTOEL_y', this_stretch_times);
                         RTOEL_y = this.getTimeNormalizedData('marker:RTOEL_y', this_stretch_times);
                         bos_y_data = zeros(size(LTOEL_y));
-                        for i_band = number_of_bands : -1 : 1
-                            % going backward makes a difference for the
-                            % junction points between two steps. We want to
-                            % use data from the earlier step for BoS, so we
-                            % go backward
+                        for i_band = 1 : number_of_bands
                             [band_start_index, band_end_index] = getBandIndices(i_band, this.number_of_time_steps_normalized);
                             
                             if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_RIGHT')
@@ -900,6 +898,12 @@ classdef WalkingDataCustodian < handle
                             if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_BOTH')
                                 bos_y_data(band_start_index : band_end_index) = NaN;
                             end
+                        end
+                        
+                        % set BoS to NaN at junction points between two steps
+                        for i_band = 2 : number_of_bands
+                            band_start_index = getBandIndices(i_band, this.number_of_time_steps_normalized);
+                            bos_y_data(band_start_index) = NaN;
                         end
                         
                         % now calculate XCoM - BoS
@@ -1029,11 +1033,7 @@ classdef WalkingDataCustodian < handle
                         LTOEL_x = this.getTimeNormalizedData('marker:LTOEL_x', this_stretch_times);
                         RTOEL_x = this.getTimeNormalizedData('marker:RTOEL_x', this_stretch_times);
                         bos_x_data = zeros(size(LTOEL_x));
-                        for i_band = number_of_bands : -1 : 1
-                            % going backward makes a difference for the
-                            % junction points between two steps. We want to
-                            % use data from the earlier step for BoS, so we
-                            % go backward
+                        for i_band = 1 : number_of_bands
                             [band_start_index, band_end_index] = getBandIndices(i_band, this.number_of_time_steps_normalized);
                             
                             if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_RIGHT')
@@ -1047,6 +1047,12 @@ classdef WalkingDataCustodian < handle
                             end
                         end
                         
+                        % set BoS to NaN at junction points between two steps
+                        for i_band = 2 : number_of_bands
+                            band_start_index = getBandIndices(i_band, this.number_of_time_steps_normalized);
+                            bos_x_data(band_start_index) = NaN;
+                        end
+                        
                         % now calculate XCoM - BoS
                         xcom_mpsis_x = stretch_variables{strcmp(this.stretch_variable_names, 'xcom_mpsis_x')}(:, i_stretch);
                         stretch_data = xcom_mpsis_x - bos_x_data;
@@ -1056,11 +1062,7 @@ classdef WalkingDataCustodian < handle
                         LTOEL_y = this.getTimeNormalizedData('marker:LTOEL_y', this_stretch_times);
                         RTOEL_y = this.getTimeNormalizedData('marker:RTOEL_y', this_stretch_times);
                         bos_y_data = zeros(size(LTOEL_y));
-                        for i_band = number_of_bands : -1 : 1
-                            % going backward makes a difference for the
-                            % junction points between two steps. We want to
-                            % use data from the earlier step for BoS, so we
-                            % go backward
+                        for i_band = 1 : number_of_bands
                             [band_start_index, band_end_index] = getBandIndices(i_band, this.number_of_time_steps_normalized);
                             
                             if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_RIGHT')
@@ -1072,6 +1074,12 @@ classdef WalkingDataCustodian < handle
                             if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_BOTH')
                                 bos_y_data(band_start_index : band_end_index) = NaN;
                             end
+                        end
+                        
+                        % set BoS to NaN at junction points between two steps
+                        for i_band = 2 : number_of_bands
+                            band_start_index = getBandIndices(i_band, this.number_of_time_steps_normalized);
+                            bos_y_data(band_start_index) = NaN;
                         end
                         
                         % now calculate XCoM - BoS
@@ -1523,11 +1531,7 @@ classdef WalkingDataCustodian < handle
                         LTOEL_x = this.getTimeNormalizedData('marker:LTOEL_x', this_stretch_times);
                         RTOEL_x = this.getTimeNormalizedData('marker:RTOEL_x', this_stretch_times);
                         bos_x_data = zeros(size(LTOEL_x));
-                        for i_band = number_of_bands : -1 : 1
-                            % going backward makes a difference for the
-                            % junction points between two steps. We want to
-                            % use data from the earlier step for BoS, so we
-                            % go backward
+                        for i_band = 1 : number_of_bands
                             [band_start_index, band_end_index] = getBandIndices(i_band, this.number_of_time_steps_normalized);
                             
                             if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_RIGHT')
@@ -1541,6 +1545,12 @@ classdef WalkingDataCustodian < handle
                             end
                         end
                         
+                        % set BoS to NaN at junction points between two steps
+                        for i_band = 2 : number_of_bands
+                            band_start_index = getBandIndices(i_band, this.number_of_time_steps_normalized);
+                            bos_x_data(band_start_index) = NaN;
+                        end
+                        
                         % now calculate XCoM - BoS
                         xcom_rough_x = stretch_variables{strcmp(this.stretch_variable_names, 'xcom_rough_x')}(:, i_stretch);
                         stretch_data = xcom_rough_x - bos_x_data;
@@ -1550,11 +1560,7 @@ classdef WalkingDataCustodian < handle
                         LTOEL_y = this.getTimeNormalizedData('marker:LTOEL_y', this_stretch_times);
                         RTOEL_y = this.getTimeNormalizedData('marker:RTOEL_y', this_stretch_times);
                         bos_y_data = zeros(size(LTOEL_y));
-                        for i_band = number_of_bands : -1 : 1
-                            % going backward makes a difference for the
-                            % junction points between two steps. We want to
-                            % use data from the earlier step for BoS, so we
-                            % go backward
+                        for i_band = 1 : number_of_bands
                             [band_start_index, band_end_index] = getBandIndices(i_band, this.number_of_time_steps_normalized);
                             
                             if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_RIGHT')
@@ -1566,6 +1572,12 @@ classdef WalkingDataCustodian < handle
                             if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_BOTH')
                                 bos_y_data(band_start_index : band_end_index) = NaN;
                             end
+                        end
+                        
+                        % set BoS to NaN at junction points between two steps
+                        for i_band = 2 : number_of_bands
+                            band_start_index = getBandIndices(i_band, this.number_of_time_steps_normalized);
+                            bos_y_data(band_start_index) = NaN;
                         end
                         
                         % now calculate XCoM - BoS

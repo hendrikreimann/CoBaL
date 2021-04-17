@@ -483,7 +483,7 @@ classdef SettingsCustodian < handle
             end
             
             if strcmp(property_name, 'variables_to_plot_header')
-                default_data = {'variable_name', 'variable_type', 'variable_label', 'y_axis_label', 'save_file_string', 'y_axis_lower_limit', 'y_axis_upper_limit'};
+                default_data = {'variable_name', 'variable_type', 'variable_label', 'y_axis_label', 'save_file_string', 'x_axis_lower_limit', 'x_axis_upper_limit', 'y_axis_lower_limit', 'y_axis_upper_limit'};
             end
             if strcmp(property_name, 'variables_to_plot_discrete_header')
                 default_data = {'variable_name', 'variable_type', 'variable_label', 'y-axis_label', 'save_file_string', 'x_axis_lower limit', 'x-axis_upper_limit', 'y_axis_lower_limit', 'y_axis_upper_limit'};

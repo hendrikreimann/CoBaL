@@ -44,7 +44,7 @@ function calculateTimeDerivatives(varargin)
     study_settings = loadSettingsFromFile('study');
     collection_date = subject_settings.get('collection_date');
     subject_id = subject_settings.get('subject_id');
-    variable_table = study_settings.getTable('time_derivatives');
+    variable_table = study_settings.getTable('time_derivatives', 1);
     number_of_variables = size(variable_table, 1);
     
     for i_condition = 1 : length(condition_list)
@@ -68,12 +68,10 @@ function calculateTimeDerivatives(varargin)
                     data = data_to_save.(this_variable_label);
                     time = data_to_save.(['time_' this_variable_label]);
                     sampling_rate = data_to_save.(['sampling_rate_' this_variable_label]);
-%                     labels = data_to_save.(['label_' this_variable_label]);
                     directions = data_to_save.(['directions_' this_variable_label]);
                 else
                     [data, time, sampling_rate, labels, directions, success] = loadData(collection_date, subject_id, trial_type, i_trial, source_variable_name); %#ok<ASGLU>
                 end
-                
                 
                 % filter
                 [b_filter, a_filter] = butter(filter_order, cutoff_frequency/(sampling_rate/2));
@@ -105,9 +103,11 @@ function calculateTimeDerivatives(varargin)
                 end
                 
             end
-            save([save_folder filesep save_file_name], '-struct', 'data_to_save');
+            if number_of_variables > 0
+                save([save_folder filesep save_file_name], '-struct', 'data_to_save');
+                disp(['Calculating time derivatives: trial type' trial_type ', trial ' num2str(i_trial) ' completed, saved as ' save_file_name]);
+            end
             
-            disp(['Calculating time derivatives: trial type' trial_type ', trial ' num2str(i_trial) ' completed, saved as ' save_file_name]);
         end
     end
     
