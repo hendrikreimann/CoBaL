@@ -608,10 +608,10 @@ classdef WalkingDataCustodian < handle
                 
                 % store
                 if success
-                    eval(['this.basic_variable_data.' variable_name ' = data;']);
-                    eval(['this.time_data.' variable_name ' = time;']);
-                    eval(['this.basic_variable_labels.' variable_name ' = labels;']);
-                    eval(['this.basic_variable_directions.' variable_name ' = directions;']);
+                    this.basic_variable_data.(variable_name) = data;
+                    this.time_data.(variable_name) = time;
+                    this.basic_variable_labels.(variable_name) = labels;
+                    this.basic_variable_directions.(variable_name) = directions;
                 end
                 
                 % check if this is a compound name, listing a loaded variable and a label
@@ -623,12 +623,11 @@ classdef WalkingDataCustodian < handle
                         % not a true compound, but label is elementary variable
                         [data, time, sampling_rate, labels, directions, success] = loadData(this.date, this.subject_id, trial_type, trial_number, this_variable_label, 'optional'); %#ok<ASGLU>
                         if success
-                            eval(['this.basic_variable_data.' this_variable_label ' = data;']);
-                            eval(['this.time_data.' this_variable_label ' = time;']);
-                            eval(['this.basic_variable_labels.' this_variable_label ' = labels;']);
-                            eval(['this.basic_variable_directions.' this_variable_label ' = directions;']);
+                            this.basic_variable_data.(this_variable_label) = data;
+                            this.time_data.(this_variable_label) = time;
+                            this.basic_variable_labels.(this_variable_label) = labels;
+                            this.basic_variable_directions.(this_variable_label) = directions;
                         end
-                        
                     else                    
                         % this is a true compound
                         if any(strcmp(this.basic_variable_labels.([this_variable_type '_trajectories']), this_variable_label))
