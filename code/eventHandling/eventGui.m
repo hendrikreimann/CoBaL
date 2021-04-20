@@ -65,7 +65,6 @@ function eventGui(varargin)
     event_data = eventData(data_custodian);
     
     %% init gui
-%     figure_settings_file = gui_settings.get('figure_settings_file');
     controller = eventController(data_custodian, event_data);
     
     %% stick figure and kinematic tree figure
