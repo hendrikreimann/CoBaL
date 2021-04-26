@@ -15,7 +15,7 @@
 %     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 function conditions_trial = determineConditionLevels_type(trial_data, conditions_trial)
-    number_of_triggers = length(trial_data.trigger_indices_mocap);
+    number_of_triggers = length(trial_data.trigger_times);
     type = char(trial_data.trial_type);
     condition_type_list = cell(number_of_triggers, 1);
     for i_stretch = 1 : number_of_triggers

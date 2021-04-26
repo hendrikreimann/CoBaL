@@ -28,7 +28,7 @@ function trial_data = determineTriggerTimes(study_settings, trial_data)
         'Vision', 'CadenceVision', 'CognitiveLoadVision', 'SR_VisualStim', ...
         'GVS', 'CadenceGVS', 'FatigueGVS', 'CognitiveLoadGvs', 'OculusLaneRestriction', 'nGVS_Vision' ...
       };
-    paradigmn_with_normal_walking = {'Normal Walking', 'Stochastic Resonance', 'Normal Walking nGVS', 'Self Pacing Comparison'};
+    paradigms_with_normal_walking = {'Normal Walking', 'Stochastic Resonance', 'Normal Walking nGVS', 'Self Pacing Comparison'};
     if any(strcmp(experimental_paradigm, paradigms_with_perturbation))
         % find the time steps where the stimulus state crosses a threshold
         stimulus_threshold = 1.5;
@@ -61,7 +61,7 @@ function trial_data = determineTriggerTimes(study_settings, trial_data)
         trial_data.stim_start_times = trial_data.time_stimulus(stim_start_indices_stimulus);
         trial_data.stim_start_indices_stimulus = stim_start_indices_stimulus;
     end
-    if any(strcmp(experimental_paradigm, paradigmn_with_normal_walking))
+    if any(strcmp(experimental_paradigm, paradigms_with_normal_walking))
         left_touchdown_times = trial_data.loaded_events_data.event_data{strcmp(trial_data.loaded_events_data.event_labels, 'left_touchdown')};
         trial_data.trigger_times = left_touchdown_times(1:end-1);
     end
@@ -80,9 +80,29 @@ function trial_data = determineTriggerTimes(study_settings, trial_data)
         trigger_indices_stimulus = find(diff(sign(trial_data.stimulus_state_trajectory - stimulus_threshold)) > 0) + 2;
         trial_data.trigger_times = trial_data.time_stimulus(trigger_indices_stimulus);
     end
+    
+    if strcmp(experimental_paradigm, 'APDM')
+        left_touchdown_times = trial_data.loaded_events_data.event_data{strcmp(trial_data.loaded_events_data.event_labels, 'left_touchdown')};
+        turn_times = trial_data.loaded_events_data.event_data{strcmp(trial_data.loaded_events_data.event_labels, 'turn_start')};
+        % go through turns and mark the last heelstrike prior to the turn
+        removal_flags = zeros(size(left_touchdown_times));
+        for i_turn = 1 : length(turn_times)
+            this_turn_time = turn_times(i_turn);
+            heelstrikes_before_this_turn = left_touchdown_times(left_touchdown_times < this_turn_time);
+            last_heelstrike_before_this_turn_index = numel(heelstrikes_before_this_turn);
+            removal_flags(last_heelstrike_before_this_turn_index) = 1;
+        end
+        
+        % remove last left heelstrike
+        removal_flags(end) = 1;
+        
+        % 
+        trial_data.trigger_times = left_touchdown_times(~removal_flags);
+    end
+    
 
     % calculate indices
-    if exist('trial_data', 'var') && isfield(trial_data, 'time_marker')
+    if exist('trial_data', 'var') && isfield(trial_data, 'time_marker') && ~isempty(trial_data.time_marker)
         trigger_indices_mocap = zeros(size(trial_data.trigger_times));
         for i_index = 1 : length(trial_data.trigger_times)
             [~, index_mocap] = min(abs(trial_data.time_marker - trial_data.trigger_times(i_index)));

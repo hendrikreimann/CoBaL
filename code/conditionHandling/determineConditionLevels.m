@@ -39,7 +39,7 @@ function [conditions_trial, event_variables_to_save, removal_flags] ...
     if strcmp(experimental_paradigm, 'Normal Walking')
         [conditions_trial, event_variables_to_save, removal_flags] ...
             = determineConditionLevels_normalWalking(subject_settings, trial_data);
-    end    
+    end
     if strcmp(experimental_paradigm, 'Stochastic Resonance')
         [conditions_trial, event_variables_to_save, removal_flags] ...
             = determineConditionLevels_stochasticResonance(subject_settings, trial_data);
@@ -93,6 +93,10 @@ function [conditions_trial, event_variables_to_save, removal_flags] ...
     if strcmp(experimental_paradigm, 'Vision Stochastic')
         [conditions_trial, event_variables_to_save, removal_flags] ...
             = determineConditionLevels_visionStochastic(study_settings, subject_settings, trial_data);
+    end
+    if strcmp(experimental_paradigm, 'APDM')
+        [conditions_trial, event_variables_to_save, removal_flags] ...
+            = determineConditionLevels_normalWalking(subject_settings, trial_data);
     end
     
     % add affected_side if required
