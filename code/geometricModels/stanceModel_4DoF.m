@@ -38,18 +38,17 @@ function stanceModel_4DoF(varargin)
     visualize = parser.Results.visualize;
     
     subject_settings = SettingsCustodian('subjectSettings.txt');
-    
 
-    load('subjectInfo.mat', 'date', 'subject_id');
     weight = subject_settings.get('weight', 1);
     if isempty(weight)
         warning('No weight provided in subjectSettings.txt, using 80kg as defaults. This invalidates any inverse dynamics you might be running.')
+        weight = 80;
     end
 
     %% create static reference
 
     % load static reference file
-    load(['processed' filesep makeFileName(date, subject_id, subject_settings.get('static_reference_trial_type'), subject_settings.get('static_reference_trial_number'), 'markerTrajectories')]);
+    load(['processed' filesep makeFileName(subject_settings.get('collection_date'), subject_settings.get('subject_id'), subject_settings.get('static_reference_trial_type'), subject_settings.get('static_reference_trial_number'), 'markerTrajectories')]);
 
     % find first time step where all markers are available
     i_time = 1;

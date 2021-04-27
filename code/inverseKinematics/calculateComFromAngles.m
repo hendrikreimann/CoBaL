@@ -38,7 +38,6 @@ function calculateComFromAngles(varargin)
     parse(parser, varargin{:})
     use_parallel = parser.Results.use_parallel;
     
-    load('subjectInfo.mat', 'date', 'subject_id');
     model_data = load('subjectModel.mat');
     kinematic_tree = model_data.kinematic_tree;
     segment_labels = model_data.segment_labels;
@@ -56,7 +55,9 @@ function calculateComFromAngles(varargin)
         study_settings_file = ['..' filesep '..' filesep 'studySettings.txt'];
     end
     study_settings = SettingsCustodian(study_settings_file);
-    subject_settings = SettingsCustodian('subjectSettings.txt');
+    subject_settings = loadSettingsFromFile('subject');
+    collection_date = subject_settings.get('collection_date');
+    subject_id = subject_settings.get('subject_id');
     
     
     number_of_joint_angles = kinematic_tree.numberOfJoints;
@@ -78,12 +79,12 @@ function calculateComFromAngles(varargin)
 %             fprintf([datestr(datetime,'yyyy-mm-dd HH:MM:SS') ' - Calculating kinematic trajectories... \n'])
             
             % load data
-            loaded_marker_data = load(['processed' filesep makeFileName(date, subject_id, trial_type, i_trial, 'markerTrajectories')]);
+            loaded_marker_data = load(['processed' filesep makeFileName(collection_date, subject_id, trial_type, i_trial, 'markerTrajectories')]);
             marker_trajectories_trial = loaded_marker_data.marker_trajectories;
             marker_labels_trial = loaded_marker_data.marker_labels;
             time_mocap = loaded_marker_data.time_mocap;
             sampling_rate_mocap = loaded_marker_data.sampling_rate_mocap;
-            loaded_kinematic_data = load(['processed' filesep makeFileName(date, subject_id, trial_type, i_trial, 'kinematicTrajectories')]);
+            loaded_kinematic_data = load(['processed' filesep makeFileName(collection_date, subject_id, trial_type, i_trial, 'kinematicTrajectories')]);
             angle_trajectories_trial = loaded_kinematic_data.joint_angle_trajectories;
             joint_labels_trial = loaded_kinematic_data.joint_labels;
             
@@ -307,7 +308,7 @@ function calculateComFromAngles(varargin)
             variables_to_save.sampling_rate_mocap = sampling_rate_mocap;
             
             save_folder = 'processed';
-            save_file_name = makeFileName(date, subject_id, trial_type, i_trial, 'comTrajectories.mat');
+            save_file_name = makeFileName(collection_date, subject_id, trial_type, i_trial, 'comTrajectories.mat');
             saveDataToFile([save_folder filesep save_file_name], variables_to_save);
 
             addAvailableData ...
@@ -330,7 +331,7 @@ function calculateComFromAngles(varargin)
             variables_to_save.sampling_rate_mocap = sampling_rate_mocap;
             
             save_folder = 'processed';
-            save_file_name = makeFileName(date, subject_id, trial_type, i_trial, 'eefTrajectories.mat');
+            save_file_name = makeFileName(collection_date, subject_id, trial_type, i_trial, 'eefTrajectories.mat');
             saveDataToFile([save_folder filesep save_file_name], variables_to_save);
 
             addAvailableData ...

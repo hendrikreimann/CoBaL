@@ -30,7 +30,6 @@ function findEvents_MS_old(varargin)
     if ~exist('analysis', 'dir')
         mkdir('analysis')
     end
-    load('subjectInfo.mat', 'date', 'subject_id');
 
     % load settings
     subject_settings = SettingsCustodian('subjectSettings.txt');
@@ -42,6 +41,8 @@ function findEvents_MS_old(varargin)
         study_settings_file = ['..' filesep '..' filesep 'studySettings.txt'];
     end
     study_settings = SettingsCustodian(study_settings_file);
+    collection_date = subject_settings.get('collection_date');
+    subject_id = subject_settings.get('subject_id');
     
     for i_condition = 1 : length(condition_list)
         trials_to_process = trial_number_list{i_condition};
@@ -49,9 +50,9 @@ function findEvents_MS_old(varargin)
             %% prepare
             % load data
             this_trial_type = condition_list{i_condition};
-            [marker_trajectories, time_marker, sampling_rate_marker, marker_labels] = loadData(date, subject_id, this_trial_type, i_trial, 'marker_trajectories');
-            [left_foot_wrench_world, time_left_forceplate, ~, ~, ~, left_forceplate_available] = loadData(date, subject_id, this_trial_type, i_trial, 'left_foot_wrench_world', 'optional');
-            [right_foot_wrench_world, time_right_forceplate, ~, ~, ~, right_forceplate_available] = loadData(date, subject_id, this_trial_type, i_trial, 'right_foot_wrench_world', 'optional');
+            [marker_trajectories, time_marker, sampling_rate_marker, marker_labels] = loadData(collection_date, subject_id, this_trial_type, i_trial, 'marker_trajectories');
+            [left_foot_wrench_world, time_left_forceplate, ~, ~, ~, left_forceplate_available] = loadData(collection_date, subject_id, this_trial_type, i_trial, 'left_foot_wrench_world', 'optional');
+            [right_foot_wrench_world, time_right_forceplate, ~, ~, ~, right_forceplate_available] = loadData(collection_date, subject_id, this_trial_type, i_trial, 'right_foot_wrench_world', 'optional');
             if left_forceplate_available & right_forceplate_available
                 left_fz_trajectory = left_foot_wrench_world(:, 3);
                 right_fz_trajectory = right_foot_wrench_world(:, 3);
@@ -88,17 +89,20 @@ function findEvents_MS_old(varargin)
                 platform_peak_events = time_marker(platform_peak_indices);
                 platform_vale_indices = platform_neg_peak_indices;
                 platform_vale_events = time_marker(platform_vale_indices);
-                
-                event_data = ...
-                  { ...
-                    platform_peak_events; ...
-                    platform_vale_events; ...
-                  };
-                event_labels = ...
-                  { ...
-                    'oscillation_peaks'; ...
-                    'oscillation_vales'; ...
-                  };
+                number_of_peaks = length(platform_peak_indices);
+                number_of_vales = length(platform_vale_indices);
+
+                % store
+                event_data = cell(number_of_peaks + number_of_vales, 1);
+                event_labels = cell(number_of_peaks + number_of_vales, 1);
+                for i_peak = 1 : number_of_peaks
+                    event_data{i_peak} = platform_peak_events(i_peak);
+                    event_labels{i_peak} = ['peak_' zeroPrefixedIntegerString(i_peak, 2)];
+                end
+                for i_vale = 1 : number_of_vales
+                    event_data{number_of_peaks + i_vale} = platform_vale_events(i_vale);
+                    event_labels{number_of_peaks + i_vale} = ['vale_' zeroPrefixedIntegerString(i_vale, 2)];
+                end
             end
             
             if length(this_trial_type) >= 4 && strcmp(this_trial_type(1:4), 'ramp')
@@ -236,7 +240,7 @@ function findEvents_MS_old(varargin)
             variables_to_save.event_data = event_data;
             variables_to_save.event_labels = event_labels;
             
-            step_events_file_name = ['analysis' filesep makeFileName(date, subject_id, this_trial_type, i_trial, 'events')];
+            step_events_file_name = ['analysis' filesep makeFileName(collection_date, subject_id, this_trial_type, i_trial, 'events')];
             saveDataToFile(step_events_file_name, variables_to_save);
 
             disp(['Finding Events: condition ' this_trial_type ', Trial ' num2str(i_trial) ' completed, saved as ' step_events_file_name]);

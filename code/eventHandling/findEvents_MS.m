@@ -30,46 +30,60 @@ function findEvents_MS(varargin)
     if ~exist('analysis', 'dir')
         mkdir('analysis')
     end
-    load('subjectInfo.mat', 'date', 'subject_id');
 
     % load settings
-    subject_settings = SettingsCustodian('subjectSettings.txt');
-    study_settings_file = '';
-    if exist(['..' filesep 'studySettings.txt'], 'file')
-        study_settings_file = ['..' filesep 'studySettings.txt'];
-    end    
-    if exist(['..' filesep '..' filesep 'studySettings.txt'], 'file')
-        study_settings_file = ['..' filesep '..' filesep 'studySettings.txt'];
-    end
-    study_settings = SettingsCustodian(study_settings_file);
+    subject_settings = loadSettingsFromFile('subject');
+    study_settings = loadSettingsFromFile('study');
     
     for i_condition = 1 : length(condition_list)
         trials_to_process = trial_number_list{i_condition};
         for i_trial = trials_to_process
+            event_data = struct;
+            
             %% prepare
             % load data
             this_trial_type = condition_list{i_condition};
-            [marker_trajectories, time_marker, sampling_rate_marker, marker_labels] = loadData(date, subject_id, this_trial_type, i_trial, 'marker_trajectories');
-            [left_foot_wrench_world, time_left_forceplate, ~, ~, ~, left_forceplate_available] = loadData(date, subject_id, this_trial_type, i_trial, 'left_foot_wrench_world', 'optional');
-            [right_foot_wrench_world, time_right_forceplate, ~, ~, ~, right_forceplate_available] = loadData(date, subject_id, this_trial_type, i_trial, 'right_foot_wrench_world', 'optional');
+            [marker_trajectories, time_marker, sampling_rate_marker, marker_labels] = loadData(subject_settings.get('collection_date'), subject_settings.get('subject_id'), this_trial_type, i_trial, 'marker_trajectories');
+            [treadmill_trajectories, time_treadmill, sampling_rate_treadmill, treadmill_labels] = loadData(subject_settings.get('collection_date'), subject_settings.get('subject_id'), this_trial_type, i_trial, 'treadmill_trajectories', 'optional');
+            [left_foot_wrench_world, time_left_forceplate, ~, ~, ~, left_forceplate_available] = loadData(subject_settings.get('collection_date'), subject_settings.get('subject_id'), this_trial_type, i_trial, 'left_foot_wrench_world', 'optional');
+            [right_foot_wrench_world, time_right_forceplate, ~, ~, ~, right_forceplate_available] = loadData(subject_settings.get('collection_date'), subject_settings.get('subject_id'), this_trial_type, i_trial, 'right_foot_wrench_world', 'optional');
             if left_forceplate_available & right_forceplate_available
                 left_fz_trajectory = left_foot_wrench_world(:, 3);
                 right_fz_trajectory = right_foot_wrench_world(:, 3);
             end
             
+            % derive platform marker by time
             platform_marker_label = subject_settings.get('base_marker', true);
             if ~isempty(platform_marker_label)
                 platform_trajectory = extractMarkerData(marker_trajectories, marker_labels, platform_marker_label);
                 platform_trajectory = platform_trajectory(:, 1);
 
                 % calculate derivatives
-                filter_order = 2;
+                filter_order = 4;
                 cutoff_frequency = 20; % cutoff frequency, in Hz
                 [b, a] = butter(filter_order, cutoff_frequency/(sampling_rate_marker/2));	% set filter parameters for butterworth filter: 2=order of filter;
                 platform_vel_trajectory = deriveByTime(nanfiltfilt(b, a, platform_trajectory), 1/sampling_rate_marker);
                 platform_acc_trajectory = deriveByTime(nanfiltfilt(b, a, platform_vel_trajectory), 1/sampling_rate_marker);
             end
 
+            % derive treadmill markers by time
+            if ~isempty(treadmill_trajectories)
+                % calculate derivatives
+                filter_order = 2;
+                cutoff_frequency = 20; % cutoff frequency, in Hz
+                [b, a] = butter(filter_order, cutoff_frequency/(sampling_rate_marker/2));	% set filter parameters for butterworth filter: 2=order of filter;
+                treadmill_vel_trajectories = deriveByTime(nanfiltfilt(b, a, treadmill_trajectories), 1/sampling_rate_marker);
+                treadmill_acc_trajectories = deriveByTime(nanfiltfilt(b, a, treadmill_vel_trajectories), 1/sampling_rate_marker);
+            end
+
+            shift_source = subject_settings.get('shift_source', true);
+            if strcmp(shift_source, 'base_marker')
+                shift_vel_trajectory = platform_vel_trajectory;
+                shift_acc_trajectory = platform_acc_trajectory;
+            elseif strcmp(shift_source, 'treadmill_trajectory')
+                shift_vel_trajectory = treadmill_vel_trajectories;
+                shift_acc_trajectory = treadmill_acc_trajectories;
+            end
             
 
             %% find events
@@ -100,31 +114,89 @@ function findEvents_MS(varargin)
                   };
             end
             
+<<<<<<< HEAD
             if any(strcmp(this_trial_type, study_settings.get('ramp_perturbation_conditions', 1)))
                 distance_threshold = subject_settings.get('platform_acc_peak_distance_threshold') * sampling_rate_marker;
                 if distance_threshold > length(platform_acc_trajectory) - 2
                     distance_threshold = length(platform_acc_trajectory) - 2;
+=======
+            if any(strcmp(this_trial_type, study_settings.get('across_trials_conditions', 1)))
+                distance_threshold = subject_settings.get('acc_peak_distance_threshold') * sampling_rate_marker;
+                if distance_threshold > length(shift_acc_trajectory) - 2
+                    distance_threshold = length(shift_acc_trajectory) - 2;
+>>>>>>> cleanup_branches
                 end
-                [~, platform_acc_peak_indices] = findpeaks(platform_acc_trajectory, 'MinPeakProminence', subject_settings.get('platform_acc_peak_prominence_threshold'), 'MinPeakDistance', distance_threshold);
-                platform_acc_peak_times = time_marker(platform_acc_peak_indices);
-                [~, platform_acc_vale_indices] = findpeaks(-platform_acc_trajectory, 'MinPeakProminence', subject_settings.get('platform_acc_peak_prominence_threshold'), 'MinPeakDistance', distance_threshold);
-                platform_acc_vale_times = time_marker(platform_acc_vale_indices);
                 
-                % determine start and end
-                platform_shift_start_index = min([platform_acc_peak_indices; platform_acc_vale_indices]);
-                platform_shift_end_index = max([platform_acc_peak_indices; platform_acc_vale_indices]);
-                platform_shift_start_time = time_marker(platform_shift_start_index);
-                platform_shift_end_time = time_marker(platform_shift_end_index);
+                
+                if strcmp(subject_settings.get('shift_method', 1), 'acceleration_peaks')
+                    marker_acceleration_ap = shift_acc_trajectory(:, 1 : 3 : end);
+                    number_of_shift_markers = size(marker_acceleration_ap, 2);
+                    shift_start_indices = zeros(1, number_of_shift_markers);
+                    shift_end_indices = zeros(1, number_of_shift_markers);
+                    shift_start_times = zeros(1, number_of_shift_markers);
+                    shift_end_times = zeros(1, number_of_shift_markers);
+                    for i_marker = 1 : number_of_shift_markers
+                        % use acceleration peaks
+                        [~, acc_peak_indices] = findpeaks(marker_acceleration_ap(:, i_marker), 'MinPeakProminence', subject_settings.get('acc_peak_prominence_threshold'), 'MinPeakDistance', distance_threshold);
+                        acc_peak_times = time_marker(acc_peak_indices);
+                        [~, acc_vale_indices] = findpeaks(-marker_acceleration_ap(:, i_marker), 'MinPeakProminence', subject_settings.get('acc_peak_prominence_threshold'), 'MinPeakDistance', distance_threshold);
+                        acc_vale_times = time_marker(acc_vale_indices);
+
+                        % determine start and end
+                        shift_start_candidate_index = min([acc_peak_indices; acc_vale_indices]);
+                        shift_end_candidate_index = max([acc_peak_indices; acc_vale_indices]);
+                        shift_start_times(i_marker) = time_marker(shift_start_candidate_index);
+                        shift_end_times(i_marker) = time_marker(shift_end_candidate_index);
+
+                    end
+                    if std(shift_start_times) > subject_settings.get('marker_timing_tolerance')
+                        warning(['Trial ' this_trial_type ' - ' num2str(i_trial) ': timing between markers exceeds tolerance'])
+                    end
+                    if std(shift_end_times) > subject_settings.get('marker_timing_tolerance')
+                        warning(['Trial ' this_trial_type ' - ' num2str(i_trial) ': timing between markers exceeds tolerance'])
+                    end
+
+                    shift_start_time = mean(shift_start_times);
+                    shift_end_time = mean(shift_end_times);
+                end
+                
+                if strcmp(subject_settings.get('shift_method', 1), 'velocity_threshold')
+                    % use velocity threshold crossing
+                    marker_velocity_ap_abs = abs(shift_vel_trajectory(:, 1 : 3 : end));
+                    
+                    vel_threshold_breach = marker_velocity_ap_abs > subject_settings.get('shift_vel_threshold', 1);
+                    shift_start_index = find(diff(vel_threshold_breach) > 0, 1);
+                    shift_end_times = find(diff(vel_threshold_breach) < 0, 1);
+
+                    shift_start_time = time_marker(shift_start_index);
+                    shift_end_time = time_marker(shift_end_times);
+                end
+
+                if strcmp(subject_settings.get('shift_method', 1), 'acceleration_threshold')
+                    % use absolute acceleration threshold crossing for start
+                    marker_acceleration_ap = shift_acc_trajectory(:, 1 : 3 : end);
+                    marker_acceleration_ap_abs = abs(marker_acceleration_ap);
+                    acc_abs_threshold_breach = marker_acceleration_ap_abs > subject_settings.get('shift_acc_threshold', 1);
+                    shift_start_index = find(diff(acc_abs_threshold_breach) > 0, 1, 'first');
+                    
+                    % determine if this was forward or backward
+                    shift_direction = sign(shift_acc_trajectory(shift_start_index));
+                    acc_threshold_breach = (- shift_direction * marker_acceleration_ap) > subject_settings.get('shift_acc_threshold', 1);
+                    shift_end_index = find(diff(acc_threshold_breach) > 0, 1, 'first');
+                    
+                    shift_start_time = time_marker(shift_start_index);
+                    shift_end_time = time_marker(shift_end_index);
+                end
                 
                 event_data = ...
                   { ...
-                    platform_shift_start_time - 1; ...
-                    platform_shift_start_time - 0.2; ...
-                    platform_shift_start_time; ...
-                    platform_shift_start_time + 0.075; ...
-                    platform_shift_end_time; ...
-                    platform_shift_end_time + 1; ...
-                    platform_shift_end_time + 2; ...
+                    shift_start_time - 1; ...
+                    shift_start_time - 0.2; ...
+                    shift_start_time; ...
+                    shift_start_time + 0.075; ...
+                    shift_end_time; ...
+                    shift_end_time + 1; ...
+                    shift_end_time + 2; ...
                   };
                 event_labels = ...
                   { ...
@@ -138,8 +210,8 @@ function findEvents_MS(varargin)
                   };
                 
                 % for visualization here
-                platform_events = [platform_shift_start_time, platform_shift_end_time, platform_shift_end_time + 1, platform_shift_end_time + 2];
-                platform_event_indices = findClosestIndex(platform_events, time_marker);
+                shift_events = [shift_start_time, shift_end_time, shift_end_time + 1, shift_end_time + 2];
+                shift_event_indices = findClosestIndex(shift_events, time_marker);
               
             end
 
@@ -180,29 +252,40 @@ function findEvents_MS(varargin)
                 
                 % position
                 event_figures(1) = figure; axes_pos = axes; hold on; title('marker positions')
-                plot(time_marker, platform_trajectory, 'linewidth', 1, 'displayname', 'platform position');
+%                 plot(time_marker, platform_trajectory, 'linewidth', 1, 'displayname', 'shift pos');
+                plot(time_marker, shift_vel_trajectory, 'linewidth', 1, 'displayname', 'shift vel');
+                plot(time_marker, shift_acc_trajectory, 'linewidth', 1, 'displayname', 'shift acc');
+                
+                
 %                 plot(time_marker, surround_trajectory, 'linewidth', 1, 'displayname', 'surround position');
                 
-                plot(time_marker(platform_event_indices), platform_trajectory(platform_event_indices), 'v', 'linewidth', 2, 'color', color_heelstrike, 'displayname', 'oscillation peaks');
+%                 plot(time_marker(platform_event_indices), platform_trajectory(platform_event_indices), 'v', 'linewidth', 2, 'color', color_heelstrike, 'displayname', 'oscillation peaks');
+                [~, shift_start_time_index] = min(abs(time_marker - shift_start_time));
+                [~, shift_end_time_index] = min(abs(time_marker - shift_end_time));
+%                 plot(shift_start_time, shift_vel_trajectory(shift_start_time_index), '>', 'linewidth', 2, 'color', color_heelstrike, 'displayname', 'start');
+%                 plot(shift_end_time, shift_vel_trajectory(shift_end_time_index), '<', 'linewidth', 2, 'color', color_heelstrike, 'displayname', 'end');
+                plot(shift_start_time, shift_acc_trajectory(shift_start_time_index), '>', 'linewidth', 2, 'color', color_heelstrike, 'displayname', 'start');
+                plot(shift_end_time, shift_acc_trajectory(shift_end_time_index), '<', 'linewidth', 2, 'color', color_heelstrike, 'displayname', 'end');
+                
 %                 plot(time_marker(left_pushoff_indices_mocap), LTOE_z_trajectory(left_pushoff_indices_mocap), 'o', 'linewidth', 2, 'color', color_pushoff, 'displayname', 'left pushoff');
                 legend('toggle');
 
-                % velocities
-                event_figures(2) = figure; axes_vel = axes; hold on;  title('marker velocities')
-                plot(time_marker, platform_vel_trajectory, 'linewidth', 1, 'displayname', 'platform velocity');
-%                 plot(time_marker, surround_vel_trajectory, 'linewidth', 1, 'displayname', 'surround velocity');
-%                 plot(time_marker(left_touchdown_indices_mocap), platform_acc_trajectory(left_touchdown_indices_mocap)*acc_scaler, 'v', 'linewidth', 2, 'color', color_heelstrike, 'displayname', 'left touchdown');
-%                 plot(time_marker(left_pushoff_indices_mocap), LTOE_z_vel_trajectory(left_pushoff_indices_mocap)*vel_scaler, '^', 'linewidth', 2, 'color', color_pushoff, 'displayname', 'left pushoff');
-                legend('toggle');
-
-                % accelerations
-                event_figures(3) = figure; axes_acc = axes; hold on;  title('marker accelerations')
-                plot(time_marker, platform_acc_trajectory, 'linewidth', 1, 'displayname', 'platform acceleration');
-%                 plot(time_marker, surround_acc_trajectory, 'linewidth', 1, 'displayname', 'surround acceleration');
-                plot(time_marker(platform_event_indices), platform_acc_trajectory(platform_event_indices), 'v', 'linewidth', 2, 'color', color_heelstrike, 'displayname', 'oscillation peaks');
-                legend('toggle');
-                
-                linkaxes([axes_pos axes_vel axes_acc], 'x')
+%                 % velocities
+%                 event_figures(2) = figure; axes_vel = axes; hold on;  title('marker velocities')
+%                 plot(time_marker, platform_vel_trajectory, 'linewidth', 1, 'displayname', 'platform velocity');
+% %                 plot(time_marker, surround_vel_trajectory, 'linewidth', 1, 'displayname', 'surround velocity');
+% %                 plot(time_marker(left_touchdown_indices_mocap), platform_acc_trajectory(left_touchdown_indices_mocap)*acc_scaler, 'v', 'linewidth', 2, 'color', color_heelstrike, 'displayname', 'left touchdown');
+% %                 plot(time_marker(left_pushoff_indices_mocap), LTOE_z_vel_trajectory(left_pushoff_indices_mocap)*vel_scaler, '^', 'linewidth', 2, 'color', color_pushoff, 'displayname', 'left pushoff');
+%                 legend('toggle');
+% 
+%                 % accelerations
+%                 event_figures(3) = figure; axes_acc = axes; hold on;  title('marker accelerations')
+%                 plot(time_marker, platform_acc_trajectory, 'linewidth', 1, 'displayname', 'platform acceleration');
+% %                 plot(time_marker, surround_acc_trajectory, 'linewidth', 1, 'displayname', 'surround acceleration');
+%                 plot(time_marker(platform_event_indices), platform_acc_trajectory(platform_event_indices), 'v', 'linewidth', 2, 'color', color_heelstrike, 'displayname', 'oscillation peaks');
+%                 legend('toggle');
+%                 
+%                 linkaxes([axes_pos axes_vel axes_acc], 'x')
             end
 
 
@@ -214,7 +297,7 @@ function findEvents_MS(varargin)
             variables_to_save.event_data = event_data;
             variables_to_save.event_labels = event_labels;
             
-            step_events_file_name = ['analysis' filesep makeFileName(date, subject_id, this_trial_type, i_trial, 'events')];
+            step_events_file_name = ['analysis' filesep makeFileName(subject_settings.get('collection_date'), subject_settings.get('subject_id'), this_trial_type, i_trial, 'events')];
             saveDataToFile(step_events_file_name, variables_to_save);
 
             disp(['Finding Events: condition ' this_trial_type ', Trial ' num2str(i_trial) ' completed, saved as ' step_events_file_name]);

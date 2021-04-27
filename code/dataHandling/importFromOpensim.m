@@ -21,12 +21,10 @@ function importFromOpensim(varargin)
     parser = inputParser;
     addParameter(parser, 'type', 'all')
     sources_default = {['opensim' filesep 'inverseKinematics'], ['opensim' filesep 'bodyKinematics']};
-%     sources_default = {['opensim' filesep 'bodyKinematics']};
     addParameter(parser, 'sources', sources_default)
     parser.KeepUnmatched = true;
     parse(parser, varargin{:})
     sources = parser.Results.sources;
-    
     
     direction_file = [getCobalPath filesep 'resources' filesep 'opensim' filesep 'OpensimDirections.txt'];
     direction_settings = SettingsCustodian(direction_file);
@@ -154,7 +152,7 @@ function importFromOpensim(varargin)
             disp(['imported ' num2str(number_of_files) ' files'])        
 
         else
-            error(['Failed to locate directory ' source ' to process .mot files'])
+            error(['Failed to locate directory ' source_dir ' to process .mot files'])
 
 
 

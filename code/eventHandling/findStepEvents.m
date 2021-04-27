@@ -19,7 +19,7 @@
 % input: 
 % subjectInfo.mat
 % subjectModel.mat
-% markerTrajectories
+% markerTrajectories 
 % left_touchdown_method / right_touchdown_method in subjectSettings
 %
 % output:
@@ -37,25 +37,20 @@ function findStepEvents(varargin)
     parser = inputParser;
     parser.KeepUnmatched = true;
     addParameter(parser, 'visualize', false)
+    addParameter(parser, 'VisualizationWindow', [])
     parse(parser, varargin{:})
     visualize = parser.Results.visualize;
+    visualization_window = parser.Results.VisualizationWindow;
 
     % figure out folders
     if ~exist('analysis', 'dir')
         mkdir('analysis')
     end
-    load('subjectInfo.mat', 'date', 'subject_id');
-
+    
     % load settings
-    subject_settings = SettingsCustodian('subjectSettings.txt');
-    study_settings_file = '';
-    if exist(['..' filesep 'studySettings.txt'], 'file')
-        study_settings_file = ['..' filesep 'studySettings.txt'];
-    end    
-    if exist(['..' filesep '..' filesep 'studySettings.txt'], 'file')
-        study_settings_file = ['..' filesep '..' filesep 'studySettings.txt'];
-    end
-    study_settings = SettingsCustodian(study_settings_file);
+    subject_settings = loadSettingsFromFile('subject');
+    collection_date = subject_settings.get('collection_date');
+    subject_id = subject_settings.get('subject_id');
     
     for i_condition = 1 : length(condition_list)
         trials_to_process = trial_number_list{i_condition};
@@ -63,69 +58,15 @@ function findStepEvents(varargin)
             %% prepare
             % load data
             condition = condition_list{i_condition};
-            [marker_trajectories, time_marker, sampling_rate_marker, marker_labels] = loadData(date, subject_id, condition, i_trial, 'marker_trajectories');
-            [cop_trajectories, time_forceplate, ~, ~, ~, cop_available] = loadData(date, subject_id, condition, i_trial, 'total_forceplate_cop_world', 'optional');
-            [left_foot_wrench_world, time_left_forceplate, ~, ~, ~, left_forceplate_available] = loadData(date, subject_id, condition, i_trial, 'left_foot_wrench_world', 'optional');
-            [right_foot_wrench_world, time_right_forceplate, ~, ~, ~, right_forceplate_available] = loadData(date, subject_id, condition, i_trial, 'right_foot_wrench_world', 'optional');
-            if left_forceplate_available & right_forceplate_available
+            [marker_trajectories, time_marker, sampling_rate_marker, marker_labels] = loadData(collection_date, subject_id, condition, i_trial, 'marker_trajectories');
+            [cop_trajectories, time_forceplate, ~, ~, ~, ~] = loadData(collection_date, subject_id, condition, i_trial, 'total_forceplate_cop_world', 'optional');
+            [left_foot_wrench_world, time_left_forceplate, ~, ~, ~, left_forceplate_available] = loadData(collection_date, subject_id, condition, i_trial, 'left_foot_wrench_world', 'optional');
+            [right_foot_wrench_world, time_right_forceplate, ~, ~, ~, right_forceplate_available] = loadData(collection_date, subject_id, condition, i_trial, 'right_foot_wrench_world', 'optional');
+            if left_forceplate_available & right_forceplate_available %#ok<AND2>
                 left_fz_trajectory = left_foot_wrench_world(:, 3);
                 right_fz_trajectory = right_foot_wrench_world(:, 3);
             end
-%             marker_trajectories_raw
-            % extract data
-            LHEE_trajectory = extractMarkerData(marker_trajectories, marker_labels, 'LHEE', 'trajectories');
-            LHEE_y_trajectory = LHEE_trajectory(:, 2);
-            LHEE_z_trajectory = LHEE_trajectory(:, 3);
-            LTOE_trajectory = extractMarkerData(marker_trajectories, marker_labels, 'LTOE', 'trajectories');
-            LTOE_z_trajectory = LTOE_trajectory(:, 3);
             
-            RHEE_trajectory = extractMarkerData(marker_trajectories, marker_labels, 'RHEE', 'trajectories');
-            RHEE_y_trajectory = RHEE_trajectory(:, 2);
-            RHEE_z_trajectory = RHEE_trajectory(:, 3);
-            RTOE_trajectory = extractMarkerData(marker_trajectories, marker_labels, 'RTOE', 'trajectories');
-            RTOE_z_trajectory = RTOE_trajectory(:, 3);
-            
-            LELB_trajectory = extractMarkerData(marker_trajectories, marker_labels, 'LELB', 'trajectories');
-            LWRA_trajectory = extractMarkerData(marker_trajectories, marker_labels, 'LWRA', 'trajectories');
-            LWRB_trajectory = extractMarkerData(marker_trajectories, marker_labels, 'LWRB', 'trajectories');
-            RELB_trajectory = extractMarkerData(marker_trajectories, marker_labels, 'RELB', 'trajectories');
-            RWRA_trajectory = extractMarkerData(marker_trajectories, marker_labels, 'RWRA', 'trajectories');
-            RWRB_trajectory = extractMarkerData(marker_trajectories, marker_labels, 'RWRB', 'trajectories');
-            
-            LANK_trajectory = extractMarkerData(marker_trajectories, marker_labels, 'LANK', 'trajectories');
-            LPSI_trajectory = extractMarkerData(marker_trajectories, marker_labels, 'LPSI', 'trajectories');
-            LASI_trajectory = extractMarkerData(marker_trajectories, marker_labels, 'LASI', 'trajectories');
-            RANK_trajectory = extractMarkerData(marker_trajectories, marker_labels, 'RANK', 'trajectories');
-            RPSI_trajectory = extractMarkerData(marker_trajectories, marker_labels, 'RPSI', 'trajectories');
-            RASI_trajectory = extractMarkerData(marker_trajectories, marker_labels, 'RASI', 'trajectories');
-            
-            % calculate foot angle
-            left_foot_vector = LTOE_trajectory - LHEE_trajectory;
-            right_foot_vector = RTOE_trajectory - RHEE_trajectory;
-            left_foot_angle_trajectory = zeros(size(LHEE_trajectory, 1), 1);
-            right_foot_angle_trajectory = zeros(size(RHEE_trajectory, 1), 1);
-            for i_time = 1 : size(RHEE_trajectory, 1)
-                left_foot_angle_trajectory(i_time) = atan2(left_foot_vector(i_time, 3), left_foot_vector(i_time, 2));
-                right_foot_angle_trajectory(i_time) = atan2(right_foot_vector(i_time, 3), right_foot_vector(i_time, 2));
-            end
-            
-            % calculate derivatives
-            filter_order = 2;
-            cutoff_frequency = 20; % cutoff frequency, in Hz
-            [b, a] = butter(filter_order, cutoff_frequency/(sampling_rate_marker/2));	% set filter parameters for butterworth filter: 2=order of filter;
-            LHEE_z_vel_trajectory = deriveByTime(nanfiltfilt(b, a, LHEE_z_trajectory), 1/sampling_rate_marker);
-            RHEE_z_vel_trajectory = deriveByTime(nanfiltfilt(b, a, RHEE_z_trajectory), 1/sampling_rate_marker);
-            LHEE_z_acc_trajectory = deriveByTime(nanfiltfilt(b, a, LHEE_z_vel_trajectory), 1/sampling_rate_marker);
-            RHEE_z_acc_trajectory = deriveByTime(nanfiltfilt(b, a, RHEE_z_vel_trajectory), 1/sampling_rate_marker);
-            LTOE_z_vel_trajectory = deriveByTime(nanfiltfilt(b, a, LTOE_z_trajectory), 1/sampling_rate_marker);
-            RTOE_z_vel_trajectory = deriveByTime(nanfiltfilt(b, a, RTOE_z_trajectory), 1/sampling_rate_marker);
-            
-            left_foot_angle_vel_trajectory = deriveByTime(nanfiltfilt(b, a, left_foot_angle_trajectory), 1/sampling_rate_marker);
-            right_foot_angle_vel_trajectory = deriveByTime(nanfiltfilt(b, a, right_foot_angle_trajectory), 1/sampling_rate_marker);
-            left_foot_angle_acc_trajectory = deriveByTime(nanfiltfilt(b, a, left_foot_angle_vel_trajectory), 1/sampling_rate_marker);
-            right_foot_angle_acc_trajectory = deriveByTime(nanfiltfilt(b, a, right_foot_angle_vel_trajectory), 1/sampling_rate_marker);
-            
-
             %% find events
             left_touchdown_times = [];
             left_pushoff_times = [];
@@ -138,6 +79,9 @@ function findStepEvents(varargin)
                 cop_ap = cop_trajectories(:, 2);
                 [~, pushoff_indices_both] = findpeaks(cop_ap, 'MinPeakProminence', subject_settings.get('peak_prominence_threshold'));
                 [~, touchdown_indices_both] = findpeaks(-cop_ap, 'MinPeakProminence', subject_settings.get('peak_prominence_threshold'));
+                
+                LHEE_y_trajectory = getKinematics('heel', 'left', 'y');
+                RHEE_y_trajectory = getKinematics('heel', 'right', 'y');
                 
                 % go through and assign each index to a foot
                 pushoff_indices_left = [];
@@ -180,59 +124,68 @@ function findStepEvents(varargin)
                 
                 
                 if visualize
-                    figure; axes; hold on;
-                    plot(cop_trajectories(:, 1), cop_trajectories(:, 2), 'color', 'b');
-                    plot(cop_trajectories(pushoff_indices_both, 1), cop_trajectories(pushoff_indices_both, 2), '^', 'markersize', 4, 'color', 'c');
-                    plot(cop_trajectories(pushoff_indices_left, 1), cop_trajectories(pushoff_indices_left, 2), '^', 'markersize', 8, 'color', 'g', 'linewidth', 2);
-                    plot(cop_trajectories(pushoff_indices_right, 1), cop_trajectories(pushoff_indices_right, 2), '^', 'markersize', 8, 'color', 'r', 'linewidth', 2);
-                    plot(cop_trajectories(touchdown_indices_both, 1), cop_trajectories(touchdown_indices_both, 2), 'v', 'markersize', 4, 'color', 'm');
-                    plot(cop_trajectories(touchdown_indices_left, 1), cop_trajectories(touchdown_indices_left, 2), 'v', 'markersize', 8, 'color', 'g', 'linewidth', 2);
-                    plot(cop_trajectories(touchdown_indices_right, 1), cop_trajectories(touchdown_indices_right, 2), 'v', 'markersize', 8, 'color', 'r', 'linewidth', 2);
+                    if ~isempty(visualization_window)
+                        window_frame_indices = findClosestIndex(visualization_window, time_forceplate);
+                    else
+                        window_frame_indices = [1, length(time_forceplate)];
+                    end
+                    window_indices = window_frame_indices(1) : window_frame_indices(2);
+                    pushoff_indices_left_window = pushoff_indices_left(pushoff_indices_left>=window_frame_indices(1) & pushoff_indices_left<=window_frame_indices(2));
+                    pushoff_indices_right_window = pushoff_indices_right(pushoff_indices_right>=window_frame_indices(1) & pushoff_indices_right<=window_frame_indices(2));
+                    touchdown_indices_left_window = touchdown_indices_left(touchdown_indices_left>=window_frame_indices(1) & touchdown_indices_left<=window_frame_indices(2));
+                    touchdown_indices_right_window = touchdown_indices_right(touchdown_indices_right>=window_frame_indices(1) & touchdown_indices_right<=window_frame_indices(2));
+                    
+                    figure; axes; hold on; title('CoP path on treadmill')
+                    plot(cop_trajectories(window_indices, 1), cop_trajectories(window_indices, 2), 'color', 'b', 'DisplayName', 'CoP');
+                    plot(cop_trajectories(pushoff_indices_left_window, 1), cop_trajectories(pushoff_indices_left_window, 2), '^', 'markersize', 8, 'color', 'g', 'markerfacecolor', 'g', 'DisplayName', 'left pushoff');
+                    plot(cop_trajectories(pushoff_indices_right_window, 1), cop_trajectories(pushoff_indices_right_window, 2), '^', 'markersize', 8, 'color', 'r', 'markerfacecolor', 'r', 'DisplayName', 'right pushoff');
+                    plot(cop_trajectories(touchdown_indices_left_window, 1), cop_trajectories(touchdown_indices_left_window, 2), 'v', 'markersize', 8, 'color', 'g', 'markerfacecolor', 'g', 'DisplayName', 'left heel-strike');
+                    plot(cop_trajectories(touchdown_indices_right_window, 1), cop_trajectories(touchdown_indices_right_window, 2), 'v', 'markersize', 8, 'color', 'r', 'markerfacecolor', 'r', 'DisplayName', 'right heel-strike');
+                    xlabel('ml position (m)'); ylabel('ap position (m)')
 
-                    figure; axes_x = axes; hold on;
-                    plot(time_forceplate, cop_trajectories(:, 1), 'linewidth', 2, 'color', 'b');
-                    plot(time_forceplate(pushoff_indices_both), cop_trajectories(pushoff_indices_both, 1), '^', 'markersize', 4, 'color', 'c');
-                    plot(time_forceplate(pushoff_indices_left), cop_trajectories(pushoff_indices_left, 1), '^', 'markersize', 6, 'color', 'g', 'linewidth', 2);
-                    plot(time_forceplate(pushoff_indices_right), cop_trajectories(pushoff_indices_right, 1), '^', 'markersize', 6, 'color', 'r', 'linewidth', 2);
-                    plot(time_forceplate(touchdown_indices_both), cop_trajectories(touchdown_indices_both, 1), 'v', 'markersize', 4, 'color', 'm');
-                    plot(time_forceplate(touchdown_indices_left), cop_trajectories(touchdown_indices_left, 1), 'v', 'markersize', 6, 'color', 'g', 'linewidth', 2);
-                    plot(time_forceplate(touchdown_indices_right), cop_trajectories(touchdown_indices_right, 1), 'v', 'markersize', 6, 'color', 'r', 'linewidth', 2);
+                    figure; axes_x = axes; hold on; title('CoP trajectories - left forceplate')
+                    plot(time_forceplate(window_indices), cop_trajectories(window_indices, 1), 'linewidth', 2, 'color', 'b', 'DisplayName', 'CoP');
+                    plot(time_forceplate(pushoff_indices_left_window), cop_trajectories(pushoff_indices_left_window, 1), '^', 'markersize', 8, 'color', 'g', 'markerfacecolor', 'g', 'DisplayName', 'left pushoff');
+                    plot(time_forceplate(pushoff_indices_right_window), cop_trajectories(pushoff_indices_right_window, 1), '^', 'markersize', 8, 'color', 'r', 'markerfacecolor', 'r', 'DisplayName', 'right pushoff');
+                    plot(time_forceplate(touchdown_indices_left_window), cop_trajectories(touchdown_indices_left_window, 1), 'v', 'markersize', 8, 'color', 'g', 'markerfacecolor', 'g', 'DisplayName', 'left heel-strike');
+                    plot(time_forceplate(touchdown_indices_right_window), cop_trajectories(touchdown_indices_right_window, 1), 'v', 'markersize', 8, 'color', 'r', 'markerfacecolor', 'r', 'DisplayName', 'right heel-strike');
+                    xlabel('time (s)'); ylabel('ml position (m)')
 
-                    figure; axes_y = axes; hold on;
-                    plot(time_forceplate, cop_trajectories(:, 2), 'linewidth', 2, 'color', 'b');
-                    plot(time_forceplate(pushoff_indices_both), cop_trajectories(pushoff_indices_both, 2), '^', 'markersize', 4, 'color', 'c');
-                    plot(time_forceplate(pushoff_indices_left), cop_trajectories(pushoff_indices_left, 2), '^', 'markersize', 6, 'color', 'g', 'linewidth', 2);
-                    plot(time_forceplate(pushoff_indices_right), cop_trajectories(pushoff_indices_right, 2), '^', 'markersize', 6, 'color', 'r', 'linewidth', 2);
-                    plot(time_forceplate(touchdown_indices_both), cop_trajectories(touchdown_indices_both, 2), 'v', 'markersize', 4, 'color', 'm');
-                    plot(time_forceplate(touchdown_indices_left), cop_trajectories(touchdown_indices_left, 2), 'v', 'markersize', 6, 'color', 'g', 'linewidth', 2);
-                    plot(time_forceplate(touchdown_indices_right), cop_trajectories(touchdown_indices_right, 2), 'v', 'markersize', 6, 'color', 'r', 'linewidth', 2);
+                    figure; axes_y = axes; hold on; title('CoP trajectories - right forceplate')
+                    plot(time_forceplate(window_indices), cop_trajectories(window_indices, 2), 'linewidth', 2, 'color', 'b', 'DisplayName', 'CoP');
+                    plot(time_forceplate(pushoff_indices_left_window), cop_trajectories(pushoff_indices_left_window, 2), '^', 'markersize', 8, 'color', 'g', 'markerfacecolor', 'g', 'DisplayName', 'left pushoff');
+                    plot(time_forceplate(pushoff_indices_right_window), cop_trajectories(pushoff_indices_right_window, 2), '^', 'markersize', 8, 'color', 'r', 'markerfacecolor', 'r', 'DisplayName', 'right pushoff');
+                    plot(time_forceplate(touchdown_indices_left_window), cop_trajectories(touchdown_indices_left_window, 2), 'v', 'markersize', 8, 'color', 'g', 'markerfacecolor', 'g', 'DisplayName', 'left heel-strike');
+                    plot(time_forceplate(touchdown_indices_right_window), cop_trajectories(touchdown_indices_right_window, 2), 'v', 'markersize', 8, 'color', 'r', 'markerfacecolor', 'r', 'DisplayName', 'right heel-strike');
+                    xlabel('time (s)'); ylabel('ap position (m)')
 
                     linkaxes([axes_x, axes_y], 'x');
                 end
             end
-            
-            
+                        
             %% find events for left foot
-            if any(strcmp(subject_settings.get('left_touchdown_method'), 'heel_position_minima'))
+            if any(strcmp(subject_settings.get('left_touchdown_method', 1), 'heel_position_minima'))
+                LHEE_z_trajectory = getKinematics('heel', 'left', 'z');
                 % find touch down indices as negative peaks of the heel marker z-position
                 [~, left_heel_peak_locations] = findpeaks(-LHEE_z_trajectory, 'MinPeakProminence', subject_settings.get('left_touchdown_peak_prominence_threshold'), 'MinPeakDistance', subject_settings.get('left_touchdown_peak_distance_threshold') * sampling_rate_marker);
                 left_touchdown_indices_mocap = left_heel_peak_locations';
-                left_touchdown_times = [left_touchdown_times; time_marker(left_touchdown_indices_mocap)];
+                left_touchdown_times = [left_touchdown_times; time_marker(left_touchdown_indices_mocap)]; %#ok<AGROW>
             end
-            if any(strcmp(subject_settings.get('left_touchdown_method'), 'toe_position_minima'))
+            if any(strcmp(subject_settings.get('left_touchdown_method', 1), 'toe_position_minima'))
+                LTOE_z_trajectory = getKinematics('toes', 'left', 'z');
                 % find touch down indices as negative peaks of the heel marker z-position
                 [~, left_toe_peak_locations] = findpeaks(-LTOE_z_trajectory, 'MinPeakProminence', subject_settings.get('left_touchdown_peak_prominence_threshold'), 'MinPeakDistance', subject_settings.get('left_touchdown_peak_distance_threshold') * sampling_rate_marker);
                 left_touchdown_indices_mocap = left_toe_peak_locations';
-                left_touchdown_times = [left_touchdown_times; time_marker(left_touchdown_indices_mocap)];
+                left_touchdown_times = [left_touchdown_times; time_marker(left_touchdown_indices_mocap)]; %#ok<AGROW>
             end
-            if any(strcmp(subject_settings.get('left_touchdown_method'), 'toe_velocity_minima'))
+            if any(strcmp(subject_settings.get('left_touchdown_method', 1), 'toe_velocity_minima'))
+                [~, LTOE_z_vel_trajectory] = getKinematics('toes', 'left', 'z');
                 [~, left_toe_peak_locations] = findpeaks(-LTOE_z_vel_trajectory, 'MinPeakProminence', subject_settings.get('left_touchdown_peak_prominence_threshold'), 'MinPeakDistance', subject_settings.get('left_touchdown_peak_distance_threshold') * sampling_rate_marker);
                 left_touchdown_indices_mocap = left_toe_peak_locations';
-                left_touchdown_times = [left_touchdown_times; time_marker(left_touchdown_indices_mocap)];
+                left_touchdown_times = [left_touchdown_times; time_marker(left_touchdown_indices_mocap)]; %#ok<AGROW>
             end
-            if any(strcmp(subject_settings.get('left_touchdown_method'), 'first_acceleration_peak_after_mid_swing'))
-                % left_touchdown_peak_distance_threshold: 0.8
-                % left touchdown peak prominence threshold: 5
+            if any(strcmp(subject_settings.get('left_touchdown_method', 1), 'first_acceleration_peak_after_mid_swing'))
+                [LHEE_z_trajectory, ~, LHEE_z_acc_trajectory] = getKinematics('heel', 'left', 'z');
                 
                 % find mid-swing as peaks of heel position
                 [~, left_heel_midswing_locations] = findpeaks(LHEE_z_trajectory, 'MinPeakDistance', subject_settings.get('left_touchdown_peak_distance_threshold') * sampling_rate_marker);
@@ -249,16 +202,19 @@ function findStepEvents(varargin)
                     end
                 end
                 left_touchdown_indices_mocap(left_touchdown_indices_mocap==0) = [];
-                left_touchdown_times = [left_touchdown_times; time_marker(left_touchdown_indices_mocap)];
+                left_touchdown_times = [left_touchdown_times; time_marker(left_touchdown_indices_mocap)]; %#ok<AGROW>
             end
-            if any(strcmp(subject_settings.get('left_touchdown_method'), 'heel_ap_peak'))
+            if any(strcmp(subject_settings.get('left_touchdown_method', 1), 'heel_ap_peak'))
+                LHEE_y_trajectory = getKinematics('heel', 'left', 'y');
+                
                 % find velocity zeros
-                [~, left_heel_vel_peak_locations] = findpeaks(LHEE_y_trajectory, 'MinPeakProminence', subject_settings.get('left_touchdown_peak_prominence_threshold'));
-                left_touchdown_indices_mocap = left_heel_vel_peak_locations;
-                left_touchdown_times = [left_touchdown_times; time_marker(left_heel_vel_peak_locations)];
+                [~, left_heel_peak_locations] = findpeaks(LHEE_y_trajectory, 'MinPeakProminence', subject_settings.get('left_touchdown_peak_prominence_threshold'));
+                left_touchdown_indices_mocap = left_heel_peak_locations;
+                left_touchdown_times = [left_touchdown_times; time_marker(left_heel_peak_locations)]; %#ok<AGROW>
             end
                 
-            if any(strcmp(subject_settings.get('left_pushoff_method'), 'first_velocity_peak_after_touchdown'))
+            if any(strcmp(subject_settings.get('left_pushoff_method', 1), 'first_velocity_peak_after_touchdown'))
+                [~, LTOE_z_vel_trajectory] = getKinematics('toes', 'left', 'z');
                 % for pushoff, find the first significant toes z-velocity peak after each touchdown
                 [~, left_toes_vel_peak_locations] = findpeaks(LTOE_z_vel_trajectory, 'MinPeakProminence', subject_settings.get('left_pushoff_peak_prominence_threshold'));
                 left_toes_vel_peak_locations = left_toes_vel_peak_locations';
@@ -270,16 +226,30 @@ function findStepEvents(varargin)
                     end
                 end
                 left_pushoff_indices_mocap(left_pushoff_indices_mocap==0) = [];
-                left_pushoff_times = [left_pushoff_times; time_marker(left_pushoff_indices_mocap)];
+                left_pushoff_times = [left_pushoff_times; time_marker(left_pushoff_indices_mocap)]; %#ok<AGROW>
             end
-            if any(strcmp(subject_settings.get('left_pushoff_method'), 'forceplate_threshold'))
+            if any(strcmp(subject_settings.get('left_pushoff_method', 1), 'heel_acceleration_minima'))
+                [~, ~, LHEE_z_acc_trajectory] = getKinematics('heel', 'left', 'z');
+                % find touch down indices as negative peaks of the heel marker z-position
+                [~, left_heel_acc_peak_locations] = findpeaks(-LHEE_z_acc_trajectory, 'MinPeakProminence', subject_settings.get('left_pushoff_vale_prominence_threshold'), 'MinPeakDistance', subject_settings.get('left_pushoff_vale_distance_threshold') * sampling_rate_marker);
+                left_pushoff_indices_mocap = left_heel_acc_peak_locations';
+                left_pushoff_times = [left_pushoff_times; time_marker(left_pushoff_indices_mocap)]; %#ok<AGROW>
+            end
+            if any(strcmp(subject_settings.get('left_pushoff_method', 1), 'forceplate_threshold'))
                 left_pushoff_diff_forceplate = diff(sign(abs(left_fz_trajectory) - subject_settings.get('forceplate_load_threshold')));
-                left_pushoff_times = [left_pushoff_times; time_left_forceplate(left_pushoff_diff_forceplate~=0)];
+                left_pushoff_times = [left_pushoff_times; time_left_forceplate(left_pushoff_diff_forceplate~=0)]; %#ok<AGROW>
+            end
+            if any(strcmp(subject_settings.get('left_pushoff_method', 1), 'toes_ap_vale'))
+                LTOE_y_trajectory = getKinematics('toes', 'left', 'y');
+                % find velocity zeros
+                [~, left_toes_vale_locations] = findpeaks(-LTOE_y_trajectory, 'MinPeakProminence', subject_settings.get('left_pushoff_peak_prominence_threshold'));
+                left_pushoff_times = [left_pushoff_times; time_marker(left_toes_vale_locations)]; %#ok<AGROW>
             end
             
             left_fullstance_times = [];
-            if any(strcmp(subject_settings.get('left_fullstance_method'), 'first_zero_crossing_after_heelstrike'))
+            if any(strcmp(subject_settings.get('left_fullstance_method', 1), 'first_zero_crossing_after_heelstrike'))
                 % identify zero crossings of angle
+                left_foot_angle_trajectory = calculateFootAngleKinematics('left');
                 left_foot_angle_zero_crossing_indices = find(diff(sign(left_foot_angle_trajectory)));
                 
                 % identify acceleration peaks as touchdowns
@@ -292,30 +262,32 @@ function findStepEvents(varargin)
                     end
                 end
                 left_fullstance_indices_mocap(left_fullstance_indices_mocap==0) = [];
-                left_fullstance_times = [left_fullstance_times; time_marker(left_fullstance_indices_mocap)];
+                left_fullstance_times = [left_fullstance_times; time_marker(left_fullstance_indices_mocap)]; %#ok<AGROW>
             end
 
             %% find events for right foot
-            if any(strcmp(subject_settings.get('right_touchdown_method'), 'heel_position_minima'))
+            if any(strcmp(subject_settings.get('right_touchdown_method', 1), 'heel_position_minima'))
+                RHEE_z_trajectory = getKinematics('heel', 'right', 'z');
                 % find touch down indices as negative peaks of the heel marker z-position
                 [~, right_heel_peak_locations] = findpeaks(-RHEE_z_trajectory, 'MinPeakProminence', subject_settings.get('right_touchdown_peak_prominence_threshold'), 'MinPeakDistance', subject_settings.get('right_touchdown_peak_distance_threshold'));
                 right_touchdown_indices_mocap = right_heel_peak_locations';
-                right_touchdown_times = [right_touchdown_times; time_marker(right_touchdown_indices_mocap)];
+                right_touchdown_times = [right_touchdown_times; time_marker(right_touchdown_indices_mocap)]; %#ok<AGROW>
             end
-            if any(strcmp(subject_settings.get('right_touchdown_method'), 'toe_position_minima'))
+            if any(strcmp(subject_settings.get('right_touchdown_method', 1), 'toe_position_minima'))
+                RTOE_z_trajectory = getKinematics('toes', 'right', 'z');
                 % find touch down indices as negative peaks of the heel marker z-position
                 [~, right_toe_peak_locations] = findpeaks(-RTOE_z_trajectory, 'MinPeakProminence', subject_settings.get('right_touchdown_peak_prominence_threshold'), 'MinPeakDistance', subject_settings.get('right_touchdown_peak_distance_threshold'));
                 right_touchdown_indices_mocap = right_toe_peak_locations';
-                right_touchdown_times = [right_touchdown_times; time_marker(right_touchdown_indices_mocap)];
+                right_touchdown_times = [right_touchdown_times; time_marker(right_touchdown_indices_mocap)]; %#ok<AGROW>
             end
-            if any(strcmp(subject_settings.get('right_touchdown_method'), 'toe_velocity_minima'))
+            if any(strcmp(subject_settings.get('right_touchdown_method', 1), 'toe_velocity_minima'))
+                [~, RTOE_z_vel_trajectory] = getKinematics('toes', 'right', 'z');
                 [~, right_toe_peak_locations] = findpeaks(-RTOE_z_vel_trajectory, 'MinPeakProminence', subject_settings.get('right_touchdown_peak_prominence_threshold'), 'MinPeakDistance', subject_settings.get('right_touchdown_peak_distance_threshold') * sampling_rate_marker);
                 right_touchdown_indices_mocap = right_toe_peak_locations';
-                right_touchdown_times = [right_touchdown_times; time_marker(right_touchdown_indices_mocap)];
+                right_touchdown_times = [right_touchdown_times; time_marker(right_touchdown_indices_mocap)]; %#ok<AGROW>
             end
-            if any(strcmp(subject_settings.get('right_touchdown_method'), 'first_acceleration_peak_after_mid_swing'))
-                % right_touchdown_peak_distance_threshold: 0.8
-                % right touchdown peak prominence threshold: 5
+            if any(strcmp(subject_settings.get('right_touchdown_method', 1), 'first_acceleration_peak_after_mid_swing'))
+                [RHEE_z_trajectory, ~, RHEE_z_acc_trajectory] = getKinematics('heel', 'right', 'z');
                 
                 % find mid-swing as peaks of heel position
                 [~, right_heel_midswing_locations] = findpeaks(RHEE_z_trajectory, 'MinPeakDistance', subject_settings.get('right_touchdown_peak_distance_threshold') * sampling_rate_marker);
@@ -332,16 +304,19 @@ function findStepEvents(varargin)
                     end
                 end
                 right_touchdown_indices_mocap(right_touchdown_indices_mocap==0) = [];
-                right_touchdown_times = [right_touchdown_times; time_marker(right_touchdown_indices_mocap)];
+                right_touchdown_times = [right_touchdown_times; time_marker(right_touchdown_indices_mocap)]; %#ok<AGROW>
             end
-            if any(strcmp(subject_settings.get('right_touchdown_method'), 'heel_ap_peak'))
+            if any(strcmp(subject_settings.get('right_touchdown_method', 1), 'heel_ap_peak'))
+                RHEE_y_trajectory = getKinematics('heel', 'right', 'y');
+                
                 % find velocity zeros
-                [~, right_heel_vel_peak_locations] = findpeaks(RHEE_y_trajectory, 'MinPeakProminence', subject_settings.get('right_touchdown_peak_prominence_threshold'));
-                right_touchdown_indices_mocap = right_heel_vel_peak_locations;
-                right_touchdown_times = [right_touchdown_times; time_marker(right_heel_vel_peak_locations)];
+                [~, right_heel_peak_locations] = findpeaks(RHEE_y_trajectory, 'MinPeakProminence', subject_settings.get('right_touchdown_peak_prominence_threshold'));
+                right_touchdown_indices_mocap = right_heel_peak_locations;
+                right_touchdown_times = [right_touchdown_times; time_marker(right_heel_peak_locations)]; %#ok<AGROW>
             end
   
-            if any(strcmp(subject_settings.get('right_pushoff_method'), 'first_velocity_peak_after_touchdown'))
+            if any(strcmp(subject_settings.get('right_pushoff_method', 1), 'first_velocity_peak_after_touchdown'))
+                [~, RTOE_z_vel_trajectory] = getKinematics('toes', 'right', 'z');
                 % for pushoff, find the first significant toes z-velocity peak after each touchdown
                 [~, right_toes_vel_peak_locations] = findpeaks(RTOE_z_vel_trajectory, 'MinPeakProminence', subject_settings.get('right_pushoff_peak_prominence_threshold'));
                 right_toes_vel_peak_locations = right_toes_vel_peak_locations';
@@ -353,16 +328,30 @@ function findStepEvents(varargin)
                     end
                 end
                 right_pushoff_indices_mocap(right_pushoff_indices_mocap==0) = [];
-                right_pushoff_times = [right_pushoff_times; time_marker(right_pushoff_indices_mocap)];
+                right_pushoff_times = [right_pushoff_times; time_marker(right_pushoff_indices_mocap)]; %#ok<AGROW>
             end
-            if any(strcmp(subject_settings.get('right_pushoff_method'), 'forceplate_threshold'))
+            if any(strcmp(subject_settings.get('right_pushoff_method', 1), 'heel_acceleration_minima'))
+                [~, ~, RHEE_z_acc_trajectory] = getKinematics('heel', 'right', 'z');
+                % find touch down indices as negative peaks of the heel marker z-position
+                [~, right_heel_acc_peak_locations] = findpeaks(-RHEE_z_acc_trajectory, 'MinPeakProminence', subject_settings.get('right_pushoff_vale_prominence_threshold'), 'MinPeakDistance', subject_settings.get('right_pushoff_vale_distance_threshold') * sampling_rate_marker);
+                right_pushoff_indices_mocap = right_heel_acc_peak_locations';
+                right_pushoff_times = [right_pushoff_times; time_marker(right_pushoff_indices_mocap)]; %#ok<AGROW>
+            end
+            if any(strcmp(subject_settings.get('right_pushoff_method', 1), 'forceplate_threshold'))
                 right_pushoff_diff_forceplate = diff(sign(abs(right_fz_trajectory) - subject_settings.get('forceplate_load_threshold')));
-                right_pushoff_times = [right_pushoff_times; time_right_forceplate(right_pushoff_diff_forceplate~=0)];
+                right_pushoff_times = [right_pushoff_times; time_right_forceplate(right_pushoff_diff_forceplate~=0)]; %#ok<AGROW>
+            end
+            if any(strcmp(subject_settings.get('right_pushoff_method', 1), 'toes_ap_vale'))
+                RTOE_y_trajectory = getKinematics('toes', 'right', 'y');
+                % find velocity zeros
+                [~, right_toes_vale_locations] = findpeaks(-RTOE_y_trajectory, 'MinPeakProminence', subject_settings.get('right_pushoff_peak_prominence_threshold'));
+                right_pushoff_times = [right_pushoff_times; time_marker(right_toes_vale_locations)]; %#ok<AGROW>
             end
 
             right_fullstance_times = [];
-            if any(strcmp(subject_settings.get('right_fullstance_method'), 'first_zero_crossing_after_heelstrike'))
+            if any(strcmp(subject_settings.get('right_fullstance_method', 1), 'first_zero_crossing_after_heelstrike'))
                 % identify zero crossings of angle
+                right_foot_angle_trajectory = calculateFootAngleKinematics('right');
                 right_foot_angle_zero_crossing_indices = find(diff(sign(right_foot_angle_trajectory)));
                 
                 % identify acceleration peaks as touchdowns
@@ -375,7 +364,7 @@ function findStepEvents(varargin)
                     end
                 end
                 right_fullstance_indices_mocap(right_fullstance_indices_mocap==0) = [];
-                right_fullstance_times = [right_fullstance_times; time_marker(right_fullstance_indices_mocap)];
+                right_fullstance_times = [right_fullstance_times; time_marker(right_fullstance_indices_mocap)]; %#ok<AGROW>
             end
             
             % remove duplicates
@@ -411,7 +400,7 @@ function findStepEvents(varargin)
             %% visualize
             color_heelstrike = [1 0 0];
             color_pushoff = [0 1 0];
-            color_peak = [0.5, 0.2, 1];
+%             color_peak = [0.5, 0.2, 1];
 
             force_scaler = 2e-4;
             vel_scaler = 0.1;
@@ -419,78 +408,105 @@ function findStepEvents(varargin)
 
 
 
-            if left_forceplate_available & right_forceplate_available
+            if left_forceplate_available & right_forceplate_available %#ok<AND2>
                 left_fz_trajectory_marker = spline(time_left_forceplate, left_fz_trajectory, time_marker);
                 right_fz_trajectory_marker = spline(time_right_forceplate, right_fz_trajectory, time_marker);
             end
             if visualize
+                
+                if ~isempty(visualization_window)
+                    window_frame_indices = findClosestIndex(visualization_window, time_marker);
+                    if left_forceplate_available
+                        window_frame_indices_forceplate = findClosestIndex(visualization_window, time_left_forceplate);
+                    end
+                else
+                    window_frame_indices = [1, length(time_marker)];
+                    if left_forceplate_available
+                        window_frame_indices_forceplate = [1, length(time_left_forceplate)];
+                    end
+                end
+                window_indices = window_frame_indices(1) : window_frame_indices(2);
+                if left_forceplate_available
+                    window_indices_forceplate = window_frame_indices_forceplate(1) : window_frame_indices_forceplate(2);
+                end
+                left_pushoff_indices_mocap_window = left_pushoff_indices_mocap(left_pushoff_indices_mocap>=window_frame_indices(1) & left_pushoff_indices_mocap<=window_frame_indices(2));
+                right_pushoff_indices_mocap_window = right_pushoff_indices_mocap(right_pushoff_indices_mocap>=window_frame_indices(1) & right_pushoff_indices_mocap<=window_frame_indices(2));
+                left_touchdown_indices_mocap_window = left_touchdown_indices_mocap(left_touchdown_indices_mocap>=window_frame_indices(1) & left_touchdown_indices_mocap<=window_frame_indices(2));
+                right_touchdown_indices_mocap_window = right_touchdown_indices_mocap(right_touchdown_indices_mocap>=window_frame_indices(1) & right_touchdown_indices_mocap<=window_frame_indices(2));
+                
+                
+                
                 step_event_figures = zeros(1, 4);
+                [LHEE_z_trajectory, ~, LHEE_z_acc_trajectory] = getKinematics('heel', 'left', 'z');
+                [RHEE_z_trajectory, ~, RHEE_z_acc_trajectory] = getKinematics('heel', 'right', 'z');
+                [LTOE_z_trajectory, LTOE_z_vel_trajectory] = getKinematics('toes', 'left', 'z');
+                [RTOE_z_trajectory, RTOE_z_vel_trajectory] = getKinematics('toes', 'right', 'z');
                 
                 % left position
                 step_event_figures(1) = figure; axes_left = axes; hold on; title('left foot marker positions')
-                plot(time_marker, LHEE_z_trajectory, 'linewidth', 1, 'displayname', 'left heel vertical');
-                plot(time_marker, LTOE_z_trajectory, 'linewidth', 1, 'displayname', 'left toes vertical');
-                plot(time_marker, left_foot_angle_trajectory, 'linewidth', 1, 'displayname', 'left foot angle');
-%                 plot(time_marker, left_foot_angle_vel_trajectory*vel_scaler, 'linewidth', 1, 'displayname', 'left foot angle');
-%                 plot(time_marker, left_foot_angle_acc_trajectory*acc_scaler, 'linewidth', 1, 'displayname', 'left foot angle');
-                plot(time_marker(left_touchdown_indices_mocap), LHEE_z_trajectory(left_touchdown_indices_mocap), 'v', 'linewidth', 2, 'color', color_heelstrike, 'displayname', 'left touchdown');
-                plot(time_marker(left_pushoff_indices_mocap), LTOE_z_trajectory(left_pushoff_indices_mocap), 'o', 'linewidth', 2, 'color', color_pushoff, 'displayname', 'left pushoff');
-                plot(time_marker(left_fullstance_indices_mocap), left_foot_angle_trajectory(left_fullstance_indices_mocap), '^', 'linewidth', 2, 'color', color_peak, 'displayname', 'left fullstance');
-%                 plot(time_marker(left_leg_swing_onset_indices), LTOE_z_trajectory(left_leg_swing_onset_indices), '+', 'linewidth', 2, 'color', color_peak, 'displayname', 'left leg angle peaks');
+                plot(time_marker(window_indices), LHEE_z_trajectory(window_indices), 'linewidth', 2, 'displayname', 'left heel vertical');
+                plot(time_marker(window_indices), LTOE_z_trajectory(window_indices), 'linewidth', 2, 'displayname', 'left toes vertical');
+%                 plot(time_marker(window_indices), left_foot_angle_trajectory(window_indices), 'linewidth', 2, 'displayname', 'left foot angle');
+%                 plot(time_marker(window_indices), left_foot_angle_vel_trajectory*vel_scaler, 'linewidth', 2, 'displayname', 'left foot angle');
+%                 plot(time_marker(window_indices), left_foot_angle_acc_trajectory*acc_scaler, 'linewidth', 2, 'displayname', 'left foot angle');
+                plot(time_marker(left_touchdown_indices_mocap_window), LHEE_z_trajectory(left_touchdown_indices_mocap_window), 'v', 'color', 'g', 'markersize', 8, 'markerfacecolor', 'g', 'displayname', 'left touchdown');
+                plot(time_marker(left_pushoff_indices_mocap_window), LTOE_z_trajectory(left_pushoff_indices_mocap_window), '^', 'color', 'g', 'markersize', 8, 'markerfacecolor', 'g', 'displayname', 'left pushoff');
+%                 plot(time_marker(left_fullstance_indices_mocap), left_foot_angle_trajectory(left_fullstance_indices_mocap), '^', 'color', color_peak, 'displayname', 'left fullstance');
+%                 plot(time_marker(left_leg_swing_onset_indices), LTOE_z_trajectory(left_leg_swing_onset_indices), '+', 'color', color_peak, 'displayname', 'left leg angle peaks');
                 if left_forceplate_available
-                    plot(time_left_forceplate, left_fz_trajectory*force_scaler, 'displayname', 'left forceplate')
-                    h = plot(time_marker(left_touchdown_indices_mocap), left_fz_trajectory_marker(left_touchdown_indices_mocap)*force_scaler, 'v', 'linewidth', 2, 'color', color_heelstrike);
+                    plot(time_left_forceplate(window_indices_forceplate), left_fz_trajectory(window_indices_forceplate)*force_scaler, 'linewidth', 2, 'displayname', 'left forceplate f_z')
+                    h = plot(time_marker(left_touchdown_indices_mocap_window), left_fz_trajectory_marker(left_touchdown_indices_mocap_window)*force_scaler, 'v', 'markersize', 8, 'color', 'g', 'markerfacecolor', 'g');
                     set(get(get(h,'Annotation'),'LegendInformation'),'IconDisplayStyle','off');
-                    h = plot(time_marker(left_pushoff_indices_mocap), left_fz_trajectory_marker(left_pushoff_indices_mocap)*force_scaler, '^', 'linewidth', 2, 'color', color_pushoff);
+                    h = plot(time_marker(left_pushoff_indices_mocap_window), left_fz_trajectory_marker(left_pushoff_indices_mocap_window)*force_scaler, '^', 'markersize', 8, 'color', 'g', 'markerfacecolor', 'g');
                     set(get(get(h,'Annotation'),'LegendInformation'),'IconDisplayStyle','off');
                 end
                 legend('toggle');
 
                 % left derivatives
                 step_event_figures(2) = figure; axes_left_derivatives = axes; hold on;  title('left foot marker derivatives (scaled for qualitative overview)')
-                plot(time_marker, LHEE_z_acc_trajectory*acc_scaler, 'linewidth', 1, 'displayname', 'left heel acceleration vertical');
-                plot(time_marker, LTOE_z_vel_trajectory*vel_scaler, 'linewidth', 1, 'displayname', 'left toes velocity vertical');
-                plot(time_marker(left_touchdown_indices_mocap), LHEE_z_acc_trajectory(left_touchdown_indices_mocap)*acc_scaler, 'v', 'linewidth', 2, 'color', color_heelstrike, 'displayname', 'left touchdown');
-                plot(time_marker(left_pushoff_indices_mocap), LTOE_z_vel_trajectory(left_pushoff_indices_mocap)*vel_scaler, '^', 'linewidth', 2, 'color', color_pushoff, 'displayname', 'left pushoff');
+                plot(time_marker(window_indices), LHEE_z_acc_trajectory(window_indices)*acc_scaler, 'linewidth', 2, 'displayname', 'left heel acceleration vertical');
+                plot(time_marker(window_indices), LTOE_z_vel_trajectory(window_indices)*vel_scaler, 'linewidth', 2, 'displayname', 'left toes velocity vertical');
+                plot(time_marker(left_touchdown_indices_mocap_window), LHEE_z_acc_trajectory(left_touchdown_indices_mocap_window)*acc_scaler, 'v', 'color', 'g', 'markersize', 8, 'markerfacecolor', 'g', 'displayname', 'left touchdown');
+                plot(time_marker(left_pushoff_indices_mocap_window), LTOE_z_vel_trajectory(left_pushoff_indices_mocap_window)*vel_scaler, '^', 'color', 'g', 'markersize', 8, 'markerfacecolor', 'g', 'displayname', 'left pushoff');
                 if left_forceplate_available
-                    plot(time_left_forceplate, left_fz_trajectory*force_scaler, 'displayname', 'left forceplate')
-                    h = plot(time_marker(left_touchdown_indices_mocap), left_fz_trajectory_marker(left_touchdown_indices_mocap)*force_scaler, 'v', 'linewidth', 2, 'color', color_heelstrike);
+                    plot(time_left_forceplate(window_indices_forceplate), left_fz_trajectory(window_indices_forceplate)*force_scaler, 'linewidth', 2, 'displayname', 'left forceplate f_z')
+                    h = plot(time_marker(left_touchdown_indices_mocap_window), left_fz_trajectory_marker(left_touchdown_indices_mocap_window)*force_scaler, 'v', 'markersize', 8, 'color', 'g', 'markerfacecolor', 'g');
                     set(get(get(h,'Annotation'),'LegendInformation'),'IconDisplayStyle','off');
-                    h = plot(time_marker(left_pushoff_indices_mocap), left_fz_trajectory_marker(left_pushoff_indices_mocap)*force_scaler, '^', 'linewidth', 2, 'color', color_pushoff);
+                    h = plot(time_marker(left_pushoff_indices_mocap_window), left_fz_trajectory_marker(left_pushoff_indices_mocap_window)*force_scaler, '^', 'markersize', 8, 'color', 'g', 'markerfacecolor', 'g');
                     set(get(get(h,'Annotation'),'LegendInformation'),'IconDisplayStyle','off');
                 end
                 legend('toggle');
 
                 % right position
                 step_event_figures(3) = figure; axes_right = axes; hold on; title('right foot marker positions')
-                plot(time_marker, RHEE_z_trajectory, 'linewidth', 1, 'displayname', 'right heel vertical');
-                plot(time_marker, RTOE_z_trajectory, 'linewidth', 1, 'displayname', 'right toes vertical');
-                plot(time_marker, right_foot_angle_trajectory, 'linewidth', 1, 'displayname', 'right foot angle');
-%                 plot(time_marker, right_foot_angle_vel_trajectory*vel_scaler, 'linewidth', 1, 'displayname', 'right foot angle');
-%                 plot(time_marker, right_foot_angle_acc_trajectory*acc_scaler, 'linewidth', 1, 'displayname', 'right foot angle');
-                plot(time_marker(right_touchdown_indices_mocap), RHEE_z_trajectory(right_touchdown_indices_mocap), 'v', 'linewidth', 2, 'color', color_heelstrike, 'displayname', 'right touchdown');
-                plot(time_marker(right_pushoff_indices_mocap), RTOE_z_trajectory(right_pushoff_indices_mocap), '^', 'linewidth', 2, 'color', color_pushoff, 'displayname', 'right pushoff');
-                plot(time_marker(right_fullstance_indices_mocap), right_foot_angle_trajectory(right_fullstance_indices_mocap), '^', 'linewidth', 2, 'color', color_peak, 'displayname', 'right fullstance');
+                plot(time_marker(window_indices), RHEE_z_trajectory(window_indices), 'linewidth', 2, 'displayname', 'right heel vertical');
+                plot(time_marker(window_indices), RTOE_z_trajectory(window_indices), 'linewidth', 2, 'displayname', 'right toes vertical');
+%                 plot(time_marker(window_indices), right_foot_angle_trajectory(window_indices), 'linewidth', 2, 'displayname', 'right foot angle');
+%                 plot(time_marker(window_indices), right_foot_angle_vel_trajectory(window_indices)*vel_scaler, 'linewidth', 2, 'displayname', 'right foot angle');
+%                 plot(time_marker(window_indices), right_foot_angle_acc_trajectory(window_indices)*acc_scaler, 'linewidth', 2, 'displayname', 'right foot angle');
+                plot(time_marker(right_touchdown_indices_mocap_window), RHEE_z_trajectory(right_touchdown_indices_mocap_window), 'v', 'color', 'r', 'markersize', 8, 'markerfacecolor', 'r', 'displayname', 'right touchdown');
+                plot(time_marker(right_pushoff_indices_mocap_window), RTOE_z_trajectory(right_pushoff_indices_mocap_window), '^', 'color', 'r', 'markersize', 8, 'markerfacecolor', 'r', 'displayname', 'right pushoff');
+%                 plot(time_marker(right_fullstance_indices_mocap), right_foot_angle_trajectory(right_fullstance_indices_mocap), '^', 'color', color_peak, 'displayname', 'right fullstance');
                 if right_forceplate_available
-                    plot(time_right_forceplate, right_fz_trajectory*force_scaler, 'displayname', 'right forceplate')
-                    h = plot(time_marker(right_touchdown_indices_mocap), right_fz_trajectory_marker(right_touchdown_indices_mocap)*force_scaler, 'v', 'linewidth', 2, 'color', color_heelstrike);
+                    plot(time_right_forceplate(window_indices_forceplate), right_fz_trajectory(window_indices_forceplate)*force_scaler, 'linewidth', 2, 'displayname', 'right forceplate f_z')
+                    h = plot(time_marker(right_touchdown_indices_mocap_window), right_fz_trajectory_marker(right_touchdown_indices_mocap_window)*force_scaler, 'v', 'markersize', 8, 'color', 'r', 'markerfacecolor', 'r');
                     set(get(get(h,'Annotation'),'LegendInformation'),'IconDisplayStyle','off');
-                    h = plot(time_marker(right_pushoff_indices_mocap), right_fz_trajectory_marker(right_pushoff_indices_mocap)*force_scaler, '^', 'linewidth', 2, 'color', color_pushoff);
+                    h = plot(time_marker(right_pushoff_indices_mocap_window), right_fz_trajectory_marker(right_pushoff_indices_mocap_window)*force_scaler, '^', 'markersize', 8, 'color', 'r', 'markerfacecolor', 'r');
                     set(get(get(h,'Annotation'),'LegendInformation'),'IconDisplayStyle','off');
                 end
                 legend('toggle');
 
                 % right derivatives
-                step_event_figures(4) = figure; axes_right_derivatives = axes; hold on;  title('right foot marker derivatives (scaled for qualitative overview)')
-                plot(time_marker, RHEE_z_acc_trajectory*acc_scaler, 'linewidth', 1, 'displayname', 'right heel acceleration vertical');
-                plot(time_marker, RTOE_z_vel_trajectory*vel_scaler, 'linewidth', 1, 'displayname', 'right toes velocity vertical');
-                plot(time_marker(right_touchdown_indices_mocap), RHEE_z_acc_trajectory(right_touchdown_indices_mocap)*acc_scaler, 'v', 'linewidth', 2, 'color', color_heelstrike, 'displayname', 'right touchdown');
-                plot(time_marker(right_pushoff_indices_mocap), RTOE_z_vel_trajectory(right_pushoff_indices_mocap)*vel_scaler, '^', 'linewidth', 2, 'color', color_pushoff, 'displayname', 'right pushoff');
+                step_event_figures(4) = figure; axes_right_derivatives = axes; hold on;  title('right foot marker derivatives (scaled for qualitative overview)') %#ok<NASGU>
+                plot(time_marker(window_indices), RHEE_z_acc_trajectory(window_indices)*acc_scaler, 'linewidth', 2, 'displayname', 'right heel acceleration vertical');
+                plot(time_marker(window_indices), RTOE_z_vel_trajectory(window_indices)*vel_scaler, 'linewidth', 2, 'displayname', 'right toes velocity vertical');
+                plot(time_marker(right_touchdown_indices_mocap_window), RHEE_z_acc_trajectory(right_touchdown_indices_mocap_window)*acc_scaler, 'v', 'markersize', 8, 'color', 'r', 'markerfacecolor', 'r', 'displayname', 'right touchdown');
+                plot(time_marker(right_pushoff_indices_mocap_window), RTOE_z_vel_trajectory(right_pushoff_indices_mocap_window)*vel_scaler, '^', 'markersize', 8, 'color', 'r', 'markerfacecolor', 'r', 'displayname', 'right pushoff');
                 if right_forceplate_available
-                    plot(time_right_forceplate, right_fz_trajectory*force_scaler, 'displayname', 'right forceplate')
-                    h = plot(time_marker(right_touchdown_indices_mocap), right_fz_trajectory_marker(right_touchdown_indices_mocap)*force_scaler, 'v', 'linewidth', 2, 'color', color_heelstrike);
+                    plot(time_right_forceplate(window_indices_forceplate), right_fz_trajectory(window_indices_forceplate)*force_scaler, 'linewidth', 2, 'displayname', 'right forceplate f_z')
+                    h = plot(time_marker(right_touchdown_indices_mocap_window), right_fz_trajectory_marker(right_touchdown_indices_mocap_window)*force_scaler, 'v', 'markersize', 8, 'color', 'r', 'markerfacecolor', 'r');
                     set(get(get(h,'Annotation'),'LegendInformation'),'IconDisplayStyle','off');
-                    h = plot(time_marker(right_pushoff_indices_mocap), right_fz_trajectory_marker(right_pushoff_indices_mocap)*force_scaler, '^', 'linewidth', 2, 'color', color_pushoff);
+                    h = plot(time_marker(right_pushoff_indices_mocap_window), right_fz_trajectory_marker(right_pushoff_indices_mocap_window)*force_scaler, '^', 'markersize', 8, 'color', 'r', 'markerfacecolor', 'r');
                     set(get(get(h,'Annotation'),'LegendInformation'),'IconDisplayStyle','off');
                 end
                 legend('toggle');
@@ -502,16 +518,16 @@ function findStepEvents(varargin)
 
             % change event variables to column vectors if necessary
             if isrow(left_pushoff_times)
-                left_pushoff_times = left_pushoff_times'; %#ok<NASGU>
+                left_pushoff_times = left_pushoff_times';
             end
             if isrow(left_touchdown_times)
-                left_touchdown_times = left_touchdown_times'; %#ok<NASGU>
+                left_touchdown_times = left_touchdown_times';
             end
             if isrow(right_pushoff_times)
-                right_pushoff_times = right_pushoff_times'; %#ok<NASGU>
+                right_pushoff_times = right_pushoff_times';
             end
             if isrow(right_touchdown_times)
-                right_touchdown_times = right_touchdown_times'; %#ok<NASGU>
+                right_touchdown_times = right_touchdown_times';
             end
 
             %% save
@@ -541,14 +557,93 @@ function findStepEvents(varargin)
             variables_to_save.event_data = event_data;
             variables_to_save.event_labels = event_labels;
             
-            step_events_file_name = ['analysis' filesep makeFileName(date, subject_id, condition, i_trial, 'events.mat')];
+            step_events_file_name = ['analysis' filesep makeFileName(collection_date, subject_id, condition, i_trial, 'events.mat')];
             saveDataToFile(step_events_file_name, variables_to_save);
 
             disp(['Finding Step Events: condition ' condition ', Trial ' num2str(i_trial) ' completed, saved as ' step_events_file_name]);
         end
     end
-end
+    
+    function [pos, vel, acc] = getKinematics(landmark, side, component)
+        % landmark options: heel, toes
+        % side options: left, right
+        % component options: x, y, z
+        
+        % figure out side
+        if strcmp(side, 'left')
+            marker_label = 'L';
+        elseif strcmp(side, 'right')
+            marker_label = 'R';
+        else
+            error(['Value "' side '" not recognized for side. Options are "left" or "right".']);
+        end
+        
+        % figure out marker
+        if strcmp(landmark, 'heel')
+            marker_label = [marker_label 'HEE'];
+        elseif strcmp(landmark, 'toes')
+            marker_label = [marker_label 'TOE'];
+        else
+            error(['Value "' landmark '" not recognized for landmark. Options are "heel" or "toes".']);
+        end
+        
+        % figure out component
+        if nargin < 3
+            component = 'all';
+        end
+        if strcmp(component, 'x')
+            component_index = 1;
+        elseif strcmp(component, 'y')
+            component_index = 2;
+        elseif strcmp(component, 'z')
+            component_index = 3;
+        elseif strcmp(component, 'all')
+            component_index = 1:3;
+        else
+            error(['Value "' component '" not recognized for component. Options are "x", "y" or "z".']);
+        end
+        
+        marker_trajectory = extractMarkerData(marker_trajectories, marker_labels, marker_label, 'trajectories');
+        pos = marker_trajectory(:, component_index);
+        
+        if nargout > 1
+            filter_order = 2;
+            cutoff_frequency = 20; % cutoff frequency, in Hz
+            [b, a] = butter(filter_order, cutoff_frequency/(sampling_rate_marker/2));	% set filter parameters for butterworth filter: 2=order of filter;
+            marker_velocity_trajectory = deriveByTime(nanfiltfilt(b, a, marker_trajectory), 1/sampling_rate_marker);
+            vel = marker_velocity_trajectory(:, component_index);
+        end
+        if nargout > 2
+            acc = deriveByTime(nanfiltfilt(b, a, vel), 1/sampling_rate_marker);
+        end
 
+    end
+
+    function [angle, vel, acc] = calculateFootAngleKinematics(side)
+        toes_trajectory = getKinematics('toes', side, 'all');
+        heel_trajectory = getKinematics('heel', side, 'all');
+        
+        foot_vector = toes_trajectory - heel_trajectory;
+        angle = zeros(size(heel_trajectory, 1), 1);
+        for i_time = 1 : size(heel_trajectory, 1)
+            angle(i_time) = atan2(foot_vector(i_time, 3), foot_vector(i_time, 2));
+        end
+        
+        if nargout > 1
+            filter_order = 2;
+            cutoff_frequency = 20; % cutoff frequency, in Hz
+            [b, a] = butter(filter_order, cutoff_frequency/(sampling_rate_marker/2));	% set filter parameters for butterworth filter: 2=order of filter;
+            vel = deriveByTime(nanfiltfilt(b, a, angle), 1/sampling_rate_marker);
+        end
+        if nargout > 2
+            acc = deriveByTime(nanfiltfilt(b, a, vel), 1/sampling_rate_marker);
+        end
+       
+        
+        
+    end
+    
+end
 
 
 

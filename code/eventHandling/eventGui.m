@@ -20,7 +20,7 @@ function eventGui(varargin)
     [condition_list, trial_number_list] = parseTrialArguments(varargin{:});
     parser = inputParser;
     parser.KeepUnmatched = true;
-    addParameter(parser, 'settings', 'eventGuiSettings.txt')
+    addParameter(parser, 'settings', 'eventGui')
     parse(parser, varargin{:})
     settings_file = parser.Results.settings;
 
@@ -28,38 +28,45 @@ function eventGui(varargin)
     trial_to_process = trial_number_list{1}(1);
     
     %% load
-%     load('subjectModel.mat');
-    
-    % load settings
-    study_settings_file = '';
-    if exist(['..' filesep 'studySettings.txt'], 'file')
-        study_settings_file = ['..' filesep 'studySettings.txt'];
-    end    
-    if exist(['..' filesep '..' filesep 'studySettings.txt'], 'file')
-        study_settings_file = ['..' filesep '..' filesep 'studySettings.txt'];
-    end
-    study_settings = SettingsCustodian(study_settings_file);
-    
-    gui_settings_file = '';
-    if exist(['..' filesep settings_file], 'file')
-        gui_settings_file = ['..' filesep settings_file];
-    end    
-    if exist(['..' filesep '..' filesep settings_file], 'file')
-        gui_settings_file = ['..' filesep '..' filesep settings_file];
-    end
-    gui_settings = SettingsCustodian(gui_settings_file);
+    gui_settings = loadSettingsFromFile(settings_file); % TODO: only using default, not specified settings file
     
     % load data
-    figure_list = getFiguresListFromSettings(gui_settings);
-    variables_list = getVariableListFromSettings(gui_settings, figure_list);
+    if gui_settings.isfield('figures')
+        % settings are specified in new way, so use that
+        figure_settings = getFigureSettings(gui_settings);
+    else
+        % settings are specified in old way
+        warning('Figure settings are in old format, please update.')
+        figure_list = getFiguresListFromSettings(gui_settings);
+        
+        % transform into new format
+        figure_settings = cell(length(figure_list), 1);
+        for i_figure = 1 : length(figure_list)
+            this_figure_settings = struct;
+            
+            % store data
+            this_figure_settings.data = gui_settings.get(figure_list{i_figure, 1});
+            % store individual entries in info table
+            this_figure_settings.title = figure_list{i_figure, 2};
+            this_figure_settings.origin_horizontal = 0.25;
+            this_figure_settings.origin_vertical = 0.25;
+            this_figure_settings.width = 0.5;
+            this_figure_settings.height = 0.5;
+
+            figure_settings{i_figure} = this_figure_settings;
+        end
+        
+    end
+    variables_list = getVariableListFromSettings(figure_settings);
+    
     data_custodian = WalkingDataCustodian(variables_list);
     data_custodian.prepareBasicVariables(condition, trial_to_process);
     
     event_data = eventData(data_custodian);
     
     %% init gui
-    figure_settings_file = gui_settings.get('figure_settings_file');
-    controller = eventController(data_custodian, event_data, figure_settings_file);
+%     figure_settings_file = gui_settings.get('figure_settings_file');
+    controller = eventController(data_custodian, event_data);
     
     %% stick figure and kinematic tree figure
   
@@ -92,11 +99,14 @@ function eventGui(varargin)
     
     %% trajectory figures
     % get list of figures from settings
-    for i_figure = 1 : size(figure_list, 1)
+    for i_figure = 1 : size(figure_settings, 1)
         % create a figure with these settings
-        new_figure = eventFigure(figure_list{i_figure, 2}, controller, data_custodian, event_data);
+        this_figure_settings = figure_settings{i_figure};
+        new_figure = eventFigure(this_figure_settings, controller, data_custodian, event_data);
         
-        plot_list = gui_settings.get(figure_list{i_figure, 1});
+        % TODO: this adds the data to the figure, should be moved into the
+        % constructor of the figure
+        plot_list = this_figure_settings.data;
         for i_plot = 1 : size(plot_list, 1)
             if strcmp(plot_list{i_plot, 1}, 'data')
                 variable_label = plot_list{i_plot, 2};
@@ -139,11 +149,81 @@ function eventGui(varargin)
     else
         event_time = event_times(1);
     end
-    controller.setSelectedEvent(event_label, event_time);
+%     controller.setSelectedEvent(event_label, event_time);
+    controller.setSelectedEvent([], []);
 
 end
 
-%% nested function
+%% nested functions
+
+function figure_settings = getFigureSettings(gui_settings)
+    figure_header = gui_settings.get('figures_header');
+    figures_table = gui_settings.get('figures');
+    
+    number_of_figures = size(figures_table, 1);
+    figure_settings = cell(number_of_figures, 1);
+    for i_figure = 1 : number_of_figures
+        this_figure_settings = struct;
+        % store data
+        this_figure_settings.data = gui_settings.get(figures_table{i_figure, strcmp(figure_header, 'data')});
+        % store individual entries in info table
+        info = gui_settings.get(figures_table{i_figure, strcmp(figure_header, 'info')});
+        for i_entry = 1 : size(info, 1)
+            this_figure_settings.(info{i_entry, 1}) = info{i_entry, 2};
+        end
+        % go through expected entries and enter defaults if needed
+        if ~isfield(this_figure_settings, 'title')
+            this_figure_settings.title = 'untitled figure';
+        end
+        if ~isfield(this_figure_settings, 'origin_horizontal')
+            this_figure_settings.origin_horizontal = 0.25;
+        end
+        if ~isfield(this_figure_settings, 'origin_vertical')
+            this_figure_settings.origin_vertical = 0.25;
+        end
+        if ~isfield(this_figure_settings, 'width')
+            this_figure_settings.width = 0.5;
+        end
+        if ~isfield(this_figure_settings, 'height')
+            this_figure_settings.height = 0.5;
+        end
+        
+        % transform entries to numbers if needed
+        if ~isnumeric(this_figure_settings.origin_horizontal)
+            this_figure_settings.origin_horizontal = str2double(this_figure_settings.origin_horizontal);
+        end
+        if ~isnumeric(this_figure_settings.origin_vertical)
+            this_figure_settings.origin_vertical = str2double(this_figure_settings.origin_vertical);
+        end
+        if ~isnumeric(this_figure_settings.width)
+            this_figure_settings.width = str2double(this_figure_settings.width);
+        end
+        if ~isnumeric(this_figure_settings.height)
+            this_figure_settings.height = str2double(this_figure_settings.height);
+        end
+        
+        figure_settings{i_figure} = this_figure_settings;
+    end
+end
+
+function variable_names = getVariableListFromSettings(figure_settings)
+    % get variables for trajectory figures
+    variable_names = {};
+    for i_figure = 1 : size(figure_settings, 1)
+        this_figure_settings = figure_settings{i_figure};
+        this_figure_data_table = this_figure_settings.data;
+        for i_variable = 1 : size(this_figure_data_table, 1);
+            this_entry_type = this_figure_data_table{i_variable, 1};
+            this_variable_name = this_figure_data_table{i_variable, 2};
+            if strcmp(this_entry_type, 'data') && ~any(strcmp(variable_names, this_variable_name))
+                variable_names = [variable_names; this_variable_name];
+            end
+        end
+    end
+    
+
+end
+
 function figures_list = getFiguresListFromSettings(settings)
     field_names = settings.getAllSettingsNames;
     figures_list = {};
@@ -157,28 +237,5 @@ function figures_list = getFiguresListFromSettings(settings)
     
 end
 
-function variable_names = getVariableListFromSettings(settings, figure_list)
-    % get variables for trajectory figures
-    variable_names = {};
-    for i_figure = 1 : size(figure_list, 1)
-        this_figure_settings = settings.get(figure_list{i_figure});
-        for i_variable = 1 : size(this_figure_settings, 1);
-            this_entry_type = this_figure_settings{i_variable, 1};
-            this_variable_name = this_figure_settings{i_variable, 2};
-            if strcmp(this_entry_type, 'data') && ~any(strcmp(variable_names, this_variable_name))
-                variable_names = [variable_names; this_variable_name];
-            end
-        end
-    end
-    
-    % get variables for simple stick figure
-    if settings.get('show_simple_stick_figure', 1)
-        variable_names = [variable_names; 'marker_trajectories'];
-        variable_names = [variable_names; 'joint_center_trajectories'];
-        variable_names = [variable_names; 'com_trajectories'];
-    end
-
-
-end
 
 

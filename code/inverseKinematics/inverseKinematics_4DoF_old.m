@@ -36,17 +36,11 @@ function inverseKinematics_4DoF_old(varargin)
     parser.KeepUnmatched = true;
     parse(parser, varargin{:})
     
-    load('subjectInfo.mat', 'date', 'subject_id');
     load('subjectModel.mat');
     study_settings_file = '';
-    if exist(['..' filesep 'studySettings.txt'], 'file')
-        study_settings_file = ['..' filesep 'studySettings.txt'];
-    end    
-    if exist(['..' filesep '..' filesep 'studySettings.txt'], 'file')
-        study_settings_file = ['..' filesep '..' filesep 'studySettings.txt'];
-    end
-    study_settings = SettingsCustodian(study_settings_file);
-    subject_settings = SettingsCustodian('subjectSettings.txt');
+    subject_settings = loadSettingsFromFile('subject');
+    collection_date = subject_settings.get('collection_date');
+    subject_id = subject_settings.get('subject_id');
     
     % extract references
     number_of_joint_angles = kinematic_tree.numberOfJoints;
@@ -90,7 +84,7 @@ function inverseKinematics_4DoF_old(varargin)
             condition = condition_list{i_condition};
             
             % load data
-            load(['processed' filesep makeFileName(date, subject_id, condition, i_trial, 'markerTrajectories')]);
+            load(['processed' filesep makeFileName(collection_date, subject_id, condition, i_trial, 'markerTrajectories')]);
             number_of_time_steps = size(marker_trajectories, 1);
             time_steps_to_process = 1 : number_of_time_steps;
             
@@ -155,7 +149,7 @@ function inverseKinematics_4DoF_old(varargin)
             variables_to_save.sampling_rate_mocap = sampling_rate_mocap;
             
             save_folder = 'processed';
-            save_file_name = makeFileName(date, subject_id, condition, i_trial, 'kinematicTrajectories.mat');
+            save_file_name = makeFileName(collection_date, subject_id, condition, i_trial, 'kinematicTrajectories.mat');
             saveDataToFile([save_folder filesep save_file_name], variables_to_save);
 
             addAvailableData ...

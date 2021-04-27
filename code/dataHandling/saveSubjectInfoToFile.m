@@ -25,9 +25,11 @@ function saveSubjectInfoToFile(varargin)
     
     % get subject settings
     subject_settings = SettingsCustodian('subjectSettings.txt');
+    collection_date = subject_settings.get('collection_date');
+    subject_id = subject_settings.get('subject_id');
+
     trial_types_to_ignore = subject_settings.get('trial_types_to_ignore', 1);
    
-    
     % get parameters from settings file
     parameters_cell = subject_settings.get('subject_info', 1);
     for i_parameter = 1 : size(parameters_cell, 1)
@@ -42,10 +44,10 @@ function saveSubjectInfoToFile(varargin)
     data_dir = dir([screen_folder filesep '*.mat']);
     clear file_name_list;
     [file_name_list{1:length(data_dir)}] = deal(data_dir.name);
-    sample_file_name = file_name_list{1};
-    [date, subject_id] = getFileParameters(sample_file_name);
-    variables_to_save.date = date;
-    variables_to_save.subject_id = subject_id;
+%     sample_file_name = file_name_list{1};
+%     [date, subject_id] = getFileParameters(sample_file_name);
+%     variables_to_save.date = date;
+%     variables_to_save.subject_id = subject_id;
 
     % get list of conditions
     trial_type_list = {};
@@ -82,14 +84,18 @@ function saveSubjectInfoToFile(varargin)
         
     end
     
+    % remove conditions with no trials left
+    empty_types = cellfun(@isempty, trial_number_list);
+    trial_type_list(empty_types) = [];
+    trial_number_list(empty_types) = [];
     
     % if we have a conditions file, remove the trials not listed there
     conditions_file_name = [];
     if exist('conditions.csv', 'file')
         conditions_file_name = 'conditions.csv';
     end
-    if exist(makeFileName(date, subject_id, 'conditions.csv'), 'file')
-        conditions_file_name = makeFileName(date, subject_id, 'conditions.csv');
+    if exist(makeFileName(collection_date, subject_id, 'conditions.csv'), 'file')
+        conditions_file_name = makeFileName(collection_date, subject_id, 'conditions.csv');
     end
     if ~isempty(conditions_file_name)
         % read file

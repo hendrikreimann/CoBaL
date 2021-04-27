@@ -14,7 +14,7 @@
 %     You should have received a copy of the GNU General Public License
 %     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-classdef eventFigure < handle;
+classdef eventFigure < handle
     properties
         title;
         
@@ -41,23 +41,34 @@ classdef eventFigure < handle;
         patch_alpha = 0.05;
     end
     methods
-        function this = eventFigure(figureTitle, controller, data_custodian, eventData)
+        function this = eventFigure(figure_settings, controller, data_custodian, eventData)
+            % determine position
+            canvas_width = controller.canvas_on_screen_width;
+            canvas_height = controller.canvas_on_screen_height;
+            origin_x = figure_settings.origin_horizontal * canvas_width;
+            origin_y = figure_settings.origin_vertical * canvas_height;
+            width = figure_settings.width * canvas_width;
+            height = figure_settings.height * canvas_height - 72;
+            
+            figure_position = [origin_x origin_y width height];
+            
             % create figure, axes and helper plots
-            this.main_figure = figure('KeyPressFcn', @controller.processKeyPress);
+            this.main_figure = figure('Position', figure_position, 'KeyPressFcn', @controller.processKeyPress);
             this.main_axes = axes('ButtonDownFcn', @this.stepEventFigureClicked);
-            this.title = figureTitle;
-            title(figureTitle);
+            this.title = figure_settings.title;
+            title(figure_settings.title);
             hold on;
             this.selected_event_plot = plot(0, 0, 'o', 'markersize', 15, 'linewidth', 3, 'color', [1 0.5 0], 'visible', 'off', 'HandleVisibility', 'off');
-            this.selected_time_plot = plot(0, 0, '+', 'markersize', 25, 'linewidth', 1, 'color', [1 1 1]*0.7, 'ButtonDownFcn', @this.stepEventFigureClicked, 'HandleVisibility', 'off');
-            this.ignore_marker_plot = plot(0, 0, 'x', 'markersize', 25, 'linewidth', 2, 'color', [1 0 0.5]*0.7, 'ButtonDownFcn', @this.stepEventFigureClicked, 'HandleVisibility', 'off');
+%             this.selected_time_plot = plot(0, 0, '+', 'markersize', 25, 'linewidth', 1, 'color', [1 1 1]*0.7, 'ButtonDownFcn', @this.stepEventFigureClicked, 'HandleVisibility', 'off');
+            this.selected_time_plot = plot([0 0], [0 0], 'linewidth', 1, 'color', [1 1 1]*0.7, 'ButtonDownFcn', @this.stepEventFigureClicked, 'HandleVisibility', 'off', 'visible', 'off');
+            this.ignore_marker_plot = plot(0, 0, 'x', 'markersize', 25, 'linewidth', 2, 'color', [1 0 0.5]*0.7, 'ButtonDownFcn', @this.stepEventFigureClicked, 'HandleVisibility', 'off', 'visible', 'off');
 
             % register with controller
             if strcmp(controller.figureSelectionBox.String, '<no figure>')
-                controller.figureSelectionBox.String = figureTitle;
+                controller.figureSelectionBox.String = figure_settings.title;
                 controller.figureSelectionBox.UserData = {this};
             else
-                controller.figureSelectionBox.String = [controller.figureSelectionBox.String; {figureTitle}];
+                controller.figureSelectionBox.String = [controller.figureSelectionBox.String; {figure_settings.title}];
                 controller.figureSelectionBox.UserData = [controller.figureSelectionBox.UserData; {this}];
             end
             
@@ -283,12 +294,6 @@ classdef eventFigure < handle;
                 
                 % update
                 set(data_plot_handle, 'xdata', time, 'ydata', (data + offset) * scale_factor);
-                
-%                 time_data = this.trial_data.getTime(data_label);
-%                 trajectory_data = (this.trial_data.getData(data_label) + offset) * scale_factor;
-                
-%                 % update
-%                 set(data_plot_handle, 'xdata', time_data, 'ydata', trajectory_data);
             end
         end
         function updateStretchPatches(this)
@@ -359,10 +364,45 @@ classdef eventFigure < handle;
                 selected_event_plot_y_data = [selected_event_plot_y_data y_data_point];
             end
             set(this.selected_event_plot, 'xdata', selected_event_plot_x_data, 'ydata', selected_event_plot_y_data);
-            set(this.selected_event_plot, 'visible', 'on');
+            if isempty(selected_event_plot_x_data)
+                set(this.selected_event_plot, 'visible', 'off');
+            else
+                set(this.selected_event_plot, 'visible', 'on');
+            end
         end
         function updateSelectedTimePlot(this)
-            set(this.selected_time_plot, 'xdata', this.event_data.selected_time);
+            if isempty(this.event_data.selected_time)
+                set(this.selected_time_plot, 'visible', 'off');
+            else
+                set(this.selected_time_plot, 'xdata', this.event_data.selected_time * [1 1]);
+                
+                % scale properly by hiding plot, then adjust y-data of plot and
+                % showing again
+                set(this.selected_time_plot, 'visible', 'off');
+                set(this.main_axes, 'YLimMode',  'auto');
+                ylimits = this.main_axes.YLim;
+                set(this.selected_time_plot, 'ydata', ylimits);
+                
+                set(this.selected_time_plot, 'visible', 'on');
+            end
+            
+            
+        end
+        function updateTimeWindow(this, new_time_window)
+            if isempty(this.event_data.selected_time)
+                % just update xlimits
+                set(this.main_axes, 'xlim', new_time_window);
+            else
+                % hide selected time marker, then update, then update
+                % selected time marker
+                
+                set(this.selected_time_plot, 'visible', 'off');
+                set(this.main_axes, 'xlim', new_time_window);
+                ylimits = this.main_axes.YLim;
+                set(this.selected_time_plot, 'ydata', ylimits);
+                set(this.selected_time_plot, 'visible', 'on');
+            end
+            
         end
     end
     

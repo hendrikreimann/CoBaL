@@ -24,6 +24,7 @@ classdef SettingsCustodian < handle
         force_string_list = ...
           { ...
             'preferred_level_order'; ...
+            'collection_date'; ...
           }
         force_cell_list = ...
           {
@@ -36,8 +37,176 @@ classdef SettingsCustodian < handle
     methods
         function this = SettingsCustodian(settings_file)
             this.settings_file = settings_file;
-            this.settings_struct = loadSettingsFile(settings_file);
+            this.loadSettingsFile(settings_file);
         end
+        
+        function loadSettingsFile(this, filename)
+            this.settings_struct = struct();
+
+            % open file
+            if ~exist(filename, 'file')
+                error(['Failed to load "' filename '".'])
+            end
+
+            fileID = fopen(filename, 'r');
+
+            % read text to cell
+            text_line = fgetl(fileID);
+            text_cell = {};
+            while ischar(text_line)
+                text_cell = [text_cell; text_line]; %#ok<AGROW>
+                text_line = fgetl(fileID);
+            end
+            fclose(fileID);
+
+            % prune lines
+            lines_to_prune = false(size(text_cell, 1), 1);
+            for i_line = 1 : size(text_cell, 1)
+                this_line = text_cell{i_line};
+
+                % remove initial white space
+                while ~isempty(this_line) && (this_line(1) == ' ' || double(this_line(1)) == 9)
+                    this_line(1) = [];
+                end
+                text_cell{i_line} = this_line; %#ok<AGROW>
+
+                % remove comments
+                if length(this_line) > 1 && strcmp(this_line(1:2), '//')
+                    lines_to_prune(i_line) = true;
+                end
+
+                % flag lines consisting only of white space
+                if all(ismember(this_line, ' ') | double(this_line) == 9)
+                    lines_to_prune(i_line) = true;
+                end
+
+
+            end
+            text_cell(lines_to_prune) = [];
+
+            % extract data and store in settings struct
+            while ~isempty(text_cell)
+                text_cell = this.parseNextBlock(text_cell);
+            end
+        end
+        
+        function [text_cell] = parseNextBlock(this, text_cell) %#ok<INUSL>
+            % get first line of remaining text
+            text_line = text_cell{1};
+
+            if (length(text_cell) > 1) && (text_cell{2}(1) == '{')
+                % this is the beginning of a block
+                line_split = strsplit(text_line, ':');
+                variable_name = strrep(line_split{1}, ' ', '_');
+
+                % get data
+                block_end_line_index = find(strcmp(text_cell, '}'), 1, 'first');
+                variable_data_lines = text_cell(3 : block_end_line_index-1);
+                variable_value = {};
+                for i_line = 1 : length(variable_data_lines)
+                    this_line_text = variable_data_lines{i_line};
+                    % remove leading white space
+                    while ~isempty(this_line_text) && (this_line_text(1) == ' ' || double(this_line_text(1)) == 9)
+                        this_line_text(1) = [];
+                    end
+                    this_line_text = strrep(this_line_text, ', ', ',');
+                    % break up by commas
+                    this_line_cell = strsplit(this_line_text, ',');
+                    % deal with array entries
+                    for i_entry = 1 : length(this_line_cell)
+                        entry_to_process = this_line_cell{i_entry};
+                        % remove leading spaces
+                        while ~isempty(entry_to_process) && (entry_to_process(1) == ' ' || double(entry_to_process(1)) == 9)
+                            entry_to_process(1) = [];
+                        end
+                        % remove spaces at end
+                        while ~isempty(entry_to_process) && (entry_to_process(end) == ' ' || double(entry_to_process(1)) == 9)
+                            entry_to_process(end) = [];
+                        end
+
+                        % are there spaces, but all non-spaces numbers?
+                        if any(entry_to_process == ' ') && ~strcmp(entry_to_process, '-') && all(ismember(strrep(entry_to_process, ' ', ''), '0123456789-.'))
+                            % treat this as a numerical array
+                            this_entry_cell = strsplit(entry_to_process, ' ');
+                            this_entry_mat = cell2mat(cellfun(@str2num, this_entry_cell, 'un', 0));
+                            this_line_cell{i_entry} = this_entry_mat;
+                        else
+                            % put back original entry, minus leading white space
+                            this_line_cell{i_entry} = entry_to_process;
+                        end
+                    end
+                    variable_value(i_line, :) = this_line_cell; %#ok<AGROW>
+                end
+
+                % try to transform this into a double array
+                variable_array = zeros(size(variable_value)) * NaN;
+                for i_row = 1 : size(variable_value, 1)
+                    for i_col = 1 : size(variable_value, 2)
+                        entry_to_process = variable_value{i_row, i_col};
+                        % are these exclusively numbers (and decimal points and minus signs)?
+                        if ~strcmp(entry_to_process, '-') && all(ismember(entry_to_process, '0123456789-.'))
+                            variable_array(i_row, i_col) = str2num(entry_to_process); %#ok<ST2NM>
+                        end
+                    end
+                end
+                if ~any(isnan(variable_array))
+                    variable_value = variable_array;
+                end
+
+                % store in struct
+                this.settings_struct.(variable_name) = variable_value;
+
+                % remove parsed line
+                text_cell = text_cell(block_end_line_index+1:end);
+
+                return
+            end
+
+            % parse single entry
+            line_split = strsplit(text_line, ':');
+            variable_name = strrep(line_split{1}, ' ', '_');
+            variable_value_string = line_split{2};
+            while ~isempty(variable_value_string) && (variable_value_string(1) == ' ' || double(variable_value_string(1)) == 9)
+                variable_value_string(1) = [];
+            end
+            variable_value_string = strrep(variable_value_string, ', ', ',');
+            variable_value_cell = strsplit(variable_value_string, ',');
+            if length(variable_value_cell) == 1
+                variable_value = variable_value_cell{1};
+
+                % try to transform to a single double
+                if ~isempty(str2num(variable_value)) %#ok<ST2NM>
+                    variable_value = str2num(variable_value); %#ok<ST2NM,NASGU>
+                end
+            else
+                variable_value = variable_value_cell;
+
+                % try to transform to a double array
+                variable_value_array = zeros(size(variable_value)) * NaN;
+                for i_entry = 1 : length(variable_value)
+                    entry_to_process = variable_value{i_entry};
+                    entry_to_process = strrep(entry_to_process, 'step', ''); % remove the word "step" to avoid output when trying to transform a string containing it to a number
+                    if ~isempty(str2num(entry_to_process)) %#ok<ST2NM>
+                        variable_value_array(i_entry) = str2num(entry_to_process); %#ok<ST2NM>
+                    end
+                end
+                if ~any(isnan(variable_value_array))
+                    variable_value = variable_value_array;
+                end
+            end
+
+            % add to settings
+            try
+                this.settings_struct.(variable_name) = variable_value;
+            catch error
+                disp(['Variable name causing error: ' variable_name])
+                throw(error)
+            end
+
+            % remove parsed line
+            text_cell = text_cell(2:end);
+        end        
+        
         function data = get(this, property_name, optional)
             if nargin < 3
                 optional = false;
@@ -49,7 +218,7 @@ classdef SettingsCustodian < handle
             
             % try reading from settings struct
             if isfield(this.settings_struct, property_name)
-                eval(['data = this.settings_struct.' property_name ';']);
+                data = this.settings_struct.(property_name);
                 used_default = false;
             end
 
@@ -74,13 +243,13 @@ classdef SettingsCustodian < handle
                         if isempty(data_string)
                             data_string = this_cell_string;
                         else
-                            data_string = [data_string ', ' this_cell_string];
+                            data_string = [data_string ', ' this_cell_string]; %#ok<AGROW>
                         end
                     end
                 end
                 
                 % data
-                report_string = [];
+                report_string = []; %#ok<NASGU>
                 if isempty(data_string)
                     report_string = ['Setting not found in file ' this.settings_file ' - ' property_name];
                 else
@@ -100,10 +269,17 @@ classdef SettingsCustodian < handle
             
             % force string
             if any(strcmp(this.force_string_list, property_name))
-                if ~iscell(data)
-                    data_cell = cell(size(data));
-                    for i_entry = 1 : numel(data)
-                        this_entry = data(i_entry);
+                data_old = data;
+                
+                % is this an individual number?
+                if isnumeric(data_old)
+                    data = num2str(data_old);
+                end
+                % not a single number, but not a cell?
+                if ~isnumeric(data_old) && ~iscell(data_old)
+                    data_cell = cell(size(data_old));
+                    for i_entry = 1 : numel(data_old)
+                        this_entry = data_old(i_entry);
                         if isnumeric(this_entry)
                             data_cell{i_entry} = num2str(this_entry);
                         else
@@ -117,7 +293,7 @@ classdef SettingsCustodian < handle
             
             % force cell
             if any(strcmp(this.force_cell_list, property_name))
-                if ~iscell(data)
+                if ~iscell(data) & ~isempty(data) %#ok<AND2>
                     data = {data};
                 end
             end
@@ -126,9 +302,39 @@ classdef SettingsCustodian < handle
             if strcmp(data, '~')
                 data = [];
             end
+<<<<<<< HEAD
+=======
         end
         
-        function default_data = getDefaultSetting(this, property_name)
+        function table_data = getTable(this, table_name, optional)
+            if nargin < 3
+                optional = false;
+            end
+            
+            table_header_label = [table_name '_header'];
+            
+            table_header = this.get(table_header_label, optional);
+            table_body = this.get(table_name, optional);
+            
+            if isempty(table_header)
+                table_data = table;
+            else
+                if isempty(table_body)
+                    variable_types = cell(1, length(table_header));
+                    variable_types(:) = {'string'};
+                    table_data = table('size', [0, length(table_header)], 'VariableTypes', variable_types, 'VariableNames', table_header);
+                else
+                    table_data = cell2table(table_body, 'VariableNames', table_header);
+                end
+            end
+            
+>>>>>>> cleanup_branches
+        end
+        
+        function answer = isfield(this, property_name)
+            answer = isfield(this.settings_struct, property_name);
+        end
+        function default_data = getDefaultSetting(this, property_name) %#ok<INUSL>
             % general default is empty set
             default_data = [];
             
@@ -136,11 +342,11 @@ classdef SettingsCustodian < handle
             if strcmp(property_name, 'data_stretch_padding')
                 default_data = 0;
             end
-            if strcmp(property_name, 'left_fullstance_method')
-                default_data = 'first_zero_crossing_after_heelstrike';
+            if strcmp(property_name, 'time_to_nearest_heelstrike_before_trigger_threshold')
+                default_data = 0.10;
             end
-            if strcmp(property_name, 'right_fullstance_method')
-                default_data = 'first_zero_crossing_after_heelstrike';
+            if strcmp(property_name, 'time_to_nearest_heelstrike_after_trigger_threshold')
+                default_data = 0.3;
             end
             if strcmp(property_name, 'left_armswing_peak_prominence_threshold')
                 default_data = 10;
@@ -175,6 +381,23 @@ classdef SettingsCustodian < handle
             if strcmp(property_name, 'show_outliers')
                 default_data = 1;
             end
+            if strcmp(property_name, 'show_individual_data')
+                default_data = 1;
+            end
+            if strcmp(property_name, 'show_average_data')
+                default_data = 1;
+            end
+            if strcmp(property_name, 'show_spread_data')
+                default_data = 1;
+            end
+            if strcmp(property_name, 'show_single_data_points')
+                default_data = 0;
+            end
+            
+            if strcmp(property_name, 'edge_color')
+                default_data = [0.4 0.4 0.4];
+            end
+            
             if strcmp(property_name, 'discrete_data_plot_style')
                 default_data = 'box';
             end
@@ -257,9 +480,83 @@ classdef SettingsCustodian < handle
             if strcmp(property_name, 'force_plates_to_import')
                 default_data = [1, 2];
             end
+<<<<<<< HEAD
             
+=======
+            if strcmp(property_name, 'emg_cutoff_frequency_low')
+>>>>>>> cleanup_branches
             
+                default_data = 500;
+            end
             
+            if strcmp(property_name, 'variables_to_plot_header')
+                default_data = {'variable_name', 'variable_type', 'variable_label', 'y_axis_label', 'save_file_string', 'y_axis_lower_limit', 'y_axis_upper_limit'};
+            end
+            if strcmp(property_name, 'variables_to_plot_discrete_header')
+                default_data = {'variable_name', 'variable_type', 'variable_label', 'y-axis_label', 'save_file_string', 'x_axis_lower limit', 'x-axis_upper_limit', 'y_axis_lower_limit', 'y_axis_upper_limit'};
+            end
+            if strcmp(property_name, 'variables_to_plot_continuous_header')
+                default_data = {'variable_name', 'variable_type', 'variable_label', 'y_axis_label', 'save_file_string', 'x_axis_lower_limit', 'x_axis_upper_limit', 'y_axis_lower_limit', 'y_axis_upper_limit'};
+            end
+            if strcmp(property_name, 'convert_to_mm')
+                default_data = false;
+            end
+            if strcmp(property_name, 'inverse_kinematics_source')
+                default_data = 'opensim';
+            end
+
+
+            if strcmp(property_name, 'analysis_table')
+                default_data = ...
+                  { ...
+                    'invert by condition','inversion_variables','inversion_variables_header'; ...
+                    'select from multiple variables by condition','selection_variables','selection_variables_header'; ...
+                    'integrate over time','integration_variables','integration_variables_header'; ...
+                    'integrate over time','analysis_variables_from_integration','analysis_variables_from_integration_header'; ...
+                    'take value at point given by percentage within band','band_percent_variables','band_percent_variables_header'; ...
+                    'take value at point given by percentage within band','analysis_variables_from_band_percent','analysis_variables_from_band_percent_header'; ...
+                    'calculate mean over time','analysis_variables_from_mean', 'analysis_variables_from_mean_header'; ...
+                    'calculate rms over time','analysis_variables_from_rms', 'analysis_variables_from_rms_header'; ...
+                    'take value at point given by absolute time within band', 'analysis_variables_from_time_point', 'analysis_variables_from_time_point_header'; ...
+                    'take value at band end', 'analysis_variables_from_band_end', 'analysis_variables_from_band_end_header'; ...
+                    'take extremum within whole band', 'analysis_variables_from_extrema', 'analysis_variables_from_extrema_header'; ...
+                    'take extremum over time interval within band', 'analysis_variables_from_extrema_range', 'analysis_variables_from_extrema_range_header'; ...
+                  };
+             end
+            if strcmp(property_name, 'analysis_table_header')
+                default_data = {'action','settings_table','settings_table_header'};
+            end
+            if strcmp(property_name, 'inversion_variables_header')
+                default_data = {'new_variable_name', 'source_variable_name', 'source_type', 'relevant_condition', 'information_table', 'direction_label_positive', 'direction_label_negative'};
+            end
+            if strcmp(property_name, 'selection_variables_header')
+                default_data = {'new_variable_name','source_type','relevant_condition','information_table'};
+            end
+            if strcmp(property_name, 'selection_variables_header')
+                default_data = {'new_variable_name','source_variable_name','source_variable_type','start','start_variable_type','end','end_variable_type'};
+            end
+            if strcmp(property_name, 'analysis_variables_from_band_end_header')
+                default_data = {'new_variable_name','source_variable_name','source_type'};
+            end
+            if strcmp(property_name, 'analysis_variables_from_extrema_header')
+                default_data = {'new_variable_name','source_variable_name','source_type','extremum_type'};
+            end
+            if strcmp(property_name, 'analysis_variables_from_extrema_range_header')
+                default_data = {'new_variable_name','source_variable_name','source_type','extremum_type'};
+            end
+            
+            if strcmp(property_name, 'emg_import_map_header')
+                default_data = {'label_in_qtm_file','label_in_cobal'};
+            end
+            if strcmp(property_name, 'emg_import_map')
+                default_data = {};
+            end
+            if strcmp(property_name, 'filter_order_belt')
+                default_data = 4;
+            end
+            if strcmp(property_name, 'filter_cutoff_belt')
+                default_data = 10;
+            end
             
             
             if strcmp(property_name, 'marker_to_segment_map')
@@ -362,20 +659,7 @@ classdef SettingsCustodian < handle
                     'RTOEL', '0', '1', '0'; ...
                   };
             end
-
-
-
-
-
-
-            
-            
-            
-            
-            
-            
         end
-    
         function settings_names = getAllSettingsNames(this)
             settings_names = fieldnames(this.settings_struct);
         end

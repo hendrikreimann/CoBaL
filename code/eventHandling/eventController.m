@@ -18,7 +18,7 @@ classdef eventController < handle
     properties
         data_custodian;
         event_data;
-        figure_settings_file;
+%         figure_settings_file;
         
         event_time_normal_step = 0.005;
         event_time_large_step = 0.050;
@@ -44,6 +44,7 @@ classdef eventController < handle
         
         figureSelectionBox;
         selected_time_edit;
+        event_time_update_button;
         
         scene_figure = [];
         kinematic_tree_stick_figure = [];
@@ -51,16 +52,21 @@ classdef eventController < handle
         
         color_selected = [1 0.5 0];
         color_normal = [0 0 0];
+        
+        canvas_on_screen_width;
+        canvas_on_screen_height;
     end
     methods
-        function this = eventController(data_custodian, event_data, figure_settings_file)
+        function this = eventController(data_custodian, event_data)
             this.data_custodian = data_custodian;
             this.event_data = event_data;
-            this.figure_settings_file = figure_settings_file;
-
+            
+            screen_size = get(0,'ScreenSize');
             figure_height = 600;
             figure_width = 420;
-            this.control_figure = figure('position', [100 100 figure_width figure_height], 'Units', 'pixels', 'KeyPressFcn', @this.processKeyPress);
+            this.canvas_on_screen_width = screen_size(3) - figure_width;
+            this.canvas_on_screen_height = screen_size(4) - 24; % 24 is the size of the menu bar on the Mac, check for windows systems later
+            this.control_figure = figure('position', [screen_size(3)-figure_width screen_size(3)-figure_height figure_width figure_height], 'Units', 'pixels', 'KeyPressFcn', @this.processKeyPress);
 
             % figure control
             figures_panel_height = 100;
@@ -105,8 +111,20 @@ classdef eventController < handle
             scene_panel = uipanel(this.control_figure, 'Title', 'Selection', 'FontSize', 12, 'BackgroundColor', 'white', 'Units', 'pixels', 'Position', [5, figure_height-figures_panel_height-events_panel_height-files_panel_height-scene_panel_height-5, figure_width-10, scene_panel_height]);
             uicontrol(scene_panel, 'Style', 'text', 'string', 'Selected time:', 'Position', [5, scene_panel_height-40, 190, 20], 'Fontsize', 10, 'HorizontalAlignment', 'left', 'BackgroundColor', 'white');
             this.selected_time_edit = uicontrol(scene_panel, 'Style', 'edit', 'BackgroundColor', 'white', 'Position', [80, scene_panel_height-37, 40, 20], 'String', '0');
+            this.event_time_update_button = uicontrol(scene_panel, 'Style', 'pushbutton', 'Position', [130, scene_panel_height-37, 60, 20], 'Fontsize', 12, 'String', 'update', 'callback', @this.updateEventTime);
         end
         
+        function updateEventTime(this, varargin)
+            selected_event_time_new = str2double(this.selected_time_edit.String);
+
+            selected_event_time_current = this.event_data.selected_event_time;
+            this.event_data.selected_event_time = this.event_data.updateEventTime(this.event_data.selected_event_label, selected_event_time_current, selected_event_time_new);
+            
+            % update plots
+            this.updateSelectedEventPlots();
+            this.updateSelectedTime(this.event_data.selected_event_time);
+            this.updateEventPlots();
+        end
         function setSelectedEvent(this, event_label, event_time)
             if nargin == 1
                 event_label = 'left_touchdown';
@@ -300,38 +318,38 @@ classdef eventController < handle
             end
             
             % save settings to file
-            settings_file = [getUserSettingsPath filesep this.figure_settings_file];
-            save(settings_file, 'figure_settings', 'control_figure_setting', 'scene_figure_setting', 'kinematic_tree_figure_setting');
+%             settings_file = [getUserSettingsPath filesep this.figure_settings_file];
+%             save(settings_file, 'figure_settings', 'control_figure_setting', 'scene_figure_setting', 'kinematic_tree_figure_setting');
         end
         function loadFigureSettings(this, sender, eventdata) %#ok<INUSD>
-            settings_file = [getUserSettingsPath filesep this.figure_settings_file];
-
-            if exist(settings_file, 'file')
-                % load settings
-                load(settings_file, 'figure_settings', 'control_figure_setting', 'scene_figure_setting', 'kinematic_tree_figure_setting')
-                
-                % apply for controller and stick figure
-                this.control_figure.Position = control_figure_setting.position;
-                if ~isempty(this.scene_figure)
-                    this.scene_figure.scene_figure.Position = scene_figure_setting.position;
-                end
-                if ~isempty(this.kinematic_tree_stick_figure) && any(strcmp(fieldnames(kinematic_tree_figure_setting), 'position'))
-                    this.kinematic_tree_stick_figure.sceneFigure.Position = kinematic_tree_figure_setting.position;
-                end
-                
-                % apply for trajectory figure
-                for i_figure = 1 : length(figure_settings) %#ok<USENS>
-                    this_figure_settings = figure_settings{i_figure};
-                    this_figure_title = this_figure_settings.title;
-                    
-                    % cycle through available figures and look for a match
-                    for j_figure = 1 : length(this.figureSelectionBox.UserData)
-                        if strcmp(this.figureSelectionBox.UserData{j_figure}.title, this_figure_title)
-                            this.figureSelectionBox.UserData{j_figure}.applySettings(this_figure_settings);
-                        end
-                    end
-                end
-            end
+%             settings_file = [getUserSettingsPath filesep this.figure_settings_file];
+% 
+%             if exist(settings_file, 'file')
+%                 % load settings
+%                 load(settings_file, 'figure_settings', 'control_figure_setting', 'scene_figure_setting', 'kinematic_tree_figure_setting')
+%                 
+%                 % apply for controller and stick figure
+%                 this.control_figure.Position = control_figure_setting.position;
+%                 if ~isempty(this.scene_figure)
+%                     this.scene_figure.scene_figure.Position = scene_figure_setting.position;
+%                 end
+%                 if ~isempty(this.kinematic_tree_stick_figure) && any(strcmp(fieldnames(kinematic_tree_figure_setting), 'position'))
+%                     this.kinematic_tree_stick_figure.sceneFigure.Position = kinematic_tree_figure_setting.position;
+%                 end
+%                 
+%                 % apply for trajectory figure
+%                 for i_figure = 1 : length(figure_settings) %#ok<USENS>
+%                     this_figure_settings = figure_settings{i_figure};
+%                     this_figure_title = this_figure_settings.title;
+%                     
+%                     % cycle through available figures and look for a match
+%                     for j_figure = 1 : length(this.figureSelectionBox.UserData)
+%                         if strcmp(this.figureSelectionBox.UserData{j_figure}.title, this_figure_title)
+%                             this.figureSelectionBox.UserData{j_figure}.applySettings(this_figure_settings);
+%                         end
+%                     end
+%                 end
+%             end
         end
         function toggleLegends(this, sender, eventdata) %#ok<INUSD>
             for i_figure = 1 : size(this.figureSelectionBox.String, 1)
@@ -511,7 +529,8 @@ classdef eventController < handle
             end
             
             for i_figure = 1 : size(this.figureSelectionBox.String, 1)
-                set(this.figureSelectionBox.UserData{i_figure}.main_axes, 'xlim', new_x_lim);
+                this.figureSelectionBox.UserData{i_figure}.updateTimeWindow(new_x_lim);
+%                 set(this.figureSelectionBox.UserData{i_figure}.main_axes, 'xlim', new_x_lim);
             end        
         end
         
@@ -522,9 +541,18 @@ classdef eventController < handle
             [condition_list, trial_number_list] = parseTrialArguments();
             condition_index = find(strcmp(condition_list, current_condition));
             if current_trial_number == trial_number_list{condition_index}(1)
-                new_condition = condition_list{condition_index - 1};
-                new_trial_number = trial_number_list{condition_index - 1}(end);
+                % first trial of this type
+                if condition_index == 1
+                    % first type, so just stay at the current trial
+                    new_condition = current_condition;
+                    new_trial_number = current_trial_number;
+                else
+                    % go to next trial type, first trial
+                    new_condition = condition_list{condition_index - 1};
+                    new_trial_number = trial_number_list{condition_index - 1}(end);
+                end                    
             else
+                % go to previous trial of this type
                 new_condition = this.data_custodian.trial_type;
                 trial_index = find(trial_number_list{condition_index} == current_trial_number);
                 new_trial_number = trial_number_list{condition_index}(trial_index - 1);
@@ -552,9 +580,18 @@ classdef eventController < handle
             [condition_list, trial_number_list] = parseTrialArguments();
             condition_index = find(strcmp(condition_list, current_condition));
             if current_trial_number == trial_number_list{condition_index}(end)
-                new_condition = condition_list{condition_index + 1};
-                new_trial_number = trial_number_list{condition_index + 1}(1);
+                % last trial of this type
+                if condition_index == length(condition_list)
+                    % last type, so just stay at the current trial
+                    new_condition = current_condition;
+                    new_trial_number = current_trial_number;
+                else
+                    % go to next trial type, first trial
+                    new_condition = condition_list{condition_index + 1};
+                    new_trial_number = trial_number_list{condition_index + 1}(1);
+                end
             else
+                % go to next trial of this type
                 new_condition = this.data_custodian.trial_type;
                 trial_index = find(trial_number_list{condition_index} == current_trial_number);
                 new_trial_number = trial_number_list{condition_index}(trial_index + 1);

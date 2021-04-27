@@ -88,9 +88,9 @@ function singleBarPlot(target_axes_handle, abscissa, data, color, label, width, 
         hatchfill(bar_patch, 'cross', 45, 15, 'none', color);
     end    
     whisker_width = 0.1;
-    plot(target_axes_handle, [abscissa abscissa], data_mean + data_std_error*[-1 1], 'k-', 'HandleVisibility', 'off'); % upper range
-    plot(target_axes_handle, abscissa+width*whisker_width*[-0.5 0.5], data_mean + data_std_error*[1 1], 'k-', 'HandleVisibility', 'off');
-    plot(target_axes_handle, abscissa+width*whisker_width*[-0.5 0.5], data_mean - data_std_error*[1 1], 'k-', 'HandleVisibility', 'off');
+    plot(target_axes_handle, [abscissa abscissa], data_mean + data_std_error*[-1 1], 'color', [1 1 1]*0.4, 'HandleVisibility', 'off', 'linewidth', 1); % upper range
+    plot(target_axes_handle, abscissa+width*whisker_width*[-0.5 0.5], data_mean + data_std_error*[1 1], 'color', [1 1 1]*0.4, 'HandleVisibility', 'off', 'linewidth', 1);
+    plot(target_axes_handle, abscissa+width*whisker_width*[-0.5 0.5], data_mean - data_std_error*[1 1], 'color', [1 1 1]*0.4, 'HandleVisibility', 'off', 'linewidth', 1);
 %     plot(target_axes_handle, abscissa+width*[-0.25 0.25], [data_upper_adjacent data_upper_adjacent], 'k-', 'HandleVisibility', 'off'); % min
     
     

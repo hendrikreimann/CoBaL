@@ -15,18 +15,33 @@
 %     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+% TODO: turn this into a function. For now, hard-code an input
+source_label = '';
+% source_label = 'ucmAcrossTrials';
+% source_label = 'varianceAcrossTrials';
+% source_label = 'Displacement';
+
 %% load data
-loaded_data = load('results.mat');
+if isempty(source_label)
+    loaded_data = load('results.mat');
+else
+    loaded_data = load(['results_' source_label '.mat']);
+end
 
 %% load settings
 if ~exist('studySettings.txt', 'file')
     error('No studySettings.txt file found. This function should be run from a study folder')
 end    
 study_settings = SettingsCustodian('studySettings.txt');
-variables_to_export = study_settings.get('variables_to_export_discrete');
+variables_to_export_discrete = study_settings.get('variables_to_export_discrete');
 variables_to_export_discrete_header = study_settings.get('variables_to_export_discrete_header');
-band_labels = study_settings.get('band_labels');
-number_of_variables_to_export_discrete = size(variables_to_export, 1);
+
+% remove variables from this list that don't match the source type
+source_column = strcmp(variables_to_export_discrete_header, 'source file');
+source_match = strcmp(variables_to_export_discrete(:, source_column), source_label);
+variables_to_export_discrete(~source_match, :) = [];
+
+number_of_variables_to_export_discrete = size(variables_to_export_discrete, 1);
 number_of_data_points = size(loaded_data.time_list, 1);
 number_of_bands = size(loaded_data.step_time_data, 1);
 
@@ -35,9 +50,9 @@ data_cell = {};
 data_header = {};
 for i_variable = 1 : number_of_variables_to_export_discrete
     % load and assemble data
-    this_variable_name = variables_to_export{i_variable, strcmp(variables_to_export_discrete_header, 'export_variable_name')};
-    this_variable_source = variables_to_export{i_variable, strcmp(variables_to_export_discrete_header, 'source_variable')};
-    this_variable_band = str2double(variables_to_export{i_variable, strcmp(variables_to_export_discrete_header, 'source_band')});
+    this_variable_name = variables_to_export_discrete{i_variable, strcmp(variables_to_export_discrete_header, 'export_variable_name')};
+    this_variable_source = variables_to_export_discrete{i_variable, strcmp(variables_to_export_discrete_header, 'source_variable')};
+    this_variable_band = str2double(variables_to_export_discrete{i_variable, strcmp(variables_to_export_discrete_header, 'source_band')});
     variable_index_in_data_cell = find(strcmp(this_variable_source, loaded_data.variable_names));
     this_variable_data_all_bands = loaded_data.variable_data{variable_index_in_data_cell}';
     this_variable_data = this_variable_data_all_bands(:, this_variable_band);
@@ -94,12 +109,17 @@ for i_level = 1 : size(levels_to_remove, 1)
 end
 
 %% save
+if isempty(source_label)
+    save_file = 'results.csv';
+else
+    save_file = ['results_' source_label '.csv'];
+end
 export_cell = ...
   [ ...
     header_cell; ...
     body_cell ...
   ];
-cell2csv('results.csv', export_cell);
+cell2csv(save_file, export_cell);
 
 
 

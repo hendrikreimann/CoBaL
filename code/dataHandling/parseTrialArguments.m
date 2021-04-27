@@ -20,24 +20,24 @@ function [types_to_analyze, trials_to_analyze, types_to_exclude, trials_to_exclu
     parser = inputParser;
     parser.KeepUnmatched = true;
     
-    default_condition = 'all';
-    addParameter(parser, 'condition', default_condition)
+    default_type = 'all';
+    addParameter(parser, 'type', default_type)
     default_trials = 0;
     addParameter(parser, 'trials', default_trials)
     
     
     parse(parser, varargin{:})
-    condition = parser.Results.condition;
+    type = parser.Results.type;
     trials = parser.Results.trials;
     
     % list of conditions
-    if strcmp(condition, 'all')
+    if strcmp(type, 'all')
         types_to_analyze = condition_list;
     else
-        if iscell(condition)
-            types_to_analyze = condition;
+        if iscell(type)
+            types_to_analyze = type;
         else 
-            types_to_analyze = {condition};
+            types_to_analyze = {type};
         end
     end
     
@@ -79,7 +79,8 @@ function [types_to_analyze, trials_to_analyze, types_to_exclude, trials_to_exclu
             trials_to_analyze{i_condition} = trials_to_analyze_in_this_condition;
         end
     end
-        
+    
+    % exclude unwanted trials specified in settings
     trials_to_exclude = {};
     types_to_exclude = {};
     for i_type = 1 : length(trial_types_to_ignore)
