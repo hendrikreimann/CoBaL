@@ -490,7 +490,7 @@ classdef SettingsCustodian < handle
             end
             
             if strcmp(property_name, 'variables_to_plot_header')
-                default_data = {'variable_name', 'variable_type', 'variable_label', 'y_axis_label', 'save_file_string', 'y_axis_lower_limit', 'y_axis_upper_limit'};
+                default_data = {'variable_name', 'variable_type', 'variable_label', 'y_axis_label', 'save_file_string', 'x_axis_lower_limit', 'x_axis_upper_limit', 'y_axis_lower_limit', 'y_axis_upper_limit'};
             end
             if strcmp(property_name, 'variables_to_plot_discrete_header')
                 default_data = {'variable_name', 'variable_type', 'variable_label', 'y-axis_label', 'save_file_string', 'x_axis_lower limit', 'x-axis_upper_limit', 'y_axis_lower_limit', 'y_axis_upper_limit'};
@@ -520,7 +520,8 @@ classdef SettingsCustodian < handle
                     'take value at point given by absolute time within band', 'analysis_variables_from_time_point', 'analysis_variables_from_time_point_header'; ...
                     'take value at band end', 'analysis_variables_from_band_end', 'analysis_variables_from_band_end_header'; ...
                     'take extremum within whole band', 'analysis_variables_from_extrema', 'analysis_variables_from_extrema_header'; ...
-                    'take extremum over time interval within band', 'analysis_variables_from_extrema_range', 'analysis_variables_from_extrema_range_header'; ...
+                    'take extremum over range', 'analysis_variables_from_extrema_range', 'analysis_variables_from_extrema_range_header'; ...
+                    'combine two variables', 'combination_variables', 'combination_variables_header'; ...
                   };
              end
             if strcmp(property_name, 'analysis_table_header')
@@ -556,6 +557,12 @@ classdef SettingsCustodian < handle
             end
             if strcmp(property_name, 'filter_cutoff_belt')
                 default_data = 10;
+            end
+            if strcmp(property_name, 'labview_resampling_rate')
+                default_data = 100;
+            end
+            if strcmp(property_name, 'marker_fill_table_header')
+                default_data = {'trial_type', 'trial_number', 'marker_to_fill', 'marker_source_1', 'marker_source_2', 'marker_source_3'};
             end
             
             

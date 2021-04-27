@@ -66,8 +66,11 @@ classdef eventController < handle
             figure_width = 420;
             this.canvas_on_screen_width = screen_size(3) - figure_width;
             this.canvas_on_screen_height = screen_size(4) - 24; % 24 is the size of the menu bar on the Mac, check for windows systems later
-            this.control_figure = figure('position', [screen_size(3)-figure_width screen_size(3)-figure_height figure_width figure_height], 'Units', 'pixels', 'KeyPressFcn', @this.processKeyPress);
-
+            if ismac
+                this.control_figure = figure('position', [screen_size(3)-figure_width screen_size(3)-figure_height figure_width figure_height], 'Units', 'pixels', 'KeyPressFcn', @this.processKeyPress);
+            elseif ispc
+                this.control_figure = figure('position', [0 0 figure_width figure_height], 'Units', 'pixels', 'KeyPressFcn', @this.processKeyPress);
+            end
             % figure control
             figures_panel_height = 100;
             figures_panel = uipanel(this.control_figure, 'Title', 'Figure Control', 'FontSize', 12, 'BackgroundColor', 'white', 'Units', 'pixels', 'Position', [5, figure_height-figures_panel_height-5, figure_width-10, figures_panel_height]);
