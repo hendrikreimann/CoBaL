@@ -1,0 +1,10 @@
+// directions - this expresses the base vectors of the OpenSim frame in CoBaL coordinates
+opensim_x_in_cobal: 0, 1, 0
+opensim_y_in_cobal: 0, 0, 1
+opensim_z_in_cobal: 1, 0, 0
+
+// translation between the two frames
+cobal_to_opensim_translation: 0, 0, 0
+
+// scale
+cobal_to_opensim_scale: 1000

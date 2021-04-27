@@ -1,2 +1,13 @@
 subjectSheet.pages
 analyzeSubjects.m
+explore/processSubjectsArmsense.m
+explore/processSubjects.m
+*.orig
+*.asv
+processing/processStretchVariables.m.orig
+processing/processAnalysisVariables.m.orig
+processing/findRelevantDataStretches.m.orig
+.gitignore_REMOTE_11156
+.gitignore_LOCAL_11156
+.gitignore_BASE_11156
+.gitignore.orig
