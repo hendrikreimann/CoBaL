@@ -554,6 +554,9 @@ classdef SettingsCustodian < handle
             if strcmp(property_name, 'labview_resampling_rate')
                 default_data = 100;
             end
+            if strcmp(property_name, 'marker_fill_table_header')
+                default_data = {'trial_type', 'trial_number', 'marker_to_fill', 'marker_source_1', 'marker_source_2', 'marker_source_3'};
+            end
             
             
             if strcmp(property_name, 'marker_to_segment_map')
