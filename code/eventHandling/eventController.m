@@ -76,8 +76,8 @@ classdef eventController < handle
             figures_panel = uipanel(this.control_figure, 'Title', 'Figure Control', 'FontSize', 12, 'BackgroundColor', 'white', 'Units', 'pixels', 'Position', [5, figure_height-figures_panel_height-5, figure_width-10, figures_panel_height]);
             this.figureSelectionBox = uicontrol(figures_panel, 'Style', 'popup', 'String', '<no figure>', 'Position', [5, figures_panel_height-40, 395, 20], 'Fontsize', 12, 'HorizontalAlignment', 'left');
 
-            this.saveFigureSettingsButton = uicontrol(figures_panel, 'Style', 'pushbutton', 'Position', [5, figures_panel_height-100, 130, 60], 'Fontsize', 12, 'String', 'Save Figure Settings', 'callback', @this.saveFigureSettings);
-            this.loadFigureSettingsButton = uicontrol(figures_panel, 'Style', 'pushbutton', 'Position', [140, figures_panel_height-100, 130, 60], 'Fontsize', 12, 'String', 'Load Figure Settings', 'callback', @this.loadFigureSettings);
+%             this.saveFigureSettingsButton = uicontrol(figures_panel, 'Style', 'pushbutton', 'Position', [5, figures_panel_height-100, 130, 60], 'Fontsize', 12, 'String', 'Save Figure Settings', 'callback', @this.saveFigureSettings);
+%             this.loadFigureSettingsButton = uicontrol(figures_panel, 'Style', 'pushbutton', 'Position', [140, figures_panel_height-100, 130, 60], 'Fontsize', 12, 'String', 'Load Figure Settings', 'callback', @this.loadFigureSettings);
             this.toggleLegendsButton = uicontrol(figures_panel, 'Style', 'pushbutton', 'Position', [275, figures_panel_height-100, 130, 60], 'Fontsize', 12, 'String', 'Toggle Legends', 'callback', @this.toggleLegends);
 
             % event controls
@@ -95,8 +95,8 @@ classdef eventController < handle
             this.addEventButtons(5) = uicontrol(events_panel, 'Style', 'pushbutton', 'Position', [5, events_panel_height-195, 130, 60], 'Fontsize', 12, 'String', 'Add Ignore Marker', 'callback', @this.addEventButtonPressed, 'UserData', 'ignore_times');
             
             this.findStretchesButton = uicontrol(events_panel, 'Style', 'pushbutton', 'Position', [5, events_panel_height-255, 130, 60], 'Fontsize', 12, 'String', 'Find Stretches', 'callback', @this.findStretches);
-            this.saveStretchesButton = uicontrol(events_panel, 'Style', 'pushbutton', 'Position', [140, events_panel_height-255, 130, 60], 'Fontsize', 12, 'String', 'Save Stretches', 'callback', @this.saveStretches);
-            this.automateStretchFindingButton = uicontrol(events_panel, 'Style', 'pushbutton', 'Position', [275, events_panel_height-255, 130, 60], 'Fontsize', 12, 'String', 'Auto Save', 'callback', @this.automateStretchFinding, 'ForegroundColor', this.color_selected);
+%             this.saveStretchesButton = uicontrol(events_panel, 'Style', 'pushbutton', 'Position', [140, events_panel_height-255, 130, 60], 'Fontsize', 12, 'String', 'Save Stretches', 'callback', @this.saveStretches);
+            this.automateStretchFindingButton = uicontrol(events_panel, 'Style', 'pushbutton', 'Position', [275, events_panel_height-255, 130, 60], 'Fontsize', 12, 'String', '<html><center>Auto-Find<br></center>Stretches', 'callback', @this.automateStretchFinding, 'ForegroundColor', this.color_selected);
             
             % figure control
             files_panel_height = 95;
