@@ -417,23 +417,6 @@ function trial_data = determineIllusion(study_settings, trial_data)
                 % angle change is negative, horizon rotates clockwise, illusion is to the LEFT
                 illusion_trajectory(i_time) = -1;
             end
-<<<<<<< HEAD
-            if strcmp(experimental_paradigm, 'GvsOverground')
-                [analog_trajectories, time_analog, sampling_rate_analog, analog_labels, analog_directions] = loadData(collection_date, subject_id, condition_list{i_condition}, i_trial, 'analog_trajectories');
-                gvs_trajectory = analog_trajectories(:, strcmp(analog_labels, 'GVS_out'));
-            end
-
-            % determine indices for optional markers
-            marker_weight_table = study_settings.get('marker_weights');
-            if isempty(marker_weight_table)
-                optional_marker_indices = [];
-            else
-                optional_marker_list = marker_weight_table(:, 1);
-                optional_marker_indices = [];
-                for i_marker = 1 : length(optional_marker_list)
-                    marker_indices = extractMarkerData(marker_trajectories, marker_labels, optional_marker_list{i_marker}, 'indices');
-                    optional_marker_indices = [optional_marker_indices marker_indices];
-=======
         end
         trial_data.illusion_trajectory = illusion_trajectory;
     end
@@ -445,7 +428,6 @@ function trial_data = determineIllusion(study_settings, trial_data)
                 if trial_data.current_rotation_trajectory(i_time) < 0
                     % angle is negative, horizon rotates clockwise, illusion is to the LEFT
                     illusion_trajectory(i_time) = -1;
->>>>>>> cleanup_branches
                 end
                 if trial_data.current_rotation_trajectory(i_time) > 0
                     % angle is positive, horizon rotates counter-clockwise, illusion is to the RIGHT
@@ -490,144 +472,10 @@ function trial_data = determineIllusion(study_settings, trial_data)
                     % negative current = anode on the left = illusory fall to the right
                     illusion_trajectory(i_time) = 1;
                 end
-<<<<<<< HEAD
-            end
-            if strcmp(experimental_paradigm, 'GvsOverground')
-                gvs_threshold = study_settings.get('gvs_threshold');
-                illusion_trajectory = zeros(size(time_analog)); % -1 = LEFT, 1 = RIGHT
-                
-                % positive current = anode on the right = illusory fall to the left
-                illusion_trajectory(gvs_trajectory > gvs_threshold) = -1;
-                % negative current = anode on the left = illusory fall to the right
-                illusion_trajectory(gvs_trajectory < -gvs_threshold) = 1;
-            end
-            
-            %% extract events
-            if strcmp(condition_stimulus, 'NONE') ...
-                    || strcmp(condition_stimulus, 'VISUAL') || strcmp(experimental_paradigm, 'GVS_old') ...
-                    || strcmp(experimental_paradigm, 'Vision') || strcmp(experimental_paradigm, 'CadenceVision') || strcmp(experimental_paradigm, 'CognitiveLoadVision') ...
-                    || strcmp(experimental_paradigm, 'GVS') || strcmp(experimental_paradigm, 'CadenceGVS') || strcmp(experimental_paradigm, 'FatigueGVS') || strcmp(experimental_paradigm, 'CognitiveLoadGvs')  ...
-                    || strcmp(condition_stimulus, 'OBSTACLE') || strcmp(condition_stimulus, 'ARMSENSE') ...
-                    || strcmp(experimental_paradigm, 'Vision Stochastic') || strcmp(experimental_paradigm, 'GvsOverground')
-                right_pushoff_times = event_data{strcmp(event_labels, 'right_pushoff')};
-                right_touchdown_times = event_data{strcmp(event_labels, 'right_touchdown')};
-                left_pushoff_times = event_data{strcmp(event_labels, 'left_pushoff')};
-                left_touchdown_times = event_data{strcmp(event_labels, 'left_touchdown')};
-            end
-            if strcmp(experimental_paradigm, 'platformShift')
-                perturbation_start_times = event_data{strcmp(event_labels, 'perturbation_start')};
-                perturbation_end_times = event_data{strcmp(event_labels, 'perturbation_end')};
-                response_end_times = event_data{strcmp(event_labels, 'perturbation_end_plus_two')};
-            end
-            
-            %% find triggers
-            %
-            % Find the triggering events that indicate a stretch of interest. For perturbation experiments, this is the onset of
-            % a perturbation. For unperturbed walking, this is any heelstrike.
-            % The result is trigger_indices_labview.
-            %
-            if strcmp(condition_stimulus, 'NONE')
-                % use all touchdown events as triggers
-                trigger_times = [left_touchdown_times; right_touchdown_times];
-            end
-            if strcmp(condition_stimulus, 'VISUAL') || strcmp(experimental_paradigm, 'GVS_old')
-                % find the time steps where the stimulus state crosses a threshold
-                stimulus_threshold = 0.5;
-                trigger_indices_labview = find(diff(sign(stimulus_state_trajectory - stimulus_threshold)) > 0) + 1;
-
-                %
-                epsilon = 1e-5;
-                % remove weird noise in illusion trajectory (check labview
-                % for odd behavior i.e. wait time and illusion_trajectory)
-                stim_start_indices_labview = find(diff(sign(abs(illusion_trajectory) - epsilon)) > 0) + 1;
-                i_stim = 1;
-                while i_stim ~= length(stim_start_indices_labview)
-                    if illusion_trajectory(stim_start_indices_labview(i_stim) + 5) == 0
-                        stim_start_indices_labview(i_stim) = [];
-                        i_stim = i_stim - 1;
-                    end
-                    i_stim = i_stim + 1;
-                end
-                trigger_indices_labview = trigger_indices_labview(1 : length(stim_start_indices_labview)); % in case a stim is triggered, but not recorded
-                
-                trigger_times = time_stimulus(trigger_indices_labview);
-            end
-            if strcmp(experimental_paradigm, 'Vision') || strcmp(experimental_paradigm, 'CadenceVision') || strcmp(experimental_paradigm, 'CognitiveLoadVision')
-                % find the time steps where the stimulus state crosses a threshold
-                stimulus_threshold = 1.5;
-                trigger_indices_labview = find(diff(sign(stimulus_state_trajectory - stimulus_threshold)) > 0) + 2;
-                trigger_times = time_stimulus(trigger_indices_labview);
-            end
-            if strcmp(experimental_paradigm, 'GVS') || strcmp(experimental_paradigm, 'CadenceGVS') || strcmp(experimental_paradigm, 'FatigueGVS') || strcmp(experimental_paradigm, 'CognitiveLoadGvs')
-                % find the time steps where the stimulus state crosses a threshold
-                stimulus_threshold = 1.5;
-                trigger_indices_labview = find(diff(sign(stimulus_state_trajectory - stimulus_threshold)) > 0) + 2;
-                trigger_times = time_stimulus(trigger_indices_labview);
-            end
-            if strcmp(experimental_paradigm, 'GvsOverground')
-                % find the time steps where the first forceplate vertical force crosses a threshold
-                stimulus_threshold = 20;
-                [frist_forceplate_wrench_trajectory, time_forceplate] = loadData(collection_date, subject_id, condition_list{i_condition}, i_trial, 'left_foot_wrench_world');
-                vertical_force_trajectory = frist_forceplate_wrench_trajectory(:, 3);
-                
-                trigger_indices_forceplate = find(diff(sign(-vertical_force_trajectory - stimulus_threshold)) > 0) + 2;
-                trigger_times = time_forceplate(trigger_indices_forceplate);
-            end
-            if strcmp(condition_stimulus, 'OBSTACLE')
-                trigger_times = [];
-            end
-            if strcmp(condition_stimulus, 'ARMSENSE')
-                 trigger_times = [];
-            end
-            if strcmp(experimental_paradigm, 'Vision Stochastic')
-                trigger_times = [];
-            end
-            if strcmp(experimental_paradigm, 'platformShift')
-                % use all touchdown events as triggers
-                trigger_times = perturbation_start_times;
-            end
-            
-            % calculate indices
-            trigger_indices_mocap = zeros(size(trigger_times));
-            for i_index = 1 : length(trigger_times)
-                [~, index_mocap] = min(abs(time_marker - trigger_times(i_index)));
-                trigger_indices_mocap(i_index) = index_mocap;
-            end
-
-            % visualize triggers
-            if visualize
-                LHEE = extractMarkerData(marker_trajectories, marker_labels, 'LHEE');
-                RHEE = extractMarkerData(marker_trajectories, marker_labels, 'RHEE');
-                [left_forceplate_wrench_world_trajectory, time_left_forceplate] = loadData(collection_date, subject_id, condition_list{i_condition}, i_trial, 'left_foot_wrench_world', 'optional');
-                [right_forceplate_wrench_world_trajectory, time_right_forceplate] = loadData(collection_date, subject_id, condition_list{i_condition}, i_trial, 'right_foot_wrench_world', 'optional');
-                
-%                 figure; axes; hold on
-%                 plot(time_stimulus, stimulus_state_trajectory*0.02);
-%                 plot(time_marker, LHEE(:, 3), 'Displayname', 'left heel z')
-%                 plot(time_marker, RHEE(:, 3), 'Displayname', 'right heel z')
-%                 
-%                 plot(time_marker, LHEE(:, 2), 'Displayname', 'left heel y')
-%                 plot(time_marker, RHEE(:, 2), 'Displayname', 'right heel y')
-                
-                
-%                 if left_forceplate_available
-%                     left_cop_x_trajectory_relevant = left_copx_trajectory; left_cop_x_trajectory_relevant(left_cop_x_trajectory_relevant==0) = NaN;
-%                     plot(time_left_forceplate, left_cop_x_trajectory_relevant, 'linewidth', 2, 'Displayname', 'cop left');
-%                 end
-%                 if right_forceplate_available
-%                     right_cop_x_trajectory_relevant = right_copx_trajectory; right_cop_x_trajectory_relevant(right_cop_x_trajectory_relevant==0) = NaN;
-%                     plot(time_right_forceplate, right_cop_x_trajectory_relevant, 'linewidth', 2, 'Displayname', 'cop right');
-%                 end
-%                 plot(time_marker(trigger_indices_mocap), zeros(size(trigger_indices_mocap)), 'x', 'Displayname', 'triggers')
-%                 plot(time_stimulus, illusion_trajectory, 'Displayname', 'illusion')
-%                 legend('stimulus state', 'left cop', 'right cop', 'left touchdown', 'right touchdown', 'trigger', 'stim start')
-%                 legend('toggle')
-=======
                 if trial_data.gvs_trajectory(i_time) > 0
                     % positive current = anode on the right = illusory fall to the left
                     illusion_trajectory(i_time) = -1;
                 end
->>>>>>> cleanup_branches
             end
         end
         trial_data.illusion_trajectory = illusion_trajectory; %% added by SD *********

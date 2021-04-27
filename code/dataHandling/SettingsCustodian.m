@@ -302,8 +302,6 @@ classdef SettingsCustodian < handle
             if strcmp(data, '~')
                 data = [];
             end
-<<<<<<< HEAD
-=======
         end
         
         function table_data = getTable(this, table_name, optional)
@@ -328,7 +326,6 @@ classdef SettingsCustodian < handle
                 end
             end
             
->>>>>>> cleanup_branches
         end
         
         function answer = isfield(this, property_name)
@@ -480,11 +477,7 @@ classdef SettingsCustodian < handle
             if strcmp(property_name, 'force_plates_to_import')
                 default_data = [1, 2];
             end
-<<<<<<< HEAD
-            
-=======
             if strcmp(property_name, 'emg_cutoff_frequency_low')
->>>>>>> cleanup_branches
             
                 default_data = 500;
             end

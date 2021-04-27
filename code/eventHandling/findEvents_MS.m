@@ -114,17 +114,10 @@ function findEvents_MS(varargin)
                   };
             end
             
-<<<<<<< HEAD
-            if any(strcmp(this_trial_type, study_settings.get('ramp_perturbation_conditions', 1)))
-                distance_threshold = subject_settings.get('platform_acc_peak_distance_threshold') * sampling_rate_marker;
-                if distance_threshold > length(platform_acc_trajectory) - 2
-                    distance_threshold = length(platform_acc_trajectory) - 2;
-=======
             if any(strcmp(this_trial_type, study_settings.get('across_trials_conditions', 1)))
                 distance_threshold = subject_settings.get('acc_peak_distance_threshold') * sampling_rate_marker;
                 if distance_threshold > length(shift_acc_trajectory) - 2
                     distance_threshold = length(shift_acc_trajectory) - 2;
->>>>>>> cleanup_branches
                 end
                 
                 
