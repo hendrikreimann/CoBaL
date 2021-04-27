@@ -1,0 +1,159 @@
+// GVS
+
+// each figure is listed as a block, the name must end in "Figure"
+// name of the figure is the name of the block
+// plots are specified as follows:
+// data plots: data, <variable name>, <label>, <scale factor>, <offset>, <color R>, <color G>, <color B>, linewidth
+// event plots: event, <event name>, <variable name of parent data plot>, label, <marker>, <color R>, <color G>, <color B>, marker size
+// where type should be 'data' or 'event'
+// the variables specified must be available in the trial data object
+
+figure_settings_file: marker_kinematics.mat
+
+
+figures_header: info, data
+figures:
+{
+  free_dofs_figure_settings, free_dofs_figure_data
+  torso_figure_settings, torso_figure_data
+  left_leg_figure_settings, left_leg_figure_data
+  right_leg_figure_settings, right_leg_figure_data
+  left_arm_figure_settings, left_arm_figure_data
+  right_arm_figure_settings, right_arm_figure_data
+}
+
+free_dofs_figure_settings:
+{
+  title, free body DoFs
+  origin_horizontal, 0
+  origin_vertical, 0.66
+  width, 0.5
+  height, 0.33
+}
+
+torso_figure_settings:
+{
+  title, lumbar and neck angles
+  origin_horizontal, 0.5
+  origin_vertical, 0.66
+  width, 0.5
+  height, 0.33
+}
+
+left_leg_figure_settings:
+{
+  title, left leg joint angles
+  origin_horizontal, 0
+  origin_vertical, 0.33
+  width, 0.5
+  height, 0.33
+}
+
+right_leg_figure_settings:
+{
+  title, right leg joint angles
+  origin_horizontal, 0.5
+  origin_vertical, 0.33
+  width, 0.5
+  height, 0.33
+}
+
+left_arm_figure_settings:
+{
+  title, left arm joint angles
+  origin_horizontal, 0
+  origin_vertical, 0
+  width, 0.5
+  height, 0.33
+}
+
+right_arm_figure_settings:
+{
+  title, right arm joint angles
+  origin_horizontal, 0.5
+  origin_vertical, 0
+  width, 0.5
+  height, 0.33
+}
+
+
+
+
+
+free_dofs_figure_data:
+{
+  data, joint_angle:pelvis_tx, pelvis pos x,                1, 0.0, 0.2081, 0.1663, 0.5292, 2
+  data, joint_angle:pelvis_ty, pelvis pos y,                1, -0.3, 0.0244, 0.4350, 0.8755, 2
+  data, joint_angle:pelvis_tz, pelvis pos z,                1, 0, 0.0265, 0.6137, 0.8135, 2
+  data, joint_angle:pelvis_tilt, pelvis tilt angle,         1, 0, 0.1986, 0.7214, 0.6310, 2
+  data, joint_angle:pelvis_list, pelvis list angle,         1, 0, 0.6473, 0.7456, 0.4188, 2
+  data, joint_angle:pelvis_rotation, pelvis rotation angle, 1, 0, 0.9856, 0.7372, 0.2537, 2
+}
+
+torso_figure_data:	
+{
+  data, joint_angle:lumbar_extension, lumbar extension angle, 1, 0, 0.2081, 0.1663, 0.5292, 2
+  data, joint_angle:lumbar_bending, lumbar bending angle, 		1, 0, 0.0244, 0.4350, 0.8755, 2
+  data, joint_angle:lumbar_rotation, lumbar rotation angle, 	1, 0, 0.0265, 0.6137, 0.8135, 2
+  data, joint_angle:neck_pitch, neck pitch angle,             1, 0, 0.1986, 0.7214, 0.6310, 2
+  data, joint_angle:neck_roll, neck roll angle,               1, 0, 0.6473, 0.7456, 0.4188, 2
+  data, joint_angle:neck_yaw, neck yaw angle,                 1, 0, 0.9856, 0.7372, 0.2537, 2
+  event, left_touchdown, joint_angle:lumbar_bending, left touchdown, v, 0, 1, 0, 8
+  event, right_touchdown,joint_angle:lumbar_bending, right touchdown, v, 1, 0, 0, 8
+}
+
+left_leg_figure_data:
+{
+  data, joint_angle:hip_flexion_l, hip flex angle,          1, 0, 0.2081, 0.1663, 0.5292, 2
+  data, joint_angle:hip_adduction_l, hip add angle,         1, 0, 0.0244, 0.4350, 0.8755, 2
+  data, joint_angle:hip_rotation_l, hip rot angle,          1, 0, 0.0265, 0.6137, 0.8135, 2
+  data, joint_angle:knee_flexion_l, knee flex angle,        1, 0, 0.1986, 0.7214, 0.6310, 2
+  data, joint_angle:knee_rotation_l, knee rot angle,        1, 0, 0.6473, 0.7456, 0.4188, 2
+  data, joint_angle:ankle_angle_l, ankle flex angle,        1, 0, 0.9856, 0.7372, 0.2537, 2
+  data, joint_angle:subtalar_angle_l, ankle subtalar angle, 1, 0, 0.9763, 0.9831, 0.0538, 2
+  event, left_touchdown, joint_angle:knee_flexion_l, left touchdown, v, 0, 0.5137, 0.7922, 8
+}
+
+right_leg_figure_data:
+{
+  data, joint_angle:hip_flexion_r, hip flex angle,          1, 0, 0.2081, 0.1663, 0.5292, 2
+  data, joint_angle:hip_adduction_r, hip add angle,         1, 0, 0.0244, 0.4350, 0.8755, 2
+  data, joint_angle:hip_rotation_r, hip rot angle,          1, 0, 0.0265, 0.6137, 0.8135, 2
+  data, joint_angle:knee_flexion_r, knee flex angle,        1, 0, 0.1986, 0.7214, 0.6310, 2
+  data, joint_angle:knee_rotation_r, knee rot angle,        1, 0, 0.6473, 0.7456, 0.4188, 2
+  data, joint_angle:ankle_angle_r, ankle flex angle,        1, 0, 0.9856, 0.7372, 0.2537, 2
+  data, joint_angle:subtalar_angle_r, ankle subtalar angle, 1, 0, 0.9763, 0.9831, 0.0538, 2
+  event, right_touchdown, joint_angle:knee_flexion_r, right touchdown, v, 0, 0.5137, 0.7922, 8
+}
+
+left_arm_figure_data:
+{
+  data, joint_angle:arm_flex_l, shoulder flex angle, 1, 0, 0.2081, 0.1663, 0.5292, 2
+  data, joint_angle:arm_add_l, shoulder add angle, 	 1, 0, 0.0244, 0.4350, 0.8755, 2
+  data, joint_angle:arm_rot_l, shoulder rot angle,   1, 0, 0.0265, 0.6137, 0.8135, 2
+  data, joint_angle:elbow_flex_l, elbow flex angle,  1, 0, 0.1986, 0.7214, 0.6310, 2
+  data, joint_angle:pro_sup_l, pro-sup angle, 		   1, 0, 0.6473, 0.7456, 0.4188, 2
+  data, joint_angle:wrist_flex_l, wrist flex angle,  1, 0, 0.9856, 0.7372, 0.2537, 2
+}
+
+right_arm_figure_data:
+{
+  data, joint_angle:arm_flex_r, shoulder flex angle, 1, 0, 0.2081, 0.1663, 0.5292, 2
+  data, joint_angle:arm_add_r, shoulder add angle, 	 1, 0, 0.0244, 0.4350, 0.8755, 2
+  data, joint_angle:arm_rot_r, shoulder rot angle,   1, 0, 0.0265, 0.6137, 0.8135, 2
+  data, joint_angle:elbow_flex_r, elbow flex angle,  1, 0, 0.1986, 0.7214, 0.6310, 2
+  data, joint_angle:pro_sup_r, pro-sup angle, 		   1, 0, 0.6473, 0.7456, 0.4188, 2
+  data, joint_angle:wrist_flex_r, wrist flex angle,  1, 0, 0.9856, 0.7372, 0.2537, 2
+}
+
+
+
+
+
+
+
+
+
+
+
+

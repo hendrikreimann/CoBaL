@@ -1,0 +1,61 @@
+// GVS
+
+// each figure is listed as a block, the name must end in "Figure"
+// name of the figure is the name of the block
+// plots are specified as follows:
+// data plots: data, <variable name>, <label>, <scale factor>, <offset>, <color R>, <color G>, <color B>, linewidth
+// event plots: event, <event name>, <variable name of parent data plot>, label, <marker>, <color R>, <color G>, <color B>, marker size
+// where type should be 'data' or 'event'
+// the variables specified must be available in the trial data object
+
+
+figures_header: info, data, data header
+figures:
+{
+//  time_com_figure_settings, time_com_figure_data, time_com_figure_data_header
+  path_figure_settings, path_figure_data, path_figure_data_header
+}
+
+time_com_figure_settings:
+{
+  title, positions ap
+  origin_horizontal, 0
+  origin_vertical, 0
+  width, 0.5
+  height, 0.5
+}
+
+time_com_figure_data_header: x-data name, x-data type, y-data name, y-data type, color R, color G, color B
+time_com_figure_data:
+{
+  time, time, com_position:center_of_mass_y, stretch, 0.9098, 0.1020, 0.2941
+  time, time, cop_y, forceplate:copy, 0.2235, 0.7098, 0.2902
+}
+
+path_figure_settings:
+{
+  title, positions ap
+  origin_horizontal, 0
+  origin_vertical, 0.5
+  width, 0.5
+  height, 1
+  x_lim_lower, -0.3
+  x_lim_upper, 0.3
+  y_lim_lower, -0.6
+  y_lim_upper, 0.6
+}
+
+path_figure_data_header: x-data name, x-data type, y-data name, y-data type, color R, color G, color B
+path_figure_data:
+{
+  com_position:center_of_mass_x, stretch, com_position:center_of_mass_y, stretch, 0.9098, 0.1020, 0.2941
+  forceplate:copx, stretch, forceplate:copy, stretch, 0.2235, 0.7098, 0.2902
+  // xcom_x, stretch, xcom_y, stretch, 0.1, 0.3098, 0.9
+}
+
+
+
+
+
+
+
