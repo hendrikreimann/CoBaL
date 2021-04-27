@@ -362,7 +362,7 @@ classdef eventController < handle
         
         function findEvents(this, sender, eventdata)
             % find events
-            if strcmp(this.data_custodian.study_settings.get('study_type'), 'MS')
+            if strcmp(this.data_custodian.study_settings.get('study_type', 1), 'MS')
                 findEvents_MS('condition', this.data_custodian.trial_type, 'trials', this.data_custodian.trial_number);
             else
                 findStepEvents('condition', this.data_custodian.trial_type, 'trials', this.data_custodian.trial_number);
