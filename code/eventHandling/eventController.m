@@ -92,7 +92,8 @@ classdef eventController < handle
             this.addEventButtons(3) = uicontrol(events_panel, 'Style', 'pushbutton', 'Position', [205, events_panel_height-135, 100, 60], 'Fontsize', 12, 'String', '<html><center>Add Right<br></center>Pushoff', 'callback', @this.addEventButtonPressed, 'UserData', 'right_pushoff');
             this.addEventButtons(4)= uicontrol(events_panel, 'Style', 'pushbutton', 'Position', [305, events_panel_height-135, 100, 60], 'Fontsize', 12, 'String', '<html><center>Add Right<br></center>Touchdown', 'callback', @this.addEventButtonPressed, 'UserData', 'right_touchdown');
 
-            this.addEventButtons(5) = uicontrol(events_panel, 'Style', 'pushbutton', 'Position', [5, events_panel_height-195, 130, 60], 'Fontsize', 12, 'String', 'Add Ignore Marker', 'callback', @this.addEventButtonPressed, 'UserData', 'ignore_times');
+%             this.addEventButtons(5) = uicontrol(events_panel, 'Style', 'pushbutton', 'Position', [5, events_panel_height-195, 130, 60], 'Fontsize', 12, 'String', 'Add Ignore Marker', 'callback', @this.addEventButtonPressed, 'UserData', 'ignore_times');
+            this.addEventButtons(5) = uicontrol(events_panel, 'Style', 'pushbutton', 'Position', [5, events_panel_height-195, 130, 60], 'Fontsize', 12, 'String', 'Add Problem Marker', 'callback', @this.addEventButtonPressed, 'UserData', 'problem');
             
             this.findStretchesButton = uicontrol(events_panel, 'Style', 'pushbutton', 'Position', [5, events_panel_height-255, 130, 60], 'Fontsize', 12, 'String', 'Find Stretches', 'callback', @this.findStretches);
 %             this.saveStretchesButton = uicontrol(events_panel, 'Style', 'pushbutton', 'Position', [140, events_panel_height-255, 130, 60], 'Fontsize', 12, 'String', 'Save Stretches', 'callback', @this.saveStretches);

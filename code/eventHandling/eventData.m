@@ -114,7 +114,7 @@ classdef eventData < handle
 % check this out later, get things to work first
             variables_to_save.event_data = this.event_data;
             variables_to_save.event_labels = this.event_labels;
-            variables_to_save.ignore_times = this.ignore_times;
+%             variables_to_save.ignore_times = this.ignore_times;
             
             events_file_name = [this.data_custodian.data_directory filesep 'analysis' filesep makeFileName(this.data_custodian.date, this.data_custodian.subject_id, this.data_custodian.trial_type, this.data_custodian.trial_number, 'events.mat')];
             saveDataToFile(events_file_name, variables_to_save);
@@ -135,6 +135,13 @@ classdef eventData < handle
                 ignore_times_current = this.getEventTimes(event_label);
                 ignore_times_new = [ignore_times_current; event_time];
                 this.ignore_times = sort(ignore_times_new);
+            elseif strcmp(event_label, 'problem')
+                new_problem = {event_time, event_time, 'added manually in eventGui'};
+                problems = sortrows([this.problem_table; new_problem], 'start_time');
+                this.problem_table = problems;
+                
+                problems_file_name = [this.data_custodian.data_directory filesep 'analysis' filesep makeFileName(this.data_custodian.date, this.data_custodian.subject_id, this.data_custodian.trial_type, this.data_custodian.trial_number, 'problems.mat')];
+                save(problems_file_name, 'problems');
             else
                 event_times = this.getEventTimes(event_label);
                 event_times = [event_times; event_time];
