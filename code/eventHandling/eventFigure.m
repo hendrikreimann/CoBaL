@@ -187,25 +187,43 @@ classdef eventFigure < handle
         end
         function [event_label, event_time, distance] = getClosestEvent(this, point_pixel)
             % determine closest event for each type
-            candidate_distances = zeros(1, length(this.event_plots)+1);
-            candidate_event_indices = zeros(1, length(this.event_plots)+1);
-            for i_type = 1 : length(this.event_plots)
+            number_of_event_types = length(this.event_plots);
+            number_of_problems = length(this.problem_marker_plots);
+            candidate_distances = zeros(1, number_of_event_types + number_of_problems);
+            candidate_event_indices = zeros(1, number_of_event_types + number_of_problems);
+            for i_type = 1 : number_of_event_types
                 [candidate_distances(i_type), candidate_event_indices(i_type)] = this.calculatePointToCurvePixelDistance(this.event_plots{i_type}, point_pixel);
             end
-            [candidate_distances(length(this.event_plots)+1), candidate_event_indices(length(this.event_plots)+1)] = this.calculatePointToCurvePixelDistance(this.ignore_marker_plot, point_pixel);
+%             [candidate_distances(length(this.event_plots)+1), candidate_event_indices(length(this.event_plots)+1)] = this.calculatePointToCurvePixelDistance(this.ignore_marker_plot, point_pixel);
+            for i_problem = 1 : number_of_problems
+                this_problem_marker = this.problem_marker_plots{i_problem};
+                [candidate_distances(number_of_event_types + i_problem), candidate_event_indices(number_of_event_types + i_problem)] ...
+                    = this.calculatePointToCurvePixelDistance(this_problem_marker, point_pixel);
+                
+            end
             
             % find the one with minimal distance among these candidates
             [distance, type_index] = min(candidate_distances);
-            if type_index == length(this.event_plots)+1
-                event_label = 'ignore_times';
-                event_index = candidate_event_indices(length(this.event_plots)+1);
-                event_times = this.event_data.getEventTimes(event_label);
-                event_time = event_times(event_index);
-            else
+%             if type_index == length(this.event_plots)+1
+%                 event_label = 'ignore_times';
+%                 event_index = candidate_event_indices(length(this.event_plots)+1);
+%                 event_times = this.event_data.getEventTimes(event_label);
+%                 event_time = event_times(event_index);
+%             else
+%                 event_label = this.event_plots{type_index}.UserData{2};
+%                 event_index = candidate_event_indices(type_index);
+%                 event_times = this.event_data.getEventTimes(event_label);
+%                 event_time = event_times(event_index);
+%             end            
+            if type_index <= number_of_event_types
                 event_label = this.event_plots{type_index}.UserData{2};
                 event_index = candidate_event_indices(type_index);
                 event_times = this.event_data.getEventTimes(event_label);
                 event_time = event_times(event_index);
+            else
+                event_label = 'problem';
+                problem_index = type_index - number_of_event_types;
+                event_time = this.event_data.problem_table.start_time(problem_index);
             end            
         end
         function point_time = getClosestDataPoint(this, point_pixel)
@@ -428,6 +446,11 @@ classdef eventFigure < handle
                 selected_event_plot_x_data = [selected_event_plot_x_data this.controller.event_data.selected_event_time];
                 y_data_point = 0;
                 selected_event_plot_y_data = [selected_event_plot_y_data y_data_point];
+            end
+            if strcmp(this.controller.event_data.selected_event_label, 'problem')
+                % event type of this one and the selected is a match
+                selected_event_plot_x_data = this.controller.event_data.selected_event_time;
+                selected_event_plot_y_data = mean(this.main_axes.YLim);
             end
             set(this.selected_event_plot, 'xdata', selected_event_plot_x_data, 'ydata', selected_event_plot_y_data);
             if isempty(selected_event_plot_x_data)
