@@ -31,6 +31,7 @@ classdef eventFigure < handle
         selected_event_plot;
         selected_time_plot;
         ignore_marker_plot;
+        problem_marker_plots;
         data_plot_offsets;
         data_plot_scale_factors;
         has_legend_entries = false;
@@ -39,6 +40,8 @@ classdef eventFigure < handle
         
         patch_color = [0 0 0];
         patch_alpha = 0.05;
+        problem_color = [1 0 0.2];
+        problem_alpha = 0.5;
     end
     methods
         function this = eventFigure(figure_settings, controller, data_custodian, eventData)
@@ -62,6 +65,7 @@ classdef eventFigure < handle
 %             this.selected_time_plot = plot(0, 0, '+', 'markersize', 25, 'linewidth', 1, 'color', [1 1 1]*0.7, 'ButtonDownFcn', @this.stepEventFigureClicked, 'HandleVisibility', 'off');
             this.selected_time_plot = plot([0 0], [0 0], 'linewidth', 1, 'color', [1 1 1]*0.7, 'ButtonDownFcn', @this.stepEventFigureClicked, 'HandleVisibility', 'off', 'visible', 'off');
             this.ignore_marker_plot = plot(0, 0, 'x', 'markersize', 25, 'linewidth', 2, 'color', [1 0 0.5]*0.7, 'ButtonDownFcn', @this.stepEventFigureClicked, 'HandleVisibility', 'off', 'visible', 'off');
+            this.problem_marker_plots = {};
 
             % register with controller
             if strcmp(controller.figureSelectionBox.String, '<no figure>')
@@ -278,6 +282,7 @@ classdef eventFigure < handle
                 set(this.event_plots{i_plot}, 'xdata', event_time, 'ydata', event_data); %#ok<PROP>
             end
             this.updateIgnoreMarkerPlot();
+            this.updateProblemMarkers();
         end
         function updateDataPlots(this)
             % loop through all data plots
@@ -344,6 +349,54 @@ classdef eventFigure < handle
         function updateIgnoreMarkerPlot(this)
             ignore_times = this.event_data.ignore_times;
             set(this.ignore_marker_plot, 'xdata', ignore_times, 'ydata', zeros(size(ignore_times)));
+        end
+        function updateProblemMarkers(this)
+            % clear out old problem markers
+            for i_plot = 1 : numel(this.problem_marker_plots)
+                delete(this.problem_marker_plots{i_plot});
+            end
+            this.problem_marker_plots = {};
+            
+            % create new plots
+            problems = this.event_data.problem_table;
+            for i_problem = 1 : size(problems, 1)
+                this_start_time = problems.start_time(i_problem);
+                this_end_time = problems.end_time(i_problem);
+                this_reason = problems.reason(i_problem);
+                
+                if this_start_time == this_end_time
+                    % draw single line
+                    this.problem_marker_plots{i_problem} = xline ...
+                      ( ...
+                        this_start_time, ...
+                        'color', this.problem_color, ...
+                        'parent', this.main_axes, ...
+                        'linewidth', 2 ...
+                      );
+                    
+                else
+                    % draw patch
+                    ylimits = get(this.main_axes, 'ylim');
+                    patch_x = [this_start_time this_end_time this_end_time this_start_time];
+                    patch_y = [ylimits(1) ylimits(1) ylimits(2) ylimits(2)];
+                    patch_handle = patch ...
+                      ( ...
+                        patch_x, ...
+                        patch_y, ...
+                        this.problem_color, ...
+                        'parent', this.main_axes, ...
+                        'EdgeColor', lightenColor(this.problem_color, 0.8), ...
+                        'FaceAlpha', this.problem_alpha, ...
+                        'HandleVisibility', 'off', ...
+                        'ButtonDownFcn', @this.stepEventFigureClicked ...
+                      ); 
+                    uistack(patch_handle, 'bottom')
+                    this.problem_marker_plots{i_problem} = patch_handle;
+                    
+                end
+            end
+            
+            
         end
         function updateSelectedEventPlot(this)
             % go through all event plots and check whether they are of the selected event

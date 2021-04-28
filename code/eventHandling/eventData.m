@@ -21,7 +21,8 @@ classdef eventData < handle
         event_data;
         event_labels;
         
-        ignore_times;
+        problem_table;
+        ignore_times; % this is old and being replaced by problem_table
         
         selected_event_label;
         selected_event_time;
@@ -38,17 +39,27 @@ classdef eventData < handle
             this.loadStretches();
         end
         function loadEvents(this)
+            % load events
             step_events_file_name = [this.data_custodian.data_directory filesep 'analysis' filesep makeFileName(this.data_custodian.date, this.data_custodian.subject_id, this.data_custodian.trial_type, this.data_custodian.trial_number, 'events.mat')];
             if exist(step_events_file_name, 'file')
                 loaded_data = load(step_events_file_name);
                 this.event_data = loaded_data.event_data;
                 this.event_labels = loaded_data.event_labels;
-                
             else
                 loaded_data = struct;
                 this.event_data = {};
                 this.event_labels = {};
             end
+
+            % load problems
+            problems_file_name = [this.data_custodian.data_directory filesep 'analysis' filesep makeFileName(this.data_custodian.date, this.data_custodian.subject_id, this.data_custodian.trial_type, this.data_custodian.trial_number, 'problems.mat')];
+            if exist(problems_file_name, 'file')
+                loaded_data = load(problems_file_name);
+                this.problem_table = loaded_data.problems;
+            else
+                this.problem_table = table;
+            end
+            
             
             if isfield(loaded_data, 'ignore_times')
                 this.ignore_times = loaded_data.ignore_times;
