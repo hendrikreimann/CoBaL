@@ -139,7 +139,6 @@ classdef eventData < handle
                 new_problem = {event_time, event_time, 'added manually in eventGui'};
                 problems = sortrows([this.problem_table; new_problem], 'start_time');
                 this.problem_table = problems;
-                
                 problems_file_name = [this.data_custodian.data_directory filesep 'analysis' filesep makeFileName(this.data_custodian.date, this.data_custodian.subject_id, this.data_custodian.trial_type, this.data_custodian.trial_number, 'problems.mat')];
                 save(problems_file_name, 'problems');
             else
@@ -154,6 +153,8 @@ classdef eventData < handle
         function event_times = getEventTimes(this, event_label)
             if strcmp(event_label, 'ignore_times')
                 event_times = this.ignore_times;
+            elseif strcmp(event_label, 'problem')
+                event_times = this.problem_table.start_time;
             else
                 event_index = strcmp(this.event_labels, event_label);
                 if any(event_index)
@@ -172,11 +173,18 @@ classdef eventData < handle
             event_index = this.getEventIndex(event_label, current_event_time);
             event_times = this.getEventTimes(event_label);
             if isnan(new_event_time)
-                % delete event
-                event_times(event_index) = [];
-                this.setEventTimes(event_times, event_label);
+                if strcmp(event_label, 'problem')
+                    this.problem_table(event_index, :) = [];
+                    problems = this.problem_table;
+                    problems_file_name = [this.data_custodian.data_directory filesep 'analysis' filesep makeFileName(this.data_custodian.date, this.data_custodian.subject_id, this.data_custodian.trial_type, this.data_custodian.trial_number, 'problems.mat')];
+                    save(problems_file_name, 'problems');
+                    
+                else
+                    % delete event
+                    event_times(event_index) = [];
+                    this.setEventTimes(event_times, event_label);
+                end                
                 this.selectClosestEvent();
-                
             else
                 % clamp new time to limits
                 new_event_time = max([new_event_time, this.data_custodian.getRecordingTimeStart]);
