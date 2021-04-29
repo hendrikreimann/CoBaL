@@ -170,10 +170,10 @@ classdef eventData < handle
                 % clamp new time to limits
                 new_event_time = max([new_event_time, this.data_custodian.getRecordingTimeStart]);
                 new_event_time = min([new_event_time, this.data_custodian.getRecordingTimeEnd]);
-                
+
                 % update
                 event_times(event_index) = new_event_time;
-                
+
                 % sort and store
                 this.setEventTimes(sort(event_times), event_label);
             end

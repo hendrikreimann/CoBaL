@@ -18,7 +18,6 @@ classdef eventController < handle
     properties
         data_custodian;
         event_data;
-%         figure_settings_file;
         
         event_time_normal_step = 0.005;
         event_time_large_step = 0.050;
@@ -726,29 +725,31 @@ classdef eventController < handle
         function moveSelectedEvent(this, sender, eventdata) %#ok<INUSL>
             % this should eventually be moved to WalkingEventData
             
-            selected_event_time_current = this.event_data.selected_event_time;
-            
-            % step forward or backward
-            if strcmp(eventdata.Key, 'z') && isempty(eventdata.Modifier)
-                selected_event_time_new = selected_event_time_current - this.event_time_normal_step;
-            elseif strcmp(eventdata.Key, 'z') && strcmp(eventdata.Modifier, 'shift')
-                selected_event_time_new = selected_event_time_current - this.event_time_large_step;
-            elseif strcmp(eventdata.Key, 'c') && isempty(eventdata.Modifier)
-                selected_event_time_new = selected_event_time_current + this.event_time_normal_step;
-            elseif strcmp(eventdata.Key, 'c') && strcmp(eventdata.Modifier, 'shift')
-                selected_event_time_new = selected_event_time_current + this.event_time_large_step;
-            else
-                % modifier not recognized, don't do anything
-                return;
+            if ~strcmp(this.event_data.selected_event_label, 'problem')
+                selected_event_time_current = this.event_data.selected_event_time;
+
+                % step forward or backward
+                if strcmp(eventdata.Key, 'z') && isempty(eventdata.Modifier)
+                    selected_event_time_new = selected_event_time_current - this.event_time_normal_step;
+                elseif strcmp(eventdata.Key, 'z') && strcmp(eventdata.Modifier, 'shift')
+                    selected_event_time_new = selected_event_time_current - this.event_time_large_step;
+                elseif strcmp(eventdata.Key, 'c') && isempty(eventdata.Modifier)
+                    selected_event_time_new = selected_event_time_current + this.event_time_normal_step;
+                elseif strcmp(eventdata.Key, 'c') && strcmp(eventdata.Modifier, 'shift')
+                    selected_event_time_new = selected_event_time_current + this.event_time_large_step;
+                else
+                    % modifier not recognized, don't do anything
+                    return;
+                end
+
+                % update
+                this.event_data.selected_event_time = this.event_data.updateEventTime(this.event_data.selected_event_label, selected_event_time_current, selected_event_time_new);
+
+                % update plots
+                this.updateSelectedEventPlots();
+                this.updateSelectedTime(this.event_data.selected_event_time);
+                this.updateEventPlots();
             end
-            
-            % update
-            this.event_data.selected_event_time = this.event_data.updateEventTime(this.event_data.selected_event_label, selected_event_time_current, selected_event_time_new);
-            
-            % update plots
-            this.updateSelectedEventPlots();
-            this.updateSelectedTime(this.event_data.selected_event_time);
-            this.updateEventPlots();
         end
         function updateTimeWindow(this, mode)
             % get current time extension and calculate new value
