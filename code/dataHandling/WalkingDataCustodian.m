@@ -493,13 +493,7 @@ classdef WalkingDataCustodian < handle
                     this.addBasicVariable('marker_trajectories')
                     this.addStretchVariable('toes_clearance')
                 end
-
-                % protocol
-                if strcmp(this_variable_name, 'stimulus_state_trajectory')
-                    this.addBasicVariable('stimulus_state_trajectory')
-                    this.addStretchVariable('stimulus_state_trajectory')
-                end
-
+                
                 % is this a normal variable? did we add it successfully
                 if ~any(this_variable_name==':') && ~any(strcmp(this_variable_name, this.stretch_variable_names))
                     % no, we haven't added a stretch variable, so add this as a basic and a stretch variable (unless it's stimulus_response, which is special)
@@ -512,11 +506,6 @@ classdef WalkingDataCustodian < handle
         end
         
         % interface
-%         function result = isVariableToAnalyze(this, variable_name)
-%             result = any(strcmp(this.variables_to_analyze, variable_name));
-%         end
-% replaced this with a direct comparison within this file, leaving it around in case it's used from the outside somewhere
-
         function result = isBasicVariable(this, variable_name)
             result = any(strcmp(this.basic_variable_names, variable_name));
         end
