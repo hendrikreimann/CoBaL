@@ -22,7 +22,6 @@ classdef eventData < handle
         event_labels;
         
         problem_table;
-        ignore_times; % this is old and being replaced by problem_table
         
         selected_event_label;
         selected_event_time;
@@ -58,13 +57,6 @@ classdef eventData < handle
                 this.problem_table = loaded_data.problems;
             else
                 this.problem_table = table;
-            end
-            
-            
-            if isfield(loaded_data, 'ignore_times')
-                this.ignore_times = loaded_data.ignore_times;
-            else
-                this.ignore_times = [];
             end
             
             this.removeDuplicates();
@@ -114,7 +106,6 @@ classdef eventData < handle
 % check this out later, get things to work first
             variables_to_save.event_data = this.event_data;
             variables_to_save.event_labels = this.event_labels;
-%             variables_to_save.ignore_times = this.ignore_times;
             
             events_file_name = [this.data_custodian.data_directory filesep 'analysis' filesep makeFileName(this.data_custodian.date, this.data_custodian.subject_id, this.data_custodian.trial_type, this.data_custodian.trial_number, 'events.mat')];
             saveDataToFile(events_file_name, variables_to_save);
@@ -123,19 +114,11 @@ classdef eventData < handle
         end
         
         function setEventTimes(this, event_times, event_label)
-            if strcmp(event_label, 'ignore_times')
-                this.ignore_times = event_times;
-            else
-                event_index = strcmp(this.event_labels, event_label);
-                this.event_data{event_index} = event_times;
-            end
+            event_index = strcmp(this.event_labels, event_label);
+            this.event_data{event_index} = event_times;
         end
         function addEventTime(this, event_time, event_label)
-            if strcmp(event_label, 'ignore_times')
-                ignore_times_current = this.getEventTimes(event_label);
-                ignore_times_new = [ignore_times_current; event_time];
-                this.ignore_times = sort(ignore_times_new);
-            elseif strcmp(event_label, 'problem')
+            if strcmp(event_label, 'problem')
                 new_problem = {event_time, event_time, 'added manually in eventGui'};
                 problems = sortrows([this.problem_table; new_problem], 'start_time');
                 this.problem_table = problems;
@@ -151,9 +134,7 @@ classdef eventData < handle
             this.selected_event_label = event_label;
         end
         function event_times = getEventTimes(this, event_label)
-            if strcmp(event_label, 'ignore_times')
-                event_times = this.ignore_times;
-            elseif strcmp(event_label, 'problem')
+            if strcmp(event_label, 'problem')
                 event_times = this.problem_table.start_time;
             else
                 event_index = strcmp(this.event_labels, event_label);

@@ -30,7 +30,6 @@ classdef eventController < handle
         findEventsButton;
         saveEventsButton;
         addEventButtons;
-        addIgnoreMarkerButton;
         lockAddEventsButton
         findStretchesButton;
         saveStretchesButton;

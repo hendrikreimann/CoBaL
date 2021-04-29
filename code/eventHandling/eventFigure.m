@@ -30,7 +30,6 @@ classdef eventFigure < handle
         stretch_patches;
         selected_event_plot;
         selected_time_plot;
-        ignore_marker_plot;
         problem_marker_plots;
         data_plot_offsets;
         data_plot_scale_factors;
@@ -64,7 +63,6 @@ classdef eventFigure < handle
             this.selected_event_plot = plot(0, 0, 'o', 'markersize', 15, 'linewidth', 3, 'color', [1 0.5 0], 'visible', 'off', 'HandleVisibility', 'off');
 %             this.selected_time_plot = plot(0, 0, '+', 'markersize', 25, 'linewidth', 1, 'color', [1 1 1]*0.7, 'ButtonDownFcn', @this.stepEventFigureClicked, 'HandleVisibility', 'off');
             this.selected_time_plot = plot([0 0], [0 0], 'linewidth', 1, 'color', [1 1 1]*0.7, 'ButtonDownFcn', @this.stepEventFigureClicked, 'HandleVisibility', 'off', 'visible', 'off');
-            this.ignore_marker_plot = plot(0, 0, 'x', 'markersize', 25, 'linewidth', 2, 'color', [1 0 0.5]*0.7, 'ButtonDownFcn', @this.stepEventFigureClicked, 'HandleVisibility', 'off', 'visible', 'off');
             this.problem_marker_plots = {};
 
             % register with controller
@@ -194,7 +192,6 @@ classdef eventFigure < handle
             for i_type = 1 : number_of_event_types
                 [candidate_distances(i_type), candidate_event_indices(i_type)] = this.calculatePointToCurvePixelDistance(this.event_plots{i_type}, point_pixel);
             end
-%             [candidate_distances(length(this.event_plots)+1), candidate_event_indices(length(this.event_plots)+1)] = this.calculatePointToCurvePixelDistance(this.ignore_marker_plot, point_pixel);
             for i_problem = 1 : number_of_problems
                 this_problem_marker = this.problem_marker_plots{i_problem};
                 [candidate_distances(number_of_event_types + i_problem), candidate_event_indices(number_of_event_types + i_problem)] ...
@@ -204,17 +201,6 @@ classdef eventFigure < handle
             
             % find the one with minimal distance among these candidates
             [distance, type_index] = min(candidate_distances);
-%             if type_index == length(this.event_plots)+1
-%                 event_label = 'ignore_times';
-%                 event_index = candidate_event_indices(length(this.event_plots)+1);
-%                 event_times = this.event_data.getEventTimes(event_label);
-%                 event_time = event_times(event_index);
-%             else
-%                 event_label = this.event_plots{type_index}.UserData{2};
-%                 event_index = candidate_event_indices(type_index);
-%                 event_times = this.event_data.getEventTimes(event_label);
-%                 event_time = event_times(event_index);
-%             end            
             if type_index <= number_of_event_types
                 event_label = this.event_plots{type_index}.UserData{2};
                 event_index = candidate_event_indices(type_index);
@@ -299,7 +285,6 @@ classdef eventFigure < handle
                 % update
                 set(this.event_plots{i_plot}, 'xdata', event_time, 'ydata', event_data); %#ok<PROP>
             end
-            this.updateIgnoreMarkerPlot();
             this.updateProblemMarkers();
         end
         function updateDataPlots(this)
@@ -363,10 +348,6 @@ classdef eventFigure < handle
                 uistack(patch_handle, 'bottom')
                 this.stretch_patches = [this.stretch_patches, patch_handle];
             end
-        end
-        function updateIgnoreMarkerPlot(this)
-            ignore_times = this.event_data.ignore_times;
-            set(this.ignore_marker_plot, 'xdata', ignore_times, 'ydata', zeros(size(ignore_times)));
         end
         function updateProblemMarkers(this)
             % clear out old problem markers
@@ -440,12 +421,6 @@ classdef eventFigure < handle
                     y_data_point = interp1(this.event_plots{i_plot}.UserData{1}.XData, this.event_plots{i_plot}.UserData{1}.YData, this.controller.event_data.selected_event_time);
                     selected_event_plot_y_data = [selected_event_plot_y_data y_data_point]; %#ok<AGROW>
                 end
-            end
-            if strcmp(this.controller.event_data.selected_event_label, 'ignore_times')
-                % event type of this one and the selected is a match
-                selected_event_plot_x_data = [selected_event_plot_x_data this.controller.event_data.selected_event_time];
-                y_data_point = 0;
-                selected_event_plot_y_data = [selected_event_plot_y_data y_data_point];
             end
             if strcmp(this.controller.event_data.selected_event_label, 'problem')
                 % event type of this one and the selected is a match
