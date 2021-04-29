@@ -53,7 +53,7 @@ function preprocessMarkerData(varargin)
     marker_reference = marker_reference_trajectories(i_time, :);
 
     % load rigid body fill table
-    marker_fill_table = subject_settings.getTable('marker_fill_table');
+    marker_fill_table = subject_settings.getTable('marker_fill_table', 1);
 
     data_dir = dir(['raw' filesep '*_markerTrajectoriesRaw.mat']);
     clear file_name_list;

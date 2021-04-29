@@ -1,0 +1,265 @@
+
+show_individual_discrete_data: 1
+show_individual_trajectory_data: 0
+show_average_data: 1
+show_spread_data: 1
+
+// colors and style choices
+plot_zero: 0
+plot_control: 0
+show_outliers: 0
+// discrete_data_plot_style: bar
+discrete_data_plot_style: box
+// discrete_data_plot_style: violin
+stance_left_color: 0, 0.34, 1
+stance_right_color: 1, 0.69, 0
+stance_double_color: 0, 0, 0
+stance_alpha: 0.05
+time_plot_style: scaled_to_comparison_mean
+// time_plot_style: ~
+convert_to_mm: 0
+mark_pushoff: 1
+mark_bands: 0
+xtick_label_rotation: 45
+
+preferred_level_order: STIM_LEFT, STIM_RIGHT
+
+colors_header: condition, level, color
+colors:
+{
+  amplitude, 0, #3119FF
+  amplitude, 45, #22B312
+  amplitude, 90, #FF7419
+  perturbation, STIM_LEFT, #F026D8
+  perturbation, STIM_RIGHT, #8E1BF8
+  perturbation, STIM_NONE, #2D8C76
+}
+
+
+color_control: 0.3, 0.1, 1
+
+colors_comparison:
+{
+  0.2, 0.7, 0.07
+  0.7, 0.2, 0.07
+  0.2, 0.07, 0.7
+}
+number_of_bins_in_histogram: 50
+
+// combinations where everything else is the same but this condition will be put into one figure
+// condition_to_compare: perturbation
+condition_to_compare: amplitude
+
+// these conditions will be ignored when checking what is the same
+conditions_to_ignore: subject
+// conditions_to_ignore: subject, perturbation
+// conditions_to_ignore: subject, perturbation, trigger_foot
+
+// specify which levels to remove from the comparison for specific condition types
+levels_to_remove:
+{
+  trigger_foot, TRIGGER_RIGHT
+//  perturbation, STIM_NONE
+}
+
+variables_to_plot_discrete_header: variable_name, variable_type, variable_label, y_axis_label, save_file_string, x_axis_lower_limit, x_axis_upper_limit, y_axis_lower_limit, y_axis_upper_limit
+variables_to_plot_discrete:
+{
+//  step_time, stretch, step_time, label (unit), saveFileName, -0.1, 5.1, -0.1, 0.1
+//  step_length, stretch, step_length, label (unit), saveFileName, -0.1, 5.1, -0.1, 0.1
+//  step_width, stretch, step_width, label (unit), saveFileName, -0.1, 5.1, -0.1, 0.1
+//  step_placement_x, stretch, step_placement_x, label (unit), saveFileName, -0.1, 5.1, -0.1, 0.1
+  stimulus_response_x, analysis, stimulus_response_x, label (unit), saveFileName, -0.1, 5.1, -0.1, 0.1
+  
+//  step_time, response, step_time rsp, label (unit), saveFileName, -0.1, 5.1, -0.1, 0.1
+//  step_length, response, step_length rsp, label (unit), saveFileName, -0.1, 5.1, -0.1, 0.1
+//  step_width, response, step_width rsp, label (unit), saveFileName, -0.1, 5.1, -0.1, 0.1
+  step_placement_x, response, step_placement_x rsp, label (unit), saveFileName, -0.1, 5.1, -0.1, 0.1
+  
+  
+  
+// ----------------------------------- analysis ------------------------------------------
+//  step_placement_x_sym, analysis, step_placement_x_sym, label (unit), saveFileName, -0.1, 5.1, -0.1, 0.1
+//  stimulus_response_x_sym, analysis, stimulus_response_x_sym, label (unit), saveFileName, -0.1, 5.1, -0.1, 0.1
+
+//  cop_from_com_x_sym_integrated_swing, analysis, cop_from_com_x_sym_integrated_swing, label (unit), saveFileName, -0.1, 5.1, -0.1, 0.1
+//  trigger_leg_ankle_dorsiflexion_integrated_doublestance, analysis, trigger_leg_ankle_dorsiflexion_integrated_doublestance, label (unit), saveFileName, -0.1, 5.1, -0.1, 0.1
+//  trigger_leg_ankle_eversion_integrated_swing, analysis, trigger_leg_ankle_eversion_integrated_swing, label (unit), saveFileName, -0.1, 5.1, -0.1, 0.1
+//  left_glut_med_integrated_swing, analysis, left_glut_med_integrated_swing, label (unit), saveFileName, -0.1, 5.1, -0.1, 0.1
+//  right_pero_lng_integrated_swing, analysis, right_pero_lng_integrated_swing, label (unit), saveFileName, -0.1, 5.1, -0.1, 0.1
+//  right_gastroc_med_integrated_swing, analysis, right_gastroc_med_integrated_swing, label (unit), saveFileName, -0.1, 5.1, -0.1, 0.1
+//  right_gastroc_med_integrated_doublestance, analysis, right_gastroc_med_integrated_doublestance, label (unit), saveFileName, -0.1, 5.1, -0.1, 0.1
+ 
+}
+
+variables_to_plot_continuous_header: variable_name, variable_type, variable_label, y_axis_label, save_file_string, x_axis_lower_limit, x_axis_upper_limit, y_axis_lower_limit, y_axis_upper_limit, scale_factor
+variables_to_plot_continuous:
+{
+
+// ----------------------------------- analysis ------------------------------------------
+//  fx_sym, analysis, fx_sym, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  com_x_sym, analysis, com_x_sym, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  com_x_vel_sym, analysis, com_x_vel_sym, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  cop_from_com_x_sym, analysis, cop_from_com_x_sym, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+
+//  trigger_leg_ankle_dorsiflexion, analysis, trigger_leg_ankle_dorsiflexion, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  trigger_leg_ankle_eversion, analysis, trigger_leg_ankle_eversion, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  trigger_leg_peroneus, analysis, trigger_leg_peroneus, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  trigger_leg_gastroc, analysis, trigger_leg_gastroc, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  trigger_leg_tibiant, analysis, trigger_leg_tibiant, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  contra_leg_ankle_dorsiflexion, analysis, contra_leg_ankle_dorsiflexion, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  contra_leg_ankle_eversion, analysis, contra_leg_ankle_eversion, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  contra_leg_peroneus, analysis, contra_leg_peroneus, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  contra_leg_gastroc, analysis, contra_leg_gastroc, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  contra_leg_tibiant, analysis, contra_leg_tibiant, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+
+
+// ---------------------------------- whole body -----------------------------------------
+
+//  forceplate:copx, stretch, forceplate:copx, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  forceplate:copy, stretch, forceplate:copy, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  com_position:center_of_mass_x, stretch, com_position:center_of_mass_x, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  com_position:center_of_mass_y, stretch, com_position:center_of_mass_y, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  com_velocity:center_of_mass_x, stretch, com_velocity:center_of_mass_x, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  com_velocity:center_of_mass_y, stretch, com_velocity:center_of_mass_y, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  cop_from_com_x, analysis, cop_from_com_x, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  cop_from_com_y, analysis, cop_from_com_y, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+
+// ---------------------------------- whole body responses -------------------------------
+
+//  cop_x, response, cop_x rsp, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  cop_y, response, cop_y rsp, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+  com_x, response, com_x rsp, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  com_y, response, com_y rsp, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+  com_velocity:center_of_mass_x, response, com_velocity:center_of_mass_x rsp, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  com_velocity:center_of_mass_y, response, com_velocity:center_of_mass_y rsp, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  cop_from_com_x, response, cop_from_com_x rsp, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  cop_from_com_y, response, cop_from_com_y rsp, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+  
+// ------------------------------------ forces -------------------------------------------
+
+//  forceplate:fx, stretch, forceplate:fx, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  forceplate:fy, stretch, forceplate:fy, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  forceplate:fz, stretch, forceplate:fz, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  forceplate:mx, stretch, forceplate:mx, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  forceplate:my, stretch, forceplate:my, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  forceplate:mz, stretch, forceplate:mz, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+  
+// ---------------------------------- joint angles ---------------------------------------
+
+//  joint_angle:pelvis_tx, stretch, joint_angle:pelvis_tx, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  joint_angle:pelvis_ty, stretch, joint_angle:pelvis_ty, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  joint_angle:pelvis_tz, stretch, joint_angle:pelvis_tz, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  joint_angle:pelvis_tilt, stretch, joint_angle:pelvis_tilt, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  joint_angle:pelvis_list, stretch, joint_angle:pelvis_list, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  joint_angle:pelvis_rotation, stretch, joint_angle:pelvis_rotation, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+
+//  joint_angle:lumbar_extension, stretch, joint_angle:lumbar_extension, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  joint_angle:lumbar_bending, stretch, joint_angle:lumbar_bending, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  joint_angle:lumbar_rotation, stretch, joint_angle:lumbar_rotation, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  joint_angle:neck_pitch, stretch, joint_angle:neck_pitch, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  joint_angle:neck_roll, stretch, joint_angle:neck_roll, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  joint_angle:neck_yaw, stretch, joint_angle:neck_yaw, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+
+//  joint_angle:hip_flexion_l, stretch, joint_angle:hip_flexion_l, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  joint_angle:hip_adduction_l, stretch, joint_angle:hip_adduction_l, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  joint_angle:hip_rotation_l, stretch, joint_angle:hip_rotation_l, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  joint_angle:knee_flexion_l, stretch, joint_angle:knee_flexion_l, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  joint_angle:knee_rotation_l, stretch, joint_angle:knee_rotation_l, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  joint_angle:ankle_angle_l, stretch, joint_angle:ankle_angle_l, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  joint_angle:subtalar_angle_l, stretch, joint_angle:subtalar_angle_l, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  
+//  joint_angle:hip_flexion_r, stretch, joint_angle:hip_flexion_r, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  joint_angle:hip_adduction_r, stretch, joint_angle:hip_adduction_r, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  joint_angle:hip_rotation_r, stretch, joint_angle:hip_rotation_r, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  joint_angle:knee_flexion_r, stretch, joint_angle:knee_flexion_r, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  joint_angle:knee_rotation_r, stretch, joint_angle:knee_rotation_r, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  joint_angle:ankle_angle_r, stretch, joint_angle:ankle_angle_r, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  joint_angle:subtalar_angle_r, stretch, joint_angle:subtalar_angle_r, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+  
+// ---------------------------------- joint angle responses ------------------------------   
+  
+//  joint_angle:pelvis_tx, response, joint_angle:pelvis_tx rsp, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  joint_angle:pelvis_ty, response, joint_angle:pelvis_ty rsp, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  joint_angle:pelvis_tz, response, joint_angle:pelvis_tz rsp, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  joint_angle:pelvis_tilt, response, joint_angle:pelvis_tilt rsp, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  joint_angle:pelvis_list, response, joint_angle:pelvis_list rsp, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  joint_angle:pelvis_rotation, response, joint_angle:pelvis_rotation rsp, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//
+//  joint_angle:lumbar_extension, response, joint_angle:lumbar_extension rsp, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  joint_angle:lumbar_bending, response, joint_angle:lumbar_bending rsp, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  joint_angle:lumbar_rotation, response, joint_angle:lumbar_rotation rsp, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  joint_angle:neck_pitch, response, joint_angle:neck_pitch rsp, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  joint_angle:neck_roll, response, joint_angle:neck_roll rsp, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  joint_angle:neck_yaw, response, joint_angle:neck_yaw rsp, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+
+//  joint_angle:hip_flexion_l, response, joint_angle:hip_flexion_l rsp, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  joint_angle:hip_adduction_l, response, joint_angle:hip_adduction_l rsp, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  joint_angle:hip_rotation_l, response, joint_angle:hip_rotation_l rsp, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  joint_angle:knee_flexion_l, response, joint_angle:knee_flexion_l rsp, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  joint_angle:knee_rotation_l, response, joint_angle:knee_rotation_l rsp, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  joint_angle:ankle_angle_l, response, joint_angle:ankle_angle_l rsp, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  joint_angle:subtalar_angle_l, response, joint_angle:subtalar_angle_l rsp, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  
+//  joint_angle:hip_flexion_r, response, joint_angle:hip_flexion_r rsp, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  joint_angle:hip_adduction_r, response, joint_angle:hip_adduction_r rsp, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  joint_angle:hip_rotation_r, response, joint_angle:hip_rotation_r rsp, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  joint_angle:knee_flexion_r, response, joint_angle:knee_flexion_r rsp, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  joint_angle:knee_rotation_r, response, joint_angle:knee_rotation_r rsp, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  joint_angle:ankle_angle_r, response, joint_angle:ankle_angle_r rsp, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  joint_angle:subtalar_angle_r, response, joint_angle:subtalar_angle_r rsp, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+  
+// --------------------------------------- emg -------------------------------------------
+  
+//  emg_scaled:left_glut_med, stretch, emg_scaled:left_glut_med, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  emg_scaled:left_tibi_ant, stretch, emg_scaled:left_tibi_ant, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  emg_scaled:left_gastroc_med, stretch, emg_scaled:left_gastroc_med, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  emg_scaled:left_pero_lng, stretch, emg_scaled:left_pero_lng, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  emg_scaled:left_tfl, stretch, emg_scaled:left_tfl, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  emg_scaled:left_erector, stretch, emg_scaled:left_erector, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  emg_scaled:left_rect_fem, stretch, emg_scaled:left_rect_fem, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  emg_scaled:left_bic_fem, stretch, emg_scaled:left_bic_fem, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  emg_scaled:right_glut_med, stretch, emg_scaled:right_glut_med, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  emg_scaled:right_tibi_ant, stretch, emg_scaled:right_tibi_ant, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  emg_scaled:right_gastroc_med, stretch, emg_scaled:right_gastroc_med, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  emg_scaled:right_pero_lng, stretch, emg_scaled:right_pero_lng, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  emg_scaled:right_tfl, stretch, emg_scaled:right_tfl, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  emg_scaled:right_erector, stretch, emg_scaled:right_erector, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  emg_scaled:right_rect_fem, stretch, emg_scaled:right_rect_fem, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  emg_scaled:right_bic_fem, stretch, emg_scaled:right_bic_fem, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//
+//  emg_scaled:left_glut_med, response, emg_scaled:left_glut_med rsp, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  emg_scaled:left_tibi_ant, response, emg_scaled:left_tibi_ant rsp, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  emg_scaled:left_gastroc_med, response, emg_scaled:left_gastroc_med rsp, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  emg_scaled:left_pero_lng, response, emg_scaled:left_pero_lng rsp, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  emg_scaled:left_tfl, response, emg_scaled:left_tfl rsp, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  emg_scaled:left_erector, response, emg_scaled:left_erector rsp, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  emg_scaled:left_rect_fem, response, emg_scaled:left_rect_fem rsp, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  emg_scaled:left_bic_fem, response, emg_scaled:left_bic_fem rsp, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  emg_scaled:right_glut_med, response, emg_scaled:right_glut_med rsp, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  emg_scaled:right_tibi_ant, response, emg_scaled:right_tibi_ant rsp, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  emg_scaled:right_gastroc_med, response, emg_scaled:right_gastroc_med rsp, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  emg_scaled:right_pero_lng, response, emg_scaled:right_pero_lng rsp, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  emg_scaled:right_tfl, response, emg_scaled:right_tfl rsp, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  emg_scaled:right_erector, response, emg_scaled:right_erector rsp, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  emg_scaled:right_rect_fem, response, emg_scaled:right_rect_fem rsp, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+//  emg_scaled:right_bic_fem, response, emg_scaled:right_bic_fem rsp, label (unit), saveFileName, -0.1, 0.1, -0.1, 0.1, 1
+  
+  
+
+	
+	
+
+  
+  
+}
+
+
+
+
+
+
+
+
+
+

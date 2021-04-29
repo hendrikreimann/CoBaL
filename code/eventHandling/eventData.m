@@ -21,7 +21,7 @@ classdef eventData < handle
         event_data;
         event_labels;
         
-        ignore_times;
+        problem_table;
         
         selected_event_label;
         selected_event_time;
@@ -38,22 +38,25 @@ classdef eventData < handle
             this.loadStretches();
         end
         function loadEvents(this)
+            % load events
             step_events_file_name = [this.data_custodian.data_directory filesep 'analysis' filesep makeFileName(this.data_custodian.date, this.data_custodian.subject_id, this.data_custodian.trial_type, this.data_custodian.trial_number, 'events.mat')];
             if exist(step_events_file_name, 'file')
                 loaded_data = load(step_events_file_name);
                 this.event_data = loaded_data.event_data;
                 this.event_labels = loaded_data.event_labels;
-                
             else
                 loaded_data = struct;
                 this.event_data = {};
                 this.event_labels = {};
             end
-            
-            if isfield(loaded_data, 'ignore_times')
-                this.ignore_times = loaded_data.ignore_times;
+
+            % load problems
+            problems_file_name = [this.data_custodian.data_directory filesep 'analysis' filesep makeFileName(this.data_custodian.date, this.data_custodian.subject_id, this.data_custodian.trial_type, this.data_custodian.trial_number, 'problems.mat')];
+            if exist(problems_file_name, 'file')
+                loaded_data = load(problems_file_name);
+                this.problem_table = loaded_data.problems;
             else
-                this.ignore_times = [];
+                this.problem_table = table;
             end
             
             this.removeDuplicates();
@@ -103,7 +106,6 @@ classdef eventData < handle
 % check this out later, get things to work first
             variables_to_save.event_data = this.event_data;
             variables_to_save.event_labels = this.event_labels;
-            variables_to_save.ignore_times = this.ignore_times;
             
             events_file_name = [this.data_custodian.data_directory filesep 'analysis' filesep makeFileName(this.data_custodian.date, this.data_custodian.subject_id, this.data_custodian.trial_type, this.data_custodian.trial_number, 'events.mat')];
             saveDataToFile(events_file_name, variables_to_save);
@@ -112,18 +114,16 @@ classdef eventData < handle
         end
         
         function setEventTimes(this, event_times, event_label)
-            if strcmp(event_label, 'ignore_times')
-                this.ignore_times = event_times;
-            else
-                event_index = strcmp(this.event_labels, event_label);
-                this.event_data{event_index} = event_times;
-            end
+            event_index = strcmp(this.event_labels, event_label);
+            this.event_data{event_index} = event_times;
         end
         function addEventTime(this, event_time, event_label)
-            if strcmp(event_label, 'ignore_times')
-                ignore_times_current = this.getEventTimes(event_label);
-                ignore_times_new = [ignore_times_current; event_time];
-                this.ignore_times = sort(ignore_times_new);
+            if strcmp(event_label, 'problem')
+                new_problem = {event_time, event_time, 'added manually in eventGui'};
+                problems = sortrows([this.problem_table; new_problem], 'start_time');
+                this.problem_table = problems;
+                problems_file_name = [this.data_custodian.data_directory filesep 'analysis' filesep makeFileName(this.data_custodian.date, this.data_custodian.subject_id, this.data_custodian.trial_type, this.data_custodian.trial_number, 'problems.mat')];
+                save(problems_file_name, 'problems');
             else
                 event_times = this.getEventTimes(event_label);
                 event_times = [event_times; event_time];
@@ -134,8 +134,8 @@ classdef eventData < handle
             this.selected_event_label = event_label;
         end
         function event_times = getEventTimes(this, event_label)
-            if strcmp(event_label, 'ignore_times')
-                event_times = this.ignore_times;
+            if strcmp(event_label, 'problem')
+                event_times = this.problem_table.start_time;
             else
                 event_index = strcmp(this.event_labels, event_label);
                 if any(event_index)
@@ -154,19 +154,26 @@ classdef eventData < handle
             event_index = this.getEventIndex(event_label, current_event_time);
             event_times = this.getEventTimes(event_label);
             if isnan(new_event_time)
-                % delete event
-                event_times(event_index) = [];
-                this.setEventTimes(event_times, event_label);
+                if strcmp(event_label, 'problem')
+                    this.problem_table(event_index, :) = [];
+                    problems = this.problem_table;
+                    problems_file_name = [this.data_custodian.data_directory filesep 'analysis' filesep makeFileName(this.data_custodian.date, this.data_custodian.subject_id, this.data_custodian.trial_type, this.data_custodian.trial_number, 'problems.mat')];
+                    save(problems_file_name, 'problems');
+                    
+                else
+                    % delete event
+                    event_times(event_index) = [];
+                    this.setEventTimes(event_times, event_label);
+                end                
                 this.selectClosestEvent();
-                
             else
                 % clamp new time to limits
                 new_event_time = max([new_event_time, this.data_custodian.getRecordingTimeStart]);
                 new_event_time = min([new_event_time, this.data_custodian.getRecordingTimeEnd]);
-                
+
                 % update
                 event_times(event_index) = new_event_time;
-                
+
                 % sort and store
                 this.setEventTimes(sort(event_times), event_label);
             end

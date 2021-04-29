@@ -78,7 +78,6 @@ function preprocessForceplateData(varargin)
                 cutoff_frequency_low = study_settings.get('force_plate_filter_cutoff');
                 if ~isempty(filter_order_low) && ~isempty(cutoff_frequency_low)
                     [b_lowpass, a_lowpass] = butter(filter_order_low, cutoff_frequency_low/(loaded_data.sampling_rate_forceplate/2), 'low');
-                    forceplate_trajectories = filtfilt(b_lowpass, a_lowpass, raw_forceplate_trajectories);
                     forceplate_trajectories = nanfiltfilt(b_lowpass, a_lowpass, raw_forceplate_trajectories_without_bad);
                 else
                     forceplate_trajectories = raw_forceplate_trajectories;
@@ -239,25 +238,6 @@ function preprocessForceplateData(varargin)
                 right_forceplate_cop_world = [copxr_world copyr_world];
                 total_forceplate_cop_world = [copx_world copy_world];
 
-                % define wrench and CoP trajectories for feet instead of forceplate sides
-                if strcmp(loaded_data.data_source, 'nexus')
-                    left_foot_cop_world = left_forceplate_cop_world;
-                    left_foot_wrench_world = left_forceplate_wrench_world;
-                    right_foot_cop_world = right_forceplate_cop_world;
-                    right_foot_wrench_world = right_forceplate_wrench_world;
-                end
-                if strcmp(loaded_data.data_source, 'neurocom')
-                    left_foot_cop_world = right_forceplate_cop_world;
-                    left_foot_wrench_world = right_forceplate_wrench_world;
-                    right_foot_cop_world = left_forceplate_cop_world;
-                    right_foot_wrench_world = left_forceplate_wrench_world;
-                end
-                if strcmp(loaded_data.data_source, 'qtm')
-                    left_foot_cop_world = left_forceplate_cop_world;
-                    left_foot_wrench_world = left_forceplate_wrench_world;
-                    right_foot_cop_world = right_forceplate_cop_world;
-                    right_foot_wrench_world = right_forceplate_wrench_world;
-                end
                 % directions for wrench
                 wrench_directions = cell(2, 6);
                 [wrench_directions{1, [1 4]}] = deal('right');
@@ -281,11 +261,6 @@ function preprocessForceplateData(varargin)
                 left_foot_cop_labels = {'copxl', 'copyl'};
                 right_foot_cop_labels = {'copxr', 'copyr'};
                 total_cop_labels = {'copx', 'copy'};
-
-                % combine
-                cop_trajectories = [total_forceplate_cop_world left_foot_cop_world right_foot_cop_world];
-                cop_labels = {'total_x', 'total_y', 'left_x', 'left_y', 'right_x', 'right_y'};
-                cop_all_directions = [cop_directions cop_directions cop_directions];
                 
                 % extract
                 time_forceplate = loaded_data.time_forceplate;

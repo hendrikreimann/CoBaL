@@ -124,9 +124,11 @@ classdef WalkingDataCustodian < handle
             end
         end
         function determineVariables(this)
+            
             % go through list of variables to analyze and check if they are elementary variables
             for i_variable = 1 : length(this.variables_to_analyze)
                 this_variable_name = this.variables_to_analyze{i_variable};
+                
                 % check if this is a compound name, listing a loaded variable and a label
                 if any(this_variable_name==':')
                     this_variable_split = strsplit(this_variable_name, ':');
@@ -143,368 +145,367 @@ classdef WalkingDataCustodian < handle
                         this.addStretchVariable(this_variable_name)
                     end
                 end
-                
-            end
 
-            % use an initial value as a reference
-            if this.isVariableToAnalyze('lheel_from_mpsis_initial_x')
-                this.addBasicVariable('marker_trajectories')
-                this.addStretchVariable('lheel_from_mpsis_initial_x')                
-            end
-            if this.isVariableToAnalyze('rheel_from_mpsis_initial_x')
-                this.addBasicVariable('marker_trajectories')
-                this.addStretchVariable('rheel_from_mpsis_initial_x')
-            end
-            if this.isVariableToAnalyze('mpsis_from_mpsis_initial_x')
-                this.addBasicVariable('marker_trajectories')
-                this.addStretchVariable('mpsis_from_mpsis_initial_x')
-            end            
-            if this.isVariableToAnalyze('lheel_from_com_initial_x')
-                this.addBasicVariable('marker_trajectories')
-                this.addBasicVariable('com_position_trajectories')
-                this.addStretchVariable('lheel_from_com_initial_x')                
-            end
-            if this.isVariableToAnalyze('rheel_from_com_initial_x')
-                this.addBasicVariable('marker_trajectories')
-                this.addBasicVariable('com_position_trajectories')
-                this.addStretchVariable('rheel_from_com_initial_x')
-            end
-            if this.isVariableToAnalyze('com_from_com_initial_x')
-                this.addBasicVariable('marker_trajectories')
-                this.addBasicVariable('com_position_trajectories')
-                this.addStretchVariable('com_from_com_initial_x')
-            end
-            
-            % balance stuff
-            if this.isVariableToAnalyze('step_placement_x')
-                this.addBasicVariable('marker_trajectories')
-                this.addStretchVariable('step_placement_x')
-            end
-            if this.isVariableToAnalyze('xcom_x')
-                this.addBasicVariable('marker_trajectories')
-                this.addBasicVariable('com_position_trajectories')
-                this.addBasicVariable('com_velocity_trajectories')
-                this.addStretchVariable('xcom_x')
-            end
-            if this.isVariableToAnalyze('xcom_y')
-                this.addBasicVariable('marker_trajectories')
-                this.addBasicVariable('com_position_trajectories')
-                this.addBasicVariable('com_velocity_trajectories')
-                this.addStretchVariable('xcom_y')
-            end
-            if this.isVariableToAnalyze('mos_x')
-                this.addBasicVariable('marker_trajectories')
-                this.addBasicVariable('com_position_trajectories')
-                this.addBasicVariable('com_velocity_trajectories')
-                this.addStretchVariable('xcom_x')
-                this.addStretchVariable('mos_x')
-            end
-            if this.isVariableToAnalyze('mos_y')
-                this.addBasicVariable('marker_trajectories')
-                this.addBasicVariable('com_position_trajectories')
-                this.addBasicVariable('com_velocity_trajectories')
-                this.addStretchVariable('xcom_y')
-                this.addStretchVariable('mos_y')
-            end
-            if this.isVariableToAnalyze('xcom_mpsis_x')
-                this.addBasicVariable('marker_trajectories')
-                this.addBasicVariable('derivative:LPSI_x_vel')
-                this.addBasicVariable('derivative:RPSI_x_vel')
-                this.addStretchVariable('xcom_mpsis_x')
-            end
-            if this.isVariableToAnalyze('xcom_mpsis_y')
-                this.addBasicVariable('marker_trajectories')
-                this.addBasicVariable('derivative:LPSI_y_vel')
-                this.addBasicVariable('derivative:RPSI_y_vel')
-                this.addStretchVariable('xcom_mpsis_y')
-            end
-            if this.isVariableToAnalyze('mos_mpsis_x')
-                this.addBasicVariable('marker_trajectories')
-                this.addBasicVariable('derivative:LPSI_x_vel')
-                this.addBasicVariable('derivative:RPSI_x_vel')
-                this.addStretchVariable('xcom_mpsis_x')
-                this.addStretchVariable('mos_mpsis_x')
-            end
-            if this.isVariableToAnalyze('mos_mpsis_y')
-                this.addBasicVariable('marker_trajectories')
-                this.addBasicVariable('derivative:LPSI_y_vel')
-                this.addBasicVariable('derivative:RPSI_y_vel')
-                this.addStretchVariable('xcom_mpsis_y')
-                this.addStretchVariable('mos_mpsis_y')
-            end
-            if this.isVariableToAnalyze('com_rough_x')
-                this.addBasicVariable('marker_trajectories')
-                this.addStretchVariable('com_rough_x')
-            end
-            if this.isVariableToAnalyze('com_rough_y')
-                this.addBasicVariable('marker_trajectories')
-                this.addStretchVariable('com_rough_y')
-            end  
-            if this.isVariableToAnalyze('com_rough_z')
-                this.addBasicVariable('marker_trajectories')
-                this.addStretchVariable('com_rough_z')
-            end
-            if this.isVariableToAnalyze('com_rough_x_vel')
-                this.addBasicVariable('marker_trajectories')
-                this.addBasicVariable('derivative:LPSI_x_vel')
-                this.addBasicVariable('derivative:RPSI_x_vel')
-                this.addBasicVariable('derivative:LASI_x_vel')
-                this.addBasicVariable('derivative:RASI_x_vel')
-                this.addBasicVariable('derivative:LKNE_x_vel')
-                this.addBasicVariable('derivative:RKNE_x_vel')
-                this.addBasicVariable('derivative:LANK_x_vel')
-                this.addBasicVariable('derivative:RANK_x_vel')
-                this.addBasicVariable('derivative:LTOE_x_vel')
-                this.addBasicVariable('derivative:RTOE_x_vel')
-                this.addBasicVariable('derivative:LFHD_x_vel')
-                this.addBasicVariable('derivative:RFHD_x_vel')
-                this.addBasicVariable('derivative:LBHD_x_vel')
-                this.addBasicVariable('derivative:RBHD_x_vel')
-                this.addBasicVariable('derivative:C7_x_vel')
-                this.addStretchVariable('com_rough_x_vel')
-            end  
-            if this.isVariableToAnalyze('com_rough_y_vel')
-                this.addBasicVariable('marker_trajectories')
-                this.addBasicVariable('derivative:LPSI_y_vel')
-                this.addBasicVariable('derivative:RPSI_y_vel')
-                this.addBasicVariable('derivative:LASI_y_vel')
-                this.addBasicVariable('derivative:RASI_y_vel')
-                this.addBasicVariable('derivative:LKNE_y_vel')
-                this.addBasicVariable('derivative:RKNE_y_vel')
-                this.addBasicVariable('derivative:LANK_y_vel')
-                this.addBasicVariable('derivative:RANK_y_vel')
-                this.addBasicVariable('derivative:LTOE_y_vel')
-                this.addBasicVariable('derivative:RTOE_y_vel')
-                this.addBasicVariable('derivative:LFHD_y_vel')
-                this.addBasicVariable('derivative:RFHD_y_vel')
-                this.addBasicVariable('derivative:LBHD_y_vel')
-                this.addBasicVariable('derivative:RBHD_y_vel')
-                this.addBasicVariable('derivative:C7_y_vel')
-                this.addStretchVariable('com_rough_y_vel')
-            end 
-            if this.isVariableToAnalyze('xcom_rough_x')
-                this.addBasicVariable('marker_trajectories')
-                this.addBasicVariable('derivative:LPSI_x_vel')
-                this.addBasicVariable('derivative:RPSI_x_vel')
-                this.addBasicVariable('derivative:LASI_x_vel')
-                this.addBasicVariable('derivative:RASI_x_vel')
-                this.addBasicVariable('derivative:LKNE_x_vel')
-                this.addBasicVariable('derivative:RKNE_x_vel')
-                this.addBasicVariable('derivative:LANK_x_vel')
-                this.addBasicVariable('derivative:RANK_x_vel')
-                this.addBasicVariable('derivative:LTOE_x_vel')
-                this.addBasicVariable('derivative:RTOE_x_vel')
-                this.addBasicVariable('derivative:LFHD_x_vel')
-                this.addBasicVariable('derivative:RFHD_x_vel')
-                this.addBasicVariable('derivative:LBHD_x_vel')
-                this.addBasicVariable('derivative:RBHD_x_vel')
-                this.addBasicVariable('derivative:C7_x_vel')
-                this.addStretchVariable('com_rough_x')
-                this.addStretchVariable('com_rough_y')
-                this.addStretchVariable('com_rough_z')
-                this.addStretchVariable('com_rough_x_vel')
-                this.addStretchVariable('xcom_rough_x')
-            end
-            if this.isVariableToAnalyze('xcom_rough_y')
-                this.addBasicVariable('marker_trajectories')
-                this.addBasicVariable('derivative:LPSI_y_vel')
-                this.addBasicVariable('derivative:RPSI_y_vel')
-                this.addBasicVariable('derivative:LASI_y_vel')
-                this.addBasicVariable('derivative:RASI_y_vel')
-                this.addBasicVariable('derivative:LKNE_y_vel')
-                this.addBasicVariable('derivative:RKNE_y_vel')
-                this.addBasicVariable('derivative:LANK_y_vel')
-                this.addBasicVariable('derivative:RANK_y_vel')
-                this.addBasicVariable('derivative:LTOE_y_vel')
-                this.addBasicVariable('derivative:RTOE_y_vel')
-                this.addBasicVariable('derivative:LFHD_y_vel')
-                this.addBasicVariable('derivative:RFHD_y_vel')
-                this.addBasicVariable('derivative:LBHD_y_vel')
-                this.addBasicVariable('derivative:RBHD_y_vel')
-                this.addBasicVariable('derivative:C7_y_vel')
-                this.addStretchVariable('com_rough_x')
-                this.addStretchVariable('com_rough_y')
-                this.addStretchVariable('com_rough_z')
-                this.addStretchVariable('com_rough_y_vel')
-                this.addStretchVariable('xcom_rough_y')
-            end
-            if this.isVariableToAnalyze('mos_rough_x')
-                this.addBasicVariable('marker_trajectories')
-                this.addBasicVariable('derivative:LPSI_x_vel')
-                this.addBasicVariable('derivative:RPSI_x_vel')
-                this.addBasicVariable('derivative:LASI_x_vel')
-                this.addBasicVariable('derivative:RASI_x_vel')
-                this.addBasicVariable('derivative:LKNE_x_vel')
-                this.addBasicVariable('derivative:RKNE_x_vel')
-                this.addBasicVariable('derivative:LANK_x_vel')
-                this.addBasicVariable('derivative:RANK_x_vel')
-                this.addBasicVariable('derivative:LTOE_x_vel')
-                this.addBasicVariable('derivative:RTOE_x_vel')
-                this.addBasicVariable('derivative:LFHD_x_vel')
-                this.addBasicVariable('derivative:RFHD_x_vel')
-                this.addBasicVariable('derivative:LBHD_x_vel')
-                this.addBasicVariable('derivative:RBHD_x_vel')
-                this.addBasicVariable('derivative:C7_x_vel')
-                this.addStretchVariable('com_rough_x')
-                this.addStretchVariable('com_rough_y')
-                this.addStretchVariable('com_rough_z')
-                this.addStretchVariable('com_rough_x_vel')
-                this.addStretchVariable('com_rough_x_vel')
-                this.addStretchVariable('xcom_rough_x')
-                this.addStretchVariable('mos_rough_x')
-            end
-            if this.isVariableToAnalyze('mos_rough_y')
-                this.addBasicVariable('marker_trajectories')
-                this.addBasicVariable('derivative:LPSI_y_vel')
-                this.addBasicVariable('derivative:RPSI_y_vel')
-                this.addBasicVariable('derivative:LASI_y_vel')
-                this.addBasicVariable('derivative:RASI_y_vel')
-                this.addBasicVariable('derivative:LKNE_y_vel')
-                this.addBasicVariable('derivative:RKNE_y_vel')
-                this.addBasicVariable('derivative:LANK_y_vel')
-                this.addBasicVariable('derivative:RANK_y_vel')
-                this.addBasicVariable('derivative:LTOE_y_vel')
-                this.addBasicVariable('derivative:RTOE_y_vel')
-                this.addBasicVariable('derivative:LFHD_y_vel')
-                this.addBasicVariable('derivative:RFHD_y_vel')
-                this.addBasicVariable('derivative:LBHD_y_vel')
-                this.addBasicVariable('derivative:RBHD_y_vel')
-                this.addBasicVariable('derivative:C7_y_vel')
-                this.addStretchVariable('com_rough_x')
-                this.addStretchVariable('com_rough_y')
-                this.addStretchVariable('com_rough_z')
-                this.addStretchVariable('com_rough_y_vel')
-                this.addStretchVariable('xcom_rough_y')
-                this.addStretchVariable('mos_rough_y')
-            end
-            
-            % gait parameters
-            if this.isVariableToAnalyze('step_length')
-                this.addBasicVariable('marker_trajectories')
-                this.addStretchVariable('step_length')
-            end
-            if this.isVariableToAnalyze('step_width')
-                this.addBasicVariable('marker_trajectories')
-                this.addStretchVariable('step_width')
-            end
-            if this.isVariableToAnalyze('step_time')
-                this.addStretchVariable('step_time')
-            end
-            if this.isVariableToAnalyze('pushoff_time')
-                this.addBasicVariable('marker_trajectories')
-                this.addStretchVariable('step_time')
-                this.addStretchVariable('pushoff_time')
-            end
-            if this.isVariableToAnalyze('midstance_index')
-                this.addBasicVariable('marker_trajectories')
-                this.addStretchVariable('step_time')
-                this.addStretchVariable('pushoff_time')
-                this.addStretchVariable('midstance_index')
-            end
-            if this.isVariableToAnalyze('midstance_time')
-                this.addBasicVariable('marker_trajectories')
-                this.addStretchVariable('step_time')
-                this.addStretchVariable('pushoff_time')
-                this.addStretchVariable('midstance_time')
-            end
-            if this.isVariableToAnalyze('midswing_time')
-                this.addStretchVariable('step_time')
-                this.addStretchVariable('pushoff_time')
-                this.addStretchVariable('midswing_time')
-            end
-            if this.isVariableToAnalyze('cadence')
-                this.addStretchVariable('step_time')
-                this.addStretchVariable('cadence')
-            end
-            if this.isVariableToAnalyze('velocity')
-                this.addBasicVariable('marker_trajectories')
-                this.addStretchVariable('step_length')
-                this.addStretchVariable('step_time')
-                this.addStretchVariable('velocity')
-            end
-            if this.isVariableToAnalyze('band_duration')
-                this.addStretchVariable('band_duration')
-            end
-            
-            % segment angles and lengths
-            if this.isVariableToAnalyze('leg_length_l')
-                this.addBasicVariable('marker_trajectories')
-                this.addStretchVariable('leg_length_l')
-            end
-            if this.isVariableToAnalyze('leg_length_r')
-                this.addBasicVariable('marker_trajectories')
-                this.addStretchVariable('leg_length_r')
-            end
-            if this.isVariableToAnalyze('leg_angle_ap_l')
-                this.addBasicVariable('marker_trajectories')
-                this.addStretchVariable('leg_angle_ap_l')
-            end
-            if this.isVariableToAnalyze('leg_angle_ap_r')
-                this.addBasicVariable('marker_trajectories')
-                this.addStretchVariable('leg_angle_ap_r')
-            end
-            if this.isVariableToAnalyze('head_angle_ap')
-                this.addBasicVariable('marker_trajectories')
-                this.addStretchVariable('head_angle_ap')
-            end
-            if this.isVariableToAnalyze('head_angle_ml')
-                this.addBasicVariable('marker_trajectories')
-                this.addStretchVariable('head_angle_ml')
-            end
-            if this.isVariableToAnalyze('trunk_angle_ap')
-                this.addBasicVariable('marker_trajectories')
-                this.addStretchVariable('trunk_angle_ap')
-            end
-            if this.isVariableToAnalyze('trunk_angle_ml')
-                this.addBasicVariable('marker_trajectories')
-                this.addStretchVariable('trunk_angle_ml')
-            end
-            if this.isVariableToAnalyze('left_foot_angle_ap')
-                this.addBasicVariable('marker_trajectories')
-                this.addStretchVariable('left_foot_angle_ap')
-            end
-            if this.isVariableToAnalyze('left_foot_angle_ml')
-                this.addBasicVariable('marker_trajectories')
-                this.addStretchVariable('left_foot_angle_ml')
-            end
-            if this.isVariableToAnalyze('left_foot_angle_yaw')
-                this.addBasicVariable('marker_trajectories')
-                this.addStretchVariable('left_foot_angle_yaw')
-            end
-            if this.isVariableToAnalyze('right_foot_angle_ap')
-                this.addBasicVariable('marker_trajectories')
-                this.addStretchVariable('right_foot_angle_ap')
-            end
-            if this.isVariableToAnalyze('right_foot_angle_ml')
-                this.addBasicVariable('marker_trajectories')
-                this.addStretchVariable('right_foot_angle_ml')
-            end            
-            if this.isVariableToAnalyze('right_foot_angle_yaw')
-                this.addBasicVariable('marker_trajectories')
-                this.addStretchVariable('right_foot_angle_yaw')
-            end
-            
-            % clearance above obstacle
-            if this.isVariableToAnalyze('heel_clearance')
-                this.addBasicVariable('marker_trajectories')
-                this.addStretchVariable('heel_clearance')
-            end
-            if this.isVariableToAnalyze('toes_clearance')
-                this.addBasicVariable('marker_trajectories')
-                this.addStretchVariable('toes_clearance')
-            end
-            
-            % protocol
-            if this.isVariableToAnalyze('stimulus_state_trajectory')
-                this.addBasicVariable('stimulus_state_trajectory')
-                this.addStretchVariable('stimulus_state_trajectory')
+                % use an initial value as a reference
+                if strcmp(this_variable_name, 'lheel_from_mpsis_initial_x')
+                    this.addBasicVariable('marker_trajectories')
+                    this.addStretchVariable('lheel_from_mpsis_initial_x')                
+                end
+                if strcmp(this_variable_name, 'rheel_from_mpsis_initial_x')
+                    this.addBasicVariable('marker_trajectories')
+                    this.addStretchVariable('rheel_from_mpsis_initial_x')
+                end
+                if strcmp(this_variable_name, 'mpsis_from_mpsis_initial_x')
+                    this.addBasicVariable('marker_trajectories')
+                    this.addStretchVariable('mpsis_from_mpsis_initial_x')
+                end            
+                if strcmp(this_variable_name, 'lheel_from_com_initial_x')
+                    this.addBasicVariable('marker_trajectories')
+                    this.addBasicVariable('com_position_trajectories')
+                    this.addStretchVariable('lheel_from_com_initial_x')                
+                end
+                if strcmp(this_variable_name, 'rheel_from_com_initial_x')
+                    this.addBasicVariable('marker_trajectories')
+                    this.addBasicVariable('com_position_trajectories')
+                    this.addStretchVariable('rheel_from_com_initial_x')
+                end
+                if strcmp(this_variable_name, 'com_from_com_initial_x')
+                    this.addBasicVariable('marker_trajectories')
+                    this.addBasicVariable('com_position_trajectories')
+                    this.addStretchVariable('com_from_com_initial_x')
+                end
+
+                % balance stuff
+                if strcmp(this_variable_name, 'step_placement_x')
+                    this.addBasicVariable('marker_trajectories')
+                    this.addStretchVariable('step_placement_x')
+                end
+                if strcmp(this_variable_name, 'xcom_x')
+                    this.addBasicVariable('marker_trajectories')
+                    this.addBasicVariable('com_position_trajectories')
+                    this.addBasicVariable('com_velocity_trajectories')
+                    this.addStretchVariable('xcom_x')
+                end
+                if strcmp(this_variable_name, 'xcom_y')
+                    this.addBasicVariable('marker_trajectories')
+                    this.addBasicVariable('com_position_trajectories')
+                    this.addBasicVariable('com_velocity_trajectories')
+                    this.addStretchVariable('xcom_y')
+                end
+                if strcmp(this_variable_name, 'mos_x')
+                    this.addBasicVariable('marker_trajectories')
+                    this.addBasicVariable('com_position_trajectories')
+                    this.addBasicVariable('com_velocity_trajectories')
+                    this.addStretchVariable('xcom_x')
+                    this.addStretchVariable('mos_x')
+                end
+                if strcmp(this_variable_name, 'mos_y')
+                    this.addBasicVariable('marker_trajectories')
+                    this.addBasicVariable('com_position_trajectories')
+                    this.addBasicVariable('com_velocity_trajectories')
+                    this.addStretchVariable('xcom_y')
+                    this.addStretchVariable('mos_y')
+                end
+                if strcmp(this_variable_name, 'xcom_mpsis_x')
+                    this.addBasicVariable('marker_trajectories')
+                    this.addBasicVariable('derivative:LPSI_x_vel')
+                    this.addBasicVariable('derivative:RPSI_x_vel')
+                    this.addStretchVariable('xcom_mpsis_x')
+                end
+                if strcmp(this_variable_name, 'xcom_mpsis_y')
+                    this.addBasicVariable('marker_trajectories')
+                    this.addBasicVariable('derivative:LPSI_y_vel')
+                    this.addBasicVariable('derivative:RPSI_y_vel')
+                    this.addStretchVariable('xcom_mpsis_y')
+                end
+                if strcmp(this_variable_name, 'mos_mpsis_x')
+                    this.addBasicVariable('marker_trajectories')
+                    this.addBasicVariable('derivative:LPSI_x_vel')
+                    this.addBasicVariable('derivative:RPSI_x_vel')
+                    this.addStretchVariable('xcom_mpsis_x')
+                    this.addStretchVariable('mos_mpsis_x')
+                end
+                if strcmp(this_variable_name, 'mos_mpsis_y')
+                    this.addBasicVariable('marker_trajectories')
+                    this.addBasicVariable('derivative:LPSI_y_vel')
+                    this.addBasicVariable('derivative:RPSI_y_vel')
+                    this.addStretchVariable('xcom_mpsis_y')
+                    this.addStretchVariable('mos_mpsis_y')
+                end
+                if strcmp(this_variable_name, 'com_rough_x')
+                    this.addBasicVariable('marker_trajectories')
+                    this.addStretchVariable('com_rough_x')
+                end
+                if strcmp(this_variable_name, 'com_rough_y')
+                    this.addBasicVariable('marker_trajectories')
+                    this.addStretchVariable('com_rough_y')
+                end  
+                if strcmp(this_variable_name, 'com_rough_z')
+                    this.addBasicVariable('marker_trajectories')
+                    this.addStretchVariable('com_rough_z')
+                end
+                if strcmp(this_variable_name, 'com_rough_x_vel')
+                    this.addBasicVariable('marker_trajectories')
+                    this.addBasicVariable('derivative:LPSI_x_vel')
+                    this.addBasicVariable('derivative:RPSI_x_vel')
+                    this.addBasicVariable('derivative:LASI_x_vel')
+                    this.addBasicVariable('derivative:RASI_x_vel')
+                    this.addBasicVariable('derivative:LKNE_x_vel')
+                    this.addBasicVariable('derivative:RKNE_x_vel')
+                    this.addBasicVariable('derivative:LANK_x_vel')
+                    this.addBasicVariable('derivative:RANK_x_vel')
+                    this.addBasicVariable('derivative:LTOE_x_vel')
+                    this.addBasicVariable('derivative:RTOE_x_vel')
+                    this.addBasicVariable('derivative:LFHD_x_vel')
+                    this.addBasicVariable('derivative:RFHD_x_vel')
+                    this.addBasicVariable('derivative:LBHD_x_vel')
+                    this.addBasicVariable('derivative:RBHD_x_vel')
+                    this.addBasicVariable('derivative:C7_x_vel')
+                    this.addStretchVariable('com_rough_x_vel')
+                end  
+                if strcmp(this_variable_name, 'com_rough_y_vel')
+                    this.addBasicVariable('marker_trajectories')
+                    this.addBasicVariable('derivative:LPSI_y_vel')
+                    this.addBasicVariable('derivative:RPSI_y_vel')
+                    this.addBasicVariable('derivative:LASI_y_vel')
+                    this.addBasicVariable('derivative:RASI_y_vel')
+                    this.addBasicVariable('derivative:LKNE_y_vel')
+                    this.addBasicVariable('derivative:RKNE_y_vel')
+                    this.addBasicVariable('derivative:LANK_y_vel')
+                    this.addBasicVariable('derivative:RANK_y_vel')
+                    this.addBasicVariable('derivative:LTOE_y_vel')
+                    this.addBasicVariable('derivative:RTOE_y_vel')
+                    this.addBasicVariable('derivative:LFHD_y_vel')
+                    this.addBasicVariable('derivative:RFHD_y_vel')
+                    this.addBasicVariable('derivative:LBHD_y_vel')
+                    this.addBasicVariable('derivative:RBHD_y_vel')
+                    this.addBasicVariable('derivative:C7_y_vel')
+                    this.addStretchVariable('com_rough_y_vel')
+                end 
+                if strcmp(this_variable_name, 'xcom_rough_x')
+                    this.addBasicVariable('marker_trajectories')
+                    this.addBasicVariable('derivative:LPSI_x_vel')
+                    this.addBasicVariable('derivative:RPSI_x_vel')
+                    this.addBasicVariable('derivative:LASI_x_vel')
+                    this.addBasicVariable('derivative:RASI_x_vel')
+                    this.addBasicVariable('derivative:LKNE_x_vel')
+                    this.addBasicVariable('derivative:RKNE_x_vel')
+                    this.addBasicVariable('derivative:LANK_x_vel')
+                    this.addBasicVariable('derivative:RANK_x_vel')
+                    this.addBasicVariable('derivative:LTOE_x_vel')
+                    this.addBasicVariable('derivative:RTOE_x_vel')
+                    this.addBasicVariable('derivative:LFHD_x_vel')
+                    this.addBasicVariable('derivative:RFHD_x_vel')
+                    this.addBasicVariable('derivative:LBHD_x_vel')
+                    this.addBasicVariable('derivative:RBHD_x_vel')
+                    this.addBasicVariable('derivative:C7_x_vel')
+                    this.addStretchVariable('com_rough_x')
+                    this.addStretchVariable('com_rough_y')
+                    this.addStretchVariable('com_rough_z')
+                    this.addStretchVariable('com_rough_x_vel')
+                    this.addStretchVariable('xcom_rough_x')
+                end
+                if strcmp(this_variable_name, 'xcom_rough_y')
+                    this.addBasicVariable('marker_trajectories')
+                    this.addBasicVariable('derivative:LPSI_y_vel')
+                    this.addBasicVariable('derivative:RPSI_y_vel')
+                    this.addBasicVariable('derivative:LASI_y_vel')
+                    this.addBasicVariable('derivative:RASI_y_vel')
+                    this.addBasicVariable('derivative:LKNE_y_vel')
+                    this.addBasicVariable('derivative:RKNE_y_vel')
+                    this.addBasicVariable('derivative:LANK_y_vel')
+                    this.addBasicVariable('derivative:RANK_y_vel')
+                    this.addBasicVariable('derivative:LTOE_y_vel')
+                    this.addBasicVariable('derivative:RTOE_y_vel')
+                    this.addBasicVariable('derivative:LFHD_y_vel')
+                    this.addBasicVariable('derivative:RFHD_y_vel')
+                    this.addBasicVariable('derivative:LBHD_y_vel')
+                    this.addBasicVariable('derivative:RBHD_y_vel')
+                    this.addBasicVariable('derivative:C7_y_vel')
+                    this.addStretchVariable('com_rough_x')
+                    this.addStretchVariable('com_rough_y')
+                    this.addStretchVariable('com_rough_z')
+                    this.addStretchVariable('com_rough_y_vel')
+                    this.addStretchVariable('xcom_rough_y')
+                end
+                if strcmp(this_variable_name, 'mos_rough_x')
+                    this.addBasicVariable('marker_trajectories')
+                    this.addBasicVariable('derivative:LPSI_x_vel')
+                    this.addBasicVariable('derivative:RPSI_x_vel')
+                    this.addBasicVariable('derivative:LASI_x_vel')
+                    this.addBasicVariable('derivative:RASI_x_vel')
+                    this.addBasicVariable('derivative:LKNE_x_vel')
+                    this.addBasicVariable('derivative:RKNE_x_vel')
+                    this.addBasicVariable('derivative:LANK_x_vel')
+                    this.addBasicVariable('derivative:RANK_x_vel')
+                    this.addBasicVariable('derivative:LTOE_x_vel')
+                    this.addBasicVariable('derivative:RTOE_x_vel')
+                    this.addBasicVariable('derivative:LFHD_x_vel')
+                    this.addBasicVariable('derivative:RFHD_x_vel')
+                    this.addBasicVariable('derivative:LBHD_x_vel')
+                    this.addBasicVariable('derivative:RBHD_x_vel')
+                    this.addBasicVariable('derivative:C7_x_vel')
+                    this.addStretchVariable('com_rough_x')
+                    this.addStretchVariable('com_rough_y')
+                    this.addStretchVariable('com_rough_z')
+                    this.addStretchVariable('com_rough_x_vel')
+                    this.addStretchVariable('com_rough_x_vel')
+                    this.addStretchVariable('xcom_rough_x')
+                    this.addStretchVariable('mos_rough_x')
+                end
+                if strcmp(this_variable_name, 'mos_rough_y')
+                    this.addBasicVariable('marker_trajectories')
+                    this.addBasicVariable('derivative:LPSI_y_vel')
+                    this.addBasicVariable('derivative:RPSI_y_vel')
+                    this.addBasicVariable('derivative:LASI_y_vel')
+                    this.addBasicVariable('derivative:RASI_y_vel')
+                    this.addBasicVariable('derivative:LKNE_y_vel')
+                    this.addBasicVariable('derivative:RKNE_y_vel')
+                    this.addBasicVariable('derivative:LANK_y_vel')
+                    this.addBasicVariable('derivative:RANK_y_vel')
+                    this.addBasicVariable('derivative:LTOE_y_vel')
+                    this.addBasicVariable('derivative:RTOE_y_vel')
+                    this.addBasicVariable('derivative:LFHD_y_vel')
+                    this.addBasicVariable('derivative:RFHD_y_vel')
+                    this.addBasicVariable('derivative:LBHD_y_vel')
+                    this.addBasicVariable('derivative:RBHD_y_vel')
+                    this.addBasicVariable('derivative:C7_y_vel')
+                    this.addStretchVariable('com_rough_x')
+                    this.addStretchVariable('com_rough_y')
+                    this.addStretchVariable('com_rough_z')
+                    this.addStretchVariable('com_rough_y_vel')
+                    this.addStretchVariable('xcom_rough_y')
+                    this.addStretchVariable('mos_rough_y')
+                end
+
+                % gait parameters
+                if strcmp(this_variable_name, 'step_length')
+                    this.addBasicVariable('marker_trajectories')
+                    this.addStretchVariable('step_length')
+                end
+                if strcmp(this_variable_name, 'step_width')
+                    this.addBasicVariable('marker_trajectories')
+                    this.addStretchVariable('step_width')
+                end
+                if strcmp(this_variable_name, 'step_time')
+                    this.addStretchVariable('step_time')
+                end
+                if strcmp(this_variable_name, 'pushoff_time')
+                    this.addBasicVariable('marker_trajectories')
+                    this.addStretchVariable('step_time')
+                    this.addStretchVariable('pushoff_time')
+                end
+                if strcmp(this_variable_name, 'midstance_index')
+                    this.addBasicVariable('marker_trajectories')
+                    this.addStretchVariable('step_time')
+                    this.addStretchVariable('pushoff_time')
+                    this.addStretchVariable('midstance_index')
+                end
+                if strcmp(this_variable_name, 'midstance_time')
+                    this.addBasicVariable('marker_trajectories')
+                    this.addStretchVariable('step_time')
+                    this.addStretchVariable('pushoff_time')
+                    this.addStretchVariable('midstance_time')
+                end
+                if strcmp(this_variable_name, 'midswing_time')
+                    this.addStretchVariable('step_time')
+                    this.addStretchVariable('pushoff_time')
+                    this.addStretchVariable('midswing_time')
+                end
+                if strcmp(this_variable_name, 'cadence')
+                    this.addStretchVariable('step_time')
+                    this.addStretchVariable('cadence')
+                end
+                if strcmp(this_variable_name, 'velocity')
+                    this.addBasicVariable('marker_trajectories')
+                    this.addStretchVariable('step_length')
+                    this.addStretchVariable('step_time')
+                    this.addStretchVariable('velocity')
+                end
+                if strcmp(this_variable_name, 'band_duration')
+                    this.addStretchVariable('band_duration')
+                end
+
+                % segment angles and lengths
+                if strcmp(this_variable_name, 'leg_length_l')
+                    this.addBasicVariable('marker_trajectories')
+                    this.addStretchVariable('leg_length_l')
+                end
+                if strcmp(this_variable_name, 'leg_length_r')
+                    this.addBasicVariable('marker_trajectories')
+                    this.addStretchVariable('leg_length_r')
+                end
+                if strcmp(this_variable_name, 'leg_angle_ap_l')
+                    this.addBasicVariable('marker_trajectories')
+                    this.addStretchVariable('leg_angle_ap_l')
+                end
+                if strcmp(this_variable_name, 'leg_angle_ap_r')
+                    this.addBasicVariable('marker_trajectories')
+                    this.addStretchVariable('leg_angle_ap_r')
+                end
+                if strcmp(this_variable_name, 'head_angle_ap')
+                    this.addBasicVariable('marker_trajectories')
+                    this.addStretchVariable('head_angle_ap')
+                end
+                if strcmp(this_variable_name, 'head_angle_ml')
+                    this.addBasicVariable('marker_trajectories')
+                    this.addStretchVariable('head_angle_ml')
+                end
+                if strcmp(this_variable_name, 'trunk_angle_ap')
+                    this.addBasicVariable('marker_trajectories')
+                    this.addStretchVariable('trunk_angle_ap')
+                end
+                if strcmp(this_variable_name, 'trunk_angle_ml')
+                    this.addBasicVariable('marker_trajectories')
+                    this.addStretchVariable('trunk_angle_ml')
+                end
+                if strcmp(this_variable_name, 'left_foot_angle_ap')
+                    this.addBasicVariable('marker_trajectories')
+                    this.addStretchVariable('left_foot_angle_ap')
+                end
+                if strcmp(this_variable_name, 'left_foot_angle_ml')
+                    this.addBasicVariable('marker_trajectories')
+                    this.addStretchVariable('left_foot_angle_ml')
+                end
+                if strcmp(this_variable_name, 'left_foot_angle_yaw')
+                    this.addBasicVariable('marker_trajectories')
+                    this.addStretchVariable('left_foot_angle_yaw')
+                end
+                if strcmp(this_variable_name, 'right_foot_angle_ap')
+                    this.addBasicVariable('marker_trajectories')
+                    this.addStretchVariable('right_foot_angle_ap')
+                end
+                if strcmp(this_variable_name, 'right_foot_angle_ml')
+                    this.addBasicVariable('marker_trajectories')
+                    this.addStretchVariable('right_foot_angle_ml')
+                end            
+                if strcmp(this_variable_name, 'right_foot_angle_yaw')
+                    this.addBasicVariable('marker_trajectories')
+                    this.addStretchVariable('right_foot_angle_yaw')
+                end
+
+                % clearance above obstacle
+                if strcmp(this_variable_name, 'heel_clearance')
+                    this.addBasicVariable('marker_trajectories')
+                    this.addStretchVariable('heel_clearance')
+                end
+                if strcmp(this_variable_name, 'toes_clearance')
+                    this.addBasicVariable('marker_trajectories')
+                    this.addStretchVariable('toes_clearance')
+                end
+                
+                % is this a normal variable? did we add it successfully
+                if ~any(this_variable_name==':') && ~any(strcmp(this_variable_name, this.stretch_variable_names))
+                    % no, we haven't added a stretch variable, so add this as a basic and a stretch variable (unless it's stimulus_response, which is special)
+                    if ~strcmp(this_variable_name, 'stimulus_response_x')
+                        this.addBasicVariable(this_variable_name)
+                        this.addStretchVariable(this_variable_name)
+                    end
+                end
             end
         end
         
         % interface
-        function result = isVariableToAnalyze(this, variable_name)
-            result = any(strcmp(this.variables_to_analyze, variable_name));
-        end
         function result = isBasicVariable(this, variable_name)
             result = any(strcmp(this.basic_variable_names, variable_name));
         end

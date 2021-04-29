@@ -1,0 +1,62 @@
+// GVS
+
+// each figure is listed as a block, the name must end in "Figure"
+// name of the figure is the name of the block
+// plots are specified as follows:
+// data plots: data, <variable name>, <label>, <scale factor>, <offset>, <color R>, <color G>, <color B>, linewidth
+// event plots: event, <event name>, <variable name of parent data plot>, label, <marker>, <color R>, <color G>, <color B>, marker size
+// where type should be 'data' or 'event'
+// the variables specified must be available in the trial data object
+
+figure_settings_file: marker_kinematics.mat
+
+figures_header: info, data
+figures:
+{
+  positions_left_figure_settings, positions_left_figure_data
+  positions_right_figure_settings, positions_right_figure_data
+}
+
+positions_left_figure_settings:
+{
+  title, left foot marker positions
+  origin_horizontal, 0
+  origin_vertical, 0.5
+  width, 1
+  height, 0.5
+}
+
+positions_right_figure_settings:
+{
+  title, right foot marker positions
+  origin_horizontal, 0
+  origin_vertical, 0
+  width, 1
+  height, 0.5
+}
+
+positions_left_figure_data:
+{
+  data, marker:LHEE_z, left heel z, 1, -0.05, 0.9098, 0.1020, 0.2941, 2
+//  data, marker_raw:LHEE_z, left toes z, 1, 0, 0.2235, 0.7098, 0.2902, 2
+  data, marker:LTOE_z, left toes z, 1, 0, 0.2235, 0.7098, 0.2902, 2
+  event, left_touchdown, marker:LHEE_z, left touchdown, v, 0, 0.5137, 0.7922, 8
+  event, left_pushoff, marker:LTOE_z, left pushoff, ^, 0.2235, 0.7098, 0.2902, 8
+}
+
+positions_right_figure_data:
+{
+  data, marker:RHEE_z, right heel z, 1, -0.05, 0.9098, 0.1020, 0.2941, 2
+//  data, marker_raw:RHEE_z, right toes z, 1, 0, 0.2235, 0.7098, 0.2902, 2
+  data, marker:RTOE_z, right toes z, 1, 0, 0.2235, 0.7098, 0.2902, 2
+  event, right_touchdown, marker:RHEE_z, right touchdown, v, 0, 0.5137, 0.7922, 8
+  event, right_pushoff, marker:RTOE_z, right pushoff, ^, 0.2235, 0.7098, 0.2902, 8
+}
+
+
+
+
+
+
+
+

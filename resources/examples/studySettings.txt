@@ -1,0 +1,488 @@
+// VISION
+
+marker_weights:
+{
+  LKNEM, 0
+  LANKM, 0
+  LTOETIP, 0
+  RKNEM, 0
+  RANKM, 0
+  RTOETIP, 0
+}
+
+number_of_steps_to_analyze: 8
+number of time steps normalized: 101
+trial_length: 120
+
+// specify conditions
+experimental_paradigm: Vision
+experimental_condition: determine_from_file_name
+stimulus_condition: N/A
+band labels: ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT
+
+filter_marker_data: true
+marker_data_cutoff_frequency: 10
+filter_joint_angle_data: false
+joint_angle_data_cutoff_frequency: 20
+filter_joint_velocity_data: true
+joint_velocity_data_cutoff_frequency: 20
+filter_joint_torques: true
+joint_torques_cutoff_frequency: 10
+
+filter_order_com_vel: 4
+filter_cutoff_com_vel: 10
+filter_order_com_acc: 4
+filter_cutoff_com_acc: 5
+filter_order_mpsis_vel: 4
+filter_cutoff_mpsis_vel: 10
+filter_order_mpsis_acc: 4
+filter_cutoff_mpsis_acc: 5
+force_plate_filter_order: 4
+force_plate_filter_cutoff: 20
+
+prune_step_time_outliers: 0
+data_stretch_padding: 250
+
+time_category_borders: 0, 600, 1200, 1800, 2400
+emg_time_offset: -0.014
+
+condition_relevant_for_analysis: trigger_foot
+
+// ---------------------------------------------------------------------------------------
+// conditions
+// ---------------------------------------------------------------------------------------
+
+// label for the condition, name of the variable holding its values, value for control, value for emg
+conditions:
+{
+  subject, subject_list, ~, ~
+  trigger_foot, trigger_foot_list, ~, ~
+  perturbation, stimulus_list, STIM_NONE, STIM_NONE
+  amplitude, amplitude_list, 0, 0
+}
+
+// these conditions will be ignored when determining condition combinations
+// conditions_to_ignore: subject, direction, group, stance_foot
+conditions_to_ignore: subject,perturbation
+//conditions_to_ignore: subject, trigger_foot
+
+// ---------------------------------------------------------------------------------------
+// variables
+// ---------------------------------------------------------------------------------------
+
+time_derivatives_header: variable_name, source_variable_name, filter_order, cutoff_frequency
+time_derivatives: 
+{
+  cop_x_vel, forceplate:copx, 4, 10
+  cop_y_vel, forceplate:copy, 4, 10
+  cop_x_acc, derivative:cop_x_vel, 4, 10
+  cop_y_acc, derivative:cop_y_vel, 4, 10
+  LPSI_x_vel, marker:LPSI_x, 4, 10
+  RPSI_x_vel, marker:RPSI_x, 4, 10
+  LPSI_y_vel, marker:LPSI_y, 4, 10
+  RPSI_y_vel, marker:RPSI_y, 4, 10
+  
+  LASI_x_vel, marker:LASI_x, 4, 10
+  RASI_x_vel, marker:RASI_x, 4, 10
+  LPSI_x_vel, marker:LPSI_x, 4, 10
+  RPSI_x_vel, marker:RPSI_x, 4, 10
+  LKNE_x_vel, marker:LKNE_x, 4, 10
+  RKNE_x_vel, marker:RKNE_x, 4, 10
+  LANK_x_vel, marker:LANK_x, 4, 10
+  RANK_x_vel, marker:RANK_x, 4, 10
+  LTOE_x_vel, marker:LTOE_x, 4, 10
+  RTOE_x_vel, marker:RTOE_x, 4, 10
+  LFHD_x_vel, marker:LFHD_x, 4, 10
+  RFHD_x_vel, marker:RFHD_x, 4, 10
+  LBHD_x_vel, marker:LBHD_x, 4, 10
+  RBHD_x_vel, marker:RBHD_x, 4, 10
+  C7_x_vel, marker:C7_x, 4, 10
+  
+  LASI_y_vel, marker:LASI_y, 4, 10
+  RASI_y_vel, marker:RASI_y, 4, 10
+  LPSI_y_vel, marker:LPSI_y, 4, 10
+  RPSI_y_vel, marker:RPSI_y, 4, 10
+  LKNE_y_vel, marker:LKNE_y, 4, 10
+  RKNE_y_vel, marker:RKNE_y, 4, 10
+  LANK_y_vel, marker:LANK_y, 4, 10
+  RANK_y_vel, marker:RANK_y, 4, 10
+  LTOE_y_vel, marker:LTOE_y, 4, 10
+  RTOE_y_vel, marker:RTOE_y, 4, 10
+  LFHD_y_vel, marker:LFHD_y, 4, 10
+  RFHD_y_vel, marker:RFHD_y, 4, 10
+  LBHD_y_vel, marker:LBHD_y, 4, 10
+  RBHD_y_vel, marker:RBHD_y, 4, 10
+  C7_y_vel, marker:C7_y, 4, 10
+  
+  LPSI_x_acc, derivative:LPSI_x_vel, 4, 5
+  RPSI_x_acc, derivative:RPSI_x_vel, 4, 5
+}
+
+stretch_variables:
+{
+  step_time
+  step_length
+  step_width
+  pushoff_time
+  midstance_index
+  
+  step_placement_x
+	com_position:center_of_mass_x
+	com_velocity:center_of_mass_x
+	com_position:center_of_mass_y
+	com_velocity:center_of_mass_y
+  marker:LANK_x
+  marker:RANK_x
+  stimulus_response_x
+  
+  // ---------------------------------- forceplate ---------------------------------------
+  forceplate:fx
+  forceplate:fy
+  forceplate:fz
+  forceplate:mx
+  forceplate:my
+  forceplate:mz
+  forceplate:copx
+  forceplate:copy
+  
+  // --------------------------------- joint angles --------------------------------------
+  joint_angle:pelvis_tx
+  joint_angle:pelvis_ty
+  joint_angle:pelvis_tz
+  joint_angle:pelvis_tilt
+  joint_angle:pelvis_list
+  joint_angle:pelvis_rotation
+  
+  joint_angle:hip_flexion_l
+  joint_angle:hip_adduction_l
+  joint_angle:hip_rotation_l
+  joint_angle:knee_flexion_l
+  joint_angle:knee_rotation_l
+  joint_angle:ankle_angle_l
+  joint_angle:subtalar_angle_l
+  
+  joint_angle:hip_flexion_r
+  joint_angle:hip_adduction_r
+  joint_angle:hip_rotation_r
+  joint_angle:knee_flexion_r
+  joint_angle:knee_rotation_r
+  joint_angle:ankle_angle_r
+  joint_angle:subtalar_angle_r
+  
+  joint_angle:lumbar_extension
+  joint_angle:lumbar_bending
+  joint_angle:lumbar_rotation
+  joint_angle:neck_pitch
+  joint_angle:neck_roll
+  joint_angle:neck_yaw
+  
+  // -------------------------------------- emg ------------------------------------------
+  emg_scaled:left_glut_med
+  emg_scaled:left_tibi_ant
+  emg_scaled:left_gastroc_med
+  emg_scaled:left_pero_lng
+  emg_scaled:left_tfl
+  emg_scaled:left_erector
+  emg_scaled:left_rect_fem
+  emg_scaled:left_bic_fem
+  emg_scaled:right_glut_med
+  emg_scaled:right_tibi_ant
+  emg_scaled:right_gastroc_med
+  emg_scaled:right_pero_lng
+  emg_scaled:right_tfl
+  emg_scaled:right_erector
+  emg_scaled:right_rect_fem
+  emg_scaled:right_bic_fem
+}
+
+
+analysis_table_header: action, settings_table, settings_table_header
+analysis_table:
+{
+  combine two variables, combination_variables, combination_variables_header
+  calculate stimulus response, response_variables, response_variables_header
+  invert by condition, inversion_variables, inversion_variables_header
+  select from multiple variables by condition, selection_variables, selection_variables_header
+  integrate over time, analysis_variables_from_integration, analysis_variables_from_integration_header
+}
+
+response_variables_header: new_variable_name, source_variable_name, source_type
+response_variables:
+{
+  step_time, step_time, stretch
+  step_length, step_length, stretch
+  step_width, step_width, stretch
+  step_placement_x, step_placement_x, stretch
+  com_x, com_position:center_of_mass_x, stretch
+  com_y, com_position:center_of_mass_y, stretch
+  cop_x, forceplate:copx, stretch
+  cop_y, forceplate:copy, stretch
+  com_velocity:center_of_mass_x, com_velocity:center_of_mass_x, stretch
+  com_velocity:center_of_mass_y, com_velocity:center_of_mass_y, stretch
+  cop_from_com_x, cop_from_com_x, analysis
+  cop_from_com_y, cop_from_com_y, analysis
+  
+  // ---------------------------------- forceplate ---------------------------------------
+  forceplate:fx, forceplate:fx, stretch
+  
+  // --------------------------------- joint angles --------------------------------------
+  joint_angle:pelvis_tx, joint_angle:pelvis_tx, stretch
+  joint_angle:pelvis_ty, joint_angle:pelvis_ty, stretch
+  joint_angle:pelvis_tz, joint_angle:pelvis_tz, stretch
+  joint_angle:pelvis_tilt, joint_angle:pelvis_tilt, stretch
+  joint_angle:pelvis_list, joint_angle:pelvis_list, stretch
+  joint_angle:pelvis_rotation, joint_angle:pelvis_rotation, stretch
+  
+  joint_angle:hip_flexion_l, joint_angle:hip_flexion_l, stretch
+  joint_angle:hip_adduction_l, joint_angle:hip_adduction_l, stretch
+  joint_angle:hip_rotation_l, joint_angle:hip_rotation_l, stretch
+  joint_angle:knee_flexion_l, joint_angle:knee_flexion_l, stretch
+  joint_angle:knee_rotation_l, joint_angle:knee_rotation_l, stretch
+  joint_angle:ankle_angle_l, joint_angle:ankle_angle_l, stretch
+  joint_angle:subtalar_angle_l, joint_angle:subtalar_angle_l, stretch
+
+  joint_angle:hip_flexion_r, joint_angle:hip_flexion_r, stretch
+  joint_angle:hip_adduction_r, joint_angle:hip_adduction_r, stretch
+  joint_angle:hip_rotation_r, joint_angle:hip_rotation_r, stretch
+  joint_angle:knee_flexion_r, joint_angle:knee_flexion_r, stretch
+  joint_angle:knee_rotation_r, joint_angle:knee_rotation_r, stretch
+  joint_angle:ankle_angle_r, joint_angle:ankle_angle_r, stretch
+  joint_angle:subtalar_angle_r, joint_angle:subtalar_angle_r, stretch
+
+  joint_angle:lumbar_extension, joint_angle:lumbar_extension, stretch
+  joint_angle:lumbar_bending, joint_angle:lumbar_bending, stretch
+  joint_angle:lumbar_rotation, joint_angle:lumbar_rotation, stretch
+  joint_angle:neck_pitch, joint_angle:neck_pitch, stretch
+  joint_angle:neck_roll, joint_angle:neck_roll, stretch
+  joint_angle:neck_yaw, joint_angle:neck_yaw, stretch
+  
+  // -------------------------------------- emg ------------------------------------------
+  emg_scaled:left_glut_med, emg_scaled:left_glut_med, stretch
+  emg_scaled:left_tibi_ant, emg_scaled:left_tibi_ant, stretch
+  emg_scaled:left_gastroc_med, emg_scaled:left_gastroc_med, stretch
+  emg_scaled:left_pero_lng, emg_scaled:left_pero_lng, stretch
+  emg_scaled:left_tfl, emg_scaled:left_tfl, stretch
+  emg_scaled:left_erector, emg_scaled:left_erector, stretch
+  emg_scaled:left_rect_fem, emg_scaled:left_rect_fem, stretch
+  emg_scaled:left_bic_fem, emg_scaled:left_bic_fem, stretch
+  emg_scaled:right_glut_med, emg_scaled:right_glut_med, stretch
+  emg_scaled:right_tibi_ant, emg_scaled:right_tibi_ant, stretch
+  emg_scaled:right_gastroc_med, emg_scaled:right_gastroc_med, stretch
+  emg_scaled:right_pero_lng, emg_scaled:right_pero_lng, stretch
+  emg_scaled:right_tfl, emg_scaled:right_tfl, stretch
+  emg_scaled:right_erector, emg_scaled:right_erector, stretch
+  emg_scaled:right_rect_fem, emg_scaled:right_rect_fem, stretch
+  emg_scaled:right_bic_fem, emg_scaled:right_bic_fem, stretch
+}
+
+combination_variables_header: new_variable_name, variable_A_name, variable_A_type, variable_A_gain, variable_B_name, variable_B_type, variable_B_gain, offset
+combination_variables:
+{
+  cop_from_com_x, forceplate:copx, stretch, 1, com_position:center_of_mass_x, stretch, -1, 0
+  cop_from_com_y, forceplate:copy, stretch, 1, com_position:center_of_mass_y, stretch, -1, 0
+}
+
+inversion_variables_header: new_variable_name, source_variable_name, source_type, relevant_condition, information_table, direction_label_positive, direction_label_negative
+inversion_variables:
+{
+  fx_sym, forceplate:fx, response, trigger_foot, inversion_information_spatial, towards, away
+  com_x_sym, com_x, response, trigger_foot, inversion_information_spatial, towards, away
+  com_x_vel_sym, com_velocity:center_of_mass_x, response, trigger_foot, inversion_information_spatial, towards, away
+  cop_from_com_x_sym, cop_from_com_x, response, trigger_foot, inversion_information_spatial, towards, away
+  step_placement_x_sym, step_placement_x, response, trigger_foot, inversion_information_spatial, towards, away
+  stimulus_response_x_sym, stimulus_response_x, analysis, trigger_foot, inversion_information_spatial, towards, away
+}
+
+// explanation for inversion mapping: for any trigger, internal <-> external
+// value of the relevant condition, source direction for new positive direction, source direction for new negative direction
+inversion_information_spatial:
+{
+  TRIGGER_LEFT, left, right
+  TRIGGER_RIGHT, right, left
+}
+
+selection_variables_header: new_variable_name, source_type, relevant_condition, information_table
+selection_variables:
+{
+  trigger_leg_ankle_dorsiflexion, response, trigger_foot, selection_table_trigger_dorsiflexion
+  trigger_leg_ankle_eversion, response, trigger_foot, selection_table_trigger_eversion
+  trigger_leg_peroneus, response, trigger_foot, selection_table_trigger_peroneus
+  trigger_leg_gastroc, response, trigger_foot, selection_table_trigger_gastroc
+  trigger_leg_tibiant, response, trigger_foot, selection_table_trigger_tibiant
+  contra_leg_ankle_dorsiflexion, response, trigger_foot, selection_table_contra_dorsiflexion
+  contra_leg_ankle_eversion, response, trigger_foot, selection_table_contra_eversion
+  contra_leg_peroneus, response, trigger_foot, selection_table_contra_peroneus
+  contra_leg_gastroc, response, trigger_foot, selection_table_contra_gastroc
+  contra_leg_tibiant, response, trigger_foot, selection_table_contra_tibiant
+}
+
+// explanation for selection mapping: 
+// value of the relevant condition, source variable
+selection_table_trigger_dorsiflexion:
+{
+  TRIGGER_LEFT, joint_angle:ankle_angle_l
+  TRIGGER_RIGHT, joint_angle:ankle_angle_r
+}
+selection_table_trigger_eversion:
+{
+  TRIGGER_LEFT, joint_angle:subtalar_angle_l
+  TRIGGER_RIGHT, joint_angle:subtalar_angle_r
+}
+selection_table_trigger_peroneus:
+{
+  TRIGGER_LEFT, emg_scaled:left_pero_lng
+  TRIGGER_RIGHT, emg_scaled:right_pero_lng
+}
+selection_table_trigger_gastroc:
+{
+  TRIGGER_LEFT, emg_scaled:left_gastroc_med
+  TRIGGER_RIGHT, emg_scaled:right_gastroc_med
+}
+selection_table_trigger_tibiant:
+{
+  TRIGGER_LEFT, emg_scaled:left_tibi_ant
+  TRIGGER_RIGHT, emg_scaled:right_tibi_ant
+}
+selection_table_contra_dorsiflexion:
+{
+  TRIGGER_LEFT, joint_angle:ankle_angle_r
+  TRIGGER_RIGHT, joint_angle:ankle_angle_l
+}
+selection_table_contra_eversion:
+{
+  TRIGGER_LEFT, joint_angle:subtalar_angle_r
+  TRIGGER_RIGHT, joint_angle:subtalar_angle_l
+}
+selection_table_contra_peroneus:
+{
+  TRIGGER_LEFT, emg_scaled:right_pero_lng
+  TRIGGER_RIGHT, emg_scaled:left_pero_lng
+}
+selection_table_contra_gastroc:
+{
+  TRIGGER_LEFT, emg_scaled:right_gastroc_med
+  TRIGGER_RIGHT, emg_scaled:left_gastroc_med
+}
+selection_table_contra_tibiant:
+{
+  TRIGGER_LEFT, emg_scaled:right_tibi_ant
+  TRIGGER_RIGHT, emg_scaled:left_tibi_ant
+}
+
+analysis_variables_from_integration_header: new_variable_name, source_variable_name, source_variable_type, start, start_variable_type, end, end_variable_type
+analysis_variables_from_integration:
+{
+  cop_from_com_x_sym_integrated_swing, cop_from_com_x_sym, analysis, pushoff_time, stretch, 100, percentage
+  
+  trigger_leg_ankle_dorsiflexion_integrated_doublestance, trigger_leg_ankle_dorsiflexion, analysis, 1, percentage, pushoff_time, stretch
+  trigger_leg_ankle_eversion_integrated_swing, trigger_leg_ankle_eversion, analysis, pushoff_time, stretch, 100, percentage
+
+  left_glut_med_integrated_swing, emg_scaled:left_glut_med, response, pushoff_time, stretch, 100, percentage
+  right_pero_lng_integrated_swing, emg_scaled:right_pero_lng, response, pushoff_time, stretch, 100, percentage
+
+  right_gastroc_med_integrated_swing, emg_scaled:right_gastroc_med, response, pushoff_time, stretch, 100, percentage
+  right_gastroc_med_integrated_doublestance, emg_scaled:right_gastroc_med, response, 1, percentage, pushoff_time, stretch
+}
+
+
+
+
+
+// variable name, source
+variables_to_collect_header: new variable name, source variable name, source variable type
+variables_to_collect:
+{
+  // discrete
+  pushoff_time, pushoff_time, stretch
+  band_duration, step_time, stretch
+  step_length, step_length, response
+  step_placement_x, step_placement_x, response
+  stimulus_response_x, stimulus_response_x, analysis
+  
+  // continuous misc
+  cop_from_com_x, cop_from_com_x, response
+  com_x, com_x, response
+  com_x_vel, com_x_vel, response
+  com_x_acc, com_x_acc, response
+  lheel_x, lheel_x, response
+  rheel_x, rheel_x, response
+  mpsis_x, mpsis_x, response
+  
+  // joint angles
+  lumbar_roll, joint_angle:lumbar_bending, response
+  lumbar_pitch, joint_angle:lumbar_extension, response
+  lumbar_yaw, joint_angle:lumbar_rotation, response
+  cervical_roll, joint_angle:neck_roll, response
+  cervical_pitch, joint_angle:neck_pitch, response
+  cervical_yaw, joint_angle:neck_yaw, response
+  
+  left_hip_abduction, joint_angle:hip_adduction_l, response
+  left_hip_flexion, joint_angle:hip_flexion_l, response
+  left_hip_introtation, joint_angle:hip_rotation_l, response
+  left_knee_flexion, joint_angle:knee_flexion_l, response
+  left_knee_introtation, joint_angle:knee_rotation_l, response
+  left_ankle_eversion, joint_angle:subtalar_angle_l, response
+  left_ankle_plantarflexion, joint_angle:ankle_angle_l, response
+  
+  right_hip_abduction, joint_angle:hip_adduction_r, response
+  right_hip_flexion, joint_angle:hip_flexion_r, response
+  right_hip_introtation, joint_angle:hip_rotation_r, response
+  right_knee_flexion, joint_angle:knee_flexion_r, response
+  right_knee_introtation, joint_angle:knee_rotation_r, response
+  right_ankle_eversion, joint_angle:subtalar_angle_r, response
+  right_ankle_plantarflexion, joint_angle:ankle_angle_r, response
+  
+  // sym
+  com_x_sym, com_x_sym, analysis
+  com_x_vel_sym, com_x_vel_sym, analysis
+  com_x_acc_sym, com_x_acc_sym, analysis
+  cop_from_com_x_sym, cop_from_com_x_sym, analysis
+  trigger_leg_ankle_dorsiflexion, trigger_leg_ankle_dorsiflexion, analysis
+  trigger_leg_ankle_eversion, trigger_leg_ankle_eversion, analysis
+  fx_sym, fx_sym, analysis
+  contra_leg_ankle_dorsiflexion, contra_leg_ankle_dorsiflexion, analysis
+  contra_leg_ankle_eversion, contra_leg_ankle_eversion, analysis
+
+
+
+ 
+  // for statistical analysis
+  //com_x_vel_sym_doublestance_mid, com_x_vel_sym_doublestance_mid, analysis
+  com_x_sym_bandend, com_x_sym_bandend, analysis
+  stimulus_response_x_sym, stimulus_response_x_sym, analysis
+  //cop_from_com_x_sym_integrated_swing, cop_from_com_x_sym_integrated_swing, analysis
+  //trigger_leg_ankle_dorsiflexion_integrated_doublestance, trigger_leg_ankle_dorsiflexion_integrated_doublestance, analysis
+  //trigger_leg_ankle_eversion_integrated_swing, trigger_leg_ankle_eversion_integrated_swing, analysis
+  
+}
+  
+
+levels_to_remove_for_export:
+{
+  amplitude, 0
+}
+
+
+variables_to_export:
+{
+  com_x_vel_sym_doublestance_mid
+  com_x_sym_bandend
+  stimulus_response_x_sym
+  cop_from_com_x_sym_integrated_swing
+  trigger_leg_ankle_dorsiflexion_integrated_doublestance
+  trigger_leg_ankle_eversion_integrated_swing
+}
+
+
+
+
+
+
+
+
+
+
+  
+  
+  
+  
