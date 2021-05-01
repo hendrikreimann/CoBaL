@@ -31,26 +31,6 @@
 % 2. <apply stretches and normalize in time>
 % 3. calculate stretch variables
 
-% to add a new variable, you need to do the following things:
-%
-% 1. Provide information about all variables this new one depends upon. Go to the determineVariables function and add a
-% new conditional statement "if this.isVariableToAnalyze('<your new variable name>') ... end". Within the
-% statement, add the basic variables and stretch variables that the new variable depends upon by calling addBasicVariable 
-% and addStretchVariable. The order matters here, make sure for each variable, all dependencies have already been added, 
-% i.e. don't call "this.addBasicVariable('lheel_y')" before "this.addBasicVariable('marker_trajectories')", because 
-% lheel_y depends upon the marker_trajectories.
-%
-% 2. If you added a new basic variable, but is not already available, i.e. one of the outputs of the
-% preprocess scripts, you need to specify how to calculate it. Go to prepareBasicVariables and add a new conditional
-% statement "if strcmp(variable_name, '<your new variable name>')". Within the statement, calculate your new
-% variable, then add it to the variable_data. Also add the corresponding time vector to the time_data.
-%
-% 3. If the variable you want to add is a stretch variable, you need to specify how to calculate it. Go to 
-% calculateStretchVariables and add a new conditional statement "if strcmp(variable_name, '<your new variable name>')".
-% Within the statement, calculate the value of your new variable for a single stretch, depending upon
-% this_stretch_start_time and this_stretch_end_time. Assign that value to the variable "stretch_data".
-
-
 classdef WalkingDataCustodian < handle
     properties
         data_directory = [];

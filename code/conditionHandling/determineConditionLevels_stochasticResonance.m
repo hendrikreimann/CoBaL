@@ -47,14 +47,6 @@ function [conditions_trial, event_variables_to_save, removal_flags] = determineC
     conditions_trial = struct;
     conditions_trial.stim_amplitude_list = stim_amplitude_list;
 
-    % add group
-    group = subject_settings.get('group');
-    condition_group_list = cell(size(event_variables_to_save.stance_foot_data, 1), 1);
-    for i_stretch = 1 : length(condition_group_list)
-        condition_group_list{i_stretch} = group;
-    end
-    conditions_trial.group_list = condition_group_list;
-    
     % add affected side
     affected_side = subject_settings.get('affected_side');
     condition_affected_side_list = cell(size(event_variables_to_save.stance_foot_data, 1), 1);

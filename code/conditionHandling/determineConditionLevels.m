@@ -117,21 +117,19 @@ function [conditions_trial, event_variables_to_save, removal_flags] ...
             = determineConditionLevels_type(trial_data, conditions_trial);
     end
     
-    % add levels that are the same for all experimental paradigms
+    % add subject
     condition_subject_list = cell(size(event_variables_to_save.stretch_times, 1), 1);
     for i_stretch = 1 : length(condition_subject_list)
         condition_subject_list{i_stretch} = subject_id;
     end
     conditions_trial.subject_list = condition_subject_list;
     
-    condition_gender_list = cell(size(event_variables_to_save.stance_foot_data, 1), 1);
+    % add gender
+    condition_gender_list = cell(size(event_variables_to_save.stretch_times, 1), 1);
     for i_stretch = 1 : length(condition_gender_list)
         condition_gender_list{i_stretch} = gender;
     end
     conditions_trial.gender_list = condition_gender_list;
-    
-
-
 end
 
 function merged_struct = mergeConditionStruct(struct_one, struct_two)
