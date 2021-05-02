@@ -70,8 +70,8 @@ function preprocessForceplateData(varargin)
                 raw_forceplate_trajectories_without_bad(bad_data_points, :) = NaN;
                 
                 % store problematic data information
-                saveProblemInformation(date, subject_id, trial_type, trial_number, loaded_data.time_forceplate, zero_data_points, 'zero in forceplate data')
-                saveProblemInformation(date, subject_id, trial_type, trial_number, loaded_data.time_forceplate, large_data_points, 'large value in forceplate data')
+                saveProblemInformation(date, subject_id, trial_type, trial_number, 'zero in forceplate data', loaded_data.time_forceplate, zero_data_points)
+                saveProblemInformation(date, subject_id, trial_type, trial_number, 'large value in forceplate data', loaded_data.time_forceplate, large_data_points)
 
                 % define filter
                 filter_order_low = study_settings.get('force_plate_filter_order');
