@@ -50,14 +50,13 @@ function determineStretchesToAnalyze(varargin)
     [condition_list, trial_number_list] = parseTrialArguments(varargin{:});
     trials_to_process_table = makeTrialsToProcessTable(condition_list, trial_number_list);
 
-    %% prepare
+    % prepare
     study_settings = loadSettingsFromFile('study');
     subject_settings = loadSettingsFromFile('subject');
     collection_date = subject_settings.get('collection_date');
     subject_id = subject_settings.get('subject_id');
 
-    %% process
-    
+    % process
     for i_trial = 1 : height(trials_to_process_table)
         % create container for data
         trial_data = struct;

@@ -147,7 +147,7 @@ function findStepEvents(varargin)
                     plot(cop_x(touchdown_indices_right_window), cop_y(touchdown_indices_right_window), 'v', 'markersize', 8, 'color', 'r', 'markerfacecolor', 'r', 'DisplayName', 'right heel-strike');
                     xlabel('ml position (m)'); ylabel('ap position (m)')
 
-                    figure; axes_x = axes; hold on; title('CoP trajectories - left forceplate')
+                    figure; axes_x = axes; hold on; title('CoP trajectories - x')
                     plot(time_forceplate(window_indices), cop_x(window_indices), 'linewidth', 2, 'color', 'b', 'DisplayName', 'CoP');
                     plot(time_forceplate(pushoff_indices_left_window), cop_x(pushoff_indices_left_window), '^', 'markersize', 8, 'color', 'g', 'markerfacecolor', 'g', 'DisplayName', 'left pushoff');
                     plot(time_forceplate(pushoff_indices_right_window), cop_x(pushoff_indices_right_window), '^', 'markersize', 8, 'color', 'r', 'markerfacecolor', 'r', 'DisplayName', 'right pushoff');
@@ -155,7 +155,7 @@ function findStepEvents(varargin)
                     plot(time_forceplate(touchdown_indices_right_window), cop_x(touchdown_indices_right_window), 'v', 'markersize', 8, 'color', 'r', 'markerfacecolor', 'r', 'DisplayName', 'right heel-strike');
                     xlabel('time (s)'); ylabel('ml position (m)')
 
-                    figure; axes_y = axes; hold on; title('CoP trajectories - right forceplate')
+                    figure; axes_y = axes; hold on; title('CoP trajectories - y')
                     plot(time_forceplate(window_indices), cop_y(window_indices), 'linewidth', 2, 'color', 'b', 'DisplayName', 'CoP');
                     plot(time_forceplate(pushoff_indices_left_window), cop_y(pushoff_indices_left_window), '^', 'markersize', 8, 'color', 'g', 'markerfacecolor', 'g', 'DisplayName', 'left pushoff');
                     plot(time_forceplate(pushoff_indices_right_window), cop_y(pushoff_indices_right_window), '^', 'markersize', 8, 'color', 'r', 'markerfacecolor', 'r', 'DisplayName', 'right pushoff');
