@@ -85,7 +85,7 @@ classdef StretchDataCustodian < handle
             this.normalized_time = 1 : (number_of_time_steps-1)*this.bands_per_stretch+1;
             
         end
-        function condition_data = getConditionData(this)
+        function [condition_data, condition_labels] = getConditionData(this)
             conditions_settings = this.study_settings.get('conditions');
             condition_labels = conditions_settings(:, 1)';
             condition_source_variables = conditions_settings(:, 2)';

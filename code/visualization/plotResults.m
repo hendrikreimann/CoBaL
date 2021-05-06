@@ -276,7 +276,7 @@ function figure_data = createFigures_continuous(settings, comparisons, data_cust
                 elseif strcmp(settings.plot_settings.get('time_plot_style'), 'scaled_to_condition_mean')
                     band_scales = step_time_means_this_comparison(:, i_condition);
                 else
-                    band_scales = ones(data.bands_per_stretch, 1) * (settings.number_of_time_steps_normalized-1);
+                    band_scales = ones(size(step_time_means_this_comparison, 2), 1) * (settings.number_of_time_steps_normalized-1);
                 end
                 [abscissa_scaled, band_limits] = createScaledAbscissa(band_scales, settings.number_of_time_steps_normalized);
 
@@ -332,21 +332,35 @@ function text = singlePlotTooltip(~, event_obj)
 
     % Customizes text of data tips
     pos = get(event_obj,'Position');
-    position_text = { ...
+    text = { ...
             ['X: ', num2str(pos(1))], ...
             ['Y: ', num2str(pos(2))] ...
           };
-    if isempty(origin)
-        text = position_text;
-    else
-        origin_txt = { ...
-                       ['Subject: ', origin.subject], ...
-                       ['Trial: ', num2str(origin.trial)], ...
-                       ['Start Time: ', num2str(origin.start_time)], ...
-                       ['End Time: ', num2str(origin.end_time)] ...
-                     };
-        text = [position_text, origin_txt];
+%     if isempty(origin)
+%         text = position_text;
+%     else
+%         origin_txt = { ...
+%                        ['Subject: ', origin.subject], ...
+%                        ['Trial: ', num2str(origin.trial)], ...
+%                        ['Start Time: ', num2str(origin.start_time)], ...
+%                        ['End Time: ', num2str(origin.end_time)] ...
+%                      };
+%         text = [position_text, origin_txt];
+%     end
+    
+    if isfield(origin, 'subject')
+        text = [text, ['Subject: ', origin.subject]];
     end
+    if isfield(origin, 'trial')
+        text = [text, ['Trial: ', num2str(origin.trial)]];
+    end
+    if isfield(origin, 'start_time')
+        text = [text, ['Start Time: ', num2str(origin.start_time)]];
+    end
+    if isfield(origin, 'start_time')
+        text = [text, ['End Time: ', num2str(origin.end_time)]];
+    end
+    
 end
 
 function figure_data = createFigures_discrete(settings, comparisons, data_custodian)
@@ -532,7 +546,7 @@ function figure_data = createFigureData(variables_to_plot, comparisons)
 end
 
 function plotData_continuous(settings, comparisons, data_custodian, figure_data)
-    condition_data = data_custodian.getConditionData();
+    [condition_data, condition_labels] = data_custodian.getConditionData();
     [origin_subjects, origin_trials, origin_start_times, origin_end_times] = data_custodian.getOriginData();
     for i_variable = 1 : settings.number_of_variables_to_plot_continuous
         variable_name = settings.variables_to_plot_continuous(i_variable, strcmp(settings.variables_to_plot_continuous_header, 'variable_name'));
@@ -573,6 +587,14 @@ function plotData_continuous(settings, comparisons, data_custodian, figure_data)
                 origin_start_times_this_condition = origin_start_times(this_condition_indicator);
                 origin_end_times_this_condition = origin_end_times(this_condition_indicator);
                 
+                if settings.plot_settings.get('average_within_subjects', 1)
+                    condition_data_this_condition = condition_data(this_condition_indicator, :);
+                    [data_to_plot_this_condition, origin_subjects_this_condition] ...
+                        = averageWithinSubjects(data_to_plot_this_condition, condition_data_this_condition, condition_labels);
+                end                
+                
+                
+                
                 target_abscissa = figure_data.abscissae_cell{i_comparison, i_variable}(i_condition, :);                    
                 if settings.show_spread_data
                     plot_handles = shadedErrorBar ...
@@ -595,9 +617,11 @@ function plotData_continuous(settings, comparisons, data_custodian, figure_data)
                     for i_stretch = 1 : size(data_to_plot_this_condition, 2)
                         this_origin = struct;
                         this_origin.subject = origin_subjects_this_condition{i_stretch};
-                        this_origin.trial = origin_trials_this_condition(i_stretch);
-                        this_origin.start_time = origin_start_times_this_condition(i_stretch);
-                        this_origin.end_time = origin_end_times_this_condition(i_stretch);
+                        if ~settings.plot_settings.get('average_within_subjects', 1)
+                            this_origin.trial = origin_trials_this_condition(i_stretch);
+                            this_origin.start_time = origin_start_times_this_condition(i_stretch);
+                            this_origin.end_time = origin_end_times_this_condition(i_stretch);
+                        end
                         plot ...
                           ( ...
                             target_axes_handle, ...
@@ -635,7 +659,7 @@ function plotData_continuous(settings, comparisons, data_custodian, figure_data)
 end
 
 function plotData_discrete(settings, comparisons, data_custodian, figure_data)
-    condition_data = data_custodian.getConditionData();
+    [condition_data, condition_labels] = data_custodian.getConditionData();
     for i_variable = 1 : settings.number_of_variables_to_plot_discrete
         variable_name = settings.variables_to_plot_discrete(i_variable, strcmp(settings.variables_to_plot_discrete_header, 'variable_name'));
         variable_type = settings.variables_to_plot_discrete(i_variable, strcmp(settings.variables_to_plot_discrete_header, 'variable_type'));
@@ -662,7 +686,11 @@ function plotData_discrete(settings, comparisons, data_custodian, figure_data)
                     settings.plot_settings.get('levels_to_remove') ...
                   );
                 data_to_plot_this_condition = data_to_plot.variable_data(:, this_condition_indicator);
-                
+                if settings.plot_settings.get('average_within_subjects', 1)
+                    condition_data_this_condition = condition_data(this_condition_indicator, :);
+                    data_to_plot_this_condition = averageWithinSubjects(data_to_plot_this_condition, condition_data_this_condition, condition_labels);
+                    
+                end                
                 if settings.plot_settings.get('merge_bands', 1)
                     data_to_plot_this_condition = reshape(data_to_plot_this_condition, 1, numel(data_to_plot_this_condition));
                 end
@@ -1020,6 +1048,33 @@ function s = spread(data, method)
         s = std(data, 0, 2) * 1 / sqrt(size(data, 1));
     end
 end
+
+function [data_averaged, subjects_unique] = averageWithinSubjects(data_to_plot_this_condition, condition_data_this_condition, condition_labels)
+    % extract subjects
+    subjects = condition_data_this_condition(:, strcmp(condition_labels, 'subject'));
+    subjects_unique = unique(subjects);
+    number_of_unique_subjects = numel(subjects_unique);
+    
+    % calculate average within each subject
+    data_averaged = zeros(size(data_to_plot_this_condition, 1), number_of_unique_subjects);
+    for i_subject = 1 : number_of_unique_subjects
+        this_subject = subjects_unique{i_subject};
+        this_subject_indicator = strcmp(subjects, this_subject);
+        this_subject_data = data_to_plot_this_condition(:, this_subject_indicator);
+        this_subject_data_mean = mean(this_subject_data, 2);
+        data_averaged(:, i_subject) = this_subject_data_mean;
+    end
+    
+    
+end
+
+
+
+
+
+
+
+
 
 
 
