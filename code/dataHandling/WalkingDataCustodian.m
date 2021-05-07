@@ -494,6 +494,12 @@ classdef WalkingDataCustodian < handle
                     this.addStretchVariable('toes_clearance')
                 end
                 
+                if strcmp(this_variable_name, 'coupling_angle_arm')
+                    this.addBasicVariable('left_wrist_z_gyro')
+                    this.addBasicVariable('right_wrist_z_gyro')
+                    this.addStretchVariable('coupling_angle_arm')
+                end
+                
                 % is this a normal variable? did we add it successfully
                 if ~any(this_variable_name==':') && ~any(strcmp(this_variable_name, this.stretch_variable_names))
                     % no, we haven't added a stretch variable, so add this as a basic and a stretch variable (unless it's stimulus_response, which is special)
@@ -2095,12 +2101,32 @@ classdef WalkingDataCustodian < handle
                         end
                     end
                     
+                    
+                    % For IMU Vector Coding
+                    if strcmp(variable_name, 'coupling_angle_arm')
+                        left_wrist_z_gyro_trajectory = this.getTimeNormalizedData('left_wrist_z_gyro', this_stretch_times);
+                        right_wrist_z_gyro_trajectory = this.getTimeNormalizedData('right_wrist_z_gyro', this_stretch_times);
+                        z_arm_coupling_angle_rads = atan2(left_wrist_z_gyro_trajectory, right_wrist_z_gyro_trajectory);
+                        z_arm_coupling_angle_deg = rad2deg(z_arm_coupling_angle_rads);
+
+                        if z_arm_coupling_angle_deg < 0
+                        	stretch_data = z_arm_coupling_angle_deg + 360;
+                        else 
+                        	stretch_data = z_arm_coupling_angle_deg;
+                        end
+                    end
+                     
                     % store in cell
                     stretch_variables{i_variable} = [stretch_variables{i_variable} stretch_data];
+                    
                 end
-                
+                    
+                    
+                    
             end
+                
         end
+        
         function data_normalized = getTimeNormalizedData(this, variable_name, band_times)
             % extract data
             try
@@ -2987,6 +3013,12 @@ classdef WalkingDataCustodian < handle
                 stretch_directions_new = LTOE_z_directions;
             end
             
+            
+            % IMU Vector Coding
+            
+            if strcmp(variable_name, 'coupling_angle_arm')
+                stretch_directions_new = {'+'; '-'};
+            end
             if any(strcmp(this.basic_variable_load_failures, variable_name))
                 stretch_directions_new = {'~'; '~'};
             end

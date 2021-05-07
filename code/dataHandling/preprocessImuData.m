@@ -99,24 +99,24 @@ function preprocessImuData(varargin)
             'lumbar_time_sensor', ...
             'sternum_time_sensor' ...
           );
-        addAvailableData('left_wrist_x_gyro', 'left_wrist_time_sensor', 'sensor_sampling_rate', 'sensor_labels', 'sensor_directions', save_folder, save_file_name);
-        addAvailableData('left_wrist_y_gyro', 'left_wrist_time_sensor', 'sensor_sampling_rate', 'sensor_labels', 'sensor_directions', save_folder, save_file_name);
-        addAvailableData('left_wrist_z_gyro', 'left_wrist_time_sensor', 'sensor_sampling_rate', 'sensor_labels', 'sensor_directions', save_folder, save_file_name);
-        addAvailableData('right_wrist_x_gyro', 'right_wrist_time_sensor', 'sensor_sampling_rate', 'sensor_labels', 'sensor_directions', save_folder, save_file_name);
-        addAvailableData('right_wrist_y_gyro', 'right_wrist_time_sensor', 'sensor_sampling_rate', 'sensor_labels', 'sensor_directions', save_folder, save_file_name);
-        addAvailableData('right_wrist_z_gyro', 'right_wrist_time_sensor', 'sensor_sampling_rate', 'sensor_labels', 'sensor_directions', save_folder, save_file_name);
-        addAvailableData('left_foot_x_gyro', 'left_foot_time_sensor', 'sensor_sampling_rate', 'sensor_labels', 'sensor_directions', save_folder, save_file_name);
-        addAvailableData('left_foot_y_gyro', 'left_foot_time_sensor', 'sensor_sampling_rate', 'sensor_labels', 'sensor_directions', save_folder, save_file_name);
-        addAvailableData('left_foot_z_gyro', 'left_foot_time_sensor', 'sensor_sampling_rate', 'sensor_labels', 'sensor_directions', save_folder, save_file_name);
-        addAvailableData('right_foot_x_gyro', 'right_foot_time_sensor', 'sensor_sampling_rate', 'sensor_labels', 'sensor_directions', save_folder, save_file_name);
-        addAvailableData('right_foot_y_gyro', 'right_foot_time_sensor', 'sensor_sampling_rate', 'sensor_labels', 'sensor_directions', save_folder, save_file_name);
-        addAvailableData('right_foot_z_gyro', 'right_foot_time_sensor', 'sensor_sampling_rate', 'sensor_labels', 'sensor_directions', save_folder, save_file_name);
-        addAvailableData('lumbar_x_gyro', 'lumbar_time_sensor', 'sensor_sampling_rate', 'sensor_labels', 'sensor_directions', save_folder, save_file_name);
-        addAvailableData('lumbar_y_gyro', 'lumbar_time_sensor', 'sensor_sampling_rate', 'sensor_labels', 'sensor_directions', save_folder, save_file_name);
-        addAvailableData('lumbar_z_gyro', 'lumbar_time_sensor', 'sensor_sampling_rate', 'sensor_labels', 'sensor_directions', save_folder, save_file_name);
-        addAvailableData('sternum_x_gyro', 'sternum_time_sensor', 'sensor_sampling_rate', 'sensor_labels', 'sensor_directions', save_folder, save_file_name);
-        addAvailableData('sternum_y_gyro', 'sternum_time_sensor', 'sensor_sampling_rate', 'sensor_labels', 'sensor_directions', save_folder, save_file_name);
-        addAvailableData('sternum_z_gyro', 'sternum_time_sensor', 'sensor_sampling_rate', 'sensor_labels', 'sensor_directions', save_folder, save_file_name);
+        addAvailableData('left_wrist_x_gyro', 'left_wrist_time_sensor', 'sensor_sampling_rate', 'left_wrist_x_gyro', {'+', '-'}, save_folder, save_file_name);
+        addAvailableData('left_wrist_y_gyro', 'left_wrist_time_sensor', 'sensor_sampling_rate', 'left_wrist_y_gyro', {'+', '-'}, save_folder, save_file_name);
+        addAvailableData('left_wrist_z_gyro', 'left_wrist_time_sensor', 'sensor_sampling_rate', 'left_wrist_z_gyro', {'+', '-'}, save_folder, save_file_name);
+        addAvailableData('right_wrist_x_gyro', 'right_wrist_time_sensor', 'sensor_sampling_rate', 'right_wrist_x_gyro', {'+', '-'}, save_folder, save_file_name);
+        addAvailableData('right_wrist_y_gyro', 'right_wrist_time_sensor', 'sensor_sampling_rate', 'right_wrist_y_gyro', {'+', '-'}, save_folder, save_file_name);
+        addAvailableData('right_wrist_z_gyro', 'right_wrist_time_sensor', 'sensor_sampling_rate', 'right_wrist_z_gyro', {'+', '-'}, save_folder, save_file_name);
+        addAvailableData('left_foot_x_gyro', 'left_foot_time_sensor', 'sensor_sampling_rate', 'left_foot_x_gyro', {'+', '-'}, save_folder, save_file_name);
+        addAvailableData('left_foot_y_gyro', 'left_foot_time_sensor', 'sensor_sampling_rate', 'left_foot_y_gyro', {'+', '-'}, save_folder, save_file_name);
+        addAvailableData('left_foot_z_gyro', 'left_foot_time_sensor', 'sensor_sampling_rate', 'left_foot_z_gyro', {'+', '-'}, save_folder, save_file_name);
+        addAvailableData('right_foot_x_gyro', 'right_foot_time_sensor', 'sensor_sampling_rate', 'right_foot_x_gyro', {'+', '-'}, save_folder, save_file_name);
+        addAvailableData('right_foot_y_gyro', 'right_foot_time_sensor', 'sensor_sampling_rate', 'right_foot_y_gyro', {'+', '-'}, save_folder, save_file_name);
+        addAvailableData('right_foot_z_gyro', 'right_foot_time_sensor', 'sensor_sampling_rate', 'right_foot_z_gyro', {'+', '-'}, save_folder, save_file_name);
+        addAvailableData('lumbar_x_gyro', 'lumbar_time_sensor', 'sensor_sampling_rate', 'lumbar_x_gyro', {'+', '-'}, save_folder, save_file_name);
+        addAvailableData('lumbar_y_gyro', 'lumbar_time_sensor', 'sensor_sampling_rate', 'lumbar_y_gyro', {'+', '-'}, save_folder, save_file_name);
+        addAvailableData('lumbar_z_gyro', 'lumbar_time_sensor', 'sensor_sampling_rate', 'lumbar_z_gyro', {'+', '-'}, save_folder, save_file_name);
+        addAvailableData('sternum_x_gyro', 'sternum_time_sensor', 'sensor_sampling_rate', 'sternum_x_gyro', {'+', '-'}, save_folder, save_file_name);
+        addAvailableData('sternum_y_gyro', 'sternum_time_sensor', 'sensor_sampling_rate', 'sternum_y_gyro', {'+', '-'}, save_folder, save_file_name);
+        addAvailableData('sternum_z_gyro', 'sternum_time_sensor', 'sensor_sampling_rate', 'sternum_z_gyro', {'+', '-'}, save_folder, save_file_name);
 
     end
 
@@ -215,24 +215,24 @@ function preprocessImuData(varargin)
             'lumbar_time_sensor', ...
             'sternum_time_sensor' ...
           );
-        addAvailableData('left_wrist_x_accel', 'left_wrist_time_sensor', 'sensor_sampling_rate', 'sensor_labels', 'sensor_directions', save_folder, save_file_name);
-        addAvailableData('left_wrist_y_accel', 'left_wrist_time_sensor', 'sensor_sampling_rate', 'sensor_labels', 'sensor_directions', save_folder, save_file_name);
-        addAvailableData('left_wrist_z_accel', 'left_wrist_time_sensor', 'sensor_sampling_rate', 'sensor_labels', 'sensor_directions', save_folder, save_file_name);
-        addAvailableData('right_wrist_x_accel', 'right_wrist_time_sensor', 'sensor_sampling_rate', 'sensor_labels', 'sensor_directions', save_folder, save_file_name);
-        addAvailableData('right_wrist_y_accel', 'right_wrist_time_sensor', 'sensor_sampling_rate', 'sensor_labels', 'sensor_directions', save_folder, save_file_name);
-        addAvailableData('right_wrist_z_accel', 'right_wrist_time_sensor', 'sensor_sampling_rate', 'sensor_labels', 'sensor_directions', save_folder, save_file_name);
-        addAvailableData('left_foot_x_accel', 'left_foot_time_sensor', 'sensor_sampling_rate', 'sensor_labels', 'sensor_directions', save_folder, save_file_name);
-        addAvailableData('left_foot_y_accel', 'left_foot_time_sensor', 'sensor_sampling_rate', 'sensor_labels', 'sensor_directions', save_folder, save_file_name);
-        addAvailableData('left_foot_z_accel', 'left_foot_time_sensor', 'sensor_sampling_rate', 'sensor_labels', 'sensor_directions', save_folder, save_file_name);
-        addAvailableData('right_foot_x_accel', 'right_foot_time_sensor', 'sensor_sampling_rate', 'sensor_labels', 'sensor_directions', save_folder, save_file_name);
-        addAvailableData('right_foot_y_accel', 'right_foot_time_sensor', 'sensor_sampling_rate', 'sensor_labels', 'sensor_directions', save_folder, save_file_name);
-        addAvailableData('right_foot_z_accel', 'right_foot_time_sensor', 'sensor_sampling_rate', 'sensor_labels', 'sensor_directions', save_folder, save_file_name);
-        addAvailableData('lumbar_x_accel', 'lumbar_time_sensor', 'sensor_sampling_rate', 'sensor_labels', 'sensor_directions', save_folder, save_file_name);
-        addAvailableData('lumbar_y_accel', 'lumbar_time_sensor', 'sensor_sampling_rate', 'sensor_labels', 'sensor_directions', save_folder, save_file_name);
-        addAvailableData('lumbar_z_accel', 'lumbar_time_sensor', 'sensor_sampling_rate', 'sensor_labels', 'sensor_directions', save_folder, save_file_name);
-        addAvailableData('sternum_x_accel', 'sternum_time_sensor', 'sensor_sampling_rate', 'sensor_labels', 'sensor_directions', save_folder, save_file_name);
-        addAvailableData('sternum_y_accel', 'sternum_time_sensor', 'sensor_sampling_rate', 'sensor_labels', 'sensor_directions', save_folder, save_file_name);
-        addAvailableData('sternum_z_accel', 'sternum_time_sensor', 'sensor_sampling_rate', 'sensor_labels', 'sensor_directions', save_folder, save_file_name);
+        addAvailableData('left_wrist_x_accel', 'left_wrist_time_sensor', 'sensor_sampling_rate', 'left_wrist_x_accel', {'+', '-'}, save_folder, save_file_name);
+        addAvailableData('left_wrist_y_accel', 'left_wrist_time_sensor', 'sensor_sampling_rate', 'left_wrist_y_accel', {'+', '-'}, save_folder, save_file_name);
+        addAvailableData('left_wrist_z_accel', 'left_wrist_time_sensor', 'sensor_sampling_rate', 'left_wrist_z_accel', {'+', '-'}, save_folder, save_file_name);
+        addAvailableData('right_wrist_x_accel', 'right_wrist_time_sensor', 'sensor_sampling_rate', 'right_wrist_x_accel', {'+', '-'}, save_folder, save_file_name);
+        addAvailableData('right_wrist_y_accel', 'right_wrist_time_sensor', 'sensor_sampling_rate', 'right_wrist_y_accel', {'+', '-'}, save_folder, save_file_name);
+        addAvailableData('right_wrist_z_accel', 'right_wrist_time_sensor', 'sensor_sampling_rate', 'right_wrist_z_accel', {'+', '-'}, save_folder, save_file_name);
+        addAvailableData('left_foot_x_accel', 'left_foot_time_sensor', 'sensor_sampling_rate', 'left_foot_x_accel', {'+', '-'}, save_folder, save_file_name);
+        addAvailableData('left_foot_y_accel', 'left_foot_time_sensor', 'sensor_sampling_rate', 'left_foot_y_accel', {'+', '-'}, save_folder, save_file_name);
+        addAvailableData('left_foot_z_accel', 'left_foot_time_sensor', 'sensor_sampling_rate', 'left_foot_z_accel', {'+', '-'}, save_folder, save_file_name);
+        addAvailableData('right_foot_x_accel', 'right_foot_time_sensor', 'sensor_sampling_rate', 'right_foot_x_accel', {'+', '-'}, save_folder, save_file_name);
+        addAvailableData('right_foot_y_accel', 'right_foot_time_sensor', 'sensor_sampling_rate', 'right_foot_y_accel', {'+', '-'}, save_folder, save_file_name);
+        addAvailableData('right_foot_z_accel', 'right_foot_time_sensor', 'sensor_sampling_rate', 'right_foot_z_accel', {'+', '-'}, save_folder, save_file_name);
+        addAvailableData('lumbar_x_accel', 'lumbar_time_sensor', 'sensor_sampling_rate', 'lumbar_x_accel', {'+', '-'}, save_folder, save_file_name);
+        addAvailableData('lumbar_y_accel', 'lumbar_time_sensor', 'sensor_sampling_rate', 'lumbar_y_accel', {'+', '-'}, save_folder, save_file_name);
+        addAvailableData('lumbar_z_accel', 'lumbar_time_sensor', 'sensor_sampling_rate', 'lumbar_z_accel', {'+', '-'}, save_folder, save_file_name);
+        addAvailableData('sternum_x_accel', 'sternum_time_sensor', 'sensor_sampling_rate', 'sternum_x_accel', {'+', '-'}, save_folder, save_file_name);
+        addAvailableData('sternum_y_accel', 'sternum_time_sensor', 'sensor_sampling_rate', 'sternum_y_accel', {'+', '-'}, save_folder, save_file_name);
+        addAvailableData('sternum_z_accel', 'sternum_time_sensor', 'sensor_sampling_rate', 'sternum_z_accel', {'+', '-'}, save_folder, save_file_name);
 
     end
 end
