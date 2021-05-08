@@ -695,10 +695,10 @@ function plotData_discrete(settings, comparisons, data_custodian, figure_data)
                     data_to_plot_this_condition = reshape(data_to_plot_this_condition, 1, numel(data_to_plot_this_condition));
                 end
                 for i_band = 1 : size(data_to_plot_this_condition, 1)
-                    if ~isempty(settings.band_labels)
-                        label_string_this_band = [label_string '-' settings.band_labels{i_band}];
+                    if ~isempty(settings.band_labels) && ~settings.plot_settings.get('merge_bands', 1)
+                        label_string_this_band = strrep([label_string '-' settings.band_labels{i_band}], '_', ' ');
                     else
-                        label_string_this_band = label_string;
+                        label_string_this_band = strrep(label_string, '_', ' ');
                     end
                     target_abscissa = figure_data.abscissae_cell{i_comparison, i_variable}(i_band, i_condition);
                     data_to_plot_this_band = data_to_plot_this_condition(i_band, :);
