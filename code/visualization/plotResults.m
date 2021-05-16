@@ -723,7 +723,7 @@ function plotData_discrete(settings, comparisons, data_custodian, figure_data)
                             'ShowSpread', settings.show_spread_data, ...
                             'SpreadStyle', settings.plot_settings.get('discrete_data_plot_style'), ...
                             'label', label_string_this_band ...     % label
-                          )
+                          );
 
                     end
                 end

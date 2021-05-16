@@ -65,10 +65,9 @@ function eventGui(varargin)
     event_data = eventData(data_custodian);
     
     %% init gui
-    controller = eventController(data_custodian, event_data);
+    controller = eventController(data_custodian, event_data, gui_settings);
     
     %% stick figure and kinematic tree figure
-  
     if gui_settings.get('show_simple_stick_figure', 1)
         scene_bound = ...
           [ ...
@@ -148,8 +147,8 @@ function eventGui(varargin)
     else
         event_time = event_times(1);
     end
-%     controller.setSelectedEvent(event_label, event_time);
     controller.setSelectedEvent([], []);
+    controller.updateTimeWindow('preferred');
 
 end
 

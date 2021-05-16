@@ -18,6 +18,7 @@ classdef eventController < handle
     properties
         data_custodian;
         event_data;
+        gui_settings;
         
         event_time_normal_step = 0.005;
         event_time_large_step = 0.050;
@@ -56,9 +57,10 @@ classdef eventController < handle
         canvas_on_screen_height;
     end
     methods
-        function this = eventController(data_custodian, event_data)
+        function this = eventController(data_custodian, event_data, gui_settings)
             this.data_custodian = data_custodian;
             this.event_data = event_data;
+            this.gui_settings = gui_settings;
             
             screen_size = get(0,'ScreenSize');
             
@@ -916,6 +918,11 @@ classdef eventController < handle
             elseif strcmp(mode, 'next')
                 new_extension = current_extension;
                 new_center = current_center + current_extension;
+            elseif strcmp(mode, 'preferred')
+                preferred_extension = this.gui_settings.get('preferred_time_window_extension', 1);
+                new_extension = preferred_extension;
+                new_center = preferred_extension * 0.5;
+
             end
             if isempty(new_extension)
                 return

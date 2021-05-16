@@ -497,6 +497,9 @@ classdef SettingsCustodian < handle
             if strcmp(property_name, 'inverse_kinematics_source')
                 default_data = 'opensim';
             end
+            if strcmp(property_name, 'preferred_time_window_extension')
+                default_data = 40;
+            end
 
 
             if strcmp(property_name, 'analysis_table')
