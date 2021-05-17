@@ -561,6 +561,10 @@ classdef SettingsCustodian < handle
                 default_data = {'trial_type', 'trial_number', 'marker_to_fill', 'marker_source_1', 'marker_source_2', 'marker_source_3'};
             end
             
+            if strcmp(property_name, 'average_within_subjects')
+                default_data = false;
+            end
+            
             
             if strcmp(property_name, 'marker_to_segment_map')
                 default_data = ...
