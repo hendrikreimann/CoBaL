@@ -34,21 +34,12 @@ function inverseKinematics_3DoF(varargin)
     [condition_list, trial_number_list] = parseTrialArguments(varargin{:});
     parser = inputParser;
     parser.KeepUnmatched = true;
-    addParameter(parser, 'use_parallel', false)
     parse(parser, varargin{:})
-    use_parallel = parser.Results.use_parallel;
     
-    load('subjectInfo.mat', 'date', 'subject_id');
     load('subjectModel.mat');
-    study_settings_file = '';
-    if exist(['..' filesep 'studySettings.txt'], 'file')
-        study_settings_file = ['..' filesep 'studySettings.txt'];
-    end    
-    if exist(['..' filesep '..' filesep 'studySettings.txt'], 'file')
-        study_settings_file = ['..' filesep '..' filesep 'studySettings.txt'];
-    end
-    study_settings = SettingsCustodian(study_settings_file);
-    subject_settings = SettingsCustodian('subjectSettings.txt');
+    subject_settings = loadSettingsFromFile('subject');
+    collection_date = subject_settings.get('collection_date');
+    subject_id = subject_settings.get('subject_id');
     
     % extract references
     number_of_joint_angles = kinematic_tree.numberOfJoints;
@@ -88,24 +79,10 @@ function inverseKinematics_3DoF(varargin)
         for i_trial = trials_to_process
             condition = condition_list{i_condition};
             
-            % give feedback
-%             disp([' - Condition ' condition ', Trial ' num2str(i_trial)])
-%             fprintf([' - Calculating kinematic trajectories... \n'])
-            
             % load data
-            load(['processed' filesep makeFileName(date, subject_id, condition, i_trial, 'markerTrajectories')]);
+            load(['processed' filesep makeFileName(collection_date, subject_id, condition, i_trial, 'markerTrajectories')]);
             number_of_time_steps = size(marker_trajectories, 1);
             time_steps_to_process = 1 : number_of_time_steps;
-            number_of_time_steps_to_process = length(time_steps_to_process);
-            
-            com_labels = [segment_labels 'BODY'];
-            for i_label = 1 : length(com_labels)
-                com_labels{i_label} = [com_labels{i_label} 'COM'];
-            end
-            
-            % calculate
-            joint_center_labels = joint_center_labels; % TODO: fix this
-            com_trajectories = zeros(number_of_time_steps, length(com_labels)*3);
             
             % extract marker positions
             REAR_position = extractMarkerData(marker_trajectories, marker_labels, 'R_ear');
@@ -165,7 +142,7 @@ function inverseKinematics_3DoF(varargin)
             variables_to_save.sampling_rate_mocap = sampling_rate_mocap;
             
             save_folder = 'processed';
-            save_file_name = makeFileName(date, subject_id, condition, i_trial, 'kinematicTrajectories.mat');
+            save_file_name = makeFileName(collection_date, subject_id, condition, i_trial, 'kinematicTrajectories.mat');
             saveDataToFile([save_folder filesep save_file_name], variables_to_save);
 
             addAvailableData ...
