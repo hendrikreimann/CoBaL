@@ -30,6 +30,7 @@ function importLabviewData()
     %% prepare
     study_settings = loadSettingsFromFile('study');
     milliseconds_to_seconds = 1e-3;
+    protocol_info = load('protocolInfo.mat');
 
     % create folders if necessary
     if ~directoryExists('raw')
@@ -55,8 +56,18 @@ function importLabviewData()
     for i_file = 1 : number_of_files
         % file name stuff
         data_file_name = file_name_list{i_file};
+        file_part_of_protocol = false;
+        if isfield(protocol_info, 'stimulus_file_name') ...
+            && any(strcmp(protocol_info.stimulus_file_name, data_file_name))
+            file_part_of_protocol = true;
+        end
+        if isfield(protocol_info, 'metronome_file_name') ...
+            && any(strcmp(protocol_info.metronome_file_name, data_file_name))
+            file_part_of_protocol = true;
+        end
+        
         [date, subject_id, trial_type, trial_number, file_type, success] = getFileParameters(data_file_name);
-        if success
+        if success && ~file_part_of_protocol
             imported_data = importdata([labview_source_dir filesep data_file_name], ',', 2);
             labview_trajectories = imported_data.data; %#ok<NASGU>
 
