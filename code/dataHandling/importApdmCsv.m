@@ -15,7 +15,7 @@
 %     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 function importApdmCsv (varargin)
-    source_dir = 'csv';
+    source_dir = 'CSV';
     
     % load settings
     subject_settings = loadSettingsFromFile('subject');
@@ -45,10 +45,11 @@ function importApdmCsv (varargin)
         
         % load data
         this_file_name = [this_file_time '_Walk_Trial.csv'];
+        % this_file_name = ['Walk_trials.csv'];
         data_table = readtable([source_dir filesep this_file_name]);
         
         % extract data
-        data_column_start = 6; % hardcoded, assuming this is fixed for all APDM csv files we'll try to import
+        data_column_start = 6; % was 6, hardcoded, assuming this is fixed for all APDM csv files we'll try to import
         label_column = 1;
         labels = data_table{:, label_column};
         left_touchdown_times = data_table{strcmp(labels, 'Gait - Lower Limb - Gait Cycle L (s)'), data_column_start : end}';
@@ -59,6 +60,13 @@ function importApdmCsv (varargin)
         right_pushoff_times = data_table{strcmp(labels, 'Gait - Lower Limb - Toe Off R (s)'), data_column_start : end}';
         turn_start_times = data_table{strcmp(labels, 'Turns - Turn (s)'), data_column_start : end}';
         turn_start_times(isnan(turn_start_times)) = [];
+        
+        left_touchdown_times(isnan(left_touchdown_times)) = [];
+        right_touchdown_times(isnan(right_touchdown_times)) = [];
+        left_midswing_times(isnan(left_midswing_times)) = [];
+        right_midswing_times(isnan(right_midswing_times)) = [];
+        left_pushoff_times(isnan(left_pushoff_times)) = [];
+        right_pushoff_times(isnan(right_pushoff_times)) = [];
 
         
         variables_to_save = struct;

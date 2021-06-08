@@ -90,9 +90,13 @@ function trial_data = determineTriggerTimes(study_settings, trial_data)
             this_turn_time = turn_times(i_turn);
             heelstrikes_before_this_turn = left_touchdown_times(left_touchdown_times < this_turn_time);
             last_heelstrike_before_this_turn_index = numel(heelstrikes_before_this_turn);
-            removal_flags(last_heelstrike_before_this_turn_index) = 1;
+           
+                if last_heelstrike_before_this_turn_index == 0
+                
+                else
+                    removal_flags(last_heelstrike_before_this_turn_index) = 1;
+                end
         end
-        
         % remove last left heelstrike
         removal_flags(end) = 1;
         
