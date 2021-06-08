@@ -102,15 +102,11 @@ function inverseKinematics_3DoF(varargin)
             ankle_cor = (LANK_position + RANK_position) * 0.5;
             knee_cor = (LKNE_position + RKNE_position) * 0.5;
             hip_cor = (LGT_position + RGT_position) * 0.5;
-            lumbar_cor = (LIC_position + RIC_position) * 0.5;
             shoulders_mid = (LSHO_position + RSHO_position) * 0.5;
-            ears_mid = (LEAR_position + REAR_position) * 0.5;
 
             lower_leg_vector = knee_cor - ankle_cor;
             thigh_vector = hip_cor - knee_cor;
-            pelvis_vector = lumbar_cor - hip_cor;
-            trunk_vector = shoulders_mid - lumbar_cor;
-            head_vector = ears_mid - shoulders_mid;
+            trunk_vector = shoulders_mid - hip_cor;
 
             lower_leg_segment_angle_position = atan2(lower_leg_vector(:, 3), -lower_leg_vector(:, 1));
             thigh_segment_angle_position = atan2(thigh_vector(:, 3), -thigh_vector(:, 1));
