@@ -80,7 +80,7 @@ function processAnalysisVariables(varargin)
             data = calculateExtremaOverRangeVariables(this_settings_table, this_settings_table_header, data);
         end
         if strcmp(this_action, 'combine two variables')
-            data = combineTwoVariables(this_settings_table, this_settings_table_header, data);
+            data = combineTwoVariables(this_settings_table, this_settings_table_header, study_settings, data);
         end
         
         
@@ -791,7 +791,7 @@ function data = calculateExtremaOverRangeVariables(variables_from_extrema_range,
     end
 end
 
-function data = combineTwoVariables(variable_table, table_header, data)
+function data = combineTwoVariables(variable_table, table_header, study_settings, data)
     for i_variable = 1 : size(variable_table, 1)
         % get data
         this_variable_name = variable_table{i_variable, strcmp(table_header, 'new_variable_name')};
@@ -843,6 +843,35 @@ function data = combineTwoVariables(variable_table, table_header, data)
               );
         end
         combined_variable_directions = variable_A_directions;
+        if ~isequal(size(variable_A_data), size(variable_B_data))
+            % one variable is discrete and the other one continuous, deal with this
+            if size(variable_A_data, 1) < size(variable_B_data, 1)
+                % variable A is the discrete one
+                discrete_variable_data = variable_A_data;
+                continuous_variable_data = variable_B_data;
+            else
+                % variable B is the discrete one
+                discrete_variable_data = variable_B_data;
+                continuous_variable_data = variable_A_data;
+            end
+            
+            number_of_bands = data.bands_per_stretch;
+            number_of_time_steps_normalized = study_settings.get('number_of_time_steps_normalized');
+            discrete_variable_data_extended = zeros(size(continuous_variable_data)) * NaN;
+            for i_band = 1 : number_of_bands
+                [band_start_index, band_end_index] = getBandIndices(i_band, number_of_time_steps_normalized);
+                discrete_variable_data_extended(band_start_index+1 : band_end_index-1, :) = repmat(discrete_variable_data(i_band, :), number_of_time_steps_normalized-2, 1);
+            end
+            
+            if size(variable_A_data, 1) < size(variable_B_data, 1)
+                % variable A is the discrete one
+                variable_A_data = discrete_variable_data_extended;
+            else
+                % variable B is the discrete one
+                variable_B_data = discrete_variable_data_extended;
+            end
+            
+        end
         combined_variable_data = variable_A_data * variable_A_gain + variable_B_data * variable_B_gain + offset;
         
         % store
