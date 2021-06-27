@@ -117,6 +117,12 @@ function [conditions_trial, event_variables_to_save, removal_flags] ...
             = determineConditionLevels_type(trial_data, conditions_trial);
     end
     
+    % add metronome from metronome filename if required
+    if any(strcmp(conditions_table(:, 1), 'metronome'))
+        conditions_trial ...
+            = determineConditionLevels_metronome(trial_data, conditions_trial);
+    end
+    
     % add subject
     condition_subject_list = cell(size(event_variables_to_save.stretch_times, 1), 1);
     for i_stretch = 1 : length(condition_subject_list)
