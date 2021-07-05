@@ -56,6 +56,7 @@ classdef StretchDataCustodian < handle
                 results_file_candidate_analysis = [this_data_folder_path filesep 'analysis' filesep makeFileName(collection_date, subject_id, file_label) '.mat'];
                 results_file_candidate_subject = [this_data_folder_path filesep makeFileName(collection_date, subject_id, file_label) '.mat'];
                 results_file_candidate_results = [this_data_folder_path filesep 'results' filesep  makeFileName(collection_date, subject_id, file_label) '.mat'];
+                results_file_name = [];
                 if exist(results_file_candidate_analysis, 'file')
                     results_file_name = results_file_candidate_analysis;
                 end    
@@ -64,7 +65,10 @@ classdef StretchDataCustodian < handle
                 end    
                 if exist(results_file_candidate_results, 'file')
                     results_file_name = results_file_candidate_results;
-                end    
+                end
+                if isempty(results_file_name)
+                    error(['No results file found for subject ' subjects{i_folder}])
+                end
 
                 % load data
                 disp(['loading data from ' results_file_name])
