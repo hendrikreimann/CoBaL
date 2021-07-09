@@ -106,7 +106,7 @@ function settings = parseSettings(varargin)
     
     % median
     addParameter(parser, 'ShowMedian', true)
-    addParameter(parser, 'MedianStyle', 'd')
+    addParameter(parser, 'MedianStyle', 'line')
     addParameter(parser, 'MedianMarkerSize', 18)
     addParameter(parser, 'MedianColor', [0.5, 0.5, 0.5])
     addParameter(parser, 'MedianLinewidth', 3)
