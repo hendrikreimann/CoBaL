@@ -122,8 +122,8 @@ function relateTwoVariablesFromSameBand(variable_table, study_settings, subject_
         results_this_variable.outcome = variable_B_name;
         results_this_variable.predictor_type = variable_A_type;
         results_this_variable.outcome_type = variable_B_type;
-        results_this_variable.data.predictor = variable_A_data_all;
-        results_this_variable.data.outcome = variable_B_data_all;
+        results_this_variable.data.predictor = cell(number_of_bands, number_of_condition_combinations);;
+        results_this_variable.data.outcome = cell(number_of_bands, number_of_condition_combinations);;
         results_this_variable.R_square = cell(number_of_bands, number_of_condition_combinations);
         results_this_variable.slope = cell(number_of_bands, number_of_condition_combinations);
         results_this_variable.slope_confidence_interval_width = cell(number_of_bands, number_of_condition_combinations);
@@ -162,7 +162,12 @@ function relateTwoVariablesFromSameBand(variable_table, study_settings, subject_
                 R_square_table_here = zeros(data_points_per_band_A, data_points_per_band_B) * NaN;
                 slope_table_here = zeros(data_points_per_band_A, data_points_per_band_B) * NaN;
                 slope_confidence_interval_width_table_here = zeros(data_points_per_band_A, data_points_per_band_B) * NaN;
+                offset_table_here = zeros(data_points_per_band_A, data_points_per_band_B) * NaN;
+                offset_confidence_interval_width_table_here = zeros(data_points_per_band_A, data_points_per_band_B) * NaN;
                 correlation_p_table_here = zeros(data_points_per_band_A, data_points_per_band_B) * NaN;
+                
+                results_this_variable.data.predictor{i_band, i_condition} = variable_A_data_this_band;
+                results_this_variable.data.outcome{i_band, i_condition} = variable_B_data_this_band;
                 
                 for i_A = 1 : size(variable_A_data_this_band, 1)
                     for i_B = 1 : size(variable_B_data_this_band, 1)
@@ -178,8 +183,10 @@ function relateTwoVariablesFromSameBand(variable_table, study_settings, subject_
                             % store
                             R_square_table_here(i_A, i_B) = fit_stats.rsquare;
                             slope_table_here(i_A, i_B) = fit_object.p1;
+                            offset_table_here(i_A, i_B) = fit_object.p2;
                             confidence_intervals = confint(fit_object);
                             slope_confidence_interval_width_table_here(i_A, i_B) = range(confidence_intervals(:, 1));
+                            offset_confidence_interval_width_table_here(i_A, i_B) = range(confidence_intervals(:, 2));
                             correlation_p_table_here(i_A, i_B) = correlation_p(1, 2);
                         end                        
                     end
@@ -189,8 +196,9 @@ function relateTwoVariablesFromSameBand(variable_table, study_settings, subject_
                 results_this_variable.R_square{i_band, i_condition} = R_square_table_here;
                 results_this_variable.slope{i_band, i_condition} = slope_table_here;
                 results_this_variable.slope_confidence_interval_width{i_band, i_condition} = slope_confidence_interval_width_table_here;
+                results_this_variable.offset{i_band, i_condition} = offset_table_here;
+                results_this_variable.offset_confidence_interval_width{i_band, i_condition} = offset_confidence_interval_width_table_here;
                 results_this_variable.correlation_p{i_band, i_condition} = correlation_p_table_here;
-                
 
 %                 % plot
 %                 figure; 
@@ -221,7 +229,7 @@ function relateTwoVariablesFromSameBand(variable_table, study_settings, subject_
         linear_model_results{i_variable, 3} = variable_A_type;
         linear_model_results{i_variable, 4} = variable_B_name;
         linear_model_results{i_variable, 5} = variable_B_type;
-        disp(['Finished variable ' num2str(i_variable) ' of ' num2str(number_of_variables)])
+        disp(['Finished model ' num2str(i_variable) ' of ' num2str(number_of_variables) ', predictor: ' variable_A_name ', outcome: ' variable_B_name])
     end
     
     % save
