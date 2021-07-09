@@ -5,8 +5,13 @@ function foot_basis_trajectory = estimateFootBasisTrajectory_boxcar ...
     marker_labels, ...
     events_data, ...
     sampling_rate, ...
-    metronome_frequency ...
+    metronome_frequency, ...
+    visualize ...
   )
+
+    if nargin < 7
+        visualize = 0;
+    end
 
     % extract foot markers for each foot
     LHEE = extractMarkerData(marker_trajectories, marker_labels, 'LHEE');
@@ -63,16 +68,19 @@ function foot_basis_trajectory = estimateFootBasisTrajectory_boxcar ...
     % average
     foot_basis_trajectory = (left_foot_x_butter + right_foot_x_butter) * 0.5;
     
-    colors = lines(4);
-    figure; hold on;
-    plot(time, left_foot_x, ':', 'color', colors(1, :));
-    plot(time, left_foot_x_stance, 'linewidth', 4, 'color', colors(1, :));
-    plot(time, left_foot_x_boxcar, 'color', colors(1, :), 'linewidth', 1);
-    plot(time, left_foot_x_butter, 'color', colors(3, :), 'linewidth', 1);
-    plot(time, right_foot_x, ':', 'color', colors(2, :));
-    plot(time, right_foot_x_stance, 'linewidth', 4, 'color', colors(2, :));
-    plot(time, right_foot_x_boxcar, 'color', colors(2, :), 'linewidth', 1);
-    plot(time, right_foot_x_butter, 'color', colors(3, :), 'linewidth', 1);
+    if visualize
+        colors = lines(4);
+        figure; hold on;
+        plot(time, left_foot_x, ':', 'color', colors(1, :), 'DisplayName', 'left foot position');
+        plot(time, left_foot_x_stance, 'linewidth', 4, 'color', colors(1, :), 'DisplayName', 'left foot single stance');
+        plot(time, left_foot_x_boxcar, 'color', colors(1, :), 'linewidth', 1, 'DisplayName', 'left foot boxcar');
+        plot(time, left_foot_x_butter, 'color', colors(3, :), 'linewidth', 1, 'DisplayName', 'left foot filtered');
+        plot(time, right_foot_x, ':', 'color', colors(2, :), 'DisplayName', 'right foot position');
+        plot(time, right_foot_x_stance, 'linewidth', 4, 'color', colors(2, :), 'DisplayName', 'right foot single stance');
+        plot(time, right_foot_x_boxcar, 'color', colors(2, :), 'linewidth', 1, 'DisplayName', 'right foot boxcar');
+        plot(time, right_foot_x_butter, 'color', colors(3, :), 'linewidth', 1, 'DisplayName', 'right foot filtered');
 
-    plot(time, foot_basis_trajectory, 'linewidth', 4, 'color', colors(4, :));
+        plot(time, foot_basis_trajectory, 'linewidth', 4, 'color', colors(4, :), 'DisplayName', 'foot basis');
+        legend('Location', 'best')
+    end
 end
