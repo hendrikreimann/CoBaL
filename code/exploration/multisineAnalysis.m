@@ -26,7 +26,7 @@ title_label = [response_label '_' trial_label];
 
 % set parameters for analysis
 fmax                            = 200;  % number of frequency points used in frequency analysis
-number_of_cycles_to_ignore_end  = 2;    % number of stimulus cycles ignored at the end
+number_of_cycles_to_ignore_end  = 0;    % number of stimulus cycles ignored at the end
 
 % analyze data
 if analyze_data
@@ -81,7 +81,6 @@ if analyze_data
         % load data
         trial_number = trials_to_analyze(i_trial);
         
-        single_cycle_duration = 36.3;
         if strcmp(metronome_files{i_trial}, 'metronome_0_75_Hz.csv')
             metronome_frequency = 30 / signal_data.single_cycle_duration;
         elseif strcmp(metronome_files{i_trial}, 'metronome_0_85_Hz.csv')
@@ -303,6 +302,13 @@ if analyze_data
         yoid_mean_trial = yoid_mean_trial(1 : signal_data.number_of_excited_frequencies);
         yiid_mean_trial = yiid_mean_trial(1 : signal_data.number_of_excited_frequencies);
         yood_mean_trial = yood_mean_trial(1 : signal_data.number_of_excited_frequencies);
+        
+        % smooth frequencies
+%         fd = frequencySmoothing_multisine(fd);
+%         FRFd_trial = frequencySmoothing_multisine(FRFd_trial);
+%         yoid_mean_trial = frequencySmoothing_multisine(yoid_mean_trial);
+%         yiid_mean_trial = frequencySmoothing_multisine(yiid_mean_trial);
+%         yood_mean_trial = frequencySmoothing_multisine(yood_mean_trial);
         
         % calculate coherence
         Cohd_trial = (abs(yoid_mean_trial).^2) ./ (yiid_mean_trial .* yood_mean_trial);
