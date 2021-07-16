@@ -4,6 +4,7 @@ plot_results            = 1;
 dictate_axes            = 0;
 save_figure             = 1;
 
+export_data             = 1;
 show_metronome_figure   = 0;
 
 trial_type = 'stimulus'; type_label = 'walking';
@@ -18,7 +19,7 @@ trials_to_analyze = 1:4; trial_label = 'low cadence'; trial_filename_label = 'lo
 % trials_to_analyze = 5:8; trial_label = 'medium cadence'; trial_filename_label = 'mediumCadence';
 % trials_to_analyze = 9:12; trial_label = 'high cadence'; trial_filename_label = 'highCadence';
 
-% trials_to_analyze = 1:12; trial_label = 'all cadences'; trial_filename_label = 'allCadences';
+trials_to_analyze = 1:12; trial_label = 'all cadences'; trial_filename_label = 'allCadences';
 
 % create filename and title label
 filename = [response_filename_label '_' trial_filename_label];
@@ -92,6 +93,12 @@ if analyze_data
         metronome_reset_indices = find(diff(metronome_data)) + 1;
         metronome_phase = wrapToPi(2 * pi * signal_data.time * metronome_frequency);
         
+        if export_data
+            data_for_export = struct;
+            data_for_export.metronome_frequency = metronome_frequency;
+            data_for_export.units.metronome_frequency = 'Hz';
+        end
+        
         % load heel-strikes and calculate phase
         events_file_name = makeFileName(collection_date, subject_id, trial_type, trial_number, 'events.mat');
         events_data = load(['analysis' filesep events_file_name]);
@@ -109,14 +116,14 @@ if analyze_data
         end
         
         % load CoM
-        if strcmp(response_variable, 'com_position') || strcmp(response_variable, 'com_angle')
+        if strcmp(response_variable, 'com_position') || strcmp(response_variable, 'com_angle') || export_data
             [com_trajectories, time_com, com_sampling_rate, com_labels, com_directions] = loadData(collection_date, subject_id, trial_type, trial_number, 'com_position_trajectories');
             com_x = com_trajectories(:, strcmp(com_labels, 'center_of_mass_x'));
             com_z = com_trajectories(:, strcmp(com_labels, 'center_of_mass_z'));
         end
         
         % calculate angles
-        if strcmp(response_variable, 'trunk_angle') || strcmp(response_variable, 'com_angle') || strcmp(response_variable, 'foot_base')
+        if strcmp(response_variable, 'trunk_angle') || strcmp(response_variable, 'com_angle') || strcmp(response_variable, 'foot_base') || export_data
             [marker_trajectories, time_marker, sampling_rate_marker, marker_labels] = loadData(collection_date, subject_id, trial_type, trial_number, 'marker_trajectories');
             LPSI_trajectory = extractMarkerData(marker_trajectories, marker_labels, 'LPSI', 'trajectories');
             RPSI_trajectory = extractMarkerData(marker_trajectories, marker_labels, 'RPSI', 'trajectories');
@@ -183,12 +190,45 @@ if analyze_data
             response = - foot_base_x_trajectory;
             response = spline(time_response, response, time);
         end
+        if export_data
+            % figure out time
+            time_max = min([time_com(end), time_marker(end)]);
+            data_for_export.time = time;
+            data_for_export.time(data_for_export.time > time_max) = [];
+            
+            % com position
+            data_for_export.com_x = spline(time_com, - com_x, data_for_export.time);
+            data_for_export.com_z = spline(time_com, com_z, data_for_export.time);
+            data_for_export.directions.com_x.positive = 'left';
+            data_for_export.directions.com_x.negative = 'right';
+            data_for_export.directions.com_z.positive = 'up';
+            data_for_export.directions.com_z.negative = 'down';
+            data_for_export.units.com_x = 'm';
+            data_for_export.units.com_z = 'm';
+            
+            % com angle
+            data_for_export.com_angle = spline(time_marker, - com_angle_trajectory, data_for_export.time);
+            data_for_export.directions.com_angle.positive = 'left roll';
+            data_for_export.directions.com_angle.negative = 'right roll';
+            data_for_export.units.com_angle = 'deg';
+            
+            % foot base
+            data_for_export.foot_base_x = spline(time_marker, - foot_base_x_trajectory, data_for_export.time);
+            data_for_export.directions.foot_base_x.positive = 'left';
+            data_for_export.directions.foot_base_x.negative = 'right';
+            data_for_export.units.foot_base_x = 'm';
+        end
         
         % clean up
         this_gain = gains(i_trial);
         this_pace = paces(i_trial);
         this_stimulus = signal_data.stimulus * this_gain;
         this_stimulus(signal_data.time>time_response(end)) = [];
+        
+        if export_data
+            data_for_export.stimulus = this_stimulus;
+            data_for_export.units.stimulus = 'deg';
+        end        
         
 %         if strcmp(response_variable, 'com_angle')
 %             this_stimulus = deriveByTime(this_stimulus, time)';
@@ -314,12 +354,12 @@ if analyze_data
         Cohd_trial = (abs(yoid_mean_trial).^2) ./ (yiid_mean_trial .* yood_mean_trial);
         
         % model fit
-        if fit_model
+        if fit_model || export_data
             F_model = fd;
             FRF_model = FRFd_trial;
             Coh_model = Cohd_trial;
 
-            Mass_kg = 80;
+            Mass_kg = 85;
             height_m = 1.87;
             Len_L_m = height_m * (0.285 - 0.039);
             Len_T_m = height_m * (0.530 - 0.285);
@@ -344,6 +384,15 @@ if analyze_data
                 1 ...
               );
             model_fits{i_trial} = Fit;
+            
+            if export_data
+                data_for_export.biomechanics.moment_of_inertia = J;
+                data_for_export.biomechanics.mass = Mass_kg;
+                data_for_export.biomechanics.center_of_mass_height = COM;
+                data_for_export.units.biomechanics.moment_of_inertia = 'kg m^2';
+                data_for_export.units.biomechanics.mass = 'kg';
+                data_for_export.units.biomechanics.center_of_mass_height = 'm';
+            end            
         end
         
         % store results from this trial
@@ -354,6 +403,11 @@ if analyze_data
         average_filtered_response{i_trial} = average_filtered_response_trial;
         stimulus_all{i_trial} = this_stimulus;
         response_all{i_trial} = response;
+        
+        if export_data
+            filename = makeFileName(collection_date, subject_id, trial_type, trial_number, 'dataForBob.mat');
+            save(filename, '-struct', 'data_for_export');
+        end
     end
 
 end
