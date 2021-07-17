@@ -53,9 +53,9 @@ function [conditions_trial, event_variables_to_save, removal_flags] = determineC
     stance_foot_data = repmat(stance_foot_data_stretch, size(stretch_times, 1), 1);
     event_variables_to_save.stretch_times = stretch_times;
     event_variables_to_save.stance_foot_data = stance_foot_data;
-    event_variables_to_save.first_stance_leg_list = first_stance_leg_list;
 
     % conditions
     conditions_trial = struct;
+    conditions_trial.first_stance_leg_list = first_stance_leg_list;
 end
 

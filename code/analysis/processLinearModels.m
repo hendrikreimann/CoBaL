@@ -1,6 +1,6 @@
 
 %     This file is part of the CoBaL code base
-%     Copyright (C) 2017 Hendrik Reimann <hendrikreimann@gmail.com>
+%     Copyright (C) 2021 Hendrik Reimann <hendrikreimann@gmail.com>
 % 
 %     This program is free software: you can redistribute it and/or modify
 %     it under the terms of the GNU General Public License as published by
@@ -14,9 +14,6 @@
 % 
 %     You should have received a copy of the GNU General Public License
 %     along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-% This function uses the previously calculated stretch variables to process analysis variables. For all stretch variables,
-% the response is calculated, i.e. the difference from the control mean.
 
 function processLinearModels(varargin)
     study_settings = loadSettingsFromFile('study');
