@@ -17,7 +17,9 @@
 
 % TODO: turn this into a function. For now, hard-code an input
 source_label = '';
-% source_label = 'ucmAcrossTrials';
+source_label = 'ucmAcrossTrials';
+source_label = 'ucmAcrossTrials_pooled';
+source_label = 'ucmAcrossTrials_earlyLate';
 % source_label = 'varianceAcrossTrials';
 % source_label = 'Displacement';
 

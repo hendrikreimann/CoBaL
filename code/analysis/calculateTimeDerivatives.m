@@ -105,7 +105,7 @@ function calculateTimeDerivatives(varargin)
             end
             if number_of_variables > 0
                 save([save_folder filesep save_file_name], '-struct', 'data_to_save');
-                disp(['Calculating time derivatives: trial type' trial_type ', trial ' num2str(i_trial) ' completed, saved as ' save_file_name]);
+                disp(['Calculating time derivatives: trial type "' trial_type '", trial ' num2str(i_trial) ' completed, saved as ' save_file_name]);
             end
             
         end

@@ -57,28 +57,36 @@ function importProtocol(varargin)
         headers = strsplit(header_line, ',');
 
         table_headers = imported_table.Properties.VariableNames;
-        protocol_trial_type = imported_table.(table_headers{strcmp(headers, 'Trial Type')});
-        protocol_trial_number = imported_table.(table_headers{strcmp(headers, 'Trial Number')});
-        protocol_trial_duration = imported_table.(table_headers{strcmp(headers, 'Duration (s)')});
-        protocol_metronome_cadence = imported_table.(table_headers{strcmp(headers, 'Use Metronome (0/1)')});
-        protocol_trial_saved = imported_table.(table_headers{strcmp(headers, 'save data (0/1)')});
-        protocol_count_left_step = imported_table.(table_headers{strcmp(headers, 'Count left steps (0/1)')});
-        protocol_count_right_step = imported_table.(table_headers{strcmp(headers, 'Count right steps (0/1)')});
-        protocol_stim_visual_intermittent = imported_table.(table_headers{strcmp(headers, 'Use Visual Stimulus - intermittent')});
-        protocol_stim_gvs_intermittent = imported_table.(table_headers{strcmp(headers, 'GVS intermittent')});
-%         protocol_randomization = imported_table.(table_headers{strcmp(headers, 'Randomization')});
+        
+        protocol_data = struct;
+        for i_column = 1 : numel(headers)
+            this_variable_label = headers{i_column};
+            this_variable_table_header = table_headers{i_column};
+            this_variable_name = nameFromLabel(this_variable_label, this_variable_table_header);
+            protocol_data.(this_variable_name) = imported_table.(this_variable_table_header);
+        end
+        
+%         protocol_trial_type = imported_table.(table_headers{strcmp(headers, 'Trial Type')});
+%         protocol_trial_number = imported_table.(table_headers{strcmp(headers, 'Trial Number')});
+%         protocol_trial_duration = imported_table.(table_headers{strcmp(headers, 'Duration (s)')});
+%         protocol_metronome_cadence = imported_table.(table_headers{strcmp(headers, 'Use Metronome (0/1)')});
+%         protocol_trial_saved = imported_table.(table_headers{strcmp(headers, 'save data (0/1)')});
+%         protocol_count_left_step = imported_table.(table_headers{strcmp(headers, 'Count left steps (0/1)')});
+%         protocol_count_right_step = imported_table.(table_headers{strcmp(headers, 'Count right steps (0/1)')});
+%         protocol_stim_visual_intermittent = imported_table.(table_headers{strcmp(headers, 'Use Visual Stimulus - intermittent')});
+%         protocol_stim_gvs_intermittent = imported_table.(table_headers{strcmp(headers, 'GVS intermittent')});
 
         % save protocol data
-        protocol_data = struct;
-        protocol_data.trial_type = protocol_trial_type;
-        protocol_data.trial_number = protocol_trial_number;
-        protocol_data.trial_duration = protocol_trial_duration;
-        protocol_data.metronome_cadence = protocol_metronome_cadence;
-        protocol_data.trial_saved = protocol_trial_saved;
-        protocol_data.count_left_step = protocol_count_left_step;
-        protocol_data.count_right_step = protocol_count_right_step;
-        protocol_data.stim_visual_intermittent = protocol_stim_visual_intermittent;
-        protocol_data.stim_gvs_intermittent = protocol_stim_gvs_intermittent;
+%         protocol_data = struct;
+%         protocol_data.trial_type = protocol_trial_type;
+%         protocol_data.trial_number = protocol_trial_number;
+%         protocol_data.trial_duration = protocol_trial_duration;
+%         protocol_data.metronome_cadence = protocol_metronome_cadence;
+%         protocol_data.trial_saved = protocol_trial_saved;
+%         protocol_data.count_left_step = protocol_count_left_step;
+%         protocol_data.count_right_step = protocol_count_right_step;
+%         protocol_data.stim_visual_intermittent = protocol_stim_visual_intermittent;
+%         protocol_data.stim_gvs_intermittent = protocol_stim_gvs_intermittent;
         save_file_name = 'protocolInfo.mat';
         save(save_file_name, '-struct', 'protocol_data');
         
@@ -112,11 +120,57 @@ function importProtocol(varargin)
 
 
 
-
 end
 
-
-
+function variable_name = nameFromLabel(header_label, table_header_label)
+    variable_name = table_header_label;
+    
+    if strcmp(header_label, 'Trial Type')
+        variable_name = 'trial_type';
+    end
+    if strcmp(header_label, 'Trial Type')
+        variable_name = 'trial_type';
+    end
+    if strcmp(header_label, 'Trial Number')
+        variable_name = 'trial_number';
+    end
+    if strcmp(header_label, 'Duration (s)')
+        variable_name = 'trial_duration';
+    end
+    if strcmp(header_label, 'Use Metronome (0/1)')
+        variable_name = 'metronome_cadence';
+    end
+    if strcmp(header_label, 'Use Metronome (0/BPM)')
+        variable_name = 'metronome_cadence';
+    end
+    if strcmp(header_label, 'save data (0/1)')
+        variable_name = 'trial_saved';
+    end
+    if strcmp(header_label, 'Count left steps (0/1)')
+        variable_name = 'count_left_step';
+    end
+    if strcmp(header_label, 'Count right steps (0/1)')
+        variable_name = 'count_right_step';
+    end
+    if strcmp(header_label, 'Use Visual Stimulus - intermittent')
+        variable_name = 'stim_visual_intermittent';
+    end
+    if strcmp(header_label, 'Use Visual Stimulus - PTRS')
+        variable_name = 'stim_visual_ptrs';
+    end
+    if strcmp(header_label, 'GVS intermittent')
+        variable_name = 'stim_gvs_intermittent';
+    end
+    if strcmp(header_label, 'Stimulus File')
+        variable_name = 'stimulus_file_name';
+    end
+    if strcmp(header_label, 'Stimulus Gain')
+        variable_name = 'stimulus_gain';
+    end
+    if strcmp(header_label, 'Metronome File')
+        variable_name = 'metronome_file_name';
+    end
+end
 
 
 

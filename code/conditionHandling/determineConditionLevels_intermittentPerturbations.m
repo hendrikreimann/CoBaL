@@ -224,7 +224,8 @@ function stimulus_label = determineStimulus(trigger_index)
             stimulus_label = 'STIM_NONE';
         end
     end
-end    
+end
+
 function [trigger_foot, trigger_time] = determineTriggerFoot(trigger_index)
         % get thresholds for what time difference is acceptable
         time_to_nearest_heelstrike_before_trigger_threshold ...
@@ -282,6 +283,7 @@ function [trigger_foot, trigger_time] = determineTriggerFoot(trigger_index)
         end
 
 end
+
 function [stretch_times_this_trigger, stance_foot_data_this_trigger, removal_flag_this_trigger] ...
         = determineStretchTimes(trigger_time, trigger_foot)
     stretch_times_this_trigger = zeros(1, bands_per_stretch+1);
@@ -331,6 +333,7 @@ function [stretch_times_this_trigger, stance_foot_data_this_trigger, removal_fla
         end
     end    
 end
+
 function stimulus_direction = determineStimulusDirection(trigger_foot, stimulus)
     stimulus_direction = 'unclear';
     if strcmp(trigger_foot, 'TRIGGER_RIGHT')

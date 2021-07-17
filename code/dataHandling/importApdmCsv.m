@@ -26,6 +26,8 @@ function importApdmCsv (varargin)
     file_name = 'Walk_trials.csv';
     file_table = readtable([source_dir filesep file_name]);
     number_of_files = size(file_table, 1);
+    gait_speed_averages = zeros(number_of_files, 1);
+    condition_labels = cell(number_of_files, 1);
     for i_file = 1 : number_of_files
         this_file_time = file_table.RecordDate_Time{i_file};
         this_file_note = file_table.TrialNotes{i_file};
@@ -52,12 +54,15 @@ function importApdmCsv (varargin)
         data_column_start = 6; % was 6, hardcoded, assuming this is fixed for all APDM csv files we'll try to import
         label_column = 1;
         labels = data_table{:, label_column};
-        left_touchdown_times = data_table{strcmp(labels, 'Gait - Lower Limb - Gait Cycle L (s)'), data_column_start : end}';
-        right_touchdown_times = data_table{strcmp(labels, 'Gait - Lower Limb - Gait Cycle R (s)'), data_column_start : end}';
+
+        left_touchdown_times_1 = data_table{strcmp(labels, 'Gait - Lower Limb - Gait Cycle L (s)'), data_column_start : end}';
+        right_touchdown_times_1 = data_table{strcmp(labels, 'Gait - Lower Limb - Gait Cycle R (s)'), data_column_start : end}';
         left_midswing_times = data_table{strcmp(labels, 'Gait - Lower Limb - Midswing L (s)'), data_column_start : end}';
         right_midswing_times = data_table{strcmp(labels, 'Gait - Lower Limb - Midswing R (s)'), data_column_start : end}';
         left_pushoff_times = data_table{strcmp(labels, 'Gait - Lower Limb - Toe Off L (s)'), data_column_start : end}';
         right_pushoff_times = data_table{strcmp(labels, 'Gait - Lower Limb - Toe Off R (s)'), data_column_start : end}';
+        left_touchdown_times_2 = data_table{strcmp(labels, 'Gait - Lower Limb - Initial Contact Next L (s)'), data_column_start : end}';
+        right_touchdown_times_2 = data_table{strcmp(labels, 'Gait - Lower Limb - Initial Contact Next R (s)'), data_column_start : end}';
         turn_start_times = data_table{strcmp(labels, 'Turns - Turn (s)'), data_column_start : end}';
         turn_start_times(isnan(turn_start_times)) = [];
         
@@ -68,6 +73,9 @@ function importApdmCsv (varargin)
         left_pushoff_times(isnan(left_pushoff_times)) = [];
         right_pushoff_times(isnan(right_pushoff_times)) = [];
 
+        % merge touchdowns that start and end the gait cycles identified by APDM
+        left_touchdown_times = sort(unique([left_touchdown_times_1; left_touchdown_times_2]));
+        right_touchdown_times = sort(unique([right_touchdown_times_1; right_touchdown_times_2]));
         
         variables_to_save = struct;
 
@@ -101,10 +109,22 @@ function importApdmCsv (varargin)
 
         disp(['Finding Step Events: type ' trial_type ', Trial ' num2str(trial_number) ' imported, saved as ' step_events_file_name]);
 
+        
+        % extract mean gait speed
+        mean_data_column = 4;
+        gait_speed_average_left = data_table{strcmp(labels, 'Gait - Lower Limb - Gait Speed L (m/s)'), mean_data_column}';
+        gait_speed_average_right = data_table{strcmp(labels, 'Gait - Lower Limb - Gait Speed R (m/s)'), mean_data_column}';
+        gait_speed_average_this_file = (gait_speed_average_left + gait_speed_average_right) * 0.5;
 
-
-
+        gait_speed_averages(i_file) = gait_speed_average_this_file;
+        condition_labels{i_file} = trial_type;
 
     end
     
+    % save gait speed results
+    if ~directoryExists('results')
+        mkdir results
+    end
+    filename = ['results' filesep makeFileName(collection_date, subject_id, 'gaitSpeed.mat')];
+    save(filename, 'gait_speed_averages', 'condition_labels')
 end

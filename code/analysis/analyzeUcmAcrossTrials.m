@@ -21,17 +21,17 @@
 
 function analyzeUcmAcrossTrials(varargin)
     [trial_type_list, trial_number_list] = parseTrialArguments(varargin{:});
+
+    % parse arguments
+    parser = inputParser;
+    parser.KeepUnmatched = true;
+    addParameter(parser, 'block_assignment_suffix', '')
+    parse(parser, varargin{:})
+    block_assignment_suffix = parser.Results.block_assignment_suffix;
     
     % load settings
-    study_settings_file = '';
-    if exist(['..' filesep 'studySettings.txt'], 'file')
-        study_settings_file = ['..' filesep 'studySettings.txt'];
-    end    
-    if exist(['..' filesep '..' filesep 'studySettings.txt'], 'file')
-        study_settings_file = ['..' filesep '..' filesep 'studySettings.txt'];
-    end
-    study_settings = SettingsCustodian(study_settings_file);
-    subject_settings = SettingsCustodian('subjectSettings.txt');
+    study_settings = loadSettingsFromFile('study');
+    subject_settings = loadSettingsFromFile('subject');
     collection_date = subject_settings.get('collection_date');
     subject_id = subject_settings.get('subject_id');
     model_data = load('subjectModel.mat');
@@ -39,7 +39,14 @@ function analyzeUcmAcrossTrials(varargin)
     
     across_trials_conditions = study_settings.get('across_trials_conditions', 1);
     task_variables = study_settings.get('task_variables');
-    block_assignment = subject_settings.get('block_assignment');
+    
+    if isempty(block_assignment_suffix)
+        block_assignment = subject_settings.getTable('block_assignment');
+    else
+        block_assignment = subject_settings.getTable(['block_assignment_' block_assignment_suffix]);
+    end
+        
+        
     number_of_task_variables = length(task_variables);
     group_label = subject_settings.get('group');
     
@@ -90,12 +97,16 @@ function analyzeUcmAcrossTrials(varargin)
         this_condition_label = across_trials_conditions{i_condition};
         
         % get block information
-        block_assignment_this_condition = block_assignment(strcmp(block_assignment(:, 1), this_condition_label), :);
-        block_labels = unique(block_assignment_this_condition(:, 2));
+%         block_assignment_this_condition = block_assignment(strcmp(block_assignment(:, 1), this_condition_label), :);
+%         block_labels = unique(block_assignment_this_condition(:, 2));
+
+        block_assignment_this_condition = block_assignment(strcmp(block_assignment.trial_type, this_condition_label), :);
+        block_labels = unique(block_assignment_this_condition.block_label);
         
         
         if any(strcmp(trial_type_list, this_condition_label))
-            this_condition_trial_numbers = trial_number_list{strcmp(trial_type_list, this_condition_label)};
+%             this_condition_trial_numbers = trial_number_list{strcmp(trial_type_list, this_condition_label)};
+            this_condition_trial_numbers = str2double(block_assignment_this_condition.trial_number);
 
             % prepare containers
             number_of_trials_this_condition = length(this_condition_trial_numbers);
@@ -151,7 +162,7 @@ function analyzeUcmAcrossTrials(varargin)
             % calculate and store variance measures
             for i_block = 1 : length(block_labels)
                 this_block_label = block_labels(i_block);
-                this_block_trials_numbers = str2double(block_assignment_this_condition(strcmp(block_assignment_this_condition(:, 2), this_block_label), 3));
+                this_block_trials_numbers = str2double(block_assignment_this_condition.trial_number(strcmp(block_assignment_this_condition.block_label, this_block_label)));
                 number_of_trials_this_block = length(this_block_trials_numbers);
                 
                 trial_indices_this_block = ismember(origin_trial_numbers, this_block_trials_numbers);
@@ -220,7 +231,12 @@ function analyzeUcmAcrossTrials(varargin)
     if ~directoryExists('results')
         mkdir('results')
     end
-    results_file_name = ['results' filesep makeFileName(collection_date, subject_id, 'resultsUcmAcrossTrials')];
+    
+    file_label = 'resultsUcmAcrossTrials';
+    if ~isempty(block_assignment_suffix)
+        file_label = [file_label '_' block_assignment_suffix];
+    end
+    results_file_name = ['results' filesep makeFileName(collection_date, subject_id, file_label)];
     save ...
       ( ...
         results_file_name, ...

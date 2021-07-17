@@ -20,7 +20,7 @@ function conditions_trial = determineConditionLevels_affectedSide(subject_settin
     if isempty(affected_side)
         warning('"affected_side" not specified in subject settings')
     end
-    if ~(strcmp(affected_side, 'left') || strcmp(affected_side, 'right'))
+    if ~(strcmp(affected_side, 'left') || strcmp(affected_side, 'right')) || strcmp(affected_side, 'neither')
         warning ...
           ( ...
             [ ...
@@ -30,19 +30,27 @@ function conditions_trial = determineConditionLevels_affectedSide(subject_settin
     end
     condition_affected_side_list = cell(number_of_triggers, 1);
     for i_stretch = 1 : number_of_triggers
-        if strcmp(affected_side, 'left')
-            if strcmp(conditions_trial.trigger_foot_list(i_stretch), 'TRIGGER_LEFT')
-                condition_affected_side_list{i_stretch} = 'TRIGGER_AFFECTED';
-            elseif strcmp(conditions_trial.trigger_foot_list(i_stretch), 'TRIGGER_RIGHT')
-                condition_affected_side_list{i_stretch} = 'TRIGGER_UNAFFECTED';
+        if isfield(conditions_trial, 'trigger_foot_list')
+            % trigger foot is a factor, so check whether the trigger foot was the more-affected foot or not
+            if strcmp(affected_side, 'left')
+                if strcmp(conditions_trial.trigger_foot_list(i_stretch), 'TRIGGER_LEFT')
+                    condition_affected_side_list{i_stretch} = 'TRIGGER_AFFECTED';
+                elseif strcmp(conditions_trial.trigger_foot_list(i_stretch), 'TRIGGER_RIGHT')
+                    condition_affected_side_list{i_stretch} = 'TRIGGER_UNAFFECTED';
+                end
+            elseif strcmp(affected_side, 'right')
+                if strcmp(conditions_trial.trigger_foot_list(i_stretch), 'TRIGGER_RIGHT')
+                    condition_affected_side_list{i_stretch} = 'TRIGGER_AFFECTED';
+                elseif strcmp(conditions_trial.trigger_foot_list(i_stretch), 'TRIGGER_LEFT')
+                    condition_affected_side_list{i_stretch} = 'TRIGGER_UNAFFECTED';
+                end
             end
-        elseif strcmp(affected_side, 'right')
-            if strcmp(conditions_trial.trigger_foot_list(i_stretch), 'TRIGGER_RIGHT')
-                condition_affected_side_list{i_stretch} = 'TRIGGER_AFFECTED';
-            elseif strcmp(conditions_trial.trigger_foot_list(i_stretch), 'TRIGGER_LEFT')
-                condition_affected_side_list{i_stretch} = 'TRIGGER_UNAFFECTED';
-            end
+        else
+            % trigger foot is not a factor, so we simply store the label for the affected side
+            condition_affected_side_list{i_stretch} = affected_side;
         end
+        
+        
     end
     conditions_trial.affected_side_list = condition_affected_side_list;
     

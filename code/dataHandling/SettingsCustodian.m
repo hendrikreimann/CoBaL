@@ -32,6 +32,7 @@ classdef SettingsCustodian < handle
             'trial_types_to_ignore'; ...
             'analog_data_to_import'; ...
             'emg_data_to_import'; ...
+            'across_trials_conditions'; ...
           }
     end
     methods
@@ -497,6 +498,9 @@ classdef SettingsCustodian < handle
             if strcmp(property_name, 'inverse_kinematics_source')
                 default_data = 'opensim';
             end
+            if strcmp(property_name, 'preferred_time_window_extension')
+                default_data = 40;
+            end
 
 
             if strcmp(property_name, 'analysis_table')
@@ -556,6 +560,10 @@ classdef SettingsCustodian < handle
             end
             if strcmp(property_name, 'marker_fill_table_header')
                 default_data = {'trial_type', 'trial_number', 'marker_to_fill', 'marker_source_1', 'marker_source_2', 'marker_source_3'};
+            end
+            
+            if strcmp(property_name, 'average_within_subjects')
+                default_data = false;
             end
             
             

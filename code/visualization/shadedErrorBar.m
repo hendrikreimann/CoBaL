@@ -117,7 +117,14 @@ patchSaturation=0.15; %How de-saturated or transparent to make patch
 if transparent
     faceAlpha = patchSaturation;
     patchColor=col;
-    set(get(ax, 'Parent'), 'renderer', 'openGL')
+    
+    parent = get(ax, 'Parent');
+    while ~strcmp(parent.Type, 'figure')
+        parent = get(parent, 'Parent');
+    end
+    
+    
+    set(parent, 'renderer', 'openGL')
 else
     faceAlpha=1;
     patchColor=col+(1-col)*(1-patchSaturation);

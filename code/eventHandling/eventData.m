@@ -119,11 +119,30 @@ classdef eventData < handle
         end
         function addEventTime(this, event_time, event_label)
             if strcmp(event_label, 'problem')
-                new_problem = {event_time, event_time, 'added manually in eventGui'};
-                problems = sortrows([this.problem_table; new_problem], 'start_time');
-                this.problem_table = problems;
+                saveProblemInformation ...
+                  ( ...
+                    this.data_custodian.date, ...
+                    this.data_custodian.subject_id, ...
+                    this.data_custodian.trial_type, ...
+                    this.data_custodian.trial_number, ...
+                    'added manually in eventGui', ...
+                    event_time ...
+                  );
                 problems_file_name = [this.data_custodian.data_directory filesep 'analysis' filesep makeFileName(this.data_custodian.date, this.data_custodian.subject_id, this.data_custodian.trial_type, this.data_custodian.trial_number, 'problems.mat')];
-                save(problems_file_name, 'problems');
+                if exist(problems_file_name, 'file')
+                    loaded_data = load(problems_file_name);
+                    this.problem_table = loaded_data.problems;
+                else
+                    this.problem_table = table;
+                end
+                
+%                 
+%                 new_problem = {event_time, event_time, 'added manually in eventGui'};
+%                 problem_table = [this.problem_table; new_problem];
+%                 problems = sortrows([this.problem_table; new_problem], 'start_time');
+%                 this.problem_table = problems;
+%                 problems_file_name = [this.data_custodian.data_directory filesep 'analysis' filesep makeFileName(this.data_custodian.date, this.data_custodian.subject_id, this.data_custodian.trial_type, this.data_custodian.trial_number, 'problems.mat')];
+%                 save(problems_file_name, 'problems');
             else
                 event_times = this.getEventTimes(event_label);
                 event_times = [event_times; event_time];
@@ -135,7 +154,11 @@ classdef eventData < handle
         end
         function event_times = getEventTimes(this, event_label)
             if strcmp(event_label, 'problem')
-                event_times = this.problem_table.start_time;
+                if isempty(this.problem_table)
+                    event_times = [];
+                else
+                    event_times = this.problem_table.start_time;
+                end
             else
                 event_index = strcmp(this.event_labels, event_label);
                 if any(event_index)

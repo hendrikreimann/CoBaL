@@ -31,26 +31,6 @@
 % 2. <apply stretches and normalize in time>
 % 3. calculate stretch variables
 
-% to add a new variable, you need to do the following things:
-%
-% 1. Provide information about all variables this new one depends upon. Go to the determineVariables function and add a
-% new conditional statement "if this.isVariableToAnalyze('<your new variable name>') ... end". Within the
-% statement, add the basic variables and stretch variables that the new variable depends upon by calling addBasicVariable 
-% and addStretchVariable. The order matters here, make sure for each variable, all dependencies have already been added, 
-% i.e. don't call "this.addBasicVariable('lheel_y')" before "this.addBasicVariable('marker_trajectories')", because 
-% lheel_y depends upon the marker_trajectories.
-%
-% 2. If you added a new basic variable, but is not already available, i.e. one of the outputs of the
-% preprocess scripts, you need to specify how to calculate it. Go to prepareBasicVariables and add a new conditional
-% statement "if strcmp(variable_name, '<your new variable name>')". Within the statement, calculate your new
-% variable, then add it to the variable_data. Also add the corresponding time vector to the time_data.
-%
-% 3. If the variable you want to add is a stretch variable, you need to specify how to calculate it. Go to 
-% calculateStretchVariables and add a new conditional statement "if strcmp(variable_name, '<your new variable name>')".
-% Within the statement, calculate the value of your new variable for a single stretch, depending upon
-% this_stretch_start_time and this_stretch_end_time. Assign that value to the variable "stretch_data".
-
-
 classdef WalkingDataCustodian < handle
     properties
         data_directory = [];
@@ -176,9 +156,21 @@ classdef WalkingDataCustodian < handle
                 end
 
                 % balance stuff
+                if strcmp(this_variable_name, 'stance_ankle_x')
+                    this.addBasicVariable('marker_trajectories')
+                    this.addStretchVariable('stance_ankle_x')
+                end
+                if strcmp(this_variable_name, 'stance_ankle_y')
+                    this.addBasicVariable('marker_trajectories')
+                    this.addStretchVariable('stance_ankle_y')
+                end
                 if strcmp(this_variable_name, 'step_placement_x')
                     this.addBasicVariable('marker_trajectories')
                     this.addStretchVariable('step_placement_x')
+                end
+                if strcmp(this_variable_name, 'step_placement_y')
+                    this.addBasicVariable('marker_trajectories')
+                    this.addStretchVariable('step_placement_y')
                 end
                 if strcmp(this_variable_name, 'xcom_x')
                     this.addBasicVariable('marker_trajectories')
@@ -739,6 +731,51 @@ classdef WalkingDataCustodian < handle
                     end
                     
                     % balance stuff
+                    if strcmp(variable_name, 'stance_ankle_x')
+                        LANK_x = this.getTimeNormalizedData('marker:LANK_x', this_stretch_times);
+                        RANK_x = this.getTimeNormalizedData('marker:RANK_x', this_stretch_times);
+                        stretch_data = zeros(size(LANK_x)) * NaN;
+                        for i_band = 1 : number_of_bands
+                            [band_start_indices, band_end_indices] = getBandIndices(i_band, this.number_of_time_steps_normalized);
+                            
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_RIGHT')
+                                stretch_data(band_start_indices : band_end_indices) = RANK_x(band_start_indices : band_end_indices);
+                            end
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_LEFT')
+                                stretch_data(band_start_indices : band_end_indices) = LANK_x(band_start_indices : band_end_indices);
+                            end
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_BOTH')
+                                stretch_data(band_start_indices : band_end_indices) = NaN;
+                            end
+                        end
+                        for i_band = 2 : number_of_bands
+                            band_start_index = getBandIndices(i_band, this.number_of_time_steps_normalized);
+                            stretch_data(band_start_index) = NaN;
+                        end
+                    end
+                    if strcmp(variable_name, 'stance_ankle_y')
+                        LANK_y = this.getTimeNormalizedData('marker:LANK_y', this_stretch_times);
+                        RANK_y = this.getTimeNormalizedData('marker:RANK_y', this_stretch_times);
+                        stretch_data = zeros(size(LANK_y)) * NaN;
+                        for i_band = 1 : number_of_bands
+                            [band_start_indices, band_end_indices] = getBandIndices(i_band, this.number_of_time_steps_normalized);
+                            
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_RIGHT')
+                                stretch_data(band_start_indices : band_end_indices) = RANK_y(band_start_indices : band_end_indices);
+                            end
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_LEFT')
+                                stretch_data(band_start_indices : band_end_indices) = LANK_y(band_start_indices : band_end_indices);
+                            end
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_BOTH')
+                                stretch_data(band_start_indices : band_end_indices) = NaN;
+                            end
+                        end
+                        % set to NaN at junction points between two steps
+                        for i_band = 2 : number_of_bands
+                            band_start_index = getBandIndices(i_band, this.number_of_time_steps_normalized);
+                            stretch_data(band_start_index) = NaN;
+                        end
+                    end
                     if strcmp(variable_name, 'step_placement_x')
                         LHEE_x = this.getTimeNormalizedData('marker:LHEE_x', this_stretch_times);
                         RHEE_x = this.getTimeNormalizedData('marker:RHEE_x', this_stretch_times);
@@ -751,6 +788,24 @@ classdef WalkingDataCustodian < handle
                             end
                             if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_LEFT')
                                 stretch_data(i_band) = RHEE_x(band_end_indices) - LHEE_x(band_end_indices);
+                            end
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_BOTH')
+                                stretch_data(i_band) = NaN;
+                            end
+                        end
+                    end
+                    if strcmp(variable_name, 'step_placement_y')
+                        LHEE_y = this.getTimeNormalizedData('marker:LHEE_y', this_stretch_times);
+                        RHEE_y = this.getTimeNormalizedData('marker:RHEE_y', this_stretch_times);
+                        stretch_data = zeros(number_of_bands, 1);
+                        for i_band = 1 : number_of_bands
+                            [~, band_end_indices] = getBandIndices(i_band, this.number_of_time_steps_normalized);
+                            
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_RIGHT')
+                                stretch_data(i_band) = LHEE_y(band_end_indices) - RHEE_y(band_end_indices);
+                            end
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_LEFT')
+                                stretch_data(i_band) = RHEE_y(band_end_indices) - LHEE_y(band_end_indices);
                             end
                             if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_BOTH')
                                 stretch_data(i_band) = NaN;
@@ -2280,6 +2335,28 @@ classdef WalkingDataCustodian < handle
             end
             
             % balance stuff
+            if strcmp(variable_name, 'stance_ankle_x')
+                [~, LANK_x_directions] = this.getBasicVariableData('marker:LANK_x');
+                [~, RANK_x_directions] = this.getBasicVariableData('marker:RANK_x');
+                if ~strcmp(LANK_x_directions{1}, RANK_x_directions{1})
+                    error('LANK_x and RANK_x directions are different from each other')
+                end
+                if ~strcmp(LANK_x_directions{2}, RANK_x_directions{2})
+                    error('LANK_x and RANK_x directions are different from each other')
+                end
+                stretch_directions_new = LANK_x_directions;
+            end
+            if strcmp(variable_name, 'stance_ankle_y')
+                [~, LANK_y_directions] = this.getBasicVariableData('marker:LANK_y');
+                [~, RANK_y_directions] = this.getBasicVariableData('marker:RANK_y');
+                if ~strcmp(LANK_y_directions{1}, RANK_y_directions{1})
+                    error('LANK_y and RANK_y directions are different from each other')
+                end
+                if ~strcmp(LANK_y_directions{2}, RANK_y_directions{2})
+                    error('LANK_y and RANK_y directions are different from each other')
+                end
+                stretch_directions_new = LANK_y_directions;
+            end
             if strcmp(variable_name, 'step_placement_x')
                 [~, LHEE_x_directions] = this.getBasicVariableData('marker:LHEE_x');
                 [~, RHEE_x_directions] = this.getBasicVariableData('marker:RHEE_x');
@@ -2290,6 +2367,17 @@ classdef WalkingDataCustodian < handle
                     error('LHEE_x and RHEE_x directions are different from each other')
                 end
                 stretch_directions_new = LHEE_x_directions;
+            end
+            if strcmp(variable_name, 'step_placement_y')
+                [~, LHEE_y_directions] = this.getBasicVariableData('marker:LHEE_y');
+                [~, RHEE_y_directions] = this.getBasicVariableData('marker:RHEE_y');
+                if ~strcmp(LHEE_y_directions{1}, RHEE_y_directions{1})
+                    error('LHEE_y and RHEE_y directions are different from each other')
+                end
+                if ~strcmp(LHEE_y_directions{2}, RHEE_y_directions{2})
+                    error('LHEE_y and RHEE_y directions are different from each other')
+                end
+                stretch_directions_new = LHEE_y_directions;
             end
             if strcmp(variable_name, 'xcom_x')
                 [~, com_x_directions] = this.getBasicVariableData('com_position:center_of_mass_x');

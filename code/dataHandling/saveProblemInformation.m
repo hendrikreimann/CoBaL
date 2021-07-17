@@ -14,7 +14,14 @@
 %     You should have received a copy of the GNU General Public License
 %     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-function saveProblemInformation(date, subject_id, trial_type, trial_number, time, bad_data_points_indicator, reason)
+function saveProblemInformation(date, subject_id, trial_type, trial_number, reason, time, bad_data_points_indicator)
+    if nargin < 7
+        % time is a point indicating the problem
+        bad_data_points_indicator = 1;
+    else
+        % time is a vector, bad_data_points_indicator is a logical that indicates the problem
+    end
+
     if ~any(bad_data_points_indicator)
         % nothing to do
         return
