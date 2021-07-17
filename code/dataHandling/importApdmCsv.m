@@ -66,6 +66,11 @@ function importApdmCsv (varargin)
         turn_start_times = data_table{strcmp(labels, 'Turns - Turn (s)'), data_column_start : end}';
         turn_start_times(isnan(turn_start_times)) = [];
         
+        % merge touchdowns that start and end the gait cycles identified by APDM
+        left_touchdown_times = sort(unique([left_touchdown_times_1; left_touchdown_times_2]));
+        right_touchdown_times = sort(unique([right_touchdown_times_1; right_touchdown_times_2]));
+
+        % remove NaN values
         left_touchdown_times(isnan(left_touchdown_times)) = [];
         right_touchdown_times(isnan(right_touchdown_times)) = [];
         left_midswing_times(isnan(left_midswing_times)) = [];
@@ -73,10 +78,6 @@ function importApdmCsv (varargin)
         left_pushoff_times(isnan(left_pushoff_times)) = [];
         right_pushoff_times(isnan(right_pushoff_times)) = [];
 
-        % merge touchdowns that start and end the gait cycles identified by APDM
-        left_touchdown_times = sort(unique([left_touchdown_times_1; left_touchdown_times_2]));
-        right_touchdown_times = sort(unique([right_touchdown_times_1; right_touchdown_times_2]));
-        
         variables_to_save = struct;
 
         event_data = ...
