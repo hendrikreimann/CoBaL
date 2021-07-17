@@ -14,23 +14,36 @@
 %     You should have received a copy of the GNU General Public License
 %     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-function [conditions_trial, event_variables_to_save, removal_flags] = determineConditionLevels_normalWalking(trial_data)
-
-    stance_foot_data_stretch = {'STANCE_LEFT', 'STANCE_RIGHT'};
-
-    bands_per_stretch = length(stance_foot_data_stretch);
+function [conditions_trial, event_variables_to_save, removal_flags] = determineConditionLevels_linearModels(trial_data)
+    bands_per_stretch = 2;
 
     stretch_start_times = trial_data.trigger_times;
     left_touchdown_times = trial_data.loaded_events_data.event_data{strcmp(trial_data.loaded_events_data.event_labels, 'left_touchdown')};
     right_touchdown_times = trial_data.loaded_events_data.event_data{strcmp(trial_data.loaded_events_data.event_labels, 'right_touchdown')};
     number_of_stretches = length(stretch_start_times);
     stretch_times = zeros(number_of_stretches, bands_per_stretch+1);
+    first_stance_leg_list = cell(number_of_stretches, 1);
     removal_flags = false(number_of_stretches, 1);
     for i_stretch = 1 : number_of_stretches
+        % pull out relevant events
         this_stretch_start = stretch_start_times(i_stretch);
         this_right_touchdown = min(right_touchdown_times(right_touchdown_times > this_stretch_start));
         this_left_touchdown = min(left_touchdown_times(left_touchdown_times > this_stretch_start));
-        this_stretch_times = [this_stretch_start this_right_touchdown this_left_touchdown];
+        
+        % determine whether this stretch is started by a left or a right heel-strike
+        if ismember(this_stretch_start, left_touchdown_times)
+            stance_foot_data_stretch = {'STANCE_LEFT', 'STANCE_RIGHT'};
+            this_stretch_times = [this_stretch_start this_right_touchdown this_left_touchdown];
+            first_stance_leg_list{i_stretch} = 'LEFT';
+        elseif ismember(this_stretch_start, right_touchdown_times)
+            stance_foot_data_stretch = {'STANCE_RIGHT', 'STANCE_LEFT'};
+            this_stretch_times = [this_stretch_start this_left_touchdown this_right_touchdown];
+            first_stance_leg_list{i_stretch} = 'RIGHT';
+        else
+            error(['stretch start time ' num2str(this_stretch_start) ' is neither a left nor a right touchdown.'])
+        end
+        
+        % check for problems
         if ~issorted(this_stretch_times)
             removal_flags(i_stretch) = 1;
         end
@@ -40,6 +53,7 @@ function [conditions_trial, event_variables_to_save, removal_flags] = determineC
     stance_foot_data = repmat(stance_foot_data_stretch, size(stretch_times, 1), 1);
     event_variables_to_save.stretch_times = stretch_times;
     event_variables_to_save.stance_foot_data = stance_foot_data;
+    event_variables_to_save.first_stance_leg_list = first_stance_leg_list;
 
     % conditions
     conditions_trial = struct;

@@ -38,7 +38,11 @@ function [conditions_trial, event_variables_to_save, removal_flags] ...
     end
     if strcmp(experimental_paradigm, 'Normal Walking')
         [conditions_trial, event_variables_to_save, removal_flags] ...
-            = determineConditionLevels_normalWalking(subject_settings, trial_data);
+            = determineConditionLevels_normalWalking(trial_data);
+    end
+    if strcmp(experimental_paradigm, 'Linear Models')
+        [conditions_trial, event_variables_to_save, removal_flags] ...
+            = determineConditionLevels_linearModels(trial_data);
     end
     if strcmp(experimental_paradigm, 'Stochastic Resonance')
         [conditions_trial, event_variables_to_save, removal_flags] ...
@@ -46,7 +50,7 @@ function [conditions_trial, event_variables_to_save, removal_flags] ...
     end
     if strcmp(experimental_paradigm, 'Normal Walking nGVS')
         [conditions_trial_normal, event_variables_to_save_normal, removal_flags_normal] ...
-            = determineConditionLevels_normalWalking(subject_settings, trial_data);
+            = determineConditionLevels_normalWalking(trial_data);
         [conditions_trial_ngvs, event_variables_to_save_ngvs, removal_flags_ngvs] ...
             = determineConditionLevels_Ngvs(subject_settings, trial_data);
         
@@ -56,7 +60,7 @@ function [conditions_trial, event_variables_to_save, removal_flags] ...
     end
     if strcmp(experimental_paradigm, 'Self Pacing Comparison')
         [conditions_trial_normal, event_variables_to_save_normal, removal_flags_normal] ...
-            = determineConditionLevels_normalWalking(subject_settings, trial_data);
+            = determineConditionLevels_normalWalking(trial_data);
         [conditions_trial_selfpacing, event_variables_to_save_selfpacing, removal_flags_selfpacing] ...
             = determineConditionLevels_selfpacing(subject_settings, trial_data);
         
@@ -96,7 +100,7 @@ function [conditions_trial, event_variables_to_save, removal_flags] ...
     end
     if strcmp(experimental_paradigm, 'APDM')
         [conditions_trial, event_variables_to_save, removal_flags] ...
-            = determineConditionLevels_normalWalking(subject_settings, trial_data);
+            = determineConditionLevels_normalWalking(trial_data);
     end
     
     % add affected_side if required

@@ -65,6 +65,11 @@ function trial_data = determineTriggerTimes(study_settings, trial_data)
         left_touchdown_times = trial_data.loaded_events_data.event_data{strcmp(trial_data.loaded_events_data.event_labels, 'left_touchdown')};
         trial_data.trigger_times = left_touchdown_times(1:end-1);
     end
+    if strcmp(experimental_paradigm, 'Linear Models')
+        left_touchdown_times = trial_data.loaded_events_data.event_data{strcmp(trial_data.loaded_events_data.event_labels, 'left_touchdown')};
+        right_touchdown_times = trial_data.loaded_events_data.event_data{strcmp(trial_data.loaded_events_data.event_labels, 'right_touchdown')};
+        trial_data.trigger_times = sort([left_touchdown_times(1:end-1); right_touchdown_times(1:end-1)]);
+    end
     if strcmp(experimental_paradigm, 'GvsOverground')
         % find the time steps where the first forceplate vertical force crosses a threshold
         stimulus_threshold = 20;
