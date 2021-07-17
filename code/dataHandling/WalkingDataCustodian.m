@@ -728,37 +728,46 @@ classdef WalkingDataCustodian < handle
                     if strcmp(variable_name, 'stance_ankle_x')
                         LANK_x = this.getTimeNormalizedData('marker:LANK_x', this_stretch_times);
                         RANK_x = this.getTimeNormalizedData('marker:RANK_x', this_stretch_times);
-                        stretch_data = zeros(number_of_bands, 1);
+                        stretch_data = zeros(size(LANK_x)) * NaN;
                         for i_band = 1 : number_of_bands
-                            [band_start_indices, ~] = getBandIndices(i_band, this.number_of_time_steps_normalized);
+                            [band_start_indices, band_end_indices] = getBandIndices(i_band, this.number_of_time_steps_normalized);
                             
                             if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_RIGHT')
-                                stretch_data(i_band) = RANK_x(band_start_indices);
+                                stretch_data(band_start_indices : band_end_indices) = RANK_x(band_start_indices : band_end_indices);
                             end
                             if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_LEFT')
-                                stretch_data(i_band) = LANK_x(band_start_indices);
+                                stretch_data(band_start_indices : band_end_indices) = LANK_x(band_start_indices : band_end_indices);
                             end
                             if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_BOTH')
-                                stretch_data(i_band) = NaN;
+                                stretch_data(band_start_indices : band_end_indices) = NaN;
                             end
+                        end
+                        for i_band = 2 : number_of_bands
+                            band_start_index = getBandIndices(i_band, this.number_of_time_steps_normalized);
+                            stretch_data(band_start_index) = NaN;
                         end
                     end
                     if strcmp(variable_name, 'stance_ankle_y')
                         LANK_y = this.getTimeNormalizedData('marker:LANK_y', this_stretch_times);
                         RANK_y = this.getTimeNormalizedData('marker:RANK_y', this_stretch_times);
-                        stretch_data = zeros(number_of_bands, 1);
+                        stretch_data = zeros(size(LANK_y)) * NaN;
                         for i_band = 1 : number_of_bands
-                            [band_start_indices, ~] = getBandIndices(i_band, this.number_of_time_steps_normalized);
+                            [band_start_indices, band_end_indices] = getBandIndices(i_band, this.number_of_time_steps_normalized);
                             
                             if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_RIGHT')
-                                stretch_data(i_band) = RANK_y(band_start_indices);
+                                stretch_data(band_start_indices : band_end_indices) = RANK_y(band_start_indices : band_end_indices);
                             end
                             if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_LEFT')
-                                stretch_data(i_band) = LANK_y(band_start_indices);
+                                stretch_data(band_start_indices : band_end_indices) = LANK_y(band_start_indices : band_end_indices);
                             end
                             if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_BOTH')
-                                stretch_data(i_band) = NaN;
+                                stretch_data(band_start_indices : band_end_indices) = NaN;
                             end
+                        end
+                        % set to NaN at junction points between two steps
+                        for i_band = 2 : number_of_bands
+                            band_start_index = getBandIndices(i_band, this.number_of_time_steps_normalized);
+                            stretch_data(band_start_index) = NaN;
                         end
                     end
                     if strcmp(variable_name, 'step_placement_x')

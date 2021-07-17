@@ -2,16 +2,16 @@
 analyze_data            = 1;
 plot_results            = 1;
 dictate_axes            = 0;
-save_figure             = 1;
+save_figure             = 0;
 
-export_data             = 1;
+export_data             = 0;
 show_metronome_figure   = 0;
 
 trial_type = 'stimulus'; type_label = 'walking';
 
 % select response variable
 response_variable = 'com_position'; response_label = 'CoM'; response_unit = 'm'; response_filename_label = 'com'; fit_model = 0;
-response_variable = 'com_angle'; response_label = 'CoM angle'; response_unit = 'deg'; response_filename_label = 'comAngle'; fit_model = 1;
+% response_variable = 'com_angle'; response_label = 'CoM angle'; response_unit = 'deg'; response_filename_label = 'comAngle'; fit_model = 1;
 % response_variable = 'foot_base'; response_label = 'foot base'; response_unit = 'm'; response_filename_label = 'footBase'; fit_model = 0;
 
 % select trials to analyze
@@ -19,7 +19,7 @@ trials_to_analyze = 1:4; trial_label = 'low cadence'; trial_filename_label = 'lo
 % trials_to_analyze = 5:8; trial_label = 'medium cadence'; trial_filename_label = 'mediumCadence';
 % trials_to_analyze = 9:12; trial_label = 'high cadence'; trial_filename_label = 'highCadence';
 
-trials_to_analyze = 1:12; trial_label = 'all cadences'; trial_filename_label = 'allCadences';
+% trials_to_analyze = 1:12; trial_label = 'all cadences'; trial_filename_label = 'allCadences';
 
 % create filename and title label
 filename = [response_filename_label '_' trial_filename_label];
