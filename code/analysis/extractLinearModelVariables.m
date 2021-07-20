@@ -30,13 +30,14 @@ function extractLinearModelVariables(varargin)
     data = load(results_file_name);
     number_of_time_steps_normalized = study_settings.get('number_of_time_steps_normalized');
     number_of_variables = size(variable_table, 1);
-    
-    % make condition data tables
-    conditions.settings_table = study_settings.get('conditions');
-    conditions.factor_labels = conditions.settings_table(:, 1)';
-    conditions.source_variables = conditions.settings_table(:, 2)';
-    conditions.number_of_factor_labels = length(conditions.factor_labels);
-    conditions.conditions_session = data.conditions_session;
+    number_of_stretches = length(data.time_list_session);
+%     
+%     % make condition data tables
+%     conditions.settings_table = study_settings.get('conditions');
+%     conditions.factor_labels = conditions.settings_table(:, 1)';
+%     conditions.source_variables = conditions.settings_table(:, 2)';
+%     conditions.number_of_factor_labels = length(conditions.factor_labels);
+%     conditions.conditions_session = data.conditions_session;
 
     % go through variables
     variable_data = cell(number_of_variables, 1);
@@ -78,6 +79,7 @@ function extractLinearModelVariables(varargin)
     data_to_save.variable_names = variable_names;
     data_to_save.variable_directions = variable_directions;
     data_to_save.conditions = data.conditions_session;
+    data_to_save.number_of_stretches = number_of_stretches;
     
     results_file_name = ['results' filesep makeFileName(collection_date, subject_id, 'linearModelVariables.mat')];
     save(results_file_name, '-struct', 'data_to_save');

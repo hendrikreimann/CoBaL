@@ -190,7 +190,10 @@ function comparisons = createComparisonData(settings, condition_data)
     % determine comparisons and auxiliary data
     [comparisons.condition_combination_labels, comparisons.condition_combinations] = determineConditionCombinations(condition_data, settings.conditions_settings, labels_to_ignore, levels_to_remove);
     [comparisons.condition_combinations, comparisons.level_order] = sortConditionCombinations(comparisons.condition_combinations, comparisons.condition_combination_labels, settings.condition_to_compare, preferred_level_order);
-    [comparisons.comparison_indices, comparisons.conditions_per_comparison_max] = determineComparisons(comparisons.condition_combinations, comparisons.condition_combination_labels, settings);
+    
+    condition_to_compare = settings.plot_settings.get('condition_to_compare');
+    condition_table = settings.conditions_settings;
+    [comparisons.comparison_indices, comparisons.conditions_per_comparison_max] = determineComparisons(comparisons.condition_combinations, comparisons.condition_combination_labels, condition_to_compare, condition_table);
     comparisons.number_of_comparisons = length(comparisons.comparison_indices);
     
     % determine colors for the combinations

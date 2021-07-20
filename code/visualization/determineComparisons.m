@@ -18,12 +18,11 @@
 % groups them into "comparisons". One comparison is one list of conditions
 % that will go into the same figure. 
 
-function [comparison_indices, conditions_per_comparison_max] = determineComparisons(conditions_to_plot, condition_labels, settings)
+% function [comparison_indices, conditions_per_comparison_max] = determineComparisons(conditions_to_plot, condition_labels, settings)
+function [comparison_indices, conditions_per_comparison_max] = determineComparisons(conditions_to_plot, condition_labels, condition_to_compare, condition_table)
     % initialize
     number_of_conditions_to_plot = size(conditions_to_plot, 1);
     conditions_already_compared = [];
-    condition_to_compare = settings.plot_settings.get('condition_to_compare');
-    condition_table = settings.conditions_settings;
     
     % separate the control conditions out
     control_row_indicator = false(number_of_conditions_to_plot, 1);

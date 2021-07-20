@@ -23,6 +23,7 @@ function [conditions_trial, event_variables_to_save, removal_flags] = determineC
     number_of_stretches = length(stretch_start_times);
     stretch_times = zeros(number_of_stretches, bands_per_stretch+1);
     first_stance_leg_list = cell(number_of_stretches, 1);
+    stance_foot_data = cell(number_of_stretches, bands_per_stretch);
     removal_flags = false(number_of_stretches, 1);
     for i_stretch = 1 : number_of_stretches
         % pull out relevant events
@@ -32,11 +33,11 @@ function [conditions_trial, event_variables_to_save, removal_flags] = determineC
         
         % determine whether this stretch is started by a left or a right heel-strike
         if ismember(this_stretch_start, left_touchdown_times)
-            stance_foot_data_stretch = {'STANCE_LEFT', 'STANCE_RIGHT'};
+            stance_foot_data(i_stretch, :) = {'STANCE_LEFT', 'STANCE_RIGHT'};
             this_stretch_times = [this_stretch_start this_right_touchdown this_left_touchdown];
             first_stance_leg_list{i_stretch} = 'LEFT';
         elseif ismember(this_stretch_start, right_touchdown_times)
-            stance_foot_data_stretch = {'STANCE_RIGHT', 'STANCE_LEFT'};
+            stance_foot_data(i_stretch, :) = {'STANCE_RIGHT', 'STANCE_LEFT'};
             this_stretch_times = [this_stretch_start this_left_touchdown this_right_touchdown];
             first_stance_leg_list{i_stretch} = 'RIGHT';
         else
@@ -50,7 +51,6 @@ function [conditions_trial, event_variables_to_save, removal_flags] = determineC
         stretch_times(i_stretch, :) = this_stretch_times;
     end
 
-    stance_foot_data = repmat(stance_foot_data_stretch, size(stretch_times, 1), 1);
     event_variables_to_save.stretch_times = stretch_times;
     event_variables_to_save.stance_foot_data = stance_foot_data;
 

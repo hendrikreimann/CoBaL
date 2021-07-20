@@ -33,218 +33,43 @@ function plotLinearModelResults(varargin)
     condition_to_compare = linear_model_settings.get('condition_to_compare');
 
     % load data
-    model_file_name = ['results' filesep collection_date '_' subject_id '_linearModelsFromSameBand.mat'];
+    model_file_name = ['results' filesep collection_date '_' subject_id '_linearModels.mat'];
     model_data = load(model_file_name);
-    results_file_name = ['results' filesep collection_date '_' subject_id '_results.mat'];
-%     results_data = load(results_file_name);
-%     number_of_bands = results_data.bands_per_stretch;
-
-    % plot models with continuous predictor
-    model_list_continuous_predictor = linear_model_settings.getTable('plot_table_continuous_predictor');
-    for i_model = 1 : size(model_list_continuous_predictor, 1)
-        this_model = model_list_continuous_predictor(i_model, :);
-        
-        % find the requested model in the data
-        this_model_index = findModelIndex(model_data, this_model);
-        this_model_data = model_data.linear_model_results{this_model_index, strcmp(model_data.linear_model_results_header, 'results')};
-        
-        % create figures
-        number_of_rows = size(this_model_data.row_info, 2);
-        number_of_columns = size(this_model_data.conditions, 2);
-        colors = lines(number_of_columns);
-        relevant_row = strcmp(this_model_data.condition_labels, condition_to_compare);
-        for i_row = 1 : number_of_rows
-            this_row_label = this_model_data.row_info{i_row};
-            model_label = [this_model.outcome_variable_name{1} ' vs. ' this_model.predictor_variable_name{1}];
-            row_label = [ ' - ' this_row_label ' - '];
-            condition_labels = this_model_data.conditions(relevant_row, :);
-            
-            % create figure
-            figure;
-            r_square_axes = axes('position', [0.08 0.5, 0.84 0.4]); 
-            hold on;
-            ylabel('R^2');
-            set(r_square_axes, 'xtick', [])
-            ylim([0 1]);
-            legend('Location', 'best')
-            
-            slope_axes = axes('position', [0.08 0.08, 0.84 0.4]);
-            hold on;
-            xlabel('time (%)'); ylabel('slope');
-            uicontrol('style', 'text', 'string', model_label, 'units', 'normalized', 'position', [0, 0.95, 1, 0.05], 'fontsize', 16, 'FontWeight', 'bold');
-            uicontrol('style', 'text', 'string', row_label, 'units', 'normalized', 'position', [0, 0.9, 1, 0.05], 'fontsize', 16, 'FontWeight', 'bold');
-            
-            % loop through columns
-            for i_column = 1 : number_of_columns
-                this_condition_label = strrep(condition_labels{i_column}, '_', ' ');
-                r_square_data_here = this_model_data.R_square{i_row, i_column};
-                slope_data_here = this_model_data.slope{i_row, i_column};
-                slope_cinv_here = this_model_data.slope_confidence_interval_width{i_row, i_column};
-                
-                this_color = colors(i_column, :);
-                plot(r_square_axes, 0:100, r_square_data_here, 'linewidth', 2, 'DisplayName', this_condition_label, 'color', this_color);
-                shadedErrorBar(0:100, slope_data_here, slope_cinv_here, {'linewidth', 2, 'color', this_color}, 1, slope_axes);
-            end
-
-            % plot zero line
-            if linear_model_settings.get('plot_zero', 1)
-                xlimits = get(slope_axes, 'xlim');
-                zero_plot = plot(slope_axes, xlimits, [0 0], 'color', [0.7 0.7 0.7], 'linewidth', 2);
-                set(zero_plot, 'HandleVisibility', 'off');
-                uistack(zero_plot, 'bottom')
-            end
-            
-            % save
-            if save_results
-                if ~directoryExists('figure')
-                    mkdir figure
-                end
-                filename = ['figures' filesep model_label this_row_label '.pdf'];
-                print(gcf, filename, '-r300', '-dpdf')
-            end
-        end
-        
-    end
-
-    % plot models with discrete predictor
-    model_list_discrete_predictor = linear_model_settings.getTable('plot_table_discrete_predictor');
-    for i_model = 1 : size(model_list_discrete_predictor, 1)
-        this_model = model_list_discrete_predictor(i_model, :);
-        
-        % find the requested model in the data
-        this_model_index = findModelIndex(model_data, this_model);
-        this_model_data = model_data.linear_model_results{this_model_index, strcmp(model_data.linear_model_results_header, 'results')};
-        predictor_label = strrep(this_model.predictor_variable_name{1}, '_', ' ');
-        outcome_label = strrep(this_model.outcome_variable_name{1}, '_', ' ');
-        
-        % create figures
-        number_of_rows = size(this_model_data.row_info, 2);
-        number_of_columns = size(this_model_data.conditions, 2);
-        colors = lines(number_of_columns);
-        relevant_row = strcmp(this_model_data.condition_labels, condition_to_compare);
-        for i_row = 1 : number_of_rows
-            this_row_label = this_model_data.row_info{i_row};
-            model_label = [outcome_label ' vs. ' predictor_label];
-            row_label = [ ' - ' this_row_label ' - '];
-            condition_labels = this_model_data.conditions(relevant_row, :);
-            
-            % create figure and axes
-            figure;
-            
-            slope_axes = axes('position', [0.08 0.08, 0.4 0.38]);
-            hold on;
-            xlabel('time (%)'); ylabel('slope');
-            xlim([0.5 number_of_columns+0.5]);
-            uicontrol('style', 'text', 'string', model_label, 'units', 'normalized', 'position', [0, 0.95, 1, 0.05], 'fontsize', 16, 'FontWeight', 'bold');
-            uicontrol('style', 'text', 'string', row_label, 'units', 'normalized', 'position', [0, 0.9, 1, 0.05], 'fontsize', 16, 'FontWeight', 'bold');
-            
-            r_square_axes = axes('position', [0.08 0.5, 0.4 0.38]); 
-            hold on;
-            ylabel('R^2');
-            set(r_square_axes, 'xtick', [])
-            xlim([0.5 number_of_columns+0.5]);
-            ylim([0 1]);
-            set(r_square_axes, 'xtick', [])
-            legend('Location', 'best')
-            
-            data_axes = axes('position', [0.58 0.08, 0.4 0.8]); 
-            hold on;
-            xlabel(predictor_label);
-            ylabel(outcome_label);
-            
-            % loop through columns
-            for i_column = 1 : number_of_columns
-                this_condition_label = strrep(condition_labels{i_column}, '_', ' ');
-                predictor_data_here = this_model_data.data.predictor{i_row, i_column};
-                outcome_data_here = this_model_data.data.outcome{i_row, i_column};
-                r_square_data_here = this_model_data.R_square{i_row, i_column};
-                slope_data_here = this_model_data.slope{i_row, i_column};
-                slope_cinv_here = this_model_data.slope_confidence_interval_width{i_row, i_column};
-                offset_data_here = this_model_data.offset{i_row, i_column};
-                
-                this_color = colors(i_column, :);
-                % plot data
-                plot ...
-                  ( ...
-                    data_axes, ...
-                    predictor_data_here, ...
-                    outcome_data_here, ...
-                    'o', ...
-                    'DisplayName', [this_condition_label ' - data'], ...
-                    'color', 'none', ...
-                    'MarkerFaceColor', lightenColor(this_color, 0.5), ...
-                    'MarkerSize', 5 ...
-                  );
-                
-                % plot linear model
-                predictor_interval = [min(predictor_data_here) max(predictor_data_here)];
-                plot ...
-                  ( ...
-                    data_axes, ...
-                    predictor_interval, ...
-                    predictor_interval * slope_data_here + offset_data_here, ...
-                    '-', ...
-                    'DisplayName', [this_condition_label ' - model'], ...
-                    'color', this_color, ...
-                    'linewidth', 2 ...
-                  );
-                
-                % plot slope overview
-                plot ...
-                  ( ...
-                    slope_axes, ...
-                    i_column * [1 1], ...
-                    slope_data_here + [-1 1]*slope_cinv_here, ...
-                    '-', ...
-                    'color', this_color, ...
-                    'linewidth', 5 ...
-                  );
-                plot ...
-                  ( ...
-                    slope_axes, ...
-                    i_column, ...
-                    slope_data_here, ...
-                    's', ...
-                    'color', 'none', ...
-                    'MarkerFaceColor', this_color, ...
-                    'MarkerSize', 15 ...
-                  );
-
-                % plot R^2 overview
-                plot ...
-                  ( ...
-                    r_square_axes, ...
-                    i_column, ...
-                    r_square_data_here, ...
-                    's', ...
-                    'color', 'none', ...
-                    'MarkerFaceColor', this_color, ...
-                    'DisplayName', this_condition_label, ...
-                    'MarkerSize', 15 ...
-                  );              
-            end
-
-            % plot zero line
-            if linear_model_settings.get('plot_zero', 1)
-                xlimits = get(slope_axes, 'xlim');
-                zero_plot = plot(slope_axes, xlimits, [0 0], 'color', [0.7 0.7 0.7], 'linewidth', 2);
-                set(zero_plot, 'HandleVisibility', 'off');
-                uistack(zero_plot, 'bottom')
-            end
-            
-            % save
-            if save_results
-                if ~directoryExists('figure')
-                    mkdir figure
-                end
-                filename = ['figures' filesep model_label this_row_label '.pdf'];
-                print(gcf, filename, '-r300', '-dpdf')
-            end
-        end
-        
-    end
-
+    model_list = linear_model_settings.getTable('plot_table');
     
+    for i_model = 1 : size(model_list, 1)
+        this_model = model_list(i_model, :);
+        
+        % find the requested model in the data
+        this_model_index = findModelIndex(model_data, this_model);
+        this_model_data = model_data.linear_model_results{this_model_index, strcmp(model_data.linear_model_results_header, 'results')};
+        
+        % create figures
+        relevant_column = strcmp(this_model_data.row_info_headers, condition_to_compare);
+        
+        % determine comparisons
+        condition_data = this_model_data.row_info;
+        conditions_settings = study_settings.get('conditions');
+        labels_to_ignore = {};
+        levels_to_remove = {};
+        [comparisons.condition_combination_labels, comparisons.condition_combinations] = determineConditionCombinations(condition_data, conditions_settings, labels_to_ignore, levels_to_remove);
+        preferred_level_order = 'blub'; % this isn't right, but I need something here, i.e. this can't be empty
+        [comparisons.condition_combinations, comparisons.level_order] = sortConditionCombinations(comparisons.condition_combinations, comparisons.condition_combination_labels, condition_to_compare, preferred_level_order);
+        [comparisons.comparison_indices, comparisons.conditions_per_comparison_max] = determineComparisons(comparisons.condition_combinations, comparisons.condition_combination_labels, condition_to_compare, conditions_settings);
+        comparisons.number_of_comparisons = length(comparisons.comparison_indices);
+        
+        % loop through comparisons
+        for i_comparison = 1 : comparisons.number_of_comparisons
+            if this_model_data.predictor_variable_data_points_per_stretch == 1
+                % discrete predictor
+                createComparisonFigure_discrete(this_model_data, comparisons, i_comparison, relevant_column, linear_model_settings, save_results);
+            else
+                % continuous predictor
+                createComparisonFigure_continuous(this_model_data, comparisons, i_comparison, relevant_column, linear_model_settings, save_results);
+            end
+        end
+    end
+
 end
 
 function index = findModelIndex(data, model)
@@ -278,10 +103,242 @@ function index = findModelIndex(data, model)
 
 end
 
+function comparison_label = createComparisonLabel(row_info, comparison_indices, column_with_condition_to_compare)
+    this_row_index = comparison_indices(1);
 
+    % identify columns for which all entries are the same
+    number_of_columns = size(row_info, 2);
+    number_of_unique_entries = zeros(1, number_of_columns);
+    for i_column = 1 : number_of_columns
+        this_column = row_info(:, i_column);
+        number_of_unique_entries(i_column) = numel(unique(this_column));
+    end
+    columns_with_relevant_information = logical(number_of_unique_entries - 1);
+    
+    % remove the column for the condition we're actually comparing
+    columns_with_relevant_information(column_with_condition_to_compare) = false;
+    
+    % pull out relevant row info
+    relevant_row_info = row_info(this_row_index, columns_with_relevant_information);
+    
+    % make label
+    comparison_label = strrep(relevant_row_info{1}, '_', ' ');
+    for i_column = 2 : length(relevant_row_info)
+        comparison_label = [comparison_label ', ' strrep(relevant_row_info{i_column}, '_', ' ')]; %#ok<AGROW>
+    end
+end
 
+function createComparisonFigure_discrete(model_data, comparisons, comparison_to_show, relevant_column, linear_model_settings, save_results)
+    comparison_indices = comparisons.comparison_indices{comparison_to_show};
+    model_label = [model_data.outcome ' vs. ' model_data.predictor];
+    comparison_label = createComparisonLabel(comparisons.condition_combinations, comparison_indices, relevant_column);
+    number_of_conditions_in_this_comparison = length(comparison_indices);
+    title_label = [model_label ', ' comparison_label];
+    file_label = [model_data.outcome '_VS_' model_data.predictor '_' comparison_label];
+    predictor_label = strrep(model_data.predictor, '_', ' ');
+    outcome_label = strrep(model_data.outcome, '_', ' ');
+    
+    % create figure and axes
+    colors = lines(number_of_conditions_in_this_comparison);
+    figure;
 
+    slope_axes = axes('position', [0.08 0.08, 0.4 0.38], 'fontsize', 12);
+    hold on;
+    xlabel('time (\%)'); ylabel('slope');
+    xlim([0.5 number_of_conditions_in_this_comparison+0.5]);
+    uicontrol('style', 'text', 'string', title_label, 'units', 'normalized', 'position', [0, 0.95, 1, 0.05], 'fontsize', 16, 'FontWeight', 'bold');
 
+    r_square_axes = axes('position', [0.08 0.5, 0.4 0.38], 'fontsize', 12); 
+    hold on;
+    ylabel('$R^2$');
+    set(r_square_axes, 'xtick', [])
+    xlim([0.5 number_of_conditions_in_this_comparison+0.5]);
+    ylim([0 1]);
+    set(r_square_axes, 'xtick', [])
+    legend('Location', 'best')
+
+    data_axes = axes('position', [0.58 0.08, 0.4 0.8], 'fontsize', 12); 
+    hold on;
+    xlabel(predictor_label);
+    ylabel(outcome_label);
+
+    % loop through conditions
+    for i_condition = 1 : number_of_conditions_in_this_comparison
+        this_condition_index = comparison_indices(i_condition);
+        
+        % this_condition_index is in relation to comparisons.condition_combinations, I need to find the relevant index in model_data
+        this_condition = comparisons.condition_combinations(this_condition_index, :);
+        levels_to_remove = [];
+        this_condition_indicator = getConditionIndicator ...
+          ( ...
+            this_condition, ...
+            comparisons.condition_combination_labels, ...
+            model_data.row_info, ...
+            model_data.row_info_headers, ...
+            levels_to_remove ...
+          );
+        
+        this_condition_label = strrep(model_data.row_info{this_condition_indicator, relevant_column}, '_', ' ');
+        
+        predictor_data_here = model_data.data.predictor{this_condition_indicator};
+        outcome_data_here = model_data.data.outcome{this_condition_indicator};
+        r_square_data_here = model_data.R_square{this_condition_indicator};
+        slope_data_here = model_data.slope{this_condition_indicator};
+        slope_cinv_here = model_data.slope_confidence_interval_width{this_condition_indicator};
+        offset_data_here = model_data.offset{this_condition_indicator};
+
+        this_color = colors(i_condition, :);
+        % plot data
+        plot ...
+          ( ...
+            data_axes, ...
+            predictor_data_here, ...
+            outcome_data_here, ...
+            'o', ...
+            'DisplayName', [this_condition_label ' - data'], ...
+            'color', 'none', ...
+            'MarkerFaceColor', lightenColor(this_color, 0.5), ...
+            'MarkerSize', 5 ...
+          );
+
+        % plot linear model
+        predictor_interval = [min(predictor_data_here) max(predictor_data_here)];
+        plot ...
+          ( ...
+            data_axes, ...
+            predictor_interval, ...
+            predictor_interval * slope_data_here + offset_data_here, ...
+            '-', ...
+            'DisplayName', [this_condition_label ' - model'], ...
+            'color', this_color, ...
+            'linewidth', 2 ...
+          );
+
+        % plot slope overview
+        plot ...
+          ( ...
+            slope_axes, ...
+            i_condition * [1 1], ...
+            slope_data_here + [-1 1]*slope_cinv_here, ...
+            '-', ...
+            'color', this_color, ...
+            'linewidth', 5 ...
+          );
+        plot ...
+          ( ...
+            slope_axes, ...
+            i_condition, ...
+            slope_data_here, ...
+            's', ...
+            'color', 'none', ...
+            'MarkerFaceColor', this_color, ...
+            'MarkerSize', 15 ...
+          );
+
+        % plot R^2 overview
+        plot ...
+          ( ...
+            r_square_axes, ...
+            i_condition, ...
+            r_square_data_here, ...
+            's', ...
+            'color', 'none', ...
+            'MarkerFaceColor', this_color, ...
+            'DisplayName', this_condition_label, ...
+            'MarkerSize', 15 ...
+          );              
+    end
+
+    % plot zero line
+    if linear_model_settings.get('plot_zero', 1)
+        xlimits = get(slope_axes, 'xlim');
+        zero_plot = plot(slope_axes, xlimits, [0 0], 'color', [0.7 0.7 0.7], 'linewidth', 2);
+        set(zero_plot, 'HandleVisibility', 'off');
+        uistack(zero_plot, 'bottom')
+    end
+
+    % save
+    if save_results
+        if ~directoryExists('figures')
+            mkdir figures
+        end
+        filename = ['figures' filesep file_label '.jpg'];
+        print(gcf, filename, '-r300', '-djpeg')
+    end    
+    
+end
+
+function createComparisonFigure_continuous(model_data, comparisons, comparison_to_show, relevant_column, linear_model_settings, save_results)
+    comparison_indices = comparisons.comparison_indices{comparison_to_show};
+    model_label = [model_data.outcome ' vs. ' model_data.predictor];
+    comparison_label = createComparisonLabel(comparisons.condition_combinations, comparison_indices, relevant_column);
+    number_of_conditions_in_this_comparison = length(comparison_indices);
+    title_label = [model_label ', ' comparison_label];
+    file_label = [model_data.outcome '_VS_' model_data.predictor '_' comparison_label];
+    
+    % create figure and axes
+    colors = lines(number_of_conditions_in_this_comparison);
+
+    figure;
+    r_square_axes = axes('position', [0.08 0.5, 0.84 0.4], 'fontsize', 12); 
+    hold on;
+    ylabel('$R^2$');
+    set(r_square_axes, 'xtick', [])
+    ylim([0 1]);
+    legend('Location', 'best')
+
+    slope_axes = axes('position', [0.08 0.08, 0.84 0.4], 'fontsize', 12);
+    hold on;
+    xlabel('time (\%)'); ylabel('slope');
+    
+    uicontrol('style', 'text', 'string', title_label, 'units', 'normalized', 'position', [0, 0.95, 1, 0.05], 'fontsize', 16, 'FontWeight', 'bold');
+
+    % loop through conditions
+    for i_condition = 1 : number_of_conditions_in_this_comparison
+        this_condition_index = comparison_indices(i_condition);
+        
+        % this_condition_index is in relation to comparisons.condition_combinations, I need to find the relevant index in model_data
+        this_condition = comparisons.condition_combinations(this_condition_index, :);
+        levels_to_remove = [];
+        this_condition_indicator = getConditionIndicator ...
+          ( ...
+            this_condition, ...
+            comparisons.condition_combination_labels, ...
+            model_data.row_info, ...
+            model_data.row_info_headers, ...
+            levels_to_remove ...
+          );
+        
+        
+        this_condition_label = strrep(model_data.row_info{this_condition_indicator, relevant_column}, '_', ' ');
+        
+        r_square_data_here = model_data.R_square{this_condition_indicator};
+        slope_data_here = model_data.slope{this_condition_indicator};
+        slope_cinv_here = model_data.slope_confidence_interval_width{this_condition_indicator};
+
+        this_color = colors(i_condition, :);
+        plot(r_square_axes, 0:100, r_square_data_here, 'linewidth', 2, 'DisplayName', this_condition_label, 'color', this_color);
+        shadedErrorBar(0:100, slope_data_here, slope_cinv_here, {'linewidth', 2, 'color', this_color}, 1, slope_axes);
+    end
+
+    % plot zero line
+    if linear_model_settings.get('plot_zero', 1)
+        xlimits = get(slope_axes, 'xlim');
+        zero_plot = plot(slope_axes, xlimits, [0 0], 'color', [0.7 0.7 0.7], 'linewidth', 2);
+        set(zero_plot, 'HandleVisibility', 'off');
+        uistack(zero_plot, 'bottom')
+    end
+
+    % save
+    if save_results
+        if ~directoryExists('figures')
+            mkdir figures
+        end
+        filename = ['figures' filesep file_label '.jpg'];
+        print(gcf, filename, '-r300', '-djpeg')
+    end    
+    
+end
 
 
 
