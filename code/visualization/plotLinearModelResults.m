@@ -21,8 +21,8 @@ function plotLinearModelResults(varargin)
     addParameter(parser, 'show_legend', true)
     addParameter(parser, 'save', false)
     parse(parser, varargin{:})
-    show_legend = parser.Results.show_legend;
-    save_results = parser.Results.save;
+    arguments.show_legend = parser.Results.show_legend;
+    arguments.save_results = parser.Results.save;
 
     % load settings
     study_settings = loadSettingsFromFile('study');
@@ -37,6 +37,7 @@ function plotLinearModelResults(varargin)
     model_data = load(model_file_name);
     model_list = linear_model_settings.getTable('plot_table');
     
+    preferred_level_order = linear_model_settings.get('preferred_level_order', 1);
     for i_model = 1 : size(model_list, 1)
         this_model = model_list(i_model, :);
         
@@ -53,19 +54,20 @@ function plotLinearModelResults(varargin)
         labels_to_ignore = {};
         levels_to_remove = {};
         [comparisons.condition_combination_labels, comparisons.condition_combinations] = determineConditionCombinations(condition_data, conditions_settings, labels_to_ignore, levels_to_remove);
-        preferred_level_order = 'blub'; % this isn't right, but I need something here, i.e. this can't be empty
         [comparisons.condition_combinations, comparisons.level_order] = sortConditionCombinations(comparisons.condition_combinations, comparisons.condition_combination_labels, condition_to_compare, preferred_level_order);
         [comparisons.comparison_indices, comparisons.conditions_per_comparison_max] = determineComparisons(comparisons.condition_combinations, comparisons.condition_combination_labels, condition_to_compare, conditions_settings);
         comparisons.number_of_comparisons = length(comparisons.comparison_indices);
+        comparisons.condition_colors = determineConditionColors(linear_model_settings.getTable('colors', 1), comparisons, condition_to_compare);
+        comparisons.condition_to_compare = condition_to_compare;
         
         % loop through comparisons
         for i_comparison = 1 : comparisons.number_of_comparisons
             if this_model_data.predictor_variable_data_points_per_stretch == 1
                 % discrete predictor
-                createComparisonFigure_discrete(this_model_data, comparisons, i_comparison, relevant_column, linear_model_settings, save_results);
+                createComparisonFigure_discrete(this_model_data, comparisons, i_comparison, relevant_column, linear_model_settings, arguments);
             else
                 % continuous predictor
-                createComparisonFigure_continuous(this_model_data, comparisons, i_comparison, relevant_column, linear_model_settings, save_results);
+                createComparisonFigure_continuous(this_model_data, comparisons, i_comparison, relevant_column, linear_model_settings, arguments);
             end
         end
     end
@@ -128,7 +130,7 @@ function comparison_label = createComparisonLabel(row_info, comparison_indices, 
     end
 end
 
-function createComparisonFigure_discrete(model_data, comparisons, comparison_to_show, relevant_column, linear_model_settings, save_results)
+function createComparisonFigure_discrete(model_data, comparisons, comparison_to_show, relevant_column, linear_model_settings, arguments)
     comparison_indices = comparisons.comparison_indices{comparison_to_show};
     model_label = [model_data.outcome ' vs. ' model_data.predictor];
     comparison_label = createComparisonLabel(comparisons.condition_combinations, comparison_indices, relevant_column);
@@ -139,23 +141,25 @@ function createComparisonFigure_discrete(model_data, comparisons, comparison_to_
     outcome_label = strrep(model_data.outcome, '_', ' ');
     
     % create figure and axes
-    colors = lines(number_of_conditions_in_this_comparison);
+    colors = comparisons.condition_colors;
     figure;
 
     slope_axes = axes('position', [0.08 0.08, 0.4 0.38], 'fontsize', 12);
     hold on;
-    xlabel('time (\%)'); ylabel('slope');
+    xlabel('time (%)'); ylabel('slope');
     xlim([0.5 number_of_conditions_in_this_comparison+0.5]);
     uicontrol('style', 'text', 'string', title_label, 'units', 'normalized', 'position', [0, 0.95, 1, 0.05], 'fontsize', 16, 'FontWeight', 'bold');
 
     r_square_axes = axes('position', [0.08 0.5, 0.4 0.38], 'fontsize', 12); 
     hold on;
-    ylabel('$R^2$');
+    ylabel('R^2');
     set(r_square_axes, 'xtick', [])
     xlim([0.5 number_of_conditions_in_this_comparison+0.5]);
     ylim([0 1]);
     set(r_square_axes, 'xtick', [])
-    legend('Location', 'best')
+    if arguments.show_legend
+        legend('Location', 'best')
+    end
 
     data_axes = axes('position', [0.58 0.08, 0.4 0.8], 'fontsize', 12); 
     hold on;
@@ -187,7 +191,10 @@ function createComparisonFigure_discrete(model_data, comparisons, comparison_to_
         slope_cinv_here = model_data.slope_confidence_interval_width{this_condition_indicator};
         offset_data_here = model_data.offset{this_condition_indicator};
 
-        this_color = colors(i_condition, :);
+        this_condition = comparisons.condition_combinations(this_condition_index, :);
+        this_label = this_condition{strcmp(comparisons.condition_combination_labels, comparisons.condition_to_compare)};
+        this_color = comparisons.condition_colors{strcmp(comparisons.condition_colors(:, 1), this_label), 2};
+        
         % plot data
         plot ...
           ( ...
@@ -258,7 +265,7 @@ function createComparisonFigure_discrete(model_data, comparisons, comparison_to_
     end
 
     % save
-    if save_results
+    if arguments.save_results
         if ~directoryExists('figures')
             mkdir figures
         end
@@ -268,7 +275,7 @@ function createComparisonFigure_discrete(model_data, comparisons, comparison_to_
     
 end
 
-function createComparisonFigure_continuous(model_data, comparisons, comparison_to_show, relevant_column, linear_model_settings, save_results)
+function createComparisonFigure_continuous(model_data, comparisons, comparison_to_show, relevant_column, linear_model_settings, arguments)
     comparison_indices = comparisons.comparison_indices{comparison_to_show};
     model_label = [model_data.outcome ' vs. ' model_data.predictor];
     comparison_label = createComparisonLabel(comparisons.condition_combinations, comparison_indices, relevant_column);
@@ -282,14 +289,16 @@ function createComparisonFigure_continuous(model_data, comparisons, comparison_t
     figure;
     r_square_axes = axes('position', [0.08 0.5, 0.84 0.4], 'fontsize', 12); 
     hold on;
-    ylabel('$R^2$');
+    ylabel('R^2');
     set(r_square_axes, 'xtick', [])
     ylim([0 1]);
-    legend('Location', 'best')
+    if arguments.show_legend
+        legend('Location', 'best')
+    end
 
     slope_axes = axes('position', [0.08 0.08, 0.84 0.4], 'fontsize', 12);
     hold on;
-    xlabel('time (\%)'); ylabel('slope');
+    xlabel('time (%)'); ylabel('slope');
     
     uicontrol('style', 'text', 'string', title_label, 'units', 'normalized', 'position', [0, 0.95, 1, 0.05], 'fontsize', 16, 'FontWeight', 'bold');
 
@@ -316,7 +325,10 @@ function createComparisonFigure_continuous(model_data, comparisons, comparison_t
         slope_data_here = model_data.slope{this_condition_indicator};
         slope_cinv_here = model_data.slope_confidence_interval_width{this_condition_indicator};
 
-        this_color = colors(i_condition, :);
+        this_condition = comparisons.condition_combinations(this_condition_index, :);
+        this_label = this_condition{strcmp(comparisons.condition_combination_labels, comparisons.condition_to_compare)};
+        this_color = comparisons.condition_colors{strcmp(comparisons.condition_colors(:, 1), this_label), 2};
+        
         plot(r_square_axes, 0:100, r_square_data_here, 'linewidth', 2, 'DisplayName', this_condition_label, 'color', this_color);
         shadedErrorBar(0:100, slope_data_here, slope_cinv_here, {'linewidth', 2, 'color', this_color}, 1, slope_axes);
     end
@@ -330,7 +342,7 @@ function createComparisonFigure_continuous(model_data, comparisons, comparison_t
     end
 
     % save
-    if save_results
+    if arguments.save_results
         if ~directoryExists('figures')
             mkdir figures
         end

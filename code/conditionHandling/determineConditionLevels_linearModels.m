@@ -51,6 +51,9 @@ function [conditions_trial, event_variables_to_save, removal_flags] = determineC
         stretch_times(i_stretch, :) = this_stretch_times;
     end
 
+    % flag stretches within first 60 seconds for removal
+    removal_flags(stretch_start_times < 60) = 1;
+    
     event_variables_to_save.stretch_times = stretch_times;
     event_variables_to_save.stance_foot_data = stance_foot_data;
 
