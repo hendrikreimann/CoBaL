@@ -22,8 +22,8 @@ function conditions_trial = determineConditionLevels_metronome(trial_data, condi
     trial_type_indicator = strcmp(protocol_info.trial_type, this_trial_type);
     trial_number_indicator = (protocol_info.trial_number == this_trial_number);
     this_trial_indicator = trial_type_indicator & trial_number_indicator;
-    this_trial_metronome_file_name = protocol_info.metronome_file_name{this_trial_indicator};
-    metronome_label = this_trial_metronome_file_name(1 : end-4);
+    this_trial_metronome = protocol_info.metronome_cadence(this_trial_indicator);
+    metronome_label = num2str(this_trial_metronome);
 
     % make list
     number_of_triggers = length(trial_data.trigger_times);
