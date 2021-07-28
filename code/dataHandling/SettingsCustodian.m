@@ -478,8 +478,7 @@ classdef SettingsCustodian < handle
             if strcmp(property_name, 'force_plates_to_import')
                 default_data = [1, 2];
             end
-            if strcmp(property_name, 'emg_cutoff_frequency_low')
-            
+            if strcmp(property_name, 'emg_cutoff_frequency_low')            
                 default_data = 500;
             end
             
@@ -494,6 +493,9 @@ classdef SettingsCustodian < handle
             end
             if strcmp(property_name, 'convert_to_mm')
                 default_data = false;
+            end
+            if strcmp(property_name, 'lab_orientation')
+                default_data = 'normal';
             end
             if strcmp(property_name, 'inverse_kinematics_source')
                 default_data = 'opensim';
