@@ -33,6 +33,7 @@ classdef SettingsCustodian < handle
             'analog_data_to_import'; ...
             'emg_data_to_import'; ...
             'across_trials_conditions'; ...
+            'preferred_level_order'; ...
           }
     end
     methods
@@ -272,9 +273,39 @@ classdef SettingsCustodian < handle
             if any(strcmp(this.force_string_list, property_name))
                 data_old = data;
                 
-                % is this an individual number?
                 if isnumeric(data_old)
-                    data = num2str(data_old);
+                    if numel(data) == 1
+                        % this is a single number
+                        data = num2str(data_old);
+                    else
+                        % not a single number, so transform this to a cell array
+                        data_cell = cell(size(data_old));
+                        for i_entry = 1 : numel(data_old)
+                            this_entry = data_old(i_entry);
+                            if isnumeric(this_entry)
+                                data_cell{i_entry} = num2str(this_entry);
+                            else
+                                data_cell{i_entry} = this_entry;
+                            end
+
+                        end
+                        data = data_cell;
+                        
+                    end
+                end
+                if ~isnumeric(data_old) && ~iscell(data_old)
+                    % not sure we need this case ...
+                    data_cell = cell(size(data_old));
+                    for i_entry = 1 : numel(data_old)
+                        this_entry = data_old(i_entry);
+                        if isnumeric(this_entry)
+                            data_cell{i_entry} = num2str(this_entry);
+                        else
+                            data_cell{i_entry} = this_entry;
+                        end
+                        
+                    end
+                    data = data_cell;
                 end
                 % not a single number, but not a cell?
                 if ~isnumeric(data_old) && ~iscell(data_old)
