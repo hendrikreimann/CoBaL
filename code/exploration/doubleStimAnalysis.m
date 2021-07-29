@@ -1,8 +1,8 @@
 % flags
-analyze_data            = 1;
+analyze_data            = 0;
 plot_results            = 1;
-dictate_axes            = 0;
-save_figure             = 1;
+dictate_axes            = 1;
+save_figure             = 0;
 
 export_data             = 0;
 export_results          = 0;
@@ -19,7 +19,7 @@ response_variable = 'com_position'; response_label = 'CoM'; response_unit = 'm';
 trials_to_analyze = 1:6; trial_label = 'low cadence'; trial_filename_label = 'lowCadence';
 trials_to_analyze = 7:12; trial_label = 'high cadence'; trial_filename_label = 'highCadence';
 
-% trials_to_analyze = 1:12; trial_label = 'all cadences'; trial_filename_label = 'allCadences';
+trials_to_analyze = 1:12; trial_label = 'all cadences'; trial_filename_label = 'allCadences';
 
 % create filename and title label
 filename = [response_filename_label '_' trial_filename_label];
@@ -465,6 +465,14 @@ end
 
 
 if plot_results
+    if dictate_axes
+        gain_ylim = [0.0005 0.1];
+        phase_ylim = [-200 500];
+        com_response_ylim = [-0.15 0.15];
+        gvs_response_ylim = [-0.16 0.04];
+    end
+    
+    
     frequency_limits = [0.023 0.5];
     unique_paces = sort(unique(paces));
 
@@ -472,11 +480,11 @@ if plot_results
     number_of_paces = length(unique(paces));
     marker_pace_cell = ...
       { ...
-        0.55, 'o'; ...
-        0.95, 'd'; ...
+        0.6, 'o'; ...
+        1, 'd'; ...
       };
     marker_pace_table = cell2table(marker_pace_cell, 'VariableNames', {'pace', 'marker'});
-    all_vis_stim_amplitudes = [5; 10; 15];
+    all_vis_stim_amplitudes = [0; 6; 12];
     colors_noGvs = copper(numel(all_vis_stim_amplitudes));
     colors_withGvs = winter(numel(all_vis_stim_amplitudes));
     color_gain_table = table(all_vis_stim_amplitudes, colors_noGvs, colors_withGvs, 'VariableNames', {'vis_stim_amplitude', 'color_noGvs', 'color_withGvs'});
@@ -505,6 +513,9 @@ if plot_results
     hold(axes_323, 'on')
     set(axes_323, 'XScale', 'log', 'fontsize', 12)
     xlim(frequency_limits)
+    if dictate_axes
+        ylim(phase_ylim)
+    end
     ylabel('FRF phase', 'fontsize', 18)
     legend('show', 'Location', 'best')
 
@@ -512,6 +523,9 @@ if plot_results
     hold(axes_324, 'on')
     set(axes_324, 'fontsize', 12)
     xlim([0 max(time_single_cycle)])
+    if dictate_axes
+        ylim(com_response_ylim)
+    end
     ylabel(['Average ' response_label ' response (' response_unit ')'], 'fontsize', 18)
 
     axes_325 = nexttile;
@@ -526,6 +540,9 @@ if plot_results
     set(axes_326, 'fontsize', 12)
 %     xlim([0.5 max(gains)+0.5])
 %     ylabel('Sensory Weights from model fit', 'fontsize', 18)
+    if dictate_axes
+        ylim(gvs_response_ylim)
+    end
     ylabel('Average response to GVS pulse', 'fontsize', 18)
 %     legend('show', 'Location', 'best')
 %     xlim([0, 16])
@@ -571,11 +588,19 @@ if plot_results
         plot(axes_326, time_single_pulse, average_pulse_filtered_response{i_trial}, 'color', this_color, 'linewidth', linewidth, 'MarkerFaceColor', this_color);
         
     end
-    
+        
     yyaxis(axes_322, 'right')
     token_gvs_index = find(gvs_stimulus_amplitudes, 1);
-    plot(axes_322, time_single_cycle, average_gvs_stimulus{token_gvs_index}, 'color', [0.5 0.5 0.5], 'linewidth', linewidth);
+    plot(axes_322, time_single_cycle, average_gvs_stimulus{token_gvs_index}, 'color', [0.5 0.5 0.5], 'linewidth', 3);
     axes_322.YColor = [0.5 0.5 0.5];
+
+    yyaxis(axes_326, 'right')
+    this_time = signal_data.single_pulse_time;
+    
+    this_pulse = signal_data.pulse_stimulus_normalized(signal_data.points_per_cycle + (1 : signal_data.points_per_pulse)) * 0.25;
+    plot(axes_326, this_time, this_pulse, 'color', [0.5 0.5 0.5], 'linewidth', 3);
+    axes_326.YColor = [0.5 0.5 0.5];
+    ylim(gvs_response_ylim * 2)
     
     % connect weights
     if fit_model
