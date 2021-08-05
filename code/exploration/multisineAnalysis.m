@@ -12,7 +12,7 @@ trial_type = 'stimulus'; type_label = 'walking';
 
 % select response variable
 response_variable = 'com_position'; response_label = 'CoM'; response_unit = 'm'; response_filename_label = 'com'; fit_model = 0;
-% response_variable = 'com_angle'; response_label = 'CoM angle'; response_unit = 'deg'; response_filename_label = 'comAngle'; fit_model = 1;
+response_variable = 'com_angle'; response_label = 'CoM angle'; response_unit = 'deg'; response_filename_label = 'comAngle'; fit_model = 1;
 % response_variable = 'foot_base'; response_label = 'foot base'; response_unit = 'm'; response_filename_label = 'footBase'; fit_model = 0;
 
 % select trials to analyze

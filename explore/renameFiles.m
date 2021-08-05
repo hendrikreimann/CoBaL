@@ -17,12 +17,12 @@
 % this script renames files according to the CoBaL file naming scheme
 % it will go through all files in the current folder and replace part of
 % the name with string specified in "new_code"
-target_folder = 'trc';
+target_folder = 'qtm';
 
 % 1 = date, 2 = subjectID, 3 = trial type, 4 = trial number, 5 = data type
-spot_to_replace = 3;
-code_to_replace = 'EOFoamcogbak';
-new_code = 'EOFoamCog';
+spot_to_replace = 1;
+code_to_replace = '20210726';
+new_code = '20210730';
 
 % find files
 clear file_name_list;

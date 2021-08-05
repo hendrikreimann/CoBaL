@@ -1,8 +1,8 @@
 % flags
-analyze_data            = 0;
+analyze_data            = 1;
 plot_results            = 1;
 dictate_axes            = 1;
-save_figure             = 0;
+save_figure             = 1;
 
 export_data             = 0;
 export_results          = 0;
@@ -17,9 +17,9 @@ response_variable = 'com_position'; response_label = 'CoM'; response_unit = 'm';
 
 % select trials to analyze
 trials_to_analyze = 1:6; trial_label = 'low cadence'; trial_filename_label = 'lowCadence';
-trials_to_analyze = 7:12; trial_label = 'high cadence'; trial_filename_label = 'highCadence';
+% trials_to_analyze = 7:12; trial_label = 'high cadence'; trial_filename_label = 'highCadence';
 
-trials_to_analyze = 1:12; trial_label = 'all cadences'; trial_filename_label = 'allCadences';
+% trials_to_analyze = 1:12; trial_label = 'all cadences'; trial_filename_label = 'allCadences';
 
 % create filename and title label
 filename = [response_filename_label '_' trial_filename_label];
