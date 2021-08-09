@@ -115,6 +115,12 @@ function [conditions_trial, event_variables_to_save, removal_flags] ...
             = determineConditionLevels_group(subject_settings, trial_data, conditions_trial);
     end
     
+    % add block if required
+    if any(strcmp(conditions_table(:, 1), 'block'))
+        conditions_trial ...
+            = determineConditionLevels_block(subject_settings, trial_data, conditions_trial);
+    end
+    
     % add type from filename if required
     if any(strcmp(conditions_table(:, 1), 'type'))
         conditions_trial ...
