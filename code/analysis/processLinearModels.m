@@ -53,34 +53,46 @@ function processLinearModels(varargin)
     
     % get table with analysis information
     model_table = linear_model_settings.getTable('models');
-    number_of_variables = height(model_table);
+    number_of_models = height(model_table);
     
     % analyze
-    linear_model_results_header = {'results', 'predictor_variable_name', 'outcome_variable_name'};
-    linear_model_results = cell(number_of_variables, 3);
-    for i_model = 1 : number_of_variables
-        predictor_variable_name = model_table.predictor_variable_name{i_model};
-        predictor_variable_data = data.variable_data{strcmp(data.variable_names, predictor_variable_name)};
-        predictor_variable_directions = data.variable_directions(strcmp(data.variable_names, predictor_variable_name), :);
+    linear_model_results_header = {'results', 'outcome_variable', 'predictor_variables'};
+    linear_model_results = cell(number_of_models, 3);
+    for i_model = 1 : number_of_models
+        predictor_variable_list_name = model_table.predictor_variable_list{i_model};
+        predictor_variable_list = linear_model_settings.get(predictor_variable_list_name);
+        number_of_predictor_variables = length(predictor_variable_list);
+        predictor_variable_data = cell(number_of_predictor_variables, 1);
+        predictor_variable_directions = cell(number_of_predictor_variables, 2);
+        predictor_variable_data_points_per_stretch_all = zeros(number_of_predictor_variables, 1);
+        for i_predictor = 1 : number_of_predictor_variables
+            this_predictor_variable_name = predictor_variable_list{i_predictor};
+            predictor_variable_data{i_predictor} = data.variable_data{strcmp(data.variable_names, this_predictor_variable_name)};
+            predictor_variable_directions(i_predictor, :) = data.variable_directions(strcmp(data.variable_names, this_predictor_variable_name), :);
+            predictor_variable_data_points_per_stretch_all(i_predictor) = size(predictor_variable_data{i_predictor}, 1);
+        end
+        if numel(unique(predictor_variable_data_points_per_stretch_all)) > 1
+            error('Predictor variables have different numbers of data points');
+        end
+        predictor_variable_data_points_per_stretch = predictor_variable_data_points_per_stretch_all(1);
         outcome_variable_name = model_table.outcome_variable_name{i_model};
         outcome_variable_data = data.variable_data{strcmp(data.variable_names, outcome_variable_name)};
         outcome_variable_directions = data.variable_directions(strcmp(data.variable_names, outcome_variable_name), :);
-        predictor_variable_data_points_per_stretch = size(predictor_variable_data, 1);
         
         % make containers for results
         results_this_model = struct;
-        results_this_model.predictor = predictor_variable_name;
-        results_this_model.outcome = outcome_variable_name;
-        results_this_model.data.predictor = cell(number_of_condition_combinations, 1);
+        results_this_model.names.predictors = predictor_variable_list;
+        results_this_model.names.outcome = outcome_variable_name;
+        results_this_model.data.predictors = cell(number_of_condition_combinations, number_of_predictor_variables);
         results_this_model.data.outcome = cell(number_of_condition_combinations, 1);
         results_this_model.directions.predictor = predictor_variable_directions;
         results_this_model.directions.outcome = outcome_variable_directions;
         results_this_model.R_square = cell(number_of_condition_combinations, 1);
         results_this_model.slope = cell(number_of_condition_combinations, 1);
-        results_this_model.slope_confidence_interval_width = cell(number_of_condition_combinations, 1);
-        results_this_model.offset{i_condition} = cell(number_of_condition_combinations, 1);
-        results_this_model.offset_confidence_interval_width{i_condition} = cell(number_of_condition_combinations, 1);
-        results_this_model.correlation_p = cell(number_of_condition_combinations, 1);
+%         results_this_model.slope_confidence_interval_width = cell(number_of_condition_combinations, 1);
+%         results_this_model.offset{i_condition} = cell(number_of_condition_combinations, 1);
+%         results_this_model.offset_confidence_interval_width{i_condition} = cell(number_of_condition_combinations, 1);
+%         results_this_model.correlation_p = cell(number_of_condition_combinations, 1);
         results_this_model.row_info = condition_combinations_unique;
         results_this_model.row_info_headers = condition_labels;
         results_this_model.predictor_variable_data_points_per_stretch = predictor_variable_data_points_per_stretch;
@@ -88,37 +100,64 @@ function processLinearModels(varargin)
         % loop through conditions
         for i_condition = 1 : number_of_condition_combinations
             % extract data from this condition
-%             this_condition_labels = condition_combinations_unique(i_condition, :); % probably not needed
             this_condition_indicator = condition_indicators(:, i_condition);
+            number_of_data_points_this_condition = sum(this_condition_indicator);
         
-            predictor_variable_data_this_condition = predictor_variable_data(:, this_condition_indicator);
-            outcome_variable_data_this_condition = outcome_variable_data(:, this_condition_indicator);
+            predictor_variable_data_this_condition = cell(number_of_predictor_variables, 1);
+%             predictor_variable_data_this_condition = zeros(number_of_predictor_variables, number_of_data_points_this_condition);
+            for i_variable = 1 : number_of_predictor_variables
+                this_variable_data_this_condition = predictor_variable_data{i_variable}(:, this_condition_indicator);
+                % subtract mean
+                this_variable_data_this_condition_mean_free = zeros(size(this_variable_data_this_condition));
+                for i_time = 1 : predictor_variable_data_points_per_stretch
+                    data_this_time_point = this_variable_data_this_condition(i_time, :);
+                    data_this_time_point_mean_free = data_this_time_point - mean(data_this_time_point);
+                    this_variable_data_this_condition_mean_free(i_time, :) = data_this_time_point_mean_free;
+                end
+                predictor_variable_data_this_condition{i_variable} = this_variable_data_this_condition_mean_free;
+            end
+            outcome_variable_data_this_condition = outcome_variable_data(:, this_condition_indicator) - mean(outcome_variable_data(:, this_condition_indicator));
         
             % create containers
             R_square_table_here = zeros(predictor_variable_data_points_per_stretch, 1) * NaN;
-            slope_table_here = zeros(predictor_variable_data_points_per_stretch, 1) * NaN;
-            slope_confidence_interval_width_table_here = zeros(predictor_variable_data_points_per_stretch, 1) * NaN;
-            offset_table_here = zeros(predictor_variable_data_points_per_stretch, 1) * NaN;
-            offset_confidence_interval_width_table_here = zeros(predictor_variable_data_points_per_stretch, 1) * NaN;
-            correlation_p_table_here = zeros(predictor_variable_data_points_per_stretch, 1) * NaN;
+            slope_table_here = zeros(predictor_variable_data_points_per_stretch, number_of_predictor_variables) * NaN;
+%             slope_confidence_interval_width_table_here = zeros(predictor_variable_data_points_per_stretch, 1) * NaN;
+%             offset_table_here = zeros(predictor_variable_data_points_per_stretch, 1) * NaN;
+%             offset_confidence_interval_width_table_here = zeros(predictor_variable_data_points_per_stretch, 1) * NaN;
+%             correlation_p_table_here = zeros(predictor_variable_data_points_per_stretch, 1) * NaN;
             
             % loop through stretches in predictor variable
-            for i_stretch = 1 : predictor_variable_data_points_per_stretch
-                predictor = predictor_variable_data_this_condition(i_stretch, :)';
+            for i_time = 1 : predictor_variable_data_points_per_stretch
+                % extract data for predictor and outcome
+                predictor = zeros(number_of_predictor_variables, number_of_data_points_this_condition);
+                for i_variable = 1 : number_of_predictor_variables
+                    predictor(i_variable, :) = predictor_variable_data_this_condition{i_variable}(i_time, :);
+                end
+                predictor = predictor';
                 outcome = outcome_variable_data_this_condition';
-                if ~any(isnan(predictor)) || any(isnan(outcome))
+                if ~any(any(isnan(predictor))) || any(isnan(outcome))
                     % fit
-                    [fit_object, fit_stats] = fit(predictor, outcome, 'poly1');
-                    [~, correlation_p] = corrcoef(predictor, outcome);
+                    jacobian = predictor\outcome;
+                    
+                    % calculate R^2
+                    prediction = predictor*jacobian;
+                    SS_residual = sum((outcome - prediction).^2);
+                    SS_total = sum((outcome - mean(outcome)).^2);
+                    R_square = 1 - SS_residual/SS_total;
+                    
+% [fit_object, fit_stats] = fit(predictor, outcome, 'poly1');
+% [fit_object, fit_stats] = fit(predictor, outcome, 'poly11');
+
+% plot(fit_object, predictor', outcome')
 
                     % store
-                    R_square_table_here(i_stretch) = fit_stats.rsquare;
-                    slope_table_here(i_stretch) = fit_object.p1;
-                    offset_table_here(i_stretch) = fit_object.p2;
-                    confidence_intervals = confint(fit_object);
-                    slope_confidence_interval_width_table_here(i_stretch) = range(confidence_intervals(:, 1));
-                    offset_confidence_interval_width_table_here(i_stretch) = range(confidence_intervals(:, 2));
-                    correlation_p_table_here(i_stretch) = correlation_p(1, 2);
+                    R_square_table_here(i_time) = R_square;
+                    slope_table_here(i_time, :) = jacobian;
+%                     offset_table_here(i_time) = fit_object.p2;
+%                     confidence_intervals = confint(fit_object);
+%                     slope_confidence_interval_width_table_here(i_time) = range(confidence_intervals(:, 1));
+%                     offset_confidence_interval_width_table_here(i_time) = range(confidence_intervals(:, 2));
+%                     correlation_p_table_here(i_time) = correlation_p(1, 2);
                     
 %                     % plot
 %                     figure; 
@@ -135,14 +174,14 @@ function processLinearModels(varargin)
             end
             
             % store
-            results_this_model.data.predictor{i_condition} = predictor_variable_data_this_condition;
+            results_this_model.data.predictors(i_condition, :) = predictor_variable_data_this_condition;
             results_this_model.data.outcome{i_condition} = outcome_variable_data_this_condition;
             results_this_model.R_square{i_condition} = R_square_table_here;
             results_this_model.slope{i_condition} = slope_table_here;
-            results_this_model.slope_confidence_interval_width{i_condition} = slope_confidence_interval_width_table_here;
-            results_this_model.offset{i_condition} = offset_table_here;
-            results_this_model.offset_confidence_interval_width{i_condition} = offset_confidence_interval_width_table_here;
-            results_this_model.correlation_p{i_condition} = correlation_p_table_here;
+%             results_this_model.slope_confidence_interval_width{i_condition} = slope_confidence_interval_width_table_here;
+%             results_this_model.offset{i_condition} = offset_table_here;
+%             results_this_model.offset_confidence_interval_width{i_condition} = offset_confidence_interval_width_table_here;
+%             results_this_model.correlation_p{i_condition} = correlation_p_table_here;
 
 
 %             % calculate variance and standard deviation
@@ -159,9 +198,9 @@ function processLinearModels(varargin)
             
         end
         linear_model_results{i_model, 1} = results_this_model;
-        linear_model_results{i_model, 2} = predictor_variable_name;
-        linear_model_results{i_model, 3} = outcome_variable_name;
-        disp(['Finished model ' num2str(i_model) ' of ' num2str(number_of_variables) ', predictor: ' predictor_variable_name ', outcome: ' outcome_variable_name])
+        linear_model_results{i_model, 2} = outcome_variable_name;
+        linear_model_results{i_model, 3} = predictor_variable_list;
+        disp(['Finished model ' num2str(i_model) ' of ' num2str(number_of_models) ', predictors: ' predictor_variable_list_name ', outcome: ' outcome_variable_name])
         
     end
     
