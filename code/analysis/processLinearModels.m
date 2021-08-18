@@ -81,6 +81,7 @@ function processLinearModels(varargin)
         
         % make containers for results
         results_this_model = struct;
+        results_this_model.names.predictors_label = predictor_variable_list_name;
         results_this_model.names.predictors = predictor_variable_list;
         results_this_model.names.outcome = outcome_variable_name;
         results_this_model.data.predictors = cell(number_of_condition_combinations, number_of_predictor_variables);
@@ -174,6 +175,7 @@ function processLinearModels(varargin)
             end
             
             % store
+            results_this_model.data.predictors(i_condition, :) = predictor_variable_data_this_condition;
             results_this_model.data.predictors(i_condition, :) = predictor_variable_data_this_condition;
             results_this_model.data.outcome{i_condition} = outcome_variable_data_this_condition;
             results_this_model.R_square{i_condition} = R_square_table_here;

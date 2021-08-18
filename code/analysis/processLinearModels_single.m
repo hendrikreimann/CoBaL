@@ -166,7 +166,7 @@ function processLinearModels_single(varargin)
     end
     
     % save
-    results_file_name = ['results' filesep collection_date '_' subject_id '_linearModels.mat'];
+    results_file_name = ['results' filesep collection_date '_' subject_id '_linearModelsSingleu.mat'];
     save(results_file_name, 'linear_model_results', 'linear_model_results_header');
 end    
     
