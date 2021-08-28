@@ -139,7 +139,7 @@ function importLabviewData()
                 end
             end
 
-            disp(['imported ' labview_source_dir filesep data_file_name ' and saved as ' save_folder filesep save_file_name])                
+            disp(['imported ' labview_source_dir filesep data_file_name ' and saved as ' save_folder filesep save_file_name])
         end
 
     end

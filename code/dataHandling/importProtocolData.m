@@ -26,7 +26,7 @@
 % Files containing the same data in .mat format, with some additional information about where they came from.
 % Output files will be saved to folders "raw" and "processed".
 
-function importProtocol(varargin)
+function importProtocolData(varargin)
     % parse arguments
     parser = inputParser;
     parser.KeepUnmatched = true;
@@ -36,8 +36,6 @@ function importProtocol(varargin)
 
     %% prepare
     % set some parameters
-    milliseconds_to_seconds = 1e-3;
-    
     labview_source_dir = 'labview';
 
     % import protocol
@@ -66,27 +64,6 @@ function importProtocol(varargin)
             protocol_data.(this_variable_name) = imported_table.(this_variable_table_header);
         end
         
-%         protocol_trial_type = imported_table.(table_headers{strcmp(headers, 'Trial Type')});
-%         protocol_trial_number = imported_table.(table_headers{strcmp(headers, 'Trial Number')});
-%         protocol_trial_duration = imported_table.(table_headers{strcmp(headers, 'Duration (s)')});
-%         protocol_metronome_cadence = imported_table.(table_headers{strcmp(headers, 'Use Metronome (0/1)')});
-%         protocol_trial_saved = imported_table.(table_headers{strcmp(headers, 'save data (0/1)')});
-%         protocol_count_left_step = imported_table.(table_headers{strcmp(headers, 'Count left steps (0/1)')});
-%         protocol_count_right_step = imported_table.(table_headers{strcmp(headers, 'Count right steps (0/1)')});
-%         protocol_stim_visual_intermittent = imported_table.(table_headers{strcmp(headers, 'Use Visual Stimulus - intermittent')});
-%         protocol_stim_gvs_intermittent = imported_table.(table_headers{strcmp(headers, 'GVS intermittent')});
-
-        % save protocol data
-%         protocol_data = struct;
-%         protocol_data.trial_type = protocol_trial_type;
-%         protocol_data.trial_number = protocol_trial_number;
-%         protocol_data.trial_duration = protocol_trial_duration;
-%         protocol_data.metronome_cadence = protocol_metronome_cadence;
-%         protocol_data.trial_saved = protocol_trial_saved;
-%         protocol_data.count_left_step = protocol_count_left_step;
-%         protocol_data.count_right_step = protocol_count_right_step;
-%         protocol_data.stim_visual_intermittent = protocol_stim_visual_intermittent;
-%         protocol_data.stim_gvs_intermittent = protocol_stim_gvs_intermittent;
         save_file_name = 'protocolInfo.mat';
         save(save_file_name, '-struct', 'protocol_data');
         

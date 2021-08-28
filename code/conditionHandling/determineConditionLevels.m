@@ -42,7 +42,7 @@ function [conditions_trial, event_variables_to_save, removal_flags] ...
     end
     if strcmp(experimental_paradigm, 'Linear Models')
         [conditions_trial, event_variables_to_save, removal_flags] ...
-            = determineConditionLevels_linearModels(trial_data);
+            = determineConditionLevels_linearModels(trial_data, study_settings);
     end
     if strcmp(experimental_paradigm, 'Stochastic Resonance')
         [conditions_trial, event_variables_to_save, removal_flags] ...
@@ -131,6 +131,12 @@ function [conditions_trial, event_variables_to_save, removal_flags] ...
     if any(strcmp(conditions_table(:, 1), 'metronome'))
         conditions_trial ...
             = determineConditionLevels_metronome(trial_data, conditions_trial);
+    end
+    
+    % add speed from protocol if required
+    if any(strcmp(conditions_table(:, 1), 'speed'))
+        conditions_trial ...
+            = determineConditionLevels_speed(trial_data, conditions_trial);
     end
     
     % add subject

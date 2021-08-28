@@ -69,23 +69,27 @@ function preprocessMarkerData(varargin)
             trial_number_list_this_condition = trials_to_analyze{strcmp(trial_type, types_to_analyze)};
             if ismember(trial_number, trial_number_list_this_condition)
                 % load data
-                loaded_data = load(['raw' filesep raw_marker_file_name]);
-                time_mocap = loaded_data.time_mocap;
-                sampling_rate_mocap = loaded_data.sampling_rate_mocap;
-                marker_labels = loaded_data.marker_labels;
-                marker_directions = loaded_data.marker_directions;
+%                 loaded_data = load(['raw' filesep raw_marker_file_name]);
+%                 time_mocap = loaded_data.time_mocap;
+%                 sampling_rate_mocap = loaded_data.sampling_rate_mocap;
+%                 marker_labels = loaded_data.marker_labels;
+%                 marker_directions = loaded_data.marker_directions;
+%                 % figure out variable
+%                 if isfield(loaded_data, 'marker_trajectories_raw')
+%                     raw_marker_trajectories = loaded_data.marker_trajectories_raw;
+%                 elseif isfield(loaded_data, 'marker_raw_trajectories')
+%                     raw_marker_trajectories = loaded_data.marker_raw_trajectories;
+%                 end
                 
-                % figure out variable
-                if isfield(loaded_data, 'marker_trajectories_raw')
-                    raw_marker_trajectories = loaded_data.marker_trajectories_raw;
-                elseif isfield(loaded_data, 'marker_raw_trajectories')
-                    raw_marker_trajectories = loaded_data.marker_raw_trajectories;
+                [raw_marker_trajectories, time_mocap, sampling_rate_mocap, marker_labels, marker_directions, success] = loadData(collection_date, subject_id, trial_type, trial_number, 'marker_raw_trajectories');
+                if ~success
+                    [raw_marker_trajectories, time_mocap, sampling_rate_mocap, marker_labels, marker_directions, success] = loadData(collection_date, subject_id, trial_type, trial_number, 'marker_trajectories_raw');
                 end
 
                 if study_settings.get('filter_marker_data')
                     filter_order = 4;
                     cutoff_frequency = study_settings.get('marker_data_cutoff_frequency'); % in Hz
-                    [b_marker, a_marker] = butter(filter_order, cutoff_frequency/(loaded_data.sampling_rate_mocap/2));
+                    [b_marker, a_marker] = butter(filter_order, cutoff_frequency/(sampling_rate_mocap/2));
                     marker_trajectories = nanfiltfilt(b_marker, a_marker, raw_marker_trajectories);
                 else
                     marker_trajectories = raw_marker_trajectories;
@@ -168,7 +172,7 @@ function preprocessMarkerData(varargin)
                     save_folder, ...
                     save_file_name ...
                   );
-%                     addAvailableData('marker_trajectories', 'time_mocap', 'sampling_rate_mocap', 'marker_labels', save_folder, save_file_name);
+
                 disp(['processed ' raw_marker_file_name ' and saved as ' save_file_name])
             end
         end
