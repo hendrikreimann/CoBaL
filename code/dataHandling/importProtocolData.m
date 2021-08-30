@@ -31,6 +31,7 @@ function importProtocol(varargin)
     parser = inputParser;
     parser.KeepUnmatched = true;
     addParameter(parser, 'visualize', false)
+    addParameter(parser, 'source', 'labview')
     parse(parser, varargin{:})
 
 
@@ -38,10 +39,11 @@ function importProtocol(varargin)
     % set some parameters
     milliseconds_to_seconds = 1e-3;
     
-    labview_source_dir = 'labview';
+%    source_dir = 'labview';
+    source_dir = parser.Results.source;
 
     % import protocol
-    protocol_file_name = [labview_source_dir filesep 'protocol.csv'];
+    protocol_file_name = [source_dir filesep 'protocol.csv'];
     if ~exist(protocol_file_name, 'file')
         error(['File ' protocol_file_name ' not found.']);
     else
@@ -96,9 +98,9 @@ function importProtocol(varargin)
     % import object randomization
     object_file_name = ['labview' filesep 'ObjectRandomization.csv'];
     if exist(object_file_name, 'file')
-        imported_table = readtable([labview_source_dir filesep 'ObjectRandomization.csv']);
+        imported_table = readtable([source_dir filesep 'ObjectRandomization.csv']);
 
-        fileID = fopen([labview_source_dir filesep 'ObjectRandomization.csv'], 'r');
+        fileID = fopen([source_dir filesep 'ObjectRandomization.csv'], 'r');
         header_line = fgetl(fileID);
         fclose(fileID);
         headers = strsplit(header_line, ',');

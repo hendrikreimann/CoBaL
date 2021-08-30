@@ -26,9 +26,20 @@
 % Files containing the same data in .mat format, with some additional information about where they came from.
 % Output files will be saved to folders "raw" and "processed".
 
-function importLabviewData()
+function importLabviewData(varargin)
+    parser = inputParser;
+    parser.KeepUnmatched = true;
+    addParameter(parser, 'sampling_rate', 'from settings file')
+    addParameter(parser, 'source', 'labview')
+    parse(parser, varargin{:})
+    sampling_rate = parser.Results.sampling_rate;
+    if strcmp(sampling_rate, 'from settings file')
+        study_settings = loadSettingsFromFile('study');
+        sampling_rate = study_settings.get('labview_resampling_rate', 1);
+    end
+    source_dir = parser.Results.source;
+    
     %% prepare
-    study_settings = loadSettingsFromFile('study');
     milliseconds_to_seconds = 1e-3;
     protocol_info = load('protocolInfo.mat');
 
@@ -42,13 +53,11 @@ function importLabviewData()
     if ~directoryExists('analysis')
         mkdir('analysis')
     end
-
-    labview_source_dir = 'labview';
-
+    
     %% import data
     % get list of files to import from this directory
     clear file_name_list;
-    data_dir_csv = dir([labview_source_dir filesep '*csv']);
+    data_dir_csv = dir([source_dir filesep '*csv']);
     [file_name_list{1:length(data_dir_csv)}] = deal(data_dir_csv.name);
 
     % import labview saved data
@@ -68,7 +77,7 @@ function importLabviewData()
         
         [date, subject_id, trial_type, trial_number, file_type, success] = getFileParameters(data_file_name);
         if success && ~file_part_of_protocol
-            imported_data = importdata([labview_source_dir filesep data_file_name], ',', 2);
+            imported_data = importdata([source_dir filesep data_file_name], ',', 2);
             labview_trajectories = imported_data.data; %#ok<NASGU>
 
             % extract headers
@@ -100,7 +109,6 @@ function importLabviewData()
             end
             
             % resample to desired sampling rate
-            sampling_rate = study_settings.get('labview_resampling_rate', 1);
             dt = 1/sampling_rate;
             time_old = variables_to_save.time;
             time_new = time_old(1) : dt : time_old(end);
@@ -139,7 +147,7 @@ function importLabviewData()
                 end
             end
 
-            disp(['imported ' labview_source_dir filesep data_file_name ' and saved as ' save_folder filesep save_file_name])                
+            disp(['imported ' source_dir filesep data_file_name ' and saved as ' save_folder filesep save_file_name])                
         end
 
     end
