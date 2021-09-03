@@ -53,10 +53,13 @@ function processLinearModels(varargin)
     
     % calculate prediction errors
     prediction_error_table = linear_model_settings.getTable('model_prediction_error');
-    prediction_error_data = calculateLinearModelPredictionErrors(data, linear_model_results, linear_model_results_header, linear_model_settings, prediction_error_table, condition_data_all, condition_labels);
+    data = calculateLinearModelPredictionErrors(data, linear_model_results, linear_model_results_header, linear_model_settings, prediction_error_table, condition_data_all, condition_labels);
     
-    [linear_model_results, linear_model_results_header] = fitLinearModels(data, linear_model_settings, 'modelsblub', condition_data_all, condition_labels);
+    % fit second-order models
+    linear_model_results_2 = fitLinearModels(data, linear_model_settings, 'models_second_order', condition_data_all, condition_labels);
     
+    % merge
+    linear_model_results = [linear_model_results; linear_model_results_2];
     
     % save
     results_file_name = ['results' filesep collection_date '_' subject_id '_linearModels.mat'];

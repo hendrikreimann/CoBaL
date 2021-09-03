@@ -72,7 +72,15 @@ function index = findModelIndex(data, model, settings)
     % extract info
     requested_outcome_variable = model.outcome_variable_name{1};
     requested_predictor_variable_list_name = model.predictor_variable_list{1};
-    requested_predictor_variable_list = settings.get(requested_predictor_variable_list_name);
+    
+    % get list of predictor variables
+    requested_predictor_variable_list = settings.get(requested_predictor_variable_list_name, 1);
+    if isempty(requested_predictor_variable_list)
+        % failed to load list from settings, assume this is already a variable name
+        requested_predictor_variable_list = {requested_predictor_variable_list_name};
+    end
+%     requested_predictor_variable_list = settings.get(requested_predictor_variable_list_name);
+
     predictor_column = strcmp(data.linear_model_results_header, 'predictor_variables');
     outcome_column = strcmp(data.linear_model_results_header, 'outcome_variable');
     
@@ -138,7 +146,7 @@ function createComparisonFigure(model_data, comparisons, comparison_to_show, rel
         set(slope_axes(i_predictor), 'xtick', [])
         ylabel('slope');
         hold on;
-        title(strrep(model_data.names.predictors{i_predictor}, '_', ' '))
+        title(strrep(model_data.names.predictors{i_predictor}, '_', ' '), 'Units', 'normalized', 'Position', [0.5, 0.9, 0])
     end
     
     r_square_axes = nexttile;

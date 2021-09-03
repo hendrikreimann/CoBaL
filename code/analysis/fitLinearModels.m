@@ -27,7 +27,15 @@ function [linear_model_results, linear_model_results_header] = fitLinearModels(d
     linear_model_results = cell(number_of_models, 3);
     for i_model = 1 : number_of_models
         predictor_variable_list_name = model_table.predictor_variable_list{i_model};
-        predictor_variable_list = linear_model_settings.get(predictor_variable_list_name);
+        
+        if any(strcmp(data.variable_names, predictor_variable_list_name))
+            % predictor_variable_list_name exists as variable, so use that
+            predictor_variable_list = {predictor_variable_list_name};
+        else
+            % load listed variabels from settings
+            predictor_variable_list = linear_model_settings.get(predictor_variable_list_name);
+        end
+        
         number_of_predictor_variables = length(predictor_variable_list);
         predictor_variable_data = cell(number_of_predictor_variables, 1);
         predictor_variable_directions = cell(number_of_predictor_variables, 2);
@@ -57,6 +65,8 @@ function [linear_model_results, linear_model_results_header] = fitLinearModels(d
         results_this_model.directions.outcome = outcome_variable_directions;
         results_this_model.R_square = cell(number_of_condition_combinations, 1);
         results_this_model.slope = cell(number_of_condition_combinations, 1);
+        results_this_model.predictor_offsets = cell(number_of_condition_combinations, 1);
+        results_this_model.outcome_offsets = cell(number_of_condition_combinations, 1);
         results_this_model.row_info = condition_combinations_unique;
         results_this_model.row_info_headers = condition_labels;
         results_this_model.predictor_variable_data_points_per_stretch = predictor_variable_data_points_per_stretch;
@@ -71,19 +81,25 @@ function [linear_model_results, linear_model_results_header] = fitLinearModels(d
             for i_variable = 1 : number_of_predictor_variables
                 this_variable_data_this_condition = predictor_variable_data{i_variable}(:, this_condition_indicator);
                 % subtract mean
-                this_variable_data_this_condition_mean_free = zeros(size(this_variable_data_this_condition));
-                for i_time = 1 : predictor_variable_data_points_per_stretch
-                    data_this_time_point = this_variable_data_this_condition(i_time, :);
-                    data_this_time_point_mean_free = data_this_time_point - mean(data_this_time_point);
-                    this_variable_data_this_condition_mean_free(i_time, :) = data_this_time_point_mean_free;
-                end
-                predictor_variable_data_this_condition{i_variable} = this_variable_data_this_condition_mean_free;
+%                 this_variable_data_this_condition_mean_free = zeros(size(this_variable_data_this_condition));
+%                 for i_time = 1 : predictor_variable_data_points_per_stretch
+%                     data_this_time_point = this_variable_data_this_condition(i_time, :);
+%                     data_this_time_point_mean_free = data_this_time_point - mean(data_this_time_point);
+%                     this_variable_data_this_condition_mean_free(i_time, :) = data_this_time_point_mean_free;
+%                 end
+%                 predictor_variable_data_this_condition{i_variable} = this_variable_data_this_condition_mean_free;
+                
+                % don't subtract mean
+                predictor_variable_data_this_condition{i_variable} = this_variable_data_this_condition;
             end
-            outcome_variable_data_this_condition = outcome_variable_data(:, this_condition_indicator) - mean(outcome_variable_data(:, this_condition_indicator));
+%             outcome_variable_data_this_condition = outcome_variable_data(:, this_condition_indicator) - mean(outcome_variable_data(:, this_condition_indicator));
+            outcome_variable_data_this_condition = outcome_variable_data(:, this_condition_indicator);
         
             % create containers
             R_square_table_here = zeros(predictor_variable_data_points_per_stretch, 1) * NaN;
             slope_table_here = zeros(predictor_variable_data_points_per_stretch, number_of_predictor_variables) * NaN;
+            predictor_offset_table_here = zeros(predictor_variable_data_points_per_stretch, number_of_predictor_variables) * NaN;
+            outcome_offset_table_here = zeros(predictor_variable_data_points_per_stretch, 1) * NaN;
             
             % loop through stretches in predictor variable
             for i_time = 1 : predictor_variable_data_points_per_stretch
@@ -95,13 +111,17 @@ function [linear_model_results, linear_model_results_header] = fitLinearModels(d
                 predictor = predictor';
                 outcome = outcome_variable_data_this_condition';
                 if ~any(any(isnan(predictor))) || any(isnan(outcome))
-                    % fit
-                    X = 
+                    % calculate mean-free data
+                    predictor_mean = mean(predictor, 1);
+                    predictor_mean_free = predictor - repmat(predictor_mean, number_of_data_points_this_condition, 1);
+                    outcome_mean = mean(outcome);
+                    outcome_mean_free = outcome - outcome_mean;
                     
-                    jacobian = predictor\outcome;
+                    % estimate gains
+                    jacobian = predictor_mean_free\outcome_mean_free;
                     
                     % calculate R^2
-                    prediction = predictor*jacobian;
+                    prediction = predictor*jacobian - predictor_mean*jacobian + outcome_mean;
                     SS_residual = sum((outcome - prediction).^2);
                     SS_total = sum((outcome - mean(outcome)).^2);
                     R_square = 1 - SS_residual/SS_total;
@@ -109,6 +129,8 @@ function [linear_model_results, linear_model_results_header] = fitLinearModels(d
                     % store
                     R_square_table_here(i_time) = R_square;
                     slope_table_here(i_time, :) = jacobian;
+                    predictor_offset_table_here(i_time, :) = predictor_mean;
+                    outcome_offset_table_here(i_time) = outcome_mean;
                 end
             end
             
@@ -118,14 +140,21 @@ function [linear_model_results, linear_model_results_header] = fitLinearModels(d
             results_this_model.data.outcome{i_condition} = outcome_variable_data_this_condition;
             results_this_model.R_square{i_condition} = R_square_table_here;
             results_this_model.slope{i_condition} = slope_table_here;
+            results_this_model.predictor_offsets{i_condition} = predictor_offset_table_here;
+            results_this_model.outcome_offsets{i_condition} = outcome_offset_table_here;
         end
         linear_model_results{i_model, 1} = results_this_model;
         linear_model_results{i_model, 2} = outcome_variable_name;
         linear_model_results{i_model, 3} = predictor_variable_list;
-        disp(['Finished model ' num2str(i_model) ' of ' num2str(number_of_models) ', predictors: ' predictor_variable_list_name ', outcome: ' outcome_variable_name])
+        disp(['Fitting model ' num2str(i_model) ' of ' num2str(number_of_models) ', predictors: ' predictor_variable_list_name ', outcome: ' outcome_variable_name])
         
     end
 
 
 
 end
+
+function predictor_variable_list = getPredictorVariableList(predictor_variable_list_name)
+
+end
+
