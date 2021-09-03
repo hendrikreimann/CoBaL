@@ -201,34 +201,6 @@ function comparisons = createComparisonData(settings, condition_data)
     comparisons.condition_colors = determineConditionColors(settings.colors_table, comparisons, settings.condition_to_compare);
 end
 
-% function condition_colors = determineConditionColors(settings, comparisons)
-%     % find unique levels of condition to compare
-%     levels = unique(comparisons.condition_combinations(:, strcmp(comparisons.condition_combination_labels, settings.condition_to_compare)));
-%     
-%     % make default color map
-%     default_colors = lines(length(levels));
-%     
-%     if isempty(settings.colors_table)
-%         colors_table_from_settings = table('Size', [0, 3], 'VariableNames', {'condition', 'level', 'color'}, 'VariableTypes', {'string', 'string', 'string'});
-%     else
-%         colors_table_from_settings = settings.colors_table(strcmp(settings.colors_table.condition, settings.condition_to_compare), :);
-%     end
-%     
-%     % go through levels and store default color or the one provided in the settings
-%     condition_colors = [levels cell(size(levels))];
-%     for i_level = 1 : length(levels)
-%         this_level = levels(i_level);
-%         if any(strcmp(colors_table_from_settings.level, this_level))
-%             % use color provided in settings
-%             condition_colors{i_level, 2} = hex2rgb(colors_table_from_settings.color{strcmp(colors_table_from_settings.level, this_level)});
-%         else
-%             % use default color
-%             condition_colors{i_level, 2} = default_colors(i_level, :);
-%         end
-%         
-%     end
-% end
-
 function figure_data = createFigures_continuous(settings, comparisons, data_custodian)
     figure_data = createFigureData(settings.variables_to_plot_continuous, comparisons);
     if settings.number_of_variables_to_plot_continuous == 0
@@ -339,17 +311,6 @@ function text = singlePlotTooltip(~, event_obj)
             ['X: ', num2str(pos(1))], ...
             ['Y: ', num2str(pos(2))] ...
           };
-%     if isempty(origin)
-%         text = position_text;
-%     else
-%         origin_txt = { ...
-%                        ['Subject: ', origin.subject], ...
-%                        ['Trial: ', num2str(origin.trial)], ...
-%                        ['Start Time: ', num2str(origin.start_time)], ...
-%                        ['End Time: ', num2str(origin.end_time)] ...
-%                      };
-%         text = [position_text, origin_txt];
-%     end
     
     if isfield(origin, 'subject')
         text = [text, ['Subject: ', origin.subject]];
@@ -512,6 +473,7 @@ function figure_data = addLabelsAndData(figure_data, comparisons, variables_to_p
             
             % determine title
             title_string = variables_to_plot{i_variable, strcmp(variables_to_plot_header, 'variable_label')};
+            title_string = strrep(title_string, '_', ' ');
             filename_string = variables_to_plot{i_variable, strcmp(variables_to_plot_header, 'save_file_string')};
             this_comparison = comparisons.comparison_indices{i_comparison};
             representative_condition = comparisons.condition_combinations(this_comparison(1), :);

@@ -31,28 +31,44 @@ function importProtocolData_VU(varargin)
     parser = inputParser;
     parser.KeepUnmatched = true;
     addParameter(parser, 'visualize', false)
+    addParameter(parser, 'source', 'VU')
     parse(parser, varargin{:})
+    source = parser.Results.source;
 
     % import protocol
-    protocol_file_name = 'filenumbers.xlsx';
+    protocol_file_name = [source filesep 'filenumbers.xlsx'];
     if ~exist(protocol_file_name, 'file')
         error(['File ' protocol_file_name ' not found.']);
     else
         % we have a protocol file, so import that
         warning('off', 'MATLAB:table:ModifiedAndSavedVarnames')
-        imported_table = readtable(protocol_file_name, 'Sheet', 'Trials');
+        imported_table_reference = readtable(protocol_file_name, 'Sheet', 'Ref trials');
+        imported_table_trials = readtable(protocol_file_name, 'Sheet', 'Trials');
         warning('on', 'MATLAB:table:ModifiedAndSavedVarnames')
         
         % create containers
         trial_number = [];
         trial_type = {};
         speed = [];
+        
+        % import iron man
+        this_trial_index = strcmp(imported_table_reference.Var1, 'iron man');
+        trial_number = [trial_number; imported_table_reference.Var2(this_trial_index)];
+        trial_type = [trial_type; 'static'];
+        speed = [speed; 0];
 
-        for i_line = 1 : size(imported_table, 1)
+        % import ski
+        this_trial_index = strcmp(imported_table_reference.Var1, 'ski pose');
+        trial_number = [trial_number; imported_table_reference.Var2(this_trial_index)];
+        trial_type = [trial_type; 'static'];
+        speed = [speed; 0];
+            
+        % import walking trials
+        for i_line = 1 : size(imported_table_trials, 1)
             % read line
-            this_speed = imported_table.Speed(i_line);
-            this_speed_first_attempt_trial_number = imported_table.firstAttempt(i_line);
-            this_speed_second_attempt_trial_number = imported_table.secondAttempt(i_line);
+            this_speed = imported_table_trials.Speed(i_line);
+            this_speed_first_attempt_trial_number = imported_table_trials.firstAttempt(i_line);
+            this_speed_second_attempt_trial_number = imported_table_trials.secondAttempt(i_line);
             
             % store first attempt
             trial_number = [trial_number; this_speed_first_attempt_trial_number];

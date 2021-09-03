@@ -48,6 +48,12 @@ function [conditions_trial, event_variables_to_save, removal_flags] = determineC
         if ~issorted(this_stretch_times)
             removal_flags(i_stretch) = 1;
         end
+        if length(this_stretch_times) < bands_per_stretch + 1
+            % some event was empty, flag for removal
+            this_stretch_times = zeros(1, bands_per_stretch + 1);
+            removal_flags(i_stretch) = 1;
+        end
+        
         stretch_times(i_stretch, :) = this_stretch_times;
     end
 

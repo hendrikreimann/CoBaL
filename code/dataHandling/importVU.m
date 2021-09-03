@@ -31,16 +31,17 @@ function importVU(varargin)
     parser = inputParser;
     parser.KeepUnmatched = true;
     addParameter(parser, 'visualize', true)
+    addParameter(parser, 'source', 'orig')
     addParameter(parser, 'file', '')
     parse(parser, varargin{:})
-    options.visualize = parser.Results.visualize;
-    options.file = parser.Results.file;
+    settings.visualize = parser.Results.visualize;
+    settings.file = parser.Results.file;
 
     %% prepare
     % set some parameters
-    options.millimeter_to_meter = 1e-3;
+    settings.millimeter_to_meter = 1e-3;
 
-    study_settings = loadSettingsFromFile('study');
+%     study_settings = loadSettingsFromFile('study');
     subject_settings = loadSettingsFromFile('subject');
 
     % create folders if necessary
@@ -53,50 +54,63 @@ function importVU(varargin)
     if ~directoryExists('analysis')
         mkdir('analysis')
     end
-    options.source_dir = 'VU';
+    settings.source_dir = 'VU';
+    settings.collection_date = subject_settings.get('collection_date');
+    settings.subject_id = subject_settings.get('subject_id');
     
     % load protocol file if available
     if exist('protocolInfo.mat', 'file')
-        options.protocol_file_available = 1;
-        options.protocol_info = load('protocolInfo.mat');
+        settings.protocol_file_available = 1;
+        settings.protocol_info = load('protocolInfo.mat');
     else
-        options.protocol_file_available = 0;
+        settings.protocol_file_available = 0;
     end
 
     %% import data
-    if isempty(options.file)
-        data_dir_mat = dir([options.source_dir filesep '*mat']);
+    if isempty(settings.file)
+        data_dir_mat = dir([settings.source_dir filesep '*mat']);
         [file_name_list{1:length(data_dir_mat)}] = deal(data_dir_mat.name);
     else
-        file_name_list = {options.file};
+        file_name_list = {settings.file};
     end
 
     % go through raw files and import
     number_of_files = length(file_name_list);
     for i_file = 1 : number_of_files
         data_file_name = file_name_list{i_file};
-        importSingleFile(data_file_name, options);
+        importSingleFile(data_file_name, settings);
     end
 
 end
 
 
-function importSingleFile(data_file_name, options)
+function importSingleFile(data_file_name, settings)
     % file info
     file_info = struct;
-    [file_info.collection_date, file_info.subject_id, file_info.trial_type, file_info.trial_number] ...
-        = getFileParameters(data_file_name);
+    file_info.collection_date = settings.collection_date;
+    file_info.subject_id = settings.subject_id;
+    
+    file_name_trunk = data_file_name(1:end-4);
+    file_name_split = strsplit(file_name_trunk, '_');
+    file_info.trial_number = str2double(file_name_split{2});
+    
+    trial_type = settings.protocol_info.trial_type(settings.protocol_info.trial_number == file_info.trial_number);
+    
+    if isempty(trial_type)
+        disp(['did not find ' settings.source_dir, filesep, data_file_name ' in protocol table, skipping import'])
+    else
+        file_info.trial_type = trial_type{1};
 
-    % load data from file
-    vu_data = load([options.source_dir, filesep, data_file_name]);
-    
-    % import data
-    importTrialDataForceplate(vu_data, file_info);
-    importTrialDataMarker(vu_data, file_info);
-        
-    % report to command window
-    disp(['imported ' options.source_dir, filesep, data_file_name])
-    
+        % load data from file
+        vu_data = load([settings.source_dir, filesep, data_file_name]);
+
+        % import data
+        importTrialDataForceplate(vu_data, file_info);
+        importTrialDataMarker(vu_data, file_info);
+
+        % report to command window
+        disp(['imported ' settings.source_dir, filesep, data_file_name])
+    end    
 end
 
 
@@ -165,7 +179,7 @@ function importTrialDataForceplate(vu_data, file_info)
       ];
 
     % add auxiliary data
-    sampling_rate = 50;
+    sampling_rate = vu_data.DBfs;
     time = (1 : size(forceplate_raw_trajectories, 1))' / sampling_rate;
 
     % save forceplate data
@@ -193,7 +207,7 @@ function importTrialDataMarker(vu_data, file_info)
     marker_raw_trajectories = [];
     marker_labels = {};
     marker_directions = {};
-    sampling_rate = 50; % hardcoded and assumed, check this
+    sampling_rate = vu_data.traj_fs;
     time = (1 : number_of_frames)' * 1/sampling_rate;
     
     % head
@@ -323,8 +337,7 @@ function importTrialDataMarker(vu_data, file_info)
     marker_labels = [marker_labels this_marker_labels];
     marker_directions = [marker_directions this_marker_directions];
     
-    [this_marker_trajectories, this_marker_labels, this_marker_directions] = extractSingleMarkerTrajectory(markers_vu, 'thigh_left', 'LTHIB');
-    this_marker_labels = {'LTHI_x', 'LTHI_y', 'LTHI_z'}; % correct labels
+    [this_marker_trajectories, this_marker_labels, this_marker_directions] = extractSingleMarkerTrajectory(markers_vu, 'thigh_left', 'LTHI');
     marker_raw_trajectories = [marker_raw_trajectories this_marker_trajectories];
     marker_labels = [marker_labels this_marker_labels];
     marker_directions = [marker_directions this_marker_directions];
@@ -345,8 +358,7 @@ function importTrialDataMarker(vu_data, file_info)
     marker_directions = [marker_directions this_marker_directions];
     
     % left shank
-    [this_marker_trajectories, this_marker_labels, this_marker_directions] = extractSingleMarkerTrajectory(markers_vu, 'calf_left', 'LTIP');
-    this_marker_labels = {'LTIBP_x', 'LTIBP_y', 'LTIBP_z'}; % correct labels
+    [this_marker_trajectories, this_marker_labels, this_marker_directions] = extractSingleMarkerTrajectory(markers_vu, 'calf_left', 'LTIBP');
     marker_raw_trajectories = [marker_raw_trajectories this_marker_trajectories];
     marker_labels = [marker_labels this_marker_labels];
     marker_directions = [marker_directions this_marker_directions];
@@ -356,8 +368,7 @@ function importTrialDataMarker(vu_data, file_info)
     marker_labels = [marker_labels this_marker_labels];
     marker_directions = [marker_directions this_marker_directions];
     
-    [this_marker_trajectories, this_marker_labels, this_marker_directions] = extractSingleMarkerTrajectory(markers_vu, 'calf_left', 'LTID');
-    this_marker_labels = {'LTIBD_x', 'LTIBD_y', 'LTIBD_z'}; % correct labels
+    [this_marker_trajectories, this_marker_labels, this_marker_directions] = extractSingleMarkerTrajectory(markers_vu, 'calf_left', 'LTIBD');
     marker_raw_trajectories = [marker_raw_trajectories this_marker_trajectories];
     marker_labels = [marker_labels this_marker_labels];
     marker_directions = [marker_directions this_marker_directions];
@@ -399,8 +410,7 @@ function importTrialDataMarker(vu_data, file_info)
     marker_labels = [marker_labels this_marker_labels];
     marker_directions = [marker_directions this_marker_directions];
     
-    [this_marker_trajectories, this_marker_labels, this_marker_directions] = extractSingleMarkerTrajectory(markers_vu, 'thigh_right', 'RTHIB');
-    this_marker_labels = {'RTHI_x', 'RTHI_y', 'RTHI_z'}; % correct labels
+    [this_marker_trajectories, this_marker_labels, this_marker_directions] = extractSingleMarkerTrajectory(markers_vu, 'thigh_right', 'RTHI');
     marker_raw_trajectories = [marker_raw_trajectories this_marker_trajectories];
     marker_labels = [marker_labels this_marker_labels];
     marker_directions = [marker_directions this_marker_directions];
@@ -421,8 +431,7 @@ function importTrialDataMarker(vu_data, file_info)
     marker_directions = [marker_directions this_marker_directions];
     
     % right shank
-    [this_marker_trajectories, this_marker_labels, this_marker_directions] = extractSingleMarkerTrajectory(markers_vu, 'calf_right', 'RTIP');
-    this_marker_labels = {'RTIBP_x', 'RTIBP_y', 'RTIBP_z'}; % correct labels
+    [this_marker_trajectories, this_marker_labels, this_marker_directions] = extractSingleMarkerTrajectory(markers_vu, 'calf_right', 'RTIBP');
     marker_raw_trajectories = [marker_raw_trajectories this_marker_trajectories];
     marker_labels = [marker_labels this_marker_labels];
     marker_directions = [marker_directions this_marker_directions];
@@ -432,8 +441,7 @@ function importTrialDataMarker(vu_data, file_info)
     marker_labels = [marker_labels this_marker_labels];
     marker_directions = [marker_directions this_marker_directions];
     
-    [this_marker_trajectories, this_marker_labels, this_marker_directions] = extractSingleMarkerTrajectory(markers_vu, 'calf_right', 'RTID');
-    this_marker_labels = {'RTIBD_x', 'RTIBD_y', 'RTIBD_z'}; % correct labels
+    [this_marker_trajectories, this_marker_labels, this_marker_directions] = extractSingleMarkerTrajectory(markers_vu, 'calf_right', 'RTIBD');
     marker_raw_trajectories = [marker_raw_trajectories this_marker_trajectories];
     marker_labels = [marker_labels this_marker_labels];
     marker_directions = [marker_directions this_marker_directions];
