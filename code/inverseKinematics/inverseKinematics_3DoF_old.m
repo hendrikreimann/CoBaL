@@ -43,12 +43,8 @@ function inverseKinematics_3DoF(varargin)
     
     % extract references
     number_of_joint_angles = kinematic_tree.numberOfJoints;
-    REAR_reference = extractMarkerData(marker_reference, marker_labels, 'R_ear')';
-    LEAR_reference = extractMarkerData(marker_reference, marker_labels, 'L_ear')';
     LSHO_reference = extractMarkerData(marker_reference, marker_labels, 'L_shoulder')';
     RSHO_reference = extractMarkerData(marker_reference, marker_labels, 'R_shoulder')';
-    LIC_reference = extractMarkerData(marker_reference, marker_labels, 'L_ic')';
-    RIC_reference = extractMarkerData(marker_reference, marker_labels, 'R_ic')';
     LGT_reference = extractMarkerData(marker_reference, marker_labels, 'L_gt')';
     LKNE_reference = extractMarkerData(marker_reference, marker_labels, 'L_knee')';
     LANK_reference = extractMarkerData(marker_reference, marker_labels, 'L_ankle')';
