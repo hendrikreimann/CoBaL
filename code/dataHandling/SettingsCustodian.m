@@ -582,9 +582,6 @@ classdef SettingsCustodian < handle
             if strcmp(property_name, 'emg_import_map')
                 default_data = {};
             end
-            if strcmp(property_name, 'forceplate_columns_to_check')
-                default_data = [1 2 3 7 8 9 10 11 15 16 17 18 19 23 24];
-            end
             if strcmp(property_name, 'filter_order_belt')
                 default_data = 4;
             end

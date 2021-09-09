@@ -54,22 +54,16 @@ function preprocessForceplateData(varargin)
             if ismember(trial_number, trial_number_list_this_condition)
                 % load raw data
 %                 loaded_data = load(['raw' filesep raw_forceplate_file_name]);
-                [raw_forceplate_trajectories, time, sampling_rate, labels, directions, success] = loadData(collection_date, subject_id, trial_type, trial_number, 'forceplate_raw_trajectories');
+                [raw_forceplate_trajectories, time, sampling_rate, labels, directions, success, data_file_name] = loadData(collection_date, subject_id, trial_type, trial_number, 'forceplate_raw_trajectories');
                 if ~success
-                    [raw_forceplate_trajectories, time, sampling_rate, labels, directions, success] = loadData(collection_date, subject_id, trial_type, trial_number, 'forceplate_trajectories_raw');
+                    [raw_forceplate_trajectories, time, sampling_rate, labels, directions, ~, data_file_name] = loadData(collection_date, subject_id, trial_type, trial_number, 'forceplate_trajectories_raw');
                 end
                 load(['raw' filesep raw_forceplate_file_name], 'data_source');
                 
-                % shouldn't be needed anymore
-%                 % figure out variable
-%                 if isfield(loaded_data, 'forceplate_trajectories_raw')
-%                     raw_forceplate_trajectories = loaded_data.forceplate_trajectories_raw;
-%                 elseif isfield(loaded_data, 'forceplate_raw_trajectories')
-%                     raw_forceplate_trajectories = loaded_data.forceplate_raw_trajectories;
-%                 end
-                
                 % remove data points that are either unreasonably large or exactly 0
-                forceplate_columns_to_check = study_settings.get('forceplate_columns_to_check', 1);
+                forceplate_columns_to_exclude_from_check = study_settings.get('forceplate_columns_to_exclude_from_check', 1);
+                forceplate_columns_to_check = 1 : size(raw_forceplate_trajectories, 2);
+                forceplate_columns_to_check(ismember(forceplate_columns_to_check, forceplate_columns_to_exclude_from_check)) = [];
                 zero_data_points = any(raw_forceplate_trajectories(:, forceplate_columns_to_check)==0, 2);
                 large_data_points = any(abs(raw_forceplate_trajectories(:, forceplate_columns_to_check))>1e13, 2);
                 bad_data_points = zero_data_points | large_data_points;
@@ -158,6 +152,7 @@ function preprocessForceplateData(varargin)
                         error('Setting "lab_orientation" in studySettings.txt must either be "normal" or "inverse"')                        
                     end
                     
+                    loaded_data = load(['raw' filesep data_file_name]);
                     
                     Acr_to_world_translation = loaded_data.forceplate_location_right';
                     Acr_to_world_trafo = [Acr_to_world_rotation Acr_to_world_translation; 0 0 0 1];
