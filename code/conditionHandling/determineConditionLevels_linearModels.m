@@ -14,7 +14,7 @@
 %     You should have received a copy of the GNU General Public License
 %     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-function [conditions_trial, event_variables_to_save, removal_flags] = determineConditionLevels_linearModels(trial_data)
+function [conditions_trial, event_variables_to_save, removal_flags] = determineConditionLevels_linearModels(trial_data, study_settings)
     bands_per_stretch = 2;
 
     stretch_start_times = trial_data.trigger_times;
@@ -51,11 +51,9 @@ function [conditions_trial, event_variables_to_save, removal_flags] = determineC
         stretch_times(i_stretch, :) = this_stretch_times;
     end
 
-    % flag stretches within first 60 seconds for removal
-%     removal_flags(stretch_start_times < 60) = 1;
-
     % remove initial stretches until there are only 80 left
-    while sum(~removal_flags) > 160
+    number_of_strides_to_analyze = study_settings.get('number_of_strides_to_analyze');
+    while sum(~removal_flags) > number_of_strides_to_analyze * 2
         first_unflagged_index = find(~removal_flags, 1, 'first');
         removal_flags(first_unflagged_index) = 1;
     end

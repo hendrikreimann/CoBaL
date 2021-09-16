@@ -152,7 +152,7 @@ function createComparisonFigure(model_data, comparisons, comparison_to_show, rel
     r_square_axes = nexttile;
     set(r_square_axes, 'fontsize', 12);
     hold on;
-    ylabel('R^2');
+    ylabel('$R^2$', 'Interpreter', 'latex');
     ylim([0 1]);
     if arguments.show_legend
         legend('Location', 'southeastoutside')
@@ -171,7 +171,7 @@ function createComparisonFigure(model_data, comparisons, comparison_to_show, rel
         linewidth = 2;
         marker = 'none';
         marker_size = 1;
-        x_label = 'time (%)';
+        x_label = 'time (\%)';
     end
     
     % add labels
