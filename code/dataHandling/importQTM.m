@@ -917,20 +917,16 @@ function trial_table = determineTrialTable(qtm_data, file_info, options)
     end
 
     if strcmp(options.import_mode, 'bijective')
+        import_whole_trial = 1;
         % TODO: this is a legacy mode that's not in use anymore. When separating the labview data import from
         % this function, I did not make sure that this keeps working. To make it work again, you will probably
         % load information from protocolInfo.mat and maybe others.
-%             this_trial_start_time = analog_time(this_trial_start_index);
-%             this_trial_end_time = analog_time(this_trial_end_index);
-% 
-% 
-%             this_trial_duration = this_trial_end_time - this_trial_start_time;
-% 
-%             importing_trial_type = trial_type;
-%             importing_trial_number = trial_number;
-%             save_this_trial = 1;
-
-    
+%         this_trial_start_time = analog_time(this_trial_start_index);
+%         this_trial_end_time = analog_time(this_trial_end_index);
+%         this_trial_duration = this_trial_end_time - this_trial_start_time;
+%         importing_trial_type = trial_type;
+%         importing_trial_number = trial_number;
+%         save_this_trial = 1;
     end
     
     if import_whole_trial
@@ -1053,7 +1049,7 @@ function importTrialDataAnalog(qtm_data, trial_info, file_info, study_settings, 
 end
 
 function importTrialDataForceplate(qtm_data, trial_info, file_info, study_settings, options)
-    force_data_is_available = isfield(qtm_data, 'Force') & ~isempty(qtm_data.Force);
+    force_data_is_available = isfield(qtm_data, 'Force') && ~isempty(qtm_data.Force);
     if force_data_is_available
 
         % determine start and end index
@@ -1093,7 +1089,8 @@ function importTrialDataForceplate(qtm_data, trial_info, file_info, study_settin
         end
 
         % make labels
-        forceplate_labels = qtm_data.Analog.Labels(1:12);
+%         forceplate_labels = qtm_data.Analog.Labels(1:12);
+        forceplate_labels = study_settings.get('forceplate_labels', 1);
         forceplate_location_left = mean(qtm_data.Force(1).ForcePlateLocation) * options.millimeter_to_meter; % mean of corner coordinates gives center
         forceplate_location_right = mean(qtm_data.Force(2).ForcePlateLocation) * options.millimeter_to_meter; % mean of corner coordinates gives center
 

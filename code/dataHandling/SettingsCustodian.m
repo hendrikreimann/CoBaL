@@ -433,6 +433,9 @@ classdef SettingsCustodian < handle
             if strcmp(property_name, 'apply_forceplate_offset')
                 default_data = 0;
             end
+            if strcmp(property_name, 'forceplate_labels')
+                default_data = {'Fx1','Fy1','Fz1','Mx1','My1','Mz1','Fx2','Fy2','Fz2','Mx2','My2','Mz2'};
+            end
             if strcmp(property_name, 'figure_settings_file')
                 default_data = 'eventGuiFigureSettings.mat';
             end
