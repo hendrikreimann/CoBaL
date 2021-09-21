@@ -1694,8 +1694,8 @@ classdef WalkingDataCustodian < handle
                                 band_start_time = this_stretch_times(i_band);
                                 band_end_time = this_stretch_times(i_band+1);
                                 this_pushoff_time = min(left_pushoff_times(left_pushoff_times >= band_start_time));
-                                if isempty(this_pushoff_time) || this_pushoff_time >= band_end_time
-                                    this_pushoff_time = NaN;
+                                if this_pushoff_time >= band_end_time
+                                    this_pushoff_time = band_start_time;
                                 end
                                 stretch_data(i_band) = this_pushoff_time - band_start_time;
                                 
@@ -1704,8 +1704,8 @@ classdef WalkingDataCustodian < handle
                                 band_start_time = this_stretch_times(i_band);
                                 band_end_time = this_stretch_times(i_band+1);
                                 this_pushoff_time = min(right_pushoff_times(right_pushoff_times >= band_start_time));
-                                if isempty(this_pushoff_time) || this_pushoff_time >= band_end_time
-                                    this_pushoff_time = NaN;
+                                if this_pushoff_time >= band_end_time
+                                    this_pushoff_time = band_start_time;
                                 end
                                 stretch_data(i_band) = this_pushoff_time - band_start_time;
                             end
