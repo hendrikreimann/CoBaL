@@ -74,8 +74,8 @@ function preprocessForceplateData(varargin)
                 saveProblemInformation(date, subject_id, trial_type, trial_number, 'large value in forceplate data', loaded_data.time_forceplate, large_data_points)
 
                 % define filter
-                filter_order_low = study_settings.get('force_plate_filter_order');
-                cutoff_frequency_low = study_settings.get('force_plate_filter_cutoff');
+                filter_order_low = study_settings.get('force_plate_filter_order', 1);
+                cutoff_frequency_low = study_settings.get('force_plate_filter_cutoff', 1);
                 if ~isempty(filter_order_low) && ~isempty(cutoff_frequency_low)
                     [b_lowpass, a_lowpass] = butter(filter_order_low, cutoff_frequency_low/(loaded_data.sampling_rate_forceplate/2), 'low');
                     forceplate_trajectories = nanfiltfilt(b_lowpass, a_lowpass, raw_forceplate_trajectories_without_bad);
