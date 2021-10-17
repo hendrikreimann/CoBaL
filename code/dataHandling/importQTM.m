@@ -51,7 +51,7 @@ function importQTM(varargin)
         end
     end    
     % qtm_import_mode determines how the data in the QTM files are cut into pieces and mapped onto trials accoding to
-    % the labview protocol file | ATTENTION: mode 3. events is currently the only one that works, the other ones will
+    % the labview protocol file | ATTENTION: mode 3. and 4. are currently the only ones that works, the other ones will
     % have to be updated to generate a trial table from the available information
     % 1. encoded -- analog signal, increasing edge signals switch to a new step in protocol file -- currently not working
     % 2. table -- analog signal, increasing edge signals switch to new trial in table in subject settings -- currently not working 
@@ -97,7 +97,6 @@ function importQTM(varargin)
     end
 
 end
-
 
 function importSingleQtmFile(data_file_name, options, study_settings, subject_settings)
 
@@ -1057,55 +1056,53 @@ function importTrialDataForceplate(qtm_data, trial_info, file_info, study_settin
         last_frame_to_import = round(trial_info.end_frame * qtm_data.Force(1).SamplingFactor);
 
         % Force data - data are in qtm_data.Force(n).Force
-        force_plates_to_import = study_settings.get('force_plates_to_import', 1);
-        lab_orientation = study_settings.get('lab_orientation', 1);
-        if any(any(qtm_data.Force(force_plates_to_import(1)).Force))
-            if strcmp(lab_orientation, 'normal')
-                left_forceplate_index = 1;
-                right_forceplate_index = 2;
-            elseif strcmp(lab_orientation, 'inverse')
-                left_forceplate_index = 2;
-                right_forceplate_index = 1;
-            end
-            forceplate_tajectories_Left = ...
-              [ ...
-                qtm_data.Force(force_plates_to_import(left_forceplate_index)).Force(:, first_frame_to_import : last_frame_to_import)', ...
-                qtm_data.Force(force_plates_to_import(left_forceplate_index)).Moment(:, first_frame_to_import : last_frame_to_import)' ...
-              ];
-            forceplate_tajectories_Right = ...
-              [ ...
-                qtm_data.Force(force_plates_to_import(right_forceplate_index)).Force(:, first_frame_to_import : last_frame_to_import)', ...
-                qtm_data.Force(force_plates_to_import(right_forceplate_index)).Moment(:, first_frame_to_import : last_frame_to_import)' ...
-              ];
-            forceplate_raw_trajectories = [forceplate_tajectories_Left, forceplate_tajectories_Right];
-        else % currently taking volts... need to scale accordinginly
-            warning('No force data found, using analog data instead. This is currently not scaling correctly.')
-            forceplate_raw_trajectories = [qtm_data.Analog.Data(1:12, this_trial_start_index : this_trial_end_index)]';
-        end
-
-        % check if the last data point is NaN for some reason and remove if necessary
-        if any(isnan(forceplate_raw_trajectories(end, :))) & ~any(isnan(forceplate_raw_trajectories(end-1, :)))
-            forceplate_raw_trajectories = forceplate_raw_trajectories(1:end-1, :);
+        forceplate_table = study_settings.getTable('forceplate_table');
+        number_of_forceplates = size(forceplate_table, 1);
+        forceplate_raw_trajectories = [];
+        forceplate_labels = {};
+        forceplate_directions = {};
+        forceplate_locations = {};
+        for i_forceplate = 1 : number_of_forceplates
+            this_plate_index = str2double(forceplate_table.index{i_forceplate});
+            this_plate_suffix = forceplate_table.suffix{i_forceplate};
+            
+            % get forces and moments and store
+            this_plate_forces = qtm_data.Force(this_plate_index).Force(:, first_frame_to_import : last_frame_to_import)';
+            this_plate_moments = qtm_data.Force(this_plate_index).Moment(:, first_frame_to_import : last_frame_to_import)';
+            forceplate_raw_trajectories = [forceplate_raw_trajectories this_plate_forces this_plate_moments];
+            
+            % create labels
+            this_plate_labels = ...
+              { ...
+                ['fx' this_plate_suffix], ...
+                ['fy' this_plate_suffix], ...
+                ['fz' this_plate_suffix], ...
+                ['mx' this_plate_suffix], ...
+                ['my' this_plate_suffix], ...
+                ['mz' this_plate_suffix], ...
+              };
+            forceplate_labels = [forceplate_labels this_plate_labels];
+            
+            % create directions
+            this_plate_directions = ...
+              { ...
+                'right', 'forward', 'up', 'right', 'forward', 'up'; ...
+                'left', 'backward', 'down', 'left', 'backward', 'down', ...
+              };
+            % NOTE: this defines directions and makes assumptions, make sure everything is right here
+            forceplate_directions = [forceplate_directions this_plate_directions];
+            
+            % store locations
+            this_plate_location = qtm_data.Force(this_plate_index).ForcePlateLocation * options.millimeter_to_meter;
+            forceplate_locations = [forceplate_locations this_plate_location];
         end
 
         % make labels
-%         forceplate_labels = qtm_data.Analog.Labels(1:12);
-        forceplate_labels = study_settings.get('forceplate_labels', 1);
-        forceplate_location_left = mean(qtm_data.Force(1).ForcePlateLocation) * options.millimeter_to_meter; % mean of corner coordinates gives center
-        forceplate_location_right = mean(qtm_data.Force(2).ForcePlateLocation) * options.millimeter_to_meter; % mean of corner coordinates gives center
+%         forceplate_location_left = mean(qtm_data.Force(1).ForcePlateLocation) * options.millimeter_to_meter; % mean of corner coordinates gives center
+%         forceplate_location_right = mean(qtm_data.Force(2).ForcePlateLocation) * options.millimeter_to_meter; % mean of corner coordinates gives center
 
         sampling_rate_forceplate = qtm_data.Force(1).Frequency;
         time_forceplate = (1 : size(forceplate_raw_trajectories, 1))' / sampling_rate_forceplate;
-
-        % make directions
-        % NOTE: this defines directions and makes assumptions, make sure everything is right here
-        forceplate_directions = cell(2, length(forceplate_labels));
-        [forceplate_directions{1, [1 4 7 10]}] = deal('right');
-        [forceplate_directions{2, [1 4 7 10]}] = deal('left');
-        [forceplate_directions{1, [2 5 8 11]}] = deal('forward');
-        [forceplate_directions{2, [2 5 8 11]}] = deal('backward');
-        [forceplate_directions{1, [3 6 9 12]}] = deal('up');
-        [forceplate_directions{2, [3 6 9 12]}] = deal('down');
 
         % save forceplate data
         save_folder = 'raw';
@@ -1118,8 +1115,7 @@ function importTrialDataForceplate(qtm_data, trial_info, file_info, study_settin
             'forceplate_labels', ...
             'time_forceplate', ...
             'sampling_rate_forceplate', ...
-            'forceplate_location_left', ...
-            'forceplate_location_right', ...
+            'forceplate_locations', ...
             'forceplate_directions', ...
             'data_source' ...
             );
