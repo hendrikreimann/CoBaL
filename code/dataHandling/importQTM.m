@@ -721,72 +721,75 @@ function importTrialDataForceplate(qtm_data, trial_info, file_info, study_settin
 end
 
 function importTrialDataMarker(qtm_data, trial_info, file_info, subject_settings, options)
-    % figure out frames
-    first_frame_to_import = round(trial_info.start_frame);
-    last_frame_to_import = round(trial_info.end_frame);
-    number_of_frames = last_frame_to_import - first_frame_to_import + 1;
+    marker_data_is_available = isfield(qtm_data, 'Trajectories') && ~isempty(qtm_data.Trajectories);
+    if marker_data_is_available
+        % figure out frames
+        first_frame_to_import = round(trial_info.start_frame);
+        last_frame_to_import = round(trial_info.end_frame);
+        number_of_frames = last_frame_to_import - first_frame_to_import + 1;
 
-    % get relevant data in QTM format (N x 3 x T), where N = number of markers, T = number of samples
-    markers_temp = qtm_data.Trajectories.Labeled.Data(:, 1:3, first_frame_to_import:last_frame_to_import);
-    marker_labels = qtm_data.Trajectories.Labeled.Labels;
-    sampling_rate_mocap = qtm_data.FrameRate;
-    time_mocap = (1 : number_of_frames)' / sampling_rate_mocap;
+        % get relevant data in QTM format (N x 3 x T), where N = number of markers, T = number of samples
+        markers_temp = qtm_data.Trajectories.Labeled.Data(:, 1:3, first_frame_to_import:last_frame_to_import);
+        marker_labels = qtm_data.Trajectories.Labeled.Labels;
+        sampling_rate_mocap = qtm_data.FrameRate;
+        time_mocap = (1 : number_of_frames)' / sampling_rate_mocap;
 
-    % reformat to T x 3N
-    marker_count = 1;
-    marker_raw_trajectories = [];
-    for i_marker = 1: size(markers_temp,1)
-        this_marker = markers_temp(i_marker,:,:);
-        marker_raw_trajectories(marker_count:marker_count+2,:) = reshape(this_marker, size(this_marker,2), size(this_marker,3)) * options.millimeter_to_meter; 
-        marker_count = marker_count + 3;
+        % reformat to T x 3N
+        marker_count = 1;
+        marker_raw_trajectories = [];
+        for i_marker = 1: size(markers_temp,1)
+            this_marker = markers_temp(i_marker,:,:);
+            marker_raw_trajectories(marker_count:marker_count+2,:) = reshape(this_marker, size(this_marker,2), size(this_marker,3)) * options.millimeter_to_meter; 
+            marker_count = marker_count + 3;
+        end
+        marker_raw_trajectories = marker_raw_trajectories';
+
+
+        % replace marker labels if necessary
+        marker_label_replacement_map = subject_settings.get('marker_label_replacement_map', 1);
+        for i_label = 1 : size(marker_label_replacement_map, 1)
+            old_label = marker_label_replacement_map{i_label, 1};
+            new_label = marker_label_replacement_map{i_label, 2};
+            marker_labels{strcmp(marker_labels, old_label)} = new_label;
+        end
+
+        % triplicate labels
+        marker_labels_loaded = marker_labels;
+        number_of_markers = length(marker_labels_loaded);
+        marker_labels = cell(3, number_of_markers);
+        for i_marker = 1 : length(marker_labels)
+            marker_labels{1, i_marker} = [marker_labels_loaded{i_marker} '_x'];
+            marker_labels{2, i_marker} = [marker_labels_loaded{i_marker} '_y'];
+            marker_labels{3, i_marker} = [marker_labels_loaded{i_marker} '_z'];
+        end
+        marker_labels = reshape(marker_labels, 1, number_of_markers*3);
+
+        % make directions
+        % NOTE: this defines directions and makes assumptions, make sure everything is right here
+        number_of_marker_trajectories = size(marker_raw_trajectories, 2);
+        marker_directions = cell(2, number_of_marker_trajectories);
+        [marker_directions{1, 1 : 3 : number_of_marker_trajectories}] = deal('right');
+        [marker_directions{2, 1 : 3 : number_of_marker_trajectories}] = deal('left');
+        [marker_directions{1, 2 : 3 : number_of_marker_trajectories}] = deal('forward');
+        [marker_directions{2, 2 : 3 : number_of_marker_trajectories}] = deal('backward');
+        [marker_directions{1, 3 : 3 : number_of_marker_trajectories}] = deal('up');
+        [marker_directions{2, 3 : 3 : number_of_marker_trajectories}] = deal('down');
+
+
+        % save
+        save_folder = 'raw';
+        save_file_name = makeFileName(file_info.collection_date, file_info.subject_id, trial_info.trial_type, trial_info.trial_number, 'markerTrajectoriesRaw.mat');
+        save ...
+            ( ...
+            [save_folder filesep save_file_name], ...
+            'marker_raw_trajectories', ...
+            'time_mocap', ...
+            'sampling_rate_mocap', ...
+            'marker_labels', ...
+            'marker_directions' ...
+            );
+        addAvailableData('marker_raw_trajectories', 'time_mocap', 'sampling_rate_mocap', '_marker_labels', '_marker_directions', save_folder, save_file_name);
     end
-    marker_raw_trajectories = marker_raw_trajectories';
-
-
-    % replace marker labels if necessary
-    marker_label_replacement_map = subject_settings.get('marker_label_replacement_map', 1);
-    for i_label = 1 : size(marker_label_replacement_map, 1)
-        old_label = marker_label_replacement_map{i_label, 1};
-        new_label = marker_label_replacement_map{i_label, 2};
-        marker_labels{strcmp(marker_labels, old_label)} = new_label;
-    end
-
-    % triplicate labels
-    marker_labels_loaded = marker_labels;
-    number_of_markers = length(marker_labels_loaded);
-    marker_labels = cell(3, number_of_markers);
-    for i_marker = 1 : length(marker_labels)
-        marker_labels{1, i_marker} = [marker_labels_loaded{i_marker} '_x'];
-        marker_labels{2, i_marker} = [marker_labels_loaded{i_marker} '_y'];
-        marker_labels{3, i_marker} = [marker_labels_loaded{i_marker} '_z'];
-    end
-    marker_labels = reshape(marker_labels, 1, number_of_markers*3);
-
-    % make directions
-    % NOTE: this defines directions and makes assumptions, make sure everything is right here
-    number_of_marker_trajectories = size(marker_raw_trajectories, 2);
-    marker_directions = cell(2, number_of_marker_trajectories);
-    [marker_directions{1, 1 : 3 : number_of_marker_trajectories}] = deal('right');
-    [marker_directions{2, 1 : 3 : number_of_marker_trajectories}] = deal('left');
-    [marker_directions{1, 2 : 3 : number_of_marker_trajectories}] = deal('forward');
-    [marker_directions{2, 2 : 3 : number_of_marker_trajectories}] = deal('backward');
-    [marker_directions{1, 3 : 3 : number_of_marker_trajectories}] = deal('up');
-    [marker_directions{2, 3 : 3 : number_of_marker_trajectories}] = deal('down');
-
-
-    % save
-    save_folder = 'raw';
-    save_file_name = makeFileName(file_info.collection_date, file_info.subject_id, trial_info.trial_type, trial_info.trial_number, 'markerTrajectoriesRaw.mat');
-    save ...
-        ( ...
-        [save_folder filesep save_file_name], ...
-        'marker_raw_trajectories', ...
-        'time_mocap', ...
-        'sampling_rate_mocap', ...
-        'marker_labels', ...
-        'marker_directions' ...
-        );
-    addAvailableData('marker_raw_trajectories', 'time_mocap', 'sampling_rate_mocap', '_marker_labels', '_marker_directions', save_folder, save_file_name);
 end
 
 function offset = analogOffset()
