@@ -597,12 +597,74 @@ function importTrialDataForceplate(qtm_data, trial_info, file_info, study_settin
                 forceplate_to_world_translation = study_settings.get(forceplate_table.translation{i_forceplate})';
             end
             forceplate_to_world_rotation = reshape(study_settings.get(forceplate_table.rotation{i_forceplate}), 3, 3);
-            forceplate_to_world_transformation = [forceplate_to_world_rotation forceplate_to_world_translation; 0 0 0 1];
+            
+            this_plate_location = qtm_data.Force(this_plate_index).ForcePlateLocation * options.millimeter_to_meter;
+            
+            % this rotation matrix is for the normal lab frame and does something that looks useful for TD10, though not directly compared with pre data yet
+            p_fp_from_lab = mean(this_plate_location)'; % p is the origin of the forceplate in lab coordinates
+            R_fp_from_lab = reshape(study_settings.get(forceplate_table.rotation{i_forceplate}), 3, 3);
+            
+            
+%             R_fp_from_lab = [1 0 0; 0 -1 0; 0 0 1]; % R is the orientation of the forceplate in lab coordinates, i.e 
+            % the 1st column of R is the x-axis of the forceplate frame in world coordinates
+            % the 2nd column of R is the y-axis of the forceplate frame in world coordinates
+            % the 3rd column of R is the z-axis of the forceplate frame in world coordinates
+            
+            % this rotation matrix is for the inverse lab
+%             p_fp_from_lab = mean(this_plate_location)'; % p is the origin of the forceplate in lab coordinates
+%             R_fp_from_lab = [-1 0 0; 0 1 0; 0 0 1]; % R is the orientation of the forceplate in lab coordinates
+            
+            
+            % build rigid transform
+            g_fp_from_lab = [R_fp_from_lab p_fp_from_lab; 0 0 0 1];
+            
+            % invert rigid transform, because we want to transform the wrench from forceplate to lab coordinates
+            g_lab_from_fp = inv(g_fp_from_lab);
+            % test: p_lab_from_fp = -R_fp_from_lab * p_fp_from_lab
+            
+            % calculate adjoint
+            A_lab_from_fp = rigidToAdjointTransformation(g_lab_from_fp);
+            
+            % transform wrench
+            this_plate_wrench_world = (A_lab_from_fp' * this_plate_wrench_local')';
+            
+            
+            A_fp_from_lab = rigidToAdjointTransformation([R_fp_from_lab p_fp_from_lab; 0 0 0 1]);
+            A_t_inv = inv(A_fp_from_lab');
+            this_plate_wrench_world = (A_t_inv * this_plate_wrench_local')';
+            
+            % invert wrench to change from ground reaction wrench to applied wrench
+            this_wrench_world = -this_plate_wrench_world;
+            
+            tau_1 = (A_lab_from_fp' * this_plate_wrench_local')';
+            tau_2 = (A_fp_from_lab' * this_plate_wrench_local')';
+            
+% figure; plot(this_plate_moments); set(gca, 'xlim', [0 10000])
+% figure; plot(tau_1(:, 4:6)); set(gca, 'xlim', [0 10000])
+% figure; plot(tau_2(:, 4:6)); set(gca, 'xlim', [0 10000])
+% figure; plot(this_plate_wrench_world(:, 4:6)); set(gca, 'xlim', [0 10000])
+
+%             world_to_forceplate_transform = [forceplate_to_world_rotation forceplate_to_world_translation; 0 0 0 1];
+%             forceplate_to_world_transform = world_to_forceplate_transform^(-1);
+%             
+%             
+%             forceplate_to_world_adjoint = rigidToAdjointTransformation(forceplate_to_world_transform);
+%             
+%             
+%             this_plate_wrench_world = (forceplate_to_world_adjoint' * this_plate_wrench_local')';
+            
+            
+% figure; plot(this_plate_forces)
+% figure; plot(this_plate_moments)
+% figure; plot(this_plate_wrench_world(:, 1:3))
+% figure; plot(this_plate_wrench_world(:, 4:6))
+            
+%             forceplate_to_world_transformation = [forceplate_to_world_rotation forceplate_to_world_translation; 0 0 0 1];
             
             % transform to lab frame and store
-            forceplate_to_world_adjoint = rigidToAdjointTransformation(forceplate_to_world_transformation);
-            this_plate_wrench_world = (forceplate_to_world_adjoint' * this_plate_wrench_local')';
-            forceplate_raw_trajectories = [forceplate_raw_trajectories this_plate_wrench_world]; %#ok<AGROW>
+%             forceplate_to_world_adjoint = rigidToAdjointTransformation(forceplate_to_world_transformation);
+%             this_plate_wrench_world = (forceplate_to_world_adjoint' * this_plate_wrench_local')';
+            forceplate_raw_trajectories = [forceplate_raw_trajectories this_wrench_world]; %#ok<AGROW>
             
             % create labels
             this_plate_labels = ...
