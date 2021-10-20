@@ -602,6 +602,12 @@ classdef SettingsCustodian < handle
                 default_data = false;
             end
             
+            if strcmp(property_name, 'remove_forceplate_zero_data_points')
+                default_data = 1;
+            end
+            if strcmp(property_name, 'remove_forceplate_large_data_points')
+                default_data = 1;
+            end
             
             if strcmp(property_name, 'marker_to_segment_map')
                 default_data = ...

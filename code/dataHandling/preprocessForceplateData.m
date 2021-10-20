@@ -67,16 +67,24 @@ function preprocessForceplateData(varargin)
                 end
                 
                 % remove data points that are either unreasonably large or 0
-                zero_data_points = any(raw_forceplate_trajectories==0, 2);
-                large_data_points = any(abs(raw_forceplate_trajectories)>1e13, 2);
-                bad_data_points = zero_data_points | large_data_points;
+                bad_data_points = false(size(raw_forceplate_trajectories, 1), 1);
+                if subject_settings.get('remove_forceplate_zero_data_points', 1)
+                    zero_data_points = any(raw_forceplate_trajectories==0, 2);
+                    bad_data_points = bad_data_points | zero_data_points;
+                    
+                    % store problematic data information
+                    saveProblemInformation(date, subject_id, trial_type, trial_number, 'zero in forceplate data', loaded_data.time_forceplate, zero_data_points)
+                end
+                if subject_settings.get('remove_forceplate_large_data_points', 1)
+                    large_data_points = any(abs(raw_forceplate_trajectories)>1e13, 2);
+                    bad_data_points = bad_data_points | large_data_points;
+                    
+                    % store problematic data information
+                    saveProblemInformation(date, subject_id, trial_type, trial_number, 'large value in forceplate data', loaded_data.time_forceplate, large_data_points)
+                end
                 raw_forceplate_trajectories_without_bad = raw_forceplate_trajectories;
                 raw_forceplate_trajectories_without_bad(bad_data_points, :) = NaN;
                 
-                % store problematic data information
-                saveProblemInformation(date, subject_id, trial_type, trial_number, 'zero in forceplate data', loaded_data.time_forceplate, zero_data_points)
-                saveProblemInformation(date, subject_id, trial_type, trial_number, 'large value in forceplate data', loaded_data.time_forceplate, large_data_points)
-
                 % filter
                 filter_order_low = study_settings.get('force_plate_filter_order');
                 cutoff_frequency_low = study_settings.get('force_plate_filter_cutoff');
