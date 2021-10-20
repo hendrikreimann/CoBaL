@@ -28,7 +28,7 @@ function eventGui(varargin)
     trial_to_process = trial_number_list{1}(1);
     
     %% load
-    gui_settings = loadSettingsFromFile(settings_file); % TODO: only using default, not specified settings file
+    gui_settings = loadSettingsFromFile(settings_file);
     
     % load data
     if gui_settings.isfield('figures')

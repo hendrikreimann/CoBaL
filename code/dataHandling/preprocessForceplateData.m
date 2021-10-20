@@ -116,7 +116,7 @@ function preprocessForceplateData(varargin)
                     % calculate CoP
                     this_place_copx = - this_plate_my ./ this_plate_fz;
                     this_place_copy =   this_plate_mx ./ this_plate_fz;
-                    this_plate_low_load_indicator = (this_plate_fz < fz_threshold);
+                    this_plate_low_load_indicator = (abs(this_plate_fz) < fz_threshold);
                     this_place_copx(this_plate_low_load_indicator, :) = 0;
                     this_place_copy(this_plate_low_load_indicator, :) = 0;
                     
@@ -171,7 +171,7 @@ function preprocessForceplateData(varargin)
                 end
                 copx_total = - total_forceplate_wrench(:, 5) ./ total_forceplate_wrench(:, 3);
                 copy_total = total_forceplate_wrench(:, 4) ./ total_forceplate_wrench(:, 3);
-                low_load_indicator = (total_forceplate_wrench(:, 3) < fz_threshold);
+                low_load_indicator = (abs(total_forceplate_wrench(:, 3)) < fz_threshold);
                 copx_total(low_load_indicator, :) = 0;
                 copy_total(low_load_indicator, :) = 0;
                 
