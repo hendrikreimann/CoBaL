@@ -24,6 +24,7 @@ function [conditions_trial, event_variables_to_save, removal_flags] ...
     % allocate
     conditions_trial = struct;
     event_variables_to_save = struct;
+    event_variables_to_save.stretch_times = [];
     removal_flags = zeros(size(trial_data.trigger_times));
     
     % determine levels particular to the experimental paradigm
@@ -134,18 +135,22 @@ function [conditions_trial, event_variables_to_save, removal_flags] ...
     end
     
     % add subject
-    condition_subject_list = cell(size(event_variables_to_save.stretch_times, 1), 1);
-    for i_stretch = 1 : length(condition_subject_list)
-        condition_subject_list{i_stretch} = subject_id;
+    if any(strcmp(conditions_table(:, 1), 'subject'))
+        condition_subject_list = cell(size(event_variables_to_save.stretch_times, 1), 1);
+        for i_stretch = 1 : length(condition_subject_list)
+            condition_subject_list{i_stretch} = subject_id;
+        end
+        conditions_trial.subject_list = condition_subject_list;
     end
-    conditions_trial.subject_list = condition_subject_list;
     
     % add gender
-    condition_gender_list = cell(size(event_variables_to_save.stretch_times, 1), 1);
-    for i_stretch = 1 : length(condition_gender_list)
-        condition_gender_list{i_stretch} = gender;
+    if any(strcmp(conditions_table(:, 1), 'gender'))
+        condition_gender_list = cell(size(event_variables_to_save.stretch_times, 1), 1);
+        for i_stretch = 1 : length(condition_gender_list)
+            condition_gender_list{i_stretch} = gender;
+        end
+        conditions_trial.gender_list = condition_gender_list;
     end
-    conditions_trial.gender_list = condition_gender_list;
 end
 
 function merged_struct = mergeConditionStruct(struct_one, struct_two)

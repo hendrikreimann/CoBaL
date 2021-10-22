@@ -790,8 +790,7 @@ classdef eventController < handle
             end
             
             % find stretches
-            determineStretchesToAnalyze('condition', this.data_custodian.trial_type, 'trials', this.data_custodian.trial_number);
-            
+            determineStretchesToAnalyze('type', this.data_custodian.trial_type, 'trials', this.data_custodian.trial_number);
             
             % load results from stretch file
             this.event_data.loadStretches;
