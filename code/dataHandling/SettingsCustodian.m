@@ -608,6 +608,17 @@ classdef SettingsCustodian < handle
             if strcmp(property_name, 'remove_forceplate_large_data_points')
                 default_data = 1;
             end
+            if strcmp(property_name, 'toggle_auto_save_events')
+                default_data = 1;
+            end
+            if strcmp(property_name, 'toggle_auto_stretch_finding')
+                default_data = 1;
+            end
+            if strcmp(property_name, 'lock_add_events_buttons')
+                default_data = 0;
+            end
+            
+            
             
             if strcmp(property_name, 'marker_to_segment_map')
                 default_data = ...
