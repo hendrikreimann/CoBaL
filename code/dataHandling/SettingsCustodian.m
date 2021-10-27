@@ -34,6 +34,7 @@ classdef SettingsCustodian < handle
             'emg_data_to_import'; ...
             'across_trials_conditions'; ...
             'preferred_level_order'; ...
+            'data_to_import'; ...
           }
     end
     methods
@@ -598,6 +599,11 @@ classdef SettingsCustodian < handle
             if strcmp(property_name, 'average_within_subjects')
                 default_data = false;
             end
+            
+            if strcmp(property_name, 'data_to_import')
+                default_data = {'joint_angles', 'marker'};
+            end
+            
             
             
             if strcmp(property_name, 'marker_to_segment_map')
