@@ -51,7 +51,7 @@ function [conditions_trial, event_variables_to_save, removal_flags] = determineC
         stretch_times(i_stretch, :) = this_stretch_times;
     end
 
-    % remove initial stretches until there are only 80 left
+    % remove initial stretches until there are only the specified number left
     number_of_strides_to_analyze = study_settings.get('number_of_strides_to_analyze');
     while sum(~removal_flags) > number_of_strides_to_analyze * 2
         first_unflagged_index = find(~removal_flags, 1, 'first');
