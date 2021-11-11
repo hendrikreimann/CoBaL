@@ -57,7 +57,7 @@ function [conditions_trial, event_variables_to_save, removal_flags] ...
         
         conditions_trial = mergeConditionStruct(conditions_trial_normal, conditions_trial_ngvs);
         event_variables_to_save = mergeConditionStruct(event_variables_to_save_normal, event_variables_to_save_ngvs);
-        removal_flags = removal_flags_normal & removal_flags_ngvs;
+        removal_flags = removal_flags_normal | removal_flags_ngvs;
     end
     if strcmp(experimental_paradigm, 'Self Pacing Comparison')
         [conditions_trial_normal, event_variables_to_save_normal, removal_flags_normal] ...
@@ -77,7 +77,7 @@ function [conditions_trial, event_variables_to_save, removal_flags] ...
         
         conditions_trial = mergeConditionStruct(conditions_trial_vision, conditions_trial_ngvs);
         event_variables_to_save = mergeConditionStruct(event_variables_to_save_vision, event_variables_to_save_ngvs);
-        removal_flags = removal_flags_vision & removal_flags_ngvs;
+        removal_flags = removal_flags_vision | removal_flags_ngvs;
     end
     if strcmp(experimental_paradigm, 'Vision_old')
         [conditions_trial, event_variables_to_save, removal_flags] ...
@@ -104,8 +104,15 @@ function [conditions_trial, event_variables_to_save, removal_flags] ...
             = determineConditionLevels_normalWalking(trial_data);
     end
     if strcmp(experimental_paradigm, 'postural transitions')
-        [conditions_trial, event_variables_to_save, removal_flags] ...
+        [conditions_trial_pt, event_variables_to_save_pt, removal_flags_pt] ...
             = determineConditionLevels_posturalTransitions(trial_data);
+        
+        [conditions_trial_sr, event_variables_to_save_sr, removal_flags_sr] ...
+            = determineConditionLevels_stochasticResonanceAmplitude(subject_settings, trial_data);
+        
+        conditions_trial = mergeConditionStruct(conditions_trial_pt, conditions_trial_sr);
+        event_variables_to_save = mergeConditionStruct(event_variables_to_save_pt, event_variables_to_save_sr);
+        removal_flags = removal_flags_pt | removal_flags_sr;
     end
     
     % add affected_side if required

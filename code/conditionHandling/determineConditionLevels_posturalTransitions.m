@@ -18,7 +18,9 @@ function [conditions_trial, event_variables_to_save, removal_flags] = determineC
     % allocate output variables
     conditions_trial = struct;
     event_variables_to_save = struct;
-    removal_flags = 0;
+    removal_flags = [];
+    stretch_times = [];
+    stance_foot_data = {};
 
     if strcmp(trial_data.trial_type, "GI")
         onset_times = trial_data.loaded_events_data.event_data{strcmp(trial_data.loaded_events_data.event_labels, 'onset')};
@@ -27,7 +29,8 @@ function [conditions_trial, event_variables_to_save, removal_flags] = determineC
         heel_off_trail_times = trial_data.loaded_events_data.event_data{strcmp(trial_data.loaded_events_data.event_labels, 'heel_off_trail')};
         stretch_times = [onset_times(1) heel_off_lead_times(1) heel_contact_lead_times(1) heel_off_trail_times(1)];
         % TODO: hard-coded for now, this should depend on the preferred leg or on actual data
-        stance_foot_data = {'STANCE_BOTH', 'STANCE_LEFT', 'STANCE_LEFT', 'STANCE_LEFT'};
+        stance_foot_data = {'STANCE_BOTH', 'STANCE_LEFT', 'STANCE_RIGHT', 'STANCE_RIGHT'};
+        removal_flags = 0;
     end
 
     % add new variables to be saved
