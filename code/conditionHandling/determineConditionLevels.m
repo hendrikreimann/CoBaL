@@ -103,6 +103,10 @@ function [conditions_trial, event_variables_to_save, removal_flags] ...
         [conditions_trial, event_variables_to_save, removal_flags] ...
             = determineConditionLevels_normalWalking(trial_data);
     end
+    if strcmp(experimental_paradigm, 'postural transitions')
+        [conditions_trial, event_variables_to_save, removal_flags] ...
+            = determineConditionLevels_posturalTransitions(trial_data);
+    end
     
     % add affected_side if required
     if any(strcmp(conditions_table(:, 1), 'affected_side'))
