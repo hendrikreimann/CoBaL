@@ -19,6 +19,7 @@ classdef StretchDataCustodian < handle
         data;
         bands_per_stretch;
         normalized_time;
+        stretch_times;
         
         root;
         source;
@@ -44,6 +45,7 @@ classdef StretchDataCustodian < handle
             this.number_of_source_sessions = length(this.session_folder_list);
             this.data = cell(this.number_of_source_sessions, 1);
             this.bands_per_stretch = [];
+            this.stretch_times = [];
 
             for i_folder = 1 : this.number_of_source_sessions
                 % get information
@@ -83,6 +85,8 @@ classdef StretchDataCustodian < handle
                        warning('Different sessions have different numbers of bands per stretch') 
                     end
                 end
+                
+                
             end
             
             number_of_time_steps = this.study_settings.get('number_of_time_steps_normalized');
@@ -172,6 +176,21 @@ classdef StretchDataCustodian < handle
                 data.variable_names = data.variable_names{1};
                 data.variable_types = data.variable_types{1};
                 data.variable_data = data.variable_data{1};
+            end
+        end
+        function stretch_times = getStretchTimes(this)
+            stretch_times = [];
+            
+            % extract data from individual
+            for i_folder = 1 : this.number_of_source_sessions
+                this_session_data = this.data{i_folder};
+
+                this_stretch_time_data = this_session_data.stretch_times;
+
+                % store
+                stretch_times = [stretch_times this_stretch_time_data];
+
+                
             end
         end
         function time = getNormalizedTime(this)

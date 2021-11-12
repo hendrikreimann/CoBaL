@@ -870,7 +870,13 @@ function data = combineTwoVariables(variable_table, table_header, study_settings
         new_data.data = combined_variable_data;
         new_data.directions = combined_variable_directions;
         new_data.name = this_variable_name;
-        data = addOrReplaceResultsData(data, new_data, 'analysis');
+        
+        if strcmp(variable_A_type, 'range') && strcmp(variable_A_type, 'range')
+            data = addOrReplaceResultsData(data, new_data, 'range');
+        else
+            data = addOrReplaceResultsData(data, new_data, 'analysis');
+        end
+        
     end
 end
 
