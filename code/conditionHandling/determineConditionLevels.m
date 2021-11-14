@@ -121,6 +121,12 @@ function [conditions_trial, event_variables_to_save, removal_flags] ...
             = determineConditionLevels_affectedSide(subject_settings, trial_data, conditions_trial);
     end
     
+    % add leading_leg if required
+    if any(strcmp(conditions_table(:, 1), 'leading_leg'))
+        conditions_trial ...
+            = determineConditionLevels_leadingLeg(subject_settings, trial_data, conditions_trial);
+    end
+    
     % add group if required
     if any(strcmp(conditions_table(:, 1), 'group'))
         conditions_trial ...
