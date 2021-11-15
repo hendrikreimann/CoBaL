@@ -73,6 +73,9 @@ function processAnalysisVariables(varargin)
         if strcmp(this_action, 'take value at point given by absolute time within band')
             data = calculateTimePointVariables(this_settings_table, this_settings_table_header, study_settings, data);
         end
+        if strcmp(this_action, 'take value at point given by absolute time across range')
+            data = calculateTimePointRangeVariables(this_settings_table, this_settings_table_header, study_settings, data);
+        end
         if strcmp(this_action, 'take extremum within whole band')
             data = calculateExtremaVariables(this_settings_table, this_settings_table_header, study_settings, data);
         end
@@ -702,6 +705,67 @@ function data = calculateTimePointVariables(variables_time_point, variables_time
         new_data.directions = new_variable_directions;
         new_data.name = this_variable_name;
         data = addOrReplaceResultsData(data, new_data, 'analysis');
+    end
+
+end
+
+function data = calculateTimePointRangeVariables(variables_time_point, variables_time_point_header, study_settings, data)
+    number_of_stretches = size(data.stretch_data_session{1}, 2);
+    number_of_time_steps_normalized = study_settings.get('number_of_time_steps_normalized');
+    for i_variable = 1 : size(variables_time_point, 1)
+        this_variable_name = variables_time_point{i_variable, strcmp(variables_time_point_header, 'new_variable_name')};
+        this_variable_source_name = variables_time_point{i_variable, strcmp(variables_time_point_header, 'source_variable_name')};
+        this_variable_source_type = variables_time_point{i_variable, strcmp(variables_time_point_header, 'source_variable_type')};
+        time_point = variables_time_point{i_variable, strcmp(variables_time_point_header, 'time_point')};
+        time_point_source_type = variables_time_point{i_variable, strcmp(variables_time_point_header, 'time_point_specifier')};
+        % pick data depending on source specification
+        data_source = data.([this_variable_source_type '_data_session']);
+        names_source = data.([this_variable_source_type '_names_session']);
+        directions_source = data.([this_variable_source_type '_directions_session']);
+        this_variable_source_data = data_source{strcmp(names_source, this_variable_source_name)};
+        new_variable_directions = directions_source(strcmp(names_source, this_variable_source_name), :);
+        
+        % determine time point in percent of band time
+        if strcmp(time_point_source_type, 'range')
+            time_point_data_source = data.([time_point_source_type '_data_session']);
+            time_point_names_source = data.([time_point_source_type '_names_session']);
+            time_point_data_index = strcmp(time_point_names_source, time_point);
+            time_point_data = time_point_data_source{time_point_data_index};
+        else
+            error(['Unknown time point source type "' time_point_source_type '"'])
+        end
+        
+        % get the data at this time point
+        new_variable_data = zeros(1, number_of_stretches);
+        for i_stretch = 1 : number_of_stretches
+            % recreate time vector for normalized stretch data from stretch_times
+            this_stretch_times = data.stretch_times(:, i_stretch);
+            this_stretch_time = zeros((number_of_time_steps_normalized-1) * data.bands_per_stretch + 1, 1);
+            for i_band = 1 : data.bands_per_stretch
+                % make time vector for this band
+                this_band_start_time = this_stretch_times(i_band);
+                this_band_end_time = this_stretch_times(i_band+1);
+                this_band_time = linspace(this_band_start_time, this_band_end_time, number_of_time_steps_normalized);
+                
+                % store time vector for this band at proper location
+                [start_index, end_index] = getBandIndices(i_band, number_of_time_steps_normalized);
+                this_stretch_time(start_index : end_index) = this_band_time;
+            end
+            
+            % find index for specified time point
+            this_time_point = time_point_data(i_stretch);
+            specified_time_point_index = findClosestIndex(this_time_point, this_stretch_time);
+            
+            % extract data
+            new_variable_data(i_stretch) = this_variable_source_data(specified_time_point_index, i_stretch);
+        end
+        
+        % store
+        new_data = struct;
+        new_data.data = new_variable_data;
+        new_data.directions = new_variable_directions;
+        new_data.name = this_variable_name;
+        data = addOrReplaceResultsData(data, new_data, 'range');
     end
 
 end
