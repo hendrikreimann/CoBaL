@@ -28,6 +28,7 @@ function importFromOpensim(varargin)
     
     direction_file = [getCobalPath filesep 'resources' filesep 'opensim' filesep 'OpensimDirections.txt'];
     direction_settings = SettingsCustodian(direction_file);
+    study_settings = loadSettingsFromFile('study');
     
     % define transformations
     transformation_file = [getCobalPath filesep 'resources' filesep 'opensim' filesep 'CobalOpensimTransformations.txt'];
@@ -76,7 +77,7 @@ function importFromOpensim(varargin)
                     data_trajectories_opensim = imported_data.data(:, 2:end);
                     labels_opensim = data_headers(2:end);
                     directions_opensim = createDirectionsForOpensimData(labels_opensim, direction_settings);
-                    [data_trajectories, labels, directions] = transformSpatialData(data_trajectories_opensim, labels_opensim, directions_opensim, cobal_to_opensim_trafo);
+                    [data_trajectories, labels, directions] = transformSpatialData(data_trajectories_opensim, labels_opensim, directions_opensim, cobal_to_opensim_trafo, study_settings);
 
                     % save
                     variables_to_save = struct;
@@ -119,7 +120,7 @@ function importFromOpensim(varargin)
                     data_trajectories_opensim = imported_data.data(:, 2:end);
                     labels_opensim = data_headers(2:end);
                     directions_opensim = createDirectionsForOpensimData(labels_opensim, direction_settings);
-                    [data_trajectories, labels, directions] = transformSpatialData(data_trajectories_opensim, labels_opensim, directions_opensim, cobal_to_opensim_trafo);
+                    [data_trajectories, labels, directions] = transformSpatialData(data_trajectories_opensim, labels_opensim, directions_opensim, cobal_to_opensim_trafo, study_settings);
                     
                     % save
                     variables_to_save = struct;

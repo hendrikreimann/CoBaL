@@ -128,7 +128,7 @@ function importSingleQtmFile(data_file_name, options, study_settings, subject_se
         % import data
         importTrialDataAnalog(qtm_data, trial_info, file_info, study_settings, subject_settings);
         importTrialDataForceplate(qtm_data, trial_info, file_info, study_settings, options);
-        importTrialDataMarker(qtm_data, trial_info, file_info, subject_settings, options);
+        importTrialDataMarker(qtm_data, trial_info, file_info, study_settings, subject_settings, options);
         
         % report to command window
         this_trial_length = trial_info.end_time - trial_info.start_time;
@@ -720,7 +720,7 @@ function importTrialDataForceplate(qtm_data, trial_info, file_info, study_settin
     end
 end
 
-function importTrialDataMarker(qtm_data, trial_info, file_info, subject_settings, options)
+function importTrialDataMarker(qtm_data, trial_info, file_info, study_settings, subject_settings, options)
     marker_data_is_available = isfield(qtm_data, 'Trajectories') && ~isempty(qtm_data.Trajectories);
     if marker_data_is_available
         % figure out frames
@@ -765,16 +765,14 @@ function importTrialDataMarker(qtm_data, trial_info, file_info, subject_settings
         marker_labels = reshape(marker_labels, 1, number_of_markers*3);
 
         % make directions
-        % NOTE: this defines directions and makes assumptions, make sure everything is right here
         number_of_marker_trajectories = size(marker_raw_trajectories, 2);
         marker_directions = cell(2, number_of_marker_trajectories);
-        [marker_directions{1, 1 : 3 : number_of_marker_trajectories}] = deal('right');
-        [marker_directions{2, 1 : 3 : number_of_marker_trajectories}] = deal('left');
-        [marker_directions{1, 2 : 3 : number_of_marker_trajectories}] = deal('forward');
-        [marker_directions{2, 2 : 3 : number_of_marker_trajectories}] = deal('backward');
-        [marker_directions{1, 3 : 3 : number_of_marker_trajectories}] = deal('up');
-        [marker_directions{2, 3 : 3 : number_of_marker_trajectories}] = deal('down');
-
+        [marker_directions{1, 1 : 3 : number_of_marker_trajectories}] = deal(study_settings.get('direction_x_pos'));
+        [marker_directions{2, 1 : 3 : number_of_marker_trajectories}] = deal(study_settings.get('direction_x_neg'));
+        [marker_directions{1, 2 : 3 : number_of_marker_trajectories}] = deal(study_settings.get('direction_y_pos'));
+        [marker_directions{2, 2 : 3 : number_of_marker_trajectories}] = deal(study_settings.get('direction_y_neg'));
+        [marker_directions{1, 3 : 3 : number_of_marker_trajectories}] = deal(study_settings.get('direction_z_pos'));
+        [marker_directions{2, 3 : 3 : number_of_marker_trajectories}] = deal(study_settings.get('direction_z_neg'));
 
         % save
         save_folder = 'raw';
