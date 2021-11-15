@@ -85,6 +85,11 @@ function processAnalysisVariables(varargin)
         if strcmp(this_action, 'combine two variables')
             data = combineTwoVariables(this_settings_table, this_settings_table_header, study_settings, data);
         end
+        if strcmp(this_action, 'multiply two variables')
+            data = multiplyTwoVariables(this_settings_table, this_settings_table_header, study_settings, data);
+        end
+        
+        
         
         
     end
@@ -243,7 +248,12 @@ function data = calculateInversionVariables(inversion_variables, inversion_varia
         new_data.data = this_variable_data;
         new_data.directions = new_variable_directions;
         new_data.name = this_variable_name;
-        data = addOrReplaceResultsData(data, new_data, 'analysis');
+        
+        if strcmp(this_variable_source_type, 'range')
+            data = addOrReplaceResultsData(data, new_data, 'range');
+        else
+            data = addOrReplaceResultsData(data, new_data, 'analysis');
+        end
     end
 end
 
@@ -928,6 +938,88 @@ function data = combineTwoVariables(variable_table, table_header, study_settings
             
         end
         combined_variable_data = variable_A_data * variable_A_gain + variable_B_data * variable_B_gain + offset;
+        
+        % store
+        new_data = struct;
+        new_data.data = combined_variable_data;
+        new_data.directions = combined_variable_directions;
+        new_data.name = this_variable_name;
+        
+        if strcmp(variable_A_type, 'range') && strcmp(variable_A_type, 'range')
+            data = addOrReplaceResultsData(data, new_data, 'range');
+        else
+            data = addOrReplaceResultsData(data, new_data, 'analysis');
+        end
+        
+    end
+end
+
+function data = multiplyTwoVariables(variable_table, table_header, study_settings, data)
+    for i_variable = 1 : size(variable_table, 1)
+        % get data
+        this_variable_name = variable_table{i_variable, strcmp(table_header, 'new_variable_name')};
+        variable_A_name = variable_table{i_variable, strcmp(table_header, 'variable_A_name')};
+        variable_A_type = variable_table{i_variable, strcmp(table_header, 'variable_A_type')};
+        variable_A_exponent = str2double(variable_table{i_variable, strcmp(table_header, 'variable_A_exponent')});
+        variable_B_name = variable_table{i_variable, strcmp(table_header, 'variable_B_name')};
+        variable_B_type = variable_table{i_variable, strcmp(table_header, 'variable_B_type')};
+        variable_B_exponent = str2double(variable_table{i_variable, strcmp(table_header, 'variable_B_exponent')});
+        factor = str2double(variable_table{i_variable, strcmp(table_header, 'factor')});
+        directions_source = variable_table{i_variable, strcmp(table_header, 'directions_source')};
+
+        % pick data depending on source specification
+        variable_A_data_source = data.([variable_A_type '_data_session']);
+        variable_A_names_source = data.([variable_A_type '_names_session']);
+        variable_A_directions_source = data.([variable_A_type '_directions_session']);
+        variable_B_data_source = data.([variable_B_type '_data_session']);
+        variable_B_names_source = data.([variable_B_type '_names_session']);
+        variable_B_directions_source = data.([variable_B_type '_directions_session']);
+        
+        % extract
+        variable_A_data = variable_A_data_source{strcmp(variable_A_names_source, variable_A_name)};
+        variable_B_data = variable_B_data_source{strcmp(variable_B_names_source, variable_B_name)};
+        variable_A_directions = variable_A_directions_source(strcmp(variable_A_names_source, variable_A_name), :);
+        variable_B_directions = variable_B_directions_source(strcmp(variable_B_names_source, variable_B_name), :);
+
+        % get directions
+        if strcmp(directions_source, variable_A_name)
+            combined_variable_directions = variable_A_directions;            
+        elseif strcmp(directions_source, variable_B_name)
+            combined_variable_directions = variable_B_directions;            
+        else
+            error(['Directions for variable "' this_variable_name '" must come from one of the two source variables.']);
+        end
+                
+        if ~isequal(size(variable_A_data), size(variable_B_data))
+            % one variable is discrete and the other one continuous, deal with this
+            if size(variable_A_data, 1) < size(variable_B_data, 1)
+                % variable A is the discrete one
+                discrete_variable_data = variable_A_data;
+                continuous_variable_data = variable_B_data;
+            else
+                % variable B is the discrete one
+                discrete_variable_data = variable_B_data;
+                continuous_variable_data = variable_A_data;
+            end
+            
+            number_of_bands = data.bands_per_stretch;
+            number_of_time_steps_normalized = study_settings.get('number_of_time_steps_normalized');
+            discrete_variable_data_extended = zeros(size(continuous_variable_data)) * NaN;
+            for i_band = 1 : number_of_bands
+                [band_start_index, band_end_index] = getBandIndices(i_band, number_of_time_steps_normalized);
+                discrete_variable_data_extended(band_start_index+1 : band_end_index-1, :) = repmat(discrete_variable_data(i_band, :), number_of_time_steps_normalized-2, 1);
+            end
+            
+            if size(variable_A_data, 1) < size(variable_B_data, 1)
+                % variable A is the discrete one
+                variable_A_data = discrete_variable_data_extended;
+            else
+                % variable B is the discrete one
+                variable_B_data = discrete_variable_data_extended;
+            end
+            
+        end
+        combined_variable_data = variable_A_data.^variable_A_exponent .* variable_B_data.^variable_B_exponent * factor;
         
         % store
         new_data = struct;
