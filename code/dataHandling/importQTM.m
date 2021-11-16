@@ -1053,7 +1053,7 @@ function importTrialDataAnalog(qtm_data, trial_info, file_info, study_settings, 
 end
 
 function importTrialDataForceplate(qtm_data, trial_info, file_info, study_settings, options)
-    force_data_is_available = isfield(qtm_data, 'Force') & ~isempty(qtm_data.Force);
+    force_data_is_available = isfield(qtm_data, 'Force') & ~isempty(qtm_data.Force) & qtm_data.Force(1).NrOfSamples > 0;
     if force_data_is_available
 
         % determine start and end index
