@@ -1266,8 +1266,9 @@ function addZeroLine(settings, figure_data, axis)
             for i_axes = 1 : size(figure_data.axes_handles, 1)
                 these_axes = figure_data.axes_handles{i_axes, i_variable};
                 if axis == 'x'
-%                     xlimits = get(these_axes, 'xlim');
-                    zero_plot = xline(these_axes, 0, 'Color', [0.7 0.7 0.7]); % plot(these_axes, xlimits, [0 0], 'color', [0.7 0.7 0.7]);
+                    xlimits = get(these_axes, 'xlim');
+                    zero_plot = plot(these_axes, xlimits, [0 0], 'color', [0.7 0.7 0.7]);
+%                     zero_plot = xline(these_axes, 0, 'Color', [0.7 0.7 0.7]); 
                 end
                 if axis == 'y'
 %                     ylimits = get(these_axes, 'ylim');
