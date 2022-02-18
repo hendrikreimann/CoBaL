@@ -394,7 +394,7 @@ function figure_data = createFigures_discrete(settings, comparisons, data_custod
 end
 
 function figure_data = createFigures_pairs(settings, comparisons)
-    figure_data = createFigureData(settings.variables_to_plot_discrete, comparisons);
+    figure_data = createFigureData(settings.variables_to_plot_pairs, comparisons);
 %     bands_per_stretch = data_custodian.bands_per_stretch;
     
     for i_variable = 1 : settings.number_of_variables_to_plot_pairs
@@ -1159,7 +1159,7 @@ function groomFigures_pairs(settings, figure_data)
     addZeroLine(settings, figure_data, 'y');
     
     % rotate labels
-    for i_variable = 1 : settings.number_of_variables_to_plot_discrete
+    for i_variable = 1 : settings.number_of_variables_to_plot_pairs
         for i_axes = 1 : size(figure_data.axes_handles, 1)
             these_axes = figure_data.axes_handles{i_axes, i_variable};
             xtick_label_rotation = settings.plot_settings.get('xtick_label_rotation', 1);
