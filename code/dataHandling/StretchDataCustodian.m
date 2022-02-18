@@ -185,7 +185,24 @@ classdef StretchDataCustodian < handle
             for i_folder = 1 : this.number_of_source_sessions
                 this_session_data = this.data{i_folder};
 
-                this_stretch_time_data = this_session_data.stretch_times;
+                % get stretch time data
+                if isfield(this_session_data, 'stretch_times')
+                    % stretch times are available explicitly
+                    this_stretch_time_data = this_session_data.stretch_times;
+                elseif any(strcmp(this_session_data.stretch_names_session, 'step_time')) ...
+                        && isfield(this_session_data, 'origin_start_time_list_session')
+                    % stretch times are not available, but we have step time, so reconstruct from that
+                    start_times = this_session_data.origin_start_time_list_session';
+                    step_times = this_session_data.stretch_data_session{strcmp(this_session_data.stretch_names_session, 'step_time')};
+                    step_times_sum = cumsum(step_times);
+                    number_of_steps = size(step_times_sum, 1);
+                    end_times = repmat(start_times, number_of_steps, 1) + step_times_sum;
+                    
+                    
+                    this_stretch_time_data = [start_times; end_times];
+                else
+                    error('no stretch time data found');
+                end
 
                 % store
                 stretch_times = [stretch_times this_stretch_time_data];

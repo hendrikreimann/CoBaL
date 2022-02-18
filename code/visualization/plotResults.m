@@ -213,13 +213,9 @@ function figure_data = createFigures_continuous(settings, comparisons, data_cust
     
     step_start_times_cell = cell(comparisons.number_of_comparisons, settings.number_of_variables_to_plot_continuous);
     step_end_times_cell = cell(comparisons.number_of_comparisons, settings.number_of_variables_to_plot_continuous);
-%     step_time_data = data_custodian.getData('step_time', 'stretch');
-%     step_times = step_time_data.variable_data;
     bands_per_stretch = data_custodian.bands_per_stretch;
     condition_data = data_custodian.getConditionData();
     stretch_times = data_custodian.getStretchTimes();
-    
-    % TODO: stretch_times should generalize step_time_data here, but make sure it works later
     
     % create figures
     for i_variable = 1 : settings.number_of_variables_to_plot_continuous
