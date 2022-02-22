@@ -617,6 +617,37 @@ classdef SettingsCustodian < handle
             if strcmp(property_name, 'lock_add_events_buttons')
                 default_data = 0;
             end
+            if strcmp(property_name, 'direction_x_pos')
+                default_data = 'right';
+            end
+            if strcmp(property_name, 'direction_x_neg')
+                default_data = 'left';
+            end
+            if strcmp(property_name, 'direction_y_pos')
+                default_data = 'forward';
+            end
+            if strcmp(property_name, 'direction_y_neg')
+                default_data = 'backward';
+            end
+            if strcmp(property_name, 'direction_z_pos')
+                default_data = 'up';
+            end
+            if strcmp(property_name, 'direction_z_neg')
+                default_data = 'down';
+            end
+            if strcmp(property_name, 'forceplate_table_header')
+                default_data = {'label', 'index', 'translation', 'rotation'};
+            end
+            if strcmp(property_name, 'forceplate_table')
+                default_data = ...
+                  { ...
+                      'left', '1', 'from_data', 'forceplate_rotation'; ...
+                      'right', '2', 'from_data', 'forceplate_rotation' ...
+                  };
+            end
+            if strcmp(property_name, 'forceplate_rotation')
+                default_data = [1, 0, 0, 0, -1, 0, 0, 0, 1];
+            end
             
             
             
@@ -724,6 +755,7 @@ classdef SettingsCustodian < handle
         function settings_names = getAllSettingsNames(this)
             settings_names = fieldnames(this.settings_struct);
         end
+        
         
     end
 end

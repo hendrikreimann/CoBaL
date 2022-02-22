@@ -63,12 +63,12 @@ function [transformed_trajectories, transformed_labels, transformed_directions] 
     end
 
     % go through directions and direction of cartesian basis vectors with labels from study settings
-    x_pos_label = study_settings.get('direction_x_pos');
-    x_neg_label = study_settings.get('direction_x_neg');
-    y_pos_label = study_settings.get('direction_y_pos');
-    y_neg_label = study_settings.get('direction_y_neg');
-    z_pos_label = study_settings.get('direction_z_pos');
-    z_neg_label = study_settings.get('direction_z_neg');
+    x_pos_label = study_settings.get('direction_x_pos', true);
+    x_neg_label = study_settings.get('direction_x_neg', true);
+    y_pos_label = study_settings.get('direction_y_pos', true);
+    y_neg_label = study_settings.get('direction_y_neg', true);
+    z_pos_label = study_settings.get('direction_z_pos', true);
+    z_neg_label = study_settings.get('direction_z_neg', true);
     
     for i_column = 1 : size(transformed_directions, 2)
         this_direction_pos = transformed_directions{1, i_column};
