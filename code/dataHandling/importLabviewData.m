@@ -27,10 +27,10 @@
 % Output files will be saved to folders "raw" and "processed".
 
 function importLabviewData()
-
-
     %% prepare
+    study_settings = loadSettingsFromFile('study');
     milliseconds_to_seconds = 1e-3;
+    protocol_info = load('protocolInfo.mat');
 
     % create folders if necessary
     if ~directoryExists('raw')
@@ -56,15 +56,25 @@ function importLabviewData()
     for i_file = 1 : number_of_files
         % file name stuff
         data_file_name = file_name_list{i_file};
+        file_part_of_protocol = false;
+        if isfield(protocol_info, 'stimulus_file_name') ...
+            && any(strcmp(protocol_info.stimulus_file_name, data_file_name))
+            file_part_of_protocol = true;
+        end
+        if isfield(protocol_info, 'metronome_file_name') ...
+            && any(strcmp(protocol_info.metronome_file_name, data_file_name))
+            file_part_of_protocol = true;
+        end
+        
         [date, subject_id, trial_type, trial_number, file_type, success] = getFileParameters(data_file_name);
-        if success
+        if success && ~file_part_of_protocol
             imported_data = importdata([labview_source_dir filesep data_file_name], ',', 2);
             labview_trajectories = imported_data.data; %#ok<NASGU>
 
             % extract headers
             column_name_string = imported_data.textdata{1, 1};
             labview_header = strsplit(column_name_string, ',');
-            number_of_data_columns = size(imported_data.textdata, 2);
+            number_of_data_columns = size(labview_trajectories, 2);
 
             % extract data into properly named variables
             variables_to_save = struct();
@@ -88,12 +98,26 @@ function importLabviewData()
                 first_qtm_time_stamp_first = variables_to_save.qtmTimeStamp(find(~isnan(variables_to_save.qtmTimeStamp), 1, 'first')); %#ok<NASGU>
                 first_qtm_time_stamp_last = variables_to_save.qtmTimeStamp(find(~isnan(variables_to_save.qtmTimeStamp), 1, 'last')); %#ok<NASGU>
             end
+            
+            % resample to desired sampling rate
+            sampling_rate = study_settings.get('labview_resampling_rate', 1);
+            dt = 1/sampling_rate;
+            time_old = variables_to_save.time;
+            time_new = time_old(1) : dt : time_old(end);
+            
+            field_names = fieldnames(variables_to_save);
+            for i_field = 1 : length(field_names)
+                this_field = field_names{i_field};
+                variables_to_save.(this_field) = interp1(time_old, variables_to_save.(this_field), time_new)';
+                
+            end
+            variables_to_save.time = time_new;
 
             % add data source
             variables_to_save.data_source = 'labview';
 
             % add sampling rate
-            variables_to_save.sampling_rate = NaN;
+            variables_to_save.sampling_rate = sampling_rate;
 
             % save
             save_folder = 'processed';

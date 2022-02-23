@@ -47,10 +47,10 @@ function processStimulusResponse(varargin)
     % extract data
     step_placement_x_data = loaded_data.stretch_data_session{strcmp(loaded_data.stretch_names_session, 'step_placement_x')};
     step_placement_x_directions = loaded_data.stretch_directions_session(strcmp(loaded_data.stretch_names_session, 'step_placement_x'), :);
-    com_x_data = loaded_data.stretch_data_session{strcmp(loaded_data.stretch_names_session, 'com_x')};
-    com_x_vel_data = loaded_data.stretch_data_session{strcmp(loaded_data.stretch_names_session, 'com_x_vel')};
-    lankle_x_data = loaded_data.stretch_data_session{strcmp(loaded_data.stretch_names_session, 'lankle_x')};
-    rankle_x_data = loaded_data.stretch_data_session{strcmp(loaded_data.stretch_names_session, 'rankle_x')};
+    com_x_data = loaded_data.stretch_data_session{strcmp(loaded_data.stretch_names_session, 'com_position:center_of_mass_x')};
+    com_x_vel_data = loaded_data.stretch_data_session{strcmp(loaded_data.stretch_names_session, 'com_velocity:center_of_mass_x')};
+    lankle_x_data = loaded_data.stretch_data_session{strcmp(loaded_data.stretch_names_session, 'marker:LANK_x')};
+    rankle_x_data = loaded_data.stretch_data_session{strcmp(loaded_data.stretch_names_session, 'marker:RANK_x')};
     midstance_index_data = loaded_data.stretch_data_session{strcmp(loaded_data.stretch_names_session, 'midstance_index')};
     number_of_bands_per_stretch = size(step_placement_x_data, 1);
     
@@ -116,18 +116,21 @@ function processStimulusResponse(varargin)
         plot(com_x_pos_midstance_control_data(strcmp(stance_foot_control_data, 'STANCE_LEFT')), 'gx')
         title('CoM position at mid-stance')
         xlabel('step'); ylabel('CoM (m)')
+        legend('right', 'left')
 
         figure; axes; hold on; set(gca, 'ylim', [-0.1, 0.1])
         plot(com_x_vel_midstance_control_data(strcmp(stance_foot_control_data, 'STANCE_RIGHT')), 'rx')
         plot(com_x_vel_midstance_control_data(strcmp(stance_foot_control_data, 'STANCE_LEFT')), 'gx')
         title('CoM velocity at mid-stance')
         xlabel('step'); ylabel('CoM vel (m/s)')
+        legend('right', 'left')
 
         figure; axes; hold on; set(gca, 'ylim', [-0.25, 0.25])
         plot(step_placement_x_control_data(strcmp(stance_foot_control_data, 'STANCE_RIGHT')), 'rx')
         plot(step_placement_x_control_data(strcmp(stance_foot_control_data, 'STANCE_LEFT')), 'gx')
         title('Foot placement')
         xlabel('step'); ylabel('foot placement (m)')
+        legend('right', 'left')
 
 %         figure; axes; hold on; set(gca, 'ylim', [-0.25, 0.25])
 %         plot(lankle_x_midstance_control_data(strcmp(stance_foot_control_data, 'STANCE_RIGHT')), 'rx')
@@ -174,22 +177,28 @@ function processStimulusResponse(varargin)
             figure; axes; hold on; set(gca, 'ylim', [-0.1, 0.1])
             plot(this_stance_com_from_stance_ankle_data, 'bx')
             plot(this_stance_com_from_stance_ankle_data_mean_free, stance_styles{i_stance})
+            xlabel('step'); ylabel('CoM from ankle (m)')
+            legend('raw', 'mean free')
 
             figure; axes; hold on; set(gca, 'ylim', [-0.1, 0.1])
-            plot(this_stance_com_x_vel_midstance_data_mean_free, 'bx')
-            plot(this_stance_com_x_vel_midstance_data, stance_styles{i_stance})
+            plot(this_stance_com_x_vel_midstance_data, 'bx')
+            plot(this_stance_com_x_vel_midstance_data_mean_free, stance_styles{i_stance})
+            xlabel('step'); ylabel('CoM vel at midstance (m)')
+            legend('raw', 'mean free')
 
             figure; axes; hold on; set(gca, 'ylim', [-0.25, 0.25])
-            plot(this_stance_step_placement_x_data_mean_free, 'bx')
-            plot(this_stance_step_placement_x_data, stance_styles{i_stance})
+            plot(this_stance_step_placement_x_data, 'bx')
+            plot(this_stance_step_placement_x_data_mean_free, stance_styles{i_stance})
+            xlabel('step'); ylabel('Foot placement (m)')
+            legend('raw', 'mean free')
 
             figure; axes; hold on; 
             plot(this_stance_com_from_stance_ankle_data, 'bx')
             plot(this_stance_com_x_pos_midstance_data, 'mo')
             plot(this_stance_foot_ankle_x_data, 'co')
+            xlabel('step'); ylabel('position (m)')
+            legend('CoM from stance ankle', 'CoM at midstance', 'stance foot ankle')
 
-            
-            
             figure; 
             plot(fit_object, [this_stance_com_from_stance_ankle_data_mean_free, this_stance_com_x_vel_midstance_data_mean_free], this_stance_step_placement_x_data_mean_free)
             xlabel('\Delta CoM from stance ankle'); ylabel('\Delta CoM vel'); zlabel('\Delta foot placement')
@@ -207,6 +216,8 @@ function processStimulusResponse(varargin)
 %             
             figure; plot(this_stance_com_x_vel_midstance_data_mean_free, this_stance_step_placement_x_data_mean_free, 'x')
             title('com from ankle - vel');
+            xlabel('\Delta CoM vel at midstance')
+            ylabel('\Delta foot placement')
 %             title(['com - vel, J = ' num2str(Jacobian(2)) ', c = ' num2str(correlation_c(2)) ', p = ' num2str(correlation_p(2))]); axis equal
 %             
 %             figure; plot3(this_stance_com_from_stance_ankle_data_mean_free, this_stance_com_x_vel_midstance_data_mean_free, this_stance_step_placement_x_data_mean_free, 'x')

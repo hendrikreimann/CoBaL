@@ -46,6 +46,9 @@ function processAnalysisVariables(varargin)
         settings_table_header_name = analysis_table{i_row, 'settings_table_header'};
         this_settings_table_header = study_settings.get(settings_table_header_name{1}, 1);
         
+        if strcmp(this_action, 'calculate stimulus response')
+            data = calculateStimulusResponse(this_settings_table, this_settings_table_header, study_settings, data, conditions);
+        end
         if strcmp(this_action, 'integrate over time')
             data = calculateIntegratedVariables(this_settings_table, this_settings_table_header, study_settings, data);
         end
@@ -73,14 +76,11 @@ function processAnalysisVariables(varargin)
         if strcmp(this_action, 'take extremum within whole band')
             data = calculateExtremaVariables(this_settings_table, this_settings_table_header, study_settings, data);
         end
-        if strcmp(this_action, 'take extremum over time interval within band') % TODO: this does not make any sense... 
-            % the action description suggests that it takes the extremum from an interval of data within a band, but 
-            % I think what it's actually doing is taking the extremum over a whole range of data, spanning multiple 
-            % intervals
+        if strcmp(this_action, 'take extremum over range') 
             data = calculateExtremaOverRangeVariables(this_settings_table, this_settings_table_header, data);
         end
         if strcmp(this_action, 'combine two variables')
-            data = combineTwoVariables(this_settings_table, this_settings_table_header, data);
+            data = combineTwoVariables(this_settings_table, this_settings_table_header, study_settings, data);
         end
         
         
@@ -90,13 +90,109 @@ function processAnalysisVariables(varargin)
     save(results_file_name, '-struct', 'data');    
 end
 
-function analysis_table = getAnalysisTable(study_settings)
-    analysis_table_body = study_settings.get('analysis_table', 1);
-    analysis_table_header = study_settings.get('analysis_table_header', 1);
-    
-    analysis_table = cell2table(analysis_table_body);
-    analysis_table.Properties.VariableNames = analysis_table_header;
+function data = calculateStimulusResponse(response_variables, response_variables_header, study_settings, data, conditions)
+    % make condition data tables
+    conditions_settings = study_settings.get('conditions');
+    condition_labels = conditions_settings(:, 1)';
+    condition_source_variables = conditions_settings(:, 2)';
+    number_of_condition_labels = length(condition_labels);
+    conditions_session = conditions.conditions_session;
+    number_of_stretches = size(data.time_list_session, 1); %#ok<*USENS>
+    condition_data_all = cell(number_of_stretches, number_of_condition_labels);
+    for i_condition = 1 : number_of_condition_labels
+        condition_data_all(:, i_condition) = conditions_session.(condition_source_variables{i_condition});
+    end
+    labels_to_ignore = study_settings.get('conditions_to_ignore');
+    levels_to_remove = study_settings.get('levels_to_remove', 1);
+    comparisons = struct;
+    [comparisons.combination_labels, comparisons.condition_combinations_control] ...
+        = determineConditionCombinations ...
+            (condition_data_all, conditions_settings, labels_to_ignore, levels_to_remove, 'control');
+    comparisons.condition_combinations_control_unique ...
+        = table2cell(unique(cell2table(comparisons.condition_combinations_control), 'rows'));
+
+    %% calculate response (i.e. difference from control mean)
+    if ~isempty(comparisons.condition_combinations_control)
+        % prepare containers
+        number_of_response_variables = size(response_variables, 1);
+        response_data = cell(number_of_response_variables, 1);
+        response_directions = cell(number_of_response_variables, 2);
+        response_names = cell(number_of_response_variables, 1);
+        for i_variable = 1 : number_of_response_variables
+            this_variable_source_name = response_variables{i_variable, strcmp(response_variables_header, 'source_variable_name')};
+            this_variable_source_type = response_variables{i_variable, strcmp(response_variables_header, 'source_type')};
+            
+            % pick data depending on source specification
+            this_variable_source_index = find(strcmp(data.([this_variable_source_type '_names_session']), this_variable_source_name), 1, 'first');
+            this_variable_source_data = data.([this_variable_source_type '_data_session']){this_variable_source_index};
+            
+            response_data{i_variable} = zeros(size(this_variable_source_data));
+        end        
+        
+        % go stretch by stretch
+        for i_stretch = 1 : number_of_stretches
+            % extract this stretches relevant conditions
+            this_stretch_condition_string = cell(1, length(comparisons.combination_labels));
+            for i_label = 1 : length(comparisons.combination_labels)
+                this_label = comparisons.combination_labels{i_label};
+                this_label_source_variable = condition_source_variables{strcmp(condition_labels, this_label)};
+                this_label_condition_list = conditions_session.(this_label_source_variable);
+                this_stretch_condition_string{i_label} = this_label_condition_list{i_stretch};
+            end
+            
+            % determine applicable control condition index
+            applicable_control_condition_index ...
+                = determineControlConditionIndex(study_settings, comparisons, this_stretch_condition_string);
+            
+            % determine indicator for control
+            control_condition_indicator = true(number_of_stretches, 1);
+            for i_label = 1 : length(comparisons.combination_labels)
+                this_label = comparisons.combination_labels{i_label};
+                this_label_list = condition_data_all(:, strcmp(conditions_settings(:, 1), this_label));
+                this_label_control ...
+                    = comparisons.condition_combinations_control_unique(applicable_control_condition_index, i_label);
+                this_label_indicator = strcmp(this_label_list, this_label_control);
+                control_condition_indicator = control_condition_indicator .* this_label_indicator;
+            end        
+            control_condition_indicator = logical(control_condition_indicator);            
+            
+            % calculate responses
+            for i_variable = 1 : number_of_response_variables
+                this_variable_name = response_variables{i_variable, strcmp(response_variables_header, 'new_variable_name')};
+                this_variable_source_name = response_variables{i_variable, strcmp(response_variables_header, 'source_variable_name')};
+                this_variable_source_type = response_variables{i_variable, strcmp(response_variables_header, 'source_type')};
+
+                % pick data depending on source specification
+                this_variable_source_index = find(strcmp(data.([this_variable_source_type '_names_session']), this_variable_source_name), 1, 'first');
+                this_variable_source_data = data.([this_variable_source_type '_data_session']){this_variable_source_index};
+                this_variable_source_directions = data.([this_variable_source_type '_directions_session'])(this_variable_source_index, :);
+                
+                % calculate control mean
+                this_condition_control_data = this_variable_source_data(:, control_condition_indicator);
+                this_condition_control_mean = mean(this_condition_control_data, 2);
+                
+                % calculate response
+                response_data{i_variable}(:, i_stretch) ...
+                    = this_variable_source_data(:, i_stretch) - this_condition_control_mean;
+                response_directions(i_variable, :) = this_variable_source_directions;
+                response_names{i_variable} = this_variable_name;
+            end
+            
+        end
+
+    end
+
+    % store
+    for i_variable = 1 : number_of_response_variables
+        new_data = struct;
+        new_data.data = response_data{i_variable};
+        new_data.directions = response_directions(i_variable, :);
+        new_data.name = response_names{i_variable};
+        data = addOrReplaceResultsData(data, new_data, 'response');
+    end
 end
+
+
 
 function data = calculateInversionVariables(inversion_variables, inversion_variables_header, study_settings, data, conditions)
     for i_variable = 1 : size(inversion_variables, 1)
@@ -686,28 +782,25 @@ function data = calculateExtremaOverRangeVariables(variables_from_extrema_range,
     end
 end
 
-function data = combineTwoVariables(variable_table, table_header, data)
-
-
-
+function data = combineTwoVariables(variable_table, table_header, study_settings, data)
     for i_variable = 1 : size(variable_table, 1)
         % get data
         this_variable_name = variable_table{i_variable, strcmp(table_header, 'new_variable_name')};
         variable_A_name = variable_table{i_variable, strcmp(table_header, 'variable_A_name')};
-        variable_A_source = variable_table{i_variable, strcmp(table_header, 'variable_A_source')};
+        variable_A_type = variable_table{i_variable, strcmp(table_header, 'variable_A_type')};
         variable_A_gain = str2double(variable_table{i_variable, strcmp(table_header, 'variable_A_gain')});
         variable_B_name = variable_table{i_variable, strcmp(table_header, 'variable_B_name')};
-        variable_B_source = variable_table{i_variable, strcmp(table_header, 'variable_B_source')};
+        variable_B_type = variable_table{i_variable, strcmp(table_header, 'variable_B_type')};
         variable_B_gain = str2double(variable_table{i_variable, strcmp(table_header, 'variable_B_gain')});
         offset = str2double(variable_table{i_variable, strcmp(table_header, 'offset')});
 
         % pick data depending on source specification
-        variable_A_data_source = data.([variable_A_source '_data_session']);
-        variable_A_names_source = data.([variable_A_source '_names_session']);
-        variable_A_directions_source = data.([variable_A_source '_directions_session']);
-        variable_B_data_source = data.([variable_B_source '_data_session']);
-        variable_B_names_source = data.([variable_B_source '_names_session']);
-        variable_B_directions_source = data.([variable_B_source '_directions_session']);
+        variable_A_data_source = data.([variable_A_type '_data_session']);
+        variable_A_names_source = data.([variable_A_type '_names_session']);
+        variable_A_directions_source = data.([variable_A_type '_directions_session']);
+        variable_B_data_source = data.([variable_B_type '_data_session']);
+        variable_B_names_source = data.([variable_B_type '_names_session']);
+        variable_B_directions_source = data.([variable_B_type '_directions_session']);
         
         % extract
         variable_A_data = variable_A_data_source{strcmp(variable_A_names_source, variable_A_name)};
@@ -741,6 +834,35 @@ function data = combineTwoVariables(variable_table, table_header, data)
               );
         end
         combined_variable_directions = variable_A_directions;
+        if ~isequal(size(variable_A_data), size(variable_B_data))
+            % one variable is discrete and the other one continuous, deal with this
+            if size(variable_A_data, 1) < size(variable_B_data, 1)
+                % variable A is the discrete one
+                discrete_variable_data = variable_A_data;
+                continuous_variable_data = variable_B_data;
+            else
+                % variable B is the discrete one
+                discrete_variable_data = variable_B_data;
+                continuous_variable_data = variable_A_data;
+            end
+            
+            number_of_bands = data.bands_per_stretch;
+            number_of_time_steps_normalized = study_settings.get('number_of_time_steps_normalized');
+            discrete_variable_data_extended = zeros(size(continuous_variable_data)) * NaN;
+            for i_band = 1 : number_of_bands
+                [band_start_index, band_end_index] = getBandIndices(i_band, number_of_time_steps_normalized);
+                discrete_variable_data_extended(band_start_index+1 : band_end_index-1, :) = repmat(discrete_variable_data(i_band, :), number_of_time_steps_normalized-2, 1);
+            end
+            
+            if size(variable_A_data, 1) < size(variable_B_data, 1)
+                % variable A is the discrete one
+                variable_A_data = discrete_variable_data_extended;
+            else
+                % variable B is the discrete one
+                variable_B_data = discrete_variable_data_extended;
+            end
+            
+        end
         combined_variable_data = variable_A_data * variable_A_gain + variable_B_data * variable_B_gain + offset;
         
         % store
@@ -752,6 +874,62 @@ function data = combineTwoVariables(variable_table, table_header, data)
     end
 end
 
+function applicable_control_condition_index = determineControlConditionIndex(study_settings, comparisons, this_stretch_condition_string)
+    experimental_paradigm = study_settings.get('experimental_paradigm');
+    paradigms_with_intermittent_perturbation = ...
+      { ...
+        'Vision', 'GVS', 'GVS_old', 'Vision_old', 'CadenceGVS', 'FatigueGVS', 'OculusLaneRestriction', ...
+        'CognitiveLoadVision', 'CognitiveLoadGvs', 'GvsOverground' ...
+      };
+    paradigms_with_stochastic_resonance = {'SR_VisualStim', 'nGVS_Vision'};
+  
+    % define the factors for which the levels have to match to determine the control condition for this condition
+    if any(strcmp(experimental_paradigm, paradigms_with_stochastic_resonance))
+        if strcmp(experimental_paradigm, 'SR_VisualStim')
+            relevant_factors_for_control = {'stim_amplitude', 'trigger_foot'};
+        end
+        if strcmp(experimental_paradigm, 'nGVS_Vision')
+            relevant_factors_for_control = {'ngvs_settings', 'trigger_foot'};
+        end
+    end
+
+    if any(strcmp(experimental_paradigm, paradigms_with_intermittent_perturbation))
+        relevant_factors_for_control = {'trigger_foot'}; % control only differs by trigger foot in this paradigm
+        if strcmp(experimental_paradigm, 'CadenceGVS')
+            relevant_factors_for_control = [relevant_factors_for_control, 'cadence'];
+        end
+        if strcmp(experimental_paradigm, 'FatigueGVS')
+            relevant_factors_for_control = [relevant_factors_for_control, 'fatigue'];
+        end
+        if strcmp(experimental_paradigm, 'OculusLaneRestriction')
+            relevant_factors_for_control = [relevant_factors_for_control, 'zone_side'];
+        end
+        if strcmp(experimental_paradigm, 'CognitiveLoadVision') || strcmp(experimental_paradigm, 'CognitiveLoadGvs')
+            relevant_factors_for_control = [relevant_factors_for_control, 'cognitive_load'];
+        end
+    end
+    
+    % go through each factor and find the matches in the control
+    control_row_indicator = true(size(comparisons.condition_combinations_control_unique, 1), 1);
+    for i_factor = 1 : length(relevant_factors_for_control)
+        this_factor_label = relevant_factors_for_control{i_factor};
+        this_factor_column = strcmp(comparisons.combination_labels, this_factor_label);
+        this_factor_this_level = this_stretch_condition_string(this_factor_column);
+        this_factor_control_levels = comparisons.condition_combinations_control_unique(:, this_factor_column);
+        this_factor_candidate_rows ...
+            = strcmp ...
+              ( ...
+                this_factor_control_levels, ...
+                this_factor_this_level ...
+              );
+        % keep only rows that match previous ones and this one
+        control_row_indicator = control_row_indicator & this_factor_candidate_rows;
+    end
+
+    % transform the resulting row into an index
+    applicable_control_condition_index = find(control_row_indicator);
+
+end
 
 
 

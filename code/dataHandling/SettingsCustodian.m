@@ -32,6 +32,9 @@ classdef SettingsCustodian < handle
             'trial_types_to_ignore'; ...
             'analog_data_to_import'; ...
             'emg_data_to_import'; ...
+            'across_trials_conditions'; ...
+            'preferred_level_order'; ...
+            'data_to_import'; ...
           }
     end
     methods
@@ -271,9 +274,39 @@ classdef SettingsCustodian < handle
             if any(strcmp(this.force_string_list, property_name))
                 data_old = data;
                 
-                % is this an individual number?
                 if isnumeric(data_old)
-                    data = num2str(data_old);
+                    if numel(data) == 1
+                        % this is a single number
+                        data = num2str(data_old);
+                    else
+                        % not a single number, so transform this to a cell array
+                        data_cell = cell(size(data_old));
+                        for i_entry = 1 : numel(data_old)
+                            this_entry = data_old(i_entry);
+                            if isnumeric(this_entry)
+                                data_cell{i_entry} = num2str(this_entry);
+                            else
+                                data_cell{i_entry} = this_entry;
+                            end
+
+                        end
+                        data = data_cell;
+                        
+                    end
+                end
+                if ~isnumeric(data_old) && ~iscell(data_old)
+                    % not sure we need this case ...
+                    data_cell = cell(size(data_old));
+                    for i_entry = 1 : numel(data_old)
+                        this_entry = data_old(i_entry);
+                        if isnumeric(this_entry)
+                            data_cell{i_entry} = num2str(this_entry);
+                        else
+                            data_cell{i_entry} = this_entry;
+                        end
+                        
+                    end
+                    data = data_cell;
                 end
                 % not a single number, but not a cell?
                 if ~isnumeric(data_old) && ~iscell(data_old)
@@ -477,13 +510,12 @@ classdef SettingsCustodian < handle
             if strcmp(property_name, 'force_plates_to_import')
                 default_data = [1, 2];
             end
-            if strcmp(property_name, 'emg_cutoff_frequency_low')
-            
+            if strcmp(property_name, 'emg_cutoff_frequency_low')            
                 default_data = 500;
             end
             
             if strcmp(property_name, 'variables_to_plot_header')
-                default_data = {'variable_name', 'variable_type', 'variable_label', 'y_axis_label', 'save_file_string', 'y_axis_lower_limit', 'y_axis_upper_limit'};
+                default_data = {'variable_name', 'variable_type', 'variable_label', 'y_axis_label', 'save_file_string', 'x_axis_lower_limit', 'x_axis_upper_limit', 'y_axis_lower_limit', 'y_axis_upper_limit'};
             end
             if strcmp(property_name, 'variables_to_plot_discrete_header')
                 default_data = {'variable_name', 'variable_type', 'variable_label', 'y-axis_label', 'save_file_string', 'x_axis_lower limit', 'x-axis_upper_limit', 'y_axis_lower_limit', 'y_axis_upper_limit'};
@@ -494,8 +526,14 @@ classdef SettingsCustodian < handle
             if strcmp(property_name, 'convert_to_mm')
                 default_data = false;
             end
+            if strcmp(property_name, 'lab_orientation')
+                default_data = 'normal';
+            end
             if strcmp(property_name, 'inverse_kinematics_source')
                 default_data = 'opensim';
+            end
+            if strcmp(property_name, 'preferred_time_window_extension')
+                default_data = 40;
             end
 
 
@@ -513,7 +551,8 @@ classdef SettingsCustodian < handle
                     'take value at point given by absolute time within band', 'analysis_variables_from_time_point', 'analysis_variables_from_time_point_header'; ...
                     'take value at band end', 'analysis_variables_from_band_end', 'analysis_variables_from_band_end_header'; ...
                     'take extremum within whole band', 'analysis_variables_from_extrema', 'analysis_variables_from_extrema_header'; ...
-                    'take extremum over time interval within band', 'analysis_variables_from_extrema_range', 'analysis_variables_from_extrema_range_header'; ...
+                    'take extremum over range', 'analysis_variables_from_extrema_range', 'analysis_variables_from_extrema_range_header'; ...
+                    'combine two variables', 'combination_variables', 'combination_variables_header'; ...
                   };
              end
             if strcmp(property_name, 'analysis_table_header')
@@ -550,6 +589,21 @@ classdef SettingsCustodian < handle
             if strcmp(property_name, 'filter_cutoff_belt')
                 default_data = 10;
             end
+            if strcmp(property_name, 'labview_resampling_rate')
+                default_data = 100;
+            end
+            if strcmp(property_name, 'marker_fill_table_header')
+                default_data = {'trial_type', 'trial_number', 'marker_to_fill', 'marker_source_1', 'marker_source_2', 'marker_source_3'};
+            end
+            
+            if strcmp(property_name, 'average_within_subjects')
+                default_data = false;
+            end
+            
+            if strcmp(property_name, 'data_to_import')
+                default_data = {'joint_angles', 'marker'};
+            end
+            
             
             
             if strcmp(property_name, 'marker_to_segment_map')

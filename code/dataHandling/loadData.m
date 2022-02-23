@@ -30,7 +30,7 @@ function [data, time, sampling_rate, labels, directions, success] = loadData(dat
     if any(data_name==':')
         data_label = data_name;
         this_variable_split = strsplit(data_name, ':');
-        data_name = this_variable_split{1};
+        data_name = [this_variable_split{1} '_trajectories'];
         data_sublabel = this_variable_split{2};
         is_compound = true;
     else

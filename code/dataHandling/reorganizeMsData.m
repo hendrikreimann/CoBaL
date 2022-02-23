@@ -355,20 +355,8 @@ function condition_label = determineConditionLabel(trial_number)
         condition_label = 'ramp120';
     end
 
-    if ismember(trial_number, 31:35)
-        condition_label = 'continuous01';
-    end
-    if ismember(trial_number, 36:40)
-        condition_label = 'continuous02';
-    end
-    if ismember(trial_number, 41:45)
-        condition_label = 'continuous03';
-    end
-    if ismember(trial_number, 46:50)
-        condition_label = 'continuous04';
-    end
-    if ismember(trial_number, 51:55)
-        condition_label = 'continuous05';
+    if ismember(trial_number, 31:55)
+        condition_label = 'continuousPerturbation';
     end
 end
 

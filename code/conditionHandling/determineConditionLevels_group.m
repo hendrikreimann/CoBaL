@@ -16,7 +16,7 @@
 
 function conditions_trial = determineConditionLevels_group(subject_settings, trial_data, conditions_trial)
 
-    number_of_triggers = length(trial_data.trigger_indices_mocap);
+    number_of_triggers = length(trial_data.trigger_times);
     group = subject_settings.get('group');
     if isempty(group)
         warning('"group" not specified in subject settings')

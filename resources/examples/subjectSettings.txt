@@ -1,0 +1,50 @@
+static_reference_trial_type: calibration
+static_reference_trial_number: 1
+
+qtm_import_mode: encoded
+
+collection_date: 20180731
+gender: female
+subject_id: VAM11
+age: 24
+height: 1.65
+weight: 66
+
+event_method: cop_ap
+peak_prominence_threshold: 0.05
+forceplate load threshold: 60
+
+trial_types_to_ignore: static, adaptation, walking, stimulation, metronome, calibration
+
+// old label, new label
+marker_label_replacement_map:
+{
+//  LANK_lat, LANK
+//  LTIB_med, LANKM
+}
+
+emg_import_map_header: label_in_qtm_file, label_in_cobal
+emg_import_map:
+{
+  L_BF, left_bic_fem
+  R_BF, right_bic_fem
+  L_ES, left_erector
+  R_ES, right_erector
+  L_rectus, left_rect_fem
+  R_rectus, right_rect_fem
+  L_GM, left_glut_med
+  R_GM, right_glut_med
+  L_TFL, left_tfl
+  R_TFL, right_tfl
+  L_TA, left_tibi_ant
+  R_TA, right_tibi_ant
+  L_Gastroc, left_gastroc_med
+  R_Gastroc, right_gastroc_med
+  L_Pero, left_pero_lng
+  R_Pero, right_pero_lng
+}
+
+// marker_fill_table_header: trial_type, trial_number, marker_to_fill, marker_source_1, marker_source_2, marker_source_3
+// marker_fill_table:
+// {
+// }

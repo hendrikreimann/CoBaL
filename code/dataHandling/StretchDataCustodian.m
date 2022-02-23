@@ -56,6 +56,7 @@ classdef StretchDataCustodian < handle
                 results_file_candidate_analysis = [this_data_folder_path filesep 'analysis' filesep makeFileName(collection_date, subject_id, file_label) '.mat'];
                 results_file_candidate_subject = [this_data_folder_path filesep makeFileName(collection_date, subject_id, file_label) '.mat'];
                 results_file_candidate_results = [this_data_folder_path filesep 'results' filesep  makeFileName(collection_date, subject_id, file_label) '.mat'];
+                results_file_name = [];
                 if exist(results_file_candidate_analysis, 'file')
                     results_file_name = results_file_candidate_analysis;
                 end    
@@ -64,7 +65,10 @@ classdef StretchDataCustodian < handle
                 end    
                 if exist(results_file_candidate_results, 'file')
                     results_file_name = results_file_candidate_results;
-                end    
+                end
+                if isempty(results_file_name)
+                    error(['No results file found for subject ' subject_id])
+                end
 
                 % load data
                 disp(['loading data from ' results_file_name])
@@ -85,7 +89,7 @@ classdef StretchDataCustodian < handle
             this.normalized_time = 1 : (number_of_time_steps-1)*this.bands_per_stretch+1;
             
         end
-        function condition_data = getConditionData(this)
+        function [condition_data, condition_labels] = getConditionData(this)
             conditions_settings = this.study_settings.get('conditions');
             condition_labels = conditions_settings(:, 1)';
             condition_source_variables = conditions_settings(:, 2)';

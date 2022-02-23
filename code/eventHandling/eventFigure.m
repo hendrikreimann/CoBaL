@@ -30,7 +30,7 @@ classdef eventFigure < handle
         stretch_patches;
         selected_event_plot;
         selected_time_plot;
-        ignore_marker_plot;
+        problem_marker_plots;
         data_plot_offsets;
         data_plot_scale_factors;
         has_legend_entries = false;
@@ -39,6 +39,8 @@ classdef eventFigure < handle
         
         patch_color = [0 0 0];
         patch_alpha = 0.05;
+        problem_color = [0.5 0 1];
+        problem_alpha = 0.5;
     end
     methods
         function this = eventFigure(figure_settings, controller, data_custodian, eventData)
@@ -61,7 +63,7 @@ classdef eventFigure < handle
             this.selected_event_plot = plot(0, 0, 'o', 'markersize', 15, 'linewidth', 3, 'color', [1 0.5 0], 'visible', 'off', 'HandleVisibility', 'off');
 %             this.selected_time_plot = plot(0, 0, '+', 'markersize', 25, 'linewidth', 1, 'color', [1 1 1]*0.7, 'ButtonDownFcn', @this.stepEventFigureClicked, 'HandleVisibility', 'off');
             this.selected_time_plot = plot([0 0], [0 0], 'linewidth', 1, 'color', [1 1 1]*0.7, 'ButtonDownFcn', @this.stepEventFigureClicked, 'HandleVisibility', 'off', 'visible', 'off');
-            this.ignore_marker_plot = plot(0, 0, 'x', 'markersize', 25, 'linewidth', 2, 'color', [1 0 0.5]*0.7, 'ButtonDownFcn', @this.stepEventFigureClicked, 'HandleVisibility', 'off', 'visible', 'off');
+            this.problem_marker_plots = {};
 
             % register with controller
             if strcmp(controller.figureSelectionBox.String, '<no figure>')
@@ -183,25 +185,31 @@ classdef eventFigure < handle
         end
         function [event_label, event_time, distance] = getClosestEvent(this, point_pixel)
             % determine closest event for each type
-            candidate_distances = zeros(1, length(this.event_plots)+1);
-            candidate_event_indices = zeros(1, length(this.event_plots)+1);
-            for i_type = 1 : length(this.event_plots)
+            number_of_event_types = length(this.event_plots);
+            number_of_problems = length(this.problem_marker_plots);
+            candidate_distances = zeros(1, number_of_event_types + number_of_problems);
+            candidate_event_indices = zeros(1, number_of_event_types + number_of_problems);
+            for i_type = 1 : number_of_event_types
                 [candidate_distances(i_type), candidate_event_indices(i_type)] = this.calculatePointToCurvePixelDistance(this.event_plots{i_type}, point_pixel);
             end
-            [candidate_distances(length(this.event_plots)+1), candidate_event_indices(length(this.event_plots)+1)] = this.calculatePointToCurvePixelDistance(this.ignore_marker_plot, point_pixel);
+            for i_problem = 1 : number_of_problems
+                this_problem_marker = this.problem_marker_plots{i_problem};
+                [candidate_distances(number_of_event_types + i_problem), candidate_event_indices(number_of_event_types + i_problem)] ...
+                    = this.calculatePointToCurvePixelDistance(this_problem_marker, point_pixel);
+                
+            end
             
             % find the one with minimal distance among these candidates
             [distance, type_index] = min(candidate_distances);
-            if type_index == length(this.event_plots)+1
-                event_label = 'ignore_times';
-                event_index = candidate_event_indices(length(this.event_plots)+1);
-                event_times = this.event_data.getEventTimes(event_label);
-                event_time = event_times(event_index);
-            else
+            if type_index <= number_of_event_types
                 event_label = this.event_plots{type_index}.UserData{2};
                 event_index = candidate_event_indices(type_index);
                 event_times = this.event_data.getEventTimes(event_label);
                 event_time = event_times(event_index);
+            else
+                event_label = 'problem';
+                problem_index = type_index - number_of_event_types;
+                event_time = this.event_data.problem_table.start_time(problem_index);
             end            
         end
         function point_time = getClosestDataPoint(this, point_pixel)
@@ -277,7 +285,7 @@ classdef eventFigure < handle
                 % update
                 set(this.event_plots{i_plot}, 'xdata', event_time, 'ydata', event_data); %#ok<PROP>
             end
-            this.updateIgnoreMarkerPlot();
+            this.updateProblemMarkers();
         end
         function updateDataPlots(this)
             % loop through all data plots
@@ -341,9 +349,66 @@ classdef eventFigure < handle
                 this.stretch_patches = [this.stretch_patches, patch_handle];
             end
         end
-        function updateIgnoreMarkerPlot(this)
-            ignore_times = this.event_data.ignore_times;
-            set(this.ignore_marker_plot, 'xdata', ignore_times, 'ydata', zeros(size(ignore_times)));
+        function updateProblemMarkers(this)
+            % clear out old problem markers
+            for i_plot = 1 : numel(this.problem_marker_plots)
+                delete(this.problem_marker_plots{i_plot});
+            end
+            this.problem_marker_plots = {};
+            
+            % create new plots
+            problems = this.event_data.problem_table;
+            problems_added_to_legend = false;
+            ylimits = get(this.main_axes, 'ylim');
+            for i_problem = 1 : size(problems, 1)
+                this_start_time = problems.start_time(i_problem);
+                this_end_time = problems.end_time(i_problem);
+                this_reason = problems.reason(i_problem);
+                
+                if this_start_time == this_end_time
+                    % draw single marker
+                    this.problem_marker_plots{i_problem} = plot ...
+                      ( ...
+                        this_start_time, ...
+                        mean(ylimits), ...
+                        'x', ...
+                        'color', this.problem_color, ...
+                        'parent', this.main_axes, ...
+                        'linewidth', 2, ...
+                        'markersize', 12, ...
+                        'ButtonDownFcn', @this.stepEventFigureClicked ...
+                      );
+                    if ~problems_added_to_legend
+                        set(this.problem_marker_plots{i_problem}, 'DisplayName', 'problems');
+                        problems_added_to_legend = true;
+                    else
+                        set(this.problem_marker_plots{i_problem}, 'HandleVisibility', 'off');
+                    end
+
+
+                else
+                    
+                    this.problem_marker_plots{i_problem} = plot ...
+                      ( ...
+                        [this_start_time, this_end_time], ...
+                        mean(ylimits) * [1 1], ...
+                        '-', ...
+                        'color', this.problem_color, ...
+                        'parent', this.main_axes, ...
+                        'linewidth', 8, ...
+                        'ButtonDownFcn', @this.stepEventFigureClicked ...
+                      );
+                    if ~problems_added_to_legend
+                        set(this.problem_marker_plots{i_problem}, 'DisplayName', 'problems');
+                        problems_added_to_legend = true;
+                    else
+                        set(this.problem_marker_plots{i_problem}, 'HandleVisibility', 'off');
+                    end
+                    
+                end
+            end
+            
+            
         end
         function updateSelectedEventPlot(this)
             % go through all event plots and check whether they are of the selected event
@@ -357,11 +422,10 @@ classdef eventFigure < handle
                     selected_event_plot_y_data = [selected_event_plot_y_data y_data_point]; %#ok<AGROW>
                 end
             end
-            if strcmp(this.controller.event_data.selected_event_label, 'ignore_times')
+            if strcmp(this.controller.event_data.selected_event_label, 'problem')
                 % event type of this one and the selected is a match
-                selected_event_plot_x_data = [selected_event_plot_x_data this.controller.event_data.selected_event_time];
-                y_data_point = 0;
-                selected_event_plot_y_data = [selected_event_plot_y_data y_data_point];
+                selected_event_plot_x_data = this.controller.event_data.selected_event_time;
+                selected_event_plot_y_data = mean(this.main_axes.YLim);
             end
             set(this.selected_event_plot, 'xdata', selected_event_plot_x_data, 'ydata', selected_event_plot_y_data);
             if isempty(selected_event_plot_x_data)

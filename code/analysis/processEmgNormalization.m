@@ -72,7 +72,7 @@ function processEmgNormalization(varargin)
             disp(['Finding EMG normalization: condition ' condition_list{i_type} ', Trial ' num2str(i_trial) ' completed']);
             
             % load and prepare data
-            data_custodian.prepareBasicVariables(this_type, i_trial, [{'emg_trajectories'}; emg_labels_normalization]);
+            data_custodian.prepareBasicVariables(this_type, i_trial, {'emg_trajectories'});
             
             load(['analysis' filesep makeFileName(collection_date, subject_id, this_type, i_trial, 'relevantDataStretches')], 'stretch_times', 'stance_foot_data', 'conditions_trial');
             data_trial = data_custodian.calculateStretchVariables(stretch_times, stance_foot_data, conditions_trial.(condition_relevant_name), emg_labels_normalization);

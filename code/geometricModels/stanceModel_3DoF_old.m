@@ -28,8 +28,6 @@
 % subjectModel.mat
 
 function stanceModel_3DoF_old(varargin)
-    load('subjectInfo.mat');
-    
     weight = 80; % TODO: hard coded for now, change this
     
     % parse arguments
@@ -38,16 +36,14 @@ function stanceModel_3DoF_old(varargin)
     addParameter(parser, 'visualize', false)
     parse(parser, varargin{:})
     visualize = parser.Results.visualize;
-    
-    subject_settings = SettingsCustodian('subjectSettings.txt');
-
-
-    load('subjectInfo.mat', 'date', 'subject_id');
+    subject_settings = loadSettingsFromFile('subject');
+    collection_date = subject_settings.get('collection_date');
+    subject_id = subject_settings.get('subject_id');
 
     %% create static reference
 
     % load static reference file
-    load(['processed' filesep makeFileName(date, subject_id, subject_settings.get('static_reference_trial_type'), subject_settings.get('static_reference_trial_number'), 'markerTrajectories')]);
+    load(['processed' filesep makeFileName(collection_date, subject_id, subject_settings.get('static_reference_trial_type'), subject_settings.get('static_reference_trial_number'), 'markerTrajectories')]);
 
     % find first time step where all markers are available
     i_time = 1;
@@ -196,18 +192,17 @@ function stanceModel_3DoF_old(varargin)
     head_scs_x = cross(head_scs_y, head_scs_z);
 
     %% calculate segment mass and CoM
-
     % calculate segment masses and correct for mean rounding errors
     pelvis_segment_mass = pelvis_mass_scaling_factor    * weight;
     thigh_segment_mass = thigh_mass_scaling_factor      * weight * 2;
     leg_segment_mass = shank_mass_scaling_factor        * weight * 2;
     foot_segment_mass = foot_mass_scaling_factor        * weight * 2;
     head_segment_mass = head_mass_scaling_factor        * weight;
-    trunk_segment_mass = trunk_mass_scaling_factor      * weight;
+    trunk_segment_mass_single = trunk_mass_scaling_factor      * weight;
     arm_segment_mass = arm_mass_scaling_factor          * weight;
     forearm_segment_mass = forearm_mass_scaling_factor  * weight;
     hand_segment_mass = hand_mass_scaling_factor        * weight;
-    trunk_segment_mass = head_segment_mass + trunk_segment_mass + 2*arm_segment_mass + 2*forearm_segment_mass + 2*hand_segment_mass + pelvis_segment_mass;
+    trunk_segment_mass = head_segment_mass + trunk_segment_mass_single + 2*arm_segment_mass + 2*forearm_segment_mass + 2*hand_segment_mass + pelvis_segment_mass;
 
     % pelvis
     pelvis_segment_length = norm(hip_cor - lumbar_cor);
@@ -238,7 +233,6 @@ function stanceModel_3DoF_old(varargin)
                        - 0 * foot_segment_length * foot_scs_z;
 
     % trunk
-    disp('Calculation of CoM for trunk segment is made up, replace with values from Winter textbook when available later.')
     trunk_segment_length = norm(lumbar_cor - shoulders_mid);
     trunk_com = shoulders_mid ...
                        + trunk_com_scaling_factor_x * trunk_segment_length * trunk_scs_x ...
@@ -253,7 +247,6 @@ function stanceModel_3DoF_old(varargin)
 
 
     %% calculate inertia tensors
-
     % pelvis
     pelvis_I_xx = (pelvis_rxx_scaling_factor*pelvis_segment_length)^2 * pelvis_segment_mass;
     pelvis_I_yy = (pelvis_ryy_scaling_factor*pelvis_segment_length)^2 * pelvis_segment_mass;
@@ -262,9 +255,6 @@ function stanceModel_3DoF_old(varargin)
     pelvis_I_xz = (pelvis_rxz_scaling_factor*pelvis_segment_length)^2 * pelvis_segment_mass;
     pelvis_I_yz = (pelvis_ryz_scaling_factor*pelvis_segment_length)^2 * pelvis_segment_mass;
     pelvis_inertia_tensor = [pelvis_I_xx pelvis_I_xy pelvis_I_xz; pelvis_I_xy pelvis_I_yy pelvis_I_yz; pelvis_I_xz pelvis_I_yz pelvis_I_zz];
-    correction_factor_pelvis = 0.2;
-    disp(['Correcting pelvis inertia tensor by factor ' num2str(correction_factor_pelvis)]);
-    pelvis_inertia_tensor = pelvis_inertia_tensor * correction_factor_pelvis;
 
     % thigh
     thigh_I_xx = (thigh_rxx_scaling_factor*thigh_segment_length)^2 * thigh_segment_mass;
@@ -303,7 +293,6 @@ function stanceModel_3DoF_old(varargin)
     foot_inertia_tensor = [foot_I_xx foot_I_xy foot_I_xz; foot_I_xy foot_I_yy foot_I_yz; foot_I_xz foot_I_yz foot_I_zz];
 
     % trunk
-    disp('Calculation of inertia tensor for HAT segment is made up, replace with values from Winter textbook when available later.')
     trunk_I_xx = (trunk_rxx_scaling_factor*trunk_segment_length)^2 * trunk_segment_mass;
     trunk_I_yy = (trunk_ryy_scaling_factor*trunk_segment_length)^2 * trunk_segment_mass;
     trunk_I_zz = (trunk_rzz_scaling_factor*trunk_segment_length)^2 * trunk_segment_mass;
@@ -434,9 +423,16 @@ function stanceModel_3DoF_old(varargin)
     end_effector_transformations = ...
       { ...
         [eye(3) ears_mid; 0 0 0 1], ...
+        [eye(3) knee_cor; 0 0 0 1], ...
+        [eye(3) hip_cor; 0 0 0 1], ...
       };
 
-    branch_matrix = [1 1 1]; % each row is a branch, listing the joints that move the end-effector of that branch
+    branch_matrix = ...
+      [ ...
+        1 1 1; ...
+        1 0 0; ...
+        1 1 0; ...
+      ]; % each row is a branch, listing the joints that move the end-effector of that branch
 
     kinematic_tree = GeneralKinematicTree ...
     ( ...
