@@ -34,6 +34,7 @@ classdef SettingsCustodian < handle
             'emg_data_to_import'; ...
             'across_trials_conditions'; ...
             'preferred_level_order'; ...
+            'data_to_import'; ...
           }
     end
     methods
@@ -647,6 +648,11 @@ classdef SettingsCustodian < handle
             end
             if strcmp(property_name, 'forceplate_rotation')
                 default_data = [1, 0, 0, 0, -1, 0, 0, 0, 1];
+            end
+            
+            
+            if strcmp(property_name, 'data_to_import')
+                default_data = {'joint_angles', 'marker'};
             end
             
             

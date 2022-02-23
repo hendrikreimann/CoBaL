@@ -69,7 +69,7 @@ classdef StretchDataCustodian < handle
                     results_file_name = results_file_candidate_results;
                 end
                 if isempty(results_file_name)
-                    error(['No results file found for subject ' subjects{i_folder}])
+                    error(['No results file found for subject ' subject_id])
                 end
 
                 % load data
