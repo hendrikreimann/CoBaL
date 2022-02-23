@@ -19,8 +19,13 @@ classdef SettingsCustodian < handle
         settings_file = '';
         settings_struct = struct;
         property_not_found_list = {};
+        important_property_not_found_list = {};
         verbose = true;
         
+        important_properties = ...
+          {
+            'forceplate_table'; ...
+          }
         force_string_list = ...
           { ...
             'preferred_level_order'; ...
@@ -262,10 +267,17 @@ classdef SettingsCustodian < handle
                     report_string = ['Setting not found in file ' this.settings_file ', using default - ' property_name ': ' data_string];
                 end
                 
+                % have we reported or warned about this yet?
                 if ~any(strcmp(property_name, this.property_not_found_list))
-                    if this.verbose && ~optional
+                    % this is in the hard-coded list of important properties
+                    if any(strcmp(property_name, this.important_properties))
+                        % this is an important property that we definitely want to warn about
+                        warning(report_string);
+                    elseif this.verbose && ~optional
+                        % this is not important, but verbose is on and we haven't warned about it yet
                         disp(report_string)
                     end
+                    % add this to the list of properties we already reported to avoid warning spam
                     this.property_not_found_list = [this.property_not_found_list; property_name];
                 end
             end
