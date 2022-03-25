@@ -39,13 +39,17 @@ function preprocessForceplateData(varargin)
     study_settings = loadSettingsFromFile('study');
     subject_settings = loadSettingsFromFile('subject');
     
+    % extract forceplate settings
+    forceplate_table = study_settings.getTable('forceplate_table', 1);
+    number_of_forceplates = size(forceplate_table, 1);
+    
     data_dir = dir(['raw' filesep '*_forceplateTrajectoriesRaw.mat']);
     clear file_name_list;
     [file_name_list{1:length(data_dir)}] = deal(data_dir.name);
     number_of_files = length(file_name_list);
     for i_trial = 1 : number_of_files
         raw_forceplate_file_name = file_name_list{i_trial};
-        [collection_date, subject_id, trial_type, trial_number] = getFileParameters(raw_forceplate_file_name);
+        [date, subject_id, trial_type, trial_number] = getFileParameters(raw_forceplate_file_name);
 
         % does the user want to process this file?
         if any(strcmp(trial_type, types_to_analyze))
@@ -53,263 +57,242 @@ function preprocessForceplateData(varargin)
             trial_number_list_this_condition = trials_to_analyze{strcmp(trial_type, types_to_analyze)};
             if ismember(trial_number, trial_number_list_this_condition)
                 % load raw data
-%                 loaded_data = load(['raw' filesep raw_forceplate_file_name]);
-                [raw_forceplate_trajectories, time, sampling_rate, labels, directions, success, data_file_name] = loadData(collection_date, subject_id, trial_type, trial_number, 'forceplate_raw_trajectories');
-                if ~success
-                    [raw_forceplate_trajectories, time, sampling_rate, labels, directions, ~, data_file_name] = loadData(collection_date, subject_id, trial_type, trial_number, 'forceplate_trajectories_raw');
-                end
-                load(['raw' filesep raw_forceplate_file_name], 'data_source');
+                loaded_data = load(['raw' filesep raw_forceplate_file_name]);
                 
-                % remove data points that are either unreasonably large or exactly 0
-                forceplate_columns_to_exclude_from_check = study_settings.get('forceplate_columns_to_exclude_from_check', 1);
-                forceplate_columns_to_check = 1 : size(raw_forceplate_trajectories, 2);
-                forceplate_columns_to_check(ismember(forceplate_columns_to_check, forceplate_columns_to_exclude_from_check)) = [];
-                zero_data_points = any(raw_forceplate_trajectories(:, forceplate_columns_to_check)==0, 2);
-                large_data_points = any(abs(raw_forceplate_trajectories(:, forceplate_columns_to_check))>1e13, 2);
-                bad_data_points = zero_data_points | large_data_points;
+                % figure out variable
+                if isfield(loaded_data, 'forceplate_trajectories_raw')
+                    raw_forceplate_trajectories = loaded_data.forceplate_trajectories_raw;
+                elseif isfield(loaded_data, 'forceplate_raw_trajectories')
+                    raw_forceplate_trajectories = loaded_data.forceplate_raw_trajectories;
+                end
+                
+                % remove data points that are either unreasonably large or 0
+                bad_data_points = false(size(raw_forceplate_trajectories, 1), 1);
+                if subject_settings.get('remove_forceplate_zero_data_points', 1)
+                    zero_data_points = any(raw_forceplate_trajectories==0, 2);
+                    bad_data_points = bad_data_points | zero_data_points;
+                    
+                    % store problematic data information
+                    saveProblemInformation(date, subject_id, trial_type, trial_number, 'zero in forceplate data', loaded_data.time_forceplate, zero_data_points)
+                end
+                if subject_settings.get('remove_forceplate_large_data_points', 1)
+                    large_data_points = any(abs(raw_forceplate_trajectories)>1e13, 2);
+                    bad_data_points = bad_data_points | large_data_points;
+                    
+                    % store problematic data information
+                    saveProblemInformation(date, subject_id, trial_type, trial_number, 'large value in forceplate data', loaded_data.time_forceplate, large_data_points)
+                end
                 raw_forceplate_trajectories_without_bad = raw_forceplate_trajectories;
                 raw_forceplate_trajectories_without_bad(bad_data_points, :) = NaN;
                 
-                % store problematic data information
-                saveProblemInformation(collection_date, subject_id, trial_type, trial_number, 'zero in forceplate data', time, zero_data_points)
-                saveProblemInformation(collection_date, subject_id, trial_type, trial_number, 'large value in forceplate data', time, large_data_points)
-
-                % define filter
-                filter_order_low = study_settings.get('force_plate_filter_order');
-                cutoff_frequency_low = study_settings.get('force_plate_filter_cutoff');
+                % filter
+                filter_order_low = study_settings.get('force_plate_filter_order', 1);
+                cutoff_frequency_low = study_settings.get('force_plate_filter_cutoff', 1);
                 if ~isempty(filter_order_low) && ~isempty(cutoff_frequency_low)
-                    [b_lowpass, a_lowpass] = butter(filter_order_low, cutoff_frequency_low/(sampling_rate/2), 'low');
-                    forceplate_trajectories = nanfiltfilt(b_lowpass, a_lowpass, raw_forceplate_trajectories_without_bad);
+                    [b_lowpass, a_lowpass] = butter(filter_order_low, cutoff_frequency_low/(loaded_data.sampling_rate_forceplate/2), 'low');
+                    forceplate_trajectories_groomed = nanfiltfilt(b_lowpass, a_lowpass, raw_forceplate_trajectories_without_bad);
                 else
-                    forceplate_trajectories = raw_forceplate_trajectories;
+                    forceplate_trajectories_groomed = raw_forceplate_trajectories;
                 end
-
-                % extract
-                fxl_trajectory = forceplate_trajectories(:, strcmp(labels, 'fxl'));
-                fyl_trajectory = forceplate_trajectories(:, strcmp(labels, 'fyl'));
-                fzl_trajectory = forceplate_trajectories(:, strcmp(labels, 'fzl'));
-                mxl_trajectory = forceplate_trajectories(:, strcmp(labels, 'mxl'));
-                myl_trajectory = forceplate_trajectories(:, strcmp(labels, 'myl'));
-                mzl_trajectory = forceplate_trajectories(:, strcmp(labels, 'mzl'));
-                fxr_trajectory = forceplate_trajectories(:, strcmp(labels, 'fxr'));
-                fyr_trajectory = forceplate_trajectories(:, strcmp(labels, 'fyr'));
-                fzr_trajectory = forceplate_trajectories(:, strcmp(labels, 'fzr'));
-                mxr_trajectory = forceplate_trajectories(:, strcmp(labels, 'mxr'));
-                myr_trajectory = forceplate_trajectories(:, strcmp(labels, 'myr'));
-                mzr_trajectory = forceplate_trajectories(:, strcmp(labels, 'mzr'));
-
-                % apply offset for cases where forceplate wasn't set to zero
-                if subject_settings.get('apply_forceplate_offset', 1)
-                    fxl_trajectory = fxl_trajectory - subject_settings.get('offset_fxl');
-                    fyl_trajectory = fyl_trajectory - subject_settings.get('offset_fyl');
-                    fzl_trajectory = fzl_trajectory - subject_settings.get('offset_fzl');
-                    mxl_trajectory = mxl_trajectory - subject_settings.get('offset_mxl');
-                    myl_trajectory = myl_trajectory - subject_settings.get('offset_myl');
-                    mzl_trajectory = mzl_trajectory - subject_settings.get('offset_mzl');
-                    fxr_trajectory = fxr_trajectory - subject_settings.get('offset_fxr');
-                    fyr_trajectory = fyr_trajectory - subject_settings.get('offset_fyr');
-                    fzr_trajectory = fzr_trajectory - subject_settings.get('offset_fzr');
-                    mxr_trajectory = mxr_trajectory - subject_settings.get('offset_mxr');
-                    myr_trajectory = myr_trajectory - subject_settings.get('offset_myr');
-                    mzr_trajectory = mzr_trajectory - subject_settings.get('offset_mzr');
-                end
-
-                if strcmp(data_source, 'nexus')
-                    % transform forceplate data to CoBaL world frame A_cw
-                    left_forceplate_wrench_Acl = [fxl_trajectory fyl_trajectory fzl_trajectory mxl_trajectory myl_trajectory mzl_trajectory];
-                    right_forceplate_wrench_Acr = [fxr_trajectory fyr_trajectory fzr_trajectory mxr_trajectory myr_trajectory mzr_trajectory];
-
-                    % define forceplate rotation and translation
-                    Acr_to_world_rotation = [-1 0 0; 0 1 0; 0 0 -1];
-                    Acr_to_world_translation = [0.5588; 0; 0]; % origin of Acw in Acr frame
-                    Acr_to_world_trafo = [Acr_to_world_rotation Acr_to_world_translation; 0 0 0 1];
-                    Acl_to_world_rotation = [-1 0 0; 0 1 0; 0 0 -1];
-                    Acl_to_world_translation = [-0.5588; 0; 0]; % origin of Acw in Acl frame
-                    Acl_to_world_trafo = [Acl_to_world_rotation Acl_to_world_translation; 0 0 0 1];
-                    Acr_to_world_adjoint = rigidToAdjointTransformation(Acr_to_world_trafo);
-                    Acl_to_world_adjoint = rigidToAdjointTransformation(Acl_to_world_trafo);
-
-                    % transform
-                    left_forceplate_wrench_world = (Acl_to_world_adjoint' * left_forceplate_wrench_Acl')';
-                    right_forceplate_wrench_world = (Acr_to_world_adjoint' * right_forceplate_wrench_Acr')';
-                    
-                    % flag
-                    calculate_cop = true;
-                elseif strcmp(data_source, 'qtm')
-                    % transform forceplate data to CoBaL world frame A_cw
-                    left_forceplate_wrench_Acl = [fxl_trajectory fyl_trajectory fzl_trajectory mxl_trajectory myl_trajectory mzl_trajectory];
-                    right_forceplate_wrench_Acr = [fxr_trajectory fyr_trajectory fzr_trajectory mxr_trajectory myr_trajectory mzr_trajectory];
-                    
-                    % define forceplate rotation and translation
-                    lab_orientation = study_settings.get('lab_orientation', 1);
-                    if strcmp(lab_orientation, 'normal')
-                        Acr_to_world_rotation = [-1 0 0; 0 1 0; 0 0 -1];
-                        Acl_to_world_rotation = [-1 0 0; 0 1 0; 0 0 -1];
-                    elseif strcmp(lab_orientation, 'inverse')
-                        Acl_to_world_rotation = [1 0 0; 0 -1 0; 0 0 -1];
-                        Acr_to_world_rotation = [1 0 0; 0 -1 0; 0 0 -1];
-                    else
-                        error('Setting "lab_orientation" in studySettings.txt must either be "normal" or "inverse"')                        
-                    end
-                    
-                    loaded_data = load(['raw' filesep data_file_name]);
-                    
-                    Acr_to_world_translation = loaded_data.forceplate_location_right';
-                    Acr_to_world_trafo = [Acr_to_world_rotation Acr_to_world_translation; 0 0 0 1];
-                    
-                    Acl_to_world_translation = loaded_data.forceplate_location_left';
-                    Acl_to_world_trafo = [Acl_to_world_rotation Acl_to_world_translation; 0 0 0 1];
-                    
-                    Acr_to_world_adjoint = rigidToAdjointTransformation(Acr_to_world_trafo);
-                    Acl_to_world_adjoint = rigidToAdjointTransformation(Acl_to_world_trafo);
-
-                    % transform
-                    left_forceplate_wrench_world = (Acl_to_world_adjoint' * left_forceplate_wrench_Acl')';
-                    right_forceplate_wrench_world = (Acr_to_world_adjoint' * right_forceplate_wrench_Acr')';
-                    
-                    % flag
-                    calculate_cop = true;
-
-                elseif strcmp(data_source, 'neurocom')
-                    % transform forceplate data to VEPO world frame A_vw
-                    left_forceplate_wrench_Anl = [fxl_trajectory fyl_trajectory fzl_trajectory mxl_trajectory myl_trajectory mzl_trajectory];
-                    right_forceplate_wrench_Anr = [fxr_trajectory fyr_trajectory fzr_trajectory mxr_trajectory myr_trajectory mzr_trajectory];
-
-                    % define forceplate rotation and translation
-                    inchToMeter = 0.0254;
-
-                    Anl_to_world_rotation = [-1 0 0; 0 1 0; 0 0 -1];
-                    Anl_to_world_translation = [5; -10; 0] * inchToMeter;
-                    Anl_to_world_trafo = [Anl_to_world_rotation Anl_to_world_translation; 0 0 0 1];
-                    Anl_to_world_adjoint = rigidToAdjointTransformation(Anl_to_world_trafo);
-
-                    Anr_to_world_rotation = [-1 0 0; 0 1 0; 0 0 -1];
-                    Anr_to_world_translation = [-5; -10; 0] * inchToMeter;
-                    Anr_to_world_trafo = [Anr_to_world_rotation Anr_to_world_translation; 0 0 0 1];
-                    Anr_to_world_adjoint = rigidToAdjointTransformation(Anr_to_world_trafo);
-
-                    % transform
-                    left_forceplate_wrench_world = (Anl_to_world_adjoint' * left_forceplate_wrench_Anl')';
-                    right_forceplate_wrench_world = (Anr_to_world_adjoint' * right_forceplate_wrench_Anr')';
-                    
-                    % flag
-                    calculate_cop = true;
-                elseif strcmp(data_source, 'VU')
-                    % flag
-                    calculate_cop = false;
-                else
-                    error(['data source "' loaded_data.data_source '" not recognized'])
-                end
-
-                if calculate_cop
-                    % calculate wrench for complete plate
-                    fz_threshold = subject_settings.get('forceplate_load_threshold');
-                    total_forceplate_wrench_world = left_forceplate_wrench_world + right_forceplate_wrench_world;
+                
+                % collect and sort
+                fz_threshold = subject_settings.get('forceplate_load_threshold');
+                wrenches = {};
+                forceplate_trajectories = [];
+                forceplate_labels = {};
+                forceplate_directions = {};
+                for i_forceplate = 1 : number_of_forceplates
+                    % extract data for this forceplate
+                    this_plate_label = forceplate_table.label{i_forceplate};
+                    this_plate_fx = forceplate_trajectories_groomed(:, strcmp(loaded_data.forceplate_labels, ['fx_' this_plate_label]));
+                    this_plate_fy = forceplate_trajectories_groomed(:, strcmp(loaded_data.forceplate_labels, ['fy_' this_plate_label]));
+                    this_plate_fz = forceplate_trajectories_groomed(:, strcmp(loaded_data.forceplate_labels, ['fz_' this_plate_label]));
+                    this_plate_mx = forceplate_trajectories_groomed(:, strcmp(loaded_data.forceplate_labels, ['mx_' this_plate_label]));
+                    this_plate_my = forceplate_trajectories_groomed(:, strcmp(loaded_data.forceplate_labels, ['my_' this_plate_label]));
+                    this_plate_mz = forceplate_trajectories_groomed(:, strcmp(loaded_data.forceplate_labels, ['mz_' this_plate_label]));
+                    this_plate_wrench = [this_plate_fx this_plate_fy this_plate_fz this_plate_mx this_plate_my this_plate_mz];
+                    wrenches = [wrenches; this_plate_wrench]; %#ok<AGROW>
 
                     % calculate CoP
-                    copxl_world = - left_forceplate_wrench_world(:, 5) ./ left_forceplate_wrench_world(:, 3);
-                    copyl_world = left_forceplate_wrench_world(:, 4) ./ left_forceplate_wrench_world(:, 3);
-                    copxr_world = - right_forceplate_wrench_world(:, 5) ./ right_forceplate_wrench_world(:, 3);
-                    copyr_world = right_forceplate_wrench_world(:, 4) ./ right_forceplate_wrench_world(:, 3);
-                    copx_world = - total_forceplate_wrench_world(:, 5) ./ total_forceplate_wrench_world(:, 3);
-                    copy_world = total_forceplate_wrench_world(:, 4) ./ total_forceplate_wrench_world(:, 3);
+                    this_plate_copx = - this_plate_my ./ this_plate_fz;
+                    this_plate_copy =   this_plate_mx ./ this_plate_fz;
+                    this_plate_low_load_indicator = (abs(this_plate_fz) < fz_threshold);
+                    this_plate_copx(this_plate_low_load_indicator, :) = 0;
+                    this_plate_copy(this_plate_low_load_indicator, :) = 0;
 
-                    % re-zero CoP for low loads
-                    left_forceplate_low_load_indicator = (fzl_trajectory < fz_threshold);
-                    copxl_world(left_forceplate_low_load_indicator, :) = 0;
-                    copyl_world(left_forceplate_low_load_indicator, :) = 0;
+                    % define labels
+                    this_plate_labels = ...
+                      { ...
+                        ['fx_' this_plate_label], ...
+                        ['fy_' this_plate_label], ...
+                        ['fz_' this_plate_label], ...
+                        ['mx_' this_plate_label], ...
+                        ['my_' this_plate_label], ...
+                        ['mz_' this_plate_label], ...
+                        ['copx_' this_plate_label], ...
+                        ['copy_' this_plate_label], ...
+                      };
 
-                    right_forceplate_low_load_indicator = (fzr_trajectory < fz_threshold);
-                    copxr_world(right_forceplate_low_load_indicator, :) = 0;
-                    copyr_world(right_forceplate_low_load_indicator, :) = 0;
+                    % define directions
+                    this_wrench_directions = ...
+                      { ...
+                        study_settings.get('direction_x_pos', 1), ...
+                        study_settings.get('direction_y_pos', 1), ...
+                        study_settings.get('direction_z_pos', 1), ....
+                        study_settings.get('direction_x_pos', 1), ...
+                        study_settings.get('direction_y_pos', 1), ...
+                        study_settings.get('direction_z_pos', 1); ....
+                        study_settings.get('direction_x_neg', 1), ...
+                        study_settings.get('direction_y_neg', 1), ...
+                        study_settings.get('direction_z_neg', 1), ....
+                        study_settings.get('direction_x_neg', 1), ...
+                        study_settings.get('direction_y_neg', 1), ...
+                        study_settings.get('direction_z_neg', 1); ....
+                      };
+                    this_cop_directions = ...
+                      { ...
+                        study_settings.get('direction_x_pos', 1), ...
+                        study_settings.get('direction_y_pos', 1); ...
+                        study_settings.get('direction_x_neg', 1), ...
+                        study_settings.get('direction_y_neg', 1), ...
+                      };
 
-                    total_forceplate_low_load_indicator = (left_forceplate_low_load_indicator & right_forceplate_low_load_indicator);
-                    copx_world(total_forceplate_low_load_indicator, :) = 0;
-                    copy_world(total_forceplate_low_load_indicator, :) = 0;
 
-                    left_forceplate_cop_world = [copxl_world copyl_world];
-                    right_forceplate_cop_world = [copxr_world copyr_world];
-                    total_forceplate_cop_world = [copx_world copy_world];
-
-                    % directions for wrench
-                    wrench_directions = cell(2, 6);
-                    [wrench_directions{1, [1 4]}] = deal('right');
-                    [wrench_directions{2, [1 4]}] = deal('left');
-                    [wrench_directions{1, [2 5]}] = deal('forward');
-                    [wrench_directions{2, [2 5]}] = deal('backward');
-                    [wrench_directions{1, [3 6]}] = deal('up');
-                    [wrench_directions{2, [3 6]}] = deal('down');
-
-                    % directions for cop
-                    cop_directions = cell(2, 2);
-                    [cop_directions{1, 1}] = deal('right');
-                    [cop_directions{2, 1}] = deal('left');
-                    [cop_directions{1, 2}] = deal('forward');
-                    [cop_directions{2, 2}] = deal('backward');
-
-                    % labels
-                    left_foot_wrench_labels = {'fxl', 'fyl', 'fzl', 'mxl', 'myl', 'mzl'};
-                    right_foot_wrench_labels = {'fxr', 'fyr', 'fzr', 'mxr', 'myr', 'mzr'};
-                    total_wrench_labels = {'fx', 'fy', 'fz', 'mx', 'my', 'mz'};
-                    left_foot_cop_labels = {'copxl', 'copyl'};
-                    right_foot_cop_labels = {'copxr', 'copyr'};
-                    total_cop_labels = {'copx', 'copy'};
-
-                    % extract
-                    time_forceplate = loaded_data.time_forceplate;
-                    sampling_rate_forceplate = loaded_data.sampling_rate_forceplate;
-
-                    % consolidate into single variable
-                    forceplate_trajectories = ...
-                      [ ...
-                        total_forceplate_wrench_world, ...
-                        total_forceplate_cop_world, ...
-                        left_forceplate_wrench_world, ...
-                        left_forceplate_cop_world, ...
-                        right_forceplate_wrench_world, ...
-                        right_forceplate_cop_world ...
-                      ];
-                    forceplate_labels = ...
-                      [ ...
-                        total_wrench_labels, ...
-                        total_cop_labels, ...
-                        left_foot_wrench_labels, ...
-                        left_foot_cop_labels, ...
-                        right_foot_wrench_labels, ...
-                        right_foot_cop_labels ...
-                      ];
-                    forceplate_directions = ...
-                      [ ...
-                        wrench_directions, ...
-                        cop_directions, ...
-                        wrench_directions, ...
-                        cop_directions, ...
-                        wrench_directions, ...
-                        cop_directions ...
-                      ];
-                else
-                    forceplate_labels = labels;
-                    time_forceplate = time;
-                    forceplate_directions = directions;
-                    sampling_rate_forceplate = sampling_rate;
+                    % store
+                    forceplate_trajectories = [forceplate_trajectories this_plate_wrench this_plate_copx this_plate_copy]; %#ok<AGROW>
+                    forceplate_labels = [forceplate_labels this_plate_labels]; %#ok<AGROW>
+                    forceplate_directions = [forceplate_directions this_wrench_directions this_cop_directions]; %#ok<AGROW>
                 end
 
+                if strcmp(study_settings.get('combined_forceplate_data_source', 1), 'none')
+                    
+                elseif strcmp(study_settings.get('combined_forceplate_data_source', 1), 'from_data')
+                    combined_plate_labels = study_settings.get('combined_forceplate_labels');
+                    this_plate_fx = forceplate_trajectories_groomed(:, strcmp(loaded_data.forceplate_labels, combined_plate_labels{1}));
+                    this_plate_fy = forceplate_trajectories_groomed(:, strcmp(loaded_data.forceplate_labels, combined_plate_labels{2}));
+                    this_plate_fz = forceplate_trajectories_groomed(:, strcmp(loaded_data.forceplate_labels, combined_plate_labels{3}));
+                    this_plate_mx = forceplate_trajectories_groomed(:, strcmp(loaded_data.forceplate_labels, combined_plate_labels{4}));
+                    this_plate_my = forceplate_trajectories_groomed(:, strcmp(loaded_data.forceplate_labels, combined_plate_labels{5}));
+                    this_plate_mz = forceplate_trajectories_groomed(:, strcmp(loaded_data.forceplate_labels, combined_plate_labels{6}));
+                    total_forceplate_wrench = [this_plate_fx this_plate_fy this_plate_fz this_plate_mx this_plate_my this_plate_mz];
+
+                    % calculate CoP
+                    copx_total = forceplate_trajectories_groomed(:, strcmp(loaded_data.forceplate_labels, combined_plate_labels{7}));
+                    copy_total = forceplate_trajectories_groomed(:, strcmp(loaded_data.forceplate_labels, combined_plate_labels{8}));
+                    
+                    total_labels = ...
+                      { ...
+                        'fx', ...
+                        'fy', ...
+                        'fz', ...
+                        'mx', ...
+                        'my', ...
+                        'mz', ...
+                        'copx', ...
+                        'copy', ...
+                      };
+                    total_wrench_directions = ...
+                      { ...
+                        study_settings.get('direction_x_pos', 1), ...
+                        study_settings.get('direction_y_pos', 1), ...
+                        study_settings.get('direction_z_pos', 1), ....
+                        study_settings.get('direction_x_pos', 1), ...
+                        study_settings.get('direction_y_pos', 1), ...
+                        study_settings.get('direction_z_pos', 1); ....
+                        study_settings.get('direction_x_neg', 1), ...
+                        study_settings.get('direction_y_neg', 1), ...
+                        study_settings.get('direction_z_neg', 1), ....
+                        study_settings.get('direction_x_neg', 1), ...
+                        study_settings.get('direction_y_neg', 1), ...
+                        study_settings.get('direction_z_neg', 1); ....
+                      };
+                    total_cop_directions = ...
+                      { ...
+                        study_settings.get('direction_x_pos', 1), ...
+                        study_settings.get('direction_y_pos', 1); ...
+                        study_settings.get('direction_x_neg', 1), ...
+                        study_settings.get('direction_y_neg', 1), ...
+                      };
+
+                    % store total wrench and CoP
+                    forceplate_trajectories = [total_forceplate_wrench copx_total copy_total forceplate_trajectories]; %#ok<AGROW>
+                    forceplate_labels = [total_labels forceplate_labels]; %#ok<AGROW>
+                    forceplate_directions = [total_wrench_directions total_cop_directions forceplate_directions]; %#ok<AGROW>                    
+                elseif strcmp(study_settings.get('combined_forceplate_data_source', 1), 'calculate')
+                    % calculate total wrench and CoP
+                    total_forceplate_wrench = wrenches{1};
+                    for i_forceplate = 2 : number_of_forceplates
+                        total_forceplate_wrench = total_forceplate_wrench + wrenches{i_forceplate};
+                    end
+                    copx_total = - total_forceplate_wrench(:, 5) ./ total_forceplate_wrench(:, 3);
+                    copy_total = total_forceplate_wrench(:, 4) ./ total_forceplate_wrench(:, 3);
+                    low_load_indicator = (abs(total_forceplate_wrench(:, 3)) < fz_threshold);
+                    copx_total(low_load_indicator, :) = 0;
+                    copy_total(low_load_indicator, :) = 0;
+
+                    % define labels and directions for total wrench
+                   total_labels = ...
+                      { ...
+                        'fx', ...
+                        'fy', ...
+                        'fz', ...
+                        'mx', ...
+                        'my', ...
+                        'mz', ...
+                        'copx', ...
+                        'copy', ...
+                      };
+                    total_wrench_directions = ...
+                      { ...
+                        study_settings.get('direction_x_pos', 1), ...
+                        study_settings.get('direction_y_pos', 1), ...
+                        study_settings.get('direction_z_pos', 1), ....
+                        study_settings.get('direction_x_pos', 1), ...
+                        study_settings.get('direction_y_pos', 1), ...
+                        study_settings.get('direction_z_pos', 1); ....
+                        study_settings.get('direction_x_neg', 1), ...
+                        study_settings.get('direction_y_neg', 1), ...
+                        study_settings.get('direction_z_neg', 1), ....
+                        study_settings.get('direction_x_neg', 1), ...
+                        study_settings.get('direction_y_neg', 1), ...
+                        study_settings.get('direction_z_neg', 1); ....
+                      };
+                    total_cop_directions = ...
+                      { ...
+                        study_settings.get('direction_x_pos', 1), ...
+                        study_settings.get('direction_y_pos', 1); ...
+                        study_settings.get('direction_x_neg', 1), ...
+                        study_settings.get('direction_y_neg', 1), ...
+                      };
+
+                    % store total wrench and CoP
+                    forceplate_trajectories = [total_forceplate_wrench copx_total copy_total forceplate_trajectories]; %#ok<AGROW>
+                    forceplate_labels = [total_labels forceplate_labels]; %#ok<AGROW>
+                    forceplate_directions = [total_wrench_directions total_cop_directions forceplate_directions]; %#ok<AGROW>
+                else
+                    warning(['Cannot interpret study settings entry "combined_forceplate_data_source: ' study_settings.get('combined_forceplate_data_source', 1) '", combined forcplate data not processed' ])
+                end
+                
+                % extract
+                time = loaded_data.time_forceplate;
+                sampling_rate = loaded_data.sampling_rate_forceplate;
+                
                 % save
                 save_folder = 'processed';
                 
                 % save in new format
-                save_file_name = makeFileName(collection_date, subject_id, trial_type, trial_number, 'forceplateTrajectories.mat');
+                save_file_name = makeFileName(date, subject_id, trial_type, trial_number, 'forceplateTrajectories.mat');
                 save ...
                   ( ...
                     [save_folder filesep save_file_name], ...
                     'forceplate_trajectories', ...
                     'forceplate_labels', ...
-                    'time_forceplate', ...
+                    'time', ...
                     'forceplate_directions', ...
-                    'sampling_rate_forceplate' ...
+                    'sampling_rate' ...
                   );
 
-                addAvailableData('forceplate_trajectories', 'time_forceplate', 'sampling_rate_forceplate', '_forceplate_labels', '_forceplate_directions', save_folder, save_file_name);
+                addAvailableData('forceplate_trajectories', 'time', 'sampling_rate', '_forceplate_labels', '_forceplate_directions', save_folder, save_file_name);
                 
                 disp(['processed ' raw_forceplate_file_name ' and saved as ' [save_folder filesep save_file_name]])        
             end

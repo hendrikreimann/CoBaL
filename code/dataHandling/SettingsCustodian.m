@@ -19,8 +19,13 @@ classdef SettingsCustodian < handle
         settings_file = '';
         settings_struct = struct;
         property_not_found_list = {};
+        important_property_not_found_list = {};
         verbose = true;
         
+        important_properties = ...
+          {
+            'forceplate_table'; ...
+          }
         force_string_list = ...
           { ...
             'preferred_level_order'; ...
@@ -34,6 +39,7 @@ classdef SettingsCustodian < handle
             'emg_data_to_import'; ...
             'across_trials_conditions'; ...
             'preferred_level_order'; ...
+            'data_to_import'; ...
           }
     end
     methods
@@ -261,10 +267,17 @@ classdef SettingsCustodian < handle
                     report_string = ['Setting not found in file ' this.settings_file ', using default - ' property_name ': ' data_string];
                 end
                 
+                % have we reported or warned about this yet?
                 if ~any(strcmp(property_name, this.property_not_found_list))
-                    if this.verbose && ~optional
+                    % this is in the hard-coded list of important properties
+                    if any(strcmp(property_name, this.important_properties))
+                        % this is an important property that we definitely want to warn about
+                        warning(report_string);
+                    elseif this.verbose && ~optional
+                        % this is not important, but verbose is on and we haven't warned about it yet
                         disp(report_string)
                     end
+                    % add this to the list of properties we already reported to avoid warning spam
                     this.property_not_found_list = [this.property_not_found_list; property_name];
                 end
             end
@@ -433,6 +446,9 @@ classdef SettingsCustodian < handle
             if strcmp(property_name, 'apply_forceplate_offset')
                 default_data = 0;
             end
+            if strcmp(property_name, 'forceplate_labels')
+                default_data = {'Fx1','Fy1','Fz1','Mx1','My1','Mz1','Fx2','Fy2','Fz2','Mx2','My2','Mz2'};
+            end
             if strcmp(property_name, 'figure_settings_file')
                 default_data = 'eventGuiFigureSettings.mat';
             end
@@ -508,6 +524,9 @@ classdef SettingsCustodian < handle
             end
             if strcmp(property_name, 'force_plates_to_import')
                 default_data = [1, 2];
+            end
+            if strcmp(property_name, 'combined_forceplate_data_source')
+                default_data = 'calculate';
             end
             if strcmp(property_name, 'emg_cutoff_frequency_low')            
                 default_data = 500;
@@ -598,6 +617,59 @@ classdef SettingsCustodian < handle
             if strcmp(property_name, 'average_within_subjects')
                 default_data = false;
             end
+            
+            if strcmp(property_name, 'remove_forceplate_zero_data_points')
+                default_data = 1;
+            end
+            if strcmp(property_name, 'remove_forceplate_large_data_points')
+                default_data = 1;
+            end
+            if strcmp(property_name, 'toggle_auto_save_events')
+                default_data = 1;
+            end
+            if strcmp(property_name, 'toggle_auto_stretch_finding')
+                default_data = 1;
+            end
+            if strcmp(property_name, 'lock_add_events_buttons')
+                default_data = 0;
+            end
+            if strcmp(property_name, 'direction_x_pos')
+                default_data = 'right';
+            end
+            if strcmp(property_name, 'direction_x_neg')
+                default_data = 'left';
+            end
+            if strcmp(property_name, 'direction_y_pos')
+                default_data = 'forward';
+            end
+            if strcmp(property_name, 'direction_y_neg')
+                default_data = 'backward';
+            end
+            if strcmp(property_name, 'direction_z_pos')
+                default_data = 'up';
+            end
+            if strcmp(property_name, 'direction_z_neg')
+                default_data = 'down';
+            end
+            if strcmp(property_name, 'forceplate_table_header')
+                default_data = {'label', 'index', 'translation', 'rotation'};
+            end
+            if strcmp(property_name, 'forceplate_table')
+                default_data = ...
+                  { ...
+                      'left', '1', 'from_data', 'forceplate_rotation'; ...
+                      'right', '2', 'from_data', 'forceplate_rotation' ...
+                  };
+            end
+            if strcmp(property_name, 'forceplate_rotation')
+                default_data = [1, 0, 0, 0, -1, 0, 0, 0, 1];
+            end
+            
+            
+            if strcmp(property_name, 'data_to_import')
+                default_data = {'joint_angles', 'marker'};
+            end
+            
             
             
             if strcmp(property_name, 'marker_to_segment_map')
@@ -704,6 +776,7 @@ classdef SettingsCustodian < handle
         function settings_names = getAllSettingsNames(this)
             settings_names = fieldnames(this.settings_struct);
         end
+        
         
     end
 end

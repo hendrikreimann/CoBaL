@@ -1,11 +1,11 @@
 % flags
 analyze_data            = 1;
-plot_results            = 1;
-dictate_axes            = 1;
-save_figure             = 1;
+plot_results            = 0;
+dictate_axes            = 0;
+save_figure             = 0;
 
 export_data             = 0;
-export_results          = 0;
+export_results          = 1;
 show_metronome_figure   = 0;
 
 trial_type = 'stimulus'; type_label = 'walking';
@@ -19,7 +19,7 @@ response_variable = 'com_position'; response_label = 'CoM'; response_unit = 'm';
 trials_to_analyze = 1:6; trial_label = 'low cadence'; trial_filename_label = 'lowCadence';
 % trials_to_analyze = 7:12; trial_label = 'high cadence'; trial_filename_label = 'highCadence';
 
-% trials_to_analyze = 1:12; trial_label = 'all cadences'; trial_filename_label = 'allCadences';
+trials_to_analyze = 1:12; trial_label = 'all cadences'; trial_filename_label = 'allCadences';
 
 % create filename and title label
 filename = [response_filename_label '_' trial_filename_label];
@@ -70,7 +70,7 @@ if analyze_data
         if isempty(this_trial_gvs_stimulus_filename)
             gvs_stimulus_amplitudes(i_trial) = 0;
         else
-            gvs_stimulus_amplitudes(i_trial) = 1;
+            gvs_stimulus_amplitudes(i_trial) = 0.25;
         end
         
     end
@@ -600,7 +600,7 @@ if plot_results
     this_pulse = signal_data.pulse_stimulus_normalized(signal_data.points_per_cycle + (1 : signal_data.points_per_pulse)) * 0.25;
     plot(axes_326, this_time, this_pulse, 'color', [0.5 0.5 0.5], 'linewidth', 3);
     axes_326.YColor = [0.5 0.5 0.5];
-    ylim(gvs_response_ylim * 2)
+%     ylim(gvs_response_ylim * 2)
     
     % connect weights
     if fit_model
@@ -646,10 +646,12 @@ if export_results
     data_to_export.time_single_cycle = time_single_cycle;
     data_to_export.average_stimulus = average_vis_stimulus;
     data_to_export.average_filtered_response = average_filtered_response;
-    data_to_export.gains = vis_stimulus_amplitudes;
+    data_to_export.average_pulse_filtered_response = average_pulse_filtered_response;
+    data_to_export.multisine_stimulus_amplitudes = vis_stimulus_amplitudes;
+    data_to_export.pulse_stimulus_amplitudes = gvs_stimulus_amplitudes;
     data_to_export.paces = paces;
     
-    save([filename '_' subject_id], '-struct', 'data_to_export');
+    save(['results' filesep filename '_' subject_id], '-struct', 'data_to_export');
 end
 
 

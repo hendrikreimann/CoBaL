@@ -17,7 +17,7 @@
 % this function transforms larger blocks of data, such as marker coordinates, between coordinate frames, keeping track
 % of the labels and directions
 
-function [transformed_trajectories, transformed_labels, transformed_directions] = transformSpatialData(source_trajectories, source_labels, source_directions, rigid_transformation)
+function [transformed_trajectories, transformed_labels, transformed_directions] = transformSpatialData(source_trajectories, source_labels, source_directions, rigid_transformation, study_settings)
     transformed_trajectories = zeros(size(source_trajectories));
     transformed_labels = cell(size(source_labels));
     transformed_directions = cell(size(source_directions));
@@ -62,4 +62,31 @@ function [transformed_trajectories, transformed_labels, transformed_directions] 
         end
     end
 
+    % go through directions and direction of cartesian basis vectors with labels from study settings
+    x_pos_label = study_settings.get('direction_x_pos', true);
+    x_neg_label = study_settings.get('direction_x_neg', true);
+    y_pos_label = study_settings.get('direction_y_pos', true);
+    y_neg_label = study_settings.get('direction_y_neg', true);
+    z_pos_label = study_settings.get('direction_z_pos', true);
+    z_neg_label = study_settings.get('direction_z_neg', true);
+    
+    for i_column = 1 : size(transformed_directions, 2)
+        this_direction_pos = transformed_directions{1, i_column};
+        this_direction_neg = transformed_directions{2, i_column};
+        if strcmp(this_direction_pos, 'x+') && strcmp(this_direction_neg, 'x-')
+            transformed_directions{1, i_column} = x_pos_label;
+            transformed_directions{2, i_column} = x_neg_label;
+        end
+        if strcmp(this_direction_pos, 'y+') && strcmp(this_direction_neg, 'y-')
+            transformed_directions{1, i_column} = y_pos_label;
+            transformed_directions{2, i_column} = y_neg_label;
+        end
+        if strcmp(this_direction_pos, 'z+') && strcmp(this_direction_neg, 'z-')
+            transformed_directions{1, i_column} = z_pos_label;
+            transformed_directions{2, i_column} = z_neg_label;
+        end
+        
+    end
+    
+    
 end

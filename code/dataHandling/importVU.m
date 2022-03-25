@@ -54,7 +54,7 @@ function importVU(varargin)
     if ~directoryExists('analysis')
         mkdir('analysis')
     end
-    settings.source_dir = 'VU';
+    settings.source_dir = 'orig';
     settings.collection_date = subject_settings.get('collection_date');
     settings.subject_id = subject_settings.get('subject_id');
     
@@ -126,11 +126,11 @@ function importTrialDataForceplate(vu_data, file_info)
     right_forceplate_cop_world = force_vu.right.glob.CoP(:, [1 2]);
 
     % labels
-    left_foot_wrench_labels = {'fxl', 'fyl', 'fzl', 'mxl', 'myl', 'mzl'};
-    right_foot_wrench_labels = {'fxr', 'fyr', 'fzr', 'mxr', 'myr', 'mzr'};
+    left_foot_wrench_labels = {'fx_left', 'fy_left', 'fz_left', 'mx_left', 'my_left', 'mz_left'};
+    right_foot_wrench_labels = {'fx_right', 'fy_right', 'fz_right', 'mx_right', 'my_right', 'mz_right'};
     total_wrench_labels = {'fx', 'fy', 'fz', 'mx', 'my', 'mz'};
-    left_foot_cop_labels = {'copxl', 'copyl'};
-    right_foot_cop_labels = {'copxr', 'copyr'};
+    left_foot_cop_labels = {'copx_left', 'copy_left'};
+    right_foot_cop_labels = {'copx_right', 'copy_right'};
     total_cop_labels = {'copx', 'copy'};
 
     % directions for wrench
@@ -179,24 +179,31 @@ function importTrialDataForceplate(vu_data, file_info)
       ];
 
     % add auxiliary data
-    sampling_rate = vu_data.DBfs;
-    time = (1 : size(forceplate_raw_trajectories, 1))' / sampling_rate;
+    sampling_rate_forceplate = vu_data.DBfs;
+    time_forceplate = (1 : size(forceplate_raw_trajectories, 1))' / sampling_rate_forceplate;
 
     % save forceplate data
     save_folder = 'raw';
     data_source = 'VU';
     save_file_name = makeFileName(file_info.collection_date, file_info.subject_id, file_info.trial_type, file_info.trial_number, 'forceplateTrajectoriesRaw.mat');
     save ...
-        ( ...
+      ( ...
         [save_folder filesep save_file_name], ...
         'forceplate_raw_trajectories', ...
         'forceplate_labels', ...
+        'time_forceplate', ...
+        'sampling_rate_forceplate', ...
         'forceplate_directions', ...
-        'time', ...
-        'sampling_rate', ...
         'data_source' ...
-        );
-    addAvailableData('forceplate_raw_trajectories', 'time', 'sampling_rate', '_forceplate_labels', '_forceplate_directions', save_folder, save_file_name);
+      );
+        addAvailableData('forceplate_raw_trajectories', 'time_forceplate', 'sampling_rate_forceplate', '_forceplate_labels', '_forceplate_directions', save_folder, save_file_name);
+%         'forceplate_labels', ...
+%         'time', ...
+%         'sampling_rate', ...
+%         'forceplate_directions', ...
+%         'data_source' ...
+%         );
+%     addAvailableData('forceplate_raw_trajectories', 'time', 'sampling_rate', '_forceplate_labels', '_forceplate_directions', save_folder, save_file_name);
 end
 
 function importTrialDataMarker(vu_data, file_info)
@@ -318,15 +325,16 @@ function importTrialDataMarker(vu_data, file_info)
     marker_directions = [marker_directions this_marker_directions];
     
     [this_marker_trajectories, this_marker_labels, this_marker_directions] = extractSingleMarkerTrajectory(markers_vu, 'pelvis', 'MPSIS');
-    this_marker_labels = {'LPSI_x', 'LPSI_y', 'LPSI_z'}; % use MPSI marker to get LPSI
-    this_marker_trajectories(:, 1) = this_marker_trajectories(:, 1) - 0.03; % but shift 3 cm to the left
     marker_raw_trajectories = [marker_raw_trajectories this_marker_trajectories];
     marker_labels = [marker_labels this_marker_labels];
     marker_directions = [marker_directions this_marker_directions];
     
-    [this_marker_trajectories, this_marker_labels, this_marker_directions] = extractSingleMarkerTrajectory(markers_vu, 'pelvis', 'MPSIS');
-    this_marker_labels = {'RPSI_x', 'RPSI_y', 'RPSI_z'}; % use MPSI marker to get LPSI
-    this_marker_trajectories(:, 1) = this_marker_trajectories(:, 1) + 0.03; % but shift 3 cm to the right
+    [this_marker_trajectories, this_marker_labels, this_marker_directions] = extractSingleMarkerTrajectory(markers_vu, 'pelvis', 'LPSI');
+    marker_raw_trajectories = [marker_raw_trajectories this_marker_trajectories];
+    marker_labels = [marker_labels this_marker_labels];
+    marker_directions = [marker_directions this_marker_directions];
+    
+    [this_marker_trajectories, this_marker_labels, this_marker_directions] = extractSingleMarkerTrajectory(markers_vu, 'pelvis', 'RPSI');
     marker_raw_trajectories = [marker_raw_trajectories this_marker_trajectories];
     marker_labels = [marker_labels this_marker_labels];
     marker_directions = [marker_directions this_marker_directions];
@@ -347,12 +355,16 @@ function importTrialDataMarker(vu_data, file_info)
     marker_labels = [marker_labels this_marker_labels];
     marker_directions = [marker_directions this_marker_directions];
     
-    [this_marker_trajectories, this_marker_labels, this_marker_directions] = extractSingleMarkerTrajectory(markers_vu, 'thigh_left', 'LKNE');
+    [knee_marker_trajectories_thigh, this_marker_labels, this_marker_directions] = extractSingleMarkerTrajectory(markers_vu, 'thigh_left', 'LKNE');
+    knee_marker_trajectories_calf = extractSingleMarkerTrajectory(markers_vu, 'calf_left', 'LKNE');
+    this_marker_trajectories = [knee_marker_trajectories_thigh + knee_marker_trajectories_calf] * 0.5;
     marker_raw_trajectories = [marker_raw_trajectories this_marker_trajectories];
     marker_labels = [marker_labels this_marker_labels];
     marker_directions = [marker_directions this_marker_directions];
     
-    [this_marker_trajectories, this_marker_labels, this_marker_directions] = extractSingleMarkerTrajectory(markers_vu, 'thigh_left', 'LKNEM');
+    [knee_marker_trajectories_thigh, this_marker_labels, this_marker_directions] = extractSingleMarkerTrajectory(markers_vu, 'thigh_left', 'LKNEM');
+    knee_marker_trajectories_calf = extractSingleMarkerTrajectory(markers_vu, 'calf_left', 'LKNEM');
+    this_marker_trajectories = [knee_marker_trajectories_thigh + knee_marker_trajectories_calf] * 0.5;
     marker_raw_trajectories = [marker_raw_trajectories this_marker_trajectories];
     marker_labels = [marker_labels this_marker_labels];
     marker_directions = [marker_directions this_marker_directions];
@@ -373,12 +385,16 @@ function importTrialDataMarker(vu_data, file_info)
     marker_labels = [marker_labels this_marker_labels];
     marker_directions = [marker_directions this_marker_directions];
     
-    [this_marker_trajectories, this_marker_labels, this_marker_directions] = extractSingleMarkerTrajectory(markers_vu, 'calf_left', 'LANK');
+    [ankle_marker_trajectories_thigh, this_marker_labels, this_marker_directions] = extractSingleMarkerTrajectory(markers_vu, 'calf_left', 'LANK');
+    ankle_marker_trajectories_calf = extractSingleMarkerTrajectory(markers_vu, 'foot_left', 'LANK');
+    this_marker_trajectories = [ankle_marker_trajectories_thigh + ankle_marker_trajectories_calf] * 0.5;
     marker_raw_trajectories = [marker_raw_trajectories this_marker_trajectories];
     marker_labels = [marker_labels this_marker_labels];
     marker_directions = [marker_directions this_marker_directions];
     
-    [this_marker_trajectories, this_marker_labels, this_marker_directions] = extractSingleMarkerTrajectory(markers_vu, 'calf_left', 'LANKM');
+    [ankle_marker_trajectories_thigh, this_marker_labels, this_marker_directions] = extractSingleMarkerTrajectory(markers_vu, 'calf_left', 'LANKM');
+    ankle_marker_trajectories_calf = extractSingleMarkerTrajectory(markers_vu, 'foot_left', 'LANKM');
+    this_marker_trajectories = [ankle_marker_trajectories_thigh + ankle_marker_trajectories_calf] * 0.5;
     marker_raw_trajectories = [marker_raw_trajectories this_marker_trajectories];
     marker_labels = [marker_labels this_marker_labels];
     marker_directions = [marker_directions this_marker_directions];
@@ -420,12 +436,16 @@ function importTrialDataMarker(vu_data, file_info)
     marker_labels = [marker_labels this_marker_labels];
     marker_directions = [marker_directions this_marker_directions];
     
-    [this_marker_trajectories, this_marker_labels, this_marker_directions] = extractSingleMarkerTrajectory(markers_vu, 'thigh_right', 'RKNE');
+    [knee_marker_trajectories_thigh, this_marker_labels, this_marker_directions] = extractSingleMarkerTrajectory(markers_vu, 'thigh_right', 'RKNE');
+    knee_marker_trajectories_calf = extractSingleMarkerTrajectory(markers_vu, 'calf_right', 'RKNE');
+    this_marker_trajectories = [knee_marker_trajectories_thigh + knee_marker_trajectories_calf] * 0.5;
     marker_raw_trajectories = [marker_raw_trajectories this_marker_trajectories];
     marker_labels = [marker_labels this_marker_labels];
     marker_directions = [marker_directions this_marker_directions];
     
-    [this_marker_trajectories, this_marker_labels, this_marker_directions] = extractSingleMarkerTrajectory(markers_vu, 'thigh_right', 'RKNEM');
+    [knee_marker_trajectories_thigh, this_marker_labels, this_marker_directions] = extractSingleMarkerTrajectory(markers_vu, 'thigh_right', 'RKNEM');
+    knee_marker_trajectories_calf = extractSingleMarkerTrajectory(markers_vu, 'calf_right', 'RKNEM');
+    this_marker_trajectories = [knee_marker_trajectories_thigh + knee_marker_trajectories_calf] * 0.5;
     marker_raw_trajectories = [marker_raw_trajectories this_marker_trajectories];
     marker_labels = [marker_labels this_marker_labels];
     marker_directions = [marker_directions this_marker_directions];
@@ -446,16 +466,20 @@ function importTrialDataMarker(vu_data, file_info)
     marker_labels = [marker_labels this_marker_labels];
     marker_directions = [marker_directions this_marker_directions];
     
-    [this_marker_trajectories, this_marker_labels, this_marker_directions] = extractSingleMarkerTrajectory(markers_vu, 'calf_right', 'RANK');
+    [ankle_marker_trajectories_thigh, this_marker_labels, this_marker_directions] = extractSingleMarkerTrajectory(markers_vu, 'calf_right', 'RANK');
+    ankle_marker_trajectories_calf = extractSingleMarkerTrajectory(markers_vu, 'foot_right', 'RANK');
+    this_marker_trajectories = [ankle_marker_trajectories_thigh + ankle_marker_trajectories_calf] * 0.5;
     marker_raw_trajectories = [marker_raw_trajectories this_marker_trajectories];
     marker_labels = [marker_labels this_marker_labels];
     marker_directions = [marker_directions this_marker_directions];
     
-    [this_marker_trajectories, this_marker_labels, this_marker_directions] = extractSingleMarkerTrajectory(markers_vu, 'calf_right', 'RANKM');
+    [ankle_marker_trajectories_thigh, this_marker_labels, this_marker_directions] = extractSingleMarkerTrajectory(markers_vu, 'calf_right', 'RANKM');
+    ankle_marker_trajectories_calf = extractSingleMarkerTrajectory(markers_vu, 'foot_right', 'RANKM');
+    this_marker_trajectories = [ankle_marker_trajectories_thigh + ankle_marker_trajectories_calf] * 0.5;
     marker_raw_trajectories = [marker_raw_trajectories this_marker_trajectories];
     marker_labels = [marker_labels this_marker_labels];
     marker_directions = [marker_directions this_marker_directions];
-    
+
     % right foot
     [this_marker_trajectories, this_marker_labels, this_marker_directions] = extractSingleMarkerTrajectory(markers_vu, 'foot_right', 'RHEE');
     marker_raw_trajectories = [marker_raw_trajectories this_marker_trajectories];

@@ -31,7 +31,7 @@ function importProtocolData_VU(varargin)
     parser = inputParser;
     parser.KeepUnmatched = true;
     addParameter(parser, 'visualize', false)
-    addParameter(parser, 'source', 'VU')
+    addParameter(parser, 'source', 'orig')
     parse(parser, varargin{:})
     source = parser.Results.source;
 
@@ -69,6 +69,7 @@ function importProtocolData_VU(varargin)
             this_speed = imported_table_trials.Speed(i_line);
             this_speed_first_attempt_trial_number = imported_table_trials.firstAttempt(i_line);
             this_speed_second_attempt_trial_number = imported_table_trials.secondAttempt(i_line);
+            this_speed_third_attempt_trial_number = imported_table_trials.thirdAttempt(i_line);
             
             % store first attempt
             trial_number = [trial_number; this_speed_first_attempt_trial_number];
@@ -77,6 +78,11 @@ function importProtocolData_VU(varargin)
             
             % store second attempt
             trial_number = [trial_number; this_speed_second_attempt_trial_number];
+            trial_type = [trial_type; 'walking'];
+            speed = [speed; this_speed];
+            
+            % store third attempt
+            trial_number = [trial_number; this_speed_third_attempt_trial_number];
             trial_type = [trial_type; 'walking'];
             speed = [speed; this_speed];
         end

@@ -51,8 +51,10 @@ function plotLinearModelResults(varargin)
         % determine comparisons
         condition_data = this_model_data.row_info;
         conditions_settings = study_settings.get('conditions');
-        labels_to_ignore = {};
-        levels_to_remove = {};
+%         labels_to_ignore = {};
+%         levels_to_remove = {};
+        labels_to_ignore = linear_model_settings.get('conditions_to_ignore', 1);
+        levels_to_remove = linear_model_settings.get('levels_to_remove', 1);
         [comparisons.condition_combination_labels, comparisons.condition_combinations] = determineConditionCombinations(condition_data, conditions_settings, labels_to_ignore, levels_to_remove);
         [comparisons.condition_combinations, comparisons.level_order] = sortConditionCombinations(comparisons.condition_combinations, comparisons.condition_combination_labels, condition_to_compare, preferred_level_order);
         [comparisons.comparison_indices, comparisons.conditions_per_comparison_max] = determineComparisons(comparisons.condition_combinations, comparisons.condition_combination_labels, condition_to_compare, conditions_settings);
@@ -152,7 +154,7 @@ function createComparisonFigure(model_data, comparisons, comparison_to_show, rel
     r_square_axes = nexttile;
     set(r_square_axes, 'fontsize', 12);
     hold on;
-    ylabel('R^2');
+    ylabel('$R^2$', 'Interpreter', 'latex');
     ylim([0 1]);
     if arguments.show_legend
         legend('Location', 'southeastoutside')
@@ -171,7 +173,7 @@ function createComparisonFigure(model_data, comparisons, comparison_to_show, rel
         linewidth = 2;
         marker = 'none';
         marker_size = 1;
-        x_label = 'time (%)';
+        x_label = 'time (\%)';
     end
     
     % add labels

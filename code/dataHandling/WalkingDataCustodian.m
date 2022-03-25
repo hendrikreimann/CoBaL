@@ -20,12 +20,13 @@
 
 % there are different levels of variables that this object takes care of
 % - basic variables can be loaded or calculated directly from loaded variables at each point in time
-% - stretch variables are variables defined for each stretch. That can be a single number or a trajectory with
-% normalized time. 
+% - stretch variables are variables defined for each stretch of data. That can be a single number or a trajectory with
+% normalized time per band
+% - range variables have only one single value for the whole range of the stretch
 
 % order of processing is
 % Construction:
-% - variables are determined based on the list of variables_to_analyze, loaded from the study_settings
+% - variables are determined based on the list of stretch_variables_to_analyze, loaded from the study_settings
 % For each trial
 % 1. Prepare data: loads and calculates basic variables
 % 2. <apply stretches and normalize in time>
@@ -38,11 +39,18 @@ classdef WalkingDataCustodian < handle
         subject_id = [];
         trial_type = [];
         trial_number = [];
-        variables_to_analyze = {};
+        
+        stretch_variables_to_analyze = {};
+        range_variables_to_analyze = {};
+        
         basic_variable_names = {};
         basic_variable_load_failures = {};
+        
         stretch_variable_names = {};
         stretch_variable_directions = {};
+        
+        range_variable_names = {};
+        range_variable_directions = {};
         
         % these are private and should only be accessed using get functions
         number_of_time_steps_normalized;
@@ -50,7 +58,9 @@ classdef WalkingDataCustodian < handle
         basic_variable_labels;
         basic_variable_directions;
         stretch_variable_data;
+        range_variable_data;
         time_data;
+        event_data;
         
         subject_info;
         subject_settings;
@@ -61,8 +71,8 @@ classdef WalkingDataCustodian < handle
     
     methods
         % constructor
-        function this = WalkingDataCustodian(variables_to_analyze, data_directory)
-            if nargin < 2
+        function this = WalkingDataCustodian(stretch_variables_to_analyze, range_variables_to_analyze, data_directory)
+            if nargin < 3
                 data_directory = pwd;
             end
             this.subject_info = load([data_directory filesep 'subjectInfo.mat']);
@@ -84,10 +94,17 @@ classdef WalkingDataCustodian < handle
             
             % prepare list of variables to analyze
             if nargin < 1
-                variables_to_analyze = this.study_settings.get('stretch_variables');
+                stretch_variables_to_analyze = this.study_settings.get('stretch_variables');
             end
-            this.variables_to_analyze = variables_to_analyze;
+            this.stretch_variables_to_analyze = stretch_variables_to_analyze;
             this.number_of_time_steps_normalized = this.study_settings.get('number_of_time_steps_normalized');
+            
+            % prepare range variabels
+            if nargin < 2
+                range_variables_to_analyze = this.study_settings.get('range_variables', 1);
+            end
+            this.range_variables_to_analyze = range_variables_to_analyze;
+            
             this.determineVariables();
         end
         
@@ -103,11 +120,20 @@ classdef WalkingDataCustodian < handle
                 this.stretch_variable_directions = [this.stretch_variable_directions; {'TBD', 'TBD'}];
             end
         end
+        function addRangeVariable(this, variable_name)
+            if ~any(strcmp(this.range_variable_names, variable_name))
+                this.range_variable_names = [this.range_variable_names; variable_name];
+                this.range_variable_directions = [this.range_variable_directions; {'TBD', 'TBD'}];
+            end
+        end
+        
+        
         function determineVariables(this)
             
-            % go through list of variables to analyze and check if they are elementary variables
-            for i_variable = 1 : length(this.variables_to_analyze)
-                this_variable_name = this.variables_to_analyze{i_variable};
+            % prepare stretch variables and the required basic variables
+            for i_variable = 1 : length(this.stretch_variables_to_analyze)
+                % go through list of variables to analyze and check if they are elementary variables
+                this_variable_name = this.stretch_variables_to_analyze{i_variable};
                 
                 % check if this is a compound name, listing a loaded variable and a label
                 if any(this_variable_name==':')
@@ -495,6 +521,11 @@ classdef WalkingDataCustodian < handle
                     end
                 end
             end
+            % prepare range variables
+            for i_variable = 1 : length(this.range_variables_to_analyze)
+                this_variable_name = this.range_variables_to_analyze{i_variable};
+                this.addRangeVariable(this_variable_name)
+            end
         end
         
         % interface
@@ -650,6 +681,15 @@ classdef WalkingDataCustodian < handle
                 end
                 
                 
+            end
+            
+            % load events
+            event_file_name = makeFileName(this.date, this.subject_id, trial_type, trial_number, 'events.mat');
+            event_file_name_with_path = [this.data_directory filesep 'analysis' filesep event_file_name];
+            if isfile(event_file_name_with_path)
+                this.event_data = load(event_file_name_with_path);
+            else
+                this.event_data = [];
             end
         end
         function stretch_variables = calculateStretchVariables(this, stretch_times, stance_foot_data, relevant_condition_data, variables_to_calculate)
@@ -1683,9 +1723,9 @@ classdef WalkingDataCustodian < handle
                     end
                     if strcmp(variable_name, 'pushoff_time')
                         % load events
-                        event_data = load(['analysis' filesep makeFileName(this.date, this.subject_id, this.trial_type, this.trial_number, 'events.mat')]);
-                        left_pushoff_times = event_data.event_data{strcmp(event_data.event_labels, 'left_pushoff')};
-                        right_pushoff_times = event_data.event_data{strcmp(event_data.event_labels, 'right_pushoff')};
+%                         event_data = load(['analysis' filesep makeFileName(this.date, this.subject_id, this.trial_type, this.trial_number, 'events.mat')]);
+                        left_pushoff_times = this.event_data.event_data{strcmp(this.event_data.event_labels, 'left_pushoff')};
+                        right_pushoff_times = this.event_data.event_data{strcmp(this.event_data.event_labels, 'right_pushoff')};
                         
                         stretch_data = zeros(number_of_bands, 1);
                         for i_band = 1 : number_of_bands
@@ -2155,7 +2195,51 @@ classdef WalkingDataCustodian < handle
                 end
                 
             end
+            this.stretch_variable_data = stretch_variables;
         end
+        function range_variables = calculateRangeVariables(this, stretch_times)
+            variables_to_calculate = this.range_variable_names;
+            number_of_range_variables = length(variables_to_calculate);
+            number_of_stretches = size(stretch_times, 1);
+            range_variables = cell(number_of_range_variables, 1);
+            
+            for i_variable = 1 : number_of_range_variables
+                this_variable_name = variables_to_calculate{i_variable};
+                
+                this.registerRangeVariableDirections(this_variable_name);
+                
+                % extract and normalize data from stretches
+                for i_stretch = 1 : number_of_stretches
+                    % extract time
+                    this_stretch_times = stretch_times(i_stretch, :);
+                    range_data = NaN;
+                    
+                    if any(this_variable_name==':')
+                        this_variable_split = strsplit(this_variable_name, ':');
+                        this_variable_type = this_variable_split{1};
+                        this_variable_label = this_variable_split{2};
+
+                        if strcmp(this_variable_type, 'event_time')
+                            % get event data of the requested type
+                            event_type_index = strcmp(this.event_data.event_labels, this_variable_label);
+                            this_type_event_data = this.event_data.event_data{event_type_index};
+                            
+                            % find the event of the specified type that's within the stretch time
+                            stretch_start_time = this_stretch_times(1);
+                            stretch_end_time = this_stretch_times(end);
+                            this_event_index = stretch_start_time <= this_type_event_data & this_type_event_data <= stretch_end_time;
+                            range_data = this_type_event_data(this_event_index);
+                        end
+                    end
+                    
+                    
+                    
+                    % store in cell
+                    range_variables{i_variable} = [range_variables{i_variable} range_data];
+                end
+            end
+        end
+        
         function data_normalized = getTimeNormalizedData(this, variable_name, band_times)
             % extract data
             try
@@ -3090,6 +3174,36 @@ classdef WalkingDataCustodian < handle
                     error(['Different trials have different direction information for variable ' variable_name])
                 end
                 if ~strcmp(stretch_directions_new{2}, stretch_directions_on_file{2})
+                    error(['Different trials have different direction information for variable ' variable_name])
+                end
+            end
+        end
+        
+        function registerRangeVariableDirections(this, variable_name)
+            this_variable_index = strcmp(variable_name, this.range_variable_names);
+            
+            % check if this is a compound name, listing a loaded variable and a label
+            if any(variable_name==':')
+                this_variable_split = strsplit(variable_name, ':');
+                this_variable_type = this_variable_split{1};
+                this_variable_label = this_variable_split{2}; %#ok<NASGU>
+                
+                if strcmp(this_variable_type, 'event_time')
+                    range_directions_new = {'+';'-'};
+                end
+            end
+            
+            % compare against what is already on file
+            range_directions_on_file = this.range_variable_directions(this_variable_index, :);
+            if strcmp(range_directions_on_file{1}, 'TBD') && strcmp(range_directions_on_file{2}, 'TBD')
+                % nothing is no file yet, so file the new information
+                this.range_variable_directions(this_variable_index, :) = range_directions_new;
+            else
+                % check whether the new information matches up with what is on file
+                if ~strcmp(range_directions_new{1}, range_directions_on_file{1})
+                    error(['Different trials have different direction information for variable ' variable_name])
+                end
+                if ~strcmp(range_directions_new{2}, range_directions_on_file{2})
                     error(['Different trials have different direction information for variable ' variable_name])
                 end
             end
