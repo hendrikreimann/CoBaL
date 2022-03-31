@@ -39,10 +39,13 @@ function plotLinearModelResults(varargin)
     
     preferred_level_order = linear_model_settings.get('preferred_level_order', 1);
     for i_model = 1 : size(model_list, 1)
-        this_model = model_list(i_model, :);
+%         this_model = model_list(i_model, :);
+%         this_model_index = findModelIndex(model_data, this_model, linear_model_settings);
+%         this_model_data = model_data.linear_model_results{this_model_index, strcmp(model_data.linear_model_results_header, 'results')};
         
         % find the requested model in the data
-        this_model_index = findModelIndex(model_data, this_model, linear_model_settings);
+        this_model_label = model_list.label{i_model};
+        this_model_index = findModelIndex(model_data, this_model_label);
         this_model_data = model_data.linear_model_results{this_model_index, strcmp(model_data.linear_model_results_header, 'results')};
         
         % create figures
@@ -70,7 +73,7 @@ function plotLinearModelResults(varargin)
 
 end
 
-function index = findModelIndex(data, model, settings)
+function index = findModelIndex_old(data, model, settings)
     % extract info
     requested_outcome_variable = model.outcome_variable_name{1};
     requested_predictor_variable_list_name = model.predictor_variable_list{1};
@@ -102,6 +105,12 @@ function index = findModelIndex(data, model, settings)
     if index == 0
         error(['Model not available'])
     end
+end
+
+function index = findModelIndex(model_data, requested_label)
+    % loop through models to find the requested one
+    label_column = strcmp(model_data.linear_model_results_header, 'label');
+    index = strcmp(model_data.linear_model_results(:, label_column), requested_label);
 end
 
 function comparison_label = createComparisonLabel(row_info, comparison_indices, column_with_condition_to_compare)
@@ -154,7 +163,7 @@ function createComparisonFigure(model_data, comparisons, comparison_to_show, rel
     r_square_axes = nexttile;
     set(r_square_axes, 'fontsize', 12);
     hold on;
-    ylabel('$R^2$', 'Interpreter', 'latex');
+    ylabel('R^2');
     ylim([0 1]);
     if arguments.show_legend
         legend('Location', 'southeastoutside')
@@ -173,7 +182,7 @@ function createComparisonFigure(model_data, comparisons, comparison_to_show, rel
         linewidth = 2;
         marker = 'none';
         marker_size = 1;
-        x_label = 'time (\%)';
+        x_label = 'time (%)';
     end
     
     % add labels

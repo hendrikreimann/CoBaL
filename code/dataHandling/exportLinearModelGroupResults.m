@@ -16,12 +16,11 @@
 
 function exportLinearModelGroupResults(varargin)
     % load settings
-    study_settings = loadSettingsFromFile('study');
     linear_model_settings = loadSettingsFromFile('linearModel');
-    condition_to_compare = linear_model_settings.get('condition_to_compare');
     
     % load data
-    model_data = load('linearModelResults.mat');
+    model_data_filename = ['groupResults' filesep 'linearModelResults.mat'];
+    model_data = load(model_data_filename);
     model_list = linear_model_settings.getTable('export_table');
     
     % process
@@ -29,7 +28,7 @@ function exportLinearModelGroupResults(varargin)
         this_model_label = model_list.label{i_model};
         this_model_index = findModelIndex(model_data.model_results, this_model_label);
         this_model_data = model_data.model_results(this_model_index);
-        this_model_filename = model_list.filename{i_model};
+        this_model_filename = ['groupResults' filesep model_list.filename{i_model}];
         
         exportThisModelData(this_model_data, this_model_label, this_model_filename);
     end

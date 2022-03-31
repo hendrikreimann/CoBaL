@@ -32,7 +32,8 @@ function plotLinearModelGroupResults(varargin)
     condition_to_compare = linear_model_settings.get('condition_to_compare');
     
     % load data
-    model_data = load('linearModelResults.mat');
+    model_data_filename = ['groupResults' filesep 'linearModelResults.mat'];
+    model_data = load(model_data_filename);
     model_list = linear_model_settings.getTable('plot_table');
     
     % process

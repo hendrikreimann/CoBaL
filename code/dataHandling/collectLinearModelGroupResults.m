@@ -14,13 +14,13 @@
 %     You should have received a copy of the GNU General Public License
 %     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-function collectLinearModelGroupResults(subjects, varargin)
+function collectLinearModelGroupResults(varargin)
     % parse input parameters
-%     parser = inputParser;
-%     parser.KeepUnmatched = true;
-%     addParameter(parser, 'subjects', {})
-%     parse(parser, varargin{:})
-%     arguments.subjects = parser.Results.subjects;
+    parser = inputParser;
+    parser.KeepUnmatched = true;
+    addParameter(parser, 'subjects', {})
+    parse(parser, varargin{:})
+    arguments.subjects = parser.Results.subjects;
 
     % load settings
     study_settings = loadSettingsFromFile('study');
@@ -28,16 +28,13 @@ function collectLinearModelGroupResults(subjects, varargin)
 %     condition_to_compare = linear_model_settings.get('condition_to_compare');
     
     % define subjects
-    if nargin < 1
-        subjects = {'S1', 'S2'};
-    end
-    
+    [data_folder_list, subjects] = determineDataStructure(arguments.subjects);
     number_of_subjects = length(subjects);
 
     % load data
     model_data = cell(number_of_subjects, 1);
     for i_subject = 1 : number_of_subjects
-        this_data_folder_path = subjects{i_subject};
+        this_data_folder_path = data_folder_list{i_subject};
         subject_settings = loadSettingsFromFile('subject', this_data_folder_path);
         collection_date = subject_settings.get('collection_date');
         subject_id = subject_settings.get('subject_id');
@@ -88,7 +85,11 @@ for i_model = 1 : number_of_models
     end
     
     % save
-    save('linearModelResults.mat', 'model_results');
+    if ~directoryExists('groupResults')
+        mkdir('groupResults')
+    end
+    filename = ['groupResults' filesep 'linearModelResults.mat'];
+    save(filename, 'model_results');
     
 end
 
