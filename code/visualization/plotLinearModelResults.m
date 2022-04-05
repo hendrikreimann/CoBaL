@@ -18,16 +18,18 @@ function plotLinearModelResults(varargin)
     % parse input parameters
     parser = inputParser;
     parser.KeepUnmatched = true;
+    addParameter(parser, 'settings', 'linearModel')
     addParameter(parser, 'show_legend', true)
     addParameter(parser, 'save', false)
     parse(parser, varargin{:})
     arguments.show_legend = parser.Results.show_legend;
     arguments.save_results = parser.Results.save;
+    arguments.settings = parser.Results.settings;
 
     % load settings
     study_settings = loadSettingsFromFile('study');
     subject_settings = loadSettingsFromFile('subject');
-    linear_model_settings = loadSettingsFromFile('linearModel');
+    linear_model_settings = loadSettingsFromFile(arguments.settings);
     collection_date = subject_settings.get('collection_date');
     subject_id = subject_settings.get('subject_id');
     condition_to_compare = linear_model_settings.get('condition_to_compare');
