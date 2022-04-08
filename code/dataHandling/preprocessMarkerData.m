@@ -123,7 +123,7 @@ function preprocessMarkerData(varargin)
 
                 % compare marker labels to reference trial
                 marker_labels_equal = 0;
-                if length(loaded_data.marker_labels) == length(marker_labels_reference)
+                if length(marker_labels) == length(marker_labels_reference)
                     marker_labels_equal = 1;
                     % length is the same, now compare individual labels
                     for i_label = 1 : length(marker_labels_reference)
@@ -135,19 +135,30 @@ function preprocessMarkerData(varargin)
                 
                 % re-order markers to match reference if necessary
                 if ~marker_labels_equal
+                    % store unsorted values in different variables
                     marker_trajectories_unsorted = marker_trajectories;
-                    marker_labels_unsorted = loaded_data.marker_labels;
-                    marker_trajectories = zeros(size(marker_trajectories, 1), length(marker_labels_reference)) * NaN;
-                    marker_labels = marker_labels_reference;
+                    marker_labels_unsorted = marker_labels;
+                    
+                    % make new variables for sorted
+                    marker_trajectories_sorted = zeros(size(marker_trajectories, 1), length(marker_labels_reference)) * NaN;
+                    marker_labels_sorted = marker_labels_reference;
                     marker_directions = marker_directions_reference;
 
+                    % sort
                     for i_label = 1 : length(marker_labels_reference)
-                        this_label = marker_labels{i_label};
-                        this_label_index = find(strcmp(marker_labels_unsorted, this_label));
-                        if ~isempty(this_label_index)
-                            marker_trajectories(:, i_label) = marker_trajectories_unsorted(:, this_label_index);
+                        % get index for this label
+                        this_label = marker_labels_sorted{i_label};
+                        this_label_index_in_unsorted_data = find(strcmp(marker_labels_unsorted, this_label));
+                        
+                        % put data for this label in correct spot
+                        if ~isempty(this_label_index_in_unsorted_data)
+                            marker_trajectories_sorted(:, i_label) = marker_trajectories_unsorted(:, this_label_index_in_unsorted_data);
                         end
                     end
+                    
+                    % rename sorted
+                    marker_trajectories = marker_trajectories_sorted;
+                    marker_labels = marker_labels_sorted;
                 end
 
                 % save
