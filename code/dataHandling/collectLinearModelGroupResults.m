@@ -42,7 +42,9 @@ function collectLinearModelGroupResults(varargin)
         model_file_name = [this_data_folder_path filesep 'results' filesep collection_date '_' subject_id '_linearModels.mat'];
         model_data{i_subject} = load(model_file_name);
     end
-    model_list = linear_model_settings.getTable('models');
+    model_list_first_order = linear_model_settings.getTable('models');
+    model_list_second_order = linear_model_settings.getTable('models_second_order');
+    model_list = [model_list_first_order; model_list_second_order];
     
     % process
     number_of_models = size(model_list, 1);
@@ -71,9 +73,9 @@ for i_model = 1 : number_of_models
 
             % build data table
             if strcmp(this_model.type{1}, 'discrete')
-                this_subject_data_table = buildDataTableForThisSubject(this_subject_this_model_data);
+                this_subject_data_table = buildDataTableForThisSubject(this_subject_this_model_data, this_model_results.label);
             elseif strcmp(this_model.type{1}, 'continuous')
-                [this_subject_data_table, this_subject_data_table_headers] = buildDataCellForThisSubject(this_subject_this_model_data);
+                [this_subject_data_table, this_subject_data_table_headers] = buildDataCellForThisSubject(this_subject_this_model_data, this_model_results.label);
                 this_model_results.headers = this_subject_data_table_headers;
             end
             
@@ -135,7 +137,7 @@ function index = findModelIndex(data, model)
 %     end
 end
 
-function data_table = buildDataTableForThisSubject(model_data)
+function data_table = buildDataTableForThisSubject(model_data, model_label)
     % transform conditions from cell array to table
     condition_table = model_data.row_info;
     condition_table_headers = model_data.row_info_headers;
@@ -157,13 +159,15 @@ function data_table = buildDataTableForThisSubject(model_data)
             this_predictor_slope_data(i_data_point) = slope_data{i_data_point}(:, i_predictor);
         end
         
-        this_predictor_header = ['d_' outcome_name '_by_d_' predictor_names{i_predictor}];
+%         this_predictor_header = ['d_' outcome_name '_by_d_' predictor_names{i_predictor}];
+        
+        this_predictor_header = [model_label '_slope_' num2str(i_predictor)];
         
         data_table = addvars(data_table, this_predictor_slope_data, 'NewVariableNames', this_predictor_header);
     end
 end
 
-function [data_table, data_table_headers] = buildDataCellForThisSubject(model_data)
+function [data_table, data_table_headers] = buildDataCellForThisSubject(model_data, model_label)
     % take condition table as starting point for data table
     data_table_headers = model_data.row_info_headers;
     data_table = model_data.row_info;
@@ -186,7 +190,8 @@ function [data_table, data_table_headers] = buildDataCellForThisSubject(model_da
         end
         data_table = [data_table this_predictor_slope_data]; %#ok<AGROW>
         
-        this_predictor_header = ['d_' outcome_name '_by_d_' predictor_names{i_predictor}];
+%         this_predictor_header = ['d_' outcome_name '_by_d_' predictor_names{i_predictor}];
+        this_predictor_header = [model_label '_slope_' num2str(i_predictor)];
         data_table_headers = [data_table_headers, this_predictor_header]; %#ok<AGROW>
     end
 end

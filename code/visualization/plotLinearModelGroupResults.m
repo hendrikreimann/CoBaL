@@ -136,9 +136,19 @@ function createComparisonFigure(model_data, comparisons, comparison_to_show, lin
     model_list = linear_model_settings.getTable('models');
     model_list = [model_list; linear_model_settings.getTable('models_second_order')];
     this_model_row = strcmp(model_list.label, model_data.label);
+    model_label = model_list.label{this_model_row};
     outcome_label = model_list.outcome_variable_name{this_model_row};
     predictors_label = model_list.predictor_variable_list{this_model_row};
-    predictors_list = linear_model_settings.get(predictors_label);
+    
+    % TODO: find a way to check if this predictor is present
+    if linear_model_settings.settingIsPresent(predictors_label)
+        % predictors_label is the name of a table in the settings file
+        predictors_list = linear_model_settings.get(predictors_label, 1);
+    else
+        % predictors_label is the name of a variable
+        predictors_list = {predictors_label};
+    end
+    
     number_of_predictors = length(predictors_list);
     number_of_time_points_per_stretch = study_settings.get('number_of_time_steps_normalized');
 
@@ -179,6 +189,7 @@ function createComparisonFigure(model_data, comparisons, comparison_to_show, lin
             title([strrep(predictors_list{i_predictor}, '_', ' ') ' - ' comparison_label])
             this_file_label = [outcome_label '_VS_' predictors_list{i_predictor} '_' comparison_label];
             file_labels{i_predictor} = this_file_label;
+            set(slope_axes{i_predictor}, 'XTickLabel', {}, 'xtick', []);
         end
 
         % create R^2 figure
@@ -213,6 +224,7 @@ function createComparisonFigure(model_data, comparisons, comparison_to_show, lin
             ylabel('slope');
             hold on;
             title(strrep(predictors_list{i_predictor}, '_', ' '), 'Units', 'normalized', 'Position', [0.5, 0.9, 0])
+            set(slope_axes{i_predictor}, 'XTickLabel', {}, 'xtick', []);
         end
 
         r_square_axes = nexttile;
@@ -280,7 +292,8 @@ function createComparisonFigure(model_data, comparisons, comparison_to_show, lin
         slope_data_this_condition = cell(size(predictors_list));
         for i_predictor = 1 : length(predictors_list)
             % extract data
-            this_predictor_header = ['d_' outcome_label '_by_d_' predictors_list{i_predictor}];
+%             this_predictor_header = ['d_' outcome_label '_by_d_' predictors_list{i_predictor}];
+            this_predictor_header = [model_label '_slope_' num2str(i_predictor)];
             this_predictor_slope_column = strcmp(header, this_predictor_header);
             this_predictor_this_condition_slope_data_cell = data(this_condition_indicator, this_predictor_slope_column);
             this_predictor_this_condition_slope_data = cell2mat(this_predictor_this_condition_slope_data_cell');

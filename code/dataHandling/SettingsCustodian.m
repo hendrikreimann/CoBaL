@@ -42,6 +42,8 @@ classdef SettingsCustodian < handle
             'data_to_import'; ...
             'plot_table'; ...
             'plot_table_header'; ...
+            'plot_table_single'; ...
+            'plot_table_single_header'; ...
           }
     end
     methods
@@ -349,6 +351,9 @@ classdef SettingsCustodian < handle
             if strcmp(data, '~')
                 data = [];
             end
+        end
+        function present = settingIsPresent(this, property_name)
+            present = isfield(this.settings_struct, property_name);
         end
         
         function table_data = getTable(this, table_name, optional)
