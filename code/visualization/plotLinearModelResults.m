@@ -444,10 +444,10 @@ function createComparisonFigure(model_data, comparisons, comparison_to_show, rel
     
     % adjust x-limits
     if model_data.predictor_variable_data_points_per_stretch == 1
-        xlimits = [r_square_axes.XTick(1)-0.5, r_square_axes.XTick(end)+0.5];
-        set(r_square_axes, 'xlim', xlimits);
+        xlimit_conditions = [r_square_axes.XTick(1)-0.5, r_square_axes.XTick(end)+0.5];
+        set(r_square_axes, 'xlim', xlimit_conditions);
         for i_predictor = 1 : number_of_predictors
-            set(slope_axes(i_predictor), 'xlim', xlimits);
+            set(slope_axes(i_predictor), 'xlim', xlimit_conditions);
             if linear_model_settings.get('show_details', 1)
                 sizeChanged();
   
@@ -459,8 +459,8 @@ function createComparisonFigure(model_data, comparisons, comparison_to_show, rel
     % plot zero line
     if linear_model_settings.get('plot_zero', 1)
         for i_predictor = 1 : number_of_predictors
-            xlimits = get(slope_axes(i_predictor), 'xlim');
-            zero_plot = plot(slope_axes(i_predictor), xlimits, [0 0], 'color', [0.7 0.7 0.7], 'linewidth', 2);
+            xlimits_predictor = get(slope_axes(i_predictor), 'xlim');
+            zero_plot = plot(slope_axes(i_predictor), xlimits_predictor, [0 0], 'color', [0.7 0.7 0.7], 'linewidth', 2);
             set(zero_plot, 'HandleVisibility', 'off');
             uistack(zero_plot, 'bottom')
         end
@@ -484,27 +484,27 @@ function createComparisonFigure(model_data, comparisons, comparison_to_show, rel
             pos_arrow_position_y = ylimits(1) - (ylimits(2)-ylimits(1))*0.09;
             set(pos_arrow_handles_abscissa(j_predictor), 'Position', [pos_arrow_position_x pos_arrow_position_y]);
             pos_text_position_x = xlimits(2);
-            pos_text_position_y = ylimits(1) - (ylimits(2)-ylimits(1))*0.14;
+            pos_text_position_y = ylimits(1) - (ylimits(2)-ylimits(1))*0.12;
             set(pos_text_handles_abscissa(j_predictor), 'Position', [pos_text_position_x pos_text_position_y]);
 
             neg_arrow_position_x = xlimits(1);
             neg_arrow_position_y = ylimits(1) - (ylimits(2)-ylimits(1))*0.09;
             set(neg_arrow_handles_abscissa(j_predictor), 'Position', [neg_arrow_position_x neg_arrow_position_y]);
             neg_text_position_x = xlimits(1);
-            neg_text_position_y = ylimits(1) - (ylimits(2)-ylimits(1))*0.14;
+            neg_text_position_y = ylimits(1) - (ylimits(2)-ylimits(1))*0.12;
             set(neg_text_handles_abscissa(j_predictor), 'Position', [neg_text_position_x neg_text_position_y]);
 
             pos_arrow_position_x = xlimits(1) - (xlimits(2)-xlimits(1))*0.09;
             pos_arrow_position_y = ylimits(2);
             set(pos_arrow_handles_ordinate(j_predictor), 'Position', [pos_arrow_position_x pos_arrow_position_y]);
-            pos_text_position_x = xlimits(1) - (xlimits(2)-xlimits(1))*0.14;
+            pos_text_position_x = xlimits(1) - (xlimits(2)-xlimits(1))*0.12;
             pos_text_position_y = ylimits(2);
             set(pos_text_handles_ordinate(j_predictor), 'Position', [pos_text_position_x pos_text_position_y]);
 
             neg_arrow_position_x = xlimits(1) - (xlimits(2)-xlimits(1))*0.09;
             neg_arrow_position_y = ylimits(1);
             set(neg_arrow_handles_ordinate(j_predictor), 'Position', [neg_arrow_position_x neg_arrow_position_y]);
-            neg_text_position_x = xlimits(1) - (xlimits(2)-xlimits(1))*0.14;
+            neg_text_position_x = xlimits(1) - (xlimits(2)-xlimits(1))*0.12;
             neg_text_position_y = ylimits(1);
             set(neg_text_handles_ordinate(j_predictor), 'Position', [neg_text_position_x neg_text_position_y]);     
         end
