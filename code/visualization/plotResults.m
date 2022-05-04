@@ -230,7 +230,6 @@ function figure_data = createFigures_continuous(settings, comparisons, data_cust
             new_figure = figure;
             dcm_obj = datacursormode(new_figure);
             set(dcm_obj,'UpdateFcn',{@singlePlotTooltip})
-            
             new_axes = axes; hold on;
 
             % store handles and determine abscissa data
@@ -319,6 +318,8 @@ function figure_data = createFigures_discrete(settings, comparisons, data_custod
         for i_comparison = 1 : comparisons.number_of_comparisons
             % make figure and axes
             new_figure = figure; 
+            dcm_obj = datacursormode(new_figure);
+            set(dcm_obj,'UpdateFcn',{@singlePlotTooltip})
             new_axes = axes; hold on;
 
             % store handles and determine abscissa data
@@ -846,6 +847,7 @@ end
 
 function plotData_discrete(settings, comparisons, data_custodian, figure_data)
     [condition_data, condition_labels] = data_custodian.getConditionData();
+    [origin_subjects, origin_trials, origin_start_times, origin_end_times] = data_custodian.getOriginData();
     for i_variable = 1 : settings.number_of_variables_to_plot_discrete
         variable_name = settings.variables_to_plot_discrete(i_variable, strcmp(settings.variables_to_plot_discrete_header, 'variable_name'));
         variable_type = settings.variables_to_plot_discrete(i_variable, strcmp(settings.variables_to_plot_discrete_header, 'variable_type'));
@@ -872,14 +874,36 @@ function plotData_discrete(settings, comparisons, data_custodian, figure_data)
                     settings.plot_settings.get('levels_to_remove') ...
                   );
                 data_to_plot_this_condition = data_to_plot.variable_data(:, this_condition_indicator);
+                origin_subjects_this_condition = origin_subjects(this_condition_indicator);
+                origin_trials_this_condition = origin_trials(this_condition_indicator);
+                origin_start_times_this_condition = origin_start_times(this_condition_indicator);
+                origin_end_times_this_condition = origin_end_times(this_condition_indicator);
+                
+                
                 if settings.plot_settings.get('average_within_subjects', 1)
                     condition_data_this_condition = condition_data(this_condition_indicator, :);
-                    data_to_plot_this_condition = averageWithinSubjects(data_to_plot_this_condition, condition_data_this_condition, condition_labels);
-                    
+
+%                     data_to_plot_this_condition = averageWithinSubjects(data_to_plot_this_condition, condition_data_this_condition, condition_labels);
+                    [data_to_plot_this_condition, origin_subjects_this_condition] ...
+                        = averageWithinSubjects(data_to_plot_this_condition, condition_data_this_condition, condition_labels);
                 end                
                 if settings.plot_settings.get('merge_bands', 1)
                     data_to_plot_this_condition = reshape(data_to_plot_this_condition, 1, numel(data_to_plot_this_condition));
                 end
+                
+                % build origin struct
+                origin_data = [];
+                for i_stretch = 1 : size(data_to_plot_this_condition, 2)
+                    this_origin = struct;
+                    this_origin.subject = origin_subjects_this_condition{i_stretch};
+                    if ~settings.plot_settings.get('average_within_subjects', 1)
+                        this_origin.trial = origin_trials_this_condition(i_stretch);
+                        this_origin.start_time = origin_start_times_this_condition(i_stretch);
+                        this_origin.end_time = origin_end_times_this_condition(i_stretch);
+                    end
+                    origin_data = [origin_data; this_origin];
+                end                
+                
                 for i_band = 1 : size(data_to_plot_this_condition, 1)
                     if ~isempty(settings.band_labels) && ~settings.plot_settings.get('merge_bands', 1)
                         label_string_this_band = strrep([label_string '-' settings.band_labels{i_band}], '_', ' ');
@@ -908,6 +932,7 @@ function plotData_discrete(settings, comparisons, data_custodian, figure_data)
                             'ShowIndividualData', settings.plot_settings.get('show_individual_discrete_data', 1), ...
                             'ShowSpread', settings.show_spread_data, ...
                             'SpreadStyle', settings.plot_settings.get('discrete_data_plot_style'), ...
+                            'IndividualDataInfo', origin_data, ...
                             'label', label_string_this_band ...     % label
                           );
 
