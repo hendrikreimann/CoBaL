@@ -435,6 +435,12 @@ classdef SettingsCustodian < handle
             if strcmp(property_name, 'show_single_data_points')
                 default_data = 0;
             end
+            if strcmp(property_name, 'individual_data_marker_style')
+                default_data = 'o';
+            end
+            if strcmp(property_name, 'individual_data_marker_size')
+                default_data = 4;
+            end
             
             if strcmp(property_name, 'edge_color')
                 default_data = [0.4 0.4 0.4];
