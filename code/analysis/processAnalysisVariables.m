@@ -52,6 +52,9 @@ function processAnalysisVariables(varargin)
         if strcmp(this_action, 'integrate over time')
             data = calculateIntegratedVariables(this_settings_table, this_settings_table_header, study_settings, data);
         end
+        if strcmp(this_action, 'integrate over range')
+            data = integrateOverRange(this_settings_table, this_settings_table_header, study_settings, data);
+        end
         if strcmp(this_action, 'select from multiple variables by condition')
             data = calculateSelectionVariables(this_settings_table, this_settings_table_header, study_settings, data, conditions);
         end
@@ -462,6 +465,52 @@ function data = calculateIntegratedVariables(variables_to_integrate, variables_t
     end
 
 end
+
+function data = integrateOverRange(variables_to_integrate, variables_to_integrate_header, study_settings, data)
+    step_time_index_in_saved_data = find(strcmp(data.stretch_names_session, 'step_time'), 1, 'first');
+    this_step_time_data = data.stretch_data_session{step_time_index_in_saved_data};
+    number_of_stretches = size(data.stretch_data_session{1}, 2);
+    number_of_time_steps_normalized = study_settings.get('number_of_time_steps_normalized');
+
+    for i_variable = 1 : size(variables_to_integrate, 1)
+        this_variable_name = variables_to_integrate{i_variable, strcmp(variables_to_integrate_header, 'new_variable_name')};
+        this_variable_source_name = variables_to_integrate{i_variable, strcmp(variables_to_integrate_header, 'source_variable_name')};
+        this_variable_source_type = variables_to_integrate{i_variable, strcmp(variables_to_integrate_header, 'source_variable_type')};
+        
+        % pick data depending on source specification
+        data_source = data.([this_variable_source_type '_data_session']);
+        names_source = data.([this_variable_source_type '_names_session']);
+        directions_source = data.([this_variable_source_type '_directions_session']);
+        this_variable_source_data = data_source{strcmp(names_source, this_variable_source_name)};
+        this_variable_source_directions = directions_source(strcmp(names_source, this_variable_source_name), :);
+                
+        % integrate
+        integrated_data = zeros(1, number_of_stretches);
+        for i_stretch = 1 : number_of_stretches
+            % create time vector
+            time_stretch = zeros(size(this_variable_source_data, 1), 1);
+            for i_band = 1 : data.bands_per_stretch
+                [band_start_index, band_end_index] = getBandIndices(i_band, number_of_time_steps_normalized);
+                this_band_time = linspace(sum(this_step_time_data(1:i_band-1)), sum(this_step_time_data(1:i_band)), number_of_time_steps_normalized);
+                time_stretch(band_start_index : band_end_index) = this_band_time;
+            end
+            
+            % integrate
+            this_stretch_data = this_variable_source_data(:, i_stretch);
+            integrated_data(i_stretch) = trapz(time_stretch, this_stretch_data);
+        end        
+        
+        % store
+        new_data = struct;
+        new_data.data = integrated_data;
+        new_data.directions = this_variable_source_directions;
+        new_data.name = this_variable_name;
+        data = addOrReplaceResultsData(data, new_data, 'range');
+
+    end
+
+end
+
 
 function data = calculateMeanVariables(variables_mean, variables_mean_header, study_settings, data)
     step_time_index_in_saved_data = find(strcmp(data.stretch_names_session, 'step_time'), 1, 'first');
