@@ -483,7 +483,13 @@ function data = integrateOverRange(variables_to_integrate, variables_to_integrat
         directions_source = data.([this_variable_source_type '_directions_session']);
         this_variable_source_data = data_source{strcmp(names_source, this_variable_source_name)};
         this_variable_source_directions = directions_source(strcmp(names_source, this_variable_source_name), :);
-                
+        
+        % determine integration range
+        start_data_percent = str2num(variables_to_integrate{i_variable, strcmp(variables_to_integrate_header, 'start_percent')});
+        end_data_percent = str2num(variables_to_integrate{i_variable, strcmp(variables_to_integrate_header, 'end_percent')});
+        start_index = round(start_data_percent/100 * (size(this_variable_source_data, 1) - 1)) + 1;
+        end_index = round(end_data_percent/100 * (size(this_variable_source_data, 1) - 1)) + 1;
+        
         % integrate
         integrated_data = zeros(1, number_of_stretches);
         for i_stretch = 1 : number_of_stretches
@@ -496,8 +502,8 @@ function data = integrateOverRange(variables_to_integrate, variables_to_integrat
             end
             
             % integrate
-            this_stretch_data = this_variable_source_data(:, i_stretch);
-            integrated_data(i_stretch) = trapz(time_stretch, this_stretch_data);
+            this_stretch_data = this_variable_source_data(start_index:end_index, i_stretch);
+            integrated_data(i_stretch) = trapz(time_stretch(start_index:end_index), this_stretch_data);
         end        
         
         % store

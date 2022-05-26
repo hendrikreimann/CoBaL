@@ -183,8 +183,16 @@ classdef SettingsCustodian < handle
                 variable_value = variable_value_cell{1};
 
                 % try to transform to a single double
-                if ~isempty(str2num(variable_value)) %#ok<ST2NM>
-                    variable_value = str2num(variable_value); %#ok<ST2NM,NASGU>
+                if strcmp(variable_value, 'line')
+                   % HR 20220522:
+                   % catch this as a special case. In general I want to use 
+                   % variable_value = str2num(variable_value, Evaluation="restricted");
+                   % but this was only introduced in 2022a, and I don't want to update right now
+                else
+                    if ~isempty(str2num(variable_value)) %#ok<ST2NM>
+                        variable_value = str2num(variable_value); %#ok<ST2NM,NASGU>
+                    end
+                    
                 end
             else
                 variable_value = variable_value_cell;
@@ -441,6 +449,43 @@ classdef SettingsCustodian < handle
             if strcmp(property_name, 'individual_data_marker_size')
                 default_data = 4;
             end
+            if strcmp(property_name, 'discrete_data_spread_face_alpha')
+                default_data = 0.1;
+            end
+            if strcmp(property_name, 'discrete_data_spread_edge_linewidth')
+                default_data = 3;
+            end
+            if strcmp(property_name, 'individual_data_saturation')
+                default_data = 0.5;
+            end
+            if strcmp(property_name, 'individual_data_jitter_std')
+                default_data = 1;
+            end
+            if strcmp(property_name, 'spread_edge_saturation')
+                default_data = 1;
+            end
+            if strcmp(property_name, 'mean_data_saturation')
+                default_data = 0.7;
+            end
+            if strcmp(property_name, 'mean_style')
+                default_data = 'd';
+            end
+            if strcmp(property_name, 'mean_marker_size')
+                default_data = 18;
+            end
+            if strcmp(property_name, 'zero_color')
+                default_data = [0.7 0.7 0.7];
+            end
+            if strcmp(property_name, 'zero_linewidth')
+                default_data = 1;
+            end
+            if strcmp(property_name, 'spread_fill_saturation')
+                default_data = 0.1;
+            end
+            
+
+            
+            
             
             if strcmp(property_name, 'edge_color')
                 default_data = [0.4 0.4 0.4];
