@@ -106,7 +106,7 @@ function importFromOpensim(varargin)
                 end
                 
                 if strcmp(data_file_name(end-3:end), '.sto')
-                        [date, subject_id, trial_type, trial_number, file_type] = getFileParameters(data_file_name);
+                    [date, subject_id, trial_type, trial_number, file_type] = getFileParameters(data_file_name);
                     number_of_header_lines = 19;
 
                     % import data
