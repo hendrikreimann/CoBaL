@@ -408,6 +408,12 @@ classdef WalkingDataCustodian < handle
                 if strcmp(this_variable_name, 'step_time')
                     this.addStretchVariable('step_time')
                 end
+                if strcmp(this_variable_name, 'stance_time')
+                    this.addStretchVariable('stance_time')
+                end
+                if strcmp(this_variable_name, 'swing_time')
+                    this.addStretchVariable('swing_time')
+                end
                 if strcmp(this_variable_name, 'pushoff_time')
                     this.addBasicVariable('marker_trajectories')
                     this.addStretchVariable('step_time')
@@ -1721,9 +1727,66 @@ classdef WalkingDataCustodian < handle
                     if strcmp(variable_name, 'step_time')
                         stretch_data = diff(this_stretch_times)';
                     end
+                    if strcmp(variable_name, 'stance_time')
+                        % load events
+                        left_pushoff_times = this.event_data.event_data{strcmp(this.event_data.event_labels, 'left_pushoff')};
+                        right_pushoff_times = this.event_data.event_data{strcmp(this.event_data.event_labels, 'right_pushoff')};
+                        
+                        stretch_data = zeros(number_of_bands, 1);
+                        for i_band = 1 : number_of_bands
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_RIGHT')
+                                % find first right push-off after band end
+                                band_start_time = this_stretch_times(i_band);
+                                band_end_time = this_stretch_times(i_band+1);
+                                this_pushoff_time = min(right_pushoff_times(right_pushoff_times >= band_end_time));
+                                stretch_data(i_band) = this_pushoff_time - band_start_time;
+                                
+                            end
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_LEFT')
+                                band_start_time = this_stretch_times(i_band);
+                                band_end_time = this_stretch_times(i_band+1);
+                                this_pushoff_time = min(left_pushoff_times(left_pushoff_times >= band_end_time));
+                                stretch_data(i_band) = this_pushoff_time - band_start_time;
+                            end
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_BOTH')
+                                stretch_data(i_band) = NaN;
+                            end
+                        end
+                    end
+                    if strcmp(variable_name, 'swing_time')
+                        % load events
+                        left_pushoff_times = this.event_data.event_data{strcmp(this.event_data.event_labels, 'left_pushoff')};
+                        right_pushoff_times = this.event_data.event_data{strcmp(this.event_data.event_labels, 'right_pushoff')};
+                        
+                        stretch_data = zeros(number_of_bands, 1);
+                        for i_band = 1 : number_of_bands
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_RIGHT')
+                                % find first left push-off after band start
+                                band_start_time = this_stretch_times(i_band);
+                                band_end_time = this_stretch_times(i_band+1);
+                                this_pushoff_time = min(left_pushoff_times(left_pushoff_times >= band_start_time));
+                                if this_pushoff_time >= band_end_time
+                                    this_pushoff_time = band_start_time;
+                                end
+                                stretch_data(i_band) = band_end_time - this_pushoff_time;
+                                
+                            end
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_LEFT')
+                                band_start_time = this_stretch_times(i_band);
+                                band_end_time = this_stretch_times(i_band+1);
+                                this_pushoff_time = min(right_pushoff_times(right_pushoff_times >= band_start_time));
+                                if this_pushoff_time >= band_end_time
+                                    this_pushoff_time = band_start_time;
+                                end
+                                stretch_data(i_band) = band_end_time - this_pushoff_time;
+                            end
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_BOTH')
+                                stretch_data(i_band) = NaN;
+                            end
+                        end
+                    end
                     if strcmp(variable_name, 'pushoff_time')
                         % load events
-%                         event_data = load(['analysis' filesep makeFileName(this.date, this.subject_id, this.trial_type, this.trial_number, 'events.mat')]);
                         left_pushoff_times = this.event_data.event_data{strcmp(this.event_data.event_labels, 'left_pushoff')};
                         right_pushoff_times = this.event_data.event_data{strcmp(this.event_data.event_labels, 'right_pushoff')};
                         
@@ -2697,6 +2760,12 @@ classdef WalkingDataCustodian < handle
                 stretch_directions_new = LHEE_x_directions;
             end
             if strcmp(variable_name, 'step_time')
+                stretch_directions_new = {'+'; '-'};
+            end
+            if strcmp(variable_name, 'stance_time')
+                stretch_directions_new = {'+'; '-'};
+            end
+            if strcmp(variable_name, 'swing_time')
                 stretch_directions_new = {'+'; '-'};
             end
             if strcmp(variable_name, 'pushoff_time')

@@ -76,7 +76,7 @@ function collectPopulationResults(varargin)
     time_list = [];
     variable_data = cell(number_of_variables_to_collect, 1);
     variable_directions = cell(number_of_variables_to_collect, 2);
-    step_time_data = [];
+    stretch_times_data = [];
     origin_trial_number_data = [];
     origin_stretch_start_time_data = [];
     origin_stretch_end_time_data = [];
@@ -165,6 +165,7 @@ function collectPopulationResults(varargin)
             session_folder = data_path_split{end};
             [session_folder_list{:}] = deal(session_folder);
             origin_session_folder_data = [origin_session_folder_data; session_folder_list]; %#ok<AGROW>
+            stretch_times_data = [stretch_times_data; results_data.stretch_times']; %#ok<AGROW>
 
             % extract and store long stretches
             if ~isempty(variables_to_collect_long)
@@ -214,7 +215,7 @@ function collectPopulationResults(varargin)
     variables_to_save.variable_data = variable_data;
     variables_to_save.variable_directions = variable_directions;
     variables_to_save.variable_names = variables_to_collect(:, 1);
-    variables_to_save.step_time_data = step_time_data;
+    variables_to_save.stretch_times_data = stretch_times_data;
     variables_to_save.conditions = conditions;
     variables_to_save.time_list = time_list;
     variables_to_save.origin_session_folder_data = origin_session_folder_data;
