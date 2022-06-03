@@ -456,6 +456,9 @@ classdef SettingsCustodian < handle
             if strcmp(property_name, 'individual_data_marker_size')
                 default_data = 4;
             end
+            if strcmp(property_name, 'discrete_data_spread_width')
+                default_data = 0.8;
+            end
             if strcmp(property_name, 'discrete_data_spread_face_alpha')
                 default_data = 0.1;
             end
