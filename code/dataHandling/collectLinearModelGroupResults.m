@@ -51,7 +51,7 @@ function collectLinearModelGroupResults(varargin)
 %     model_results_header = {'label', 'type', 'results'};
 %     model_results = cell(number_of_models, 3);
     model_results = [];
-for i_model = 1 : number_of_models
+    for i_model = 1 : number_of_models
         this_model = model_list(i_model, :);
         this_model_results = struct;
         this_model_results.type = this_model.type{1};
