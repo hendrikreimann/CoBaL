@@ -1256,11 +1256,12 @@ classdef WalkingDataCustodian < handle
                                 stance_ankle_z_data(band_start_index : band_end_index) = NaN;
                             end
                         end
-                        leg_vector_x = mpelvis_x - stance_ankle_x_data;
-                        leg_vector_y = mpelvis_y - stance_ankle_y_data;
-                        leg_vector_z = mpelvis_z - stance_ankle_z_data;
-                        leg_length_data = ((leg_vector_x.^2 + leg_vector_y.^2 + leg_vector_z.^2).^(0.5))*0.981;
+%  0.53*bodyheight(this is dist from hip jt center to floor)-
+%  0.039*bodyheight (this is dist of ankle jt center form floor) =
+%  0.491*body height (this is the dist between hip to ankle jt center)
+                        leg_length_data = this.subject_settings.get('height')*0.491;
                         
+                            
                         % calculate XCoM_poi_x
                         LPSI_x_vel = this.getTimeNormalizedData('derivative:LPSI_x_vel', this_stretch_times);
                         RPSI_x_vel = this.getTimeNormalizedData('derivative:RPSI_x_vel', this_stretch_times);
