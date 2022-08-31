@@ -1231,7 +1231,7 @@ classdef WalkingDataCustodian < handle
                         LANK_z = this.getTimeNormalizedData('marker:LANK_z', this_stretch_times);
                         RANK_z = this.getTimeNormalizedData('marker:RANK_z', this_stretch_times);
                         stance_ankle_x_data = zeros(size(mpelvis_x));
-                        stance_ankle_y_data = zeros(size(mpelviss_x));
+                        stance_ankle_y_data = zeros(size(mpelvis_x));
                         stance_ankle_z_data = zeros(size(mpelvis_x));
                         for i_band = number_of_bands : -1 : 1
                             % going backward makes a difference for the
@@ -1297,7 +1297,7 @@ classdef WalkingDataCustodian < handle
                         end
                         
                         % now calculate XCoM - BoS
-                        xcom_mpsis_x = stretch_variables{strcmp(this.stretch_variable_names, 'xcom_mpsis_x')}(:, i_stretch);
+                        xcom_mpsis_x = stretch_variables{strcmp(this.stretch_variable_names, 'xcom_poi_x')}(:, i_stretch);
                         stretch_data = xcom_mpsis_x - bos_x_data;
                     end
                     if strcmp(variable_name, 'com_rough_x')
@@ -2650,7 +2650,39 @@ classdef WalkingDataCustodian < handle
                     error('LPSI_y and RPSI_y directions are different from each other')
                 end
                 stretch_directions_new = LPSI_y_directions;
-            end   
+            end
+            if strcmp(variable_name, 'xcom_poi_x')
+                [~, LASI_x_directions] = this.getBasicVariableData('marker:LASI_x');
+                [~, RASI_x_directions] = this.getBasicVariableData('marker:RASI_x');
+                [~, LPSI_x_directions] = this.getBasicVariableData('marker:LPSI_x');
+                [~, RPSI_x_directions] = this.getBasicVariableData('marker:RPSI_x');
+                if ~strcmp(LASI_x_directions{1}, RASI_x_directions{1})
+                    error('LASI_x and RASI_x directions are different from each other')
+                end
+                if ~strcmp(LASI_x_directions{2}, RASI_x_directions{2})
+                    error('LASI_x and RASI_x directions are different from each other')
+                end
+                
+                if ~strcmp(LASI_x_directions{1}, LPSI_x_directions{1})
+                    error('LASI_x and LPSI_x directions are different from each other')
+                end
+                if ~strcmp(LASI_x_directions{2}, LPSI_x_directions{2})
+                    error('LASI_x and LPSI_x directions are different from each other')
+                end
+                
+                if ~strcmp(LASI_x_directions{1}, RPSI_x_directions{1})
+                    error('LASI_x and RPSI_x directions are different from each other')
+                end
+                if ~strcmp(LASI_x_directions{2}, RPSI_x_directions{2})
+                    error('LASI_x and RPSI_x directions are different from each other')
+                end
+                
+                stretch_directions_new = LASI_x_directions;
+            end
+            
+            
+            
+            
             if strcmp(variable_name, 'mos_mpsis_x')
                 [~, LPSI_x_directions] = this.getBasicVariableData('marker:LPSI_x');
                 [~, RPSI_x_directions] = this.getBasicVariableData('marker:RPSI_x');
@@ -2662,6 +2694,35 @@ classdef WalkingDataCustodian < handle
                 end
                 stretch_directions_new = LPSI_x_directions;
             end
+            if strcmp(variable_name, 'mos_poi_x')
+                [~, LASI_x_directions] = this.getBasicVariableData('marker:LASI_x');
+                [~, RASI_x_directions] = this.getBasicVariableData('marker:RASI_x');
+                [~, LPSI_x_directions] = this.getBasicVariableData('marker:LPSI_x');
+                [~, RPSI_x_directions] = this.getBasicVariableData('marker:RPSI_x');
+                if ~strcmp(LASI_x_directions{1}, RASI_x_directions{1})
+                    error('LASI_x and RASI_x directions are different from each other')
+                end
+                if ~strcmp(LASI_x_directions{2}, RASI_x_directions{2})
+                    error('LASI_x and RASI_x directions are different from each other')
+                end
+                
+                if ~strcmp(LASI_x_directions{1}, LPSI_x_directions{1})
+                    error('LASI_x and LPSI_x directions are different from each other')
+                end
+                if ~strcmp(LASI_x_directions{2}, LPSI_x_directions{2})
+                    error('LASI_x and LPSI_x directions are different from each other')
+                end
+                
+                if ~strcmp(LASI_x_directions{1}, RPSI_x_directions{1})
+                    error('LASI_x and RPSI_x directions are different from each other')
+                end
+                if ~strcmp(LASI_x_directions{2}, RPSI_x_directions{2})
+                    error('LASI_x and RPSI_x directions are different from each other')
+                end
+                
+                stretch_directions_new = LASI_x_directions;
+            end
+            
             if strcmp(variable_name, 'mos_mpsis_y')
                 [~, LPSI_y_directions] = this.getBasicVariableData('marker:LPSI_y');
                 [~, RPSI_y_directions] = this.getBasicVariableData('marker:RPSI_y');
@@ -3345,10 +3406,15 @@ classdef WalkingDataCustodian < handle
                 stretch_directions_new = {'~'; '~'};
             end
             
+            % catch error where stretch_directions_new hasn't been set yet
+            if ~exist('stretch_directions_new', 'var')
+                error(['No directions defined for variable "' variable_name '"'])
+            end
+            
             % compare against what is already on file
             stretch_directions_on_file = this.stretch_variable_directions(this_variable_index, :);
             if strcmp(stretch_directions_on_file{1}, 'TBD') && strcmp(stretch_directions_on_file{2}, 'TBD')
-                % nothing is no file yet, so file the new information
+                % nothing is on file yet, so file the new information
                 this.stretch_variable_directions(this_variable_index, :) = stretch_directions_new;
             else
                 % check whether the new information matches up with what is on file
