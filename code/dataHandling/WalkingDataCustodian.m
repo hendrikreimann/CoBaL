@@ -250,6 +250,23 @@ classdef WalkingDataCustodian < handle
                     this.addStretchVariable('xcom_mpsis_y')
                     this.addStretchVariable('mos_mpsis_y')
                 end
+                if strcmp(this_variable_name, 'xcom_poi_x')
+                    this.addBasicVariable('marker_trajectories')
+                    this.addBasicVariable('derivative:LPSI_x_vel')
+                    this.addBasicVariable('derivative:RPSI_x_vel')
+                    this.addBasicVariable('derivative:LASI_x_vel')
+                    this.addBasicVariable('derivative:RASI_x_vel')
+                    this.addStretchVariable('xcom_poi_x')
+                end
+                if strcmp(this_variable_name, 'mos_poi_x')
+                    this.addBasicVariable('marker_trajectories')
+                    this.addBasicVariable('derivative:LPSI_x_vel')
+                    this.addBasicVariable('derivative:RPSI_x_vel')
+                    this.addBasicVariable('derivative:LASI_x_vel')
+                    this.addBasicVariable('derivative:RASI_x_vel')
+                    this.addStretchVariable('xcom_poi_x')
+                    this.addStretchVariable('mos_poi_x')
+                end
                 if strcmp(this_variable_name, 'com_rough_x')
                     this.addBasicVariable('marker_trajectories')
                     this.addStretchVariable('com_rough_x')
@@ -1186,6 +1203,102 @@ classdef WalkingDataCustodian < handle
                         % now calculate XCoM - BoS
                         xcom_mpsis_y = stretch_variables{strcmp(this.stretch_variable_names, 'xcom_mpsis_y')}(:, i_stretch);
                         stretch_data = xcom_mpsis_y - bos_y_data;
+                    end
+                    if strcmp(variable_name, 'xcom_poi_x')
+  		    	    % get midpoint pelvis position
+                        LPSI_x = this.getTimeNormalizedData('marker:LPSI_x', this_stretch_times);
+                        RPSI_x = this.getTimeNormalizedData('marker:RPSI_x', this_stretch_times);
+                        LPSI_y = this.getTimeNormalizedData('marker:LPSI_y', this_stretch_times);
+                        RPSI_y = this.getTimeNormalizedData('marker:RPSI_y', this_stretch_times);
+                        LPSI_z = this.getTimeNormalizedData('marker:LPSI_z', this_stretch_times);
+                        RPSI_z = this.getTimeNormalizedData('marker:RPSI_z', this_stretch_times);
+                        LASI_x = this.getTimeNormalizedData('marker:LASI_x', this_stretch_times);
+                        RASI_x = this.getTimeNormalizedData('marker:RASI_x', this_stretch_times);
+                        LASI_y = this.getTimeNormalizedData('marker:LASI_y', this_stretch_times);
+                        RASI_y = this.getTimeNormalizedData('marker:RASI_y', this_stretch_times);
+                        LASI_z = this.getTimeNormalizedData('marker:LASI_z', this_stretch_times);
+                        RASI_z = this.getTimeNormalizedData('marker:RASI_z', this_stretch_times);
+                        
+                        mpelvis_x = (LPSI_x + RPSI_x + LASI_x + RASI_x) * 0.25;
+                        mpelvis_y = (LPSI_y + RPSI_y + LASI_y + RASI_y) * 0.25;
+                        mpelvis_z = (LPSI_z + RPSI_z + LASI_z + RASI_z) * 0.25;
+                        
+                        % get instantaneous leg length
+                        LANK_x = this.getTimeNormalizedData('marker:LANK_x', this_stretch_times);
+                        RANK_x = this.getTimeNormalizedData('marker:RANK_x', this_stretch_times);
+                        LANK_y = this.getTimeNormalizedData('marker:LANK_y', this_stretch_times);
+                        RANK_y = this.getTimeNormalizedData('marker:RANK_y', this_stretch_times);
+                        LANK_z = this.getTimeNormalizedData('marker:LANK_z', this_stretch_times);
+                        RANK_z = this.getTimeNormalizedData('marker:RANK_z', this_stretch_times);
+                        stance_ankle_x_data = zeros(size(mpelvis_x));
+                        stance_ankle_y_data = zeros(size(mpelviss_x));
+                        stance_ankle_z_data = zeros(size(mpelvis_x));
+                        for i_band = number_of_bands : -1 : 1
+                            % going backward makes a difference for the
+                            % junction points between two steps. We want to
+                            % use data from the earlier step for BoS, so we
+                            % go backward
+                            [band_start_index, band_end_index] = getBandIndices(i_band, this.number_of_time_steps_normalized);
+                            
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_RIGHT')
+                                stance_ankle_x_data(band_start_index : band_end_index) = RANK_x(band_start_index : band_end_index);
+                                stance_ankle_y_data(band_start_index : band_end_index) = RANK_y(band_start_index : band_end_index);
+                                stance_ankle_z_data(band_start_index : band_end_index) = RANK_z(band_start_index : band_end_index);
+                            end
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_LEFT')
+                                stance_ankle_x_data(band_start_index : band_end_index) = LANK_x(band_start_index : band_end_index);
+                                stance_ankle_y_data(band_start_index : band_end_index) = LANK_y(band_start_index : band_end_index);
+                                stance_ankle_z_data(band_start_index : band_end_index) = LANK_z(band_start_index : band_end_index);
+                            end
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_BOTH')
+                                stance_ankle_x_data(band_start_index : band_end_index) = NaN;
+                                stance_ankle_y_data(band_start_index : band_end_index) = NaN;
+                                stance_ankle_z_data(band_start_index : band_end_index) = NaN;
+                            end
+                        end
+                        leg_vector_x = mpelvis_x - stance_ankle_x_data;
+                        leg_vector_y = mpelvis_y - stance_ankle_y_data;
+                        leg_vector_z = mpelvis_z - stance_ankle_z_data;
+                        leg_length_data = ((leg_vector_x.^2 + leg_vector_y.^2 + leg_vector_z.^2).^(0.5))*0.981;
+                        
+                        % calculate XCoM_poi_x
+                        LPSI_x_vel = this.getTimeNormalizedData('derivative:LPSI_x_vel', this_stretch_times);
+                        RPSI_x_vel = this.getTimeNormalizedData('derivative:RPSI_x_vel', this_stretch_times);
+                        LASI_x_vel = this.getTimeNormalizedData('derivative:LASI_x_vel', this_stretch_times);
+                        RASI_x_vel = this.getTimeNormalizedData('derivative:RASI_x_vel', this_stretch_times);
+                        mpelvis_x_vel = (LPSI_x_vel + RPSI_x_vel + LASI_x_vel + RASI_x_vel) * 0.25;
+                        omega_0 = (9.81 * leg_length_data.^(-1)).^(0.5);
+                       
+                        stretch_data = mpelvis_x + omega_0.^(-1) .* mpelvis_x_vel;
+                    end
+                    if strcmp(variable_name, 'mos_poi_x')
+                        % first calculate base of support
+                        LANK_x = this.getTimeNormalizedData('marker:LANK_x', this_stretch_times);
+                        RANK_x = this.getTimeNormalizedData('marker:RANK_x', this_stretch_times);
+                        bos_x_data = zeros(size(LANK_x));
+                        for i_band = 1 : number_of_bands
+                            [band_start_index, band_end_index] = getBandIndices(i_band, this.number_of_time_steps_normalized);
+                            
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_RIGHT')
+                                bos_x_data(band_start_index : band_end_index) = RANK_x(band_start_index : band_end_index);
+                            end
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_LEFT')
+                                bos_x_data(band_start_index : band_end_index) = LANK_x(band_start_index : band_end_index);
+                            end
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_BOTH')
+                                bos_x_data(band_start_index : band_end_index) = NaN;
+                            end
+                        end
+                        
+                        % set BoS to NaN at junction points between two steps
+                        for i_band = 2 : number_of_bands
+                            band_start_index = getBandIndices(i_band, this.number_of_time_steps_normalized);
+                            bos_x_data(band_start_index) = NaN;
+                        end
+                        
+                        % now calculate XCoM - BoS
+                        xcom_mpsis_x = stretch_variables{strcmp(this.stretch_variable_names, 'xcom_mpsis_x')}(:, i_stretch);
+                        stretch_data = xcom_mpsis_x - bos_x_data;
                     end
                     if strcmp(variable_name, 'com_rough_x')
                         % grab required marker trajectories
