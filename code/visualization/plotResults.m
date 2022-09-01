@@ -899,8 +899,10 @@ function plotData_discrete(settings, comparisons, data_custodian, figure_data)
                 origin_data = [];
                 for i_stretch = 1 : size(data_to_plot_this_condition, 2)
                     this_origin = struct;
-                    this_origin.subject = origin_subjects_this_condition{i_stretch};
-                    if ~settings.plot_settings.get('average_within_subjects', 1)
+                    if settings.plot_settings.get('average_within_subjects', 1)
+                        this_origin.subject = origin_subjects_this_condition;
+                    else
+                        this_origin.subject = origin_subjects_this_condition{i_stretch};
                         this_origin.trial = origin_trials_this_condition(i_stretch);
                         this_origin.start_time = origin_start_times_this_condition(i_stretch);
                         this_origin.end_time = origin_end_times_this_condition(i_stretch);
