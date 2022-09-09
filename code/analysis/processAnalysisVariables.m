@@ -82,8 +82,11 @@ function processAnalysisVariables(varargin)
         if strcmp(this_action, 'take extremum within whole band')
             data = calculateExtremaVariables(this_settings_table, this_settings_table_header, study_settings, data);
         end
-        if strcmp(this_action, 'take extremum over range') 
+        if strcmp(this_action, 'take extremum over range')
             data = calculateExtremaOverRangeVariables(this_settings_table, this_settings_table_header, data);
+        end
+        if strcmp(this_action, 'find extremum time over range')
+            data = calculateExtremaTimesOverRangeVariables(this_settings_table, this_settings_table_header, study_settings, data);
         end
         if strcmp(this_action, 'combine two variables')
             data = combineTwoVariables(this_settings_table, this_settings_table_header, study_settings, data);
@@ -902,6 +905,67 @@ function data = calculateExtremaOverRangeVariables(variables_from_extrema_range,
             error(['"' this_variable_extremum_type '" is not a valid type for variables_from_extrema. Acceptable types are "min" or "max".']);
         end
 
+        % store
+        new_data = struct;
+        new_data.data = extrema_data;
+        new_data.directions = new_variable_directions;
+        new_data.name = this_variable_name;
+        data = addOrReplaceResultsData(data, new_data, 'range');
+    end
+end
+
+function data = calculateExtremaTimesOverRangeVariables(variables_from_extrema_range, variables_from_extrema_range_header, study_settings, data)
+    number_of_stretches = size(data.stretch_data_session{1}, 2);
+    number_of_time_steps_normalized = study_settings.get('number_of_time_steps_normalized');
+    for i_variable = 1 : size(variables_from_extrema_range, 1)
+        % get data
+        this_variable_name = variables_from_extrema_range{i_variable, strcmp(variables_from_extrema_range_header, 'new_variable_name')};
+        this_variable_source_name = variables_from_extrema_range{i_variable, strcmp(variables_from_extrema_range_header, 'source_variable_name')};
+        this_variable_source_type = variables_from_extrema_range{i_variable, strcmp(variables_from_extrema_range_header, 'source_type')};
+        this_variable_extremum_type = variables_from_extrema_range{i_variable, strcmp(variables_from_extrema_range_header, 'extremum_type')};
+
+        % pick data depending on source specification
+        data_source = data.([this_variable_source_type '_data_session']);
+        names_source = data.([this_variable_source_type '_names_session']);
+        directions_source = data.([this_variable_source_type '_directions_session']);
+        this_variable_source_data = data_source{strcmp(names_source, this_variable_source_name)};
+        new_variable_directions = {'+', '-'};
+        
+        % get extrema indices
+        if strcmp(this_variable_extremum_type, 'min')
+            [~, extrema_indices] = min(this_variable_source_data);
+        end
+        if strcmp(this_variable_extremum_type, 'max')
+            [~, extrema_indices] = max(this_variable_source_data);
+        end
+        if ~strcmp(this_variable_extremum_type, 'min') && ~strcmp(this_variable_extremum_type, 'max')
+            error(['"' this_variable_extremum_type '" is not a valid type for variables_from_extrema. Acceptable types are "min" or "max".']);
+        end
+
+        % get times at extrema
+        extrema_data = zeros(size(extrema_indices));
+        for i_stretch = 1 : number_of_stretches
+            % recreate time vector for normalized stretch data from stretch_times
+            this_stretch_times = data.stretch_times(:, i_stretch);
+            this_stretch_time = zeros((number_of_time_steps_normalized-1) * data.bands_per_stretch + 1, 1);
+            for i_band = 1 : data.bands_per_stretch
+                % make time vector for this band
+                this_band_start_time = this_stretch_times(i_band);
+                this_band_end_time = this_stretch_times(i_band+1);
+                this_band_time = linspace(this_band_start_time, this_band_end_time, number_of_time_steps_normalized);
+                
+                % store time vector for this band at proper location
+                [start_index, end_index] = getBandIndices(i_band, number_of_time_steps_normalized);
+                this_stretch_time(start_index : end_index) = this_band_time;
+            end
+            
+            % find index for specified time point
+            specified_time_point_index = extrema_indices(i_stretch);
+            
+            % extract data
+            extrema_data(i_stretch) = this_stretch_time(specified_time_point_index);
+        end
+        
         % store
         new_data = struct;
         new_data.data = extrema_data;
