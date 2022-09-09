@@ -91,6 +91,9 @@ function processAnalysisVariables(varargin)
         if strcmp(this_action, 'combine two variables')
             data = combineTwoVariables(this_settings_table, this_settings_table_header, study_settings, data);
         end
+        if strcmp(this_action, 'take exponential of a variable')
+            data = calculateVariableExponential(this_settings_table, this_settings_table_header, study_settings, data);
+        end
         if strcmp(this_action, 'multiply two variables')
             data = multiplyTwoVariables(this_settings_table, this_settings_table_header, study_settings, data);
         end
@@ -205,8 +208,6 @@ function data = calculateStimulusResponse(response_variables, response_variables
         data = addOrReplaceResultsData(data, new_data, 'response');
     end
 end
-
-
 
 function data = calculateInversionVariables(inversion_variables, inversion_variables_header, study_settings, data, conditions)
     for i_variable = 1 : size(inversion_variables, 1)
@@ -519,7 +520,6 @@ function data = integrateOverRange(variables_to_integrate, variables_to_integrat
     end
 
 end
-
 
 function data = calculateMeanVariables(variables_mean, variables_mean_header, study_settings, data)
     step_time_index_in_saved_data = find(strcmp(data.stretch_names_session, 'step_time'), 1, 'first');
@@ -1003,7 +1003,7 @@ function data = combineTwoVariables(variable_table, table_header, study_settings
 
         % compare directions
         if ~strcmp(variable_A_directions{1}, variable_B_directions{1})
-            error ...
+            warning ...
               ( ...
                 [ ...
                   'Positive direction labels "' variable_A_directions{1} '" ' ...
@@ -1015,7 +1015,7 @@ function data = combineTwoVariables(variable_table, table_header, study_settings
               );
         end
         if ~strcmp(variable_A_directions{2}, variable_B_directions{2})
-            error ...
+            warning ...
               ( ...
                 [ ...
                   'Positive direction labels "' variable_A_directions{2} '" ' ...
@@ -1070,6 +1070,39 @@ function data = combineTwoVariables(variable_table, table_header, study_settings
             data = addOrReplaceResultsData(data, new_data, 'analysis');
         end
         
+    end
+end
+
+function data = calculateVariableExponential(variable_table, table_header, study_settings, data)
+    for i_variable = 1 : size(variable_table, 1)
+        % get data
+        this_variable_name = variable_table{i_variable, strcmp(table_header, 'new_variable_name')};
+        this_variable_source_name = variable_table{i_variable, strcmp(table_header, 'source_variable_name')};
+        this_variable_source_type = variable_table{i_variable, strcmp(table_header, 'variable_type')};
+        this_variable_power = str2double(variable_table{i_variable, strcmp(table_header, 'power')});
+        
+        % pick data depending on source specification
+        data_source = data.([this_variable_source_type '_data_session']);
+        directions_source = data.([this_variable_source_type '_directions_session']);
+        names_source = data.([this_variable_source_type '_names_session']);
+        new_variable_directions = directions_source(strcmp(names_source, this_variable_source_name), :);
+        source_variable_data = data_source{strcmp(names_source, this_variable_source_name)};
+
+        % calculate exponential
+        this_variable_data = source_variable_data.^this_variable_power;
+        
+        % store
+        new_data = struct;
+        new_data.data = this_variable_data;
+        new_data.directions = new_variable_directions;
+        new_data.name = this_variable_name;
+        
+        if strcmp(this_variable_source_type, 'range')
+            data = addOrReplaceResultsData(data, new_data, 'range');
+        else
+            data = addOrReplaceResultsData(data, new_data, 'analysis');
+        end
+
     end
 end
 
