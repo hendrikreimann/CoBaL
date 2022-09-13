@@ -578,6 +578,10 @@ function figure_data = addLabelsAndData(figure_data, comparisons, variables_to_p
                 end
             end
 
+            % prettify a bit
+            title_string = strrep(title_string, '_', ' ');
+            
+            % apply
             title(these_axes, title_string); 
             set(these_axes, 'Fontsize', 12)
             set(this_figure, 'UserData', filename_string)
@@ -1513,7 +1517,11 @@ function saveFigures(settings, figure_data)
             
             % save with labels
             filename_with = ['figures' filesep 'withLabels' filesep get(figure_data.figure_handles{i_figure}, 'UserData')];
-            print(figure_data.figure_handles{i_figure}, filename_with, settings.save_format, settings.save_resolution)
+            if strcmp(settings.save_format, '-dfig')
+                savefig(figure_data.figure_handles{i_figure}, filename_with)
+            else
+                print(figure_data.figure_handles{i_figure}, filename_with, settings.save_format, settings.save_resolution)
+            end
             
             % remove text and marks to save data lines only
             set(get(figure_data.axes_handles{i_figure}, 'xaxis'), 'visible', 'off');
@@ -1526,7 +1534,11 @@ function saveFigures(settings, figure_data)
             set(figure_data.axes_handles{i_figure}, 'position', [0 0 1 1]);
             legend(figure_data.axes_handles{i_figure}, 'hide');
             filename_without = ['figures' filesep 'noLabels' filesep get(figure_data.figure_handles{i_figure}, 'UserData')];
-            print(figure_data.figure_handles{i_figure}, filename_without, settings.save_format, settings.save_resolution)
+            if strcmp(settings.save_format, '-dfig')
+                savefig(figure_data.figure_handles{i_figure}, filename_without)
+            else
+                print(figure_data.figure_handles{i_figure}, filename_without, settings.save_format, settings.save_resolution)
+            end
             disp(['Saved as ' filename_with ' and ' filename_without])
             
             % put some marks back
