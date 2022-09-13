@@ -35,16 +35,16 @@ function [conditions_trial, event_variables_to_save, removal_flags] = determineC
 
     if strcmp(trial_data.trial_type, "STS")
         initiation_times = trial_data.loaded_events_data.event_data{strcmp(trial_data.loaded_events_data.event_labels, 'initiation')};
-        max_hip_flexion_times = trial_data.loaded_events_data.event_data{strcmp(trial_data.loaded_events_data.event_labels, 'max_hip_flexion')};
+%         max_hip_flexion_times = trial_data.loaded_events_data.event_data{strcmp(trial_data.loaded_events_data.event_labels, 'max_hip_flexion')};
         abrupt_knee_extension_times = trial_data.loaded_events_data.event_data{strcmp(trial_data.loaded_events_data.event_labels, 'abrupt_knee_extension')};
         max_ankle_dF_times = trial_data.loaded_events_data.event_data{strcmp(trial_data.loaded_events_data.event_labels, 'max_ankle_dF')};
         standing_times = trial_data.loaded_events_data.event_data{strcmp(trial_data.loaded_events_data.event_labels, 'standing')};
         end_times = trial_data.loaded_events_data.event_data{strcmp(trial_data.loaded_events_data.event_labels, 'end')};
         
         
-        stretch_times = [initiation_times(1) max_hip_flexion_times(1) abrupt_knee_extension_times(1) max_ankle_dF_times(1) standing_times(1) end_times(1)];
+        stretch_times = [initiation_times(1) abrupt_knee_extension_times(1) max_ankle_dF_times(1) standing_times(1) end_times(1)];
         % TODO: hard-coded for now, this should depend on the preferred leg or on actual data
-        stance_foot_data = {'STANCE_BOTH', 'STANCE_BOTH', 'STANCE_BOTH', 'STANCE_BOTH', 'STANCE_BOTH'};
+        stance_foot_data = {'STANCE_BOTH', 'STANCE_BOTH', 'STANCE_BOTH', 'STANCE_BOTH'};
         removal_flags = 0;
     end
 
