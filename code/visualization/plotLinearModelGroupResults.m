@@ -60,15 +60,7 @@ function plotLinearModelGroupResults(varargin)
         for i_comparison = 1 : comparisons.number_of_comparisons
             createComparisonFigure(this_model_data, comparisons, i_comparison, linear_model_settings, study_settings, arguments);
         end
-            
-        
-        
-        
-        
-        
-        
     end
-
 end
 
 function index = findModelIndex(model_data, requested_label)
@@ -129,7 +121,6 @@ function condition_data = extractConditionData(model_data, condition_labels)
     end
 
 end
-
 
 function createComparisonFigure(model_data, comparisons, comparison_to_show, linear_model_settings, study_settings, arguments)
     % get model info from settings
