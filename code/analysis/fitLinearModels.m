@@ -23,7 +23,7 @@ function [linear_model_results, linear_model_results_header] = fitLinearModels(d
     number_of_condition_combinations = size(condition_combinations_unique, 1);
     
     % analyze
-    linear_model_results_header = {'results', 'outcome_variable', 'predictor_variables'};
+    linear_model_results_header = {'results', 'outcome_variable', 'predictor_variables', 'label'};
     linear_model_results = cell(number_of_models, 3);
     for i_model = 1 : number_of_models
         predictor_variable_list_name = model_table.predictor_variable_list{i_model};
@@ -53,6 +53,7 @@ function [linear_model_results, linear_model_results_header] = fitLinearModels(d
         outcome_variable_name = model_table.outcome_variable_name{i_model};
         outcome_variable_data = data.variable_data{strcmp(data.variable_names, outcome_variable_name)};
         outcome_variable_directions = data.variable_directions(strcmp(data.variable_names, outcome_variable_name), :);
+        label_this_model = model_table.label{i_model};
         
         % make containers for results
         results_this_model = struct;
@@ -146,6 +147,7 @@ function [linear_model_results, linear_model_results_header] = fitLinearModels(d
         linear_model_results{i_model, 1} = results_this_model;
         linear_model_results{i_model, 2} = outcome_variable_name;
         linear_model_results{i_model, 3} = predictor_variable_list;
+        linear_model_results{i_model, 4} = label_this_model;
         disp(['Fitting model ' num2str(i_model) ' of ' num2str(number_of_models) ', predictors: ' predictor_variable_list_name ', outcome: ' outcome_variable_name])
         
     end
