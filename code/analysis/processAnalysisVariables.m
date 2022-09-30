@@ -97,6 +97,9 @@ function processAnalysisVariables(varargin)
         if strcmp(this_action, 'multiply two variables')
             data = multiplyTwoVariables(this_settings_table, this_settings_table_header, study_settings, data);
         end
+        if strcmp(this_action, 'band to range variable')
+            data = bandToRangeVariable(this_settings_table, this_settings_table_header, study_settings, data);
+        end
         
         
         
@@ -1105,6 +1108,37 @@ function data = calculateVariableExponential(variable_table, table_header, study
 
     end
 end
+
+function data = bandToRangeVariable(variable_table, table_header, study_settings, data)
+    for i_variable = 1 : size(variable_table, 1)
+        % get data
+        this_variable_name = variable_table{i_variable, strcmp(table_header, 'new_variable_name')};
+        this_variable_source_name = variable_table{i_variable, strcmp(table_header, 'source_variable_name')};
+        this_variable_source_type = variable_table{i_variable, strcmp(table_header, 'source_type')};
+        this_variable_source_band = str2double(variable_table{i_variable, strcmp(table_header, 'source_band')});
+        
+                
+        
+        % pick data depending on source specification
+        data_source = data.([this_variable_source_type '_data_session']);
+        directions_source = data.([this_variable_source_type '_directions_session']);
+        names_source = data.([this_variable_source_type '_names_session']);
+        new_variable_directions = directions_source(strcmp(names_source, this_variable_source_name), :);
+        source_variable_data = data_source{strcmp(names_source, this_variable_source_name)};
+
+        % extract band
+        this_variable_data = source_variable_data(this_variable_source_band, :);
+        
+        % store
+        new_data = struct;
+        new_data.data = this_variable_data;
+        new_data.directions = new_variable_directions;
+        new_data.name = this_variable_name;
+        
+        data = addOrReplaceResultsData(data, new_data, 'range');
+    end
+end
+
 
 function data = multiplyTwoVariables(variable_table, table_header, study_settings, data)
     for i_variable = 1 : size(variable_table, 1)
