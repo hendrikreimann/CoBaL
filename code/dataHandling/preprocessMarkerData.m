@@ -49,6 +49,10 @@ function preprocessMarkerData(varargin)
     i_time = 1;
     while any(isnan(marker_reference_trajectories(i_time, :)))
         i_time = i_time + 1;
+        
+        if i_time > size(marker_reference_trajectories, 1)
+            error('Did not find data sample without NaN in reference trajectories. Please check data.')
+        end
     end
     marker_reference = marker_reference_trajectories(i_time, :);
 
