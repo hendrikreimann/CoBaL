@@ -189,7 +189,11 @@ function createComparisonFigure(model_data, comparisons, comparison_to_show, rel
     % create figure for detailed data
     if linear_model_settings.get('show_details', 1) && model_data.predictor_variable_data_points_per_stretch == 1
         details_figure = figure('SizeChangedFcn', @sizeChanged, 'visible', 'off');
-        this_layout = tiledlayout(ceil(number_of_predictors/2), 2);
+        if number_of_predictors == 1
+            this_layout = tiledlayout(1, 1);
+        else
+            this_layout = tiledlayout(ceil(number_of_predictors/2), 2);
+        end
         
         predictor_directions = model_data.directions.predictor;
         outcome_directions = model_data.directions.outcome;

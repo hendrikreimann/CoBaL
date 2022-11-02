@@ -17,12 +17,12 @@
 % this script renames files according to the CoBaL file naming scheme
 % it will go through all files in the current folder and replace part of
 % the name with string specified in "new_code"
-target_folder = 'labview';
+target_folder = 'results';
 
 % 1 = date, 2 = subjectID, 3 = trial type, 4 = trial number, 5 = data type
-spot_to_replace = 2;
-code_to_replace = 'GSM01P';
-new_code = 'GMS01P';
+spot_to_replace = 3;
+code_to_replace = 'linearModelVariables';
+new_code = 'linearModelVariables_old';
 
 % find files
 clear file_name_list;
