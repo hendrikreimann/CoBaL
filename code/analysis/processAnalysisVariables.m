@@ -85,6 +85,9 @@ function processAnalysisVariables(varargin)
         if strcmp(this_action, 'take extremum over range') 
             data = calculateExtremaOverRangeVariables(this_settings_table, this_settings_table_header, data);
         end
+        if strcmp(this_action, 'average across range') 
+            data = calculateAverageAcrossRangeVariables(this_settings_table, this_settings_table_header, data);
+        end
         if strcmp(this_action, 'combine two variables')
             data = combineTwoVariables(this_settings_table, this_settings_table_header, study_settings, data);
         end
@@ -910,6 +913,33 @@ function data = calculateExtremaOverRangeVariables(variables_from_extrema_range,
         data = addOrReplaceResultsData(data, new_data, 'range');
     end
 end
+
+
+function data = calculateAverageAcrossRangeVariables(variables_from_average_across_range, variables_from_average_across_range_header, data)
+    for i_variable = 1 : size(variables_from_average_across_range, 1)
+        % get data
+        this_variable_name = variables_from_average_across_range{i_variable, strcmp(variables_from_average_across_range_header, 'new_variable_name')};
+        this_variable_source_name = variables_from_average_across_range{i_variable, strcmp(variables_from_average_across_range_header, 'source_variable_name')};
+        this_variable_source_type = variables_from_average_across_range{i_variable, strcmp(variables_from_average_across_range_header, 'source_type')};
+
+        % pick data depending on source specification
+        data_source = data.([this_variable_source_type '_data_session']);
+        names_source = data.([this_variable_source_type '_names_session']);
+        directions_source = data.([this_variable_source_type '_directions_session']);
+        this_variable_source_data = data_source{strcmp(names_source, this_variable_source_name)};
+        new_variable_directions = directions_source(strcmp(names_source, this_variable_source_name), :);
+        
+        mean_data = mean(this_variable_source_data);
+
+        % store
+        new_data = struct;
+        new_data.data = mean_data;
+        new_data.directions = new_variable_directions;
+        new_data.name = this_variable_name;
+        data = addOrReplaceResultsData(data, new_data, 'range');
+    end
+end
+
 
 function data = combineTwoVariables(variable_table, table_header, study_settings, data)
     for i_variable = 1 : size(variable_table, 1)
