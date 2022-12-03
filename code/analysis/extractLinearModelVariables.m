@@ -57,7 +57,10 @@ function extractLinearModelVariables(varargin)
         variable_data_all = variable_data_source{strcmp(variable_names_source, source_variable_name)};
         
         % get data from specified band
-        if size(variable_data_all, 1) == data.bands_per_stretch
+        if strcmp(source_variable_type, 'range')
+            % this is already a range variable, no need to pick a band
+            this_variable_data = variable_data_all;
+        elseif size(variable_data_all, 1) == data.bands_per_stretch
             % this is a discrete variable, take the one data point at the specified band
             this_variable_data = variable_data_all(source_band, :);
         else
