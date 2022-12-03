@@ -21,10 +21,22 @@ function [linear_model_results, linear_model_results_header] = fitLinearModels(d
     number_of_models = height(model_table);
     [condition_combinations_unique, condition_indicators] = getUniqueConditionInformation(condition_data_all, condition_labels);
     number_of_condition_combinations = size(condition_combinations_unique, 1);
+    covariate_list = linear_model_settings.get('covariate_list', 1);
+    number_of_covariate_variables = length(covariate_list);
+    
+    % get covariates
+    covariate_variable_names = covariate_list;
+    covariate_variable_data = cell(number_of_covariate_variables, 1);
+    covariate_variable_directions = cell(number_of_covariate_variables, 2);
+    for i_covariate = 1 : number_of_covariate_variables
+        this_covariate_variable_name = covariate_list{i_covariate};
+        covariate_variable_data{i_covariate} = data.variable_data{strcmp(data.variable_names, this_covariate_variable_name)};
+        covariate_variable_directions(i_covariate, :) = data.variable_directions(strcmp(data.variable_names, this_covariate_variable_name), :);
+    end
     
     % analyze
-    linear_model_results_header = {'results', 'outcome_variable', 'predictor_variables', 'label'};
-    linear_model_results = cell(number_of_models, 3);
+    linear_model_results_header = {'results', 'outcome_variable', 'predictor_variables', 'label', 'covariate_variables'};
+    linear_model_results = cell(number_of_models, 5);
     for i_model = 1 : number_of_models
         predictor_variable_list_name = model_table.predictor_variable_list{i_model};
         
@@ -60,14 +72,18 @@ function [linear_model_results, linear_model_results_header] = fitLinearModels(d
         results_this_model.names.predictors_label = predictor_variable_list_name;
         results_this_model.names.predictors = predictor_variable_list;
         results_this_model.names.outcome = outcome_variable_name;
+        results_this_model.names.covariates = covariate_variable_names;
         results_this_model.data.predictors = cell(number_of_condition_combinations, number_of_predictor_variables);
         results_this_model.data.outcome = cell(number_of_condition_combinations, 1);
+        results_this_model.data.covariates = cell(number_of_condition_combinations, number_of_covariate_variables);
         results_this_model.directions.predictor = predictor_variable_directions;
         results_this_model.directions.outcome = outcome_variable_directions;
+        results_this_model.directions.covariate = covariate_variable_directions;
         results_this_model.R_square = cell(number_of_condition_combinations, 1);
         results_this_model.slope = cell(number_of_condition_combinations, 1);
         results_this_model.predictor_offsets = cell(number_of_condition_combinations, 1);
         results_this_model.outcome_offsets = cell(number_of_condition_combinations, 1);
+        results_this_model.covariate_means = cell(number_of_condition_combinations, 1);
         results_this_model.row_info = condition_combinations_unique;
         results_this_model.row_info_headers = condition_labels;
         results_this_model.predictor_variable_data_points_per_stretch = predictor_variable_data_points_per_stretch;
@@ -81,19 +97,8 @@ function [linear_model_results, linear_model_results_header] = fitLinearModels(d
             predictor_variable_data_this_condition = cell(number_of_predictor_variables, 1);
             for i_variable = 1 : number_of_predictor_variables
                 this_variable_data_this_condition = predictor_variable_data{i_variable}(:, this_condition_indicator);
-                % subtract mean
-%                 this_variable_data_this_condition_mean_free = zeros(size(this_variable_data_this_condition));
-%                 for i_time = 1 : predictor_variable_data_points_per_stretch
-%                     data_this_time_point = this_variable_data_this_condition(i_time, :);
-%                     data_this_time_point_mean_free = data_this_time_point - mean(data_this_time_point);
-%                     this_variable_data_this_condition_mean_free(i_time, :) = data_this_time_point_mean_free;
-%                 end
-%                 predictor_variable_data_this_condition{i_variable} = this_variable_data_this_condition_mean_free;
-                
-                % don't subtract mean
                 predictor_variable_data_this_condition{i_variable} = this_variable_data_this_condition;
             end
-%             outcome_variable_data_this_condition = outcome_variable_data(:, this_condition_indicator) - mean(outcome_variable_data(:, this_condition_indicator));
             outcome_variable_data_this_condition = outcome_variable_data(:, this_condition_indicator);
         
             % create containers
@@ -135,28 +140,35 @@ function [linear_model_results, linear_model_results_header] = fitLinearModels(d
                 end
             end
             
+            % calculate covariate means
+            covariate_variable_data_this_condition = cell(number_of_covariate_variables, 1);
+            covariate_variable_means_table_here = zeros(1, number_of_covariate_variables);
+            for i_variable = 1 : number_of_covariate_variables
+                this_variable_data_this_condition = covariate_variable_data{i_variable}(:, this_condition_indicator);
+                covariate_variable_data_this_condition{i_variable} = this_variable_data_this_condition;
+                covariate_variable_means_table_here(i_variable) = mean(this_variable_data_this_condition);
+            end
+            
             % store
             results_this_model.data.predictors(i_condition, :) = predictor_variable_data_this_condition;
-            results_this_model.data.predictors(i_condition, :) = predictor_variable_data_this_condition;
             results_this_model.data.outcome{i_condition} = outcome_variable_data_this_condition;
+            results_this_model.data.covariates(i_condition, :) = covariate_variable_data_this_condition;
             results_this_model.R_square{i_condition} = R_square_table_here;
             results_this_model.slope{i_condition} = slope_table_here;
             results_this_model.predictor_offsets{i_condition} = predictor_offset_table_here;
             results_this_model.outcome_offsets{i_condition} = outcome_offset_table_here;
+            results_this_model.covariate_means{i_condition} = covariate_variable_means_table_here;
         end
         linear_model_results{i_model, 1} = results_this_model;
         linear_model_results{i_model, 2} = outcome_variable_name;
         linear_model_results{i_model, 3} = predictor_variable_list;
         linear_model_results{i_model, 4} = label_this_model;
+        linear_model_results{i_model, 5} = covariate_variable_names;
         disp(['Fitting model ' num2str(i_model) ' of ' num2str(number_of_models) ', predictors: ' predictor_variable_list_name ', outcome: ' outcome_variable_name])
         
     end
 
 
-
-end
-
-function predictor_variable_list = getPredictorVariableList(predictor_variable_list_name)
 
 end
 

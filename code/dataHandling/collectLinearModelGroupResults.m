@@ -23,9 +23,7 @@ function collectLinearModelGroupResults(varargin)
     arguments.subjects = parser.Results.subjects;
 
     % load settings
-    study_settings = loadSettingsFromFile('study');
     linear_model_settings = loadSettingsFromFile('linearModel');
-%     condition_to_compare = linear_model_settings.get('condition_to_compare');
     
     % define subjects
     [data_folder_list, subjects] = determineDataStructure(arguments.subjects);
@@ -48,8 +46,6 @@ function collectLinearModelGroupResults(varargin)
     
     % process
     number_of_models = size(model_list, 1);
-%     model_results_header = {'label', 'type', 'results'};
-%     model_results = cell(number_of_models, 3);
     model_results = [];
     for i_model = 1 : number_of_models
         this_model = model_list(i_model, :);
@@ -102,39 +98,8 @@ function index = findModelIndex(data, model)
     index = strcmp(data.linear_model_results(:, label_column), this_model_label);
 
     if all(index==0)
-        error(['Model not available'])
+        error('Model not available')
     end
-    
-% below is old code from before using a label for each model
-%     % extract info
-%     requested_outcome_variable = model.outcome_variable_name{1};
-%     requested_predictor_variable_list_name = model.predictor_variable_list{1};
-%     
-%     % get list of predictor variables
-%     requested_predictor_variable_list = settings.get(requested_predictor_variable_list_name, 1);
-%     if isempty(requested_predictor_variable_list)
-%         % failed to load list from settings, assume this is already a variable name
-%         requested_predictor_variable_list = {requested_predictor_variable_list_name};
-%     end
-% 
-%     predictor_column = strcmp(data.linear_model_results_header, 'predictor_variables');
-%     outcome_column = strcmp(data.linear_model_results_header, 'outcome_variable');
-%     
-%     % loop through models to find the requested one
-%     index = 0;
-%     for i_model = 1 : size(data.linear_model_results, 1)
-%         this_model_outcome_variable = data.linear_model_results{i_model, outcome_column};
-%         this_model_predictor_variables = data.linear_model_results{i_model, predictor_column};
-%         
-%         if isequal(this_model_outcome_variable, requested_outcome_variable) ...
-%             && isequal(this_model_predictor_variables, requested_predictor_variable_list)
-%             index = i_model;
-%         end
-%     end
-%     
-%     if index == 0
-%         error(['Model not available'])
-%     end
 end
 
 function data_table = buildDataTableForThisSubject(model_data, model_label)
@@ -149,7 +114,6 @@ function data_table = buildDataTableForThisSubject(model_data, model_label)
     
     % add slope columns
     slope_data = model_data.slope;
-    outcome_name = model_data.names.outcome;
     predictor_names = model_data.names.predictors;
     number_of_data_points = length(slope_data);
     for i_predictor = 1 : length(predictor_names)
@@ -158,12 +122,23 @@ function data_table = buildDataTableForThisSubject(model_data, model_label)
         for i_data_point = 1 : number_of_data_points
             this_predictor_slope_data(i_data_point) = slope_data{i_data_point}(:, i_predictor);
         end
-        
-%         this_predictor_header = ['d_' outcome_name '_by_d_' predictor_names{i_predictor}];
-        
         this_predictor_header = [model_label '_slope_' num2str(i_predictor)];
         
         data_table = addvars(data_table, this_predictor_slope_data, 'NewVariableNames', this_predictor_header);
+    end
+    
+    % add covariate columns
+    covariate_data = model_data.covariate_means;
+    covariate_names = model_data.names.covariates;
+    for i_covariate = 1 : length(covariate_names)
+        % extract data
+        this_covariate_slope_data = zeros(number_of_data_points, 1);
+        for i_data_point = 1 : number_of_data_points
+            this_covariate_slope_data(i_data_point) = covariate_data{i_data_point}(:, i_covariate);
+        end
+        this_covariate_header = covariate_names{i_covariate};
+        
+        data_table = addvars(data_table, this_covariate_slope_data, 'NewVariableNames', this_covariate_header);
     end
 end
 
