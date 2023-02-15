@@ -18,11 +18,9 @@ function plotLinearModelGroupResults(varargin)
     % parse input parameters
     parser = inputParser;
     parser.KeepUnmatched = true;
-    addParameter(parser, 'separate_figures', false)
     addParameter(parser, 'show_legend', true)
     addParameter(parser, 'save', false)
     parse(parser, varargin{:})
-    arguments.separate_figures = parser.Results.separate_figures;
     arguments.show_legend = parser.Results.show_legend;
     arguments.save_results = parser.Results.save;
 
@@ -30,6 +28,7 @@ function plotLinearModelGroupResults(varargin)
     study_settings = loadSettingsFromFile('study');
     linear_model_settings = loadSettingsFromFile('linearModel');
     condition_to_compare = linear_model_settings.get('condition_to_compare');
+    arguments.separate_figures = linear_model_settings.get('separate_figures');
     
     % load data
     model_data_filename = ['groupResults' filesep 'linearModelResults.mat'];
@@ -158,58 +157,86 @@ function createComparisonFigure(model_data, comparisons, comparison_to_show, lin
     number_of_conditions_in_this_comparison = length(comparison_indices);
     
     % prepare figures
-    title_label = ['Outcome: ' outcome_label ' - ' comparison_label];
-    file_label = [outcome_label '_VS_' predictors_label '_' comparison_label];
     slope_axes = cell(number_of_predictors, 1);
+    variance_axes = cell(3, 1);
     
     % create figure and axes
     if arguments.separate_figures
-        figures = cell(number_of_predictors+1, 1);
+        title_label = comparison_label;
+        slope_figures = cell(number_of_predictors, 1);
+        slope_figure_file_names = cell(number_of_predictors, 1);
+        variance_figures = cell(3, 1);
+        variance_figure_file_names = cell(3, 1);
         x_label = comparisons.condition_to_compare;
         file_labels = cell(size(predictors_list));
+        if isempty(comparison_label)
+            this_file_suffix = [];
+        else
+            this_file_suffix = ['-' strrep(comparison_label, ', ', '_')];
+        end
     
         % create slope figures
         for i_predictor = 1 : number_of_predictors
-            figures{i_predictor} = figure;
+            slope_figures{i_predictor} = figure;
+            slope_figure_file_names{i_predictor} = [model_label '_slope_' num2str(i_predictor) this_file_suffix];
             slope_axes{i_predictor} = axes;
             set(slope_axes{i_predictor}, 'fontsize', 12);
             set(slope_axes{i_predictor}, 'XTickLabel', {}, 'xtick', [])
             xlabel(x_label);
-            ylabel('slope');
+            this_predictor_label = predictors_list{i_predictor};
+            this_slope_label = {['\partial[' strrep(outcome_label, '_', ' ') ']'], ['\partial' '[' strrep(this_predictor_label, '_', ' ') ']']};
+            ylabel(this_slope_label);
             hold on;
-            title([strrep(predictors_list{i_predictor}, '_', ' ') ' - ' comparison_label])
+            title(title_label)
             this_file_label = [outcome_label '_VS_' predictors_list{i_predictor} '_' comparison_label];
             file_labels{i_predictor} = this_file_label;
             set(slope_axes{i_predictor}, 'XTickLabel', {}, 'xtick', []);
         end
 
         % create R^2 figure
-        figures{number_of_predictors+1} = figure;
-        r_square_axes = axes;
-        r_square_file_label = [outcome_label '_slope_' comparison_label];
-        set(r_square_axes, 'fontsize', 12);
+        variance_figures{1} = figure;
+        variance_figure_file_names{1} = [model_label '_rsquare' this_file_suffix];
+        variance_axes{1} = axes;
+        set(variance_axes{1}, 'fontsize', 12);
         hold on;
-        ylabel('R^2');
+        ylabel([strrep(model_label, '_', ' ') ': R^2']);
         ylim([0 1]);
+        xlabel(variance_axes{1}, x_label);
+        title(variance_axes{1}, strrep(title_label, '_', ' '));
+        set(variance_axes{1}, 'XTickLabel', {}, 'xtick', []);
 
-        linestyle = 'none';
-        linewidth = 1;
-        marker = 's';
-        marker_size = 15;
-        set(r_square_axes, 'XTickLabel', {}, 'xtick', []);
+        % create ss_difference figure
+        variance_figures{2} = figure;
+        variance_figure_file_names{2} = [model_label '_SSdiff' this_file_suffix];
+        variance_axes{2} = axes;
+        set(variance_axes{2}, 'fontsize', 12);
+        hold on;
+        ylabel([strrep(model_label, '_', ' ') ': SS_{total} - SS_{residual}']);
+        xlabel(variance_axes{2}, x_label);
+        title(variance_axes{2}, strrep(title_label, '_', ' '));
+        set(variance_axes{2}, 'XTickLabel', {}, 'xtick', []);
 
-        % add labels
-        xlabel(r_square_axes, x_label);
-        title(r_square_axes, strrep(title_label, '_', ' '));
+        % create ss_residual figure
+        variance_figures{3} = figure;
+        variance_figure_file_names{3} = [model_label '_SSres' this_file_suffix];
+        variance_axes{3} = axes;
+        set(variance_axes{3}, 'fontsize', 12);
+        hold on;
+        ylabel([strrep(model_label, '_', ' ') ': SS_{residual}']);
+        xlabel(variance_axes{3}, x_label);
+        title(variance_axes{3}, strrep(title_label, '_', ' '));
+        set(variance_axes{3}, 'XTickLabel', {}, 'xtick', []);
 
-%         uicontrol('style', 'text', 'string', title_label, 'units', 'normalized', 'position', [0, 0.95, 1, 0.05], 'fontsize', 16, 'FontWeight', 'bold');        
-        
     else
+        title_label = ['Outcome: ' outcome_label ' - ' comparison_label];
+        file_label = [outcome_label '_VS_' predictors_label '_' comparison_label];
+        
+        % slope
         figure;
-        tiledlayout(number_of_predictors + 1, 1);
+        tiledlayout(number_of_predictors, 1);
 
         for i_predictor = 1 : number_of_predictors
-            slope_axes{i_predictor} = nexttile; %#ok<AGROW>
+            slope_axes{i_predictor} = nexttile;
             set(slope_axes{i_predictor}, 'fontsize', 12);
             set(slope_axes{i_predictor}, 'xtick', [])
             ylabel('slope');
@@ -217,12 +244,26 @@ function createComparisonFigure(model_data, comparisons, comparison_to_show, lin
             title(strrep(predictors_list{i_predictor}, '_', ' '), 'Units', 'normalized', 'Position', [0.5, 0.9, 0])
             set(slope_axes{i_predictor}, 'XTickLabel', {}, 'xtick', []);
         end
+        uicontrol('style', 'text', 'string', title_label, 'units', 'normalized', 'position', [0, 0.95, 1, 0.05], 'fontsize', 16, 'FontWeight', 'bold');
 
+        % variance
+        figure;
+        tiledlayout(3, 1);
         r_square_axes = nexttile;
         set(r_square_axes, 'fontsize', 12);
         hold on;
         ylabel('R^2');
         ylim([0 1]);
+        
+        ss_difference_axes = nexttile;
+        set(ss_difference_axes, 'fontsize', 12);
+        hold on;
+        ylabel('SS_{tot} - SS_{res}');
+
+        ss_residual_axes = nexttile;
+        set(ss_residual_axes, 'fontsize', 12);
+        hold on;
+        ylabel('SS_{res}');
 
         % define parameters depending on model type, discrete vs. continuous predictor
         if strcmp(model_data.type, 'discrete')
@@ -270,14 +311,24 @@ function createComparisonFigure(model_data, comparisons, comparison_to_show, lin
                 slope_axes{i_predictor}.XTick = [slope_axes{i_predictor}.XTick, i_condition];
                 slope_axes{i_predictor}.XTickLabel = [slope_axes{i_predictor}.XTickLabel; this_condition_label];
             end
-            r_square_axes.XTick = [r_square_axes.XTick, i_condition];
-            r_square_axes.XTickLabel = [r_square_axes.XTickLabel; this_condition_label];
+            for i_variance = 1 : 3
+                variance_axes{i_variance}.XTick = [variance_axes{i_variance}.XTick, i_condition];
+                variance_axes{i_variance}.XTickLabel = [variance_axes{i_variance}.XTickLabel; this_condition_label];
+            end
         elseif strcmp(model_data.type, 'continuous')
             abscissa_data = (1 : number_of_time_points_per_stretch) - 1;
         end
         r_square_column = strcmp(header, 'R_square');
         r_square_data_this_condition_cell = data(this_condition_indicator, r_square_column);
         r_square_data_here = cell2mat(r_square_data_this_condition_cell');
+        
+        ss_difference_column = strcmp(header, 'SS_difference');
+        ss_difference_data_this_condition_cell = data(this_condition_indicator, ss_difference_column);
+        ss_difference_data_here = cell2mat(ss_difference_data_this_condition_cell');
+        
+        ss_residual_column = strcmp(header, 'SS_residual');
+        ss_residual_data_this_condition_cell = data(this_condition_indicator, ss_residual_column);
+        ss_residual_data_here = cell2mat(ss_residual_data_this_condition_cell');
         
         % get slope data
         slope_data_this_condition = cell(size(predictors_list));
@@ -289,37 +340,16 @@ function createComparisonFigure(model_data, comparisons, comparison_to_show, lin
             this_predictor_this_condition_slope_data_cell = data(this_condition_indicator, this_predictor_slope_column);
             this_predictor_this_condition_slope_data = cell2mat(this_predictor_this_condition_slope_data_cell');
             slope_data_this_condition{i_predictor} = this_predictor_this_condition_slope_data;
+            
+            % get subject data, for debugging
+            subjects_here = data(this_condition_indicator, strcmp(header, 'subject'));
         end        
         
-        
-        %         slope_data_here = model_data.slope{this_condition_indicator};
-% this_predictor_header = ['d_' outcome_name '_by_d_' predictor_names{i_predictor}];
-
         this_condition = comparisons.condition_combinations(this_condition_index, :);
         this_label = this_condition{strcmp(comparisons.condition_combination_labels, comparisons.condition_to_compare)};
         this_color = comparisons.condition_colors{strcmp(comparisons.condition_colors(:, 1), this_label), 2};
         
         if strcmp(model_data.type, 'discrete')
-            % plot R^2 data
-            singleBoxPlot ...
-              ( ...
-                r_square_data_here, ...
-                'axes', r_square_axes, ...
-                'abscissa', abscissa_data, ...
-                'width', 0.4, ...
-                'FaceColor', lightenColor(this_color, 0.8), ...
-                'EdgeColor', this_color, ...
-                'ShowData', true, ...
-                'MarkerColor', lightenColor(this_color, 0.5), ...
-                'MedianColor', this_color, ...
-                'MeanColor', this_color, ...
-                'WiskColor', this_color, ...
-                'ShowOutliers', false, ...
-                'PlotMean', true, ...
-                'PlotMedian', true, ...
-                'DataMarkerSize', 18 ...
-              )
-
             % plot slope data
             for i_predictor = 1 : length(predictors_list)
                 slope_data_here = slope_data_this_condition{i_predictor};
@@ -343,6 +373,66 @@ function createComparisonFigure(model_data, comparisons, comparison_to_show, lin
                    'DataMarkerSize', 18 ...
                  )             
             end
+            
+            % plot R^2 data
+            singleBoxPlot ...
+              ( ...
+                r_square_data_here, ...
+                'axes', variance_axes{1}, ...
+                'abscissa', abscissa_data, ...
+                'width', 0.4, ...
+                'FaceColor', lightenColor(this_color, 0.8), ...
+                'EdgeColor', this_color, ...
+                'ShowData', true, ...
+                'MarkerColor', lightenColor(this_color, 0.5), ...
+                'MedianColor', this_color, ...
+                'MeanColor', this_color, ...
+                'WiskColor', this_color, ...
+                'ShowOutliers', false, ...
+                'PlotMean', true, ...
+                'PlotMedian', true, ...
+                'DataMarkerSize', 18 ...
+              )
+            % plot ss_difference data
+            singleBoxPlot ...
+              ( ...
+                ss_difference_data_here, ...
+                'axes', variance_axes{2}, ...
+                'abscissa', abscissa_data, ...
+                'width', 0.4, ...
+                'FaceColor', lightenColor(this_color, 0.8), ...
+                'EdgeColor', this_color, ...
+                'ShowData', true, ...
+                'MarkerColor', lightenColor(this_color, 0.5), ...
+                'MedianColor', this_color, ...
+                'MeanColor', this_color, ...
+                'WiskColor', this_color, ...
+                'ShowOutliers', false, ...
+                'PlotMean', true, ...
+                'PlotMedian', true, ...
+                'DataMarkerSize', 18 ...
+              )
+            % plot ss_residual data
+            singleBoxPlot ...
+              ( ...
+                ss_residual_data_here, ...
+                'axes', variance_axes{3}, ...
+                'abscissa', abscissa_data, ...
+                'width', 0.4, ...
+                'FaceColor', lightenColor(this_color, 0.8), ...
+                'EdgeColor', this_color, ...
+                'ShowData', true, ...
+                'MarkerColor', lightenColor(this_color, 0.5), ...
+                'MedianColor', this_color, ...
+                'MeanColor', this_color, ...
+                'WiskColor', this_color, ...
+                'ShowOutliers', false, ...
+                'PlotMean', true, ...
+                'PlotMedian', true, ...
+                'DataMarkerSize', 18 ...
+              )
+
+            
         elseif strcmp(model_data.type, 'continuous')
             plot ...
               ( ...
@@ -373,14 +463,19 @@ function createComparisonFigure(model_data, comparisons, comparison_to_show, lin
         end
     end
 
-    % adjust x-limits
+    % adjust axis-limits
 %     if model_data.predictor_variable_data_points_per_stretch == 1
-        xlimits = [r_square_axes.XTick(1)-0.5, r_square_axes.XTick(end)+0.5];
-        set(r_square_axes, 'xlim', xlimits);
+        xlimits = [variance_axes{1}.XTick(1)-0.5, variance_axes{1}.XTick(end)+0.5];
+        set(variance_axes{1}, 'xlim', xlimits);
         for i_predictor = 1 : number_of_predictors
             set(slope_axes{i_predictor}, 'xlim', xlimits);
         end
 %     end
+    ylimits_SS_difference = get(variance_axes{2}, 'ylim');
+    ylimits_SS_residual = get(variance_axes{3}, 'ylim');
+    ylimits_new = [min([ylimits_SS_difference(1) ylimits_SS_residual(1)]) max([ylimits_SS_difference(2) ylimits_SS_residual(2)])];
+    set(variance_axes{2}, 'ylim', ylimits_new);
+    set(variance_axes{3}, 'ylim', ylimits_new);
     
     % plot zero line
     if linear_model_settings.get('plot_zero', 1)
@@ -397,12 +492,19 @@ function createComparisonFigure(model_data, comparisons, comparison_to_show, lin
         if ~directoryExists('figures')
             mkdir figures
         end
+        if ~directoryExists(['figures' filesep 'noLabels'])
+            mkdir(['figures' filesep 'noLabels'])
+        end
+        if ~directoryExists(['figures' filesep 'withLabels'])
+            mkdir(['figures' filesep 'withLabels'])
+        end
+        
         
         if arguments.separate_figures
             for i_predictor = 1 : number_of_predictors
-                this_figure = figures{i_predictor};
+                this_figure = slope_figures{i_predictor};
                 these_axes = slope_axes{i_predictor};
-                this_filename_with = ['figures' filesep 'withLabels' filesep file_labels{i_predictor} '.jpg'];
+                this_filename_with = ['figures' filesep 'withLabels' filesep slope_figure_file_names{i_predictor} '.jpg'];
                 print(this_figure, this_filename_with, '-r300', '-djpeg')
 
                 set(get(these_axes, 'xaxis'), 'visible', 'off');
@@ -414,26 +516,30 @@ function createComparisonFigure(model_data, comparisons, comparison_to_show, lin
                 set(these_axes, 'yticklabel', '');
                 set(these_axes, 'position', [0 0 1 1]);
 
-                filename_without = ['figures' filesep 'noLabels' filesep file_labels{i_predictor} '.jpg'];
-                print(figures{i_predictor}, filename_without, '-r300', '-djpeg')
+                filename_without = ['figures' filesep 'noLabels' filesep slope_figure_file_names{i_predictor} '.jpg'];
+                print(this_figure, filename_without, '-r300', '-djpeg')
+                close(this_figure);
             end
 
-            this_figure = figures{number_of_predictors+1};
-            these_axes = r_square_axes;
-            this_filename_with = ['figures' filesep 'withLabels' filesep r_square_file_label '.jpg'];
-            print(this_figure, this_filename_with, '-r300', '-djpeg')
+            for i_figure = 1 : 3
+                this_figure = variance_figures{i_figure};
+                these_axes = variance_axes{i_figure};
+                this_filename_with = ['figures' filesep 'withLabels' filesep variance_figure_file_names{i_figure} '.jpg'];
+                print(this_figure, this_filename_with, '-r300', '-djpeg')
 
-            set(get(these_axes, 'xaxis'), 'visible', 'off');
-            set(get(these_axes, 'yaxis'), 'visible', 'off');
-            set(get(these_axes, 'xlabel'), 'visible', 'off');
-            set(get(these_axes, 'ylabel'), 'visible', 'off');
-            set(get(these_axes, 'title'), 'visible', 'off');
-            set(these_axes, 'xticklabel', '');
-            set(these_axes, 'yticklabel', '');
-            set(these_axes, 'position', [0 0 1 1]);
+                set(get(these_axes, 'xaxis'), 'visible', 'off');
+                set(get(these_axes, 'yaxis'), 'visible', 'off');
+                set(get(these_axes, 'xlabel'), 'visible', 'off');
+                set(get(these_axes, 'ylabel'), 'visible', 'off');
+                set(get(these_axes, 'title'), 'visible', 'off');
+                set(these_axes, 'xticklabel', '');
+                set(these_axes, 'yticklabel', '');
+                set(these_axes, 'position', [0 0 1 1]);
 
-            filename_without = ['figures' filesep 'noLabels' filesep r_square_file_label '.jpg'];
-            print(figures{i_predictor}, filename_without, '-r300', '-djpeg')        
+                filename_without = ['figures' filesep 'noLabels' filesep variance_figure_file_names{i_figure} '.jpg'];
+                print(this_figure, filename_without, '-r300', '-djpeg')
+                close(this_figure);
+            end
         else
             filename = ['figures' filesep file_label '.jpg'];
             print(gcf, filename, '-r300', '-djpeg')

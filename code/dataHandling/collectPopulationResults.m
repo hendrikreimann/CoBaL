@@ -29,14 +29,19 @@ function collectPopulationResults(varargin)
     subjects = parser.Results.subjects;
     source_label = parser.Results.source;
     save_file = parser.Results.output;
+
+    if ~directoryExists('groupResults')
+        mkdir('groupResults')
+    end
     if isempty(save_file)
         if isempty(source_label)
             save_file = 'results';
         else
             save_file = ['results_' source_label];
         end
-        
     end
+    save_file_full = ['groupResults' filesep 'results.mat'];
+    
 
     % load settings
     if ~exist('studySettings.txt', 'file')
@@ -47,16 +52,20 @@ function collectPopulationResults(varargin)
     data_folder_list = determineDataStructure(subjects);
 
     %% load and process settings information
-    variables_to_collect = study_settings.get('variables_to_collect');
     variables_to_collect_header = study_settings.get('variables_to_collect_header');
+    variables_to_collect = study_settings.get('variables_to_collect');
     variables_to_collect_long = study_settings.get('variables_to_collect_long', 1);
-    
-    % remove variables from this list that don't match the source type
-    if any(strcmp(variables_to_collect_header, 'source file'))
-        source_column = strcmp(variables_to_collect_header, 'source file');
-        source_match = strcmp(variables_to_collect(:, source_column), source_label);
-        variables_to_collect(~source_match, :) = [];
-    end
+
+    % 2023-02-15 HR: removing this for now, I think this is leftover from the Getanjali project, which I don't need and
+    % currently confuses things
+%     component_labels = study_settings.get('component_labels');
+%     
+%     % remove variables from this list that don't match the source type
+%     if any(strcmp(component_labels, 'source file'))
+%         source_column = strcmp(component_labels, 'source file');
+%         source_match = strcmp(variables_to_collect(:, source_column), source_label);
+%         variables_to_collect(~source_match, :) = [];
+%     end
     
     
     % prepare
@@ -230,7 +239,7 @@ function collectPopulationResults(varargin)
         variables_to_save.conditions_long = conditions_long;
     end
     
-    save(save_file, '-struct', 'variables_to_save');
+    save(save_file_full, '-struct', 'variables_to_save');
 
 
 

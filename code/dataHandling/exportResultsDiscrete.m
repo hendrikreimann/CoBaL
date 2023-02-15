@@ -25,9 +25,9 @@ source_label = '';
 
 %% load data
 if isempty(source_label)
-    loaded_data = load('results.mat');
+    loaded_data = load(['groupResults' filesep 'results.mat']);
 else
-    loaded_data = load(['results_' source_label '.mat']);
+    loaded_data = load(['groupResults' filesep 'results_' source_label '.mat']);
 end
 
 %% load settings
@@ -115,9 +115,9 @@ end
 
 %% save
 if isempty(source_label)
-    save_file = 'results.csv';
+    save_file = ['groupResults' filesep 'results.csv'];
 else
-    save_file = ['results_' source_label '.csv'];
+    save_file = ['groupResults' filesep 'results_' source_label '.csv'];
 end
 export_cell = ...
   [ ...

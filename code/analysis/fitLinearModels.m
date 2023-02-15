@@ -80,6 +80,9 @@ function [linear_model_results, linear_model_results_header] = fitLinearModels(d
         results_this_model.directions.outcome = outcome_variable_directions;
         results_this_model.directions.covariate = covariate_variable_directions;
         results_this_model.R_square = cell(number_of_condition_combinations, 1);
+        results_this_model.SS_residual = cell(number_of_condition_combinations, 1);
+        results_this_model.SS_total = cell(number_of_condition_combinations, 1);
+        results_this_model.SS_difference = cell(number_of_condition_combinations, 1);
         results_this_model.slope = cell(number_of_condition_combinations, 1);
         results_this_model.predictor_offsets = cell(number_of_condition_combinations, 1);
         results_this_model.outcome_offsets = cell(number_of_condition_combinations, 1);
@@ -103,6 +106,9 @@ function [linear_model_results, linear_model_results_header] = fitLinearModels(d
         
             % create containers
             R_square_table_here = zeros(predictor_variable_data_points_per_stretch, 1) * NaN;
+            SS_residual_table_here = zeros(predictor_variable_data_points_per_stretch, 1) * NaN;
+            SS_total_table_here = zeros(predictor_variable_data_points_per_stretch, 1) * NaN;
+            SS_difference_table_here = zeros(predictor_variable_data_points_per_stretch, 1) * NaN;
             slope_table_here = zeros(predictor_variable_data_points_per_stretch, number_of_predictor_variables) * NaN;
             predictor_offset_table_here = zeros(predictor_variable_data_points_per_stretch, number_of_predictor_variables) * NaN;
             outcome_offset_table_here = zeros(predictor_variable_data_points_per_stretch, 1) * NaN;
@@ -134,6 +140,9 @@ function [linear_model_results, linear_model_results_header] = fitLinearModels(d
                     
                     % store
                     R_square_table_here(i_time) = R_square;
+                    SS_residual_table_here(i_time) = SS_residual;
+                    SS_total_table_here(i_time) = SS_total;
+                    SS_difference_table_here(i_time) = SS_total - SS_residual;
                     slope_table_here(i_time, :) = jacobian;
                     predictor_offset_table_here(i_time, :) = predictor_mean;
                     outcome_offset_table_here(i_time) = outcome_mean;
@@ -154,6 +163,9 @@ function [linear_model_results, linear_model_results_header] = fitLinearModels(d
             results_this_model.data.outcome{i_condition} = outcome_variable_data_this_condition;
             results_this_model.data.covariates(i_condition, :) = covariate_variable_data_this_condition;
             results_this_model.R_square{i_condition} = R_square_table_here;
+            results_this_model.SS_residual{i_condition} = SS_residual_table_here;
+            results_this_model.SS_total{i_condition} = SS_total_table_here;
+            results_this_model.SS_difference{i_condition} = SS_difference_table_here;
             results_this_model.slope{i_condition} = slope_table_here;
             results_this_model.predictor_offsets{i_condition} = predictor_offset_table_here;
             results_this_model.outcome_offsets{i_condition} = outcome_offset_table_here;

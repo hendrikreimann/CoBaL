@@ -2295,7 +2295,9 @@ classdef WalkingDataCustodian < handle
                         end
                     end
                     
-                    
+                    if strcmp(this_variable_name, 'start_time_within_trial')
+                        range_data = this_stretch_times(1);
+                    end
                     
                     % store in cell
                     range_variables{i_variable} = [range_variables{i_variable} range_data];
@@ -3260,6 +3262,9 @@ classdef WalkingDataCustodian < handle
                 if strcmp(this_variable_type, 'event_time')
                     range_directions_new = {'+';'-'};
                 end
+            end
+            if strcmp(variable_name, 'start_time_within_trial')
+                range_directions_new = {'+';'-'};
             end
             
             % compare against what is already on file

@@ -108,9 +108,15 @@ function data_table = buildDataTableForThisSubject(model_data, model_label)
     condition_table_headers = model_data.row_info_headers;
     data_table = cell2table(condition_table, 'VariableNames', condition_table_headers);
     
-    % add R^2 column
+    % add variance measures
     r_square_table = model_data.R_square;
+    ss_residual_table = model_data.SS_residual;
+    ss_total_table = model_data.SS_total;
+    ss_difference_table = model_data.SS_difference;
     data_table = addvars(data_table, r_square_table, 'NewVariableNames', 'R_square');
+    data_table = addvars(data_table, ss_residual_table, 'NewVariableNames', 'SS_residual');
+    data_table = addvars(data_table, ss_total_table, 'NewVariableNames', 'SS_total');
+    data_table = addvars(data_table, ss_difference_table, 'NewVariableNames', 'SS_difference');
     
     % add slope columns
     slope_data = model_data.slope;
@@ -149,8 +155,11 @@ function [data_table, data_table_headers] = buildDataCellForThisSubject(model_da
     
     % add R^2 column
     r_square_table = model_data.R_square;
-    data_table_headers = [data_table_headers, 'R_square'];
-    data_table = [data_table r_square_table];
+    ss_residual_table = model_data.SS_residual;
+    ss_total_table = model_data.SS_total;
+    ss_difference_table = model_data.SS_difference;
+    data_table_headers = [data_table_headers, 'R_square', 'SS_residual', 'SS_total', 'SS_difference'];
+    data_table = [data_table r_square_table ss_residual_table ss_total_table ss_difference_table];
     
     % add slope columns
     slope_data = model_data.slope;

@@ -151,7 +151,7 @@ function singleBoxPlot(data, varargin)
             % calculate position in range
             this_point = data(i_point);
             this_point_position_in_range = (this_point - data_range(1)) / (data_range(end) - data_range(1));
-            this_point_spread = density_normalized(round(this_point_position_in_range*100));
+            this_point_spread = density_normalized(ceil(this_point_position_in_range*100));
             jitter(i_point) = jitter(i_point) * this_point_spread;
         end
         
