@@ -15,11 +15,16 @@
 %     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-function data = calculateLinearModelPredictionErrors(data, model_results, model_results_header, linear_model_settings, prediction_error_table, condition_data_all, condition_labels)
+function [data, error_data] = calculateLinearModelPredictionErrors(data, model_results, model_results_header, linear_model_settings, prediction_error_table, condition_data_all, condition_labels)
 
     number_of_models = height(prediction_error_table);
     [~, condition_indicators] = getUniqueConditionInformation(condition_data_all, condition_labels);
     
+    error_data = struct;
+    error_data.variable_data = {};
+    error_data.variable_names = {};
+    error_data.variable_directions = {};
+
     % calculate errors
     for i_model = 1 : number_of_models
         % get variable data for predictors and outcome for this model
@@ -91,7 +96,11 @@ function data = calculateLinearModelPredictionErrors(data, model_results, model_
         data.variable_data = [data.variable_data; new_variable_data];
         data.variable_names = [data.variable_names; new_variable_name];
         data.variable_directions = [data.variable_directions; new_variable_directions];
-        
+
+        error_data.variable_data = [error_data.variable_data; new_variable_data];
+        error_data.variable_names = [error_data.variable_names; new_variable_name];
+        error_data.variable_directions = [error_data.variable_directions; new_variable_directions];
+
         disp(['Calculating prediction errors for model ' num2str(i_model) ' of ' num2str(number_of_models) ', predictors: ' predictor_variable_list_name ', outcome: ' outcome_variable_name])
     end
 

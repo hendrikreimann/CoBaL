@@ -1030,7 +1030,7 @@ function data = combineTwoVariables(variable_table, table_header, study_settings
         new_data.directions = combined_variable_directions;
         new_data.name = this_variable_name;
         
-        if strcmp(variable_A_type, 'range') && strcmp(variable_A_type, 'range')
+        if strcmp(variable_A_type, 'range') && strcmp(variable_B_type, 'range')
             data = addOrReplaceResultsData(data, new_data, 'range');
         else
             data = addOrReplaceResultsData(data, new_data, 'analysis');
@@ -1112,7 +1112,7 @@ function data = multiplyTwoVariables(variable_table, table_header, study_setting
         new_data.directions = combined_variable_directions;
         new_data.name = this_variable_name;
         
-        if strcmp(variable_A_type, 'range') && strcmp(variable_A_type, 'range')
+        if strcmp(variable_A_type, 'range') && strcmp(variable_B_type, 'range')
             data = addOrReplaceResultsData(data, new_data, 'range');
         else
             data = addOrReplaceResultsData(data, new_data, 'analysis');

@@ -53,8 +53,21 @@ function processLinearModels(varargin)
     
     % calculate prediction errors
     prediction_error_table = linear_model_settings.getTable('model_prediction_error');
-    data = calculateLinearModelPredictionErrors(data, linear_model_results, linear_model_results_header, linear_model_settings, prediction_error_table, condition_data_all, condition_labels);
+    [data, error_data] = calculateLinearModelPredictionErrors(data, linear_model_results, linear_model_results_header, linear_model_settings, prediction_error_table, condition_data_all, condition_labels);
     
+    % save errors
+    stretch_data_file_name = ['results' filesep makeFileName(collection_date, subject_id, 'results')];
+    stretch_data = load(stretch_data_file_name);
+    for i_error = 1 : size(error_data.variable_data, 1)
+        new_data = struct;
+        new_data.data = error_data.variable_data{1, :};
+        new_data.directions = error_data.variable_directions(i_error, :);
+        new_data.name = error_data.variable_names{i_error, :};
+        
+        stretch_data = addOrReplaceResultsData(stretch_data, new_data, 'range');
+    end
+    save(stretch_data_file_name, '-struct', 'stretch_data');    
+
     % fit second-order models
     linear_model_results_2 = fitLinearModels(data, linear_model_settings, 'models_second_order', condition_data_all, condition_labels);
     
