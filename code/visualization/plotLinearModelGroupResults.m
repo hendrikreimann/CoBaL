@@ -228,6 +228,7 @@ function createComparisonFigure(model_data, comparisons, comparison_to_show, lin
         set(variance_axes{3}, 'XTickLabel', {}, 'xtick', []);
 
     else
+        % combine plots into two figures, one for slopes and one for residual measures
         title_label = ['Outcome: ' outcome_label ' - ' comparison_label];
         file_label = [outcome_label '_VS_' predictors_label '_' comparison_label];
         
@@ -246,23 +247,26 @@ function createComparisonFigure(model_data, comparisons, comparison_to_show, lin
         end
         uicontrol('style', 'text', 'string', title_label, 'units', 'normalized', 'position', [0, 0.95, 1, 0.05], 'fontsize', 16, 'FontWeight', 'bold');
 
-        % variance
+        % residuals
         figure;
         tiledlayout(3, 1);
-        r_square_axes = nexttile;
-        set(r_square_axes, 'fontsize', 12);
+        variance_axes{1} = nexttile; % was: r_square_axes
+        set(variance_axes{1}, 'fontsize', 12);
         hold on;
         ylabel('R^2');
+        set(variance_axes{1}, 'XTickLabel', {}, 'xtick', []);
         ylim([0 1]);
         
-        ss_difference_axes = nexttile;
-        set(ss_difference_axes, 'fontsize', 12);
+        variance_axes{2} = nexttile; % was: ss_difference_axes
+        set(variance_axes{2}, 'fontsize', 12);
         hold on;
+        set(variance_axes{2}, 'XTickLabel', {}, 'xtick', []);
         ylabel('SS_{tot} - SS_{res}');
 
-        ss_residual_axes = nexttile;
-        set(ss_residual_axes, 'fontsize', 12);
+        variance_axes{3} = nexttile; % was: ss_residual_axes
+        set(variance_axes{3}, 'fontsize', 12);
         hold on;
+        set(variance_axes{3}, 'XTickLabel', {}, 'xtick', []);
         ylabel('SS_{res}');
 
         % define parameters depending on model type, discrete vs. continuous predictor
@@ -272,7 +276,7 @@ function createComparisonFigure(model_data, comparisons, comparison_to_show, lin
             marker = 's';
             marker_size = 15;
             x_label = comparisons.condition_to_compare;
-            set(r_square_axes, 'XTickLabel', {}, 'xtick', []);
+            set(variance_axes{1}, 'XTickLabel', {}, 'xtick', []);
         elseif strcmp(model_data.type, 'continuous')
             linestyle = '-';
             linewidth = 2;
@@ -282,7 +286,7 @@ function createComparisonFigure(model_data, comparisons, comparison_to_show, lin
         end
 
         % add labels
-        xlabel(r_square_axes, x_label); 
+        xlabel(variance_axes{1}, x_label); 
         uicontrol('style', 'text', 'string', title_label, 'units', 'normalized', 'position', [0, 0.95, 1, 0.05], 'fontsize', 16, 'FontWeight', 'bold');
     end
     
@@ -436,7 +440,7 @@ function createComparisonFigure(model_data, comparisons, comparison_to_show, lin
         elseif strcmp(model_data.type, 'continuous')
             plot ...
               ( ...
-                r_square_axes, ...
+                variance_axes{1}, ...
                 abscissa_data, ...
                 mean(r_square_data_here, 2), ...
                 'color', this_color, ...

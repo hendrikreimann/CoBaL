@@ -31,13 +31,6 @@ function extractLinearModelVariables(varargin)
     number_of_time_steps_normalized = study_settings.get('number_of_time_steps_normalized');
     number_of_variables = size(variable_table, 1);
     number_of_stretches = length(data.time_list_session);
-%     
-%     % make condition data tables
-%     conditions.settings_table = study_settings.get('conditions');
-%     conditions.factor_labels = conditions.settings_table(:, 1)';
-%     conditions.source_variables = conditions.settings_table(:, 2)';
-%     conditions.number_of_factor_labels = length(conditions.factor_labels);
-%     conditions.conditions_session = data.conditions_session;
 
     % go through variables
     variable_data = cell(number_of_variables, 1);
