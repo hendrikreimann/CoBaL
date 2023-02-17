@@ -436,6 +436,12 @@ classdef WalkingDataCustodian < handle
                     this.addStretchVariable('pushoff_time')
                     this.addStretchVariable('midswing_time')
                 end
+                if strcmp(this_variable_name, 'stance_swap_index')
+                    this.addBasicVariable('marker_trajectories')
+                    this.addStretchVariable('step_time')
+                    this.addStretchVariable('pushoff_time')
+                    this.addStretchVariable('stance_swap_index')
+                end
                 if strcmp(this_variable_name, 'cadence')
                     this.addStretchVariable('step_time')
                     this.addStretchVariable('cadence')
@@ -1906,6 +1912,15 @@ classdef WalkingDataCustodian < handle
                             end
                         end
                     end
+                    if strcmp(variable_name, 'stance_swap_index')
+                        % this is the index of the center between heelstrike and pushoff
+                        pushoff_times = stretch_variables{strcmp(this.stretch_variable_names, 'pushoff_time')}(:, i_stretch);
+                        step_times = stretch_variables{strcmp(this.stretch_variable_names, 'step_time')}(:, i_stretch);
+                        double_stance_ratio = pushoff_times ./ step_times;
+                        stance_swap_ratio = double_stance_ratio/2;
+                        stance_swap_index = round(stance_swap_ratio * this.number_of_time_steps_normalized);
+                        stretch_data = stance_swap_index;
+                    end
                     if strcmp(variable_name, 'cadence')
                         second_to_minute = 1/60;
                         step_time = stretch_variables{strcmp(this.stretch_variable_names, 'step_time')}(:, i_stretch);
@@ -2780,6 +2795,9 @@ classdef WalkingDataCustodian < handle
                 stretch_directions_new = {'+'; '-'};
             end                        
             if strcmp(variable_name, 'midswing_time')
+                stretch_directions_new = {'+'; '-'};
+            end                        
+            if strcmp(variable_name, 'stance_swap_index')
                 stretch_directions_new = {'+'; '-'};
             end                        
             if strcmp(variable_name, 'cadence')
