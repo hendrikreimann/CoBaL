@@ -151,6 +151,12 @@ function [conditions_trial, event_variables_to_save, removal_flags] ...
             = determineConditionLevels_metronome(trial_data, conditions_trial);
     end
     
+    % add speed from protocol if required
+    if any(strcmp(conditions_table(:, 1), 'speed'))
+        conditions_trial ...
+            = determineConditionLevels_speed(trial_data, conditions_trial);
+    end
+    
     % add subject
     if any(strcmp(conditions_table(:, 1), 'subject'))
         condition_subject_list = cell(size(event_variables_to_save.stretch_times, 1), 1);

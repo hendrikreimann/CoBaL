@@ -17,9 +17,9 @@
 
 % TODO: turn this into a function. For now, hard-code an input
 source_label = '';
-source_label = 'ucmAcrossTrials';
-source_label = 'ucmAcrossTrials_pooled';
-source_label = 'ucmAcrossTrials_earlyLate';
+% source_label = 'ucmAcrossTrials';
+% source_label = 'ucmAcrossTrials_pooled';
+% source_label = 'ucmAcrossTrials_earlyLate';
 % source_label = 'varianceAcrossTrials';
 % source_label = 'Displacement';
 
@@ -38,6 +38,8 @@ study_settings = SettingsCustodian('studySettings.txt');
 variables_to_export_discrete = study_settings.get('variables_to_export_discrete');
 variables_to_export_discrete_header = study_settings.get('variables_to_export_discrete_header');
 
+variables_to_export_discrete_table = study_settings.getTable('variables_to_export_discrete');
+
 % remove variables from this list that don't match the source type
 source_column = strcmp(variables_to_export_discrete_header, 'source file');
 source_match = strcmp(variables_to_export_discrete(:, source_column), source_label);
@@ -45,7 +47,8 @@ variables_to_export_discrete(~source_match, :) = [];
 
 number_of_variables_to_export_discrete = size(variables_to_export_discrete, 1);
 number_of_data_points = size(loaded_data.time_list, 1);
-number_of_bands = size(loaded_data.step_time_data, 1);
+% number_of_bands = size(loaded_data.step_time_data, 1);
+number_of_bands = size(loaded_data.stretch_times_data, 2) - 1;
 
 %% gather univariate data for each band
 data_cell = {};

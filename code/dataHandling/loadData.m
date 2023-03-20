@@ -17,7 +17,7 @@
 % input
 % name: name of the variable containing the data
 
-function [data, time, sampling_rate, labels, directions, success] = loadData(date, subject_id, trial_type, trial_number, data_name, optional)
+function [data, time, sampling_rate, labels, directions, success, data_file_name] = loadData(date, subject_id, trial_type, trial_number, data_name, optional)
     if nargin < 6
         optional = 'required';
     end

@@ -40,6 +40,10 @@ classdef SettingsCustodian < handle
             'across_trials_conditions'; ...
             'preferred_level_order'; ...
             'data_to_import'; ...
+            'plot_table'; ...
+            'plot_table_header'; ...
+            'plot_table_single'; ...
+            'plot_table_single_header'; ...
           }
     end
     methods
@@ -356,6 +360,9 @@ classdef SettingsCustodian < handle
                 data = [];
             end
         end
+        function present = settingIsPresent(this, property_name)
+            present = isfield(this.settings_struct, property_name);
+        end
         
         function table_data = getTable(this, table_name, optional)
             if nargin < 3
@@ -448,6 +455,9 @@ classdef SettingsCustodian < handle
             end
             if strcmp(property_name, 'individual_data_marker_size')
                 default_data = 4;
+            end
+            if strcmp(property_name, 'discrete_data_spread_width')
+                default_data = 0.8;
             end
             if strcmp(property_name, 'discrete_data_spread_face_alpha')
                 default_data = 0.1;
@@ -575,6 +585,9 @@ classdef SettingsCustodian < handle
             end
             if strcmp(property_name, 'force_plates_to_import')
                 default_data = [1, 2];
+            end
+            if strcmp(property_name, 'combined_forceplate_data_source')
+                default_data = 'calculate';
             end
             if strcmp(property_name, 'emg_cutoff_frequency_low')            
                 default_data = 500;

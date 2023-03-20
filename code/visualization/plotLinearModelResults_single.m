@@ -33,7 +33,7 @@ function plotLinearModelResults_single(varargin)
     condition_to_compare = linear_model_settings.get('condition_to_compare');
 
     % load data
-    model_file_name = ['results' filesep collection_date '_' subject_id '_linearModelsSingle.mat'];
+    model_file_name = ['results' filesep collection_date '_' subject_id '_linearModels.mat'];
     model_data = load(model_file_name);
     model_list = linear_model_settings.getTable('plot_table_single');
     

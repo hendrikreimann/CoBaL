@@ -18,16 +18,18 @@ function plotLinearModelResults(varargin)
     % parse input parameters
     parser = inputParser;
     parser.KeepUnmatched = true;
+    addParameter(parser, 'settings', 'linearModel')
     addParameter(parser, 'show_legend', true)
     addParameter(parser, 'save', false)
     parse(parser, varargin{:})
     arguments.show_legend = parser.Results.show_legend;
     arguments.save_results = parser.Results.save;
+    arguments.settings = parser.Results.settings;
 
     % load settings
     study_settings = loadSettingsFromFile('study');
     subject_settings = loadSettingsFromFile('subject');
-    linear_model_settings = loadSettingsFromFile('linearModel');
+    linear_model_settings = loadSettingsFromFile(arguments.settings);
     collection_date = subject_settings.get('collection_date');
     subject_id = subject_settings.get('subject_id');
     condition_to_compare = linear_model_settings.get('condition_to_compare');
@@ -39,10 +41,10 @@ function plotLinearModelResults(varargin)
     
     preferred_level_order = linear_model_settings.get('preferred_level_order', 1);
     for i_model = 1 : size(model_list, 1)
-        this_model = model_list(i_model, :);
         
         % find the requested model in the data
-        this_model_index = findModelIndex(model_data, this_model, linear_model_settings);
+        this_model_label = model_list.label{i_model};
+        this_model_index = findModelIndex(model_data, this_model_label);
         this_model_data = model_data.linear_model_results{this_model_index, strcmp(model_data.linear_model_results_header, 'results')};
         
         % create figures
@@ -51,8 +53,6 @@ function plotLinearModelResults(varargin)
         % determine comparisons
         condition_data = this_model_data.row_info;
         conditions_settings = study_settings.get('conditions');
-%         labels_to_ignore = {};
-%         levels_to_remove = {};
         labels_to_ignore = linear_model_settings.get('conditions_to_ignore', 1);
         levels_to_remove = linear_model_settings.get('levels_to_remove', 1);
         [comparisons.condition_combination_labels, comparisons.condition_combinations] = determineConditionCombinations(condition_data, conditions_settings, labels_to_ignore, levels_to_remove);
@@ -70,7 +70,7 @@ function plotLinearModelResults(varargin)
 
 end
 
-function index = findModelIndex(data, model, settings)
+function index = findModelIndex_old(data, model, settings)
     % extract info
     requested_outcome_variable = model.outcome_variable_name{1};
     requested_predictor_variable_list_name = model.predictor_variable_list{1};
@@ -102,6 +102,12 @@ function index = findModelIndex(data, model, settings)
     if index == 0
         error(['Model not available'])
     end
+end
+
+function index = findModelIndex(model_data, requested_label)
+    % loop through models to find the requested one
+    label_column = strcmp(model_data.linear_model_results_header, 'label');
+    index = strcmp(model_data.linear_model_results(:, label_column), requested_label);
 end
 
 function comparison_label = createComparisonLabel(row_info, comparison_indices, column_with_condition_to_compare)
@@ -138,12 +144,12 @@ function createComparisonFigure(model_data, comparisons, comparison_to_show, rel
     title_label = ['Outcome: ' outcome_label ', ' comparison_label];
     file_label = [model_data.names.outcome '_VS_' model_data.names.predictors_label '_' comparison_label];
     
-    % create figure and axes
-    figure;
-    tiledlayout(number_of_predictors + 1, 1);
+    % create summary figure and axes for slopes and R^2
+    summary_figure = figure;
+    this_layout = tiledlayout(number_of_predictors + 1, 1);
 
     for i_predictor = 1 : number_of_predictors
-        slope_axes(i_predictor) = nexttile; %#ok<AGROW>
+        slope_axes(i_predictor) = nexttile(this_layout); %#ok<AGROW>
         set(slope_axes(i_predictor), 'fontsize', 12);
         set(slope_axes(i_predictor), 'xtick', [])
         ylabel('slope');
@@ -151,10 +157,10 @@ function createComparisonFigure(model_data, comparisons, comparison_to_show, rel
         title(strrep(model_data.names.predictors{i_predictor}, '_', ' '), 'Units', 'normalized', 'Position', [0.5, 0.9, 0])
     end
     
-    r_square_axes = nexttile;
+    r_square_axes = nexttile(this_layout);
     set(r_square_axes, 'fontsize', 12);
     hold on;
-    ylabel('$R^2$', 'Interpreter', 'latex');
+    ylabel('R^2');
     ylim([0 1]);
     if arguments.show_legend
         legend('Location', 'southeastoutside')
@@ -173,12 +179,143 @@ function createComparisonFigure(model_data, comparisons, comparison_to_show, rel
         linewidth = 2;
         marker = 'none';
         marker_size = 1;
-        x_label = 'time (\%)';
+        x_label = 'time (%)';
     end
     
     % add labels
     xlabel(r_square_axes, x_label); 
     uicontrol('style', 'text', 'string', title_label, 'units', 'normalized', 'position', [0, 0.95, 1, 0.05], 'fontsize', 16, 'FontWeight', 'bold');
+    
+    % create figure for detailed data
+    if linear_model_settings.get('show_details', 1) && model_data.predictor_variable_data_points_per_stretch == 1
+        details_figure = figure('SizeChangedFcn', @sizeChanged, 'visible', 'off');
+        this_layout = tiledlayout(ceil(number_of_predictors/2), 2);
+        
+        predictor_directions = model_data.directions.predictor;
+        outcome_directions = model_data.directions.outcome;
+        
+        pos_text_handles_abscissa = zeros(number_of_predictors, 1);
+        pos_arrow_handles_abscissa = zeros(number_of_predictors, 1);
+        neg_text_handles_abscissa = zeros(number_of_predictors, 1);
+        neg_arrow_handles_abscissa = zeros(number_of_predictors, 1);
+        pos_text_handles_ordinate = zeros(number_of_predictors, 1);
+        pos_arrow_handles_ordinate = zeros(number_of_predictors, 1);
+        neg_text_handles_ordinate = zeros(number_of_predictors, 1);
+        neg_arrow_handles_ordinate = zeros(number_of_predictors, 1);
+
+        for i_predictor = 1 : number_of_predictors
+            details_axes(i_predictor) = nexttile(this_layout); %#ok<AGROW>
+            set(details_axes(i_predictor), 'fontsize', 12);
+            xlabel(strrep(model_data.names.predictors{i_predictor}, '_', ' '));
+            ylabel(strrep(outcome_label, '_', ' '));
+            hold on;
+            title(strrep(model_data.names.predictors{i_predictor}, '_', ' '))
+            
+            %
+            fontsize_text = 12;
+            fontsize_arrow = 18;
+            
+            % add text labels for arrows - x axis
+            pos_text_handles_abscissa(i_predictor) = ...
+                text ...
+                  ( ...
+                    0, ...
+                    0, ...
+                    predictor_directions{i_predictor, 1}, ...
+                    'rotation', 0, ...
+                    'Fontsize', fontsize_text, ...
+                    'horizontalalignment', 'right', ...
+                    'parent', details_axes(i_predictor) ...
+                  );                
+            pos_arrow_handles_abscissa(i_predictor) = ...
+                text ...
+                  ( ...
+                    0, ...
+                    0, ...
+                    ' $\rightarrow$', ...
+                    'rotation', 0, ...
+                    'Fontsize', fontsize_arrow, ...
+                    'horizontalalignment', 'right', ...
+                    'interpreter', 'LaTeX', ...
+                    'parent', details_axes(i_predictor) ...
+                  );
+            neg_text_handles_abscissa(i_predictor) = ...
+                text ...
+                  ( ...
+                    0, ...
+                    0, ...
+                    predictor_directions{i_predictor, 2}, ...
+                    'rotation', 0, ...
+                    'Fontsize', fontsize_text, ...
+                    'horizontalalignment', 'left', ...
+                    'parent', details_axes(i_predictor)...
+                  );
+            neg_arrow_handles_abscissa(i_predictor) = ...
+                text ...
+                  ( ...
+                    0, ...
+                    0, ...
+                    '$\leftarrow$ ', ...
+                    'rotation', 0, ...
+                    'Fontsize', fontsize_arrow, ...
+                    'horizontalalignment', 'left', ...
+                    'interpreter', 'LaTeX', ...
+                    'parent', details_axes(i_predictor) ...
+                  );
+              
+            % add text labels for arrows - y axis
+            pos_text_handles_ordinate(i_predictor) = ...
+                text ...
+                  ( ...
+                    0, ...
+                    0, ...
+                    outcome_directions{1}, ...
+                    'rotation', 90, ...
+                    'Fontsize', fontsize_text, ...
+                    'horizontalalignment', 'right', ...
+                    'parent', details_axes(i_predictor) ...
+                  );                
+            pos_arrow_handles_ordinate(i_predictor) = ...
+                text ...
+                  ( ...
+                    0, ...
+                    0, ...
+                    ' $\rightarrow$', ...
+                    'rotation', 90, ...
+                    'Fontsize', fontsize_arrow, ...
+                    'horizontalalignment', 'right', ...
+                    'interpreter', 'LaTeX', ...
+                    'parent', details_axes(i_predictor) ...
+                  );
+            neg_text_handles_ordinate(i_predictor) = ...
+                text ...
+                  ( ...
+                    0, ...
+                    0, ...
+                    outcome_directions{2}, ...
+                    'rotation', 90, ...
+                    'Fontsize', fontsize_text, ...
+                    'horizontalalignment', 'left', ...
+                    'parent', details_axes(i_predictor)...
+                  );
+            neg_arrow_handles_ordinate(i_predictor) = ...
+                text ...
+                  ( ...
+                    0, ...
+                    0, ...
+                    '$\leftarrow$ ', ...
+                    'rotation', 90, ...
+                    'Fontsize', fontsize_arrow, ...
+                    'horizontalalignment', 'left', ...
+                    'interpreter', 'LaTeX', ...
+                    'parent', details_axes(i_predictor) ...
+                  );
+                     
+        end
+        
+        uicontrol('style', 'text', 'string', title_label, 'units', 'normalized', 'position', [0, 0.95, 1, 0.05], 'fontsize', 16, 'FontWeight', 'bold');
+    end
+    
     
     % loop through conditions
     for i_condition = 1 : number_of_conditions_in_this_comparison
@@ -196,17 +333,43 @@ function createComparisonFigure(model_data, comparisons, comparison_to_show, rel
             levels_to_remove ...
           );
         
+        this_condition_label = strrep(model_data.row_info{find(this_condition_indicator, 1), relevant_column}, '_', ' ');
         
-        this_condition_label = strrep(model_data.row_info{this_condition_indicator, relevant_column}, '_', ' ');
+        % get data for r_square and slope
+        r_square_data_here = model_data.R_square{this_condition_indicator};
+        slope_data_here = model_data.slope{this_condition_indicator};
+        
         if model_data.predictor_variable_data_points_per_stretch == 1
             abscissa_data = i_condition;
             r_square_axes.XTick = [r_square_axes.XTick, i_condition];
             r_square_axes.XTickLabel = [r_square_axes.XTickLabel; this_condition_label];
+            
+            if linear_model_settings.get('show_details', 1)
+                % make sure we're dealing with a single trial
+                if sum(this_condition_indicator) > 1
+                    error('Detailed data can only be shown for single trials, please do not pool across conditions.')
+                end
+                
+                % get predictor and outcome data
+                predictor_data_here = model_data.data.predictors(this_condition_indicator, :);
+                outcome_data_here = model_data.data.outcome{this_condition_indicator, :};
+                
+                % create linear model data
+                predictor_center = model_data.predictor_offsets{this_condition_indicator}';
+                outcome_center = model_data.outcome_offsets{this_condition_indicator}';
+                predictor_min = zeros(number_of_predictors, 1);
+                predictor_max = zeros(number_of_predictors, 1);
+                for i_predictor = 1 : number_of_predictors
+                    predictor_min(i_predictor) = min(predictor_data_here{i_predictor});
+                    predictor_max(i_predictor) = max(predictor_data_here{i_predictor});
+                end
+                predictor_data_for_plotting = [predictor_min predictor_max];
+                predictor_data_for_plotting_centered = predictor_data_for_plotting - predictor_center;
+                outcome_data_for_plotting = outcome_center + slope_data_here * predictor_data_for_plotting_centered;
+            end
         else
             abscissa_data = (1 : model_data.predictor_variable_data_points_per_stretch) - 1;
         end
-        r_square_data_here = model_data.R_square{this_condition_indicator};
-        slope_data_here = model_data.slope{this_condition_indicator};
 
         this_condition = comparisons.condition_combinations(this_condition_index, :);
         this_label = this_condition{strcmp(comparisons.condition_combination_labels, comparisons.condition_to_compare)};
@@ -227,6 +390,7 @@ function createComparisonFigure(model_data, comparisons, comparison_to_show, rel
           );
         
         for i_predictor = 1 : number_of_predictors
+            % plot slopes
             plot ...
               ( ...
                 slope_axes(i_predictor), ...
@@ -240,23 +404,65 @@ function createComparisonFigure(model_data, comparisons, comparison_to_show, rel
                 'MarkerSize', marker_size, ...
                 'DisplayName', this_condition_label ...
               );
+          
+            % plot details
+            if model_data.predictor_variable_data_points_per_stretch == 1
+                if linear_model_settings.get('show_details', 1)
+                    % plot individual data
+                    this_predictor_data = predictor_data_here{i_predictor};
+                    plot ...
+                      ( ...
+                        details_axes(i_predictor), ...
+                        this_predictor_data, outcome_data_here, ...
+                        'LineStyle', 'none', ...
+                        'marker', 'o', ...
+                        'DisplayName', this_condition_label, ...
+                        'MarkerEdgeColor', 'none', ...
+                        'MarkerFaceColor', lightenColor(this_color, 0.5), ...
+                        'MarkerSize', 6, ...
+                        'DisplayName', this_condition_label ...
+                      );
+
+                    % plot linear model
+                    plot ...
+                      ( ...
+                        details_axes(i_predictor), ...
+                        predictor_data_for_plotting(i_predictor, :), outcome_data_for_plotting, ...
+                        'LineStyle', '-', ...
+                        'DisplayName', this_condition_label, ...
+                        'Color', this_color, ...
+                        'linewidth', 6, ...
+                        'DisplayName', this_condition_label ...
+                      );
+                end
+            end
         end
     end
 
+    % show figure
+    if linear_model_settings.get('show_details', 1) && model_data.predictor_variable_data_points_per_stretch == 1
+        set(details_figure, 'visible', 'on')
+    end
+    
     % adjust x-limits
     if model_data.predictor_variable_data_points_per_stretch == 1
-        xlimits = [r_square_axes.XTick(1)-0.5, r_square_axes.XTick(end)+0.5];
-        set(r_square_axes, 'xlim', xlimits);
+        xlimit_conditions = [r_square_axes.XTick(1)-0.5, r_square_axes.XTick(end)+0.5];
+        set(r_square_axes, 'xlim', xlimit_conditions);
         for i_predictor = 1 : number_of_predictors
-            set(slope_axes(i_predictor), 'xlim', xlimits);
+            set(slope_axes(i_predictor), 'xlim', xlimit_conditions);
+            if linear_model_settings.get('show_details', 1)
+                sizeChanged();
+  
+            end
+        
         end
     end
     
     % plot zero line
     if linear_model_settings.get('plot_zero', 1)
         for i_predictor = 1 : number_of_predictors
-            xlimits = get(slope_axes(i_predictor), 'xlim');
-            zero_plot = plot(slope_axes(i_predictor), xlimits, [0 0], 'color', [0.7 0.7 0.7], 'linewidth', 2);
+            xlimits_predictor = get(slope_axes(i_predictor), 'xlim');
+            zero_plot = plot(slope_axes(i_predictor), xlimits_predictor, [0 0], 'color', [0.7 0.7 0.7], 'linewidth', 2);
             set(zero_plot, 'HandleVisibility', 'off');
             uistack(zero_plot, 'bottom')
         end
@@ -270,6 +476,41 @@ function createComparisonFigure(model_data, comparisons, comparison_to_show, rel
         filename = ['figures' filesep file_label '.jpg'];
         print(gcf, filename, '-r300', '-djpeg')
     end    
+    
+    function sizeChanged(varargin)
+        for j_predictor = 1 : number_of_predictors
+            these_axes = details_axes(j_predictor);
+            xlimits = get(these_axes, 'xlim'); ylimits = get(these_axes, 'ylim');
+
+            pos_arrow_position_x = xlimits(2);
+            pos_arrow_position_y = ylimits(1) - (ylimits(2)-ylimits(1))*0.09;
+            set(pos_arrow_handles_abscissa(j_predictor), 'Position', [pos_arrow_position_x pos_arrow_position_y]);
+            pos_text_position_x = xlimits(2);
+            pos_text_position_y = ylimits(1) - (ylimits(2)-ylimits(1))*0.12;
+            set(pos_text_handles_abscissa(j_predictor), 'Position', [pos_text_position_x pos_text_position_y]);
+
+            neg_arrow_position_x = xlimits(1);
+            neg_arrow_position_y = ylimits(1) - (ylimits(2)-ylimits(1))*0.09;
+            set(neg_arrow_handles_abscissa(j_predictor), 'Position', [neg_arrow_position_x neg_arrow_position_y]);
+            neg_text_position_x = xlimits(1);
+            neg_text_position_y = ylimits(1) - (ylimits(2)-ylimits(1))*0.12;
+            set(neg_text_handles_abscissa(j_predictor), 'Position', [neg_text_position_x neg_text_position_y]);
+
+            pos_arrow_position_x = xlimits(1) - (xlimits(2)-xlimits(1))*0.09;
+            pos_arrow_position_y = ylimits(2);
+            set(pos_arrow_handles_ordinate(j_predictor), 'Position', [pos_arrow_position_x pos_arrow_position_y]);
+            pos_text_position_x = xlimits(1) - (xlimits(2)-xlimits(1))*0.12;
+            pos_text_position_y = ylimits(2);
+            set(pos_text_handles_ordinate(j_predictor), 'Position', [pos_text_position_x pos_text_position_y]);
+
+            neg_arrow_position_x = xlimits(1) - (xlimits(2)-xlimits(1))*0.09;
+            neg_arrow_position_y = ylimits(1);
+            set(neg_arrow_handles_ordinate(j_predictor), 'Position', [neg_arrow_position_x neg_arrow_position_y]);
+            neg_text_position_x = xlimits(1) - (xlimits(2)-xlimits(1))*0.12;
+            neg_text_position_y = ylimits(1);
+            set(neg_text_handles_ordinate(j_predictor), 'Position', [neg_text_position_x neg_text_position_y]);     
+        end
+    end
     
 end
 
