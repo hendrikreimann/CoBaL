@@ -1,10 +1,13 @@
 
-// positive label, negative label
+// positive label, negative label -- this transforms directions between opensim convention (y vertical) and CoBaL convention (z vertical)
 generic_directions:
 {
-  forward, backward
-  up, down
-  right, left
+//  forward, backward
+//  up, down
+//  right, left
+  y+, y-
+  z+, z-
+  x+, x-
 }
 
 // coordinate label, positive label, negative label

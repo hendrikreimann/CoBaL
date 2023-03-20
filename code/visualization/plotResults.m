@@ -47,21 +47,26 @@ function plotResults(varargin)
     % create figures and determine abscissae for each comparison
     figure_data_continuous = createFigures_continuous(settings, comparisons, data_custodian);
     figure_data_discrete = createFigures_discrete(settings, comparisons, data_custodian);
+    figure_data_range = createFigures_range(settings, comparisons);
     figure_data_pairs = createFigures_pairs(settings, comparisons);
     
     % plot data
     plotData_continuous(settings, comparisons, data_custodian, figure_data_continuous);
     plotData_discrete(settings, comparisons, data_custodian, figure_data_discrete);
+    plotData_range(settings, comparisons, data_custodian, figure_data_range);
     plotData_pairs(settings, comparisons, data_custodian, figure_data_pairs);
     
     % groom axes, labels etc
     groomFigures_continuous(settings, data_custodian, comparisons, figure_data_continuous);
     groomFigures_discrete(settings, figure_data_discrete);
+    groomFigures_range(settings, figure_data_range);
     groomFigures_pairs(settings, figure_data_pairs);
     
     % save and close
     saveFigures(settings, figure_data_continuous);
     saveFigures(settings, figure_data_discrete);
+    saveFigures(settings, figure_data_range);
+    saveFigures(settings, figure_data_pairs);
     closeFigures(settings, figure_data_continuous);
     closeFigures(settings, figure_data_discrete);
 
@@ -122,8 +127,6 @@ function settings = determineSettings(varargin)
     settings.conditions_settings = settings.study_settings.get('conditions');
     settings.condition_to_compare = settings.plot_settings.get('condition_to_compare');
     settings.condition_labels = settings.conditions_settings(:, 1)';
-%     settings.variables_to_plot = settings.plot_settings.get('variables_to_plot', true);
-%     settings.variables_to_plot_header = settings.plot_settings.get('variables_to_plot_header', true);
     settings.variables_to_plot_table = settings.plot_settings.getTable('variables_to_plot', true);
     settings.number_of_variables_to_plot = size(settings.variables_to_plot_table, 1);
     
@@ -135,6 +138,9 @@ function settings = determineSettings(varargin)
     settings.variables_to_plot_continuous_header = settings.plot_settings.get('variables_to_plot_continuous_header', true);
     settings.number_of_variables_to_plot_continuous = size(settings.variables_to_plot_continuous, 1);
     
+    settings.variables_to_plot_range = settings.plot_settings.get('variables_to_plot_range', true);
+    settings.variables_to_plot_range_header = settings.plot_settings.get('variables_to_plot_range_header', true);
+    settings.number_of_variables_to_plot_range = size(settings.variables_to_plot_range, 1);
     settings.variables_to_plot_pairs = settings.plot_settings.getTable('variables_to_plot_pairs', true);
     settings.number_of_variables_to_plot_pairs = size(settings.variables_to_plot_pairs, 1);
     
@@ -215,10 +221,9 @@ function figure_data = createFigures_continuous(settings, comparisons, data_cust
     
     step_start_times_cell = cell(comparisons.number_of_comparisons, settings.number_of_variables_to_plot_continuous);
     step_end_times_cell = cell(comparisons.number_of_comparisons, settings.number_of_variables_to_plot_continuous);
-    step_time_data = data_custodian.getData('step_time', 'stretch');
-    step_times = step_time_data.variable_data;
     bands_per_stretch = data_custodian.bands_per_stretch;
     condition_data = data_custodian.getConditionData();
+    stretch_times = data_custodian.getStretchTimes();
     
     % create figures
     for i_variable = 1 : settings.number_of_variables_to_plot_continuous
@@ -227,7 +232,6 @@ function figure_data = createFigures_continuous(settings, comparisons, data_cust
             new_figure = figure;
             dcm_obj = datacursormode(new_figure);
             set(dcm_obj,'UpdateFcn',{@singlePlotTooltip})
-            
             new_axes = axes; hold on;
 
             % store handles and determine abscissa data
@@ -248,8 +252,9 @@ function figure_data = createFigures_continuous(settings, comparisons, data_cust
                     settings.condition_labels, ...
                     settings.plot_settings.get('levels_to_remove') ...
                   );
-                step_time_data_this_condition = step_times(:, this_condition_indicator);
-                step_time_means_this_comparison(:, i_condition) = mean(step_time_data_this_condition, 2);
+                stretch_time_data_this_condition = stretch_times(:, this_condition_indicator);
+                stretch_duration_data_this_condition = diff(stretch_time_data_this_condition, 1);
+                step_time_means_this_comparison(:, i_condition) = mean(stretch_duration_data_this_condition, 2);
             end
             for i_condition = 1 : length(conditions_this_comparison)
                 if strcmp(settings.plot_settings.get('time_plot_style'), 'scaled_to_comparison_mean')
@@ -315,6 +320,8 @@ function figure_data = createFigures_discrete(settings, comparisons, data_custod
         for i_comparison = 1 : comparisons.number_of_comparisons
             % make figure and axes
             new_figure = figure; 
+            dcm_obj = datacursormode(new_figure);
+            set(dcm_obj,'UpdateFcn',{@singlePlotTooltip})
             new_axes = axes; hold on;
 
             % store handles and determine abscissa data
@@ -391,6 +398,51 @@ function figure_data = createFigures_discrete(settings, comparisons, data_custod
     
     % add labels
     figure_data = addLabelsAndData(figure_data, comparisons, settings.variables_to_plot_discrete, settings.variables_to_plot_discrete_header);
+end
+
+function figure_data = createFigures_range(settings, comparisons)
+    figure_data = createFigureData(settings.variables_to_plot_range, comparisons);
+    
+    for i_variable = 1 : settings.number_of_variables_to_plot_range
+        for i_comparison = 1 : comparisons.number_of_comparisons
+            % make figure and axes
+            new_figure = figure;
+            dcm_obj = datacursormode(new_figure);
+            set(dcm_obj,'UpdateFcn',{@singlePlotTooltip})
+            new_axes = axes; hold on;
+
+            % store handles and determine abscissa data
+            figure_data.figure_handles{i_comparison, i_variable} = new_figure;
+            figure_data.axes_handles{i_comparison, i_variable} = new_axes;
+            figure_data.comparison_variable_to_axes_index_map(i_comparison) = i_comparison;
+
+            % abscissa gives the bin edges here
+            conditions_this_comparison = comparisons.comparison_indices{i_comparison};
+
+            % go through and select appropriate one based on label
+            abscissae_stimulus = zeros(1, comparisons.conditions_per_comparison_max) * NaN;
+            for i_condition = 1 : length(conditions_this_comparison)
+                this_condition_index = conditions_this_comparison(i_condition);
+                this_condition = comparisons.condition_combinations(this_condition_index, :);
+                this_label = this_condition{strcmp(comparisons.condition_combination_labels, settings.condition_to_compare)};
+                this_label_index_in_level_order = strcmp(this_label, comparisons.level_order);
+                abscissae_stimulus(i_condition) = find(this_label_index_in_level_order);
+            end
+                
+                
+            figure_data.abscissae_cell{i_comparison, i_variable} = abscissae_stimulus;
+
+            % set axes properties
+            xtick = reshape(figure_data.abscissae_cell{i_comparison, i_variable}, 1, numel(figure_data.abscissae_cell{i_comparison, i_variable}));
+            xtick(isnan(xtick)) = [];
+            xtick = sort(xtick);
+            set(gca, 'xlim', [-0.5 + min(xtick) 0.5 + max(xtick(end))]);
+            set(gca, 'xtick', xtick);
+        end
+    end
+    
+    % add labels
+    figure_data = addLabelsAndData(figure_data, comparisons, settings.variables_to_plot_range, settings.variables_to_plot_range_header);
 end
 
 function figure_data = createFigures_pairs(settings, comparisons)
@@ -526,6 +578,10 @@ function figure_data = addLabelsAndData(figure_data, comparisons, variables_to_p
                 end
             end
 
+            % prettify a bit
+            title_string = strrep(title_string, '_', ' ');
+            
+            % apply
             title(these_axes, title_string); 
             set(these_axes, 'Fontsize', 12)
             set(this_figure, 'UserData', filename_string)
@@ -799,6 +855,7 @@ end
 
 function plotData_discrete(settings, comparisons, data_custodian, figure_data)
     [condition_data, condition_labels] = data_custodian.getConditionData();
+    [origin_subjects, origin_trials, origin_start_times, origin_end_times] = data_custodian.getOriginData();
     for i_variable = 1 : settings.number_of_variables_to_plot_discrete
         variable_name = settings.variables_to_plot_discrete(i_variable, strcmp(settings.variables_to_plot_discrete_header, 'variable_name'));
         variable_type = settings.variables_to_plot_discrete(i_variable, strcmp(settings.variables_to_plot_discrete_header, 'variable_type'));
@@ -825,14 +882,38 @@ function plotData_discrete(settings, comparisons, data_custodian, figure_data)
                     settings.plot_settings.get('levels_to_remove') ...
                   );
                 data_to_plot_this_condition = data_to_plot.variable_data(:, this_condition_indicator);
+                origin_subjects_this_condition = origin_subjects(this_condition_indicator);
+                origin_trials_this_condition = origin_trials(this_condition_indicator);
+                origin_start_times_this_condition = origin_start_times(this_condition_indicator);
+                origin_end_times_this_condition = origin_end_times(this_condition_indicator);
+                
+                
                 if settings.plot_settings.get('average_within_subjects', 1)
                     condition_data_this_condition = condition_data(this_condition_indicator, :);
-                    data_to_plot_this_condition = averageWithinSubjects(data_to_plot_this_condition, condition_data_this_condition, condition_labels);
-                    
+
+%                     data_to_plot_this_condition = averageWithinSubjects(data_to_plot_this_condition, condition_data_this_condition, condition_labels);
+                    [data_to_plot_this_condition, origin_subjects_this_condition] ...
+                        = averageWithinSubjects(data_to_plot_this_condition, condition_data_this_condition, condition_labels);
                 end                
                 if settings.plot_settings.get('merge_bands', 1)
                     data_to_plot_this_condition = reshape(data_to_plot_this_condition, 1, numel(data_to_plot_this_condition));
                 end
+                
+                % build origin struct
+                origin_data = [];
+                for i_stretch = 1 : size(data_to_plot_this_condition, 2)
+                    this_origin = struct;
+                    if settings.plot_settings.get('average_within_subjects', 1)
+                        this_origin.subject = origin_subjects_this_condition;
+                    else
+                        this_origin.subject = origin_subjects_this_condition{i_stretch};
+                        this_origin.trial = origin_trials_this_condition(i_stretch);
+                        this_origin.start_time = origin_start_times_this_condition(i_stretch);
+                        this_origin.end_time = origin_end_times_this_condition(i_stretch);
+                    end
+                    origin_data = [origin_data; this_origin];
+                end                
+                
                 for i_band = 1 : size(data_to_plot_this_condition, 1)
                     if ~isempty(settings.band_labels) && ~settings.plot_settings.get('merge_bands', 1)
                         label_string_this_band = strrep([label_string '-' settings.band_labels{i_band}], '_', ' ');
@@ -854,17 +935,131 @@ function plotData_discrete(settings, comparisons, data_custodian, figure_data)
                             'axes', target_axes_handle, ...         % axes
                             'color', this_color, ...                % color
                             'ShowMean', settings.show_average_data, ...
-                            'MeanStyle', 'd', ...
-                            'MeanColor', lightenColor(this_color, 0.3), ...
+                            'MeanStyle', settings.plot_settings.get('mean_style', 1), ...
+                            'MeanMarkerSize', settings.plot_settings.get('mean_marker_size', 1), ...
+                            'MeanColor', lightenColor(this_color, 1-settings.plot_settings.get('mean_data_saturation', 1)), ...
                             'ShowMedian', settings.show_spread_data, ...
                             'MedianStyle', 'line', ...
                             'ShowIndividualData', settings.plot_settings.get('show_individual_discrete_data', 1), ...
+                            'IndividualDataMarkerStyle', settings.plot_settings.get('individual_data_marker_style', 1), ...
+                            'IndividualDataMarkerSize', settings.plot_settings.get('individual_data_marker_size', 1), ...
+                            'IndividualDataColor', lightenColor(this_color, 1-settings.plot_settings.get('individual_data_saturation', 1)), ...
+                            'IndividualDataJitterStd', settings.plot_settings.get('individual_data_jitter_std', 1), ...
+                            'SpreadFaceColor', lightenColor(this_color, 1-settings.plot_settings.get('spread_fill_saturation', 1)), ...
+                            'SpreadEdgeColor', lightenColor(this_color, 1-settings.plot_settings.get('spread_edge_saturation', 1)), ...
+                            'SpreadEdgeLinewidth', settings.plot_settings.get('discrete_data_spread_edge_linewidth', 1), ...
+                            'SpreadWiskColor', lightenColor(this_color, 1-settings.plot_settings.get('spread_edge_saturation', 1)), ...
                             'ShowSpread', settings.show_spread_data, ...
                             'SpreadStyle', settings.plot_settings.get('discrete_data_plot_style'), ...
+                            'IndividualDataInfo', origin_data, ...
                             'label', label_string_this_band ...     % label
                           );
+%                             'SpreadFaceAlpha', settings.plot_settings.get('discrete_data_spread_face_alpha', 1), ...
 
                     end
+                end
+                
+                
+            end
+            
+            % update direction labels
+            set(figure_data.pos_text_handles_ordinate(i_comparison, i_variable), 'string', data_to_plot.directions{1});
+            set(figure_data.neg_text_handles_ordinate(i_comparison, i_variable), 'string', data_to_plot.directions{2});
+        end
+    end
+end
+
+function plotData_range(settings, comparisons, data_custodian, figure_data)
+    [condition_data, condition_labels] = data_custodian.getConditionData();
+    [origin_subjects, origin_trials, origin_start_times, origin_end_times] = data_custodian.getOriginData();
+    for i_variable = 1 : settings.number_of_variables_to_plot_range
+        variable_name = settings.variables_to_plot_range(i_variable, strcmp(settings.variables_to_plot_range_header, 'variable_name'));
+        variable_type = 'range';
+        data_to_plot = data_custodian.getData(variable_name, variable_type);
+        
+        for i_comparison = 1 : length(comparisons.comparison_indices)
+            % find correct condition indicator for control
+            conditions_this_comparison = comparisons.comparison_indices{i_comparison};
+            target_axes_handle = figure_data.axes_handles{figure_data.comparison_variable_to_axes_index_map(i_comparison), i_variable};
+            
+            % plot
+            for i_condition = 1 : length(conditions_this_comparison)
+                this_condition_index = conditions_this_comparison(i_condition);
+                this_condition = comparisons.condition_combinations(this_condition_index, :);
+                this_label = this_condition{strcmp(comparisons.condition_combination_labels, settings.condition_to_compare)};
+                this_color = comparisons.condition_colors{strcmp(comparisons.condition_colors(:, 1), this_label), 2};
+                label_string = strrep(this_label, '_', ' ');
+                this_condition_indicator = getConditionIndicator ...
+                  ( ...
+                    this_condition, ...
+                    comparisons.condition_combination_labels, ...
+                    condition_data, ...
+                    settings.condition_labels, ...
+                    settings.plot_settings.get('levels_to_remove') ...
+                  );
+                data_to_plot_this_condition = data_to_plot.variable_data(:, this_condition_indicator);
+                origin_subjects_this_condition = origin_subjects(this_condition_indicator);
+                origin_trials_this_condition = origin_trials(this_condition_indicator);
+                origin_start_times_this_condition = origin_start_times(this_condition_indicator);
+                origin_end_times_this_condition = origin_end_times(this_condition_indicator);
+                
+                
+                if settings.plot_settings.get('average_within_subjects', 1)
+                    condition_data_this_condition = condition_data(this_condition_indicator, :);
+%                     data_to_plot_this_condition = averageWithinSubjects(data_to_plot_this_condition, condition_data_this_condition, condition_labels);
+                    
+                    [data_to_plot_this_condition, origin_subjects_this_condition] ...
+                        = averageWithinSubjects(data_to_plot_this_condition, condition_data_this_condition, condition_labels);
+                end
+                
+                % build origin struct
+                origin_data = [];
+                for i_stretch = 1 : size(data_to_plot_this_condition, 2)
+                    this_origin = struct;
+                    this_origin.subject = origin_subjects_this_condition{i_stretch};
+                    if ~settings.plot_settings.get('average_within_subjects', 1)
+                        this_origin.trial = origin_trials_this_condition(i_stretch);
+                        this_origin.start_time = origin_start_times_this_condition(i_stretch);
+                        this_origin.end_time = origin_end_times_this_condition(i_stretch);
+                    end
+                    origin_data = [origin_data; this_origin];
+                end                
+                
+                target_abscissa = figure_data.abscissae_cell{i_comparison, i_variable}(i_condition);
+                if ~any(isnan(data_to_plot_this_condition))
+                    if settings.group_bands_within_conditions
+                        % override color
+                        colors = copper(size(data_to_plot_this_condition, 1));
+                        this_color = colors(i_band, :);
+                    end
+                    plotDiscreteData ...
+                      ( ...
+                        data_to_plot_this_condition, ...
+                        'abscissa', target_abscissa, ...
+                        'axes', target_axes_handle, ...         % axes
+                        'color', this_color, ...                % color
+                        'ShowMean', settings.show_average_data, ...
+                        'MeanStyle', settings.plot_settings.get('mean_style', 1), ...
+                        'MeanMarkerSize', settings.plot_settings.get('mean_marker_size', 1), ...
+                        'MeanColor', lightenColor(this_color, 1-settings.plot_settings.get('mean_data_saturation', 1)), ...
+                        'ShowMedian', settings.show_spread_data, ...
+                        'MedianStyle', 'line', ...
+                        'ShowIndividualData', settings.plot_settings.get('show_individual_discrete_data', 1), ...
+                        'IndividualDataMarkerStyle', settings.plot_settings.get('individual_data_marker_style', 1), ...
+                        'IndividualDataMarkerSize', settings.plot_settings.get('individual_data_marker_size', 1), ...
+                        'IndividualDataColor', lightenColor(this_color, 1-settings.plot_settings.get('individual_data_saturation', 1)), ...
+                        'IndividualDataJitterStd', settings.plot_settings.get('individual_data_jitter_std', 1), ...
+                        'SpreadFaceAlpha', settings.plot_settings.get('discrete_data_spread_face_alpha', 1), ...
+                        'SpreadFaceColor', this_color, ...
+                        'SpreadEdgeColor', lightenColor(this_color, 1-settings.plot_settings.get('spread_edge_saturation', 1)), ...
+                        'SpreadEdgeLinewidth', settings.plot_settings.get('discrete_data_spread_edge_linewidth', 1), ...
+                        'SpreadWiskColor', lightenColor(this_color, 1-settings.plot_settings.get('spread_edge_saturation', 1)), ...
+                        'ShowSpread', settings.show_spread_data, ...
+                        'SpreadStyle', settings.plot_settings.get('discrete_data_plot_style'), ...
+                        'IndividualDataInfo', origin_data, ...
+                        'label', label_string ...     % label
+                      );
+
                 end
                 
                 
@@ -1151,6 +1346,24 @@ function groomFigures_discrete(settings, figure_data)
     
 end
 
+function groomFigures_range(settings, figure_data)
+    % set axis limits
+    dictateAxes(settings, figure_data, settings.variables_to_plot_range, settings.variables_to_plot_range_header);
+    updateLabelPositions(figure_data);
+    addZeroLine(settings, figure_data);
+    
+    % rotate labels
+    for i_variable = 1 : settings.number_of_variables_to_plot_range
+        for i_axes = 1 : size(figure_data.axes_handles, 1)
+            these_axes = figure_data.axes_handles{i_axes, i_variable};
+            xtick_label_rotation = settings.plot_settings.get('xtick_label_rotation', 1);
+            set(these_axes, 'XTickLabelRotation', xtick_label_rotation);            
+        end
+    end
+
+    
+end
+
 function groomFigures_pairs(settings, figure_data)
     % set axis limits
     dictateAxes(settings, figure_data, settings.variables_to_plot_pairs);
@@ -1267,12 +1480,12 @@ function addZeroLine(settings, figure_data, axis)
                 these_axes = figure_data.axes_handles{i_axes, i_variable};
                 if ~isempty(these_axes) && axis == 'x'
                     xlimits = get(these_axes, 'xlim');
-                    zero_plot = plot(these_axes, xlimits, [0 0], 'color', [0.7 0.7 0.7]);
-%                     zero_plot = xline(these_axes, 0, 'Color', [0.7 0.7 0.7]); 
+                    zero_plot = plot(these_axes, xlimits, [0 0], 'Color', settings.plot_settings.get('zero_color', 1), 'linewidth', settings.plot_settings.get('zero_linewidth', 1));
+%                     zero_plot = yline(these_axes, 0, 'Color', settings.plot_settings.get('zero_color', 1), 'linewidth', settings.plot_settings.get('zero_linewidth', 1));
                 end
                 if ~isempty(these_axes) && axis == 'y'
 %                     ylimits = get(these_axes, 'ylim');
-                    zero_plot = yline(these_axes, 0, 'Color', [0.7 0.7 0.7]); %plot(these_axes, [0 0], ylimits, 'color', [0.7 0.7 0.7]);
+                    zero_plot = xline(these_axes, 0, 'Color', settings.plot_settings.get('zero_color', 1), 'linewidth', settings.plot_settings.get('zero_linewidth', 1));
                 end
                 set(zero_plot, 'HandleVisibility', 'off');
                 uistack(zero_plot, 'bottom')
@@ -1304,7 +1517,11 @@ function saveFigures(settings, figure_data)
             
             % save with labels
             filename_with = ['figures' filesep 'withLabels' filesep get(figure_data.figure_handles{i_figure}, 'UserData')];
-            print(figure_data.figure_handles{i_figure}, filename_with, settings.save_format, settings.save_resolution)
+            if strcmp(settings.save_format, '-dfig')
+                savefig(figure_data.figure_handles{i_figure}, filename_with)
+            else
+                print(figure_data.figure_handles{i_figure}, filename_with, settings.save_format, settings.save_resolution)
+            end
             
             % remove text and marks to save data lines only
             set(get(figure_data.axes_handles{i_figure}, 'xaxis'), 'visible', 'off');
@@ -1317,7 +1534,11 @@ function saveFigures(settings, figure_data)
             set(figure_data.axes_handles{i_figure}, 'position', [0 0 1 1]);
             legend(figure_data.axes_handles{i_figure}, 'hide');
             filename_without = ['figures' filesep 'noLabels' filesep get(figure_data.figure_handles{i_figure}, 'UserData')];
-            print(figure_data.figure_handles{i_figure}, filename_without, settings.save_format, settings.save_resolution)
+            if strcmp(settings.save_format, '-dfig')
+                savefig(figure_data.figure_handles{i_figure}, filename_without)
+            else
+                print(figure_data.figure_handles{i_figure}, filename_without, settings.save_format, settings.save_resolution)
+            end
             disp(['Saved as ' filename_with ' and ' filename_without])
             
             % put some marks back

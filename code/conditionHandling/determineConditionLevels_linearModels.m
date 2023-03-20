@@ -61,8 +61,16 @@ function [conditions_trial, event_variables_to_save, removal_flags] = determineC
         
         % check for problems
         if ~issorted(this_stretch_times)
+            % stretch times are not in the correct order
             removal_flags(i_stretch) = 1;
         end
+        if length(this_stretch_times) < size(stretch_times, 2)
+            % we don't have the correct size, some events were missing
+            this_stretch_times = zeros(1, size(stretch_times, 2));
+            removal_flags(i_stretch) = 1;
+        end
+        
+        % store
         stretch_times(i_stretch, :) = this_stretch_times;
     end
 

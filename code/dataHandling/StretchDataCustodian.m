@@ -19,6 +19,7 @@ classdef StretchDataCustodian < handle
         data;
         bands_per_stretch;
         normalized_time;
+        stretch_times;
         
         root;
         source;
@@ -44,6 +45,7 @@ classdef StretchDataCustodian < handle
             this.number_of_source_sessions = length(this.session_folder_list);
             this.data = cell(this.number_of_source_sessions, 1);
             this.bands_per_stretch = [];
+            this.stretch_times = [];
 
             for i_folder = 1 : this.number_of_source_sessions
                 % get information
@@ -83,6 +85,8 @@ classdef StretchDataCustodian < handle
                        warning('Different sessions have different numbers of bands per stretch') 
                     end
                 end
+                
+                
             end
             
             number_of_time_steps = this.study_settings.get('number_of_time_steps_normalized');
@@ -172,6 +176,38 @@ classdef StretchDataCustodian < handle
                 data.variable_names = data.variable_names{1};
                 data.variable_types = data.variable_types{1};
                 data.variable_data = data.variable_data{1};
+            end
+        end
+        function stretch_times = getStretchTimes(this)
+            stretch_times = [];
+            
+            % extract data from individual
+            for i_folder = 1 : this.number_of_source_sessions
+                this_session_data = this.data{i_folder};
+
+                % get stretch time data
+                if isfield(this_session_data, 'stretch_times')
+                    % stretch times are available explicitly
+                    this_stretch_time_data = this_session_data.stretch_times;
+                elseif any(strcmp(this_session_data.stretch_names_session, 'step_time')) ...
+                        && isfield(this_session_data, 'origin_start_time_list_session')
+                    % stretch times are not available, but we have step time, so reconstruct from that
+                    start_times = this_session_data.origin_start_time_list_session';
+                    step_times = this_session_data.stretch_data_session{strcmp(this_session_data.stretch_names_session, 'step_time')};
+                    step_times_sum = cumsum(step_times);
+                    number_of_steps = size(step_times_sum, 1);
+                    end_times = repmat(start_times, number_of_steps, 1) + step_times_sum;
+                    
+                    
+                    this_stretch_time_data = [start_times; end_times];
+                else
+                    error('no stretch time data found');
+                end
+
+                % store
+                stretch_times = [stretch_times this_stretch_time_data];
+
+                
             end
         end
         function time = getNormalizedTime(this)

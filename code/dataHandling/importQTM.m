@@ -51,7 +51,7 @@ function importQTM(varargin)
         end
     end    
     % qtm_import_mode determines how the data in the QTM files are cut into pieces and mapped onto trials accoding to
-    % the labview protocol file | ATTENTION: mode 3. events is currently the only one that works, the other ones will
+    % the labview protocol file | ATTENTION: mode 3. and 4. are currently the only ones that works, the other ones will
     % have to be updated to generate a trial table from the available information
     % 1. encoded -- analog signal, increasing edge signals switch to a new step in protocol file -- currently not working
     % 2. table -- analog signal, increasing edge signals switch to new trial in table in subject settings -- currently not working 
@@ -98,7 +98,6 @@ function importQTM(varargin)
 
 end
 
-
 function importSingleQtmFile(data_file_name, options, study_settings, subject_settings)
 
     disp(['Importing ' options.qtm_source_dir filesep data_file_name])
@@ -129,7 +128,7 @@ function importSingleQtmFile(data_file_name, options, study_settings, subject_se
         % import data
         importTrialDataAnalog(qtm_data, trial_info, file_info, study_settings, subject_settings);
         importTrialDataForceplate(qtm_data, trial_info, file_info, study_settings, options);
-        importTrialDataMarker(qtm_data, trial_info, file_info, subject_settings, options);
+        importTrialDataMarker(qtm_data, trial_info, file_info, study_settings, subject_settings, options);
         
         % report to command window
         this_trial_length = trial_info.end_time - trial_info.start_time;
@@ -144,478 +143,6 @@ function importSingleQtmFile(data_file_name, options, study_settings, subject_se
           ] ...
         )
     end
-    
-    
-    % after here is old stuff -- leave this code around, in case we want to re-import old data at some point. This code
-    % contains info about how we used to import data based on the analog encoding or table in the subject settings
-if false
-
-    % determine start and end indices
-    if ~analog_data_available
-        start_indices_mocap = 1;
-        end_indices_mocap = qtm_data.Frames;
-        number_of_trials_in_this_qtm_file = length(start_indices_mocap);
-    else
-        file_info.analog_fs = qtm_data.Analog.Frequency;
-
-        if strcmp(options.import_mode, 'events')
-            % break up into chunks for trials
-            trigger_mask = contains(qtm_data.Analog.Labels, 'labview_sync');
-            trigger = qtm_data.Analog.Data(trigger_mask,:);
-            % normalise to the range [0,1] and round
-            trigger = round(trigger/max(trigger));
-
-            % find edges
-            trigger_edges = [diff(trigger), 0];
-            analog_indices = 1:length(qtm_data.Analog.Data);
-            start_indices_analog = analog_indices(trigger_edges == -1); % trials start on negative edge
-            end_indices_analog = analog_indices(trigger_edges == 1); % trials end on positive edge
-            analog_time = (1 : qtm_data.Analog.NrOfSamples)' / qtm_data.Analog.Frequency;
-
-            % figure out protocol steps
-            protocol_step_mask = contains(qtm_data.Analog.Labels, 'currentStep');
-            protocol_step_analog = qtm_data.Analog.Data(protocol_step_mask,:);
-            protocol_step_up_indices = find([diff(protocol_step_analog), 0] > 0.08);
-
-            if isempty(start_indices_analog) && isempty(end_indices_analog)
-                start_indices_analog = 1;
-                end_indices_analog = length(analog_indices);
-            end
-
-            % check whether each start index has a matching end index
-            for i_start_index = 1 : length(start_indices_analog)
-                % remove end indices that come before the start index - HR: not tested yet
-                while length(end_indices_analog) >= i_start_index && end_indices_analog(i_start_index) <= start_indices_analog(i_start_index)
-                    end_indices_analog(i_start_index) = [];
-                end
-            end
-            if length(end_indices_analog) > length(start_indices_analog)
-                disp('More end indices than start indices, removing superfluous ones')
-                end_indices_analog(length(start_indices_analog)+1 : end) = [];
-            end
-            if length(start_indices_analog) > length(end_indices_analog)
-                disp('More start indices than end indices, removing superfluous ones')
-                start_indices_analog(length(end_indices_analog)+1 : end) = [];
-            end
-
-            % provide visual feedback if desired
-            if options.visualize
-                figure; hold on;
-                time_analog = (1 : length(protocol_step_analog)) * 1/analog_fs;
-                plot(time_analog, protocol_step_analog);
-                plot(time_analog(protocol_step_up_indices), protocol_step_analog(protocol_step_up_indices), '^');
-                plot(time_analog(start_indices_analog), protocol_step_analog(start_indices_analog), '>');
-                plot(time_analog(end_indices_analog), protocol_step_analog(end_indices_analog), '<');
-                drawnow
-            end
-
-            if end_indices_analog(end) > length(qtm_data.Analog.Data)
-                end_indices_analog(end) = length(qtm_data.Analog.Data);
-            end                    
-        end
-        if strcmp(options.import_mode, 'bijective')
-
-            start_indices_analog = 1;
-            end_indices_analog = qtm_data.Analog.NrOfSamples;
-            analog_time = (1 : qtm_data.Analog.NrOfSamples) * 1/analog_fs;
-        end                
-
-
-        number_of_trials_in_this_qtm_file = length(start_indices_analog);
-    end
-
-    % go through events and cut out the data
-    delays_to_closest_event = [];
-    for i_trial_this_qtm_file = 1 : number_of_trials_in_this_qtm_file
-        if ~analog_data_available
-            % we don't have analog data, so we simply import the whole QTM trial
-            importing_trial_number = trial_number;
-            importing_trial_type = trial_type;
-            save_this_trial = 1;
-            this_trial_length = qtm_data.Frames / qtm_data.FrameRate;
-            this_trial_length_expected = this_trial_length;
-
-        else
-            % we do have analog data, so we use event markers
-            this_trial_start_index = start_indices_analog(i_trial_this_qtm_file);
-            this_trial_end_index = end_indices_analog(i_trial_this_qtm_file);
-            number_of_samples = this_trial_end_index - this_trial_start_index + 1;
-            this_trial_length = number_of_samples / file_info.analog_fs;
-
-            % align analog indices with mocap indices
-            sampling_rate_mocap = qtm_data.FrameRate;
-            start_indices_mocap = round(start_indices_analog * sampling_rate_mocap/file_info.analog_fs);
-            if start_indices_mocap == 0
-                start_indices_mocap = 1;
-            end
-            end_indices_mocap = round(end_indices_analog * sampling_rate_mocap/file_info.analog_fs);
-
-        end
-
-        if strcmp(options.sync_mode, 'encoded')
-            % TODO: this is a legacy mode that's not in use anymore. When separating the labview data import from
-            % this function, I did not make sure that this keeps working. To make it work again, you will probably
-            % load information from protocolInfo.mat and maybe others.
-%             if ~protocol_file_available
-%                 error('Failed to locate protocol.csv in the labview folder, exiting.')
-%             end
-%             % figure out protocol step from the analog signal
-%             this_trial_protocol_step_analog = protocol_step_analog(this_trial_start_index:this_trial_end_index);
-% 
-%             analog_to_step_range = (-10 : 0.1 : 10)';
-%             offset = analogOffset();
-%             this_trial_offset = interp1(analog_to_step_range, offset, this_trial_protocol_step_analog);
-%             this_trial_protocol_step_analog_corrected = this_trial_protocol_step_analog + this_trial_offset;
-% 
-%             % discrete map from [-10 10] --> [0 200]
-%             this_trial_protocol_step_digital = round((this_trial_protocol_step_analog_corrected + 10) * 10);
-%             this_trial_protocol_step = median(this_trial_protocol_step_digital);
-% 
-%             if sum(this_trial_protocol_step_digital(2:end-1)~=median(this_trial_protocol_step_digital)) > 20
-%                 warning(['Ambiguous protocol step data for trial starting at time step ' num2str(this_trial_start_index)]);
-%             end
-%             this_trial_protocol_index = median(this_trial_protocol_step) + 1;
-%             importing_trial_type = protocol_trial_type{this_trial_protocol_index};
-%             importing_trial_number = protocol_trial_number(this_trial_protocol_index);
-%             this_trial_length_expected = protocol_trial_duration(this_trial_protocol_index);           
-%             save_this_trial = protocol_trial_saved(this_trial_protocol_index);
-        end
-        if strcmp(options.sync_mode, 'table')
-            % TODO: this is a legacy mode that's not in use anymore. When separating the labview data import from
-            % this function, I did not make sure that this keeps working. To make it work again, you will probably
-            % load information from protocolInfo.mat and maybe others.
-%             if ~protocol_file_available
-%                 error('Failed to locate protocol.csv in the labview folder, exiting.')
-%             end
-%             trial_type_matches = strcmp(analog_to_protocol_mapping(:, 1), trial_type);
-%             trial_number_matches = strcmp(analog_to_protocol_mapping(:, 2), num2str(trial_number));
-%             index_number_matches = strcmp(analog_to_protocol_mapping(:, 3), num2str(i_trial_this_qtm_file));
-%             this_trial_protocol_index = str2double(analog_to_protocol_mapping{trial_type_matches & trial_number_matches & index_number_matches, 4});
-%             importing_trial_type = protocol_trial_type{this_trial_protocol_index};
-%             importing_trial_number = protocol_trial_number(this_trial_protocol_index);
-%             this_trial_length_expected = protocol_trial_duration(this_trial_protocol_index);           
-%             save_this_trial = protocol_trial_saved(this_trial_protocol_index);
-        end
-        if strcmp(options.sync_mode, 'events')
-            % I don't think I need this part at all, let's remove it for now
-%             if ~analog_data_available
-%                 this_trial_start_time = 0;
-%                 this_trial_end_time = this_trial_length;
-%             else
-%                 this_trial_start_time = analog_time(this_trial_start_index);
-%                 this_trial_end_time = analog_time(this_trial_end_index);
-%             end
-% 
-%             if ~event_data_available
-%                 start_event_times = this_trial_start_time;
-%                 end_event_times = this_trial_end_time;
-%                 start_event_types = {file_info.trial_type};
-%                 end_event_types = {file_info.trial_type};
-%                 start_event_numbers = {num2str(file_info.trial_number)};
-%                 end_event_numbers = {num2str(file_info.trial_number)};
-%             end
-% 
-%             [delay_to_closest_start_event, closest_start_event_index] = min(abs(start_event_times - this_trial_start_time));
-%             [delay_to_closest_end_event, closest_end_event_index] = min(abs(end_event_times - this_trial_end_time));
-%             closest_start_event_time = start_event_times(closest_start_event_index);
-%             closest_end_event_time = end_event_times(closest_end_event_index);
-%             type_from_start = start_event_types{closest_start_event_index};
-%             type_from_end = end_event_types{closest_end_event_index};
-%             number_from_start = str2double(start_event_numbers{closest_start_event_index});
-%             number_from_end = str2double(end_event_numbers{closest_end_event_index});
-% 
-%             this_trial_length_expected = closest_end_event_time - closest_start_event_time;
-%             if ~strcmp(type_from_start, type_from_end)
-%                 Error('Trial type from start and end events do not match');
-%             end                        
-%             if ~(number_from_start == number_from_end)
-%                 Error('Trial number from start and end events do not match');
-%             end                        
-%             importing_trial_type = type_from_start;
-%             importing_trial_number = number_from_start;
-%             save_this_trial = 1;
-% 
-%             delays_to_closest_event = [delays_to_closest_event; [delay_to_closest_start_event, delay_to_closest_end_event]];
-        end
-        if strcmp(options.import_mode, 'bijective')
-%             this_trial_start_time = analog_time(this_trial_start_index);
-%             this_trial_end_time = analog_time(this_trial_end_index);
-% 
-% 
-%             this_trial_duration = this_trial_end_time - this_trial_start_time;
-% 
-%             importing_trial_type = trial_type;
-%             importing_trial_number = trial_number;
-%             save_this_trial = 1;
-
-        end
-
-        % sanity check: recorded data should be within 1% of expected duration
-        if this_trial_length < this_trial_length_expected*0.99 || this_trial_length > this_trial_length_expected*1.01
-            warning ...
-              ( ...
-                [ ...
-                  'Problem with trial starting at time step ' ...
-                  num2str(this_trial_start_index) ...
-                  ', expected duration is ' ...
-                  num2str(this_trial_length_expected) ...
-                  's, but data is ' ...
-                  num2str(this_trial_length) ...
-                  's long.' ...
-                ] ...
-              );
-        end
-
-        if analog_data_available
-            
-            % import analog data (non-emg)
-            analog_data_to_import = study_settings.get('analog_data_to_import', 1);
-            number_of_analog_channels_to_import = length(analog_data_to_import);
-            if number_of_analog_channels_to_import > 0
-                sampling_rate_analog = file_info.analog_fs;
-                time_analog = (1 : number_of_samples)' / sampling_rate_analog;
-                analog_labels = analog_data_to_import;
-                analog_trajectories = zeros(number_of_samples, number_of_analog_channels_to_import);
-                data_type = 'analog';
-                for i_channel = 1 : number_of_analog_channels_to_import
-                    index_in_loaded_data = strcmp(qtm_data.Analog.Labels, analog_data_to_import(i_channel));
-
-                    analog_trajectories(:, i_channel) = qtm_data.Analog.Data(index_in_loaded_data, this_trial_start_index:this_trial_end_index)';
-
-                end
-
-                % make directions
-                analog_directions = cell(2, length(analog_labels));
-                [analog_directions{1, :}] = deal('positive');
-                [analog_directions{2, :}] = deal('negative');
-
-                % save analog data
-                if save_this_trial
-                    save_folder = 'processed';
-                    save_file_name = makeFileName(file_info.collection_date, file_info.subject_id, importing_trial_type, importing_trial_number, 'analogTrajectories.mat');
-                    save ...
-                        ( ...
-                        [save_folder filesep save_file_name], ...
-                        'analog_trajectories', ...
-                        'time_analog', ...
-                        'sampling_rate_analog', ...
-                        'data_source', ...
-                        'analog_labels', ...
-                        'analog_directions' ...
-                        );
-                    addAvailableData('analog_trajectories', 'time_analog', 'sampling_rate_analog', '_analog_labels', '_analog_directions', save_folder, save_file_name);
-                end                    
-            end
-
-            % import emg data
-            emg_import_map_header = subject_settings.get('emg_import_map_header', 1);
-            emg_import_map = subject_settings.get('emg_import_map', 1);
-
-            import_emg_data = 1;
-            if isempty(emg_import_map)
-                import_emg_data = 0;
-            else
-                emg_data_to_import = emg_import_map(:, strcmp(emg_import_map_header, 'label_in_qtm_file'));
-                number_of_emg_channels_to_import = length(emg_data_to_import);
-                if number_of_emg_channels_to_import == 0
-                    import_emg_data = 0;
-                end
-            end
-
-
-            if import_emg_data
-                % EMG
-                sampling_rate_emg = file_info.analog_fs;
-                time_emg = (1 : number_of_samples)' / sampling_rate_emg;
-                emg_labels = emg_import_map(:, strcmp(emg_import_map_header, 'label_in_cobal'))';
-                emg_raw_trajectories = zeros(number_of_samples, number_of_emg_channels_to_import);
-                data_type = 'emg';
-                for i_channel = 1 : number_of_emg_channels_to_import
-                    index_in_loaded_data = strcmp(qtm_data.Analog.Labels, emg_data_to_import(i_channel));
-
-                    emg_raw_trajectories(:, i_channel) = qtm_data.Analog.Data(index_in_loaded_data, this_trial_start_index:this_trial_end_index)';
-
-                end
-
-                % make directions
-                emg_directions = cell(2, length(emg_labels));
-                [emg_directions{1, :}] = deal('positive');
-                [emg_directions{2, :}] = deal('negative');
-
-                % save emg data
-                if save_this_trial
-                    save_folder = 'raw';
-                    save_file_name = makeFileName(file_info.collection_date, file_info.subject_id, importing_trial_type, importing_trial_number, 'emgTrajectoriesRaw.mat');
-                    save ...
-                        ( ...
-                        [save_folder filesep save_file_name], ...
-                        'emg_raw_trajectories', ...
-                        'time_emg', ...
-                        'sampling_rate_emg', ...
-                        'data_source', ...
-                        'emg_labels', ...
-                        'emg_directions' ...
-                        );
-                    addAvailableData('emg_raw_trajectories', 'time_emg', 'sampling_rate_emg', '_emg_labels', '_emg_directions', save_folder, save_file_name);
-                end                    
-            end
-        end
-
-
-        if force_data_available
-            % Force data - data are in qtm_data.Force(n).Force
-            force_plates_to_import = study_settings.get('force_plates_to_import', 1);
-            data_type = 'forceplate';
-            if any(any(qtm_data.Force(force_plates_to_import(1)).Force))
-                forceplate_tajectories_Left = ...
-                    [ ...
-                    qtm_data.Force(force_plates_to_import(1)).Force(:, this_trial_start_index : this_trial_end_index)', ...
-                    qtm_data.Force(force_plates_to_import(1)).Moment(:, this_trial_start_index : this_trial_end_index)' ...
-                    ];
-                forceplate_tajectories_Right = ...
-                    [ ...
-                    qtm_data.Force(force_plates_to_import(2)).Force(:, this_trial_start_index : this_trial_end_index)', ...
-                    qtm_data.Force(force_plates_to_import(2)).Moment(:, this_trial_start_index : this_trial_end_index)' ...
-                    ];
-                forceplate_raw_trajectories = [forceplate_tajectories_Left, forceplate_tajectories_Right];
-            else % currently taking volts... need to scale accordinginly
-                warning('No force data found, using analog data instead. This is currently not scaling correctly.')
-                forceplate_raw_trajectories = [qtm_data.Analog.Data(1:12, this_trial_start_index : this_trial_end_index)]';
-            end
-
-            % check if the last data point is NaN for some reason and remove if necessary
-            if any(isnan(forceplate_raw_trajectories(end, :))) & ~any(isnan(forceplate_raw_trajectories(end-1, :)))
-                forceplate_raw_trajectories = forceplate_raw_trajectories(1:end-1, :);
-            end
-
-
-            forceplate_labels = qtm_data.Analog.Labels(1:12);
-            %
-            forceplate_location_left = mean(qtm_data.Force(1).ForcePlateLocation) * options.millimeter_to_meter; % mean of corner coordinates gives center
-            forceplate_location_right = mean(qtm_data.Force(2).ForcePlateLocation) * options.millimeter_to_meter; % mean of corner coordinates gives center
-
-            sampling_rate_forceplate = file_info.analog_fs;
-            time_forceplate = (1 : size(forceplate_raw_trajectories, 1))' / sampling_rate_forceplate;
-
-            % make directions
-            % NOTE: this defines directions and makes assumptions, make sure everything is right here
-            forceplate_directions = cell(2, length(forceplate_labels));
-            [forceplate_directions{1, [1 4 7 10]}] = deal('right');
-            [forceplate_directions{2, [1 4 7 10]}] = deal('left');
-            [forceplate_directions{1, [2 5 8 11]}] = deal('forward');
-            [forceplate_directions{2, [2 5 8 11]}] = deal('backward');
-            [forceplate_directions{1, [3 6 9 12]}] = deal('up');
-            [forceplate_directions{2, [3 6 9 12]}] = deal('down');
-
-            % save forceplate data
-            if save_this_trial
-                save_folder = 'raw';
-                save_file_name = makeFileName(file_info.collection_date, file_info.subject_id, importing_trial_type, importing_trial_number, 'forceplateTrajectoriesRaw.mat');
-                save ...
-                    ( ...
-                    [save_folder filesep save_file_name], ...
-                    'forceplate_raw_trajectories', ...
-                    'forceplate_labels', ...
-                    'data_source', ...
-                    'time_forceplate', ...
-                    'sampling_rate_forceplate', ...
-                    'forceplate_location_left', ...
-                    'forceplate_location_right', ...
-                    'forceplate_directions' ...
-                    );
-                addAvailableData('forceplate_raw_trajectories', 'time_forceplate', 'sampling_rate_forceplate', '_forceplate_labels', '_forceplate_directions', save_folder, save_file_name);
-            end
-        end
-
-        % Markers
-        this_trial_start_index_mocap = start_indices_mocap(i_trial_this_qtm_file);
-        this_trial_end_index_mocap = end_indices_mocap(i_trial_this_qtm_file);
-        number_of_frames = this_trial_end_index_mocap - this_trial_start_index_mocap + 1;
-
-        temp_markers = qtm_data.Trajectories.Labeled.Data(:, 1:3, this_trial_start_index_mocap:this_trial_end_index_mocap);
-
-        data_type = 'markers';
-        % deal with marker data
-
-        marker_labels = qtm_data.Trajectories.Labeled.Labels;
-        sampling_rate_mocap = qtm_data.FrameRate;
-        time_mocap = (1 : number_of_frames)' / sampling_rate_mocap;
-
-        marker_count = 1;
-        marker_raw_trajectories = [];
-        for i_marker = 1: size(temp_markers,1)
-            this_marker = temp_markers(i_marker,:,:);
-            marker_raw_trajectories(marker_count:marker_count+2,:) = reshape(this_marker, size(this_marker,2), size(this_marker,3)) * options.millimeter_to_meter; 
-            marker_count = marker_count + 3;
-        end
-        marker_raw_trajectories = marker_raw_trajectories';
-
-
-        % replace marker labels if necessary
-        marker_label_replacement_map = subject_settings.get('marker_label_replacement_map', 1);
-        for i_label = 1 : size(marker_label_replacement_map, 1)
-            old_label = marker_label_replacement_map{i_label, 1};
-            new_label = marker_label_replacement_map{i_label, 2};
-            marker_labels{strcmp(marker_labels, old_label)} = new_label;
-        end
-
-        % triplicate labels
-        marker_labels_loaded = marker_labels;
-        number_of_markers = length(marker_labels_loaded);
-        marker_labels = cell(3, number_of_markers);
-        for i_marker = 1 : length(marker_labels)
-            marker_labels{1, i_marker} = [marker_labels_loaded{i_marker} '_x'];
-            marker_labels{2, i_marker} = [marker_labels_loaded{i_marker} '_y'];
-            marker_labels{3, i_marker} = [marker_labels_loaded{i_marker} '_z'];
-        end
-        marker_labels = reshape(marker_labels, 1, number_of_markers*3);
-
-        % make directions
-        % NOTE: this defines directions and makes assumptions, make sure everything is right here
-        number_of_marker_trajectories = size(marker_raw_trajectories, 2);
-        marker_directions = cell(2, number_of_marker_trajectories);
-        [marker_directions{1, 1 : 3 : number_of_marker_trajectories}] = deal('right');
-        [marker_directions{2, 1 : 3 : number_of_marker_trajectories}] = deal('left');
-        [marker_directions{1, 2 : 3 : number_of_marker_trajectories}] = deal('forward');
-        [marker_directions{2, 2 : 3 : number_of_marker_trajectories}] = deal('backward');
-        [marker_directions{1, 3 : 3 : number_of_marker_trajectories}] = deal('up');
-        [marker_directions{2, 3 : 3 : number_of_marker_trajectories}] = deal('down');
-
-
-        % save
-        if save_this_trial
-            save_folder = 'raw';
-            save_file_name = makeFileName(file_info.collection_date, file_info.subject_id, importing_trial_type, importing_trial_number, 'markerTrajectoriesRaw.mat');
-            save ...
-                ( ...
-                [save_folder filesep save_file_name], ...
-                'marker_raw_trajectories', ...
-                'time_mocap', ...
-                'data_source', ...
-                'sampling_rate_mocap', ...
-                'marker_labels', ...
-                'marker_directions' ...
-                );
-            addAvailableData('marker_raw_trajectories', 'time_mocap', 'sampling_rate_mocap', '_marker_labels', '_marker_directions', save_folder, save_file_name);
-        end
-
-        if save_this_trial
-%                 disp(['  Saved data files for type ' importing_trial_type ', trial ' num2str(importing_trial_number) ' with duration ' num2str(this_trial_duration) 's'])
-            disp( ...
-                  [ ...
-                    '  Saved data files for type ' importing_trial_type ...
-                    ', trial ' num2str(importing_trial_number) ...
-                    ' with duration ' num2str(this_trial_length) ...
-                    's (' num2str(this_trial_start_index_mocap * 1/sampling_rate_mocap) ...
-                    '-' num2str(this_trial_end_index_mocap * 1/sampling_rate_mocap) ...
-                    ')' ...
-                  ] ...
-                )
-        end
-    end
-
-end
-
 end
 
 function trial_table = determineTrialTable(qtm_data, file_info, options)
@@ -727,6 +254,7 @@ function trial_table = determineTrialTable(qtm_data, file_info, options)
     end
     
     if strcmp(options.import_mode, 'encoded')
+        % this is a legacy mode that hasn't been tested after updating code structure
         if (strcmp(file_info.trial_type, 'static')) || (strcmp(file_info.trial_type, 'calibration'))
             disp(['  trial type: ' file_info.trial_type ' - importing whole trial'])
             import_whole_trial = true;
@@ -747,7 +275,7 @@ function trial_table = determineTrialTable(qtm_data, file_info, options)
             % figure out protocol steps
             protocol_step_mask = contains(qtm_data.Analog.Labels, 'currentStep');
             protocol_step_analog = qtm_data.Analog.Data(protocol_step_mask,:);
-            protocol_step_up_indices = find([diff(protocol_step_analog), 0] > 0.08);
+%             protocol_step_up_indices = find([diff(protocol_step_analog), 0] > 0.08);
 
             if isempty(start_indices_analog) && isempty(end_indices_analog)
 %                 start_indices_analog = 1;
@@ -917,24 +445,10 @@ function trial_table = determineTrialTable(qtm_data, file_info, options)
     end
 
     if strcmp(options.import_mode, 'bijective')
-        % TODO: this is a legacy mode that's not in use anymore. When separating the labview data import from
-        % this function, I did not make sure that this keeps working. To make it work again, you will probably
-        % load information from protocolInfo.mat and maybe others.
-%             this_trial_start_time = analog_time(this_trial_start_index);
-%             this_trial_end_time = analog_time(this_trial_end_index);
-% 
-% 
-%             this_trial_duration = this_trial_end_time - this_trial_start_time;
-% 
-%             importing_trial_type = trial_type;
-%             importing_trial_number = trial_number;
-%             save_this_trial = 1;
-
-    
+        import_whole_trial = 1;
     end
     
     if import_whole_trial
-        
         trial_start_time = qtm_data.StartFrame / qtm_data.FrameRate;
         trial_end_time = (qtm_data.Frames - qtm_data.StartFrame + 1) / qtm_data.FrameRate;
         this_trial_data = ...
@@ -947,7 +461,6 @@ function trial_table = determineTrialTable(qtm_data, file_info, options)
             file_info.trial_number...
           };
         trial_table = [trial_table; this_trial_data];
-        
     end
 end
 
@@ -1061,54 +574,133 @@ function importTrialDataForceplate(qtm_data, trial_info, file_info, study_settin
         last_frame_to_import = round(trial_info.end_frame * qtm_data.Force(1).SamplingFactor);
 
         % Force data - data are in qtm_data.Force(n).Force
-        force_plates_to_import = study_settings.get('force_plates_to_import', 1);
-        lab_orientation = study_settings.get('lab_orientation', 1);
-        if any(any(qtm_data.Force(force_plates_to_import(1)).Force))
-            if strcmp(lab_orientation, 'normal')
-                left_forceplate_index = 1;
-                right_forceplate_index = 2;
-            elseif strcmp(lab_orientation, 'inverse')
-                left_forceplate_index = 2;
-                right_forceplate_index = 1;
+        forceplate_table = study_settings.getTable('forceplate_table', true);
+        number_of_forceplates = size(forceplate_table, 1);
+        forceplate_raw_trajectories = [];
+        forceplate_labels = {};
+        forceplate_directions = {};
+        for i_forceplate = 1 : number_of_forceplates
+            this_plate_index = str2double(forceplate_table.index{i_forceplate});
+            this_plate_label = forceplate_table.label{i_forceplate};
+            
+            % get forces and moments and combine to wrench
+            this_plate_forces = qtm_data.Force(this_plate_index).Force(:, first_frame_to_import : last_frame_to_import)';
+            this_plate_moments = qtm_data.Force(this_plate_index).Moment(:, first_frame_to_import : last_frame_to_import)';
+            this_plate_wrench_local = [this_plate_forces this_plate_moments];
+            
+            % assemble transformation from forceplate to lab frame
+            if strcmp(forceplate_table.translation{i_forceplate}, 'from_data')
+                % mean of corner coordinates gives center
+                this_plate_location = qtm_data.Force(this_plate_index).ForcePlateLocation * options.millimeter_to_meter;
+                forceplate_to_world_translation = mean(this_plate_location)';
+            else
+                forceplate_to_world_translation = study_settings.get(forceplate_table.translation{i_forceplate})';
             end
-            forceplate_tajectories_Left = ...
-              [ ...
-                qtm_data.Force(force_plates_to_import(left_forceplate_index)).Force(:, first_frame_to_import : last_frame_to_import)', ...
-                qtm_data.Force(force_plates_to_import(left_forceplate_index)).Moment(:, first_frame_to_import : last_frame_to_import)' ...
-              ];
-            forceplate_tajectories_Right = ...
-              [ ...
-                qtm_data.Force(force_plates_to_import(right_forceplate_index)).Force(:, first_frame_to_import : last_frame_to_import)', ...
-                qtm_data.Force(force_plates_to_import(right_forceplate_index)).Moment(:, first_frame_to_import : last_frame_to_import)' ...
-              ];
-            forceplate_raw_trajectories = [forceplate_tajectories_Left, forceplate_tajectories_Right];
-        else % currently taking volts... need to scale accordinginly
-            warning('No force data found, using analog data instead. This is currently not scaling correctly.')
-            forceplate_raw_trajectories = [qtm_data.Analog.Data(1:12, this_trial_start_index : this_trial_end_index)]';
-        end
+            forceplate_to_world_rotation = reshape(study_settings.get(forceplate_table.rotation{i_forceplate}, true), 3, 3);
+            
+            this_plate_location = qtm_data.Force(this_plate_index).ForcePlateLocation * options.millimeter_to_meter;
+            
+            % this rotation matrix is for the normal lab frame and does something that looks useful for TD10, though not directly compared with pre data yet
+            p_fp_from_lab = mean(this_plate_location)'; % p is the origin of the forceplate in lab coordinates
+            R_fp_from_lab = reshape(study_settings.get(forceplate_table.rotation{i_forceplate}, true), 3, 3);
+            
+            
+%             R_fp_from_lab = [1 0 0; 0 -1 0; 0 0 1]; % R is the orientation of the forceplate in lab coordinates, i.e 
+            % the 1st column of R is the x-axis of the forceplate frame in world coordinates
+            % the 2nd column of R is the y-axis of the forceplate frame in world coordinates
+            % the 3rd column of R is the z-axis of the forceplate frame in world coordinates
+            
+            % this rotation matrix is for the inverse lab
+%             p_fp_from_lab = mean(this_plate_location)'; % p is the origin of the forceplate in lab coordinates
+%             R_fp_from_lab = [-1 0 0; 0 1 0; 0 0 1]; % R is the orientation of the forceplate in lab coordinates
+            
+            
+            % build rigid transform
+            g_fp_from_lab = [R_fp_from_lab p_fp_from_lab; 0 0 0 1];
+            
+            % invert rigid transform, because we want to transform the wrench from forceplate to lab coordinates
+            g_lab_from_fp = inv(g_fp_from_lab);
+            % test: p_lab_from_fp = -R_fp_from_lab * p_fp_from_lab
+            
+            % calculate adjoint
+            A_lab_from_fp = rigidToAdjointTransformation(g_lab_from_fp);
+            
+            % transform wrench
+            this_plate_wrench_world = (A_lab_from_fp' * this_plate_wrench_local')';
+            
+            
+            A_fp_from_lab = rigidToAdjointTransformation([R_fp_from_lab p_fp_from_lab; 0 0 0 1]);
+            A_t_inv = inv(A_fp_from_lab');
+            this_plate_wrench_world = (A_t_inv * this_plate_wrench_local')';
+            
+            % invert wrench to change from ground reaction wrench to applied wrench
+            this_wrench_world = -this_plate_wrench_world;
+            
+            tau_1 = (A_lab_from_fp' * this_plate_wrench_local')';
+            tau_2 = (A_fp_from_lab' * this_plate_wrench_local')';
+            
+% figure; plot(this_plate_moments); set(gca, 'xlim', [0 10000])
+% figure; plot(tau_1(:, 4:6)); set(gca, 'xlim', [0 10000])
+% figure; plot(tau_2(:, 4:6)); set(gca, 'xlim', [0 10000])
+% figure; plot(this_plate_wrench_world(:, 4:6)); set(gca, 'xlim', [0 10000])
 
-        % check if the last data point is NaN for some reason and remove if necessary
-        if any(isnan(forceplate_raw_trajectories(end, :))) & ~any(isnan(forceplate_raw_trajectories(end-1, :)))
-            forceplate_raw_trajectories = forceplate_raw_trajectories(1:end-1, :);
+%             world_to_forceplate_transform = [forceplate_to_world_rotation forceplate_to_world_translation; 0 0 0 1];
+%             forceplate_to_world_transform = world_to_forceplate_transform^(-1);
+%             
+%             
+%             forceplate_to_world_adjoint = rigidToAdjointTransformation(forceplate_to_world_transform);
+%             
+%             
+%             this_plate_wrench_world = (forceplate_to_world_adjoint' * this_plate_wrench_local')';
+            
+            
+% figure; plot(this_plate_forces)
+% figure; plot(this_plate_moments)
+% figure; plot(this_plate_wrench_world(:, 1:3))
+% figure; plot(this_plate_wrench_world(:, 4:6))
+            
+%             forceplate_to_world_transformation = [forceplate_to_world_rotation forceplate_to_world_translation; 0 0 0 1];
+            
+            % transform to lab frame and store
+%             forceplate_to_world_adjoint = rigidToAdjointTransformation(forceplate_to_world_transformation);
+%             this_plate_wrench_world = (forceplate_to_world_adjoint' * this_plate_wrench_local')';
+            forceplate_raw_trajectories = [forceplate_raw_trajectories this_wrench_world]; %#ok<AGROW>
+            
+            % create labels
+            this_plate_labels = ...
+              { ...
+                ['fx_' this_plate_label], ...
+                ['fy_' this_plate_label], ...
+                ['fz_' this_plate_label], ...
+                ['mx_' this_plate_label], ...
+                ['my_' this_plate_label], ...
+                ['mz_' this_plate_label], ...
+              };
+            forceplate_labels = [forceplate_labels this_plate_labels]; %#ok<AGROW>
+            
+            % create directions
+            this_plate_directions = ...
+              { ...
+                study_settings.get('direction_x_pos', true), ...
+                study_settings.get('direction_y_pos', true), ...
+                study_settings.get('direction_z_pos', true), ....
+                study_settings.get('direction_x_pos', true), ...
+                study_settings.get('direction_y_pos', true), ...
+                study_settings.get('direction_z_pos', true); ....
+                study_settings.get('direction_x_neg', true), ...
+                study_settings.get('direction_y_neg', true), ...
+                study_settings.get('direction_z_neg', true), ....
+                study_settings.get('direction_x_neg', true), ...
+                study_settings.get('direction_y_neg', true), ...
+                study_settings.get('direction_z_neg', true); ....
+              };
+            % NOTE: this defines directions and makes assumptions, make sure everything is right here
+            forceplate_directions = [forceplate_directions this_plate_directions]; %#ok<AGROW>
+            
         end
-
-        % make labels
-        forceplate_labels = qtm_data.Analog.Labels(1:12);
-        forceplate_location_left = mean(qtm_data.Force(1).ForcePlateLocation) * options.millimeter_to_meter; % mean of corner coordinates gives center
-        forceplate_location_right = mean(qtm_data.Force(2).ForcePlateLocation) * options.millimeter_to_meter; % mean of corner coordinates gives center
 
         sampling_rate_forceplate = qtm_data.Force(1).Frequency;
         time_forceplate = (1 : size(forceplate_raw_trajectories, 1))' / sampling_rate_forceplate;
-
-        % make directions
-        % NOTE: this defines directions and makes assumptions, make sure everything is right here
-        forceplate_directions = cell(2, length(forceplate_labels));
-        [forceplate_directions{1, [1 4 7 10]}] = deal('right');
-        [forceplate_directions{2, [1 4 7 10]}] = deal('left');
-        [forceplate_directions{1, [2 5 8 11]}] = deal('forward');
-        [forceplate_directions{2, [2 5 8 11]}] = deal('backward');
-        [forceplate_directions{1, [3 6 9 12]}] = deal('up');
-        [forceplate_directions{2, [3 6 9 12]}] = deal('down');
 
         % save forceplate data
         save_folder = 'raw';
@@ -1121,8 +713,6 @@ function importTrialDataForceplate(qtm_data, trial_info, file_info, study_settin
             'forceplate_labels', ...
             'time_forceplate', ...
             'sampling_rate_forceplate', ...
-            'forceplate_location_left', ...
-            'forceplate_location_right', ...
             'forceplate_directions', ...
             'data_source' ...
             );
@@ -1130,73 +720,74 @@ function importTrialDataForceplate(qtm_data, trial_info, file_info, study_settin
     end
 end
 
-function importTrialDataMarker(qtm_data, trial_info, file_info, subject_settings, options)
-    % figure out frames
-    first_frame_to_import = round(trial_info.start_frame);
-    last_frame_to_import = round(trial_info.end_frame);
-    number_of_frames = last_frame_to_import - first_frame_to_import + 1;
+function importTrialDataMarker(qtm_data, trial_info, file_info, study_settings, subject_settings, options)
+    marker_data_is_available = isfield(qtm_data, 'Trajectories') && ~isempty(qtm_data.Trajectories);
+    if marker_data_is_available
+        % figure out frames
+        first_frame_to_import = round(trial_info.start_frame);
+        last_frame_to_import = round(trial_info.end_frame);
+        number_of_frames = last_frame_to_import - first_frame_to_import + 1;
 
-    % get relevant data in QTM format (N x 3 x T), where N = number of markers, T = number of samples
-    markers_temp = qtm_data.Trajectories.Labeled.Data(:, 1:3, first_frame_to_import:last_frame_to_import);
-    marker_labels = qtm_data.Trajectories.Labeled.Labels;
-    sampling_rate_mocap = qtm_data.FrameRate;
-    time_mocap = (1 : number_of_frames)' / sampling_rate_mocap;
+        % get relevant data in QTM format (N x 3 x T), where N = number of markers, T = number of samples
+        markers_temp = qtm_data.Trajectories.Labeled.Data(:, 1:3, first_frame_to_import:last_frame_to_import);
+        marker_labels = qtm_data.Trajectories.Labeled.Labels;
+        sampling_rate_mocap = qtm_data.FrameRate;
+        time_mocap = (1 : number_of_frames)' / sampling_rate_mocap;
 
-    % reformat to T x 3N
-    marker_count = 1;
-    marker_raw_trajectories = [];
-    for i_marker = 1: size(markers_temp,1)
-        this_marker = markers_temp(i_marker,:,:);
-        marker_raw_trajectories(marker_count:marker_count+2,:) = reshape(this_marker, size(this_marker,2), size(this_marker,3)) * options.millimeter_to_meter; 
-        marker_count = marker_count + 3;
+        % reformat to T x 3N
+        marker_count = 1;
+        marker_raw_trajectories = [];
+        for i_marker = 1: size(markers_temp,1)
+            this_marker = markers_temp(i_marker,:,:);
+            marker_raw_trajectories(marker_count:marker_count+2,:) = reshape(this_marker, size(this_marker,2), size(this_marker,3)) * options.millimeter_to_meter; 
+            marker_count = marker_count + 3;
+        end
+        marker_raw_trajectories = marker_raw_trajectories';
+
+
+        % replace marker labels if necessary
+        marker_label_replacement_map = subject_settings.get('marker_label_replacement_map', 1);
+        for i_label = 1 : size(marker_label_replacement_map, 1)
+            old_label = marker_label_replacement_map{i_label, 1};
+            new_label = marker_label_replacement_map{i_label, 2};
+            marker_labels{strcmp(marker_labels, old_label)} = new_label;
+        end
+
+        % triplicate labels
+        marker_labels_loaded = marker_labels;
+        number_of_markers = length(marker_labels_loaded);
+        marker_labels = cell(3, number_of_markers);
+        for i_marker = 1 : length(marker_labels)
+            marker_labels{1, i_marker} = [marker_labels_loaded{i_marker} '_x'];
+            marker_labels{2, i_marker} = [marker_labels_loaded{i_marker} '_y'];
+            marker_labels{3, i_marker} = [marker_labels_loaded{i_marker} '_z'];
+        end
+        marker_labels = reshape(marker_labels, 1, number_of_markers*3);
+
+        % make directions
+        number_of_marker_trajectories = size(marker_raw_trajectories, 2);
+        marker_directions = cell(2, number_of_marker_trajectories);
+        [marker_directions{1, 1 : 3 : number_of_marker_trajectories}] = deal(study_settings.get('direction_x_pos', true));
+        [marker_directions{2, 1 : 3 : number_of_marker_trajectories}] = deal(study_settings.get('direction_x_neg', true));
+        [marker_directions{1, 2 : 3 : number_of_marker_trajectories}] = deal(study_settings.get('direction_y_pos', true));
+        [marker_directions{2, 2 : 3 : number_of_marker_trajectories}] = deal(study_settings.get('direction_y_neg', true));
+        [marker_directions{1, 3 : 3 : number_of_marker_trajectories}] = deal(study_settings.get('direction_z_pos', true));
+        [marker_directions{2, 3 : 3 : number_of_marker_trajectories}] = deal(study_settings.get('direction_z_neg', true));
+
+        % save
+        save_folder = 'raw';
+        save_file_name = makeFileName(file_info.collection_date, file_info.subject_id, trial_info.trial_type, trial_info.trial_number, 'markerTrajectoriesRaw.mat');
+        save ...
+            ( ...
+            [save_folder filesep save_file_name], ...
+            'marker_raw_trajectories', ...
+            'time_mocap', ...
+            'sampling_rate_mocap', ...
+            'marker_labels', ...
+            'marker_directions' ...
+            );
+        addAvailableData('marker_raw_trajectories', 'time_mocap', 'sampling_rate_mocap', '_marker_labels', '_marker_directions', save_folder, save_file_name);
     end
-    marker_raw_trajectories = marker_raw_trajectories';
-
-
-    % replace marker labels if necessary
-    marker_label_replacement_map = subject_settings.get('marker_label_replacement_map', 1);
-    for i_label = 1 : size(marker_label_replacement_map, 1)
-        old_label = marker_label_replacement_map{i_label, 1};
-        new_label = marker_label_replacement_map{i_label, 2};
-        marker_labels{strcmp(marker_labels, old_label)} = new_label;
-    end
-
-    % triplicate labels
-    marker_labels_loaded = marker_labels;
-    number_of_markers = length(marker_labels_loaded);
-    marker_labels = cell(3, number_of_markers);
-    for i_marker = 1 : length(marker_labels)
-        marker_labels{1, i_marker} = [marker_labels_loaded{i_marker} '_x'];
-        marker_labels{2, i_marker} = [marker_labels_loaded{i_marker} '_y'];
-        marker_labels{3, i_marker} = [marker_labels_loaded{i_marker} '_z'];
-    end
-    marker_labels = reshape(marker_labels, 1, number_of_markers*3);
-
-    % make directions
-    % NOTE: this defines directions and makes assumptions, make sure everything is right here
-    number_of_marker_trajectories = size(marker_raw_trajectories, 2);
-    marker_directions = cell(2, number_of_marker_trajectories);
-    [marker_directions{1, 1 : 3 : number_of_marker_trajectories}] = deal('right');
-    [marker_directions{2, 1 : 3 : number_of_marker_trajectories}] = deal('left');
-    [marker_directions{1, 2 : 3 : number_of_marker_trajectories}] = deal('forward');
-    [marker_directions{2, 2 : 3 : number_of_marker_trajectories}] = deal('backward');
-    [marker_directions{1, 3 : 3 : number_of_marker_trajectories}] = deal('up');
-    [marker_directions{2, 3 : 3 : number_of_marker_trajectories}] = deal('down');
-
-
-    % save
-    save_folder = 'raw';
-    save_file_name = makeFileName(file_info.collection_date, file_info.subject_id, trial_info.trial_type, trial_info.trial_number, 'markerTrajectoriesRaw.mat');
-    save ...
-        ( ...
-        [save_folder filesep save_file_name], ...
-        'marker_raw_trajectories', ...
-        'time_mocap', ...
-        'sampling_rate_mocap', ...
-        'marker_labels', ...
-        'marker_directions' ...
-        );
-    addAvailableData('marker_raw_trajectories', 'time_mocap', 'sampling_rate_mocap', '_marker_labels', '_marker_directions', save_folder, save_file_name);
 end
 
 function offset = analogOffset()

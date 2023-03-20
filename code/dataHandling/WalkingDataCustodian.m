@@ -20,12 +20,13 @@
 
 % there are different levels of variables that this object takes care of
 % - basic variables can be loaded or calculated directly from loaded variables at each point in time
-% - stretch variables are variables defined for each stretch. That can be a single number or a trajectory with
-% normalized time. 
+% - stretch variables are variables defined for each stretch of data. That can be a single number or a trajectory with
+% normalized time per band
+% - range variables have only one single value for the whole range of the stretch
 
 % order of processing is
 % Construction:
-% - variables are determined based on the list of variables_to_analyze, loaded from the study_settings
+% - variables are determined based on the list of stretch_variables_to_analyze, loaded from the study_settings
 % For each trial
 % 1. Prepare data: loads and calculates basic variables
 % 2. <apply stretches and normalize in time>
@@ -38,11 +39,18 @@ classdef WalkingDataCustodian < handle
         subject_id = [];
         trial_type = [];
         trial_number = [];
-        variables_to_analyze = {};
+        
+        stretch_variables_to_analyze = {};
+        range_variables_to_analyze = {};
+        
         basic_variable_names = {};
         basic_variable_load_failures = {};
+        
         stretch_variable_names = {};
         stretch_variable_directions = {};
+        
+        range_variable_names = {};
+        range_variable_directions = {};
         
         % these are private and should only be accessed using get functions
         number_of_time_steps_normalized;
@@ -50,7 +58,9 @@ classdef WalkingDataCustodian < handle
         basic_variable_labels;
         basic_variable_directions;
         stretch_variable_data;
+        range_variable_data;
         time_data;
+        event_data;
         
         subject_info;
         subject_settings;
@@ -61,8 +71,8 @@ classdef WalkingDataCustodian < handle
     
     methods
         % constructor
-        function this = WalkingDataCustodian(variables_to_analyze, data_directory)
-            if nargin < 2
+        function this = WalkingDataCustodian(stretch_variables_to_analyze, range_variables_to_analyze, data_directory)
+            if nargin < 3
                 data_directory = pwd;
             end
             this.subject_info = load([data_directory filesep 'subjectInfo.mat']);
@@ -84,10 +94,17 @@ classdef WalkingDataCustodian < handle
             
             % prepare list of variables to analyze
             if nargin < 1
-                variables_to_analyze = this.study_settings.get('stretch_variables');
+                stretch_variables_to_analyze = this.study_settings.get('stretch_variables');
             end
-            this.variables_to_analyze = variables_to_analyze;
+            this.stretch_variables_to_analyze = stretch_variables_to_analyze;
             this.number_of_time_steps_normalized = this.study_settings.get('number_of_time_steps_normalized');
+            
+            % prepare range variabels
+            if nargin < 2
+                range_variables_to_analyze = this.study_settings.get('range_variables', 1);
+            end
+            this.range_variables_to_analyze = range_variables_to_analyze;
+            
             this.determineVariables();
         end
         
@@ -103,11 +120,20 @@ classdef WalkingDataCustodian < handle
                 this.stretch_variable_directions = [this.stretch_variable_directions; {'TBD', 'TBD'}];
             end
         end
+        function addRangeVariable(this, variable_name)
+            if ~any(strcmp(this.range_variable_names, variable_name))
+                this.range_variable_names = [this.range_variable_names; variable_name];
+                this.range_variable_directions = [this.range_variable_directions; {'TBD', 'TBD'}];
+            end
+        end
+        
+        
         function determineVariables(this)
             
-            % go through list of variables to analyze and check if they are elementary variables
-            for i_variable = 1 : length(this.variables_to_analyze)
-                this_variable_name = this.variables_to_analyze{i_variable};
+            % prepare stretch variables and the required basic variables
+            for i_variable = 1 : length(this.stretch_variables_to_analyze)
+                % go through list of variables to analyze and check if they are elementary variables
+                this_variable_name = this.stretch_variables_to_analyze{i_variable};
                 
                 % check if this is a compound name, listing a loaded variable and a label
                 if any(this_variable_name==':')
@@ -571,6 +597,23 @@ classdef WalkingDataCustodian < handle
                     this.addStretchVariable('xcom_mpsis_y')
                     this.addStretchVariable('mos_mpsis_y')
                 end
+                if strcmp(this_variable_name, 'xcom_poi_x')
+                    this.addBasicVariable('marker_trajectories')
+                    this.addBasicVariable('derivative:LPSI_x_vel')
+                    this.addBasicVariable('derivative:RPSI_x_vel')
+                    this.addBasicVariable('derivative:LASI_x_vel')
+                    this.addBasicVariable('derivative:RASI_x_vel')
+                    this.addStretchVariable('xcom_poi_x')
+                end
+                if strcmp(this_variable_name, 'mos_poi_x')
+                    this.addBasicVariable('marker_trajectories')
+                    this.addBasicVariable('derivative:LPSI_x_vel')
+                    this.addBasicVariable('derivative:RPSI_x_vel')
+                    this.addBasicVariable('derivative:LASI_x_vel')
+                    this.addBasicVariable('derivative:RASI_x_vel')
+                    this.addStretchVariable('xcom_poi_x')
+                    this.addStretchVariable('mos_poi_x')
+                end
                 if strcmp(this_variable_name, 'com_rough_x')
                     this.addBasicVariable('marker_trajectories')
                     this.addStretchVariable('com_rough_x')
@@ -729,6 +772,12 @@ classdef WalkingDataCustodian < handle
                 if strcmp(this_variable_name, 'step_time')
                     this.addStretchVariable('step_time')
                 end
+                if strcmp(this_variable_name, 'stance_time')
+                    this.addStretchVariable('stance_time')
+                end
+                if strcmp(this_variable_name, 'swing_time')
+                    this.addStretchVariable('swing_time')
+                end
                 if strcmp(this_variable_name, 'pushoff_time')
                     this.addBasicVariable('marker_trajectories')
                     this.addStretchVariable('step_time')
@@ -851,6 +900,11 @@ classdef WalkingDataCustodian < handle
                         this.addStretchVariable(this_variable_name)
                     end
                 end
+            end
+            % prepare range variables
+            for i_variable = 1 : length(this.range_variables_to_analyze)
+                this_variable_name = this.range_variables_to_analyze{i_variable};
+                this.addRangeVariable(this_variable_name)
             end
         end
         
@@ -1007,6 +1061,15 @@ classdef WalkingDataCustodian < handle
                 end
                 
                 
+            end
+            
+            % load events
+            event_file_name = makeFileName(this.date, this.subject_id, trial_type, trial_number, 'events.mat');
+            event_file_name_with_path = [this.data_directory filesep 'analysis' filesep event_file_name];
+            if isfile(event_file_name_with_path)
+                this.event_data = load(event_file_name_with_path);
+            else
+                this.event_data = [];
             end
         end
         function stretch_variables = calculateStretchVariables(this, stretch_times, stance_foot_data, relevant_condition_data, variables_to_calculate)
@@ -1503,6 +1566,60 @@ classdef WalkingDataCustodian < handle
                         % now calculate XCoM - BoS
                         xcom_mpsis_y = stretch_variables{strcmp(this.stretch_variable_names, 'xcom_mpsis_y')}(:, i_stretch);
                         stretch_data = xcom_mpsis_y - bos_y_data;
+                    end
+                    if strcmp(variable_name, 'xcom_poi_x')
+                        % get midpoint pelvis position
+                        LPSI_x = this.getTimeNormalizedData('marker:LPSI_x', this_stretch_times);
+                        RPSI_x = this.getTimeNormalizedData('marker:RPSI_x', this_stretch_times);
+                        LASI_x = this.getTimeNormalizedData('marker:LASI_x', this_stretch_times);
+                        RASI_x = this.getTimeNormalizedData('marker:RASI_x', this_stretch_times);
+                        
+                        mpelvis_x = (LPSI_x + RPSI_x + LASI_x + RASI_x) * 0.25;
+                        
+                        % calculating leg length from body height following Winter's biomechanics textbook
+                        % 0.530 * bodyheight (distance from hip jt center to floor)-
+                        % 0.039 * bodyheight (distance of ankle jt center form floor) =
+                        % 0.491 * body height (distance between hip to ankle jt center)
+                        leg_length = this.subject_settings.get('height')*0.491;
+                        
+                        % calculate XCoM_poi_x
+                        LPSI_x_vel = this.getTimeNormalizedData('derivative:LPSI_x_vel', this_stretch_times);
+                        RPSI_x_vel = this.getTimeNormalizedData('derivative:RPSI_x_vel', this_stretch_times);
+                        LASI_x_vel = this.getTimeNormalizedData('derivative:LASI_x_vel', this_stretch_times);
+                        RASI_x_vel = this.getTimeNormalizedData('derivative:RASI_x_vel', this_stretch_times);
+                        mpelvis_x_vel = (LPSI_x_vel + RPSI_x_vel + LASI_x_vel + RASI_x_vel) * 0.25;
+                        omega_0 = (9.81 * leg_length^(-1))^(0.5);
+                       
+                        stretch_data = mpelvis_x + omega_0.^(-1) .* mpelvis_x_vel;
+                    end
+                    if strcmp(variable_name, 'mos_poi_x')
+                        % first calculate base of support
+                        LANK_x = this.getTimeNormalizedData('marker:LANK_x', this_stretch_times);
+                        RANK_x = this.getTimeNormalizedData('marker:RANK_x', this_stretch_times);
+                        bos_x_data = zeros(size(LANK_x));
+                        for i_band = 1 : number_of_bands
+                            [band_start_index, band_end_index] = getBandIndices(i_band, this.number_of_time_steps_normalized);
+                            
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_RIGHT')
+                                bos_x_data(band_start_index : band_end_index) = RANK_x(band_start_index : band_end_index);
+                            end
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_LEFT')
+                                bos_x_data(band_start_index : band_end_index) = LANK_x(band_start_index : band_end_index);
+                            end
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_BOTH')
+                                bos_x_data(band_start_index : band_end_index) = NaN;
+                            end
+                        end
+                        
+                        % set BoS to NaN at junction points between two steps
+                        for i_band = 2 : number_of_bands
+                            band_start_index = getBandIndices(i_band, this.number_of_time_steps_normalized);
+                            bos_x_data(band_start_index) = NaN;
+                        end
+                        
+                        % now calculate XCoM - BoS
+                        xcom_mpsis_x = stretch_variables{strcmp(this.stretch_variable_names, 'xcom_poi_x')}(:, i_stretch);
+                        stretch_data = xcom_mpsis_x - bos_x_data;
                     end
                     if strcmp(variable_name, 'com_rough_x')
                         % grab required marker trajectories
@@ -2044,11 +2161,68 @@ classdef WalkingDataCustodian < handle
                     if strcmp(variable_name, 'step_time')
                         stretch_data = diff(this_stretch_times)';
                     end
+                    if strcmp(variable_name, 'stance_time')
+                        % load events
+                        left_pushoff_times = this.event_data.event_data{strcmp(this.event_data.event_labels, 'left_pushoff')};
+                        right_pushoff_times = this.event_data.event_data{strcmp(this.event_data.event_labels, 'right_pushoff')};
+                        
+                        stretch_data = zeros(number_of_bands, 1);
+                        for i_band = 1 : number_of_bands
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_RIGHT')
+                                % find first right push-off after band end
+                                band_start_time = this_stretch_times(i_band);
+                                band_end_time = this_stretch_times(i_band+1);
+                                this_pushoff_time = min(right_pushoff_times(right_pushoff_times >= band_end_time));
+                                stretch_data(i_band) = this_pushoff_time - band_start_time;
+                                
+                            end
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_LEFT')
+                                band_start_time = this_stretch_times(i_band);
+                                band_end_time = this_stretch_times(i_band+1);
+                                this_pushoff_time = min(left_pushoff_times(left_pushoff_times >= band_end_time));
+                                stretch_data(i_band) = this_pushoff_time - band_start_time;
+                            end
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_BOTH')
+                                stretch_data(i_band) = NaN;
+                            end
+                        end
+                    end
+                    if strcmp(variable_name, 'swing_time')
+                        % load events
+                        left_pushoff_times = this.event_data.event_data{strcmp(this.event_data.event_labels, 'left_pushoff')};
+                        right_pushoff_times = this.event_data.event_data{strcmp(this.event_data.event_labels, 'right_pushoff')};
+                        
+                        stretch_data = zeros(number_of_bands, 1);
+                        for i_band = 1 : number_of_bands
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_RIGHT')
+                                % find first left push-off after band start
+                                band_start_time = this_stretch_times(i_band);
+                                band_end_time = this_stretch_times(i_band+1);
+                                this_pushoff_time = min(left_pushoff_times(left_pushoff_times >= band_start_time));
+                                if this_pushoff_time >= band_end_time
+                                    this_pushoff_time = band_start_time;
+                                end
+                                stretch_data(i_band) = band_end_time - this_pushoff_time;
+                                
+                            end
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_LEFT')
+                                band_start_time = this_stretch_times(i_band);
+                                band_end_time = this_stretch_times(i_band+1);
+                                this_pushoff_time = min(right_pushoff_times(right_pushoff_times >= band_start_time));
+                                if this_pushoff_time >= band_end_time
+                                    this_pushoff_time = band_start_time;
+                                end
+                                stretch_data(i_band) = band_end_time - this_pushoff_time;
+                            end
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_BOTH')
+                                stretch_data(i_band) = NaN;
+                            end
+                        end
+                    end
                     if strcmp(variable_name, 'pushoff_time')
                         % load events
-                        event_data = load(['analysis' filesep makeFileName(this.date, this.subject_id, this.trial_type, this.trial_number, 'events.mat')]);
-                        left_pushoff_times = event_data.event_data{strcmp(event_data.event_labels, 'left_pushoff')};
-                        right_pushoff_times = event_data.event_data{strcmp(event_data.event_labels, 'right_pushoff')};
+                        left_pushoff_times = this.event_data.event_data{strcmp(this.event_data.event_labels, 'left_pushoff')};
+                        right_pushoff_times = this.event_data.event_data{strcmp(this.event_data.event_labels, 'right_pushoff')};
                         
                         stretch_data = zeros(number_of_bands, 1);
                         for i_band = 1 : number_of_bands
@@ -2541,7 +2715,55 @@ classdef WalkingDataCustodian < handle
                 end
                 
             end
+<<<<<<< HEAD
       %
+=======
+            this.stretch_variable_data = stretch_variables;
+        end
+        function range_variables = calculateRangeVariables(this, stretch_times)
+            variables_to_calculate = this.range_variable_names;
+            number_of_range_variables = length(variables_to_calculate);
+            number_of_stretches = size(stretch_times, 1);
+            range_variables = cell(number_of_range_variables, 1);
+            
+            for i_variable = 1 : number_of_range_variables
+                this_variable_name = variables_to_calculate{i_variable};
+                
+                this.registerRangeVariableDirections(this_variable_name);
+                
+                % extract and normalize data from stretches
+                for i_stretch = 1 : number_of_stretches
+                    % extract time
+                    this_stretch_times = stretch_times(i_stretch, :);
+                    range_data = NaN;
+                    
+                    if any(this_variable_name==':')
+                        this_variable_split = strsplit(this_variable_name, ':');
+                        this_variable_type = this_variable_split{1};
+                        this_variable_label = this_variable_split{2};
+
+                        if strcmp(this_variable_type, 'event_time')
+                            % get event data of the requested type
+                            event_type_index = strcmp(this.event_data.event_labels, this_variable_label);
+                            this_type_event_data = this.event_data.event_data{event_type_index};
+                            
+                            % find the event of the specified type that's within the stretch time
+                            stretch_start_time = this_stretch_times(1);
+                            stretch_end_time = this_stretch_times(end);
+                            this_event_index = stretch_start_time <= this_type_event_data & this_type_event_data <= stretch_end_time;
+                            range_data = this_type_event_data(this_event_index);
+                        end
+                    end
+                    
+                    
+                    
+                    % store in cell
+                    range_variables{i_variable} = [range_variables{i_variable} range_data];
+                end
+            end
+        end
+        
+>>>>>>> beta
         function data_normalized = getTimeNormalizedData(this, variable_name, band_times)
             % extract data
             try
@@ -2782,7 +3004,39 @@ classdef WalkingDataCustodian < handle
                     error('LPSI_y and RPSI_y directions are different from each other')
                 end
                 stretch_directions_new = LPSI_y_directions;
-            end   
+            end
+            if strcmp(variable_name, 'xcom_poi_x')
+                [~, LASI_x_directions] = this.getBasicVariableData('marker:LASI_x');
+                [~, RASI_x_directions] = this.getBasicVariableData('marker:RASI_x');
+                [~, LPSI_x_directions] = this.getBasicVariableData('marker:LPSI_x');
+                [~, RPSI_x_directions] = this.getBasicVariableData('marker:RPSI_x');
+                if ~strcmp(LASI_x_directions{1}, RASI_x_directions{1})
+                    error('LASI_x and RASI_x directions are different from each other')
+                end
+                if ~strcmp(LASI_x_directions{2}, RASI_x_directions{2})
+                    error('LASI_x and RASI_x directions are different from each other')
+                end
+                
+                if ~strcmp(LASI_x_directions{1}, LPSI_x_directions{1})
+                    error('LASI_x and LPSI_x directions are different from each other')
+                end
+                if ~strcmp(LASI_x_directions{2}, LPSI_x_directions{2})
+                    error('LASI_x and LPSI_x directions are different from each other')
+                end
+                
+                if ~strcmp(LASI_x_directions{1}, RPSI_x_directions{1})
+                    error('LASI_x and RPSI_x directions are different from each other')
+                end
+                if ~strcmp(LASI_x_directions{2}, RPSI_x_directions{2})
+                    error('LASI_x and RPSI_x directions are different from each other')
+                end
+                
+                stretch_directions_new = LASI_x_directions;
+            end
+            
+            
+            
+            
             if strcmp(variable_name, 'mos_mpsis_x')
                 [~, LPSI_x_directions] = this.getBasicVariableData('marker:LPSI_x');
                 [~, RPSI_x_directions] = this.getBasicVariableData('marker:RPSI_x');
@@ -2794,6 +3048,35 @@ classdef WalkingDataCustodian < handle
                 end
                 stretch_directions_new = LPSI_x_directions;
             end
+            if strcmp(variable_name, 'mos_poi_x')
+                [~, LASI_x_directions] = this.getBasicVariableData('marker:LASI_x');
+                [~, RASI_x_directions] = this.getBasicVariableData('marker:RASI_x');
+                [~, LPSI_x_directions] = this.getBasicVariableData('marker:LPSI_x');
+                [~, RPSI_x_directions] = this.getBasicVariableData('marker:RPSI_x');
+                if ~strcmp(LASI_x_directions{1}, RASI_x_directions{1})
+                    error('LASI_x and RASI_x directions are different from each other')
+                end
+                if ~strcmp(LASI_x_directions{2}, RASI_x_directions{2})
+                    error('LASI_x and RASI_x directions are different from each other')
+                end
+                
+                if ~strcmp(LASI_x_directions{1}, LPSI_x_directions{1})
+                    error('LASI_x and LPSI_x directions are different from each other')
+                end
+                if ~strcmp(LASI_x_directions{2}, LPSI_x_directions{2})
+                    error('LASI_x and LPSI_x directions are different from each other')
+                end
+                
+                if ~strcmp(LASI_x_directions{1}, RPSI_x_directions{1})
+                    error('LASI_x and RPSI_x directions are different from each other')
+                end
+                if ~strcmp(LASI_x_directions{2}, RPSI_x_directions{2})
+                    error('LASI_x and RPSI_x directions are different from each other')
+                end
+                
+                stretch_directions_new = LASI_x_directions;
+            end
+            
             if strcmp(variable_name, 'mos_mpsis_y')
                 [~, LPSI_y_directions] = this.getBasicVariableData('marker:LPSI_y');
                 [~, RPSI_y_directions] = this.getBasicVariableData('marker:RPSI_y');
@@ -3005,6 +3288,12 @@ classdef WalkingDataCustodian < handle
                 stretch_directions_new = LHEE_x_directions;
             end
             if strcmp(variable_name, 'step_time')
+                stretch_directions_new = {'+'; '-'};
+            end
+            if strcmp(variable_name, 'stance_time')
+                stretch_directions_new = {'+'; '-'};
+            end
+            if strcmp(variable_name, 'swing_time')
                 stretch_directions_new = {'+'; '-'};
             end
             if strcmp(variable_name, 'pushoff_time')
@@ -3488,10 +3777,15 @@ classdef WalkingDataCustodian < handle
                 stretch_directions_new = {'~'; '~'};
             end
             
+            % catch error where stretch_directions_new hasn't been set yet
+            if ~exist('stretch_directions_new', 'var')
+                error(['No directions defined for variable "' variable_name '"'])
+            end
+            
             % compare against what is already on file
             stretch_directions_on_file = this.stretch_variable_directions(this_variable_index, :);
             if strcmp(stretch_directions_on_file{1}, 'TBD') && strcmp(stretch_directions_on_file{2}, 'TBD')
-                % nothing is no file yet, so file the new information
+                % nothing is on file yet, so file the new information
                 this.stretch_variable_directions(this_variable_index, :) = stretch_directions_new;
             else
                 % check whether the new information matches up with what is on file
@@ -3499,6 +3793,36 @@ classdef WalkingDataCustodian < handle
                     error(['Different trials have different direction information for variable ' variable_name])
                 end
                 if ~strcmp(stretch_directions_new{2}, stretch_directions_on_file{2})
+                    error(['Different trials have different direction information for variable ' variable_name])
+                end
+            end
+        end
+        
+        function registerRangeVariableDirections(this, variable_name)
+            this_variable_index = strcmp(variable_name, this.range_variable_names);
+            
+            % check if this is a compound name, listing a loaded variable and a label
+            if any(variable_name==':')
+                this_variable_split = strsplit(variable_name, ':');
+                this_variable_type = this_variable_split{1};
+                this_variable_label = this_variable_split{2}; %#ok<NASGU>
+                
+                if strcmp(this_variable_type, 'event_time')
+                    range_directions_new = {'+';'-'};
+                end
+            end
+            
+            % compare against what is already on file
+            range_directions_on_file = this.range_variable_directions(this_variable_index, :);
+            if strcmp(range_directions_on_file{1}, 'TBD') && strcmp(range_directions_on_file{2}, 'TBD')
+                % nothing is no file yet, so file the new information
+                this.range_variable_directions(this_variable_index, :) = range_directions_new;
+            else
+                % check whether the new information matches up with what is on file
+                if ~strcmp(range_directions_new{1}, range_directions_on_file{1})
+                    error(['Different trials have different direction information for variable ' variable_name])
+                end
+                if ~strcmp(range_directions_new{2}, range_directions_on_file{2})
                     error(['Different trials have different direction information for variable ' variable_name])
                 end
             end

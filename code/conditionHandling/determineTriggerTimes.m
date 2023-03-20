@@ -104,7 +104,12 @@ function trial_data = determineTriggerTimes(study_settings, trial_data)
         % 
         trial_data.trigger_times = left_touchdown_times(~removal_flags);
     end
-    
+    if strcmp(experimental_paradigm, 'postural transitions')
+        if strcmp(trial_data.trial_type, "GI")
+            onset_times = trial_data.loaded_events_data.event_data{strcmp(trial_data.loaded_events_data.event_labels, 'onset')};
+            trial_data.trigger_times = onset_times(1);
+        end
+    end
 
     % calculate indices
     if exist('trial_data', 'var') && isfield(trial_data, 'time_marker') && ~isempty(trial_data.time_marker)
