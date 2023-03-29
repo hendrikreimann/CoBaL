@@ -233,7 +233,7 @@ function createComparisonFigure(model_data, comparisons, comparison_to_show, lin
         file_label = [outcome_label '_VS_' predictors_label '_' comparison_label];
         
         % slope
-        figure;
+        slope_figure = figure;
         tiledlayout(number_of_predictors, 1);
 
         for i_predictor = 1 : number_of_predictors
@@ -245,10 +245,10 @@ function createComparisonFigure(model_data, comparisons, comparison_to_show, lin
             title(strrep(predictors_list{i_predictor}, '_', ' '), 'Units', 'normalized', 'Position', [0.5, 0.9, 0])
             set(slope_axes{i_predictor}, 'XTickLabel', {}, 'xtick', []);
         end
-        uicontrol('style', 'text', 'string', title_label, 'units', 'normalized', 'position', [0, 0.95, 1, 0.05], 'fontsize', 16, 'FontWeight', 'bold');
+        uicontrol('style', 'text', 'string', title_label, 'units', 'normalized', 'position', [0, 0.95, 1, 0.05], 'fontsize', 12, 'FontWeight', 'bold');
 
         % residuals
-        figure;
+        variance_figure = figure;
         tiledlayout(3, 1);
         variance_axes{1} = nexttile; % was: r_square_axes
         set(variance_axes{1}, 'fontsize', 12);
@@ -287,7 +287,7 @@ function createComparisonFigure(model_data, comparisons, comparison_to_show, lin
 
         % add labels
         xlabel(variance_axes{1}, x_label); 
-        uicontrol('style', 'text', 'string', title_label, 'units', 'normalized', 'position', [0, 0.95, 1, 0.05], 'fontsize', 16, 'FontWeight', 'bold');
+        uicontrol('style', 'text', 'string', title_label, 'units', 'normalized', 'position', [0, 0.95, 1, 0.05], 'fontsize', 12, 'FontWeight', 'bold');
     end
     
     % loop through conditions
@@ -471,6 +471,8 @@ function createComparisonFigure(model_data, comparisons, comparison_to_show, lin
 %     if model_data.predictor_variable_data_points_per_stretch == 1
         xlimits = [variance_axes{1}.XTick(1)-0.5, variance_axes{1}.XTick(end)+0.5];
         set(variance_axes{1}, 'xlim', xlimits);
+        set(variance_axes{2}, 'xlim', xlimits);
+        set(variance_axes{3}, 'xlim', xlimits);
         for i_predictor = 1 : number_of_predictors
             set(slope_axes{i_predictor}, 'xlim', xlimits);
         end
@@ -545,8 +547,13 @@ function createComparisonFigure(model_data, comparisons, comparison_to_show, lin
                 close(this_figure);
             end
         else
-            filename = ['figures' filesep file_label '.jpg'];
-            print(gcf, filename, '-r300', '-djpeg')
+            filename = ['figures' filesep file_label '_slope.jpg'];
+            print(slope_figure, filename, '-r300', '-djpeg')
+%             exportgraphics(slope_figure, filename, 'Resolution',300)
+
+            filename = ['figures' filesep file_label '_variance.jpg'];
+            print(variance_figure, filename, '-r300', '-djpeg')
+%             exportgraphics(variance_figure, filename, 'Resolution',300)
         end
     end    
     
