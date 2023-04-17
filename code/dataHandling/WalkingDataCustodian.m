@@ -536,8 +536,8 @@ classdef WalkingDataCustodian < handle
                 end
                 
                 if strcmp(this_variable_name, 'coupling_angle_arm')
-                    this.addBasicVariable('left_wrist_z_gyro')
-                    this.addBasicVariable('right_wrist_z_gyro')
+                    this.addBasicVariable('affected_wrist_z_gyro')
+                    this.addBasicVariable('unaffected_wrist_z_gyro')
                     this.addStretchVariable('coupling_angle_arm')
                 end
                 
@@ -2333,9 +2333,9 @@ classdef WalkingDataCustodian < handle
                     
                     % For IMU Vector Coding
                     if strcmp(variable_name, 'coupling_angle_arm')
-                        left_wrist_z_gyro_trajectory = this.getTimeNormalizedData('left_wrist_z_gyro', this_stretch_times);
-                        right_wrist_z_gyro_trajectory = this.getTimeNormalizedData('right_wrist_z_gyro', this_stretch_times);
-                        z_arm_coupling_angle_rads = atan2(left_wrist_z_gyro_trajectory, right_wrist_z_gyro_trajectory);
+                        affected_wrist_z_gyro_trajectory = this.getTimeNormalizedData('affected_wrist_z_gyro', this_stretch_times);
+                        unaffected_wrist_z_gyro_trajectory = this.getTimeNormalizedData('unaffected_wrist_z_gyro', this_stretch_times);
+                        z_arm_coupling_angle_rads = atan2(affected_wrist_z_gyro_trajectory, unaffected_wrist_z_gyro_trajectory);
                         z_arm_coupling_angle_deg = rad2deg(z_arm_coupling_angle_rads);
 
                         if z_arm_coupling_angle_deg < 0
