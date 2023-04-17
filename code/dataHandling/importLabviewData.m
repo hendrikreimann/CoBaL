@@ -74,7 +74,7 @@ function importLabviewData()
             % extract headers
             column_name_string = imported_data.textdata{1, 1};
             labview_header = strsplit(column_name_string, ',');
-            number_of_data_columns = size(imported_data.textdata, 2);
+            number_of_data_columns = size(labview_trajectories, 2);
 
             % extract data into properly named variables
             variables_to_save = struct();
@@ -139,7 +139,7 @@ function importLabviewData()
                 end
             end
 
-            disp(['imported ' labview_source_dir filesep data_file_name ' and saved as ' save_folder filesep save_file_name])                
+            disp(['imported ' labview_source_dir filesep data_file_name ' and saved as ' save_folder filesep save_file_name])
         end
 
     end

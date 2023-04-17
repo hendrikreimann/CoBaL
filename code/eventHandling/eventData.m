@@ -114,8 +114,12 @@ classdef eventData < handle
         end
         
         function setEventTimes(this, event_times, event_label)
-            event_index = strcmp(this.event_labels, event_label);
-            this.event_data{event_index} = event_times;
+            event_label_index = strcmp(this.event_labels, event_label);
+            if isempty(event_label_index) || ~any(strcmp(this.event_labels, event_label))
+                event_label_index = size(this.event_labels, 1) + 1;
+                this.event_labels{event_label_index, 1} = event_label;
+            end
+            this.event_data{event_label_index, 1} = event_times;
         end
         function addEventTime(this, event_time, event_label)
             if strcmp(event_label, 'problem')
@@ -135,14 +139,6 @@ classdef eventData < handle
                 else
                     this.problem_table = table;
                 end
-                
-%                 
-%                 new_problem = {event_time, event_time, 'added manually in eventGui'};
-%                 problem_table = [this.problem_table; new_problem];
-%                 problems = sortrows([this.problem_table; new_problem], 'start_time');
-%                 this.problem_table = problems;
-%                 problems_file_name = [this.data_custodian.data_directory filesep 'analysis' filesep makeFileName(this.data_custodian.date, this.data_custodian.subject_id, this.data_custodian.trial_type, this.data_custodian.trial_number, 'problems.mat')];
-%                 save(problems_file_name, 'problems');
             else
                 event_times = this.getEventTimes(event_label);
                 event_times = [event_times; event_time];

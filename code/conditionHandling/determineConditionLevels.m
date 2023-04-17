@@ -24,6 +24,7 @@ function [conditions_trial, event_variables_to_save, removal_flags] ...
     % allocate
     conditions_trial = struct;
     event_variables_to_save = struct;
+    event_variables_to_save.stretch_times = [];
     removal_flags = zeros(size(trial_data.trigger_times));
     
     % determine levels particular to the experimental paradigm
@@ -38,7 +39,11 @@ function [conditions_trial, event_variables_to_save, removal_flags] ...
     end
     if strcmp(experimental_paradigm, 'Normal Walking')
         [conditions_trial, event_variables_to_save, removal_flags] ...
-            = determineConditionLevels_normalWalking(subject_settings, trial_data);
+            = determineConditionLevels_normalWalking(trial_data, study_settings);
+    end
+    if strcmp(experimental_paradigm, 'Linear Models')
+        [conditions_trial, event_variables_to_save, removal_flags] ...
+            = determineConditionLevels_linearModels(trial_data, study_settings);
     end
     if strcmp(experimental_paradigm, 'Stochastic Resonance')
         [conditions_trial, event_variables_to_save, removal_flags] ...
@@ -46,17 +51,17 @@ function [conditions_trial, event_variables_to_save, removal_flags] ...
     end
     if strcmp(experimental_paradigm, 'Normal Walking nGVS')
         [conditions_trial_normal, event_variables_to_save_normal, removal_flags_normal] ...
-            = determineConditionLevels_normalWalking(subject_settings, trial_data);
+            = determineConditionLevels_normalWalking(trial_data);
         [conditions_trial_ngvs, event_variables_to_save_ngvs, removal_flags_ngvs] ...
             = determineConditionLevels_Ngvs(subject_settings, trial_data);
         
         conditions_trial = mergeConditionStruct(conditions_trial_normal, conditions_trial_ngvs);
         event_variables_to_save = mergeConditionStruct(event_variables_to_save_normal, event_variables_to_save_ngvs);
-        removal_flags = removal_flags_normal & removal_flags_ngvs;
+        removal_flags = removal_flags_normal | removal_flags_ngvs;
     end
     if strcmp(experimental_paradigm, 'Self Pacing Comparison')
         [conditions_trial_normal, event_variables_to_save_normal, removal_flags_normal] ...
-            = determineConditionLevels_normalWalking(subject_settings, trial_data);
+            = determineConditionLevels_normalWalking(trial_data);
         [conditions_trial_selfpacing, event_variables_to_save_selfpacing, removal_flags_selfpacing] ...
             = determineConditionLevels_selfpacing(subject_settings, trial_data);
         
@@ -72,7 +77,7 @@ function [conditions_trial, event_variables_to_save, removal_flags] ...
         
         conditions_trial = mergeConditionStruct(conditions_trial_vision, conditions_trial_ngvs);
         event_variables_to_save = mergeConditionStruct(event_variables_to_save_vision, event_variables_to_save_ngvs);
-        removal_flags = removal_flags_vision & removal_flags_ngvs;
+        removal_flags = removal_flags_vision | removal_flags_ngvs;
     end
     if strcmp(experimental_paradigm, 'Vision_old')
         [conditions_trial, event_variables_to_save, removal_flags] ...
@@ -96,7 +101,18 @@ function [conditions_trial, event_variables_to_save, removal_flags] ...
     end
     if strcmp(experimental_paradigm, 'APDM')
         [conditions_trial, event_variables_to_save, removal_flags] ...
-            = determineConditionLevels_normalWalking(subject_settings, trial_data);
+            = determineConditionLevels_normalWalking(trial_data);
+    end
+    if strcmp(experimental_paradigm, 'postural transitions')
+        [conditions_trial_pt, event_variables_to_save_pt, removal_flags_pt] ...
+            = determineConditionLevels_posturalTransitions(trial_data);
+        
+        [conditions_trial_sr, event_variables_to_save_sr, removal_flags_sr] ...
+            = determineConditionLevels_stochasticResonanceAmplitude(subject_settings, trial_data);
+        
+        conditions_trial = mergeConditionStruct(conditions_trial_pt, conditions_trial_sr);
+        event_variables_to_save = mergeConditionStruct(event_variables_to_save_pt, event_variables_to_save_sr);
+        removal_flags = removal_flags_pt | removal_flags_sr;
     end
     
     % add affected_side if required
@@ -105,10 +121,22 @@ function [conditions_trial, event_variables_to_save, removal_flags] ...
             = determineConditionLevels_affectedSide(subject_settings, trial_data, conditions_trial);
     end
     
+    % add leading_leg if required
+    if any(strcmp(conditions_table(:, 1), 'leading_leg'))
+        conditions_trial ...
+            = determineConditionLevels_leadingLeg(subject_settings, trial_data, conditions_trial);
+    end
+    
     % add group if required
     if any(strcmp(conditions_table(:, 1), 'group'))
         conditions_trial ...
             = determineConditionLevels_group(subject_settings, trial_data, conditions_trial);
+    end
+    
+    % add block if required
+    if any(strcmp(conditions_table(:, 1), 'block'))
+        conditions_trial ...
+            = determineConditionLevels_block(subject_settings, trial_data, conditions_trial);
     end
     
     % add type from filename if required
@@ -123,19 +151,29 @@ function [conditions_trial, event_variables_to_save, removal_flags] ...
             = determineConditionLevels_metronome(trial_data, conditions_trial);
     end
     
-    % add subject
-    condition_subject_list = cell(size(event_variables_to_save.stretch_times, 1), 1);
-    for i_stretch = 1 : length(condition_subject_list)
-        condition_subject_list{i_stretch} = subject_id;
+    % add speed from protocol if required
+    if any(strcmp(conditions_table(:, 1), 'speed'))
+        conditions_trial ...
+            = determineConditionLevels_speed(trial_data, conditions_trial);
     end
-    conditions_trial.subject_list = condition_subject_list;
+    
+    % add subject
+    if any(strcmp(conditions_table(:, 1), 'subject'))
+        condition_subject_list = cell(size(event_variables_to_save.stretch_times, 1), 1);
+        for i_stretch = 1 : length(condition_subject_list)
+            condition_subject_list{i_stretch} = subject_id;
+        end
+        conditions_trial.subject_list = condition_subject_list;
+    end
     
     % add gender
-    condition_gender_list = cell(size(event_variables_to_save.stretch_times, 1), 1);
-    for i_stretch = 1 : length(condition_gender_list)
-        condition_gender_list{i_stretch} = gender;
+    if any(strcmp(conditions_table(:, 1), 'gender'))
+        condition_gender_list = cell(size(event_variables_to_save.stretch_times, 1), 1);
+        for i_stretch = 1 : length(condition_gender_list)
+            condition_gender_list{i_stretch} = gender;
+        end
+        conditions_trial.gender_list = condition_gender_list;
     end
-    conditions_trial.gender_list = condition_gender_list;
 end
 
 function merged_struct = mergeConditionStruct(struct_one, struct_two)

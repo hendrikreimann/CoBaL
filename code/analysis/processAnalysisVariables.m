@@ -52,6 +52,9 @@ function processAnalysisVariables(varargin)
         if strcmp(this_action, 'integrate over time')
             data = calculateIntegratedVariables(this_settings_table, this_settings_table_header, study_settings, data);
         end
+        if strcmp(this_action, 'integrate over range')
+            data = integrateOverRange(this_settings_table, this_settings_table_header, study_settings, data);
+        end
         if strcmp(this_action, 'select from multiple variables by condition')
             data = calculateSelectionVariables(this_settings_table, this_settings_table_header, study_settings, data, conditions);
         end
@@ -73,15 +76,32 @@ function processAnalysisVariables(varargin)
         if strcmp(this_action, 'take value at point given by absolute time within band')
             data = calculateTimePointVariables(this_settings_table, this_settings_table_header, study_settings, data);
         end
+        if strcmp(this_action, 'take value at point given by absolute time across range')
+            data = calculateTimePointRangeVariables(this_settings_table, this_settings_table_header, study_settings, data);
+        end
         if strcmp(this_action, 'take extremum within whole band')
             data = calculateExtremaVariables(this_settings_table, this_settings_table_header, study_settings, data);
         end
-        if strcmp(this_action, 'take extremum over range') 
+        if strcmp(this_action, 'take extremum over range')
             data = calculateExtremaOverRangeVariables(this_settings_table, this_settings_table_header, data);
+        end
+        if strcmp(this_action, 'find extremum time over range')
+            data = calculateExtremaTimesOverRangeVariables(this_settings_table, this_settings_table_header, study_settings, data);
         end
         if strcmp(this_action, 'combine two variables')
             data = combineTwoVariables(this_settings_table, this_settings_table_header, study_settings, data);
         end
+        if strcmp(this_action, 'take exponential of a variable')
+            data = calculateVariableExponential(this_settings_table, this_settings_table_header, study_settings, data);
+        end
+        if strcmp(this_action, 'multiply two variables')
+            data = multiplyTwoVariables(this_settings_table, this_settings_table_header, study_settings, data);
+        end
+        if strcmp(this_action, 'band to range variable')
+            data = bandToRangeVariable(this_settings_table, this_settings_table_header, study_settings, data);
+        end
+        
+        
         
         
     end
@@ -192,8 +212,6 @@ function data = calculateStimulusResponse(response_variables, response_variables
     end
 end
 
-
-
 function data = calculateInversionVariables(inversion_variables, inversion_variables_header, study_settings, data, conditions)
     for i_variable = 1 : size(inversion_variables, 1)
         % get data
@@ -240,7 +258,12 @@ function data = calculateInversionVariables(inversion_variables, inversion_varia
         new_data.data = this_variable_data;
         new_data.directions = new_variable_directions;
         new_data.name = this_variable_name;
-        data = addOrReplaceResultsData(data, new_data, 'analysis');
+        
+        if strcmp(this_variable_source_type, 'range')
+            data = addOrReplaceResultsData(data, new_data, 'range');
+        else
+            data = addOrReplaceResultsData(data, new_data, 'analysis');
+        end
     end
 end
 
@@ -445,6 +468,57 @@ function data = calculateIntegratedVariables(variables_to_integrate, variables_t
         new_data.directions = this_variable_source_directions;
         new_data.name = this_variable_name;
         data = addOrReplaceResultsData(data, new_data, 'analysis');
+
+    end
+
+end
+
+function data = integrateOverRange(variables_to_integrate, variables_to_integrate_header, study_settings, data)
+    step_time_index_in_saved_data = find(strcmp(data.stretch_names_session, 'step_time'), 1, 'first');
+    this_step_time_data = data.stretch_data_session{step_time_index_in_saved_data};
+    number_of_stretches = size(data.stretch_data_session{1}, 2);
+    number_of_time_steps_normalized = study_settings.get('number_of_time_steps_normalized');
+
+    for i_variable = 1 : size(variables_to_integrate, 1)
+        this_variable_name = variables_to_integrate{i_variable, strcmp(variables_to_integrate_header, 'new_variable_name')};
+        this_variable_source_name = variables_to_integrate{i_variable, strcmp(variables_to_integrate_header, 'source_variable_name')};
+        this_variable_source_type = variables_to_integrate{i_variable, strcmp(variables_to_integrate_header, 'source_variable_type')};
+        
+        % pick data depending on source specification
+        data_source = data.([this_variable_source_type '_data_session']);
+        names_source = data.([this_variable_source_type '_names_session']);
+        directions_source = data.([this_variable_source_type '_directions_session']);
+        this_variable_source_data = data_source{strcmp(names_source, this_variable_source_name)};
+        this_variable_source_directions = directions_source(strcmp(names_source, this_variable_source_name), :);
+        
+        % determine integration range
+        start_data_percent = str2num(variables_to_integrate{i_variable, strcmp(variables_to_integrate_header, 'start_percent')});
+        end_data_percent = str2num(variables_to_integrate{i_variable, strcmp(variables_to_integrate_header, 'end_percent')});
+        start_index = round(start_data_percent/100 * (size(this_variable_source_data, 1) - 1)) + 1;
+        end_index = round(end_data_percent/100 * (size(this_variable_source_data, 1) - 1)) + 1;
+        
+        % integrate
+        integrated_data = zeros(1, number_of_stretches);
+        for i_stretch = 1 : number_of_stretches
+            % create time vector
+            time_stretch = zeros(size(this_variable_source_data, 1), 1);
+            for i_band = 1 : data.bands_per_stretch
+                [band_start_index, band_end_index] = getBandIndices(i_band, number_of_time_steps_normalized);
+                this_band_time = linspace(sum(this_step_time_data(1:i_band-1)), sum(this_step_time_data(1:i_band)), number_of_time_steps_normalized);
+                time_stretch(band_start_index : band_end_index) = this_band_time;
+            end
+            
+            % integrate
+            this_stretch_data = this_variable_source_data(start_index:end_index, i_stretch);
+            integrated_data(i_stretch) = trapz(time_stretch(start_index:end_index), this_stretch_data);
+        end        
+        
+        % store
+        new_data = struct;
+        new_data.data = integrated_data;
+        new_data.directions = this_variable_source_directions;
+        new_data.name = this_variable_name;
+        data = addOrReplaceResultsData(data, new_data, 'range');
 
     end
 
@@ -706,6 +780,67 @@ function data = calculateTimePointVariables(variables_time_point, variables_time
 
 end
 
+function data = calculateTimePointRangeVariables(variables_time_point, variables_time_point_header, study_settings, data)
+    number_of_stretches = size(data.stretch_data_session{1}, 2);
+    number_of_time_steps_normalized = study_settings.get('number_of_time_steps_normalized');
+    for i_variable = 1 : size(variables_time_point, 1)
+        this_variable_name = variables_time_point{i_variable, strcmp(variables_time_point_header, 'new_variable_name')};
+        this_variable_source_name = variables_time_point{i_variable, strcmp(variables_time_point_header, 'source_variable_name')};
+        this_variable_source_type = variables_time_point{i_variable, strcmp(variables_time_point_header, 'source_variable_type')};
+        time_point = variables_time_point{i_variable, strcmp(variables_time_point_header, 'time_point')};
+        time_point_source_type = variables_time_point{i_variable, strcmp(variables_time_point_header, 'time_point_specifier')};
+        % pick data depending on source specification
+        data_source = data.([this_variable_source_type '_data_session']);
+        names_source = data.([this_variable_source_type '_names_session']);
+        directions_source = data.([this_variable_source_type '_directions_session']);
+        this_variable_source_data = data_source{strcmp(names_source, this_variable_source_name)};
+        new_variable_directions = directions_source(strcmp(names_source, this_variable_source_name), :);
+        
+        % determine time point in percent of band time
+        if strcmp(time_point_source_type, 'range')
+            time_point_data_source = data.([time_point_source_type '_data_session']);
+            time_point_names_source = data.([time_point_source_type '_names_session']);
+            time_point_data_index = strcmp(time_point_names_source, time_point);
+            time_point_data = time_point_data_source{time_point_data_index};
+        else
+            error(['Unknown time point source type "' time_point_source_type '"'])
+        end
+        
+        % get the data at this time point
+        new_variable_data = zeros(1, number_of_stretches);
+        for i_stretch = 1 : number_of_stretches
+            % recreate time vector for normalized stretch data from stretch_times
+            this_stretch_times = data.stretch_times(:, i_stretch);
+            this_stretch_time = zeros((number_of_time_steps_normalized-1) * data.bands_per_stretch + 1, 1);
+            for i_band = 1 : data.bands_per_stretch
+                % make time vector for this band
+                this_band_start_time = this_stretch_times(i_band);
+                this_band_end_time = this_stretch_times(i_band+1);
+                this_band_time = linspace(this_band_start_time, this_band_end_time, number_of_time_steps_normalized);
+                
+                % store time vector for this band at proper location
+                [start_index, end_index] = getBandIndices(i_band, number_of_time_steps_normalized);
+                this_stretch_time(start_index : end_index) = this_band_time;
+            end
+            
+            % find index for specified time point
+            this_time_point = time_point_data(i_stretch);
+            specified_time_point_index = findClosestIndex(this_time_point, this_stretch_time);
+            
+            % extract data
+            new_variable_data(i_stretch) = this_variable_source_data(specified_time_point_index, i_stretch);
+        end
+        
+        % store
+        new_data = struct;
+        new_data.data = new_variable_data;
+        new_data.directions = new_variable_directions;
+        new_data.name = this_variable_name;
+        data = addOrReplaceResultsData(data, new_data, 'range');
+    end
+
+end
+
 function data = calculateExtremaVariables(variables_from_extrema, variables_from_extrema_header, study_settings, data)
     number_of_stretches = size(data.stretch_data_session{1}, 2);
     number_of_time_steps_normalized = study_settings.get('number_of_time_steps_normalized');
@@ -782,6 +917,67 @@ function data = calculateExtremaOverRangeVariables(variables_from_extrema_range,
     end
 end
 
+function data = calculateExtremaTimesOverRangeVariables(variables_from_extrema_range, variables_from_extrema_range_header, study_settings, data)
+    number_of_stretches = size(data.stretch_data_session{1}, 2);
+    number_of_time_steps_normalized = study_settings.get('number_of_time_steps_normalized');
+    for i_variable = 1 : size(variables_from_extrema_range, 1)
+        % get data
+        this_variable_name = variables_from_extrema_range{i_variable, strcmp(variables_from_extrema_range_header, 'new_variable_name')};
+        this_variable_source_name = variables_from_extrema_range{i_variable, strcmp(variables_from_extrema_range_header, 'source_variable_name')};
+        this_variable_source_type = variables_from_extrema_range{i_variable, strcmp(variables_from_extrema_range_header, 'source_type')};
+        this_variable_extremum_type = variables_from_extrema_range{i_variable, strcmp(variables_from_extrema_range_header, 'extremum_type')};
+
+        % pick data depending on source specification
+        data_source = data.([this_variable_source_type '_data_session']);
+        names_source = data.([this_variable_source_type '_names_session']);
+        directions_source = data.([this_variable_source_type '_directions_session']);
+        this_variable_source_data = data_source{strcmp(names_source, this_variable_source_name)};
+        new_variable_directions = {'+', '-'};
+        
+        % get extrema indices
+        if strcmp(this_variable_extremum_type, 'min')
+            [~, extrema_indices] = min(this_variable_source_data);
+        end
+        if strcmp(this_variable_extremum_type, 'max')
+            [~, extrema_indices] = max(this_variable_source_data);
+        end
+        if ~strcmp(this_variable_extremum_type, 'min') && ~strcmp(this_variable_extremum_type, 'max')
+            error(['"' this_variable_extremum_type '" is not a valid type for variables_from_extrema. Acceptable types are "min" or "max".']);
+        end
+
+        % get times at extrema
+        extrema_data = zeros(size(extrema_indices));
+        for i_stretch = 1 : number_of_stretches
+            % recreate time vector for normalized stretch data from stretch_times
+            this_stretch_times = data.stretch_times(:, i_stretch);
+            this_stretch_time = zeros((number_of_time_steps_normalized-1) * data.bands_per_stretch + 1, 1);
+            for i_band = 1 : data.bands_per_stretch
+                % make time vector for this band
+                this_band_start_time = this_stretch_times(i_band);
+                this_band_end_time = this_stretch_times(i_band+1);
+                this_band_time = linspace(this_band_start_time, this_band_end_time, number_of_time_steps_normalized);
+                
+                % store time vector for this band at proper location
+                [start_index, end_index] = getBandIndices(i_band, number_of_time_steps_normalized);
+                this_stretch_time(start_index : end_index) = this_band_time;
+            end
+            
+            % find index for specified time point
+            specified_time_point_index = extrema_indices(i_stretch);
+            
+            % extract data
+            extrema_data(i_stretch) = this_stretch_time(specified_time_point_index);
+        end
+        
+        % store
+        new_data = struct;
+        new_data.data = extrema_data;
+        new_data.directions = new_variable_directions;
+        new_data.name = this_variable_name;
+        data = addOrReplaceResultsData(data, new_data, 'range');
+    end
+end
+
 function data = combineTwoVariables(variable_table, table_header, study_settings, data)
     for i_variable = 1 : size(variable_table, 1)
         % get data
@@ -810,7 +1006,7 @@ function data = combineTwoVariables(variable_table, table_header, study_settings
 
         % compare directions
         if ~strcmp(variable_A_directions{1}, variable_B_directions{1})
-            error ...
+            warning ...
               ( ...
                 [ ...
                   'Positive direction labels "' variable_A_directions{1} '" ' ...
@@ -822,7 +1018,7 @@ function data = combineTwoVariables(variable_table, table_header, study_settings
               );
         end
         if ~strcmp(variable_A_directions{2}, variable_B_directions{2})
-            error ...
+            warning ...
               ( ...
                 [ ...
                   'Positive direction labels "' variable_A_directions{2} '" ' ...
@@ -870,7 +1066,159 @@ function data = combineTwoVariables(variable_table, table_header, study_settings
         new_data.data = combined_variable_data;
         new_data.directions = combined_variable_directions;
         new_data.name = this_variable_name;
-        data = addOrReplaceResultsData(data, new_data, 'analysis');
+        
+        if strcmp(variable_A_type, 'range') && strcmp(variable_A_type, 'range')
+            data = addOrReplaceResultsData(data, new_data, 'range');
+        else
+            data = addOrReplaceResultsData(data, new_data, 'analysis');
+        end
+        
+    end
+end
+
+function data = calculateVariableExponential(variable_table, table_header, study_settings, data)
+    for i_variable = 1 : size(variable_table, 1)
+        % get data
+        this_variable_name = variable_table{i_variable, strcmp(table_header, 'new_variable_name')};
+        this_variable_source_name = variable_table{i_variable, strcmp(table_header, 'source_variable_name')};
+        this_variable_source_type = variable_table{i_variable, strcmp(table_header, 'variable_type')};
+        this_variable_power = str2double(variable_table{i_variable, strcmp(table_header, 'power')});
+        
+        % pick data depending on source specification
+        data_source = data.([this_variable_source_type '_data_session']);
+        directions_source = data.([this_variable_source_type '_directions_session']);
+        names_source = data.([this_variable_source_type '_names_session']);
+        new_variable_directions = directions_source(strcmp(names_source, this_variable_source_name), :);
+        source_variable_data = data_source{strcmp(names_source, this_variable_source_name)};
+
+        % calculate exponential
+        this_variable_data = source_variable_data.^this_variable_power;
+        
+        % store
+        new_data = struct;
+        new_data.data = this_variable_data;
+        new_data.directions = new_variable_directions;
+        new_data.name = this_variable_name;
+        
+        if strcmp(this_variable_source_type, 'range')
+            data = addOrReplaceResultsData(data, new_data, 'range');
+        else
+            data = addOrReplaceResultsData(data, new_data, 'analysis');
+        end
+
+    end
+end
+
+function data = bandToRangeVariable(variable_table, table_header, study_settings, data)
+    for i_variable = 1 : size(variable_table, 1)
+        % get data
+        this_variable_name = variable_table{i_variable, strcmp(table_header, 'new_variable_name')};
+        this_variable_source_name = variable_table{i_variable, strcmp(table_header, 'source_variable_name')};
+        this_variable_source_type = variable_table{i_variable, strcmp(table_header, 'source_type')};
+        this_variable_source_band = str2double(variable_table{i_variable, strcmp(table_header, 'source_band')});
+        
+                
+        
+        % pick data depending on source specification
+        data_source = data.([this_variable_source_type '_data_session']);
+        directions_source = data.([this_variable_source_type '_directions_session']);
+        names_source = data.([this_variable_source_type '_names_session']);
+        new_variable_directions = directions_source(strcmp(names_source, this_variable_source_name), :);
+        source_variable_data = data_source{strcmp(names_source, this_variable_source_name)};
+
+        % extract band
+        this_variable_data = source_variable_data(this_variable_source_band, :);
+        
+        % store
+        new_data = struct;
+        new_data.data = this_variable_data;
+        new_data.directions = new_variable_directions;
+        new_data.name = this_variable_name;
+        
+        data = addOrReplaceResultsData(data, new_data, 'range');
+    end
+end
+
+
+function data = multiplyTwoVariables(variable_table, table_header, study_settings, data)
+    for i_variable = 1 : size(variable_table, 1)
+        % get data
+        this_variable_name = variable_table{i_variable, strcmp(table_header, 'new_variable_name')};
+        variable_A_name = variable_table{i_variable, strcmp(table_header, 'variable_A_name')};
+        variable_A_type = variable_table{i_variable, strcmp(table_header, 'variable_A_type')};
+        variable_A_exponent = str2double(variable_table{i_variable, strcmp(table_header, 'variable_A_exponent')});
+        variable_B_name = variable_table{i_variable, strcmp(table_header, 'variable_B_name')};
+        variable_B_type = variable_table{i_variable, strcmp(table_header, 'variable_B_type')};
+        variable_B_exponent = str2double(variable_table{i_variable, strcmp(table_header, 'variable_B_exponent')});
+        factor = str2double(variable_table{i_variable, strcmp(table_header, 'factor')});
+        directions_source = variable_table{i_variable, strcmp(table_header, 'directions_source')};
+
+        % pick data depending on source specification
+        variable_A_data_source = data.([variable_A_type '_data_session']);
+        variable_A_names_source = data.([variable_A_type '_names_session']);
+        variable_A_directions_source = data.([variable_A_type '_directions_session']);
+        variable_B_data_source = data.([variable_B_type '_data_session']);
+        variable_B_names_source = data.([variable_B_type '_names_session']);
+        variable_B_directions_source = data.([variable_B_type '_directions_session']);
+        
+        % extract
+        variable_A_data = variable_A_data_source{strcmp(variable_A_names_source, variable_A_name)};
+        variable_B_data = variable_B_data_source{strcmp(variable_B_names_source, variable_B_name)};
+        variable_A_directions = variable_A_directions_source(strcmp(variable_A_names_source, variable_A_name), :);
+        variable_B_directions = variable_B_directions_source(strcmp(variable_B_names_source, variable_B_name), :);
+
+        % get directions
+        if strcmp(directions_source, variable_A_name)
+            combined_variable_directions = variable_A_directions;            
+        elseif strcmp(directions_source, variable_B_name)
+            combined_variable_directions = variable_B_directions;            
+        else
+            error(['Directions for variable "' this_variable_name '" must come from one of the two source variables.']);
+        end
+                
+        if ~isequal(size(variable_A_data), size(variable_B_data))
+            % one variable is discrete and the other one continuous, deal with this
+            if size(variable_A_data, 1) < size(variable_B_data, 1)
+                % variable A is the discrete one
+                discrete_variable_data = variable_A_data;
+                continuous_variable_data = variable_B_data;
+            else
+                % variable B is the discrete one
+                discrete_variable_data = variable_B_data;
+                continuous_variable_data = variable_A_data;
+            end
+            
+            number_of_bands = data.bands_per_stretch;
+            number_of_time_steps_normalized = study_settings.get('number_of_time_steps_normalized');
+            discrete_variable_data_extended = zeros(size(continuous_variable_data)) * NaN;
+            for i_band = 1 : number_of_bands
+                [band_start_index, band_end_index] = getBandIndices(i_band, number_of_time_steps_normalized);
+                discrete_variable_data_extended(band_start_index+1 : band_end_index-1, :) = repmat(discrete_variable_data(i_band, :), number_of_time_steps_normalized-2, 1);
+            end
+            
+            if size(variable_A_data, 1) < size(variable_B_data, 1)
+                % variable A is the discrete one
+                variable_A_data = discrete_variable_data_extended;
+            else
+                % variable B is the discrete one
+                variable_B_data = discrete_variable_data_extended;
+            end
+            
+        end
+        combined_variable_data = variable_A_data.^variable_A_exponent .* variable_B_data.^variable_B_exponent * factor;
+        
+        % store
+        new_data = struct;
+        new_data.data = combined_variable_data;
+        new_data.directions = combined_variable_directions;
+        new_data.name = this_variable_name;
+        
+        if strcmp(variable_A_type, 'range') && strcmp(variable_A_type, 'range')
+            data = addOrReplaceResultsData(data, new_data, 'range');
+        else
+            data = addOrReplaceResultsData(data, new_data, 'analysis');
+        end
+        
     end
 end
 

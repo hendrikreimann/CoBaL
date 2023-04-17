@@ -14,7 +14,7 @@
 %     You should have received a copy of the GNU General Public License
 %     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-function [conditions_trial, event_variables_to_save, removal_flags] = determineConditionLevels_normalWalking(subject_settings, trial_data)
+function [conditions_trial, event_variables_to_save, removal_flags] = determineConditionLevels_normalWalking(trial_data, study_settings)
 
     stance_foot_data_stretch = {'STANCE_LEFT', 'STANCE_RIGHT'};
 
@@ -36,7 +36,18 @@ function [conditions_trial, event_variables_to_save, removal_flags] = determineC
         end
         stretch_times(i_stretch, :) = this_stretch_times;
     end
+    
+    % remove a number of initial stretches as specified
+    number_of_initial_strides_to_ignore = study_settings.get('number_of_initial_strides_to_ignore', 1);
+    removal_flags(1:number_of_initial_strides_to_ignore) = 1;
 
+    % remove initial stretches until there are only the specified number left
+    number_of_strides_to_analyze = study_settings.get('number_of_strides_to_analyze');
+    while sum(~removal_flags) > number_of_strides_to_analyze
+        first_unflagged_index = find(~removal_flags, 1, 'first');
+        removal_flags(first_unflagged_index) = 1;
+    end
+    
     stance_foot_data = repmat(stance_foot_data_stretch, size(stretch_times, 1), 1);
     event_variables_to_save.stretch_times = stretch_times;
     event_variables_to_save.stance_foot_data = stance_foot_data;

@@ -19,8 +19,13 @@ classdef SettingsCustodian < handle
         settings_file = '';
         settings_struct = struct;
         property_not_found_list = {};
+        important_property_not_found_list = {};
         verbose = true;
         
+        important_properties = ...
+          {
+            'forceplate_table'; ...
+          }
         force_string_list = ...
           { ...
             'preferred_level_order'; ...
@@ -33,6 +38,12 @@ classdef SettingsCustodian < handle
             'analog_data_to_import'; ...
             'emg_data_to_import'; ...
             'across_trials_conditions'; ...
+            'preferred_level_order'; ...
+            'data_to_import'; ...
+            'plot_table'; ...
+            'plot_table_header'; ...
+            'plot_table_single'; ...
+            'plot_table_single_header'; ...
           }
     end
     methods
@@ -176,8 +187,16 @@ classdef SettingsCustodian < handle
                 variable_value = variable_value_cell{1};
 
                 % try to transform to a single double
-                if ~isempty(str2num(variable_value)) %#ok<ST2NM>
-                    variable_value = str2num(variable_value); %#ok<ST2NM,NASGU>
+                if strcmp(variable_value, 'line')
+                   % HR 20220522:
+                   % catch this as a special case. In general I want to use 
+                   % variable_value = str2num(variable_value, Evaluation="restricted");
+                   % but this was only introduced in 2022a, and I don't want to update right now
+                else
+                    if ~isempty(str2num(variable_value)) %#ok<ST2NM>
+                        variable_value = str2num(variable_value); %#ok<ST2NM,NASGU>
+                    end
+                    
                 end
             else
                 variable_value = variable_value_cell;
@@ -260,10 +279,17 @@ classdef SettingsCustodian < handle
                     report_string = ['Setting not found in file ' this.settings_file ', using default - ' property_name ': ' data_string];
                 end
                 
+                % have we reported or warned about this yet?
                 if ~any(strcmp(property_name, this.property_not_found_list))
-                    if this.verbose && ~optional
+                    % this is in the hard-coded list of important properties
+                    if any(strcmp(property_name, this.important_properties))
+                        % this is an important property that we definitely want to warn about
+                        warning(report_string);
+                    elseif this.verbose && ~optional
+                        % this is not important, but verbose is on and we haven't warned about it yet
                         disp(report_string)
                     end
+                    % add this to the list of properties we already reported to avoid warning spam
                     this.property_not_found_list = [this.property_not_found_list; property_name];
                 end
             end
@@ -272,9 +298,39 @@ classdef SettingsCustodian < handle
             if any(strcmp(this.force_string_list, property_name))
                 data_old = data;
                 
-                % is this an individual number?
                 if isnumeric(data_old)
-                    data = num2str(data_old);
+                    if numel(data) == 1
+                        % this is a single number
+                        data = num2str(data_old);
+                    else
+                        % not a single number, so transform this to a cell array
+                        data_cell = cell(size(data_old));
+                        for i_entry = 1 : numel(data_old)
+                            this_entry = data_old(i_entry);
+                            if isnumeric(this_entry)
+                                data_cell{i_entry} = num2str(this_entry);
+                            else
+                                data_cell{i_entry} = this_entry;
+                            end
+
+                        end
+                        data = data_cell;
+                        
+                    end
+                end
+                if ~isnumeric(data_old) && ~iscell(data_old)
+                    % not sure we need this case ...
+                    data_cell = cell(size(data_old));
+                    for i_entry = 1 : numel(data_old)
+                        this_entry = data_old(i_entry);
+                        if isnumeric(this_entry)
+                            data_cell{i_entry} = num2str(this_entry);
+                        else
+                            data_cell{i_entry} = this_entry;
+                        end
+                        
+                    end
+                    data = data_cell;
                 end
                 % not a single number, but not a cell?
                 if ~isnumeric(data_old) && ~iscell(data_old)
@@ -303,6 +359,9 @@ classdef SettingsCustodian < handle
             if strcmp(data, '~')
                 data = [];
             end
+        end
+        function present = settingIsPresent(this, property_name)
+            present = isfield(this.settings_struct, property_name);
         end
         
         function table_data = getTable(this, table_name, optional)
@@ -391,6 +450,52 @@ classdef SettingsCustodian < handle
             if strcmp(property_name, 'show_single_data_points')
                 default_data = 0;
             end
+            if strcmp(property_name, 'individual_data_marker_style')
+                default_data = 'o';
+            end
+            if strcmp(property_name, 'individual_data_marker_size')
+                default_data = 4;
+            end
+            if strcmp(property_name, 'discrete_data_spread_width')
+                default_data = 0.8;
+            end
+            if strcmp(property_name, 'discrete_data_spread_face_alpha')
+                default_data = 0.1;
+            end
+            if strcmp(property_name, 'discrete_data_spread_edge_linewidth')
+                default_data = 3;
+            end
+            if strcmp(property_name, 'individual_data_saturation')
+                default_data = 0.5;
+            end
+            if strcmp(property_name, 'individual_data_jitter_std')
+                default_data = 1;
+            end
+            if strcmp(property_name, 'spread_edge_saturation')
+                default_data = 1;
+            end
+            if strcmp(property_name, 'mean_data_saturation')
+                default_data = 0.7;
+            end
+            if strcmp(property_name, 'mean_style')
+                default_data = 'd';
+            end
+            if strcmp(property_name, 'mean_marker_size')
+                default_data = 18;
+            end
+            if strcmp(property_name, 'zero_color')
+                default_data = [0.7 0.7 0.7];
+            end
+            if strcmp(property_name, 'zero_linewidth')
+                default_data = 1;
+            end
+            if strcmp(property_name, 'spread_fill_saturation')
+                default_data = 0.1;
+            end
+            
+
+            
+            
             
             if strcmp(property_name, 'edge_color')
                 default_data = [0.4 0.4 0.4];
@@ -401,6 +506,9 @@ classdef SettingsCustodian < handle
             end
             if strcmp(property_name, 'apply_forceplate_offset')
                 default_data = 0;
+            end
+            if strcmp(property_name, 'forceplate_labels')
+                default_data = {'Fx1','Fy1','Fz1','Mx1','My1','Mz1','Fx2','Fy2','Fz2','Mx2','My2','Mz2'};
             end
             if strcmp(property_name, 'figure_settings_file')
                 default_data = 'eventGuiFigureSettings.mat';
@@ -478,8 +586,10 @@ classdef SettingsCustodian < handle
             if strcmp(property_name, 'force_plates_to_import')
                 default_data = [1, 2];
             end
-            if strcmp(property_name, 'emg_cutoff_frequency_low')
-            
+            if strcmp(property_name, 'combined_forceplate_data_source')
+                default_data = 'calculate';
+            end
+            if strcmp(property_name, 'emg_cutoff_frequency_low')            
                 default_data = 500;
             end
             
@@ -494,6 +604,9 @@ classdef SettingsCustodian < handle
             end
             if strcmp(property_name, 'convert_to_mm')
                 default_data = false;
+            end
+            if strcmp(property_name, 'lab_orientation')
+                default_data = 'normal';
             end
             if strcmp(property_name, 'inverse_kinematics_source')
                 default_data = 'opensim';
@@ -565,6 +678,59 @@ classdef SettingsCustodian < handle
             if strcmp(property_name, 'average_within_subjects')
                 default_data = false;
             end
+            
+            if strcmp(property_name, 'remove_forceplate_zero_data_points')
+                default_data = 1;
+            end
+            if strcmp(property_name, 'remove_forceplate_large_data_points')
+                default_data = 1;
+            end
+            if strcmp(property_name, 'toggle_auto_save_events')
+                default_data = 1;
+            end
+            if strcmp(property_name, 'toggle_auto_stretch_finding')
+                default_data = 1;
+            end
+            if strcmp(property_name, 'lock_add_events_buttons')
+                default_data = 0;
+            end
+            if strcmp(property_name, 'direction_x_pos')
+                default_data = 'right';
+            end
+            if strcmp(property_name, 'direction_x_neg')
+                default_data = 'left';
+            end
+            if strcmp(property_name, 'direction_y_pos')
+                default_data = 'forward';
+            end
+            if strcmp(property_name, 'direction_y_neg')
+                default_data = 'backward';
+            end
+            if strcmp(property_name, 'direction_z_pos')
+                default_data = 'up';
+            end
+            if strcmp(property_name, 'direction_z_neg')
+                default_data = 'down';
+            end
+            if strcmp(property_name, 'forceplate_table_header')
+                default_data = {'label', 'index', 'translation', 'rotation'};
+            end
+            if strcmp(property_name, 'forceplate_table')
+                default_data = ...
+                  { ...
+                      'left', '1', 'from_data', 'forceplate_rotation'; ...
+                      'right', '2', 'from_data', 'forceplate_rotation' ...
+                  };
+            end
+            if strcmp(property_name, 'forceplate_rotation')
+                default_data = [1, 0, 0, 0, -1, 0, 0, 0, 1];
+            end
+            
+            
+            if strcmp(property_name, 'data_to_import')
+                default_data = {'joint_angles', 'marker'};
+            end
+            
             
             
             if strcmp(property_name, 'marker_to_segment_map')
@@ -671,6 +837,7 @@ classdef SettingsCustodian < handle
         function settings_names = getAllSettingsNames(this)
             settings_names = fieldnames(this.settings_struct);
         end
+        
         
     end
 end

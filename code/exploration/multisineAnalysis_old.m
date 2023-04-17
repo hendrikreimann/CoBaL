@@ -1,14 +1,13 @@
 % flags
 analyze_data            = 1;
-plot_results            = 1;
-dictate_axes            = 1;
-save_figure             = 1;
-show_metronome_figure   = 0;
+plot_results            = 0;
+dictate_axes            = 0;
+save_figure             = 0;
 
 export_data             = 0;
 export_results          = 0;
+show_metronome_figure   = 1;
 
-stimulus_type = 'gvs';
 trial_type = 'stimulus'; type_label = 'walking';
 
 % select response variable
@@ -18,8 +17,8 @@ response_variable = 'com_angle'; response_label = 'CoM angle'; response_unit = '
 
 % select trials to analyze
 trials_to_analyze = 1:4; trial_label = 'low cadence'; trial_filename_label = 'lowCadence';
-trials_to_analyze = 5:8; trial_label = 'medium cadence'; trial_filename_label = 'mediumCadence';
-trials_to_analyze = 9:12; trial_label = 'high cadence'; trial_filename_label = 'highCadence';
+% trials_to_analyze = 5:8; trial_label = 'medium cadence'; trial_filename_label = 'mediumCadence';
+% trials_to_analyze = 9:12; trial_label = 'high cadence'; trial_filename_label = 'highCadence';
 
 % trials_to_analyze = 1:12; trial_label = 'all cadences'; trial_filename_label = 'allCadences';
 
@@ -38,41 +37,26 @@ subject_id = subject_settings.get('subject_id');
 if analyze_data
     number_of_trials = length(trials_to_analyze);
 
-    stimulus_data = load(['labview' filesep 'stimulus.mat']);
     protocol_data = load('protocolInfo.mat');
-    multisine_stimulus_amplitudes = zeros(size(trials_to_analyze));
-    paces = zeros(size(trials_to_analyze));
-    gvs_stimulus_amplitudes = zeros(size(trials_to_analyze));
-    metronome_files = cell(number_of_trials, 1);
-    multisine_stimulus_files = cell(number_of_trials, 1);
-    gvs_stimulus_files = cell(number_of_trials, 1);
+    gains = zeros(size(trials_to_analyze));
     for i_trial = 1 : number_of_trials
         trial_number = trials_to_analyze(i_trial);
         trial_index = (protocol_data.trial_number == trial_number) & strcmp(protocol_data.trial_type, trial_type);
-        
-        % get pace
-        metronome_files{i_trial} = protocol_data.metronome_file_name{trial_index};%this_trial_metronome_filename{1};
-        this_trial_metronome_filename = metronome_files{i_trial};
-        this_trial_metronome_strsplit = strsplit(this_trial_metronome_filename, '_');
-        this_trial_metronome = str2double(this_trial_metronome_strsplit{2});
-        metronome_frequency = this_trial_metronome / stimulus_data.single_cycle_duration;
-        paces(i_trial) = metronome_frequency;
-        
-        % get multisine stimulus amplitude
-        if strcmp(stimulus_type, 'visual')
-            multisine_stimulus_files{i_trial} = protocol_data.UseVisualStimulus_FromFile{trial_index};
-        elseif strcmp(stimulus_type, 'gvs')
-            multisine_stimulus_files{i_trial} = protocol_data.UseGVSStimulus_FromFile{trial_index};
-        end
-        this_trial_multisine_stimulus_filename = multisine_stimulus_files{i_trial};
-        this_trial_multisine_stimulus_amplitude_string = this_trial_multisine_stimulus_filename(19:end-4);
-        this_trial_multisine_stimulus_amplitude = str2double(strrep(this_trial_multisine_stimulus_amplitude_string, '_', '.'));
-        
-%         this_trial_multisine_stimulus_strsplit = strsplit(this_trial_multisine_stimulus_filename, '_');
-%         this_trial_multisine_stimulus_strsplit = strsplit(this_trial_multisine_stimulus_strsplit{2}, '.');
-%         this_trial_multisine_stimulus_amplitude = str2double(this_trial_multisine_stimulus_strsplit{1});
-        multisine_stimulus_amplitudes(i_trial) = this_trial_multisine_stimulus_amplitude;
-        
+        this_trial_gain = protocol_data.stimulus_gain(trial_index);
+        gains(i_trial) = this_trial_gain;
+    end
+    paces = zeros(size(trials_to_analyze));
+    metronome_files = cell(size(trials_to_analyze));
+    for i_trial = 1 : number_of_trials
+        trial_number = trials_to_analyze(i_trial);
+        trial_index = (protocol_data.trial_number == trial_number) & strcmp(protocol_data.trial_type, trial_type);
+        this_trial_metronome_string = protocol_data.metronome_file_name(trial_index);
+        metronome_files{i_trial} = this_trial_metronome_string{1};
+        this_trial_pace_string = metronome_files{i_trial};
+        this_trial_pace_string(end-6:end) = [];
+        this_trial_pace_string(1:10) = [];
+        this_trial_pace_string = strrep(this_trial_pace_string, '_', '.');
+        paces(i_trial) = str2double(this_trial_pace_string);
     end
 
     % define filter
@@ -101,7 +85,14 @@ if analyze_data
     for i_trial = 1 : length(trials_to_analyze)
         % load data
         trial_number = trials_to_analyze(i_trial);
-        metronome_frequency = paces(i_trial);
+        
+        if strcmp(metronome_files{i_trial}, 'metronome_0_75_Hz.csv')
+            metronome_frequency = 30 / signal_data.single_cycle_duration;
+        elseif strcmp(metronome_files{i_trial}, 'metronome_0_85_Hz.csv')
+            metronome_frequency = 34 / signal_data.single_cycle_duration;
+        elseif strcmp(metronome_files{i_trial}, 'metronome_0_95_Hz.csv')
+            metronome_frequency = 38 / signal_data.single_cycle_duration;
+        end
         metronome_data = importdata(['labview' filesep metronome_files{i_trial}]);
         metronome_reset_indices = find(diff(metronome_data)) + 1;
         metronome_phase = wrapToPi(2 * pi * signal_data.time * metronome_frequency);
@@ -182,41 +173,25 @@ if analyze_data
         if strcmp(response_variable, 'com_position')
             time_response = time_com;
             time(time>time_response(end)) = [];
-            if strcmp(stimulus_type, 'visual')
-                response = - com_x;
-            elseif strcmp(stimulus_type, 'gvs')
-                response = com_x;
-            end
+            response = - com_x;
             response = spline(time_response, response, time);
         end
         if strcmp(response_variable, 'trunk_angle')
             time_response = time_marker;
-            if strcmp(stimulus_type, 'visual')
-                response = - trunk_angle_trajectory;
-            elseif strcmp(stimulus_type, 'gvs')
-                response = trunk_angle_trajectory;
-            end
+            response = - trunk_angle_trajectory;
             time(time>time_response(end)) = [];
             response = spline(time_response, response, time);
         end
         if strcmp(response_variable, 'com_angle')
             time_response = time_marker;
             time(time>time_response(end)) = [];
-            if strcmp(stimulus_type, 'visual')
-                response = - com_angle_trajectory;
-            elseif strcmp(stimulus_type, 'gvs')
-                response = com_angle_trajectory;
-            end
+            response = - com_angle_trajectory;
             response = spline(time_response, response, time);
         end
         if strcmp(response_variable, 'foot_base')
             time_response = time_marker;
             time(time>time_response(end)) = [];
-            if strcmp(stimulus_type, 'visual')
-                response = - foot_base_x_trajectory;
-            elseif strcmp(stimulus_type, 'gvs')
-                response = foot_base_x_trajectory;
-            end
+            response = - foot_base_x_trajectory;
             response = spline(time_response, response, time);
         end
         if export_data
@@ -249,16 +224,20 @@ if analyze_data
         end
         
         % clean up
+        this_gain = gains(i_trial);
         this_pace = paces(i_trial);
-        this_vis_stim_amplitude = multisine_stimulus_amplitudes(i_trial);
-        this_vis_stimulus = signal_data.multisine_stimulus_normalized * this_vis_stim_amplitude;
-        this_vis_stimulus(signal_data.time>time_response(end)) = [];
+        this_stimulus = signal_data.stimulus * this_gain;
+        this_stimulus(signal_data.time>time_response(end)) = [];
         
         if export_data
-            data_for_export.stimulus = this_vis_stimulus;
+            data_for_export.stimulus = this_stimulus;
             data_for_export.units.stimulus = 'deg';
         end        
         
+%         if strcmp(response_variable, 'com_angle')
+%             this_stimulus = deriveByTime(this_stimulus, time)';
+%         end
+%         
         response = detrend(response);
         response_filtered = filtfilt(b_filter, a_filter, response);
         
@@ -294,7 +273,7 @@ if analyze_data
             this_cycle_start_index = 1 + ppc * (this_cycle_index-1);
             this_cycle_end_index = ppc * this_cycle_index;
             this_cycle_indices = this_cycle_start_index : this_cycle_end_index;
-            yi_raw = fft(this_vis_stimulus(this_cycle_indices)');	    % stimulus dft
+            yi_raw = fft(this_stimulus(this_cycle_indices)');	    % stimulus dft
             yi_raw = conj(yi_raw);
             yo_raw = fft(response(this_cycle_indices)');            % response dft
             yo_raw = conj(yo_raw);
@@ -313,7 +292,7 @@ if analyze_data
             yoo_trial(i_cycle, :) = psfactor_trial*abs(yo_raw2).*abs(yo_raw2);
 
             % add up time domain variables
-            average_stimulus_trial = average_stimulus_trial + this_vis_stimulus(this_cycle_indices);
+            average_stimulus_trial = average_stimulus_trial + this_stimulus(this_cycle_indices);
             average_response_trial = average_response_trial + response(this_cycle_indices);
             average_filtered_response_trial = average_filtered_response_trial + response_filtered(this_cycle_indices);
         end
@@ -397,7 +376,7 @@ if analyze_data
                 Coh_model, ...
                 average_stimulus_trial, ...
                 average_filtered_response_trial, ...
-                ['metronome=' strrep(num2str(this_pace), '.', '_'), '_amplitude=' num2str(this_vis_stim_amplitude)], ...
+                ['metronome=' strrep(num2str(this_pace), '.', '_'), '_amplitude=' num2str(gains(i_trial))], ...
                 '', ...
                 J, ...
                 Mass_kg, ...
@@ -426,7 +405,7 @@ if analyze_data
         average_stimulus{i_trial} = average_stimulus_trial;
         average_response{i_trial} = average_response_trial;
         average_filtered_response{i_trial} = average_filtered_response_trial;
-        stimulus_all{i_trial} = this_vis_stimulus;
+        stimulus_all{i_trial} = this_stimulus;
         response_all{i_trial} = response;
         
         if export_data
@@ -439,34 +418,22 @@ end
 
 
 if plot_results
-    if dictate_axes
-%         gain_ylim = [0.004 0.1];
-        gain_ylim = [0.04 1.1];
-        gain_ylim = [0.2 40];
-        phase_ylim = [-200 500];
-        com_response_ylim = [-0.15 0.15];
-        gvs_response_ylim = [-0.16 0.04];
-    end
-    
     frequency_limits = [0.023 0.5];
+    unique_gains = sort(unique(gains));
     unique_paces = sort(unique(paces));
 
-    number_of_vis_amplitudes = length(unique(multisine_stimulus_amplitudes));
+    number_of_gains = length(unique(gains));
     number_of_paces = length(unique(paces));
     marker_pace_cell = ...
       { ...
-%         0.75, '^'; ...
-%         0.85, 'd'; ...
-%         0.95, 'p'; ...
-        0.6, '^'; ...
-        0.8, 'd'; ...
-        1.0, 'p'; ...
+        0.75, '^'; ...
+        0.85, 'd'; ...
+        0.95, 'p'; ...
       };
     marker_pace_table = cell2table(marker_pace_cell, 'VariableNames', {'pace', 'marker'});
-%     all_multisine_stim_amplitudes = [3; 6; 10; 15];
-    all_multisine_stim_amplitudes = [0.1; 0.3; 0.5; 0.7];
-    colors = copper(numel(all_multisine_stim_amplitudes));
-    color_gain_table = table(all_multisine_stim_amplitudes, colors, 'VariableNames', {'vis_stim_amplitude', 'colors'});
+    all_gains = [3; 6; 10; 15];
+    colors = copper(numel(all_gains));
+    color_gain_table = table(all_gains, colors, 'VariableNames', {'gain', 'color'});
     
 
     % create figure
@@ -515,21 +482,20 @@ if plot_results
     ylabel('Sensory Weights from model fit', 'fontsize', 18)
 %     legend('show', 'Location', 'best')
     xlim([0, 16])
-    xlim([0, 0.8])
 %     ylim([0, 1.1])
 
     
     linewidth = 1;
     for i_trial = 1 : number_of_trials
-        this_vis_stim_amplitude = multisine_stimulus_amplitudes(i_trial);
+        this_gain = gains(i_trial);
         this_pace = paces(i_trial);
         
-        this_vis_stim_index = find(color_gain_table.vis_stim_amplitude == this_vis_stim_amplitude);
+        this_gain_index = find(color_gain_table.gain == this_gain);
         this_pace_index = find(marker_pace_table.pace == this_pace);
         
-        this_color = color_gain_table.colors(this_vis_stim_index, :);
+        this_color = color_gain_table.color(this_gain_index, :);
         this_marker = marker_pace_table.marker{this_pace_index};
-        this_label = [num2str(this_vis_stim_amplitude) ' deg, ' num2str(this_pace) ' Hz'];
+        this_label = [num2str(gains(i_trial)) ' deg, ' num2str(this_pace) ' Hz'];
         
         % plot FRF
         plot(axes_321, fd, abs(FRF_decimated{i_trial}), '-', 'marker', this_marker, 'color', this_color, 'linewidth', linewidth, 'MarkerFaceColor', this_color, 'displayname', this_label);
@@ -547,7 +513,7 @@ if plot_results
         plot(axes_324, time_single_cycle, average_filtered_response{i_trial}, 'color', this_color, 'linewidth', linewidth, 'MarkerFaceColor', this_color);
 
             if fit_model
-                plot(axes_326, this_vis_stim_amplitude, model_fits{i_trial}.gn, 'marker', this_marker, 'displayname', this_label, 'color', this_color, 'markersize', 18, 'MarkerFaceColor', this_color, 'MarkerEdgeColor', 'none');
+                plot(axes_326, gains(i_trial), model_fits{i_trial}.gn, 'marker', this_marker, 'displayname', this_label, 'color', this_color, 'markersize', 18, 'MarkerFaceColor', this_color, 'MarkerEdgeColor', 'none');
             end
 
         
@@ -555,14 +521,14 @@ if plot_results
     
     % connect weights
     if fit_model
-        weights = zeros(size(multisine_stimulus_amplitudes));
+        weights = zeros(size(gains));
         for i_trial = 1 : number_of_trials
             weights(i_trial) = model_fits{i_trial}.gn;
         end
         for i_pace = 1 : number_of_paces
             this_pace = unique_paces(i_pace);
             this_pace_indices = sort(find(paces == this_pace));
-            this_pace_gains = multisine_stimulus_amplitudes(this_pace_indices);
+            this_pace_gains = gains(this_pace_indices);
             this_pace_weights = weights(this_pace_indices);
             connector = plot(axes_326, this_pace_gains, this_pace_weights, '-', 'color', [0.6 0.6 0.6], 'linewidth', 2, 'HandleVisibility', 'off');
             uistack(connector, 'bottom')

@@ -92,9 +92,11 @@ function settings = parseSettings(varargin)
     
     % individual data
     addParameter(parser, 'ShowIndividualData', 1)
+    addParameter(parser, 'IndividualDataInfo', [])
     addParameter(parser, 'IndividualDataMarkerStyle', 'o')
-    addParameter(parser, 'IndividualDataMarkerSize', 18)
+    addParameter(parser, 'IndividualDataMarkerSize', 4)
     addParameter(parser, 'IndividualDataColor', [0.5, 0.5, 0.5])
+    addParameter(parser, 'IndividualDataJitterStd', 1)
     addParameter(parser, 'seed', 0)
     
     % mean
@@ -135,9 +137,11 @@ function settings = parseSettings(varargin)
     settings.color = parser.Results.color;
     
     settings.individual_data.show = parser.Results.ShowIndividualData;
+    settings.individual_data.info = parser.Results.IndividualDataInfo;
     settings.individual_data.marker_style = parser.Results.IndividualDataMarkerStyle;
     settings.individual_data.marker_size = parser.Results.IndividualDataMarkerSize;
     settings.individual_data.color = parser.Results.IndividualDataColor;
+    settings.individual_data.jitter_std = parser.Results.IndividualDataJitterStd;
     settings.seed = parser.Results.seed;
     
     settings.mean.show = parser.Results.ShowMean;
@@ -331,24 +335,11 @@ function plot_handle = plotMark(settings, stats, location)
 end
 
 function plot_handle = plotIndividualData(settings, data, stats)
-    % create plot
-    plot_handle = ...
-        scatter ...
-          ( ...
-            settings.axes, ...
-            ones(size(data))*settings.abscissa, ...
-            data, ...
-            settings.individual_data.marker_size, ...
-            'SizeData', settings.individual_data.marker_size, ...
-            'MarkerFaceColor', settings.individual_data.color, ...
-            'MarkerEdgeColor', 'none' ...
-          );
-      
     % create jitter
     old_stream = RandStream.getGlobalStream;
     new_stream = RandStream.create('mrg32k3a', 'seed', settings.seed);
     RandStream.setGlobalStream(new_stream);
-    jitter = 2*rand(size(data)) - 1;
+    jitter = (2*rand(size(data)) - 1) * settings.individual_data.jitter_std;
     RandStream.setGlobalStream(old_stream);
         
     % normalize jitter by spread
@@ -360,8 +351,54 @@ function plot_handle = plotIndividualData(settings, data, stats)
         jitter(i_point) = jitter(i_point) * this_point_spread;
     end
     
-    % apply jitter
-    set(plot_handle, 'xdata', ones(size(data))*settings.abscissa + jitter)
+    if isempty(settings.individual_data.info)
+        % create plot
+        plot_handle = ...
+            scatter ...
+              ( ...
+                settings.axes, ...
+                ones(size(data))*settings.abscissa, ...
+                data, ...
+                settings.individual_data.marker_size, ...
+                'SizeData', settings.individual_data.marker_size * 4, ...
+                'MarkerFaceColor', settings.individual_data.color, ...
+                'MarkerEdgeColor', 'none' ...
+              );
+
+
+        % apply jitter
+        set(plot_handle, 'xdata', ones(size(data))*settings.abscissa + jitter)        
+    else
+        plot_handle = [];
+        
+        if strcmp(settings.individual_data.marker_style, 'sequence')
+            fillable_sequence = {'o'; 's'; 'd'; '^'; 'v'; '>'; '<'; 'p'; 'h'};
+            marker_styles = repmat(fillable_sequence, ceil(length(data) / length(fillable_sequence)), 1);
+            
+        else
+            marker_styles = cell(length(data), 1);
+            [marker_styles{:}] = deal(settings.individual_data.marker_style);
+        end
+        
+        for i_data = 1 : length(data)
+            this_origin = settings.individual_data.info(i_data);
+            this_plot_handle = ...
+                plot ...
+                  ( ...
+                    settings.axes, ...
+                    settings.abscissa + jitter(i_data), ...
+                    data(i_data), ...
+                    'Marker', marker_styles{i_data}, ...
+                    'MarkerSize', settings.individual_data.marker_size, ...
+                    'MarkerFaceColor', settings.individual_data.color, ...
+                    'MarkerEdgeColor', 'none', ...
+                    'UserData', this_origin ...
+                  );
+        end
+        plot_handle = [plot_handle; this_plot_handle];
+    end
+
+
 
 
 

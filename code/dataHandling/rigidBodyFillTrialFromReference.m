@@ -28,20 +28,17 @@ function rigidBodyFillTrialFromReference(marker_to_fill, marker_source_1, marker
     collection_date = subject_settings.get('collection_date');
     subject_id = subject_settings.get('subject_id');
 
-
-    % get reference positions
-%     marker_reference = load(['processed' filesep makeFileName(date, subject_id, 'calibration', '1', 'markerTrajectories')]);
      % load static reference file
     load(['processed' filesep makeFileName(collection_date, subject_id, subject_settings.get('static_reference_trial_type'), subject_settings.get('static_reference_trial_number'), 'markerTrajectories')]);
 
-        % find first time step where all markers are available
+    % find first time step where all markers are available
     i_time = 1;
     while any(isnan(marker_trajectories(i_time, :)))
         i_time = i_time + 1;
     end
     marker_reference = marker_trajectories(i_time, :);
     
-    % marker_vlabels = 
+    % get marker labels
     marker_to_fill_reference = extractMarkerData(marker_reference, marker_labels, marker_to_fill)';
     marker_source_1_reference = extractMarkerData(marker_reference,marker_labels, marker_source_1)';
     marker_source_2_reference = extractMarkerData(marker_reference, marker_labels, marker_source_2)';

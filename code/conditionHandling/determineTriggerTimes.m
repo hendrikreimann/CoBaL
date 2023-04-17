@@ -65,6 +65,11 @@ function trial_data = determineTriggerTimes(study_settings, trial_data)
         left_touchdown_times = trial_data.loaded_events_data.event_data{strcmp(trial_data.loaded_events_data.event_labels, 'left_touchdown')};
         trial_data.trigger_times = left_touchdown_times(1:end-1);
     end
+    if strcmp(experimental_paradigm, 'Linear Models')
+        left_touchdown_times = trial_data.loaded_events_data.event_data{strcmp(trial_data.loaded_events_data.event_labels, 'left_touchdown')};
+        right_touchdown_times = trial_data.loaded_events_data.event_data{strcmp(trial_data.loaded_events_data.event_labels, 'right_touchdown')};
+        trial_data.trigger_times = sort([left_touchdown_times(1:end-1); right_touchdown_times(1:end-1)]);
+    end
     if strcmp(experimental_paradigm, 'GvsOverground')
         % find the time steps where the first forceplate vertical force crosses a threshold
         stimulus_threshold = 20;
@@ -103,7 +108,16 @@ function trial_data = determineTriggerTimes(study_settings, trial_data)
         % 
         trial_data.trigger_times = left_touchdown_times(~removal_flags);
     end
-    
+    if strcmp(experimental_paradigm, 'postural transitions')
+        if strcmp(trial_data.trial_type, "GI")
+            onset_times = trial_data.loaded_events_data.event_data{strcmp(trial_data.loaded_events_data.event_labels, 'onset')};
+            trial_data.trigger_times = onset_times(1);
+        end
+        if strcmp(trial_data.trial_type, "STS")
+            onset_times = trial_data.loaded_events_data.event_data{strcmp(trial_data.loaded_events_data.event_labels, 'initiation')};
+            trial_data.trigger_times = onset_times(1);
+        end
+    end
 
     % calculate indices
     if exist('trial_data', 'var') && isfield(trial_data, 'time_marker') && ~isempty(trial_data.time_marker)

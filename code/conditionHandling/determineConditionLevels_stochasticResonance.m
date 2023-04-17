@@ -15,7 +15,7 @@
 %     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 function [conditions_trial, event_variables_to_save, removal_flags] = determineConditionLevels_stochasticResonance(subject_settings, trial_data)
-
+    % TODO: this should really just be normal walking + SR stimulus strength, separate that at some point
     stance_foot_data_stretch = {'STANCE_LEFT', 'STANCE_RIGHT'};
 
     bands_per_stretch = length(stance_foot_data_stretch);
@@ -46,13 +46,5 @@ function [conditions_trial, event_variables_to_save, removal_flags] = determineC
     stim_amplitude_list = repmat({this_trial_stimulus_strength}, size(stretch_times, 1), 1);
     conditions_trial = struct;
     conditions_trial.stim_amplitude_list = stim_amplitude_list;
-
-%     % add affected side
-%     affected_side = subject_settings.get('affected_side');
-%     condition_affected_side_list = cell(size(event_variables_to_save.stance_foot_data, 1), 1);
-%     for i_stretch = 1 : length(condition_affected_side_list)
-%         condition_affected_side_list{i_stretch} = affected_side;
-%     end
-%     conditions_trial.affected_side_list = condition_affected_side_list;
 end
 

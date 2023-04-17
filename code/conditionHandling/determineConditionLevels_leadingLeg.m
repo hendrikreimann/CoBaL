@@ -14,23 +14,17 @@
 %     You should have received a copy of the GNU General Public License
 %     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-function conditions_trial = determineConditionLevels_metronome(trial_data, conditions_trial)
-    % find metronome label for current trial
-    protocol_info = load('protocolInfo.mat');
-    this_trial_type = trial_data.trial_type;
-    this_trial_number = trial_data.trial_number;
-    trial_type_indicator = strcmp(protocol_info.trial_type, this_trial_type);
-    trial_number_indicator = (protocol_info.trial_number == this_trial_number);
-    this_trial_indicator = trial_type_indicator & trial_number_indicator;
-    this_trial_metronome = protocol_info.metronome_cadence(this_trial_indicator);
-    metronome_label = num2str(this_trial_metronome);
+function conditions_trial = determineConditionLevels_leadingLeg(subject_settings, trial_data, conditions_trial)
 
-    % make list
     number_of_triggers = length(trial_data.trigger_times);
-    condition_metronome_list = cell(number_of_triggers, 1);
-    for i_stretch = 1 : number_of_triggers
-        condition_metronome_list{i_stretch} = metronome_label;
+    leading_leg = subject_settings.get('leading_leg');
+    if isempty(leading_leg)
+        warning('"leading_leg" not specified in subject settings')
     end
-    conditions_trial.metronome_list = condition_metronome_list;
+    condition_leading_leg_list = cell(number_of_triggers, 1);
+    for i_stretch = 1 : number_of_triggers
+        condition_leading_leg_list{i_stretch} = leading_leg;
+    end
+    conditions_trial.leading_leg_list = condition_leading_leg_list;
 end
 

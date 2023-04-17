@@ -30,6 +30,7 @@ function processStretchVariables(varargin)
     subject_settings = loadSettingsFromFile('subject');
     data_custodian = WalkingDataCustodian();
     number_of_stretch_variables = length(data_custodian.stretch_variable_names);
+    number_of_range_variables = length(data_custodian.range_variable_names);
     collection_date = subject_settings.get('collection_date');
     subject_id = subject_settings.get('subject_id');
 
@@ -40,7 +41,8 @@ function processStretchVariables(varargin)
     number_of_condition_labels = length(condition_labels);
 
     % make containers to hold the data
-    data_session = cell(number_of_stretch_variables, 1);
+    stretch_data_session = cell(number_of_stretch_variables, 1);
+    range_data_session = cell(number_of_range_variables, 1);
     conditions_session = struct;
     for i_condition = 1 : number_of_condition_labels
         conditions_session.(condition_source_variables{i_condition}) = {};
@@ -48,6 +50,7 @@ function processStretchVariables(varargin)
     conditions_session.stance_foot_data = {};
 
     % make containers to store origin information for the stretches
+    stretch_times_session = [];
     origin_trial_list_session = [];
     origin_start_time_list_session = [];
     origin_end_time_list_session = [];
@@ -72,11 +75,15 @@ function processStretchVariables(varargin)
                 condition_relevant_name = conditions_settings{strcmp(conditions_settings(:, 1), condition_relevant_for_analysis), 2};
                 condition_relevant_data = stretch_info.conditions_trial.(condition_relevant_name);
             end
-            data_trial = data_custodian.calculateStretchVariables(stretch_info.stretch_times, stretch_info.stance_foot_data, condition_relevant_data);
+            stretch_data_trial = data_custodian.calculateStretchVariables(stretch_info.stretch_times, stretch_info.stance_foot_data, condition_relevant_data);
+            range_data_trial = data_custodian.calculateRangeVariables(stretch_info.stretch_times);
 
             % append the data and condition lists from this trial to the total lists
             for i_variable = 1 : number_of_stretch_variables
-                data_session{i_variable} = [data_session{i_variable} data_trial{i_variable}];
+                stretch_data_session{i_variable} = [stretch_data_session{i_variable} stretch_data_trial{i_variable}];
+            end
+            for i_variable = 1 : number_of_range_variables
+                range_data_session{i_variable} = [range_data_session{i_variable} range_data_trial{i_variable}];
             end
             for i_condition = 1 : number_of_condition_labels
                 conditions_session.(condition_source_variables{i_condition}) = [conditions_session.(condition_source_variables{i_condition}); stretch_info.conditions_trial.(condition_source_variables{i_condition}) ];
@@ -88,13 +95,14 @@ function processStretchVariables(varargin)
                 origin_end_time_list_session = [origin_end_time_list_session; stretch_info.stretch_times(:, end)]; %#ok<AGROW>
                 time_list = ones(number_of_stretches_this_trial, 1) * (i_trial - 1) * study_settings.get('trial_length') + stretch_info.stretch_times(:, 1);
                 time_list_session = [time_list_session; time_list]; %#ok<AGROW>
+                stretch_times_session = [stretch_times_session; stretch_info.stretch_times];
             end
             disp(['Processing stretch variables: condition ' condition_list{i_type} ', Trial ' num2str(i_trial) ' completed']);
         end
     end
 
     %% calculate some subject-level data and report
-    number_of_stretches_session = size(data_session{1}, 2);
+    number_of_stretches_session = size(stretch_data_session{1}, 2);
 
     % make condition data tables
     condition_data_all = cell(number_of_stretches_session, number_of_condition_labels);
@@ -144,33 +152,33 @@ function processStretchVariables(varargin)
     disp(['Number of analyzed stretches: ' num2str(sum(trials_per_condition))]);
     disp(['Number of un-analyzed stretches: ' num2str(number_of_stretches_session - sum(trials_per_condition))]);
 
-    stretch_data_session = data_session;
-    stretch_names_session = data_custodian.stretch_variable_names;
-    stretch_directions_session = data_custodian.stretch_variable_directions;
-
-    bands_per_stretch = median(bands_per_stretch_session);
-    if any(bands_per_stretch_session ~= bands_per_stretch)
+    %% save data
+    variables_to_save = struct;
+    variables_to_save.stretch_times = stretch_times_session';
+    variables_to_save.stretch_data_session = stretch_data_session;
+    variables_to_save.stretch_names_session = data_custodian.stretch_variable_names;
+    variables_to_save.stretch_directions_session = data_custodian.stretch_variable_directions;
+    if number_of_range_variables > 0
+        variables_to_save.range_data_session = range_data_session;
+        variables_to_save.range_names_session = data_custodian.range_variable_names;
+        variables_to_save.range_directions_session = data_custodian.range_variable_directions;
+    end
+    variables_to_save.bands_per_stretch = median(bands_per_stretch_session);
+    if any(bands_per_stretch_session ~= variables_to_save.bands_per_stretch)
         warning('Different trials have different numbers of bands per stretch')
     end
-
-    %% save data
+    
+    variables_to_save.conditions_session = conditions_session;
+    variables_to_save.origin_trial_list_session = origin_trial_list_session;
+    variables_to_save.origin_start_time_list_session = origin_start_time_list_session;
+    variables_to_save.origin_end_time_list_session = origin_end_time_list_session;
+    variables_to_save.time_list_session = time_list_session;
+    
     if ~directoryExists('results')
         mkdir('results')
     end
     results_file_name = ['results' filesep makeFileName(collection_date, subject_id, 'results')];
-    save ...
-      ( ...
-        results_file_name, ...
-        'conditions_session', ...
-        'stretch_data_session', ...
-        'stretch_names_session', ...
-        'stretch_directions_session', ...
-        'bands_per_stretch', ...
-        'origin_trial_list_session', ...
-        'origin_start_time_list_session', ...
-        'origin_end_time_list_session', ...
-        'time_list_session' ...
-      )
+    save(results_file_name, '-struct', 'variables_to_save');
 end
 
           
