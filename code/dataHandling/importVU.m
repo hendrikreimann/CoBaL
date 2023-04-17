@@ -501,7 +501,9 @@ function importTrialDataMarker(vu_data, file_info)
     marker_labels = [marker_labels this_marker_labels];
     marker_directions = [marker_directions this_marker_directions];
     
-    % save
+    [com_trajectories, com_labels, com_directions] = calculateComTrajectories(markers_vu);
+
+    % save markers
     save_folder = 'raw';
     save_file_name = makeFileName(file_info.collection_date, file_info.subject_id, file_info.trial_type, file_info.trial_number, 'markerTrajectoriesRaw.mat');
     save ...
@@ -514,7 +516,51 @@ function importTrialDataMarker(vu_data, file_info)
         'marker_directions' ...
         );
     addAvailableData('marker_raw_trajectories', 'time', 'sampling_rate', '_marker_labels', '_marker_directions', save_folder, save_file_name);
+
+    % save com
+    save_folder = 'processed';
+    save_file_name = makeFileName(file_info.collection_date, file_info.subject_id, file_info.trial_type, file_info.trial_number, 'comTrajectoriesRaw.mat');
+    save ...
+        ( ...
+        [save_folder filesep save_file_name], ...
+        'com_trajectories', ...
+        'time', ...
+        'sampling_rate', ...
+        'com_labels', ...
+        'com_directions' ...
+        );
+    addAvailableData('com_trajectories', 'time', 'sampling_rate', '_com_labels', '_com_directions', save_folder, save_file_name);
 end
+
+function [com_trajectories, com_labels, com_directions] = calculateComTrajectories(markers)
+    number_of_segments = size(markers.segment, 2);
+    
+    com_trajectories = zeros(size(markers.segment(1).com));
+    body_mass = 0;
+    for i_segment = 1 : number_of_segments
+        this_segment = markers.segment(i_segment);
+
+        if ~isempty(this_segment.mass)
+            % extract CoM and add to sum
+            this_segment_com_contribution = this_segment.com * this_segment.mass;
+            com_trajectories = com_trajectories + this_segment_com_contribution;
+
+            % add this segment mass to body mass
+            body_mass = body_mass + this_segment.mass;
+        end
+
+    end
+
+    % normalize CoM trajectory by body mass
+    com_trajectories = com_trajectories * 1/body_mass;
+
+    % define labels
+    com_labels = {'x', 'y', 'z'};
+    
+    % define directions
+    com_directions = [{'right'; 'left'}, {'forward'; 'backward'}, {'up'; 'down'}];
+end
+
 
 function [marker_trajectories, marker_labels, marker_directions] = extractSingleMarkerTrajectory(data, segment_label, marker_label)
     % extract segment names
