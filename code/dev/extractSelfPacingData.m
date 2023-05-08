@@ -25,6 +25,7 @@ function extractSelfPacingData(varargin)
 
     %% prepare
     subject_settings = loadSettingsFromFile('subject');
+    study_settings = loadSettingsFromFile('study');
 
     %% process
     for i_trial = 1 : height(trials_to_process_table)
@@ -35,32 +36,46 @@ function extractSelfPacingData(varargin)
         trial_data.trial_type = trials_to_process_table{i_trial, 'trial type'};
         trial_data.trial_number = trials_to_process_table{i_trial, 'trial number'};
 
-        % load belt speed data and integrate to belt translation
+        % load belt speed data
         collection_date = subject_settings.get('collection_date');
         subject_id = subject_settings.get('subject_id');
         plc_data = load(['processed' filesep makeFileName(collection_date, subject_id, trial_data.trial_type, trial_data.trial_number, 'PLCData.mat')]);
         belt_velocity = (plc_data.belt_speed_left_trajectory + plc_data.belt_speed_right_trajectory) * 0.5;
-        belt_translation = cumtrapz(plc_data.time, belt_velocity);
+
+        % rotate belt velocity according to forceplate frame
+        v_belt = [0; -1; 0] * belt_velocity'; % default vector of belt movement
+        R_fp_from_lab = reshape(study_settings.get('forceplate_rotation', true), 3, 3);
+        v_belt_transformed = R_fp_from_lab * v_belt;
+        % NOTE: this is tested properly only for flips of the y-axis
+
+        % and integrate to belt translation
+        belt_translation = cumtrapz(plc_data.time, v_belt_transformed');
         
         % load marker kinematics
         load_file_name = ['processed' filesep makeFileName(collection_date, subject_id, trial_data.trial_type, trial_data.trial_number, 'markerTrajectories.mat')];
         marker_data = load(load_file_name);
         
         % resample belt translation to marker time
-        belt_translation_resampled = spline(plc_data.time, belt_translation, marker_data.time_mocap);
+        belt_translation_resampled = spline(plc_data.time, belt_translation', marker_data.time_mocap)';
         
         % add belt translation to ap-component of all data
         marker_data_belt = marker_data;
         for i_label = 1 : length(marker_data.marker_labels)
             this_label = marker_data.marker_labels{i_label};
+            if ~isempty(this_label) && this_label(end) == 'x'
+                marker_data_belt.marker_trajectories(:, i_label) = marker_data_belt.marker_trajectories(:, i_label) + belt_translation_resampled(:, 1);
+            end
             if ~isempty(this_label) && this_label(end) == 'y'
-                marker_data_belt.marker_trajectories(:, i_label) = marker_data_belt.marker_trajectories(:, i_label) + belt_translation_resampled;
+                marker_data_belt.marker_trajectories(:, i_label) = marker_data_belt.marker_trajectories(:, i_label) + belt_translation_resampled(:, 2);
+            end
+            if ~isempty(this_label) && this_label(end) == 'z'
+                marker_data_belt.marker_trajectories(:, i_label) = marker_data_belt.marker_trajectories(:, i_label) + belt_translation_resampled(:, 3);
             end
         end
         
         % save translated data
         marker_data_belt.markerBelt_trajectories = marker_data_belt.marker_trajectories;
-        rmfield(marker_data_belt, 'marker_trajectories');
+        marker_data_belt = rmfield(marker_data_belt, 'marker_trajectories');
         save_folder = 'processed';
         save_file_name = makeFileName(collection_date, subject_id, trial_data.trial_type, trial_data.trial_number, 'markerBeltTrajectories.mat');
         save([save_folder filesep save_file_name], '-struct', 'marker_data_belt');

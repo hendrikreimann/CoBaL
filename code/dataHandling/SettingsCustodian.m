@@ -408,6 +408,9 @@ classdef SettingsCustodian < handle
             if strcmp(property_name, 'left_armswing_peak_prominence_threshold')
                 default_data = 10;
             end
+            if strcmp(property_name, 'min_peak_distance')
+                default_data = 200;
+            end
             if strcmp(property_name, 'left_armswing_peak_distance_threshold')
                 default_data = 0.25;
             end

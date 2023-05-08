@@ -198,6 +198,14 @@ classdef WalkingDataCustodian < handle
                     this.addBasicVariable('marker_trajectories')
                     this.addStretchVariable('step_placement_y')
                 end
+                if strcmp(this_variable_name, 'foot_placement_x')
+                    this.addBasicVariable('marker_trajectories')
+                    this.addStretchVariable('foot_placement_x')
+                end
+                if strcmp(this_variable_name, 'foot_placement_y')
+                    this.addBasicVariable('markerBelt_trajectories')
+                    this.addStretchVariable('foot_placement_y')
+                end
                 if strcmp(this_variable_name, 'xcom_x')
                     this.addBasicVariable('marker_trajectories')
                     this.addBasicVariable('com_position_trajectories')
@@ -852,6 +860,62 @@ classdef WalkingDataCustodian < handle
                             end
                             if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_LEFT')
                                 stretch_data(i_band) = RHEE_y(band_end_indices) - LHEE_y(band_end_indices);
+                            end
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_BOTH')
+                                stretch_data(i_band) = NaN;
+                            end
+                        end
+                    end
+                    if strcmp(variable_name, 'foot_placement_x')
+                        LHEE_x = this.getTimeNormalizedData('marker:LHEE_x', this_stretch_times);
+                        LANK_x = this.getTimeNormalizedData('marker:LANK_x', this_stretch_times);
+                        LTOE_x = this.getTimeNormalizedData('marker:LTOE_x', this_stretch_times);
+                        LTOEL_x = this.getTimeNormalizedData('marker:LTOEL_x', this_stretch_times);
+                        RHEE_x = this.getTimeNormalizedData('marker:RHEE_x', this_stretch_times);
+                        RANK_x = this.getTimeNormalizedData('marker:RANK_x', this_stretch_times);
+                        RTOE_x = this.getTimeNormalizedData('marker:RTOE_x', this_stretch_times);
+                        RTOEL_x = this.getTimeNormalizedData('marker:RTOEL_x', this_stretch_times);
+
+                        mid_foot_x_left = (LHEE_x + LANK_x + LTOE_x + LTOEL_x) * 0.25;
+                        mid_foot_x_right = (RHEE_x + RANK_x + RTOE_x + RTOEL_x) * 0.25;
+
+                        stretch_data = zeros(number_of_bands, 1) * NaN;
+                        for i_band = 1 : number_of_bands-1
+                            [band_start_indices, band_end_indices] = getBandIndices([i_band, i_band+1], this.number_of_time_steps_normalized);
+                            band_mid_indices = round(mean([band_start_indices; band_end_indices]));
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_RIGHT')
+                                stretch_data(i_band) = mid_foot_x_left(band_mid_indices(2)) - mid_foot_x_right(band_mid_indices(1));
+                            end
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_LEFT')
+                                stretch_data(i_band) = mid_foot_x_right(band_mid_indices(2)) - mid_foot_x_left(band_mid_indices(1));
+                            end
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_BOTH')
+                                stretch_data(i_band) = NaN;
+                            end
+                        end
+                    end
+                    if strcmp(variable_name, 'foot_placement_y')
+                        LHEE_y = this.getTimeNormalizedData('markerBelt:LHEE_y', this_stretch_times);
+                        LANK_y = this.getTimeNormalizedData('markerBelt:LANK_y', this_stretch_times);
+                        LTOE_y = this.getTimeNormalizedData('markerBelt:LTOE_y', this_stretch_times);
+                        LTOEL_y = this.getTimeNormalizedData('markerBelt:LTOEL_y', this_stretch_times);
+                        RHEE_y = this.getTimeNormalizedData('markerBelt:RHEE_y', this_stretch_times);
+                        RANK_y = this.getTimeNormalizedData('markerBelt:RANK_y', this_stretch_times);
+                        RTOE_y = this.getTimeNormalizedData('markerBelt:RTOE_y', this_stretch_times);
+                        RTOEL_y = this.getTimeNormalizedData('markerBelt:RTOEL_y', this_stretch_times);
+
+                        mid_foot_y_left = (LHEE_y + LANK_y + LTOE_y + LTOEL_y) * 0.25;
+                        mid_foot_y_right = (RHEE_y + RANK_y + RTOE_y + RTOEL_y) * 0.25;
+
+                        stretch_data = zeros(number_of_bands, 1) * NaN;
+                        for i_band = 1 : number_of_bands-1
+                            [band_start_indices, band_end_indices] = getBandIndices([i_band, i_band+1], this.number_of_time_steps_normalized);
+                            band_mid_indices = round(mean([band_start_indices; band_end_indices]));
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_RIGHT')
+                                stretch_data(i_band) = mid_foot_y_left(band_mid_indices(2)) - mid_foot_y_right(band_mid_indices(1));
+                            end
+                            if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_LEFT')
+                                stretch_data(i_band) = mid_foot_y_right(band_mid_indices(2)) - mid_foot_y_left(band_mid_indices(1));
                             end
                             if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_BOTH')
                                 stretch_data(i_band) = NaN;
@@ -2509,6 +2573,28 @@ classdef WalkingDataCustodian < handle
             if strcmp(variable_name, 'step_placement_y')
                 [~, LHEE_y_directions] = this.getBasicVariableData('marker:LHEE_y');
                 [~, RHEE_y_directions] = this.getBasicVariableData('marker:RHEE_y');
+                if ~strcmp(LHEE_y_directions{1}, RHEE_y_directions{1})
+                    error('LHEE_y and RHEE_y directions are different from each other')
+                end
+                if ~strcmp(LHEE_y_directions{2}, RHEE_y_directions{2})
+                    error('LHEE_y and RHEE_y directions are different from each other')
+                end
+                stretch_directions_new = LHEE_y_directions;
+            end
+            if strcmp(variable_name, 'foot_placement_x')
+                [~, LHEE_x_directions] = this.getBasicVariableData('marker:LHEE_x');
+                [~, RHEE_x_directions] = this.getBasicVariableData('marker:RHEE_x');
+                if ~strcmp(LHEE_x_directions{1}, RHEE_x_directions{1})
+                    error('LHEE_x and RHEE_x directions are different from each other')
+                end
+                if ~strcmp(LHEE_x_directions{2}, RHEE_x_directions{2})
+                    error('LHEE_x and RHEE_x directions are different from each other')
+                end
+                stretch_directions_new = LHEE_x_directions;
+            end
+            if strcmp(variable_name, 'foot_placement_y')
+                [~, LHEE_y_directions] = this.getBasicVariableData('markerBelt:LHEE_y');
+                [~, RHEE_y_directions] = this.getBasicVariableData('markerBelt:RHEE_y');
                 if ~strcmp(LHEE_y_directions{1}, RHEE_y_directions{1})
                     error('LHEE_y and RHEE_y directions are different from each other')
                 end
