@@ -463,7 +463,13 @@ classdef WalkingDataCustodian < handle
                 if strcmp(this_variable_name, 'band_duration')
                     this.addStretchVariable('band_duration')
                 end
-
+                if strcmp(this_variable_name, 'stance_duration')
+                    this.addStretchVariable('stance_duration')
+                end
+                if strcmp(this_variable_name, 'swing_duration')
+                    this.addStretchVariable('swing_duration')
+                end
+                
                 % segment angles and lengths
                 if strcmp(this_variable_name, 'leg_length_l')
                     this.addBasicVariable('marker_trajectories')
@@ -1797,13 +1803,13 @@ classdef WalkingDataCustodian < handle
                     if strcmp(variable_name, 'step_time')
                         stretch_data = diff(this_stretch_times)';
                     end
-                    if strcmp(variable_name, 'stance_time')
+                    if strcmp(variable_name, 'stance_time') || strcmp(variable_name, 'stance_duration') % should be stance_duration, but stance_time is left in for backward compatibility
                         % load events
                         left_pushoff_times = this.event_data.event_data{strcmp(this.event_data.event_labels, 'left_pushoff')};
                         right_pushoff_times = this.event_data.event_data{strcmp(this.event_data.event_labels, 'right_pushoff')};
                         
                         stretch_data = zeros(number_of_bands, 1);
-                        for i_band = 1 : number_of_bands
+                        for i_band = 1 : number_of_bands - 1
                             if strcmp(stance_foot_data{i_stretch, i_band}, 'STANCE_RIGHT')
                                 % find first right push-off after band end
                                 band_start_time = this_stretch_times(i_band);
@@ -1823,7 +1829,7 @@ classdef WalkingDataCustodian < handle
                             end
                         end
                     end
-                    if strcmp(variable_name, 'swing_time')
+                    if strcmp(variable_name, 'swing_time') || strcmp(variable_name, 'swing_duration') % should be swing_duration, but swing_time is left in for backward compatibility
                         % load events
                         left_pushoff_times = this.event_data.event_data{strcmp(this.event_data.event_labels, 'left_pushoff')};
                         right_pushoff_times = this.event_data.event_data{strcmp(this.event_data.event_labels, 'right_pushoff')};
@@ -2377,7 +2383,52 @@ classdef WalkingDataCustodian < handle
                     if strcmp(this_variable_name, 'start_time_within_trial')
                         range_data = this_stretch_times(1);
                     end
-                    
+                    if strcmp(this_variable_name, 'stance_duration_asymmetry')
+                        % get stance duration data
+                        stance_duration_data = this.stretch_variable_data{strcmp(this.stretch_variable_names, 'stance_duration')};
+                        this_stretch_stance_durations = stance_duration_data(:, i_stretch);
+                        stance_duration_one = this_stretch_stance_durations(1);
+                        stance_duration_two = this_stretch_stance_durations(2);
+                        this_stretch_stance_duration_asymmetry = (stance_duration_one - stance_duration_two) / (stance_duration_one + stance_duration_two);
+                        range_data = this_stretch_stance_duration_asymmetry;
+                    end
+                    if strcmp(this_variable_name, 'swing_duration_asymmetry')
+                        % get swing duration data
+                        swing_duration_data = this.stretch_variable_data{strcmp(this.stretch_variable_names, 'swing_duration')};
+                        this_stretch_swing_durations = swing_duration_data(:, i_stretch);
+                        swing_duration_one = this_stretch_swing_durations(1);
+                        swing_duration_two = this_stretch_swing_durations(2);
+                        this_stretch_swing_duration_asymmetry = (swing_duration_two - swing_duration_one) / (swing_duration_one + swing_duration_two);
+                        range_data = this_stretch_swing_duration_asymmetry;
+                    end
+                    if strcmp(this_variable_name, 'stance_duration_asymmetry_time_point')
+                        % get relevant time points
+                        heelstrike_time_one = this_stretch_times(1);
+                        heelstrike_time_two = this_stretch_times(2);
+                        heelstrike_time_three = this_stretch_times(3);
+                        pushoff_time_data = this.stretch_variable_data{strcmp(this.stretch_variable_names, 'pushoff_time')}(:, i_stretch); % pushoff time is relative within band
+                        pushoff_time_one = heelstrike_time_one + pushoff_time_data(1);
+                        pushoff_time_two = heelstrike_time_two + pushoff_time_data(2);
+                        pushoff_time_three = heelstrike_time_three + pushoff_time_data(3);
+
+                        % calculate stance duration time points as mid-point between heelstrike and pushoff
+                        stance_duration_time_point_one = (heelstrike_time_one + pushoff_time_two) * 0.5;
+                        stance_duration_time_point_two = (heelstrike_time_two + pushoff_time_three) * 0.5;
+
+                        % calculate stance duration asymmetry time point as mid-point between stance duration time points for the two steps
+                        range_data = (stance_duration_time_point_one + stance_duration_time_point_two) * 0.5;
+                    end
+                    if strcmp(this_variable_name, 'swing_duration_asymmetry_time_point')
+                        % get swing duration data
+%                         swing_duration_data = this.stretch_variable_data{strcmp(this.stretch_variable_names, 'swing_duration')};
+%                         this_stretch_swing_durations = swing_duration_data(:, i_stretch);
+%                         swing_duration_one = this_stretch_swing_durations(1);
+%                         swing_duration_two = this_stretch_swing_durations(2);
+%                         this_stretch_swing_duration_asymmetry = (swing_duration_two - swing_duration_one) / (swing_duration_one + swing_duration_two);
+%                         range_data = this_stretch_swing_duration_asymmetry;
+                    end
+
+
                     % store in cell
                     range_variables{i_variable} = [range_variables{i_variable} range_data];
                 end
@@ -2865,10 +2916,10 @@ classdef WalkingDataCustodian < handle
             if strcmp(variable_name, 'step_time')
                 stretch_directions_new = {'+'; '-'};
             end
-            if strcmp(variable_name, 'stance_time')
+            if strcmp(variable_name, 'stance_time') || strcmp(variable_name, 'stance_duration')
                 stretch_directions_new = {'+'; '-'};
             end
-            if strcmp(variable_name, 'swing_time')
+            if strcmp(variable_name, 'swing_time') || strcmp(variable_name, 'swing_duration')
                 stretch_directions_new = {'+'; '-'};
             end
             if strcmp(variable_name, 'pushoff_time')
@@ -3368,6 +3419,18 @@ classdef WalkingDataCustodian < handle
                 end
             end
             if strcmp(variable_name, 'start_time_within_trial')
+                range_directions_new = {'+';'-'};
+            end
+            if strcmp(variable_name, 'stance_duration_asymmetry')
+                range_directions_new = {'+';'-'};
+            end
+            if strcmp(variable_name, 'swing_duration_asymmetry')
+                range_directions_new = {'+';'-'};
+            end
+            if strcmp(variable_name, 'stance_duration_asymmetry_time_point')
+                range_directions_new = {'+';'-'};
+            end
+            if strcmp(variable_name, 'swing_duration_asymmetry_time_point')
                 range_directions_new = {'+';'-'};
             end
             

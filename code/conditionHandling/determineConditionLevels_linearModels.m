@@ -33,12 +33,19 @@ function [conditions_trial, event_variables_to_save, removal_flags] = determineC
         this_right_touchdown = min(right_touchdown_times(right_touchdown_times > this_stretch_start));
         this_left_pushoff = min(left_pushoff_times(left_pushoff_times > this_stretch_start));
         this_left_touchdown = min(left_touchdown_times(left_touchdown_times > this_stretch_start));
-        
+
+        next_right_touchdown = min(right_touchdown_times(right_touchdown_times > this_right_touchdown));
+        next_left_touchdown = min(left_touchdown_times(left_touchdown_times > this_left_touchdown));
+
         % determine whether this stretch is started by a left or a right heel-strike
         if ismember(this_stretch_start, left_touchdown_times)
             if bands_per_stretch == 2
                 stance_foot_data(i_stretch, :) = {'STANCE_LEFT', 'STANCE_RIGHT'};
                 this_stretch_times = [this_stretch_start this_right_touchdown this_left_touchdown];
+            end
+            if bands_per_stretch == 3
+                stance_foot_data(i_stretch, :) = {'STANCE_LEFT', 'STANCE_RIGHT', 'STANCE_LEFT'};
+                this_stretch_times = [this_stretch_start this_right_touchdown this_left_touchdown next_right_touchdown];
             end
             if bands_per_stretch == 4
                 stance_foot_data(i_stretch, :) = {'STANCE_LEFT', 'STANCE_LEFT', 'STANCE_RIGHT', 'STANCE_RIGHT'};
@@ -49,6 +56,10 @@ function [conditions_trial, event_variables_to_save, removal_flags] = determineC
             if bands_per_stretch == 2
                 stance_foot_data(i_stretch, :) = {'STANCE_RIGHT', 'STANCE_LEFT'};
                 this_stretch_times = [this_stretch_start this_left_touchdown this_right_touchdown];
+            end
+            if bands_per_stretch == 3
+                stance_foot_data(i_stretch, :) = {'STANCE_RIGHT', 'STANCE_LEFT', 'STANCE_RIGHT'};
+                this_stretch_times = [this_stretch_start this_left_touchdown this_right_touchdown next_left_touchdown];
             end
             if bands_per_stretch == 4
                 stance_foot_data(i_stretch, :) = {'STANCE_RIGHT', 'STANCE_RIGHT', 'STANCE_LEFT', 'STANCE_LEFT'};
