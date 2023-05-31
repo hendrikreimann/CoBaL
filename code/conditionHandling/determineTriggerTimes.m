@@ -109,6 +109,10 @@ function trial_data = determineTriggerTimes(study_settings, trial_data)
             onset_times = trial_data.loaded_events_data.event_data{strcmp(trial_data.loaded_events_data.event_labels, 'onset')};
             trial_data.trigger_times = onset_times(1);
         end
+        if strcmp(trial_data.trial_type, "STS")
+            onset_times = trial_data.loaded_events_data.event_data{strcmp(trial_data.loaded_events_data.event_labels, 'initiation')};
+            trial_data.trigger_times = onset_times(1);
+        end
     end
 
     % calculate indices
