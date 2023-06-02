@@ -40,7 +40,7 @@ function collectPopulationResults(varargin)
             save_file = ['results_' source_label];
         end
     end
-    save_file_full = ['groupResults' filesep 'results.mat'];
+    save_file_full = ['groupResults' filesep save_file];
     
 
     % load settings
@@ -56,18 +56,6 @@ function collectPopulationResults(varargin)
     variables_to_collect = study_settings.get('variables_to_collect');
     variables_to_collect_long = study_settings.get('variables_to_collect_long', 1);
 
-    % 2023-02-15 HR: removing this for now, I think this is leftover from the Getanjali project, which I don't need and
-    % currently confuses things
-%     component_labels = study_settings.get('component_labels');
-%     
-%     % remove variables from this list that don't match the source type
-%     if any(strcmp(component_labels, 'source file'))
-%         source_column = strcmp(component_labels, 'source file');
-%         source_match = strcmp(variables_to_collect(:, source_column), source_label);
-%         variables_to_collect(~source_match, :) = [];
-%     end
-    
-    
     % prepare
     number_of_variables_to_collect = size(variables_to_collect, 1);
     number_of_variables_to_collect_long = size(variables_to_collect_long, 1);
